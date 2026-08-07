@@ -3,7 +3,7 @@
   "title": "비동기 작업·응답 유실",
   "implementationPackage": "com.cpf.reference.optional.operations.asyncoperation",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "businessId",
     "approvalId"

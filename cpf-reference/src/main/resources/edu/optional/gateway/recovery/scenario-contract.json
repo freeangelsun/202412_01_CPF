@@ -3,7 +3,7 @@
   "title": "Gateway 관측·개인정보 가림·감사",
   "implementationPackage": "com.cpf.reference.optional.gateway.recovery",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "logPolicy",
     "sampling",

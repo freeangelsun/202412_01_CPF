@@ -3,7 +3,7 @@
   "title": "첨부·알림·감사·다운로드",
   "implementationPackage": "com.cpf.reference.optional.backoffice.evidence",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "approvalId",
     "attachmentId",
@@ -93,8 +93,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

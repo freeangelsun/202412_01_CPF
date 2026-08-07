@@ -18,7 +18,9 @@ public class AdmIntegrationClosureProperties {
     private boolean ephemeralProvidersEnabled;
     private Duration correctionApprovalTtl = Duration.ofMinutes(15);
     /** Shared 256-bit HMAC key for single-use correction execution proof. */
+    /** Raw secret is local/dev compatibility only; prod/stg must use approvalProofKeyRef. */
     private String approvalProofKeyBase64;
+    private String approvalProofKeyRef;
     private final Webhook webhook = new Webhook();
     private final Crypto crypto = new Crypto();
 
@@ -29,6 +31,8 @@ public class AdmIntegrationClosureProperties {
     public Duration getCorrectionApprovalTtl() { return correctionApprovalTtl; }
     public String getApprovalProofKeyBase64() { return approvalProofKeyBase64; }
     public void setApprovalProofKeyBase64(String approvalProofKeyBase64) { this.approvalProofKeyBase64 = approvalProofKeyBase64; }
+    public String getApprovalProofKeyRef() { return approvalProofKeyRef; }
+    public void setApprovalProofKeyRef(String approvalProofKeyRef) { this.approvalProofKeyRef = approvalProofKeyRef; }
     public void setCorrectionApprovalTtl(Duration correctionApprovalTtl) {
         if (correctionApprovalTtl == null || correctionApprovalTtl.isNegative() || correctionApprovalTtl.isZero()) {
             throw new IllegalArgumentException("correctionApprovalTtl must be positive");
@@ -59,12 +63,16 @@ public class AdmIntegrationClosureProperties {
     public static final class Crypto {
         private boolean enabled;
         private String activeKeyVersion;
+        /** Raw secret is local/dev compatibility only; prod/stg must use activeKeyRef. */
         private String activeKeyBase64;
+        private String activeKeyRef;
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
         public String getActiveKeyVersion() { return activeKeyVersion; }
         public void setActiveKeyVersion(String activeKeyVersion) { this.activeKeyVersion = activeKeyVersion; }
         public String getActiveKeyBase64() { return activeKeyBase64; }
         public void setActiveKeyBase64(String activeKeyBase64) { this.activeKeyBase64 = activeKeyBase64; }
+        public String getActiveKeyRef() { return activeKeyRef; }
+        public void setActiveKeyRef(String activeKeyRef) { this.activeKeyRef = activeKeyRef; }
     }
 }

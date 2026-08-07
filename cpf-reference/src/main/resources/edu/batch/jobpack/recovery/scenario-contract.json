@@ -3,7 +3,7 @@
   "title": "Job Pack Checksum·호환성·이전 Version 복구",
   "implementationPackage": "com.cpf.reference.batch.jobpack.recovery",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "artifactVersion",
     "checksum",

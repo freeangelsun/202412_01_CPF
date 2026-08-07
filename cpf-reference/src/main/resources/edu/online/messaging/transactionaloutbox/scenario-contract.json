@@ -3,7 +3,7 @@
   "title": "Transactional Outbox 게시 지연·재시작",
   "implementationPackage": "com.cpf.reference.online.messaging.transactionaloutbox",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "aggregateId",
     "eventType",

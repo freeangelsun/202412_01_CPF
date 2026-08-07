@@ -3,7 +3,7 @@
   "title": "다단계 고객 업무 상태기계와 취소·재개",
   "implementationPackage": "com.cpf.reference.online.workflow.statemachine",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "applicationId",
     "action",

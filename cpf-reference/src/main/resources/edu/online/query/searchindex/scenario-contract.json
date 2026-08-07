@@ -3,7 +3,7 @@
   "title": "조회 모델·검색색인 Eventual Consistency",
   "implementationPackage": "com.cpf.reference.online.query.searchindex",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "aggregateId",
     "eventOffset",

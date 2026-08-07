@@ -222,6 +222,9 @@ public class AdmBatchController extends com.cpf.admin.common.base.AdmBaseControl
         String reason = auditLogService.requireReason(request.reason());
         String operator = requireOperator(servletRequest);
         String action = requireText(request.actionType(), "actionType").toUpperCase(java.util.Locale.ROOT);
+        if (!java.util.Set.of("FAIL", "ABANDON", "RELEASE_LOCK").contains(action)) {
+            throw new com.cpf.core.api.error.CpfValidationException("ghost actionType은 FAIL/ABANDON/RELEASE_LOCK 중 하나여야 합니다.");
+        }
         CpfBatchRiskCommand command = riskCommand(
                 "actGhostExecution", "bat_execution", String.valueOf(executionId), "BATCH_GHOST_" + action,
                 operator, reason, request.approvalRequestId(), request.idempotencyKey(),

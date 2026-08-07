@@ -9,6 +9,8 @@ const release = process.env.CPF_E2E_RELEASE === "true";
 const storageState = process.env.CPF_E2E_AUTH_STATE;
 const requiredReleaseInputs = [
   "CPF_E2E_AUTH_STATE",
+  "CPF_E2E_AUTH_STATE_READONLY",
+  "CPF_E2E_AUTH_STATE_OPERATOR",
   "CPF_E2E_PRIVILEGED_ENDPOINTS",
   "CPF_E2E_ROUTE_MATRIX",
   "CPF_E2E_FAILURE_MATRIX",
@@ -18,8 +20,11 @@ if (release) {
   for (const name of requiredReleaseInputs) {
     if (!process.env[name]) throw new Error(`${name} is required for release browser validation.`);
   }
-  if (!storageState || !fs.existsSync(path.resolve(storageState))) {
-    throw new Error("CPF_E2E_AUTH_STATE must reference an existing authenticated server session for release validation.");
+  for (const name of ["CPF_E2E_AUTH_STATE", "CPF_E2E_AUTH_STATE_READONLY", "CPF_E2E_AUTH_STATE_OPERATOR"]) {
+    const statePath = process.env[name];
+    if (!statePath || !fs.existsSync(path.resolve(statePath))) {
+      throw new Error(`${name} must reference an existing authenticated server session for release validation.`);
+    }
   }
 }
 

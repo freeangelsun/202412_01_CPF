@@ -19,9 +19,17 @@ import java.util.Set;
 /** 정식 ADM Approval Engine에서 승인된 BAT Runtime 위험조치를 BAT Owner Port로 전달합니다. */
 @Component("cpfBatchRuntimeApprovalOwnerCommandPort")
 public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprovalOwnerCommandPort {
-    private static final Set<String> COMMANDS = Set.of(
-            "releaseLock", "actGhostExecution", "requestRetry", "requestStop",
-            "updateScheduleEnabled", "requestRun", "runSchedulerOnce");
+    private static final Set<ApprovalOwnerTuple> ALLOWED = Set.of(
+            tuple("releaseLock", "BATCH_LOCK_RELEASE", "bat_lock"),
+            tuple("actGhostExecution", "BATCH_GHOST_FAIL", "bat_execution"),
+            tuple("actGhostExecution", "BATCH_GHOST_ABANDON", "bat_execution"),
+            tuple("actGhostExecution", "BATCH_GHOST_RELEASE_LOCK", "bat_execution"),
+            tuple("requestRetry", "BATCH_RETRY", "bat_execution"),
+            tuple("requestStop", "BATCH_STOP", "bat_execution"),
+            tuple("updateScheduleEnabled", "BATCH_SCHEDULE_ENABLE", "bat_schedule"),
+            tuple("updateScheduleEnabled", "BATCH_SCHEDULE_DISABLE", "bat_schedule"),
+            tuple("requestRun", "BATCH_RUN", "bat_job"),
+            tuple("runSchedulerOnce", "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule"));
 
     private final CpfBatchOperationsPort batch;
     private final ObjectMapper objectMapper;
@@ -33,26 +41,20 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
-        String owner = normalize(ownerModule);
-        return (owner.equals("bat") || owner.contains("batch")) && COMMANDS.contains(ownerCommand);
+        String module = Objects.toString(ownerModule, "").trim();
+        String command = Objects.toString(ownerCommand, "").trim();
+        return ALLOWED.stream().anyMatch(tuple -> tuple.ownerModule().equals(module)
+                && tuple.ownerCommand().equals(command));
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
-        if (!supports(ownerModule, ownerCommand)) return false;
-        if (!expectedTargetType(ownerCommand).equalsIgnoreCase(Objects.toString(targetType, ""))) return false;
-        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
-        return switch (ownerCommand) {
-            case "releaseLock" -> action.contains("LOCK") && (action.contains("RELEASE") || action.contains("UNLOCK"));
-            case "actGhostExecution" -> action.startsWith("BATCH_GHOST_") || action.contains("GHOST");
-            case "requestRetry" -> action.contains("RETRY");
-            case "requestStop" -> action.contains("STOP");
-            case "updateScheduleEnabled" -> action.contains("SCHEDULE")
-                    && (action.endsWith("ENABLE") || action.endsWith("DISABLE"));
-            case "requestRun" -> action.contains("RUN") && !action.contains("SCHEDULER");
-            case "runSchedulerOnce" -> action.contains("SCHEDULER") && action.contains("RUN");
-            default -> false;
-        };
+        ApprovalOwnerTuple candidate = new ApprovalOwnerTuple(
+                Objects.toString(ownerModule, "").trim(),
+                Objects.toString(ownerCommand, "").trim(),
+                Objects.toString(actionType, "").trim(),
+                Objects.toString(targetType, "").trim());
+        return ALLOWED.contains(candidate);
     }
 
     @Override
@@ -104,9 +106,9 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
                 longOrNull(value(snapshot, "expectedVersion")), textOrEmpty(snapshot, "payload"));
         if (!risk.fingerprint().equalsIgnoreCase(command.payloadHash())
                 || !risk.operation().equals(command.ownerCommand())
-                || !risk.targetType().equalsIgnoreCase(expectedTargetType(command.ownerCommand()))
+                || !risk.targetType().equals(expectedTargetType(command.ownerCommand()))
                 || !risk.targetId().equals(command.targetId())
-                || !risk.actionType().equalsIgnoreCase(command.actionType())
+                || !risk.actionType().equals(command.actionType())
                 || !risk.requestUser().equals(command.requestedBy())
                 || !risk.approvalRequestId().equals(String.valueOf(command.approvalRequestId()))) {
             throw new IllegalArgumentException("approved BAT snapshot mismatch");
@@ -180,7 +182,10 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED, code, message);
     }
 
-    private static String normalize(String value) {
-        return Objects.toString(value, "").replace("-", "").replace("_", "").toLowerCase(Locale.ROOT);
+    private static ApprovalOwnerTuple tuple(String ownerCommand, String actionType, String targetType) {
+        return new ApprovalOwnerTuple("BAT", ownerCommand, actionType, targetType);
     }
+
+
+    private record ApprovalOwnerTuple(String ownerModule, String ownerCommand, String actionType, String targetType) { }
 }

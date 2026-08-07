@@ -3,7 +3,7 @@
   "title": "Blue-Green·Canary 전환·되돌리기",
   "implementationPackage": "com.cpf.reference.platform.deployment.bluegreen",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "blueVersion",
     "greenVersion",

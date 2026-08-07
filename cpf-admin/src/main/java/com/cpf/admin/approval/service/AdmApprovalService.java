@@ -113,6 +113,14 @@ public class AdmApprovalService extends AdmBaseService {
         p.put("changeReason",changeReason);
         p.put("policyHash",snapshotIntegrity.sha256Canonical(json(Map.of(
                 "policy",p,"steps",steps.stream().map(step->new TreeMap<>(step)).toList()))));
+
+        // Serialize policy creation by a stable DB lock bucket so two instances cannot both
+        // observe an empty overlap set and commit conflicting active ranges.
+        String canonicalActionType=required(request.actionType(),"actionType");
+        repository.lockPolicyActionType(canonicalActionType);
+        if ("Y".equals(p.get("enabledYn")) && repository.hasEnabledPolicyOverlap(canonicalActionType, from, to)) {
+            throw new AdmApprovalConflictException("동일 actionType의 활성 승인 정책 유효기간이 겹칩니다.");
+        }
         try {
             repository.insertPolicy(p,steps);
         } catch (DataIntegrityViolationException duplicate) {

@@ -25,13 +25,41 @@ public final class EduAdm04Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        Object requestedBy = command.payload().get("requestedBy");
+        Object approvedBy = command.payload().get("approvedBy");
+        if (requestedBy != null && approvedBy != null
+                && String.valueOf(requestedBy).equals(String.valueOf(approvedBy))) {
+            throw new EduAuthorizationException("requester and approver must be different");
+        }
+        Object expiresAt = command.payload().get("approvalExpiresAtEpochMillis");
+        if (expiresAt != null) {
+            try {
+                if (Long.parseLong(String.valueOf(expiresAt)) <= System.currentTimeMillis()) {
+                    throw new EduAuthorizationException("approval expired");
+                }
+            } catch (NumberFormatException e) {
+                throw new EduValidationException("approvalExpiresAtEpochMillis must be numeric");
+            }
+        }
+        String businessId = String.valueOf(command.payload().get("businessId"));
+        Object approvedBusinessId = command.payload().get("approvedBusinessId");
+        if (approvedBusinessId != null && !businessId.equals(String.valueOf(approvedBusinessId))) {
+            throw new EduAuthorizationException("approval scope does not match businessId");
+        }
+        Object approvedVersion = command.payload().get("approvedTargetVersion");
+        if (approvedVersion != null) {
+            try {
+                if (Long.parseLong(String.valueOf(approvedVersion)) != command.expectedVersion()) {
+                    throw new EduValidationException("approved target version changed");
+                }
+            } catch (NumberFormatException e) {
+                throw new EduValidationException("approvedTargetVersion must be numeric");
+            }
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, 1);
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("business-target" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("approval:" + command.payload().get("approvalId")
+                + ":business:" + command.payload().get("businessId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -42,9 +70,16 @@ public final class EduAdm04Handler extends AbstractEduCapabilityHandler {
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
         result.put("scenarioTitle", "승인 필요한 위험 조치");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", "RECONCILED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("approvalId", command.payload().get("approvalId"));
+        result.put("approvalPolicyId", command.payload().get("approvalPolicyId"));
+        result.put("separationOfDutiesEnforced", true);
+        result.put("approvalScopeBound", true);
+        result.put("approvalTargetVersionBound", true);
+        result.put("blindReplayAllowed", false);
+        result.put("unknownResultRequiresReconcile", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

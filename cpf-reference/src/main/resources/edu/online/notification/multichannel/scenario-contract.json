@@ -3,7 +3,7 @@
   "title": "다중 채널 알림 선호·재시도·대체 채널",
   "implementationPackage": "com.cpf.reference.online.notification.multichannel",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "recipientId",
     "templateId",

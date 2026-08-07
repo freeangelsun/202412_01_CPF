@@ -25,13 +25,17 @@ public final class EduAdm16Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        try {
+            java.time.Instant snoozeUntil = java.time.Instant.parse(String.valueOf(command.payload().get("snoozeUntil")));
+            if (snoozeUntil.isBefore(java.time.Instant.now())) {
+                throw new EduValidationException("snoozeUntil must be in the future");
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new EduValidationException("snoozeUntil must be ISO-8601 instant");
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("alert:" + command.payload().get("alertId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +45,18 @@ public final class EduAdm16Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean escalate = Boolean.TRUE.equals(command.payload().get("escalate"));
         result.put("scenarioTitle", "알림 Acknowledge·Escalation·교대 인계");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", escalate ? "ESCALATED" : "ACKNOWLEDGED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("alertId", command.payload().get("alertId"));
+        result.put("acknowledged", true);
+        result.put("duplicateAckConverges", true);
+        result.put("escalated", escalate);
+        result.put("handoverOwner", command.payload().get("owner"));
+        result.put("outboxDestination", command.payload().get("destination"));
+        result.put("messageKey", command.payload().get("messageKey"));
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

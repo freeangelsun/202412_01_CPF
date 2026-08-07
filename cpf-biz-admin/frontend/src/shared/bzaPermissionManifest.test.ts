@@ -7,7 +7,8 @@ import {
 } from "../features/auth/session";
 import {
   canonicalBzaMenuCode,
-  isCanonicalBzaMenuCode
+  isCanonicalBzaMenuCode,
+  resolveBzaOperationPermission
 } from "./bzaPermissionManifest";
 import { bzaRoutes } from "../app/routes";
 
@@ -35,6 +36,16 @@ describe("BZA permission manifest", () => {
     expect(hasBzaPermission("ROLE", "WRITE")).toBe(true);
     expect(hasBzaPermission("MENU", "WRITE")).toBe(true);
     expect(hasBzaPermission("PERMISSION", "WRITE")).toBe(true);
+  });
+
+  it("resolves operation permissions from ordered canonical actionRules", () => {
+    expect(resolveBzaOperationPermission("GET", "/api/bza/backoffice/permissions/effective"))
+      .toEqual({ menuCode: "AUTHORIZATION", actionCode: "SIMULATE" });
+    expect(resolveBzaOperationPermission("POST", "/api/bza/backoffice/approvals/42/actions"))
+      .toEqual({ menuCode: "APPROVAL", actionCode: "DECIDE" });
+    expect(resolveBzaOperationPermission("PATCH", "/api/bza/backoffice/employees/42"))
+      .toEqual({ menuCode: "EMPLOYEE", actionCode: "UPDATE" });
+    expect(resolveBzaOperationPermission("POST", "/api/bza/unknown/resource")).toBeNull();
   });
 
   it("모든 제품 route는 canonical menu group에 연결된다", () => {

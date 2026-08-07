@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "workloads": [
     {
       "id": "api-load",
@@ -10,19 +10,26 @@
       "concurrency": 20,
       "iterations": 2000,
       "timeout_seconds": 5,
-      "expected_statuses": [200],
+      "expected_statuses": [
+        200
+      ],
       "budgets": {
         "max_error_rate": 0.001,
         "max_p95_ms": 250,
         "min_throughput_per_sec": 50,
         "max_latency_drift_pct": 30
-      }
+      },
+      "sample_reservoir": 10000,
+      "min_samples": 20
     },
     {
       "id": "broker-contract",
       "kind": "command",
       "enabled": false,
-      "command": ["python", "cpf-tools/performance/run-broker-contract.py"],
+      "command": [
+        "python",
+        "run-broker-contract.py"
+      ],
       "concurrency": 4,
       "iterations": 100,
       "timeout_seconds": 30,
@@ -31,13 +38,19 @@
         "max_p95_ms": 5000,
         "min_throughput_per_sec": 0.5,
         "max_latency_drift_pct": 30
-      }
+      },
+      "cwd": ".",
+      "sample_reservoir": 10000,
+      "min_samples": 4
     },
     {
       "id": "batch-throughput",
       "kind": "command",
       "enabled": false,
-      "command": ["python", "cpf-tools/performance/run-batch-contract.py"],
+      "command": [
+        "python",
+        "run-batch-contract.py"
+      ],
       "concurrency": 2,
       "iterations": 20,
       "timeout_seconds": 120,
@@ -46,13 +59,23 @@
         "max_p95_ms": 120000,
         "min_throughput_per_sec": 0.01,
         "max_latency_drift_pct": 30
-      }
+      },
+      "cwd": ".",
+      "sample_reservoir": 10000,
+      "min_samples": 2
     },
     {
       "id": "frontend-navigation",
       "kind": "command",
       "enabled": false,
-      "command": ["npx", "playwright", "test", "--project=chromium", "--grep", "@performance"],
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--project=chromium",
+        "--grep",
+        "@performance"
+      ],
       "concurrency": 1,
       "iterations": 5,
       "timeout_seconds": 180,
@@ -61,7 +84,10 @@
         "max_p95_ms": 180000,
         "min_throughput_per_sec": 0.001,
         "max_latency_drift_pct": 30
-      }
+      },
+      "cwd": "../../cpf-admin/frontend",
+      "sample_reservoir": 10000,
+      "min_samples": 1
     }
   ]
 }

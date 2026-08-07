@@ -7,117 +7,44 @@ const specPath = path.resolve(process.env.CPF_OPENAPI_FILE || "openapi/cpf-opena
 const generatedDir = path.join(root, "src/generated");
 if (!fs.existsSync(routesPath)) throw new Error(`ADM route registry missing: ${routesPath}`);
 if (!fs.existsSync(specPath)) throw new Error(`OpenAPI source missing: ${specPath}`);
+
 const routesText = fs.readFileSync(routesPath, "utf8");
 const spec = JSON.parse(fs.readFileSync(specPath, "utf8"));
 const methods = new Set(["get", "post", "put", "patch", "delete", "head", "options", "trace"]);
-const operations = [];
-for (const [template, item] of Object.entries(spec.paths || {})) {
+const openApiIds = new Set();
+for (const item of Object.values(spec.paths || {})) {
   for (const [method, operation] of Object.entries(item || {})) {
-    if (!methods.has(method) || !operation?.operationId) continue;
-    operations.push({ method: method.toUpperCase(), template, operationId: operation.operationId });
+    if (methods.has(method) && operation?.operationId) openApiIds.add(operation.operationId);
   }
 }
-const byId = new Map(operations.map(value => [value.operationId, value]));
-const routePattern = /^\s*"([^"]+)": \{ routeId: "\1"[\s\S]*?expectedOperationIds: \[([^\]]*)\][\s\S]*?import\("([^"]+)"\)/gm;
-const routes = [];
+
+// The route capability registry is the single route/menu/operation source of truth. Consumer
+// discovery is deliberately NOT merged here: doing so previously let a stale/generic consumer
+// redefine the generated contract. Actual callsite coverage is enforced independently by
+// verify-operation-consumer.mjs.
+const pattern = /^\s*"([^"]+)": \{ routeId: "([^"]+)", path: "([^"]+)", menuId: "([^"]+)".*?expectedOperationIds: \[(.*?)\], component:/gm;
+const contracts = new Map();
 let match;
-while ((match = routePattern.exec(routesText))) {
-  const explicit = [...match[2].matchAll(/"([^"]+)"/g)].map(value => value[1]);
-  routes.push({ routeId: match[1], explicit, componentImport: match[3] });
-}
-if (!routes.length) throw new Error("ADM route registry is empty");
-const routeIds = routes.map(route => route.routeId);
-const duplicateRouteIds = routeIds.filter((routeId, index) => routeIds.indexOf(routeId) !== index);
-if (duplicateRouteIds.length) throw new Error(`ADM route registry duplicate routeId: ${[...new Set(duplicateRouteIds)].join(", ")}`);
-
-function resolveLocalImport(fromFile, request) {
-  if (!request.startsWith(".")) return null;
-  const base = path.resolve(path.dirname(fromFile), request);
-  for (const candidate of [base, `${base}.ts`, `${base}.vue`, `${base}.js`, `${base}.mjs`, path.join(base, "index.ts")]) {
-    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
-  }
-  return null;
-}
-function collectSource(entry, visited = new Set()) {
-  const absolute = path.resolve(entry);
-  if (visited.has(absolute) || !fs.existsSync(absolute)) return "";
-  visited.add(absolute);
-  const text = fs.readFileSync(absolute, "utf8");
-  let combined = `\n/* ${path.relative(root, absolute)} */\n${text}`;
-  const imports = [...text.matchAll(/(?:import|export)\s+(?:[\s\S]*?\s+from\s+)?["']([^"']+)["']/g)].map(value => value[1]);
-  for (const request of imports) {
-    const child = resolveLocalImport(absolute, request);
-    if (child && child.startsWith(path.join(root, "src")) && !isTransportBoundary(child)) combined += collectSource(child, visited);
-  }
-  return combined;
-}
-function isTransportBoundary(file) {
-  const relative = path.relative(root, file).replaceAll("\\", "/");
-  return relative.startsWith("src/generated/")
-    || [
-      "src/shared/cpfApi.ts",
-      "src/shared/orval-mutator.ts",
-      "src/shared/queryClient.ts",
-      // Route pages bind the single ADM store through this bridge. Following the bridge into
-      // the global action registry incorrectly attributes every store operation to every route.
-      "src/app/useAdmConsolePage.ts",
-      "src/stores/admConsoleStore.ts",
-      "src/stores/admFeatureActionRegistry.ts"
-    ].includes(relative);
-}
-function normalizedCandidate(raw) {
-  return raw.replace(/\$\{[^}]+\}/g, "{dynamic}").replace(/[?#].*$/, "");
-}
-function templateMatches(template, candidate) {
-  const expected = template.split("/").filter(Boolean);
-  const actual = candidate.split("/").filter(Boolean);
-  if (expected.length !== actual.length) return false;
-  return expected.every((segment, index) => /^\{[^}]+\}$/.test(segment) || actual[index] === "{dynamic}" || segment === actual[index]);
-}
-function inferMethod(prefix) {
-  if (/admQuery\s*</.test(prefix) || /admQuery\s*\(/.test(prefix)) return "GET";
-  const direct = prefix.match(/admMutation[\s\S]{0,180}?["'](POST|PUT|PATCH|DELETE)["']/i);
-  if (direct) return direct[1].toUpperCase();
-  const option = prefix.match(/method\s*:\s*["'](GET|POST|PUT|PATCH|DELETE)["']/i);
-  return option ? option[1].toUpperCase() : null;
-}
-function discoverOperations(source) {
-  const found = new Set();
-  const apiLiteral = /([`"'])(\/(?:adm\/api|api\/bza|bza\/api|batch-runtime|bat\/internal)[^`"']*)\1/g;
-  let urlMatch;
-  while ((urlMatch = apiLiteral.exec(source))) {
-    const candidate = normalizedCandidate(urlMatch[2]);
-    const prefix = source.slice(Math.max(0, urlMatch.index - 240), Math.min(source.length, urlMatch.index + 360));
-    const inferred = inferMethod(prefix);
-    const candidates = operations.filter(op => templateMatches(op.template, candidate) && (!inferred || op.method === inferred));
-    if (candidates.length === 1) found.add(candidates[0].operationId);
-    else if (candidates.length > 1 && inferred) {
-      const exact = candidates.find(op => op.method === inferred);
-      if (exact) found.add(exact.operationId);
-    }
-  }
-  return [...found].sort();
-}
-
 const failures = [];
-const contracts = {};
-for (const route of routes) {
-  const component = path.resolve(path.dirname(routesPath), route.componentImport);
-  const actualComponent = [component, `${component}.vue`, `${component}.ts`].find(value => fs.existsSync(value));
-  if (!actualComponent) throw new Error(`Route component missing: ${route.routeId} ${route.componentImport}`);
-  const source = collectSource(actualComponent);
-  const discovered = discoverOperations(source);
-  for (const operationId of route.explicit) if (!byId.has(operationId)) failures.push(`${route.routeId}: expected operation missing from OpenAPI: ${operationId}`);
-  const privilegedLiterals = [...source.matchAll(/[`"']\/(?:adm\/api|api\/bza|bza\/api|batch-runtime|bat\/internal)\b/g)].length;
-  if (privilegedLiterals > 0 && discovered.length === 0 && route.explicit.length === 0) {
-    failures.push(`${route.routeId}: privileged API consumer has no route operation contract`);
+while ((match = pattern.exec(routesText))) {
+  const key = match[1];
+  const routeId = match[2];
+  if (key !== routeId) failures.push(`${key}: registry key differs from routeId=${routeId}`);
+  if (contracts.has(routeId)) failures.push(`${routeId}: duplicate routeId`);
+  const ids = [...match[5].matchAll(/"([^"]+)"/g)].map(value => value[1]);
+  if (new Set(ids).size !== ids.length) failures.push(`${routeId}: duplicate expectedOperationIds`);
+  for (const operationId of ids) {
+    if (!openApiIds.has(operationId)) failures.push(`${routeId}: expected operation missing from runtime OpenAPI: ${operationId}`);
   }
-  contracts[route.routeId] = [...new Set([...route.explicit, ...discovered])].sort();
+  contracts.set(routeId, [...ids].sort());
 }
+if (contracts.size !== 63) failures.push(`ADM route registry must contain exactly 63 routes; actual=${contracts.size}`);
 if (failures.length) throw new Error(failures.join("\n"));
+
 fs.mkdirSync(generatedDir, { recursive: true });
-const rows = Object.entries(contracts).map(([routeId, operationIds]) => `  ${JSON.stringify(routeId)}: ${JSON.stringify(operationIds)}`).join(",\n");
-const output = `// Generated from ADM capability registry, component consumers and canonical runtime OpenAPI.\nexport const admRouteOperationContract = {\n${rows}\n} as const;\nexport type AdmRouteOperationContract = typeof admRouteOperationContract;\n`;
+const rows = [...contracts.entries()]
+  .map(([routeId, operationIds]) => `  ${JSON.stringify(routeId)}: ${JSON.stringify(operationIds)}`)
+  .join(",\n");
+const output = `// Generated from ADM capability registry and canonical runtime OpenAPI.\n// Actual callsite coverage is verified separately; registry-only presence is never consumer evidence.\nexport const admRouteOperationContract = {\n${rows}\n} as const;\nexport type AdmRouteOperationContract = typeof admRouteOperationContract;\n`;
 fs.writeFileSync(path.join(generatedDir, "adm-route-operation-contract.ts"), output, "utf8");
-const covered = Object.values(contracts).filter(values => values.length > 0).length;
-console.log(`[CPF][FRONTEND][PASS] route operation contract routes=${routes.length} operationRoutes=${covered}`);
+console.log(`[CPF][FRONTEND][PASS] route operation contract routes=${contracts.size}`);

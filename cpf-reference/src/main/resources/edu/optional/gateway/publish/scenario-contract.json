@@ -3,7 +3,7 @@
   "title": "Draft·검증·승인·게시·부분 적용",
   "implementationPackage": "com.cpf.reference.optional.gateway.publish",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "routeVersion",
     "checksum",

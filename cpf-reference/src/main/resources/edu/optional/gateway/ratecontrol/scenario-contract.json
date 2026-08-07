@@ -3,7 +3,7 @@
   "title": "다중 인스턴스 설정 Drift·Reconcile",
   "implementationPackage": "com.cpf.reference.optional.gateway.ratecontrol",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "packageVersion",
     "checksum",

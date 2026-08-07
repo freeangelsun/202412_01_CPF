@@ -3,7 +3,7 @@
   "title": "CSV 입출력 배치",
   "implementationPackage": "com.cpf.reference.batch.file.csv",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "fileId",
     "fileHash",

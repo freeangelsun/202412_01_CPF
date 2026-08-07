@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.1",
+  "workloads": [
+    {
+      "id": "adm-api-load",
+      "kind": "http",
+      "enabled": true,
+      "url": "${CPF_R6_PERF_ADM_HEALTH_URL}",
+      "method": "GET",
+      "concurrency": 50,
+      "iterations": 10000,
+      "min_samples": 10000,
+      "sample_reservoir": 10000,
+      "timeout_seconds": 5,
+      "expected_statuses": [
+        200
+      ],
+      "budgets": {
+        "max_error_rate": 0.001,
+        "max_p95_ms": 250,
+        "min_throughput_per_sec": 100,
+        "max_latency_drift_pct": 30
+      }
+    },
+    {
+      "id": "adm-api-soak",
+      "kind": "http",
+      "enabled": true,
+      "url": "${CPF_R6_PERF_ADM_HEALTH_URL}",
+      "method": "GET",
+      "concurrency": 10,
+      "duration_seconds": 600,
+      "min_samples": 1000,
+      "sample_reservoir": 10000,
+      "timeout_seconds": 5,
+      "expected_statuses": [
+        200
+      ],
+      "budgets": {
+        "max_error_rate": 0.001,
+        "max_p95_ms": 250,
+        "min_throughput_per_sec": 20,
+        "max_latency_drift_pct": 30
+      }
+    },
+    {
+      "id": "broker-backpressure",
+      "kind": "command",
+      "enabled": true,
+      "command": [
+        "python",
+        "run-broker-contract.py"
+      ],
+      "cwd": ".",
+      "concurrency": 4,
+      "iterations": 100,
+      "min_samples": 100,
+      "sample_reservoir": 1000,
+      "timeout_seconds": 30,
+      "budgets": {
+        "max_error_rate": 0,
+        "max_p95_ms": 5000,
+        "min_throughput_per_sec": 0.5,
+        "max_latency_drift_pct": 30
+      }
+    },
+    {
+      "id": "batch-reconcile",
+      "kind": "command",
+      "enabled": true,
+      "command": [
+        "python",
+        "run-batch-contract.py"
+      ],
+      "cwd": ".",
+      "concurrency": 2,
+      "iterations": 20,
+      "min_samples": 20,
+      "sample_reservoir": 1000,
+      "timeout_seconds": 120,
+      "budgets": {
+        "max_error_rate": 0,
+        "max_p95_ms": 120000,
+        "min_throughput_per_sec": 0.01,
+        "max_latency_drift_pct": 30
+      }
+    },
+    {
+      "id": "resource-budget",
+      "kind": "command",
+      "enabled": true,
+      "command": [
+        "python",
+        "run-resource-contract.py"
+      ],
+      "cwd": ".",
+      "concurrency": 1,
+      "iterations": 10,
+      "min_samples": 10,
+      "sample_reservoir": 100,
+      "timeout_seconds": 60,
+      "budgets": {
+        "max_error_rate": 0,
+        "max_p95_ms": 60000,
+        "min_throughput_per_sec": 0.01,
+        "max_latency_drift_pct": 30
+      }
+    }
+  ]
+}

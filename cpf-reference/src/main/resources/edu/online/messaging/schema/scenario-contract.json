@@ -3,7 +3,7 @@
   "title": "Event Schema 진화·호환성·Dead Letter",
   "implementationPackage": "com.cpf.reference.online.messaging.schema",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "schemaVersion",
     "eventType",

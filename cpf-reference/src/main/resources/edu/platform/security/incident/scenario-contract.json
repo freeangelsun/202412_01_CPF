@@ -3,7 +3,7 @@
   "title": "보안 사고·계정·키·세션 긴급 차단",
   "implementationPackage": "com.cpf.reference.platform.security.incident",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "incidentId",
     "subjects",

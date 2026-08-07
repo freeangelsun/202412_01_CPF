@@ -1,0 +1,53 @@
+status,tool_or_gate,class,purpose,manual,basis_sha
+PASS,cpf-tools/scripts/sync-database-artifacts.ps1,customer-entry,공식 3-Vendor Source/Pack/Schema/Query/Checksum을 정본에서 재생성·대조,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/scripts/initialize-cpf-database.ps1,customer-entry,Platform Pack을 Vendor별 신규 설치·검증하고 선택 Module을 실행,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/generator/create-domain.ps1,customer-entry,Domain/Profile/Capability/Provider/DB를 검증하고 생성,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/scripts/check-work-context.ps1,customer-entry,"정본 문서, HEAD/Branch/Working Tree, Current Request 기준선 확인",01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/scripts/sync-generated-domain-artifacts.ps1,customer-entry,ownership hash와 재생성 결과를 비교해 drift를 검출/선택 반영,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1,customer-entry,서로 다른 두 Domain을 격리 생성해 normalized parity 검증,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/scripts/verify-full-product.ps1,customer-entry,Static/Gradle/Frontend/DB/Generator/Browser/Evidence Gate 통합,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/build/gradle-plugin,customer-entry,Java/Dependency/Build/Publication 공통 규칙,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,cpf-tools/build/platform-bom,customer-entry,CPF와 외부 Dependency 버전 정렬,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-work-context.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-r10-product-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-r10-cleanup.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-frontend-route-targets.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-source-documentation-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-architecture-ownership.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-core-owner-boundary.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-service-call-boundary.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-repository-hygiene.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-document-links.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-utf8.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-java25-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-legacy-name.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-legacy-batch-migration.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-log-management-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-openapi-source-coverage.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-sample-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-sample-coverage.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-transaction-id-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-sql-canonical.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-sql-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-spring-batch-sequence-contract.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-db-vendor-pack-parity.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-offline-db-resource-pack.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-official-db-vendor-readiness.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-query-contract-integrity.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-admin-data-safety.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-data-safety-schema-contract.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-r12-product-hardening.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-migration-checksums.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,check-database-profile-standard.ps1,full-product-gate,verify-full-product integrated gate,05,64049044956924032360fa80be83b5e37c64f828
+PASS,generate-official-db-vendor-source.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,build-official-db-vendor-packs.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,build-all-install-sql.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,check-spring-batch-sequence-contract.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,sync-platform-runtime-query-packs.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,sync-bat-runtime-query-pack.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,check-query-contract-integrity.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,sync-platform-nullable-empty-string-repair.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,generate-migration-checksums.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,generate-database-schema-manifest.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,check-database-schema-drift.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,check-database-profile-standard.ps1,database-sync-chain,sync-database-artifacts canonical child stage,05;DB-standard,64049044956924032360fa80be83b5e37c64f828

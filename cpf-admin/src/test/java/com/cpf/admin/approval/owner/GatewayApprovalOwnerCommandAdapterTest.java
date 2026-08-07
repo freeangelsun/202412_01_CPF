@@ -14,6 +14,19 @@ import org.junit.jupiter.api.Test;
 
 class GatewayApprovalOwnerCommandAdapterTest {
     @Test
+    void supportsOnlyExactOwnerCommandActionTargetTuple() {
+        CpfGatewayRegistryPort registry = (CpfGatewayRegistryPort) Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?>[]{CpfGatewayRegistryPort.class},
+                (proxy, method, args) -> { throw new UnsupportedOperationException(method.getName()); });
+        GatewayApprovalOwnerCommandAdapter adapter = new GatewayApprovalOwnerCommandAdapter(registry);
+
+        assertEquals(true, adapter.supports("cpf-gateway", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING"));
+        assertEquals(false, adapter.supports("cpf-gateway-shadow", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING"));
+        assertEquals(false, adapter.supports("cpf-gateway", "GATEWAY_BINDING_BLOCK_EXTRA", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING"));
+        assertEquals(false, adapter.supports("cpf-gateway", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK_EXTRA", "GATEWAY_BINDING"));
+        assertEquals(false, adapter.supports("cpf-gateway", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_SHADOW"));
+    }
+    @Test
     void approvedBlockExecutesOwnerStateCommand() {
         String hash = "a".repeat(64);
         AtomicReference<CpfGatewayRegistryPort.BindingStateCommand> invoked = new AtomicReference<>();

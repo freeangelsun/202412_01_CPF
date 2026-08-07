@@ -3,7 +3,7 @@
   "title": "권한·데이터 범위·Masking·사유 입력 연동",
   "implementationPackage": "com.cpf.reference.optional.operations.search",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "permission",
     "reason",

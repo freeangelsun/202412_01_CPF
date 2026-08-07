@@ -24,4 +24,16 @@ class AdmIntegrationClosureProfileGuardTest {
                 .withProperty("cpf.adm.integration-closure.ephemeral-providers-enabled","true");
         environment.setActiveProfiles("local"); assertDoesNotThrow(()->run(environment));
     }
+    @Test void rawApprovalProofSecretIsForbiddenInProduction() {
+        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
+                .withProperty("cpf.adm.integration-closure.approval-proof-key-base64","secret");
+        environment.setActiveProfiles("prod");
+        assertThrows(IllegalStateException.class,()->run(environment));
+    }
+    @Test void rawCryptoSecretIsForbiddenInStaging() {
+        MockEnvironment environment=new MockEnvironment().withProperty("cpf.adm.integration-closure.enabled","true")
+                .withProperty("cpf.adm.integration-closure.crypto.active-key-base64","secret");
+        environment.setActiveProfiles("stg");
+        assertThrows(IllegalStateException.class,()->run(environment));
+    }
 }

@@ -3,7 +3,7 @@
   "title": "DB 3종 신규 설치·Migration·Drift·Rollback",
   "implementationPackage": "com.cpf.reference.platform.database.lifecycle",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "vendor",
     "versionFrom",

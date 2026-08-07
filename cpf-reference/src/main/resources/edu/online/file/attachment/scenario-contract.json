@@ -3,7 +3,7 @@
   "title": "파일 업로드·검사·첨부·다운로드",
   "implementationPackage": "com.cpf.reference.online.file.attachment",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "attachmentId",
     "mediaType",

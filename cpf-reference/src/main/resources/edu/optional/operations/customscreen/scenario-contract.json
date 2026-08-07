@@ -3,7 +3,7 @@
   "title": "고객 전용 화면 추가의 마지막 선택",
   "implementationPackage": "com.cpf.reference.optional.operations.customscreen",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "businessId",
     "approvalId"

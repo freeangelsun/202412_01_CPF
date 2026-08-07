@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -32,25 +33,26 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
 
     public BatApprovalOwnerCommandPort(
             RestClient.Builder builder,
-            @Value("${cpf.batch.control.base-url:http://127.0.0.1:8180}") String baseUrl,
-            @Value("${cpf.framework.instance-id:adm-local-01}") String callerInstanceId) {
-        this.client = builder.baseUrl(baseUrl).build();
-        this.callerInstanceId = requireText(callerInstanceId, "callerInstanceId");
+            @Value("${cpf.batch.control.base-url}") String baseUrl,
+            @Value("${cpf.framework.instance-id}") String callerInstanceId) {
+        String explicitBaseUrl = requireRemoteBaseUrl(baseUrl);
+        this.client = builder.baseUrl(explicitBaseUrl).build();
+        this.callerInstanceId = requireExplicitInstanceId(callerInstanceId);
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
-        if (!"BAT".equalsIgnoreCase(Objects.toString(ownerModule, ""))) return false;
+        if (!"BAT".equals(Objects.toString(ownerModule, "").trim())) return false;
         return Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN", "START", "STOP", "RESTART", "DRAIN", "RESUME", "ROLLBACK")
-                .contains(Objects.toString(ownerCommand, "").trim().toUpperCase(Locale.ROOT));
+                .contains(Objects.toString(ownerCommand, "").trim());
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
         if (!supports(ownerModule, ownerCommand)) return false;
-        String command = Objects.toString(ownerCommand, "").trim().toUpperCase(Locale.ROOT);
-        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
-        String target = Objects.toString(targetType, "").trim().toUpperCase(Locale.ROOT);
+        String command = Objects.toString(ownerCommand, "").trim();
+        String action = Objects.toString(actionType, "").trim();
+        String target = Objects.toString(targetType, "").trim();
         if (!command.equals(action)) return false;
         return Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(command)
                 ? Set.of("BAT_DEPLOYMENT_PLAN", "DEPLOYMENT_PLAN").contains(target)
@@ -63,7 +65,7 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
             return failed("BAT-OWNER-MISMATCH", "BAT Owner/Command/Action/Target mismatch");
         }
         try {
-            String ownerCommand = command.ownerCommand().toUpperCase(Locale.ROOT);
+            String ownerCommand = command.ownerCommand();
             if (Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(ownerCommand)) {
                 return executeDeployment(command, ownerCommand);
             }
@@ -189,6 +191,30 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
                 AdmApprovalExecutionStatus.UNKNOWN,
                 code,
                 "Owner result is unknown; reconciliation required");
+    }
+
+    private static String requireRemoteBaseUrl(String value) {
+        String baseUrl = requireText(value, "cpf.batch.control.base-url");
+        URI uri = URI.create(baseUrl);
+        String host = Objects.toString(uri.getHost(), "").trim().toLowerCase(Locale.ROOT);
+        if (!Set.of("http", "https").contains(Objects.toString(uri.getScheme(), "").toLowerCase(Locale.ROOT))
+                || host.isBlank()
+                || host.equals("localhost")
+                || host.equals("127.0.0.1")
+                || host.equals("::1")
+                || host.equals("0.0.0.0")) {
+            throw new IllegalArgumentException("cpf.batch.control.base-url must be an explicit non-loopback HTTP(S) endpoint");
+        }
+        return baseUrl;
+    }
+
+    private static String requireExplicitInstanceId(String value) {
+        String instanceId = requireText(value, "cpf.framework.instance-id");
+        String normalized = instanceId.toLowerCase(Locale.ROOT);
+        if (normalized.equals("adm-local-01") || normalized.equals("local") || normalized.equals("default") || normalized.equals("unknown")) {
+            throw new IllegalArgumentException("cpf.framework.instance-id must identify the real ADM instance");
+        }
+        return instanceId;
     }
 
     private static String requireText(String value, String field) {

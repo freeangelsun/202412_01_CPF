@@ -499,12 +499,12 @@
           },
           "idempotencyKey": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 200
+            "minLength": 8,
+            "maxLength": 128
           },
           "reason": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 8,
             "maxLength": 500
           },
           "corrected": {
@@ -524,7 +524,7 @@
         "properties": {
           "reason": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 8,
             "maxLength": 500
           }
         },
@@ -1728,6 +1728,144 @@
           "SIDE_EFFECT_COMPENSATED"
         ],
         "description": "Operator-confirmed UNKNOWN row resolution."
+      },
+      "AdmApprovalCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestKey",
+          "actionType",
+          "ownerModule",
+          "ownerCommand",
+          "targetType",
+          "targetId",
+          "payloadSnapshot",
+          "reason"
+        ],
+        "properties": {
+          "requestKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "policyCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
+          },
+          "policyVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 1
+          },
+          "actionType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "ownerModule": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "ownerCommand": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "targetType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "targetId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "payloadSnapshot": {
+            "type": "string",
+            "minLength": 2
+          },
+          "expireAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          }
+        },
+        "description": "Immutable approval request. Actor and policy authorization are resolved by the server."
+      },
+      "AdmApprovalDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "idempotencyKey",
+          "reason"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          },
+          "breakGlass": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Idempotent approval decision. Break-glass is accepted only when the immutable policy version allows it."
+      },
+      "AdmIntegrationQualityReplayRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "idempotencyKey",
+          "reason"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          }
+        },
+        "description": "Versioned/idempotent quarantine replay command."
       }
     },
     "securitySchemes": {
@@ -1934,14 +2072,14 @@
       "post": {
         "operationId": "admApprovalRequest",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestCommand"
+                "$ref": "#/components/schemas/AdmApprovalCreateRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1953,6 +2091,16 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "201": {
+            "description": "Approval request created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad request"
@@ -1981,11 +2129,14 @@
         },
         "security": [
           {
-            "admCsrfHeader": [],
-            "admSessionCookie": []
+            "admSessionCookie": [],
+            "admCsrfHeader": []
           }
         ],
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-bearer-token-accepted": false
       }
     },
     "/adm/api/approvals/requests/{id}": {
@@ -2043,7 +2194,10 @@
             "admSessionCookie": []
           }
         ],
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-browser-auth": "SESSION_COOKIE",
+        "x-cpf-bearer-token-accepted": false
       }
     },
     "/adm/api/approvals/requests/{id}/decisions": {
@@ -2061,14 +2215,14 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DecisionCommand"
+                "$ref": "#/components/schemas/AdmApprovalDecisionRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2108,11 +2262,14 @@
         },
         "security": [
           {
-            "admCsrfHeader": [],
-            "admSessionCookie": []
+            "admSessionCookie": [],
+            "admCsrfHeader": []
           }
         ],
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-bearer-token-accepted": false
       }
     },
     "/adm/api/approvals/requests/{id}/execute": {
@@ -2127,6 +2284,17 @@
               "format": "int64",
               "type": "integer"
             }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "description": "Audited operation reason",
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 500
+            }
           }
         ],
         "responses": {
@@ -2167,11 +2335,14 @@
         },
         "security": [
           {
-            "admCsrfHeader": [],
-            "admSessionCookie": []
+            "admSessionCookie": [],
+            "admCsrfHeader": []
           }
         ],
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/approval/controller/AdmApprovalController.java",
+        "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
+        "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
+        "x-cpf-bearer-token-accepted": false
       }
     },
     "/adm/api/approvals/requests/{id}/reconcile": {
@@ -2196,7 +2367,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -4459,7 +4630,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -5070,7 +5241,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -5226,7 +5397,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -7219,17 +7390,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "reason",
-            "in": "query",
-            "required": true,
-            "description": "Audited operation reason",
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 500
-            }
           }
         ],
         "responses": {
@@ -7278,7 +7438,17 @@
         "x-cpf-bearer-token-accepted": false,
         "x-cpf-browser-auth": "SESSION_COOKIE_AND_CSRF",
         "x-cpf-contract-source": "ADM_CONTROLLER_EXPLICIT",
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmIntegrationQualityReplayRequest"
+              }
+            }
+          }
+        }
       }
     },
     "/adm/api/integration-closure/data-quality/validate/{recordId}": {
@@ -7515,7 +7685,7 @@
             "schema": {
               "type": "integer",
               "format": "int64",
-              "minimum": 0
+              "minimum": 1
             }
           },
           {
@@ -7525,7 +7695,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -8571,7 +8741,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -8790,7 +8960,7 @@
             "schema": {
               "type": "integer",
               "format": "int64",
-              "minimum": 0
+              "minimum": 1
             }
           },
           {
@@ -8800,7 +8970,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -8842,7 +9012,7 @@
             "schema": {
               "type": "integer",
               "format": "int64",
-              "minimum": 0
+              "minimum": 1
             }
           },
           {
@@ -8852,7 +9022,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -9022,7 +9192,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -12233,7 +12403,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -12284,7 +12454,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }
@@ -12351,7 +12521,7 @@
             "description": "Audited operation reason",
             "schema": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 8,
               "maxLength": 500
             }
           }

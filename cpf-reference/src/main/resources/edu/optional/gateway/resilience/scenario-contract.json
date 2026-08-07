@@ -3,7 +3,7 @@
   "title": "Timeout·Retry·Circuit Breaker·Bulkhead",
   "implementationPackage": "com.cpf.reference.optional.gateway.resilience",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "connect",
     "read",

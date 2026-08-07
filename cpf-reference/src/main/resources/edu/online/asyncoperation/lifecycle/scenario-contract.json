@@ -3,7 +3,7 @@
   "title": "장시간 비동기 Operation 조회·취소",
   "implementationPackage": "com.cpf.reference.online.asyncoperation.lifecycle",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "requestHash",
     "cancelReason",

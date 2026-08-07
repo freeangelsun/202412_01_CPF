@@ -199,5 +199,46 @@
     "policy": "immutable policyCode/version + before/after hash + reason audit",
     "officialVendor": true,
     "runtimeVerification": "미검증"
+  },
+  "approvalRuntimeHardeningR6Pack": {
+    "ownerArtifact": "cpf-admin",
+    "logicalDatabase": "admDB",
+    "canonicalSource": "source/20_approval_runtime_hardening_r6.sql",
+    "freshInstall": "install/09_approval_runtime_hardening_r6.sql",
+    "migration": "migration/V105__approval_runtime_hardening_r6.sql",
+    "rollback": "rollback/R105__approval_runtime_hardening_r6.sql",
+    "runtimeQueries": "runtime/adm/approval_runtime_hardening_queries.sql",
+    "verify": "verify/105_verify_approval_runtime_hardening_r6.sql",
+    "tables": [
+      "adm_approval_execution",
+      "adm_approval_capability_nonce",
+      "adm_approval_policy",
+      "adm_approval_policy_lock"
+    ],
+    "tableCount": 4,
+    "consumer": "com.cpf.admin.approval.service.AdmApprovalService;com.cpf.admin.approval.repository.AdmApprovalRepository;com.cpf.admin.approval.security.AdmApprovalCapabilityNonceRepository",
+    "policy": "stale RUNNING lease -> UNKNOWN observation-only reconcile; HMAC TTL nonce single-use; immutable policy plus serialized non-overlap active ranges",
+    "officialVendor": true,
+    "runtimeVerification": "미검증"
+  },
+  "dataQualityPersistenceR6Pack": {
+    "ownerArtifact": "cpf-starter-data-persistence-jdbc",
+    "logicalDatabase": "cpfDB",
+    "canonicalSource": "source/21_data_quality_persistence_r6.sql",
+    "freshInstall": "install/10_data_quality_persistence_r6.sql",
+    "migration": "migration/V106__data_quality_persistence_r6.sql",
+    "rollback": "rollback/R106__data_quality_persistence_r6.sql",
+    "runtimeQueries": "runtime/integration-closure/data_quality_persistent_queries.sql",
+    "verify": "verify/106_verify_data_quality_persistence_r6.sql",
+    "tables": [
+      "CPF_DATA_QUALITY_RULE",
+      "CPF_DATA_QUALITY_QUARANTINE",
+      "CPF_DATA_QUALITY_OPERATION"
+    ],
+    "tableCount": 3,
+    "consumer": "com.cpf.starter.data.persistence.jdbc.quality.JdbcCpfDataQualityOperations",
+    "policy": "DB-backed CAS correction + replay operation ledger + bounded reconcile; reference InMemory provider remains local/dev only",
+    "officialVendor": true,
+    "runtimeVerification": "미검증"
   }
 }

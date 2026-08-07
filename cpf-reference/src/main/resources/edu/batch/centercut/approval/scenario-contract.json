@@ -3,7 +3,7 @@
   "title": "센터컷 Preview·승인·실행",
   "implementationPackage": "com.cpf.reference.batch.centercut.approval",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "criteriaVersion",
     "snapshotId",

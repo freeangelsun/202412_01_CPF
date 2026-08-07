@@ -3,7 +3,7 @@
   "title": "Webhook Callback 서명·재전송·Replay 방지",
   "implementationPackage": "com.cpf.reference.online.counterparty.webhook",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "subscriptionId",
     "callbackUrl",

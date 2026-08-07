@@ -3,7 +3,7 @@
   "title": "Body 크기·Content-Type·Schema Validation",
   "implementationPackage": "com.cpf.reference.optional.gateway.rejection",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "maxBodySize",
     "allowedTypes",

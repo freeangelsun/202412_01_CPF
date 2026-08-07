@@ -3,7 +3,7 @@
   "title": "Rolling 배포·Session·Connection Drain",
   "implementationPackage": "com.cpf.reference.platform.deployment.rolling",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "artifactVersion",
     "batchSize",

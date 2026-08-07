@@ -3,7 +3,7 @@
   "title": "논리 삭제·복원·보존기간 만료",
   "implementationPackage": "com.cpf.reference.online.lifecycle.softdelete",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "customerId",
     "reason",

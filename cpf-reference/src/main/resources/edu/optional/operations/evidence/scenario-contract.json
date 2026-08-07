@@ -3,7 +3,7 @@
   "title": "감사 증적·다운로드·승인 반출",
   "implementationPackage": "com.cpf.reference.optional.operations.evidence",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "filters",
     "format",

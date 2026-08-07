@@ -68,6 +68,20 @@ class BatchRuntimeApprovalOwnerCommandAdapterTest {
         assertThat(result.resultCode()).isEqualTo("BAT-UNKNOWN");
     }
 
+
+    @Test
+    void ownerTupleMatchingIsExactAndRejectsNearMatches() {
+        assertThat(adapter.supports("BAT", "requestRetry", "BATCH_RETRY", "bat_execution")).isTrue();
+        assertThat(adapter.supports("bat", "requestRetry", "BATCH_RETRY", "bat_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRetry", "batch_retry", "bat_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRetry", "BATCH_RETRY", "BAT_EXECUTION")).isFalse();
+        assertThat(adapter.supports("batch-runtime", "requestRetry", "BATCH_RETRY", "bat_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRetry", "BATCH_RETRY_FORCE", "bat_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRetry", "OPS_RETRY", "bat_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRetry", "BATCH_RETRY", "bat_execution_shadow")).isFalse();
+        assertThat(adapter.supports("BAT", "requestRun", "BATCH_SCHEDULER_RUN_ONCE", "bat_job")).isFalse();
+    }
+
     private AdmApprovedOperationCommand command(CpfBatchRiskCommand risk, String approvedBy)
             throws Exception {
         return new AdmApprovedOperationCommand(

@@ -3,7 +3,7 @@
   "title": "JobParameter 식별·중복 실행·새 Instance",
   "implementationPackage": "com.cpf.reference.batch.instance.parameter",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "businessDate",
     "jobVersion",

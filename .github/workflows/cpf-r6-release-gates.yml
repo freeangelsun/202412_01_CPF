@@ -1,28 +1,19 @@
 name: CPF R6 Release Gates
 on:
-  workflow_dispatch:
-    inputs:
-      run_db3:
-        description: Run live Oracle/PostgreSQL/MariaDB lifecycle using repository secrets
-        required: true
-        type: boolean
-        default: false
-      run_multiprocess:
-        description: Run broker and multiprocess chaos gate
-        required: true
-        type: boolean
-        default: false
+  push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: cpf-r6-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  build-test-browser:
-    runs-on: windows-latest
-    timeout-minutes: 120
+  release-qualification:
+    runs-on: [self-hosted, windows, cpf-r6]
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,15 +26,47 @@ jobs:
         with:
           node-version: '22.18.0'
           cache: npm
-          cache-dependency-path: cpf-admin/frontend/package-lock.json
-      - name: Install Playwright browsers
+          cache-dependency-path: |
+            cpf-admin/frontend/package-lock.json
+            cpf-biz-admin/frontend/package-lock.json
+      - name: Preflight approved qualification tools
+        shell: pwsh
+        run: |
+          foreach ($tool in @('python','pwsh','ort','syft','grype')) {
+            if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "Required qualification tool missing: $tool" }
+          }
+      - name: Install frontend dependencies and browsers
         shell: pwsh
         run: |
           npm --prefix cpf-admin/frontend ci
-          npx --prefix cpf-admin/frontend playwright install --with-deps chromium
-      - name: Run exact-SHA release gates
+          npm --prefix cpf-biz-admin/frontend ci
+          npx --prefix cpf-admin/frontend playwright install chromium firefox webkit
+          npx --prefix cpf-biz-admin/frontend playwright install chromium firefox webkit
+      - name: Run exact-SHA release qualification
         shell: pwsh
         env:
+          CPF_E2E_RELEASE: 'true'
+          CPF_FRONTEND_URL: ${{ vars.CPF_ADM_FRONTEND_URL }}
+          CPF_BZA_FRONTEND_URL: ${{ vars.CPF_BZA_FRONTEND_URL }}
+          CPF_E2E_AUTH_STATE: ${{ runner.temp }}\cpf-adm-auth.json
+          CPF_E2E_AUTH_STATE_READONLY: ${{ runner.temp }}\cpf-adm-auth-readonly.json
+          CPF_E2E_AUTH_STATE_OPERATOR: ${{ runner.temp }}\cpf-adm-auth-operator.json
+          CPF_E2E_AUTH_STATE_JSON: ${{ secrets.CPF_E2E_AUTH_STATE_JSON }}
+          CPF_E2E_AUTH_STATE_READONLY_JSON: ${{ secrets.CPF_E2E_AUTH_STATE_READONLY_JSON }}
+          CPF_E2E_AUTH_STATE_OPERATOR_JSON: ${{ secrets.CPF_E2E_AUTH_STATE_OPERATOR_JSON }}
+          CPF_E2E_PRIVILEGED_ENDPOINTS: ${{ vars.CPF_E2E_PRIVILEGED_ENDPOINTS }}
+          CPF_E2E_ROUTE_MATRIX: ${{ vars.CPF_E2E_ROUTE_MATRIX }}
+          CPF_E2E_FAILURE_MATRIX: ${{ vars.CPF_E2E_FAILURE_MATRIX }}
+          CPF_E2E_SECURITY_FIXTURE: ${{ vars.CPF_E2E_SECURITY_FIXTURE }}
+          CPF_BZA_E2E_AUTH_STATE: ${{ runner.temp }}\cpf-bza-auth.json
+          CPF_BZA_E2E_AUTH_STATE_JSON: ${{ secrets.CPF_BZA_E2E_AUTH_STATE_JSON }}
+          CPF_BZA_E2E_PRIVILEGED_ENDPOINTS: ${{ vars.CPF_BZA_E2E_PRIVILEGED_ENDPOINTS }}
+          CPF_BZA_E2E_ROUTE_MATRIX: ${{ vars.CPF_BZA_E2E_ROUTE_MATRIX }}
+          CPF_BZA_E2E_FAILURE_MATRIX: ${{ vars.CPF_BZA_E2E_FAILURE_MATRIX }}
+          CPF_BZA_E2E_SECURITY_FIXTURE: ${{ vars.CPF_BZA_E2E_SECURITY_FIXTURE }}
+          CPF_ADM_RUNTIME_OPENAPI_FILE: ${{ vars.CPF_ADM_RUNTIME_OPENAPI_FILE }}
+          CPF_BZA_RUNTIME_OPENAPI_FILE: ${{ vars.CPF_BZA_RUNTIME_OPENAPI_FILE }}
+
           CPF_RUNTIME_ORACLE_JDBC_URL: ${{ secrets.CPF_RUNTIME_ORACLE_JDBC_URL }}
           CPF_RUNTIME_ORACLE_USERNAME: ${{ secrets.CPF_RUNTIME_ORACLE_USERNAME }}
           CPF_RUNTIME_ORACLE_PASSWORD: ${{ secrets.CPF_RUNTIME_ORACLE_PASSWORD }}
@@ -53,11 +76,85 @@ jobs:
           CPF_RUNTIME_MARIADB_JDBC_URL: ${{ secrets.CPF_RUNTIME_MARIADB_JDBC_URL }}
           CPF_RUNTIME_MARIADB_USERNAME: ${{ secrets.CPF_RUNTIME_MARIADB_USERNAME }}
           CPF_RUNTIME_MARIADB_PASSWORD: ${{ secrets.CPF_RUNTIME_MARIADB_PASSWORD }}
+
+          CPF_MULTIPROCESS_CHAOS_RUNNER: ${{ vars.CPF_MULTIPROCESS_CHAOS_RUNNER }}
+          CPF_BROKER_URL: ${{ secrets.CPF_BROKER_URL }}
+          CPF_CHAOS_DB_URL: ${{ secrets.CPF_CHAOS_DB_URL }}
+          CPF_CHAOS_DB_USER: ${{ secrets.CPF_CHAOS_DB_USER }}
+          CPF_CHAOS_DB_PASSWORD: ${{ secrets.CPF_CHAOS_DB_PASSWORD }}
+
+          CPF_R6_PERFORMANCE_PROFILE: cpf-tools/performance/cpf-r6-release-performance-profile.json
+          CPF_R6_PERF_ADM_HEALTH_URL: ${{ vars.CPF_R6_PERF_ADM_HEALTH_URL }}
+          CPF_PERF_BROKER_PROBE_URL: ${{ vars.CPF_PERF_BROKER_PROBE_URL }}
+          CPF_PERF_BROKER_PROBE_TOKEN: ${{ secrets.CPF_PERF_BROKER_PROBE_TOKEN }}
+          CPF_PERF_BATCH_PROBE_URL: ${{ vars.CPF_PERF_BATCH_PROBE_URL }}
+          CPF_PERF_BATCH_PROBE_TOKEN: ${{ secrets.CPF_PERF_BATCH_PROBE_TOKEN }}
+          CPF_PERF_RESOURCE_PROBE_URL: ${{ vars.CPF_PERF_RESOURCE_PROBE_URL }}
+          CPF_PERF_RESOURCE_PROBE_TOKEN: ${{ secrets.CPF_PERF_RESOURCE_PROBE_TOKEN }}
+
+          CPF_R6_OBSERVABILITY_PROBE_URL: ${{ vars.CPF_R6_OBSERVABILITY_PROBE_URL }}
+          CPF_R6_OBSERVABILITY_PROBE_TOKEN: ${{ secrets.CPF_R6_OBSERVABILITY_PROBE_TOKEN }}
+          CPF_R6_SECURITY_CORPUS: ${{ runner.temp }}\cpf-r6-security-corpus.json
+          CPF_R6_SECURITY_CORPUS_JSON: ${{ secrets.CPF_R6_SECURITY_CORPUS_JSON }}
+          CPF_R6_SECURITY_TOKEN: ${{ secrets.CPF_R6_SECURITY_TOKEN }}
+          CPF_R6_SECURITY_ALT_TOKEN: ${{ secrets.CPF_R6_SECURITY_ALT_TOKEN }}
+
+          CPF_BACKUP_ENCRYPTION_KEY_B64: ${{ secrets.CPF_BACKUP_ENCRYPTION_KEY_B64 }}
+          CPF_R6_DR_MARIADB_DATABASE: ${{ vars.CPF_R6_DR_MARIADB_DATABASE }}
+          CPF_R6_DR_MARIADB_HOST: ${{ vars.CPF_R6_DR_MARIADB_HOST }}
+          CPF_R6_DR_MARIADB_PORT: ${{ vars.CPF_R6_DR_MARIADB_PORT }}
+          CPF_R6_DR_MARIADB_USER: ${{ secrets.CPF_R6_DR_MARIADB_USER }}
+          CPF_R6_DR_MARIADB_PASSWORD: ${{ secrets.CPF_R6_DR_MARIADB_PASSWORD }}
+          CPF_R6_DR_POSTGRESQL_DATABASE: ${{ vars.CPF_R6_DR_POSTGRESQL_DATABASE }}
+          CPF_R6_DR_POSTGRESQL_HOST: ${{ vars.CPF_R6_DR_POSTGRESQL_HOST }}
+          CPF_R6_DR_POSTGRESQL_PORT: ${{ vars.CPF_R6_DR_POSTGRESQL_PORT }}
+          CPF_R6_DR_POSTGRESQL_USER: ${{ secrets.CPF_R6_DR_POSTGRESQL_USER }}
+          CPF_R6_DR_POSTGRESQL_PASSWORD: ${{ secrets.CPF_R6_DR_POSTGRESQL_PASSWORD }}
+          CPF_R6_DR_ORACLE_DATABASE: ${{ vars.CPF_R6_DR_ORACLE_DATABASE }}
+          CPF_R6_DR_ORACLE_HOST: ${{ vars.CPF_R6_DR_ORACLE_HOST }}
+          CPF_R6_DR_ORACLE_PORT: ${{ vars.CPF_R6_DR_ORACLE_PORT }}
+          CPF_R6_DR_ORACLE_USER: ${{ secrets.CPF_R6_DR_ORACLE_USER }}
+          CPF_R6_DR_ORACLE_PASSWORD: ${{ secrets.CPF_R6_DR_ORACLE_PASSWORD }}
+          CPF_R6_DR_ORACLE_CONNECT_IDENTIFIER: ${{ secrets.CPF_R6_DR_ORACLE_CONNECT_IDENTIFIER }}
+          CPF_R6_DR_ORACLE_DIRECTORY_OBJECT: ${{ vars.CPF_R6_DR_ORACLE_DIRECTORY_OBJECT }}
+          CPF_R6_DR_ORACLE_SERVER_ARTIFACT_FILE: ${{ vars.CPF_R6_DR_ORACLE_SERVER_ARTIFACT_FILE }}
+          CPF_R6_DR_ORACLE_SERVER_STAGING_FILE: ${{ vars.CPF_R6_DR_ORACLE_SERVER_STAGING_FILE }}
+          CPF_R6_DR_CHAOS_PROBE_URL: ${{ vars.CPF_R6_DR_CHAOS_PROBE_URL }}
+          CPF_R6_DR_CHAOS_PROBE_TOKEN: ${{ secrets.CPF_R6_DR_CHAOS_PROBE_TOKEN }}
+          CPF_R6_DR_MAX_RPO_SECONDS: ${{ vars.CPF_R6_DR_MAX_RPO_SECONDS }}
+          CPF_R6_DR_MAX_RTO_SECONDS: ${{ vars.CPF_R6_DR_MAX_RTO_SECONDS }}
+
+          CPF_R6_REMOTE_REPOSITORY_URL: ${{ vars.CPF_R6_REMOTE_REPOSITORY_URL }}
+          CPF_R6_OFFLINE_REPOSITORY_DIR: ${{ vars.CPF_R6_OFFLINE_REPOSITORY_DIR }}
+          CPF_RELEASE_PRIVATE_KEY: ${{ runner.temp }}\cpf-release-private.key
+          CPF_RELEASE_PUBLIC_KEY: ${{ runner.temp }}\cpf-release-public.key
+          CPF_RELEASE_PRIVATE_KEY_B64: ${{ secrets.CPF_RELEASE_PRIVATE_KEY_B64 }}
+          CPF_RELEASE_PUBLIC_KEY_B64: ${{ secrets.CPF_RELEASE_PUBLIC_KEY_B64 }}
         run: |
-          $flags=@('-ExpectedHead','${{ github.sha }}','-RunBrowser')
-          if ('${{ inputs.run_db3 }}' -eq 'true') { $flags += '-RunDb3' }
-          if ('${{ inputs.run_multiprocess }}' -eq 'true') { $flags += '-RunMultiprocess' }
-          & ./cpf-tools/verification/final-dev/run-r6-release-gates.ps1 @flags
+          $required = @(
+            'CPF_E2E_AUTH_STATE_JSON','CPF_E2E_AUTH_STATE_READONLY_JSON','CPF_E2E_AUTH_STATE_OPERATOR_JSON','CPF_BZA_E2E_AUTH_STATE_JSON',
+            'CPF_R6_SECURITY_CORPUS_JSON','CPF_RELEASE_PRIVATE_KEY_B64','CPF_RELEASE_PUBLIC_KEY_B64','CPF_BACKUP_ENCRYPTION_KEY_B64',
+            'CPF_R6_PERF_ADM_HEALTH_URL','CPF_PERF_BROKER_PROBE_URL','CPF_PERF_BATCH_PROBE_URL','CPF_PERF_RESOURCE_PROBE_URL',
+            'CPF_R6_OBSERVABILITY_PROBE_URL','CPF_R6_DR_CHAOS_PROBE_URL','CPF_R6_REMOTE_REPOSITORY_URL','CPF_R6_OFFLINE_REPOSITORY_DIR',
+            'CPF_ADM_FRONTEND_URL','CPF_BZA_FRONTEND_URL','CPF_E2E_PRIVILEGED_ENDPOINTS','CPF_E2E_ROUTE_MATRIX','CPF_E2E_FAILURE_MATRIX','CPF_E2E_SECURITY_FIXTURE',
+            'CPF_BZA_E2E_PRIVILEGED_ENDPOINTS','CPF_BZA_E2E_ROUTE_MATRIX','CPF_BZA_E2E_FAILURE_MATRIX','CPF_BZA_E2E_SECURITY_FIXTURE',
+            'CPF_ADM_RUNTIME_OPENAPI_FILE','CPF_BZA_RUNTIME_OPENAPI_FILE',
+            'CPF_RUNTIME_ORACLE_JDBC_URL','CPF_RUNTIME_ORACLE_USERNAME','CPF_RUNTIME_ORACLE_PASSWORD',
+            'CPF_RUNTIME_POSTGRESQL_JDBC_URL','CPF_RUNTIME_POSTGRESQL_USERNAME','CPF_RUNTIME_POSTGRESQL_PASSWORD',
+            'CPF_RUNTIME_MARIADB_JDBC_URL','CPF_RUNTIME_MARIADB_USERNAME','CPF_RUNTIME_MARIADB_PASSWORD',
+            'CPF_MULTIPROCESS_CHAOS_RUNNER','CPF_BROKER_URL','CPF_CHAOS_DB_URL','CPF_CHAOS_DB_USER','CPF_CHAOS_DB_PASSWORD'
+          )
+          foreach ($name in $required) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Required release qualification input missing: $name" }
+          }
+          Set-Content -LiteralPath $env:CPF_E2E_AUTH_STATE -Value $env:CPF_E2E_AUTH_STATE_JSON -Encoding utf8NoBOM
+          Set-Content -LiteralPath $env:CPF_E2E_AUTH_STATE_READONLY -Value $env:CPF_E2E_AUTH_STATE_READONLY_JSON -Encoding utf8NoBOM
+          Set-Content -LiteralPath $env:CPF_E2E_AUTH_STATE_OPERATOR -Value $env:CPF_E2E_AUTH_STATE_OPERATOR_JSON -Encoding utf8NoBOM
+          Set-Content -LiteralPath $env:CPF_BZA_E2E_AUTH_STATE -Value $env:CPF_BZA_E2E_AUTH_STATE_JSON -Encoding utf8NoBOM
+          Set-Content -LiteralPath $env:CPF_R6_SECURITY_CORPUS -Value $env:CPF_R6_SECURITY_CORPUS_JSON -Encoding utf8NoBOM
+          [IO.File]::WriteAllBytes($env:CPF_RELEASE_PRIVATE_KEY, [Convert]::FromBase64String($env:CPF_RELEASE_PRIVATE_KEY_B64))
+          [IO.File]::WriteAllBytes($env:CPF_RELEASE_PUBLIC_KEY, [Convert]::FromBase64String($env:CPF_RELEASE_PUBLIC_KEY_B64))
+          & ./cpf-tools/verification/final-dev/run-r6-release-gates.ps1 -ExpectedHead '${{ github.sha }}' -Release -RunBrowser -RunDb3 -RunMultiprocess
       - uses: actions/upload-artifact@v4
         if: always()
         with:

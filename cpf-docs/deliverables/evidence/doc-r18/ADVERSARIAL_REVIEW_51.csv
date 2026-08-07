@@ -1,0 +1,52 @@
+no,question,status,evidence
+1,135 EDU unique IDs are present in intended manuals,PASS,135 IDs
+2,135 detailed EDU cards are present,PASS,135 cards
+3,All 39 starters documented by exact artifact name,PASS,39/39
+4,All 39 starters classified for runtime config,PASS,39 classifications
+5,No active starter left catalog-namespace-only,PASS,0 unmapped
+6,Caffeine catalog/runtime prefix mismatch documented,PASS,documented
+7,Attachment catalog/runtime prefix mismatch documented,PASS,documented
+8,HTTP actual service-call/http-client prefixes documented,PASS,documented
+9,Session catalog/runtime prefix mismatch documented,PASS,documented
+10,Messaging reliability prefix mismatch documented,PASS,documented
+11,No fake raw SFTP password guidance,PASS,forbidden key documented
+12,DB vendor/resource root fail-closed documented,PASS,documented
+13,Runtime control agent token and apply guard documented,PASS,documented
+14,Log policy actual runtime prefixes documented,PASS,documented
+15,BZA exact 26 routes in evidence,PASS,26
+16,BZA route registry does not imply fake organization save button,PASS,explicit
+17,ADM current 63 route cards retained,PASS,63 route cards
+18,ADM logs exact protected search fields present,PASS,present
+19,"Generator uses CapabilityProfile, not Profile option",PASS,exact
+20,Generator apply example has no placeholder,PASS,none
+21,Tool customer entry axes all present,PASS,9/9
+22,verify-full-product RequireAll/SKIPPED meaning present,PASS,present
+23,Generated-domain user modification fail-closed present,PASS,present
+24,Profiles exactly six public IDs,PASS,6
+25,Retained inactive openapi-webmvc is not documented active,PASS,explicit inactive
+26,No future work placeholder language,PASS,none
+27,No prohibited absolute marketing claims,PASS,none
+28,Property leaf catalog substantial,PASS,243 rows
+29,Property leaf catalog keys unique,PASS,243 unique
+30,Secrets explicitly marked,PASS,10 secret rows
+31,All property rows have rollback,PASS,all
+32,All property rows have check/expected,PASS,all
+33,All property rows have source trace,PASS,all
+34,Profile starters not assigned fake provider leaf,PASS,6 profile composition
+35,Webhook not assigned fake runtime leaf,PASS,pure api
+36,Secret starter not assigned fake config leaf,PASS,provider required
+37,MyBatis reuses DB vendor/resource contract,PASS,documented
+38,3 DB vendors named,PASS,3
+39,Batch 9 submodules named,PASS,9
+40,Gateway security and result-loss concepts present,PASS,present
+41,BZA approval compensation present,PASS,present
+42,Source vs catalog namespace distinction explicit,PASS,explicit
+43,README still contains architecture/product/guide structure,PASS,preserved
+44,README official guide links all markdown paths,PASS,8/8
+45,No extra official guide markdown,PASS,8 exact
+46,Design deliverables exactly five markdown,PASS,5
+47,Evidence contains explicit EDU manual coverage,PASS,present
+48,Evidence contains leaf property catalog,PASS,present
+49,Evidence contains BZA route matrix,PASS,present
+50,All markdown code fences balanced,PASS,balanced
+51,No merge conflict markers,PASS,none

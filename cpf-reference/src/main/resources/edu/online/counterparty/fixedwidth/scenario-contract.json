@@ -3,7 +3,7 @@
   "title": "고정길이 전문 기관 이체",
   "implementationPackage": "com.cpf.reference.online.counterparty.fixedwidth",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "institution",
     "transfers",

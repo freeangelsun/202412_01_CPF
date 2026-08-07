@@ -3,7 +3,7 @@
   "title": "Retry·Skip·No-Skip 예외 분류",
   "implementationPackage": "com.cpf.reference.batch.faulttolerance.retryskip",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "retryLimit",
     "skipLimit",

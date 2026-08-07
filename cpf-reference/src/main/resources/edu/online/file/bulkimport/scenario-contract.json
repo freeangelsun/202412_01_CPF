@@ -3,7 +3,7 @@
   "title": "대량 등록 사전검증·부분 오류 보고·재업로드",
   "implementationPackage": "com.cpf.reference.online.file.bulkimport",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "dryRun"
   ],

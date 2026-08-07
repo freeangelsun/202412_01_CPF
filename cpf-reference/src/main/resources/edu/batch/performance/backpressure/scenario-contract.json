@@ -3,7 +3,7 @@
   "title": "대용량 처리 성능·용량·Backpressure",
   "implementationPackage": "com.cpf.reference.batch.performance.backpressure",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "volume",
     "chunkSize",

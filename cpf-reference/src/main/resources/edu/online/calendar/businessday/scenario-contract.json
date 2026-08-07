@@ -3,7 +3,7 @@
   "title": "업무일자·시간대·휴일 Calendar",
   "implementationPackage": "com.cpf.reference.online.calendar.businessday",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "businessDate",
     "zoneId",

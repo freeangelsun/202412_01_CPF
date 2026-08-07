@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { parseStrictJsonObject } from "../../shared/strictJsonObject";
 import { integrationClosureApi, type WebhookDelivery } from "./integrationClosureApi";
-import { canInvokeOperation, parseOperationPermissions } from "../../shared/operationPermissions";
+import { useAdmSessionStore } from "../../stores/admSessionStore";
 import {
   approvalDraftFingerprint,
   clearApprovalIdempotency,
@@ -36,9 +36,13 @@ const webhookExpectedVersion = ref(1);
 const webhookReason = ref("");
 const webhookReplayResult = ref<Record<string, unknown> | null>(null);
 const replayIdempotencyKey = ref(globalThis.crypto.randomUUID());
-const permissionNames = parseOperationPermissions(document.documentElement.dataset.admPermissions);
-const can = (operationId: string) => canInvokeOperation(permissionNames, operationId);
-const permissionReason = (operationId: string) => can(operationId) ? "" : `권한 없음: ${operationId}`;
+const sessionStore = useAdmSessionStore();
+const can = (operationId: string) => sessionStore.hasButton(operationId);
+const canAll = (...operationIds: string[]) => operationIds.every(operationId => can(operationId));
+const permissionReason = (...operationIds: string[]) => {
+  const missing = operationIds.filter(operationId => !can(operationId));
+  return missing.length ? `권한 없음: ${missing.join(", ")}` : "";
+};
 
 const canRequestApproval = computed(() => can("admIntegrationDataQualityCorrectionApprovalRequest")
   && Boolean(quarantineId.value.trim()) && reason.value.trim().length >= 8
@@ -152,7 +156,7 @@ async function replayWebhook() {
         <label>업무 시간대 <input v-model="zone" autocomplete="off" /></label>
         <label>허용 Skew(ms) <input v-model.number="maxSkewMillis" type="number" min="0" /></label>
       </div>
-      <button type="button" :title="permissionReason('admIntegrationCryptoStatus')" :disabled="loading.status || !can('admIntegrationCryptoStatus')" @click="loadOperationalStatus">상태 조회</button>
+      <button type="button" :title="permissionReason('admIntegrationCryptoStatus', 'admIntegrationTimeHealth')" :disabled="loading.status || !canAll('admIntegrationCryptoStatus', 'admIntegrationTimeHealth')" @click="loadOperationalStatus">상태 조회</button>
       <div class="results"><pre v-if="cryptoStatus" tabindex="0">{{ JSON.stringify(cryptoStatus, null, 2) }}</pre><pre v-if="timeStatus" tabindex="0">{{ JSON.stringify(timeStatus, null, 2) }}</pre></div>
     </section>
 
@@ -168,7 +172,7 @@ async function replayWebhook() {
 
     <section aria-labelledby="correction-title">
       <h2 id="correction-title">격리 데이터 정정 승인</h2>
-      <p>동일 Draft의 timeout·응답 유실·재시도에는 Session 범위의 동일 멱등키를 사용하며 Payload는 저장하지 않습니다.</p>
+      <p>동일 Draft의 timeout·응답 유실·재시도에는 브라우저 localStorage에서 동일 Draft의 멱등키를 재사용합니다. pending 키는 최대 24시간, confirmed 키는 최대 7일 동안 재사용하며 TTL 만료 또는 새 작업 시작 시 generation을 증가시켜 키를 회전합니다. Payload 원문은 저장하지 않습니다.</p>
       <form @submit.prevent="requestApproval">
         <div class="form-grid">
           <label>격리 ID <input v-model="quarantineId" required autocomplete="off" /></label>

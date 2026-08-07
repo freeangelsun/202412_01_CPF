@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CPF R6 release security negative corpus",
+  "type": "object",
+  "required": ["schemaVersion", "cases"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "cases": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "kind"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "category": {"enum": ["xss", "csrf", "ssrf", "idor", "injection", "path", "archive", "process", "tenant", "session", "secret"]},
+          "kind": {"enum": ["http", "command"]}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+status,surface,source,documents,basis_sha
+PASS,Top target,cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,00;01;02;03;04;05;90;91;design,64049044956924032360fa80be83b5e37c64f828
+PASS,Documentation standard,cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md,all official docs,64049044956924032360fa80be83b5e37c64f828
+PASS,Starter catalog,cpf-tools/generator/contracts/cpf-starter-catalog.json,00;01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,Generator,cpf-tools/generator/create-domain.ps1,01,64049044956924032360fa80be83b5e37c64f828
+PASS,Tool registry,cpf-tools/README.md,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,Full verification,cpf-tools/scripts/verify-full-product.ps1,05,64049044956924032360fa80be83b5e37c64f828
+PASS,DB sync,cpf-tools/scripts/sync-database-artifacts.ps1,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,DB initialize,cpf-tools/scripts/initialize-cpf-database.ps1,05;DB-standard,64049044956924032360fa80be83b5e37c64f828
+PASS,Generated Domain sync,cpf-tools/scripts/sync-generated-domain-artifacts.ps1,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,Arbitrary Domain parity,cpf-tools/scripts/check-generator-arbitrary-domain-parity.ps1,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,EDU catalog,cpf-reference/src/main/resources/edu/manual-135-catalog.json,01;02;03;05;90;91,64049044956924032360fa80be83b5e37c64f828
+PASS,EDU process runner,cpf-reference/src/main/scripts/edu/invoke-reference-edu.ps1,01;05,64049044956924032360fa80be83b5e37c64f828
+PASS,ADM logs UI,cpf-admin/frontend/src/features/logs/LogsPage.vue,04,64049044956924032360fa80be83b5e37c64f828
+PASS,BZA organizations UI,cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue,90,64049044956924032360fa80be83b5e37c64f828
+PASS,Stack,gradle/cpf-stack.properties,00;01;05;design,64049044956924032360fa80be83b5e37c64f828
+PASS,Build graph,settings.gradle,00;01;02;05;design,64049044956924032360fa80be83b5e37c64f828

@@ -3,7 +3,7 @@
   "title": "사용자·역할·권한·실효 권한",
   "implementationPackage": "com.cpf.reference.optional.backoffice.authorization",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "userId",
     "roleId",
@@ -84,8 +84,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

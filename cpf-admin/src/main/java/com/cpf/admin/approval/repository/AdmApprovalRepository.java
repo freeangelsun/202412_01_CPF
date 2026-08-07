@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 
 /** ADM 위험조치 승인 정본 Repository 및 기본 DB Directory Adapter. */
@@ -68,6 +70,30 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                     "multiple active approval policies for actionType=" + actionType);
         }
         return active.stream().findFirst();
+    }
+
+
+    /** Locks one of 64 pre-seeded policy buckets for the current DB transaction. */
+    public void lockPolicyActionType(String actionType) {
+        int bucket = Math.floorMod(Objects.requireNonNull(actionType, "actionType").hashCode(), 64);
+        Integer locked = jdbc.queryForObject(
+                "SELECT LOCK_BUCKET FROM adm_approval_policy_lock WHERE LOCK_BUCKET=? FOR UPDATE",
+                Integer.class, bucket);
+        if (locked == null || locked != bucket) {
+            throw new IllegalStateException("approval policy lock bucket is not initialized: " + bucket);
+        }
+    }
+
+    public boolean hasEnabledPolicyOverlap(String actionType, Instant effectiveFrom, Instant effectiveTo) {
+        Timestamp from = Timestamp.from(Objects.requireNonNull(effectiveFrom, "effectiveFrom"));
+        Timestamp to = effectiveTo == null ? null : Timestamp.from(effectiveTo);
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM adm_approval_policy
+                 WHERE ACTION_TYPE=? AND ENABLED_YN='Y'
+                   AND (? IS NULL OR EFFECTIVE_FROM < ?)
+                   AND (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > ?)
+                """, Integer.class, actionType, to, to, from);
+        return count != null && count > 0;
     }
 
     public List<Map<String,Object>> findPolicySteps(String code, int version) {
@@ -309,7 +335,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             SELECT APPROVAL_REQUEST_ID approvalRequestId,COMMAND_REQUEST_ID commandRequestId,
                    EXECUTION_STATUS executionStatus,OWNER_RESULT_CODE ownerResultCode,
                    OWNER_RESULT_MESSAGE ownerResultMessage,STARTED_AT startedAt,COMPLETED_AT completedAt,
-                   RECOVERY_REQUIRED_YN recoveryRequiredYn
+                   RECOVERY_REQUIRED_YN recoveryRequiredYn,LEASE_OWNER leaseOwner,LEASE_EXPIRES_AT leaseExpiresAt,FENCE_TOKEN fenceToken
               FROM adm_approval_execution WHERE APPROVAL_REQUEST_ID=?
             """,id).stream().findFirst();
     }
@@ -334,7 +360,8 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                    r.TARGET_ID targetId,r.REQUESTED_BY requestedBy,r.REQUEST_REASON requestReason,
                    r.COMMAND_PAYLOAD_HASH payloadHash,r.COMMAND_PAYLOAD_SNAPSHOT payloadSnapshot,
                    r.APPROVAL_STATUS approvalStatus,r.EXPIRE_AT expireAt,r.TRANSACTION_ID transactionId,
-                   r.VERSION_NO versionNo,e.COMMAND_REQUEST_ID commandRequestId,e.EXECUTION_STATUS executionStatus
+                   r.VERSION_NO versionNo,e.COMMAND_REQUEST_ID commandRequestId,e.EXECUTION_STATUS executionStatus,
+                   e.LEASE_OWNER leaseOwner,e.LEASE_EXPIRES_AT leaseExpiresAt,e.FENCE_TOKEN fenceToken
               FROM adm_approval_request r
               JOIN adm_approval_execution e ON e.APPROVAL_REQUEST_ID=r.APPROVAL_REQUEST_ID
              WHERE r.APPROVAL_REQUEST_ID=? AND e.COMMAND_REQUEST_ID=?
@@ -349,11 +376,13 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='APPROVED' AND VERSION_NO=?
             """,operatorId,id,expectedVersion);
         if(requestChanged!=1)return false;
+        Instant leaseExpiresAt=Instant.now().plus(EXECUTION_LEASE);
         jdbc.update("""
             INSERT INTO adm_approval_execution (
-              APPROVAL_REQUEST_ID,COMMAND_REQUEST_ID,EXECUTION_STATUS,STARTED_AT,RECOVERY_REQUIRED_YN,created_by,updated_by
-            ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?)
-            """,id,commandRequestId,operatorId,operatorId);
+              APPROVAL_REQUEST_ID,COMMAND_REQUEST_ID,EXECUTION_STATUS,STARTED_AT,RECOVERY_REQUIRED_YN,
+              LEASE_OWNER,LEASE_EXPIRES_AT,FENCE_TOKEN,created_by,updated_by
+            ) VALUES (?,?,'RUNNING',CURRENT_TIMESTAMP,'N',?,?,1,?,?)
+            """,id,commandRequestId,executionLeaseOwner(),Timestamp.from(leaseExpiresAt),operatorId,operatorId);
         return true;
     }
 
@@ -362,9 +391,9 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     public boolean reserveReconcile(long id,long expectedVersion,String operatorId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP,
-                   COMPLETED_AT=NULL,updated_by=?
+                   COMPLETED_AT=NULL,LEASE_OWNER=?,LEASE_EXPIRES_AT=?,FENCE_TOKEN=FENCE_TOKEN+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='UNKNOWN' AND RECOVERY_REQUIRED_YN='Y'
-            """,operatorId,id);
+            """,executionLeaseOwner(),Timestamp.from(Instant.now().plus(EXECUTION_LEASE)),operatorId,id);
         if(executionChanged!=1)return false;
         int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
@@ -385,7 +414,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     public void finishExecution(long id,String status,String code,String message,boolean recovery,String operatorId){
         int changed=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS=?,OWNER_RESULT_CODE=?,OWNER_RESULT_MESSAGE=?,
-                   COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN=?,updated_by=?
+                   COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN=?,LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
             """,status,code,message,recovery?"Y":"N",operatorId,id);
         if(changed!=1)throw new IllegalStateException("approval execution finalization failed");
@@ -411,7 +440,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                                                 String reason,String eventData,String transactionId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
-                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',updated_by=?
+                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
             """,code,message,operatorId,id);
         int requestChanged=jdbc.update("""
@@ -427,7 +456,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     public void markExecutionUnknown(long id,String code,String message,String operatorId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
-                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',updated_by=?
+                   OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
             """,code,message,operatorId,id);
         int requestChanged=jdbc.update("""
@@ -436,6 +465,59 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,operatorId,id);
         if(executionChanged!=1||requestChanged!=1)
             throw new IllegalStateException("approval UNKNOWN transition failed");
+    }
+
+
+    private static final Duration EXECUTION_LEASE=Duration.ofMinutes(5);
+    private static final Duration LEGACY_RUNNING_GRACE=Duration.ofMinutes(10);
+
+    /**
+     * Converts stale RUNNING/EXECUTING reservations to durable UNKNOWN without replaying the mutation.
+     * The transition is cluster-safe because the execution UPDATE is conditional on the current RUNNING
+     * state and expired lease. A later operator/system reconcile only observes Owner state.
+     */
+    @Transactional(transactionManager = "admTransactionManager")
+    public int sweepExpiredExecutions(Instant now,int maxRows,String operatorId){
+        Objects.requireNonNull(now,"now");
+        if(maxRows<1) return 0;
+        Timestamp nowTs=Timestamp.from(now);
+        Timestamp legacyCutoff=Timestamp.from(now.minus(LEGACY_RUNNING_GRACE));
+        List<Long> candidates=jdbc.queryForList("""
+            SELECT APPROVAL_REQUEST_ID FROM adm_approval_execution
+             WHERE EXECUTION_STATUS='RUNNING'
+               AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
+                    OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
+             ORDER BY STARTED_AT,APPROVAL_REQUEST_ID
+            """,Long.class,nowTs,legacyCutoff);
+        int recovered=0;
+        for(Long id:candidates.stream().limit(maxRows).toList()){
+            int executionChanged=jdbc.update("""
+                UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
+                       OWNER_RESULT_MESSAGE='실행 Lease 만료로 Owner 결과 확인이 필요합니다.',COMPLETED_AT=CURRENT_TIMESTAMP,
+                       RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
+                 WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+                   AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
+                        OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
+                """,operatorId,id,nowTs,legacyCutoff);
+            if(executionChanged!=1) continue;
+            int requestChanged=jdbc.update("""
+                UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
+                 WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
+                """,operatorId,id);
+            if(requestChanged!=1) throw new IllegalStateException("stale approval request transition failed: "+id);
+            history(id,"EXECUTION_LEASE_EXPIRED",operatorId,"EXECUTING","UNKNOWN",
+                    "stale execution reservation recovered after process loss",
+                    "{\"recovery\":\"RECONCILE_REQUIRED\"}",null);
+            recovered++;
+        }
+        return recovered;
+    }
+
+    private static String executionLeaseOwner(){
+        String configured=System.getenv("CPF_INSTANCE_ID");
+        if(configured!=null&&!configured.isBlank()) return configured.trim();
+        String runtime=ManagementFactory.getRuntimeMXBean().getName();
+        return runtime==null||runtime.isBlank()?"cpf-adm-unknown":runtime;
     }
 
     public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){

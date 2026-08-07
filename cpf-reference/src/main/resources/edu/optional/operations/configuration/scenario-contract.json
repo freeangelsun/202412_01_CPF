@@ -3,7 +3,7 @@
   "title": "설정·기능전환·유지보수 창 운영",
   "implementationPackage": "com.cpf.reference.optional.operations.configuration",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "configVersion",
     "targets",

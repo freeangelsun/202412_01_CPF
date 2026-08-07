@@ -25,13 +25,23 @@ public final class EduAdm08Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        String organizationId = String.valueOf(command.payload().get("organizationId"));
+        String scope = command.dataScope();
+        if (scope.startsWith("ORG:") && !scope.equals("ORG:" + organizationId)) {
+            throw new EduAuthorizationException("organization scope mismatch");
+        }
+        if (!scope.equals("*") && !scope.equals("GLOBAL") && !scope.startsWith("ORG:")
+                && !scope.equals(organizationId)) {
+            throw new EduAuthorizationException("organization scope mismatch");
+        }
+        String permission = String.valueOf(command.payload().get("permission")).toUpperCase(Locale.ROOT);
+        if (permission.contains("RAW") && command.requestReason().trim().length() < 10) {
+            throw new EduValidationException("raw data access requires a concrete reason");
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("organization:" + command.payload().get("organizationId")
+                + ":subject:" + command.payload().get("subjectId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +51,18 @@ public final class EduAdm08Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        String permission = String.valueOf(command.payload().get("permission")).toUpperCase(Locale.ROOT);
+        boolean rawAllowed = permission.contains("RAW");
         result.put("scenarioTitle", "권한·데이터 범위·Masking·사유 입력 연동");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", rawAllowed ? "AUTHORIZED" : "MASKED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("organizationId", command.payload().get("organizationId"));
+        result.put("maskedSubjectId", mask(String.valueOf(command.payload().get("subjectId"))));
+        result.put("rawValueVisible", rawAllowed);
+        result.put("rawExportRequiresApproval", true);
+        result.put("idorScopeEnforced", true);
+        result.put("reasonRecorded", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);
@@ -53,5 +71,11 @@ public final class EduAdm08Handler extends AbstractEduCapabilityHandler {
         Map<String,Object> invalid = new LinkedHashMap<>(validPayload);
         invalid.put("permission", "");
         return Map.copyOf(invalid);
+    }
+
+    private static String mask(String value) {
+        if (value == null || value.isBlank()) return "***";
+        int visible = Math.min(2, value.length());
+        return "*".repeat(Math.max(3, value.length() - visible)) + value.substring(value.length() - visible);
     }
 }

@@ -3,7 +3,7 @@
   "title": "상신·승인·반려·철회·취소",
   "implementationPackage": "com.cpf.reference.optional.backoffice.approvalflow",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "approvalId",
     "requestVersion",
@@ -84,8 +84,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

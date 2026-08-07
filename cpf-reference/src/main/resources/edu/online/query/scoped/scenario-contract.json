@@ -3,7 +3,7 @@
   "title": "권한·범위가 적용된 목록·상세 조회",
   "implementationPackage": "com.cpf.reference.online.query.scoped",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "organizationId",
     "updatedAt",

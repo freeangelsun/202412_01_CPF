@@ -45,15 +45,15 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
-        return normalize(ownerModule).equals(normalize(OWNER_MODULE))
-                && OWNER_COMMAND.equals(upper(ownerCommand));
+        return OWNER_MODULE.equals(Objects.toString(ownerModule, "").trim())
+                && OWNER_COMMAND.equals(Objects.toString(ownerCommand, "").trim());
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
         return supports(ownerModule, ownerCommand)
-                && OWNER_COMMAND.equals(upper(actionType))
-                && TARGET_TYPE.equals(upper(targetType));
+                && OWNER_COMMAND.equals(Objects.toString(actionType, "").trim())
+                && TARGET_TYPE.equals(Objects.toString(targetType, "").trim());
     }
 
     @Override
@@ -64,10 +64,10 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
         if (!supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
             return failed("BROKER_DLQ_OWNER_MISMATCH", "Broker reliability Owner Command가 아닙니다.");
         }
-        if (!OWNER_COMMAND.equals(upper(command.actionType()))) {
+        if (!OWNER_COMMAND.equals(command.actionType())) {
             return failed("BROKER_DLQ_ACTION_MISMATCH", "승인 Action과 Owner Command가 일치하지 않습니다.");
         }
-        if (!TARGET_TYPE.equals(upper(command.targetType()))) {
+        if (!TARGET_TYPE.equals(command.targetType())) {
             return failed("BROKER_DLQ_TARGET_MISMATCH", "승인 대상 유형이 DLQ가 아닙니다.");
         }
         if (same(command.requestedBy(), command.approvedBy())) {
@@ -196,13 +196,6 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
 
     private static AdmApprovedOperationResult failed(String code, String message) {
         return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED, code, message);
-    }
-
-    private static String normalize(String value) {
-        return Objects.toString(value, "")
-                .replace("-", "")
-                .replace("_", "")
-                .toLowerCase(Locale.ROOT);
     }
 
     private static String upper(String value) {

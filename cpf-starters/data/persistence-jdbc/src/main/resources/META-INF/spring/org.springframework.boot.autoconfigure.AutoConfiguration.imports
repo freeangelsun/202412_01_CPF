@@ -4,3 +4,4 @@ com.cpf.starter.data.persistence.jdbc.CpfJdbcStarterAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.CpfDomainJdbcOperationsAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.CpfVendorSqlCatalogAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.runtimecontrol.CpfPersistenceRuntimeControlAutoConfiguration
+com.cpf.starter.data.persistence.jdbc.quality.CpfDataQualityJdbcAutoConfiguration

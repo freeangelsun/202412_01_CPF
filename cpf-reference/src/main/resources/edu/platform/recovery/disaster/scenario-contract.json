@@ -3,7 +3,7 @@
   "title": "재해복구 전환·복귀·Split-Brain 방지",
   "implementationPackage": "com.cpf.reference.platform.recovery.disaster",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "incidentId",
     "primary",

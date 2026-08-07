@@ -3,7 +3,7 @@
   "title": "조직 개편·기준일·과거 이력 유지",
   "implementationPackage": "com.cpf.reference.optional.backoffice.reorganization",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "orgChanges",
     "effectiveDate",
@@ -86,8 +86,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

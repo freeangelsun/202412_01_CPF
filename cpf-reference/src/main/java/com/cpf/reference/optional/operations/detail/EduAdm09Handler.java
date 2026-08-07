@@ -19,19 +19,22 @@ public final class EduAdm09Handler extends AbstractEduCapabilityHandler {
             true, true, false, false, false, false, 3, "EDU-ADM-09"));
     }
     @Override public String implementationPackage() { return "com.cpf.reference.optional.operations.detail"; }
-    @Override public boolean readOnly() { return true; }
+    @Override public boolean readOnly() { return false; }
     @Override public List<String> businessStates() { return BUSINESS_STATES; }
     @Override public List<String> exceptionScenarios() { return EXCEPTION_SCENARIOS; }
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        String action = String.valueOf(command.payload().get("action")).trim();
+        if (action.isEmpty()) throw new EduValidationException("action is required");
+        Object currentVersion = command.payload().get("currentVersion");
+        if (currentVersion != null) {
+            try { Long.parseLong(String.valueOf(currentVersion)); }
+            catch (NumberFormatException e) { throw new EduValidationException("currentVersion must be numeric"); }
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("resource:" + command.payload().get("resourceId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +44,25 @@ public final class EduAdm09Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        long currentVersion = command.expectedVersion();
+        Object supplied = command.payload().get("currentVersion");
+        if (supplied != null) currentVersion = Long.parseLong(String.valueOf(supplied));
+        boolean conflict = currentVersion != command.expectedVersion();
+        String action = String.valueOf(command.payload().get("action")).toUpperCase(Locale.ROOT);
+        String state = conflict ? "CONFLICT"
+                : action.contains("ABORT") ? "ABORTED"
+                : action.contains("RESUBMIT") ? "RESUBMITTED"
+                : action.contains("RELOAD") ? "RELOADED" : "EDITING";
         result.put("scenarioTitle", "Expected Version 충돌 화면·재조회·재적용");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", state);
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("expectedVersion", command.expectedVersion());
+        result.put("currentVersion", currentVersion);
+        result.put("conflictDetected", conflict);
+        result.put("blindRetryAllowed", false);
+        result.put("allowedNextActions", List.of("RELOAD", "RESUBMIT", "ABORT"));
+        result.put("userInputPreserved", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

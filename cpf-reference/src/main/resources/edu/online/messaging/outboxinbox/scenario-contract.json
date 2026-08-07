@@ -3,7 +3,7 @@
   "title": "Kafka Outbox·Inbox·중복 소비·재처리",
   "implementationPackage": "com.cpf.reference.online.messaging.outboxinbox",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "eventId",
     "aggregateId",

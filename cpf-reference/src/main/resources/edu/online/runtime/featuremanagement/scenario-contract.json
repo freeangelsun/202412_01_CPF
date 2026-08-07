@@ -3,7 +3,7 @@
   "title": "Cache·기능 전환·Secret 교체",
   "implementationPackage": "com.cpf.reference.online.runtime.featuremanagement",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "codes",
     "discounts",

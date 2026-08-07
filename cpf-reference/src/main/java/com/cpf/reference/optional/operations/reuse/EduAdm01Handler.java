@@ -19,7 +19,7 @@ public final class EduAdm01Handler extends AbstractEduCapabilityHandler {
             true, false, false, false, false, false, 3, "EDU-ADM-01"));
     }
     @Override public String implementationPackage() { return "com.cpf.reference.optional.operations.reuse"; }
-    @Override public boolean readOnly() { return false; }
+    @Override public boolean readOnly() { return true; }
     @Override public List<String> businessStates() { return BUSINESS_STATES; }
     @Override public List<String> exceptionScenarios() { return EXCEPTION_SCENARIOS; }
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
@@ -28,10 +28,7 @@ public final class EduAdm01Handler extends AbstractEduCapabilityHandler {
         // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, 1);
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("business-target" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("reuse:" + String.valueOf(command.payload().get("businessId")));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +38,14 @@ public final class EduAdm01Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean customScreenRequired = Boolean.TRUE.equals(command.payload().get("customScreenRequired"));
         result.put("scenarioTitle", "기존 ADM 기능 재사용 판단");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", "RECONCILED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", true);
+        result.put("reuseExistingAdmCapability", !customScreenRequired);
+        result.put("customScreenRequired", customScreenRequired);
+        result.put("directBusinessDatabaseAccessAllowed", false);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

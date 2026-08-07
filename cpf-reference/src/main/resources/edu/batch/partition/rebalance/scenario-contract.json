@@ -3,7 +3,7 @@
   "title": "Partition 편향 감지·재분할",
   "implementationPackage": "com.cpf.reference.batch.partition.rebalance",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "partitionPlan",
     "targetSize",

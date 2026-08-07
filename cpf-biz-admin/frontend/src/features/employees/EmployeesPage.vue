@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CrudTable from "../../components/CrudTable.vue";
+import { bzaBackofficeEmployeeRawContact } from "../../generated/orval/cpf-api";
 const columns = ["employeeNo", "organizationCode", "employeeName", "positionCode", "jobTitleCode", "employmentStatus", "email", "mobileNo", "officePhoneNo", "useYn"];
 const fields = [
   {"name": "employeeNo", "label": "직원 번호", "required": true},
@@ -17,10 +18,11 @@ const fields = [
   {"name": "clearOfficePhoneNo", "label": "내부 전화번호 삭제", "type": "boolean", "defaultValue": false},
   {"name": "useYn", "label": "사용", "type": "yn"}
 ];
+async function readRawEmployee(employeeNo:string,reason:string){return bzaBackofficeEmployeeRawContact(employeeNo,{reason}) as Promise<Record<string,unknown>>;}
 </script>
 <template>
   <CrudTable title="직원" endpoint="/api/bza/backoffice/employees" menu-code="EMPLOYEE"
     raw-endpoint-template="/api/bza/backoffice/employees/{id}/contacts/raw"
-    raw-id-field="employeeNo" :raw-fields="['employeeNo','email','mobileNo','officePhoneNo']"
+    raw-id-field="employeeNo" :raw-operation="readRawEmployee" :raw-fields="['employeeNo','email','mobileNo','officePhoneNo']"
     :columns="columns" :fields="fields" />
 </template>

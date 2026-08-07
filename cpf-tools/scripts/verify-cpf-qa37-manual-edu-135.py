@@ -3,15 +3,51 @@ from __future__ import annotations
 import argparse,json,re,subprocess,sys,tempfile
 from pathlib import Path
 EXPECTED={'DEV':45,'BAT':30,'ADM':17,'BZA':14,'GW':14,'OPS':15}
+ROLE_BY_FAMILY={'DEV':'CPF_EDU_DEVELOPER','BAT':'CPF_BATCH_OPERATOR','ADM':'CPF_ADM_OPERATOR','BZA':'CPF_BZA_OPERATOR','GW':'CPF_GATEWAY_OPERATOR','OPS':'CPF_PLATFORM_OPERATOR'}
 PRODUCT_OR_GENERATED=('cpf-admin','cpf-biz-admin','cpf-gateway','com.cpf.acc','com.cpf.mbr','com.cpf.exs')
 def fail(msg): print('[CPF][QA37][EDU135][FAIL] '+msg,file=sys.stderr);raise SystemExit(1)
+
+def canonical_role(rid):
+ family=rid.split('-')[1]
+ if family not in ROLE_BY_FAMILY:fail('unsupported EDU family '+rid)
+ return ROLE_BY_FAMILY[family]
+
+def expected_scenario(f):
+ role=canonical_role(f['requirementId'])
+ if f.get('requiredRole')!=role:fail(f"catalog requiredRole drift {f['requirementId']}: {f.get('requiredRole')} != {role}")
+ return {
+  'requirementId':f['requirementId'],'title':f['title'],'implementationPackage':f['implementationPackage'],
+  'owner':f['owner'],'requiredRole':role,'inputFields':f['requiredFields'],'businessStates':f['businessStates'],
+  'workflowSteps':f['steps'],'failurePoints':f['failurePoints'],'exceptionScenarios':f['exceptionScenarios'],
+  'requiredTests':f['requiredVerification'],'readOnly':f['readOnly'],'manualAnchor':f['manualAnchor'],
+  'idempotent':f['idempotent'],'versioned':f['versioned'],'leaseRequired':f['leaseRequired'],
+  'externalEffect':f['externalEffect'],'compensationSupported':f['compensationSupported'],
+  'rollbackSupported':f['rollbackSupported'],'consumerBinding':f['consumerBinding'],'featurePack':f['featurePack'],
+  'optionalFeature':f['optionalFeature'],'featureToggle':f['featureToggle'],
+  'generatedDomainIndependent':f['generatedDomainIndependent'],'productModuleIndependent':f['productModuleIndependent'],
+  'databaseOwner':f['databaseOwner']}
+
+def scenario_diff(expected,actual):
+ errors=[]
+ if set(expected)!=set(actual):errors.append(f"keys expected={sorted(expected)} actual={sorted(actual)}")
+ for k,v in expected.items():
+  if actual.get(k)!=v:errors.append(f"{k}: expected={v!r} actual={actual.get(k)!r}")
+ return errors
+
+def semantic_mutation_selftest(features):
+ expected=expected_scenario(features[0])
+ for key,value in [('requiredRole','CPF_INVALID_ROLE'),('readOnly',not expected['readOnly'])]:
+  mutated=json.loads(json.dumps(expected,ensure_ascii=False));mutated[key]=value
+  if not scenario_diff(expected,mutated):fail('semantic mutation not detected: '+key)
+ mutated=json.loads(json.dumps(expected,ensure_ascii=False));mutated['consumerBinding']['operation']='MUTATED_OPERATION'
+ if not scenario_diff(expected,mutated):fail('semantic mutation not detected: consumerBinding.operation')
 def main():
  p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--compile',action='store_true');a=p.parse_args();root=Path(a.root).resolve()
  build=root/'build.gradle'
  if not build.exists() or len(build.read_text(encoding='utf-8').splitlines())<1000:fail('root build.gradle platform contract not restored')
  for rel in ['cpf-tools/build/gradle-plugin/build.gradle','cpf-tools/build/gradle-plugin/src/main/java/com/cpf/gradle/CpfPlatformConventionPlugin.java','cpf-tools/build/platform-bom/build.gradle']:
   if not (root/rel).exists():fail('included build source missing: '+rel)
- cat=json.loads((root/'cpf-reference/src/main/resources/edu/manual-135-catalog.json').read_text(encoding='utf-8'));features=cat.get('features',[])
+ cat=json.loads((root/'cpf-reference/src/main/resources/edu/manual-135-catalog.json').read_text(encoding='utf-8-sig'));features=cat.get('features',[])
  if len(features)!=135:fail(f'catalog count={len(features)}')
  counts={k:0 for k in EXPECTED};ids=set();bindings=set()
  for f in features:
@@ -33,6 +69,10 @@ def main():
   bindings.add((rid,binding.group(2),binding.group(3)))
   resource=f.get('resourceContract','')
   if not resource or not (root/resource).is_file():fail('resource contract missing '+rid)
+  try: actual_contract=json.loads((root/resource).read_text(encoding='utf-8-sig'))
+  except Exception as exc: fail(f'resource contract unreadable {rid}: {exc}')
+  diffs=scenario_diff(expected_scenario(f),actual_contract)
+  if diffs:fail(rid+' resource semantic drift: '+'; '.join(diffs[:4]))
   tests=f.get('tests',[])
   if len(tests)!=5:fail(f'{rid} must have five ID-specific tests, got {len(tests)}')
   for t in tests:
@@ -43,6 +83,11 @@ def main():
   if len(f['steps'])<7 or not f['failurePoints']:fail('insufficient executable contract '+rid)
  if counts!=EXPECTED:fail(f'distribution={counts}')
  if len(bindings)!=135:fail('binding count mismatch')
+ semantic_mutation_selftest(features)
+ consumer_gate=root/'cpf-tools/verification/final-dev/verify-r6-edu-consumer-runtime-contract.py'
+ if not consumer_gate.is_file():fail('R6 EDU consumer runtime verifier missing')
+ gate=subprocess.run([sys.executable,str(consumer_gate),'--root',str(root),'--self-test'],capture_output=True,text=True,timeout=120)
+ if gate.returncode!=0:fail('R6 EDU consumer runtime contract failed: '+(gate.stderr or gate.stdout).strip())
  ownership=root/'cpf-tools/generator/contracts/reference-edu-schema-ownership-contract.json'
  if not ownership.is_file():fail('REF schema ownership contract missing')
  for vendor in ['oracle','postgresql','mariadb']:
@@ -87,9 +132,12 @@ def compile_and_run_in(root:Path,work:Path):
  test_paths={root/test for item in catalog['features'] for test in item['tests']}
  test_paths.update((root/'cpf-reference/src/test/java/com/cpf/reference/edu/runtime').glob('*.java'))
  tests=[str(path) for path in sorted(test_paths)]
- # Windows has a short process command-line limit.  javac's documented
- # argument-file contract keeps the exact source set portable and auditable.
- javac_args=['-encoding','UTF-8','-d',str(out),*source,*tests,*stubfiles]
+ parity=work/'com/cpf/reference/edu/runtime/EduCatalogParityMain.java'
+ parity.parent.mkdir(parents=True,exist_ok=True)
+ parity.write_text(build_parity_main(catalog['features']),encoding='utf-8')
+ # Windows has a short process command-line limit. javac's documented argument-file
+ # contract keeps the exact source set portable and auditable.
+ javac_args=['-encoding','UTF-8','-d',str(out),*source,*tests,*stubfiles,str(parity)]
  argfile=work/'javac.args'
  argfile.write_text('\n'.join('"'+value.replace('\\','/').replace('"','\\"')+'"' for value in javac_args)+'\n',encoding='utf-8')
  cmd=['javac','@'+str(argfile)]
@@ -98,4 +146,67 @@ def compile_and_run_in(root:Path,work:Path):
  r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduManual135SelfTestMain'],capture_output=True,text=True,timeout=180)
  print(r.stdout,end='')
  if r.returncode:print(r.stderr,file=sys.stderr);fail('selftest failed')
+ r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduCatalogParityMain'],capture_output=True,text=True,timeout=180)
+ print(r.stdout,end='')
+ if r.returncode:print(r.stderr,file=sys.stderr);fail('catalog/runtime parity failed')
+ r=subprocess.run(['java','-cp',str(out),'com.cpf.reference.edu.runtime.EduAdmR6SelfTestMain'],capture_output=True,text=True,timeout=180)
+ print(r.stdout,end='')
+ if r.returncode:print(r.stderr,file=sys.stderr);fail('ADM R6 semantic selftest failed')
+
+def j(value):
+ return json.dumps(value,ensure_ascii=False)
+
+def j_list(values):
+ return 'java.util.List.of('+','.join(j(v) for v in values)+')'
+
+def j_set(values):
+ return 'java.util.Set.of('+','.join(j(v) for v in values)+')' if values else 'java.util.Set.of()'
+
+def build_parity_main(features):
+ lines=['package com.cpf.reference.edu.runtime;',
+  'import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;',
+  'import com.cpf.reference.edu.runtime.consumer.EduConsumerBinding;',
+  'import java.util.*;','import java.util.stream.*;',
+  'public final class EduCatalogParityMain {',
+  ' private static void eq(Object e,Object a,String m){if(!Objects.equals(e,a))throw new AssertionError(m+" expected="+e+" actual="+a);}',
+  ' private static AbstractEduCapabilityHandler h(String n)throws Exception{return (AbstractEduCapabilityHandler)Class.forName(n).getDeclaredConstructor().newInstance();}',
+  ' public static void main(String[] args)throws Exception {']
+ for f in features:
+  rid=f['requirementId'];b=f['consumerBinding']; role=canonical_role(rid)
+  lines += [
+   '  { var h=h('+j(f['handlerClass'])+'); var d=h.definition(); var b=h.consumerBinding();',
+   '    eq('+j(rid)+',d.requirementId(),'+j(rid+' requirementId')+');',
+   '    eq('+j(f['title'])+',d.title(),'+j(rid+' title')+');',
+   '    eq('+j(f['owner'])+',d.owner(),'+j(rid+' owner')+');',
+   '    eq('+j(role)+',d.requiredRole(),'+j(rid+' requiredRole')+');',
+   '    eq('+j_list(f['requiredFields'])+',d.requiredFields(),'+j(rid+' requiredFields')+');',
+   '    eq('+j_list(f['steps'])+',d.steps().stream().map(Enum::name).toList(),'+j(rid+' steps')+');',
+   '    eq('+j_set(f['failurePoints'])+',d.supportedFailures().stream().map(Enum::name).collect(Collectors.toSet()),'+j(rid+' failurePoints')+');',
+   '    eq('+str(f['idempotent']).lower()+',d.idempotent(),'+j(rid+' idempotent')+');',
+   '    eq('+str(f['versioned']).lower()+',d.versioned(),'+j(rid+' versioned')+');',
+   '    eq('+str(f['leaseRequired']).lower()+',d.leaseRequired(),'+j(rid+' leaseRequired')+');',
+   '    eq('+str(f['externalEffect']).lower()+',d.externalEffect(),'+j(rid+' externalEffect')+');',
+   '    eq('+str(f['compensationSupported']).lower()+',d.compensationSupported(),'+j(rid+' compensationSupported')+');',
+   '    eq('+str(f['rollbackSupported']).lower()+',d.rollbackSupported(),'+j(rid+' rollbackSupported')+');',
+   '    eq('+str(f['maxRetries'])+',d.maxRetries(),'+j(rid+' maxRetries')+');',
+   '    eq('+j(f['manualAnchor'])+',d.manualAnchor(),'+j(rid+' manualAnchor')+');',
+   '    eq('+j(f['implementationPackage'])+',h.implementationPackage(),'+j(rid+' implementationPackage')+');',
+   '    eq('+str(f['readOnly']).lower()+',h.readOnly(),'+j(rid+' readOnly')+');',
+   '    eq('+j_list(f['businessStates'])+',h.businessStates(),'+j(rid+' businessStates')+');',
+   '    eq('+j_list(f['exceptionScenarios'])+',h.exceptionScenarios(),'+j(rid+' exceptionScenarios')+');',
+   '    eq('+j_list(f['requiredVerification'])+',h.requiredVerification(),'+j(rid+' requiredVerification')+');',
+   '    eq('+j(rid)+',b.requirementId(),'+j(rid+' binding.requirementId')+');',
+   '    eq('+j(b['type'])+',b.type().name(),'+j(rid+' binding.type')+');',
+   '    eq('+j(b['ownerModule'])+',b.ownerModule(),'+j(rid+' binding.ownerModule')+');',
+   '    eq('+j(b['entryPoint'])+',b.entryPoint(),'+j(rid+' binding.entryPoint')+');',
+   '    eq('+j(b['operation'])+',b.operation(),'+j(rid+' binding.operation')+');',
+   '    eq('+j(b['publicContract'])+',b.publicContract(),'+j(rid+' binding.publicContract')+');',
+   '    eq('+j(b['runtimeCommand'])+',b.runtimeCommand(),'+j(rid+' binding.runtimeCommand')+');',
+   '    eq('+j(b.get('configurationKey',''))+',b.configurationKey(),'+j(rid+' binding.configurationKey')+');',
+   '    eq('+str(b['timeoutSeconds'])+',b.timeoutSeconds(),'+j(rid+' binding.timeoutSeconds')+');',
+   '    eq('+j_list(b['argumentFields'])+',b.argumentFields(),'+j(rid+' binding.argumentFields')+');',
+   '  }']
+ lines += ['  System.out.println("[CPF][QA37][EDU135][RUNTIME-PARITY][PASS] features=135");',' }','}']
+ return '\n'.join(lines)+'\n'
+
 if __name__=='__main__':main()

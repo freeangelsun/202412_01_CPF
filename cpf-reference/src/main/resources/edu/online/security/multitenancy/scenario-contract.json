@@ -3,7 +3,7 @@
   "title": "다중 Tenant 격리·설정·데이터 범위",
   "implementationPackage": "com.cpf.reference.online.security.multitenancy",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "tenantId",
     "userId",

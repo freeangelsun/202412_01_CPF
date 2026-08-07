@@ -3,7 +3,7 @@
   "title": "다중 파일 Fan-in·Fan-out",
   "implementationPackage": "com.cpf.reference.batch.file.faninout",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "expectedFiles",
     "deadline",

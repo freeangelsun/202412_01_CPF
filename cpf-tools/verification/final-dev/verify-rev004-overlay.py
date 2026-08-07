@@ -255,20 +255,42 @@ require("cpf-tools/verification/final-dev/run-db3-lifecycle.ps1", {
     "exit propagation": r"exit\s+\$overallExit",
 })
 
+# Full-repository release mode: inspect only paths changed by the exact result commit for
+# protected-path/Windows-path policy. Existing protected files are not modifications.
+protected_restore = {
+    "cpf-docs/assets/manuals/cpf-document-quality-r9.svg": "2979b5f65e7b8ace8a735cd5eae501c6b60cc851be2f31fd441383e7a2d498d5"
+}
+protected_prefixes = (
+    "cpf-docs/deliverables/", "cpf-docs/guides/", "cpf-docs/assets/manuals/",
+    "cpf-docs/environment/docker/", "cpf-tools/environment/docker-development-test/"
+)
+try:
+    changed_result = subprocess.run(
+        ["git", "-C", str(ROOT), "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+        text=True, capture_output=True, check=False)
+    if changed_result.returncode != 0:
+        errors.append("unable to resolve exact result commit changed paths")
+        changed_paths = []
+    else:
+        changed_paths = [line.strip().replace("\\", "/") for line in changed_result.stdout.splitlines() if line.strip()]
+except Exception as exc:
+    errors.append(f"changed-path audit failed: {exc}")
+    changed_paths = []
+for rel in changed_paths:
+    if len(rel) > 220:
+        errors.append(f"Windows-risk changed path length {len(rel)}: {rel}")
+    if rel in protected_restore:
+        import hashlib
+        path = ROOT / rel
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != protected_restore[rel]:
+            errors.append(f"protected restoration hash mismatch: {rel}")
+    elif rel.startswith(protected_prefixes):
+        errors.append(f"protected path modified without restoration allowlist: {rel}")
 for path in ROOT.rglob("*"):
     if path.is_file():
         rel = path.relative_to(ROOT).as_posix()
-        if "__pycache__" in rel or rel.endswith(".pyc"): errors.append(f"temporary bytecode in overlay: {rel}")
-        if len(rel) > 220: errors.append(f"Windows-risk path length {len(rel)}: {rel}")
-        protected_restore = {
-            "cpf-docs/assets/manuals/cpf-document-quality-r9.svg": "2979b5f65e7b8ace8a735cd5eae501c6b60cc851be2f31fd441383e7a2d498d5"
-        }
-        if rel in protected_restore:
-            import hashlib
-            if hashlib.sha256(path.read_bytes()).hexdigest() != protected_restore[rel]:
-                errors.append(f"protected restoration hash mismatch: {rel}")
-        elif rel.startswith(("cpf-docs/deliverables/", "cpf-docs/guides/", "cpf-docs/assets/manuals/", "cpf-docs/environment/docker/", "cpf-tools/environment/docker-development-test/")):
-            errors.append(f"protected path modified without restoration allowlist: {rel}")
+        if "__pycache__" in rel or rel.endswith(".pyc"):
+            errors.append(f"temporary bytecode in repository: {rel}")
 
 marker_path = ROOT / "cpf-admin/frontend/src/generated/.cpf-openapi-source.json"
 try:

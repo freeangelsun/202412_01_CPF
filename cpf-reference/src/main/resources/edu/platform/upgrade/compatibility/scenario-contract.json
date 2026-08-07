@@ -3,7 +3,7 @@
   "title": "Version Upgrade·DB 호환·Application Rollback",
   "implementationPackage": "com.cpf.reference.platform.upgrade.compatibility",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "fromVersion",
     "toVersion",

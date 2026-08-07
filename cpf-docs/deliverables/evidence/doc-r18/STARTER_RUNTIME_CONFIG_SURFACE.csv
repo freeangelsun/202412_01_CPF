@@ -1,0 +1,40 @@
+starter,catalog_namespace,actual_runtime_config_surface,classification,operational_meaning
+cpf-starter-data-cache-caffeine,cpf.data.cache.caffeine,cpf.data.cache.caffeine.provider + cpf.cache.caffeine.*,DIRECT_LEAF_DIFFERENT_PREFIX,Provider condition과 runtime property prefix 분리
+cpf-starter-data-cache-valkey,cpf.data.cache.valkey,cpf.data.cache.valkey.*,DIRECT_LEAF,Valkey runtime properties
+cpf-starter-data-persistence-jdbc,cpf.data.persistence.jdbc,cpf.data.persistence.jdbc.* + cpf.db.* + spring.datasource.cpf.*,DIRECT_LEAF_PLUS_CORE_DB,JDBC/DB vendor/resource/routing
+cpf-starter-data-persistence-mybatis,cpf.data.persistence.mybatis,cpf.db.* + cpf datasource; MyBatis direct CPF leaf 없음,CONSUMER_OF_CORE_DB,CpfMyBatisConfig uses CpfSqlResourceResolver
+cpf-starter-file-archive,cpf.file.archive,cpf.file.archive.*,DIRECT_LEAF,archive bounds
+cpf-starter-file-attachment,cpf.file.attachment,cpf.framework.attachment.*,DIRECT_LEAF_DIFFERENT_PREFIX,legacy/current runtime prefix differs from catalog namespace
+cpf-starter-file-sftp,cpf.file.sftp,cpf.file.sftp.*,DIRECT_LEAF,SFTP + secret ref + ledger
+cpf-starter-file-tabular-poi,cpf.file.tabular.poi,직접 CPF leaf 없음,NO_DIRECT_LEAF,CSV/XLSX adapter bean; limits belong call contract
+cpf-starter-foundation-base,cpf.foundation.base,cpf.starter.base.*,DIRECT_LEAF_DIFFERENT_PREFIX,base strict/profile id/version
+cpf-starter-integration-fixedlength,cpf.integration.fixedlength,직접 main runtime leaf 없음,NO_DIRECT_LEAF,Codec registry/layout contract
+cpf-starter-integration-fixedlength-core,cpf.integration.fixedlength.core,직접 leaf 없음,PURE_INTERNAL_CODEC,상위 fixedlength 내부 engine
+cpf-starter-integration-http-client,cpf.integration.http,cpf.service-call.* + cpf.http-client.* + cpf.services.<serviceId>.*,DIRECT_LEAF_DIFFERENT_PREFIX,"service call, timeout, endpoint SSRF/pinning"
+cpf-starter-integration-iso8583,cpf.integration.iso8583,직접 운영 leaf를 문서에서 생성하지 않음,PROTOCOL_CONTRACT,message/layout 계약 중심; 추정 key 금지
+cpf-starter-integration-resilience,cpf.integration.resilience,cpf.integration.resilience.* + cpf.reconciliation.worker.id,DIRECT_LEAF,lock/state/guard/reconcile
+cpf-starter-integration-tcp,cpf.integration.tcp,cpf.integration.tcp.*,DIRECT_LEAF,connection/framing/TLS/backpressure/unknown journal
+cpf-starter-integration-webhook,cpf.integration.webhook,직접 Spring runtime leaf 없음,PURE_API_LIBRARY,current build depends on cpf-core only; customer adapter owns endpoint/secret
+cpf-starter-messaging-ibm-mq,cpf.messaging.ibm-mq,cpf.messaging.ibm-mq.*,DIRECT_LEAF,"CCDT 또는 channel+connection, customer ConnectionFactory"
+cpf-starter-messaging-jms,cpf.messaging.jms,cpf.messaging.jms.*,DIRECT_LEAF,JMS destination/session/ack
+cpf-starter-messaging-kafka,cpf.messaging.kafka,cpf.messaging.kafka.*,DIRECT_LEAF,binding/ack/payload
+cpf-starter-messaging-rabbitmq,cpf.messaging.rabbitmq,cpf.messaging.rabbitmq.*,DIRECT_LEAF,exchange/queue/manual ack/confirm
+cpf-starter-messaging-reliability-jdbc,cpf.messaging.reliability.jdbc,cpf.messaging.reliability.*,DIRECT_LEAF_DIFFERENT_PREFIX,outbox/inbox/dlq/lease/replay/reconcile
+cpf-starter-notification-dispatch,cpf.notification.dispatch,cpf.notification.dispatch.*,DIRECT_LEAF,worker/lease/retry/reconcile
+cpf-starter-notification-email,cpf.notification.email,cpf.notification.email.enabled/from + Spring Mail provider config,DIRECT_LEAF_PLUS_PROVIDER,JavaMailSender external provider
+cpf-starter-notification-sms-spi,cpf.notification.sms,Starter 자체 direct leaf 없음,EXTENSION_SPI,customer SMS provider adapter owns endpoint/credential
+cpf-starter-platform-operations-channel-registry-jdbc,cpf.platform-operations.channel-registry.jdbc,cpf.channel-policy.startup-load-enabled + DB runtime,DIRECT_LEAF_DIFFERENT_PREFIX,JDBC registry
+cpf-starter-platform-operations-feature-flag-openfeature,cpf.platform-operations.feature-flag,cpf.platform-operations.feature-flag.enabled,DIRECT_LEAF,JDBC state/audit + hot apply
+cpf-starter-platform-operations-observability,cpf.platform-operations.observability,cpf.log-policy.cache.* + cpf.log-policy.default.* + DB managed policy,DIRECT_LEAF_DIFFERENT_PREFIX,policy cache/capture/masking
+cpf-starter-platform-operations-otlp,cpf.platform-operations.otlp,cpf.platform-operations.otlp.*,DIRECT_LEAF,endpoint/timeout/sample
+cpf-starter-platform-operations-runtime-control-client,cpf.platform-operations.runtime-control,cpf.runtime.control.* + cpf.runtime.*,DIRECT_LEAF_DIFFERENT_PREFIX,"local/remote control, registration, guard, reconcile"
+cpf-starter-profile-batch-service,cpf.profile.batch-service,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters
+cpf-starter-profile-browser-bff,cpf.profile.browser-bff,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters
+cpf-starter-profile-event-service,cpf.profile.event-service,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters
+cpf-starter-profile-minimal-domain,cpf.profile.minimal-domain,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters
+cpf-starter-profile-secure-api,cpf.profile.secure-api,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters
+cpf-starter-profile-web-api,cpf.profile.web-api,Profile composition only,PROFILE_COMPOSITION,leaf belongs resolved starters; openapi-webmvc internalized
+cpf-starter-security-resource-server,cpf.security.resource-server,cpf.security.resource-server.*,DIRECT_LEAF,issuer/JWK XOR + audience
+cpf-starter-security-secret,cpf.security.secret,직접 leaf 없음; approved CpfSecretProvider required,PROVIDER_SPI_REQUIRED,no provider => startup failure
+cpf-starter-security-service-identity,cpf.security.service-identity,cpf.security.service-identity.*,DIRECT_LEAF,key rotation/service token
+cpf-starter-security-session-jdbc,cpf.security.session.jdbc,cpf.security.session.*,DIRECT_LEAF_DIFFERENT_PREFIX,session/vault/csrf/CSP/fail-closed

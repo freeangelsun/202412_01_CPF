@@ -4,13 +4,16 @@ import com.cpf.admin.approval.owner.DataQualityCorrectionApprovalOwnerCommandAda
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.security.AdmDataQualityApprovalProofService;
+import com.cpf.admin.approval.security.AdmApprovalCapabilityNonceRepository;
 import com.cpf.admin.approval.service.AdmApprovalService;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.common.data.quality.InMemoryCpfDataQualityOperations;
 import com.cpf.common.security.crypto.JceCpfCryptoOperations;
 import com.cpf.common.time.SystemCpfTimeOperations;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
+import com.cpf.admin.approval.security.AdmDataQualityCorrectionGateway;
 import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
+import com.cpf.core.spi.security.CpfSecretProvider;
 import com.cpf.core.api.security.crypto.CpfCryptoOperations;
 import com.cpf.core.api.security.crypto.CpfCryptoPolicy;
 import com.cpf.core.api.time.CpfTimeOperations;
@@ -24,7 +27,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.Base64;
 import java.util.Map;
@@ -39,9 +44,15 @@ public class AdmIntegrationClosureConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(AdmDataQualityApprovalProofService.class)
-    AdmDataQualityApprovalProofService admDataQualityApprovalProofService(AdmIntegrationClosureProperties properties) {
-        return new AdmDataQualityApprovalProofService(
-                require(properties.getApprovalProofKeyBase64(), "approval-proof-key-base64"));
+    AdmDataQualityApprovalProofService admDataQualityApprovalProofService(
+            AdmIntegrationClosureProperties properties,
+            ObjectProvider<CpfSecretProvider> secretProvider,
+            Environment environment,
+            AdmApprovalCapabilityNonceRepository nonceRepository) {
+        return new AdmDataQualityApprovalProofService(resolveSecret(
+                properties.getApprovalProofKeyBase64(), properties.getApprovalProofKeyRef(),
+                secretProvider.getIfAvailable(), environment, "approval-proof-key"),
+                nonceRepository, properties.getCorrectionApprovalTtl(), java.time.Clock.systemUTC());
     }
 
     @Bean
@@ -51,6 +62,7 @@ public class AdmIntegrationClosureConfiguration {
     }
 
     @Bean
+    @Profile({"local", "dev"})
     @ConditionalOnMissingBean(value = {CpfDataQualityOperations.class, CpfDataQualityCorrectionPort.class})
     @ConditionalOnProperty(
             prefix = "cpf.adm.integration-closure",
@@ -61,6 +73,16 @@ public class AdmIntegrationClosureConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(CpfDataQualityCorrectionPort.class)
+    @ConditionalOnMissingBean(AdmDataQualityCorrectionGateway.class)
+    AdmDataQualityCorrectionGateway cpfDataQualityCorrectionGateway(
+            CpfDataQualityCorrectionPort provider,
+            AdmDataQualityApprovalProofService proofService) {
+        return new AdmDataQualityCorrectionGateway(provider, proofService::verifyAndConsume);
+    }
+
+    @Bean
+    @Profile({"local", "dev"})
     @ConditionalOnMissingBean(CpfWebhookOperations.class)
     @ConditionalOnProperty(
             prefix = "cpf.adm.integration-closure",
@@ -80,9 +102,13 @@ public class AdmIntegrationClosureConfiguration {
             prefix = "cpf.adm.integration-closure.crypto",
             name = "enabled",
             havingValue = "true")
-    CpfCryptoOperations cpfCryptoOperations(AdmIntegrationClosureProperties properties) {
+    CpfCryptoOperations cpfCryptoOperations(
+            AdmIntegrationClosureProperties properties,
+            ObjectProvider<CpfSecretProvider> secretProvider,
+            Environment environment) {
         String version = require(properties.getCrypto().getActiveKeyVersion(), "crypto.active-key-version");
-        String encoded = require(properties.getCrypto().getActiveKeyBase64(), "crypto.active-key-base64");
+        String encoded = resolveSecret(properties.getCrypto().getActiveKeyBase64(), properties.getCrypto().getActiveKeyRef(),
+                secretProvider.getIfAvailable(), environment, "crypto.active-key");
         byte[] key;
         try {
             key = Base64.getDecoder().decode(encoded);
@@ -104,17 +130,17 @@ public class AdmIntegrationClosureConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(CpfDataQualityCorrectionPort.class)
+    @ConditionalOnBean(AdmDataQualityCorrectionGateway.class)
     @ConditionalOnMissingBean(DataQualityCorrectionApprovalOwnerCommandAdapter.class)
     DataQualityCorrectionApprovalOwnerCommandAdapter dataQualityCorrectionApprovalOwnerCommandAdapter(
-            CpfDataQualityCorrectionPort correctionPort,
+            AdmDataQualityCorrectionGateway correctionGateway,
             CpfDataQualityOperations quality,
             ObjectMapper objectMapper,
             AdmApprovalRepository repository,
             AdmApprovalSnapshotIntegrity snapshotIntegrity,
             AdmDataQualityApprovalProofService proofService) {
         return new DataQualityCorrectionApprovalOwnerCommandAdapter(
-                correctionPort, quality, objectMapper, repository, snapshotIntegrity, proofService);
+                correctionGateway, quality, objectMapper, repository, snapshotIntegrity, proofService);
     }
 
     /**
@@ -127,13 +153,13 @@ public class AdmIntegrationClosureConfiguration {
     AdmIntegrationClosureService admIntegrationClosureService(
             ObjectProvider<CpfCryptoOperations> crypto,
             CpfDataQualityOperations quality,
-            CpfDataQualityCorrectionPort correctionPort,
+            AdmDataQualityCorrectionGateway correctionGateway,
             CpfTimeOperations time,
             CpfWebhookOperations webhook,
             AdmApprovalService approvals,
             ObjectMapper objectMapper,
             AdmIntegrationClosureProperties properties) {
-        java.util.Objects.requireNonNull(correctionPort, "data-quality correction provider");
+        java.util.Objects.requireNonNull(correctionGateway, "data-quality correction gateway");
         return new AdmIntegrationClosureService(
                 crypto.getIfAvailable(),
                 quality,
@@ -142,6 +168,26 @@ public class AdmIntegrationClosureConfiguration {
                 approvals,
                 objectMapper,
                 properties.getCorrectionApprovalTtl());
+    }
+
+    private static String resolveSecret(
+            String rawValue, String secretRef, CpfSecretProvider provider,
+            Environment environment, String field) {
+        Set<String> profiles = Set.of(environment.getActiveProfiles());
+        boolean protectedProfile = profiles.stream().anyMatch(Set.of("prod", "stg")::contains);
+        if (protectedProfile) {
+            if (rawValue != null && !rawValue.isBlank()) {
+                throw new IllegalStateException(field + " raw secret property is forbidden in prod/stg");
+            }
+            String ref = require(secretRef, field + "-ref");
+            if (provider == null) throw new IllegalStateException(field + " secret provider is required in prod/stg");
+            return require(provider.resolveSecret(ref), field + " resolved secret");
+        }
+        if (secretRef != null && !secretRef.isBlank()) {
+            if (provider == null) throw new IllegalStateException(field + " secret-ref requires a secret provider");
+            return require(provider.resolveSecret(secretRef.trim()), field + " resolved secret");
+        }
+        return require(rawValue, field + "-base64");
     }
 
     private static String require(String value, String field) {

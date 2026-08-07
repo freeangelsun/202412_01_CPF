@@ -3,7 +3,7 @@
   "title": "Manager·Worker·Lease·Fencing",
   "implementationPackage": "com.cpf.reference.batch.remote.worker",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "executionId",
     "partitionId",

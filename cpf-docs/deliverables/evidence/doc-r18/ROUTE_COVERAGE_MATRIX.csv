@@ -1,0 +1,64 @@
+status,route,manual,source_verification
+PASS,/,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/UnifiedOperationsDashboardPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/topology,04,source/component field-level verified: cpf-admin/frontend/src/features/topology/TopologyPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/capacity,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/OnlineDiagnosticsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/logs,04,source/component field-level verified: cpf-admin/frontend/src/features/logs/LogsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/transactionGroups,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/IntegratedTracePage.vue @ 640490449569; runtime/browser 미검증
+PASS,/transactions,04,source/component field-level verified: cpf-admin/frontend/src/features/transactions/TransactionsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/remoteLogs,04,source/component field-level verified: cpf-admin/frontend/src/features/remote-logs/RemoteLogsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/auditLogs,04,source/component field-level verified: cpf-admin/frontend/src/features/audit-logs/AuditLogsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/logLevel,04,source/component field-level verified: cpf-admin/frontend/src/features/log-level/LogLevelPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/logPolicies,04,source/component field-level verified: cpf-admin/frontend/src/features/log-policies/LogPoliciesPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/standardExecutions,04,source/component field-level verified: cpf-admin/frontend/src/features/standard-executions/StandardExecutionsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/channelPolicy,04,source/component field-level verified: cpf-admin/frontend/src/features/channel-policy/ChannelPolicyPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/serviceRegistry,04,source/component field-level verified: cpf-admin/frontend/src/features/service-registry/ServiceRegistryPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/runtimeControl,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/OnlineDeploymentWorkbenchPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/maintenance,04,source/component field-level verified: cpf-admin/frontend/src/features/maintenance/MaintenancePage.vue @ 640490449569; runtime/browser 미검증
+PASS,/cache,04,source/component field-level verified: cpf-admin/frontend/src/features/cache/CachePage.vue @ 640490449569; runtime/browser 미검증
+PASS,/configs,04,source/component field-level verified: cpf-admin/frontend/src/features/configs/ConfigsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/responseCodes,04,source/component field-level verified: cpf-admin/frontend/src/features/response-codes/ResponseCodesPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/businessCalendar,04,source/component field-level verified: cpf-admin/frontend/src/features/business-calendar/BusinessCalendarPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/recoveryCenter,04,source/component field-level verified: cpf-admin/frontend/src/features/recovery-center/RecoveryCenterPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/incidents,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/ErrorWorkbenchPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/reliability,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/AnalysisCenterPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/notifications,04,source/component field-level verified: cpf-admin/frontend/src/features/notifications/NotificationsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/batch,04,source/component field-level verified: cpf-admin/frontend/src/features/batch/BatchPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/batch-overview,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-overview/BatchOverviewPage.vue → BatchOperationsWorkbench.vue(mode=overview) @ 640490449569; runtime/browser 미검증
+PASS,/batch-runtime,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-runtime-control/RuntimeTopologyPage.vue → BatchOperationsWorkbench.vue(mode=topology) @ 640490449569; runtime/browser 미검증
+PASS,/batch-instances,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-instances/BatchInstancesPage.vue → BatchOperationsWorkbench.vue(mode=instances) @ 640490449569; runtime/browser 미검증
+PASS,/batch-scheduler,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-scheduler/BatchSchedulerPage.vue → BatchOperationsWorkbench.vue(mode=scheduler) @ 640490449569; runtime/browser 미검증
+PASS,/batch-worker-pools,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-worker-pools/BatchWorkerPoolsPage.vue → RuntimeFleetWorkbench.vue(view=worker-pools) @ 640490449569; runtime/browser 미검증
+PASS,/batch-center-cut,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-center-cut/BatchCenterCutPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/batch-agents,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-agents/BatchAgentsPage.vue → RuntimeFleetWorkbench.vue(view=agents) @ 640490449569; runtime/browser 미검증
+PASS,/batch-job-packs,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-job-packs/BatchJobPacksPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/batch-executions,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-executions/BatchExecutionsPage.vue → BatchOperationsWorkbench.vue(mode=executions) @ 640490449569; runtime/browser 미검증
+PASS,/batch-deployment,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-deployment/BatchDeploymentPage.vue → BatchOperationsWorkbench.vue(mode=deployment) @ 640490449569; runtime/browser 미검증
+PASS,/batch-recovery,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-recovery/BatchRecoveryPage.vue → BatchOperationsWorkbench.vue(mode=recovery) @ 640490449569; runtime/browser 미검증
+PASS,/batch-leases,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-leases/BatchLeasesPage.vue → BatchOperationsWorkbench.vue(mode=leases) @ 640490449569; runtime/browser 미검증
+PASS,/batch-alerts,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-alerts/BatchAlertsPage.vue → BatchOperationsWorkbench.vue(mode=alerts) @ 640490449569; runtime/browser 미검증
+PASS,/batch-audit,04,source/component field-level verified: cpf-admin/frontend/src/features/batch-audit/BatchAuditEvidencePage.vue → BatchOperationsWorkbench.vue(mode=audit) @ 640490449569; runtime/browser 미검증
+PASS,/workers,04,source/component field-level verified: cpf-admin/frontend/src/features/workers/WorkersPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/downloads,04,source/component field-level verified: cpf-admin/frontend/src/features/downloads/DownloadsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/file-jobs,04,source/component field-level verified: cpf-admin/frontend/src/features/file-jobs/FileJobsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/messages,04,source/component field-level verified: cpf-admin/frontend/src/features/operations/ProtocolMessageWorkbenchPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/codes,04,source/component field-level verified: cpf-admin/frontend/src/features/codes/CodesPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/gateway-dashboard,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=dashboard) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-servers,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=servers) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-groups,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=groups) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-routes,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=bindings) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-security,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=security) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-health,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=health) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-transactions,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=transactions) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-log-policies,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=log-policies) @ 640490449569; runtime/browser 미검증
+PASS,/gateway-apply-status,04,source/component field-level verified: cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue(initialMode=apply) @ 640490449569; runtime/browser 미검증
+PASS,/permissions,04,source/component field-level verified: cpf-admin/frontend/src/features/permissions/PermissionsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/password,04,source/component field-level verified: cpf-admin/frontend/src/features/password/PasswordPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/security,04,source/component field-level verified: cpf-admin/frontend/src/features/security/SecurityPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/operators,04,source/component field-level verified: cpf-admin/frontend/src/features/operators/OperatorsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/secrets,04,source/component field-level verified: cpf-admin/frontend/src/features/secrets/SecretsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/approvals,04,source/component field-level verified: cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/breakGlass,04,source/component field-level verified: cpf-admin/frontend/src/features/break-glass/BreakGlassPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/featureFlags,04,source/component field-level verified: cpf-admin/frontend/src/features/feature-flags/FeatureFlagsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/integrationClosure,04,source/component field-level verified: cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue @ 640490449569; runtime/browser 미검증
+PASS,/openApiOperations,04,source/component field-level verified: cpf-admin/frontend/src/features/openapi-operations/OpenApiOperationsPage.vue @ 640490449569; runtime/browser 미검증
+PASS,/resiliencePolicies,04,source/component field-level verified: cpf-admin/frontend/src/features/resilience-policies/ResiliencePoliciesPage.vue @ 640490449569; runtime/browser 미검증

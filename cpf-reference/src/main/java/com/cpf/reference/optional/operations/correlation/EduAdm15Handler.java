@@ -19,7 +19,7 @@ public final class EduAdm15Handler extends AbstractEduCapabilityHandler {
             true, false, false, false, false, false, 3, "EDU-ADM-15"));
     }
     @Override public String implementationPackage() { return "com.cpf.reference.optional.operations.correlation"; }
-    @Override public boolean readOnly() { return false; }
+    @Override public boolean readOnly() { return true; }
     @Override public List<String> businessStates() { return BUSINESS_STATES; }
     @Override public List<String> exceptionScenarios() { return EXCEPTION_SCENARIOS; }
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
@@ -28,10 +28,8 @@ public final class EduAdm15Handler extends AbstractEduCapabilityHandler {
                 requireLongRange(command, "pageSize", 1L, 1000L);
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("transaction:" + command.payload().get("transactionId")
+                + ":segment:" + command.payload().get("segmentId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +39,17 @@ public final class EduAdm15Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean partial = Boolean.TRUE.equals(command.payload().get("partialResult"));
         result.put("scenarioTitle", "Log·Trace·Transaction 상관 검색");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", partial ? "PARTIAL" : "CORRELATED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", true);
+        result.put("correlationKey", command.payload().get("transactionId") + ":" + command.payload().get("segmentId"));
+        result.put("organizationId", command.payload().get("organizationId"));
+        result.put("pageSize", command.payload().get("pageSize"));
+        result.put("partialWarning", partial);
+        result.put("sensitiveFieldsMasked", true);
+        result.put("downloadRequiresBoundedResult", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

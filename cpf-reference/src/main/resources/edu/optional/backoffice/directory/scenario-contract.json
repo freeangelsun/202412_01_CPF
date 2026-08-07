@@ -3,7 +3,7 @@
   "title": "초기 관리자 Bootstrap·첫 로그인·권한 인계",
   "implementationPackage": "com.cpf.reference.optional.backoffice.directory",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "bootstrapToken",
     "loginId",
@@ -92,8 +92,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

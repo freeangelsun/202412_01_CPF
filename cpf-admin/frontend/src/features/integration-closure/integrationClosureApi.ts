@@ -1,4 +1,13 @@
-import { admInvokeOperation } from '../../shared/cpfApi';
+import {
+  admIntegrationCryptoStatus,
+  admIntegrationDataQualityCorrectionApprovalRequest,
+  admIntegrationDataQualityCorrectionExecute,
+  admIntegrationDataQualityReplay,
+  admIntegrationDataQualityValidate,
+  admIntegrationTimeHealth,
+  admIntegrationWebhookDlq,
+  admIntegrationWebhookReplay,
+} from '../../generated/cpf-api';
 
 export interface CorrectionApprovalRequest {
   expectedVersion: number;
@@ -17,33 +26,19 @@ export type WebhookDelivery = Record<string, unknown>;
  */
 export const integrationClosureApi = {
   cryptoStatus: () =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationCryptoStatus'),
+    admIntegrationCryptoStatus<IntegrationClosureResult>(),
   timeHealth: (zone = 'Asia/Seoul', maxSkewMillis = 1000) =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationTimeHealth', {
-      query: { zone, maxSkewMillis },
-    }),
+    admIntegrationTimeHealth<IntegrationClosureResult>({ query: { zone, maxSkewMillis } }),
   validate: (recordId: string, record: Record<string, unknown>) =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityValidate', {
-      path: { recordId }, body: record,
-    }),
+    admIntegrationDataQualityValidate<IntegrationClosureResult>({ path: { recordId }, data: record }),
   requestCorrectionApproval: (quarantineId: string, body: CorrectionApprovalRequest) =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityCorrectionApprovalRequest', {
-      path: { id: quarantineId }, body,
-    }),
+    admIntegrationDataQualityCorrectionApprovalRequest<IntegrationClosureResult>({ path: { id: quarantineId }, data: body }),
   executeCorrectionApproval: (approvalRequestId: number, body: CorrectionExecutionRequest) =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityCorrectionExecute', {
-      path: { approvalRequestId }, body,
-    }),
+    admIntegrationDataQualityCorrectionExecute<IntegrationClosureResult>({ path: { approvalRequestId }, data: body }),
   replayQuality: (quarantineId: string, body: QualityReplayRequest) =>
-    admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityReplay', {
-      path: { id: quarantineId }, body,
-    }),
+    admIntegrationDataQualityReplay<IntegrationClosureResult>({ path: { id: quarantineId }, data: body }),
   webhookDlq: (limit = 100) =>
-    admInvokeOperation<WebhookDelivery[]>('admIntegrationWebhookDlq', {
-      query: { limit: Math.min(500, Math.max(1, Math.trunc(limit))) },
-    }),
+    admIntegrationWebhookDlq<WebhookDelivery[]>({ query: { limit: Math.min(500, Math.max(1, Math.trunc(limit))) } }),
   replayWebhook: (id: string, expectedVersion: number, reason: string) =>
-    admInvokeOperation<WebhookDelivery>('admIntegrationWebhookReplay', {
-      path: { id }, query: { expectedVersion, reason },
-    }),
+    admIntegrationWebhookReplay<WebhookDelivery>({ path: { id }, query: { expectedVersion, reason } }),
 } as const;

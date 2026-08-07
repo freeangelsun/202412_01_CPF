@@ -3,7 +3,7 @@
   "title": "알림·비동기 내보내기·다운로드 감사",
   "implementationPackage": "com.cpf.reference.online.notification.export",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "settlements",
     "fileName",

@@ -3,7 +3,7 @@
   "title": "Remote Worker 유실·재할당·중복 결과 차단",
   "implementationPackage": "com.cpf.reference.batch.remote.reassignment",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "partitionId",
     "workerId",

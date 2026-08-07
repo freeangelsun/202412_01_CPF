@@ -122,8 +122,8 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
 
     @PostMapping("/approvals")
     @CpfOnlineTransaction(id = "OBZAAP0002", name = "BzaApprovalCreate")
-    @Operation(operationId = "bzaBackofficeCreateApproval", summary = "결재 문서 작성",
-            description = "업무 중립 결재 문서와 순차·병렬 결재선을 DRAFT 상태로 생성합니다.")
+    @Operation(operationId = "bzaBackofficeCreateApproval", summary = "Legacy 결재 작성 API(410)", deprecated = true,
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
     public ResponseEntity<Map<String, Object>> createApproval(
             @RequestBody(required = false) Map<String, Object> request,
             @RequestAttribute("bza.operatorId") String operatorId) {
@@ -140,8 +140,8 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
 
     @PostMapping("/approvals/{approvalId}/actions")
     @CpfOnlineTransaction(id = "OBZAAP0004", name = "BzaApprovalAction")
-    @Operation(operationId = "bzaBackofficeActApproval", summary = "결재 상태 변경",
-            description = "제출·승인·합의·반려·회수·취소·재제출을 상태표, 낙관적 잠금, 중복 방지 키로 보호합니다.")
+    @Operation(operationId = "bzaBackofficeActApproval", summary = "Legacy 결재 상태 변경 API(410)", deprecated = true,
+            description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
     public ResponseEntity<Map<String, Object>> actApproval(
             @PathVariable long approvalId,
             @RequestBody(required = false) Map<String, Object> request,

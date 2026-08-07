@@ -3,7 +3,7 @@
   "title": "API 사용량 제한·고객별 Quota·초과 처리",
   "implementationPackage": "com.cpf.reference.online.api.quota",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "clientId",
     "apiId",

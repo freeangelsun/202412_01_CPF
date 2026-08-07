@@ -3,7 +3,7 @@
   "title": "Service Discovery·Target Failover·복귀",
   "implementationPackage": "com.cpf.reference.optional.gateway.registry",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "serviceId",
     "healthPolicy",

@@ -3,7 +3,7 @@
   "title": "금액·통화·반올림·환율 Version",
   "implementationPackage": "com.cpf.reference.online.money.exchange",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "amount",
     "currency",

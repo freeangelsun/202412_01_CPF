@@ -3,7 +3,7 @@
   "title": "기능 전환 Canary·Kill Switch·사용자 Segment",
   "implementationPackage": "com.cpf.reference.online.runtime.featuretoggle",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "featureKey",
     "environment",

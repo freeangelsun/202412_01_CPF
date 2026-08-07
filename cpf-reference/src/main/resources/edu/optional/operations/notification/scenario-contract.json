@@ -3,7 +3,7 @@
   "title": "알림 Acknowledge·Escalation·교대 인계",
   "implementationPackage": "com.cpf.reference.optional.operations.notification",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "alertId",
     "ackReason",

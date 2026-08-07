@@ -1,0 +1,15 @@
+source_document,image_path,reference_sha,status,verification
+README.md,cpf-docs/assets/readme/cpf-hero-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-hero-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-architecture-overview-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-architecture-overview-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-product-map-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-product-map-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-topology-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-topology-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-execution-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-execution-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-operations-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-operations-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-domain-journey-mobile.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch
+README.md,cpf-docs/assets/readme/cpf-domain-journey-desktop.png,64049044956924032360fa80be83b5e37c64f828,PASS,GitHub current-master binary fetch

@@ -70,13 +70,20 @@ function parse(storage: Storage, now = Date.now()): ApprovalIdempotencyLedger {
     const parsed = JSON.parse(raw) as Partial<ApprovalIdempotencyLedger>;
     if (parsed.version !== 3 || !parsed.entries || typeof parsed.entries !== "object"
         || !parsed.generations || typeof parsed.generations !== "object") return empty;
-    const entries = Object.fromEntries(Object.entries(parsed.entries).filter(([fingerprint, state]) => {
-      if (!isState(state) || state.fingerprint !== fingerprint) return false;
-      const ttl = state.state === "pending" ? PENDING_TTL_MS : CONFIRMED_TTL_MS;
-      return now - state.updatedAt <= ttl;
-    }));
     const generations = Object.fromEntries(Object.entries(parsed.generations).filter(([fingerprint, generation]) =>
       /^[0-9a-f]{64}$/.test(fingerprint) && Number.isSafeInteger(generation) && Number(generation) >= 0));
+    const entries: Record<string, ApprovalIdempotencyState> = {};
+    for (const [fingerprint, state] of Object.entries(parsed.entries)) {
+      if (!isState(state) || state.fingerprint !== fingerprint) continue;
+      const ttl = state.state === "pending" ? PENDING_TTL_MS : CONFIRMED_TTL_MS;
+      if (now - state.updatedAt <= ttl) {
+        entries[fingerprint] = state;
+      } else {
+        // Expiry starts a new idempotency generation. Reusing generation 0 after browser TTL
+        // could replay an older server-side idempotency record even though the UI treats it as new.
+        generations[fingerprint] = Math.max(Number(generations[fingerprint] ?? 0), 0) + 1;
+      }
+    }
     return { version: 3, entries, generations };
   } catch { return empty; }
 }

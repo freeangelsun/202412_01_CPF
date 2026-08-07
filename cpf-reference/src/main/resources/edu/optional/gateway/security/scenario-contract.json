@@ -3,7 +3,7 @@
   "title": "인증·권한·TLS·HMAC·Nonce",
   "implementationPackage": "com.cpf.reference.optional.gateway.security",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "audience",
     "permission",

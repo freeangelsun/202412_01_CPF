@@ -3,7 +3,7 @@
   "title": "실행 요청 응답 유실·결과 대사",
   "implementationPackage": "com.cpf.reference.batch.reconcile.requestloss",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "jobParametersHash"
   ],

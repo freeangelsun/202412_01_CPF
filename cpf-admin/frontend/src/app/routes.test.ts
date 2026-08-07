@@ -8,16 +8,26 @@ import {
   featureGroupForMenu,
   menuIdFromRouteName
 } from "./routes";
+import { createAdmState } from "../state/createAdmState";
 
 describe("ADM canonical capability registry", () => {
   it("uses home plus five top-level operation groups", () => {
     expect(Object.values(admGroupLabels)).toEqual(["홈", "온라인 운영", "배치 운영", "연계 관리", "통합 관제", "프레임워크 관리"]);
   });
 
-  it("contains exactly the canonical 60 route capabilities", () => {
-    expect(Object.keys(admCapabilityRegistry)).toHaveLength(60);
-    expect(admRouterRecords).toHaveLength(60);
+  it("contains exactly the canonical 63 route capabilities", () => {
+    expect(Object.keys(admCapabilityRegistry)).toHaveLength(63);
+    expect(admRouterRecords).toHaveLength(63);
     expect(admFeatureRoutes).toBe(admCapabilityRegistry);
+  });
+
+  it("projects sidebar state from the same 63-route canonical registry", () => {
+    const state = createAdmState();
+    expect(state.menus).toHaveLength(63);
+    expect(new Set(state.menus.map(item => item.id))).toEqual(new Set(Object.keys(admCapabilityRegistry)));
+    for (const routeId of ["featureFlags", "integrationClosure", "openApiOperations", "resiliencePolicies"]) {
+      expect(state.menus.some(item => item.id === routeId)).toBe(true);
+    }
   });
 
   it("binds every route to a backend menu, owner, feature flag and risk", () => {

@@ -3,7 +3,7 @@
   "title": "SOAP·XML 외부기관 연계와 Fault 처리",
   "implementationPackage": "com.cpf.reference.online.counterparty.soap",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "payload",
     "endpointAlias",

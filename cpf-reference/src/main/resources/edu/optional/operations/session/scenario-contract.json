@@ -3,7 +3,7 @@
   "title": "Browser 세션 만료·재로그인·위험 조치 안전성",
   "implementationPackage": "com.cpf.reference.optional.operations.session",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "sessionId",
     "commandId"

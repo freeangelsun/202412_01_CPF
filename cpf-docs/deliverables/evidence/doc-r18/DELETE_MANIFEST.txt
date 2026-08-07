@@ -1,0 +1,4 @@
+baseline_sha=64049044956924032360fa80be83b5e37c64f828
+deleted_file_count=0
+status=PASS
+note=R18 package requests no deletion. Existing PDF/DOCX/assets/source/test files are protected and not removed.

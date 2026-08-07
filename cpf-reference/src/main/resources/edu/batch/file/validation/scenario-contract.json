@@ -3,7 +3,7 @@
   "title": "수신 파일 Header·Detail·Trailer 대사",
   "implementationPackage": "com.cpf.reference.batch.file.validation",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "filePath",
     "layoutVersion",

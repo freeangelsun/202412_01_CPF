@@ -51,26 +51,30 @@ for adapter in owner_registry:
     require(adapter,'supports(String ownerModule, String ownerCommand, String actionType, String targetType)')
 
 require('cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureConfiguration.java',
-        '@ConditionalOnMissingBean(value = {CpfDataQualityOperations.class, CpfDataQualityCorrectionPort.class})','CpfDataQualityCorrectionPort correctionPort')
+        '@ConditionalOnMissingBean(value = {CpfDataQualityOperations.class, CpfDataQualityCorrectionPort.class})','CpfDataQualityCorrectionPort provider','AdmDataQualityCorrectionGateway correctionGateway','proofService::verifyAndConsume')
 require('cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureProfileGuard.java',
         'explicit active profile','forbidden in prod/stg')
 require('cpf-admin/src/main/resources/application.yml','application-adm-${spring.profiles.active:}.yml')
 app=text('cpf-admin/src/main/resources/application.yml')
 if re.search(r'(?m)^\s*active:\s*(?:local|\$\{SPRING_PROFILES_ACTIVE:local\})\s*$',app): errors.append('local profile default remains')
 require('cpf-admin/frontend/src/features/integration-closure/integrationClosureIdempotency.ts',
-        'entries: Record<string, ApprovalIdempotencyState>','generations: Record<string, number>','storage: Storage = localStorage','MAX_ENTRIES','state: "pending" | "confirmed"')
+        'entries: Record<string, ApprovalIdempotencyState>','generations: Record<string, number>','storage: Storage = localStorage','PENDING_TTL_MS = 24 * 60 * 60 * 1000','CONFIRMED_TTL_MS = 7 * 24 * 60 * 60 * 1000','MAX_ENTRIES','state: "pending" | "confirmed"')
 require('cpf-admin/frontend/src/shared/strictJsonObject.ts','중복 키','MAX_SAFE_INTEGER','정밀도 손실')
 require('cpf-admin/frontend/src/shared/operationPermissions.ts','permissions.has(operationId)')
 require('cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue','parseStrictJsonObject','requestKey=crypto.randomUUID()','idempotencyKey=crypto.randomUUID()')
 require('cpf-admin/frontend/scripts/enrich-adm-openapi-contract.mjs',
-        'Runtime/controller OpenAPI route missing','AdmApprovalCreateRequest','Approval request created','minimum: 1')
+        'Runtime/controller OpenAPI route missing','validation-only','OpenAPI enrichment output is forbidden','requireOperation(')
+require('cpf-admin/frontend/scripts/verify-runtime-openapi-parity.mjs',
+        'BACKEND_RUNTIME','runtime/source operation drift','x-cpf-product-module')
+require('cpf-admin/frontend/src/features/integration-closure/integrationClosureApi.ts',
+        'admIntegrationDataQualityCorrectionApprovalRequest','admIntegrationDataQualityCorrectionExecute','../../generated/cpf-api')
 require('settings.gradle','cpfIncludeLocalDomains','settingsSha256')
 require('cpf-admin/build.gradle','inputs.dir(frontendDir.dir(\'scripts\'))','nodeVersionProvider','npmVersionProvider')
 require('cpf-tools/verification/final-dev/run-db3-lifecycle.ps1',
         '--connection-json-stdin','$start.Environment.Clear()','WaitForExit($TimeoutSeconds * 1000)','Kill($true)')
 
 require('cpf-tools/verification/final-dev/run-r6-release-gates.ps1',
-        'ExpectedHead','aggregateQualityBuild','publicationGate','npm-playwright','db3-live','multiprocess-chaos')
+        'ExpectedHead','aggregateQualityBuild','publicationGate','adm-playwright','bza-playwright','db3-live','multiprocess-chaos')
 require('.github/workflows/cpf-r6-release-gates.yml',
         "java-version: '25'","node-version: '22.18.0'",'run-r6-release-gates.ps1','actions/upload-artifact@v4')
 

@@ -3,7 +3,7 @@
   "title": "Log·Trace·Transaction 상관 검색",
   "implementationPackage": "com.cpf.reference.optional.operations.correlation",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "transactionId",
     "segmentId",

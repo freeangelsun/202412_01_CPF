@@ -3,7 +3,7 @@
   "title": "대상 일괄 조치·부분 성공·결과 파일",
   "implementationPackage": "com.cpf.reference.optional.operations.bulk",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "targetIds",
     "command",

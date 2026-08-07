@@ -3,6 +3,7 @@ import { computed, reactive, ref } from "vue";
 import DataTable from "../../components/DataTable.vue";
 import StructuredDetails from "../../components/StructuredDetails.vue";
 import { bzaApi } from "../auth/session";
+import { bzaSupportSimulatePermission } from "../../generated/orval/cpf-api";
 
 interface PermissionSimulationResult extends Record<string, unknown> {
   allowed?: boolean;
@@ -45,10 +46,7 @@ async function compareRoles(): Promise<void> {
 async function simulate(): Promise<void> {
   error.value = "";
   try {
-    simulationResult.value = await bzaApi<PermissionSimulationResult>("/api/bza/permissions/simulate", {
-      method: "POST",
-      body: JSON.stringify(simulation)
-    });
+    simulationResult.value = await bzaSupportSimulatePermission({ ...simulation }) as PermissionSimulationResult;
   } catch (failure) {
     error.value = failure instanceof Error ? failure.message : String(failure);
   }

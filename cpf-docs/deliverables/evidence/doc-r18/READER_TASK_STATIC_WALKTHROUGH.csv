@@ -1,0 +1,11 @@
+task_id,task,manual,static_walkthrough,required_terms,missing,flow,runtime_execution
+RT-01,신규 온라인 업무영역 생성부터 인계,01_개발자매뉴얼.md,PASS,-CapabilityProfile | -DryRun | -Apply | Idempotency | UNKNOWN_RESULT | Oracle/PostgreSQL/MariaDB | ADM,,Generator→DB→API→중복/응답유실→대사→Test→ADM 인계,미검증
+RT-02,Batch Job 개발·Kill·Restart·대사,02_배치개발매뉴얼.md,PASS,Tasklet | Chunk | Checkpoint | Process Kill | Restart | UNKNOWN_RESULT | Center-Cut | Lease | Fencing,,Job/Step→Metadata→Kill→Restart→Unknown→Center-Cut 대사,미검증
+RT-03,고객 업무 ADM 연동,03_ADM개발자매뉴얼.md,PASS,Owner | Same-JVM | Remote | Expected Version | Idempotency | Generated Client | Browser Test,,Owner Query/Command→OpenAPI→Generated Client→Route/UI→Fault/Browser,미검증
+RT-04,ADM 로그 조회에서 위험조치 복구,04_ADM운영자매뉴얼.md,PASS,/logs | /runtimeControl | /incidents | /approvals | Expected Version | UNKNOWN_RESULT | Operation ID,,로그/Trace→위험조치 Preview→승인→Operation 대사→Audit,미검증
+RT-05,플랫폼 신규 설치·설정·Rollback,05_플랫폼운영매뉴얼.md,PASS,Checksum | cpf.db.vendor | cpf.db.resource-root | PROPERTY_LEAF_CATALOG | Rolling | Blue-Green | Canary | Rollback | Backup | Restore,,Artifact→Leaf Config→DB3→기동/Health→배포→Rollback/Restore,미검증
+RT-06,BZA 조직·권한·결재 적용,90_BZA매뉴얼.md,PASS,조직 | 기준일 | Role | Permission | Data Scope | 결재 | 위임 | Audit,,조직/직원→사용자→Role/Scope→결재/위임→감사,미검증
+RT-07,Gateway Route 게시와 부분실패 복구,91_Gateway매뉴얼.md,PASS,Default Deny | HMAC | Nonce | SSRF | Attempt Ledger | ACK | NACK | LKG | Rollback,,Route/Target→보안→Validate/Approve/Publish→ACK/NACK→LKG/Rollback,미검증
+RT-08,대량파일 UNKNOWN_RESULT 확정,04_ADM운영자매뉴얼.md,PASS,/file-jobs | UNKNOWN_RESULT | SIDE_EFFECT_NOT_APPLIED | SIDE_EFFECT_APPLIED | SIDE_EFFECT_COMPENSATED | Rollback Token,,Upload/DryRun→Apply→UNKNOWN row→외부대사→승인 결과확정,미검증
+RT-09,Secret·Session 보안 운영,05_플랫폼운영매뉴얼.md,PASS,SecretProvider | cpf.security.session | fail-closed | credential | Rotation,,Secret Provider→Session readiness→Credential 보호→Rotation→감사,미검증
+RT-10,운영 장애 DR·복구 판정,05_플랫폼운영매뉴얼.md,PASS,DR | Backup | Restore | Failover | Failback | DB | Kafka | Disk | Memory | Network,,장애분류→Runbook→복구/대사→DR Failover/Failback 판정,미검증

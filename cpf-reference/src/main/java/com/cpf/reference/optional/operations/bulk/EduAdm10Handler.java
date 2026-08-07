@@ -25,15 +25,24 @@ public final class EduAdm10Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-                requireLongRange(command, "contentLength", 0L, 2147483647L);
+        requireLongRange(command, "contentLength", 0L, 2147483647L);
         requireSha256(command, "checksum");
         requireSafePath(command, "fileName");
+        List<String> targets = targetIds(command);
+        if (targets.isEmpty()) throw new EduValidationException("targetIds must not be empty");
+        if (new LinkedHashSet<>(targets).size() != targets.size()) {
+            throw new EduValidationException("targetIds must be unique");
+        }
+        Object versions = command.payload().get("expectedVersions");
+        if (versions instanceof Map<?,?> map && map.size() != targets.size()) {
+            throw new EduValidationException("expectedVersions must cover every target");
+        }
+        if (versions instanceof Collection<?> values && values.size() != targets.size()) {
+            throw new EduValidationException("expectedVersions must cover every target");
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return targetIds(command).stream().map(id -> "target:" + id).toList();
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -43,10 +52,27 @@ public final class EduAdm10Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        List<String> targets = targetIds(command);
+        Set<String> failed = new LinkedHashSet<>(stringList(command.payload().get("failedTargetIds")));
+        if (!targets.containsAll(failed)) throw new EduValidationException("failedTargetIds contains unknown target");
+        List<String> succeeded = targets.stream().filter(id -> !failed.contains(id)).toList();
+        List<Map<String,Object>> targetResults = new ArrayList<>();
+        for (String id : targets) {
+            targetResults.add(Map.of("targetId", id, "status", failed.contains(id) ? "FAILED" : "SUCCEEDED"));
+        }
         result.put("scenarioTitle", "대상 일괄 조치·부분 성공·결과 파일");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", failed.isEmpty() ? "COMPLETED" : "PARTIAL");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("targetResults", List.copyOf(targetResults));
+        result.put("successfulTargetIds", succeeded);
+        result.put("failedTargetIds", List.copyOf(failed));
+        result.put("reprocessTargetIds", List.copyOf(failed));
+        result.put("successfulTargetsReplayAllowed", false);
+        result.put("downloadableResult", Map.of(
+                "fileName", command.payload().get("fileName"),
+                "contentLength", command.payload().get("contentLength"),
+                "checksum", command.payload().get("checksum")));
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);
@@ -55,5 +81,18 @@ public final class EduAdm10Handler extends AbstractEduCapabilityHandler {
         Map<String,Object> invalid = new LinkedHashMap<>(validPayload);
         invalid.put("checksum", "not-a-sha256");
         return Map.copyOf(invalid);
+    }
+
+    private static List<String> targetIds(EduExecutionCommand command) {
+        return stringList(command.payload().get("targetIds"));
+    }
+
+    private static List<String> stringList(Object value) {
+        if (value instanceof Collection<?> values) {
+            return values.stream().map(String::valueOf).map(String::trim).filter(s -> !s.isEmpty()).toList();
+        }
+        if (value == null) return List.of();
+        return Arrays.stream(String.valueOf(value).split(","))
+                .map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 }

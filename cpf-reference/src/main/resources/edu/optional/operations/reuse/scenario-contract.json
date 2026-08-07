@@ -3,7 +3,7 @@
   "title": "기존 ADM 기능 재사용 판단",
   "implementationPackage": "com.cpf.reference.optional.operations.reuse",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "businessId",
     "approvalId"

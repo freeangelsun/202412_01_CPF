@@ -3,7 +3,7 @@
   "title": "설정 변경 Partial Apply·Reconcile",
   "implementationPackage": "com.cpf.reference.platform.configuration.reconcile",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_PLATFORM_OPERATOR",
   "inputFields": [
     "configVersion",
     "checksum",

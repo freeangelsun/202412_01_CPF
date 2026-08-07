@@ -10,9 +10,9 @@ import java.util.Map;
 /**
  * Owner-side mutation SPI for data-quality correction.
  *
- * <p>This is not a caller authorization API. The sole framework consumer is the ADM Owner Command
- * adapter after it verifies the database-backed single-use execution reservation and immutable
- * snapshot hash.</p>
+ * <p>This is not a caller authorization API. The sole production framework consumer is the ADM-owned final correction gateway. The gateway
+ * verifies the immutable approval snapshot, short-lived HMAC capability and durable single-use
+ * nonce before any provider mutation is invoked.</p>
  */
 public interface CpfDataQualityCorrectionPort {
     CpfDataQualityOperations.QuarantineItem correctApproved(ApprovedCorrection command);

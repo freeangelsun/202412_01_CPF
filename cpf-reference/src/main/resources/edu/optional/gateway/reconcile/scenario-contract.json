@@ -3,7 +3,7 @@
   "title": "Attempt Ledger·UNKNOWN_RESULT·LKG 복구",
   "implementationPackage": "com.cpf.reference.optional.gateway.reconcile",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "attemptId",
     "routeVersion",

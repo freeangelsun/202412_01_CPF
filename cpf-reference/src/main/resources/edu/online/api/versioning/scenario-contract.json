@@ -3,7 +3,7 @@
   "title": "API Version 전환·하위 호환·폐기",
   "implementationPackage": "com.cpf.reference.online.api.versioning",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "apiVersion",
     "acceptHeader",

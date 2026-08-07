@@ -30,10 +30,7 @@ public final class EduAdm13Handler extends AbstractEduCapabilityHandler {
         requireSafePath(command, "fileName");
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("evidence-export:" + command.payload().get("approvalId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -43,10 +40,18 @@ public final class EduAdm13Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean expired = Boolean.TRUE.equals(command.payload().get("expired"));
         result.put("scenarioTitle", "감사 증적·다운로드·승인 반출");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", expired ? "EXPIRED" : "READY");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("approvalId", command.payload().get("approvalId"));
+        result.put("approvalPolicyId", command.payload().get("approvalPolicyId"));
+        result.put("manifestSha256", command.payload().get("checksum"));
+        result.put("exportFileName", command.payload().get("fileName"));
+        result.put("downloadAuditRequired", true);
+        result.put("approvalBoundExport", true);
+        result.put("rawPayloadIncludedInResult", false);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

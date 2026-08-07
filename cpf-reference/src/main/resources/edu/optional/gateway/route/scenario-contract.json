@@ -3,7 +3,7 @@
   "title": "Route·Predicate·Path Rewrite",
   "implementationPackage": "com.cpf.reference.optional.gateway.route",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "host",
     "path",

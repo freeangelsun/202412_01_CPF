@@ -3,7 +3,7 @@
   "title": "Cache Stampede·Negative Cache·원본 정합성",
   "implementationPackage": "com.cpf.reference.online.cache.consistency",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "cacheKey",
     "ttl",

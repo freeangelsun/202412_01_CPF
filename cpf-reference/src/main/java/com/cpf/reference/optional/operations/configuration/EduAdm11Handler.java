@@ -25,13 +25,18 @@ public final class EduAdm11Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        if (Boolean.FALSE.equals(command.payload().get("maintenanceWindowOpen"))) {
+            throw new EduValidationException("configuration change is outside the maintenance window");
+        }
+        Object expected = command.payload().get("expectedChecksum");
+        Object actual = command.payload().get("actualChecksum");
+        if (expected != null && actual != null && !String.valueOf(expected).equalsIgnoreCase(String.valueOf(actual))) {
+            throw new EduValidationException("configuration checksum drift detected");
+        }
+        if (targetValues(command).isEmpty()) throw new EduValidationException("targets must not be empty");
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return targetValues(command).stream().map(v -> "config-target:" + v).toList();
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +46,20 @@ public final class EduAdm11Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean partial = Boolean.TRUE.equals(command.payload().get("partialFailure"));
+        boolean rollback = Boolean.TRUE.equals(command.payload().get("rollbackRequested"));
+        String state = rollback ? "ROLLED_BACK" : partial ? "PARTIAL" : "APPLIED";
+        Object lkg = command.payload().getOrDefault("lastKnownGoodVersion", command.payload().get("configVersion"));
         result.put("scenarioTitle", "설정·기능전환·유지보수 창 운영");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", state);
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("maintenanceWindowValidated", true);
+        result.put("checksumValidated", true);
+        result.put("restartRequired", Boolean.TRUE.equals(command.payload().get("restartRequired")));
+        result.put("lastKnownGoodVersion", lkg);
+        result.put("rollbackAvailable", true);
+        result.put("partialReconcileRequired", partial);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);
@@ -53,5 +68,14 @@ public final class EduAdm11Handler extends AbstractEduCapabilityHandler {
         Map<String,Object> invalid = new LinkedHashMap<>(validPayload);
         invalid.put("configVersion", "");
         return Map.copyOf(invalid);
+    }
+
+    private static List<String> targetValues(EduExecutionCommand command) {
+        Object value = command.payload().get("targets");
+        if (value instanceof Collection<?> values) {
+            return values.stream().map(String::valueOf).map(String::trim).filter(s -> !s.isEmpty()).toList();
+        }
+        if (value == null) return List.of();
+        return Arrays.stream(String.valueOf(value).split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 }

@@ -3,7 +3,7 @@
   "title": "Incident·Recovery Center 종단간 복구",
   "implementationPackage": "com.cpf.reference.optional.operations.incident",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_PLATFORM_OPERATOR",
+  "requiredRole": "CPF_ADM_OPERATOR",
   "inputFields": [
     "incidentId",
     "transactionIds",

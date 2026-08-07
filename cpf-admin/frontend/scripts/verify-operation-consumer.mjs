@@ -26,6 +26,8 @@ function walk(dir){const out=[];if(!fs.existsSync(dir))return out;for(const entr
 function templateRegex(template){const escaped=template.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\\\{[^/]+\\\}/g,"[^/]+");return new RegExp(`^${escaped}$`);}
 function normalizeSourceTemplate(raw){return raw.replace(/\$\{[^}]+\}/g,"x").split("?")[0];}
 const consumed=new Set();
+const generatedConsumed=new Set();
+const typedGeneratedConsumed=new Set();
 function match(method,raw,rel){const pathname=normalizeSourceTemplate(raw);const found=operations.find(op=>op.method===method&&templateRegex(op.template).test(pathname));if(!found)failures.push(`${rel}: privileged API is absent from OpenAPI: ${method} ${raw}`);else consumed.add(found.operationId);}
 const patterns=[
  {re:/\b(?:adm|bza)Query(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1/g,method:"GET"},
@@ -56,10 +58,26 @@ function inferWrapperCalls(text,rel){
 for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/"))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/(?:adm\/api|api\/bza)\b/.test(text)&&!["src/shared/cpfApi.ts","src/shared/orval-mutator.ts"].includes(rel))failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
  for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/(?:adm\/api|api\/bza)\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC")match(method,raw,rel);}}
  inferWrapperCalls(text,rel);
- for(const invoked of text.matchAll(/\badmInvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
+ for(const invoked of text.matchAll(/\b(?:adm|bza)InvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
    const operationId=invoked[1];
    if(!ids.includes(operationId))failures.push(`${rel}: unknown generated operation invocation ${operationId}`);
    else consumed.add(operationId);
+ }
+ const generatedImports=new Set();
+ const typedGeneratedImports=new Set();
+ for(const imported of text.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']([^"']*generated\/(orval\/)?(?:cpf-api|integrationClosureApi))["']/gs)){
+   for(const item of imported[1].split(",")){
+     const token=item.trim().split(/\s+as\s+/i)[0]?.trim();
+     if(token) generatedImports.add(token);
+     if(token&&imported[3]) typedGeneratedImports.add(token);
+   }
+ }
+ for(const operation of operations){
+   const directCall=new RegExp(`\\b${operation.operationId}(?:<[^>]+>)?\\s*\\(`);
+   if(directCall.test(text)&&generatedImports.has(operation.operationId)){
+     consumed.add(operation.operationId); generatedConsumed.add(operation.operationId);
+     if(typedGeneratedImports.has(operation.operationId)) typedGeneratedConsumed.add(operation.operationId);
+   }
  }
  for(const stream of text.matchAll(/\bnew\s+EventSource\s*\(\s*([`"'])(\/adm\/api\/[^`"']+)\1/g))match("GET",stream[2],rel);
 }
@@ -67,17 +85,37 @@ const routeRegistry=read("src/app/routes.ts");
 const appSource=read("src/App.vue");
 const workbenchSource=read("src/components/RouteOperationWorkbench.vue");
 const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&/(?:adm|bza)InvokeOperation/.test(workbenchSource)&&workbenchSource.includes("cpfOperationDescriptors");
+const workbenchGetOnly=hasRouteWorkbench&&(workbenchSource.includes('item.method === "GET"')||workbenchSource.includes('descriptor.method !== "GET"')||workbenchSource.includes('selectedOperation.value.method !== "GET"'));
 if(!hasRouteWorkbench)failures.push("route operation workbench is not wired to the generated operation contract");
+if(hasRouteWorkbench&&!workbenchGetOnly)failures.push("route operation workbench must be GET-only before registry operations can count as consumers");
 if(hasRouteWorkbench){
   for(const block of routeRegistry.matchAll(/expectedOperationIds\s*:\s*\[([^\]]*)\]/gs)){
     for(const value of block[1].matchAll(/["']([^"']+)["']/g)){
       const operationId=value[1];
-      if(!ids.includes(operationId))failures.push(`route operation registry references unknown operation: ${operationId}`);
-      else consumed.add(operationId);
+      const operation=operations.find(op=>op.operationId===operationId);
+      if(!operation)failures.push(`route operation registry references unknown operation: ${operationId}`);
+      else if(workbenchGetOnly&&operation.method==="GET")consumed.add(operationId);
     }
   }
 }
-const waiversPath=path.join(root,"openapi/cpf-consumer-waivers.json");let waived=new Set();if(fs.existsSync(waiversPath)){const waivers=JSON.parse(fs.readFileSync(waiversPath,"utf8"));for(const waiver of waivers.waivers||[]){if(!waiver.operationId||!waiver.owner||!waiver.reason||!waiver.expiresOn)failures.push("invalid consumer waiver");else waived.add(waiver.operationId);}}
+const waiversPath=path.join(root,"openapi/cpf-consumer-waivers.json");let waived=new Set();if(fs.existsSync(waiversPath)){const waivers=JSON.parse(fs.readFileSync(waiversPath,"utf8"));const today=new Date().toISOString().slice(0,10);for(const waiver of waivers.waivers||[]){const validDate=/^\d{4}-\d{2}-\d{2}$/.test(String(waiver.expiresOn||""))&&!Number.isNaN(Date.parse(`${waiver.expiresOn}T23:59:59Z`));if(!waiver.operationId||!waiver.owner||!waiver.reason||!validDate)failures.push(`invalid consumer waiver: ${waiver.operationId||"<missing>"}`);else if(!ids.includes(waiver.operationId))failures.push(`consumer waiver references unknown operation: ${waiver.operationId}`);else if(String(waiver.expiresOn)<today)failures.push(`expired consumer waiver: ${waiver.operationId} expired=${waiver.expiresOn}`);else waived.add(waiver.operationId);}}
+// HIGH/CRITICAL is owned by the canonical route registry. Those mutation consumers must
+// bind to an imported generated API function; route metadata by itself never counts.
+const highRiskOperationIds=new Set();
+for(const line of routeRegistry.split(/\r?\n/)){
+  if(!/riskLevel:\s*"(?:HIGH|CRITICAL)"/.test(line)) continue;
+  const block=line.match(/expectedOperationIds\s*:\s*\[([^\]]*)\]/)?.[1]||"";
+  for(const value of block.matchAll(/["']([^"']+)["']/g)) highRiskOperationIds.add(value[1]);
+}
+for(const operation of operations){
+  if(["POST","PUT","PATCH","DELETE"].includes(operation.method)
+      && highRiskOperationIds.has(operation.operationId)
+      && consumed.has(operation.operationId)
+      && !generatedConsumed.has(operation.operationId)
+      && !waived.has(operation.operationId)) {
+    failures.push(`high-risk mutation must call generated API directly: ${operation.operationId} ${operation.method} ${operation.template}`);
+  }
+}
 const publicPrefix=String(openapi["x-cpf-product-module"]).toUpperCase()==="ADM"?"/adm/api/":"/api/bza/";
 const internalPrefixes=["/adm/api/auth/","/api/bza/auth/"];
 if(verificationScope!=="changed")for(const operation of operations){if(!operation.template.startsWith(publicPrefix)||internalPrefixes.some(prefix=>operation.template.startsWith(prefix)))continue;if(!consumed.has(operation.operationId)&&!waived.has(operation.operationId))failures.push(`public operation has no real frontend consumer or approved waiver: ${operation.operationId} ${operation.method} ${operation.template}`);}

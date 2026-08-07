@@ -22,6 +22,23 @@ import static org.mockito.Mockito.when;
 class BrokerReliabilityApprovalOwnerCommandAdapterTest {
 
     @Test
+    void supportsOnlyExactBrokerOwnerTupleWithoutPunctuationFolding() {
+        CpfReliabilityOperationsPort operations = mock(CpfReliabilityOperationsPort.class);
+        AdmApprovalRepository approvals = mock(AdmApprovalRepository.class);
+        BrokerReliabilityApprovalOwnerCommandAdapter adapter =
+                new BrokerReliabilityApprovalOwnerCommandAdapter(operations, approvals);
+
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc", "BROKER_DLQ_REPLAY", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isTrue();
+        assertThat(adapter.supports("CPF-STARTERS-MESSAGING-RELIABILITY-JDBC", "BROKER_DLQ_REPLAY", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isFalse();
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc", "broker_dlq_replay", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isFalse();
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc", "BROKER_DLQ_REPLAY", "broker_dlq_replay", "CPF_BROKER_DLQ")).isFalse();
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc", "BROKER_DLQ_REPLAY", "BROKER_DLQ_REPLAY", "cpf_broker_dlq")).isFalse();
+        assertThat(adapter.supports("cpf_starters_messaging_reliability_jdbc", "BROKER_DLQ_REPLAY", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isFalse();
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc-extra", "BROKER_DLQ_REPLAY", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isFalse();
+        assertThat(adapter.supports("cpf-starters-messaging-reliability-jdbc", "BROKER_DLQ_REPLAY_EXTRA", "BROKER_DLQ_REPLAY", "CPF_BROKER_DLQ")).isFalse();
+    }
+
+    @Test
     void executesOnlyMatchingUnexpiredIndependentApprovalSnapshot() {
         CpfReliabilityOperationsPort operations = mock(CpfReliabilityOperationsPort.class);
         AdmApprovalRepository approvals = mock(AdmApprovalRepository.class);

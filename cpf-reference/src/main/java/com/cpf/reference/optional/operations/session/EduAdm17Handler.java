@@ -25,13 +25,16 @@ public final class EduAdm17Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        if (Boolean.FALSE.equals(command.payload().get("csrfValid"))) {
+            throw new EduAuthorizationException("CSRF validation failed");
+        }
+        if (Boolean.FALSE.equals(command.payload().get("sameOrigin"))) {
+            throw new EduAuthorizationException("same-origin validation failed");
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("session:" + command.payload().get("sessionId")
+                + ":command:" + command.payload().get("commandId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +44,22 @@ public final class EduAdm17Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean expired = Boolean.TRUE.equals(command.payload().get("sessionExpired"));
+        boolean postSent = Boolean.TRUE.equals(command.payload().get("postSent"));
+        boolean reauthenticated = Boolean.TRUE.equals(command.payload().get("reauthenticated"));
+        String state = expired && !reauthenticated ? "SESSION_EXPIRED"
+                : reauthenticated ? "REAUTHENTICATED" : "CONFIRMING";
         result.put("scenarioTitle", "Browser 세션 만료·재로그인·위험 조치 안전성");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", state);
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("sessionExpired", expired);
+        result.put("reauthenticated", reauthenticated);
+        result.put("autoReplayAllowed", false);
+        result.put("postWasSent", postSent);
+        result.put("commandReconcileRequired", expired && postSent);
+        result.put("csrfEnforced", true);
+        result.put("sameOriginEnforced", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);

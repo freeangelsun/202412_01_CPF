@@ -10,6 +10,7 @@ import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
 import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
+import com.cpf.admin.approval.security.AdmDataQualityCorrectionGateway;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +27,7 @@ import java.util.Objects;
 
 /** Executes only a database-reserved, immutable data-quality correction command. */
 public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements AdmApprovalOwnerCommandPort {
-    private final CpfDataQualityCorrectionPort correctionPort;
+    private final AdmDataQualityCorrectionGateway correctionGateway;
     private final CpfDataQualityOperations qualityQuery;
     private final ObjectMapper objectMapper;
     private final AdmApprovalRepository repository;
@@ -34,13 +35,13 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
     private final AdmDataQualityApprovalProofService proofService;
 
     public DataQualityCorrectionApprovalOwnerCommandAdapter(
-            CpfDataQualityCorrectionPort correctionPort,
+            AdmDataQualityCorrectionGateway correctionGateway,
             CpfDataQualityOperations qualityQuery,
             ObjectMapper objectMapper,
             AdmApprovalRepository repository,
             AdmApprovalSnapshotIntegrity snapshotIntegrity,
             AdmDataQualityApprovalProofService proofService) {
-        this.correctionPort = Objects.requireNonNull(correctionPort, "correctionPort");
+        this.correctionGateway = Objects.requireNonNull(correctionGateway, "correctionGateway");
         this.qualityQuery = Objects.requireNonNull(qualityQuery, "qualityQuery");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.repository = Objects.requireNonNull(repository, "repository");
@@ -50,7 +51,7 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
-        return AdmIntegrationClosureService.DATA_QUALITY_OWNER.equalsIgnoreCase(ownerModule)
+        return AdmIntegrationClosureService.DATA_QUALITY_OWNER.equals(ownerModule)
                 && AdmIntegrationClosureService.DATA_QUALITY_COMMAND.equals(ownerCommand);
     }
 
@@ -108,11 +109,9 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
                     .orElseThrow(() -> new NoSuchElementException(quarantineId));
             String beforeHash = hash(before.original(), before.corrected(), before.state(), before.version());
             String approvalRef = "ADM-APPROVAL:" + command.approvalRequestId() + ":" + command.commandRequestId();
-            Instant approvedAt = Instant.now();
-            String nonce = UUID.randomUUID().toString();
-            String proof = proofService.sign(quarantineId, expectedVersion, approvalRef,
-                    command.payloadHash(), nonce, approvedAt);
-            CpfDataQualityOperations.QuarantineItem after = correctionPort.correctApproved(
+            AdmDataQualityApprovalProofService.IssuedCapability capability = proofService.issue(
+                    quarantineId, expectedVersion, approvalRef, command.payloadHash());
+            CpfDataQualityOperations.QuarantineItem after = correctionGateway.correctApproved(
                     new CpfDataQualityCorrectionPort.ApprovedCorrection(
                             quarantineId,
                             expectedVersion,
@@ -121,9 +120,9 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
                             command.reason(),
                             approvalRef,
                             command.payloadHash(),
-                            nonce,
-                            proof,
-                            approvedAt));
+                            capability.nonce(),
+                            capability.proof(),
+                            capability.approvedAt()));
             String afterHash = hash(after.original(), after.corrected(), after.state(), after.version());
             return new AdmApprovedOperationResult(
                     AdmApprovalExecutionStatus.SUCCEEDED,

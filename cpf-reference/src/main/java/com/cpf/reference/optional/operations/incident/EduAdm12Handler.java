@@ -25,13 +25,13 @@ public final class EduAdm12Handler extends AbstractEduCapabilityHandler {
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
     @Override protected void validateBusinessInput(EduExecutionCommand command) {
         super.validateBusinessInput(command);
-        // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
+        if (transactionIds(command).isEmpty()) throw new EduValidationException("transactionIds must not be empty");
+        if (Boolean.FALSE.equals(command.payload().get("recoveryAuthorized"))) {
+            throw new EduAuthorizationException("recovery command is not authorized");
+        }
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return transactionIds(command).stream().map(v -> "transaction:" + v).toList();
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +41,22 @@ public final class EduAdm12Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        boolean recovered = !Boolean.FALSE.equals(command.payload().get("recoveryCompleted"));
+        boolean reopened = Boolean.TRUE.equals(command.payload().get("reopened"));
+        String state = reopened ? "INVESTIGATING" : recovered ? "CLOSED" : "MITIGATING";
         result.put("scenarioTitle", "Incident·Recovery Center 종단간 복구");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", state);
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", false);
+        result.put("incidentId", command.payload().get("incidentId"));
+        result.put("severity", command.payload().get("severity"));
+        result.put("owner", command.payload().get("owner"));
+        result.put("transactionCount", transactionIds(command).size());
+        result.put("recoveryCommandIssued", true);
+        result.put("recoveryCompleted", recovered);
+        result.put("reopened", reopened);
+        result.put("auditTimeline", List.of("OPEN", "INVESTIGATING", "MITIGATING", recovered ? "RECOVERED" : "MITIGATING"));
+        result.put("evidenceRequiredBeforeClose", true);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);
@@ -53,5 +65,14 @@ public final class EduAdm12Handler extends AbstractEduCapabilityHandler {
         Map<String,Object> invalid = new LinkedHashMap<>(validPayload);
         invalid.put("incidentId", "");
         return Map.copyOf(invalid);
+    }
+
+    private static List<String> transactionIds(EduExecutionCommand command) {
+        Object value = command.payload().get("transactionIds");
+        if (value instanceof Collection<?> values) {
+            return values.stream().map(String::valueOf).map(String::trim).filter(s -> !s.isEmpty()).distinct().toList();
+        }
+        if (value == null) return List.of();
+        return Arrays.stream(String.valueOf(value).split(",")).map(String::trim).filter(s -> !s.isEmpty()).distinct().toList();
     }
 }

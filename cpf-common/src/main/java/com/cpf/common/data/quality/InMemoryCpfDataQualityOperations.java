@@ -22,7 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
-/** Deterministic reference implementation for rule lifecycle, quarantine, approved correction, replay and reconcile. */
+/**
+ * Deterministic local/development reference implementation for rule lifecycle, quarantine,
+ * approved correction, replay and reconcile. This implementation is intentionally process-local:
+ * it is not production-safe evidence for multi-instance CAS, process-kill idempotency or durable
+ * reconcile. Production/staging consumers must provide a persistent CpfDataQualityOperations /
+ * CpfDataQualityCorrectionPort implementation; ADM auto-configuration never exposes this bean
+ * outside local/dev profiles.
+ */
 public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOperations, CpfDataQualityCorrectionPort {
     public record Audit(
             Instant at,

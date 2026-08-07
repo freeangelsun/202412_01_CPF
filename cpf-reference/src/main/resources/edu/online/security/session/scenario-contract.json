@@ -3,7 +3,7 @@
   "title": "인증 Token 만료·갱신·폐기·세션 강제 종료",
   "implementationPackage": "com.cpf.reference.online.security.session",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "accessToken",
     "refreshToken",

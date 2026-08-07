@@ -3,7 +3,7 @@
   "title": "입사·이동·휴직·퇴사 Joiner-Mover-Leaver",
   "implementationPackage": "com.cpf.reference.optional.backoffice.lifecycle",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BACKOFFICE_OPERATOR",
+  "requiredRole": "CPF_BZA_OPERATOR",
   "inputFields": [
     "employeeId",
     "eventType",
@@ -84,8 +84,5 @@
   "featureToggle": "cpf.reference.features.backoffice.enabled",
   "generatedDomainIndependent": true,
   "productModuleIndependent": true,
-  "databaseOwner": "refDB",
-  "kind": "BACKOFFICE",
-  "canonicalRequirementFamily": "EDU-BZA",
-  "productBzaDependency": false
+  "databaseOwner": "refDB"
 }

@@ -3,7 +3,7 @@
   "title": "Generator 기반 신규 업무 영역 생성",
   "implementationPackage": "com.cpf.reference.online.generator.domain",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "domainName",
     "systemCode",

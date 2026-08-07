@@ -3,7 +3,7 @@
   "title": "Canary·가중치 Routing·Version Rollback",
   "implementationPackage": "com.cpf.reference.optional.gateway.audit",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "routeVersion",
     "weights",

@@ -96,7 +96,7 @@ class BatApprovalOwnerCommandPortTest {
                 ownerCommand,
                 "BAT",
                 ownerCommand,
-                "INSTANCE",
+                java.util.Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(ownerCommand) ? "BAT_DEPLOYMENT_PLAN" : "BAT_INSTANCE",
                 targetId,
                 "a".repeat(64),
                 "requester-a",
@@ -104,4 +104,23 @@ class BatApprovalOwnerCommandPortTest {
                 "approved maintenance",
                 TRANSACTION_ID);
     }
+    @Test
+    void ownerTupleIsCaseSensitiveAndRejectsNearMatches() {
+        BatApprovalOwnerCommandPort port =
+                new BatApprovalOwnerCommandPort(RestClient.builder(), BASE_URL, "adm-instance-01");
+        assertThat(port.supports("BAT", "DRAIN", "DRAIN", "BAT_INSTANCE")).isTrue();
+        assertThat(port.supports("bat", "DRAIN", "DRAIN", "BAT_INSTANCE")).isFalse();
+        assertThat(port.supports("BAT", "drain", "DRAIN", "BAT_INSTANCE")).isFalse();
+        assertThat(port.supports("BAT", "DRAIN", "drain", "BAT_INSTANCE")).isFalse();
+        assertThat(port.supports("BAT", "DRAIN", "DRAIN", "bat_instance")).isFalse();
+    }
+
+    @Test
+    void riskyRemoteOwnerRejectsLoopbackAndDefaultIdentity() {
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new BatApprovalOwnerCommandPort(RestClient.builder(), "http://127.0.0.1:8180", "adm-instance-01"));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new BatApprovalOwnerCommandPort(RestClient.builder(), BASE_URL, "adm-local-01"));
+    }
+
 }

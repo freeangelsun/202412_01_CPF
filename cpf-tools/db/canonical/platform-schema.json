@@ -42,7 +42,7 @@
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
     "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 203,
+  "tableCount": 212,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -857,6 +857,33 @@
           "comment": "결과불명/복구 필요 여부"
         },
         {
+          "name": "LEASE_OWNER",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Lease 소유 인스턴스"
+        },
+        {
+          "name": "LEASE_EXPIRES_AT",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 Lease 만료시각"
+        },
+        {
+          "name": "FENCE_TOKEN",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행/Reconcile fencing token"
+        },
+        {
           "name": "created_by",
           "type": "VARCHAR(50)",
           "nullable": false,
@@ -911,6 +938,14 @@
             "RECOVERY_REQUIRED_YN",
             "EXECUTION_STATUS"
           ]
+        },
+        {
+          "name": "ix_adm_approval_execution_lease",
+          "columns": [
+            "EXECUTION_STATUS",
+            "LEASE_EXPIRES_AT",
+            "APPROVAL_REQUEST_ID"
+          ]
         }
       ],
       "foreignKeys": [
@@ -939,9 +974,122 @@
         {
           "name": "ck_adm_approval_execution_time",
           "expression": "COMPLETED_AT IS NULL OR STARTED_AT IS NULL OR COMPLETED_AT >= STARTED_AT"
+        },
+        {
+          "name": "ck_adm_approval_execution_fence",
+          "expression": "FENCE_TOKEN >= 0"
         }
       ],
       "comment": "ADM 승인 후 Owner Command 실행 상태",
+      "module": "adm",
+      "logicalDatabase": "admDB"
+    },
+    {
+      "name": "adm_approval_capability_nonce",
+      "columns": [
+        {
+          "name": "NONCE_HASH",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "single-use nonce SHA-256"
+        },
+        {
+          "name": "APPROVAL_REFERENCE",
+          "type": "VARCHAR(240)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 실행 reference"
+        },
+        {
+          "name": "EXPIRES_AT",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "capability 만료시각"
+        },
+        {
+          "name": "CONSUMED_AT",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "single-use 소비시각"
+        },
+        {
+          "name": "CONSUMED_BY",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "capability 소비 경계"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'ADM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'ADM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(3)",
+          "comment": "수정일시"
+        }
+      ],
+      "primaryKey": [
+        "NONCE_HASH"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_adm_approval_cap_nonce_expiry",
+          "columns": [
+            "EXPIRES_AT",
+            "CONSUMED_AT"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_adm_approval_cap_nonce_hash",
+          "expression": "CHAR_LENGTH(NONCE_HASH) = 64"
+        }
+      ],
+      "comment": "ADM 승인 실행 HMAC capability cluster-safe single-use nonce ledger",
       "module": "adm",
       "logicalDatabase": "admDB"
     },
@@ -1456,6 +1604,71 @@
         }
       ],
       "comment": "ADM 위험조치 승인 정책 Version",
+      "module": "adm",
+      "logicalDatabase": "admDB"
+    },
+    {
+      "name": "adm_approval_policy_lock",
+      "columns": [
+        {
+          "name": "LOCK_BUCKET",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인 정책 actionType 직렬화 lock bucket (0..63)"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'ADM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": "'ADM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(3)",
+          "comment": "수정일시"
+        }
+      ],
+      "primaryKey": [
+        "LOCK_BUCKET"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_adm_approval_policy_lock_bucket",
+          "expression": "LOCK_BUCKET BETWEEN 0 AND 63"
+        }
+      ],
+      "comment": "ADM 승인 정책 활성 유효기간 동시 생성 직렬화 lock bucket",
       "module": "adm",
       "logicalDatabase": "admDB"
     },
@@ -35626,6 +35839,777 @@
       "comment": "CMN Template 변경 append-only 감사 원장",
       "module": "cmn",
       "logicalDatabase": "cmnDB"
+    },
+    {
+      "name": "CPF_FIELD_ENCRYPTION_LEDGER",
+      "columns": [
+        {
+          "name": "RECORD_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "암호화 대상 레코드 ID"
+        },
+        {
+          "name": "FIELD_NAME",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "암호화 필드명"
+        },
+        {
+          "name": "CLASSIFICATION",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "데이터 분류"
+        },
+        {
+          "name": "KEY_VERSION",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "암호화 키 버전"
+        },
+        {
+          "name": "SEARCH_TOKEN",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "검색 토큰"
+        },
+        {
+          "name": "ENVELOPE_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Envelope 암호문"
+        },
+        {
+          "name": "MASKED_PREVIEW",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 미리보기"
+        },
+        {
+          "name": "ROW_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CAS row version"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 시각"
+        }
+      ],
+      "primaryKey": [
+        "RECORD_ID",
+        "FIELD_NAME"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "IX_CPF_FIELD_ENC_TOKEN",
+          "columns": [
+            "FIELD_NAME",
+            "SEARCH_TOKEN"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Integration Closure field encryption ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_DATA_QUALITY_RULE",
+      "columns": [
+        {
+          "name": "RULE_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "DQ rule ID"
+        },
+        {
+          "name": "RULE_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Append-only rule version"
+        },
+        {
+          "name": "FIELD_NAME",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "검사 대상 필드"
+        },
+        {
+          "name": "EXPRESSION",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical rule expression"
+        },
+        {
+          "name": "SEVERITY",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Rule severity"
+        },
+        {
+          "name": "RULE_STATE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Rule state"
+        },
+        {
+          "name": "UPDATED_BY",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 시각"
+        },
+        {
+          "name": "PARAMETERS_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "V106 rule parameter JSON payload"
+        }
+      ],
+      "primaryKey": [
+        "RULE_ID",
+        "RULE_VERSION"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Persistent data-quality rule versions",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_DATA_QUALITY_QUARANTINE",
+      "columns": [
+        {
+          "name": "QUARANTINE_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "격리 ID"
+        },
+        {
+          "name": "RECORD_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 레코드 ID"
+        },
+        {
+          "name": "ORIGINAL_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원본 JSON payload"
+        },
+        {
+          "name": "CORRECTED_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "보정 JSON payload"
+        },
+        {
+          "name": "QUARANTINE_STATE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "QUARANTINED/CORRECTED/REPLAYED"
+        },
+        {
+          "name": "VIOLATION_SUMMARY",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 위반 요약"
+        },
+        {
+          "name": "ROW_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CAS row version"
+        },
+        {
+          "name": "UPDATED_BY",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "UPDATE_REASON",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 사유"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 시각"
+        },
+        {
+          "name": "VIOLATION_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "V106 structured violation JSON"
+        }
+      ],
+      "primaryKey": [
+        "QUARANTINE_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "IX_CPF_DQ_QUARANTINE_STATE",
+          "columns": [
+            "QUARANTINE_STATE",
+            "UPDATED_AT"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Persistent data-quality quarantine",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_WEBHOOK_ENDPOINT",
+      "columns": [
+        {
+          "name": "ENDPOINT_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Webhook endpoint ID"
+        },
+        {
+          "name": "CALLBACK_URI",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Callback URI"
+        },
+        {
+          "name": "SECRET_VERSION",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Secret version reference"
+        },
+        {
+          "name": "ALLOWED_EVENT_TYPES",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "허용 이벤트 목록"
+        },
+        {
+          "name": "ENABLED",
+          "type": "SMALLINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "논리 enabled; vendor boolean mapping"
+        },
+        {
+          "name": "ROW_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CAS row version"
+        },
+        {
+          "name": "UPDATED_BY",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "UPDATE_REASON",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 사유"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 시각"
+        }
+      ],
+      "primaryKey": [
+        "ENDPOINT_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Integration Closure webhook endpoint",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_WEBHOOK_DELIVERY",
+      "columns": [
+        {
+          "name": "DELIVERY_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Delivery ID"
+        },
+        {
+          "name": "ENDPOINT_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Endpoint ID"
+        },
+        {
+          "name": "EVENT_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Event ID"
+        },
+        {
+          "name": "EVENT_TYPE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Event type"
+        },
+        {
+          "name": "IDEMPOTENCY_KEY",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Idempotency key"
+        },
+        {
+          "name": "DELIVERY_SEQUENCE",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Ordered sequence"
+        },
+        {
+          "name": "DELIVERY_STATE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Delivery state"
+        },
+        {
+          "name": "ATTEMPT_COUNT",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Attempt count"
+        },
+        {
+          "name": "NEXT_ATTEMPT_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Next retry time"
+        },
+        {
+          "name": "LAST_ERROR",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Last masked error"
+        },
+        {
+          "name": "ROW_VERSION",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CAS row version"
+        },
+        {
+          "name": "UPDATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정 시각"
+        }
+      ],
+      "primaryKey": [
+        "DELIVERY_ID"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "UK_CPF_WEBHOOK_IDEMP",
+          "columns": [
+            "ENDPOINT_ID",
+            "IDEMPOTENCY_KEY"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "IX_CPF_WEBHOOK_DUE",
+          "columns": [
+            "ENDPOINT_ID",
+            "DELIVERY_STATE",
+            "NEXT_ATTEMPT_AT",
+            "DELIVERY_SEQUENCE"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Webhook durable delivery/retry ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_INTEGRATION_CLOSURE_AUDIT",
+      "columns": [
+        {
+          "name": "AUDIT_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Audit ID"
+        },
+        {
+          "name": "CATEGORY",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Audit category"
+        },
+        {
+          "name": "TARGET_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Target ID"
+        },
+        {
+          "name": "ACTION_NAME",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Action name"
+        },
+        {
+          "name": "ACTOR_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Actor ID"
+        },
+        {
+          "name": "ACTION_REASON",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Action reason"
+        },
+        {
+          "name": "RESULT_STATE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Result state"
+        },
+        {
+          "name": "RESULT_DETAIL",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Masked result detail"
+        },
+        {
+          "name": "OCCURRED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Occurred at"
+        }
+      ],
+      "primaryKey": [
+        "AUDIT_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [],
+      "foreignKeys": [],
+      "checks": [],
+      "comment": "Integration Closure audit ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "CPF_DATA_QUALITY_OPERATION",
+      "columns": [
+        {
+          "name": "OPERATION_ID",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Replay/reconcile idempotency operation ID"
+        },
+        {
+          "name": "OPERATION_TYPE",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation type"
+        },
+        {
+          "name": "QUARANTINE_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Target quarantine ID"
+        },
+        {
+          "name": "COMMAND_FINGERPRINT",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "SHA-256 command fingerprint"
+        },
+        {
+          "name": "RESULT_PAYLOAD",
+          "type": "LONGBLOB",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Durable replay result JSON"
+        },
+        {
+          "name": "ACTOR_ID",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Actor ID"
+        },
+        {
+          "name": "ACTION_REASON",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Action reason"
+        },
+        {
+          "name": "CREATED_AT",
+          "type": "TIMESTAMP(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Created time"
+        }
+      ],
+      "primaryKey": [
+        "OPERATION_ID"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "IX_CPF_DQ_OPERATION_TARGET",
+          "columns": [
+            "QUARANTINE_ID",
+            "OPERATION_TYPE",
+            "CREATED_AT"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "FK_CPF_DQ_OPERATION_QUARANTINE",
+          "columns": [
+            "QUARANTINE_ID"
+          ],
+          "refTable": "CPF_DATA_QUALITY_QUARANTINE",
+          "refColumns": [
+            "QUARANTINE_ID"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "CK_CPF_DQ_OPERATION_HASH",
+          "expression": "CHAR_LENGTH(COMMAND_FINGERPRINT) = 64"
+        }
+      ],
+      "comment": "Persistent DQ replay/reconcile idempotency ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
     }
   ]
 }

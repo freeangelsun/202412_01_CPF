@@ -3,7 +3,7 @@
   "title": "SFTP 수신·송신·완료 파일 원자 처리",
   "implementationPackage": "com.cpf.reference.online.file.sftp",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "remotePath",
     "filePattern",

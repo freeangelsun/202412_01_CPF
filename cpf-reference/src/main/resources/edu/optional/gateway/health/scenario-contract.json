@@ -3,7 +3,7 @@
   "title": "SSRF Allowlist·DNS Rebinding·내부망 차단",
   "implementationPackage": "com.cpf.reference.optional.gateway.health",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "targetUrl",
     "allowlistVersion",

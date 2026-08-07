@@ -3,7 +3,7 @@
   "title": "Oracle·PostgreSQL·MariaDB 동일 의미 Migration",
   "implementationPackage": "com.cpf.reference.online.database.migration",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "customerId"
   ],

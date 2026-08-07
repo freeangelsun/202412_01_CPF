@@ -3,7 +3,7 @@
   "title": "Writer Commit 장애 후 Checkpoint 재시작",
   "implementationPackage": "com.cpf.reference.batch.checkpoint.writercommit",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "chunkSize",
     "failureAtCommit",

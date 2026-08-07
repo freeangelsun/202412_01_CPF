@@ -17,20 +17,18 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
         this.registry = registry;
     }
 
-    @Override
+    private static final java.util.Set<OwnerTuple> ALLOWED = java.util.Set.of(
+            tuple("GATEWAY_BINDING_APPROVE"), tuple("GATEWAY_BINDING_ACTIVATE"),
+            tuple("GATEWAY_BINDING_BLOCK"), tuple("GATEWAY_BINDING_RETIRE"));
+
     public boolean supports(String ownerModule, String ownerCommand) {
-        if (!normalize(ownerModule).contains("gateway")) return false;
-        return java.util.Set.of(
-                "GATEWAY_BINDING_APPROVE", "GATEWAY_BINDING_ACTIVATE",
-                "GATEWAY_BINDING_BLOCK", "GATEWAY_BINDING_RETIRE")
-                .contains(Objects.toString(ownerCommand, "").toUpperCase(Locale.ROOT));
+        String owner=canonical(ownerModule), command=canonical(ownerCommand);
+        return ALLOWED.stream().anyMatch(tuple -> tuple.ownerModule().equals(owner) && tuple.ownerCommand().equals(command));
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
-        return supports(ownerModule, ownerCommand)
-                && Objects.toString(ownerCommand, "").trim().equalsIgnoreCase(Objects.toString(actionType, "").trim())
-                && "GATEWAY_BINDING".equalsIgnoreCase(Objects.toString(targetType, "").trim());
+        return ALLOWED.contains(new OwnerTuple(canonical(ownerModule),canonical(ownerCommand),canonical(actionType),canonical(targetType)));
     }
 
     @Override
@@ -74,7 +72,7 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
     private static AdmApprovedOperationResult failed(String code,String message) {
         return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED,code,message);
     }
-    private static String normalize(String value) {
-        return Objects.toString(value,"").replace("-","").replace("_","").toLowerCase(Locale.ROOT);
-    }
+    private static OwnerTuple tuple(String command) { return new OwnerTuple("CPF-GATEWAY",command,command,"GATEWAY_BINDING"); }
+    private static String canonical(String value) { return Objects.toString(value,"").trim().toUpperCase(Locale.ROOT); }
+    private record OwnerTuple(String ownerModule,String ownerCommand,String actionType,String targetType) { }
 }

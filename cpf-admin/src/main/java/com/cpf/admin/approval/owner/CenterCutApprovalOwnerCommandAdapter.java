@@ -18,8 +18,9 @@ import org.springframework.stereotype.Component;
 /** Canonical ADM Approval Engine에서 승인된 Center-Cut execution-scope 명령을 BAT Owner로 전달합니다. */
 @Component("cpfCenterCutApprovalOwnerCommandPort")
 public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOwnerCommandPort {
-    private static final Set<String> COMMANDS = Set.of(
-            "reprocessCenterCutFailed", "reconcileCenterCutUnknown");
+    private static final Set<ApprovalOwnerTuple> ALLOWED = Set.of(
+            new ApprovalOwnerTuple("BAT", "reprocessCenterCutFailed", "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution"),
+            new ApprovalOwnerTuple("BAT", "reconcileCenterCutUnknown", "CENTER_CUT_RECONCILE_UNKNOWN", "center_cut_execution"));
 
     private final AdmCenterCutCommandClient owner;
     private final ObjectMapper objectMapper;
@@ -32,20 +33,18 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
-        return "BAT".equalsIgnoreCase(Objects.toString(ownerModule, "").trim())
-                && COMMANDS.contains(ownerCommand);
+        String module = Objects.toString(ownerModule, "").trim();
+        String command = Objects.toString(ownerCommand, "").trim();
+        return ALLOWED.stream().anyMatch(tuple -> tuple.ownerModule().equals(module)
+                && tuple.ownerCommand().equals(command));
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
-        if (!supports(ownerModule, ownerCommand)
-                || !"CENTER_CUT_EXECUTION".equalsIgnoreCase(Objects.toString(targetType, ""))) return false;
-        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
-        return switch (ownerCommand) {
-            case "reprocessCenterCutFailed" -> action.contains("CENTER_CUT") && action.contains("REPROCESS");
-            case "reconcileCenterCutUnknown" -> action.contains("CENTER_CUT") && action.contains("RECONCILE");
-            default -> false;
-        };
+        ApprovalOwnerTuple candidate = new ApprovalOwnerTuple(
+                Objects.toString(ownerModule, "").trim(), Objects.toString(ownerCommand, "").trim(),
+                Objects.toString(actionType, "").trim(), Objects.toString(targetType, "").trim());
+        return ALLOWED.contains(candidate);
     }
 
     @Override
@@ -100,9 +99,9 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
                 longOrNull(value(snapshot, "expectedVersion")), textOrEmpty(snapshot, "payload"));
         if (!risk.fingerprint().equalsIgnoreCase(command.payloadHash())
                 || !risk.operation().equals(command.ownerCommand())
-                || !risk.targetType().equalsIgnoreCase("center_cut_execution")
+                || !risk.targetType().equals("center_cut_execution")
                 || !risk.targetId().equals(command.targetId())
-                || !risk.actionType().equalsIgnoreCase(command.actionType())
+                || !risk.actionType().equals(command.actionType())
                 || !risk.requestUser().equals(command.requestedBy())
                 || !risk.approvalRequestId().equals(String.valueOf(command.approvalRequestId()))) {
             throw new IllegalArgumentException("approved Center-Cut snapshot mismatch");
@@ -152,4 +151,8 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
     private static AdmApprovedOperationResult failed(String code, String message) {
         return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED, code, message);
     }
+
+
+    private record ApprovalOwnerTuple(String ownerModule, String ownerCommand, String actionType, String targetType) { }
+
 }

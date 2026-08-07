@@ -3,7 +3,7 @@
   "title": "로그·Metric·Trace 상관관계와 Sampling",
   "implementationPackage": "com.cpf.reference.online.observability.correlation",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "transactionId",
     "traceparent"

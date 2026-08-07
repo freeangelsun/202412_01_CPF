@@ -3,7 +3,7 @@
   "title": "권한·데이터 범위·개인정보 가림·감사",
   "implementationPackage": "com.cpf.reference.online.security.authorization",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "organizationId",
     "subjectId"

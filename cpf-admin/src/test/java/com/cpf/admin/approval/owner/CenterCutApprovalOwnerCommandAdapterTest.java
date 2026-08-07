@@ -83,4 +83,25 @@ class CenterCutApprovalOwnerCommandAdapterTest {
                 "CENTER_CUT_REPROCESS_FAILED", requester, "incident recovery",
                 "201", requestKey, null, "");
     }
+
+    @Test
+    void ownerTupleMatchingIsExactAndRejectsNearMatches() {
+        assertThat(adapter.supports("BAT", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution")).isTrue();
+        assertThat(adapter.supports("bat", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "reprocessCenterCutFailed",
+                "center_cut_reprocess_failed", "center_cut_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "CENTER_CUT_EXECUTION")).isFalse();
+        assertThat(adapter.supports("BAT", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED_FORCE", "center_cut_execution")).isFalse();
+        assertThat(adapter.supports("batch", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution")).isFalse();
+        assertThat(adapter.supports("BAT-OPS", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "center_cut_execution")).isFalse();
+        assertThat(adapter.supports("BAT", "reprocessCenterCutFailed",
+                "CENTER_CUT_REPROCESS_FAILED", "CENTER_CUT_EXECUTION_SHADOW")).isFalse();
+    }
+
 }

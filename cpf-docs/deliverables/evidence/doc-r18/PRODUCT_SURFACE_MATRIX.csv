@@ -1,0 +1,11 @@
+status,surface,count,detail,source
+PASS,EDU,135,45 DEV + 30 BAT + 17 ADM + 14 BZA + 14 GW + 15 OPS,manual-135-catalog.json
+PASS,Starter active,39,current QA39 canonical modules,cpf-starter-catalog.json
+PASS,Starter inactive,1,openapi-webmvc retained inactive,cpf-starter-catalog.json
+PASS,Public profiles,6,minimal/web/secure/browser/event/batch,cpf-starter-catalog.json
+PASS,Capability groups,7,data/messaging/integration/file/notification/security/platform-operations,cpf-starter-catalog.json
+PASS,ADM route cards,63,current documentation route inventory,04 manual
+PASS,Customer tool axes,9,DB/Generator/Context/Sync/Parity/FullVerify/Build/BOM,cpf-tools README + scripts
+PASS,Full verification gate scripts,31,static/contract registry,verify-full-product.ps1
+PASS,DB sync chain,12,canonical DB child stages,sync-database-artifacts.ps1
+ADM Component Contract,63,63,04_ADM운영자매뉴얼.md,ADM_COMPONENT_CONTRACT_CATALOG.csv,완료 (source static); runtime/browser 미검증

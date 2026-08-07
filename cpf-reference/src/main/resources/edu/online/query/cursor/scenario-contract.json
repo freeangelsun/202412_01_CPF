@@ -3,7 +3,7 @@
   "title": "대용량 목록 검색·정렬·Cursor Paging",
   "implementationPackage": "com.cpf.reference.online.query.cursor",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "pageSize",
     "cursor",

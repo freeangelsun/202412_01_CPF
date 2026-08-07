@@ -14,20 +14,20 @@ public final class BatchJobDefinitionApprovalOwnerCommandAdapter implements AdmA
     private final BatchJobDefinitionControlPort port;
     public BatchJobDefinitionApprovalOwnerCommandAdapter(BatchJobDefinitionControlPort port){this.port=port;}
 
-    @Override
+    private static final java.util.Set<OwnerTuple> ALLOWED = java.util.Set.of(
+            new OwnerTuple("BAT", "BAT_JOB_PUBLISH", "BAT_JOB_PUBLISH", "BAT_JOB_DEFINITION"),
+            new OwnerTuple("BAT", "BAT_JOB_PUBLISH", "BAT_JOB_PUBLISH", "BAT_JOB"));
+
     public boolean supports(String ownerModule, String ownerCommand) {
-        String owner = normalize(ownerModule);
-        return (owner.contains("batch") || owner.equals("bat"))
-                && "BAT_JOB_PUBLISH".equalsIgnoreCase(ownerCommand);
+        String owner = canonical(ownerModule);
+        String command = canonical(ownerCommand);
+        return ALLOWED.stream().anyMatch(tuple -> tuple.ownerModule().equals(owner) && tuple.ownerCommand().equals(command));
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
-        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
-        String target = Objects.toString(targetType, "").trim().toUpperCase(Locale.ROOT);
-        return supports(ownerModule, ownerCommand)
-                && "BAT_JOB_PUBLISH".equals(action)
-                && java.util.Set.of("BAT_JOB_DEFINITION", "BAT_JOB").contains(target);
+        return ALLOWED.contains(new OwnerTuple(canonical(ownerModule), canonical(ownerCommand),
+                canonical(actionType), canonical(targetType)));
     }
 
     @Override
@@ -57,6 +57,7 @@ public final class BatchJobDefinitionApprovalOwnerCommandAdapter implements AdmA
     }
     private static Target parse(String value){String[] p=Objects.toString(value,"").split("@",2);if(p.length!=2||p[0].isBlank())throw new IllegalArgumentException("BAT targetId는 jobId@definitionVersion 형식이어야 합니다.");return new Target(p[0],Long.parseLong(p[1]));}
     private static AdmApprovedOperationResult failed(String c,String m){return new AdmApprovedOperationResult(AdmApprovalExecutionStatus.FAILED,c,m);}
-    private static String normalize(String v){return Objects.toString(v,"").replace("-","").replace("_","").toLowerCase(Locale.ROOT);}
+    private static String canonical(String v){return Objects.toString(v,"").trim().toUpperCase(Locale.ROOT);}
+    private record OwnerTuple(String ownerModule,String ownerCommand,String actionType,String targetType){}
     private record Target(String jobId,long version){}
 }

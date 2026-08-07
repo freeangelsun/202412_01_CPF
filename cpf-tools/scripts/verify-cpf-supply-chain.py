@@ -23,7 +23,7 @@ INCLUDE_LINE = re.compile(r"^\s*include\s+(.+?)\s*$", re.MULTILINE)
 PROJECT_DIR = re.compile(r"project\(['\"]:(?P<name>[^'\"]+)['\"]\)\.projectDir\s*=\s*file\(['\"](?P<path>[^'\"]+)['\"]\)")
 REQUIRED_TOOL_NAMES = {"cyclonedx-gradle", "ort", "syft", "grype", "cpf-release-signer"}
 OFFICIAL_DBS = {"oracle", "postgresql", "mariadb"}
-SUPPORTED_CATALOG_SCHEMAS = {"1", "1.0", "1.0.0", "2.0.0"}
+SUPPORTED_CATALOG_SCHEMAS = {"1", "1.0", "1.0.0", "2.0.0", "2.1.0"}
 NON_RELEASE_PROJECT_PREFIXES = ("cpf-tools/verification/",)
 
 
@@ -285,15 +285,45 @@ def main() -> int:
                 missing = artifact_ids - manifest_ids
                 if missing:
                     failures.append(f"release artifact manifest coverage missing: {sorted(missing)}")
+            sha_lines = (evidence_dir / "artifact-sha256.txt").read_text(encoding="ascii").splitlines() if (evidence_dir / "artifact-sha256.txt").is_file() else []
+            sha_rows = {}
+            for line in sha_lines:
+                parts = line.split(None, 1)
+                if len(parts) != 2 or not SHA256_RE.fullmatch(parts[0]):
+                    failures.append(f"invalid artifact-sha256 row: {line}")
+                    continue
+                sha_rows[parts[1].strip()] = parts[0]
+            for row in manifest_rows if isinstance(manifest_rows, list) else []:
+                artifact_id = str(row.get("artifactId", ""))
+                if sha_rows.get(artifact_id) != str(row.get("sha256", "")):
+                    failures.append(f"artifact-sha256 mismatch: {artifact_id}")
+            license_report = load_json(evidence_dir / "license-report.json", failures)
+            if license_report:
+                if license_report.get("sourceSha") != expected_sha or license_report.get("status") != "PASS":
+                    failures.append("release license report SHA/status mismatch")
+                if int(license_report.get("deniedCount", 0)) > 0 or int(license_report.get("unknownCount", 0)) > 0:
+                    failures.append("release license report contains denied/unknown findings")
             vulnerability = load_json(evidence_dir / "vulnerability-report.json", failures)
-            if vulnerability and (int(vulnerability.get("critical", 0)) > 0 or int(vulnerability.get("high", 0)) > 0):
-                failures.append("release vulnerability report contains critical/high findings")
+            if vulnerability:
+                if vulnerability.get("sourceSha") != expected_sha:
+                    failures.append("release vulnerability report SHA mismatch")
+                if int(vulnerability.get("critical", 0)) > 0 or int(vulnerability.get("high", 0)) > 0:
+                    failures.append("release vulnerability report contains critical/high findings")
             signatures = load_json(evidence_dir / "signature-verification.json", failures)
             sig_rows = signatures.get("artifacts", []) if signatures else []
+            if signatures and signatures.get("sourceSha") != expected_sha:
+                failures.append("signature verification SHA mismatch")
+            if signatures and signatures.get("manifestVerified") is not True:
+                failures.append("artifact manifest signature is not verified")
             if not isinstance(sig_rows, list) or not sig_rows:
                 failures.append("signature verification artifact list missing")
-            elif any(not isinstance(row, dict) or row.get("verified") is not True for row in sig_rows):
-                failures.append("one or more release artifact signatures are not verified")
+            else:
+                sig_ids = {str(row.get("artifactId", "")) for row in sig_rows if isinstance(row, dict) and row.get("verified") is True}
+                if sig_ids != artifact_ids:
+                    failures.append(f"signature verification coverage mismatch missing={sorted(artifact_ids-sig_ids)} extra={sorted(sig_ids-artifact_ids)}")
+                for row in sig_rows:
+                    if not isinstance(row, dict) or row.get("verified") is not True or not SHA256_RE.fullmatch(str(row.get("sha256", ""))):
+                        failures.append("one or more release artifact signatures are invalid")
     elif evidence_dir is not None:
         warnings.append("evidence-dir is ignored for release completeness unless --release is specified")
 

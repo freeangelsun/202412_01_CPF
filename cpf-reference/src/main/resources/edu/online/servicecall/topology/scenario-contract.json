@@ -3,7 +3,7 @@
   "title": "같은 애플리케이션·분리 서비스 호출 동등성",
   "implementationPackage": "com.cpf.reference.online.servicecall.topology",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "contractId",
     "member"

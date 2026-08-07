@@ -3,7 +3,7 @@
   "title": "Dry Run·건수 Preview·표본 확인",
   "implementationPackage": "com.cpf.reference.batch.dryrun.preview",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_BATCH_OPERATOR",
+  "requiredRole": "CPF_BATCH_OPERATOR",
   "inputFields": [
     "criteria",
     "snapshotAt",

@@ -19,7 +19,7 @@ public final class EduAdm14Handler extends AbstractEduCapabilityHandler {
             true, false, false, false, false, false, 3, "EDU-ADM-14"));
     }
     @Override public String implementationPackage() { return "com.cpf.reference.optional.operations.topology"; }
-    @Override public boolean readOnly() { return false; }
+    @Override public boolean readOnly() { return true; }
     @Override public List<String> businessStates() { return BUSINESS_STATES; }
     @Override public List<String> exceptionScenarios() { return EXCEPTION_SCENARIOS; }
     @Override public List<String> requiredVerification() { return REQUIRED_VERIFICATION; }
@@ -28,10 +28,8 @@ public final class EduAdm14Handler extends AbstractEduCapabilityHandler {
         // 필수 필드·권한·범위 검증은 공통 엔진에서 수행합니다.
     }
     @Override public List<String> targetKeys(EduExecutionCommand command) {
-        int count = Math.max(1, payloadInt(command, "partitionCount", payloadInt(command, "gridSize", 4)));
-        List<String> keys = new ArrayList<>(count);
-        for (int i=0;i<count;i++) keys.add("partition" + "-" + i + "-" + command.businessKey());
-        return List.copyOf(keys);
+        return List.of("service:" + command.payload().get("serviceId")
+                + ":instance:" + command.payload().get("instanceId"));
     }
     @Override public EduConsumerBinding consumerBinding() {
         return new EduConsumerBinding(
@@ -41,10 +39,20 @@ public final class EduAdm14Handler extends AbstractEduCapabilityHandler {
     }
     @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand command,long fencingToken) {
         Map<String,Object> result = new LinkedHashMap<>(super.buildBusinessResult(command,fencingToken));
+        long observedAt = longPayload(command, "observedAtEpochMillis", System.currentTimeMillis());
+        long freshnessSla = Math.max(1000L, longPayload(command, "freshnessSlaMillis", 30000L));
+        long age = Math.max(0L, System.currentTimeMillis() - observedAt);
+        boolean stale = age > freshnessSla;
         result.put("scenarioTitle", "Topology·Health·Capacity Drill-down");
-        result.put("businessState", BUSINESS_STATES.get(BUSINESS_STATES.size()-1));
+        result.put("businessState", stale ? "DRILLDOWN" : "CORRELATED");
         result.put("implementationPackage", implementationPackage());
-        result.put("readOnly", readOnly());
+        result.put("readOnly", true);
+        result.put("serviceId", command.payload().get("serviceId"));
+        result.put("instanceId", command.payload().get("instanceId"));
+        result.put("observationAgeMillis", age);
+        result.put("freshnessSlaMillis", freshnessSla);
+        result.put("stale", stale);
+        result.put("traceLinkAvailable", !stale);
         result.put("verifiedInputFields", new TreeSet<>(definition().requiredFields()));
         result.put("targetKeys", targetKeys(command));
         return Map.copyOf(result);
@@ -53,5 +61,12 @@ public final class EduAdm14Handler extends AbstractEduCapabilityHandler {
         Map<String,Object> invalid = new LinkedHashMap<>(validPayload);
         invalid.put("serviceId", "");
         return Map.copyOf(invalid);
+    }
+
+    private static long longPayload(EduExecutionCommand command, String field, long fallback) {
+        Object value = command.payload().get(field);
+        if (value == null) return fallback;
+        try { return Long.parseLong(String.valueOf(value)); }
+        catch (NumberFormatException e) { throw new EduValidationException(field + " must be numeric"); }
     }
 }

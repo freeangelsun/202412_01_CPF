@@ -3,7 +3,7 @@
   "title": "Command 멱등성·Attempt Ledger·응답 유실",
   "implementationPackage": "com.cpf.reference.optional.gateway.version",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_GATEWAY_OPERATOR",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
   "inputFields": [
     "requestHash",
     "routeVersion"

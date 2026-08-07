@@ -3,7 +3,7 @@
   "title": "외부 REST 신용조회와 결과 미확정",
   "implementationPackage": "com.cpf.reference.online.counterparty.rest",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "credit",
     "endpointAlias",

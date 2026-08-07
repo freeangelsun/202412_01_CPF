@@ -1,1 +1,17 @@
-{"schemaVersion":1,"waivers":[]}
+{
+  "schemaVersion": 1,
+  "waivers": [
+    {
+      "operationId": "bzaBackofficeCreateApproval",
+      "owner": "cpf-biz-admin",
+      "reason": "Retired legacy endpoint. BzaBackofficeController#createApproval always returns HTTP 410 GONE and directs consumers to policy-based /api/bza/approvals/**.",
+      "expiresOn": "2027-02-07"
+    },
+    {
+      "operationId": "bzaBackofficeActApproval",
+      "owner": "cpf-biz-admin",
+      "reason": "Retired legacy endpoint. BzaBackofficeController#actApproval always returns HTTP 410 GONE and directs consumers to policy-based /api/bza/approvals/**.",
+      "expiresOn": "2027-02-07"
+    }
+  ]
+}

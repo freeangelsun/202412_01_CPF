@@ -3,7 +3,7 @@
   "title": "지급 업무 장애 주입·복구·운영 인계",
   "implementationPackage": "com.cpf.reference.online.resilience.recovery",
   "owner": "cpf-reference",
-  "requiredRole": "CPF_REFERENCE_DEVELOPER",
+  "requiredRole": "CPF_EDU_DEVELOPER",
   "inputFields": [
     "amount",
     "currency"

@@ -1,0 +1,21 @@
+﻿metric,value,status,evidence
+baseline_sha,64049044956924032360fa80be83b5e37c64f828,확인,GitHub master exact SHA
+qa_findings,40,처리,REQUIREMENT_STATUS.csv
+fdev,25,처리,REQUIREMENT_STATUS.csv
+hardening,12,처리,REQUIREMENT_STATUS.csv
+approval_contract,PASS,완료,evidence/approval-contract.log
+behavior_contract,43 checks / 17 mutations,완료,evidence/behavior-contract.log
+frontend_contract,63 routes / 414 bindings / 329 unique ops,완료,evidence/frontend-contract.log
+bza_consumer,84 ops / 75 consumed / 2 retired waiver,완료,evidence/bza-consumer.log
+adm_consumer_changed,332 ops / 183 consumed,완료,evidence/adm-consumer-changed.log
+edu_consumer,135 / 8 types / 8 mutations,완료,evidence/edu-consumer.log
+edu_adm17,17 handlers executable self-test,완료,evidence/edu-adm17-selftest.log
+db3_sql_parity,3 packs x 3 vendors / 212 canonical tables,완료,evidence/sql-parity.log
+db3_runner_contract,11 checks,완료,evidence/db3-runner-contract.log
+openapi_lifecycle,validationOnly + mutationDetected,완료,evidence/openapi-lifecycle.log
+idempotency_runtime,pending24h/confirmed7d/reuse/rotation/no-payload,완료,evidence/idempotency-runtime.log
+java25_gradle91_build,NOT_EXECUTED,미검증,OPEN_ISSUES.md
+live_db3,NOT_EXECUTED,미검증,OPEN_ISSUES.md
+real_browser,NOT_EXECUTED,미검증,OPEN_ISSUES.md
+multiprocess_chaos,NOT_EXECUTED,미검증,OPEN_ISSUES.md
+codex_independent,NOT_EXECUTED,미검증,CODEX_REVIEW_REQUEST.md

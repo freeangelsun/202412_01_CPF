@@ -1,0 +1,5 @@
+COMMAND: python cpf-tools/verification/final-dev/verify-r6-approval-contract.py ROOT_OVERLAY
+START_UTC: 2026-08-06T19:23:55Z
+EXIT_CODE: 0
+PASS R6 approval/source/db/config/frontend contract checks
+END_UTC: 2026-08-06T19:23:56Z

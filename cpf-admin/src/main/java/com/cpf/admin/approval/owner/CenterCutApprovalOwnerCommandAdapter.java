@@ -37,8 +37,20 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        if (!supports(ownerModule, ownerCommand)
+                || !"CENTER_CUT_EXECUTION".equalsIgnoreCase(Objects.toString(targetType, ""))) return false;
+        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
+        return switch (ownerCommand) {
+            case "reprocessCenterCutFailed" -> action.contains("CENTER_CUT") && action.contains("REPROCESS");
+            case "reconcileCenterCutUnknown" -> action.contains("CENTER_CUT") && action.contains("RECONCILE");
+            default -> false;
+        };
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
-        if (command == null || !supports(command.ownerModule(), command.ownerCommand())) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
             return failed("CENTER_CUT_COMMAND_UNSUPPORTED", "지원하지 않는 Center-Cut 승인 Command입니다.");
         }
         if (command.requestedBy().equals(command.approvedBy())) {

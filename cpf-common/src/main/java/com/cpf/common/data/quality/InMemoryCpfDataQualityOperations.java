@@ -10,10 +10,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
@@ -33,6 +37,18 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
     private final Map<String, CpfDataQualityRule> rules = new ConcurrentHashMap<>();
     private final Map<String, QuarantineItem> quarantine = new ConcurrentHashMap<>();
     private final List<Audit> audit = new CopyOnWriteArrayList<>();
+    private final Map<String, CpfDataQualityDecision> replayResults = new ConcurrentHashMap<>();
+    private final Map<String, String> replayFingerprints = new ConcurrentHashMap<>();
+    private final Map<String, Object> replayLocks = new ConcurrentHashMap<>();
+    private final Predicate<ApprovedCorrection> approvalProofVerifier;
+
+    /** Fail-closed compatibility constructor; approved correction is unavailable without a verifier. */
+    @Deprecated(forRemoval = true)
+    public InMemoryCpfDataQualityOperations() { this(command -> false); }
+
+    public InMemoryCpfDataQualityOperations(Predicate<ApprovedCorrection> approvalProofVerifier) {
+        this.approvalProofVerifier = java.util.Objects.requireNonNull(approvalProofVerifier, "approvalProofVerifier");
+    }
 
     @Override
     public CpfDataQualityRule register(CpfDataQualityRule rule, String actor, String reason) {
@@ -70,7 +86,7 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
             quarantine.put(quarantineId, new QuarantineItem(
                     quarantineId,
                     recordId,
-                    Map.copyOf(record),
+                    immutableNullable(record),
                     Map.of(),
                     "QUARANTINED",
                     1,
@@ -90,8 +106,8 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
         String actor = require(command.actorId(), "actor");
         String reason = require(command.reason(), "reason");
         if (command.approvalExecutionReference() == null || command.approvalExecutionReference().isBlank()
-                || command.approvedAt() == null) {
-            throw new SecurityException("server approval execution metadata is required");
+                || command.approvedAt() == null || !approvalProofVerifier.test(command)) {
+            throw new SecurityException("server approval execution proof is invalid");
         }
         return quarantine.compute(command.quarantineId(), (key, old) -> {
             if (old == null) throw new NoSuchElementException(command.quarantineId());
@@ -103,7 +119,7 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
             }
             QuarantineItem next = new QuarantineItem(
                     command.quarantineId(), old.recordId(), old.original(),
-                    Map.copyOf(command.corrected()), "CORRECTED", old.version() + 1, old.violations());
+                    immutableNullable(command.corrected()), "CORRECTED", old.version() + 1, old.violations());
             audit.add(new Audit(Instant.now(), actor, "CORRECT", command.quarantineId(), reason,
                     command.approvalExecutionReference(), next.version()));
             return next;
@@ -111,24 +127,51 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
     }
 
     @Override
-    public CpfDataQualityDecision replay(String id, String actor, String reason) {
-        require(actor, "actor");
-        require(reason, "reason");
-        QuarantineItem item = Optional.ofNullable(quarantine.get(id)).orElseThrow();
-        Map<String, Object> candidate = item.corrected().isEmpty() ? item.original() : item.corrected();
-        CpfDataQualityDecision decision = validate(item.recordId(), candidate);
-        if (decision.accepted()) {
-            quarantine.computeIfPresent(id, (key, old) -> new QuarantineItem(
-                    id,
-                    old.recordId(),
-                    old.original(),
-                    old.corrected(),
-                    "REPLAYED",
-                    old.version() + 1,
-                    old.violations()));
-            audit.add(new Audit(Instant.now(), actor, "REPLAY", id, reason, "", item.version() + 1));
+    public CpfDataQualityDecision replay(ReplayCommand command) {
+        require(command.actorId(), "actor");
+        require(command.reason(), "reason");
+        String fingerprint = replayFingerprint(command);
+        CpfDataQualityDecision previous = replayResults.get(command.operationId());
+        if (previous != null) {
+            requireSameReplay(command.operationId(), fingerprint);
+            return previous;
         }
-        return decision;
+        Object lock = replayLocks.computeIfAbsent(command.operationId(), ignored -> new Object());
+        try {
+            synchronized (lock) {
+                previous = replayResults.get(command.operationId());
+                if (previous != null) {
+                    requireSameReplay(command.operationId(), fingerprint);
+                    return previous;
+                }
+                final CpfDataQualityDecision[] result = new CpfDataQualityDecision[1];
+                quarantine.compute(command.quarantineId(), (id, item) -> {
+                    if (item == null) throw new NoSuchElementException(id);
+                    if (item.version() != command.expectedVersion())
+                        throw new ConcurrentModificationException("quarantine replay version conflict");
+                    if (!Set.of("QUARANTINED", "CORRECTED").contains(item.state()))
+                        throw new IllegalStateException("only QUARANTINED/CORRECTED data can be replayed");
+                    Map<String, Object> candidate = item.corrected().isEmpty() ? item.original() : item.corrected();
+                    CpfDataQualityDecision decision = validateOnly(item.recordId(), candidate);
+                    result[0] = decision;
+                    if (!decision.accepted()) {
+                        audit.add(new Audit(Instant.now(), command.actorId(), "REPLAY_REJECTED", id,
+                                command.reason(), command.operationId(), item.version()));
+                        return item;
+                    }
+                    QuarantineItem next = new QuarantineItem(id, item.recordId(), item.original(), item.corrected(),
+                            "REPLAYED", item.version() + 1, item.violations());
+                    audit.add(new Audit(Instant.now(), command.actorId(), "REPLAY", id,
+                            command.reason(), command.operationId(), next.version()));
+                    return next;
+                });
+                replayFingerprints.put(command.operationId(), fingerprint);
+                replayResults.put(command.operationId(), result[0]);
+                return result[0];
+            }
+        } finally {
+            replayLocks.remove(command.operationId(), lock);
+        }
     }
 
     @Override
@@ -140,7 +183,9 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
         for (QuarantineItem item : new ArrayList<>(quarantine.values())) {
             if ("CORRECTED".equals(item.state())) {
                 inspected++;
-                if (replay(item.quarantineId(), actor, reason).accepted()) replayed++;
+                ReplayCommand command = new ReplayCommand(item.quarantineId(), item.version(),
+                        "reconcile-" + item.quarantineId() + "-v" + item.version(), actor, reason);
+                if (replay(command).accepted()) replayed++;
             }
         }
         long remaining = quarantine.values().stream()
@@ -151,6 +196,35 @@ public final class InMemoryCpfDataQualityOperations implements CpfDataQualityOpe
 
     public List<Audit> audit() {
         return List.copyOf(audit);
+    }
+
+    private CpfDataQualityDecision validateOnly(String recordId, Map<String, Object> record) {
+        List<CpfDataQualityDecision.Violation> violations = new ArrayList<>();
+        for (CpfDataQualityRule rule : rules.values()) {
+            if (rule.state() == CpfDataQualityRule.State.ACTIVE && !matches(rule, record.get(rule.fieldName()))) {
+                violations.add(new CpfDataQualityDecision.Violation(rule.ruleId(), rule.severity(),
+                        rule.fieldName(), "Rule failed: " + rule.expression()));
+            }
+        }
+        boolean accepted = violations.stream().noneMatch(v -> v.severity() == CpfDataQualityRule.Severity.ERROR
+                || v.severity() == CpfDataQualityRule.Severity.CRITICAL);
+        return new CpfDataQualityDecision(recordId, accepted, List.copyOf(violations), "", Instant.now());
+    }
+
+    private void requireSameReplay(String operationId, String fingerprint) {
+        String previous = replayFingerprints.get(operationId);
+        if (previous == null || !previous.equals(fingerprint)) {
+            throw new IllegalStateException("operationId is already bound to a different replay command");
+        }
+    }
+
+    private static String replayFingerprint(ReplayCommand command) {
+        return command.quarantineId() + "\n" + command.expectedVersion() + "\n"
+                + command.actorId().trim() + "\n" + command.reason().trim();
+    }
+
+    private static Map<String, Object> immutableNullable(Map<String, Object> source) {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(source == null ? Map.of() : source));
     }
 
     private static boolean matches(CpfDataQualityRule rule, Object value) {

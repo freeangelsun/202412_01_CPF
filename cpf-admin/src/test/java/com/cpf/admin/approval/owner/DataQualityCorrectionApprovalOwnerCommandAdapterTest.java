@@ -4,6 +4,7 @@ import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
+import com.cpf.admin.approval.security.AdmDataQualityApprovalProofService;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
 import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +27,10 @@ class DataQualityCorrectionApprovalOwnerCommandAdapterTest {
     private final CpfDataQualityCorrectionPort correction = mock(CpfDataQualityCorrectionPort.class);
     private final CpfDataQualityOperations query = mock(CpfDataQualityOperations.class);
     private final AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
+    private final AdmDataQualityApprovalProofService proofService = new AdmDataQualityApprovalProofService(
+            Base64.getEncoder().encodeToString(new byte[32]));
     private final DataQualityCorrectionApprovalOwnerCommandAdapter adapter =
-            new DataQualityCorrectionApprovalOwnerCommandAdapter(correction, query, objectMapper, repository, integrity);
+            new DataQualityCorrectionApprovalOwnerCommandAdapter(correction, query, objectMapper, repository, integrity, proofService);
 
     @Test
     void directOwnerAdapterCallWithoutServerReservationFailsClosed() {

@@ -1,0 +1,7 @@
+COMMAND: javac --release 21 -proc:none with exact CPF changed sources and API-shaped external dependency stubs
+SOURCE_SCOPE: all changed cpf-admin/cpf-core/cpf-common main Java sources in Root Overlay, including all approval Owner adapters
+START_UTC: 2026-08-06T19:22:18Z
+EXIT_CODE: 0
+END_UTC: 2026-08-06T19:22:19Z
+RESULT: PASS
+LIMITATION: external Spring/Jackson/JDBC/Swagger/BAT transport classes are API-shaped stubs; Java25/Gradle9.1 full repository compile remains NOT_EXECUTED

@@ -50,11 +50,18 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        return supports(ownerModule, ownerCommand)
+                && OWNER_COMMAND.equals(upper(actionType))
+                && TARGET_TYPE.equals(upper(targetType));
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
         if (command == null) {
             return failed("BROKER_DLQ_COMMAND_REQUIRED", "승인 실행 명령이 없습니다.");
         }
-        if (!supports(command.ownerModule(), command.ownerCommand())) {
+        if (!supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
             return failed("BROKER_DLQ_OWNER_MISMATCH", "Broker reliability Owner Command가 아닙니다.");
         }
         if (!OWNER_COMMAND.equals(upper(command.actionType()))) {

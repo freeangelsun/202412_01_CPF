@@ -1,0 +1,7 @@
+COMMAND: node --experimental-strip-types frontend_runtime_harness.mjs
+START_UTC: 2026-08-06T19:24:55Z
+(node:10139) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS strict JSON duplicate/precision/null and A-B-A idempotency lifecycle
+EXIT_CODE: 0
+END_UTC: 2026-08-06T19:24:55Z

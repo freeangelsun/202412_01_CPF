@@ -3,6 +3,7 @@ package com.cpf.admin.config;
 import com.cpf.admin.approval.owner.DataQualityCorrectionApprovalOwnerCommandAdapter;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
+import com.cpf.admin.approval.security.AdmDataQualityApprovalProofService;
 import com.cpf.admin.approval.service.AdmApprovalService;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.common.data.quality.InMemoryCpfDataQualityOperations;
@@ -18,6 +19,7 @@ import com.cpf.starter.integration.webhook.CpfWebhookEndpointValidator;
 import com.cpf.starter.integration.webhook.InMemoryCpfWebhookOperations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,6 +36,14 @@ import java.util.Set;
 @ConditionalOnProperty(prefix = "cpf.adm.integration-closure", name = "enabled", havingValue = "true")
 public class AdmIntegrationClosureConfiguration {
 
+
+    @Bean
+    @ConditionalOnMissingBean(AdmDataQualityApprovalProofService.class)
+    AdmDataQualityApprovalProofService admDataQualityApprovalProofService(AdmIntegrationClosureProperties properties) {
+        return new AdmDataQualityApprovalProofService(
+                require(properties.getApprovalProofKeyBase64(), "approval-proof-key-base64"));
+    }
+
     @Bean
     @ConditionalOnMissingBean(CpfTimeOperations.class)
     CpfTimeOperations cpfTimeOperations() {
@@ -41,13 +51,13 @@ public class AdmIntegrationClosureConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(CpfDataQualityOperations.class)
+    @ConditionalOnMissingBean(value = {CpfDataQualityOperations.class, CpfDataQualityCorrectionPort.class})
     @ConditionalOnProperty(
             prefix = "cpf.adm.integration-closure",
             name = "ephemeral-providers-enabled",
             havingValue = "true")
-    InMemoryCpfDataQualityOperations cpfDataQualityOperations() {
-        return new InMemoryCpfDataQualityOperations();
+    InMemoryCpfDataQualityOperations cpfDataQualityOperations(AdmDataQualityApprovalProofService proofService) {
+        return new InMemoryCpfDataQualityOperations(proofService::verify);
     }
 
     @Bean
@@ -94,15 +104,17 @@ public class AdmIntegrationClosureConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(CpfDataQualityCorrectionPort.class)
     @ConditionalOnMissingBean(DataQualityCorrectionApprovalOwnerCommandAdapter.class)
     DataQualityCorrectionApprovalOwnerCommandAdapter dataQualityCorrectionApprovalOwnerCommandAdapter(
             CpfDataQualityCorrectionPort correctionPort,
             CpfDataQualityOperations quality,
             ObjectMapper objectMapper,
             AdmApprovalRepository repository,
-            AdmApprovalSnapshotIntegrity snapshotIntegrity) {
+            AdmApprovalSnapshotIntegrity snapshotIntegrity,
+            AdmDataQualityApprovalProofService proofService) {
         return new DataQualityCorrectionApprovalOwnerCommandAdapter(
-                correctionPort, quality, objectMapper, repository, snapshotIntegrity);
+                correctionPort, quality, objectMapper, repository, snapshotIntegrity, proofService);
     }
 
     /**
@@ -115,11 +127,13 @@ public class AdmIntegrationClosureConfiguration {
     AdmIntegrationClosureService admIntegrationClosureService(
             ObjectProvider<CpfCryptoOperations> crypto,
             CpfDataQualityOperations quality,
+            CpfDataQualityCorrectionPort correctionPort,
             CpfTimeOperations time,
             CpfWebhookOperations webhook,
             AdmApprovalService approvals,
             ObjectMapper objectMapper,
             AdmIntegrationClosureProperties properties) {
+        java.util.Objects.requireNonNull(correctionPort, "data-quality correction provider");
         return new AdmIntegrationClosureService(
                 crypto.getIfAvailable(),
                 quality,

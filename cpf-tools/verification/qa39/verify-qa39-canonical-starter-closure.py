@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = (Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[3])
 CATALOG = ROOT / "cpf-tools/generator/contracts/cpf-starter-catalog.json"
 PROFILES = ROOT / "cpf-tools/generator/contracts/capability-profiles.json"
 DELETE_PATHS = ROOT / "cpf-docs/work/CPF_DELETE_MANIFEST.log"

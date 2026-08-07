@@ -181,5 +181,23 @@
       "execution-remote-message-reconcile-audit"
     ],
     "tableCount": 1
+  },
+  "approvalIntegrityR6Pack": {
+    "ownerArtifact": "cpf-admin",
+    "logicalDatabase": "admDB",
+    "canonicalSource": "source/19_approval_integrity_r6.sql",
+    "freshInstall": "install/08_approval_integrity_r6.sql",
+    "migration": "migration/V104__approval_integrity_r6.sql",
+    "rollback": "rollback/R104__approval_integrity_r6.sql",
+    "runtimeQueries": "runtime/adm/approval_integrity_queries.sql",
+    "verify": "verify/104_verify_approval_integrity_r6.sql",
+    "tables": [
+      "adm_approval_policy_history"
+    ],
+    "tableCount": 1,
+    "consumer": "com.cpf.admin.approval.repository.AdmApprovalRepository",
+    "policy": "immutable policyCode/version + before/after hash + reason audit",
+    "officialVendor": true,
+    "runtimeVerification": "미검증"
   }
 }

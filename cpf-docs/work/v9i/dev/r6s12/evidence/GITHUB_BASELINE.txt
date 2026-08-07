@@ -1,0 +1,8 @@
+source=GitHub Connector
+repository=freeangelsun/202412_01_CPF
+branch=master
+origin_master_sha=28f823a18eca859cebdbceb382029f595cdf490c
+commit_message=06_11
+product_qa_basis_sha=e7cc9ada86c871214a20862779f2433bc46fea1b
+working_tree=NOT_AVAILABLE_FROM_REMOTE_CONNECTOR
+local_clone=FAILED_DNS

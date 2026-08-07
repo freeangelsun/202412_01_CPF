@@ -51,7 +51,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     }
 
     public Optional<Map<String,Object>> findActivePolicy(String actionType, Instant at) {
-        return jdbc.queryForList("""
+        List<Map<String,Object>> active = jdbc.queryForList("""
                 SELECT POLICY_CODE AS policyCode, POLICY_VERSION AS policyVersion,
                        POLICY_NAME AS policyName, ACTION_TYPE AS actionType,
                        EFFECTIVE_FROM AS effectiveFrom, EFFECTIVE_TO AS effectiveTo,
@@ -61,8 +61,13 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                  WHERE ACTION_TYPE=? AND ENABLED_YN='Y'
                    AND EFFECTIVE_FROM <= ?
                    AND (EFFECTIVE_TO IS NULL OR EFFECTIVE_TO > ?)
-                 ORDER BY POLICY_VERSION DESC
-                """, actionType, Timestamp.from(at), Timestamp.from(at)).stream().findFirst();
+                 ORDER BY POLICY_VERSION DESC, POLICY_CODE
+                """, actionType, Timestamp.from(at), Timestamp.from(at));
+        if (active.size() > 1) {
+            throw new org.springframework.dao.DataIntegrityViolationException(
+                    "multiple active approval policies for actionType=" + actionType);
+        }
+        return active.stream().findFirst();
     }
 
     public List<Map<String,Object>> findPolicySteps(String code, int version) {
@@ -76,27 +81,22 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                 """, code, version);
     }
 
-    public void replacePolicy(Map<String,Object> p, List<Map<String,Object>> steps) {
-        int changed = jdbc.update("""
-                UPDATE adm_approval_policy SET POLICY_NAME=?, ACTION_TYPE=?, EFFECTIVE_FROM=?, EFFECTIVE_TO=?,
-                       ENABLED_YN=?, SELF_APPROVAL_ALLOWED_YN=?, BREAK_GLASS_ALLOWED_YN=?,
-                       DESCRIPTION=?, updated_by=?
-                 WHERE POLICY_CODE=? AND POLICY_VERSION=?
-                """, p.get("policyName"), p.get("actionType"), p.get("effectiveFrom"), p.get("effectiveTo"),
-                p.get("enabledYn"), p.get("selfApprovalAllowedYn"), p.get("breakGlassAllowedYn"),
-                p.get("description"), p.get("operatorId"), p.get("policyCode"), p.get("policyVersion"));
-        if (changed == 0 && findPolicy(String.valueOf(p.get("policyCode")), ((Number)p.get("policyVersion")).intValue()).isEmpty()) {
-            jdbc.update("""
-                    INSERT INTO adm_approval_policy (
-                        POLICY_CODE,POLICY_VERSION,POLICY_NAME,ACTION_TYPE,EFFECTIVE_FROM,EFFECTIVE_TO,
-                        ENABLED_YN,SELF_APPROVAL_ALLOWED_YN,BREAK_GLASS_ALLOWED_YN,DESCRIPTION,created_by,updated_by
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-                    """, p.get("policyCode"),p.get("policyVersion"),p.get("policyName"),p.get("actionType"),
-                    p.get("effectiveFrom"),p.get("effectiveTo"),p.get("enabledYn"),p.get("selfApprovalAllowedYn"),
-                    p.get("breakGlassAllowedYn"),p.get("description"),p.get("operatorId"),p.get("operatorId"));
+    /** Inserts a new immutable policy version. Existing policyCode/version rows are never updated. */
+    public void insertPolicy(Map<String,Object> p, List<Map<String,Object>> steps) {
+        String code = String.valueOf(p.get("policyCode"));
+        int version = ((Number)p.get("policyVersion")).intValue();
+        if (findPolicy(code, version).isPresent()) {
+            throw new org.springframework.dao.DataIntegrityViolationException(
+                    "approval policy version already exists: " + code + "/" + version);
         }
-        jdbc.update("DELETE FROM adm_approval_policy_step WHERE POLICY_CODE=? AND POLICY_VERSION=?",
-                p.get("policyCode"), p.get("policyVersion"));
+        jdbc.update("""
+                INSERT INTO adm_approval_policy (
+                    POLICY_CODE,POLICY_VERSION,POLICY_NAME,ACTION_TYPE,EFFECTIVE_FROM,EFFECTIVE_TO,
+                    ENABLED_YN,SELF_APPROVAL_ALLOWED_YN,BREAK_GLASS_ALLOWED_YN,DESCRIPTION,created_by,updated_by
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                """, p.get("policyCode"),p.get("policyVersion"),p.get("policyName"),p.get("actionType"),
+                p.get("effectiveFrom"),p.get("effectiveTo"),p.get("enabledYn"),p.get("selfApprovalAllowedYn"),
+                p.get("breakGlassAllowedYn"),p.get("description"),p.get("operatorId"),p.get("operatorId"));
         for (Map<String,Object> s : steps) {
             jdbc.update("""
                     INSERT INTO adm_approval_policy_step (
@@ -107,7 +107,16 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
                     s.get("targetType"),s.get("targetCode"),s.get("decisionRule"),s.get("requiredCount"),
                     s.get("requiredYn"),s.get("operatorId"),s.get("operatorId"));
         }
+        jdbc.update("""
+                INSERT INTO adm_approval_policy_history (
+                    POLICY_CODE,POLICY_VERSION,CHANGE_TYPE,CHANGE_REASON,BEFORE_HASH,AFTER_HASH,OPERATOR_ID
+                ) VALUES (?,?,'CREATE',?,NULL,?,?)
+                """,p.get("policyCode"),p.get("policyVersion"),p.get("changeReason"),p.get("policyHash"),p.get("operatorId"));
     }
+
+    /** @deprecated policy versions are immutable; this compatibility method now inserts only. */
+    @Deprecated(forRemoval = true)
+    public void replacePolicy(Map<String,Object> p, List<Map<String,Object>> steps) { insertPolicy(p, steps); }
 
     @Override
     public List<AdmApprovalDirectoryEntry> resolve(AdmApprovalTargetType type, String code, Instant at) {

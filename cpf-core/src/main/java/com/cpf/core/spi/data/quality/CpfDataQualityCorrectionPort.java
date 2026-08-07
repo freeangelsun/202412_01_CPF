@@ -3,6 +3,8 @@ package com.cpf.core.spi.data.quality;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,16 +24,23 @@ public interface CpfDataQualityCorrectionPort {
             String actorId,
             String reason,
             String approvalExecutionReference,
+            String payloadHash,
+            String nonce,
+            String proof,
             Instant approvedAt) {
         public ApprovedCorrection {
             if (quarantineId == null || quarantineId.isBlank()) throw new IllegalArgumentException("quarantineId is required");
             if (expectedVersion < 1) throw new IllegalArgumentException("expectedVersion must be positive");
             if (corrected == null || corrected.isEmpty()) throw new IllegalArgumentException("corrected payload is required");
-            corrected = Map.copyOf(corrected);
+            corrected = Collections.unmodifiableMap(new LinkedHashMap<>(corrected));
             if (actorId == null || actorId.isBlank()) throw new IllegalArgumentException("actorId is required");
             if (reason == null || reason.isBlank()) throw new IllegalArgumentException("reason is required");
             if (approvalExecutionReference == null || approvalExecutionReference.isBlank())
                 throw new IllegalArgumentException("approvalExecutionReference is required");
+            if (payloadHash == null || !payloadHash.matches("[0-9a-fA-F]{64}"))
+                throw new IllegalArgumentException("payloadHash is required");
+            if (nonce == null || nonce.length() < 16) throw new IllegalArgumentException("nonce is required");
+            if (proof == null || proof.length() < 32) throw new IllegalArgumentException("proof is required");
             if (approvedAt == null) throw new IllegalArgumentException("approvedAt is required");
         }
     }

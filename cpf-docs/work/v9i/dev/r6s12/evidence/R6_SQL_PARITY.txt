@@ -1,0 +1,5 @@
+COMMAND: python cpf-tools/verification/final-dev/verify-r6-sql-parity.py ROOT_OVERLAY
+START_UTC: 2026-08-06T19:23:57Z
+EXIT_CODE: 0
+PASS DB3 approval integrity lifecycle vendors=3 roles=6
+END_UTC: 2026-08-06T19:23:58Z

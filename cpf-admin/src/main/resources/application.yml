@@ -4,15 +4,14 @@ spring:
   config:
     import:
       - optional:classpath:application-cpf.yml
-      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:}.yml
       - optional:classpath:application-cmn.yml
-      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:}.yml
       - optional:classpath:application-adm.yml
-      - optional:classpath:application-adm-${spring.profiles.active:local}.yml
+      - optional:classpath:application-adm-${spring.profiles.active:}.yml
   application:
     name: adm
   profiles:
-    active: local
     include: cpf, cmn
   datasource:
     adm:

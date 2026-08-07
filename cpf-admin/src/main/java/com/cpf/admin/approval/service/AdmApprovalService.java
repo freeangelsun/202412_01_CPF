@@ -13,13 +13,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * ADM 위험조치 Approval Engine.
@@ -102,16 +109,41 @@ public class AdmApprovalService extends AdmBaseService {
             row.put("decisionRule",rule.name());row.put("requiredCount",requiredCount);row.put("requiredYn",yn(s.requiredYn(),"Y"));
             steps.add(row);
         }
-        repository.replacePolicy(p,steps);
+        String changeReason=bounded(request.reason(),"reason",8,500);
+        p.put("changeReason",changeReason);
+        p.put("policyHash",snapshotIntegrity.sha256Canonical(json(Map.of(
+                "policy",p,"steps",steps.stream().map(step->new TreeMap<>(step)).toList()))));
+        try {
+            repository.insertPolicy(p,steps);
+        } catch (DataIntegrityViolationException duplicate) {
+            throw new AdmApprovalConflictException("동일 policyCode/version은 변경할 수 없습니다. 새 version을 생성하십시오.", duplicate);
+        }
         return findPolicy(String.valueOf(p.get("policyCode")),version);
     }
 
     @Transactional(transactionManager = "admTransactionManager")
+    public ApprovalMutationResult requestApprovalResult(CreateRequest request,String operatorId) {
+        AtomicBoolean replay = new AtomicBoolean(false);
+        Map<String,Object> body=requestApprovalInternal(request,operatorId,replay);
+        return new ApprovalMutationResult(!replay.get(),replay.get(),body);
+    }
+
+    @Transactional(transactionManager = "admTransactionManager")
     public Map<String,Object> requestApproval(CreateRequest request,String operatorId) {
+        return requestApprovalInternal(request, operatorId, new AtomicBoolean(false));
+    }
+
+    private Map<String,Object> requestApprovalInternal(CreateRequest request,String operatorId,AtomicBoolean replayFlag) {
         String requestKey=required(request.requestKey(),"requestKey");
         String requester=required(operatorId,"operatorId");
         String snapshot=snapshotIntegrity.canonicalPayload(request.payloadSnapshot());
         String ownerModule=required(request.ownerModule(),"ownerModule");
+        String ownerCommand=required(request.ownerCommand(),"ownerCommand");
+        String actionType=required(request.actionType(),"actionType");
+        String targetType=required(request.targetType(),"targetType");
+        bounded(requestKey,"requestKey",8,128);
+        bounded(required(request.reason(),"reason"),"reason",8,500);
+        resolveOwnerPort(ownerModule,ownerCommand,actionType,targetType);
         Instant now=Instant.now();
         Instant canonicalExpireAt=canonicalInstant(request.expireAt());
         if(canonicalExpireAt!=null&&!canonicalExpireAt.isAfter(now))
@@ -120,6 +152,7 @@ public class AdmApprovalService extends AdmBaseService {
             throw new CpfValidationException("BAT 위험조치는 expireAt이 필요합니다.");
         Optional<Long> existing=repository.findRequestIdByKey(requestKey);
         if(existing.isPresent()){
+            replayFlag.set(true);
             Map<String,Object> replay=repository.findRequest(existing.get())
                     .orElseThrow(()->new CpfValidationException("멱등 승인 요청을 찾을 수 없습니다."));
             validateRequestReplay(replay,request,requester);
@@ -133,14 +166,20 @@ public class AdmApprovalService extends AdmBaseService {
                 throw new CpfValidationException("requestKey가 다른 승인 명령 Snapshot에 이미 사용되었습니다.");
             return detail(existing.get());
         }
+        Map<String,Object> canonicalPolicy=repository.findActivePolicy(actionType,now)
+                .orElseThrow(()->new CpfValidationException("활성 ADM 승인 정책이 없습니다."));
+        validatePolicyActive(canonicalPolicy, actionType, now);
         Map<String,Object> policy;
         if(request.policyCode()!=null&&!request.policyCode().isBlank()){
             if(request.policyVersion()==null)throw new CpfValidationException("policyVersion이 필요합니다.");
             policy=repository.findPolicy(request.policyCode(),request.policyVersion())
                     .orElseThrow(()->new CpfValidationException("ADM 승인 정책을 찾을 수 없습니다."));
+            validatePolicyActive(policy, actionType, now);
+            if(!string(canonicalPolicy,"policyCode").equals(string(policy,"policyCode"))
+                    || number(canonicalPolicy,"policyVersion").intValue()!=number(policy,"policyVersion").intValue())
+                throw new AdmApprovalConflictException("명시 정책은 현재 서버 Registry의 canonical active policy와 일치해야 합니다.");
         }else{
-            policy=repository.findActivePolicy(required(request.actionType(),"actionType"),now)
-                    .orElseThrow(()->new CpfValidationException("활성 ADM 승인 정책이 없습니다."));
+            policy=canonicalPolicy;
         }
         String code=string(policy,"policyCode");int ver=number(policy,"policyVersion").intValue();
         List<Map<String,Object>> steps=repository.findPolicySteps(code,ver);
@@ -163,14 +202,32 @@ public class AdmApprovalService extends AdmBaseService {
         Map<String,Object> v=new LinkedHashMap<>();
         v.put("requestKey",requestKey);v.put("policyCode",code);v.put("policyVersion",ver);
         v.put("actionType",string(policy,"actionType"));v.put("ownerModule",ownerModule);
-        v.put("ownerCommand",required(request.ownerCommand(),"ownerCommand"));v.put("targetType",required(request.targetType(),"targetType"));
+        v.put("ownerCommand",ownerCommand);v.put("targetType",targetType);
         v.put("targetId",required(request.targetId(),"targetId"));v.put("requestedBy",requester);
         v.put("requestReason",required(request.reason(),"reason"));
         v.put("payloadSnapshot",snapshot);v.put("currentStepNo",minStep);
         v.put("expireAt",canonicalExpireAt==null?null:Timestamp.from(canonicalExpireAt));
         v.put("transactionId",CpfTransactionContext.transactionId());v.put("operatorId",requester);
         v.put("payloadHash",snapshotIntegrity.hash(v));
-        long id=repository.insertRequest(v);
+        long id;
+        try {
+            id=repository.insertRequest(v);
+        } catch (DataIntegrityViolationException duplicate) {
+            replayFlag.set(true);
+            Long raced=repository.findRequestIdByKey(requestKey)
+                    .orElseThrow(() -> new AdmApprovalConflictException("승인 요청 unique conflict를 수렴할 수 없습니다.", duplicate));
+            Map<String,Object> replay=repository.findRequest(raced)
+                    .orElseThrow(() -> new AdmApprovalConflictException("승인 요청 unique conflict 결과가 없습니다.", duplicate));
+            validateRequestReplay(replay,request,requester);
+            String replaySnapshot=isBat(ownerModule)
+                    ? json(batchRiskSnapshot(batRiskCommand(raced,requestKey,requester,request,snapshot)))
+                    : snapshot;
+            Map<String,Object> candidate=new LinkedHashMap<>(replay);
+            candidate.put("payloadSnapshot",replaySnapshot);
+            if(!snapshotIntegrity.constantTimeEquals(string(replay,"payloadHash"),snapshotIntegrity.hash(candidate)))
+                throw new AdmApprovalConflictException("requestKey unique conflict가 다른 승인 Snapshot과 충돌했습니다.", duplicate);
+            return detail(raced);
+        }
         if(isBat(ownerModule)){
             CpfBatchRiskCommand risk=batRiskCommand(id,requestKey,requester,request,snapshot);
             String riskSnapshot=json(batchRiskSnapshot(risk));
@@ -191,6 +248,8 @@ public class AdmApprovalService extends AdmBaseService {
         String key=required(request.idempotencyKey(),"idempotencyKey");
         String operator=required(operatorId,"operatorId");
         String reason=required(request.reason(),"reason");
+        bounded(key,"idempotencyKey",8,128);
+        bounded(reason,"reason",8,500);
         String action=upper(request.action(),"APPROVE");
         String status=switch(action){case"APPROVE"->"APPROVED";case"REJECT"->"REJECTED";default->throw new CpfValidationException("APPROVE/REJECT만 지원");};
         Optional<Map<String,Object>> previous=repository.findDecisionByKey(key);
@@ -200,7 +259,11 @@ public class AdmApprovalService extends AdmBaseService {
         }
         Map<String,Object> doc=repository.findRequest(id).orElseThrow(()->new CpfValidationException("승인 요청 없음"));
         ensureNotExpired(doc);
-        String before=string(doc,"approvalStatus");if(!"PENDING".equals(before))throw new CpfValidationException("PENDING 요청만 승인/반려 가능");
+        Map<String,Object> decisionPolicy=repository.findPolicy(string(doc,"policyCode"),number(doc,"policyVersion").intValue())
+                .orElseThrow(() -> new AdmApprovalConflictException("승인 요청의 정책 Version을 찾을 수 없습니다."));
+        if(Boolean.TRUE.equals(request.breakGlass())&&!"Y".equals(string(decisionPolicy,"breakGlassAllowedYn")))
+            throw new CpfValidationException("이 정책은 break-glass 결정을 허용하지 않습니다.");
+        String before=string(doc,"approvalStatus");if(!"PENDING".equals(before))throw new AdmApprovalConflictException("PENDING 요청만 승인/반려 가능합니다.");
         int step=number(doc,"currentStepNo").intValue();
         if(string(doc,"requestedBy").equals(operatorId)) {
             Map<String,Object> policy=repository.findPolicy(string(doc,"policyCode"),number(doc,"policyVersion").intValue()).orElse(Map.of());
@@ -208,8 +271,20 @@ public class AdmApprovalService extends AdmBaseService {
         }
         Map<String,Object> actor=repository.findWaitingParticipant(id,step,operator)
                 .orElseThrow(()->new CpfValidationException("현재 단계 승인 참여자가 아닙니다."));
-        if(repository.decideParticipant(number(actor,"participantId").longValue(),status,key,reason,operator)!=1)
-            throw new CpfValidationException("승인 참여자 상태가 동시에 변경되었습니다.");
+        int decisionChanged;
+        try {
+            decisionChanged=repository.decideParticipant(number(actor,"participantId").longValue(),status,key,reason,operator);
+        } catch (DataIntegrityViolationException duplicateDecision) {
+            Map<String,Object> raced=repository.findDecisionByKey(key)
+                    .orElseThrow(()->new AdmApprovalConflictException("승인 결정 unique conflict를 수렴할 수 없습니다.",duplicateDecision));
+            validateDecisionReplay(raced,id,operator,status,reason);
+            return detail(id);
+        }
+        if(decisionChanged!=1){
+            Optional<Map<String,Object>> raced=repository.findDecisionByKey(key);
+            if(raced.isPresent()){validateDecisionReplay(raced.get(),id,operator,status,reason);return detail(id);}
+            throw new AdmApprovalConflictException("승인 참여자 상태가 동시에 변경되었습니다.");
+        }
 
         List<Map<String,Object>> steps=repository.findPolicySteps(string(doc,"policyCode"),number(doc,"policyVersion").intValue());
         List<Map<String,Object>> participants=repository.findParticipants(id);
@@ -236,8 +311,10 @@ public class AdmApprovalService extends AdmBaseService {
             if(later.isPresent())next=later.getAsInt();else after="APPROVED";
         }
         long version=number(doc,"versionNo").longValue();
-        if(repository.updateRequest(id,version,after,next,operator)!=1)throw new CpfValidationException("승인 요청 동시 변경 감지");
-        repository.history(id,action,operator,before,after,reason,null,string(doc,"transactionId"));
+        if(repository.updateRequest(id,version,after,next,operator)!=1)throw new AdmApprovalConflictException("승인 요청 동시 변경 감지");
+        repository.history(id,Boolean.TRUE.equals(request.breakGlass())?"BREAK_GLASS_"+action:action,operator,before,after,reason,
+                json(Map.of("breakGlass",Boolean.TRUE.equals(request.breakGlass()),"policyCode",string(doc,"policyCode"),
+                        "policyVersion",number(doc,"policyVersion"))),string(doc,"transactionId"));
         return detail(id);
     }
 
@@ -246,7 +323,7 @@ public class AdmApprovalService extends AdmBaseService {
      * 외부 호출 구간은 DB transaction으로 감싸지 않아 장기 lock과 결과불명 오판을 피합니다.
      */
     public Map<String,Object> execute(long id,String reason,String operatorId) {
-        String executionReason=required(reason,"reason");
+        String executionReason=bounded(reason,"reason",8,500);
         String operator=required(operatorId,"operatorId");
         Map<String,Object> doc=repository.findRequest(id).orElseThrow(()->new CpfValidationException("승인 요청 없음"));
         Optional<Map<String,Object>> existingExecution=repository.findExecution(id);
@@ -257,12 +334,12 @@ public class AdmApprovalService extends AdmBaseService {
 
         String ownerModule=string(doc,"ownerModule");
         String ownerCommand=string(doc,"ownerCommand");
-        AdmApprovalOwnerCommandPort port=resolveOwnerPort(ownerModule,ownerCommand);
+        AdmApprovalOwnerCommandPort port=resolveOwnerPort(ownerModule,ownerCommand,string(doc,"actionType"),string(doc,"targetType"));
         long approvedVersion=number(doc,"versionNo").longValue();
         String commandRequestId="ADM-APP-"+id+"-"+UUID.randomUUID();
         if(!repository.reserveExecution(id,approvedVersion,commandRequestId,operator)){
             if(repository.findExecution(id).isPresent())return detail(id);
-            throw new CpfValidationException("승인 실행이 다른 요청에 의해 선점되었거나 상태가 변경되었습니다.");
+            throw new AdmApprovalConflictException("승인 실행이 다른 요청에 의해 선점되었거나 상태가 변경되었습니다.");
         }
         Map<String,Object> reserved=repository.findReservedExecutionCommand(id,commandRequestId)
                 .orElseThrow(()->new CpfValidationException("서버가 예약한 승인 실행 Snapshot을 찾을 수 없습니다."));
@@ -316,7 +393,7 @@ public class AdmApprovalService extends AdmBaseService {
      * Resolves an UNKNOWN result by querying the Owner state only; it never invokes the mutation again.
      */
     public Map<String,Object> reconcile(long id,String reason,String operatorId) {
-        String reconciliationReason=required(reason,"reason");
+        String reconciliationReason=bounded(reason,"reason",8,500);
         String operator=required(operatorId,"operatorId");
         Map<String,Object> doc=repository.findRequest(id)
                 .orElseThrow(()->new CpfValidationException("승인 요청 없음"));
@@ -329,7 +406,7 @@ public class AdmApprovalService extends AdmBaseService {
         verifySnapshotOrAudit(id,doc,operator,"UNKNOWN");
         String ownerModule=string(doc,"ownerModule");
         String ownerCommand=string(doc,"ownerCommand");
-        AdmApprovalOwnerCommandPort port=resolveOwnerPort(ownerModule,ownerCommand);
+        AdmApprovalOwnerCommandPort port=resolveOwnerPort(ownerModule,ownerCommand,string(doc,"actionType"),string(doc,"targetType"));
         long unknownVersion=number(doc,"versionNo").longValue();
         String commandRequestId=required(string(execution,"commandRequestId"),"commandRequestId");
         if(!repository.reserveReconcile(id,unknownVersion,operator)) {
@@ -386,14 +463,47 @@ public class AdmApprovalService extends AdmBaseService {
     }
 
     public Map<String,Object> detail(long id){
-        Map<String,Object> d=new LinkedHashMap<>(repository.findRequest(id).orElseThrow(()->new CpfValidationException("승인 요청 없음")));
-        d.put("participants",repository.findParticipants(id));d.put("execution",repository.findExecution(id).orElse(null));return d;
+        return sanitizeDetail(detailInternal(id));
     }
 
-    private AdmApprovalOwnerCommandPort resolveOwnerPort(String ownerModule,String ownerCommand){
+    /** Internal command path only. Never return this map through a controller. */
+    Map<String,Object> detailInternal(long id){
+        Map<String,Object> d=new LinkedHashMap<>(repository.findRequest(id)
+                .orElseThrow(()->new CpfValidationException("승인 요청 없음")));
+        d.put("participants",repository.findParticipants(id));
+        d.put("execution",repository.findExecution(id).orElse(null));
+        return d;
+    }
+
+    private static Map<String,Object> sanitizeDetail(Map<String,Object> source){
+        Map<String,Object> safe=new LinkedHashMap<>();
+        for(Map.Entry<String,Object> entry:source.entrySet()){
+            String key=entry.getKey();String lower=key.toLowerCase(Locale.ROOT);
+            if(lower.contains("payloadsnapshot")||lower.contains("secret")||lower.contains("password")||lower.contains("token")) continue;
+            if("participants".equals(key)&&entry.getValue() instanceof Iterable<?> rows){
+                List<Map<String,Object>> participants=new ArrayList<>();
+                for(Object item:rows) if(item instanceof Map<?,?> row){
+                    Map<String,Object> selected=new LinkedHashMap<>();
+                    for(String field:List.of("participantId","stepNo","sourceTargetType","sourceTargetCode","operatorId","decisionStatus","decisionAt"))
+                        if(row.containsKey(field)) selected.put(field,row.get(field));
+                    participants.add(Collections.unmodifiableMap(selected));
+                }
+                safe.put(key,List.copyOf(participants));
+            }else if("execution".equals(key)&&entry.getValue() instanceof Map<?,?> row){
+                Map<String,Object> selected=new LinkedHashMap<>();
+                for(String field:List.of("commandRequestId","executionStatus","ownerResultCode","ownerResultMessage","startedAt","completedAt","recoveryRequiredYn"))
+                    if(row.containsKey(field)) selected.put(field,mask(Objects.toString(row.get(field),null)));
+                safe.put(key,Collections.unmodifiableMap(selected));
+            }else safe.put(key,entry.getValue());
+        }
+        return Collections.unmodifiableMap(safe);
+    }
+
+    private AdmApprovalOwnerCommandPort resolveOwnerPort(String ownerModule,String ownerCommand,
+                                                           String actionType,String targetType){
         List<AdmApprovalOwnerCommandPort> matches=ownerPorts.values().stream()
                 .filter(Objects::nonNull)
-                .filter(port->port.supports(ownerModule,ownerCommand))
+                .filter(port->port.supports(ownerModule,ownerCommand,actionType,targetType))
                 .distinct()
                 .toList();
         if(matches.isEmpty())
@@ -507,6 +617,22 @@ public class AdmApprovalService extends AdmBaseService {
     }
     private static String optional(Object value){return value==null?"":String.valueOf(value).trim();}
 
+    private static void validatePolicyActive(Map<String,Object> policy,String requestedAction,Instant now){
+        if(!"Y".equalsIgnoreCase(string(policy,"enabledYn")))
+            throw new CpfValidationException("비활성 승인 정책은 사용할 수 없습니다.");
+        if(!requestedAction.equals(string(policy,"actionType")))
+            throw new CpfValidationException("승인 정책 actionType이 Owner 명령과 일치하지 않습니다.");
+        Instant from=instant(policy.get("effectiveFrom"));Instant to=instant(policy.get("effectiveTo"));
+        if(from!=null&&from.isAfter(now))throw new CpfValidationException("아직 유효하지 않은 승인 정책입니다.");
+        if(to!=null&&!to.isAfter(now))throw new CpfValidationException("만료된 승인 정책입니다.");
+    }
+    private static String bounded(String value,String field,int min,int max){
+        String result=required(value,field);
+        if(result.length()<min||result.length()>max)
+            throw new CpfValidationException(field+" 길이는 "+min+"~"+max+"자여야 합니다.");
+        return result;
+    }
+
     private String json(Object v){try{return objectMapper.writeValueAsString(v);}catch(JsonProcessingException e){throw new CpfValidationException("승인 Snapshot JSON 생성 실패");}}
     private static String mask(String v){if(v==null)return null;return v.replaceAll("(?i)(password|secret|token)\\s*[:=]\\s*[^,\\s]+","$1=***");}
     private static String required(String v,String f){if(v==null||v.isBlank())throw new CpfValidationException(f+"는 필수입니다.");return v.trim();}
@@ -518,12 +644,24 @@ public class AdmApprovalService extends AdmBaseService {
     private static Number number(Map<String,?>m,String k){Object v=m.get(k);if(v instanceof Number n)return n;return v==null?0:Long.parseLong(String.valueOf(v));}
     private record Resolved(int stepNo,String targetType,String targetCode,AdmApprovalDirectoryEntry entry){}
 
-    public record PolicyRequest(String policyCode,Integer policyVersion,String policyName,String actionType,
+    public record ApprovalMutationResult(boolean created,boolean replayed,Map<String,Object> body){}
+    public record PolicyRequest(
+      @NotBlank @Size(max=80) String policyCode, @Min(1) Integer policyVersion,
+      @NotBlank @Size(max=150) String policyName, @NotBlank @Size(max=80) String actionType,
       Instant effectiveFrom,Instant effectiveTo,String enabledYn,String selfApprovalAllowedYn,String breakGlassAllowedYn,
-      String description,List<PolicyStepRequest> steps,String reason){}
-    public record PolicyStepRequest(Integer stepNo,String stepType,String targetType,String targetCode,
-      String decisionRule,Integer requiredCount,String requiredYn){}
-    public record CreateRequest(String requestKey,String policyCode,Integer policyVersion,String actionType,
-      String ownerModule,String ownerCommand,String targetType,String targetId,String payloadSnapshot,Instant expireAt,String reason){}
-    public record DecisionRequest(String action,String idempotencyKey,String reason){}
+      @Size(max=1000) String description,@NotEmpty List<@Valid PolicyStepRequest> steps,
+      @NotBlank @Size(min=8,max=500) String reason){}
+    public record PolicyStepRequest(@Min(1) Integer stepNo,@Size(max=30) String stepType,
+      @NotBlank @Size(max=30) String targetType,@NotBlank @Size(max=100) String targetCode,
+      @Size(max=20) String decisionRule,@Min(1) Integer requiredCount,String requiredYn){}
+    public record CreateRequest(@NotBlank @Size(min=8,max=128) String requestKey,
+      @Size(max=80) String policyCode,@Min(1) Integer policyVersion,@NotBlank @Size(max=80) String actionType,
+      @NotBlank @Size(max=30) String ownerModule,@NotBlank @Size(max=120) String ownerCommand,
+      @NotBlank @Size(max=80) String targetType,@NotBlank @Size(max=200) String targetId,
+      @NotBlank String payloadSnapshot,Instant expireAt,@NotBlank @Size(min=8,max=500) String reason){}
+    public record DecisionRequest(@NotBlank @Size(max=20) String action,
+      @NotBlank @Size(min=8,max=128) String idempotencyKey,
+      @NotBlank @Size(min=8,max=500) String reason,Boolean breakGlass){
+        public DecisionRequest(String action,String idempotencyKey,String reason){this(action,idempotencyKey,reason,Boolean.FALSE);}
+    }
 }

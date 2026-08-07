@@ -38,8 +38,26 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        if (!supports(ownerModule, ownerCommand)) return false;
+        if (!expectedTargetType(ownerCommand).equalsIgnoreCase(Objects.toString(targetType, ""))) return false;
+        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
+        return switch (ownerCommand) {
+            case "releaseLock" -> action.contains("LOCK") && (action.contains("RELEASE") || action.contains("UNLOCK"));
+            case "actGhostExecution" -> action.startsWith("BATCH_GHOST_") || action.contains("GHOST");
+            case "requestRetry" -> action.contains("RETRY");
+            case "requestStop" -> action.contains("STOP");
+            case "updateScheduleEnabled" -> action.contains("SCHEDULE")
+                    && (action.endsWith("ENABLE") || action.endsWith("DISABLE"));
+            case "requestRun" -> action.contains("RUN") && !action.contains("SCHEDULER");
+            case "runSchedulerOnce" -> action.contains("SCHEDULER") && action.contains("RUN");
+            default -> false;
+        };
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
-        if (command == null || !supports(command.ownerModule(), command.ownerCommand())) {
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
             return failed("BAT_COMMAND_UNSUPPORTED", "지원하지 않는 BAT Runtime 승인 Command입니다.");
         }
         if (command.requestedBy().equals(command.approvedBy())) {

@@ -55,7 +55,12 @@ def frontendDir = layout.projectDirectory.dir('frontend')
 def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
 def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
 def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
-def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
+def windowsHost = System.getProperty('os.name').toLowerCase().contains('windows')
+def npmExecutable = windowsHost ? 'npm.cmd' : 'npm'
+def nodeExecutable = windowsHost ? 'node.exe' : 'node'
+def nodeVersionProvider = providers.exec { commandLine nodeExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+def npmVersionProvider = providers.exec { commandLine npmExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+
 
 sourceSets.main.resources.srcDir(frontendOutputDir)
 
@@ -66,9 +71,11 @@ tasks.register('frontendInstall', Exec) {
     commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
     environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
     inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
     outputs.file(frontendInstallMarker)
     doLast {
-        frontendInstallMarker.asFile.setText('package-lock 기반 설치 완료\n', 'UTF-8')
+        frontendInstallMarker.asFile.setText("node=${nodeVersionProvider.get()}\nnpm=${npmVersionProvider.get()}\n", 'UTF-8')
     }
 }
 
@@ -79,7 +86,13 @@ tasks.register('frontendInstall', Exec) {
         workingDir frontendDir
         commandLine npmExecutable, 'run', npmScript
         inputs.dir(frontendDir.dir('src'))
-        inputs.files(frontendDir.file('package.json'), frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'))
+        inputs.dir(frontendDir.dir('scripts'))
+        inputs.dir(frontendDir.dir('openapi'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'),
+                frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'),
+                frontendDir.file('orval.config.ts'), frontendDir.file('vite.config.ts'))
+        inputs.property('nodeVersion', nodeVersionProvider)
+        inputs.property('npmVersion', npmVersionProvider)
     }
 }
 
@@ -90,7 +103,13 @@ tasks.register('frontendBuild', Exec) {
     workingDir frontendDir
     commandLine npmExecutable, 'run', 'build'
     inputs.dir(frontendDir.dir('src'))
-    inputs.files(frontendDir.file('index.html'), frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'))
+    inputs.dir(frontendDir.dir('scripts'))
+    inputs.dir(frontendDir.dir('openapi'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package.json'),
+            frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'),
+            frontendDir.file('orval.config.ts'), frontendDir.file('tsconfig.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
     outputs.dir(frontendOutputDir.map { it.dir('static/adm') })
 }
 

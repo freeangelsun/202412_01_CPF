@@ -21,23 +21,13 @@ securitySchemes.admCsrfHeader ||= {
   description: "CSRF token paired with the same-origin XSRF-TOKEN cookie for state-changing ADM requests."
 };
 
-function ensureOperation(route, method, operationId, summary) {
-  const item = paths[route] ||= {};
+function requireOperation(route, method, operationId) {
   const key = method.toLowerCase();
-  const existing = item[key];
-  if (existing && existing.operationId !== operationId) {
+  const existing = paths[route]?.[key];
+  if (!existing) throw new Error(`Runtime/controller OpenAPI route missing: ${method.toUpperCase()} ${route}`);
+  if (existing.operationId !== operationId) {
     throw new Error(`OpenAPI route collision: ${method.toUpperCase()} ${route} existing=${existing.operationId}`);
   }
-  item[key] ||= {
-    operationId,
-    summary,
-    responses: {
-      "200": {
-        description: "Controller source contract response",
-        content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } }
-      }
-    }
-  };
 }
 
 function operation(operationId) {
@@ -310,6 +300,35 @@ schemas.AdmOpenApiRefreshRequest = objectSchema(
   "Audited OpenAPI route inventory refresh request. The authenticated operator is resolved from the server session."
 );
 
+
+schemas.AdmApprovalCreateRequest = objectSchema(
+  ["requestKey", "actionType", "ownerModule", "ownerCommand", "targetType", "targetId", "payloadSnapshot", "reason"],
+  {
+    requestKey: { type: "string", minLength: 8, maxLength: 128 },
+    policyCode: { type: ["string", "null"], maxLength: 80 },
+    policyVersion: { type: ["integer", "null"], format: "int32", minimum: 1 },
+    actionType: { type: "string", minLength: 1, maxLength: 80 },
+    ownerModule: { type: "string", minLength: 1, maxLength: 30 },
+    ownerCommand: { type: "string", minLength: 1, maxLength: 120 },
+    targetType: { type: "string", minLength: 1, maxLength: 80 },
+    targetId: { type: "string", minLength: 1, maxLength: 200 },
+    payloadSnapshot: { type: "string", minLength: 2 },
+    expireAt: { type: ["string", "null"], format: "date-time" },
+    reason: { type: "string", minLength: 8, maxLength: 500 }
+  },
+  "Immutable approval request. Actor and policy authorization are resolved by the server."
+);
+schemas.AdmApprovalDecisionRequest = objectSchema(
+  ["action", "idempotencyKey", "reason"],
+  {
+    action: { type: "string", enum: ["APPROVE", "REJECT"] },
+    idempotencyKey: { type: "string", minLength: 8, maxLength: 128 },
+    reason: { type: "string", minLength: 8, maxLength: 500 },
+    breakGlass: { type: "boolean", default: false }
+  },
+  "Idempotent approval decision. Break-glass is accepted only when the immutable policy version allows it."
+);
+
 schemas.AdmIntegrationRecord = {
   type: "object", additionalProperties: true,
   description: "Business record submitted for server-side data-quality validation."
@@ -318,14 +337,23 @@ schemas.AdmIntegrationCorrectionApprovalRequest = objectSchema(
   ["expectedVersion", "idempotencyKey", "reason", "corrected"],
   {
     expectedVersion: { type: "integer", format: "int64", minimum: 1 },
-    idempotencyKey: { type: "string", minLength: 1, maxLength: 200 },
-    reason: reasonProperty,
+    idempotencyKey: { type: "string", minLength: 8, maxLength: 128 },
+    reason: { type: "string", minLength: 8, maxLength: 500 },
     corrected: { type: "object", minProperties: 1, additionalProperties: true }
   },
   "Immutable correction draft. The server binds the authenticated requester and stores a canonical SHA-256 snapshot."
 );
+schemas.AdmIntegrationQualityReplayRequest = objectSchema(
+  ["expectedVersion", "idempotencyKey", "reason"],
+  {
+    expectedVersion: { type: "integer", format: "int64", minimum: 1 },
+    idempotencyKey: { type: "string", minLength: 8, maxLength: 128 },
+    reason: { type: "string", minLength: 8, maxLength: 500 }
+  },
+  "Versioned/idempotent quarantine replay command."
+);
 schemas.AdmIntegrationCorrectionExecutionRequest = objectSchema(
-  ["reason"], { reason: reasonProperty },
+  ["reason"], { reason: { type: "string", minLength: 8, maxLength: 500 } },
   "Execution reason only. Approval identity, target, payload and actor are resolved from the server ledger."
 );
 
@@ -365,21 +393,25 @@ schemas.CpfRuntimeActualState = objectSchema(
   "Runtime agent actual state report."
 );
 
-ensureOperation("/adm/api/openapi/status", "get", "admOpenApiStatus", "OpenAPI Web MVC status");
-ensureOperation("/adm/api/openapi/refresh", "post", "admOpenApiRefresh", "Refresh OpenAPI Web MVC route inventory");
-ensureOperation("/adm/api/integration-closure/crypto/status", "get", "admIntegrationCryptoStatus", "Encryption provider and active-key status");
-ensureOperation("/adm/api/integration-closure/time/health", "get", "admIntegrationTimeHealth", "UTC, business-zone and clock-skew health");
-ensureOperation("/adm/api/integration-closure/data-quality/validate/{recordId}", "post", "admIntegrationDataQualityValidate", "Validate a data-quality record");
-ensureOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/correction-approvals", "post", "admIntegrationDataQualityCorrectionApprovalRequest", "Request immutable correction approval");
-ensureOperation("/adm/api/integration-closure/data-quality/correction-approvals/{approvalRequestId}/execute", "post", "admIntegrationDataQualityCorrectionExecute", "Execute a server-approved correction once");
-ensureOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/replay", "post", "admIntegrationDataQualityReplay", "Replay a corrected quarantine record");
-ensureOperation("/adm/api/integration-closure/webhooks/dlq", "get", "admIntegrationWebhookDlq", "List Webhook DLQ rows");
-ensureOperation("/adm/api/integration-closure/webhooks/{id}/replay", "post", "admIntegrationWebhookReplay", "Replay a Webhook DLQ or UNKNOWN row");
-ensureOperation("/adm/api/approvals/requests/{id}/reconcile", "post", "admApprovalReconcile", "Reconcile an UNKNOWN approval execution without replaying the mutation");
+requireOperation("/adm/api/openapi/status", "get", "admOpenApiStatus", "OpenAPI Web MVC status");
+requireOperation("/adm/api/openapi/refresh", "post", "admOpenApiRefresh", "Refresh OpenAPI Web MVC route inventory");
+requireOperation("/adm/api/integration-closure/crypto/status", "get", "admIntegrationCryptoStatus", "Encryption provider and active-key status");
+requireOperation("/adm/api/integration-closure/time/health", "get", "admIntegrationTimeHealth", "UTC, business-zone and clock-skew health");
+requireOperation("/adm/api/integration-closure/data-quality/validate/{recordId}", "post", "admIntegrationDataQualityValidate", "Validate a data-quality record");
+requireOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/correction-approvals", "post", "admIntegrationDataQualityCorrectionApprovalRequest", "Request immutable correction approval");
+requireOperation("/adm/api/integration-closure/data-quality/correction-approvals/{approvalRequestId}/execute", "post", "admIntegrationDataQualityCorrectionExecute", "Execute a server-approved correction once");
+requireOperation("/adm/api/integration-closure/data-quality/quarantine/{id}/replay", "post", "admIntegrationDataQualityReplay", "Replay a corrected quarantine record");
+requireOperation("/adm/api/integration-closure/webhooks/dlq", "get", "admIntegrationWebhookDlq", "List Webhook DLQ rows");
+requireOperation("/adm/api/integration-closure/webhooks/{id}/replay", "post", "admIntegrationWebhookReplay", "Replay a Webhook DLQ or UNKNOWN row");
+requireOperation("/adm/api/approvals/requests", "post", "admApprovalRequest", "Create or replay an approval request");
+requireOperation("/adm/api/approvals/requests/{id}", "get", "admApprovalRequestDetail", "Read a redacted approval request");
+requireOperation("/adm/api/approvals/requests/{id}/decisions", "post", "admApprovalDecision", "Create or replay an approval decision");
+requireOperation("/adm/api/approvals/requests/{id}/execute", "post", "admApprovalExecute", "Execute a single-use approved owner command");
+requireOperation("/adm/api/approvals/requests/{id}/reconcile", "post", "admApprovalReconcile", "Reconcile an UNKNOWN approval execution without replaying the mutation");
 
 const limit = query("limit", { type: "integer", format: "int32", minimum: 1, maximum: 500, default: 100 }, false, "Maximum number of rows");
-const expectedVersion = query("expectedVersion", { type: "integer", format: "int64", minimum: 0 }, true, "Optimistic-lock version");
-const reason = query("reason", { type: "string", minLength: 1, maxLength: 500 }, true, "Audited operation reason");
+const expectedVersion = query("expectedVersion", { type: "integer", format: "int64", minimum: 1 }, true, "Optimistic-lock version");
+const reason = query("reason", { type: "string", minLength: 8, maxLength: 500 }, true, "Audited operation reason");
 
 apply("admCacheSummary", {});
 apply("admCacheRefresh", {
@@ -454,10 +486,22 @@ apply("admIntegrationTimeHealth", { parameters: [
 apply("admIntegrationDataQualityValidate", { requestBody: "AdmIntegrationRecord" });
 apply("admIntegrationDataQualityCorrectionApprovalRequest", { requestBody: "AdmIntegrationCorrectionApprovalRequest" });
 apply("admIntegrationDataQualityCorrectionExecute", { requestBody: "AdmIntegrationCorrectionExecutionRequest" });
-apply("admIntegrationDataQualityReplay", { parameters: [reason] });
+apply("admIntegrationDataQualityReplay", { requestBody: "AdmIntegrationQualityReplayRequest" });
 apply("admIntegrationWebhookDlq", { parameters: [limit] });
 apply("admIntegrationWebhookReplay", { parameters: [expectedVersion, reason] });
+apply("admApprovalRequest", { requestBody: "AdmApprovalCreateRequest" });
+apply("admApprovalRequestDetail", {});
+apply("admApprovalDecision", { requestBody: "AdmApprovalDecisionRequest" });
+apply("admApprovalExecute", { parameters: [reason] });
 apply("admApprovalReconcile", { parameters: [reason] });
+for (const operationId of ["admApprovalRequestDetail"]) secure(operationId, false);
+for (const operationId of ["admApprovalRequest", "admApprovalDecision", "admApprovalExecute"]) secure(operationId, true);
+for (const operationId of ["admApprovalRequest", "admApprovalRequestDetail", "admApprovalDecision", "admApprovalExecute"]) {
+  addStandardResponses(operationId); standardOperationalErrors(operationId);
+}
+operation("admApprovalRequest").value.responses["201"] = { description: "Approval request created", content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } } };
+operation("admApprovalRequest").value.responses["200"] ||= { description: "Idempotent replay returned the existing request", content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } } };
+operation("admApprovalDecision").value.responses["200"] ||= { description: "Decision accepted or idempotently replayed", content: { "application/json": { schema: { $ref: "#/components/schemas/CpfControllerSourceResponse" } } } };
 operation("admApprovalReconcile").value.description = "Owner 상태를 조회해 Side Effect를 확정하며 Mutation을 자동 재실행하지 않습니다.";
 secure("admApprovalReconcile", true);
 addStandardResponses("admApprovalReconcile");

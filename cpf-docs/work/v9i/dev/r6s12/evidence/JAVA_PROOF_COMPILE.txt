@@ -1,0 +1,5 @@
+COMMAND: javac --release 21 -cp javac-main AdmDataQualityApprovalProofService.java
+START_UTC: 2026-08-06T19:20:59Z
+EXIT_CODE: 0
+END_UTC: 2026-08-06T19:21:00Z
+PASS Java21 independent compile of server approval proof service

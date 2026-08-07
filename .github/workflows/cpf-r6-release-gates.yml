@@ -1,0 +1,67 @@
+name: CPF R6 Release Gates
+on:
+  workflow_dispatch:
+    inputs:
+      run_db3:
+        description: Run live Oracle/PostgreSQL/MariaDB lifecycle using repository secrets
+        required: true
+        type: boolean
+        default: false
+      run_multiprocess:
+        description: Run broker and multiprocess chaos gate
+        required: true
+        type: boolean
+        default: false
+  pull_request:
+    branches: [ master ]
+permissions:
+  contents: read
+concurrency:
+  group: cpf-r6-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build-test-browser:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.18.0'
+          cache: npm
+          cache-dependency-path: cpf-admin/frontend/package-lock.json
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: |
+          npm --prefix cpf-admin/frontend ci
+          npx --prefix cpf-admin/frontend playwright install --with-deps chromium
+      - name: Run exact-SHA release gates
+        shell: pwsh
+        env:
+          CPF_RUNTIME_ORACLE_JDBC_URL: ${{ secrets.CPF_RUNTIME_ORACLE_JDBC_URL }}
+          CPF_RUNTIME_ORACLE_USERNAME: ${{ secrets.CPF_RUNTIME_ORACLE_USERNAME }}
+          CPF_RUNTIME_ORACLE_PASSWORD: ${{ secrets.CPF_RUNTIME_ORACLE_PASSWORD }}
+          CPF_RUNTIME_POSTGRESQL_JDBC_URL: ${{ secrets.CPF_RUNTIME_POSTGRESQL_JDBC_URL }}
+          CPF_RUNTIME_POSTGRESQL_USERNAME: ${{ secrets.CPF_RUNTIME_POSTGRESQL_USERNAME }}
+          CPF_RUNTIME_POSTGRESQL_PASSWORD: ${{ secrets.CPF_RUNTIME_POSTGRESQL_PASSWORD }}
+          CPF_RUNTIME_MARIADB_JDBC_URL: ${{ secrets.CPF_RUNTIME_MARIADB_JDBC_URL }}
+          CPF_RUNTIME_MARIADB_USERNAME: ${{ secrets.CPF_RUNTIME_MARIADB_USERNAME }}
+          CPF_RUNTIME_MARIADB_PASSWORD: ${{ secrets.CPF_RUNTIME_MARIADB_PASSWORD }}
+        run: |
+          $flags=@('-ExpectedHead','${{ github.sha }}','-RunBrowser')
+          if ('${{ inputs.run_db3 }}' -eq 'true') { $flags += '-RunDb3' }
+          if ('${{ inputs.run_multiprocess }}' -eq 'true') { $flags += '-RunMultiprocess' }
+          & ./cpf-tools/verification/final-dev/run-r6-release-gates.ps1 @flags
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpf-r6-evidence-${{ github.sha }}
+          path: build/evidence/r6-release
+          if-no-files-found: error
+          retention-days: 30

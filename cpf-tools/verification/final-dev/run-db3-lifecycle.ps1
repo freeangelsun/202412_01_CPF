@@ -8,7 +8,9 @@ param(
     [string]$RunnerExecutable,
     [string[]]$RunnerPrefixArguments = @(),
     [string]$RunnerClass = 'com.cpf.tools.db.CpfDbLifecycleRunner',
-    [string]$RunnerClasspath
+    [string]$RunnerClasspath,
+    [ValidateRange(1, 7200)]
+    [int]$TimeoutSeconds = 900
 )
 
 Set-StrictMode -Version Latest
@@ -41,12 +43,21 @@ function Protect-Text {
     return $safe
 }
 
+function Assert-SafeJdbcUrl {
+    param([Parameter(Mandatory=$true)][string]$Url)
+    if ($Url -match '(?i)(password|passwd|pwd|secret|token|access[_-]?key)\s*=' -or
+        $Url -match '(?i)jdbc:[^:]+://[^/@:]+:[^/@]+@') {
+        throw 'JDBC URL에 credential 또는 secret을 포함할 수 없습니다.'
+    }
+}
+
 function Invoke-LifecycleRunner {
     param(
         [Parameter(Mandatory = $true)][string]$Executable,
         [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [Parameter(Mandatory = $true)][string]$Password,
-        [Parameter(Mandatory = $true)][string[]]$Secrets
+        [Parameter(Mandatory = $true)][string]$ConnectionJson,
+        [Parameter(Mandatory = $true)][string[]]$Secrets,
+        [Parameter(Mandatory = $true)][int]$TimeoutSeconds
     )
 
     $start = [Diagnostics.ProcessStartInfo]::new()
@@ -56,6 +67,12 @@ function Invoke-LifecycleRunner {
     $start.RedirectStandardInput = $true
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
+    $start.Environment.Clear()
+    foreach ($name in @('PATH','JAVA_HOME','SystemRoot','WINDIR','TEMP','TMP','LANG','LC_ALL')) {
+        $value = [Environment]::GetEnvironmentVariable($name)
+        if (-not [string]::IsNullOrWhiteSpace($value)) { $start.Environment[$name] = $value }
+    }
+    $start.Environment['CPF_DB_RUNNER_CHILD'] = 'true'
     foreach ($argument in $Arguments) { [void]$start.ArgumentList.Add($argument) }
 
     $process = [Diagnostics.Process]::new()
@@ -66,13 +83,23 @@ function Invoke-LifecycleRunner {
         $started = $true
         $stdoutTask = $process.StandardOutput.ReadToEndAsync()
         $stderrTask = $process.StandardError.ReadToEndAsync()
-        $process.StandardInput.WriteLine($Password)
+        $process.StandardInput.WriteLine($ConnectionJson)
         $process.StandardInput.Close()
-        $process.WaitForExit()
+        if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+            $process.Kill($true)
+            [void]$process.WaitForExit(30000)
+            return [pscustomobject]@{
+                ExitCode = 124
+                TimedOut = $true
+                Stdout = Protect-Text -Text $stdoutTask.GetAwaiter().GetResult() -Secrets $Secrets
+                Stderr = Protect-Text -Text ($stderrTask.GetAwaiter().GetResult() + "`nDB runner timeout after $TimeoutSeconds seconds") -Secrets $Secrets
+            }
+        }
         $stdout = $stdoutTask.GetAwaiter().GetResult()
         $stderr = $stderrTask.GetAwaiter().GetResult()
         [pscustomobject]@{
             ExitCode = $process.ExitCode
+            TimedOut = $false
             Stdout = Protect-Text -Text $stdout -Secrets $Secrets
             Stderr = Protect-Text -Text $stderr -Secrets $Secrets
         }
@@ -137,21 +164,21 @@ foreach ($vendor in $vendors.GetEnumerator()) {
     $stdoutPath = Join-Path $EvidenceDir "$name-stdout.log"
     $stderrPath = Join-Path $EvidenceDir "$name-stderr.log"
 
+    Assert-SafeJdbcUrl -Url $url
+    $connectionJson = [ordered]@{ url = $url; username = $username; password = $password } | ConvertTo-Json -Compress
     $arguments = @($RunnerPrefixArguments) + @(
         "--vendor=$name",
-        "--url=$url",
-        "--username=$username",
-        '--password-stdin',
+        '--connection-json-stdin',
         "--audit-output=$auditPath"
     )
     $startedAt = [DateTimeOffset]::UtcNow
     try {
-        $run = Invoke-LifecycleRunner -Executable $RunnerExecutable -Arguments $arguments -Password $password -Secrets $allSecrets
+        $run = Invoke-LifecycleRunner -Executable $RunnerExecutable -Arguments $arguments -ConnectionJson $connectionJson -Secrets $allSecrets -TimeoutSeconds $TimeoutSeconds
         [IO.File]::WriteAllText($stdoutPath, $run.Stdout, [Text.UTF8Encoding]::new($false))
         [IO.File]::WriteAllText($stderrPath, $run.Stderr, [Text.UTF8Encoding]::new($false))
         if ($run.ExitCode -ne 0 -and $overallExit -eq 0) { $overallExit = $run.ExitCode }
         $dbVersion = $null
-        $lifecycleStatus = if ($run.ExitCode -eq 0) { 'SUCCEEDED' } else { 'FAILED' }
+        $lifecycleStatus = if ($run.TimedOut) { 'UNKNOWN_TIMEOUT' } elseif ($run.ExitCode -eq 0) { 'SUCCEEDED' } else { 'FAILED' }
         if (Test-Path -LiteralPath $auditPath) {
             try {
                 $auditRaw = Get-Content -LiteralPath $auditPath -Raw
@@ -169,7 +196,7 @@ foreach ($vendor in $vendors.GetEnumerator()) {
             $lifecycleStatus = 'MISSING_AUDIT'
         }
         $results.Add([ordered]@{
-            vendor = $name; exitCode = $run.ExitCode; dbVersion = $dbVersion
+            vendor = $name; exitCode = $run.ExitCode; dbVersion = $dbVersion; timedOut = $run.TimedOut
             lifecycleStatus = $lifecycleStatus; startedAt = $startedAt.ToString('O')
             finishedAt = [DateTimeOffset]::UtcNow.ToString('O')
             auditFile = [IO.Path]::GetFileName($auditPath)
@@ -187,8 +214,9 @@ $summary = [ordered]@{
     expectedHead = $ExpectedHead.ToLowerInvariant()
     actualHead = $actualHead
     repositoryRootResolvedByGit = $true
-    passwordTransport = 'STDIN'
-    passwordInArguments = $false
+    connectionTransport = 'JSON_STDIN'
+    credentialInArguments = $false
+    childEnvironmentPolicy = 'CLEAR_THEN_ALLOWLIST'
     vendors = $results
     exitCode = $overallExit
 }

@@ -64,7 +64,7 @@ public final class AdmIntegrationClosureService {
         status.put("configured", crypto != null);
         status.put("activeKeyVersion", crypto == null ? "" : crypto.activeKeyVersion());
         status.put("plaintextKeyExposed", false);
-        return Map.copyOf(status);
+        return Collections.unmodifiableMap(new LinkedHashMap<>(status));
     }
 
     public CpfTimeSnapshot timeHealth(String zone, long maxSkewMillis) {
@@ -73,7 +73,7 @@ public final class AdmIntegrationClosureService {
     }
 
     public CpfDataQualityDecision validate(String recordId, Map<String, Object> record) {
-        return quality.validate(require(recordId, "recordId"), record == null ? Map.of() : Map.copyOf(record));
+        return quality.validate(require(recordId, "recordId"), immutableNullable(record));
     }
 
     /** Creates an immutable approval request; correction data is never accepted again at execution. */
@@ -86,14 +86,14 @@ public final class AdmIntegrationClosureService {
             String reason) {
         quarantineId = require(quarantineId, "quarantineId");
         actor = require(actor, "actor");
-        reason = require(reason, "reason");
-        idempotencyKey = require(idempotencyKey, "idempotencyKey");
+        reason = bounded(reason, "reason", 8, 500);
+        idempotencyKey = bounded(idempotencyKey, "idempotencyKey", 8, 128);
         if (expectedVersion < 1) throw new IllegalArgumentException("expectedVersion must be positive");
         if (corrected == null || corrected.isEmpty()) throw new IllegalArgumentException("corrected payload is required");
         Map<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("quarantineId", quarantineId);
         snapshot.put("expectedVersion", expectedVersion);
-        snapshot.put("corrected", Map.copyOf(corrected));
+        snapshot.put("corrected", immutableNullable(corrected));
         String payload;
         try {
             payload = objectMapper.writeValueAsString(snapshot);
@@ -123,7 +123,7 @@ public final class AdmIntegrationClosureService {
     public Map<String, Object> executeCorrection(long approvalRequestId, String actor, String reason) {
         if (approvalRequestId < 1) throw new IllegalArgumentException("approvalRequestId must be positive");
         actor = require(actor, "actor");
-        reason = require(reason, "reason");
+        reason = bounded(reason, "reason", 8, 500);
         Map<String, Object> detail = approvals.detail(approvalRequestId);
         requireEquals(detail, "actionType", DATA_QUALITY_ACTION);
         requireEquals(detail, "ownerModule", DATA_QUALITY_OWNER);
@@ -142,8 +142,11 @@ public final class AdmIntegrationClosureService {
         return sanitizeApproval(approvals.execute(approvalRequestId, reason, actor));
     }
 
-    public CpfDataQualityDecision replayQuality(String id, String actor, String reason) {
-        return quality.replay(require(id, "id"), require(actor, "actor"), require(reason, "reason"));
+    public CpfDataQualityDecision replayQuality(String id, long expectedVersion, String operationId,
+                                                String actor, String reason) {
+        return quality.replay(new CpfDataQualityOperations.ReplayCommand(
+                require(id, "id"), expectedVersion, bounded(operationId, "operationId", 8, 128),
+                require(actor, "actor"), bounded(reason, "reason", 8, 500)));
     }
 
     public List<CpfWebhookDelivery> webhookDlq(int limit) {
@@ -153,7 +156,7 @@ public final class AdmIntegrationClosureService {
 
     public CpfWebhookDelivery replayWebhook(String id, long expected, String actor, String reason) {
         if (expected < 1) throw new IllegalArgumentException("expectedVersion must be positive");
-        return webhook.replay(require(id, "id"), expected, require(actor, "actor"), require(reason, "reason"), time.now());
+        return webhook.replay(require(id, "id"), expected, require(actor, "actor"), bounded(reason, "reason", 8, 500), time.now());
     }
 
     private static boolean isApprovedParticipant(Object value, String actor) {
@@ -215,6 +218,17 @@ public final class AdmIntegrationClosureService {
         if (value instanceof Timestamp timestamp) return timestamp.toInstant();
         if (value instanceof java.util.Date date) return date.toInstant();
         return Instant.parse(String.valueOf(value));
+    }
+
+    private static Map<String, Object> immutableNullable(Map<String, Object> source) {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(source == null ? Map.of() : source));
+    }
+
+    private static String bounded(String value, String field, int min, int max) {
+        String result = require(value, field);
+        if (result.length() < min || result.length() > max)
+            throw new IllegalArgumentException(field + " length must be between " + min + " and " + max);
+        return result;
     }
 
     private static String text(Object value) { return value == null ? "" : String.valueOf(value).trim(); }

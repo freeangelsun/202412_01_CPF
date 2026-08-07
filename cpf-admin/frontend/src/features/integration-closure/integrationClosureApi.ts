@@ -7,6 +7,7 @@ export interface CorrectionApprovalRequest {
   corrected: Record<string, unknown>;
 }
 export interface CorrectionExecutionRequest { reason: string }
+export interface QualityReplayRequest { expectedVersion: number; idempotencyKey: string; reason: string }
 export type IntegrationClosureResult = Record<string, unknown>;
 export type WebhookDelivery = Record<string, unknown>;
 
@@ -33,9 +34,9 @@ export const integrationClosureApi = {
     admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityCorrectionExecute', {
       path: { approvalRequestId }, body,
     }),
-  replayQuality: (quarantineId: string, reason: string) =>
+  replayQuality: (quarantineId: string, body: QualityReplayRequest) =>
     admInvokeOperation<IntegrationClosureResult>('admIntegrationDataQualityReplay', {
-      path: { id: quarantineId }, query: { reason },
+      path: { id: quarantineId }, body,
     }),
   webhookDlq: (limit = 100) =>
     admInvokeOperation<WebhookDelivery[]>('admIntegrationWebhookDlq', {

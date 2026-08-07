@@ -27,9 +27,16 @@ public final class GatewayApprovalOwnerCommandAdapter implements AdmApprovalOwne
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        return supports(ownerModule, ownerCommand)
+                && Objects.toString(ownerCommand, "").trim().equalsIgnoreCase(Objects.toString(actionType, "").trim())
+                && "GATEWAY_BINDING".equalsIgnoreCase(Objects.toString(targetType, "").trim());
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
-        if (!normalize(command.ownerModule()).contains("gateway")) {
-            return failed("GATEWAY_OWNER_MISMATCH", "Gateway Owner Module이 아닙니다.");
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("GATEWAY_OWNER_MISMATCH", "Gateway Owner/Command/Action/Target 조합이 일치하지 않습니다.");
         }
         if (command.requestedBy().equals(command.approvedBy())) {
             return failed("GATEWAY_SELF_APPROVAL", "요청자와 승인 실행자는 달라야 합니다.");

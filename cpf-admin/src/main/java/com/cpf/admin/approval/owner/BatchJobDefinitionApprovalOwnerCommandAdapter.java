@@ -22,10 +22,18 @@ public final class BatchJobDefinitionApprovalOwnerCommandAdapter implements AdmA
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
+        String target = Objects.toString(targetType, "").trim().toUpperCase(Locale.ROOT);
+        return supports(ownerModule, ownerCommand)
+                && "BAT_JOB_PUBLISH".equals(action)
+                && java.util.Set.of("BAT_JOB_DEFINITION", "BAT_JOB").contains(target);
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
-        String owner=normalize(command.ownerModule());
-        if(!owner.contains("batch")&&!owner.equals("bat"))return failed("BAT_OWNER_MISMATCH","BAT Owner Module이 아닙니다.");
-        if(!"BAT_JOB_PUBLISH".equalsIgnoreCase(command.ownerCommand()))return failed("BAT_COMMAND_UNSUPPORTED","지원하지 않는 BAT 승인 Command입니다.");
+        if(command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType()))
+            return failed("BAT_COMMAND_UNSUPPORTED","지원하지 않는 BAT 승인 Owner/Command/Action/Target 조합입니다.");
         if(command.requestedBy().equals(command.approvedBy()))return failed("BAT_SELF_APPROVAL","요청자와 승인자는 달라야 합니다.");
         Target target=parse(command.targetId());
         try {

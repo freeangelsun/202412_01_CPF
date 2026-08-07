@@ -1,7 +1,9 @@
 package com.cpf.admin.approval.security;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +35,11 @@ public final class AdmApprovalSnapshotIntegrity {
     private final ObjectMapper objectMapper;
 
     public AdmApprovalSnapshotIntegrity(ObjectMapper objectMapper) {
-        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        ObjectMapper strict = Objects.requireNonNull(objectMapper, "objectMapper").copy();
+        strict.getFactory().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+        strict.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
+        strict.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+        this.objectMapper = strict;
     }
 
     public String canonicalPayload(String source) {

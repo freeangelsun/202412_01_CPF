@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { parseStrictJsonObject } from "../../shared/strictJsonObject";
 import { integrationClosureApi, type WebhookDelivery } from "./integrationClosureApi";
+import { canInvokeOperation, parseOperationPermissions } from "../../shared/operationPermissions";
 import {
   approvalDraftFingerprint,
   clearApprovalIdempotency,
@@ -24,6 +26,7 @@ const reason = ref("");
 const correctedJson = ref("{}");
 const approvalId = ref<number | null>(null);
 const approvalConfirmed = ref(false);
+const activeApprovalFingerprint = ref<string | null>(null);
 const approvalResult = ref<Record<string, unknown> | null>(null);
 const replayResult = ref<Record<string, unknown> | null>(null);
 const dlqLimit = ref(100);
@@ -32,8 +35,13 @@ const webhookId = ref("");
 const webhookExpectedVersion = ref(1);
 const webhookReason = ref("");
 const webhookReplayResult = ref<Record<string, unknown> | null>(null);
+const replayIdempotencyKey = ref(globalThis.crypto.randomUUID());
+const permissionNames = parseOperationPermissions(document.documentElement.dataset.admPermissions);
+const can = (operationId: string) => canInvokeOperation(permissionNames, operationId);
+const permissionReason = (operationId: string) => can(operationId) ? "" : `권한 없음: ${operationId}`;
 
-const canRequestApproval = computed(() => Boolean(quarantineId.value.trim()) && Boolean(reason.value.trim())
+const canRequestApproval = computed(() => can("admIntegrationDataQualityCorrectionApprovalRequest")
+  && Boolean(quarantineId.value.trim()) && reason.value.trim().length >= 8
   && expectedVersion.value > 0 && !approvalConfirmed.value && !loading.value.approvalRequest);
 
 function statusOf(failure: unknown): number | undefined {
@@ -59,11 +67,6 @@ async function run<T>(name: string, action: () => Promise<T>): Promise<T | undef
   catch (failure) { error.value = messageOf(failure); return undefined; }
   finally { loading.value = { ...loading.value, [name]: false }; }
 }
-function parseObject(source: string, label: string): Record<string, unknown> {
-  const parsed = JSON.parse(source) as unknown;
-  if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") throw new Error(`${label}은 JSON 객체여야 합니다.`);
-  return parsed as Record<string, unknown>;
-}
 async function loadOperationalStatus() {
   const result = await run("status", async () => Promise.all([
     integrationClosureApi.cryptoStatus(),
@@ -73,15 +76,16 @@ async function loadOperationalStatus() {
 }
 async function validateRecord() {
   await run("validate", async () => {
-    validationResult.value = await integrationClosureApi.validate(recordId.value.trim(), parseObject(recordJson.value, "검증 데이터"));
+    validationResult.value = await integrationClosureApi.validate(recordId.value.trim(), parseStrictJsonObject(recordJson.value, "검증 데이터"));
     notice.value = "데이터 품질 검증을 완료했습니다.";
   });
 }
 async function requestApproval() {
   await run("approvalRequest", async () => {
-    const corrected = parseObject(correctedJson.value, "정정 데이터");
+    const corrected = parseStrictJsonObject(correctedJson.value, "정정 데이터");
     const draft = { quarantineId: quarantineId.value.trim(), expectedVersion: expectedVersion.value, reason: reason.value.trim(), corrected };
     const fingerprint = await approvalDraftFingerprint(draft);
+    activeApprovalFingerprint.value = fingerprint;
     const idempotency = resolveApprovalIdempotency(fingerprint);
     if (idempotency.state === "confirmed") {
       approvalId.value = idempotency.approvalRequestId ?? null;
@@ -107,14 +111,19 @@ async function executeApproval() {
   });
 }
 function startNewApproval() {
-  clearApprovalIdempotency(); approvalId.value = null; approvalConfirmed.value = false; approvalResult.value = null;
+  if (activeApprovalFingerprint.value) clearApprovalIdempotency(localStorage, activeApprovalFingerprint.value);
+  activeApprovalFingerprint.value = null; approvalId.value = null; approvalConfirmed.value = false; approvalResult.value = null;
+  replayIdempotencyKey.value = globalThis.crypto.randomUUID();
   quarantineId.value = ""; expectedVersion.value = 1; reason.value = ""; correctedJson.value = "{}";
   notice.value = "새 승인 작업을 시작했습니다.";
 }
 async function replayQuality() {
   if (!window.confirm(`격리 데이터 ${quarantineId.value.trim()}를 재검증하시겠습니까?`)) return;
   await run("qualityReplay", async () => {
-    replayResult.value = await integrationClosureApi.replayQuality(quarantineId.value.trim(), reason.value.trim());
+    replayResult.value = await integrationClosureApi.replayQuality(quarantineId.value.trim(), {
+      expectedVersion: expectedVersion.value, idempotencyKey: replayIdempotencyKey.value, reason: reason.value.trim(),
+    });
+    replayIdempotencyKey.value = globalThis.crypto.randomUUID();
     notice.value = "데이터 품질 재검증을 실행했습니다.";
   });
 }
@@ -143,7 +152,7 @@ async function replayWebhook() {
         <label>업무 시간대 <input v-model="zone" autocomplete="off" /></label>
         <label>허용 Skew(ms) <input v-model.number="maxSkewMillis" type="number" min="0" /></label>
       </div>
-      <button type="button" :disabled="loading.status" @click="loadOperationalStatus">상태 조회</button>
+      <button type="button" :title="permissionReason('admIntegrationCryptoStatus')" :disabled="loading.status || !can('admIntegrationCryptoStatus')" @click="loadOperationalStatus">상태 조회</button>
       <div class="results"><pre v-if="cryptoStatus" tabindex="0">{{ JSON.stringify(cryptoStatus, null, 2) }}</pre><pre v-if="timeStatus" tabindex="0">{{ JSON.stringify(timeStatus, null, 2) }}</pre></div>
     </section>
 
@@ -152,7 +161,7 @@ async function replayWebhook() {
       <form @submit.prevent="validateRecord">
         <label>Record ID <input v-model="recordId" required autocomplete="off" /></label>
         <label>검증 JSON <textarea v-model="recordJson" required spellcheck="false" /></label>
-        <button type="submit" :disabled="loading.validate || !recordId.trim()">검증</button>
+        <button type="submit" :title="permissionReason('admIntegrationDataQualityValidate')" :disabled="loading.validate || !recordId.trim() || !can('admIntegrationDataQualityValidate')">검증</button>
       </form>
       <pre v-if="validationResult" tabindex="0">{{ JSON.stringify(validationResult, null, 2) }}</pre>
     </section>
@@ -168,13 +177,14 @@ async function replayWebhook() {
         <label>사유 <textarea v-model="reason" required maxlength="500" /></label>
         <label>정정 JSON <textarea v-model="correctedJson" required spellcheck="false" /></label>
         <div class="actions">
-          <button type="submit" :disabled="!canRequestApproval">승인 요청</button>
-          <button v-if="approvalId" type="button" :disabled="loading.approvalExecute || !reason.trim()" @click="executeApproval">승인 검증 후 단회 실행</button>
+          <button type="submit" :title="permissionReason('admIntegrationDataQualityCorrectionApprovalRequest')" :disabled="!canRequestApproval">승인 요청</button>
+          <button v-if="approvalId" type="button" :title="permissionReason('admIntegrationDataQualityCorrectionExecute')" :disabled="loading.approvalExecute || reason.trim().length < 8 || !can('admIntegrationDataQualityCorrectionExecute')" @click="executeApproval">승인 검증 후 단회 실행</button>
           <button v-if="approvalConfirmed" type="button" @click="startNewApproval">새 작업</button>
-          <button type="button" :disabled="loading.qualityReplay || !quarantineId.trim() || !reason.trim()" @click="replayQuality">재검증 Replay</button>
+          <button type="button" :title="permissionReason('admIntegrationDataQualityReplay')" :disabled="loading.qualityReplay || !quarantineId.trim() || reason.trim().length < 8 || !can('admIntegrationDataQualityReplay')" @click="replayQuality">재검증 Replay</button>
         </div>
       </form>
       <p v-if="approvalId">승인 요청 ID: <strong>{{ approvalId }}</strong></p>
+      <p v-if="approvalId"><a :href="`/auditLogs?targetType=APPROVAL_REQUEST&targetId=${approvalId}`">감사 로그 연결</a></p>
       <div class="results"><pre v-if="approvalResult" tabindex="0">{{ JSON.stringify(approvalResult, null, 2) }}</pre><pre v-if="replayResult" tabindex="0">{{ JSON.stringify(replayResult, null, 2) }}</pre></div>
     </section>
 
@@ -182,7 +192,7 @@ async function replayWebhook() {
       <h2 id="webhook-title">Webhook DLQ·Replay</h2>
       <div class="form-grid">
         <label>조회 제한 <input v-model.number="dlqLimit" type="number" min="1" max="500" /></label>
-        <button type="button" :disabled="loading.dlq" @click="loadDlq">DLQ 조회</button>
+        <button type="button" :title="permissionReason('admIntegrationWebhookDlq')" :disabled="loading.dlq || !can('admIntegrationWebhookDlq')" @click="loadDlq">DLQ 조회</button>
       </div>
       <p v-if="!loading.dlq && dlqRows.length === 0" class="empty">조회된 DLQ가 없습니다.</p>
       <div v-else class="table-wrap" tabindex="0">
@@ -194,10 +204,10 @@ async function replayWebhook() {
       <form @submit.prevent="replayWebhook">
         <div class="form-grid">
           <label>Webhook ID <input v-model="webhookId" required autocomplete="off" /></label>
-          <label>기대 버전 <input v-model.number="webhookExpectedVersion" type="number" min="0" required /></label>
+          <label>기대 버전 <input v-model.number="webhookExpectedVersion" type="number" min="1" required /></label>
         </div>
         <label>재처리 사유 <textarea v-model="webhookReason" required maxlength="500" /></label>
-        <button type="submit" :disabled="loading.webhookReplay || !webhookId.trim() || !webhookReason.trim()">Webhook Replay</button>
+        <button type="submit" :title="permissionReason('admIntegrationWebhookReplay')" :disabled="loading.webhookReplay || !webhookId.trim() || webhookReason.trim().length < 8 || !can('admIntegrationWebhookReplay')">Webhook Replay</button>
       </form>
       <pre v-if="webhookReplayResult" tabindex="0">{{ JSON.stringify(webhookReplayResult, null, 2) }}</pre>
     </section>

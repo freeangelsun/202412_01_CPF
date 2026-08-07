@@ -17,6 +17,8 @@ public class AdmIntegrationClosureProperties {
     private boolean enabled;
     private boolean ephemeralProvidersEnabled;
     private Duration correctionApprovalTtl = Duration.ofMinutes(15);
+    /** Shared 256-bit HMAC key for single-use correction execution proof. */
+    private String approvalProofKeyBase64;
     private final Webhook webhook = new Webhook();
     private final Crypto crypto = new Crypto();
 
@@ -25,6 +27,8 @@ public class AdmIntegrationClosureProperties {
     public boolean isEphemeralProvidersEnabled() { return ephemeralProvidersEnabled; }
     public void setEphemeralProvidersEnabled(boolean ephemeralProvidersEnabled) { this.ephemeralProvidersEnabled = ephemeralProvidersEnabled; }
     public Duration getCorrectionApprovalTtl() { return correctionApprovalTtl; }
+    public String getApprovalProofKeyBase64() { return approvalProofKeyBase64; }
+    public void setApprovalProofKeyBase64(String approvalProofKeyBase64) { this.approvalProofKeyBase64 = approvalProofKeyBase64; }
     public void setCorrectionApprovalTtl(Duration correctionApprovalTtl) {
         if (correctionApprovalTtl == null || correctionApprovalTtl.isNegative() || correctionApprovalTtl.isZero()) {
             throw new IllegalArgumentException("correctionApprovalTtl must be positive");

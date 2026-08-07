@@ -9,8 +9,19 @@ export interface ApprovalIdempotencyState {
   key: string;
   state: "pending" | "confirmed";
   approvalRequestId?: number;
+  updatedAt: number;
 }
-export const APPROVAL_IDEMPOTENCY_STORAGE_KEY = "cpf.adm.integrationClosure.approval.idempotency.v1";
+interface ApprovalIdempotencyLedger {
+  version: 3;
+  entries: Record<string, ApprovalIdempotencyState>;
+  generations: Record<string, number>;
+}
+export const APPROVAL_IDEMPOTENCY_STORAGE_KEY = "cpf.adm.integrationClosure.approval.idempotency.v3";
+const PREVIOUS_STORAGE_KEY = "cpf.adm.integrationClosure.approval.idempotency.v2";
+const LEGACY_STORAGE_KEY = "cpf.adm.integrationClosure.approval.idempotency.v1";
+const MAX_ENTRIES = 64;
+const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
+const CONFIRMED_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 function normalize(value: string): string { return value.normalize("NFC"); }
 function compareCodePoint(left: string, right: string): number { return left < right ? -1 : left > right ? 1 : 0; }
 function canonical(value: unknown): unknown {
@@ -27,12 +38,14 @@ function canonical(value: unknown): unknown {
   if (typeof value === "string") return normalize(value);
   if (typeof value === "number") {
     if (!Number.isFinite(value)) throw new Error("Non-finite numbers are not allowed");
+    if (!Number.isSafeInteger(value) && Number.isInteger(value)) throw new Error("Unsafe integer is not allowed");
     return Object.is(value, -0) ? 0 : value;
   }
   return value;
 }
 export async function approvalDraftFingerprint(draft: ApprovalDraft): Promise<string> {
   if (!globalThis.crypto?.subtle) throw new Error("Secure SHA-256 browser API is unavailable");
+  if (!Number.isSafeInteger(draft.expectedVersion) || draft.expectedVersion < 1) throw new Error("Invalid expected version");
   const normalizedDraft = {
     quarantineId: draft.quarantineId.trim(), expectedVersion: draft.expectedVersion,
     reason: draft.reason.trim(), corrected: draft.corrected,
@@ -41,39 +54,82 @@ export async function approvalDraftFingerprint(draft: ApprovalDraft): Promise<st
   const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
 }
-function parse(storage: Storage): ApprovalIdempotencyState | null {
-  try {
-    const raw = storage.getItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY); if (!raw) return null;
-    const state = JSON.parse(raw) as Partial<ApprovalIdempotencyState>;
-    if (!/^[0-9a-f]{64}$/.test(String(state.fingerprint || "")) || typeof state.key !== "string"
-        || state.key.length < 8 || !["pending", "confirmed"].includes(String(state.state))) return null;
-    if (state.state === "confirmed" && (!Number.isSafeInteger(state.approvalRequestId) || Number(state.approvalRequestId) < 1)) return null;
-    return state as ApprovalIdempotencyState;
-  } catch { return null; }
+function isState(value: unknown): value is ApprovalIdempotencyState {
+  const state = value as Partial<ApprovalIdempotencyState>;
+  return !!state && /^[0-9a-f]{64}$/.test(String(state.fingerprint || ""))
+    && typeof state.key === "string" && state.key.length >= 8
+    && ["pending", "confirmed"].includes(String(state.state))
+    && Number.isSafeInteger(state.updatedAt) && Number(state.updatedAt) > 0
+    && (state.state !== "confirmed" || (Number.isSafeInteger(state.approvalRequestId) && Number(state.approvalRequestId) > 0));
 }
-function persist(storage: Storage, state: ApprovalIdempotencyState): ApprovalIdempotencyState {
-  storage.setItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY, JSON.stringify(state)); return state;
+function parse(storage: Storage, now = Date.now()): ApprovalIdempotencyLedger {
+  const empty: ApprovalIdempotencyLedger = { version: 3, entries: {}, generations: {} };
+  try {
+    const raw = storage.getItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<ApprovalIdempotencyLedger>;
+    if (parsed.version !== 3 || !parsed.entries || typeof parsed.entries !== "object"
+        || !parsed.generations || typeof parsed.generations !== "object") return empty;
+    const entries = Object.fromEntries(Object.entries(parsed.entries).filter(([fingerprint, state]) => {
+      if (!isState(state) || state.fingerprint !== fingerprint) return false;
+      const ttl = state.state === "pending" ? PENDING_TTL_MS : CONFIRMED_TTL_MS;
+      return now - state.updatedAt <= ttl;
+    }));
+    const generations = Object.fromEntries(Object.entries(parsed.generations).filter(([fingerprint, generation]) =>
+      /^[0-9a-f]{64}$/.test(fingerprint) && Number.isSafeInteger(generation) && Number(generation) >= 0));
+    return { version: 3, entries, generations };
+  } catch { return empty; }
+}
+function persist(storage: Storage, ledger: ApprovalIdempotencyLedger): ApprovalIdempotencyLedger {
+  const entries = Object.fromEntries(Object.entries(ledger.entries)
+    .sort(([, left], [, right]) => right.updatedAt - left.updatedAt).slice(0, MAX_ENTRIES));
+  const normalized = { version: 3 as const, entries, generations: ledger.generations };
+  storage.setItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY, JSON.stringify(normalized));
+  storage.removeItem(PREVIOUS_STORAGE_KEY);
+  storage.removeItem(LEGACY_STORAGE_KEY);
+  return normalized;
 }
 export function resolveApprovalIdempotency(
-  fingerprint: string, storage: Storage = sessionStorage,
-  keyFactory: () => string = () => globalThis.crypto.randomUUID(),
+  fingerprint: string, storage: Storage = localStorage,
+  keyFactory?: () => string,
 ): ApprovalIdempotencyState {
   if (!/^[0-9a-f]{64}$/.test(fingerprint)) throw new Error("Invalid approval draft fingerprint");
-  const existing = parse(storage); if (existing?.fingerprint === fingerprint) return existing;
-  const key = keyFactory();
+  const ledger = parse(storage);
+  const existing = ledger.entries[fingerprint];
+  if (existing) return existing;
+  const generation = ledger.generations[fingerprint] ?? 0;
+  // The default key is deterministic for a fingerprint generation, so two tabs racing before
+  // either storage write still submit the same server idempotency key.
+  const key = keyFactory ? keyFactory() : `dq-${fingerprint.slice(0, 48)}-${generation}`;
   if (typeof key !== "string" || key.trim().length < 8) throw new Error("Invalid idempotency key");
-  return persist(storage, { fingerprint, key: key.trim(), state: "pending" });
+  const state: ApprovalIdempotencyState = { fingerprint, key: key.trim(), state: "pending", updatedAt: Date.now() };
+  ledger.entries[fingerprint] = state;
+  persist(storage, ledger);
+  return state;
 }
 export function markApprovalConfirmed(
-  fingerprint: string, key: string, approvalRequestId: number, storage: Storage = sessionStorage,
+  fingerprint: string, key: string, approvalRequestId: number, storage: Storage = localStorage,
 ): ApprovalIdempotencyState {
-  const current = parse(storage);
-  if (!current || current.fingerprint !== fingerprint || current.key !== key || current.state !== "pending") {
+  const ledger = parse(storage);
+  const current = ledger.entries[fingerprint];
+  if (!current || current.key !== key || current.state !== "pending") {
     throw new Error("Approval idempotency state changed before confirmation");
   }
   if (!Number.isSafeInteger(approvalRequestId) || approvalRequestId < 1) throw new Error("Invalid approval request id");
-  return persist(storage, { fingerprint, key, state: "confirmed", approvalRequestId });
+  const confirmed: ApprovalIdempotencyState = { ...current, state: "confirmed", approvalRequestId, updatedAt: Date.now() };
+  ledger.entries[fingerprint] = confirmed;
+  persist(storage, ledger);
+  return confirmed;
 }
-export function clearApprovalIdempotency(storage: Storage = sessionStorage): void {
-  storage.removeItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY);
+export function clearApprovalIdempotency(storage: Storage = localStorage, fingerprint?: string): void {
+  if (!fingerprint) {
+    storage.removeItem(APPROVAL_IDEMPOTENCY_STORAGE_KEY);
+    storage.removeItem(PREVIOUS_STORAGE_KEY);
+    storage.removeItem(LEGACY_STORAGE_KEY);
+    return;
+  }
+  const ledger = parse(storage);
+  delete ledger.entries[fingerprint];
+  ledger.generations[fingerprint] = (ledger.generations[fingerprint] ?? 0) + 1;
+  persist(storage, ledger);
 }

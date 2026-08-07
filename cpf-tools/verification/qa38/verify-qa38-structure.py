@@ -49,6 +49,9 @@ mappings = {
     for name, path in re.findall(r"project\('(:[^']+)'\)\.projectDir\s*=\s*file\('([^']+)'\)", settings_no_comments)
 }
 starter_catalog_path = R / 'cpf-tools/generator/contracts/cpf-starter-catalog.json'
+if not starter_catalog_path.is_file():
+    print(f'[CPF][QA38][FAIL] missing canonical starter catalog: {starter_catalog_path}', file=sys.stderr)
+    raise SystemExit(1)
 starter_catalog = json.loads(starter_catalog_path.read_text(encoding='utf-8'))
 starter_modules = starter_catalog.get('modules') or []
 catalog_projects = {
@@ -129,20 +132,13 @@ for p in R.rglob('src/main/java/**/*.java'):
     if duplicates and p.name not in {'CpfSftpClient.java'}:
         errors.append(f'duplicate field declaration: {p.relative_to(R)}: {duplicates}')
 
-# AutoConfiguration imports targets. Existing exact-SHA baseline classes are allowlisted only after GitHub inspection.
-baseline_auto_configurations = {
-    'com.cpf.starter.kafka.CpfKafkaAutoConfiguration',
-    'com.cpf.core.config.CpfExceptionAutoConfiguration',
-    'com.cpf.core.config.CpfTransactionMetaAutoConfiguration',
-    'com.cpf.core.config.CpfPublicBoundaryAutoConfiguration',
-    'com.cpf.core.config.CpfSagaAutoConfiguration',
-}
+# AutoConfiguration imports are bound to actual Source. Hard-coded existence allowlists are forbidden.
 for imports in R.rglob('org.springframework.boot.autoconfigure.AutoConfiguration.imports'):
     for line in imports.read_text(encoding='utf-8').splitlines():
         fqcn = line.strip()
-        if not fqcn:
+        if not fqcn or fqcn.startswith('#'):
             continue
-        if fqcn not in fqcn_to_path and fqcn not in baseline_auto_configurations:
+        if fqcn not in fqcn_to_path:
             errors.append(f'AutoConfiguration target missing: {imports.relative_to(R)} -> {fqcn}')
 
 # Core runtime extraction.
@@ -210,32 +206,48 @@ for project, path in mappings.items():
         elif entry.get('ownerPath') != path:
             errors.append(f'artifact owner mismatch: {project} -> {entry.get("ownerPath")}, expected {path}')
 
-# DB vendor parity.
+# DB vendor parity. Scan every nested module and canonical catalog owner, not cpf-starters depth 1.
 official_vendors = {'mariadb', 'postgresql', 'oracle'}
-for module in sorted(p for p in (R / 'cpf-starters').iterdir() if p.is_dir()):
-    db = module / 'src/main/resources/db'
-    if not db.exists():
-        continue
+db_roots = sorted({p for p in R.rglob('src/main/resources/db') if p.is_dir()})
+for db in db_roots:
+    module = db.parents[3]
     vendors = {p.name.lower() for p in db.iterdir() if p.is_dir()}
     if vendors != official_vendors:
         errors.append(f'DB vendor set mismatch: {module.relative_to(R)}: {sorted(vendors)}')
         continue
     layouts: dict[str, set[str]] = {}
     for vendor in official_vendors:
-        layouts[vendor] = {
-            p.relative_to(db / vendor).as_posix()
-            for p in (db / vendor).rglob('*.sql')
-        }
+        layouts[vendor] = {p.relative_to(db / vendor).as_posix() for p in (db / vendor).rglob('*.sql')}
         for sql in (db / vendor).rglob('*.sql'):
             text = sql.read_text(encoding='utf-8', errors='replace').strip()
-            if not text:
-                errors.append(f'empty SQL: {sql.relative_to(R)}')
+            if not text: errors.append(f'empty SQL: {sql.relative_to(R)}')
             if re.search(r'\b(H2|MSSQL|SQLSERVER|MYSQL)\b', text, re.I):
                 errors.append(f'unsupported vendor token in SQL: {sql.relative_to(R)}')
     baseline_layout = layouts['mariadb']
     for vendor in ('postgresql', 'oracle'):
         if layouts[vendor] != baseline_layout:
             errors.append(f'DB script parity mismatch: {module.relative_to(R)} mariadb={sorted(baseline_layout)} {vendor}={sorted(layouts[vendor])}')
+
+# Canonical catalog modules with nested DB resources must be covered by db_roots.
+for module in starter_modules:
+    owner = R / str(module.get('ownerPath',''))
+    nested = [p for p in owner.rglob('src/main/resources/db') if p.is_dir()]
+    for db in nested:
+        if db not in db_roots: errors.append(f'nested DB root was not scanned: {db.relative_to(R)}')
+
+# R6 behavior boundary checks.
+behavior_contracts = {
+    'approval full registry binding': ('cpf-admin/src/main/java/com/cpf/admin/approval/spi/AdmApprovalOwnerCommandPort.java', 'supports(String ownerModule, String ownerCommand, String actionType, String targetType)'),
+    'strict duplicate json': ('cpf-admin/src/main/java/com/cpf/admin/approval/security/AdmApprovalSnapshotIntegrity.java', 'STRICT_DUPLICATE_DETECTION'),
+    'multi-entry browser ledger': ('cpf-admin/frontend/src/features/integration-closure/integrationClosureIdempotency.ts', 'entries: Record<string, ApprovalIdempotencyState>'),
+    'DB child environment clear': ('cpf-tools/verification/final-dev/run-db3-lifecycle.ps1', '$start.Environment.Clear()'),
+    'DB timeout': ('cpf-tools/verification/final-dev/run-db3-lifecycle.ps1', 'WaitForExit($TimeoutSeconds * 1000)'),
+    'OpenAPI route fail closed': ('cpf-admin/frontend/scripts/enrich-adm-openapi-contract.mjs', 'Runtime/controller OpenAPI route missing'),
+}
+for name,(path,token) in behavior_contracts.items():
+    target=R/path
+    if not target.is_file() or token not in target.read_text(encoding='utf-8',errors='replace'):
+        errors.append(f'R6 behavior contract missing: {name}: {path}')
 
 # Placeholder/fake implementation patterns. Test fixtures may deliberately throw unsupported
 # operations, while product sources may catch provider-specific unsupported filesystem modes.

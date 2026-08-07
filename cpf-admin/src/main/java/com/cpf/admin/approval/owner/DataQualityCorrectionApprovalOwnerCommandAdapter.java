@@ -5,6 +5,7 @@ import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.api.AdmApprovedOperationResult;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
 import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
+import com.cpf.admin.approval.security.AdmDataQualityApprovalProofService;
 import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.core.api.data.quality.CpfDataQualityOperations;
@@ -16,7 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ConcurrentModificationException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -27,24 +31,34 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
     private final ObjectMapper objectMapper;
     private final AdmApprovalRepository repository;
     private final AdmApprovalSnapshotIntegrity snapshotIntegrity;
+    private final AdmDataQualityApprovalProofService proofService;
 
     public DataQualityCorrectionApprovalOwnerCommandAdapter(
             CpfDataQualityCorrectionPort correctionPort,
             CpfDataQualityOperations qualityQuery,
             ObjectMapper objectMapper,
             AdmApprovalRepository repository,
-            AdmApprovalSnapshotIntegrity snapshotIntegrity) {
+            AdmApprovalSnapshotIntegrity snapshotIntegrity,
+            AdmDataQualityApprovalProofService proofService) {
         this.correctionPort = Objects.requireNonNull(correctionPort, "correctionPort");
         this.qualityQuery = Objects.requireNonNull(qualityQuery, "qualityQuery");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.repository = Objects.requireNonNull(repository, "repository");
         this.snapshotIntegrity = Objects.requireNonNull(snapshotIntegrity, "snapshotIntegrity");
+        this.proofService = Objects.requireNonNull(proofService, "proofService");
     }
 
     @Override
     public boolean supports(String ownerModule, String ownerCommand) {
         return AdmIntegrationClosureService.DATA_QUALITY_OWNER.equalsIgnoreCase(ownerModule)
                 && AdmIntegrationClosureService.DATA_QUALITY_COMMAND.equals(ownerCommand);
+    }
+
+    @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        return supports(ownerModule, ownerCommand)
+                && AdmIntegrationClosureService.DATA_QUALITY_ACTION.equals(actionType)
+                && AdmIntegrationClosureService.DATA_QUALITY_TARGET.equals(targetType);
     }
 
     @Override
@@ -93,15 +107,23 @@ public final class DataQualityCorrectionApprovalOwnerCommandAdapter implements A
             CpfDataQualityOperations.QuarantineItem before = qualityQuery.quarantine(quarantineId)
                     .orElseThrow(() -> new NoSuchElementException(quarantineId));
             String beforeHash = hash(before.original(), before.corrected(), before.state(), before.version());
+            String approvalRef = "ADM-APPROVAL:" + command.approvalRequestId() + ":" + command.commandRequestId();
+            Instant approvedAt = Instant.now();
+            String nonce = UUID.randomUUID().toString();
+            String proof = proofService.sign(quarantineId, expectedVersion, approvalRef,
+                    command.payloadHash(), nonce, approvedAt);
             CpfDataQualityOperations.QuarantineItem after = correctionPort.correctApproved(
                     new CpfDataQualityCorrectionPort.ApprovedCorrection(
                             quarantineId,
                             expectedVersion,
-                            Map.copyOf(corrected),
+                            Collections.unmodifiableMap(new LinkedHashMap<>(corrected)),
                             command.approvedBy(),
                             command.reason(),
-                            "ADM-APPROVAL:" + command.approvalRequestId() + ":" + command.commandRequestId(),
-                            Instant.now()));
+                            approvalRef,
+                            command.payloadHash(),
+                            nonce,
+                            proof,
+                            approvedAt));
             String afterHash = hash(after.original(), after.corrected(), after.state(), after.version());
             return new AdmApprovedOperationResult(
                     AdmApprovalExecutionStatus.SUCCEEDED,

@@ -39,9 +39,28 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
     }
 
     @Override
+    public boolean supports(String ownerModule, String ownerCommand) {
+        if (!"BAT".equalsIgnoreCase(Objects.toString(ownerModule, ""))) return false;
+        return Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN", "START", "STOP", "RESTART", "DRAIN", "RESUME", "ROLLBACK")
+                .contains(Objects.toString(ownerCommand, "").trim().toUpperCase(Locale.ROOT));
+    }
+
+    @Override
+    public boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        if (!supports(ownerModule, ownerCommand)) return false;
+        String command = Objects.toString(ownerCommand, "").trim().toUpperCase(Locale.ROOT);
+        String action = Objects.toString(actionType, "").trim().toUpperCase(Locale.ROOT);
+        String target = Objects.toString(targetType, "").trim().toUpperCase(Locale.ROOT);
+        if (!command.equals(action)) return false;
+        return Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(command)
+                ? Set.of("BAT_DEPLOYMENT_PLAN", "DEPLOYMENT_PLAN").contains(target)
+                : Set.of("BAT_RUNTIME", "BAT_INSTANCE", "BAT_EXECUTION", "BAT_WORKER").contains(target);
+    }
+
+    @Override
     public AdmApprovedOperationResult execute(AdmApprovedOperationCommand command) {
-        if (!"BAT".equalsIgnoreCase(command.ownerModule())) {
-            return failed("BAT-OWNER-MISMATCH", "BAT Owner mismatch");
+        if (command == null || !supports(command.ownerModule(), command.ownerCommand(), command.actionType(), command.targetType())) {
+            return failed("BAT-OWNER-MISMATCH", "BAT Owner/Command/Action/Target mismatch");
         }
         try {
             String ownerCommand = command.ownerCommand().toUpperCase(Locale.ROOT);

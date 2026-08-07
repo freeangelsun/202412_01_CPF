@@ -1,0 +1,35 @@
+package com.cpf.admin.approval.security;
+
+import com.cpf.core.spi.data.quality.CpfDataQualityCorrectionPort;
+import org.junit.jupiter.api.Test;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Map;
+import static org.junit.jupiter.api.Assertions.*;
+
+class AdmDataQualityApprovalProofServiceTest {
+    private static AdmDataQualityApprovalProofService service() {
+        return new AdmDataQualityApprovalProofService(Base64.getEncoder().encodeToString(new byte[32]));
+    }
+
+    @Test void rejectsCallerForgedOrTamperedCapability() {
+        AdmDataQualityApprovalProofService service = service();
+        Instant at = Instant.parse("2026-08-07T00:00:00Z");
+        String hash = "a".repeat(64); String nonce = "nonce-0123456789abcdef"; String ref = "ADM-APP-1-CMD-1";
+        String proof = service.sign("DQ-1",1,ref,hash,nonce,at);
+        var valid = new CpfDataQualityCorrectionPort.ApprovedCorrection("DQ-1",1,Map.of("name","ok"),
+                "approver","approved correction",ref,hash,nonce,proof,at);
+        assertTrue(service.verify(valid));
+        var tampered = new CpfDataQualityCorrectionPort.ApprovedCorrection("DQ-1",2,Map.of("name","ok"),
+                "approver","approved correction",ref,hash,nonce,proof,at);
+        assertFalse(service.verify(tampered));
+        var forged = new CpfDataQualityCorrectionPort.ApprovedCorrection("DQ-1",1,Map.of("name","ok"),
+                "approver","approved correction",ref,hash,nonce,"f".repeat(64),at);
+        assertFalse(service.verify(forged));
+    }
+
+    @Test void rejectsInvalidSecretMaterial() {
+        assertThrows(IllegalStateException.class, () -> new AdmDataQualityApprovalProofService("not-base64"));
+        assertThrows(IllegalStateException.class, () -> new AdmDataQualityApprovalProofService(Base64.getEncoder().encodeToString(new byte[16])));
+    }
+}

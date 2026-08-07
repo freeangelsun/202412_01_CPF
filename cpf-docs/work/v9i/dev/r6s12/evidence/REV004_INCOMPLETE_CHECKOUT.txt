@@ -1,0 +1,57 @@
+COMMAND: python /mnt/data/CPF_R6_S12_FINAL_OVERLAY/cpf-tools/verification/final-dev/verify-rev004-overlay.py /mnt/data/CPF_R6_S12_FINAL_OVERLAY
+START_UTC: 2026-08-06T18:57:28Z
+FAIL missing file: cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java
+FAIL cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java: missing session cookie OpenAPI scheme
+FAIL cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java: missing CSRF header OpenAPI scheme
+FAIL missing file: cpf-admin/frontend/src/generated/adm-route-operation-contract.ts
+FAIL missing file: cpf-admin/frontend/src/generated/cpf-operation-contract.ts
+FAIL route operation contract missing: admIntegrationCryptoStatus
+FAIL generated operation contract missing: admIntegrationCryptoStatus
+FAIL route operation contract missing: admIntegrationTimeHealth
+FAIL generated operation contract missing: admIntegrationTimeHealth
+FAIL route operation contract missing: admIntegrationDataQualityValidate
+FAIL generated operation contract missing: admIntegrationDataQualityValidate
+FAIL route operation contract missing: admIntegrationDataQualityCorrectionApprovalRequest
+FAIL generated operation contract missing: admIntegrationDataQualityCorrectionApprovalRequest
+FAIL route operation contract missing: admIntegrationDataQualityCorrectionExecute
+FAIL generated operation contract missing: admIntegrationDataQualityCorrectionExecute
+FAIL route operation contract missing: admIntegrationDataQualityReplay
+FAIL generated operation contract missing: admIntegrationDataQualityReplay
+FAIL route operation contract missing: admIntegrationWebhookDlq
+FAIL generated operation contract missing: admIntegrationWebhookDlq
+FAIL route operation contract missing: admIntegrationWebhookReplay
+FAIL generated operation contract missing: admIntegrationWebhookReplay
+FAIL invalid OpenAPI JSON: [Errno 2] No such file or directory: '/mnt/data/CPF_R6_S12_FINAL_OVERLAY/cpf-admin/frontend/openapi/cpf-openapi.json'
+FAIL OpenAPI security scheme drift: admSessionCookie.type=None, expected 'apiKey'
+FAIL OpenAPI security scheme drift: admSessionCookie.in=None, expected 'cookie'
+FAIL OpenAPI security scheme drift: admSessionCookie.name=None, expected 'JSESSIONID'
+FAIL OpenAPI security scheme drift: admCsrfHeader.type=None, expected 'apiKey'
+FAIL OpenAPI security scheme drift: admCsrfHeader.in=None, expected 'header'
+FAIL OpenAPI security scheme drift: admCsrfHeader.name=None, expected 'X-XSRF-TOKEN'
+FAIL OpenAPI operation set mismatch: missing=['admIntegrationCryptoStatus', 'admIntegrationDataQualityCorrectionApprovalRequest', 'admIntegrationDataQualityCorrectionExecute', 'admIntegrationDataQualityReplay', 'admIntegrationDataQualityValidate', 'admIntegrationTimeHealth', 'admIntegrationWebhookDlq', 'admIntegrationWebhookReplay'] extra=[]
+FAIL OpenAPI operation count extension drift
+FAIL OpenAPI approval reconcile operation missing
+FAIL approval reconcile session security missing
+FAIL approval reconcile non-retry contract missing
+FAIL missing file: cpf-tools/scripts/verify-cpf-qa34-build-contract.py
+FAIL missing file: build.gradle
+FAIL missing file: cpf-tools/config/cpf-starter-catalog.json
+FAIL starter catalog check failed: Expecting value: line 1 column 1 (char 0)
+FAIL missing file: cpf-tools/build/platform-bom/public-bom/build.gradle
+FAIL missing file: cpf-tools/build/platform-bom/internal-bom/build.gradle
+FAIL missing file: gradle/cpf-platform.properties
+FAIL platform component drift missing=['cpf-admin', 'cpf-batch', 'cpf-biz-admin', 'cpf-common', 'cpf-core', 'cpf-gateway', 'cpf-reference'] extra=[]
+FAIL OpenAPI compatibility alias is not explicit
+FAIL missing file: cpf-tools/build/platform-bom/internal-bom/build.gradle
+FAIL cpf-tools/build/platform-bom/internal-bom/build.gradle: missing catalog-derived internal constraints
+FAIL cpf-tools/build/platform-bom/internal-bom/build.gradle: missing internal exact equality
+FAIL cpf-tools/build/platform-bom/internal-bom/build.gradle: missing duplicate detection
+FAIL missing file: cpf-tools/build/platform-bom/public-bom/build.gradle
+FAIL cpf-tools/build/platform-bom/public-bom/build.gradle: missing catalog-derived public constraints
+FAIL cpf-tools/build/platform-bom/public-bom/build.gradle: missing public exact equality
+FAIL cpf-tools/build/platform-bom/public-bom/build.gradle: missing internal leak detection
+FAIL cpf-tools/verification/final-dev/run-db3-lifecycle.ps1: missing stdin secret transport
+FAIL generated marker validation failed: [Errno 2] No such file or directory: '/mnt/data/CPF_R6_S12_FINAL_OVERLAY/cpf-admin/frontend/src/generated/.cpf-openapi-source.json'
+RAW_EXIT_CODE: 1
+CLASSIFICATION: NOT_EXECUTED_COMPLETE_CHECKOUT_REQUIRED
+END_UTC: 2026-08-06T18:57:31Z

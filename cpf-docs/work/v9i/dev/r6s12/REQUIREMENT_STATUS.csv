@@ -1,0 +1,26 @@
+﻿requirement_id,development_status,verification_status,finding_ids,result,remaining_condition
+FDEV-001,부분 구현,미검증,QA-R5I-001;QA-R5I-003;QA-R5I-020,R6S12 baseline/provenance 원장 재작성. Result commit은 사용자 적용 후 확정 필요.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-002,완료,미검증,QA-R5I-006;QA-R5I-007,Integration Closure Bean pair/proof/profile guard 및 Context test 보강.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-003,완료,부분 검증,QA-R5I-005;QA-R5I-006;QA-R5I-007;QA-R5I-009;QA-R5I-010;QA-R5I-011;QA-R5I-012;QA-R5I-013;QA-R5I-014;QA-R5I-021;QA-R5I-023;QA-R5I-025;QA-R5I-026;QA-R5I-027;QA-R5I-028,승인 정책·capability·민감정보·JSON·null·concurrency·HTTP 계약 전반 보완.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-004,완료,미검증,QA-R5I-002;QA-R5I-022,Java25/Gradle9.1 exact-SHA runner/workflow 작성; Target Runtime 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-005,완료,미검증,QA-R5I-002;QA-R5I-015;QA-R5I-027,DB3 lifecycle SQL/runner/gate 작성; live DB3 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-006,재확인 필요,미검증,QA-R5I-002,Multi-process 실행 script 연결만 완료; 실제 broker/split-WAS/process-kill 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-007,부분 구현,미검증,QA-R5I-019;QA-R5I-021;QA-R5I-025,변경 API/SPI/Owner 경계 정적 검수 및 public boolean 제거. 전체 repo 회귀 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-008,완료,미검증,QA-R5I-005;QA-R5I-021;QA-R5I-025,Approval/Data Quality 실제 Controller-Service-Owner-Port 호출 경로 연결.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-009,부분 구현,미검증,QA-R5I-011;QA-R5I-012,Data Quality quarantine/replay/correction/reconcile 개선. Outbox/Notification 전체 범위 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-010,재확인 필요,미검증,QA-R5I-002,기존 Batch 전체 범위 Source 재검수는 complete checkout 필요.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-011,재확인 필요,미검증,QA-R5I-002,기존 Cache 전체 범위 Source 재검수는 complete checkout 필요.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-012,완료,부분 검증,QA-R5I-010;QA-R5I-012;QA-R5I-014;QA-R5I-026;QA-R5I-028,멱등성/CAS/replay lock/timeout runner 구현과 Java/Node harness PASS.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-013,완료,부분 검증,QA-R5I-005;QA-R5I-006;QA-R5I-009;QA-R5I-010;QA-R5I-013;QA-R5I-025,정책 결속·SoD·HMAC proof·마스킹·secret-safe runner 보완.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-014,완료,미검증,QA-R5I-003;QA-R5I-008;QA-R5I-009;QA-R5I-011;QA-R5I-013;QA-R5I-016;QA-R5I-023;QA-R5I-026;QA-R5I-027;QA-R5I-028,ADM permission/error/audit/idempotency 보완; Browser 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-015,재확인 필요,미검증,QA-R5I-002,"BZA 전체 범위는 변경 없음, complete checkout 회귀 미검증.",Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-016,완료,미검증,QA-R5I-003;QA-R5I-008;QA-R5I-017;QA-R5I-018;QA-R5I-026;QA-R5I-027;QA-R5I-028,Backend/OpenAPI/client boundary source 보완; generated client full verify 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-017,완료,미검증,QA-R5I-002;QA-R5I-016,E2E 작성; Playwright/접근성 실제 실행 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-018,재확인 필요,미검증,QA-R5I-002,Generator/EDU 전체 범위는 complete checkout 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-019,완료,부분 검증,QA-R5I-019,DB3 R6 schema lifecycle static parity PASS; live vendor runtime 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-020,부분 구현,부분 검증,QA-R5I-002;QA-R5I-003;QA-R5I-004;QA-R5I-006;QA-R5I-015;QA-R5I-017;QA-R5I-019;QA-R5I-022,"Overlay hygiene PASS, 보호 SVG 복원, 삭제 요청 0. 전체 repo dead code scan 미검증.",Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-021,완료,부분 검증,QA-R5I-001;QA-R5I-004;QA-R5I-018;QA-R5I-020,R6 관련 문서/명령/상태 갱신 완료.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-022,완료,부분 검증,QA-R5I-001;QA-R5I-003;QA-R5I-020;QA-R5I-024,Requirement/Evidence/Manifest/Hash 재생성 완료; result commit은 사용자 적용 후 결속 필요.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-023,완료,미검증,QA-R5I-015,외부 실행 package와 exact-SHA preflight 작성 완료.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-024,부분 구현,미검증,QA-R5I-001;QA-R5I-002;QA-R5I-003;QA-R5I-004;QA-R5I-024;QA-R5I-029,최종 Overlay/자체검수/Codex 인계 작성; Codex·Target Runtime 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조
+FDEV-025,완료,부분 검증,QA-R5I-019;QA-R5I-022;QA-R5I-027,local-domains opt-in 및 QA38/QA39 gate 보강; full canonical gate 미검증.,Target Runtime/Codex/result commit 조건은 TEST_AND_EVIDENCE.md 참조

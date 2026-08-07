@@ -195,12 +195,28 @@ includeBuild('cpf-tools/build/platform-bom') {
     name = 'cpf-platform-bom'
 }
 
-// Additional customer domains are independent repositories. local-domains is development-only composite mounting.
+// Customer domains are independent repositories and never affect the default build graph.
+def includeLocalDomains = providers.gradleProperty('cpfIncludeLocalDomains').map { it.toBoolean() }.orElse(false).get()
 def localDomainsDir = file('local-domains')
-if (localDomainsDir.isDirectory()) {
-    localDomainsDir.eachDir { candidate ->
-        if (new File(candidate, 'settings.gradle').isFile() || new File(candidate, 'settings.gradle.kts').isFile()) {
-            includeBuild(candidate)
-        }
+if (includeLocalDomains) {
+    def manifestFile = new File(localDomainsDir, 'manifest.json')
+    if (!manifestFile.isFile()) throw new GradleException('cpfIncludeLocalDomains=true requires local-domains/manifest.json')
+    def manifest = new groovy.json.JsonSlurper().parse(manifestFile)
+    if (!(manifest.builds instanceof List) || manifest.builds.isEmpty())
+        throw new GradleException('local-domains manifest must declare non-empty builds')
+    manifest.builds.each { entry ->
+        if (!(entry.path instanceof String) || !(entry.settingsSha256 instanceof String))
+            throw new GradleException('local-domains manifest entry requires path/settingsSha256')
+        def candidate = new File(localDomainsDir, entry.path).canonicalFile
+        if (!candidate.toPath().startsWith(localDomainsDir.canonicalFile.toPath()))
+            throw new GradleException("local-domains path escapes root: ${entry.path}")
+        def settingsFile = [new File(candidate,'settings.gradle'),new File(candidate,'settings.gradle.kts')].find { it.isFile() }
+        if (settingsFile == null) throw new GradleException("local domain settings missing: ${entry.path}")
+        def digest = java.security.MessageDigest.getInstance('SHA-256').digest(settingsFile.bytes).encodeHex().toString()
+        if (!digest.equalsIgnoreCase(entry.settingsSha256))
+            throw new GradleException("local domain settings hash mismatch: ${entry.path}")
+        includeBuild(candidate)
     }
+} else if (localDomainsDir.isDirectory()) {
+    logger.lifecycle('local-domains exists but is not mounted; use -PcpfIncludeLocalDomains=true with a verified manifest')
 }

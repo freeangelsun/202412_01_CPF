@@ -12,7 +12,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +30,7 @@ import java.util.Map;
 @RequestMapping("/adm/api/integration-closure")
 @Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
 @SecurityRequirement(name = "admSessionCookie")
+@Validated
 public class AdmIntegrationClosureController extends com.cpf.admin.common.base.AdmBaseController {
     private final AdmIntegrationClosureService service;
 
@@ -60,7 +70,7 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     public ResponseEntity<Map<String, Object>> requestCorrection(
             @PathVariable String id,
             @RequestAttribute("adm.operatorId") String operator,
-            @RequestBody CorrectionApprovalRequest request) {
+            @Valid @RequestBody CorrectionApprovalRequest request) {
         return ResponseEntity.ok(service.requestCorrection(
                 id,
                 request.expectedVersion(),
@@ -76,7 +86,7 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     public ResponseEntity<Map<String, Object>> executeCorrection(
             @PathVariable long approvalRequestId,
             @RequestAttribute("adm.operatorId") String operator,
-            @RequestBody CorrectionExecutionRequest request) {
+            @Valid @RequestBody CorrectionExecutionRequest request) {
         Map<String, Object> result = service.executeCorrection(approvalRequestId, operator, request.reason());
         return "DQ-VERSION-CONFLICT".equals(ownerResultCode(result))
                 ? ResponseEntity.status(HttpStatus.CONFLICT).body(result)
@@ -88,9 +98,10 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     @Operation(operationId = "admIntegrationDataQualityReplay", summary = "격리 데이터 재검증")
     public ResponseEntity<CpfDataQualityDecision> replayQuality(
             @PathVariable String id,
-            @RequestParam String reason,
-            @RequestAttribute("adm.operatorId") String operator) {
-        return ResponseEntity.ok(service.replayQuality(id, operator, reason));
+            @RequestAttribute("adm.operatorId") String operator,
+            @Valid @RequestBody QualityReplayRequest request) {
+        return ResponseEntity.ok(service.replayQuality(
+                id, request.expectedVersion(), request.idempotencyKey(), operator, request.reason()));
     }
 
     @GetMapping("/webhooks/dlq")
@@ -105,28 +116,40 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     @Operation(operationId = "admIntegrationWebhookReplay", summary = "Webhook DLQ/UNKNOWN 재처리")
     public ResponseEntity<CpfWebhookDelivery> replayWebhook(
             @PathVariable String id,
-            @RequestParam long expectedVersion,
-            @RequestParam String reason,
+            @RequestParam @Min(1) long expectedVersion,
+            @RequestParam @Size(min=8,max=500) String reason,
             @RequestAttribute("adm.operatorId") String operator) {
         return ResponseEntity.ok(service.replayWebhook(id, expectedVersion, operator, reason));
     }
 
     public record CorrectionApprovalRequest(
-            long expectedVersion,
-            String idempotencyKey,
-            String reason,
-            Map<String, Object> corrected) {
+            @Min(1) long expectedVersion,
+            @NotBlank @Size(min=8,max=128) String idempotencyKey,
+            @NotBlank @Size(min=8,max=500) String reason,
+            @NotEmpty Map<String, Object> corrected) {
         public CorrectionApprovalRequest {
-            if (expectedVersion < 1) throw new IllegalArgumentException("expectedVersion must be positive");
             idempotencyKey = require(idempotencyKey, "idempotencyKey");
             reason = require(reason, "reason");
-            corrected = corrected == null ? Map.of() : Map.copyOf(corrected);
-            if (corrected.isEmpty()) throw new IllegalArgumentException("corrected payload is required");
+            corrected = immutableNullable(corrected);
         }
     }
 
-    public record CorrectionExecutionRequest(String reason) {
+    public record CorrectionExecutionRequest(@NotBlank @Size(min=8,max=500) String reason) {
         public CorrectionExecutionRequest { reason = require(reason, "reason"); }
+    }
+
+    public record QualityReplayRequest(
+            @Min(1) long expectedVersion,
+            @NotBlank @Size(min=8,max=128) String idempotencyKey,
+            @NotBlank @Size(min=8,max=500) String reason) {
+        public QualityReplayRequest {
+            idempotencyKey=require(idempotencyKey,"idempotencyKey");
+            reason=require(reason,"reason");
+        }
+    }
+
+    private static Map<String,Object> immutableNullable(Map<String,Object> source) {
+        return Collections.unmodifiableMap(new LinkedHashMap<>(source == null ? Map.of() : source));
     }
 
     private static String ownerResultCode(Map<String, Object> result) {

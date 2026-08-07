@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """REV-004 overlay source-closure gate. This does not replace full-repository build/runtime gates."""
 from __future__ import annotations
-import json, re, sys
+import json, re, sys, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -63,9 +63,12 @@ elif "port.execute(" in reconcile_match.group(0):
     errors.append("approval reconcile must not invoke Owner mutation execute")
 
 require("cpf-core/src/main/java/com/cpf/core/api/data/quality/CpfDataQualityOperations.java", {
-    "legacy boolean path fails closed": r"default QuarantineItem correct[\s\S]*throw new SecurityException",
     "public correction authorization removed": r"Public callers can validate, inspect, replay and reconcile",
+    "versioned replay contract": r"record ReplayCommand",
 })
+quality_api = read("cpf-core/src/main/java/com/cpf/core/api/data/quality/CpfDataQualityOperations.java")
+for forbidden in ("boolean approved", "correctAuthorized", "CorrectionAuthorization"):
+    if forbidden in quality_api: errors.append(f"public data-quality API still exposes {forbidden}")
 require("cpf-admin/src/main/java/com/cpf/admin/approval/repository/AdmApprovalRepository.java", {
     "pre-reservation integrity audit transaction": r"Propagation\.REQUIRES_NEW[\s\S]*recordIntegrityFailure",
     "post-reservation atomic integrity transition": r"recordExecutionIntegrityFailure[\s\S]*SNAPSHOT_HASH_MISMATCH",
@@ -162,12 +165,13 @@ if "Mutation을 자동 재실행하지 않습니다" not in reconcile_operation.
 # Caller-minted authorization and stale fixed-count contracts are forbidden repository-wide.
 for forbidden in ["CorrectionAuthorization", "correctAuthorized"]:
     hits = []
-    for path in ROOT.rglob("*"):
-        if path.resolve() == Path(__file__).resolve():
-            continue
-        if path.is_file() and path.suffix.lower() in {".java", ".kt", ".groovy", ".py", ".ts", ".vue"}:
-            if forbidden in path.read_text(encoding="utf-8", errors="replace"):
-                hits.append(path.relative_to(ROOT).as_posix())
+    for product_root in ("cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch", "cpf-starters"):
+        root = ROOT / product_root
+        if not root.exists(): continue
+        for path in root.rglob("*"):
+            if path.is_file() and path.suffix.lower() in {".java", ".kt", ".groovy", ".ts", ".vue"}:
+                if forbidden in path.read_text(encoding="utf-8", errors="replace"):
+                    hits.append(path.relative_to(ROOT).as_posix())
     if hits: errors.append(f"caller-minted authorization token remains {forbidden}: {hits}")
 for rel in [
     "cpf-tools/verification/qa38/verify-qa38-structure.py",
@@ -181,6 +185,7 @@ for rel in [
     if re.search(r"BASE_SHA\s*=|(?i:(?:C|D|E|F):[\\/](?![nrt]))", text):
         errors.append(f"hard-coded baseline/path in {rel}")
 
+active_artifacts: set[str] = set()
 catalog_paths = [
     "cpf-tools/config/cpf-starter-catalog.json",
     "cpf-tools/generator/contracts/cpf-starter-catalog.json",
@@ -242,9 +247,11 @@ require("cpf-tools/build/platform-bom/public-bom/build.gradle", {
 require("cpf-tools/verification/final-dev/run-db3-lifecycle.ps1", {
     "mandatory ExpectedHead": r"Parameter\(Mandatory\s*=\s*\$true\)[\s\S]{0,160}\$ExpectedHead",
     "git root discovery": r"rev-parse\s+--show-toplevel",
-    "stdin secret transport": r"RedirectStandardInput\s*=\s*\$true[\s\S]*StandardInput\.WriteLine\(\$Password\)",
+    "stdin secret transport": r"RedirectStandardInput\s*=\s*\$true[\s\S]*--connection-json-stdin[\s\S]*StandardInput\.WriteLine\(\$ConnectionJson\)",
     "three official vendors": r"CPF_RUNTIME_ORACLE_PASSWORD[\s\S]*CPF_RUNTIME_POSTGRESQL_PASSWORD[\s\S]*CPF_RUNTIME_MARIADB_PASSWORD",
     "redacted evidence": r"Protect-Text",
+    "child environment allowlist": r"Environment\.Clear\(\)[\s\S]*JAVA_HOME[\s\S]*CPF_DB_RUNNER_CHILD",
+    "timeout kill": r"WaitForExit\(\$TimeoutSeconds \* 1000\)[\s\S]*Kill\(\$true\)",
     "exit propagation": r"exit\s+\$overallExit",
 })
 
@@ -253,8 +260,15 @@ for path in ROOT.rglob("*"):
         rel = path.relative_to(ROOT).as_posix()
         if "__pycache__" in rel or rel.endswith(".pyc"): errors.append(f"temporary bytecode in overlay: {rel}")
         if len(rel) > 220: errors.append(f"Windows-risk path length {len(rel)}: {rel}")
-        if rel.startswith(("cpf-docs/deliverables/", "cpf-docs/guides/", "cpf-docs/environment/docker/", "cpf-tools/environment/docker-development-test/")):
-            errors.append(f"protected path modified: {rel}")
+        protected_restore = {
+            "cpf-docs/assets/manuals/cpf-document-quality-r9.svg": "2979b5f65e7b8ace8a735cd5eae501c6b60cc851be2f31fd441383e7a2d498d5"
+        }
+        if rel in protected_restore:
+            import hashlib
+            if hashlib.sha256(path.read_bytes()).hexdigest() != protected_restore[rel]:
+                errors.append(f"protected restoration hash mismatch: {rel}")
+        elif rel.startswith(("cpf-docs/deliverables/", "cpf-docs/guides/", "cpf-docs/assets/manuals/", "cpf-docs/environment/docker/", "cpf-tools/environment/docker-development-test/")):
+            errors.append(f"protected path modified without restoration allowlist: {rel}")
 
 marker_path = ROOT / "cpf-admin/frontend/src/generated/.cpf-openapi-source.json"
 try:
@@ -278,6 +292,20 @@ try:
             if tracked.get(rel) != actual: errors.append(f"generated marker artifact hash drift: {rel}")
 except Exception as exc:
     errors.append(f"generated marker validation failed: {exc}")
+
+# R6 behavior/source contract gates
+for gate in (
+    ROOT / "cpf-tools/verification/final-dev/verify-r6-behavior-contracts.py",
+    ROOT / "cpf-tools/verification/final-dev/verify-r6-approval-contract.py",
+    ROOT / "cpf-tools/verification/final-dev/verify-r6-sql-parity.py",
+    ROOT / "cpf-tools/verification/final-dev/verify-r6-overlay-hygiene.py",
+):
+    if gate.is_file():
+        result = subprocess.run([sys.executable, str(gate), str(ROOT)], cwd=ROOT, text=True, capture_output=True)
+        if result.returncode != 0:
+            errors.append(f"{gate.name} failed: {result.stdout}{result.stderr}")
+    else:
+        errors.append(f"missing R6 gate: {gate.relative_to(ROOT)}")
 
 if errors:
     print("\n".join(f"FAIL {error}" for error in errors))

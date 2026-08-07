@@ -1,0 +1,13 @@
+captured_at_kst=2026-08-07T03:44:10+09:00
+os=Linux bdb68a65e485 6.18.35 #1 SMP Mon Jul 27 18:07:50 UTC 2026 x86_64 GNU/Linux
+java=openjdk version "21.0.10" 2026-01-20
+java=OpenJDK Runtime Environment (build 21.0.10+7-Debian-1deb13u1)
+java=OpenJDK 64-Bit Server VM (build 21.0.10+7-Debian-1deb13u1, mixed mode, sharing)
+node=v22.16.0
+npm=10.9.2
+python=Python 3.13.5
+pwsh=NOT_INSTALLED
+docker=NOT_INSTALLED
+gradle=NOT_INSTALLED
+github_dns_probe=FAILED earlier: Could not resolve host github.com
+github_connector_master=28f823a18eca859cebdbceb382029f595cdf490c

@@ -11,6 +11,15 @@ public interface AdmApprovalOwnerCommandPort {
         return false;
     }
 
+    /**
+     * Full server-registry binding. Every executable adapter must override this method and bind the
+     * exact owner/command/action/target tuple. The default is fail-closed so legacy two-dimensional
+     * adapters cannot silently authorize arbitrary action or target values.
+     */
+    default boolean supports(String ownerModule, String ownerCommand, String actionType, String targetType) {
+        return false;
+    }
+
     AdmApprovedOperationResult execute(AdmApprovedOperationCommand command);
 
     /**

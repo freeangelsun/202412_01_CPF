@@ -1,0 +1,13 @@
+COMMAND: Python json.loads + PyYAML safe_load for all overlay JSON/YAML
+START_UTC: 2026-08-06T19:25:18Z
+PASS YAML .github/workflows/cpf-r6-release-gates.yml
+PASS YAML cpf-admin/src/main/resources/application-adm-local.yml
+PASS YAML cpf-admin/src/main/resources/application-adm-prod.yml
+PASS YAML cpf-admin/src/main/resources/application.yml
+PASS JSON cpf-docs/work/v9i/dev/r6s12/PACKAGE_MANIFEST.json
+PASS JSON cpf-tools/db/vendor/mariadb/pack.json
+PASS JSON cpf-tools/db/vendor/oracle/pack.json
+PASS JSON cpf-tools/db/vendor/postgresql/pack.json
+PASS parsed_files= 8
+EXIT_CODE: 0
+END_UTC: 2026-08-06T19:25:19Z

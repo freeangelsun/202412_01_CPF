@@ -1,0 +1,5 @@
+COMMAND: python cpf-tools/verification/final-dev/verify-r6-overlay-hygiene.py ROOT_OVERLAY
+START_UTC: 2026-08-06T19:25:55Z
+EXIT_CODE: 0
+PASS overlay hygiene files=123 empty=0 temp=0 longpath=0 secret-pattern=0
+END_UTC: 2026-08-06T19:25:56Z

@@ -1,25 +1,29 @@
 # CPF V9I Dataset Map
 
-## Current Post-R6I control
-- `post-r6i/CENTRAL_INTEGRATED_REVIEW.md`
-- `post-r6i/CENTRAL_REVIEW_CANDIDATES.csv`
-- `post-r6i/QA_ASSIGNMENT_MATRIX.csv`
+## Current R6J Canonical Control
+- `qa/r6j/CENTRAL_MERGED_QA_REPORT.md`
+- `qa/r6j/CENTRAL_INTEGRATED_FINDINGS.csv`
+- `qa/r6j/CENTRAL_REQUIREMENT_STATUS.csv`
+- `qa/r6j/EDU_ADM_ARCHITECTURE_DECISION.csv`
+- `qa/r6j/CENTRAL_RUNTIME_QUALIFICATION_MATRIX.csv`
+- `qa/r6j/QA_CROSS_REVIEW_DISPOSITION.md`
+- `qa/r6j/QA_RESULT_PACKAGE_STATUS.md`
+
+## QA Source Results
+- `qa/r6j/a/**` — QA A Full Review
+- `qa/r6j/b/**` — QA B Deep Re-Audit
+- prior B fast result — SUPERSEDED, not canonical
+
+## Developer Request
+- `final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+- `final-dev-request/DEVELOPMENT_REWORK_REQUIREMENTS_R6J.csv`
+- `final-dev-request/R6J_TRANSACTION_LOGGING_REWORK.md`
+
+## Shared Standards
 - `post-r6i/LOGGING_TRANSACTION_QA_STANDARD.md`
 - `post-r6i/CROSS_AGENT_COLLABORATION_POLICY.md`
 
-## QA R6J
-- `qa/r6j/a/QA_A_EXECUTION_INSTRUCTION.md`
-- `qa/r6j/b/QA_B_EXECUTION_INSTRUCTION.md`
-
-## Previous QA canonical
-- `qa/r6i/QA_FINDINGS.csv`
-- `qa/r6i/QA_REQUIREMENT_STATUS.csv`
-- `qa/r6i/QA_MANAGER_HARDENING_REQUIREMENTS.csv`
-- `qa/r6i/QA_MANAGER_ADDITIONAL_DEVELOPMENT_REVIEW.md`
-
-## Development
-- `final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md` — historical R6I instruction
-- `final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md` — common next-cycle policy
-- `../../r6i-dev/**` — applied developer result
-
-Historical QA remains preserved.
+## Historical
+- `qa/r6i/**`
+- `qa/r5i/**`
+- `../../r6i-dev/**`

@@ -58,3 +58,14 @@ result SHA, command, exit code, tool version, actual stdout/stderr hash, artifac
 GPT는 Commit/Push하지 않는다.
 Root-relative ZIP + SHA-256 + Handover를 사용자에게 제공한다.
 사용자 Push 후 새 master에서 QA가 다시 검증한다.
+
+
+## 7. R6J 현재 구체 실행지침 Binding
+
+현재 QA A/B R6J 중앙 통합 후 구체 개발 요청은 다음 파일을 정본으로 사용한다.
+
+`cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+
+Basis QA SHA: `3ed676061246c9db3e44f29e254c0393ecca3929`
+
+이 공통정책과 구체 실행지침이 충돌하면 최상위 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 우선하고, 그 범위 안에서 R6J 구체 실행지침을 따른다.

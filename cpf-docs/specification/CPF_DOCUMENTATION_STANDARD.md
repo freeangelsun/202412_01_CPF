@@ -1,357 +1,132 @@
-# CPF 고객사 README·매뉴얼 작성 및 관리 표준
+# CPF 고객사 README·매뉴얼·설계 산출물 작성 및 관리 표준
+
+> Repository: `freeangelsun/202412_01_CPF`
+> Branch: `master`
+> 문서 표준 기준 Commit: `3ed676061246c9db3e44f29e254c0393ecca3929` (`07_02`)
+> 최상위 요구사항 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
 ## 1. 문서의 정체성과 독자
 
-CPF의 README와 공식 매뉴얼은 **CPF를 선택한 고객사 사용자**를 위한 제품 문서다. 주 독자는 CPF 내부를 개발하는 사람이 아니라 다음 역할이다.
-
-- 고객사의 업무 기획자·기술 책임자
-- CPF로 온라인·연계 업무를 만드는 개발자
-- 정기·대량 업무를 만드는 배치 개발자와 운영자
-- 고객 업무를 ADM에 연결하는 연동 개발자
-- ADM의 조회자·운영자·승인자·보안담당자·운영관리자
-- 설치·DB·배포·관측·백업·재해복구 담당자
-- BZA의 조직·사용자·권한·결재 담당자
-- Gateway의 API 개발자·보안담당자·운영자
-
-고객사는 CPF 자체를 개발하지 않는다. 고객사는 CPF가 제공하는 기능을 선택해 자기 회사의 업무 서비스를 개발하고, 완성된 CPF 제품을 설정·운영·복구한다.
-
-## 2. 모든 문서가 답해야 할 질문
-
-각 기능 설명은 다음 질문에 순서대로 답해야 한다.
-
-1. **이 기능이 CPF에서 가능한가?**
-2. **이 기능으로 고객이 무엇을 만들 수 있는가?**
-3. **어떤 상황에서 선택하고 어떤 상황에서는 다른 방식을 선택하는가?**
-4. **고객사가 결정할 값과 CPF가 제공하는 부분은 무엇인가?**
-5. **누가 어떤 권한으로 어디에서 무엇을 입력하는가?**
-6. **어떤 순서로 개발·연동·운영하는가?**
-7. **정상 결과를 화면·API·DB·로그·감사에서 어떻게 확인하는가?**
-8. **중복·동시성·시간초과·응답 유실·부분 실패가 발생하면 어떻게 복구하는가?**
-9. **어떤 교육 예제를 실행하고 고객 업무로 무엇을 바꾸는가?**
-10. **운영팀에 어떤 정보와 복구 절차를 인계하는가?**
-
-프레임워크 내부 모듈, 계층, 공개 API, 확장 지점은 위 작업을 수행하는 데 필요한 위치에서만 설명한다. 내부 구조 자체를 장의 목적이나 품질 지표로 삼지 않는다.
-
-## 3. 기준 Repository와 작업 안전
-
-- Repository: `freeangelsun/202412_01_CPF`
-- Branch: `master`
-- 작업 시작마다 최신 `origin/master` SHA를 확인하고 산출물 검수 기록에 남긴다. 이 표준 문서에는 Commit을 고정하지 않는다.
-- 최상위 제품 요구사항: `CPF_FINAL_TARGET_REQUIREMENTS.md`
-- 문서 표준: 이 파일
-- 사실 우선순위: 실제 Source·SQL·API·Config·Frontend·Script·Test → Architecture·Specification → 공식 매뉴얼
-
-작업 시작 전 다음을 확인한다.
-
-```powershell
-git remote -v
-git branch --show-current
-git fetch origin master
-git rev-parse HEAD
-git rev-parse origin/master
-git status --short
-git diff --name-status
-git diff --stat
-git ls-files --others --exclude-standard
-```
-
-사용자 승인 없이 Commit, Push, Branch, Tag, PR, Merge, Rebase, Cherry-pick, Revert, Stash, Checkout, Switch, Restore, Reset, Clean, Remote 변경과 Force Push를 수행하지 않는다. Local Working Tree의 기존 변경은 우선 보호한다.
-
-## 4. 공식 사용자 문서
-
-공식 사용자 문서는 다음 9개만 사용한다.
-
-```text
-README.md
-cpf-docs/guides/00_프레임워크안내.md
-cpf-docs/guides/01_개발자매뉴얼.md
-cpf-docs/guides/02_배치개발매뉴얼.md
-cpf-docs/guides/03_ADM개발자매뉴얼.md
-cpf-docs/guides/04_ADM운영자매뉴얼.md
-cpf-docs/guides/05_플랫폼운영매뉴얼.md
-cpf-docs/guides/90_BZA매뉴얼.md
-cpf-docs/guides/91_Gateway매뉴얼.md
-```
-
-별도 Quick Start, EDU, Reference, Case, Troubleshooting, Runbook, Report, Docker 사용자 Guide를 공식 Guide 폴더에 추가하지 않는다. 해당 내용은 담당 매뉴얼의 장으로 통합한다. `cpf-docs/guides/README.md`를 만들지 않는다.
-
-## 5. 문서별 주 독자와 완료 결과
-
-| 문서 | 주 독자 | 문서를 읽고 완료할 일 |
-|---|---|---|
-| README | 도입 검토자·처음 방문한 사용자 | CPF로 만들 수 있는 업무 기능을 파악하고 역할별 매뉴얼을 선택한다. |
-| 00 프레임워크 안내 | 업무 기획자·아키텍트·개발/운영 리더 | 가능 기능, 적용 사례, 제품 선택, 배포 형태와 도입 순서를 결정한다. |
-| 01 개발자 매뉴얼 | 고객사 온라인·연계 업무 개발자 | 조회·등록·상태변경·메시지·파일·외부연계 기능을 설계부터 시험·운영 인계까지 만든다. |
-| 02 배치 개발 매뉴얼 | 고객사 배치 개발자·배치 운영자 | Tasklet·Chunk·File·Partition·Worker·Center-Cut·Scheduler 배치를 개발하고 실행·재시작·재처리한다. |
-| 03 ADM 개발자 매뉴얼 | 고객사 업무 개발자·ADM 연동 개발자 | 자기 업무의 조회·조치·승인·감사·복구 기능을 완성된 ADM 제품에 연결한다. |
-| 04 ADM 운영자 매뉴얼 | 조회자·운영자·승인자·보안담당자·운영관리자 | 권한 수준에 맞게 ADM 메뉴를 조회·판단·통제·승인·대사·복구한다. |
-| 05 플랫폼 운영 매뉴얼 | 개발환경·인프라·DBA·배포·관측·DR 담당자 | 고객 환경에 설치하고 설정·기동·배포·관측·백업·복구한다. |
-| 90 BZA 매뉴얼 | 조직·권한·결재 담당자·업무 연동 개발자 | 조직·직원·사용자·권한·결재·첨부·알림을 고객 업무에 적용하고 운영한다. |
-| 91 Gateway 매뉴얼 | API 개발자·보안담당자·Gateway 운영자 | 고객 API를 등록·검증·게시하고 인증·라우팅·제한·적용·복구를 운영한다. |
+CPF 문서는 CPF 내부 개발일지가 아니라 고객사가 CPF 제품을 선택·개발·운영·복구·감사·확장하는 데 사용하는 제품 문서다. 고객은 CPF 제품 본체를 다시 개발하지 않는다.
 
-`03_ADM개발자매뉴얼.md`의 개발자는 ADM 제품을 새로 개발하는 사람이 아니다. 고객 업무 기능을 ADM에서 사용할 수 있도록 연동하는 개발자다. ADM 내부 Backend·Frontend를 확장하는 설명은 기존 제품 기능으로 해결할 수 없는 고객 전용 화면을 추가할 때만 다룬다.
+주 독자는 도입 검토자, 업무/배치 개발자, ADM 연동 개발자와 운영자, 플랫폼 운영자·DBA·보안·DR 담당자, BZA 조직/권한/결재 담당자, Gateway API/보안/운영 담당자다.
 
-## 6. 고객 기능 장의 필수 구조
+## 2. 사실 우선순위와 기준 Repository
 
-모든 기능 장은 다음 순서를 사용한다.
+1. 최신 `origin/master`의 실제 Source·SQL·API·Config·Frontend·Script·Test
+2. 최상위 제품 요구사항과 Architecture/Specification
+3. 공식 사용자 문서
 
-1. 이 기능으로 만들 수 있는 업무 결과
-2. 선택 기준과 사용하지 말아야 할 경우
-3. 주 사용자와 권한
-4. 시작 전에 결정할 값
-5. 작업 후 만들어지는 결과물
-6. 번호가 있는 단계별 절차
-7. 입력값·기본값·허용 범위
-8. 정상 결과와 완료 판정
-9. 중복·동시성·시간초과·응답 유실·부분 실패
-10. 재시도·재시작·재처리·대사·보상·되돌리기
-11. 로그·지표·추적·감사 확인
-12. 교육 예제의 위치·명령·입력·기대 결과·오류 재현
-13. 고객 업무로 바꿀 부분과 CPF가 유지하는 부분
-14. 운영 인계 항목
+작업 시작마다 `origin/master` SHA를 기록한다. 과거 ZIP·다른 Branch·이전 대화만으로 현행 기능을 확정하지 않는다. Local Working Tree의 기존 변경은 보호한다. 사용자 승인 없이 Commit/Push/Branch/Tag/PR/Merge/Rebase/Cherry-pick/Revert/Stash/Checkout/Switch/Restore/Reset/Clean/Remote 변경을 수행하지 않는다.
 
-“지원한다”, “관리한다”, “처리한다”, “확인한다”로 끝내지 않는다. 누가 어느 화면·파일·명령에서 무엇을 입력하고 어떤 상태·결과를 확인하는지 작성한다.
+## 3. 공식 사용자 문서와 배포 형식
 
-## 7. 기능 카탈로그 기준
+공식 사용자 진입 문서는 다음 9개 역할만 사용한다.
 
-기능은 내부 Module이나 Class가 아니라 고객이 만들 수 있는 결과로 분류한다.
+- `README.md`
+- `cpf-docs/guides/00_프레임워크안내.pdf`
+- `cpf-docs/guides/01_개발자매뉴얼.pdf`
+- `cpf-docs/guides/02_배치개발매뉴얼.pdf`
+- `cpf-docs/guides/03_ADM개발자매뉴얼.pdf`
+- `cpf-docs/guides/04_ADM운영자매뉴얼.pdf`
+- `cpf-docs/guides/05_플랫폼운영매뉴얼.pdf`
+- `cpf-docs/guides/90_BZA매뉴얼.pdf`
+- `cpf-docs/guides/91_Gateway매뉴얼.pdf`
 
-- 조건 검색·목록·상세 API와 화면
-- 상태가 변경되는 신청·수정·정지·재개 기능
-- 중복 실행 방지와 응답 유실 결과 대사
-- 여러 서비스가 참여하는 업무 흐름
-- Kafka 이벤트 발행·소비·재처리
-- 파일 업로드·검사·보관·다운로드
-- 외부 REST·전문 연계와 시간초과 복구
-- 업무 권한·데이터 범위·개인정보 가림·감사
-- 정기·대량·분할·원격 배치와 재시작
-- ADM 조회·통제·승인·감사 연동
-- 설치·설정·배포·관측·백업·DR
-- BZA 조직·사용자·권한·결재 적용
-- Gateway API 공개·라우팅·보안·게시·복구
+각 Guide는 같은 basename의 `.docx` 편집본을 함께 제공한다. 설계 산출물 5종(`산출물목록`, `아키텍처설계서`, `기술사양서`, `기술표준서`, `데이터베이스표준서`)도 `.pdf` 정식 열람본과 같은 basename의 `.docx` 편집본을 함께 제공한다.
 
-각 기능은 가능 여부, 대표 적용 사례, 개발 장, 운영 장, 교육 예제를 연결한다.
+**README만 Markdown으로 유지한다. Guide 8종과 설계 산출물 5종의 `.md` Authoring 파일은 Repository에 보존하지 않는다. README의 공식 매뉴얼·설계 링크는 PDF를 가리킨다.**
 
-## 8. 교육 예제와 구현 공백 처리
+`cpf-docs/guides/README.md`와 별도 Quick Start/EDU/Reference/Case/Troubleshooting/Runbook 사용자 Guide를 만들지 않는다. 해당 내용은 담당 매뉴얼 내부에 포함한다.
 
-교육 예제는 검색어만 제시하지 않는다. 다음을 모두 제공한다.
+## 4. README 보호
 
-- 교육 ID와 표준 Source·Test·설정 경로
-- 실행 명령
-- 요청 예시와 Test Data
-- 정상 응답·DB 상태·로그·감사 결과
-- 오류·중복·시간초과·Process 종료 재현 방법
-- 복구와 대사 방법
-- 고객 업무로 전환할 때 바꿀 항목
-- CPF가 관리하므로 임의 수정하지 않을 항목
+README는 제품 브로셔, Architecture 시각 소개, 공식 PDF 진입점, 최소 빠른 시작 역할을 한다. 승인 없이 Hero, Architecture, Product Map, Topology, Execution/Operations 흐름, Domain Journey, Guide Map, Desktop/Mobile 구성을 전면 재작성하지 않는다. 사실 오류·깨진 링크·정본 경로를 기존 구조 안에서 최소 수정한다.
 
-Repository에 교육 예제나 연동 기능이 부족해도 매뉴얼 장을 생략하지 않는다. 고객이 최종적으로 수행할 완성 절차를 매뉴얼에 먼저 작성하고, 부족한 구현은 공식 Guide 밖의 개발 요청 리포트에 교육 ID·요구 기능·예상 경로·Test·ADM 확인점을 기록한다.
+README가 직접 참조하는 `cpf-docs/assets/readme/**`, `cpf-docs/assets/manuals/cpf-reader-start.svg`, `cpf-docs/guides/png/cpf-guide-map.png`는 사용 중 자산으로 보호한다.
 
-## 9. 설명 언어와 화면 용어
+## 5. 모든 기능 설명이 답해야 할 질문
 
-- 본문과 제목은 한글을 기본으로 한다.
-- 영문 기술 용어는 처음 한 번 `한글 설명(영문 용어)` 형태로 병기한다.
-- API, Property, Class, Method, 파일 경로와 실제 상태값은 원문을 유지한다.
-- `Owner`, `Consumer`, `Control Plane`, `Data Plane`, `Slice`, `Evidence` 같은 내부 용어를 한글 설명 없이 사용하지 않는다.
-- 입력 항목·표시값·버튼 이름은 실제 화면 명칭을 유지하되 바로 옆에 사용 목적을 설명한다.
-- 메뉴 장은 Route·Source 파일을 보여 주는 것이 목적이 아니라 운영자가 화면을 올바르게 사용하는 것이 목적이다.
+각 기능은 목적, 대상 역할, Owner Module, 실제 Consumer, Public API/SPI/Internal 경계, Source/Config/SQL/화면 위치, 선행조건, 입력·기본값·범위, 전체 흐름, 단계별 절차, 정상 결과와 상태 변화, Log/Metric/Trace, 오류·동시성·Timeout·응답 유실·부분 실패, Retry/Restart/Reprocess/Reconcile/Compensation/Rollback, Permission/Data Scope/Masking/Reason/Approval/Audit, Test, ADM 확인, 미검증·제한사항을 설명한다.
 
-## 10. 매뉴얼별 필수 범위
+“지원한다/관리한다/처리한다/등록한다/확인한다”만으로 완료 처리하지 않는다. 누가 어떤 권한으로 어디에 무엇을 입력하고 어떤 상태로 바뀌며 실패하면 무엇으로 정상화를 판정하는지 쓴다.
 
-### 10.1 프레임워크 안내
+## 6. 상태 표현과 검증
 
-고객이 CPF로 만들 수 있는 시스템과 기능을 한눈에 판단하게 한다. 온라인·비동기·파일·외부연계·배치·운영·권한·결재·Gateway를 적용 사례와 선택 질문으로 설명한다. 내부 모듈 의존 방향은 고객의 배포·운영 결정에 필요한 수준으로만 설명한다.
+허용 상태는 `완료`, `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`다. 직접 실행하지 않은 Runtime/DB/Browser/다중 인스턴스/장애 Test는 성공으로 기록하지 않는다. Static Source 정합성과 Runtime 검증을 분리한다.
 
-### 10.2 개발자 매뉴얼
+## 7. 제품 본체와 EDU/Reference 경계
 
-기능 유형별로 목적, 업무 예시, 입력·상태·권한·DB·API, 개발 순서, 코드/계약 예시, 정상 결과, 실패 복구, 교육 예제, ADM 확인, 배포 인계를 제공한다. 조회, 등록·상태변경, 동시성, 멱등성, 같은 애플리케이션·분리 서비스 호출, Kafka, 파일, 외부 REST, 전문, 권한·감사, Cache·기능 전환, 알림·내보내기, DB 변경, 장애 시험을 포함한다.
+ADM, BZA, Gateway, Batch Runtime은 제품 Module이 소유한다. 제품 내부 기능을 이름만 바꾼 Generic Handler/JDBC Example로 Reference에 복제하지 않는다. `cpf-reference`/EDU는 도입 개발자가 실제 사용하는 Public API·SPI·Extension Point·Integration Contract·Generator 산출물 사용법을 교육한다.
 
-### 10.3 배치 개발 매뉴얼
+EDU 개수는 품질 점수가 아니다. 각 항목이 교육 대상 사용자, 공개 계약, 실제 Consumer, 교육 필요성을 설명하지 못하면 Architecture 재분류 대상이다. 기존 EDU ID의 유지/통합/Product 귀속/공식 Extension Sample/삭제 후보 판정은 QA 결과를 따른다.
 
-Tasklet, Chunk, File, Partition, 원격 Worker, Center-Cut, Scheduler, Job Pack, Agent를 고객 업무 유형별로 설명한다. JobParameter, Metadata, Checkpoint, Stop, Restart, Abandon, 재처리, 결과 대사와 교육 예제를 포함한다.
+## 8. 거래·로그·추적 표준
 
-### 10.4 ADM 개발자 매뉴얼
+최상위 `transactionId`는 Local/Remote, Gateway, Message, File, Batch, 외부연계에서도 유지한다. Retry는 attempt로 구분하고 `segmentId/parentSegmentId`, `traceId/spanId`, request/idempotency 및 Batch/Remote 식별자를 연결한다.
 
-완성된 ADM 제품에 고객 업무를 연결하는 문서다. 기존 메뉴 선택, 조회 계약, 안전한 조치, 승인, 비동기 작업, 응답 유실, 부분 성공, 감사, 생성된 Client, 고객 전용 화면의 최소 조건과 브라우저 시험과 장애 시험를 설명한다.
+File Log는 표준 경로·파일명·UTF-8 구조화 Record·Rotation·Compression·Retention·권한, bounded queue/backpressure/fallback, disk-full/write-failure, shutdown drain, spool/replay/dedup/checksum/gap/loss metric을 검증한다. DB Timeline은 transactionId Index, segment hierarchy, append/idempotency, outage recovery, retention/partition/archive/purge, Audit tamper evidence를 검증한다. Secret/Token/PII 원문을 기록하지 않는다.
 
-### 10.5 ADM 운영자 매뉴얼
+ADM은 transactionId 하나로 가능한 전체 계보를 연결하고 Source 누락·지연에는 Partial/Stale을 표시한다.
 
-실제 Route·화면·권한을 전수 대조한다. 각 메뉴에 사용 시점, 주 사용자, 검색·입력값, 기본값, 표시 항목, 버튼, 활성 조건, 정상 판정, 오류·응답 유실·부분 성공·재처리·대사·되돌리기·감사를 작성한다.
+## 9. 매뉴얼별 최소 범위
 
-### 10.6 플랫폼 운영 매뉴얼
+### 9.1 00 프레임워크 안내
+제품 범위/비범위, Architecture, Module Ownership, 의존 방향, MSA/Modular Monolith, Local/Remote, 다중 인스턴스, 온라인/비동기/Batch/보안/DB Lifecycle/Generator, 제품-EDU 경계, 문서 지도를 다룬다.
 
-개발·시험 Docker 환경과 운영 설치를 함께 설명한다. 배포 파일, 계정·디렉터리, 전체 설정값, Secret·Certificate, Oracle·PostgreSQL·MariaDB, Kafka·Redis, 기동·종료·Health, Rolling·Blue-Green·Canary, 부분 적용, 관측, 용량, Backup·Restore, Upgrade·Rollback, DR과 장애별 Runbook을 포함한다.
+### 9.2 01 개발자 매뉴얼
+환경/Build, Generator, 신규 Domain, API/Application/Domain/Persistence, Transaction/동시성, Local/Remote, 멱등/UNKNOWN_RESULT, Kafka/Outbox/Inbox, File/Attachment/외부연계, Security/Audit/Secret SPI, DB Migration, OpenAPI/Generated Client, Test, ADM 확인, 배포 인계와 실제 Public Consumer EDU를 다룬다.
 
-### 10.7 BZA 매뉴얼
+### 9.3 02 배치 개발 매뉴얼
+Spring Batch Primary Engine, Job/Step/Tasklet/Chunk, Reader/Processor/Writer, Parameter/Metadata/Checkpoint, Stop/Restart/Abandon, Partition/Remote Worker, Scheduler/Misfire, Center-Cut, Artifact/Job Pack, Runner/Worker/Agent, Lease/Claim/Fencing, Dry Run, 승인/실행/UNKNOWN/Reprocess/Reconcile, transaction lineage, ADM 운영을 다룬다.
 
-조직·직원·발령·사용자·역할·메뉴·버튼·API·데이터 범위·결재·위임·대결·첨부·알림·Session·감사·Download를 도입 순서와 메뉴별 운영 절차로 설명한다.
+### 9.4 03 ADM 개발자 매뉴얼
+완성된 ADM 제품에 고객 Owner Query/Command를 Same-JVM/Remote로 연결하고 Timeout/Expected Version/Idempotency/UNKNOWN/Reconciliation, Permission/Masking/Reason/Approval/Audit, canonical OpenAPI/Generated Client, Route/Menu/State/Table/Form, Browser Fault Test와 고객 Extension 경계를 다룬다.
 
-### 10.8 Gateway 매뉴얼
+### 9.5 04 ADM 운영자 매뉴얼
+실제 Route/Component/Permission을 전수 대조한다. 각 화면의 검색 Field/기본값/Column/상세 Field/상태/Button/활성조건/입력/Reason/Approval/Expected Version/응답 유실/부분 적용/Retry/Reprocess/Reconcile/Rollback/Audit를 다룬다. 가상 화면 목록으로 대신하지 않는다.
 
-API 공개 판단, Server Group, Route, Path·Header 변환, 인증·권한·TLS, 시간초과·재시도·회로 차단, 멱등성·시도 이력, 연결시험, 승인·게시, 적용 ACK/NACK, Drift·LKG·Rollback과 장애 복구를 설명한다.
+### 9.6 05 플랫폼 운영 매뉴얼
+지원 환경/Artifact/Checksum, 계정/Directory, 전체 Leaf Property·환경변수·Profile, Secret/Certificate, DB3 설치/Migration/Drift, Kafka, 설치, 기동/종료/Health, 배포, Config Partial Apply, Log/Metric/Trace, Capacity, Backup/Restore, Upgrade/Rollback, DR와 장애 Runbook을 다룬다.
 
-## 11. README 보호
+### 9.7 90 BZA 매뉴얼
+BZA 도입/설치, 초기 관리자, 조직/직원/사용자, Role/Permission/Data Scope, 결재/위임/대결, Attachment/Notification, Session/Masking/Audit/Export, 업무 Domain 연계, Backup/Restore/Upgrade/Rollback을 제품 Source 기준으로 다룬다.
 
-README는 제품 브로셔, 시각적 Architecture 소개, 공식 매뉴얼 진입점과 최소 시작 명령 역할만 수행한다. Hero, 이미지, Section 구조, Product Map, Topology, 실행·운영 흐름, Guide Map, Card·CTA, Desktop·Mobile 구조는 사용자 승인 없이 전면 변경하지 않는다. 문서 역할 설명, 링크, 사실 오류와 시작 순서만 기존 틀을 유지해 수정한다.
+### 9.8 91 Gateway 매뉴얼
+선택/설치, Route/Predicate/Filter/Rewrite, Target/Discovery/LB, AuthN/AuthZ/HMAC/Audience/Body Hash/Nonce/SSRF/TLS, Timeout/Retry/Circuit/Bulkhead, Idempotency/Attempt/UNKNOWN, Validation/Approval/Publish, ACK/NACK/Partial, LKG/Rollback, Scale-out/Drift/Reconcile, transaction lineage, Probe/Health/ADM/Runbook을 다룬다.
 
-## 12. 검수 기준
+## 10. Property 문서화
 
-줄 수, 메뉴 수, 그림 수, 링크 수만으로 완료하지 않는다. 다음 독자 시험을 통과해야 한다.
+Leaf Property는 Key, 환경변수, Type, Default, 필수, 범위, Consumer, Profile, 재기동, Secret, 오류 증상, 확인 명령/정상 결과, Rollback을 포함한다. Prefix만 나열해 전체 Reference로 부르지 않는다.
 
-- 처음 접한 고객이 10분 안에 만들 수 있는 기능을 찾는가?
-- 해당 기능의 개발·연동·운영 순서를 위에서 아래로 수행할 수 있는가?
-- 입력값, 기본값, 정상 결과와 오류 결과를 구분할 수 있는가?
-- 영어와 내부 용어 때문에 Source를 역분석하지 않아도 되는가?
-- 조회 화면에서 변경 절차를 요구하거나, 변경 화면에서 조회만 설명하지 않는가?
-- 응답 유실·부분 성공·동시성·중복 처리의 다음 행동이 명확한가?
-- 교육 예제가 파일 경로·명령·입력·기대 결과까지 연결되는가?
-- 메뉴·API·Property·상태·권한을 Source에 없는 이름으로 만들지 않았는가?
-- README와 각 매뉴얼의 독자 정의가 일치하는가?
+## 11. 화면 문서화
 
-## 13. 금지 사항
+Route Registry와 실제 Vue Component를 함께 확인한다. `expectedOperationIds`를 Button Permission과 동일하다고 간주하지 않는다. Server Session의 실제 Operation/Button 권한, 활성조건, Version/Approval/Idempotency와 Runtime 오류 처리까지 쓴다.
 
-- 고객 매뉴얼을 CPF 내부 개발팀의 설계서·QA 보고서처럼 작성하지 않는다.
-- ADM 제품 자체 개발을 고객사의 ADM 연동 개발과 혼동하지 않는다.
-- 기능 예제가 부족하다는 이유로 기능 장을 삭제하거나 한 줄 설명으로 끝내지 않는다.
-- 가상 화면·가상 Button·가상 Permission·가상 상태를 실제 기능처럼 쓰지 않는다.
-- 기능 설명을 내부 Class·Module·Port·Adapter 목록으로 대신하지 않는다.
-- 별도 공식 Guide를 추가해 읽는 경로를 분산하지 않는다.
+## 12. OpenAPI·Generated Code
 
-## 14. 산출물 전달
+Canonical OpenAPI, Generated Client, Runtime Route/Operation이 같은 계약을 사용해야 한다. Generated Client를 수기 변경해 Drift를 숨기지 않는다. canonical-compat generation/verification, operation consumer, runtime OpenAPI parity 같은 Gate의 Source 존재와 실제 실행 결과를 분리해 기록한다.
 
-문서 수정 결과는 Repository Root 상대경로를 유지한 하나의 ZIP으로 전달한다. ZIP에는 최종 신규·수정 파일만 포함하고 `.git`, Build, Log, Tmp, Bak, 과거본을 포함하지 않는다. 삭제 대상은 정확한 Manifest와 안전한 적용 방법을 제공한다.
+## 13. PDF·DOCX 제작 표준
 
-최종 보고에는 Repository, Branch, Commit, ZIP SHA-256, 파일 수·경로, 신규·수정·삭제, 적용·검증·Rollback, 구현 요청 목록, Commit·Push 미수행 여부를 포함한다.
+13개 문서는 DOCX를 편집 정본으로 생성하고 그 DOCX에서 PDF를 변환한다. 제목/Heading 계층, TOC, 반복 Table Header, 표 행 분할 방지, Page Header/Footer, 한글 글꼴, 코드/경로 가독성을 유지한다. PDF/DOCX 내부에 Authoring Markdown Anchor나 Backtick Artifact를 노출하지 않는다.
 
-## 15. 완료 전 확인
+변환 후 DOCX와 PDF를 모두 페이지 이미지로 렌더하고 전 페이지를 확인한다. 잘림, 겹침, 깨진 글리프, 표 폭 침범, 빈 페이지, 과도한 반쪽 공백이 있으면 수정 후 재렌더한다.
 
-```powershell
-git status --short
-git diff --name-status
-git diff --stat
-git diff --check
-git ls-files --others --exclude-standard
-```
+## 14. Source Trace와 문서 변경 Trigger
 
-문서 검수에서는 공식 문서 수, README 링크, Markdown 제목·Code Fence, UTF-8, 상대 링크, 이미지 XML, 중복/미사용 이미지, 금지 표현, 고객 독자 정의, 기능별 필수 구조, 교육 ID 연결, ZIP CRC와 재해제 Hash를 확인한다.
+Source/API/SQL/Config/Frontend/Permission/Route/Test 변경이 사용자 절차·입력·상태·복구·보안에 영향을 주면 담당 PDF/DOCX를 같은 변경 단위에서 현행화한다. 문서의 기준 Commit을 기록한다.
 
-## 16. 고객사 독자 시험 상세
+## 15. 삭제·가비지 규칙
 
-완료 판정자는 내부 개발 지식이 없는 고객 역할을 가정하고 다음 과제를 수행한다.
+Guide/설계 `.md` Authoring 파일, 이전 문서 Revision Evidence, 현재 README/PDF/DOCX에서 참조하지 않는 문서 전용 이미지와 이번 작업의 tmp/bak/중간 Script/중복 ZIP은 정확한 삭제 Manifest로 관리한다. Source, 추적 파일, 다른 작업자의 변경, 전체 미추적 파일을 광범위하게 삭제하지 않는다. `git clean`과 wildcard 전체 삭제를 사용하지 않는다.
 
-| 독자 | 문서로 수행할 과제 | 통과 조건 |
-|---|---|---|
-| 신규 업무 개발자 | 조회 기능과 상태 변경 기능을 선택해 설계표·API·시험·운영 인계를 작성 | 다른 문서나 소스 역분석 없이 순서와 결과를 설명 |
-| 배치 개발자 | 월말 정산 배치를 선택해 Parameter·Chunk·재시작·대사를 설계 | 중단 위치와 재처리 범위를 판단 |
-| ADM 연동 개발자 | 고객 업무 조회와 재처리 기능을 ADM에 연결 | 기존 ADM 사용 범위와 추가 연동 범위를 구분 |
-| ADM 운영자 | 장애 거래를 찾고 허용된 조치를 실행한 뒤 결과를 대사 | 화면 입력·버튼·정상 결과·응답 유실 행동을 설명 |
-| 플랫폼 운영자 | 새 환경 설치와 설정 변경·Rollback 수행 | 명령·입력·정상 결과·보호 대상이 명확 |
-| BZA 담당자 | 조직·사용자·권한·결재를 순서대로 구성 | 기준일·유효기간·실효 권한·결재 결과를 확인 |
-| Gateway 담당자 | 고객 API를 등록·시험·승인·게시·복구 | Route·Target·보안·적용 상태를 끝까지 확인 |
+README가 참조하는 브로셔 자산은 삭제하지 않는다. 빈 폴더는 하위부터, 실제로 비었을 때만 제거한다.
 
-문서 작성자는 위 과제를 수행할 수 없는 장을 분량이나 링크 수로 통과시키지 않는다.
+## 16. 최종 검증
 
+작업 종료 전 `git status --short`, `git diff --name-status`, `git diff --stat`, `git diff --check`, 미추적 파일, README 링크, PDF/DOCX Pair, 문서 수, 이미지 참조, 삭제 Manifest, 민감정보 패턴을 확인한다. Local Working Tree를 직접 확인하지 못한 경우 `미검증`으로 명시한다.
 
-## 17. 기능별 고객 완결성 점수표
+## 17. 전달 패키지
 
-각 기능 장은 아래 10개 항목을 모두 충족해야 한다. 한 항목이라도 빠지면 완료로 판정하지 않는다.
-
-| 번호 | 고객이 문서에서 얻어야 할 답 | 통과 기준 |
-|---:|---|---|
-| 1 | 만들 수 있는 결과 | 고객 업무 결과가 한 문장으로 설명된다. |
-| 2 | 선택 기준 | 사용해야 할 경우와 다른 방식을 선택할 경우가 구분된다. |
-| 3 | 준비값 | 업무명·상태·권한·식별자·환경값을 누가 정하는지 알 수 있다. |
-| 4 | 작업 순서 | 번호가 있는 절차를 위에서 아래로 실행할 수 있다. |
-| 5 | 입력 설명 | 실제 입력 항목·기본값·허용 범위·주의점이 설명된다. |
-| 6 | 정상 결과 | 화면·API·DB·로그·감사 중 필요한 확인 지점이 제시된다. |
-| 7 | 실패 대응 | 입력 오류·권한·충돌·중복·시간초과·응답 유실의 다음 행동이 있다. |
-| 8 | 복구 | 재조회·재시작·재처리·대사·보상·되돌리기 조건이 구분된다. |
-| 9 | 교육 | 교육 ID·실행 순서·정상 결과·오류 재현·고객 업무 전환이 연결된다. |
-| 10 | 운영 인계 | 담당자·설정·배포·관측·복구 정보를 무엇으로 넘기는지 알 수 있다. |
-
-문서 검수자는 “기술적으로 맞다”만 확인하지 않는다. CPF를 처음 접한 고객 역할이 해당 장만 읽고 실제 작업 계획과 실행 순서를 설명할 수 있는지 확인한다.
-
-## 18. 문서에서 사용하지 않는 작성 방식
-
-- 내부 모듈·클래스·인터페이스 목록을 고객 기능 설명보다 먼저 배치하지 않는다.
-- 화면 항목을 나열한 뒤 “화면의 짧은 안내 문구만 확인한다”로 끝내지 않는다.
-- 모든 메뉴에 같은 조회·변경·복구 문장을 복사하지 않는다.
-- 조회 전용 화면에 승인·버전 충돌·되돌리기 절차를 붙이지 않는다.
-- 변경 화면의 정상 결과를 성공 알림만으로 판정하지 않는다.
-- 교육 예제가 없다는 이유로 기능 절차를 삭제하지 않는다. 완성 절차를 먼저 작성하고 개발 요청 목록으로 연결한다.
-
-## 19. 매뉴얼별 상세 완료 기준
-
-### 19.1 개발자 매뉴얼
-
-고객 업무 기능별 장에는 업무 목적, 적용 사례, 결정값, API 요청·응답, 업무 상태, 권한·데이터 범위, 거래 경계, 동시성, 중복 방지, 같은 애플리케이션·분리 서비스 선택, 메시지·파일·외부연계, 정상 결과, 오류와 복구, 시험, ADM 확인, 배포 인계를 포함한다. 기능을 구현하는 순서와 수정할 고객 업무 영역, CPF가 제공하므로 유지할 영역을 구분한다.
-
-교육 과정은 선행 조건, 전체 Source·설정·DB 변경 경로, 실행 명령, 입력 데이터, 정상 응답과 DB·로그·감사 결과, 오류 재현, 장애 주입, 복구, ADM 확인, 시험과 고객 업무 전환을 포함한다.
-
-### 19.2 배치 개발 매뉴얼
-
-작업(Tasklet), 건별 대량 처리(Chunk), 파일, 분할 처리(Partition), 원격 작업자, 센터컷, 일정, 작업 묶음과 에이전트를 각각 독립 기능으로 설명한다. 각 기능은 작업 매개변수, 메타데이터, 저장 지점, 처리 단위, Commit, 중지·재시작·포기, 임대·소유권·펜싱, 대상 미리보기, 승인, 진행 제어, 결과 미확정, 재처리, 업무 합계 대사를 포함한다.
-
-### 19.3 ADM 연동 개발자 매뉴얼
-
-고객 업무를 완성된 ADM에 연결하는 문서다. 조회·조치·승인·비동기 작업·부분 성공별로 고객 업무 계약, 같은 애플리케이션·분리 서비스 방식, 생성된 Client, 시간 제한, 예상 버전, 중복 방지, 권한, 개인정보 가림, 사유, 승인, 감사, 오류 응답, 브라우저 시험과 장애 시험을 설명한다. 기존 ADM 기능으로 해결하지 못할 때만 고객 전용 화면 추가 절차를 다룬다.
-
-### 19.4 ADM 운영자 매뉴얼
-
-실제 Route·화면·권한을 전수 대조한다. 각 메뉴는 다음 항목을 독립적으로 갖춘다.
-
-- 메뉴 위치, 주 사용자, 필요한 권한과 데이터 범위
-- 검색 항목과 기본값, 목록 열, 상세 표시값
-- 버튼과 활성 조건, 입력값, 사유, 승인, 예상 버전
-- 정상 처리 순서와 상태 변화, 완료 판정
-- 입력 오류, 권한 오류, 충돌, 시간초과, 응답 유실, 부분 적용
-- 재조회, 재처리, 결과 대사, 보상, 되돌리기
-- 로그·지표·추적·감사, 교대 인계
-
-조회 전용 메뉴에는 변경·승인·충돌·되돌리기 절차를 만들지 않는다. 화면에 없는 항목과 버튼을 문서 편의를 위해 만들지 않는다.
-
-### 19.5 플랫폼 운영 매뉴얼
-
-설정값 표는 다음 열을 빠짐없이 제공한다. 첫 열은 실제 설정 키(Key)다.
-
-| 필수 열 | 설명 |
-|---|---|
-| Key | 실제 설정 Key |
-| 환경변수 | 대응하는 환경변수 |
-| Type | 문자열·숫자·Boolean·기간·목록 등 |
-| Default | 값이 없을 때 적용되는 값 |
-| 필수 | 환경별 필수 여부 |
-| 범위 | 허용값·최솟값·최댓값·형식 |
-| 사용 기능 | 어떤 고객 기능과 실행 구성요소가 읽는지 |
-| Profile | 적용 환경·Profile |
-| 재기동 | 변경 뒤 재기동 필요 여부 |
-| 비밀값 | Secret 취급·가림·교체 방식 |
-| 오류 | 잘못된 값의 증상과 오류 |
-| 확인 명령 | 실제 적용값·상태 확인 방법 |
-| 정상 결과 | 변경 완료 판정 |
-| 되돌리기 | 이전 값·버전 복원 방법 |
-
-신규 설치, 기동·종료, 상태 점검, Rolling·Blue-Green·Canary, 설정 일부 적용, 로그·지표·추적, 용량, 백업·복원, 업그레이드·되돌리기, 재해복구와 DB·Kafka·인스턴스·디스크·메모리·네트워크·보안 장애 절차를 고객 운영 순서로 제공한다.
-
-### 19.6 BZA 매뉴얼
-
-도입 판단, 초기 관리자, 조직·직원·발령·사용자, 역할·권한·데이터 범위, 결재·위임·대결, 첨부·알림, Session·개인정보 가림·감사·다운로드, 고객 업무 연동, 백업·복원과 업그레이드를 순서대로 설명한다. 각 실제 메뉴는 검색·입력값, 열·상세값, 버튼, 권한, 기준일·유효기간, 정상 결과, 응답 유실과 다음 행동을 갖춘다.
-
-### 19.7 Gateway 매뉴얼
-
-도입 판단, 대상 서버 묶음, 경로·조건·변환, 인증·권한, 서명·수신 대상·본문 검사값·재전송 방지, 대상 주소 제한, 암호화 통신, 시간 제한·재시도·장애 차단·동시 처리 제한, 중복 방지·시도 이력·결과 미확정, 검증·버전·검사값, 승인·게시, 적용 성공·거부·일부 적용, 마지막 정상 버전·되돌리기, 확장·구성 차이·대사, 상태 점검과 ADM 운영을 하나의 고객 API 공개 흐름으로 연결한다.
-
-## 20. 구현 공백과 고객 문서의 분리
-
-고객 매뉴얼은 목표 제품 사용 절차를 설명한다. 실제 Source·교육 예제에서 부족한 항목은 고객 매뉴얼의 기능 장을 삭제하지 않고 별도 개발 요청 리포트에 기록한다. 리포트에는 교육 ID, 필요한 기능, 목표 경로, 입력, 정상 결과, 오류 재현, 시험, ADM·BZA·Gateway 확인점과 고객 업무 전환 조건을 포함한다.
-
-개발 상태·QA 상태·실행 검증 결과는 고객 매뉴얼 본문에 작업 보고처럼 넣지 않는다. 내부 검수 기록에서만 `완료`, `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`를 사용한다.
-
-## 21. 산출물 적용·삭제·정리 기준
-
-- ZIP은 Repository Root 상대경로를 유지하고 임의 최상위 폴더를 만들지 않는다.
-- 신규·수정 파일만 ZIP에 포함하고 삭제는 정확한 Manifest로 제공한다.
-- 삭제 명령은 정확한 파일 경로만 사용하며 `git clean`, 광범위한 재귀 삭제와 Wildcard 전체 삭제를 사용하지 않는다.
-- 적용 전 기존 변경을 보호하고, 적용 후 `git status --short`, `git diff --name-status`, `git diff --stat`, `git diff --check`를 확인한다.
-- Rollback은 백업한 수정 파일 복원과 이번 Manifest의 신규 파일만 제거하는 방식으로 제공한다.
-- 최종 전달 파일과 이번 작업이 만든 빈 폴더만 검사해 제거하는 PowerShell 한 줄 정리 명령을 제공한다.
+문서 변경 산출물은 Repository Root 상대경로를 유지한 단일 ZIP으로 제공한다. ZIP에는 최종 신규/수정 파일과 정확한 삭제 Manifest만 넣고 build/log/tmp/bak/.git/IDE/과거본을 넣지 않는다. ZIP SHA-256, 기준 Repository/Branch/Commit, 파일 수와 경로, 신규/수정/삭제, 적용/검증/미검증/Rollback, Commit·Push 미수행 여부를 기록한다.

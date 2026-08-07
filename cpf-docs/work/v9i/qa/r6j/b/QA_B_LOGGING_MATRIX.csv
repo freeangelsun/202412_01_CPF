@@ -1,0 +1,11 @@
+﻿requirement,owner,static_verdict,runtime_verdict,finding,evidence,gap,exact_sha
+CPF-TXID,cpf-core,SOURCE_REVIEWED,미검증,,CpfTransactionContext/TransactionContext/HeaderPropagator + IntegratedTrace,cross-system runtime propagation not executed,3ed676061246c9db3e44f29e254c0393ecca3929
+CPF-LOGDB,cpf-core + DB logging provider,PARTIAL,미검증,,ADM log/trace surfaces and schema sources reviewed,DB outage/backpressure/performance/retention live evidence absent,3ed676061246c9db3e44f29e254c0393ecca3929
+CPF-FILELOG,cpf-core,SOURCE_REVIEWED,미검증,,CpfFileLogWriter structured path/locks/permissions/retention,disk-full/read-only/rotation/process behavior live evidence absent,3ed676061246c9db3e44f29e254c0393ecca3929
+CPF-LOGFAIL,cpf-core,FAIL,미검증,QA-B-R6J-NEW-006,CpfFileLogWriter append failure => counter+warn+false,canonical local spool/retransmit/dedup/loss recovery/alert owner not found,3ed676061246c9db3e44f29e254c0393ecca3929
+CPF-TRACE,cpf-core,SOURCE_REVIEWED,미검증,,trace/span/segment context + IntegratedTrace page,sampling/boost/cardinality/masking live evidence absent,3ed676061246c9db3e44f29e254c0393ecca3929
+CPF-MASK,cpf-core/common/admin/bza,PARTIAL,미검증,AB-R6-033,masking helpers + raw access flows,EDU-ADM08 client payload authorization defect; negative corpus absent,3ed676061246c9db3e44f29e254c0393ecca3929
+Online→Gateway→External,cpf-core/cpf-gateway,SOURCE_REVIEWED,미검증,,Gateway durable ledger + file integration log + trace page,actual external failure/response loss lineage absent,3ed676061246c9db3e44f29e254c0393ecca3929
+Online→Message→Consumer,cpf-core starter providers,PARTIAL,미검증,,broker/outbox/inbox ADM projections,broker outage/DLQ replay exact transaction lineage runtime absent,3ed676061246c9db3e44f29e254c0393ecca3929
+Online→Batch/CenterCut,cpf-batch/cpf-admin,PARTIAL,미검증,QA-B-R6J-NEW-004,IntegratedTrace + Batch workbench/owner ports,process kill + UNKNOWN owner reconcile not closed,3ed676061246c9db3e44f29e254c0393ecca3929
+File/Worker/Remote log,cpf-core/cpf-batch/cpf-admin,PARTIAL,미검증,QA-B-R6J-NEW-006,RemoteLogs/FileJobs/FileLogWriter surfaces,spool/recovery/disk pressure/worker restart evidence absent,3ed676061246c9db3e44f29e254c0393ecca3929

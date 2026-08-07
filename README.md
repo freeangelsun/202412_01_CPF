@@ -11,7 +11,7 @@
 
 동일 JVM · 분리 WAS · 모듈형 단일 애플리케이션 · 마이크로서비스 · 다중 인스턴스 · 정기·대량 처리 · 비동기 메시지 처리 · 운영 통제
 
-[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.md) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.md) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.md) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.pdf) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)
 
 </div>
 
@@ -23,14 +23,14 @@
 
 | 지금 알고 싶은 것 | 먼저 읽을 문서 | 문서를 읽고 끝낼 일 |
 |---|---|---|
-| CPF가 어떤 시스템에 맞는가 | [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 기능 범위·Profile·Capability·Topology·Owner·도입 순서를 결정 |
-| 온라인·연계 업무를 만드는 방법 | [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | 업무 Domain을 생성하고 Query·Command·DB·Message·외부연계·보안·Test·운영 인계를 완료 |
-| 정기·대량 처리를 만드는 방법 | [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | Job을 개발하고 실행·Stop·Restart·Reprocess·Reconcile까지 수행 |
-| 고객 업무를 ADM에 연결하는 방법 | [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md) | Owner Query·Command를 Same-JVM/Remote·OpenAPI·Generated Client·화면까지 연결 |
-| ADM 화면에서 장애를 판단하고 복구하는 방법 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | 실제 Route별 조회·조치·승인·대사·복구·감사를 수행 |
-| 설치·설정·배포·백업·DR 방법 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | Artifact부터 Config·DB·Broker·배포·관측·Backup·DR까지 운영 |
-| 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 조직 기준일·Effective Permission·결재·위임·감사를 업무에 적용 |
-| 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | Route·보안·Target·Publish·ACK/NACK·LKG·Rollback을 운영 |
+| CPF가 어떤 시스템에 맞는가 | [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) | 기능 범위·Profile·Capability·Topology·Owner·도입 순서를 결정 |
+| 온라인·연계 업무를 만드는 방법 | [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) | 업무 Domain을 생성하고 Query·Command·DB·Message·외부연계·보안·Test·운영 인계를 완료 |
+| 정기·대량 처리를 만드는 방법 | [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf) | Job을 개발하고 실행·Stop·Restart·Reprocess·Reconcile까지 수행 |
+| 고객 업무를 ADM에 연결하는 방법 | [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) | Owner Query·Command를 Same-JVM/Remote·OpenAPI·Generated Client·화면까지 연결 |
+| ADM 화면에서 장애를 판단하고 복구하는 방법 | [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) | 실제 Route별 조회·조치·승인·대사·복구·감사를 수행 |
+| 설치·설정·배포·백업·DR 방법 | [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf) | Artifact부터 Config·DB·Broker·배포·관측·Backup·DR까지 운영 |
+| 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직 기준일·Effective Permission·결재·위임·감사를 업무에 적용 |
+| 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | Route·보안·Target·Publish·ACK/NACK·LKG·Rollback을 운영 |
 
 처음 접하는 독자는 각 매뉴얼의 **용어 준비 → 선택 기준 → 따라 하기 → 정상 판정 → 오류 재현 → 복구 → 운영 인계** 순서로 읽습니다. 숙련자는 기능별 판단표, 실패·복구 표, Source/API/SQL/Config/화면 정합성 확인 지점을 바로 참조합니다.
 
@@ -53,7 +53,7 @@ CPF는 조회·등록·상태 변경 API, 정기·대량 처리, 비동기 메�
 - ADM에서 상태·로그·배치·설정·복구·승인·감사를 조회하고 허용된 조치를 Owner 계약으로 전달합니다.
 - BZA는 조직·사용자·권한·결재를, Gateway는 외부 API의 인증·라우팅·Target 적용과 복구를 담당합니다.
 
-[제품 범위와 선택 절차 →](cpf-docs/guides/00_프레임워크안내.md)
+[제품 범위와 선택 절차 →](cpf-docs/guides/00_프레임워크안내.pdf)
 
 ---
 
@@ -92,7 +92,7 @@ CPF는 조회·등록·상태 변경 API, 정기·대량 처리, 비동기 메�
 
 Modular Monolith에서는 Local Facade가, Microservice와 분리 WAS에서는 Remote Facade가 같은 요청·응답 의미, Validation, Error Taxonomy, Idempotency, Timeout Budget, Audit와 Trace 의미를 유지해야 합니다. 다중 인스턴스에서는 Lease·Claim·Fencing Token·Expected Version을 사용해 오래된 실행자의 늦은 갱신과 중복 부작용을 통제합니다.
 
-[온라인·비동기·외부 연계 개발 절차 →](cpf-docs/guides/01_개발자매뉴얼.md)
+[온라인·비동기·외부 연계 개발 절차 →](cpf-docs/guides/01_개발자매뉴얼.pdf)
 
 ---
 
@@ -111,7 +111,7 @@ Modular Monolith에서는 Local Facade가, Microservice와 분리 WAS에서는 R
 
 CPF 배치는 Tasklet·Chunk·File·Partition·Remote Worker·Center-Cut·Scheduler를 Spring Batch Metadata와 운영 상태로 연결합니다. 운영자는 대상 Preview, 승인, 실행, 진행, Stop·Restart·Abandon·Reprocess, 결과 불명 대사와 업무 합계를 같은 Execution 맥락으로 추적합니다.
 
-[배치 개발과 운영 절차 →](cpf-docs/guides/02_배치개발매뉴얼.md)
+[배치 개발과 운영 절차 →](cpf-docs/guides/02_배치개발매뉴얼.pdf)
 
 ---
 
@@ -124,9 +124,9 @@ CPF 배치는 Tasklet·Chunk·File·Partition·Remote Worker·Center-Cut·Schedu
 
 업무 개발자는 Owner Query·Command를 ADM에 연결하고, 운영자는 Route별 권한·Data Scope·Reason·Approval·Expected Version에 따라 조회와 조치를 수행합니다. 플랫폼 운영자는 Artifact·Config·Secret·DB·Broker·배포·관측·Backup·DR을 관리합니다.
 
-- [ADM 연동 개발자 매뉴얼 →](cpf-docs/guides/03_ADM개발자매뉴얼.md)
-- [ADM 운영자 매뉴얼 →](cpf-docs/guides/04_ADM운영자매뉴얼.md)
-- [플랫폼 운영 매뉴얼 →](cpf-docs/guides/05_플랫폼운영매뉴얼.md)
+- [ADM 연동 개발자 매뉴얼 →](cpf-docs/guides/03_ADM개발자매뉴얼.pdf)
+- [ADM 운영자 매뉴얼 →](cpf-docs/guides/04_ADM운영자매뉴얼.pdf)
+- [플랫폼 운영 매뉴얼 →](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)
 
 ---
 
@@ -137,7 +137,7 @@ CPF 배치는 Tasklet·Chunk·File·Partition·Remote Worker·Center-Cut·Schedu
   <img src="cpf-docs/assets/readme/cpf-domain-journey-desktop.png" alt="CPF 생성 도구를 이용한 서비스 생성과 검증" width="100%">
 </picture>
 
-Generator를 사용할 때에는 Dry Run으로 Module·Package·System Code·Profile·Provider Binding·DB Vendor·충돌 경로를 먼저 확인합니다. 적용 후 Domain Manifest, Resolved Starter Lock, DB Pack, OpenAPI, Test와 운영 인계표를 함께 검토합니다. 정확한 명령과 Parameter는 [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md)의 Generator 절차를 따릅니다.
+Generator를 사용할 때에는 Dry Run으로 Module·Package·System Code·Profile·Provider Binding·DB Vendor·충돌 경로를 먼저 확인합니다. 적용 후 Domain Manifest, Resolved Starter Lock, DB Pack, OpenAPI, Test와 운영 인계표를 함께 검토합니다. 정확한 명령과 Parameter는 [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf)의 Generator 절차를 따릅니다.
 
 ---
 
@@ -147,22 +147,22 @@ Generator를 사용할 때에는 Dry Run으로 Module·Package·System Code·Pro
 
 | 문서 | 주 독자와 완료 결과 |
 |---|---|
-| [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.md) | 도입 검토자·아키텍트가 기능 범위·Profile·Topology·도입 순서를 결정 |
-| [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.md) | 온라인·비동기·파일·외부 연계 업무를 설계·구현·시험·운영 인계 |
-| [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.md) | 배치를 개발하고 실행·중지·재시작·재처리·대사 |
-| [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.md) | 고객 업무의 조회·조치·승인·복구 계약을 ADM에 연결 |
-| [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.md) | 실제 Route에서 조회·조치·승인·대사·Rollback 수행 |
-| [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.md) | 설치·설정·DB·배포·관측·Backup·DR·장애 정상화 |
-| [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.md) | 조직·사용자·권한·결재·첨부·감사 운영 |
-| [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.md) | API Route·보안·게시·ACK/NACK·Drift·Rollback 운영 |
+| [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) | 도입 검토자·아키텍트가 기능 범위·Profile·Topology·도입 순서를 결정 |
+| [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) | 온라인·비동기·파일·외부 연계 업무를 설계·구현·시험·운영 인계 |
+| [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf) | 배치를 개발하고 실행·중지·재시작·재처리·대사 |
+| [03 ADM 개발자 매뉴얼](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) | 고객 업무의 조회·조치·승인·복구 계약을 ADM에 연결 |
+| [04 ADM 운영자 매뉴얼](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) | 실제 Route에서 조회·조치·승인·대사·Rollback 수행 |
+| [05 플랫폼 운영 매뉴얼](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf) | 설치·설정·DB·배포·관측·Backup·DR·장애 정상화 |
+| [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직·사용자·권한·결재·첨부·감사 운영 |
+| [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | API Route·보안·게시·ACK/NACK·Drift·Rollback 운영 |
 
 ---
 
 ## 설계 산출물
 
-- [산출물 목록](cpf-docs/deliverables/산출물목록.md)
-- [아키텍처 설계서](cpf-docs/deliverables/아키텍처설계서.md)
-- [기술 사양서](cpf-docs/deliverables/기술사양서.md)
-- [기술 표준서](cpf-docs/deliverables/기술표준서.md)
-- [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.md)
+- [산출물 목록](cpf-docs/deliverables/산출물목록.pdf)
+- [아키텍처 설계서](cpf-docs/deliverables/아키텍처설계서.pdf)
+- [기술 사양서](cpf-docs/deliverables/기술사양서.pdf)
+- [기술 표준서](cpf-docs/deliverables/기술표준서.pdf)
+- [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.pdf)
 - [최상위 제품 요구사항](cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md)

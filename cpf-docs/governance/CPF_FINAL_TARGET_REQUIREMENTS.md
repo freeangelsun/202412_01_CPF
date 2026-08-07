@@ -515,6 +515,19 @@ EDU는 Product 완성도를 대신하는 우회 구현이 아니다.
 - 기존 `EDU-ADM-*`를 포함한 EDU 항목은 숫자를 유지하기 위해 Product 기능을 복제하지 않는다.
 - QA는 각 항목을 `유지`, `통합`, `Product 귀속`, `공식 Extension Sample`, `삭제 후보`로 판정하고 영향도를 보고한다.
 
+
+### 16.2 R6J EDU-ADM 중앙 Architecture 결정
+
+R6J QA A/B 독립 검수 후 다음 원칙을 확정한다.
+
+- `EDU-ADM-08`, `10`, `11`, `12`, `13`, `14`, `15`, `16`, `17`은 ADM Product 기능으로 귀속한다. ADM Product Source/API/Frontend/Test/Runtime/Manual에서 검증하고 generic REF EDU로 복제하지 않는다.
+- `EDU-ADM-02`, `03`, `04`, `07`은 공식 Public Extension/Integration 계약을 사용하는 adopter-facing Sample로만 유지한다. 해당 Public 계약이 없으면 먼저 정식 Extension Point를 설계하거나 Product로 귀속한다.
+- `EDU-ADM-01`, `05`, `06`, `09`는 독립 ADM EDU로 유지하지 않고 기존 Public Extension/Async/Recovery/Concurrency EDU와 통합한다.
+- EDU 17개 또는 전체 135개라는 수량 자체를 완료 기준으로 사용하지 않는다.
+- 전체 EDU Canonical Count는 다른 EDU의 Architecture/Consumer 적정성까지 검토하고 Merge/Product 귀속을 반영한 뒤 Catalog에서 재산정한다.
+- 수량 보존을 위한 dummy handler, generic JDBC state-machine, Product mimic을 금지한다.
+- 물리 Source 삭제는 Delete Manifest와 사용자 승인 절차를 따른다.
+
 ## 17. Build·Artifact·배포·Supply Chain
 
 Artifact 공급 모드:

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "protocol": "CPF-R6-OBSERVABILITY",
+  "sourceSha": "3ed676061246c9db3e44f29e254c0393ecca3929",
+  "status": "PASS",
+  "checks": [
+    "correlationEndToEnd",
+    "sliSloRecorded",
+    "cardinalityBounded",
+    "maskingEnforced",
+    "alertObserved",
+    "auditIntegrityVerified",
+    "tamperRejected"
+  ],
+  "traceIdSha256": "aaed46741b594a9d56c08b0131954c80d1bace364543da1a26fcec7e611fe5d6",
+  "auditHashSha256": "98260db4e530c1f8a163c779f2a145a7decbfad6d09245081900ab58149941bd"
+}

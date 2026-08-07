@@ -1,0 +1,19 @@
+python: rc=0
+stdout=Python 3.13.5
+stderr=
+
+node: rc=0
+stdout=v22.16.0
+stderr=
+
+java: rc=0
+stdout=
+stderr=openjdk version "21.0.10" 2026-01-20
+OpenJDK Runtime Environment (build 21.0.10+7-Debian-1deb13u1)
+OpenJDK 64-Bit Server VM (build 21.0.10+7-Debian-1deb13u1, mixed mode, sharing)
+
+git: rc=0
+stdout=git version 2.47.3
+stderr=
+
+pwsh: NOT_AVAILABLE PermissionError: [Errno 13] Permission denied: 'pwsh'

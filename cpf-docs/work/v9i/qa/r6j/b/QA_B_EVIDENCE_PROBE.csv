@@ -1,0 +1,15 @@
+﻿path,probe,result,provenance_usable,qa_effect,exact_sha
+cpf-docs/work/r6i-dev/evidence/frontend-contract.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/behavior-contract.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/route-contract-repro.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/openapi-lifecycle.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/bza-consumer.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/adm-consumer-changed.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/db3-runner-contract.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/sql-parity.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/idempotency-runtime.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/edu-consumer.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/edu-adm17-selftest.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/edu-adm17-compile.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/supply-chain-selftest.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929
+cpf-docs/work/r6i-dev/evidence/artifact-consumer-selftest.log,GitHub.fetch_file exact SHA,404_NOT_FOUND,N,developer PASS claim not independently reproducible from repository,3ed676061246c9db3e44f29e254c0393ecca3929

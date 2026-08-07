@@ -1,0 +1,9 @@
+﻿axis,source,static_verdict,runtime_verdict,notes,exact_sha
+Core lightweight,cpf-core/build.gradle,SOURCE_REVIEWED,미검증,optional technology dependencies compileOnly; no current Java25 publication run,3ed676061246c9db3e44f29e254c0393ecca3929
+Starter canonical registry,settings.gradle;cpf-tools/generator/contracts/cpf-starter-catalog.json,SOURCE_REVIEWED,미검증,settings validates catalog/layout/profile; fresh consumer not run,3ed676061246c9db3e44f29e254c0393ecca3929
+Internal package cross-module imports,"GitHub code searches com.cpf.{core,common,admin,batch,gateway}.internal",NO_MATCH_IN_SEARCH,미검증,search result supports boundary but is not build graph proof,3ed676061246c9db3e44f29e254c0393ecca3929
+ADM route authority,cpf-admin/frontend/src/app/routes.ts;router.ts;App.vue,SOURCE_REVIEWED,미검증,63 route single registry and direct URL session/feature guards,3ed676061246c9db3e44f29e254c0393ecca3929
+BZA route authority,cpf-biz-admin/frontend/src/app/routes.ts;router.ts;App.vue,SOURCE_REVIEWED,미검증,26 routes; direct URL menu guard; action-level inconsistency NEW-008,3ed676061246c9db3e44f29e254c0393ecca3929
+EDU product boundary,CPF_FINAL_TARGET_REQUIREMENTS.md + EDU-ADM17 handlers,FAIL,미검증,product ADM duplicated into generic REF handlers; architecture decision required,3ed676061246c9db3e44f29e254c0393ecca3929
+DB3 approval hardening,Oracle/PostgreSQL/MariaDB V105 + R105 + pack.json,SOURCE_REVIEWED,미검증,migration/rollback parity source exists; live DB3 absent,3ed676061246c9db3e44f29e254c0393ecca3929
+Release reproducibility,.github/workflows/cpf-r6-release-gates.yml;run-r6-release-gates.ps1,FAIL,미검증,workflow preflight variable bug NEW-002; current workflow run absent,3ed676061246c9db3e44f29e254c0393ecca3929

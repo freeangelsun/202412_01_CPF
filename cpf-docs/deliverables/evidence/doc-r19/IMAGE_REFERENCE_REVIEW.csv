@@ -1,0 +1,18 @@
+path,decision,reason
+cpf-docs/assets/manuals/cpf-reader-start.svg,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-architecture-overview-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-architecture-overview-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-domain-journey-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-domain-journey-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-execution-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-execution-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-hero-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-hero-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-operations-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-operations-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-product-map-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-product-map-mobile.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-topology-desktop.png,PROTECT,README current reference
+cpf-docs/assets/readme/cpf-topology-mobile.png,PROTECT,README current reference
+cpf-docs/guides/png/cpf-guide-map.png,PROTECT,README current reference
+cpf-docs/assets/manuals/cpf-document-quality-r9.svg,DELETE,README/PDF/DOCX current reference 없음; superseded document QA illustration

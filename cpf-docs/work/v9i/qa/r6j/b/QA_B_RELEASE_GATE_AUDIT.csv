@@ -1,0 +1,11 @@
+﻿gate,source,source_status,execution_status,finding,exact_sha
+exact SHA + clean tree,run-r6-release-gates.ps1,IMPLEMENTED,NOT_EXECUTED,AB-R6-003,3ed676061246c9db3e44f29e254c0393ecca3929
+Java25/Gradle9.1,runner + workflow,IMPLEMENTED,NOT_EXECUTED,AB-R6-040,3ed676061246c9db3e44f29e254c0393ecca3929
+QA37 --compile,runner,IMPLEMENTED,NOT_EXECUTED; current ADM17 mismatch predicts FAIL,AB-R6-028;AB-R6-038,3ed676061246c9db3e44f29e254c0393ecca3929
+Gradle clean build/publication,runner,IMPLEMENTED,NOT_EXECUTED,AB-R6-040,3ed676061246c9db3e44f29e254c0393ecca3929
+ADM/BZA npm verify,runner,IMPLEMENTED,NOT_EXECUTED,AB-R6-004;AB-R6-017,3ed676061246c9db3e44f29e254c0393ecca3929
+Runtime OpenAPI parity,runner,IMPLEMENTED,NOT_EXECUTED,AB-R6-010;AB-R6-012,3ed676061246c9db3e44f29e254c0393ecca3929
+Authenticated 3-browser,runner/playwright configs,IMPLEMENTED,NOT_EXECUTED,AB-R6-004;AB-R6-017,3ed676061246c9db3e44f29e254c0393ecca3929
+DB3 live lifecycle,run-db3-lifecycle.ps1,IMPLEMENTED,NOT_EXECUTED,AB-R6-015;AB-R6-024,3ed676061246c9db3e44f29e254c0393ecca3929
+Multiprocess/network/broker chaos,runner,IMPLEMENTED,NOT_EXECUTED,AB-R6-020;AB-R6-025,3ed676061246c9db3e44f29e254c0393ecca3929
+GitHub workflow preflight,.github/workflows/cpf-r6-release-gates.yml,BROKEN,BLOCKED,QA-B-R6J-NEW-002,3ed676061246c9db3e44f29e254c0393ecca3929

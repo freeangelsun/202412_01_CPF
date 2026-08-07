@@ -1,0 +1,30 @@
+﻿gate_or_runtime,status,actual_result,qa_a_note
+Latest master exact SHA,VERIFIED,3ed676061246c9db3e44f29e254c0393ecca3929,GitHub connected repository history; immutable commit tree used for source inspection.
+Developer ledger 77 rows,VERIFIED,77/77 dev complete; 26 verified; 51 unverified,Direct CSV parse.
+Developer execution logs,FAIL,14 referenced logs absent from pushed r6i-dev/evidence,Only environment.txt observed.
+Selected source hash parity,VERIFIED,7/7 selected source files match developer SHA256SUMS,Does not repair resultSha/runtime evidence.
+Frontend contract static gate,PASS,Exit 0; 63 routes/414 bindings/329 unique/8 approval generated consumers,Current-SHA source projection.
+Frontend permission semantic mutation,FAIL,Unconditional canAction=true mutation survived with Exit 0/PASS,False-green verification tool defect.
+EDU consumer wiring gate,PASS,Exit 0; features=135 types=8 mutations=8,Current-SHA source projection.
+EDU security/architecture through wiring gate,FAIL,Current insecure header trust/product duplication still passes wiring gate,Gate scope insufficient for security/architecture.
+Supply-chain built-in self-test,PASS,Exit 0 self-test,Only tool self-test; not final artifact supply-chain runtime.
+Artifact consumer built-in self-test,PASS,Exit 0 self-test,Only model self-test; real repositories unverified.
+Observability qualification adversarial,FAIL,Fake boolean probe produced Exit 0/PASS,Concrete false-green survivor.
+Behavior contract mutation,PARTIAL,17 token-deletion child mutations present,Semantic token-preserving mutations not independently killed.
+DB3 runner Pester source,SOURCE_VERIFIED,stdin credential envelope / no child env secret / timeout tree kill / URL credential rejection,"pwsh unavailable, so not executed."
+V105 DB3 source parity,SOURCE_VERIFIED,PostgreSQL/Oracle/MariaDB all contain lease/fence/nonce/policy lock/overlap enforcement tokens,Live DB lifecycle unverified.
+V106 DB3 source parity,SOURCE_VERIFIED,PostgreSQL/Oracle/MariaDB all contain DQ rule/quarantine/operation/fingerprint/result tokens,Live DB lifecycle unverified.
+Java25/Gradle9.1 build/publication,UNVERIFIED,QA runtime has Java 21; no Java25/Gradle9.1 execution,Cannot mark PASS.
+Node target,UNVERIFIED,QA runtime Node 22.16.0; target is 22.18+,Static Python gates executed only.
+PowerShell release/DB3/DR,UNVERIFIED,pwsh unavailable in QA runtime,Source inspected only.
+Oracle empty→rollback→forward,UNVERIFIED,,No live Oracle target.
+PostgreSQL empty→rollback→forward,UNVERIFIED,,No live PostgreSQL target.
+MariaDB empty→rollback→forward,UNVERIFIED,,No live MariaDB target.
+Authenticated ADM/BZA browser 3 engines,UNVERIFIED,,No running authenticated product target.
+Multi-instance/process kill/network/broker/DB outage,UNVERIFIED,,No distributed target.
+Performance load/soak/resource limits,UNVERIFIED,,No target profile execution.
+Security negative corpus,UNVERIFIED,,"Runner is fail-closed by category/corpus source, but no current target corpus run."
+DR backup/restore/RTO/RPO,UNVERIFIED,,DR script source fail-closed; no live backup/restore target.
+REMOTE/OFFLINE artifact consumers,UNVERIFIED,,Self-test passes; real immutable repositories absent.
+Generator lifecycle DB3,UNVERIFIED,,No current-SHA Java25/DB3 generator lifecycle evidence.
+Codex independent review,UNVERIFIED,,No current-SHA Codex completion evidence supplied.

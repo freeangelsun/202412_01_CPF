@@ -1,0 +1,115 @@
+{
+  "catalog_baseSha": "1edd96c6dcc69b0b4d6e9e22a0709d910d7cfb04",
+  "current_sha": "3ed676061246c9db3e44f29e254c0393ecca3929",
+  "featureCount": 135,
+  "categoryCounts": {
+    "DEV": 45,
+    "BAT": 30,
+    "ADM": 17,
+    "BZA": 14,
+    "GW": 14,
+    "OPS": 15
+  },
+  "consumerTypeCounts": {
+    "PROCESS": 17,
+    "JDBC_QUERY": 6,
+    "JDBC_COMMAND": 51,
+    "HTTP": 5,
+    "OUTBOX": 6,
+    "FILE": 6,
+    "SPRING_BATCH": 30,
+    "REFERENCE_GATEWAY": 14
+  },
+  "verificationStatusCounts": {
+    "미검증": 135
+  },
+  "eduAdmRoleDriftCount": 17,
+  "eduAdmRoleDrifts": [
+    [
+      "EDU-ADM-01",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-02",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-03",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-04",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-05",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-06",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-07",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-08",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-09",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-10",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-11",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-12",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-13",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-14",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-15",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-16",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ],
+    [
+      "EDU-ADM-17",
+      "CPF_ADM_OPERATOR",
+      "CPF_REFERENCE_PLATFORM_OPERATOR"
+    ]
+  ],
+  "eduAdmReadOnlyDriftCount": 0
+}

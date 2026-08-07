@@ -1,0 +1,20 @@
+{
+  "revision": "doc-r19",
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "baseline_sha": "3ed676061246c9db3e44f29e254c0393ecca3929",
+  "format_policy": {
+    "README": "Markdown",
+    "guides": "8 PDF + 8 DOCX",
+    "design_deliverables": "5 PDF + 5 DOCX",
+    "user_doc_markdown_retained": false
+  },
+  "modified_file_count": 28,
+  "new_file_count": 13,
+  "delete_file_count": 64,
+  "included_file_count": 41,
+  "pdf_pages_total": 449,
+  "protected_readme_asset_count": 16,
+  "runtime_status": "미검증 범위 분리",
+  "commit_push": "미수행"
+}

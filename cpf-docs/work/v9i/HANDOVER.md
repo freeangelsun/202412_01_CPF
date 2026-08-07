@@ -1,25 +1,39 @@
 # CPF V9I Handover
 
-## Current baseline
-- latest master confirmed: `0427758db041d38eb0f34d88b55bd5366e2d9e47`
-- R6I development baseline: `64049044956924032360fa80be83b5e37c64f828`
-- developer result: implementation 77/77, verified 26, unverified 51
-- final QA: **not passed yet**
+## Baseline
+- latest master: `3ed676061246c9db3e44f29e254c0393ecca3929`
+- R6J QA A/B both reviewed same SHA
+- current verdict: **RELEASE_BLOCKED**
+- central findings: 56
+- direct development rework: 34
+- central requirement ledger: 93
 
-## Next action
-1. QA A executes `qa/r6j/a/QA_A_EXECUTION_INSTRUCTION.md`
-2. QA B executes `qa/r6j/b/QA_B_EXECUTION_INSTRUCTION.md`
-3. user returns both QA ZIP/reports
-4. central manager merges findings/opinions/disagreements
-5. cross-review is requested where necessary
-6. central manager creates next exact Developer GPT requirement
+## Next Action
+1. Developer GPT receives `final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+2. Developer implements direct 34 + self-discovered defects
+3. Developer produces Root Overlay ZIP; GPT does not Push
+4. User applies/Pushes
+5. Central rechecks new master SHA
+6. QA A/B scopes rotate and re-review same IDs + new findings
+7. target runtime/Codex evidence must bind to new exact SHA
 
-## Mandatory continuity
-- QA/Developer must proactively discover issues beyond assigned requirements.
-- A/B QA Primary scopes rotate by round.
-- Developer, QA A, QA B opinions are preserved and centrally adjudicated.
-- ADM is a CPF product; EDU is for Public API/SPI/Extension/Integration consumer education. EDU-ADM/135 reclassification requires QA decision before canonical change.
-- Logging/transaction tracing is a release-critical QA axis.
-- ADM must support transactionId one-shot end-to-end timeline/tree.
-- File/DB logs must follow standard structure, retention, loss detection, masking and recovery.
-- GPTs never Commit/Push; they provide ZIP + hash to the user.
+## Architecture
+- ADM is delivered CPF Product.
+- EDU is adopter-facing Public API/SPI/Extension/Integration education.
+- EDU-ADM: Product 9 / Extension Sample 4 / Merge 4.
+- 17/135 numeric preservation is not a completion goal.
+
+## Transaction/Logging
+Release-critical:
+- same transactionId across nested/remote/async/message/batch
+- ADM one-shot full timeline/tree
+- DB3 standard identifiers/index/retention
+- FileLog durable spool/retry/dedup/loss alert
+- masking/raw permission/audit
+- failure/process-kill evidence
+
+## Collaboration
+- QA/Developer discover issues beyond explicit requirements.
+- A/B scopes rotate.
+- opinions/disagreements are preserved and centrally adjudicated.
+- no prior PASS is inherited without current-SHA evidence.

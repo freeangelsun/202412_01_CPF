@@ -1,0 +1,22 @@
+{
+  "baseline_sha": "3ed676061246c9db3e44f29e254c0393ecca3929",
+  "documents": 13,
+  "pdf_pages_total": 449,
+  "docx_pages_total": 449,
+  "workflow": "DOCX render -> visual inspection; DOCX-derived PDF -> PDF render -> visual inspection",
+  "all_pages_reviewed": true,
+  "latest_content_rerendered": [
+    "05_플랫폼운영매뉴얼",
+    "기술사양서",
+    "산출물목록"
+  ],
+  "observed_clipping": 0,
+  "observed_overlap": 0,
+  "observed_blank_pages": 0,
+  "observed_broken_glyphs": 0,
+  "notes": [
+    "04/05/90 are landscape where wide operational tables require it",
+    "05 243 leaf properties are rendered as readable multi-line reference cards rather than a 15-column PDF table",
+    "Runtime/Browser execution is not inferred from visual QA"
+  ]
+}

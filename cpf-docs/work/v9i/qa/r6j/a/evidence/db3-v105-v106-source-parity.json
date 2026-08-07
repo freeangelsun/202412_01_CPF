@@ -1,0 +1,38 @@
+[
+  {
+    "version": "V105",
+    "vendor": "postgresql",
+    "status": "PASS",
+    "missing": []
+  },
+  {
+    "version": "V105",
+    "vendor": "oracle",
+    "status": "PASS",
+    "missing": []
+  },
+  {
+    "version": "V105",
+    "vendor": "mariadb",
+    "status": "PASS",
+    "missing": []
+  },
+  {
+    "version": "V106",
+    "vendor": "postgresql",
+    "status": "PASS",
+    "missing": []
+  },
+  {
+    "version": "V106",
+    "vendor": "oracle",
+    "status": "PASS",
+    "missing": []
+  },
+  {
+    "version": "V106",
+    "vendor": "mariadb",
+    "status": "PASS",
+    "missing": []
+  }
+]

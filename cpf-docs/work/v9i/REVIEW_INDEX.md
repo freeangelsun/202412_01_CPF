@@ -1,28 +1,40 @@
 # CPF V9I Review Index
 
-## Current control
-- Latest pushed development result SHA: `0427758db041d38eb0f34d88b55bd5366e2d9e47`
-- Previous R6I QA basis SHA: `77db10ad9aff44ee422795080fb2e96b364c9d65`
-- R6I prior QA result: **미통과 — Release Blocked**
-- R6I developer claim: 77/77 implemented, 26 verified, 51 unverified
-- Current stage: **Post-R6I independent QA R6J 준비**
+## Current Control
+- Latest master / QA basis: `3ed676061246c9db3e44f29e254c0393ecca3929` (`07_02`)
+- R6I developer baseline: `64049044956924032360fa80be83b5e37c64f828`
+- Developer historical result: 77/77 implementation claim / 26 verified / 51 unverified
+- QA A R6J: 50 findings, fully closed 0
+- QA B Deep R6J: 48 findings, static pass 7 / fail 41
+- Central unique findings: **56 (P0 44 / P1 11 / P2 1)**
+- Central requirement ledger: **93**
+- Current verdict: **미통과 — RELEASE_BLOCKED**
+- Current stage: **R6J QA merge complete → Developer R6J rework request ready**
 
-## Central Post-R6I
-- `post-r6i/CENTRAL_INTEGRATED_REVIEW.md`
-- `post-r6i/CENTRAL_REVIEW_CANDIDATES.csv`
-- `post-r6i/QA_ASSIGNMENT_MATRIX.csv`
+## QA R6J
+- `qa/r6j/CENTRAL_MERGED_QA_REPORT.md`
+- `qa/r6j/CENTRAL_INTEGRATED_FINDINGS.csv`
+- `qa/r6j/CENTRAL_REQUIREMENT_STATUS.csv`
+- `qa/r6j/EDU_ADM_ARCHITECTURE_DECISION.csv`
+- `qa/r6j/CENTRAL_RUNTIME_QUALIFICATION_MATRIX.csv`
+- `qa/r6j/QA_CROSS_REVIEW_DISPOSITION.md`
+- `qa/r6j/QA_RESULT_PACKAGE_STATUS.md`
+- QA A source result: `qa/r6j/a/**`
+- QA B Deep source result: `qa/r6j/b/**`
+
+## Development
+- Current exact request: `final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+- Direct 34-row ledger: `final-dev-request/DEVELOPMENT_REWORK_REQUIREMENTS_R6J.csv`
+- Transaction/Logging scope: `final-dev-request/R6J_TRANSACTION_LOGGING_REWORK.md`
+- Common policy: `final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md`
+
+## Central Policies
 - `post-r6i/LOGGING_TRANSACTION_QA_STANDARD.md`
 - `post-r6i/CROSS_AGENT_COLLABORATION_POLICY.md`
 
-## QA R6J
-- QA A: `qa/r6j/a/QA_A_EXECUTION_INSTRUCTION.md`
-- QA B: `qa/r6j/b/QA_B_EXECUTION_INSTRUCTION.md`
+## Historical
+- `qa/r6i/**`
+- `qa/r5i/**`
+- `../../r6i-dev/**`
 
-## Development
-- Historical R6I instruction: `final-dev-request/CPF_DEVGPT_R6I_EXECUTION_INSTRUCTION.md`
-- Next-cycle common policy: `final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md`
-- Applied developer result: `../../r6i-dev/**`
-
-## Historical QA
-- `qa/r6i/**` — original R6I integrated QA and post-development addendum
-- `qa/r5i/**` — preserve
+Do not use the superseded QA B fast result for verdict.

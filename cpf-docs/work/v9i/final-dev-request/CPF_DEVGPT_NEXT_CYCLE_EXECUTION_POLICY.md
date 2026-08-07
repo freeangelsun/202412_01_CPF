@@ -69,3 +69,10 @@ Root-relative ZIP + SHA-256 + Handover를 사용자에게 제공한다.
 Basis QA SHA: `3ed676061246c9db3e44f29e254c0393ecca3929`
 
 이 공통정책과 구체 실행지침이 충돌하면 최상위 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 우선하고, 그 범위 안에서 R6J 구체 실행지침을 따른다.
+
+## 8. 100% Finalization
+
+모든 다음 개발요청은 현재 미완료 전체를 한 번에 배정한다.
+Known rework subset 숫자는 Scope 제한으로 사용하지 않는다.
+개발GPT는 현재 회차에서 부분 구현/미구현을 계획적으로 남기지 않는다.
+외부 Runtime 제약 외 구현 가능한 항목은 전부 현재 회차에서 닫는다.

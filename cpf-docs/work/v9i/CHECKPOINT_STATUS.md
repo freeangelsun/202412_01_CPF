@@ -15,4 +15,6 @@ Current phase:
 `Developer R6J rework`
 
 Current developer instruction:
-`cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+`cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_FULL_100_PERCENT_EXECUTION_INSTRUCTION.md`
+
+Scope: 100% = 93/93 requirements + 56/56 findings + canonical GA + runtime + self-found defects.

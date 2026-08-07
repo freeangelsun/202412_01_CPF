@@ -23,7 +23,7 @@
 - QA B Deep source result: `qa/r6j/b/**`
 
 ## Development
-- Current exact request: `final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md`
+- Current exact request: `final-dev-request/CPF_DEVGPT_R6J_FULL_100_PERCENT_EXECUTION_INSTRUCTION.md`
 - Direct 34-row ledger: `final-dev-request/DEVELOPMENT_REWORK_REQUIREMENTS_R6J.csv`
 - Transaction/Logging scope: `final-dev-request/R6J_TRANSACTION_LOGGING_REWORK.md`
 - Common policy: `final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md`
@@ -38,3 +38,13 @@
 - `../../r6i-dev/**`
 
 Do not use the superseded QA B fast result for verdict.
+
+## Scope Rule
+- Developer scope: 93/93 + 56/56 + full canonical + runtime/GA + self-discovered defects, 100% goal.
+- QA A/B scope: each reviews entire product 100%; Primary is depth emphasis only.
+
+## Mandatory Completion Policy
+- `CPF_100_PERCENT_FINALIZATION_MANDATE.md` — Developer/QA/Central all target remaining 100%, no planned partial completion.
+
+## Highest Finalization Policy
+- `CPF_PROJECT_FINAL_100_PERCENT_COMPLETION_MANDATE.md` — 100% means project completion, not assigned-list completion.

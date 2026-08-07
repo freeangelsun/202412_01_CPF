@@ -174,3 +174,25 @@ QA B가 source audit로 확인한:
 - transactionId가 일부 source만 연결됨
 
 다음 개발 결과를 사용자 적용/Push한 **새 exact master SHA**에서 QA A/B가 다시 독립 검수해야 한다.
+
+
+## 9. Scope Correction — 전체 100% 목표
+
+`직접 재개발 34건`은 이번 개발 Scope의 크기가 아니다.
+34건은 현재 확인된 즉시 Source/Contract/Gate 수정 항목 수다.
+
+다음 개발GPT의 실제 Scope는:
+- 중앙 Requirement 93/93
+- 중앙 Findings 56/56
+- Direct known rework 34/34
+- 최상위 Requirement 전체
+- Runtime/GA 전체
+- 개발 중 자체 발견 결함 전체
+
+이며 **100% 완료 목표로 한 번에 배정**한다.
+
+다음 QA A/B도 Primary 영역을 나누되 Scope를 나누지 않는다.
+각 QA가 제품 전체를 100% 독립검수한다.
+
+정식 개발지침:
+`../../final-dev-request/CPF_DEVGPT_R6J_FULL_100_PERCENT_EXECUTION_INSTRUCTION.md`

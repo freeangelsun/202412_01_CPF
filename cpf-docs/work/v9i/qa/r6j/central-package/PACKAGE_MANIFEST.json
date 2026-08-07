@@ -1,21 +1,11 @@
 {
-  "packageType": "CPF_R6J_QA_MERGED_AND_DEV_REQUEST_OVERLAY",
+  "packageType": "CPF_PROJECT_FINAL_100_PERCENT_MANDATE_OVERLAY",
   "basisSha": "3ed676061246c9db3e44f29e254c0393ecca3929",
-  "qaAInputSha256": "b99dc48895e0f28b13aca688bcf4fbb0e191c2af11c8a14f2dda888597f5f270",
-  "qaBDeepInputSha256": "e853ca3edbc098bb6f3da63e7ba0d86d00b4391c76ecce7c7b0b67f5bb5a37fb",
-  "centralFindingCount": 56,
-  "severity": {
-    "P0": 44,
-    "P1": 11,
-    "P2": 1
-  },
-  "centralRequirementRows": 93,
-  "directDevelopmentReworkRows": 34,
-  "eduAdmDecision": {
-    "PRODUCT_ADM": 9,
-    "EXTENSION_SAMPLE": 4,
-    "MERGE_EDU": 4
-  },
+  "meaningOf100Percent": "CPF project completion, not assigned-subset completion",
+  "developerGoal": "finish all remaining implementable project gaps in this request",
+  "qaGoal": "each QA independently verifies full project completion",
+  "plannedPartialImplementationAllowed": false,
+  "plannedDeferralAllowed": false,
   "deleteCount": 0,
   "gitWritesPerformed": false,
   "files": [
@@ -26,8 +16,18 @@
     },
     {
       "path": "cpf-docs/work/v9i/CHECKPOINT_STATUS.md",
-      "size": 610,
-      "sha256": "8687a143d12ad60497b9e898ef40b2c422aad6e137c74916ce8265cb513b2f24"
+      "size": 718,
+      "sha256": "e95a29498b22741a4961a2d90b4201ac0de96ab6c56a88b770c7af1cea7e6a52"
+    },
+    {
+      "path": "cpf-docs/work/v9i/CPF_100_PERCENT_FINALIZATION_MANDATE.md",
+      "size": 6331,
+      "sha256": "079eee36224e58ab00ab1f9619fa3774bb746d218869e7fbbebf47802245e109"
+    },
+    {
+      "path": "cpf-docs/work/v9i/CPF_PROJECT_FINAL_100_PERCENT_COMPLETION_MANDATE.md",
+      "size": 7277,
+      "sha256": "dafcc221933c4e5d9302b8dad8c25e73b6d0e1a2d0ec26f09a92947e00c3366b"
     },
     {
       "path": "cpf-docs/work/v9i/DATASET_MAP.md",
@@ -36,18 +36,23 @@
     },
     {
       "path": "cpf-docs/work/v9i/HANDOVER.md",
-      "size": 1408,
-      "sha256": "ae5f77e237725c5a69b2cef69ada3b8bf298c0c859d8685b262368a2e61cadaa"
+      "size": 2301,
+      "sha256": "39f36aa8bfbf9212f2fff7a7db55639a8b1967e6ec449a9ad2e40e61655a71ec"
     },
     {
       "path": "cpf-docs/work/v9i/REVIEW_INDEX.md",
-      "size": 1587,
-      "sha256": "a75d830789b3508e7c5774e84f92007878a2f67f94d33a6ef159c61f6d3e268e"
+      "size": 2107,
+      "sha256": "7cdd1d7de9ebbdc1cf5931883f5f3d4013bd3684e72b35139383e8d4fb8e63d4"
     },
     {
       "path": "cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md",
-      "size": 2770,
-      "sha256": "fa4a0c50dd7fb62b01ce19a5db353adedc8ac2ab8e074b4da7cda5465741b67d"
+      "size": 3139,
+      "sha256": "611cece902662b2a13c1a62221427031f77d10984af3fbfaa24890b06ddb91b1"
+    },
+    {
+      "path": "cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_FULL_100_PERCENT_EXECUTION_INSTRUCTION.md",
+      "size": 36693,
+      "sha256": "e0b12a026c318fcad4006ceaede9c55202fe19da67577567e3efbd4c3f069dcf"
     },
     {
       "path": "cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md",
@@ -65,14 +70,19 @@
       "sha256": "7a9545432aa7cb61e563b3f0a9c5d9f5f08a0ed69363b76c8610539bcdc99980"
     },
     {
+      "path": "cpf-docs/work/v9i/qa/QA_100_PERCENT_COMPLETION_POLICY.md",
+      "size": 3049,
+      "sha256": "2a55f578422e64c828c00eed4d46cbad752ce17d2703c6254a533e01a33c0ab7"
+    },
+    {
       "path": "cpf-docs/work/v9i/qa/r6j/CENTRAL_INTEGRATED_FINDINGS.csv",
       "size": 24753,
       "sha256": "d1f441e9707f041dbce4d8832cc072f906d3f863da6ecdaad4f27ca01d6d0dad"
     },
     {
       "path": "cpf-docs/work/v9i/qa/r6j/CENTRAL_MERGED_QA_REPORT.md",
-      "size": 6439,
-      "sha256": "4ea254b81b658aed7e9d729b4e0d4572b79f8504c89ca78d45fa57ee1ee3cbd2"
+      "size": 7137,
+      "sha256": "71a13d832631ac4cb7f6a86764e1352dfaa81cf3b0eb9bfd3c6a88df993d471d"
     },
     {
       "path": "cpf-docs/work/v9i/qa/r6j/CENTRAL_REQUIREMENT_STATUS.csv",
@@ -346,8 +356,8 @@
     },
     {
       "path": "cpf-docs/work/v9i/qa/r6j/central-package/CHANGE_MANIFEST.csv",
-      "size": 6487,
-      "sha256": "adfd25dc5349689d1fb170d944611afab5ab19194f8675b225d48d60a55b767a"
+      "size": 8325,
+      "sha256": "83c53327cba4ce68b631a6c5e354135d312678ee051412d007cac5030839a275"
     },
     {
       "path": "cpf-docs/work/v9i/qa/r6j/central-package/DELETE_MANIFEST.csv",

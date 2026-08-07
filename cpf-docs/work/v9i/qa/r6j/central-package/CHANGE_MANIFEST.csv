@@ -1,70 +1,73 @@
 ﻿path,action,purpose
-cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/CHECKPOINT_STATUS.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/DATASET_MAP.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/HANDOVER.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/REVIEW_INDEX.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md,MODIFY,R6J QA merge / development request
-cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/final-dev-request/DEVELOPMENT_REWORK_REQUIREMENTS_R6J.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/final-dev-request/R6J_TRANSACTION_LOGGING_REWORK.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/CENTRAL_INTEGRATED_FINDINGS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/CENTRAL_MERGED_QA_REPORT.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/CENTRAL_REQUIREMENT_STATUS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/CENTRAL_RUNTIME_QUALIFICATION_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/EDU_ADM_ARCHITECTURE_DECISION.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/QA_CROSS_REVIEW_DISPOSITION.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/QA_RESULT_PACKAGE_STATUS.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/CHANGE_MANIFEST.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/CROSS_REVIEW_REQUEST.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/HANDOVER.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/PACKAGE_MANIFEST.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_EDU_ARCH_CLASSIFICATION.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_EVIDENCE.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_FINDINGS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_LOGGING_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_OPINION.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_REPORT.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_REQUIREMENT_STATUS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/QA_A_RUNTIME_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/SHA256SUMS.txt,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/artifact-consumer-selftest.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/db3-v105-v106-source-parity.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/developer-ledger-facts.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/edu-consumer-contract.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/edu135-facts.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/environment.txt,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/frontend-contract.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/frontend-semantic-mutation.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/observability-fake-proof.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/observability-fake-proof.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/selected-source-hash-parity.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/a/evidence/supply-chain-selftest.log,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/CHANGE_MANIFEST.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/CROSS_REVIEW_REQUEST.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/DELETE_MANIFEST.txt,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/HANDOVER.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/PACKAGE_MANIFEST.json,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_ADM63_DEEP_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_APPROVAL_OWNER_RECONCILE_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_ARCHITECTURE_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_BZA26_DEEP_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_DEEP_SOURCE_AUDIT.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_EDU135_DEEP_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_EDU_ARCH_CLASSIFICATION.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_EVIDENCE.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_EVIDENCE_PROBE.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_FINDINGS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_LOGGING_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_OPINION.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_RELEASE_GATE_AUDIT.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_REPORT.md,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_REQUIREMENT_STATUS.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_REWORK_CLASSIFICATION.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_RUNTIME_GAP_MATRIX.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/QA_B_SOURCE_PROBE_MANIFEST.csv,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/b/SHA256SUMS.txt,ADD,R6J QA merge / development request
-cpf-docs/work/v9i/qa/r6j/central-package/CHANGE_MANIFEST.csv,ADD,package change manifest
-cpf-docs/work/v9i/qa/r6j/central-package/PACKAGE_MANIFEST.json,ADD,package manifest
-cpf-docs/work/v9i/qa/r6j/central-package/SHA256SUMS.txt,ADD,package hash manifest
-cpf-docs/work/v9i/qa/r6j/central-package/DELETE_MANIFEST.csv,ADD,no-delete manifest
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/CHECKPOINT_STATUS.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/CPF_100_PERCENT_FINALIZATION_MANDATE.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/CPF_PROJECT_FINAL_100_PERCENT_COMPLETION_MANDATE.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/DATASET_MAP.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/HANDOVER.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/REVIEW_INDEX.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_NEXT_CYCLE_EXECUTION_POLICY.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_FULL_100_PERCENT_EXECUTION_INSTRUCTION.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_R6J_REWORK_EXECUTION_INSTRUCTION.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/final-dev-request/DEVELOPMENT_REWORK_REQUIREMENTS_R6J.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/final-dev-request/R6J_TRANSACTION_LOGGING_REWORK.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/QA_100_PERCENT_COMPLETION_POLICY.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/CENTRAL_INTEGRATED_FINDINGS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/CENTRAL_MERGED_QA_REPORT.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/CENTRAL_REQUIREMENT_STATUS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/CENTRAL_RUNTIME_QUALIFICATION_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/EDU_ADM_ARCHITECTURE_DECISION.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/QA_CROSS_REVIEW_DISPOSITION.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/QA_RESULT_PACKAGE_STATUS.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/CHANGE_MANIFEST.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/CROSS_REVIEW_REQUEST.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/HANDOVER.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/PACKAGE_MANIFEST.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_EDU_ARCH_CLASSIFICATION.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_EVIDENCE.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_FINDINGS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_LOGGING_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_OPINION.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_REPORT.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_REQUIREMENT_STATUS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/QA_A_RUNTIME_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/SHA256SUMS.txt,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/artifact-consumer-selftest.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/db3-v105-v106-source-parity.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/developer-ledger-facts.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/edu-consumer-contract.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/edu135-facts.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/environment.txt,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/frontend-contract.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/frontend-semantic-mutation.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/observability-fake-proof.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/observability-fake-proof.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/selected-source-hash-parity.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/a/evidence/supply-chain-selftest.log,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/CHANGE_MANIFEST.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/CROSS_REVIEW_REQUEST.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/DELETE_MANIFEST.txt,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/HANDOVER.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/PACKAGE_MANIFEST.json,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_ADM63_DEEP_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_APPROVAL_OWNER_RECONCILE_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_ARCHITECTURE_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_BZA26_DEEP_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_DEEP_SOURCE_AUDIT.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_EDU135_DEEP_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_EDU_ARCH_CLASSIFICATION.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_EVIDENCE.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_EVIDENCE_PROBE.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_FINDINGS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_LOGGING_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_OPINION.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_RELEASE_GATE_AUDIT.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_REPORT.md,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_REQUIREMENT_STATUS.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_REWORK_CLASSIFICATION.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_RUNTIME_GAP_MATRIX.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/QA_B_SOURCE_PROBE_MANIFEST.csv,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/b/SHA256SUMS.txt,ADD_OR_MODIFY,Project-level 100 percent finalization mandate
+cpf-docs/work/v9i/qa/r6j/central-package/CHANGE_MANIFEST.csv,ADD,package control
+cpf-docs/work/v9i/qa/r6j/central-package/PACKAGE_MANIFEST.json,ADD,package control
+cpf-docs/work/v9i/qa/r6j/central-package/SHA256SUMS.txt,ADD,package control

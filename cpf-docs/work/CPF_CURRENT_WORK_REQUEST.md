@@ -1912,3 +1912,20 @@ Delete Manifest만 작성하고 종료 금지.
 
 사용자 승인 없이 Repository Root에 신규 file/directory/module 생성 금지.
 Architecture Gate가 항상 검출해야 한다.
+
+## P0 Unified Context Design Freeze — No Deferred Context Work
+
+Developer는 최종 통합지침 PART C 74~115의 전체 Context를 한 작업으로 구현한다.
+
+중점:
+1. Existing Standard Header 전체 field mapping
+2. TransactionHeader/TransactionContext 책임 완전 분해
+3. Core Kernel 5종의 field/invariant 구현
+4. Owner Context 전수 구현 또는 Source 근거 `해당 없음`
+5. 모든 Boundary adapter 연결
+6. all-context impact scan
+7. compatibility facade migration count 관리
+8. Garbage Closure
+9. QA A/B field-level 독립 검수 가능 Evidence
+
+특정 Context 하나만 먼저 구현하고 다른 Context 연계를 후속으로 남기면 미완료다.

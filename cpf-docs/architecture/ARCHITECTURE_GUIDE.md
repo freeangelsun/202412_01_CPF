@@ -607,3 +607,34 @@ ThreadLocal fallback은 Runtime/Starter가 소유하고 capture/restore/clear/le
 
 사용자 승인 없는 Repository Root 신규 file/directory/module 생성은 모든 세션에서 금지한다.
 Root 확장은 Canonical Architecture + 사용자 승인 + Root Allowlist 변경이 선행되어야 한다.
+
+## Unified Context Final Field Model — Design Freeze
+
+본 절은 Unified Context의 구현 명세 정본이다. Context 이름만 정의하지 않고 field ownership/lifecycle까지 고정한다.
+
+### Core Kernel
+- Transaction: transactionId, rootTransactionId, parentTransactionId, correlationId, businessDate, startedAt, originKind, originSystemId, originTransactionId
+- Execution: standardExecutionId, executionId, rootExecutionId, parentExecutionId, segmentId, parentSegmentId, executionType, attempt, callDepth, startedAt, deadline, cancellationMode
+- Operation: operationId, operationName, commandId, idempotencyKey, idempotencyScope, idempotencyMode, requestFingerprint(hash only), originalOperationId
+- Identity: subjectId, actorId, principalType, authenticationContextId, delegationId, assuranceLevel, authenticatedAt
+- Tenant: tenantId, tenantRealm
+
+### Owner Components
+- Interaction: request/externalRequest, API/protocol version, channel, client app/version, screen/device, locale/timezone, resolved IP/country/region, user agent
+- Gateway: ingress, gateway instance, route/version, target service, trust/network zone
+- ServiceCall: call id/direction/caller/instance/target/operation/protocol/contract/request
+- Message: system/message/event/destination/producer/consumer-group/partition/offset/delivery/schema/time
+- Async: task/parent/submission execution/executor/fork/propagation profile
+- Batch: definition/job instance/execution/step/schedule/trigger/businessDate/restart/partition/chunk/item/worker/checkpoint/original/recovery/fencing
+- CenterCut: centerCut/workGroup/workUnit/partition/shard/range/item/worker/fencing/recovery/checkpoint
+- Security/Session/Approval
+- Integration/File
+- Saga/TCC/XA/Recovery
+- GraphQL/Realtime/Notification/AI when those capabilities are present
+
+모든 Owner Component는 typed registry로 snapshot에 포함하며 자유 Map으로 처리하지 않는다.
+
+### Absolute Rule
+어떤 Context라도 변경하면 Web/Gateway/Integration/Messaging/Async/Batch/CenterCut/Security/Reliability/File/Observability/ADM/Generator/EDU/Testkit 전부를 검색해 실제 Consumer를 같은 변경에서 수정한다. 특정 Context만 후속 작업으로 이월하지 않는다.
+
+세부 field/invariant/header mapping은 개발 GPT 최종 통합지침 PART C 74~115와 동일하게 구현한다.

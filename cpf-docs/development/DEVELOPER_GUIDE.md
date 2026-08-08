@@ -635,3 +635,14 @@ Allowlist 변경 또한 사용자 승인 대상이다.
 기존 `CpfTransactionContext` 호환 facade가 필요하면 read-only delegate로만 유지한다.
 신규 Consumer는 새 Unified Context API 사용.
 Migration count와 종료조건을 Evidence에 남긴다.
+
+## Unified Context Field-level 개발 규칙
+
+Context를 추가할 때 먼저 `context type → field → source authority → trust → lifecycle → propagation → consumer → test`를 정의한다.
+이름만 만든 Context 또는 필드가 2~3개뿐인 껍데기 Context를 금지한다.
+
+반대로 모든 metadata를 Core에 몰아넣지 않는다.
+Core Kernel과 Owner typed component를 구분한다.
+
+개발자는 최종 통합지침 PART C 74~115를 구현 명세로 사용한다.
+어떤 Context 변경도 전체 Context/Boundary impact scan 없이 merge-ready로 판정하지 않는다.

@@ -293,3 +293,23 @@ Ingress Profile별 Required Policy를 사용한다.
 번호형 Reserved/Ext Header 신규 사용 금지.
 기존 Consumer는 compatibility migration 후 제거한다.
 신규 확장은 namespace + size/key/value/entry/sensitive/transport allowlist 정책을 사용한다.
+
+## Unified Context Header Mapping — Final Freeze
+
+기존 Header 이름은 Wire compatibility 정본으로 유지하되 다음 semantic owner를 강제한다.
+
+- Transaction: X-Transaction-Id, X-Correlation-Id
+- Execution: X-Cpf-Standard-Execution-Id, X-Transaction-Segment-Id, X-Parent-Transaction-Segment-Id, X-Transaction-Call-Depth
+- Operation: Idempotency-Key canonical, X-Idempotency-Key alias
+- Interaction: X-Request-Id, X-External-Request-Id, X-Api-Version, X-Request-Type, Channel, Client metadata, resolved client network metadata
+- Identity/Tenant: User/Operator/Tenant는 trusted/derived only
+- ServiceCall: Caller/Caller-Instance/Target-Service는 per-hop overwrite
+- Gateway: Gateway Instance/Route/Ingress는 owner-specific
+- Observability: traceparent/tracestate canonical; X-Trace/X-Span/X-Parent-Span compatibility/deprecation
+- Approval: X-Cpf-Approval-* trusted-only
+- Security carrier input: Authorization/API-Key/Signature/Timestamp/Nonce는 Context 저장/일반 propagation 금지
+- Customer/Member: global Context/Header에서 Business owner로 migration
+- Forwarded/X-Forwarded-For/X-Real-IP: edge input only; internal raw propagation 금지
+- Reserved/Ext numbered header: 신규 사용 금지, namespace extension으로 migration
+
+Header Spec는 semantic owner/transport scope/propagation/trust/source/mutation/log/mask/maxLength/aliases/direction/compatibility를 표현해야 한다.

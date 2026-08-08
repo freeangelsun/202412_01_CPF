@@ -1035,3 +1035,32 @@ Root Allowlist 밖 tracked entry는 Architecture Gate FAIL이다.
 
 Context Class/Interface/DTO 존재만으로 완료 금지.
 실제 Adapter/Consumer/Test/Generator/ADM/Batch 연계와 old source garbage closure까지 완료해야 한다.
+
+## Final Unified Context Field-Level Acceptance
+
+Unified Context Requirement는 이름/DTO 존재가 아니라 아래 field-level 설계와 전체 Consumer 연계가 Acceptance다.
+
+Core Kernel:
+Transaction / Execution / Operation / Identity / Tenant.
+
+Owner Context:
+Interaction / Gateway / ServiceCall / Message / Async / Batch / CenterCut /
+Security / Session / Approval / BusinessOrganization / Integration / File /
+Saga / TCC / XA / Recovery 및 현재 Repository에 존재하는 GraphQL/Realtime/Notification/AI.
+
+필수:
+- immutable snapshot/scope
+- typed component registry
+- transport-specific inject/extract
+- trust/spoof policy
+- deadline/cancellation
+- operation-scoped idempotency
+- businessDate independent from transactionId
+- async capture/restore/clear
+- batch restart/process-kill/multi-instance
+- message redelivery
+- recovery/reconcile lineage
+- Generator/EDU/ADM/Testkit parity
+- old model garbage closure
+
+한 Context 변경 시 모든 Context/Boundary 영향도 전수 검토가 의무이며 개발 가능한 연계를 후속으로 남길 수 없다.

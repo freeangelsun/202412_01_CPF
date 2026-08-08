@@ -16,6 +16,8 @@
 
 > **공식 문서 형식** · 열람은 PDF, 편집·인수 원본은 같은 이름의 DOCX를 사용합니다. Guide/설계 Authoring Markdown은 공식 사용자 문서로 제공하지 않습니다.
 
+> **현재 문서 기준** · master `b4b6b18b43e9` (`07_09`), Product Source `f0aa49f29cba` (`07_08`). Runtime qualification 및 QA A/B 재검수 전 Release 상태는 `UNVERIFIED / RELEASE_BLOCKED`입니다.
+
 </div>
 
 ---
@@ -35,7 +37,7 @@
 | 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직 기준일·Effective Permission·결재·위임·감사를 업무에 적용 |
 | 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | Route·보안·Target·Publish·ACK/NACK·LKG·Rollback을 운영 |
 
-각 PDF는 **표지 → 현재 Source/검증 상태 → 빠른 찾기 → 핵심 업무 흐름 → 본문** 순서로 시작합니다. 표·절차·주의/복구 구역은 시각적으로 구분하고 PDF Bookmarks·검색(Ctrl+F)으로 필요한 지점에 빠르게 이동할 수 있게 구성합니다. 처음 접하는 독자는 **선택 기준 → 절차 → 정상 판정 → 오류/부분 실패 → 복구 → 운영 인계** 순서로 읽고, 숙련자는 PDF Bookmarks·검색과 화면/Source Trace를 이용해 필요한 지점으로 이동합니다.
+각 PDF는 **표지 → 현재 Source/검증 상태 → 빠른 찾기 → 기능 Navigator/Reference → 핵심 업무 흐름 → 본문** 순서로 시작합니다. **“CPF의 이 기능은 어디에 있습니까?”**라는 질문은 [00 프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf)의 **제품 기능 Navigator**에서 기능명으로 찾습니다. 개발 중 공통 API·SPI·Starter·Paging·Transaction·Log·Messaging·외부 연계 사용법은 [01 개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf)의 **CPF 개발 기능 Reference**, Job·Chunk·Restart·Partition·Worker Transaction은 [02 배치 개발 매뉴얼](cpf-docs/guides/02_배치개발매뉴얼.pdf)의 **배치 기능 Reference**에서 바로 판단합니다. 각 Reference는 실제 진입점, 사용 경계, 정상·오류·부분 실패·Rollback/Compensation/Reconcile과 Source Trace까지 연결합니다.
 
 ---
 

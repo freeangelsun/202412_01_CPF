@@ -1,0 +1,57 @@
+﻿finding_id,qa_status,superseding_finding,basis_sha,qa_note
+AB-R6-001,FAIL,QA-B-1000-NEW-001,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Superseded/current defect: Current exact-SHA Evidence provenance false-green
+AB-R6-002,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-003,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-004,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-005,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-006,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-007,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-008,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-009,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-010,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-011,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-012,FAIL,QA-B-1000-NEW-007,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Superseded/current defect: HIGH/CRITICAL generated-client gate does not require the typed Orval client it tracks
+AB-R6-013,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-014,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-015,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-016,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-017,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-018,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-019,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-020,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-021,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-022,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-023,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-024,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-025,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-026,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-027,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-028,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-029,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-030,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-031,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-032,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-033,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-034,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Original finding requires live/runtime proof and remains unverified at current exact SHA.
+AB-R6-035,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-036,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-037,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-038,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-039,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-040,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-041,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-042,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-043,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-044,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-045,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-046,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-047,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-048,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-049,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-050,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-051,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-052,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-053,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-054,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-055,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.
+AB-R6-056,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Developer closure at prior basis was not inherited. Exact source row was retained in denominator but not independently re-opened to PASS.

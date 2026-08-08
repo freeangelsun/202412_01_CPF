@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 2,
+  "protocol": "CPF-RESOURCE-MEASURED-BUDGET",
+  "status": "PASS",
+  "requestId": "ff58aa5b-abb2-4e22-a1f9-6fd82b4acb36",
+  "comparisons": {
+    "memoryBytes": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "threadCount": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "connectionCount": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "queueDepth": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "diskBytes": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "tempBytes": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    },
+    "streamBufferBytes": {
+      "limit": 100.0,
+      "observed": 50.0,
+      "withinBudget": true
+    }
+  },
+  "workloadId": "fake-workload-001",
+  "sampleCount": 4,
+  "cleanup": {
+    "tempBytes": {
+      "before": 50.0,
+      "after": 0.0,
+      "allowedResidual": 0.0
+    },
+    "openFiles": {
+      "before": 4.0,
+      "after": 0.0,
+      "allowedResidual": 0.0
+    },
+    "activeConnections": {
+      "before": 3.0,
+      "after": 0.0,
+      "allowedResidual": 0.0
+    },
+    "activeThreads": {
+      "before": 8.0,
+      "after": 0.0,
+      "allowedResidual": 0.0
+    }
+  },
+  "backpressure": {
+    "queueLimit": 100.0,
+    "peakQueueDepth": 90.0
+  }
+}

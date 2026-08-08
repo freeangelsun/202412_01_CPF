@@ -1,28 +1,28 @@
 # QA TO CENTRAL HANDOFF
 
 ## WORKER_OPINION
-Current exact SHA `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` is **not releasable**. Source fixes in 07_05 are real, but release-blocking deterministic defects plus mandatory runtime gaps remain.
+`b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb` is **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**. 07_08 fixes materially improved product source, but mandatory multi-domain examples, release gate authority provenance, Javadoc/OpenAPI contract and Runtime closure remain.
 
 ## NEW_FINDINGS
-See `NEW_FINDINGS.csv`: 25 findings, P0 18, P1 7.
+`NEW_FINDINGS.csv`: 5 (P0 3 / P1 2).
 
 ## DISAGREEMENT
-See `DISAGREEMENTS.md`. Development/static/mutation PASS is not inherited as final QA PASS.
+Developer prior-SHA PASS/self-tests are not current release PASS. See `DISAGREEMENTS.md`.
 
 ## ARCHITECTURE_DECISION_REQUIRED
-Core persistence ownership, lineage source-of-truth, dormant EDU handler cleanup, and BZA retired API representation require explicit resolution.
+Release Qualification root-of-trust must be centrally fixed/pinned. `cpf_transaction_lineage` remains normalized projection/index, not primary.
 
 ## ADDITIONAL_QA_REQUIRED
-After development fixes, independently rerun QA A and QA B against the same successor exact SHA. Re-run all six adversarial mutation cases and add mutations for Approval fence, Center-Cut nonterminal reconcile, FileLog symlink/dedup, canonical V107 omission and retired BZA OpenAPI.
+After redevelopment, QA A/B independently rerun all 1000, especially CPF-RV-0001~0030, current exact-SHA fake-target mutations 6종, FileLog hard-kill, Online/Batch integrated samples, OpenAPI/Generated Client and Javadoc build.
 
 ## ADDITIONAL_DEVELOPMENT_REQUIRED
 See `ADDITIONAL_DEVELOPMENT_REQUIRED.md`.
 
 ## RUNTIME_BLOCKERS
-Mandatory runtime matrix: PASS 0 / FAIL 8 / UNVERIFIED 5 / 13. Commands in the QA matrix are rebound to `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` for current reference, but final rerun must bind to the actual successor SHA after fixes.
+Runtime13 PASS 0 / FAIL 4 / 미검증 9. Java25/Gradle9.1/live DB3/browser/distributed targets are required.
 
 ## NEXT_ACTION
-Merge QA A/B by root cause, issue one redevelopment request for all open P0/P1 plus runtime/gate integrity, then perform exact-SHA full build/DB3/browser/fault/performance/security/DR/generator/Codex/transaction lineage qualification.
+Central should merge QA A/B by root cause, issue one current redevelopment request, then re-run exact successor SHA qualification.
 
 ## FINAL_VERDICT
 **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**

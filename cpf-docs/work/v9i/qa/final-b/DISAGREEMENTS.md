@@ -1,8 +1,9 @@
 # DISAGREEMENTS
 
-## Developer report vs QA B
-
-- Developer의 93/93, 56/56, local gate PASS는 Final QA PASS로 승계하지 않는다.
-- Developer Evidence의 R6J/behavior PASS는 QA37 `--compile` 또는 full release qualification과 동일하지 않다.
-- Developer Runtime matrix가 13/13 미검증인 점은 QA에서도 해소되지 않았다.
-- QA B는 current source에서 새로운 P0/P1을 발견했으므로 개발 완료 주장과 명시적으로 불일치한다.
+1. Developer `TEST_AND_EVIDENCE.md` and `PACKAGE_MANIFEST.json` are based on `08d8beb4a664039904c30aeac07115a04707924a`, not QA basis `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`. They cannot support current release PASS.
+2. Developer self-finding `DEV-FINAL-SELF-001` says TransactionId trust is complete, but current production filter ordering does not prove a server-side authenticated starter-system producer for valid mTLS/trusted-proxy first hop.
+3. Developer semantic source closure for timeline freshness does not cover the actual `appendIfTable` query-exception catch path; query failure can still be hidden as NOT_APPLICABLE.
+4. Developer FileLog source/gate closure does not cover head-of-line starvation caused by `break` on item-local transient failure.
+5. Developer HIGH/CRITICAL generated-client closure is broader than the special acceptance: the gate computes `typedGeneratedConsumed` but enforces only `generatedConsumed`.
+6. Developer architecture move of persistence implementation downstream does not close package ownership because downstream classes still use `com.cpf.core.*` or drift outside canonical packageBase.
+7. Developer completion statements are therefore not accepted as Final QA PASS.

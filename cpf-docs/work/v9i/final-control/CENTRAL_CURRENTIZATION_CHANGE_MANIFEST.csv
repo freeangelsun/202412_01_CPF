@@ -30,3 +30,9 @@ cpf-docs/work/v9i/final-control/VERIFY_CENTRAL_CURRENTIZATION.ps1,ADD,low-cost c
 cpf-docs/work/v9i/final-control/REVIEW_INDEX.md,UPDATE,current product QA basis f0aa49f; full-scope QA A/B reverse-order control; Special 1000 continuity,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c
 cpf-docs/work/v9i/final-control/CENTRAL_QA_MERGE_REPORT.md,UPDATE,developer rework push state + current final QA control + Special 1000 central adjudication,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c
 cpf-docs/work/v9i/final-control/SPECIAL_REVIEW_1000.csv,ADD,central current special-management ledger for optimized 1000 review points,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c
+cpf-docs/work/v9i/qa/final-a/**,CURRENTIZE,QA A Final Full-Scope exact-basis result package,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb
+cpf-docs/work/v9i/qa/final-b/**,CURRENTIZE,QA B Final Full-Scope exact-basis result package,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb
+cpf-docs/work/v9i/final-control/REVIEW_INDEX.md,UPDATE,A/B completed state + merged denominators + developer rework phase,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb
+cpf-docs/work/v9i/final-control/CENTRAL_QA_MERGE_REPORT.md,UPDATE,independent QA A/B root-cause merge and central adjudication,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb
+cpf-docs/work/v9i/final-control/CENTRAL_FINAL_ACTIONS.csv,UPDATE,31 current statuses + 5 new normalized actions = 36,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb
+cpf-docs/work/v9i/final-control/SPECIAL_REVIEW_1000.csv,UPDATE,QA A/B row-level statuses + central worst-case status,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb

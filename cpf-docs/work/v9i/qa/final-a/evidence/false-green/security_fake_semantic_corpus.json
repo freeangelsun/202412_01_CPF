@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 2,
+  "cases": [
+    {
+      "id": "fake-xss",
+      "category": "xss",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-xss"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "attackPayload": "<script>alert(1)</script>"
+    },
+    {
+      "id": "fake-csrf",
+      "category": "csrf",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-csrf"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf",
+        "stateUnchanged": true
+      },
+      "headers": {
+        "Origin": "https://evil.example"
+      },
+      "body": "x=1"
+    },
+    {
+      "id": "fake-ssrf",
+      "category": "ssrf",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-ssrf"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "attackPayload": "http://169.254.169.254/latest/meta-data"
+    },
+    {
+      "id": "fake-idor",
+      "category": "idor",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-idor",
+        "principalId": "p1",
+        "foreignOwnerId": "p2"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      }
+    },
+    {
+      "id": "fake-injection",
+      "category": "injection",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-injection"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "attackPayload": "' OR 1=1 --"
+    },
+    {
+      "id": "fake-path",
+      "category": "path",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-path"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "attackPayload": "../../etc/passwd"
+    },
+    {
+      "id": "fake-archive",
+      "category": "archive",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-archive",
+        "entryPath": "../../etc/passwd"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      }
+    },
+    {
+      "id": "fake-process",
+      "category": "process",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-process"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "attackPayload": "x;whoami"
+    },
+    {
+      "id": "fake-tenant",
+      "category": "tenant",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-tenant",
+        "sourceTenant": "t1",
+        "targetTenant": "t2"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      }
+    },
+    {
+      "id": "fake-session",
+      "category": "session",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-session"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf"
+      },
+      "headers": {
+        "Cookie": "SESSION=oldfake"
+      },
+      "assert_session_rotated": true
+    },
+    {
+      "id": "fake-secret",
+      "category": "secret",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-semantic-secret"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf",
+        "secretAbsent": true
+      }
+    },
+    {
+      "id": "fake-replay",
+      "category": "replay",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-replay",
+        "reusedRequestId": "r-1"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf",
+        "replayRejected": true
+      }
+    },
+    {
+      "id": "fake-tamper",
+      "category": "tamper",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-tamper",
+        "tamperedField": "amount",
+        "originalDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf",
+        "integrityRejected": true
+      }
+    },
+    {
+      "id": "fake-authorization",
+      "category": "authorization",
+      "kind": "http",
+      "url": "http://127.0.0.1:18767/security",
+      "method": "POST",
+      "expected_statuses": [
+        403
+      ],
+      "attack": {
+        "vector": "fake-authz",
+        "requiredPermission": "ADMIN",
+        "principalWithoutPermission": "user"
+      },
+      "assertion": {
+        "boundary": "fake-not-cpf",
+        "authorizationRejected": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+﻿requirement_id,qa_status,finding_id,basis_sha,qa_note
+ARCH-MISSION,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ARCH-MSA,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ARCH-BOUNDARY,FAIL,QA-B-1000-NEW-005,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Persistence MyBatis starter reuses com.cpf.core package namespace and drifts from canonical packageBase
+ARCH-LAYER,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-API,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-SPI,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-CONFIG,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-TESTKIT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-CALL,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-REGISTRY,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-ROUTING,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-HEALTH,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-HEADER,FAIL,QA-B-1000-NEW-003,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Authorized first-hop transactionId provenance has no proven producer before highest-precedence filter
+CPF-CONTEXT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-TXID,FAIL,QA-B-1000-NEW-003,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Authorized first-hop transactionId provenance has no proven producer before highest-precedence filter
+CPF-ROLE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-ERROR,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-VALID,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-IDEMP,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-STATE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-LOCK,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-RESILIENCE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-DEADLINE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-SCHED,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-OPSDB,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-LOGDB,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CPF-FILELOG,FAIL,QA-B-1000-NEW-004,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,FileLog recovery queue has head-of-line blocking under persistent target failure
+CPF-LOGFAIL,FAIL,QA-B-1000-NEW-004,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,FileLog recovery queue has head-of-line blocking under persistent target failure
+CPF-TRACE,FAIL,QA-B-1000-NEW-002,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Transaction timeline query failure can be misreported as NOT_APPLICABLE
+CPF-MASK,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-FIXED,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-FILE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CORE-MESSAGE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ARCH-STARTER,FAIL,QA-B-1000-NEW-005,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Persistence MyBatis starter reuses com.cpf.core package namespace and drifts from canonical packageBase
+CMN-EXTENSION,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CMN-SAMPLE-DB,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CMN-CODE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CMN-MSG,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CMN-CALENDAR,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CMN-TEMPLATE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DB-OWNERSHIP,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DB-INSTALL,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-FRESH,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-MIGRATION,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-ROLLBACK,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-BACKUP,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-MULTI-VENDOR,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DB-SQL,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DB-PERF,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DB-MULTI,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DATA-LINEAGE,FAIL,QA-B-1000-NEW-002,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Transaction timeline query failure can be misreported as NOT_APPLICABLE
+DATA-RETENTION,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+GWY-ENTRY,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+GWY-ROUTING,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+GWY-TRUST,FAIL,QA-B-1000-NEW-003,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Authorized first-hop transactionId provenance has no proven producer before highest-precedence filter
+GWY-RESILIENCE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+API-LIMIT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+EXS-INST,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+EXS-REST,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EXS-FIXED,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EXS-SEC,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+EXS-FILE,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EXS-UNKNOWN,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EXS-RECON,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-CORE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+EVENT-OUTBOX,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-BROKER,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-MQ,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-JMS,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-IBM-MQ,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-AMQP,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EXS-TCP,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+EVENT-DLQ,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+SAGA-CORE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAGA-COMP,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+SAGA-MANUAL,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-CORE,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-JOB,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-ITEM,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-EXECUTOR,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-AGENT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-CALL-SYNC,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-CALL-ASYNC,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+BAT-SHARED,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-CORE,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-RUNNER,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-PARAM,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+CENTER-CLAIM,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-RATE,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-REPROCESS,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-UNKNOWN,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+CENTER-OPS,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+ADM-AUTH,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-RBAC,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-AUDIT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-TX,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-TIMELINE,FAIL,QA-B-1000-NEW-002,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Transaction timeline query failure can be misreported as NOT_APPLICABLE
+ADM-SERVICE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-LOG,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-BATCH,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-CENTER,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-AGENT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-EXS,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-RECOVERY,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-INCIDENT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+ADM-UX,FAIL,QA-B-1000-NEW-007,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,HIGH/CRITICAL generated-client gate does not require the typed Orval client it tracks
+ADM-APPROVAL,FAIL,QA-B-1000-NEW-007,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,HIGH/CRITICAL generated-client gate does not require the typed Orval client it tracks
+BZA-BUSINESS,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+BZA-ORG,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+BZA-APPROVAL,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+BZA-SEQUENCE-SAMPLE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-AUTHN,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-AUTHZ,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-SECRET,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-CERT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-PRIVACY,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-DOWNLOAD,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-APP,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-APPROVAL,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SEC-AUDIT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+OPS-METRIC,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-SLO,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-ALERT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-INCIDENT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-RUNBOOK,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+OPS-SELF,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+OPS-TOPOLOGY,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-MAINT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-CONFIG,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+OPS-DRIFT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-CAPACITY,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+OPS-DR,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DEVEX-QUICK,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DEVEX-CODEGEN,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DEVEX-COMMENT,FAIL,QA-B-1000-NEW-006,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Public API/SPI Korean Javadoc contract is not met in newly introduced core contracts
+ONBOARD-DOMAIN,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAMPLE-ACC,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAMPLE-MBR,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAMPLE-REF,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAMPLE-BIZADM,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+SAMPLE-EDU,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+API-CONTRACT,FAIL,QA-B-1000-NEW-007,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,HIGH/CRITICAL generated-client gate does not require the typed Orval client it tracks
+API-PAGING,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+API-ASYNC,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+API-FILE,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+RULE-ARCH,FAIL,QA-B-1000-NEW-005,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Persistence MyBatis starter reuses com.cpf.core package namespace and drifts from canonical packageBase
+RULE-SEC,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+RULE-QUALITY,FAIL,QA-B-1000-NEW-006,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Public API/SPI Korean Javadoc contract is not met in newly introduced core contracts
+TEST-UNIT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+TEST-CONTRACT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+TEST-RUNTIME,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+TEST-BROWSER,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+TEST-BROKER,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+TEST-FAULT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+TEST-EVIDENCE,FAIL,QA-B-1000-NEW-001,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Current exact-SHA Evidence provenance false-green
+REL-BUILD,FAIL,QA-B-1000-NEW-001,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Current exact-SHA Evidence provenance false-green
+REL-DEPLOY,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+REL-MIG,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+REL-COMPAT,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Release acceptance needs exact-SHA executable/runtime evidence; not available/executed in this QA environment.
+DOC-GOV,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+DOC-PRODUCT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+PROD-EDITION,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+PROD-MULTITENANT,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+PROD-PLUGIN,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+PROD-PACKAGE,FAIL,QA-B-1000-NEW-005,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Persistence MyBatis starter reuses com.cpf.core package namespace and drifts from canonical packageBase
+REQ-GOV,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+REQ-REVIEW,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+REQ-CODEX,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."
+REQ-GAP,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Canonical row adjudicated; full independent Source→Consumer→Test closure was not completed for this exact row, so no Developer PASS was inherited."

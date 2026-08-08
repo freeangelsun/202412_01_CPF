@@ -1,61 +1,97 @@
-# CPF QA B Final Full Source Deep Audit Result
+# CPF QA B — Final Full-Scope 1,000-Point Independent Audit
 
-## Verdict
+## Final verdict
 
 **FAIL / REDEVELOPMENT REQUIRED**  
 **UNVERIFIED / RELEASE_BLOCKED**
 
-Basis SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`  
-QA 종료 시 latest `master`: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`  
-Instruction SHA-256: `ea34c533952a780cabb3545168953da73cca61e0cbea36f82aa1553bd8c4a863`
+- QA basis SHA: `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`
+- Developer evidence basis observed: `08d8beb4a664039904c30aeac07115a04707924a` (not accepted for current PASS)
+- Canonical denominator: 169 + 8 legacy aliases (aliases excluded from denominator)
+- Central current actions: 31
+- Previous findings: 56
+- Developer self findings: 5
+- Special review points: 1,000
+- Mandatory runtime axes: 13
 
-이 판정은 개발GPT의 완료/PASS/93·56·34 수치를 승계한 결과가 아니다. 현재 exact SHA의 Source를 GitHub connector로 독립 재검수했고, 로컬 clean checkout/runtime 실행도 먼저 시도했다.
 
-## Final denominator
+## Baseline drift handled during QA
 
-- Canonical top-level Requirement: **169**
-- Developer central Requirement: **93** (input only)
-- Developer central Finding: **56** (input only)
-- Developer self-found: **4** (input only)
-- Mandatory Runtime: **13**
-- ADM route: **63**
-- BZA route: **26**
-- EDU catalog: **135**
-- EDU-ADM direct handler: **17**
-- DB vendor: **3**
+- Instruction-start SHA: `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c` (`07_08`)
+- Final repository QA basis SHA: `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb` (`07_09`)
+- `07_08 → 07_09` comparison: **Product Source change 0**; only four `cpf-docs/work/v9i/final-control/**` files changed/added.
+- Product Source blob baseline therefore remains the `07_08` implementation, but all current QA status/evidence/provenance is rebased to repository HEAD `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`.
+- Central `SPECIAL_REVIEW_1000.csv` was added at `07_09` with QA-B statuses still `미검수`; this QA package supplies the independent QA-B adjudication for all 1,000 points.
+- No CI success is inferred for `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`; the available combined-status query returned an empty status list.
 
-## Result numbers
+## Independent result
 
-- Requirement final-completion PASS: **0** (open P0 + mandatory runtime gap prevents project-level completion)
-- Canonical Requirement direct per-ID final classification: **not fabricated**; 169 denominator retained, affected requirements tracked through findings/audit matrices
-- New Findings: **8** — P0 **4**, P1 **4**, P2 **0**
-- ADM audited: **63/63 route/component ownership matrix**; Browser/backend runtime **0/63**
-- BZA audited: **26/26 current-SHA Page Source direct**
-- EDU audited: **135/135 catalog enumerated; 17/135 handler source direct; 118/135 handler direct-open 미검증**
-- EDU-ADM: **17/17 handler source direct**
-- DB3: **3/3 V107/V108 + rollback static audited; live lifecycle 0/3**
-- Runtime: **PASS 0 / FAIL 0 / UNVERIFIED 13**
-- Security negative runtime executed: **0**, failed: **0**; static security cases documented 12
-- False-Green mutation runtime executed: **0**, killed: **0**, survived: **0**; static false-green design findings: **3**
-- Evidence provenance: **INVALID for current-SHA release PASS**
-- Product Source modifications by QA: **0**
-- Git write operations by QA: **0**
-- Cleanup/delete: **정리 대상 없음**
+### Special 1,000
+- PASS: 0
+- FAIL: 30
+- 미검증: 559
+- 재확인 필요: 411
+- 미검수: 0
 
-## Release blockers
+### Canonical 169
+- PASS: 0
+- FAIL: 19
+- 미검증: 53
+- 재확인 필요: 97
 
-1. `QA-B-FINAL-NEW-001` P0 — executable EDU-ADM 02/03/04/07 role drift causes QA37 `--compile` parity failure.
-2. `QA-B-FINAL-NEW-003` P0 — Batch Runtime Approval UNKNOWN reconcile uses unsafe substring identity match.
-3. `QA-B-FINAL-NEW-004` P0 — FileLog spool durability/autonomous retry does not close hard-restart acceptance.
-4. `QA-B-FINAL-NEW-007` P0 — HIGH/CRITICAL ADM mutation consumer policy conflicts with current custom `admMutation`/`admInvokeOperation` callsites.
-5. Mandatory Runtime 13/13 has no current-SHA QA execution evidence.
+### Central 31
+- PASS: 0
+- FAIL: 7
+- 미검증: 24
+- 재확인 필요: 0
 
-## Environment/runtime attempt
+### New QA-B findings
+- total: 7
+- P0: 6
+- P1: 1
+- P2: 0
 
-QA attempted a clean clone first. It failed with `Could not resolve host: github.com`. The local environment exposes Java 21, Node 22, npm, Python and git, but not Java 25/Gradle 9.1/pwsh required by the release gate. Therefore no runtime axis was upgraded to PASS. Exact-SHA source inspection continued through the read-only GitHub connector.
+## New release blockers
 
-## QA completion question
+1. `QA-B-1000-NEW-001` P0 — current evidence provenance can remain on `08d8beb4a664039904c30aeac07115a04707924a` while the current-SHA evidence gate misses dev-final.
+2. `QA-B-1000-NEW-002` P0 — timeline source query exception can be swallowed and misclassified as `NOT_APPLICABLE`.
+3. `QA-B-1000-NEW-003` P0 — valid official first-hop transactionId has no proven authenticated starter-system producer before highest-precedence transaction filter.
+4. `QA-B-1000-NEW-004` P0 — FileLog replay has head-of-line blocking; one failed oldest target can starve healthy later spool entries.
+5. `QA-B-1000-NEW-005` P0 — persistence-mybatis starter declares `com.cpf.core.*` and drifts from canonical `com.cpf.starter.data.persistence.mybatis` packageBase.
+6. `QA-B-1000-NEW-006` P1 — public API/SPI Korean Javadoc contract is not met in new core lineage/trust contracts.
+7. `QA-B-1000-NEW-007` P0 — HIGH/CRITICAL consumer gate tracks typed clients but enforces only broad generated-client use; generic `Record<string,unknown>` compatibility client can pass.
 
-> 현재 exact SHA `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`의 CPF를 금융권 포함 상용 Framework로 Release하는 것을 막는 결함이나 미검증 항목을 Source·Consumer·Runtime·Evidence 관점에서 더 찾을 수 없는가?
+## Important source fixes confirmed but not promoted to PASS
 
-**NO.** 현재도 위 P0 Source 결함과 13개 Runtime 미검증, EDU 118개 handler direct-open gap이 남는다. 따라서 프로젝트 100% 완료나 Release Candidate로 표현할 수 없다.
+- Approval fenced terminal writes are present in source.
+- Batch Approval reconcile now uses exact structured identity rather than substring matching.
+- Center-Cut reconcile only accepts terminal success states.
+- EDU-ADM 02/03/04/07 use `CPF_ADM_OPERATOR`.
+- EDU-ADM non-executable Product/Merge classes inspected are redirect metadata rather than Product duplicate runtime handlers.
+- BZA Approval Simulation now has explicit `APPROVAL:SIMULATE` and generated consumer source.
+- FileLog now requires a managed durable spool root in production-like environments and has an autonomous scheduled replay worker.
+- DB3 V107 lineage structure is present for Oracle/PostgreSQL/MariaDB.
+
+These remain **미검증** where tests/runtime were not executed.
+
+## Runtime attempt / blockers
+
+Local execution was attempted first. Clean clone failed with exit 128 (`Could not resolve host: github.com`). The local toolchain exposes Java 21, Node 22, npm, Python and git, but not the release-required Java 25/Gradle 9.1/pwsh path. Live DB3, browser auth states, multi-instance/chaos, performance probes, semantic security corpus and DR targets are not available. Consequently **Runtime 13/13 = 미검증**.
+
+The current GitHub release workflow itself requires Java25, three browsers, DB3, chaos, performance/resource, observability, semantic security corpus, DR and exact-SHA evidence. No exact-SHA CI success was inferred from an empty combined-status result.
+
+## QA self-check
+
+- Product source modified by QA: 0
+- Git commit/push/branch/tag/PR/reset/restore/stash/clean: 0
+- File deletion/move: 0
+- Cleanup target: **정리 대상 없음**
+- 1,000-point `미검수`: 0
+- PASS was not inferred from file/class/test/script existence.
+- Developer PASS/completion at prior SHA was not inherited.
+
+## Release question
+
+> Can QA state that no blocking defect or required unverified item remains for commercial/financial CPF release at `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`?
+
+**NO.** Open P0 findings and 13 mandatory runtime gaps remain. The product must return to development/Codex and then to independent QA.

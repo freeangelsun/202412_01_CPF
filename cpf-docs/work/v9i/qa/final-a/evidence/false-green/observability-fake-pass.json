@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 4,
+  "protocol": "CPF-R6-OBS-INDEPENDENT-SIGNED-PROVENANCE",
+  "sourceSha": "b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb",
+  "status": "PASS",
+  "qualificationIdSha256": "47344097a51b02e860316f599d053079f0416f3a4e36ed1a912f1aa6c4cca73e",
+  "transactionIdSha256": "6243c9ae5332e6ee42cddfad056b54e731735680a3763cb059c434978f127b9c",
+  "traceIdSha256": "1194cb3dc2bfa1177d68de7cb26ac49f8e20cf0cf5f929b51bd9c14c8a4b17de",
+  "workload": {
+    "workloadEvidenceId": "fake-workload-evidence-001",
+    "artifactSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "eventCount": 2,
+    "evidenceSha256": "61168a837c1c74fbbb44d5d174d865b9dcff70bfac62aa1230088ab5d314a589"
+  },
+  "stores": {
+    "metric": {
+      "recordCount": 1,
+      "recordIdSha256": [
+        "ef3e71fc42c52e7274075836086991048be13b9225d6584e50f6ac6fb96e11c3"
+      ],
+      "provenanceAuthority": "fake-metric-authority"
+    },
+    "log": {
+      "recordCount": 1,
+      "recordIdSha256": [
+        "4bb403ce36b6c8bbe2ffc20eea1093bb5d22f6d42544648021e5df33a643e6c0"
+      ],
+      "provenanceAuthority": "fake-log-authority"
+    },
+    "trace": {
+      "recordCount": 1,
+      "recordIdSha256": [
+        "7a56f3c5ee6c10680c7589fa3006da660690a0f3d9b97f7526c55a231ce56b98"
+      ],
+      "provenanceAuthority": "fake-trace-authority"
+    },
+    "alert": {
+      "recordCount": 2,
+      "recordIdSha256": [
+        "d575dfd03cea0ec79fd8ef474006643b9e3f7ce98020c6717c9af6e6c10746d6",
+        "56765136d5e70cce0dd585878841316d4779342f2a5f0f5d81acc5de38ac0b61"
+      ],
+      "provenanceAuthority": "fake-alert-authority"
+    },
+    "audit": {
+      "recordCount": 1,
+      "recordIdSha256": [
+        "8d6fc42b24338844bf6edd5fb7072670901884f1d30df94e2fe8de22c82973e8"
+      ],
+      "provenanceAuthority": "fake-audit-authority"
+    }
+  }
+}

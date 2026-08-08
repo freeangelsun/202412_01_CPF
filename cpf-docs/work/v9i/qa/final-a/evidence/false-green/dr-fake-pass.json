@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "protocol": "CPF-R6-DR-INDEPENDENT-HARNESS",
+  "sourceSha": "b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb",
+  "status": "PASS",
+  "chaosRunId": "fake-chaos-run-001",
+  "maxRpoSeconds": 300.0,
+  "maxRtoSeconds": 1800.0,
+  "harnessId": "fake-harness-001",
+  "provenanceAuthority": "fake-dr-authority",
+  "rpoSecondsMeasured": 0.0,
+  "rtoSecondsMeasured": 1.0,
+  "dataSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "artifactSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "harnessEvidenceSha256": "8f15235b6f683e9eb35cb3f61eeb996c689fbd9e503bef664b5fa4ab17252147",
+  "faultCount": 3
+}

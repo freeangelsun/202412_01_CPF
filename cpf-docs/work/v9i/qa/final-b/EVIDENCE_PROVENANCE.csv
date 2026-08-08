@@ -1,5 +1,11 @@
-﻿exact_id,requirement_id,finding_id,source_path,source_symbol,consumer_path,test_path,runtime_gate,development_status,verification_status,severity,evidence_id,evidence_path,evidence_sha256,basis_sha,qa_comment
-EV-INSTRUCTION,QA-BASIS,,/mnt/data/CPF_QA_AB_FINAL_FULL_SOURCE_DEEP_AUDIT_INSTRUCTION_3aa1dd12.md,Final QA instruction,,,,완료,완료,,EV-INSTRUCTION,/mnt/data/CPF_QA_AB_FINAL_FULL_SOURCE_DEEP_AUDIT_INSTRUCTION_3aa1dd12.md,ea34c533952a780cabb3545168953da73cca61e0cbea36f82aa1553bd8c4a863,3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2,User-provided QA instruction used as execution basis.
-EV-DEVELOPER-BASELINE,PROVENANCE,,cpf-docs/work/v9i/dev-r6j14/*,developer package,,,,완료,미검증,P0,EV-DEVELOPER-BASELINE,EVIDENCE_PROVENANCE.csv,,3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2,Developer package retains prior baseline cd5bacc... provenance; not current-SHA runtime PASS.
-EV-WORKFLOW,PROVENANCE,,.github/workflows/cpf-r6-release-gates.yml,current workflow,GitHub Actions,,workflow run on exact SHA,부분 구현,미검증,P0,EV-WORKFLOW,EVIDENCE_PROVENANCE.csv,,3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2,No visible workflow run/combined status evidence was found for exact SHA during QA.
-EV-LOCAL-CLONE,PROVENANCE,,local QA environment,git clone,,,git clone exact repository,미완료,실패,P0,EV-LOCAL-CLONE,EVIDENCE_PROVENANCE.csv,,3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2,Actual attempt failed: Could not resolve host github.com. GitHub connector was used for exact-SHA read-only source inspection; no clean local checkout was available.
+﻿evidence_id,status,source,basis_sha,detail
+EV-BASELINE,PASS,GitHub master/commit lookup,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Instruction started at f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c; close check found new HEAD b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb. Compare proved 07_09 changed final-control docs only, no Product Source files. QA current result was rebased to 07_09."
+EV-DEV-EVIDENCE,FAIL,dev-final/TEST_AND_EVIDENCE.md,08d8beb4a664039904c30aeac07115a04707924a,Developer evidence target is previous SHA; invalid for current final PASS.
+EV-DEV-MANIFEST,FAIL,dev-final/PACKAGE_MANIFEST.json,08d8beb4a664039904c30aeac07115a04707924a,target_basis_sha is previous SHA.
+EV-CLONE,FAIL,local QA environment,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,git clone actual attempt exit 128: Could not resolve host github.com.
+EV-JAVA,미검증,local QA environment,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Java 21 available; release requires Java 25.
+EV-GRADLE,미검증,local QA environment,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"gradle command missing, exit 127."
+EV-PWSH,미검증,local QA environment,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"pwsh command missing, exit 127."
+EV-CI,미검증,GitHub commit status/workflow lookup,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,No exact-SHA combined statuses were retrievable; no CI PASS inferred.
+EV-PRODUCT-SOURCE-BASELINE,PASS,GitHub compare f0aa49f..b4b6b18,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Product Source baseline is f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c; successor b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb contains final-control-only delta.
+EV-CENTRAL-1000,PASS,cpf-docs/work/v9i/final-control/SPECIAL_REVIEW_1000.csv,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Central 1,000-point current control exists at 07_09; qa_b_status was 미검수 before this independent QA package."

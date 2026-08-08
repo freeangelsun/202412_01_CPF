@@ -1,58 +1,52 @@
-# CPF QA A FINAL FULL SOURCE DEEP AUDIT — FINAL RESULT
+# CPF QA A FINAL FULL-SCOPE 1000 SPECIAL — QA FINAL RESULT
 
 ## Final Verdict
 **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**
 
-- QA role: independent QA A final adjudication
-- Start basis SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
-- End latest master SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
-- Developer overlay baseline preserved only as provenance: `cd5baccb02245a980e5998aa0dc9bac579fc019f`
-- Product Source modifications by QA: **0**
-- Git writes by QA: **0**
-- Delete/move operations by QA: **0**
+- QA start product SHA: `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c` (`07_08`)
+- QA end/latest master SHA: `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb` (`07_09`)
+- `07_09` Product/Gate Source change: **0** (central currentization docs + SPECIAL_REVIEW_1000 only)
+- Current canonical: **169**, Legacy Alias: **8**
+- Product Source modified by QA: **0**
+- Git write/delete/move: **0**
 
-## Mandatory denominator summary
-- Central Requirement: PASS **4** / FAIL **17** / UNVERIFIED **72** / total **93**
-- Central Finding: CLOSED **4** / OPEN **8** / UNVERIFIED **44** / total **56**
-- New QA A Finding: **25** — P0 **18** / P1 **7** / P2 **0**
-- ADM audited: **63/63 routes**, checked-in OpenAPI **332 operations**
-- BZA audited: **26/26 routes**, checked-in OpenAPI **84 operations**
-- EDU audited: **135/135 catalog/contract rows**, direct current-source deep review for EDU-ADM **17/17**
-- EDU executable total independently recomputed: **122** (= non-ADM 118 + retained ADM extensions 4)
-- EDU-ADM distribution: PRODUCT_ADM **9** / EXTENSION_SAMPLE **4** / MERGE_EDU **4**
-- DB3 audited: **3/3** vendors static; live lifecycle **0/3 PASS**
-- Mandatory Runtime: PASS **0** / FAIL **8** / UNVERIFIED **5** / total **13**
-- Security negative adversarial cases executed: **11**; semantic false-green survived: **11/11**
-- False-Green mutations executed: **6**; killed **0** / survived **6**
-- Current-SHA developer runtime evidence provenance: **invalid for PASS**
-- QA adversarial evidence provenance: **valid and hashed**
+## Independent denominator results
+- Special Review 1000: **PASS 0 / FAIL 64 / 미검증 361 / 재확인 필요 575 / 미검수 0**
+- Canonical 169: **PASS 0 / FAIL 3 / 미검증 87 / 재확인 필요 79**
+- Central Final Action 31: **PASS 5 / FAIL 9 / 미검증 13 / 재확인 필요 4**
+- Previous Finding: **56/56 판정** (과거 PASS 자동승계 0)
+- Developer self-found: **5/5 판정**
+- Runtime Qualification: **PASS 0 / FAIL 4 / 미검증 9 / 13**
+- ADM: **63/63 routes**, checked-in OpenAPI **330 ops**, route expected operation missing **0**
+- BZA: **26/26 routes**, checked-in OpenAPI **80 ops**, active route expected operation missing **0**, retired legacy 4 removed
+- EDU: **135/135 inventory 판정**, EDU-ADM rows **17**
+- DB3: **3/3 static source audited**, live lifecycle PASS **0/3**
+- Security fake-target semantic cases: **14 executed, gate PASS 14/14 => QA False-Green**
+- False-Green attack: **6 executed / KILLED 0 / SURVIVED 6** at END_SHA
 
-## Canonical governance
-Current canonical header/§22 count is **169**, Legacy Alias is **8**, but §21 still says **162**. The completion denominator is therefore stale in the canonical document itself.
+## 07_08 fixes independently recognized
+- Approval terminal fencing tuple implemented.
+- Center-Cut non-terminal success defect corrected.
+- Batch reconciliation identity changed to exact structured equality.
+- Authorized Channel/System transactionId trust policy + replay guard introduced; CSP tightened.
+- Core persistence implementation boundary moved behind ports/adapters; DB log persistence masking added.
+- Canonical V107 lineage schema + normalized projection adapter added.
+- FileLog recovery reuses hardened writer path and old 8MiB dedup cap removed.
+- Phantom DB3 Java runner removed in favor of runtime matrix delegation.
+- BZA retired 410 operations removed from current OpenAPI.
+- EDU PRODUCT_ADM/MERGE rows converted away from runtime generic handlers; retained extension registry narrowed.
 
-## Material current-source blockers
-1. Approval terminal writes are not fenced by `FENCE_TOKEN`.
-2. Center-Cut reconcile can treat `RUNNING/RETRYING` as success.
-3. External/untrusted callers can supply a valid internal transactionId.
-4. `cpf-core` imports logging mapper implementation physically owned by the MyBatis Starter.
-5. DB transaction summary persistence is not fail-closed for masking.
-6. DB3 V107 lineage is absent from canonical `platform-schema.json`.
-7. BZA retired 410 APIs remain active 200 operations in checked-in OpenAPI.
-8. FileLog recovery replay bypasses writer safety/locks/permissions and dedup breaks above 8 MiB.
-9. Observability/Security/Resource/Batch/Broker/DR qualification false-greens were reproduced against current scripts.
-10. DB3 lifecycle default runner class is not found.
-11. Runtime qualification is not complete at the current exact SHA.
+## Release blockers newly or currently confirmed
+1. **NEW-001** Online Domain A→B→C(/D) integrated executable transaction sample absent.
+2. **NEW-002** Batch→Domain A→B→C integrated executable sample absent.
+3. **NEW-003** 6 Release qualification gates accept a non-CPF fake localhost target/authority at exact END_SHA.
+4. **NEW-004** Public method Javadoc contract completeness gap.
+5. **NEW-005** OpenAPI error response contract incompleteness.
+6. Developer current result/evidence remains predominantly `08d8beb4a664039904c30aeac07115a04707924a` provenance; Runtime 13 current target PASS is absent.
+7. FileLog source was hardened but duplicate/restart/symlink/process-kill contract test/runtime is not closed.
+8. Java25/Gradle9.1, live DB3, authenticated ADM/BZA 3-browser, multi-instance/process-kill, Generator live, Codex and full transaction lineage Runtime remain unverified.
 
-## Positive fixes independently confirmed
-- Release workflow ADM URL variable mismatch was corrected.
-- EDU caller-supplied actor/role/data-scope trust was removed from the execution controller; Spring Authentication is now authoritative.
-- PROCESS EDU clears inherited environment, copies an allowlist and sends payload over stdin.
-- EDU Catalog is 135 with 9/4/4 ADM classification and Registry exposes only 4 retained extension handlers.
-- ADM static registry has 63 routes and its expected operation references resolve against the checked-in 332-operation spec.
-- BZA static registry has 26 routes and correctly omits the four retired legacy approval operations.
-- Transaction one-shot source aggregation now includes federated sources and batch lineage/freshness handling.
-- V107/V108 exist across Oracle/PostgreSQL/MariaDB at static vendor level.
-- FileLog recovery has structured checksum, masking, quarantine and backoff improvements.
+## QA termination question
+> 현재 latest exact SHA `b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb`의 CPF를 금융권 포함 상용 Framework로 Release하는 것을 막는 결함이나 미검증 항목을 더 찾을 수 없는가?
 
-## Answer to the QA termination question
-**No.** At exact SHA `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`, additional release-blocking defects and unverified Runtime items are still identifiable from Source, Consumer, Runtime Gate and Evidence. Therefore CPF cannot be declared a 100% complete financial-grade commercial Framework at this SHA.
+**아니오.** 위 P0/P1 및 Runtime 미검증이 남아 있어 100% 완료/PASS를 주장할 수 없습니다.

@@ -534,3 +534,76 @@ Provider 선택이 업무 API semantics를 바꾸지 않는다. 복잡 SQL은 ge
 ### Optional Capability
 
 GraphQL/Object Storage/Valkey Session/Event Schema/Realtime뿐 아니라 AI/File/FixedLength/Notification/Webhook 등 선택 Capability의 전용 API·SPI 자체도 Core가 아니라 해당 Capability/Owner가 소유한다. 미사용 시 0-footprint가 필수다.
+
+## Unified Context Architecture — Canonical
+
+### Core Context
+
+Core는 CPF 모든 실행이 공유하는 기술중립 실행 의미를 소유한다.
+
+```text
+cpf-core/api/context
+├─ Context Envelope/Snapshot
+├─ Transaction Context
+├─ Execution Context
+├─ Identity Context
+├─ Tenant Context
+└─ Scope/Accessor/Factory Contract
+```
+
+Context Envelope의 version은 HTTP protocol과 혼동되지 않게 `contextSchemaVersion` 또는 동등 의미를 사용한다.
+
+Core Context는:
+- immutable 우선
+- transport-neutral
+- provider-neutral
+- Spring/Servlet/Messaging/Spring Batch/MDC/OTel runtime type 비노출
+- credential/secret/raw payload 비보관
+- bounded extension policy
+를 따른다.
+
+### Context Fan-out Rule
+
+Core Context의 field/type/lifecycle 변경은 반드시 Web/Gateway/Messaging/Async/Batch/Center-Cut/File/Integration/
+Recovery/Saga/Security/Observability/ADM/Generator/EDU/Testkit 영향을 전수 검토한다.
+실제 Consumer가 있으면 같은 변경에서 수정한다.
+
+**Batch 영향도 검토/연결은 항상 의무이며 후속 이월 금지다.**
+
+### Owner-specific Context
+
+- Web/Profile: Interaction/HTTP Context
+- Gateway: Gateway Context
+- Messaging: Message Context
+- Batch: Batch/Center-Cut Context
+- Security: Session Context
+- Integration: Integration Context
+- Reliability: Saga/Recovery/Reconcile Context
+- File: File Processing Context
+- Observability: MDC/Trace/Logging Adapter
+
+Core에는 이 Owner-specific Context를 올리지 않는다.
+
+### Batch Context
+
+`cpf-batch/contract`가 Core Context를 조합한 Batch Context를 소유한다.
+Spring Batch ExecutionContext는 Runtime Adapter 뒤에 둔다.
+
+Restart/Process Kill/Multi-instance에서:
+- logical transaction/lineage 유지
+- jobExecution/attempt는 새 실행으로 구분
+- checkpoint/idempotency 유지
+- 완료 item 중복실행 방지
+- UNKNOWN은 Reconcile 우선
+을 보장한다.
+
+### Context Runtime
+
+Public Contract는 Scope/Snapshot/Accessor다.
+Java 25 ScopedValue는 Runtime 구현 후보이나 Core Public API를 특정 저장 Mechanism에 결합하지 않는다.
+ThreadLocal fallback은 Runtime/Starter가 소유하고 capture/restore/clear/leak test를 강제한다.
+
+### Permanent Repository Root Policy
+
+사용자 승인 없는 Repository Root 신규 file/directory/module 생성은 모든 세션에서 금지한다.
+Root 확장은 Canonical Architecture + 사용자 승인 + Root Allowlist 변경이 선행되어야 한다.

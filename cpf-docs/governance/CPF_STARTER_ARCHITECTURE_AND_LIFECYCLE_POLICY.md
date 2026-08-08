@@ -669,3 +669,25 @@ Module 이동 후 old/new package가 동시에 남으면 완료가 아니다. �
 - exact Delete Manifest
 
 사용자 승인 없는 실제 삭제는 하지 않는다.
+
+## Context Adapter / Starter Ownership
+
+Starter는 Context 의미를 소유하지 않는다.
+Core Context를 Transport/Runtime에 연결하는 Adapter를 소유한다.
+
+- Web/Profile Starter: HTTP Header ↔ Core Context
+- Messaging Starter/Provider: Message metadata ↔ Core Context
+- Async Runtime Starter: capture/restore/clear
+- Batch execution-runtime: CPF Batch Context ↔ Spring Batch
+- Observability Starter: Core Context → MDC/OTel/Logging projection
+- Security Starter: Authentication/Session → Core Identity/Tenant Context
+
+Starter는 Context를 재정의하거나 별도 transactionId semantics를 만들지 않는다.
+
+Pure capability core leaf는 Spring Boot Starter로 오인되지 않게 canonical metadata로 구분한다.
+
+### Repository Root
+
+새 Starter/Provider/Capability를 이유로 Repository Root에 Module을 만들지 않는다.
+기존 `cpf-starters/**`, 공식 Owner, `cpf-tools/**` 아래 Canonical 물리 구조를 사용한다.
+Root 신규 entry는 사용자 명시 승인 없이는 금지한다.

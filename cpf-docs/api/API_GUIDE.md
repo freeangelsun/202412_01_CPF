@@ -213,3 +213,83 @@ Runtime smoke에서 OpenAPI endpoint와 실제 API를 함께 검증합니다.
 ADM/BZA Approval API는 생성, Inbox/조회, Simulation, Approve/Agree/Review/Reject, Delegate, Cancel/Withdraw, History와 실행 결과를 명시적 operationId로 제공한다. 결정 Command는 idempotency key와 optimistic version을 받아 중복·동시 요청을 안전하게 처리한다.
 
 ADM 위험조치 Approval 완료 응답과 실제 Owner Command 실행 결과를 하나의 성공으로 뭉개지 않는다. 실행 결과가 불명하면 `UNKNOWN`/Recovery 가능한 상태 계약을 노출한다.
+
+## Unified Context / Standard Header Architecture — Canonical Currentization
+
+기존 CPF Standard Header 이름은 Wire Contract 정본으로 유지한다.
+단, **Header는 Context 자체가 아니라 HTTP Transport의 Wire Representation**이다.
+
+### Context ↔ Header 책임 분리
+
+```text
+CPF Core Context Semantics
+        ↓
+Transport-neutral Context Envelope/Snapshot
+        ↓
+HTTP/Web Adapter
+        ↓
+Existing CPF Standard Headers
+```
+
+Core는 HTTP Header 문자열, Servlet, Trusted Proxy, Header Extractor/Mutator/Propagator Runtime을 소유하지 않는다.
+
+### Header 정책 차원
+
+Header Catalog/Spec은 단순 propagation boolean 대신 다음 의미를 코드/문서/Test에서 일치시킨다.
+
+- semantic owner
+- transport scope
+- propagation scope
+- trust level
+- source
+- mutation policy
+- log/mask policy
+- max length
+- aliases
+- inbound/outbound direction
+- compatibility status
+
+대표 정책:
+- END_TO_END
+- PER_HOP
+- EDGE_ONLY
+- LOCAL_ONLY
+- DO_NOT_PROPAGATE
+- OPERATION_SCOPED
+- TRUSTED_ONLY
+- DERIVED_ONLY
+- PRESERVE / REGENERATE / OVERWRITE / DROP
+
+### 기존 Header 주요 의미
+
+- `X-Transaction-Id`: Trusted internal E2E logical transaction. Untrusted external 값은 직접 신뢰하지 않고 Ingress가 검증/생성한다.
+- `X-Correlation-Id`: END_TO_END correlation. Security Identity로 사용 금지.
+- `X-Request-Id`: 현재 Transport Request/Hop. PER_HOP이며 outbound마다 재생성 가능.
+- `Idempotency-Key`: OPERATION_SCOPED. 다른 Command로 blind propagation 금지.
+- `X-Idempotency-Key`: compatibility alias.
+- `traceparent` / `tracestate`: W3C Trace canonical.
+- `X-Trace-Id` / `X-Span-Id` / `X-Parent-Span-Id`: compatibility/deprecation 대상. 신규 outbound 중복 생성 금지.
+- `X-Tenant-Id`: TRUSTED_ONLY/DERIVED_ONLY.
+- `X-User-Id` / `X-Operator-Id`: untrusted client 값 자체를 Identity로 사용 금지. Authentication 결과에서 derive.
+- `X-Api-Version`: PER_HOP. downstream blind copy 금지.
+- `X-Caller-Service` / `X-Caller-Instance-Id`: PER_HOP/OVERWRITE.
+- `Forwarded` / `X-Forwarded-For` / `X-Real-IP`: EDGE_ONLY. Trusted Proxy에서 resolved client IP만 derive.
+- Authorization/API Key/Signature/Nonce/Cookie: DO_NOT_PROPAGATE, raw log 금지.
+- Gateway/Approval/Batch/Session/Message/File metadata: OWNER_SPECIFIC.
+
+### Required Policy
+
+“CPF 모든 실행에 Required HTTP Header”라는 개념을 사용하지 않는다.
+Ingress Profile별 Required Policy를 사용한다.
+
+- External HTTP: Ingress가 CPF transactionId 생성 가능
+- Internal CPF HTTP: trusted propagation 요구 가능
+- Batch/Scheduler: HTTP Header 없음
+- JMS/Kafka: message metadata에서 restore
+- File: file execution boundary에서 생성
+
+### Extension
+
+번호형 Reserved/Ext Header 신규 사용 금지.
+기존 Consumer는 compatibility migration 후 제거한다.
+신규 확장은 namespace + size/key/value/entry/sensitive/transport allowlist 정책을 사용한다.

@@ -1842,3 +1842,73 @@ Git history가 과거를 보존한다.
 오류/복구, Security, DB3, Generator, Runtime, QA Acceptance를 상세히 보존한다.
 
 Developer/QA/Codex는 임의의 새 관리 문서 종류를 생성하지 않는다.
+
+# P0 Unified Context / Standard Header / Mandatory Batch Closure
+
+이 절은 신규 분모를 추가하는 별도 Requirement가 아니라
+`NXT-TXID-001`, `NXT-ARCH-002/003`, `NXT-OWN-001/003`, `NXT-UTIL-001/002`, `NXT-HYG-001`, `NXT-TESTKIT-001`
+Acceptance를 상세화한다.
+
+## P0-CTX-01 Core Context 분해
+
+현행 `common/logging/TransactionContext`, `TransactionHeader`, `api/logging/CpfTransactionContext`를 파일별 전수 판정한다.
+
+목표:
+- Core semantic Context
+- HTTP Header Adapter
+- Observability Adapter
+- Owner-specific Context
+를 분리한다.
+
+Core의 `MDC`, `RequestContextHolder`, OTel Runtime, HTTP Header Runtime dependency = 0.
+
+## P0-CTX-02 Header Policy
+
+`CpfHeaderSpec` 또는 replacement는:
+semantic owner / scope / trust / source / mutation / log/mask / max length / aliases / direction / compatibility를 표현한다.
+
+blind propagation 금지:
+- Idempotency-Key
+- API Version
+- Caller Service
+- Raw Forwarded chain
+- Authorization/API Key
+- Legacy Trace duplicate outbound
+
+## P0-CTX-03 Mandatory Batch
+
+Core Context 변경과 동시에:
+- cpf-batch/contract Batch Context
+- execution-runtime Adapter
+- Scheduler
+- Job/Step
+- Partition/Worker
+- Center-Cut
+- Restart
+- Process Kill
+- Multi-instance
+- UNKNOWN/Reconcile
+- Batch Testkit
+- Batch Log/Audit/ADM
+를 실제 Source/Consumer/Test로 연결한다.
+
+한 항목이라도 개발 가능한데 미연결이면 NXT-TXID-001 미완료.
+
+## P0-CTX-04 Mandatory Messaging/Async/Web/Gateway
+
+실제 Repository에 존재하는 Runtime/Provider를 전수 연결한다.
+Context capture/restore/clear와 trust/spoof/alias/per-hop policy를 검증한다.
+
+## P0-CTX-05 Generator/EDU/ADM
+
+Generated consumer compile, EDU 11개 핵심 시나리오, ADM Timeline을 동일 Context 모델로 연결한다.
+
+## P0-CTX-06 Garbage Closure
+
+old logging/header/context/batch/centercut Source/Test/Resource/Metadata를 replacement consumer 전환 후 실제 제거한다.
+Delete Manifest만 작성하고 종료 금지.
+
+## P0-ROOT-01 Permanent Root Freeze
+
+사용자 승인 없이 Repository Root에 신규 file/directory/module 생성 금지.
+Architecture Gate가 항상 검출해야 한다.

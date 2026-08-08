@@ -601,3 +601,37 @@ Layer를 재사용한다. Query depth/complexity/field authorization/N+1 방어�
 
 JDBC/Valkey Session Provider 선택은 인증 업무 코드에 영향을 주지 않아야 한다.
 forced logout, session rotation, concurrent-session policy와 multi-instance propagation은 CPF 정책을 사용한다.
+
+## Unified Context 개발 규칙 — Mandatory
+
+### Context 개발 시 의무 Consumer
+
+Core Context API/field를 변경하면 반드시 같은 변경에서:
+Web/Gateway, Messaging, Async, Batch/Center-Cut, Recovery/Saga, File/Integration,
+Observability/Audit, ADM, Generator/Generated Domain, EDU, Testkit을 전수 확인한다.
+
+Batch는 무조건 의무 대상이다.
+Core Context를 먼저 만들고 Batch를 나중에 연결하는 개발 방식은 금지한다.
+
+### 업무 코드 금지
+
+- `HttpServletRequest.getHeader()` 직접 사용
+- Broker Header 직접 파싱
+- Spring Batch ExecutionContext를 CPF global Context로 사용
+- Context missing 시 깊은 Service에서 silent `getOrCreate`
+- Context에서 MDC/OTel/Logging 직접 조작
+- Context에 Authorization/JWT/API Key/Secret/Cookie/raw payload 저장
+- parent Context 직접 mutate
+
+### Root 상시 금지
+
+사용자 명시 승인 없이 Repository Root에 새 File/Directory/Module 생성 금지.
+임시 산출물도 Root에 만들지 않는다.
+필요하면 기존 Canonical Owner 아래에 둔다.
+Allowlist 변경 또한 사용자 승인 대상이다.
+
+### Compatibility
+
+기존 `CpfTransactionContext` 호환 facade가 필요하면 read-only delegate로만 유지한다.
+신규 Consumer는 새 Unified Context API 사용.
+Migration count와 종료조건을 Evidence에 남긴다.

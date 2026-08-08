@@ -12,14 +12,14 @@ FORBIDDEN_CORE_IMPORTS = (
     "org.springframework.web", "jakarta.servlet", "io.opentelemetry",
     "org.springframework.batch", "software.amazon.awssdk",
     "org.springframework.data.redis", "org.springframework.graphql",
+    "org.slf4j.MDC",
 )
 FORBIDDEN_FOUNDATION_IMPORTS = (
     "org.springframework", "jakarta.", "io.opentelemetry",
     "software.amazon.awssdk", "org.apache.", "redis.clients.",
 )
 
-# Root is a governed product layout. New tracked top-level entries require explicit user approval
-# and a canonical architecture change. Build/IDE directories are intentionally not part of git.
+# PERMANENT CPF POLICY: Repository Root is immutable unless the user explicitly approves a Canonical Root change.\n# Every development session must fail on unapproved tracked top-level entries. Gate bypass or allowlist expansion\n# without user approval is prohibited. Build/IDE directories are intentionally not part of git.
 ALLOWED_TRACKED_ROOT = {
     ".editorconfig", ".gitattributes", ".github", ".gitignore", "README.md",
     "build.gradle", "gradle", "gradlew", "gradlew.bat", "settings.gradle",
@@ -101,6 +101,20 @@ def classification(path: Path, text: str) -> tuple[str, str]:
         return "MOVE_CAPABILITY:security/session", "distributed session is optional capability"
     if rel.startswith("api/reliability/") and name.startswith("CpfEventSchema"):
         return "MOVE_CAPABILITY:messaging/schema-governance", "event schema is optional capability"
+
+    # HTTP Header runtime is transport-specific and must not stay in Core.
+    if rel.startswith("common/header/") or rel.startswith("api/header/"):
+        if any(k in name for k in ("Extractor", "Mutator", "Propagator", "InboundHeaderValidator", "TrustedProxy")):
+            return "MOVE_STARTER:web-or-gateway", "HTTP header runtime/trust adapter is not Core"
+        if any(k in name for k in ("AuditLogger", "Masker")):
+            return "MOVE_CAPABILITY:observability-or-security", "header audit/masking runtime is owner-specific"
+        return "REVIEW_REQUIRED", "header class requires explicit transport-neutral semantic proof"
+
+    # Canonical Core Context is admitted only when it is transport/provider neutral.
+    if rel.startswith("api/context/") or rel.startswith("api/transaction/") or rel.startswith("api/execution/"):
+        if any(x in text for x in ("RequestContextHolder", "HttpServlet", "MDC.", "io.opentelemetry", "org.springframework.batch")):
+            return "REVIEW_REQUIRED", "Core Context leaks transport/runtime implementation"
+        return "KEEP_CORE", "global CPF Context/transaction/execution semantics candidate"
 
     # Logging context can be Core only when it is truly transaction/execution semantics.
     if rel.startswith("api/logging/") or rel.startswith("common/logging/"):

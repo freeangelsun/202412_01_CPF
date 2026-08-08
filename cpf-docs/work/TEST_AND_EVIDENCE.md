@@ -63,3 +63,27 @@ CPF target Java 25/full Gradle verification cannot be substituted with the Java 
 ## Completion interpretation
 
 Developer-remediable source/package gaps found during this session were corrected in the Overlay and the final low-cost gates are green. **This is not a QA PASS and not a claim that NOT_EXECUTED runtime checks passed.** Independent QA must use the post-apply, post-authorized-delete central SHA.
+
+## Unified Context / Header / Mandatory Batch Central Currentization
+
+Basis SHA: `223e76f0da8cdfcd1769477bf9bf4661ae01faca`
+
+Central source inspection confirmed:
+- Core `TransactionContext` still imports SLF4J MDC and Spring RequestContextHolder.
+- Core `TransactionHeader` mixes transaction/execution/http/channel/identity/client/network/trace/extension.
+- Core `common/header` still contains HTTP Header Runtime/Trusted Proxy/Audit/Masking classes.
+- Existing Header Policy needs trust/scope/mutation/direction/compatibility semantics.
+
+Therefore prior completion is not inherited.
+This package is **Requirement/Architecture currentization only** and does not claim Source PASS.
+
+Developer successor must implement and execute:
+- Core Unified Context
+- existing Header mapping/policy
+- mandatory Web/Gateway/Message/Async/Batch/Center-Cut fan-out
+- Batch restart/process-kill/multi-instance
+- Generator/EDU/ADM
+- old source garbage closure
+- permanent Root allowlist gate
+
+Runtime NOT_EXECUTED remains NOT_EXECUTED.

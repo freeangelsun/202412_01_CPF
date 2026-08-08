@@ -987,3 +987,51 @@ Evidence 최소 필드:
 - 반복 비용이 큰 Runtime 검증은 통합 계획에 누적할 수 있으나 실행 전에는 `미검증`이다.
 - 작업 종료 시 최신 Handover와 Requirement 상태를 갱신하되 README를 작업 일지로 사용하지 않는다.
 - 사용자 승인 없이 Commit, Push, Branch, Tag와 PR을 생성하지 않는다.
+
+## Unified Context / Standard Header / Root Layout 최종 강제 Requirement
+
+### CPF Core Context
+
+Core는 단순 DTO 저장소가 아니라 CPF 실행 전체를 연결하는 기술중립 Kernel Context를 제공한다.
+
+필수 의미:
+- transactionId / correlation
+- transaction/execution/segment/attempt/lineage
+- businessDate 독립 의미
+- authenticated subject/actor
+- tenant
+- deadline/idempotency semantics
+- immutable snapshot/scope/access contract
+
+Core Context는 HTTP/JMS/Kafka/Spring Batch/MDC/OTel/Provider Runtime을 알지 않는다.
+
+### Mandatory Fan-out
+
+Core Context 변경은 Web/Gateway/Messaging/Async/**Batch/Center-Cut**/File/Integration/
+Saga/Recovery/Reconcile/Security/Observability/ADM/Generator/EDU/Testkit까지 같은 개발 단위에서 전수 영향도 수정한다.
+
+특히 Batch Context/Runtime/Restart/Process Kill/Multi-instance 연결은 무조건 필수다.
+
+### Header
+
+기존 `cpf-docs/api/API_GUIDE.md`의 Header Wire Contract를 정본으로 사용한다.
+Header는 Context 자체가 아니며 Transport Adapter가 Core Context와 mapping한다.
+Trust/Propagation/Mutation/Direction/Compatibility Policy를 Source와 Test로 구현한다.
+
+### Repository Root — Permanent Policy
+
+사용자 명시 승인 없이 Repository Root에 신규 File/Directory/Module을 만들지 않는다.
+이 규칙은 상시 적용한다.
+
+Root 확장 조건:
+1. Canonical Architecture 근거
+2. 사용자 명시 승인
+3. Canonical Root Allowlist 변경
+4. Build/Generator/Packaging 영향 검토
+
+Root Allowlist 밖 tracked entry는 Architecture Gate FAIL이다.
+
+### Completion
+
+Context Class/Interface/DTO 존재만으로 완료 금지.
+실제 Adapter/Consumer/Test/Generator/ADM/Batch 연계와 old source garbage closure까지 완료해야 한다.

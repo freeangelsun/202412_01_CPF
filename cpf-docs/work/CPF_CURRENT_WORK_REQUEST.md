@@ -247,6 +247,51 @@ Core compile dependency 각각에 `why_core_required` 근거가 존재한다. �
 
 ---
 
+### Core Kernel 강제 Closure — 현재 재개발 기준
+
+`cpf-core`의 최종 역할은 **CPF 전체가 반드시 알아야 하는 최소 Kernel / Contract / Semantics**다.
+Core를 무용지물로 만드는 것이 목적이 아니라, 오히려 모든 Capability가 공유해야 하는
+Error/Result/Outcome, Transaction/Execution Context, transactionId/lineage,
+UNKNOWN/Reconcile/Idempotency semantics, 최소 Identity/Security/Tenant Context,
+공통 Value와 정말 전역적인 기술중립 Contract/SPI를 명확하게 보존한다.
+
+반대로 특정 기능을 사용하지 않는 Application이 알 필요가 없는 API/SPI/DTO/Port는
+Provider-neutral 여부와 무관하게 Core Owner가 아니다.
+
+강제 Ownership:
+- Admin contract → `cpf-admin`
+- Batch/CenterCut → `cpf-batch`
+- Gateway → `cpf-gateway`
+- AI → AI capability
+- FixedLength → `cpf-starters/integration/fixedlength-core`
+- File/Archive/Attachment/Object Storage/Tabular/FileTransfer → file capability
+- Distributed Session → security/session capability
+- Event Schema → messaging/schema-governance
+- Health/Drain/Instance Registry → platform-operations/health
+- Dynamic Log Level/Remote Log/Runtime Control → platform operations
+- Structured/File/Async Logging runtime → observability/logging
+- Provider implementation → 각 provider
+- Spring Bean/Properties/Conditional Wiring/AutoConfiguration → Starter
+
+**Provider-neutral interface이므로 Core에 둔다**는 판정은 금지한다.
+최종 질문은 “이 Capability를 전혀 사용하지 않는 CPF Application도 이 계약을 반드시 알아야 하는가?”다.
+NO이면 Core 밖을 우선한다.
+
+07_18의 False Green 원인은 `verify_nxt_architecture.py`가 일부 기술 import/AutoConfiguration만 MOVE로
+분류하고 나머지를 자동 `KEEP_CORE` 처리한 데 있다. 이제 미분류 Core Class는 자동 PASS하지 않고
+`REVIEW_REQUIRED`로 실패해야 한다. `KEEP_CORE`는 명시적인 Kernel 의미와 Consumer 근거가 있어야 한다.
+
+물리 Layout도 강제한다.
+- 논리 Gradle project `:cpf-foundation`의 물리 Owner: `cpf-starters/foundation/core`
+- 논리 Gradle project `:cpf-testkit`의 물리 Owner: `cpf-tools/testing/cpf-testkit`
+- `cpf-starters/foundation/base`는 Spring Boot convenience/wiring Starter이고 Pure Foundation과 역할을 섞지 않는다.
+- Repository Root의 `cpf-foundation/`, `cpf-testkit/`는 최종 구조에서 허용하지 않는다.
+- 새로운 Repository Root 파일/Directory는 **사용자 명시 승인 + Canonical Root Allowlist 변경** 없이는 생성 금지다.
+
+이동은 Source Copy로 끝나지 않는다. settings/Gradle dependency/BOM/publication/catalog/AutoConfiguration metadata,
+Generator/Generated Domain/Sample/EDU/OpenAPI/Frontend/Test/JavaDoc/README/SQL/Config/Consumer를 함께 갱신하고,
+old source·old package·duplicate interface/DTO·stale import/resource·empty directory를 0으로 만든다.
+
 # PART B. Foundation / Unified Utility
 
 ## NXT-UTIL-001 — Unified CPF Utility 재설계

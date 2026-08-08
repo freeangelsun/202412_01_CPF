@@ -1,5 +1,16 @@
 # CPF Developer Guide
 
+### Repository Root / Core Ownership 개발 금지선
+
+개발자는 사용자 명시 승인 없이 Repository Root에 새 파일/Directory/Module을 만들지 않는다.
+새 기능은 기존 공식 Owner/Capability/Provider/Starter/Tools 컨테이너 안에 배치한다.
+Root 확장이 정말 필요하면 구현 전에 Canonical Architecture 변경과 사용자 승인을 받아야 한다.
+
+Core에 새 Class를 추가할 때는 `KEEP_CORE`를 기본값으로 사용하지 않는다.
+전역 Kernel임을 증명하지 못하면 Owner/Capability/Provider/Starter/Foundation으로 이동한다.
+Core 이동 시 논리 Gradle project 이름을 유지하여 Consumer 회귀를 줄일 수 있으나,
+물리 path, imports, metadata, generator, docs, tests의 stale reference는 전부 갱신한다.
+
 ## 1. Audience
 
 이 문서는 CPF 기반 Backend·Frontend·Integration 개발자를 위한 표준 개발 가이드입니다.

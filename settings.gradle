@@ -93,12 +93,12 @@ include 'cpf-core-only-consumer'
 project(':cpf-core-only-consumer').projectDir = file('cpf-tools/verification/core-only-consumer')
 include ':cpf-batch:contract', ':cpf-batch:runtime-common', ':cpf-batch:execution-runtime', ':cpf-batch:control-server', ':cpf-batch:scheduler', ':cpf-batch:worker', ':cpf-batch:center-cut-runner', ':cpf-batch:host-agent', ':cpf-batch:testkit'
 
-project(':cpf-foundation').projectDir = file('cpf-foundation')
+project(':cpf-foundation').projectDir = file('cpf-starters/foundation/core')
 project(':cpf-core').projectDir = file('cpf-core')
 project(':cpf-common').projectDir = file('cpf-common')
 project(':cpf-member').projectDir = file('cpf-member')
 project(':cpf-reference').projectDir = file('cpf-reference')
-project(':cpf-testkit').projectDir = file('cpf-testkit')
+project(':cpf-testkit').projectDir = file('cpf-tools/testing/cpf-testkit')
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')
@@ -173,9 +173,15 @@ if (!removedIds.intersect(activeIds).isEmpty()) throw new GradleException("Remov
 if (!activeIds.intersect(retainedIds).isEmpty()) throw new GradleException("Active/retained artifact overlap: ${activeIds.intersect(retainedIds)}")
 if (!activeOwnerPaths.intersect(retainedPaths).isEmpty()) throw new GradleException("Active/retained path overlap: ${activeOwnerPaths.intersect(retainedPaths)}")
 if (!retainedPaths.intersect(removedPaths).isEmpty()) throw new GradleException("Retained/removed path overlap: ${retainedPaths.intersect(removedPaths)}")
-def physicalStarterPaths = fileTree('cpf-starters') { include '**/build.gradle'; exclude 'build/**', '**/build/**' }.files.collect {
+def nonStarterInternalRoots = (layout.nonStarterInternalRoots ?: [])*.toString()*.replace('\\', '/')*.replaceAll('/+$', '') as Set
+nonStarterInternalRoots.each { path ->
+    if (!path.startsWith('cpf-starters/')) throw new GradleException("Non-starter internal root must stay under cpf-starters/: ${path}")
+    if (activeOwnerPaths.contains(path) || retainedPaths.contains(path)) throw new GradleException("Non-starter internal root overlaps Starter ownership: ${path}")
+    if (!file(path).isDirectory() || !file("${path}/build.gradle").isFile()) throw new GradleException("Non-starter internal root is missing: ${path}")
+}
+def physicalStarterPaths = (fileTree('cpf-starters') { include '**/build.gradle'; exclude 'build/**', '**/build/**' }.files.collect {
     rootDir.toPath().relativize(it.parentFile.toPath()).toString().replace('\\', '/')
-} as Set
+} as Set) - nonStarterInternalRoots
 def expectedPhysicalPaths = activeOwnerPaths + retainedPaths
 def missingPhysical = expectedPhysicalPaths - physicalStarterPaths
 def extraPhysical = physicalStarterPaths - expectedPhysicalPaths

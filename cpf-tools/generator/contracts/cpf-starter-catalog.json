@@ -1328,7 +1328,10 @@
     "capabilityGroupCount": 7,
     "profileCount": 6,
     "moduleCount": 52,
-    "retainedInactiveCount": 1
+    "retainedInactiveCount": 1,
+    "nonStarterInternalRoots": [
+      "cpf-starters/foundation/core"
+    ]
   },
   "profileMode": "ACTUAL_PROFILE_ARTIFACT",
   "profileDefinitions": {

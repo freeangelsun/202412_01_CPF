@@ -523,6 +523,28 @@ Application
 - Starter는 OSS Dependency 묶음이 아니라 CPF 표준 Transaction/Security/Audit/Observability/Error/Config와 연결된 실제 개발경험을 제공해야 한다.
 - Optional Starter 미선택 시 dependency, Bean, SQL/Migration, Endpoint, Thread, Background Task, Secret 요구와 Runtime side effect가 0이어야 한다.
 
+### Foundation Library / Starter / Test Support 물리 분리
+
+`cpf-starters/foundation` 아래 역할을 혼합하지 않는다.
+
+```text
+cpf-starters/foundation/core
+  = Pure Java Foundation library
+  = Spring/Jakarta/Provider/AutoConfiguration 0
+
+cpf-starters/foundation/base
+  = Spring Boot convenience / minimal wiring Starter
+  = Foundation/Core를 소비하지만 Pure Foundation 역할을 흡수하지 않음
+
+cpf-tools/testing/cpf-testkit
+  = 공식 Test Support / Fixture / Harness
+  = Runtime Starter가 아니며 Public BOM 기본 노출 금지
+```
+
+Starter Catalog의 물리 스캔은 `foundation/core`를 Starter로 오인하지 않도록
+`nonStarterInternalRoots`와 같은 Canonical 예외를 명시적으로 관리한다.
+새 Starter/Provider를 만든다는 이유로 Repository Root에 Module Directory를 추가하지 않는다.
+
 ### 2. Core Slimming 판정
 
 Core Class는 모두 다음 중 하나로 판정한다.

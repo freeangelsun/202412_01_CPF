@@ -463,6 +463,22 @@ Core 후보:
 - Cache/Messaging/File/Cloud provider
 - 일반 개발 편의 Utility 집합
 
+### 최종 Kernel 판단 원칙
+
+Core를 최소화하되 Core의 존재 이유를 없애지 않는다. Core는 모든 Capability가 공유하는
+의미론과 경계 계약을 안정적으로 제공하고, Capability는 자기 언어/API/SPI를 소유한다.
+
+```text
+Pure Foundation library      : cpf-starters/foundation/core
+CPF Kernel                   : cpf-core
+Capability/Owner contracts   : 각 공식 Owner/Capability
+Provider implementation      : 각 Provider
+Spring Boot enablement       : 각 Starter
+Test Support                 : cpf-tools/testing/cpf-testkit
+```
+
+`cpf-foundation/`, `cpf-testkit/` 같은 신규 Root Module은 금지하며 기존 07_18 생성분은 위 물리 Owner로 이동한다.
+
 ### Foundation
 
 Foundation은 Core보다 낮은 순수 재사용 계층이다. 날짜/시간/금융 Decimal/ID/Validation처럼

@@ -1,3 +1,12 @@
+## Current Central Recheck — 07_18 successor
+
+- Repository basis reviewed: `bd9bb2ad3b5cdd2441b1c070c24c1ed9e2b63d52` (`07_18`).
+- Previous Session18 development report used older basis SHA `4c4248a...`; PASS is not inherited.
+- Core relocation work is retained, but `NXT-ARCH-002` is reopened because owner-specific/optional API/SPI remains in Core and the architecture gate defaulted unknown classes to `KEEP_CORE`.
+- Root modules `cpf-foundation/` and `cpf-testkit/` are non-canonical. Physical owners are now fixed as `cpf-starters/foundation/core` and `cpf-tools/testing/cpf-testkit`.
+- The revised architecture gate intentionally FAILS until Core Admission, physical relocation, stale-reference, duplicate and garbage closure are complete.
+- Runtime NOT_EXECUTED remains NOT_EXECUTED; it is not promoted to PASS.
+
 # CPF Session 18 — Test and Evidence
 
 ## Basis

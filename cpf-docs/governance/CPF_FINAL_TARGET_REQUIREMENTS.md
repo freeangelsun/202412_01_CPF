@@ -7,6 +7,22 @@
 > Canonical Requirement Count: **186개**
 > Legacy Alias: **8개** — 완료율 중복 집계 금지
 
+### Core Kernel / Root Layout 강제 정책
+
+Core는 기능 수를 줄이기 위한 빈 껍데기가 아니라 CPF 전체의 **헌법/Kernel**이다.
+전역 Error/Result/Outcome, Transaction/Execution Context, transactionId/lineage,
+UNKNOWN/Reconcile/Idempotency, 최소 Identity/Security/Tenant Context와 장기 안정적인 공통 Value/Contract를 보존한다.
+특정 Owner/Optional Capability의 API/SPI/DTO/Operations는 Core에 두지 않는다.
+
+Repository 물리 구조는 Root를 임의 확장하지 않는다.
+Pure Foundation은 `cpf-starters/foundation/core`, 공식 범용 Test Support는
+`cpf-tools/testing/cpf-testkit`에 둔다. 논리 Gradle project 이름은 호환성을 위해 유지할 수 있다.
+새 Root 파일/Directory는 사용자 명시 승인과 Canonical Root Allowlist 변경 없이는 금지한다.
+
+Core Closure Gate는 unknown class의 자동 KEEP를 금지하고,
+Owner-specific/Optional API·SPI residue, Runtime/Operations residue, invalid logging operations,
+old/new duplicate, stale reference, moved-source residue, empty migrated directory가 하나라도 남으면 FAIL한다.
+
 ## 1. 문서 목적과 정본성
 
 이 문서는 **Core Platform Framework(CPF)**의 최상위 제품 목표, 장기 Architecture, Module Ownership, Public Contract, 운영·보안·배포 품질, 최종 완료 판정과 Requirement Catalog를 정의하는 최우선 정본이다.

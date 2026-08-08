@@ -1,0 +1,6 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.foundation'
+java { toolchain { languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion) } }
+dependencies { testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'; testImplementation 'org.assertj:assertj-core:3.26.3' }
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-foundation' } } }

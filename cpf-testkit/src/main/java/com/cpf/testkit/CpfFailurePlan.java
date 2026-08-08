@@ -1,0 +1,3 @@
+package com.cpf.testkit;
+import java.util.concurrent.ConcurrentHashMap; import java.util.concurrent.atomic.AtomicInteger;
+public final class CpfFailurePlan { private final ConcurrentHashMap<String,AtomicInteger> remaining=new ConcurrentHashMap<>(); public CpfFailurePlan failNext(String point,int count){remaining.put(point,new AtomicInteger(count));return this;} public void hit(String point){var n=remaining.get(point);if(n!=null&&n.getAndUpdate(v->Math.max(0,v-1))>0)throw new CpfInjectedFailure(point);} public static final class CpfInjectedFailure extends RuntimeException{public CpfInjectedFailure(String p){super("injected failure: "+p);}} }

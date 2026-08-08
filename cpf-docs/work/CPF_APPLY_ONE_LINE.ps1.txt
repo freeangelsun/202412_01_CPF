@@ -1,0 +1,1 @@
+$z=(Resolve-Path '.\CPF_S18_FINAL_OVERLAY.zip'); $t=Join-Path $env:TEMP ('cpf_s18_'+[guid]::NewGuid().ToString('N')); Expand-Archive -LiteralPath $z -DestinationPath $t -Force; & (Join-Path $t 'cpf-tools\verification\apply_s18_overlay.ps1') -RepositoryRoot (Get-Location).Path; Remove-Item -LiteralPath $t -Recurse -Force

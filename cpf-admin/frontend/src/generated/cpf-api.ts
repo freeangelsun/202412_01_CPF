@@ -3305,3 +3305,24 @@ export async function traceAdmByTransactionId<T = TraceAdmByTransactionIdRespons
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/observability/transactions/{transactionId}", options.path as Record<string, string | number> | undefined), method: "GET", data: undefined, params: options.query, signal: options.signal, headers: options.headers });
 }
 
+
+
+export type AdmHealthInstanceListBody = never;
+export type AdmHealthInstanceListPath = Record<string, never>;
+export type AdmHealthInstanceListQuery = { systemId?: string; readiness?: string; includeStale?: boolean; page?: number; size?: number };
+export type AdmHealthInstanceListHeaders = Record<string, never>;
+export type AdmHealthInstanceListResponse = { items?: Array<Record<string, unknown>>; page?: number; size?: number; total?: number };
+export type AdmHealthInstanceListOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: AdmHealthInstanceListQuery; headers?: CpfGeneratedHeaders; };
+export async function admHealthInstanceList<T = AdmHealthInstanceListResponse>(options: AdmHealthInstanceListOptions = {}): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/health/instances", undefined), method: "GET", data: undefined, params: options.query, signal: options.signal, headers: options.headers });
+}
+
+export type AdmHealthInstanceDetailBody = never;
+export type AdmHealthInstanceDetailPath = { systemId: string; instanceId: string };
+export type AdmHealthInstanceDetailQuery = Record<string, never>;
+export type AdmHealthInstanceDetailHeaders = Record<string, never>;
+export type AdmHealthInstanceDetailResponse = Record<string, unknown>;
+export type AdmHealthInstanceDetailOptions = CpfGeneratedBaseOptions & { data?: never; path: AdmHealthInstanceDetailPath; query?: never; headers?: CpfGeneratedHeaders; };
+export async function admHealthInstanceDetail<T = AdmHealthInstanceDetailResponse>(options: AdmHealthInstanceDetailOptions): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/health/instances/{systemId}/{instanceId}", options.path as Record<string, string | number>), method: "GET", data: undefined, params: undefined, signal: options.signal, headers: options.headers });
+}

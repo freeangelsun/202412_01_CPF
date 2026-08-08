@@ -1,0 +1,3 @@
+package com.cpf.core.api.security;
+import java.time.Duration; import java.util.List; import java.util.Map; import java.util.Optional;
+public interface CpfSessionOperations { CpfSessionSnapshot create(String tenantId,String principalId,Duration ttl,Map<String,String> attributes); Optional<CpfSessionSnapshot> find(String sessionId); CpfSessionSnapshot renew(String sessionId,Duration ttl); CpfSessionSnapshot rotate(String sessionId,Duration ttl); boolean revoke(String sessionId,String reason); int revokePrincipal(String tenantId,String principalId,String reason); List<CpfSessionSnapshot> findByPrincipal(String tenantId,String principalId); }

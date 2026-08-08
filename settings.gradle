@@ -88,15 +88,17 @@ pluginManagement {
 
 rootProject.name = 'cpf-core-platform-framework'
 
-include 'cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-reference', 'cpf-member', 'cpf-local-runtime', 'cpf-local-batch-runtime'
+include 'cpf-foundation', 'cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin', 'cpf-gateway', 'cpf-reference', 'cpf-member', 'cpf-testkit', 'cpf-local-runtime', 'cpf-local-batch-runtime'
 include 'cpf-core-only-consumer'
 project(':cpf-core-only-consumer').projectDir = file('cpf-tools/verification/core-only-consumer')
 include ':cpf-batch:contract', ':cpf-batch:runtime-common', ':cpf-batch:execution-runtime', ':cpf-batch:control-server', ':cpf-batch:scheduler', ':cpf-batch:worker', ':cpf-batch:center-cut-runner', ':cpf-batch:host-agent', ':cpf-batch:testkit'
 
+project(':cpf-foundation').projectDir = file('cpf-foundation')
 project(':cpf-core').projectDir = file('cpf-core')
 project(':cpf-common').projectDir = file('cpf-common')
 project(':cpf-member').projectDir = file('cpf-member')
 project(':cpf-reference').projectDir = file('cpf-reference')
+project(':cpf-testkit').projectDir = file('cpf-testkit')
 project(':cpf-admin').projectDir = file('cpf-admin')
 project(':cpf-biz-admin').projectDir = file('cpf-biz-admin')
 project(':cpf-gateway').projectDir = file('cpf-gateway')

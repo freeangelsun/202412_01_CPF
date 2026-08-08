@@ -1,0 +1,30 @@
+{
+  "baseline_master": "64fd08d963927860e8d023403dfa276931801ee5",
+  "product_source_basis": "4c4248a12e699c07f9f5fb11fbb33b97ca04077d",
+  "pdf_pages_reviewed": 775,
+  "pdf_documents_reviewed": 13,
+  "readme_brochure_images_reviewed": 14,
+  "review_method": "all PDF pages rendered and visually reviewed via 30-page contact sheets; critical/changed sections additionally inspected at page/image level",
+  "critical_rechecks": [
+    "00 p31-33",
+    "01 p61-80",
+    "04 p61-196",
+    "05 p54-59",
+    "90 p31-62",
+    "91 p39-41",
+    "기술사양 p47-50",
+    "기술표준 p35-39",
+    "DB표준 p25-36",
+    "산출물목록 p31-34",
+    "아키텍처설계 p1-41",
+    "README 14 brochure assets + hero high-resolution"
+  ],
+  "visible_clipping": 0,
+  "visible_overlap": 0,
+  "broken_table_layout": 0,
+  "near_blank_noncover_pages": 0,
+  "notes": [
+    "일부 절 시작/ADR/Gate 페이지는 의도된 여백이 있으나 비표지 blank page는 없음",
+    "시각 QA는 Runtime/DB/Browser 기능 실행 검증을 의미하지 않음"
+  ]
+}

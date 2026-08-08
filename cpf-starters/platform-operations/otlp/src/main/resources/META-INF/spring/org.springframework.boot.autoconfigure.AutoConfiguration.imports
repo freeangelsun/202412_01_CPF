@@ -1,1 +1,2 @@
 com.cpf.starter.observability.otlp.CpfOtlpAutoConfiguration
+com.cpf.starter.observability.otlp.CpfOtlpTelemetryAutoConfiguration

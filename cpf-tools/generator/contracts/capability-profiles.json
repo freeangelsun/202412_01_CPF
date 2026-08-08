@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0",
-  "profileVersion": "2026.08.02-QA39",
+  "profileVersion": "2026.08.09-NXT",
   "canonicalStarterCatalog": "cpf-starter-catalog.json",
   "publicProfiles": [
     "minimal-domain",
@@ -46,6 +46,10 @@
       "mybatis": {
         "projectPath": ":cpf-starter-data-persistence-mybatis",
         "coordinate": "com.cpf.starter:cpf-starter-data-persistence-mybatis"
+      },
+      "jpa": {
+        "projectPath": ":cpf-starter-data-persistence-jpa",
+        "coordinate": "com.cpf.starter:cpf-starter-data-persistence-jpa"
       }
     },
     "cache": {
@@ -66,6 +70,10 @@
       "tcp": {
         "projectPath": ":cpf-starter-integration-tcp",
         "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      },
+      "soap": {
+        "projectPath": ":cpf-starter-integration-soap",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-soap"
       }
     },
     "integration-codec": {
@@ -112,6 +120,34 @@
       "service-identity": {
         "projectPath": ":cpf-starter-security-service-identity",
         "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      },
+      "browser-session-valkey": {
+        "projectPath": ":cpf-starter-security-session-valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-security-session-valkey"
+      }
+    },
+    "locking": {
+      "valkey": {
+        "projectPath": ":cpf-starter-data-lock-valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-data-lock-valkey"
+      }
+    },
+    "object-storage": {
+      "s3-compatible": {
+        "projectPath": ":cpf-starter-file-object-storage-s3",
+        "coordinate": "com.cpf.starter:cpf-starter-file-object-storage-s3"
+      }
+    },
+    "graphql": {
+      "spring-graphql": {
+        "projectPath": ":cpf-starter-integration-graphql",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-graphql"
+      }
+    },
+    "realtime": {
+      "sse": {
+        "projectPath": ":cpf-starter-integration-realtime",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-realtime"
       }
     }
   },
@@ -129,7 +165,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -143,7 +180,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -162,7 +200,20 @@
         "security-mode": [
           "resource-server",
           "browser-session",
-          "service-identity"
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [],
@@ -193,7 +244,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -207,7 +259,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -226,7 +279,20 @@
         "security-mode": [
           "resource-server",
           "browser-session",
-          "service-identity"
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [],
@@ -257,7 +323,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -271,7 +338,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -288,7 +356,20 @@
           "otlp"
         ],
         "security-mode": [
-          "resource-server"
+          "resource-server",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [
@@ -331,7 +412,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -345,7 +427,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -362,7 +445,20 @@
           "otlp"
         ],
         "security-mode": [
-          "browser-session"
+          "browser-session",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [
@@ -407,7 +503,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -421,7 +518,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -440,7 +538,20 @@
         "security-mode": [
           "resource-server",
           "browser-session",
-          "service-identity"
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [
@@ -474,7 +585,8 @@
       "allowedProviderBindings": {
         "data": [
           "jdbc",
-          "mybatis"
+          "mybatis",
+          "jpa"
         ],
         "cache": [
           "caffeine",
@@ -488,7 +600,8 @@
         ],
         "integration-transport": [
           "http",
-          "tcp"
+          "tcp",
+          "soap"
         ],
         "integration-codec": [
           "fixed-length",
@@ -507,7 +620,20 @@
         "security-mode": [
           "resource-server",
           "browser-session",
-          "service-identity"
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
         ]
       },
       "mandatoryCapabilityGroups": [
@@ -619,10 +745,12 @@
         "data"
       ],
       "runtimeProjects": [
-        ":cpf-starter-messaging-reliability-jdbc"
+        ":cpf-starter-messaging-reliability-jdbc",
+        ":cpf-starter-messaging-schema-governance"
       ],
       "runtimeCoordinates": [
-        "com.cpf.starter:cpf-starter-messaging-reliability-jdbc"
+        "com.cpf.starter:cpf-starter-messaging-reliability-jdbc",
+        "com.cpf.starter:cpf-starter-messaging-schema-governance"
       ],
       "defaultProviderBindings": {},
       "requiredProviderSlots": [
@@ -693,13 +821,15 @@
         ":cpf-starter-platform-operations-observability",
         ":cpf-starter-platform-operations-runtime-control-client",
         ":cpf-starter-platform-operations-channel-registry-jdbc",
-        ":cpf-starter-platform-operations-feature-flag-openfeature"
+        ":cpf-starter-platform-operations-feature-flag-openfeature",
+        ":cpf-starter-platform-operations-health"
       ],
       "runtimeCoordinates": [
         "com.cpf.starter:cpf-starter-platform-operations-observability",
         "com.cpf.starter:cpf-starter-platform-operations-runtime-control-client",
         "com.cpf.starter:cpf-starter-platform-operations-channel-registry-jdbc",
-        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature"
+        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature",
+        "com.cpf.starter:cpf-starter-platform-operations-health"
       ],
       "defaultProviderBindings": {},
       "requiredProviderSlots": []

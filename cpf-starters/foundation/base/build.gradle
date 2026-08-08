@@ -3,6 +3,7 @@ group = 'com.cpf.starter'
 dependencies {
     api project(':cpf-core')
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot'
     implementation 'org.springframework.boot:spring-boot-actuator'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -16,4 +17,12 @@ publishing {
             artifactId = 'cpf-starter-foundation-base'
         }
     }
+}
+
+// NXT ownership: the application-convenience layer owns Spring runtime scanning.
+dependencies {
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-aop'
+    compileOnly 'org.springframework:spring-web'
+    compileOnly 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.38'
 }

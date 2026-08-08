@@ -7,6 +7,9 @@ export function createAdmState() {
     integrationTimeHealth: null as any,
     integrationDataQualityResult: null as any,
     integrationWebhookDlq: [] as any[],
+    healthInstanceSearch: { systemId: "", readiness: "", includeStale: false, page: 0, size: 50 },
+    healthInstanceResult: null as any,
+    healthInstanceDetail: null as any,
         activeMenu: "dashboard",
         token: "", // BFF 전환 후 Browser credential 상태는 사용하지 않는다.
         initializationStatus: "IDLE",

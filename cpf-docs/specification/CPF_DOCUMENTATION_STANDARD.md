@@ -2,8 +2,9 @@
 
 > Repository: `freeangelsun/202412_01_CPF`  
 > Branch: `master`  
-> 기준 Commit: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`  
-> Canonical Requirement Count: **180개**  
+> 기준 Commit: `64fd08d963927860e8d023403dfa276931801ee5` (`07_17`)  
+> 현행화 Source: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)  
+> Canonical Requirement Count: **186개**  
 > 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
 ## 1. 목적
@@ -28,6 +29,11 @@ README + Guide 8종 PDF/DOCX + 설계 산출물 5종 PDF/DOCX만 공식 사용�
 ## 6. 코드 표준
 코드가 필요한 기능은 `파일 경로 → 코드 블록 → 설명 → 변경 가능 영역 → 실패 시 결과 → Test` 순서로 제시한다. 장식용 몇 줄짜리 코드만으로 기능을 완료 처리하지 않는다. CURRENT SOURCE를 인용할 때는 실제 Repository 경로를 정확히 적는다.
 
+## 6.1 실행 블록 시각 표준
+개발·운영 절차의 Source/Config/SQL/HTTP/JSON/Terminal/Expected Output는 일반 본문 문단으로 흘려 쓰지 않는다. **창 제목(유형 + 실제/Reference 경로) + 모노스페이스 본문**으로 시각적으로 구분하고, 앞뒤 설명에서 CURRENT SOURCE/PRODUCT CONTRACT/REFERENCE 상태를 명시한다. 사용자가 복사할 명령은 한 줄 실행 가능 형태를 우선하며, 실행하지 않은 결과를 실제 성공 결과처럼 표시하지 않는다.
+
+README는 제품 브로셔 역할을 유지하며 Hero, Architecture, Product Map, Topology, Execution, Operations, Domain Journey와 Guide Map을 시각적으로 제시한다. 전면 현행화가 승인되어도 기존보다 정보 구조와 시각 흐름이 후퇴하면 제출 Gate 실패다.
+
 ## 7. 매뉴얼별 완료 기준
 - 00: 의사결정자가 범위/비범위/Architecture/Topology/Profile/Module/도입 순서를 결정 가능.
 - 01: 개발자가 Generator부터 API/Domain/DB/Transaction/Integration/Security/Test/운영 인계까지 수행 가능.
@@ -48,3 +54,13 @@ Public API/SPI, Starter/Profile, Route/Menu/Permission/Operation, Property, SQL/
 
 ## 10. 렌더·인수
 DOCX와 PDF를 동기화하고 전 페이지 렌더 QA를 수행한다. 최종 ZIP은 Repository Root 상대경로를 유지하며 wrapper folder를 만들지 않는다. Commit/Push는 사용자 승인 없이는 수행하지 않는다.
+
+
+## Core Kernel·Capability Ownership 문서화 규칙
+
+- `cpf-core`는 CPF 전역 Kernel/Contract/Semantics/Value와 최소 Pure Logic만 기술한다.
+- Provider-neutral/interface/SPI라는 형식만으로 Core Owner라고 쓰지 않는다.
+- Paging/Persistence·Header/Web·File·AI·Batch·Gateway·Fixed-Length·Notification·Webhook 등 전용 계약은 실제 Capability/Owner/Provider/Starter를 Owner로 기술한다.
+- Fixed-Length Contract/Engine은 `cpf-starters/integration/fixedlength-core`, Spring Runtime은 `cpf-starters/integration/fixedlength`로 기술한다.
+- Logging Runtime은 platform-operations/observability 계층, 운영 조회·제어는 Platform Operations + ADM 권한/사유/승인/Audit 경계로 기술한다.
+- CURRENT SOURCE에 목표 Owner와 다른 위치가 남아 있으면 실제 경로를 숨기지 않고 `CURRENT SOURCE GAP`으로 표시한다.

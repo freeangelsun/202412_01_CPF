@@ -19,35 +19,14 @@ dependencyManagement {
 }
 
 dependencies {
-
-
-	// 주제영역 간 HTTP 호출과 거래 헤더 전파에 사용합니다.
-	compileOnly 'org.springframework.boot:spring-boot-starter-webflux'
-	compileOnly 'org.springframework.boot:spring-boot-restclient'
-
-	// Kafka·AMQP Runtime은 cpf-starter-messaging-* Adapter가 소유합니다. Core POM에는 전이시키지 않습니다.
-
-	// CPF 표준 배치 API 컴파일에만 사용합니다. 실제 Batch 런타임은 ADM/REF/BAT 같은 배치 사용 모듈이 명시합니다.
-	compileOnly 'org.springframework.batch:spring-batch-core'
-
-	// 프레임워크 필터, 인터셉터, 검증 기능에 필요한 표준 의존성입니다.
+	// why_core_required: public CPF contract DTOs use Jakarta validation annotations only; implementation remains outside Core.
 	compileOnly 'jakarta.validation:jakarta.validation-api'
-	compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-	compileOnly 'org.springframework:spring-web'
-	compileOnly 'org.springframework:spring-webmvc'
-
-	// OTel API는 compile boundary로만 사용하며 SDK/Exporter Runtime은 observability Starter가 소유합니다.
-	compileOnly platform('io.opentelemetry:opentelemetry-bom:1.64.0')
-	compileOnly 'io.opentelemetry:opentelemetry-api'
 
 
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 	testImplementation 'org.assertj:assertj-core:3.26.3'
 	testImplementation 'org.mockito:mockito-core:5.14.2'
 	testImplementation 'org.springframework:spring-test'
-	// Core keeps WebFlux optional for consumers, while service-call tests exercise its HTTP error contract.
-	testImplementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-	testImplementation 'org.springframework.batch:spring-batch-core'
 	// Candidate Vendor URL/driver contract test only. This does not mark PostgreSQL Runtime as verified.
 	testRuntimeOnly 'org.postgresql:postgresql'
 }

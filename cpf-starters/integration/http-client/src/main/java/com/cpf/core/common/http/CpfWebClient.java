@@ -1,6 +1,7 @@
 package com.cpf.core.common.http;
 
 import com.cpf.core.api.http.CpfHttpClient;
+import com.cpf.core.api.http.CpfTypeRef;
 
 import com.cpf.core.api.execution.CpfStandardExecutionId;
 import com.cpf.core.common.header.CpfHeaderNames;
@@ -27,7 +28,7 @@ import java.util.function.Function;
  * CPF Service Call Engine을 우선 경유합니다. 레지스트리 DB가 아직 준비되지 않은 개발 환경에서는
  * 기존 {@code cpf.services.*.base-url} 설정으로 fallback하여 로컬 기동성을 유지합니다.</p>
  */
-public class CpfWebClient implements CpfHttpClient {
+public class CpfWebClient implements CpfSpringHttpClient {
 
     private final WebClient.Builder webClientBuilder;
     private final CpfServiceEndpointRegistry endpointRegistry;
@@ -77,6 +78,29 @@ public class CpfWebClient implements CpfHttpClient {
     /**
      * blocking GET 호출을 수행합니다.
      */
+    @Override
+    public <T> T get(String serviceId, String relativePath, Class<T> responseType) {
+        return get(request(serviceId, "GET", normalizePath(relativePath)), responseType);
+    }
+
+    @Override
+    public <T> T get(String standardExecutionId, String serviceId, String relativePath, Class<T> responseType) {
+        CpfStandardExecutionId executionId = CpfStandardExecutionId.parse(standardExecutionId);
+        ServiceCallRequest request = ServiceCallRequest.builder(serviceId)
+                .endpointCode(executionId.value())
+                .httpMethod("GET")
+                .requestPath(normalizePath(relativePath))
+                .header(CpfHeaderNames.STANDARD_EXECUTION_ID, executionId.value())
+                .build();
+        return get(request, responseType);
+    }
+
+    @Override
+    public <T> T get(String serviceId, String relativePath, CpfTypeRef<T> responseType) {
+        return get(request(serviceId, "GET", normalizePath(relativePath)),
+                ParameterizedTypeReference.forType(responseType.type()));
+    }
+
     public <T> T get(String serviceId, Function<UriBuilder, URI> uriFunction, Class<T> responseType) {
         URI relativeUri = relativeUri(uriFunction);
         ServiceCallRequest request = request(serviceId, "GET", relativeUri.toString());
@@ -247,6 +271,12 @@ public class CpfWebClient implements CpfHttpClient {
     /**
      * generic 응답 타입을 사용하는 blocking POST 호출을 수행합니다.
      */
+    @Override
+    public <T> T post(String serviceId, String path, Object requestBody, CpfTypeRef<T> responseType) {
+        return post(request(serviceId, "POST", normalizePath(path)), requestBody,
+                ParameterizedTypeReference.forType(responseType.type()));
+    }
+
     public <T> T post(
             String serviceId,
             String path,

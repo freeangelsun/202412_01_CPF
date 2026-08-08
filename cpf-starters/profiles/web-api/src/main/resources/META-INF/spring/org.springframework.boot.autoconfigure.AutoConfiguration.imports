@@ -1,1 +1,3 @@
 com.cpf.starter.openapi.webmvc.internal.CpfOpenApiWebMvcAutoConfiguration
+com.cpf.starter.profile.web.CpfWebRuntimeRelocationAutoConfiguration
+com.cpf.core.config.CpfExceptionAutoConfiguration

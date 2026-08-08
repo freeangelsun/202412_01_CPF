@@ -6,3 +6,4 @@ com.cpf.starter.data.persistence.jdbc.CpfVendorSqlCatalogAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.runtimecontrol.CpfPersistenceRuntimeControlAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.quality.CpfDataQualityJdbcAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.locking.CpfJdbcLockAutoConfiguration
+com.cpf.core.config.CpfTransactionMetaAutoConfiguration

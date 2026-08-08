@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.1.0",
   "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
-  "baselineSha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
+  "baselineSha": "4c4248a12e699c07f9f5fb11fbb33b97ca04077d",
   "publicProfiles": [
     "minimal-domain",
     "web-api",
@@ -760,6 +760,126 @@
       "packageBase": "com.cpf.starter.security.session.jdbc",
       "configPrefix": "cpf.security.session.jdbc",
       "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-data-lock-valkey",
+      "ownerPath": "cpf-starters/data/lock-valkey",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-lock-valkey",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.lock.valkey",
+      "configPrefix": "cpf.data.lock.valkey",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-messaging-schema-governance",
+      "ownerPath": "cpf-starters/messaging/schema-governance",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-messaging-schema-governance",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "messaging",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.messaging.schema",
+      "configPrefix": "cpf.messaging.schema",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-graphql",
+      "ownerPath": "cpf-starters/integration/graphql",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-graphql",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.integration.graphql",
+      "configPrefix": "cpf.integration.graphql",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-realtime",
+      "ownerPath": "cpf-starters/integration/realtime",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-realtime",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.integration.realtime",
+      "configPrefix": "cpf.integration.realtime",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-file-object-storage-s3",
+      "ownerPath": "cpf-starters/file/object-storage-s3",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-file-object-storage-s3",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "file",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.file.objectstorage",
+      "configPrefix": "cpf.file.object-storage.s3",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-security-session-valkey",
+      "ownerPath": "cpf-starters/security/session-valkey",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-session-valkey",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.security.session.valkey",
+      "configPrefix": "cpf.security.session.valkey",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-health",
+      "ownerPath": "cpf-starters/platform-operations/health",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-health",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.platform.operations.health",
+      "configPrefix": "cpf.platform.health",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-platform-operations-runtime-health-jdbc",
+      "ownerPath": "cpf-starters/platform-operations/runtime-health-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-platform-operations-runtime-health-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "platform-operations",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.platform.health.jdbc",
+      "configPrefix": "cpf.platform.health.registry.jdbc",
+      "legacyArtifactIds": []
     }
   ],
   "providerSlots": {
@@ -863,6 +983,40 @@
       "service-identity": {
         "projectPath": ":cpf-starter-security-service-identity",
         "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      },
+      "browser-session-valkey": {
+        "projectPath": ":cpf-starter-security-session-valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-security-session-valkey"
+      }
+    },
+    "locking": {
+      "valkey": {
+        "projectPath": ":cpf-starter-data-lock-valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-data-lock-valkey"
+      }
+    },
+    "object-storage": {
+      "s3-compatible": {
+        "projectPath": ":cpf-starter-file-object-storage-s3",
+        "coordinate": "com.cpf.starter:cpf-starter-file-object-storage-s3"
+      }
+    },
+    "graphql": {
+      "spring-graphql": {
+        "projectPath": ":cpf-starter-integration-graphql",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-graphql"
+      }
+    },
+    "realtime": {
+      "sse": {
+        "projectPath": ":cpf-starter-integration-realtime",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-realtime"
+      }
+    },
+    "health-registry": {
+      "jdbc": {
+        "projectPath": ":cpf-starter-platform-operations-runtime-health-jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-runtime-health-jdbc"
       }
     }
   },
@@ -997,10 +1151,12 @@
         "data"
       ],
       "runtimeProjects": [
-        ":cpf-starter-messaging-reliability-jdbc"
+        ":cpf-starter-messaging-reliability-jdbc",
+        ":cpf-starter-messaging-schema-governance"
       ],
       "runtimeCoordinates": [
-        "com.cpf.starter:cpf-starter-messaging-reliability-jdbc"
+        "com.cpf.starter:cpf-starter-messaging-reliability-jdbc",
+        "com.cpf.starter:cpf-starter-messaging-schema-governance"
       ],
       "defaultProviderBindings": {},
       "requiredProviderSlots": [
@@ -1071,13 +1227,15 @@
         ":cpf-starter-platform-operations-observability",
         ":cpf-starter-platform-operations-runtime-control-client",
         ":cpf-starter-platform-operations-channel-registry-jdbc",
-        ":cpf-starter-platform-operations-feature-flag-openfeature"
+        ":cpf-starter-platform-operations-feature-flag-openfeature",
+        ":cpf-starter-platform-operations-health"
       ],
       "runtimeCoordinates": [
         "com.cpf.starter:cpf-starter-platform-operations-observability",
         "com.cpf.starter:cpf-starter-platform-operations-runtime-control-client",
         "com.cpf.starter:cpf-starter-platform-operations-channel-registry-jdbc",
-        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature"
+        "com.cpf.starter:cpf-starter-platform-operations-feature-flag-openfeature",
+        "com.cpf.starter:cpf-starter-platform-operations-health"
       ],
       "defaultProviderBindings": {},
       "requiredProviderSlots": []
@@ -1169,7 +1327,7 @@
     ],
     "capabilityGroupCount": 7,
     "profileCount": 6,
-    "moduleCount": 45,
+    "moduleCount": 52,
     "retainedInactiveCount": 1
   },
   "profileMode": "ACTUAL_PROFILE_ARTIFACT",

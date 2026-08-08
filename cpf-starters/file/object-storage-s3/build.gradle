@@ -1,0 +1,13 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+ api project(':cpf-core')
+ implementation platform('software.amazon.awssdk:bom:2.49.5')
+ implementation 'software.amazon.awssdk:s3'
+ implementation 'software.amazon.awssdk:auth'
+ implementation 'org.springframework.boot:spring-boot-autoconfigure'
+ annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+ testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId='cpf-starter-file-object-storage-s3'} } }

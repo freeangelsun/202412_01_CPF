@@ -1,0 +1,9 @@
+project_path,capability,visibility,default_footprint,primary_consumer,value,remaining_runtime_gate
+:cpf-starter-platform-operations-health,runtime-health,public,OPT_IN,applications-and-ADM,"liveness/readiness/startup + bounded dependency checks + drain","multi-instance runtime"
+:cpf-starter-platform-operations-runtime-health-jdbc,runtime-health-registry,internal,PROVIDER_ONLY,cpf-admin,"durable multi-WAS health aggregation on DB3","DB3 runtime"
+:cpf-starter-security-session-valkey,distributed-session,public,OPT_IN,web-applications,"multi-instance session rotation/revoke/concurrency policy","Valkey partition/restart"
+:cpf-starter-data-lock-valkey,distributed-lock,public,OPT_IN,workers-and-services,"CAS lease + monotonic fencing + audited force release","Valkey process-kill/fencing"
+:cpf-starter-file-object-storage-s3,object-storage,public,OPT_IN,file-capabilities,"tenant-scoped S3-compatible put/range/presign/multipart/cleanup","S3-compatible runtime"
+:cpf-starter-messaging-schema-governance,event-schema,public,OPT_IN,event-producers-consumers,"JSON/Avro/Protobuf compatibility governance","concurrent registry runtime"
+:cpf-starter-integration-graphql,graphql,public,OPT_IN,web-api,"bounded optional GraphQL with depth/complexity/introspection policy","web runtime/security"
+:cpf-starter-integration-realtime,realtime-sse,public,OPT_IN,web-api,"tenant-authenticated SSE replay/heartbeat/connection limits","browser reconnect/load"

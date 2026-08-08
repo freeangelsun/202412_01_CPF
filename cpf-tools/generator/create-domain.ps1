@@ -653,8 +653,8 @@ $publicCapabilityGroups = @("data", "messaging", "integration", "file", "notific
 $providerSlotToGroup = @{
     'data' = 'data'; 'cache' = 'data'; 'messaging' = 'messaging';
     'integration-transport' = 'integration'; 'integration-codec' = 'integration';
-    'file' = 'file'; 'notification' = 'notification'; 'observability' = 'platform-operations';
-    'security-mode' = 'security'
+    'file' = 'file'; 'object-storage' = 'file'; 'notification' = 'notification'; 'observability' = 'platform-operations';
+    'locking' = 'data'; 'graphql' = 'integration'; 'realtime' = 'integration'; 'health-registry' = 'platform-operations'; 'security-mode' = 'security'
 }
 $requestedCapabilityGroups = @()
 if (-not [string]::IsNullOrWhiteSpace($Capabilities)) {
@@ -1256,7 +1256,8 @@ import com.cpf.core.api.http.CpfHttpClient;
 import com.cpf.core.api.page.CpfSlice;
 import $FeaturePackage.port.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.ParameterizedTypeReference;
+import com.cpf.core.api.http.CpfHttpPath;
+import com.cpf.core.api.http.CpfTypeRef;
 import org.springframework.stereotype.Component;
 import java.util.Objects;
 import java.util.Optional;
@@ -1267,9 +1268,9 @@ import java.util.Optional;
 public class Remote${FeatureClassPrefix}Adapter implements ${FeatureClassPrefix}QueryPort, ${FeatureClassPrefix}CommandPort {
     private final CpfHttpClient client;
     public Remote${FeatureClassPrefix}Adapter(CpfHttpClient client){this.client=Objects.requireNonNull(client);}
-    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){return client.get("$ModuleUpper", u->u.path("/api/v1/$module/sample-items").queryParam("keyword",request.keyword()).queryParam("page",request.page()).queryParam("size",request.size()).queryParam("sortBy",request.sortBy()).queryParam("sortDirection",request.sortDirection()).build(), ${FeatureClassPrefix}SearchResult.class);}
-    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(client.get("$ModuleUpper",u->u.path("/api/v1/$module/sample-items/{key}").build(key),${FeatureClassPrefix}SampleItem.class));}
-    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){return client.get("$ModuleUpper",u->u.path("/api/v1/$module/sample-items/cursor").queryParam("afterId",afterId==null?0:afterId).queryParam("size",size).build(),new ParameterizedTypeReference<CpfSlice<${FeatureClassPrefix}SampleItem>>(){});}
+    public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request){return client.get("$ModuleUpper", CpfHttpPath.of("/api/v1/$module/sample-items").queryParam("keyword",request.keyword()).queryParam("page",request.page()).queryParam("size",request.size()).queryParam("sortBy",request.sortBy()).queryParam("sortDirection",request.sortDirection()).build(), ${FeatureClassPrefix}SearchResult.class);}
+    public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){return Optional.ofNullable(client.get("$ModuleUpper","/api/v1/$module/sample-items/"+CpfHttpPath.segment(key),${FeatureClassPrefix}SampleItem.class));}
+    public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){return client.get("$ModuleUpper",CpfHttpPath.of("/api/v1/$module/sample-items/cursor").queryParam("afterId",afterId==null?0:afterId).queryParam("size",size).build(),new CpfTypeRef<CpfSlice<${FeatureClassPrefix}SampleItem>>(){});}
     public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items",command,${FeatureClassPrefix}SampleItem.class);}
     public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand command,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items/"+id+"/update",command,${FeatureClassPrefix}SampleItem.class);}
     public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String tx,String key,long seq,String actor){return client.post("$ModuleUpper","/api/v1/$module/sample-items/"+id+"/delete",new ${FeatureClassPrefix}DeleteCommand(version),${FeatureClassPrefix}DeleteResult.class);}

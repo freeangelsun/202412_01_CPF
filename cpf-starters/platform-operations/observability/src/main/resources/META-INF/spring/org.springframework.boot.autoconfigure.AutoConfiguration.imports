@@ -3,3 +3,8 @@ com.cpf.core.config.CpfLogRecoveryAutoConfiguration
 com.cpf.starter.observability.runtimecontrol.CpfObservabilityRuntimeControlAutoConfiguration
 com.cpf.starter.platform.operations.observability.CpfRemoteLogLocalAutoConfiguration
 com.cpf.starter.platform.operations.observability.CpfLogPolicyVersionJdbcAutoConfiguration
+com.cpf.core.config.CpfLogPolicyVersionAutoConfiguration
+com.cpf.core.config.CpfLoggingRuntimeAutoConfiguration
+com.cpf.core.config.CpfMaskingPolicyAutoConfiguration
+com.cpf.core.config.CpfRemoteLogAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfTelemetryFallbackAutoConfiguration

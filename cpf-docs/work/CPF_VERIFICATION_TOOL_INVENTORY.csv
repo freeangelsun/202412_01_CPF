@@ -1,0 +1,23 @@
+path,classification,consumer,status,reason
+cpf-tools/verification/final_dev_campaign.py,CANONICAL_CAMPAIGN,developer-final-gate,KEEP,Current broad development campaign entry
+cpf-tools/verification/verify_starter_catalog.py,CANONICAL_SPECIALIZED,starter-catalog-gate,KEEP,Canonical starter catalog validation
+cpf-tools/verification/release_target_trust.py,CANONICAL_SPECIALIZED,release-trust-gate,KEEP,Release target trust validation
+cpf-tools/verification/verify_integration_closure_contract.py,CANONICAL_SPECIALIZED,integration-closure-gate,KEEP,Integration closure contract validation
+cpf-tools/verification/run-xa-crash-recovery.ps1,RUNTIME_HARNESS,transaction-jta,KEEP,XA process-kill recovery harness
+cpf-tools/verification/run-xa-crash-recovery.sh,RUNTIME_HARNESS,transaction-jta,KEEP,XA process-kill recovery harness
+cpf-tools/verification/core-only-consumer,CONSUMER_HARNESS,core-contract,KEEP,Core-only consumer boundary harness
+cpf-tools/verification/frontend-api-runtime,RUNTIME_HARNESS,adm-frontend,KEEP,Frontend API runtime validation
+cpf-tools/verification/frontend-full-compile,COMPILE_HARNESS,adm-frontend,KEEP,Frontend full compile validation
+cpf-tools/verification/frontend-workflow-runtime,RUNTIME_HARNESS,adm-frontend,KEEP,Frontend workflow runtime validation
+cpf-tools/verification/java21,LEGACY_COMPATIBILITY_HARNESS,java21-compatibility,KEEP_WITH_SCOPE,Compatibility evidence only; target Java 25 remains canonical
+cpf-tools/verification/qa38,QA_HARNESS,qa38,KEEP_WITH_SCOPE,Historical QA requirement consumer; do not use as current NXT PASS
+cpf-tools/verification/qa39,QA_HARNESS,qa39,KEEP_WITH_SCOPE,Historical QA requirement consumer; do not use as current NXT PASS
+cpf-tools/verification/20260728_01,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260728_02,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260728_03,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260728_04,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260729_01,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260729_02,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260729_04,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/20260801_01,LEGACY_SESSION_TOOLSET,none,DELETE_CANDIDATE,Dated verification snapshot; current-state repository policy
+cpf-tools/verification/verify_nxt_architecture.py,CANONICAL_SPECIALIZED,nxt-architecture-gate,KEEP,NXT Core/Foundation/ownership gate

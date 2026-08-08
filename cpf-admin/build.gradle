@@ -13,6 +13,7 @@ java {
 }
 
 dependencies {
+    implementation project(':cpf-starter-platform-operations-runtime-health-jdbc')
     implementation project(':cpf-starter-profile-browser-bff')
     implementation project(':cpf-starter-integration-webhook')
     implementation project(':cpf-starter-data-persistence-mybatis')

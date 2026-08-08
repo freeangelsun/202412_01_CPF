@@ -1,0 +1,3 @@
+package com.cpf.starter.integration.realtime;
+import org.springframework.boot.autoconfigure.AutoConfiguration; import org.springframework.boot.autoconfigure.condition.*; import org.springframework.boot.context.properties.EnableConfigurationProperties; import org.springframework.context.annotation.Bean;
+@AutoConfiguration @EnableConfigurationProperties(CpfRealtimeProperties.class) @ConditionalOnProperty(prefix="cpf.integration.realtime",name="enabled",havingValue="true") public class CpfRealtimeAutoConfiguration { @Bean @ConditionalOnMissingBean CpfRealtimeHub cpfRealtimeHub(CpfRealtimeProperties p){return new CpfRealtimeHub(p);} @Bean @ConditionalOnMissingBean CpfRealtimeController cpfRealtimeController(CpfRealtimeHub h){return new CpfRealtimeController(h);} }

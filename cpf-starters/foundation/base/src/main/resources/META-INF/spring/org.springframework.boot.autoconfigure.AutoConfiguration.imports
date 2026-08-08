@@ -1,1 +1,3 @@
-com.cpf.starter.base.CpfBaseAutoConfiguration
+com.cpf.starter.foundation.base.CpfBaseAutoConfiguration
+com.cpf.core.config.CpfPublicBoundaryAutoConfiguration
+com.cpf.core.config.CpfStateRuntimeAutoConfiguration

@@ -21,7 +21,9 @@ dependencies {
     api platform("org.springframework.boot:spring-boot-dependencies:${stack.getProperty('springBootVersion').trim()}")
     api platform("org.springframework.cloud:spring-cloud-dependencies:${stack.getProperty('springCloudVersion').trim()}")
     constraints {
+        api "com.cpf.foundation:cpf-foundation:${versionValue}"
         api "com.cpf.core:cpf-core:${versionValue}"
+        api "com.cpf.testkit:cpf-testkit:${versionValue}"
         api "com.cpf.common:cpf-common:${versionValue}"
         api "com.cpf.batch:cpf-batch-contract:${versionValue}"
         publicModules.sort { it.artifactId }.each { m -> api "${m.groupId}:${m.artifactId}:${versionValue}" }
@@ -31,13 +33,15 @@ def localRepo=providers.gradleProperty('cpfLocalArtifactRepository').orElse(prov
 def stagingRepo=providers.gradleProperty('cpfArtifactStagingRepository').orElse(new File(rootDir,'../../../../build/cpf-artifact-staging/repository').absolutePath)
 def internalRepo=providers.gradleProperty('cpfInternalRepositoryUrl').orElse(providers.gradleProperty('cpfArtifactRepositoryUrl')).orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orElse(layout.buildDirectory.dir('repo').map { it.asFile.absolutePath })
 publishing {
- publications { cpfPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-platform-bom'; pom { name='CPF Public Platform BOM'; description='Public CPF contracts and six use-case profiles only.' } } }
+ publications { cpfPlatformBom(MavenPublication) { from components.javaPlatform; artifactId='cpf-platform-bom'; pom { name='CPF Public Platform BOM'; description='Public CPF contracts, pure foundation, testkit, and six use-case profiles.' } } }
  repositories { maven { name='CpfLocal'; url=uri(localRepo.get()) }; maven { name='CpfStaging'; url=uri(stagingRepo.get()) }; maven { name='CpfInternal'; url=uri(internalRepo.get()) } }
 }
 tasks.register('verifyPublicBom') {
     doLast {
         def allowedContracts=[
+            "com.cpf.foundation:cpf-foundation:${versionValue}",
             "com.cpf.core:cpf-core:${versionValue}",
+            "com.cpf.testkit:cpf-testkit:${versionValue}",
             "com.cpf.common:cpf-common:${versionValue}",
             "com.cpf.batch:cpf-batch-contract:${versionValue}"
         ] as Set

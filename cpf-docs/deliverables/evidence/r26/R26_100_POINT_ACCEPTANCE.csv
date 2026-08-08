@@ -1,0 +1,23 @@
+﻿id,quality_axis,status,evidence
+A01,최신 정본/요건 현행화,PASS,"07_17 master 64fd08d, 07_16 product source, Canonical 186 반영"
+A02,README 제품 브로셔/시각 흐름,PASS,Hero/Architecture/Product Map/Topology/Execution/Operations/Domain Journey/Guide Map + 14 images
+A03,README 문서량 비감소,PASS,"physical 98→172, chars 6431→10149"
+A04,CURRENT SOURCE / PRODUCT CONTRACT / REFERENCE 구분,PASS,전 문서 공통 stance 및 최신 Core ownership gap 명시
+A05,실제 Source 창,PASS,총 141 SOURCE windows; 개발/ADM/BZA 실제 Source 중심
+A06,명령/Terminal 창,PASS,총 50 TERMINAL windows; 개발/배치/운영/BZA/Gateway 포함
+A07,SQL/Config/HTTP/JSON/Output 창,PASS,"SQL 30, CONFIG 12, HTTP 3, JSON 5, OUTPUT 8"
+A08,Test/Fault/Recovery 실무 흐름,PASS,01/02/03/04/05/90/91에 test·fault·UNKNOWN/reconcile/recovery 절 포함
+A09,01 개발자 매뉴얼 실무성,PASS,80p; source/config/sql/command/http/output와 186 요구 기반 owner-first/EDU
+A10,02 배치 매뉴얼 실무성,PASS,46p; Job/Step/Chunk/checkpoint/restart/partition/worker/unknown/reconcile 실행 흐름
+A11,03 ADM 개발 매뉴얼 실무성,PASS,58p; route/backend/openapi/generated TS/Vue/browser/fault source windows
+A12,04 ADM 운영 화면 전수,PASS,"196p; actual route registry 63 routes, route-specific fields/defaults/operations/buttons/recovery"
+A13,05 플랫폼 운영 실무성,PASS,59p; artifact/config/db/broker/startup/deploy/backup/restore/DR/runbook + terminal/sql/config
+A14,90 BZA 실무성,PASS,62p; actual BZA routes/fields/operations + build/backup/restore commands
+A15,91 Gateway 실무성,PASS,41p; actual config/control plane/publish/ACK/LKG/rollback/reconcile + commands
+A16,설계 산출물 깊이,PASS,Architecture ownership/ADR; tech spec; 15 BAD/GOOD standards; DB executable SQL; gate evidence contracts
+A17,문서량 비감소,PASS,13/13 logical lines/chars/pages non-decrease vs pushed R25
+A18,DOCX/PDF 조판·접근성,PASS,13 PDFs/775p visual; a11y high/medium/low=0; clipping/overlap=0
+A19,금지 표현/Comment/Tracked Change,PASS,banned hits 0; comments 0; tracked insertions/deletions 0
+A20,README local link/image integrity,PASS,missing local references 0
+A21,Runtime/DB3/Browser/Multi-instance/XA process-kill 실제 실행,미검증,문서 artifact 생성 세션에서 Product runtime execution은 수행하지 않음
+A22,Commit/Push,미수행,사용자 승인 없는 repository write 미수행

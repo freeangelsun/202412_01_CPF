@@ -1,0 +1,7 @@
+﻿case,durability,recovery,safety,verification
+write failure,managed durable spool,autonomous retry,replay through hardened writer,PASS semantic; live disk fault 미검증
+restart/hard-kill,startup replay,same marker/checksum,no duplicate append,PASS source/gate; live process kill 미검증
+>8MiB,stream checksum marker,no size bypass,dedup exact,PASS semantic
+symlink/path/permission,hardened writer validation,quarantine/fail,no unsafe append,PASS source; live FS faults 미검증
+concurrency,process file lock,serialized append/replay,no duplicate marker,PASS source; live multiprocess 미검증
+masking,masked payload before durable write,replay does not unmask,no raw secret,PASS source policy

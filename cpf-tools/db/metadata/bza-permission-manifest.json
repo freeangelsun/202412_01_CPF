@@ -81,6 +81,11 @@
     },
     {
       "method": "POST",
+      "pathPattern": "approvals/simulate",
+      "actionCode": "SIMULATE"
+    },
+    {
+      "method": "POST",
       "pathPattern": "*/**",
       "actionCode": "WRITE"
     },

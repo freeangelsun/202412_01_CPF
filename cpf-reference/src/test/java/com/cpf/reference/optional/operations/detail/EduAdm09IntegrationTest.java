@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.detail;
-import com.cpf.reference.edu.runtime.AbstractManualEduIntegrationTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-09 IntegrationTest — Expected Version 충돌 화면·재조회·재적용 */
-public final class EduAdm09IntegrationTest extends AbstractManualEduIntegrationTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm09Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-09 redirect/non-executable regression contract. */
+public final class EduAdm09IntegrationTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm09Handler.class));
+        assertEquals("EDU-ADM-09", EduAdm09Handler.REDIRECT.requirementId());
+        assertEquals("MERGE_EDU", EduAdm09Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm09Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm09Handler.REDIRECT.executable());
+    }
 }

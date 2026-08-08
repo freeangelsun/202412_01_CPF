@@ -48,7 +48,7 @@ function Invoke-Gate {
     }
     $status = if ($exitCode -eq 0) { 'PASS' } else { 'FAIL' }
     $ledger.Add([ordered]@{
-        id=$Id; command=($File+' '+($Arguments -join ' ')); workingDirectory=$WorkingDirectory;
+        id=$Id; sourceSha=$head; command=($File+' '+($Arguments -join ' ')); workingDirectory=$WorkingDirectory;
         startedAt=$started.ToString('O'); finishedAt=[DateTimeOffset]::UtcNow.ToString('O');
         exitCode=$exitCode; status=$status; launchError=$launchError;
         stdout=[IO.Path]::GetFileName($stdout); stderr=[IO.Path]::GetFileName($stderr);
@@ -60,19 +60,35 @@ function Invoke-Gate {
 function Add-ConfigurationFailure {
     param([string]$Id,[string]$Actual)
     $failed.Add("$Id(config)")
-    $ledger.Add([ordered]@{id=$Id;command='configuration precondition';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual=$Actual})
+    $ledger.Add([ordered]@{id=$Id;sourceSha=$head;command='configuration precondition';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual=$Actual})
 }
 
 try {
     Invoke-Gate 'python-r6-contract' 'python' @('cpf-tools/verification/final-dev/verify-r6-approval-contract.py',$root) | Out-Null
     Invoke-Gate 'python-r6-behavior' 'python' @('cpf-tools/verification/final-dev/verify-r6-behavior-contracts.py',$root) | Out-Null
     Invoke-Gate 'python-r6j-rework' 'python' @('cpf-tools/verification/final-dev/verify-r6j-rework-contract.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-canonical-count' 'python' @('cpf-tools/verification/final-dev/verify-canonical-requirements.py','cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md') | Out-Null
+    Invoke-Gate 'python-core-boundary' 'python' @('cpf-tools/verification/final-dev/verify-core-persistence-boundary.py','--root',$root) | Out-Null
+    Invoke-Gate 'python-filelog-recovery' 'python' @('cpf-tools/verification/final-dev/verify-filelog-recovery-contract.py',$root) | Out-Null
+    Invoke-Gate 'python-r6j-db3-lineage' 'python' @('cpf-tools/verification/final-dev/verify-r6j-transaction-db3.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-bza-openapi-contract' 'python' @('cpf-tools/verification/final-dev/verify-bza-openapi-contract.py','--root',$root) | Out-Null
+    Invoke-Gate 'python-bza-approval-simulation' 'python' @('cpf-tools/verification/final-dev/verify-bza-approval-simulation-contract.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-observability-false-green' 'python' @('cpf-tools/verification/final-dev/run-r6-observability-qualification.py','--expected-head',$head,'--self-test') | Out-Null
+    Invoke-Gate 'python-security-negative-false-green' 'python' @('cpf-tools/verification/final-dev/run-r6-security-negative-qualification.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-resource-false-green' 'python' @('cpf-tools/performance/run-resource-contract.py','--self-test') | Out-Null
+    Invoke-Gate 'python-batch-false-green' 'python' @('cpf-tools/performance/run-batch-contract.py','--self-test') | Out-Null
+    Invoke-Gate 'python-broker-false-green' 'python' @('cpf-tools/performance/run-broker-contract.py','--self-test') | Out-Null
+    Invoke-Gate 'python-dr-false-green' 'python' @('cpf-tools/verification/final-dev/run-r6-dr-chaos-probe.py','--expected-head',$head,'--self-test') | Out-Null
+    Invoke-Gate 'python-evidence-sha' 'python' @('cpf-tools/verification/final-dev/verify-current-sha-evidence.py','--root',$root,'--expected-head',$head) | Out-Null
     Invoke-Gate 'python-r6-frontend' 'python' @('cpf-tools/verification/final-dev/verify-r6-frontend-contract.py',$root) | Out-Null
     Invoke-Gate 'python-r6-edu-consumer' 'python' @('cpf-tools/verification/final-dev/verify-r6-edu-consumer-runtime-contract.py','--root',$root,'--self-test') | Out-Null
-    Invoke-Gate 'python-db3-contract' 'python' @('cpf-tools/verification/final-dev/verify-db3-runner-contract.py') | Out-Null
-    Invoke-Gate 'python-qa38' 'python' @('cpf-tools/verification/qa38/verify-qa38-structure.py','.') | Out-Null
-    Invoke-Gate 'python-qa39' 'python' @('cpf-tools/verification/qa39/verify-qa39-canonical-starter-closure.py') | Out-Null
-    Invoke-Gate 'python-rev004' 'python' @('cpf-tools/verification/final-dev/verify-rev004-overlay.py') | Out-Null
+    Invoke-Gate 'python-db3-contract' 'python' @('cpf-tools/verification/final-dev/verify-db3-runner-contract.py','--root',$root) | Out-Null
+    Invoke-Gate 'python-transactionid-trust-lineage' 'python' @('cpf-tools/verification/final-dev/verify-transactionid-trust-lineage.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-adm-csp' 'python' @('cpf-tools/verification/final-dev/verify-adm-csp.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-adm-high-risk-client' 'python' @('cpf-tools/verification/final-dev/verify-adm-high-risk-generated-client.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-adm-reliability-cas' 'python' @('cpf-tools/verification/final-dev/verify-adm-reliability-cas.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-transaction-freshness' 'python' @('cpf-tools/verification/final-dev/verify-transaction-freshness-applicability.py','--root',$root,'--self-test') | Out-Null
+    Invoke-Gate 'python-edu-adm-architecture' 'python' @('cpf-tools/verification/final-dev/verify-edu-adm-architecture.py','--root',$root,'--self-test') | Out-Null
 
     Invoke-Gate 'gradle-version' (Join-Path $root 'gradlew.bat') @('--version') | Out-Null
     $gradleVersionLog = Join-Path $out 'gradle-version.stdout.log'
@@ -80,10 +96,10 @@ try {
         $versionText = Get-Content -Raw -LiteralPath $gradleVersionLog
         if ($versionText -notmatch '(?m)^Gradle 9\.1(?:\.\d+)?\s*$' -or $versionText -notmatch '(?im)(JVM|Launcher JVM):\s*25(?:\.|\s|$)') {
             $failed.Add('toolchain-version(Java25/Gradle9.1)')
-            $ledger.Add([ordered]@{id='toolchain-version';command='parse gradle --version';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual='Java 25 and Gradle 9.1 are required'})
+            $ledger.Add([ordered]@{id='toolchain-version';sourceSha=$head;command='parse gradle --version';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual='Java 25 and Gradle 9.1 are required'})
         } else {
             $env:CPF_R6_TOOLCHAIN_PASSED = 'true'
-            $ledger.Add([ordered]@{id='toolchain-version';command='parse gradle --version';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=0;status='PASS';actual='Java25/Gradle9.1'})
+            $ledger.Add([ordered]@{id='toolchain-version';sourceSha=$head;command='parse gradle --version';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=0;status='PASS';actual='Java25/Gradle9.1'})
         }
     }
     Invoke-Gate 'python-r6-edu135' 'python' @('cpf-tools/scripts/verify-cpf-qa37-manual-edu-135.py','--root',$root,'--compile') | Out-Null
@@ -191,14 +207,14 @@ try {
         $failed.Add('git-final-status(exit)')
     } elseif ($finalDirty.Count -gt 0) {
         $failed.Add('git-final-status(dirty)')
-        $ledger.Add([ordered]@{id='git-final-status';command='git status --porcelain --untracked-files=all';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual=($finalDirty -join '; ')})
+        $ledger.Add([ordered]@{id='git-final-status';sourceSha=$head;command='git status --porcelain --untracked-files=all';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=1;status='FAIL';actual=($finalDirty -join '; ')})
     } else {
-        $ledger.Add([ordered]@{id='git-final-status';command='git status --porcelain --untracked-files=all';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=0;status='PASS';actual='clean'})
+        $ledger.Add([ordered]@{id='git-final-status';sourceSha=$head;command='git status --porcelain --untracked-files=all';workingDirectory=$root;startedAt=[DateTimeOffset]::UtcNow.ToString('O');finishedAt=[DateTimeOffset]::UtcNow.ToString('O');exitCode=0;status='PASS';actual='clean'})
     }
 }
 finally {
     $summary=[ordered]@{
-        protocol='CPF-R6-RELEASE-GATES-2'; releaseMode=[bool]$Release;
+        protocol='CPF-R6-RELEASE-GATES-3'; sourceSha=$head; releaseMode=[bool]$Release;
         expectedHead=$ExpectedHead.ToLowerInvariant(); actualHead=$head; cleanTreeAtStart=($dirty.Count -eq 0);
         createdAt=[DateTimeOffset]::UtcNow.ToString('O'); failedGates=@($failed); gates=$ledger
     }

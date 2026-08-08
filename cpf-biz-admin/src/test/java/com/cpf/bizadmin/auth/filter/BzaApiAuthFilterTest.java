@@ -7,6 +7,8 @@ import com.cpf.bizadmin.auth.permission.BzaPermissionManifest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -59,6 +61,37 @@ class BzaApiAuthFilterTest {
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
         verify(authService).authorize("Bearer token", "APPROVAL", "DECIDE");
+    }
+
+
+    @Test
+    void approvalSimulationRequiresDedicatedSimulatePermission() throws Exception {
+        MockHttpServletRequest request = request("POST", "/api/bza/approvals/simulate");
+        when(authService.authorize("Bearer token", "APPROVAL", "SIMULATE"))
+                .thenReturn(authorization("simulator01", "APPROVAL", "SIMULATE"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        verify(authService).authorize("Bearer token", "APPROVAL", "SIMULATE");
+        assertThat(request.getAttribute("bza.actionCode")).isEqualTo("SIMULATE");
+        assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void approvalSimulationDirectCallIsDeniedWithoutSimulatePermission() throws Exception {
+        MockHttpServletRequest request = request("POST", "/api/bza/approvals/simulate");
+        when(authService.authorize("Bearer token", "APPROVAL", "SIMULATE"))
+                .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "SIMULATE permission required"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        verify(authService).authorize("Bearer token", "APPROVAL", "SIMULATE");
+        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(response.getContentAsString()).contains("권한 확인에 실패");
+        assertThat(chain.getRequest()).isNull();
     }
 
     @Test

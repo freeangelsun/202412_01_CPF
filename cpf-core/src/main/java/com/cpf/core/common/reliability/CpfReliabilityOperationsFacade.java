@@ -160,7 +160,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         }
         StringBuilder sql = new StringBuilder("""
                 SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_id,
-                       segment_id, external_key, failure_code, failure_message, next_action,
+                       segment_id, external_key, failure_code, failure_message, next_action, row_version,
                        detected_at, resolved_at, resolved_by, audit_reason, created_at, updated_at
                 FROM cpf_unknown_result
                 WHERE 1 = 1
@@ -178,7 +178,7 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
         if (!available()) return Optional.empty();
         List<Map<String,Object>> rows = jdbc().queryForList("""
                 SELECT unknown_seq, unknown_id, unknown_type, unknown_status, transaction_id,
-                       segment_id, external_key, failure_code, failure_message, next_action,
+                       segment_id, external_key, failure_code, failure_message, next_action, row_version,
                        detected_at, resolved_at, resolved_by, audit_reason, created_at, updated_at
                 FROM cpf_unknown_result
                 WHERE unknown_id = ?
@@ -249,6 +249,21 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
             String targetStatus,
             String operatorId,
             String reason) {
+        Map<String, Object> current = findOne("cpf_unknown_result", "unknown_id", unknownId);
+        return resolveUnknown(unknownId, targetStatus, requiredVersion(current), operatorId, reason);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public ChangeResult resolveUnknown(
+            String unknownId,
+            String targetStatus,
+            long expectedVersion,
+            String operatorId,
+            String reason) {
+        if (expectedVersion < 0L) {
+            throw new CpfValidationException("expectedVersion은 0 이상이어야 합니다.");
+        }
         String normalizedStatus = required(targetStatus, "targetStatus").toUpperCase();
         if (!RESOLUTION_STATUSES.contains(normalizedStatus)) {
             throw new CpfValidationException("허용되지 않은 결과 미확정 상태입니다.");
@@ -265,8 +280,10 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                     resolved_by = ?,
                     audit_reason = ?,
                     updated_by = ?,
-                    updated_at = ?
+                    updated_at = ?,
+                    row_version = row_version + 1
                 WHERE unknown_id = ?
+                  AND row_version = ?
                   AND unknown_status NOT IN ('CONFIRMED_SUCCESS', 'CONFIRMED_FAILURE', 'RESOLVED')
                 """,
                 normalizedStatus,
@@ -275,11 +292,27 @@ public class CpfReliabilityOperationsFacade implements CpfReliabilityOperationsP
                 required(reason, "reason"),
                 requestUser,
                 now,
-                required(unknownId, "unknownId"));
+                required(unknownId, "unknownId"),
+                expectedVersion);
         if (updated != 1) {
-            throw new CpfValidationException("결과 미확정 건이 없거나 이미 최종 처리됐습니다.");
+            throw new CpfValidationException("결과 미확정 건이 없거나 이미 처리됐거나 expectedVersion이 일치하지 않습니다.");
         }
         return new ChangeResult(before, findOne("cpf_unknown_result", "unknown_id", unknownId), reason.trim());
+    }
+
+    private static long requiredVersion(Map<String, Object> row) {
+        Object value = row.get("row_version");
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        if (value != null) {
+            try {
+                return Long.parseLong(String.valueOf(value));
+            } catch (NumberFormatException ignored) {
+                // fail below
+            }
+        }
+        throw new CpfValidationException("UNKNOWN 결과의 row_version을 확인할 수 없습니다.");
     }
 
     private Map<String, Object> findOne(String table, String keyColumn, String key) {

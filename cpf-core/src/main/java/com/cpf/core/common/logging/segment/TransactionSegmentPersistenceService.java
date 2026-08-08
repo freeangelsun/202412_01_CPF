@@ -1,7 +1,10 @@
 package com.cpf.core.common.logging.segment;
 
 import com.cpf.core.common.logging.fallback.TransactionSegmentFallbackStore;
-import com.cpf.core.mapper.common.logging.TransactionSegmentMapper;
+import com.cpf.core.common.logging.spi.CpfTransactionSegmentPersistencePort;
+import com.cpf.core.common.logging.spi.CpfTransactionLineageProjectionPort;
+import com.cpf.core.common.logging.lineage.CpfTransactionLineageRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,20 +18,27 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class TransactionSegmentPersistenceService {
-    private final TransactionSegmentMapper mapper;
+    private final CpfTransactionSegmentPersistencePort mapper;
     private final TransactionSegmentFallbackStore fallbackStore;
+    private CpfTransactionLineageProjectionPort lineageProjection;
 
     public TransactionSegmentPersistenceService(
-            TransactionSegmentMapper mapper,
+            CpfTransactionSegmentPersistencePort mapper,
             TransactionSegmentFallbackStore fallbackStore) {
         this.mapper = mapper;
         this.fallbackStore = fallbackStore;
+    }
+
+    @Autowired(required = false)
+    void setLineageProjection(CpfTransactionLineageProjectionPort lineageProjection) {
+        this.lineageProjection = lineageProjection;
     }
 
     @Transactional(transactionManager = "cpfTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void insert(TransactionSegmentRecord record) {
         try {
             mapper.insertSegment(record);
+            project(record, false);
         } catch (RuntimeException ex) {
             preserveStart(record, ex);
             throw ex;
@@ -41,6 +51,7 @@ public class TransactionSegmentPersistenceService {
             if (mapper.updateSegmentEnd(record) == 0) {
                 throw new IllegalStateException("종료할 거래 구간 시작 레코드가 없습니다.");
             }
+            project(record, true);
         } catch (RuntimeException ex) {
             preserveEnd(record, ex);
             throw ex;
@@ -53,6 +64,7 @@ public class TransactionSegmentPersistenceService {
     @Transactional(transactionManager = "cpfTransactionManager", propagation = Propagation.REQUIRES_NEW)
     public void insertRecovered(TransactionSegmentRecord record) {
         mapper.insertSegment(record);
+        project(record, false);
     }
 
     /**
@@ -65,6 +77,13 @@ public class TransactionSegmentPersistenceService {
         }
         if (mapper.updateSegmentEnd(record) == 0) {
             throw new IllegalStateException("거래 구간 END 복구 대상을 찾지 못했습니다.");
+        }
+        project(record, true);
+    }
+
+    private void project(TransactionSegmentRecord record, boolean terminal) {
+        if (lineageProjection != null) {
+            lineageProjection.upsert(CpfTransactionLineageRecord.fromSegment(record, terminal));
         }
     }
 

@@ -1,3 +1,4 @@
+import { admDynamicLogLevelRemove, admMaintenanceFindActions, admMaintenanceExecuteAction, getAdmTransactionLogRecoveryStatus, requestAdmBrokerDlqReplay, resolveAdmUnknownResult, runAdmTransactionLogRecovery, admBatchRuntimeInstances, admOperatorValidatePassword, admOperatorChangePassword, admSecurityDisableMfa, admOperatorFindRoles, admOperatorFindSessions, admOperatorUnlockOperator, admOperatorUpdateContact, admOperatorUpdateRoles, admBreakGlassFindSessions, admBreakGlassReviewSession, admRuntimeControlFindChange, admRuntimeControlFindByOperation } from "../../generated/cpf-api";
 /**
  * Route-specific operational actions that close the ADM route -> generated
  * operation -> real consumer chain.  Every method uses the shared same-origin
@@ -24,8 +25,7 @@ export const routeClosureMethods = {
   async removeLogLevelRule() {
     const ruleId = String(this.operationForm.ruleId || "").trim();
     if (!ruleId || !this.requireReason(this.operationForm.reason)) return;
-    const params = this.buildParams({ reason: this.operationForm.reason });
-    this.logLevelResult = await this.sendJson(`/adm/api/log-level/rules/${encodeURIComponent(ruleId)}?${params.toString()}`, "DELETE");
+    this.logLevelResult = await admDynamicLogLevelRemove({ path: { ruleId }, query: { reason: this.operationForm.reason } });
     await this.loadLogLevelRules();
     this.setMessage(`동적 로그 규칙을 제거했습니다. ruleId=${ruleId}`);
   },
@@ -64,19 +64,16 @@ export const routeClosureMethods = {
   },
 
   async loadMaintenanceActions() {
-    this.operationResult = await this.getJson("/adm/api/maintenance/actions?limit=100");
+    this.operationResult = await admMaintenanceFindActions({ query: { limit: 100 } });
   },
 
   async executeMaintenanceAction() {
     if (!this.operationForm.instanceId || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await this.sendJson("/adm/api/maintenance/actions", "POST", {
-      action: this.operationForm.maintenanceAction,
-      serviceId: this.operationForm.serviceId || null,
-      instanceId: this.operationForm.instanceId,
-      expectedVersion: Number(this.operationForm.expectedVersion || 0),
-      reason: this.operationForm.reason,
-      approvalId: this.operationForm.approvalId || null
-    });
+    this.operationResult = await admMaintenanceExecuteAction({ data: {
+      action: this.operationForm.maintenanceAction, serviceId: this.operationForm.serviceId || null,
+      instanceId: this.operationForm.instanceId, expectedVersion: Number(this.operationForm.expectedVersion || 0),
+      reason: this.operationForm.reason, approvalId: this.operationForm.approvalId || null
+    } });
     await this.loadMaintenanceActions();
   },
 
@@ -90,24 +87,19 @@ export const routeClosureMethods = {
   },
 
   async loadTransactionLogRecoveryStatus() {
-    this.reliabilityResult = await this.getJson("/adm/api/reliability/transaction-log-recovery");
+    this.reliabilityResult = await getAdmTransactionLogRecoveryStatus();
   },
 
   async replayBrokerDlq() {
     const messageId = String(this.reliabilityAction.messageId || "").trim();
     if (!messageId || !this.requireReason(this.reliabilityAction.reason)) return;
-    this.reliabilityResult = await this.sendJson(`/adm/api/reliability/broker/dlq/${encodeURIComponent(messageId)}/replay`, "POST", {
-      reason: this.reliabilityAction.reason
-    });
+    this.reliabilityResult = await requestAdmBrokerDlqReplay({ path: { messageId }, data: { reason: this.reliabilityAction.reason } });
   },
 
   async resolveUnknownResultFromRecoveryCenter() {
     const unknownId = String(this.reliabilityAction.unknownId || "").trim();
     if (!unknownId || !this.requireReason(this.reliabilityAction.reason)) return;
-    this.reliabilityResult = await this.sendJson(`/adm/api/reliability/unknown-results/${encodeURIComponent(unknownId)}/resolve`, "POST", {
-      targetStatus: this.reliabilityAction.targetStatus,
-      reason: this.reliabilityAction.reason
-    });
+    this.reliabilityResult = await resolveAdmUnknownResult({ path: { unknownId }, data: { targetStatus: this.reliabilityAction.targetStatus, reason: this.reliabilityAction.reason } });
   },
 
   async retryTransactionLogRecoveryPoison() {
@@ -121,11 +113,7 @@ export const routeClosureMethods = {
 
   async runTransactionLogRecovery() {
     if (!this.requireReason(this.operationForm.reason)) return;
-    this.reliabilityResult = await this.sendJson("/adm/api/reliability/transaction-log-recovery/run", "POST", {
-      target: this.operationForm.recoveryTarget || null,
-      limit: Number(this.reliabilitySearch.limit || 100),
-      reason: this.operationForm.reason
-    });
+    this.reliabilityResult = await runAdmTransactionLogRecovery({ data: { targetStatus: this.operationForm.recoveryTarget || undefined, reason: this.operationForm.reason } });
   },
 
 
@@ -150,7 +138,7 @@ export const routeClosureMethods = {
   },
 
   async loadBatchRuntimeInstances() {
-    this.batchResult = { ...this.batchResult, runtimeInstances: await this.getJson("/adm/api/batch-runtime/instances") };
+    this.batchResult = { ...this.batchResult, runtimeInstances: await admBatchRuntimeInstances() };
   },
 
   fileJobId() {
@@ -218,41 +206,34 @@ export const routeClosureMethods = {
   },
 
   async validateOperatorPassword() {
-    const params = this.buildParams({ password: this.passwordForm.newPassword, operatorId: this.passwordForm.operatorId });
-    this.passwordResult = await this.getJson(`/adm/api/operators/password-policy/validate?${params.toString()}`);
+    this.passwordResult = await admOperatorValidatePassword({ query: { password: this.passwordForm.newPassword } });
   },
 
   async changeOperatorPassword() {
     const operatorId = String(this.passwordForm.operatorId || this.operationForm.operatorId || "").trim();
     if (!operatorId || !this.passwordForm.newPassword || !this.requireReason(this.passwordForm.reason)) return;
-    this.passwordResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/password`, "POST", {
-      newPassword: this.passwordForm.newPassword,
-      reason: this.passwordForm.reason
-    });
+    this.passwordResult = await admOperatorChangePassword({ path: { operatorId }, data: { newPassword: this.passwordForm.newPassword, reason: this.passwordForm.reason } });
   },
 
   async disableMfa() {
     const operatorId = String(this.securityForm.operatorId || this.operationForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.securityForm.reason)) return;
-    this.securityResult = await this.sendJson(`/adm/api/security/mfa/${encodeURIComponent(operatorId)}/disable`, "POST", {
-      reason: this.securityForm.reason
-    });
+    this.securityResult = await admSecurityDisableMfa({ path: { operatorId }, query: { reason: this.securityForm.reason } });
   },
 
   async loadOperatorRoles() {
-    this.operatorResult = { items: this.operatorResult?.items || this.operatorResult, roles: await this.getJson("/adm/api/operators/roles") };
+    this.operatorResult = { items: this.operatorResult?.items || this.operatorResult, roles: await admOperatorFindRoles() };
   },
 
   async loadOperatorSessions() {
-    const params = this.buildParams({ operatorId: this.operationForm.operatorId || this.operatorForm.operatorId });
-    this.operatorResult = { items: this.operatorResult?.items || this.operatorResult, sessions: await this.getJson(`/adm/api/operators/sessions?${params.toString()}`) };
+    this.operatorResult = { items: this.operatorResult?.items || this.operatorResult, sessions: await admOperatorFindSessions({ query: { operatorId: this.operationForm.operatorId || this.operatorForm.operatorId || undefined } }) };
   },
 
   async unlockManagedOperator() {
     if (!this.canButton("PASSWORD_UNLOCK", "PASSWORD")) throw new Error("PASSWORD_UNLOCK 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/unlock`, "POST", { reason: this.operationForm.reason });
+    this.operationResult = await admOperatorUnlockOperator({ path: { operatorId }, data: { reason: this.operationForm.reason } });
     await this.loadOperators();
   },
 
@@ -260,11 +241,7 @@ export const routeClosureMethods = {
     if (!this.canButton("OPERATOR_CONTACT_UPDATE", "OPERATOR")) throw new Error("OPERATOR_CONTACT_UPDATE 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/contacts`, "PUT", {
-      mobileNo: this.operatorForm.mobileNo || null,
-      officePhoneNo: this.operatorForm.officePhoneNo || null,
-      reason: this.operationForm.reason
-    });
+    this.operationResult = await admOperatorUpdateContact({ path: { operatorId }, data: { mobileNo: this.operatorForm.mobileNo || null, officePhoneNo: this.operatorForm.officePhoneNo || null, reason: this.operationForm.reason } });
     await this.loadOperators();
   },
 
@@ -273,35 +250,29 @@ export const routeClosureMethods = {
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     const roleIds = String(this.operationForm.roleIds || "").split(",").map((value: string) => value.trim()).filter(Boolean);
     if (!operatorId || !roleIds.length || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/roles`, "PUT", {
-      roleIds,
-      reason: this.operationForm.reason
-    });
+    this.operationResult = await admOperatorUpdateRoles({ path: { operatorId }, data: { roleIds, reason: this.operationForm.reason } });
     await this.loadOperators();
   },
 
   async loadBreakGlassSessions() {
-    this.approvalResult = { ...this.approvalResult, breakGlassSessions: await this.getJson("/adm/api/break-glass?limit=100") };
+    this.approvalResult = { ...this.approvalResult, breakGlassSessions: await admBreakGlassFindSessions({ query: { limit: 100 } }) };
   },
 
   async reviewBreakGlassSession() {
     const sessionId = String(this.operationForm.breakGlassSessionId || "").trim();
     if (!sessionId || !this.requireReason(this.operationForm.reason)) return;
-    this.approvalResult = { ...this.approvalResult, breakGlassReview: await this.sendJson(`/adm/api/break-glass/${encodeURIComponent(sessionId)}/review`, "POST", {
-      status: this.operationForm.reviewStatus,
-      reason: this.operationForm.reason
-    }) };
+    this.approvalResult = { ...this.approvalResult, breakGlassReview: await admBreakGlassReviewSession({ path: { sessionId }, data: { status: this.operationForm.reviewStatus, reason: this.operationForm.reason } }) };
   },
 
   async loadRuntimeChange() {
     const changeId = String(this.operationForm.changeId || "").trim();
     if (!changeId) return this.setMessage("조회할 Runtime Change ID를 입력하세요.");
-    this.approvalResult = { ...this.approvalResult, runtimeChange: await this.getJson(`/adm/api/runtime-control/changes/${encodeURIComponent(changeId)}`) };
+    this.approvalResult = { ...this.approvalResult, runtimeChange: await admRuntimeControlFindChange({ path: { changeId } }) };
   },
 
   async loadRuntimeOperation() {
     const operationId = String(this.operationForm.operationId || "").trim();
     if (!operationId) return this.setMessage("조회할 Runtime Operation ID를 입력하세요.");
-    this.approvalResult = { ...this.approvalResult, runtimeOperation: await this.getJson(`/adm/api/runtime-control/operations/${encodeURIComponent(operationId)}`) };
+    this.approvalResult = { ...this.approvalResult, runtimeOperation: await admRuntimeControlFindByOperation({ path: { operationId } }) };
   }
 } satisfies Record<string, any>;

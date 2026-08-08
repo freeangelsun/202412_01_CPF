@@ -353,8 +353,8 @@ public class AdmApprovalService extends AdmBaseService {
                 .orElseThrow(()->new CpfValidationException("서버가 예약한 승인 실행 Snapshot을 찾을 수 없습니다."));
         AdmApprovalSnapshotIntegrity.Verification reservedVerification=snapshotIntegrity.verify(reserved);
         if(!reservedVerification.valid()){
-            repository.recordExecutionIntegrityFailure(id,"ADM-SNAPSHOT-HASH-MISMATCH",
-                    "승인 Snapshot 무결성 검증 실패",operator,executionReason,
+            repository.recordExecutionIntegrityFailure(id,commandRequestId,string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),
+                    "ADM-SNAPSHOT-HASH-MISMATCH","승인 Snapshot 무결성 검증 실패",operator,executionReason,
                     json(Map.of("storedHash",reservedVerification.storedHash(),"calculatedHash",reservedVerification.calculatedHash())),
                     string(reserved,"transactionId"));
             return detail(id);
@@ -383,12 +383,13 @@ public class AdmApprovalService extends AdmBaseService {
                 "executionStatus",result.status().name(),
                 "resultCode",Objects.toString(result.resultCode(),"")));
         try{
-            repository.finishExecutionAndRequest(id,approvedVersion+1,result.status().name(),
+            repository.finishExecutionAndRequest(id,approvedVersion+1,commandRequestId,
+                    string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),result.status().name(),
                     finalRequestStatus,result.resultCode(),mask(result.maskedMessage()),recovery,operator,
                     executionReason,eventData,string(doc,"transactionId"));
         }catch(RuntimeException finalizationFailure){
-            repository.markExecutionUnknown(id,"ADM-FINALIZATION-UNKNOWN",
-                    "Owner 호출 후 결과 저장을 확정할 수 없습니다.",operator);
+            repository.markExecutionUnknown(id,commandRequestId,string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),
+                    "ADM-FINALIZATION-UNKNOWN","Owner 호출 후 결과 저장을 확정할 수 없습니다.",operator);
             repository.history(id,"RESULT_UNKNOWN",operator,"EXECUTING","UNKNOWN",executionReason,
                     json(Map.of("failure","FINALIZATION","commandRequestId",commandRequestId)),
                     string(doc,"transactionId"));
@@ -424,8 +425,8 @@ public class AdmApprovalService extends AdmBaseService {
                 .orElseThrow(()->new CpfValidationException("서버가 예약한 Reconcile Snapshot을 찾을 수 없습니다."));
         AdmApprovalSnapshotIntegrity.Verification verification=snapshotIntegrity.verify(reserved);
         if(!verification.valid()) {
-            repository.recordExecutionIntegrityFailure(id,"ADM-SNAPSHOT-HASH-MISMATCH",
-                    "Reconcile Snapshot 무결성 검증 실패",operator,reconciliationReason,
+            repository.recordExecutionIntegrityFailure(id,commandRequestId,string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),
+                    "ADM-SNAPSHOT-HASH-MISMATCH","Reconcile Snapshot 무결성 검증 실패",operator,reconciliationReason,
                     json(Map.of("storedHash",verification.storedHash(),"calculatedHash",verification.calculatedHash())),
                     string(reserved,"transactionId"));
             return detail(id);
@@ -449,12 +450,13 @@ public class AdmApprovalService extends AdmBaseService {
         String eventData=json(Map.of("executionStatus",result.status().name(),
                 "resultCode",Objects.toString(result.resultCode(),""),"reconciliation",true));
         try {
-            repository.finishExecutionAndRequest(id,unknownVersion+1,result.status().name(),finalRequestStatus,
+            repository.finishExecutionAndRequest(id,unknownVersion+1,commandRequestId,
+                    string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),result.status().name(),finalRequestStatus,
                     result.resultCode(),mask(result.maskedMessage()),recovery,operator,
                     reconciliationReason,eventData,string(doc,"transactionId"));
         } catch(RuntimeException finalizationFailure) {
-            repository.markExecutionUnknown(id,"ADM-RECONCILE-FINALIZATION-UNKNOWN",
-                    "Reconcile 후 결과 저장을 확정할 수 없습니다.",operator);
+            repository.markExecutionUnknown(id,commandRequestId,string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue(),
+                    "ADM-RECONCILE-FINALIZATION-UNKNOWN","Reconcile 후 결과 저장을 확정할 수 없습니다.",operator);
             repository.history(id,"RECONCILE_RESULT_UNKNOWN",operator,"EXECUTING","UNKNOWN",
                     reconciliationReason,json(Map.of("failure","FINALIZATION","commandRequestId",commandRequestId)),
                     string(doc,"transactionId"));
@@ -467,7 +469,8 @@ public class AdmApprovalService extends AdmBaseService {
         return new AdmApprovedOperationCommand(id,commandRequestId,string(reserved,"actionType"),
                 string(reserved,"ownerModule"),string(reserved,"ownerCommand"),string(reserved,"targetType"),
                 string(reserved,"targetId"),string(reserved,"payloadHash"),string(reserved,"payloadSnapshot"),
-                string(reserved,"requestedBy"),operator,reason,string(reserved,"transactionId"));
+                string(reserved,"requestedBy"),operator,reason,string(reserved,"transactionId"),
+                string(reserved,"leaseOwner"),number(reserved,"fenceToken").longValue());
     }
 
     public Map<String,Object> detail(long id){
@@ -597,6 +600,7 @@ public class AdmApprovalService extends AdmBaseService {
                     ? action.substring("BATCH_GHOST_".length()) : optional(payload.get("actionType"));
             case "updateScheduleEnabled" -> action.endsWith("ENABLE")?"enabled=true":"enabled=false";
             case "requestRun" -> jsonValue(payload.get("jobParameters"));
+            case "runtimeCommand" -> json(payload);
             default -> "";
         };
         return new CpfBatchRiskCommand(operation,required(request.targetType(),"targetType"),

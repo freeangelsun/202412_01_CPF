@@ -2,7 +2,7 @@
 -- occurred_at is the canonical partition key. Production maintenance may split p_future monthly.
 CREATE TABLE cpf_transaction_lineage (
     lineage_id VARCHAR(64) NOT NULL,
-    transaction_id VARCHAR(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR(128) NOT NULL,
     parent_segment_id VARCHAR(128),
     attempt_no INTEGER DEFAULT 1 NOT NULL,
@@ -47,7 +47,7 @@ PARTITION BY RANGE COLUMNS (occurred_at) (
 
 CREATE TABLE cpf_transaction_lineage_archive (
     lineage_id VARCHAR(64) NOT NULL,
-    transaction_id VARCHAR(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR(128) NOT NULL,
     parent_segment_id VARCHAR(128),
     attempt_no INTEGER DEFAULT 1 NOT NULL,

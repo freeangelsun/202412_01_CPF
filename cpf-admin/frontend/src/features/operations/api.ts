@@ -1,4 +1,18 @@
-import { admMutation, admQuery } from "../../shared/cpfApi";
+import { admQuery } from "../../shared/cpfApi";
+import {
+  admMessageCreateMessage,
+  admMessageDeleteMessage,
+  admMessageUpdateMessage,
+  admRuntimeControlCancelChange,
+  admRuntimeControlCreateChange,
+  admRuntimeControlPreviewChange,
+  admRuntimeControlRollbackChange,
+  requestAdmBrokerDlqReplay,
+  resolveAdmUnknownResult,
+  runAdmTransactionLogRecovery,
+} from "../../generated/orval/cpf-api";
+
+const generatedData = <T>(response: { data: unknown }): T => response.data as T;
 
 export type JsonMap = Record<string, unknown>;
 export interface RuntimeChangeCommand {
@@ -11,10 +25,14 @@ export const findRuntimeHealth = () => admQuery<JsonMap>("/adm/api/runtime-contr
 export const findRuntimeCapabilities = () => admQuery<JsonMap[]>("/adm/api/runtime-control/capabilities");
 export const findRuntimeChange = (changeId: string) => admQuery<JsonMap>(`/adm/api/runtime-control/changes/${encodeURIComponent(changeId)}`);
 export const findRuntimeOperation = (operationId: string) => admQuery<JsonMap>(`/adm/api/runtime-control/operations/${encodeURIComponent(operationId)}`);
-export const previewRuntimeChange = (command: RuntimeChangeCommand) => admMutation<JsonMap>("/adm/api/runtime-control/preview-change", "POST", command);
-export const createRuntimeChange = (command: RuntimeChangeCommand) => admMutation<JsonMap>("/adm/api/runtime-control/changes", "POST", command);
-export const cancelRuntimeChange = (changeId: string, operationId: string, reason: string) => admMutation<JsonMap>(`/adm/api/runtime-control/changes/${encodeURIComponent(changeId)}/cancel`, "POST", { operationId, reason });
-export const rollbackRuntimeChange = (changeId: string, operationId: string, reason: string) => admMutation<JsonMap>(`/adm/api/runtime-control/changes/${encodeURIComponent(changeId)}/rollback`, "POST", { operationId, reason });
+export const previewRuntimeChange = async (command: RuntimeChangeCommand) =>
+  generatedData<JsonMap>(await admRuntimeControlPreviewChange(command as Parameters<typeof admRuntimeControlPreviewChange>[0]));
+export const createRuntimeChange = async (command: RuntimeChangeCommand) =>
+  generatedData<JsonMap>(await admRuntimeControlCreateChange(command as Parameters<typeof admRuntimeControlCreateChange>[0]));
+export const cancelRuntimeChange = async (changeId: string, operationId: string, reason: string) =>
+  generatedData<JsonMap>(await admRuntimeControlCancelChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlCancelChange>[1]));
+export const rollbackRuntimeChange = async (changeId: string, operationId: string, reason: string) =>
+  generatedData<JsonMap>(await admRuntimeControlRollbackChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlRollbackChange>[1]));
 
 export const traceTransaction = (transactionId: string, limit = 100) => admQuery<JsonMap>(`/adm/api/observability/transactions/${encodeURIComponent(transactionId)}`, { limit });
 export const traceByTraceId = (traceId: string, limit = 100) => admQuery<JsonMap>(`/adm/api/observability/traces/${encodeURIComponent(traceId)}`, { limit });
@@ -27,9 +45,12 @@ export const findInbox = (status?: string, key?: string, limit = 100) => admQuer
 export const findIdempotency = (scope?: string, status?: string, key?: string, limit = 100) => admQuery<JsonMap[]>("/adm/api/reliability/idempotency", { scope, status, key, limit });
 export const findFileTransfers = (status?: string, transactionId?: string, limit = 100) => admQuery<JsonMap[]>("/adm/api/reliability/file-transfers", { status, transactionId, limit });
 export const findRecovery = (status?: string, limit = 100) => admQuery<JsonMap[]>("/adm/api/reliability/transaction-log-recovery", { status, limit });
-export const resolveUnknown = (unknownId: string, action: string, reason: string, expectedVersion: number) => admMutation<JsonMap>(`/adm/api/reliability/unknown-results/${encodeURIComponent(unknownId)}/resolve`, "POST", { action, reason, expectedVersion });
-export const replayDlq = (messageId: string, reason: string, expectedVersion: number) => admMutation<JsonMap>(`/adm/api/reliability/broker/dlq/${encodeURIComponent(messageId)}/replay`, "POST", { reason, expectedVersion });
-export const runRecovery = (reason: string) => admMutation<JsonMap>("/adm/api/reliability/transaction-log-recovery/run", "POST", { reason });
+export const resolveUnknown = async (unknownId: string, targetStatus: string, reason: string, expectedVersion: number) =>
+  generatedData<JsonMap>(await resolveAdmUnknownResult(unknownId, { targetStatus, reason, expectedVersion }));
+export const replayDlq = async (messageId: string, reason: string) =>
+  generatedData<JsonMap>(await requestAdmBrokerDlqReplay(messageId, { reason }));
+export const runRecovery = async (reason: string) =>
+  generatedData<JsonMap>(await runAdmTransactionLogRecovery({ reason }));
 
 export const findMessages = () => admQuery<JsonMap[]>("/adm/api/messages");
 export const findMessage = (messageId: string | number) => admQuery<JsonMap>(`/adm/api/messages/${encodeURIComponent(String(messageId))}`);
@@ -49,9 +70,9 @@ export interface MessageCommand extends JsonMap {
 }
 export const traceTransactionGroup = (transactionId: string) =>
   admQuery<JsonMap>(`/adm/api/transaction-groups/${encodeURIComponent(transactionId)}/timeline`)
-export const createMessage = (command: MessageCommand) =>
-  admMutation<JsonMap>('/adm/api/messages', 'POST', command)
-export const updateMessage = (messageId: string | number, command: MessageCommand) =>
-  admMutation<JsonMap>(`/adm/api/messages/${encodeURIComponent(String(messageId))}`, 'PUT', command)
-export const deleteMessage = (messageId: string | number, reason: string) =>
-  admMutation<JsonMap[]>(`/adm/api/messages/${encodeURIComponent(String(messageId))}?reason=${encodeURIComponent(reason)}`, 'DELETE')
+export const createMessage = async (command: MessageCommand) =>
+  generatedData<JsonMap>(await admMessageCreateMessage(command as Parameters<typeof admMessageCreateMessage>[0]))
+export const updateMessage = async (messageId: string | number, command: MessageCommand) =>
+  generatedData<JsonMap>(await admMessageUpdateMessage(Number(messageId), command as Parameters<typeof admMessageUpdateMessage>[1]))
+export const deleteMessage = async (messageId: string | number, reason: string) =>
+  generatedData<JsonMap[]>(await admMessageDeleteMessage(Number(messageId), { reason } as Parameters<typeof admMessageDeleteMessage>[1]))

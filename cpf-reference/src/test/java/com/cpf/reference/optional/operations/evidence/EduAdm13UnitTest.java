@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.evidence;
-import com.cpf.reference.edu.runtime.AbstractManualEduUnitTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-13 UnitTest — 감사 증적·다운로드·승인 반출 */
-public final class EduAdm13UnitTest extends AbstractManualEduUnitTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm13Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-13 redirect/non-executable regression contract. */
+public final class EduAdm13UnitTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm13Handler.class));
+        assertEquals("EDU-ADM-13", EduAdm13Handler.REDIRECT.requirementId());
+        assertEquals("PRODUCT_ADM", EduAdm13Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm13Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm13Handler.REDIRECT.executable());
+    }
 }

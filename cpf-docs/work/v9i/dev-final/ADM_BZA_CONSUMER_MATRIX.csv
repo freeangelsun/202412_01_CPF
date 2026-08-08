@@ -1,0 +1,6 @@
+﻿surface,coverage,client,security,mutation,verification
+ADM HIGH/CRITICAL,332 operation contract; consumed=267 in current changed gate,generated Orval typed mutation,raw/generic risky mutation=0,mutation killed,PASS semantic; 3-browser/full runtime 미검증
+ADM CSP,self-hosted only,N/A,no unpkg/CDN/unsafe-eval,CSP mutation killed,PASS
+ADM Reliability,row_version CAS,generated typed DTO,server operator identity,CAS removal mutation killed,PASS semantic; Java runtime 미검증
+BZA retired APIs,80 active; retired 4,generated client clean,410 compatibility hidden from active contract,retired symbol gate,PASS
+BZA Simulation,APPROVAL:SIMULATE,generated client,direct unauthorized 403,permission mutation test,PASS semantic; browser 미검증

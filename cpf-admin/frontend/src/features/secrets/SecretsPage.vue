@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { admApi } from "../../shared/cpfApi";
+import { admSecretFindMetadata, admSecretFindProviders, admSecretRotate } from "../../generated/cpf-api";
 import { useAdmSessionStore } from "../../stores/admSessionStore";
 
 interface SecretProvider {
@@ -39,7 +39,7 @@ function requireReference(): void {
 async function loadProviders(): Promise<void> {
   error.value = "";
   try {
-    providers.value = await admApi<SecretProvider[]>("/adm/api/secrets/providers");
+    providers.value = await admSecretFindProviders<SecretProvider[]>();
     if (providers.value.length && !providers.value.some((item) => item.providerId === provider.value)) {
       provider.value = providers.value[0].providerId;
     }
@@ -53,9 +53,9 @@ async function loadMetadata(): Promise<void> {
   error.value = "";
   try {
     requireReference();
-    metadata.value = await admApi<SecretMetadata>(
-      `/adm/api/secrets/metadata?provider=${encodeURIComponent(provider.value)}&key=${encodeURIComponent(key.value.trim())}`
-    );
+    metadata.value = await admSecretFindMetadata<SecretMetadata>({
+      query: { provider: provider.value, key: key.value.trim() }
+    });
   } catch (failure) {
     error.value = failure instanceof Error ? failure.message : String(failure);
   }
@@ -69,13 +69,12 @@ async function rotate(): Promise<void> {
     if (!session.hasButton("SECRET_ROTATE")) throw new Error("SECRET_ROTATE 권한이 없습니다.");
     if (!reason.value.trim()) throw new Error("Rotation 사유를 입력하세요.");
     if (!canRotate.value) throw new Error("선택한 Provider 또는 Secret은 Rotation을 지원하지 않습니다.");
-    metadata.value = await admApi<SecretMetadata>("/adm/api/secrets/rotate", {
-      method: "POST",
-      body: JSON.stringify({
+    metadata.value = await admSecretRotate<SecretMetadata>({
+      data: {
         provider: provider.value,
         key: key.value.trim(),
         reason: reason.value.trim()
-      })
+      }
     });
     message.value = "Rotation 요청이 완료되었습니다.";
   } catch (failure) {

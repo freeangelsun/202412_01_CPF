@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.bulk;
-import com.cpf.reference.edu.runtime.AbstractManualEduRecoveryTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-10 RecoveryTest — 대상 일괄 조치·부분 성공·결과 파일 */
-public final class EduAdm10RecoveryTest extends AbstractManualEduRecoveryTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm10Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-10 redirect/non-executable regression contract. */
+public final class EduAdm10RecoveryTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm10Handler.class));
+        assertEquals("EDU-ADM-10", EduAdm10Handler.REDIRECT.requirementId());
+        assertEquals("PRODUCT_ADM", EduAdm10Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm10Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm10Handler.REDIRECT.executable());
+    }
 }

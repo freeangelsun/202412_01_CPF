@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { admInvokeOperation } from "../../shared/cpfApi";
+import { admMaintenanceExecuteAction, admMaintenanceFindActions } from "../../generated/cpf-api";
 import { useAdmSessionStore } from "../../stores/admSessionStore";
 import { validateMaintenanceAction, type MaintenanceAction } from "./maintenanceWorkflow";
 
@@ -22,7 +22,7 @@ function messageOf(value: unknown): string {
 async function load(): Promise<void> {
   loading.value = true; error.value = "";
   try {
-    const result = await admInvokeOperation<unknown>("admMaintenanceFindActions", { query: { limit: 100 } });
+    const result = await admMaintenanceFindActions<unknown>({ query: { limit: 100 } });
     rows.value = Array.isArray(result) ? result as Row[] : [];
   } catch (cause) {
     rows.value = [];
@@ -46,7 +46,7 @@ async function execute(): Promise<void> {
   catch (cause) { error.value = messageOf(cause); return; }
   executing.value = true;
   try {
-    await admInvokeOperation("admMaintenanceExecuteAction", { body: request });
+    await admMaintenanceExecuteAction({ data: request });
     dialogOpen.value = false;
     success.value = `${request.instanceId} ${request.action} 명령이 접수되었습니다.`;
     await load();

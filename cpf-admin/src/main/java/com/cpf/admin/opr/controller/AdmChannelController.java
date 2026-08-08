@@ -52,10 +52,10 @@ public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseContr
     @Operation(operationId = "admChannelRefreshSnapshot", summary = "채널 정책 스냅샷 갱신",
             description = "cpfDB 정본을 다시 읽어 불변 스냅샷을 원자적으로 교체합니다.")
     public ResponseEntity<CpfChannelPolicySnapshot> refresh(
+            @org.springframework.web.bind.annotation.RequestParam
             @jakarta.validation.constraints.NotBlank String reason,
-            String requestUser,
             HttpServletRequest servletRequest) {
-        String actor = requestUser(servletRequest, requestUser);
+        String actor = requestUser(servletRequest, null);
         String auditReason = auditLogService.requireReason(reason);
         CpfChannelPolicySnapshot before = channelPolicyService.snapshot();
         CpfChannelPolicySnapshot after = channelPolicyService.refresh();

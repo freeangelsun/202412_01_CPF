@@ -1,3 +1,8 @@
+import {
+  admSecuritySaveIpAllowlist,
+  requestAdmBrokerDlqReplay,
+  resolveAdmUnknownResult
+} from "../../generated/cpf-api";
 import { admMutation, admQuery, admRawResponse, createAdmHeaders } from "../../shared/cpfApi";
 import { admAuthMe } from "../../generated/cpf-api";
 import { useAdmInitializationStore } from "../../stores/admInitializationStore";
@@ -140,23 +145,22 @@ export const coreMethods = {
       },
   async replayDlq() {
         if (!this.reliabilityAction.messageId || !this.requireReason(this.reliabilityAction.reason)) return;
-        this.reliabilityResult = await admMutation(
-          `/adm/api/reliability/broker/dlq/${encodeURIComponent(this.reliabilityAction.messageId)}/replay`,
-          "POST",
-          { reason: this.reliabilityAction.reason }
-        );
+        this.reliabilityResult = await requestAdmBrokerDlqReplay({
+          path: { messageId: this.reliabilityAction.messageId },
+          data: { reason: this.reliabilityAction.reason }
+        });
         this.setMessage("DLQ 재처리를 요청했습니다.");
       },
   async resolveUnknownResult() {
         if (!this.reliabilityAction.unknownId || !this.requireReason(this.reliabilityAction.reason)) return;
-        this.reliabilityResult = await admMutation(
-          `/adm/api/reliability/unknown-results/${encodeURIComponent(this.reliabilityAction.unknownId)}/resolve`,
-          "POST",
-          {
+        this.reliabilityResult = await resolveAdmUnknownResult({
+          path: { unknownId: this.reliabilityAction.unknownId },
+          data: {
             targetStatus: this.reliabilityAction.targetStatus,
-            reason: this.reliabilityAction.reason,
+            expectedVersion: Number(this.reliabilityAction.expectedVersion ?? 0),
+            reason: this.reliabilityAction.reason
           }
-        );
+        });
         this.setMessage("결과 미확정 건의 수동 처리를 요청했습니다.");
       },
 
@@ -192,12 +196,12 @@ export const coreMethods = {
       },
   async saveIpAllowlist() {
         if (!this.securityForm.ipPattern || !this.requireReason(this.securityForm.reason)) return;
-        this.securityResult = await admMutation("/adm/api/security/ip-allowlist", "POST", {
+        this.securityResult = await admSecuritySaveIpAllowlist({ data: {
           ipPattern: this.securityForm.ipPattern,
           description: this.securityForm.description,
           useYn: "Y",
           reason: this.securityForm.reason
-        });
+        } });
         this.setMessage("IP allowlist를 저장했습니다.");
       },
   settledValue(result) {

@@ -415,14 +415,14 @@ export async function admBatchRunSchedulerOnce<T = AdmBatchRunSchedulerOnceRespo
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch/scheduler/run-once", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type AdmBatchRuntimeCommandBody = never;
+export type AdmBatchRuntimeCommandBody = { approvalRequestId: string; reason: string };
 export type AdmBatchRuntimeCommandPath = Record<string, never>;
 export type AdmBatchRuntimeCommandQuery = Record<string, never>;
 export type AdmBatchRuntimeCommandHeaders = Record<string, never>;
 export type AdmBatchRuntimeCommandResponse = Record<string, unknown>;
-export type AdmBatchRuntimeCommandOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
-export async function admBatchRuntimeCommand<T = AdmBatchRuntimeCommandResponse>(options: AdmBatchRuntimeCommandOptions = {} as AdmBatchRuntimeCommandOptions): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/commands", options.path as Record<string, string | number> | undefined), method: "POST", data: undefined, params: undefined, signal: options.signal, headers: options.headers });
+export type AdmBatchRuntimeCommandOptions = CpfGeneratedBaseOptions & { data: AdmBatchRuntimeCommandBody; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
+export async function admBatchRuntimeCommand<T = AdmBatchRuntimeCommandResponse>(options: AdmBatchRuntimeCommandOptions): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/commands", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
 export type AdmBatchRuntimeCommandStateBody = never;
@@ -435,14 +435,14 @@ export async function admBatchRuntimeCommandState<T = AdmBatchRuntimeCommandStat
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/commands/{key}", options.path as Record<string, string | number> | undefined), method: "GET", data: undefined, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type AdmBatchRuntimeCreateDeploymentPlanBody = never;
+export type AdmBatchRuntimeCreateDeploymentPlanBody = { planId?: string; manifest: Record<string, unknown>; reason: string };
 export type AdmBatchRuntimeCreateDeploymentPlanPath = Record<string, never>;
 export type AdmBatchRuntimeCreateDeploymentPlanQuery = Record<string, never>;
 export type AdmBatchRuntimeCreateDeploymentPlanHeaders = Record<string, never>;
 export type AdmBatchRuntimeCreateDeploymentPlanResponse = Record<string, unknown>;
-export type AdmBatchRuntimeCreateDeploymentPlanOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
-export async function admBatchRuntimeCreateDeploymentPlan<T = AdmBatchRuntimeCreateDeploymentPlanResponse>(options: AdmBatchRuntimeCreateDeploymentPlanOptions = {} as AdmBatchRuntimeCreateDeploymentPlanOptions): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/deployment-plans", options.path as Record<string, string | number> | undefined), method: "POST", data: undefined, params: undefined, signal: options.signal, headers: options.headers });
+export type AdmBatchRuntimeCreateDeploymentPlanOptions = CpfGeneratedBaseOptions & { data: AdmBatchRuntimeCreateDeploymentPlanBody; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
+export async function admBatchRuntimeCreateDeploymentPlan<T = AdmBatchRuntimeCreateDeploymentPlanResponse>(options: AdmBatchRuntimeCreateDeploymentPlanOptions): Promise<T> {
+  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/batch-runtime/deployment-plans", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
 export type AdmBatchRuntimeInstancesBody = never;
@@ -1365,16 +1365,6 @@ export async function admIncidentAcknowledge<T = AdmIncidentAcknowledgeResponse>
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/acknowledge", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type AdmIncidentCreateIncidentBody = Record<string, unknown>;
-export type AdmIncidentCreateIncidentPath = Record<string, never>;
-export type AdmIncidentCreateIncidentQuery = Record<string, never>;
-export type AdmIncidentCreateIncidentHeaders = Record<string, never>;
-export type AdmIncidentCreateIncidentResponse = Record<string, unknown>;
-export type AdmIncidentCreateIncidentOptions = CpfGeneratedBaseOptions & { data: AdmIncidentCreateIncidentBody; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
-export async function admIncidentCreateIncident<T = AdmIncidentCreateIncidentResponse>(options: AdmIncidentCreateIncidentOptions): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
-}
-
 export type AdmIncidentCreateMaintenanceBody = Record<string, unknown>;
 export type AdmIncidentCreateMaintenancePath = Record<string, never>;
 export type AdmIncidentCreateMaintenanceQuery = Record<string, never>;
@@ -1483,16 +1473,6 @@ export type AdmIncidentResolveResponse = Record<string, unknown>;
 export type AdmIncidentResolveOptions = CpfGeneratedBaseOptions & { data: AdmIncidentResolveBody; path: AdmIncidentResolvePath; query?: never; headers?: CpfGeneratedHeaders; };
 export async function admIncidentResolve<T = AdmIncidentResolveResponse>(options: AdmIncidentResolveOptions): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/resolve", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
-}
-
-export type AdmIncidentTransitionIncidentBody = Record<string, unknown>;
-export type AdmIncidentTransitionIncidentPath = { incidentId: number };
-export type AdmIncidentTransitionIncidentQuery = Record<string, never>;
-export type AdmIncidentTransitionIncidentHeaders = Record<string, never>;
-export type AdmIncidentTransitionIncidentResponse = Record<string, unknown>;
-export type AdmIncidentTransitionIncidentOptions = CpfGeneratedBaseOptions & { data: AdmIncidentTransitionIncidentBody; path: AdmIncidentTransitionIncidentPath; query?: never; headers?: CpfGeneratedHeaders; };
-export async function admIncidentTransitionIncident<T = AdmIncidentTransitionIncidentResponse>(options: AdmIncidentTransitionIncidentOptions): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/incidents/{incidentId}/status", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
 export type AdmIncidentUpdateMaintenanceBody = Record<string, unknown>;
@@ -3255,7 +3235,7 @@ export async function getAdmTransactionLogRecoveryStatus<T = GetAdmTransactionLo
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/transaction-log-recovery", options.path as Record<string, string | number> | undefined), method: "GET", data: undefined, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type RequestAdmBrokerDlqReplayBody = { targetStatus?: string; reason: string };
+export type RequestAdmBrokerDlqReplayBody = { targetStatus?: string; reason: string; expectedVersion?: number };
 export type RequestAdmBrokerDlqReplayPath = { messageId: string };
 export type RequestAdmBrokerDlqReplayQuery = Record<string, never>;
 export type RequestAdmBrokerDlqReplayHeaders = Record<string, never>;
@@ -3265,7 +3245,7 @@ export async function requestAdmBrokerDlqReplay<T = RequestAdmBrokerDlqReplayRes
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/broker/dlq/{messageId}/replay", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type ResolveAdmUnknownResultBody = { targetStatus?: string; reason: string };
+export type ResolveAdmUnknownResultBody = { targetStatus?: string; reason: string; expectedVersion?: number };
 export type ResolveAdmUnknownResultPath = { unknownId: string };
 export type ResolveAdmUnknownResultQuery = Record<string, never>;
 export type ResolveAdmUnknownResultHeaders = Record<string, never>;
@@ -3275,7 +3255,7 @@ export async function resolveAdmUnknownResult<T = ResolveAdmUnknownResultRespons
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/unknown-results/{unknownId}/resolve", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type RetryAdmTraceRecoveryPoisonBody = { targetStatus?: string; reason: string };
+export type RetryAdmTraceRecoveryPoisonBody = { targetStatus?: string; reason: string; expectedVersion?: number };
 export type RetryAdmTraceRecoveryPoisonPath = { target: string; recoveryEventId: string };
 export type RetryAdmTraceRecoveryPoisonQuery = Record<string, never>;
 export type RetryAdmTraceRecoveryPoisonHeaders = Record<string, never>;
@@ -3285,7 +3265,7 @@ export async function retryAdmTraceRecoveryPoison<T = RetryAdmTraceRecoveryPoiso
   return cpfGeneratedRequest<T>({ url: renderPath("/adm/api/reliability/transaction-log-recovery/poison/{target}/{recoveryEventId}/retry", options.path as Record<string, string | number> | undefined), method: "POST", data: options.data, params: undefined, signal: options.signal, headers: options.headers });
 }
 
-export type RunAdmTransactionLogRecoveryBody = { targetStatus?: string; reason: string };
+export type RunAdmTransactionLogRecoveryBody = { targetStatus?: string; reason: string; expectedVersion?: number };
 export type RunAdmTransactionLogRecoveryPath = Record<string, never>;
 export type RunAdmTransactionLogRecoveryQuery = Record<string, never>;
 export type RunAdmTransactionLogRecoveryHeaders = Record<string, never>;

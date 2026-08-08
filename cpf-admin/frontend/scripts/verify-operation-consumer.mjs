@@ -28,7 +28,11 @@ function normalizeSourceTemplate(raw){return raw.replace(/\$\{[^}]+\}/g,"x").spl
 const consumed=new Set();
 const generatedConsumed=new Set();
 const typedGeneratedConsumed=new Set();
-function match(method,raw,rel){const pathname=normalizeSourceTemplate(raw);const found=operations.find(op=>op.method===method&&templateRegex(op.template).test(pathname));if(!found)failures.push(`${rel}: privileged API is absent from OpenAPI: ${method} ${raw}`);else consumed.add(found.operationId);}
+// Tracks every privileged mutation that bypasses an imported generated operation.
+// This is intentionally separate from `generatedConsumed`: a second generated call
+// must never hide a raw mutation of the same operationId.
+const rawMutationConsumed=new Set();
+function match(method,raw,rel){const pathname=normalizeSourceTemplate(raw);const found=operations.find(op=>op.method===method&&templateRegex(op.template).test(pathname));if(!found){failures.push(`${rel}: privileged API is absent from OpenAPI: ${method} ${raw}`);return null;}consumed.add(found.operationId);return found.operationId;}
 const patterns=[
  {re:/\b(?:adm|bza)Query(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1/g,method:"GET"},
  {re:/\b(?:adm|bza)Mutation(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1\s*,\s*([`"'])(POST|PUT|PATCH|DELETE)\3/g,method:null},
@@ -52,16 +56,22 @@ function inferWrapperCalls(text,rel){
  for(const item of text.matchAll(wrapper)){
    const raw=item[2]; const callStart=(item.index||0)+item[0].indexOf('('); const call=extractCall(text,callStart);
    const explicit=call.match(/\bmethod\s*:\s*([`"'])(POST|PUT|PATCH|DELETE|GET)\1/i);
-   match(explicit?explicit[2].toUpperCase():"GET",raw,rel);
+   const inferredMethod=explicit?explicit[2].toUpperCase():"GET";
+   const operationId=match(inferredMethod,raw,rel);
+   if(operationId&&["POST","PUT","PATCH","DELETE"].includes(inferredMethod))rawMutationConsumed.add(operationId);
  }
 }
 for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/"))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/(?:adm\/api|api\/bza)\b/.test(text)&&!["src/shared/cpfApi.ts","src/shared/orval-mutator.ts"].includes(rel))failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
- for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/(?:adm\/api|api\/bza)\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC")match(method,raw,rel);}}
+ for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/(?:adm\/api|api\/bza)\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC"){const operationId=match(method,raw,rel);if(operationId&&["POST","PUT","PATCH","DELETE"].includes(method))rawMutationConsumed.add(operationId);}}}
  inferWrapperCalls(text,rel);
  for(const invoked of text.matchAll(/\b(?:adm|bza)InvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
    const operationId=invoked[1];
    if(!ids.includes(operationId))failures.push(`${rel}: unknown generated operation invocation ${operationId}`);
-   else consumed.add(operationId);
+   else {
+     consumed.add(operationId);
+     const operation=operations.find(op=>op.operationId===operationId);
+     if(operation&&["POST","PUT","PATCH","DELETE"].includes(operation.method))rawMutationConsumed.add(operationId);
+   }
  }
  const generatedImports=new Set();
  const typedGeneratedImports=new Set();
@@ -108,6 +118,12 @@ for(const line of routeRegistry.split(/\r?\n/)){
   for(const value of block.matchAll(/["']([^"']+)["']/g)) highRiskOperationIds.add(value[1]);
 }
 for(const operation of operations){
+  if(["POST","PUT","PATCH","DELETE"].includes(operation.method)
+      && highRiskOperationIds.has(operation.operationId)
+      && rawMutationConsumed.has(operation.operationId)
+      && !waived.has(operation.operationId)) {
+    failures.push(`high-risk mutation raw/generic bypass is forbidden: ${operation.operationId} ${operation.method} ${operation.template}`);
+  }
   if(["POST","PUT","PATCH","DELETE"].includes(operation.method)
       && highRiskOperationIds.has(operation.operationId)
       && consumed.has(operation.operationId)

@@ -2,7 +2,7 @@
 -- occurred_at is the canonical monthly partition key; the DEFAULT partition prevents write loss.
 CREATE TABLE cpf_transaction_lineage (
     lineage_id VARCHAR(64) NOT NULL,
-    transaction_id VARCHAR(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR(128) NOT NULL,
     parent_segment_id VARCHAR(128),
     attempt_no INTEGER DEFAULT 1 NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE cpf_transaction_lineage_default PARTITION OF cpf_transaction_lineag
 
 CREATE TABLE cpf_transaction_lineage_archive (
     lineage_id VARCHAR(64) NOT NULL,
-    transaction_id VARCHAR(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR(128) NOT NULL,
     parent_segment_id VARCHAR(128),
     attempt_no INTEGER DEFAULT 1 NOT NULL,

@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.search;
-import com.cpf.reference.edu.runtime.AbstractManualEduConcurrencyTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-08 ConcurrencyTest — 권한·데이터 범위·Masking·사유 입력 연동 */
-public final class EduAdm08ConcurrencyTest extends AbstractManualEduConcurrencyTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm08Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-08 redirect/non-executable regression contract. */
+public final class EduAdm08ConcurrencyTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm08Handler.class));
+        assertEquals("EDU-ADM-08", EduAdm08Handler.REDIRECT.requirementId());
+        assertEquals("PRODUCT_ADM", EduAdm08Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm08Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm08Handler.REDIRECT.executable());
+    }
 }

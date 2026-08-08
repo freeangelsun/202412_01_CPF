@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import CpfIcon from "../../components/CpfIcon.vue";
-import { admInvokeOperation } from "../../shared/cpfApi";
+import {
+  admBreakGlassCloseSession,
+  admBreakGlassFindSessions,
+  admBreakGlassOpenSession,
+  admBreakGlassReviewSession
+} from "../../generated/cpf-api";
 import { useAdmSessionStore } from "../../stores/admSessionStore";
 import { requireBreakGlassReason, validateBreakGlassRequest, type BreakGlassActionMode } from "./breakGlassWorkflow";
 
@@ -27,7 +32,7 @@ async function run<T>(action: () => Promise<T>, successMessage?: string): Promis
   finally { busy.value = false; }
 }
 async function load(): Promise<void> {
-  const result = await run(() => admInvokeOperation<Row[]>("admBreakGlassFindSessions", { query: { limit: 100 } }));
+  const result = await run(() => admBreakGlassFindSessions<Row[]>({ query: { limit: 100 } }));
   if (result) rows.value = result;
 }
 async function openSession(): Promise<void> {
@@ -35,9 +40,7 @@ async function openSession(): Promise<void> {
   let validated: ReturnType<typeof validateBreakGlassRequest>;
   try { validated = validateBreakGlassRequest(form.scopeValue, form.reason, form.ttlMinutes); }
   catch (cause) { error.value = cause instanceof Error ? cause.message : String(cause); return; }
-  const result = await run(() => admInvokeOperation("admBreakGlassOpenSession", {
-    body: { scopeType: form.scopeType, ...validated }
-  }), "Break-glass 세션을 발급했습니다.");
+  const result = await run(() => admBreakGlassOpenSession({ data: { scopeType: form.scopeType, ...validated } }), "Break-glass 세션을 발급했습니다.");
   if (result !== undefined) { form.scopeValue = ""; await load(); }
 }
 function openAction(row: Row, mode: BreakGlassActionMode): void {
@@ -53,11 +56,13 @@ async function confirmAction(): Promise<void> {
   let reason: string;
   try { reason = requireBreakGlassReason(actionDialog.reason); }
   catch (cause) { error.value = cause instanceof Error ? cause.message : String(cause); return; }
-  const operation = actionDialog.mode === "CLOSE" ? "admBreakGlassCloseSession" : "admBreakGlassReviewSession";
-  const body = actionDialog.mode === "CLOSE"
-    ? { reason }
-    : { status: actionDialog.mode === "REVIEW_APPROVE" ? "APPROVED" : "REJECTED", reason };
-  const result = await run(() => admInvokeOperation(operation, { path: { sessionId }, body }),
+  const result = await run(
+    () => actionDialog.mode === "CLOSE"
+      ? admBreakGlassCloseSession({ path: { sessionId }, data: { reason } })
+      : admBreakGlassReviewSession({
+          path: { sessionId },
+          data: { status: actionDialog.mode === "REVIEW_APPROVE" ? "APPROVED" : "REJECTED", reason }
+        }),
     actionDialog.mode === "CLOSE" ? "Break-glass 세션을 종료했습니다." : "사후검토 결과를 기록했습니다.");
   if (result !== undefined) { closeAction(); await load(); }
 }

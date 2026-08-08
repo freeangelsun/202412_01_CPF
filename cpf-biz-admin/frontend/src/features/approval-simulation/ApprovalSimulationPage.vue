@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import StructuredDetails from "../../components/StructuredDetails.vue";
-import { bzaApi } from "../auth/session";
+import { bzaApprovalPolicySimulate } from "../../generated/orval/cpf-api";
+import { hasBzaPermission } from "../auth/session";
 
 const form = reactive({
   policyCode: "",
@@ -13,18 +14,21 @@ const form = reactive({
 });
 const result = ref<unknown>(null);
 const error = ref("");
+const canSimulate = computed(() => hasBzaPermission("APPROVAL", "SIMULATE"));
 
 async function run(): Promise<void> {
   error.value = "";
+  if (!canSimulate.value) {
+    error.value = "APPROVAL:SIMULATE 권한이 필요합니다.";
+    return;
+  }
   try {
-    result.value = await bzaApi("/api/bza/approvals/simulate", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        policyVersion: form.policyVersion ? Number(form.policyVersion) : null,
-        effectiveAt: form.effectiveAt || null
-      })
+    const response = await bzaApprovalPolicySimulate({
+      ...form,
+      policyVersion: form.policyVersion ? Number(form.policyVersion) : null,
+      effectiveAt: form.effectiveAt || null
     });
+    result.value = response.data;
   } catch (failure) {
     error.value = failure instanceof Error ? failure.message : String(failure);
   }
@@ -43,7 +47,7 @@ async function run(): Promise<void> {
       <label><span>결재 유형</span><input v-model.trim="form.approvalType"></label>
       <label><span>요청 직원</span><input v-model.trim="form.requesterEmployeeNo"></label>
       <label><span>기준 시각</span><input v-model.trim="form.effectiveAt" placeholder="2026-07-29T09:00:00Z"></label>
-      <div class="form-action"><button class="primary">Simulation</button></div>
+      <div class="form-action"><button v-if="canSimulate" class="primary">Simulation</button><span v-else class="error-banner">APPROVAL:SIMULATE 권한이 필요합니다.</span></div>
     </form>
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
     <StructuredDetails

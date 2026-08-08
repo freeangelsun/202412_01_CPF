@@ -104,4 +104,14 @@ class CenterCutApprovalOwnerCommandAdapterTest {
                 "CENTER_CUT_REPROCESS_FAILED", "CENTER_CUT_EXECUTION_SHADOW")).isFalse();
     }
 
+    @Test
+    void reconcileDoesNotTreatRunningRetryingOrPendingAsTerminalSuccess() throws Exception {
+        CpfBatchRiskCommand risk = risk("requester-01", "idem-201");
+        AdmApprovedOperationCommand command = command(risk, "approver-02", "audit");
+        for (String state : java.util.List.of("RUNNING", "RETRYING", "PENDING")) {
+            when(owner.observe("EX-9")).thenReturn(Map.of("status", state, "failedCount", 0, "unknownCount", 0));
+            assertThat(adapter.reconcile(command).status()).as(state).isEqualTo(AdmApprovalExecutionStatus.UNKNOWN);
+        }
+    }
+
 }

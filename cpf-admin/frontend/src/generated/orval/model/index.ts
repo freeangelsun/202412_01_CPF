@@ -57,6 +57,7 @@ export * from './admCenterCutFindTargetsParams';
 export * from './admChannelPackageImportRequest';
 export * from './admChannelPolicySaveRequest';
 export * from './admChannelSaveRequest';
+export * from './admChannelRefreshSnapshotParams';
 export * from './admCodeDeleteCodeParams';
 export * from './admConfigDeleteConfigParams';
 export * from './admDownloadFindDownloadAuditLogsParams';

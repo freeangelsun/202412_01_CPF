@@ -159,6 +159,124 @@
         "additionalProperties": true,
         "description": "Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details.",
         "type": "object"
+      },
+      "CpfApiError": {
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "message",
+          "path"
+        ],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "transactionId": {
+            "type": "string",
+            "minLength": 34,
+            "maxLength": 34
+          }
+        }
+      }
+    },
+    "responses": {
+      "CpfUnauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfForbidden": {
+        "description": "Permission denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfNotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfConflict": {
+        "description": "State/version conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfUnprocessable": {
+        "description": "Validation or semantic request failure",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfTooManyRequests": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfInternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
+      },
+      "CpfUnavailable": {
+        "description": "Service temporarily unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CpfApiError"
+            }
+          }
+        }
       }
     }
   },
@@ -181,6 +299,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -207,6 +340,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -245,6 +399,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -282,6 +451,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -311,6 +495,24 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -349,6 +551,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -385,6 +602,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -414,6 +646,24 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -451,6 +701,24 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -482,6 +750,24 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -520,6 +806,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -549,6 +850,24 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -582,6 +901,24 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -611,6 +948,24 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -653,6 +1008,27 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -695,6 +1071,27 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -737,6 +1134,27 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -779,6 +1197,27 @@
           },
           "422": {
             "description": "Validation failed"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/approval/controller/BzaApprovalPolicyController.java"
@@ -807,6 +1246,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -841,6 +1295,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -878,6 +1353,24 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -915,6 +1408,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -954,6 +1471,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -972,6 +1513,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/audit/controller/BzaBusinessAuditController.java"
@@ -1000,6 +1556,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1038,6 +1615,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1056,6 +1648,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1084,6 +1697,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1122,6 +1750,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1140,6 +1789,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1178,6 +1848,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
@@ -1222,155 +1907,33 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java"
-      }
-    },
-    "/api/bza/backoffice/approvals": {
-      "get": {
-        "operationId": "bzaBackofficeFindApprovals",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "employeeNo",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "format": "int32",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          }
-        },
-        "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
-      },
-      "post": {
-        "operationId": "bzaBackofficeCreateApproval",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BzaBackofficeCreateApprovalRequest"
-              }
-            }
-          },
-          "required": false
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          },
-          "422": {
-            "description": "Validation failed"
-          }
-        },
-        "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
-      }
-    },
-    "/api/bza/backoffice/approvals/{approvalId}": {
-      "get": {
-        "operationId": "bzaBackofficeFindApproval",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "approvalId",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          }
-        },
-        "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
-      }
-    },
-    "/api/bza/backoffice/approvals/{approvalId}/actions": {
-      "post": {
-        "operationId": "bzaBackofficeActApproval",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "approvalId",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BzaBackofficeActApprovalRequest"
-              }
-            }
-          },
-          "required": false
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          },
-          "422": {
-            "description": "Validation failed"
-          }
-        },
-        "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
       }
     },
     "/api/bza/backoffice/audits": {
@@ -1398,6 +1961,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1434,6 +2012,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1460,6 +2053,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1514,6 +2128,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1552,6 +2181,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1570,6 +2223,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1596,6 +2264,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1634,6 +2323,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1662,6 +2366,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java"
@@ -1680,6 +2399,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -1725,6 +2459,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1751,6 +2500,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1814,6 +2584,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1832,6 +2617,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1858,6 +2658,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1896,6 +2717,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1914,6 +2750,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1940,6 +2791,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -1978,6 +2850,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2015,6 +2902,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2041,6 +2943,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2096,6 +3019,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2133,6 +3071,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2159,6 +3112,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2214,6 +3188,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java"
@@ -2244,6 +3233,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2262,6 +3266,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2280,6 +3299,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2306,6 +3340,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2344,6 +3399,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2382,6 +3452,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2410,6 +3504,24 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2449,6 +3561,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2475,6 +3602,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2503,6 +3651,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2540,6 +3709,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2558,6 +3751,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2584,6 +3792,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2620,6 +3849,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2658,6 +3902,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2686,6 +3945,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2704,6 +3984,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2730,6 +4025,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2768,6 +4084,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"
@@ -2796,6 +4127,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2822,6 +4168,27 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2859,6 +4226,30 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/CpfNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/CpfConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/CpfUnprocessable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/controller/BzaSupportController.java"
@@ -2877,6 +4268,21 @@
               }
             },
             "description": "Controller source contract response"
+          },
+          "401": {
+            "$ref": "#/components/responses/CpfUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/CpfForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/CpfTooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/CpfInternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CpfUnavailable"
           }
         },
         "x-cpf-controller-source": "cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/controller/BzaOperationController.java"

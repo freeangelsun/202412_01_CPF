@@ -737,6 +737,11 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 500
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           }
         },
         "description": "ADM reliability action. The authenticated operator is resolved from the server session; requestUser is not accepted."
@@ -1866,6 +1871,42 @@
           }
         },
         "description": "Versioned/idempotent quarantine replay command."
+      },
+      "BatchRuntimeCommandRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "approvalRequestId",
+          "reason"
+        ],
+        "properties": {
+          "approvalRequestId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "BatchRuntimeDeploymentPlanRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "manifest",
+          "reason"
+        ],
+        "properties": {
+          "planId": {
+            "type": "string"
+          },
+          "manifest": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -2664,7 +2705,17 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRuntimeCommandRequest"
+              }
+            }
+          }
+        }
       }
     },
     "/adm/api/batch-runtime/commands/{key}": {
@@ -2710,7 +2761,17 @@
             "description": "Controller source contract response"
           }
         },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java"
+        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRuntimeDeploymentPlanRequest"
+              }
+            }
+          }
+        }
       }
     },
     "/adm/api/batch-runtime/instances": {
@@ -6678,32 +6739,6 @@
           }
         },
         "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/incident/AdmIncidentLifecycleController.java"
-      },
-      "post": {
-        "operationId": "admIncidentCreateIncident",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdmIncidentCreateIncidentRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          }
-        },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmControlPlaneController.java"
       }
     },
     "/adm/api/incidents/maintenance-windows": {
@@ -7127,45 +7162,6 @@
           }
         },
         "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/incident/AdmIncidentLifecycleController.java"
-      }
-    },
-    "/adm/api/incidents/{incidentId}/status": {
-      "post": {
-        "operationId": "admIncidentTransitionIncident",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "incidentId",
-            "required": true,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdmIncidentTransitionIncidentRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CpfControllerSourceResponse"
-                }
-              }
-            },
-            "description": "Controller source contract response"
-          }
-        },
-        "x-cpf-controller-source": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmControlPlaneController.java"
       }
     },
     "/adm/api/incidents/{incidentId}/timeline": {

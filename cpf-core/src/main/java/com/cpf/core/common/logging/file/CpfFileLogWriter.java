@@ -106,9 +106,9 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, AutoClos
         this.clock = clock.withZone(logZoneId);
         this.pathPolicy = new CpfLogPathPolicy(environment);
         this.objectMapper = new ObjectMapper();
-        this.recoverySpool = new CpfFileLogRecoverySpool(environment, this.clock);
-        this.recoverySpool.replayAvailable();
         initializeLogRoot();
+        this.recoverySpool = new CpfFileLogRecoverySpool(environment, this.clock, this::appendRecoveredRecord);
+        this.recoverySpool.replayAvailable();
     }
 
     /**
@@ -411,7 +411,7 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, AutoClos
      */
     @Override
     public void close() {
-        recoverySpool.replayAvailable();
+        recoverySpool.close();
     }
 
     private void initializeLogRoot() {
@@ -554,6 +554,40 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, AutoClos
                     SensitiveDataMasker.mask(retentionFailure.getMessage(), 512));
         }
         return true;
+    }
+
+    /** Recovery replay reuses all normal writer path/lock/symlink defenses. */
+    private boolean appendRecoveredRecord(Path logPath, String recoveredRecord, String checksum) throws Exception {
+        createDirectoriesWithSecurePermissions(logPath.getParent());
+        ensureSafeWritableLogPath(logPath);
+        FileLockEntry lock = acquireFileLock(logPath);
+        ProcessFileLock processGuard = acquireProcessFileLock(logPath);
+        try {
+            processGuard.ensureValid();
+            ensureSafeWritableLogPath(logPath);
+            restoreCompressedLog(logPath);
+            String marker = "\"cpfRecoveryChecksum\":\"" + checksum + "\"";
+            if (containsRecoveryMarker(logPath, marker)) {
+                throw new CpfFileLogRecoverySpool.DuplicateRecoveryRecord();
+            }
+            Files.writeString(logPath, recoveredRecord + System.lineSeparator(), StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND, LinkOption.NOFOLLOW_LINKS);
+            applyFilePermissions(logPath);
+            return true;
+        } finally {
+            try { processGuard.close(); } finally { releaseFileLock(logPath, lock); }
+        }
+    }
+
+    private boolean containsRecoveryMarker(Path logPath, String marker) throws IOException {
+        if (!Files.exists(logPath, LinkOption.NOFOLLOW_LINKS)) return false;
+        try (var reader = Files.newBufferedReader(logPath, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(marker)) return true;
+            }
+        }
+        return false;
     }
 
     private FileLockEntry acquireFileLock(Path path) {

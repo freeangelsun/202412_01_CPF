@@ -52,8 +52,9 @@ public class BatchRuntimeControlClient {
         return row(invoke(HttpMethod.POST, "/api/v1/batch/deployment-plans", request));
     }
 
-    public CpfDataRow command(Map<String, Object> request) {
-        return row(invoke(HttpMethod.POST, "/api/v1/batch/runtime/commands", request));
+    public CpfDataRow commandApproved(Map<String, Object> request, String approvalRequestId, String approvalRequesterId) {
+        return row(invoke(HttpMethod.POST, "/api/v1/batch/runtime/commands", request,
+                new ApprovalContext(required(approvalRequestId, "approvalRequestId"), required(approvalRequesterId, "approvalRequesterId"))));
     }
 
     public CpfDataRow commandState(String key) {
@@ -109,8 +110,12 @@ public class BatchRuntimeControlClient {
     }
 
     private Object invoke(HttpMethod method, String path, Object payload) {
+        return invoke(method, path, payload, null);
+    }
+
+    private Object invoke(HttpMethod method, String path, Object payload, ApprovalContext approval) {
         String actor = required(operatorContext.currentOperatorId(), "authenticated operator");
-        CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
+        var requestBuilder = CpfServiceRequest.builder(SERVICE_ID)
                 .endpointCode(ENDPOINT_CODE)
                 .httpMethod(method.name())
                 .requestPath(path)
@@ -118,8 +123,12 @@ public class BatchRuntimeControlClient {
                 .header(CpfHeaders.callerInstanceId(), callerInstanceId)
                 .header(CpfHeaders.operatorId(), actor)
                 .attribute("ownerDomain", "BAT")
-                .attribute("callerDomain", "ADM")
-                .build();
+                .attribute("callerDomain", "ADM");
+        if (approval != null) {
+            requestBuilder.header(CpfHeaders.approvalRequestId(), approval.approvalRequestId());
+            requestBuilder.header(CpfHeaders.approvalRequesterId(), approval.approvalRequesterId());
+        }
+        CpfServiceRequest request = requestBuilder.build();
 
         CpfServiceResult<Object> result = caller.invoke(request, target -> {
             try {
@@ -129,6 +138,10 @@ public class BatchRuntimeControlClient {
                             headers.set(CpfHeaders.callerService(), "ADM");
                             headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
                             headers.set(CpfHeaders.operatorId(), actor);
+                            if (approval != null) {
+                                headers.set(CpfHeaders.approvalRequestId(), approval.approvalRequestId());
+                                headers.set(CpfHeaders.approvalRequesterId(), approval.approvalRequesterId());
+                            }
                         });
                 return (payload == null ? call : call.bodyValue(payload))
                         .retrieve()
@@ -248,6 +261,8 @@ public class BatchRuntimeControlClient {
         }
         return CpfDataRow.copyRows(value);
     }
+
+    private record ApprovalContext(String approvalRequestId, String approvalRequesterId) { }
 
     private static CpfDataRow row(Object value) {
         if (value == null) {

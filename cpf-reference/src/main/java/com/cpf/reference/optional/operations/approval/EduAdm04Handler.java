@@ -14,7 +14,7 @@ public final class EduAdm04Handler extends AbstractEduCapabilityHandler {
     private static final List<String> REQUIRED_VERIFICATION = List.of("Backend Contract Test", "Same-JVM/Remote Adapter Test", "권한·Masking Test", "Timeout·응답 유실 Test", "Browser Test", "Audit·Trace 연결");
     public EduAdm04Handler() {
         super(new EduCapabilityDefinition(
-            "EDU-ADM-04", "승인 필요한 위험 조치", EduCapabilityKind.OPERATIONS, "cpf-reference", "CPF_REFERENCE_PLATFORM_OPERATOR",
+            "EDU-ADM-04", "승인 필요한 위험 조치", EduCapabilityKind.OPERATIONS, "cpf-reference", "CPF_ADM_OPERATOR",
             List.of("businessId", "approvalId", "approvalPolicyId"), List.of(EduWorkflowStep.VALIDATE, EduWorkflowStep.AUTHORIZE, EduWorkflowStep.SCOPE, EduWorkflowStep.DEDUPE, EduWorkflowStep.VERSION_CHECK, EduWorkflowStep.APPROVAL, EduWorkflowStep.PROTECT, EduWorkflowStep.MUTATE, EduWorkflowStep.COMMIT, EduWorkflowStep.RECONCILE, EduWorkflowStep.AUDIT, EduWorkflowStep.OBSERVE), Set.of(EduFailurePoint.BEFORE_COMMIT, EduFailurePoint.AFTER_COMMIT),
             true, true, false, false, false, false, 3, "EDU-ADM-04"));
     }

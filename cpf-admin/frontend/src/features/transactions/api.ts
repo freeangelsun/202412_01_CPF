@@ -1,4 +1,5 @@
-import { admMutation, admQuery } from "../../shared/cpfApi";
+import { admQuery } from "../../shared/cpfApi";
+import { admTransactionMetaInactivate, admTransactionMetaScan } from "../../generated/orval/cpf-api";
 
 export interface TransactionMetaRow {
   transaction_id?: string; transactionId?: string;
@@ -34,9 +35,11 @@ export function findTransactionMetaPage(query: { moduleCode?: string; activeYn?:
 export function findTransactionMeta(transactionId: string) {
   return admQuery<TransactionMetaDetail>(`/adm/api/transactions/${encodeURIComponent(transactionId)}`);
 }
-export function scanTransactionMeta(reason: string) {
-  return admMutation<TransactionMetaScanResult>(`/adm/api/transactions/scan?reason=${encodeURIComponent(reason)}`, "POST");
+export async function scanTransactionMeta(reason: string) {
+  const response = await admTransactionMetaScan({ reason });
+  return response.data as TransactionMetaScanResult;
 }
-export function inactivateTransactionMeta(transactionId: string, reason: string) {
-  return admMutation<Record<string, unknown>>(`/adm/api/transactions/${encodeURIComponent(transactionId)}/inactive?reason=${encodeURIComponent(reason)}`, "POST");
+export async function inactivateTransactionMeta(transactionId: string, reason: string) {
+  const response = await admTransactionMetaInactivate(transactionId, { reason });
+  return response.data as Record<string, unknown>;
 }

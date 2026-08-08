@@ -5,7 +5,7 @@ import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.common.logging.CpfTransactionLogIdentity;
 import com.cpf.core.common.logging.SensitiveDataMasker;
 import com.cpf.core.common.logging.TransactionLogRecord;
-import com.cpf.core.mapper.common.logging.TransactionLogMapper;
+import com.cpf.core.common.logging.spi.CpfTransactionLogPersistencePort;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,9 +17,9 @@ import java.util.Objects;
 /** Persists transaction summary and masked detail records without mutating caller-owned collections. */
 @Service
 public class TransactionLogService {
-    private final TransactionLogMapper logMapper;
+    private final CpfTransactionLogPersistencePort logMapper;
 
-    public TransactionLogService(TransactionLogMapper logMapper) {
+    public TransactionLogService(CpfTransactionLogPersistencePort logMapper) {
         this.logMapper = Objects.requireNonNull(logMapper, "logMapper");
     }
 
@@ -38,6 +38,7 @@ public class TransactionLogService {
         }
 
         applyRecordBodyPolicy(record, logPolicy);
+        maskRecordAtPersistenceBoundary(record);
         try {
             logMapper.insertTransactionLog(record);
         } catch (DataIntegrityViolationException conflict) {
@@ -57,6 +58,29 @@ public class TransactionLogService {
         if (record.getErrorMessage() != null) {
             insertDetail(record.getLogIdx(), "errorMessage", record.getErrorMessage(), record.getExecUser());
         }
+    }
+
+    /**
+     * Final DB boundary: producer-side masking is never trusted. Summary columns and free-form
+     * payload/error fields are sanitized immediately before the mapper/provider is invoked.
+     */
+    private void maskRecordAtPersistenceBoundary(TransactionLogRecord record) {
+        record.setMemberNo(SensitiveDataMasker.maskIdentifier(record.getMemberNo()));
+        record.setCustomerNo(SensitiveDataMasker.maskIdentifier(record.getCustomerNo()));
+        record.setDeviceId(SensitiveDataMasker.maskIdentifier(record.getDeviceId()));
+        record.setClientIp(SensitiveDataMasker.maskIdentifier(record.getClientIp()));
+        record.setParameters(SensitiveDataMasker.mask(record.getParameters()));
+        record.setRequestBody(SensitiveDataMasker.mask(record.getRequestBody()));
+        record.setResponse(SensitiveDataMasker.mask(record.getResponse()));
+        record.setMessageContent(SensitiveDataMasker.mask(record.getMessageContent()));
+        record.setErrorMessage(SensitiveDataMasker.mask(record.getErrorMessage()));
+        record.setExternalMessage(SensitiveDataMasker.mask(record.getExternalMessage()));
+        record.setInternalMessage(SensitiveDataMasker.mask(record.getInternalMessage()));
+        record.setReservedField1(SensitiveDataMasker.mask(record.getReservedField1()));
+        record.setReservedField2(SensitiveDataMasker.mask(record.getReservedField2()));
+        record.setReservedField3(SensitiveDataMasker.mask(record.getReservedField3()));
+        record.setReservedField4(SensitiveDataMasker.mask(record.getReservedField4()));
+        record.setReservedField5(SensitiveDataMasker.mask(record.getReservedField5()));
     }
 
     private void applyRecordBodyPolicy(TransactionLogRecord record, LogPolicyDecision logPolicy) {

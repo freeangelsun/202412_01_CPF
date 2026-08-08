@@ -126,13 +126,76 @@ $EvidenceDir = [IO.Path]::GetFullPath($EvidenceDir)
 New-Item -ItemType Directory -Path $EvidenceDir -Force | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($RunnerExecutable)) {
-    $isWindowsPlatform = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Runtime.InteropServices.OSPlatform]::Windows)
-    $javaRelativePath = if ($isWindowsPlatform) { 'bin/java.exe' } else { 'bin/java' }
-    $RunnerExecutable = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME $javaRelativePath } else { 'java' }
-    if ([string]::IsNullOrWhiteSpace($RunnerClasspath)) {
-        $RunnerClasspath = Join-Path $repoRoot 'cpf-tools/verification/final-dev/build/classes/java/main'
+    # The canonical DB lifecycle contract already owns the real runtime executor. Do not
+    # point the release gate at a phantom Java classpath. Default execution delegates to
+    # that checked-in executor, while the explicit RunnerExecutable path remains available
+    # for isolated safety tests.
+    $contractPath = Join-Path $repoRoot 'cpf-tools/db/cpf-db-lifecycle-contract.json'
+    if (-not (Test-Path -LiteralPath $contractPath)) { throw "DB lifecycle contract is missing: $contractPath" }
+    $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $expectedExecutor = 'cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1'
+    if ([string]$contract.runtimeExecutor -ne $expectedExecutor) {
+        throw "Canonical DB runtimeExecutor mismatch. expected=$expectedExecutor actual=$($contract.runtimeExecutor)"
     }
-    $RunnerPrefixArguments = @('-cp', $RunnerClasspath, $RunnerClass)
+    $executor = Join-Path $repoRoot $expectedExecutor
+    if (-not (Test-Path -LiteralPath $executor)) { throw "Canonical DB runtime executor is missing: $executor" }
+
+    function Require-EnvPath([string]$Name) {
+        $value = [Environment]::GetEnvironmentVariable($Name)
+        if ([string]::IsNullOrWhiteSpace($value)) { throw "DB3 canonical runner preflight missing environment variable: $Name" }
+        return [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $value).Path)
+    }
+    function Require-EnvPathList([string]$Name) {
+        $value = [Environment]::GetEnvironmentVariable($Name)
+        if ([string]::IsNullOrWhiteSpace($value)) { throw "DB3 canonical runner preflight missing environment variable: $Name" }
+        $paths = @($value.Split([IO.Path]::PathSeparator, [StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $_.Trim()).Path) })
+        if ($paths.Count -eq 0) { throw "DB3 canonical runner preflight contains no paths: $Name" }
+        return $paths
+    }
+
+    $mariaProfile = Require-EnvPath 'CPF_DB3_MARIADB_PROFILE'
+    $pgProfile = Require-EnvPath 'CPF_DB3_POSTGRESQL_PROFILE'
+    $oracleProfile = Require-EnvPath 'CPF_DB3_ORACLE_PROFILE'
+    $mariaUpgrade = Require-EnvPath 'CPF_DB3_MARIADB_UPGRADE_PROFILE'
+    $pgUpgrade = Require-EnvPath 'CPF_DB3_POSTGRESQL_UPGRADE_PROFILE'
+    $oracleUpgrade = Require-EnvPath 'CPF_DB3_ORACLE_UPGRADE_PROFILE'
+    $backupManifests = Require-EnvPathList 'CPF_DB3_BACKUP_MANIFEST_PATHS'
+    $backupRestoreEvidence = Require-EnvPathList 'CPF_DB3_BACKUP_RESTORE_EVIDENCE_PATHS'
+    $pitrEvidence = Require-EnvPathList 'CPF_DB3_PITR_EVIDENCE_PATHS'
+    $baseline = 82
+    if (-not [string]::IsNullOrWhiteSpace($env:CPF_DB3_UPGRADE_BASELINE_VERSION)) {
+        $parsed = 0
+        if (-not [int]::TryParse($env:CPF_DB3_UPGRADE_BASELINE_VERSION, [ref]$parsed) -or $parsed -lt 0) { throw 'CPF_DB3_UPGRADE_BASELINE_VERSION must be a non-negative integer.' }
+        $baseline = $parsed
+    }
+
+    & $executor -Root $repoRoot `
+        -MariaDbProfile $mariaProfile -PostgreSqlProfile $pgProfile -OracleProfile $oracleProfile `
+        -MariaDbUpgradeProfile $mariaUpgrade -PostgreSqlUpgradeProfile $pgUpgrade -OracleUpgradeProfile $oracleUpgrade `
+        -BackupManifestPath $backupManifests -EvidenceRoot $EvidenceDir -UpgradeBaselineVersion $baseline `
+        -BackupRestoreEvidencePath $backupRestoreEvidence -PitrEvidencePath $pitrEvidence -AllowDestructiveRollback
+    $canonicalExit = $LASTEXITCODE
+    if ($canonicalExit -ne 0) { exit $canonicalExit }
+    $canonicalEvidence = Join-Path $EvidenceDir 'CPF_QA34_DB_RUNTIME_MATRIX.sanitized.json'
+    if (-not (Test-Path -LiteralPath $canonicalEvidence)) { throw "Canonical DB3 evidence is missing: $canonicalEvidence" }
+    $evidence = Get-Content -LiteralPath $canonicalEvidence -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
+    if ([string]$evidence.sourceSha -ne $actualHead -or -not [bool]$evidence.sanitized -or -not [bool]$evidence.releaseEligible) {
+        throw 'Canonical DB3 evidence did not prove exact-SHA sanitized release eligibility.'
+    }
+    $summary = [ordered]@{
+        protocolVersion = 'CPF-DB3-LIFECYCLE-2'
+        expectedHead = $ExpectedHead.ToLowerInvariant()
+        actualHead = $actualHead
+        runnerMode = 'CANONICAL_QA34_RUNTIME_EXECUTOR'
+        canonicalRuntimeExecutor = $expectedExecutor
+        canonicalEvidenceFile = [IO.Path]::GetFileName($canonicalEvidence)
+        canonicalEvidenceSha256 = (Get-FileHash -LiteralPath $canonicalEvidence -Algorithm SHA256).Hash.ToLowerInvariant()
+        vendors = @('oracle','postgresql','mariadb')
+        exitCode = 0
+    }
+    $summaryPath = Join-Path $EvidenceDir 'db3-lifecycle-summary.json'
+    [IO.File]::WriteAllText($summaryPath, ($summary | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
+    exit 0
 }
 
 $vendors = [ordered]@{

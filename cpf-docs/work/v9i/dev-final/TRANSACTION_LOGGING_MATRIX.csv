@@ -1,0 +1,8 @@
+﻿stage,trust_identity,transaction_id_policy,secondary_identity,negative_policy,evidence
+Official Channel start,trusted authenticated system + channel metadata,Channel may create canonical 34-char ID once,same transactionId,spoof/mismatch/replay reject,TXID verifier PASS
+Internal REST/Remote/Gateway,authenticated propagating system,preserve origin ID,segment/parent/trace/span,untrusted internal context reject,TXID/header source inspection
+Message/Async,broker request transactionId,preserve ID,messageId/segment/attempt,reserved header override blocked,broker header source inspection
+Retry,original transactionId,same ID,attempt increments separately,no ID regeneration,semantic requirement + TXID policy
+UNKNOWN/Reconcile,original operation lineage,same ID,reconcile identity/segment,"observation-only, no new business transaction",lineage/approval matrices
+Batch follow-up,upstream lineage,same ID when follow-up,batchExecutionId separate,independent batch start may create new ID,canonical currentization + source
+Persistence masking,Transaction log/lineage writer,masked durable projection,trace/span/request/message/batch/file,fail-closed persistence boundary,DB3/logging gates

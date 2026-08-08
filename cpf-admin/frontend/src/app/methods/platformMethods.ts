@@ -1,6 +1,18 @@
+import {
+  admChannelExportPackage,
+  admChannelFindSnapshot,
+  admChannelImportPackage,
+  admChannelRefreshSnapshot,
+  admChannelSave,
+} from "../../generated/orval/cpf-api";
+
+function generatedData<T>(response: unknown): T {
+  return ((response as { data?: unknown })?.data ?? response) as T;
+}
+
 export const platformMethods = {
   async loadChannelPolicy() {
-        this.channelSnapshot = await this.getJson("/adm/api/channels") || { version: 0, channels: {}, policies: [] };
+        this.channelSnapshot = generatedData<any>(await admChannelFindSnapshot()) || { version: 0, channels: {}, policies: [] };
       },
   selectChannel(item) {
         this.channelForm = {
@@ -12,22 +24,16 @@ export const platformMethods = {
   async saveChannel() {
         if (!this.requireReason(this.channelForm.reason) || !this.channelForm.channelCode) return;
         const { channelCode, ...body } = this.channelForm;
-        this.channelSnapshot = await this.sendJson(
-          `/adm/api/channels/${encodeURIComponent(channelCode)}`, "PUT", body
-        );
+        this.channelSnapshot = generatedData<any>(await admChannelSave(channelCode, body));
         this.setMessage(`채널을 저장했습니다. code=${channelCode}`);
       },
   async refreshChannelPolicy() {
         if (!this.requireReason(this.channelPolicyForm.reason)) return;
-        const params = new URLSearchParams({
-          reason: this.channelPolicyForm.reason,
-        });
-        const response = await this.rawResponse(`/adm/api/channels/refresh?${params.toString()}`, "POST");
-        this.channelSnapshot = await this.parseResponse(response);
+        this.channelSnapshot = generatedData<any>(await admChannelRefreshSnapshot({ reason: this.channelPolicyForm.reason }));
         this.setMessage(`채널 정책 스냅샷을 갱신했습니다. version=${this.channelSnapshot.version}`);
       },
   async exportChannelPolicyPackage() {
-        const policyPackage = await this.getJson("/adm/api/channels/package");
+        const policyPackage = generatedData<any>(await admChannelExportPackage());
         this.channelPackageText = this.pretty(policyPackage);
         this.setMessage("채널 정책 패키지를 반출했습니다.");
       },
@@ -40,11 +46,11 @@ export const platformMethods = {
           this.setMessage("채널 정책 패키지 JSON 형식을 확인하세요.");
           return;
         }
-        this.channelSnapshot = await this.sendJson("/adm/api/channels/package/import", "POST", {
+        this.channelSnapshot = generatedData<any>(await admChannelImportPackage({
           policyPackage,
           dryRun: this.channelImportDryRun,
           reason: this.channelPolicyForm.reason,
-        });
+        }));
         this.setMessage(this.channelImportDryRun ? "채널 정책 반입 사전 검증을 완료했습니다." : "채널 정책을 반입했습니다.");
       },
   async loadServiceRegistry() {

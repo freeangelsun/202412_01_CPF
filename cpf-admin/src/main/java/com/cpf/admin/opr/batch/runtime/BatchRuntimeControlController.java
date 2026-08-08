@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.batch.runtime;
 
 import com.cpf.admin.common.base.AdmBaseController;
+import com.cpf.admin.approval.service.AdmApprovalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,11 @@ public class BatchRuntimeControlController extends AdmBaseController {
             "requestedBy", "requestUser", "actorId", "operatorId", "operatorIdOverride");
 
     private final BatchRuntimeControlClient client;
+    private final AdmApprovalService approvalService;
 
-    public BatchRuntimeControlController(BatchRuntimeControlClient client) {
+    public BatchRuntimeControlController(BatchRuntimeControlClient client, AdmApprovalService approvalService) {
         this.client = client;
+        this.approvalService = approvalService;
     }
 
     @GetMapping("/instances")
@@ -142,25 +145,20 @@ public class BatchRuntimeControlController extends AdmBaseController {
     }
 
     @PostMapping("/commands")
-    @Operation(operationId = "admBatchRuntimeCommand", summary = "BAT Runtime 위험조치 요청",
-            description = "승인 ID, 요청자/승인자 분리, CAS version, 사유와 만료시각을 포함한 Runtime command를 BAT Owner에 전달합니다.")
+    @Operation(operationId = "admBatchRuntimeCommand", summary = "승인 완료 BAT Runtime 위험조치 실행",
+            description = "브라우저의 target/actor를 신뢰하지 않고 approvalRequestId의 immutable Snapshot을 Approval Engine fencing 경로로 실행합니다.")
     ResponseEntity<Map<String, Object>> command(
             @RequestAttribute("adm.operatorId") String operatorId,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody BatchRuntimeCommandRequest body) {
         try {
-            requireCommandField(request, "commandId");
-            requireCommandField(request, "idempotencyKey");
-            requireCommandField(request, "commandType");
-            requireCommandField(request, "reason");
-            requireCommandField(request, "approvalRequestId");
-            requireCommandField(request, "approvedBy");
-            Object targetIds = request.get("targetIds");
-            if (!(targetIds instanceof List<?> ids) || ids.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("state", "FAILED", "errorCode", "BAT_TARGET_REQUIRED", "message", "targetIds is required"));
+            if (body == null || body.approvalRequestId == null || body.approvalRequestId.isBlank()) {
+                throw new IllegalArgumentException("approvalRequestId is required");
             }
-            return ResponseEntity.accepted().body(client.command(withServerActor(request, operatorId)));
-        } catch (BatchControlClientException failure) {
-            return error(failure);
+            long approvalRequestId = Long.parseLong(body.approvalRequestId.trim());
+            requireCommandField(Map.of("reason", body.reason == null ? "" : body.reason), "reason");
+            return ResponseEntity.accepted().body(approvalService.execute(approvalRequestId, body.reason, operatorId));
+        } catch (NumberFormatException failure) {
+            return validation("BAT_APPROVAL_ID_INVALID", new IllegalArgumentException("approvalRequestId must be numeric", failure));
         } catch (IllegalArgumentException failure) {
             return validation("BAT_COMMAND_INVALID", failure);
         }
@@ -177,12 +175,14 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admBatchRuntimeCreateDeploymentPlan", summary = "BAT 배포 계획 생성")
     ResponseEntity<Map<String, Object>> plan(
             @RequestAttribute("adm.operatorId") String operatorId,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody BatchRuntimeDeploymentPlanRequest body) {
+        Map<String, Object> request = body == null ? null : body.toMap();
         try {
-            requireCommandField(request, "idempotencyKey");
             requireCommandField(request, "reason");
-            requireCommandField(request, "approvalRequestId");
-            requireExpectedVersion(request);
+            Object manifest = request.get("manifest");
+            if (!(manifest instanceof Map<?, ?> map) || map.isEmpty()) {
+                throw new IllegalArgumentException("manifest is required");
+            }
             return ResponseEntity.status(201).body(client.createPlan(withServerActor(request, operatorId)));
         } catch (BatchControlClientException failure) {
             return error(failure);

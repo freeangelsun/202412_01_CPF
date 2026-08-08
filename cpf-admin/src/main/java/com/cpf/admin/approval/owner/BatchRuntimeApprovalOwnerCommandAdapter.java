@@ -7,6 +7,7 @@ import com.cpf.admin.approval.spi.AdmApprovalOwnerCommandPort;
 import com.cpf.core.api.batch.CpfBatchOperationsPort;
 import com.cpf.core.api.batch.CpfBatchOwnerUnknownResultException;
 import com.cpf.core.api.batch.CpfBatchRiskCommand;
+import com.cpf.admin.opr.batch.runtime.BatchRuntimeControlClient;
 import com.cpf.core.api.data.CpfDataRow;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -30,14 +33,29 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
             tuple("updateScheduleEnabled", "BATCH_SCHEDULE_ENABLE", "bat_schedule"),
             tuple("updateScheduleEnabled", "BATCH_SCHEDULE_DISABLE", "bat_schedule"),
             tuple("requestRun", "BATCH_RUN", "bat_job"),
-            tuple("runSchedulerOnce", "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule"));
+            tuple("runSchedulerOnce", "BATCH_SCHEDULER_RUN_ONCE", "bat_schedule"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_START", "bat_runtime"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_STOP", "bat_runtime"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_RESTART", "bat_runtime"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_DRAIN", "bat_runtime"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_RESUME", "bat_runtime"),
+            tuple("runtimeCommand", "BATCH_RUNTIME_ROLLBACK", "bat_runtime"));
 
     private final CpfBatchOperationsPort batch;
     private final ObjectMapper objectMapper;
+    private final BatchRuntimeControlClient runtimeClient;
 
-    public BatchRuntimeApprovalOwnerCommandAdapter(CpfBatchOperationsPort batch, ObjectMapper objectMapper) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public BatchRuntimeApprovalOwnerCommandAdapter(CpfBatchOperationsPort batch, ObjectMapper objectMapper, BatchRuntimeControlClient runtimeClient) {
         this.batch = Objects.requireNonNull(batch, "batch");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        this.runtimeClient = Objects.requireNonNull(runtimeClient, "runtimeClient");
+    }
+
+    BatchRuntimeApprovalOwnerCommandAdapter(CpfBatchOperationsPort batch, ObjectMapper objectMapper) {
+        this.batch = Objects.requireNonNull(batch, "batch");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        this.runtimeClient = null;
     }
 
     @Override
@@ -83,6 +101,7 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
                         risk.targetId(), scheduleEnabled(risk), risk);
                 case "requestRun" -> batch.requestRun(risk.targetId(), risk.payload(), risk);
                 case "runSchedulerOnce" -> batch.runSchedulerOnce(risk);
+                case "runtimeCommand" -> executeRuntimeCommand(command, risk);
                 default -> throw new IllegalArgumentException("unsupported BAT command");
             }
             return new AdmApprovedOperationResult(
@@ -116,6 +135,7 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
                 case "actGhostExecution" -> observeGhostState(risk);
                 case "updateScheduleEnabled" -> observeScheduleState(risk);
                 case "requestRetry", "requestRun", "runSchedulerOnce" -> observeOperationLedger(command, risk);
+                case "runtimeCommand" -> observeRuntimeCommand(command);
                 default -> unknown("BAT_RECONCILE_UNSUPPORTED", "Owner 상태 관측 계약이 없습니다.");
             };
         } catch (RuntimeException readFailure) {
@@ -123,6 +143,40 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         }
     }
 
+
+    private void executeRuntimeCommand(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        if (runtimeClient == null) throw new IllegalStateException("BAT runtime client is unavailable");
+        Map<String,Object> payload = read(risk.payload());
+        String commandType = text(payload, "commandType").toUpperCase(Locale.ROOT);
+        if (!("BATCH_RUNTIME_" + commandType).equals(risk.actionType()))
+            throw new IllegalArgumentException("runtime actionType mismatch");
+        String targetType = text(payload, "targetType").toUpperCase(Locale.ROOT);
+        if (!Set.of("INSTANCE", "POOL", "AGENT").contains(targetType))
+            throw new IllegalArgumentException("runtime targetType mismatch");
+        Object targetIdsValue = value(payload, "targetIds");
+        if (!(targetIdsValue instanceof List<?> ids) || ids.isEmpty() || ids.stream().map(String::valueOf).noneMatch(risk.targetId()::equals))
+            throw new IllegalArgumentException("approved targetId is absent from runtime targetIds");
+        if (risk.expectedVersion() == null) throw new IllegalArgumentException("runtime expectedVersion is required");
+        Map<String,Object> request = new LinkedHashMap<>(payload);
+        for (String field : List.of("requestedBy","requestUser","actorId","operatorId","operatorIdOverride","approvedBy")) request.remove(field);
+        request.put("commandId", command.commandRequestId());
+        request.put("idempotencyKey", risk.idempotencyKey());
+        request.put("expectedVersion", risk.expectedVersion());
+        request.put("requestedBy", command.requestedBy());
+        request.put("reason", risk.reason());
+        request.put("approvalRequestId", String.valueOf(command.approvalRequestId()));
+        request.put("approvedBy", command.approvedBy());
+        runtimeClient.commandApproved(request, String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+    private AdmApprovedOperationResult observeRuntimeCommand(AdmApprovedOperationCommand command) {
+        if (runtimeClient == null) return unknown("BAT_RUNTIME_CLIENT_UNAVAILABLE", "BAT Runtime 상태 Client가 없습니다.");
+        CpfDataRow row = runtimeClient.commandState(command.commandRequestId());
+        String state = upper(first(row, "state", "status", "commandState"));
+        if (Set.of("SUCCEEDED", "ROLLED_BACK").contains(state)) return succeeded("BAT_RUNTIME_RECONCILED_" + state, "Runtime command 최종 성공 상태를 관측했습니다.");
+        if (Set.of("FAILED", "PARTIALLY_ROLLED_BACK").contains(state)) return failed("BAT_RUNTIME_RECONCILED_" + state, "Runtime command 실패 상태를 관측했습니다.");
+        return unknown("BAT_RUNTIME_RECONCILE_PENDING", "Runtime command가 아직 최종 상태가 아닙니다.");
+    }
     private AdmApprovedOperationResult observeReleasedLock(CpfBatchRiskCommand risk) {
         boolean stillPresent = batch.findLocks(null).stream().anyMatch(row ->
                 risk.targetId().equals(first(row, "lockKey", "lock_key", "id", "targetId")));
@@ -163,7 +217,7 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         Long executionId = "bat_execution".equals(risk.targetType()) ? Long.parseLong(risk.targetId()) : null;
         String jobId = "bat_job".equals(risk.targetType()) ? risk.targetId() : null;
         CpfDataRow row = batch.findOperationLogs(jobId, executionId, 1000).stream()
-                .filter(item -> matchesAny(item, command.commandRequestId(), risk.idempotencyKey(), String.valueOf(command.approvalRequestId())))
+                .filter(item -> matchesOperationIdentity(item, command, risk))
                 .findFirst().orElse(null);
         if (row == null) return unknown("BAT_OPERATION_NOT_OBSERVED", "원 승인 명령의 Owner operation ledger를 찾지 못했습니다.");
         String state = upper(first(row, "status", "resultState", "operationStatus", "commandState"));
@@ -174,11 +228,19 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         return unknown("BAT_OPERATION_RECONCILE_PENDING", "Owner operation ledger가 아직 최종 결과를 증명하지 못합니다.");
     }
 
-    private static boolean matchesAny(Map<String, ?> row, String... needles) {
-        String haystack = row.values().stream().filter(Objects::nonNull).map(String::valueOf)
-                .collect(java.util.stream.Collectors.joining("|"));
-        for (String needle : needles) if (needle != null && !needle.isBlank() && haystack.contains(needle)) return true;
-        return false;
+    private static boolean matchesOperationIdentity(Map<String, ?> row, AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        String rowCommandId = first(row, "commandRequestId", "command_request_id", "operationId", "operation_id");
+        String rowIdempotencyKey = first(row, "idempotencyKey", "idempotency_key", "requestKey", "request_key");
+        String rowApprovalRequestId = first(row, "approvalRequestId", "approval_request_id");
+        String rowOperation = first(row, "operation", "ownerCommand", "owner_command", "action");
+        String rowTargetType = first(row, "targetType", "target_type");
+        String rowTargetId = first(row, "targetId", "target_id", "executionId", "execution_id", "jobId", "job_id");
+        return command.commandRequestId().equals(rowCommandId)
+                && risk.idempotencyKey().equals(rowIdempotencyKey)
+                && String.valueOf(command.approvalRequestId()).equals(rowApprovalRequestId)
+                && risk.operation().equals(rowOperation)
+                && risk.targetType().equals(rowTargetType)
+                && risk.targetId().equals(rowTargetId);
     }
 
     private static String first(Map<String, ?> row, String... keys) {
@@ -231,6 +293,7 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
             case "actGhostExecution", "requestRetry", "requestStop" -> "bat_execution";
             case "updateScheduleEnabled", "runSchedulerOnce" -> "bat_schedule";
             case "requestRun" -> "bat_job";
+            case "runtimeCommand" -> "bat_runtime";
             default -> throw new IllegalArgumentException("unsupported BAT command: " + command);
         };
     }

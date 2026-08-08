@@ -112,7 +112,8 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
         throw new IllegalStateException("DLQ 재처리는 승인 요청 후 Owner Command로만 실행할 수 있습니다.");
     }
 
-    public ChangeResult resolveUnknown(String unknownId, String targetStatus, String operatorId, String reason) {
+    public ChangeResult resolveUnknown(
+            String unknownId, String targetStatus, long expectedVersion, String operatorId, String reason) {
         Map<String,Object> row = operationsPort.findUnknownResult(unknownId)
                 .orElseThrow(() -> new IllegalArgumentException("결과 미확정 건을 찾을 수 없습니다. unknownId=" + unknownId));
         String type = String.valueOf(row.get("unknown_type"));
@@ -122,9 +123,9 @@ public class AdmReliabilityService extends com.cpf.admin.common.base.AdmBaseServ
             }
             Object external = row.get("external_key");
             sessionService.retryPendingRevocation(external == null ? null : String.valueOf(external));
-            return map(operationsPort.resolveUnknown(unknownId, "RESOLVED", operatorId, reason));
+            return map(operationsPort.resolveUnknown(unknownId, "RESOLVED", expectedVersion, operatorId, reason));
         }
-        return map(operationsPort.resolveUnknown(unknownId, targetStatus, operatorId, reason));
+        return map(operationsPort.resolveUnknown(unknownId, targetStatus, expectedVersion, operatorId, reason));
     }
 
     private Map<String, Object> findDlqMessage(String messageId) {

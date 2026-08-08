@@ -13,7 +13,7 @@ export const bzaRouteOperationContract = {
   "menus": ["bzaOperationDeleteMenu","bzaOperationFindMenuImpact","bzaOperationFindMenus","bzaOperationFindMenusPage","bzaOperationSaveMenu"],
   "permissions": ["bzaBackofficeFindEffectivePermissions","bzaOperationFindPermissions","bzaOperationFindPermissionsPage","bzaOperationSavePermission"],
   "permissionTools": ["bzaBackofficeFindEffectivePermissions","bzaSupportCompareRolePermissions","bzaSupportSimulatePermission"],
-  "approvalInbox": ["bzaApprovalInbox","bzaApprovalParticipantDecision","bzaBackofficeActApproval","bzaBackofficeCreateApproval","bzaBackofficeFindApproval","bzaBackofficeFindApprovals"],
+  "approvalInbox": ["bzaApprovalInbox","bzaApprovalParticipantDecision"],
   "approvalSubmissions": ["bzaApprovalCancel","bzaApprovalExpireDue","bzaApprovalParticipantDecision","bzaApprovalPolicySubmit","bzaApprovalResubmit","bzaApprovalSubmissionDetail","bzaApprovalSubmissions","bzaApprovalWithdraw"],
   "approvalPolicies": ["bzaApprovalPolicies","bzaApprovalPolicyDetail","bzaApprovalPolicySave"],
   "approvalSimulation": ["bzaApprovalPolicySimulate"],

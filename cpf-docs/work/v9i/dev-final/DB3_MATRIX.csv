@@ -1,0 +1,4 @@
+﻿vendor,canonical,migration,lifecycle,runtime_query,writer,verification
+Oracle,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증
+PostgreSQL,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증
+MariaDB,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증

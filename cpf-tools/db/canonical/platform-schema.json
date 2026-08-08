@@ -42,7 +42,7 @@
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
     "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 212,
+  "tableCount": 214,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -34649,6 +34649,794 @@
       "foreignKeys": [],
       "checks": [],
       "comment": "CPF 복합 거래 구간 로그",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_transaction_lineage",
+      "columns": [
+        {
+          "name": "lineage_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정규화 lineage 이벤트 ID"
+        },
+        {
+          "name": "transaction_id",
+          "type": "CHAR(34)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF End-to-End 거래 ID"
+        },
+        {
+          "name": "segment_id",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "거래 구간 ID"
+        },
+        {
+          "name": "parent_segment_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "상위 거래 구간 ID"
+        },
+        {
+          "name": "attempt_no",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시도 순번"
+        },
+        {
+          "name": "trace_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "분산 trace ID"
+        },
+        {
+          "name": "span_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "분산 span ID"
+        },
+        {
+          "name": "request_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "요청 ID"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "멱등성 키"
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "테넌트 ID"
+        },
+        {
+          "name": "channel_code",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "기동/현재 채널 코드"
+        },
+        {
+          "name": "actor_id_masked",
+          "type": "VARCHAR(256)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 행위자 ID"
+        },
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 인스턴스 ID"
+        },
+        {
+          "name": "was_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "WAS ID"
+        },
+        {
+          "name": "agent_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Agent ID"
+        },
+        {
+          "name": "worker_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Worker ID"
+        },
+        {
+          "name": "remote_system",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원격 시스템 코드"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무/호출 Operation ID"
+        },
+        {
+          "name": "message_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "메시지 ID"
+        },
+        {
+          "name": "consumer_group",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "메시지 Consumer Group"
+        },
+        {
+          "name": "dlq_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "DLQ ID"
+        },
+        {
+          "name": "batch_job_instance_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job Instance ID"
+        },
+        {
+          "name": "batch_job_execution_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job Execution ID"
+        },
+        {
+          "name": "batch_step_execution_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Step Execution ID"
+        },
+        {
+          "name": "partition_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch/Message Partition ID"
+        },
+        {
+          "name": "file_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "File 거래 ID"
+        },
+        {
+          "name": "source_type",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "lineage 원천 유형"
+        },
+        {
+          "name": "source_ref_id",
+          "type": "VARCHAR(256)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원천 레코드 참조 ID"
+        },
+        {
+          "name": "lifecycle_state",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원천 lifecycle 상태"
+        },
+        {
+          "name": "failure_stage",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패 단계"
+        },
+        {
+          "name": "unknown_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 미확정 여부"
+        },
+        {
+          "name": "reconcile_state",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconcile 상태"
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "이벤트 발생 시각/파티션 키"
+        },
+        {
+          "name": "freshness_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "lineage 갱신/관측 시각"
+        },
+        {
+          "name": "payload_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감 원문 미포함 정규화 payload hash"
+        },
+        {
+          "name": "archived_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Archive 완료 시각"
+        }
+      ],
+      "primaryKey": [
+        "lineage_id",
+        "occurred_at"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_cpf_tx_lineage_event",
+          "columns": [
+            "transaction_id",
+            "segment_id",
+            "attempt_no",
+            "source_type",
+            "payload_hash",
+            "occurred_at"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_cpf_tx_lineage_tx_time",
+          "columns": [
+            "transaction_id",
+            "occurred_at",
+            "segment_id",
+            "attempt_no"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_trace",
+          "columns": [
+            "trace_id",
+            "span_id",
+            "occurred_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_request",
+          "columns": [
+            "request_id",
+            "idempotency_key",
+            "occurred_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_message",
+          "columns": [
+            "message_id",
+            "consumer_group",
+            "dlq_id",
+            "occurred_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_batch",
+          "columns": [
+            "batch_job_instance_id",
+            "batch_job_execution_id",
+            "batch_step_execution_id",
+            "occurred_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_file",
+          "columns": [
+            "file_id",
+            "source_type",
+            "source_ref_id",
+            "occurred_at"
+          ]
+        },
+        {
+          "name": "idx_cpf_tx_lineage_retention",
+          "columns": [
+            "archived_at",
+            "occurred_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_tx_lineage_unknown",
+          "expression": "unknown_yn IN ('Y','N')"
+        }
+      ],
+      "comment": "CPF End-to-End 거래의 정규화 operational lineage projection/index. 원천 domain store를 대체하지 않음.",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_transaction_lineage_archive",
+      "columns": [
+        {
+          "name": "lineage_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정규화 lineage 이벤트 ID"
+        },
+        {
+          "name": "transaction_id",
+          "type": "CHAR(34)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF End-to-End 거래 ID"
+        },
+        {
+          "name": "segment_id",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "거래 구간 ID"
+        },
+        {
+          "name": "parent_segment_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "상위 거래 구간 ID"
+        },
+        {
+          "name": "attempt_no",
+          "type": "INT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "재시도 순번"
+        },
+        {
+          "name": "trace_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "분산 trace ID"
+        },
+        {
+          "name": "span_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "분산 span ID"
+        },
+        {
+          "name": "request_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "요청 ID"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "멱등성 키"
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "테넌트 ID"
+        },
+        {
+          "name": "channel_code",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "기동/현재 채널 코드"
+        },
+        {
+          "name": "actor_id_masked",
+          "type": "VARCHAR(256)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 행위자 ID"
+        },
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행 인스턴스 ID"
+        },
+        {
+          "name": "was_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "WAS ID"
+        },
+        {
+          "name": "agent_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Agent ID"
+        },
+        {
+          "name": "worker_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Worker ID"
+        },
+        {
+          "name": "remote_system",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원격 시스템 코드"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무/호출 Operation ID"
+        },
+        {
+          "name": "message_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "메시지 ID"
+        },
+        {
+          "name": "consumer_group",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "메시지 Consumer Group"
+        },
+        {
+          "name": "dlq_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "DLQ ID"
+        },
+        {
+          "name": "batch_job_instance_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job Instance ID"
+        },
+        {
+          "name": "batch_job_execution_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Job Execution ID"
+        },
+        {
+          "name": "batch_step_execution_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch Step Execution ID"
+        },
+        {
+          "name": "partition_id",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Batch/Message Partition ID"
+        },
+        {
+          "name": "file_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "File 거래 ID"
+        },
+        {
+          "name": "source_type",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "lineage 원천 유형"
+        },
+        {
+          "name": "source_ref_id",
+          "type": "VARCHAR(256)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원천 레코드 참조 ID"
+        },
+        {
+          "name": "lifecycle_state",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원천 lifecycle 상태"
+        },
+        {
+          "name": "failure_stage",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패 단계"
+        },
+        {
+          "name": "unknown_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과 미확정 여부"
+        },
+        {
+          "name": "reconcile_state",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconcile 상태"
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "이벤트 발생 시각/파티션 키"
+        },
+        {
+          "name": "freshness_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "lineage 갱신/관측 시각"
+        },
+        {
+          "name": "payload_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감 원문 미포함 정규화 payload hash"
+        },
+        {
+          "name": "archived_at",
+          "type": "DATETIME(6)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Archive 완료 시각"
+        },
+        {
+          "name": "archive_reason",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Archive 사유"
+        },
+        {
+          "name": "archived_by",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Archive 수행 주체"
+        }
+      ],
+      "primaryKey": [
+        "lineage_id",
+        "occurred_at"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_cpf_tx_lineage_arch_tx",
+          "columns": [
+            "transaction_id",
+            "occurred_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_tx_lineage_arch_unknown",
+          "expression": "unknown_yn IN ('Y','N')"
+        }
+      ],
+      "comment": "CPF transaction lineage 보존/감사 Archive",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     },

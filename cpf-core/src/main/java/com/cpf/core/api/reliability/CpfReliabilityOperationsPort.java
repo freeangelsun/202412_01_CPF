@@ -28,6 +28,15 @@ public interface CpfReliabilityOperationsPort {
 
     ChangeResult resolveUnknown(String unknownId, String targetStatus, String operatorId, String reason);
 
+    /**
+     * Optimistic-CAS variant for operator driven UNKNOWN resolution. Implementations that do not
+     * support durable row-version fencing must fail closed rather than silently ignoring the token.
+     */
+    default ChangeResult resolveUnknown(
+            String unknownId, String targetStatus, long expectedVersion, String operatorId, String reason) {
+        throw new UnsupportedOperationException("expectedVersion-aware UNKNOWN resolution is not implemented");
+    }
+
     record ChangeResult(Map<String, Object> before, Map<String, Object> after, String reason) { }
 
     record UnknownResultCommand(

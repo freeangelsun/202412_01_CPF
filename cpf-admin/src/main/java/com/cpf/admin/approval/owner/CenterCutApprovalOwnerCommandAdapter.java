@@ -105,10 +105,10 @@ public final class CenterCutApprovalOwnerCommandAdapter implements AdmApprovalOw
             long failed = number(row, "failedCount", "failed_count", "failureCount");
             long unknown = number(row, "unknownCount", "unknown_count");
             if ("reprocessCenterCutFailed".equals(command.ownerCommand()) && failed == 0
-                    && Set.of("RUNNING", "RETRYING", "COMPLETED", "SUCCEEDED").contains(state))
+                    && Set.of("COMPLETED", "SUCCEEDED", "RECOVERED").contains(state))
                 return succeeded("CENTER_CUT_REPROCESS_RECONCILED", "실패 항목 재처리 상태를 Owner에서 관측했습니다.");
             if ("reconcileCenterCutUnknown".equals(command.ownerCommand()) && unknown == 0
-                    && !Set.of("UNKNOWN", "UNKNOWN_RESULT").contains(state))
+                    && Set.of("COMPLETED", "SUCCEEDED", "RECOVERED").contains(state))
                 return succeeded("CENTER_CUT_UNKNOWN_RECONCILED", "UNKNOWN 해소 상태를 Owner에서 관측했습니다.");
             if (Set.of("FAILED", "REJECTED").contains(state)) return failed("CENTER_CUT_RECONCILED_"+state, "Owner 실패 상태를 관측했습니다.");
             return unknown("CENTER_CUT_RECONCILE_PENDING", "Owner 상태가 아직 최종 결과를 증명하지 못합니다.");

@@ -3,7 +3,7 @@ package com.cpf.core.service.common.logging;
 import com.cpf.core.common.logging.TransactionLogRecord;
 import com.cpf.core.api.logging.policy.LogPolicyDecision;
 import com.cpf.core.api.logging.policy.LogPolicyTargetType;
-import com.cpf.core.mapper.common.logging.TransactionLogMapper;
+import com.cpf.core.common.logging.spi.CpfTransactionLogPersistencePort;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -20,7 +20,7 @@ class TransactionLogServicePolicyTest {
 
     @Test
     void dbLogDisabledSkipsSummaryAndDetailInsert() {
-        TransactionLogMapper mapper = mock(TransactionLogMapper.class);
+        CpfTransactionLogPersistencePort mapper = mock(CpfTransactionLogPersistencePort.class);
         TransactionLogService service = new TransactionLogService(mapper);
         LogPolicyDecision policy = new LogPolicyDecision(
                 LogPolicyTargetType.ONLINE_TRANSACTION.code(),
@@ -44,7 +44,7 @@ class TransactionLogServicePolicyTest {
 
     @Test
     void bodySavePolicyRemovesDisabledPayloadsBeforeInsert() {
-        TransactionLogMapper mapper = mock(TransactionLogMapper.class);
+        CpfTransactionLogPersistencePort mapper = mock(CpfTransactionLogPersistencePort.class);
         doAnswer(invocation -> {
             TransactionLogRecord record = invocation.getArgument(0);
             record.setLogIdx(10L);
@@ -77,6 +77,35 @@ class TransactionLogServicePolicyTest {
         assertThat(record.getInternalMessage()).isNull();
         assertThat(details).doesNotContainKeys("requestBody", "response", "error.internalMessage");
         verify(mapper).insertTransactionLog(record);
+    }
+
+    @Test
+    void persistenceBoundaryMasksMaliciousSummaryAndPayloadEvenWhenProducerDidNotMask() {
+        CpfTransactionLogPersistencePort mapper = mock(CpfTransactionLogPersistencePort.class);
+        doAnswer(invocation -> {
+            TransactionLogRecord inserted = invocation.getArgument(0);
+            inserted.setLogIdx(99L);
+            assertThat(inserted.getMemberNo()).doesNotContain("1234567890123");
+            assertThat(inserted.getCustomerNo()).doesNotContain("cust-secret-001");
+            assertThat(inserted.getRequestBody()).doesNotContain("010-1234-5678");
+            assertThat(inserted.getErrorMessage()).doesNotContain("900101-1234567");
+            assertThat(inserted.getExecUser()).isEqualTo("operator-a");
+            return null;
+        }).when(mapper).insertTransactionLog(any(TransactionLogRecord.class));
+        TransactionLogService service = new TransactionLogService(mapper);
+        TransactionLogRecord malicious = TransactionLogRecord.builder()
+                .transactionId("20260623010101000ADMtest0010000001")
+                .businessTransactionId("ADM01TRN0010")
+                .memberNo("1234567890123")
+                .customerNo("cust-secret-001")
+                .requestBody("phone=010-1234-5678 token=abc.def.ghi")
+                .errorMessage("rrn=900101-1234567")
+                .execUser("operator-a")
+                .build();
+
+        service.saveTransactionLog(malicious, Map.of());
+
+        verify(mapper).insertTransactionLog(malicious);
     }
 
     private TransactionLogRecord record() {

@@ -1,0 +1,15 @@
+﻿gate,command,mutation,result,exit_code
+Canonical count,verify-canonical-requirements.py,wrong denominator/alias mutation,PASS,0
+TransactionId trust,verify-transactionid-trust-lineage.py --self-test,trusted ID regeneration; ChannelCode-as-System mutation,PASS,0
+DB3 lineage,verify-r6j-transaction-db3.py --self-test,canonical/vendor/writer/rollback/runtime mutation,PASS,0
+BZA Simulation,verify-bza-approval-simulation-contract.py --self-test,permission/direct-call mutation,PASS,0
+ADM CSP,verify-adm-csp.py --self-test,unsafe-eval + unpkg mutation,PASS,0
+ADM HIGH client,verify-adm-high-risk-generated-client.py --self-test,raw high-risk mutation,PASS,0
+ADM Reliability CAS,verify-adm-reliability-cas.py --self-test,row_version CAS removal,PASS,0
+ADM full consumer,verify-operation-consumer.mjs,generated→raw high-risk mutation,PASS: mutation rejected,mutation exit=1; restored exit=0
+Observability,run-r6-observability-qualification.py --self-test,unsigned/self-attested evidence mutation,PASS,0
+Security,run-r6-security-negative-qualification.py --self-test,semantic attack category mutation,PASS,0
+Resource,run-resource-contract.py --self-test,budget/cleanup/backpressure mutation,PASS,0
+Batch,run-batch-contract.py --self-test,identity/process-kill/reconcile mutation,PASS,0
+Broker,run-broker-contract.py --self-test,ids/offset/reconnect/retry-DLQ/backpressure mutation,PASS,0
+DR,run-r6-dr-chaos-probe.py --self-test,hash/RPO/RTO self-attestation mutation,PASS,0

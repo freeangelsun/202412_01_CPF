@@ -17,6 +17,8 @@ import com.cpf.core.api.batch.CpfBatchRiskCommand;
 import com.cpf.core.api.data.CpfDataRow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Map;
 import org.mockito.ArgumentCaptor;
 
 class BatchRuntimeApprovalOwnerCommandAdapterTest {
@@ -96,4 +98,21 @@ class BatchRuntimeApprovalOwnerCommandAdapterTest {
                 "requestRetry", "bat_execution", "42", "BATCH_RETRY", requester,
                 "incident recovery", "201", idempotencyKey, 7L, "");
     }
+    @Test
+    void reconcileRequiresExactStructuredOperationIdentity() throws Exception {
+        CpfBatchRiskCommand risk = risk("requester-01", "CMD-201");
+        AdmApprovedOperationCommand command = command(risk, "approver-02");
+        CpfDataRow collision = CpfDataRow.of(
+                "commandRequestId", command.commandRequestId() + "-shadow",
+                "idempotencyKey", risk.idempotencyKey(),
+                "approvalRequestId", String.valueOf(command.approvalRequestId()),
+                "operation", risk.operation(),
+                "targetType", risk.targetType(),
+                "targetId", risk.targetId(),
+                "status", "SUCCEEDED");
+        when(batch.findOperationLogs(null, 42L, 1000)).thenReturn(List.of(collision));
+
+        assertThat(adapter.reconcile(command).status()).isEqualTo(AdmApprovalExecutionStatus.UNKNOWN);
+    }
+
 }

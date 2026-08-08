@@ -100,7 +100,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             @PathVariable String messageId,
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = requestUser(servletRequest, request.requestUser());
+        String operatorId = requestUser(servletRequest, null);
         String reason = auditLogService.requireReason(request.reason());
         Map<String, Object> approval = reliabilityService.requestDlqReplayApproval(
                 messageId,
@@ -203,7 +203,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
     public ResponseEntity<CpfTraceRecoveryPort.TraceRecoveryRunResult> runTransactionLogRecovery(
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = requestUser(servletRequest, request.requestUser());
+        String operatorId = requestUser(servletRequest, null);
         String reason = auditLogService.requireReason(request.reason());
         CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
         CpfTraceRecoveryPort.TraceRecoveryRunResult result = traceRecoveryPort.recoverReadyEvents();
@@ -232,7 +232,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             @PathVariable String recoveryEventId,
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = requestUser(servletRequest, request.requestUser());
+        String operatorId = requestUser(servletRequest, null);
         String reason = auditLogService.requireReason(request.reason());
         CpfTraceRecoveryPort.TraceRecoveryStatus before = traceRecoveryPort.status();
         CpfTraceRecoveryPort.PoisonRetryResult result = traceRecoveryPort.retryPoison(target, recoveryEventId);
@@ -260,11 +260,15 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
             @PathVariable String unknownId,
             @RequestBody AdmReliabilityActionRequest request,
             HttpServletRequest servletRequest) {
-        String operatorId = requestUser(servletRequest, request.requestUser());
+        String operatorId = requestUser(servletRequest, null);
         String reason = auditLogService.requireReason(request.reason());
+        if (request.expectedVersion() == null || request.expectedVersion() < 0L) {
+            throw new IllegalArgumentException("expectedVersion이 필요합니다.");
+        }
         AdmReliabilityService.ChangeResult result = reliabilityService.resolveUnknown(
                 unknownId,
                 request.targetStatus(),
+                request.expectedVersion(),
                 operatorId,
                 reason);
         recordAudit(servletRequest, operatorId, "UNKNOWN_RESULT_RESOLVE", "cpf_unknown_result", unknownId, result);

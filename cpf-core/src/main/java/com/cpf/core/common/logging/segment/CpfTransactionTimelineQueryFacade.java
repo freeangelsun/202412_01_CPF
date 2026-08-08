@@ -272,25 +272,85 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     public Map<String, Object> sourceFreshness(String transactionId) {
         String tx = transactionId == null ? "" : transactionId.trim();
         if (tx.isEmpty() || jdbcTemplate == null) {
-            return Map.of("transactionId", tx, "partial", true, "stale", true,
-                    "missingSources", List.of("LOCAL"), "sources", List.of());
+            return classifySourceFreshness(tx, List.of(), java.util.Set.of("LOCAL"));
         }
-        List<Map<String,Object>> lineage = findLineage(tx, 500);
-        LinkedHashMap<String, Map<String,Object>> sources = new LinkedHashMap<>();
-        for (Map<String,Object> row : lineage) {
-            String type = Objects.toString(value(row,"sourceType"), "UNKNOWN");
-            Map<String,Object> current = sources.computeIfAbsent(type, ignored -> new LinkedHashMap<>());
+        try {
+            return classifySourceFreshness(tx, findLineage(tx, 500), java.util.Set.of());
+        } catch (RuntimeException ex) {
+            // A source-query failure is operationally different from a source that never applied.
+            // Fail closed for the always-applicable LOCAL source while leaving unrelated sources N/A.
+            return classifySourceFreshness(tx, List.of(), java.util.Set.of("LOCAL"));
+        }
+    }
+
+    static Map<String, Object> classifySourceFreshness(
+            String transactionId,
+            List<Map<String,Object>> lineage,
+            java.util.Set<String> failedSources) {
+        String tx = transactionId == null ? "" : transactionId.trim();
+        List<Map<String,Object>> safeLineage = lineage == null ? List.of() : lineage;
+        java.util.Set<String> failures = failedSources == null ? java.util.Set.of() : failedSources;
+        LinkedHashMap<String, Map<String,Object>> observed = new LinkedHashMap<>();
+        for (Map<String,Object> row : safeLineage) {
+            String type = Objects.toString(value(row,"sourceType"), "UNKNOWN").trim().toUpperCase(java.util.Locale.ROOT);
+            Map<String,Object> current = observed.computeIfAbsent(type, ignored -> new LinkedHashMap<>());
             current.put("sourceType", type);
             current.put("eventCount", ((Number)current.getOrDefault("eventCount",0)).intValue()+1);
             Object freshness=value(row,"freshnessAt");
             Object previous=current.get("freshnessAt");
-            if (freshness != null && (previous == null || String.valueOf(freshness).compareTo(String.valueOf(previous))>0)) current.put("freshnessAt",freshness);
+            if (freshness != null && (previous == null || String.valueOf(freshness).compareTo(String.valueOf(previous))>0)) {
+                current.put("freshnessAt",freshness);
+            }
         }
-        List<String> expected = List.of("LOCAL", "REMOTE", "MESSAGE", "DLQ", "BATCH", "FILE", "TRACE", "AUDIT");
-        List<String> missing = expected.stream().filter(src -> !sources.containsKey(src)).toList();
-        boolean stale = sources.values().stream().anyMatch(row -> staleTimestamp(row.get("freshnessAt")));
-        return Map.of("transactionId", tx, "partial", !missing.isEmpty(), "stale", stale,
-                "missingSources", missing, "sources", List.copyOf(sources.values()));
+
+        List<String> canonical = List.of("LOCAL", "REMOTE", "MESSAGE", "DLQ", "BATCH", "FILE", "TRACE", "AUDIT", "UNKNOWN");
+        LinkedHashSet<String> orderedTypes = new LinkedHashSet<>(canonical);
+        orderedTypes.addAll(observed.keySet());
+        orderedTypes.addAll(failures);
+
+        List<Map<String,Object>> states = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
+        List<String> failed = new ArrayList<>();
+        List<String> staleSources = new ArrayList<>();
+        List<String> notApplicable = new ArrayList<>();
+
+        for (String type : orderedTypes) {
+            Map<String,Object> current = observed.get(type);
+            boolean applicable = "LOCAL".equals(type) || current != null || failures.contains(type);
+            LinkedHashMap<String,Object> state = new LinkedHashMap<>();
+            state.put("sourceType", type);
+            state.put("applicability", applicable ? "APPLICABLE" : "NOT_APPLICABLE");
+            if (!applicable) {
+                state.put("availability", "NOT_APPLICABLE");
+                state.put("eventCount", 0);
+                notApplicable.add(type);
+            } else if (failures.contains(type)) {
+                state.put("availability", "FAILED");
+                state.put("eventCount", current == null ? 0 : current.getOrDefault("eventCount",0));
+                if (current != null && current.get("freshnessAt") != null) state.put("freshnessAt", current.get("freshnessAt"));
+                failed.add(type);
+            } else if (current == null) {
+                state.put("availability", "MISSING");
+                state.put("eventCount", 0);
+                missing.add(type);
+            } else {
+                boolean sourceStale = staleTimestamp(current.get("freshnessAt"));
+                state.putAll(current);
+                state.put("applicability", "APPLICABLE");
+                state.put("availability", sourceStale ? "STALE" : "AVAILABLE");
+                if (sourceStale) staleSources.add(type);
+            }
+            states.add(Map.copyOf(state));
+        }
+        return Map.of(
+                "transactionId", tx,
+                "partial", !missing.isEmpty() || !failed.isEmpty(),
+                "stale", !staleSources.isEmpty(),
+                "missingSources", List.copyOf(missing),
+                "failedSources", List.copyOf(failed),
+                "staleSources", List.copyOf(staleSources),
+                "notApplicableSources", List.copyOf(notApplicable),
+                "sources", List.copyOf(states));
     }
 
     private void appendIfTable(List<Map<String,Object>> target, String table, String sql, String transactionId, int limit) {
@@ -299,7 +359,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         catch (RuntimeException ignored) { /* one broken source makes the result partial, never falsely complete */ }
     }
 
-    private boolean staleTimestamp(Object value) {
+    private static boolean staleTimestamp(Object value) {
         if (value == null) return true;
         try {
             java.time.Instant instant;

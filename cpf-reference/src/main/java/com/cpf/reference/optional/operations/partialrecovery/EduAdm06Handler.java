@@ -1,22 +1,16 @@
 package com.cpf.reference.optional.operations.partialrecovery;
-import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-import com.cpf.reference.edu.runtime.model.*;
-import com.cpf.reference.edu.runtime.consumer.*;
-import java.util.*;
-/** EDU-ADM-06 — 부분 성공·대상별 복구: per-target result ledger and failed-only retry. */
-public final class EduAdm06Handler extends AbstractEduCapabilityHandler {
-    private static final List<String> BUSINESS_STATES=List.of("REQUESTED","ACCEPTED","RUNNING","SUCCEEDED","FAILED","UNKNOWN_RESULT","RECONCILED");
-    private static final List<String> EXCEPTION_SCENARIOS=List.of("일부 대상 Timeout","늦은 성공","Rollback 일부 실패","전체 성공으로 오판");
-    private static final List<String> REQUIRED_VERIFICATION=List.of("Backend Contract Test","Same-JVM/Remote Adapter Test","권한·Masking Test","Timeout·응답 유실 Test","Browser Test","Audit·Trace 연결");
-    public EduAdm06Handler(){super(new EduCapabilityDefinition("EDU-ADM-06","부분 성공·대상별 복구",EduCapabilityKind.OPERATIONS,"cpf-reference","CPF_REFERENCE_PLATFORM_OPERATOR",List.of("businessId","approvalId"),List.of(EduWorkflowStep.VALIDATE,EduWorkflowStep.AUTHORIZE,EduWorkflowStep.SCOPE,EduWorkflowStep.DEDUPE,EduWorkflowStep.VERSION_CHECK,EduWorkflowStep.PROTECT,EduWorkflowStep.MUTATE,EduWorkflowStep.COMMIT,EduWorkflowStep.RECONCILE,EduWorkflowStep.COMPENSATION_READY,EduWorkflowStep.AUDIT,EduWorkflowStep.OBSERVE),Set.of(EduFailurePoint.BEFORE_COMMIT,EduFailurePoint.AFTER_COMMIT,EduFailurePoint.PARTIAL_TARGET_FAILURE),true,true,false,false,true,false,3,"EDU-ADM-06"));}
-    @Override public String implementationPackage(){return "com.cpf.reference.optional.operations.partialrecovery";}
-    @Override public boolean readOnly(){return false;}
-    @Override public List<String> businessStates(){return BUSINESS_STATES;}
-    @Override public List<String> exceptionScenarios(){return EXCEPTION_SCENARIOS;}
-    @Override public List<String> requiredVerification(){return REQUIRED_VERIFICATION;}
-    @Override protected void validateBusinessInput(EduExecutionCommand c){super.validateBusinessInput(c);Object ids=c.payload().get("targetIds");if(ids instanceof Collection<?> list && list.isEmpty())throw new EduValidationException("targetIds must not be empty");Object failed=c.payload().get("failedTargetIds");if(ids instanceof Collection<?> all&&failed instanceof Collection<?> f&&!new HashSet<>(all).containsAll(f))throw new EduValidationException("failedTargetIds must be subset of targetIds");}
-    @Override public List<String> targetKeys(EduExecutionCommand c){Object ids=c.payload().get("targetIds");if(ids instanceof Collection<?> list&&!list.isEmpty())return list.stream().map(x->"target:"+x).toList();int n=Math.max(1,payloadInt(c,"targetCount",3));List<String> k=new ArrayList<>();for(int i=0;i<n;i++)k.add("target:"+i+":"+c.businessKey());return List.copyOf(k);}
-    @Override public EduConsumerBinding consumerBinding(){return new EduConsumerBinding("EDU-ADM-06",EduConsumerType.JDBC_COMMAND,"cpf-reference","CPF_EDU_BUSINESS_RECORD","RECONCILED","cpf-reference REF DB backoffice/operations contract","POST /api/reference/edu-capabilities/EDU-ADM-06/executions","cpf.reference.features.operations.enabled",60,List.of("businessId","approvalId"));}
-    @Override public Map<String,Object> buildBusinessResult(EduExecutionCommand c,long f){Map<String,Object> r=new LinkedHashMap<>(super.buildBusinessResult(c,f));List<String> all=targetKeys(c);Set<String> failedRaw=new LinkedHashSet<>();Object raw=c.payload().get("failedTargetIds");if(raw instanceof Collection<?> list)for(Object x:list)failedRaw.add("target:"+x);if(c.failurePoint()==EduFailurePoint.PARTIAL_TARGET_FAILURE&&failedRaw.isEmpty()&&!all.isEmpty())failedRaw.add(all.get(all.size()-1));Map<String,String> ledger=new LinkedHashMap<>();for(String t:all)ledger.put(t,failedRaw.contains(t)?"FAILED":"SUCCEEDED");List<String> retry=all.stream().filter(failedRaw::contains).toList();r.put("scenarioTitle","부분 성공·대상별 복구");r.put("businessState",retry.isEmpty()?"SUCCEEDED":"RECONCILED");r.put("perTargetResult",Map.copyOf(ledger));r.put("reprocessTargetIds",retry);r.put("successfulTargetsReplayAllowed",false);r.put("lateSuccessRequiresReconcile",true);r.put("compensationAvailable",true);r.put("targetKeys",all);return Map.copyOf(r);}
-    @Override public Map<String,Object> invalidPayloadExample(Map<String,Object> v){Map<String,Object> i=new LinkedHashMap<>(v);i.put("businessId","");return Map.copyOf(i);}
+
+import com.cpf.reference.optional.operations.config.EduAdmRedirectMetadata;
+
+/**
+ * EDU-ADM-06 is intentionally non-executable.
+ * Central architecture decision: MERGE_EDU. Product behavior is owned by cpf-reference:merged-edu.
+ * The legacy class name is retained only as source-level redirect metadata so historical
+ * references fail closed instead of silently registering duplicate runtime behavior.
+ */
+public final class EduAdm06Handler {
+    public static final EduAdmRedirectMetadata REDIRECT = new EduAdmRedirectMetadata(
+            "EDU-ADM-06", "MERGE_EDU", "cpf-reference:merged-edu", "CPF_ADM_OPERATOR", false);
+
+    private EduAdm06Handler() { }
 }

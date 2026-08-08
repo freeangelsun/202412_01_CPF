@@ -2,7 +2,7 @@
 -- occurred_at is the canonical interval partition key.
 CREATE TABLE cpf_transaction_lineage (
     lineage_id VARCHAR2(64) NOT NULL,
-    transaction_id VARCHAR2(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR2(128) NOT NULL,
     parent_segment_id VARCHAR2(128),
     attempt_no NUMBER(10) DEFAULT 1 NOT NULL,
@@ -46,7 +46,7 @@ INTERVAL (NUMTOYMINTERVAL(1, 'MONTH')) (
 
 CREATE TABLE cpf_transaction_lineage_archive (
     lineage_id VARCHAR2(64) NOT NULL,
-    transaction_id VARCHAR2(128) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
     segment_id VARCHAR2(128) NOT NULL,
     parent_segment_id VARCHAR2(128),
     attempt_no NUMBER(10) DEFAULT 1 NOT NULL,

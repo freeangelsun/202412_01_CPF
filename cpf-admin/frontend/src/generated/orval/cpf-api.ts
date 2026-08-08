@@ -63,6 +63,7 @@ import type {
   AdmCenterCutFindTargetsParams,
   AdmChannelPackageImportRequest,
   AdmChannelPolicySaveRequest,
+  AdmChannelRefreshSnapshotParams,
   AdmChannelSaveRequest,
   AdmCodeDeleteCodeParams,
   AdmConfigDeleteConfigParams,
@@ -4163,17 +4164,17 @@ export type admChannelRefreshSnapshotResponse = (admChannelRefreshSnapshotRespon
 
 export const getAdmChannelRefreshSnapshotUrl = () => `/adm/api/channels/refresh`;
 
-export const admChannelRefreshSnapshot = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admChannelRefreshSnapshotResponse> => {
+export const admChannelRefreshSnapshot = async (params: AdmChannelRefreshSnapshotParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admChannelRefreshSnapshotResponse> => {
   return cpfOrvalRequest<admChannelRefreshSnapshotResponse>(getAdmChannelRefreshSnapshotUrl(), {
     ...options,
     method: 'POST',
-
+    params,
   });
 };
 
 export const getAdmChannelRefreshSnapshotMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, TError, void, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, TError, void, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, TError, {params: AdmChannelRefreshSnapshotParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, TError, {params: AdmChannelRefreshSnapshotParams}, TContext> => {
   const mutationKey = ['admChannelRefreshSnapshot'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
@@ -4188,6 +4189,7 @@ export const getAdmChannelRefreshSnapshotMutationOptions = <TError = unknown, TC
 };
 
 export type AdmChannelRefreshSnapshotMutationResult = NonNullable<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>>;
+export type AdmChannelRefreshSnapshotMutationParams = AdmChannelRefreshSnapshotParams;
 export type AdmChannelRefreshSnapshotMutationBody = never;
 export type AdmChannelRefreshSnapshotMutationError = unknown;
 

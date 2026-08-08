@@ -47,12 +47,6 @@ export async function bzaAuthMe<T = unknown>(options: CpfGeneratedRequestOptions
 export async function bzaAuthSessions<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/auth/sessions", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
-export async function bzaBackofficeFindApprovals<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/approvals", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function bzaBackofficeFindApproval<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/approvals/{approvalId}", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
 export async function bzaBackofficeFindBusinessAudits<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/audits", options.path), method: "GET", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
@@ -196,12 +190,6 @@ export async function bzaAuthRefresh<T = unknown>(options: CpfGeneratedRequestOp
 }
 export async function bzaAuthRevokeSession<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/auth/sessions/{sessionId}/revoke", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function bzaBackofficeCreateApproval<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/approvals", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
-}
-export async function bzaBackofficeActApproval<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
-  return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/approvals/{approvalId}/actions", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });
 }
 export async function bzaBackofficeSaveEmployee<T = unknown>(options: CpfGeneratedRequestOptions = {}): Promise<T> {
   return cpfGeneratedRequest<T>({ url: renderPath("/api/bza/backoffice/employees", options.path), method: "POST", data: options.data, params: options.query, signal: options.signal, headers: options.headers });

@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.notification;
-import com.cpf.reference.edu.runtime.AbstractManualEduConcurrencyTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-16 ConcurrencyTest — 알림 Acknowledge·Escalation·교대 인계 */
-public final class EduAdm16ConcurrencyTest extends AbstractManualEduConcurrencyTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm16Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-16 redirect/non-executable regression contract. */
+public final class EduAdm16ConcurrencyTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm16Handler.class));
+        assertEquals("EDU-ADM-16", EduAdm16Handler.REDIRECT.requirementId());
+        assertEquals("PRODUCT_ADM", EduAdm16Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm16Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm16Handler.REDIRECT.executable());
+    }
 }

@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.session;
-import com.cpf.reference.edu.runtime.AbstractManualEduFailureTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-17 FailureTest — Browser 세션 만료·재로그인·위험 조치 안전성 */
-public final class EduAdm17FailureTest extends AbstractManualEduFailureTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm17Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-17 redirect/non-executable regression contract. */
+public final class EduAdm17FailureTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm17Handler.class));
+        assertEquals("EDU-ADM-17", EduAdm17Handler.REDIRECT.requirementId());
+        assertEquals("PRODUCT_ADM", EduAdm17Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm17Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm17Handler.REDIRECT.executable());
+    }
 }

@@ -29,6 +29,10 @@ public final class SensitiveDataMasker {
             "(?is)(-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----).*?(-----END(?: [A-Z0-9]+)? PRIVATE KEY-----)");
     private static final Pattern JWT_PATTERN = Pattern.compile(
             "(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}(?![A-Za-z0-9_-])");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)(?<![A-Z0-9._%+-])[A-Z0-9._%+-]{1,64}@([A-Z0-9.-]+\\.[A-Z]{2,})(?![A-Z0-9._%+-])");
+    private static final Pattern KOREAN_RRN_PATTERN = Pattern.compile("(?<!\\d)\\d{6}-?[1-4]\\d{6}(?!\\d)");
+    private static final Pattern KOREAN_PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:01[016789]|02|0[3-6][1-5])[- ]?\\d{3,4}[- ]?\\d{4}(?!\\d)");
+    private static final Pattern LONG_ACCOUNT_PATTERN = Pattern.compile("(?<!\\d)\\d{10,19}(?!\\d)");
     private static final AtomicReference<MaskingPolicy> POLICY =
             new AtomicReference<>(MaskingPolicy.create(DEFAULT_SENSITIVE_KEYS, DEFAULT_MAX_LENGTH,
                     true, 3L, Instant.EPOCH, sha256("CPF_MASKING_POLICY_INITIAL")));
@@ -84,6 +88,10 @@ public final class SensitiveDataMasker {
             }
             masked = PRIVATE_KEY_PATTERN.matcher(masked).replaceAll("$1***$2");
             masked = JWT_PATTERN.matcher(masked).replaceAll("***JWT***");
+            masked = EMAIL_PATTERN.matcher(masked).replaceAll("***@$1");
+            masked = KOREAN_RRN_PATTERN.matcher(masked).replaceAll("******-*******");
+            masked = KOREAN_PHONE_PATTERN.matcher(masked).replaceAll("***-****-****");
+            masked = maskLongNumericIdentifiers(masked);
             for (Pattern pattern : policy.jsonPatterns()) {
                 masked = pattern.matcher(masked).replaceAll("$1***$2");
             }
@@ -99,6 +107,26 @@ public final class SensitiveDataMasker {
             if (masked.equals(before)) break;
         }
         return truncate(masked, normalizeMaxLength(maxLength));
+    }
+
+    /** Field-aware fail-closed masking for identifiers stored in summary columns. */
+    public static String maskIdentifier(String value) {
+        if (value == null || value.isBlank()) return value;
+        String normalized = value.trim();
+        int keep = Math.min(4, normalized.length());
+        return "***" + normalized.substring(normalized.length() - keep);
+    }
+
+    private static String maskLongNumericIdentifiers(String value) {
+        var matcher = LONG_ACCOUNT_PATTERN.matcher(value);
+        StringBuffer out = new StringBuffer();
+        while (matcher.find()) {
+            String raw = matcher.group();
+            String replacement = "***" + raw.substring(Math.max(0, raw.length() - 4));
+            matcher.appendReplacement(out, java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(out);
+        return out.toString();
     }
 
     public static String truncate(String value, int maxLength) {

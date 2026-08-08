@@ -1,3 +1,4 @@
+import { admOperatorChangePassword, admOperatorFindOperators, admOperatorCreateOperator, admOperatorFindCreateResult, admOperatorRawContact, admOperatorUpdateStatus, admOperatorPasswordPolicy, admOperatorResetPassword, admOperatorUnlockOperator, admOperatorFindSessions, admOperatorRevokeSession, admOperatorCleanupExpiredSessions, admSecurityFindIpAllowlist, admSecurityFindMfaStates, admSecurityRegisterMfa, admSecurityVerifyMfa } from "../../generated/cpf-api";
 
 export const accessMethods = {
   permission(menuId) {
@@ -49,12 +50,10 @@ export const accessMethods = {
           return;
         }
         const operatorId = this.currentOperator.operatorId;
-        const result = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operatorId)}/password`, "POST", {
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
-          newPasswordConfirm: form.newPasswordConfirm,
-          reason: form.reason
-        });
+        const result = await admOperatorChangePassword({ path: { operatorId }, data: {
+          currentPassword: form.currentPassword, newPassword: form.newPassword,
+          newPasswordConfirm: form.newPasswordConfirm, reason: form.reason
+        } });
         if (!result?.operatorId) {
           this.authMessage = result?.message || "비밀번호 변경에 실패했습니다.";
           return;
@@ -120,7 +119,7 @@ export const accessMethods = {
         this.setMessage("API 권한을 수정했습니다.");
       },
   async loadOperators() {
-        this.operatorResult = await this.getJson("/adm/api/operators");
+        this.operatorResult = await admOperatorFindOperators();
       },
   async createOperator() {
         if (!this.canButton("OPERATOR_CREATE", "OPERATOR")) throw new Error("OPERATOR_CREATE 권한이 없습니다.");
@@ -141,12 +140,12 @@ export const accessMethods = {
           reason: this.operatorForm.reason
         };
         try {
-          this.operatorResult = await this.sendJson("/adm/api/operators", "POST", payload);
+          this.operatorResult = await admOperatorCreateOperator({ data: payload });
           this.operatorForm.operationId = crypto.randomUUID();
         } catch (error) {
           // 전송 결과가 불명확한 경우 새 operationId를 만들지 않고 동일 ID로 결과를 먼저 확인합니다.
           try {
-            this.operatorResult = await this.getJson(`/adm/api/operators/operations/${encodeURIComponent(operationId)}`);
+            this.operatorResult = await admOperatorFindCreateResult({ path: { operationId } });
             this.operatorForm.operationId = crypto.randomUUID();
           } catch (_lookupError) {
             throw error;
@@ -179,7 +178,7 @@ export const accessMethods = {
         this.operatorRawError = "";
         this.operatorRawLoading = true;
         try {
-          this.operatorRawResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/contacts/raw`, "POST", { reason });
+          this.operatorRawResult = await admOperatorRawContact({ path: { operatorId: operator.operatorId }, data: { reason } });
         } catch (error: any) {
           this.operatorRawResult = {};
           const status = Number(error?.status || error?.response?.status || 0);
@@ -198,69 +197,52 @@ export const accessMethods = {
         if (!this.canButton("OPERATOR_STATUS_UPDATE", "OPERATOR")) throw new Error("OPERATOR_STATUS_UPDATE 권한이 없습니다.");
         const reason = (this.operatorForm.reason || "").trim();
         if (!this.requireReason(reason)) return;
-        this.operatorResult = await this.sendJson(`/adm/api/operators/${encodeURIComponent(operator.operatorId)}/status`, "PUT", {
-          accountStatus: "ACTIVE",
-          expectedVersion: operator.versionNo,
-          reason
-        });
+        this.operatorResult = await admOperatorUpdateStatus({ path: { operatorId: operator.operatorId }, data: {
+          accountStatus: "ACTIVE", expectedVersion: operator.versionNo, reason
+        } });
         await this.loadOperators();
       },
   async loadPasswordPolicy() {
-        this.passwordResult = await this.getJson("/adm/api/operators/password-policy");
+        this.passwordResult = await admOperatorPasswordPolicy();
       },
   async resetOperatorPassword() {
         if (!this.passwordForm.operatorId || !this.passwordForm.newPassword || !this.requireReason(this.passwordForm.reason)) return;
-        this.passwordResult = await this.sendJson(`/adm/api/operators/${this.passwordForm.operatorId}/password/reset`, "POST", {
-          newPassword: this.passwordForm.newPassword,
-          forceChange: this.passwordForm.forceChange,
-          reason: this.passwordForm.reason
-        });
+        this.passwordResult = await admOperatorResetPassword({ path: { operatorId: this.passwordForm.operatorId }, data: {
+          newPassword: this.passwordForm.newPassword, forceChange: this.passwordForm.forceChange, reason: this.passwordForm.reason
+        } });
         this.setMessage("비밀번호 초기화를 요청했습니다.");
       },
   async unlockOperator() {
         if (!this.passwordForm.operatorId || !this.requireReason(this.passwordForm.reason)) return;
-        this.passwordResult = await this.sendJson(`/adm/api/operators/${this.passwordForm.operatorId}/unlock`, "POST", {
-          reason: this.passwordForm.reason
-        });
+        this.passwordResult = await admOperatorUnlockOperator({ path: { operatorId: this.passwordForm.operatorId }, data: { reason: this.passwordForm.reason } });
         this.setMessage("계정 잠금 해제를 요청했습니다.");
       },
   async loadSessions() {
-        const params = this.buildParams({ operatorId: this.passwordForm.operatorId });
-        this.passwordResult = await this.getJson(`/adm/api/operators/sessions?${params.toString()}`);
+        this.passwordResult = await admOperatorFindSessions({ query: { operatorId: this.passwordForm.operatorId || undefined } });
       },
   async revokeSession() {
         if (!this.passwordForm.sessionId || !this.requireReason(this.passwordForm.reason)) return;
-        this.passwordResult = await this.sendJson(`/adm/api/operators/sessions/${this.passwordForm.sessionId}/revoke`, "POST", {
-          reason: this.passwordForm.reason
-        });
+        this.passwordResult = await admOperatorRevokeSession({ path: { sessionId: this.passwordForm.sessionId }, data: { reason: this.passwordForm.reason } });
         this.setMessage("세션 강제 종료를 요청했습니다.");
       },
   async cleanupExpiredSessions() {
         if (!this.requireReason(this.passwordForm.reason)) return;
-        this.passwordResult = await this.sendJson("/adm/api/operators/sessions/cleanup-expired", "POST", {
-          reason: this.passwordForm.reason
-        });
+        this.passwordResult = await admOperatorCleanupExpiredSessions({ data: { reason: this.passwordForm.reason } });
         this.setMessage("만료 세션 정리를 요청했습니다.");
       },
   async loadSecurity() {
-        const ipAllowlist = await this.getJson("/adm/api/security/ip-allowlist");
-        const mfa = await this.getJson("/adm/api/security/mfa");
+        const ipAllowlist = await admSecurityFindIpAllowlist();
+        const mfa = await admSecurityFindMfaStates();
         this.securityResult = { ipAllowlist, mfa };
       },
   async registerMfa() {
         if (!this.securityForm.operatorId || !this.securityForm.secretRef || !this.requireReason(this.securityForm.reason)) return;
-        this.securityResult = await this.sendJson(`/adm/api/security/mfa/${this.securityForm.operatorId}/register`, "POST", {
-          secretRef: this.securityForm.secretRef,
-          reason: this.securityForm.reason
-        });
+        this.securityResult = await admSecurityRegisterMfa({ path: { operatorId: this.securityForm.operatorId }, data: { secretRef: this.securityForm.secretRef, reason: this.securityForm.reason } });
         this.setMessage("MFA 등록을 요청했습니다.");
       },
   async verifyMfa() {
         if (!this.securityForm.operatorId || !this.securityForm.otpCode || !this.requireReason(this.securityForm.reason)) return;
-        this.securityResult = await this.sendJson(`/adm/api/security/mfa/${this.securityForm.operatorId}/verify`, "POST", {
-          otpCode: this.securityForm.otpCode,
-          reason: this.securityForm.reason
-        });
+        this.securityResult = await admSecurityVerifyMfa({ path: { operatorId: this.securityForm.operatorId }, data: { otpCode: this.securityForm.otpCode, reason: this.securityForm.reason } });
         this.setMessage("MFA 검증을 요청했습니다.");
       }
 } satisfies Record<string, any>;

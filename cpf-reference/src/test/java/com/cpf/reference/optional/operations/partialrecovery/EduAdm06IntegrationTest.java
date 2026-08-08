@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.partialrecovery;
-import com.cpf.reference.edu.runtime.AbstractManualEduIntegrationTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-06 IntegrationTest — 부분 성공·대상별 복구 */
-public final class EduAdm06IntegrationTest extends AbstractManualEduIntegrationTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm06Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-06 redirect/non-executable regression contract. */
+public final class EduAdm06IntegrationTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm06Handler.class));
+        assertEquals("EDU-ADM-06", EduAdm06Handler.REDIRECT.requirementId());
+        assertEquals("MERGE_EDU", EduAdm06Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm06Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm06Handler.REDIRECT.executable());
+    }
 }

@@ -1,7 +1,18 @@
 package com.cpf.reference.optional.operations.reuse;
-import com.cpf.reference.edu.runtime.AbstractManualEduRecoveryTest;
+
 import com.cpf.reference.edu.runtime.application.AbstractEduCapabilityHandler;
-/** EDU-ADM-01 RecoveryTest — 기존 ADM 기능 재사용 판단 */
-public final class EduAdm01RecoveryTest extends AbstractManualEduRecoveryTest {
-    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm01Handler(); }
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** EDU-ADM-01 redirect/non-executable regression contract. */
+public final class EduAdm01RecoveryTest {
+    @Test
+    void productOwnedOrMergedScenarioIsNotAnExecutableReferenceHandler() {
+        assertFalse(AbstractEduCapabilityHandler.class.isAssignableFrom(EduAdm01Handler.class));
+        assertEquals("EDU-ADM-01", EduAdm01Handler.REDIRECT.requirementId());
+        assertEquals("MERGE_EDU", EduAdm01Handler.REDIRECT.architectureDecision());
+        assertEquals("CPF_ADM_OPERATOR", EduAdm01Handler.REDIRECT.requiredRole());
+        assertFalse(EduAdm01Handler.REDIRECT.executable());
+    }
 }

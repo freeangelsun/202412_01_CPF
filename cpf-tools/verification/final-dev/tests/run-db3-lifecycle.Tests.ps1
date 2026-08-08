@@ -50,6 +50,13 @@ exit 0
             ForEach-Object { Remove-Item "Env:$_" -ErrorAction SilentlyContinue }
     }
 
+    It 'uses the checked-in canonical QA34 runtime executor by default instead of a phantom Java class' {
+        $script | Should -Match 'cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1'
+        $script | Should -Match 'cpf-db-lifecycle-contract.json'
+        $script | Should -Not -Match "build/classes/java/main"
+        $script | Should -Not -Match "@\('-cp', \$RunnerClasspath, \$RunnerClass\)"
+    }
+
     It 'does not place URL username or password in argv' {
         $script | Should -Not -Match '"--url=\$url"'
         $script | Should -Not -Match '"--username=\$username"'

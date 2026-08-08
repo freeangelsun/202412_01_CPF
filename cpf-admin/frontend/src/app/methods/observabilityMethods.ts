@@ -1,3 +1,4 @@
+import { admTransactionMetaScan, admTransactionMetaInactivate, admDynamicLogLevelFindRules, admDynamicLogLevelRegister } from "../../generated/cpf-api";
 export const observabilityMethods = {
   sortLogs(key) {
         this.logSort = this.logSort.key === key
@@ -210,14 +211,12 @@ export const observabilityMethods = {
       },
   async scanTransactions() {
         if (!this.requireReason(this.transactionSearch.reason)) return;
-        const params = this.buildParams({ reason: this.transactionSearch.reason });
-        this.transactionResult = await this.sendJson(`/adm/api/transactions/scan?${params.toString()}`, "POST");
+        this.transactionResult = await admTransactionMetaScan({ query: { reason: this.transactionSearch.reason } });
         this.setMessage("거래 메타 재스캔을 요청했습니다.");
       },
   async inactivateTransaction() {
         if (!this.transactionSearch.selectedTransactionId || !this.requireReason(this.transactionSearch.reason)) return;
-        const params = this.buildParams({ reason: this.transactionSearch.reason });
-        this.transactionResult = await this.sendJson(`/adm/api/transactions/${this.transactionSearch.selectedTransactionId}/inactive?${params.toString()}`, "POST");
+        this.transactionResult = await admTransactionMetaInactivate({ path: { transactionId: this.transactionSearch.selectedTransactionId }, query: { reason: this.transactionSearch.reason } });
         this.setMessage("거래 메타를 비활성화했습니다.");
       },
   async loadLogDetail(logIdx) {
@@ -250,7 +249,7 @@ export const observabilityMethods = {
         this.downloadResult = { policies, auditLogs };
       },
   async loadLogLevelRules() {
-        this.logLevelResult = await this.getJson("/adm/api/log-level/rules");
+        this.logLevelResult = await admDynamicLogLevelFindRules();
       },
   async registerLogLevelRule() {
         if (!this.logLevelForm.businessTransactionId && !this.logLevelForm.transactionId) {
@@ -262,8 +261,13 @@ export const observabilityMethods = {
           return;
         }
         if (!this.requireReason(this.logLevelForm.reason)) return;
-        const params = this.buildParams(this.logLevelForm);
-        this.logLevelResult = await this.sendJson(`/adm/api/log-level/rules?${params.toString()}`, "PUT");
+        this.logLevelResult = await admDynamicLogLevelRegister({ query: {
+          businessTransactionId: this.logLevelForm.businessTransactionId || undefined,
+          transactionId: this.logLevelForm.transactionId || undefined,
+          logLevel: this.logLevelForm.logLevel || undefined,
+          ttlSeconds: Number(this.logLevelForm.ttlSeconds),
+          reason: this.logLevelForm.reason
+        } });
         this.setMessage("동적 로그 규칙을 등록했습니다.");
       },
   async loadLogPolicies() {

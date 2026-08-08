@@ -1,0 +1,6 @@
+﻿case,identity,success,failure_boundary,evidence,verification_status
+terminal fencing,commandRequestId+leaseOwner+fenceToken,final terminal UPDATE,stale fence 0-row,source/tests added,미검증
+expired recovery,candidate command/owner/fence snapshot,UNKNOWN transition,new owner cannot be overwritten,source contract,미검증
+Center-Cut reconcile,exact owner execution,terminal SUCCEEDED/FAILED only,non-terminal remains UNKNOWN,adapter test source,미검증
+Batch reconcile,structured immutable fields,original operation only,substring/collision rejected,adapter test source + batch semantic gate,미검증
+duplicate side effect,idempotency/command identity,single owner effect,retry observes same lineage,approval source contract,미검증

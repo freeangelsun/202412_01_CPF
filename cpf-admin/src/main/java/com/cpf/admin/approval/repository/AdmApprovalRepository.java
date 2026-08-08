@@ -411,20 +411,23 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             throw new IllegalStateException("approval execution reservation failed");
     }
 
-    public void finishExecution(long id,String status,String code,String message,boolean recovery,String operatorId){
+    public void finishExecution(long id,String commandRequestId,String leaseOwner,long fenceToken,
+            String status,String code,String message,boolean recovery,String operatorId){
         int changed=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS=?,OWNER_RESULT_CODE=?,OWNER_RESULT_MESSAGE=?,
                    COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN=?,LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
-             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
-            """,status,code,message,recovery?"Y":"N",operatorId,id);
-        if(changed!=1)throw new IllegalStateException("approval execution finalization failed");
+             WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+               AND LEASE_OWNER=? AND FENCE_TOKEN=?
+            """,status,code,message,recovery?"Y":"N",operatorId,id,commandRequestId,leaseOwner,fenceToken);
+        if(changed!=1)throw new IllegalStateException("approval execution finalization rejected by fence");
     }
 
     @Transactional(transactionManager = "admTransactionManager")
-    public void finishExecutionAndRequest(long id,long expectedRequestVersion,String executionStatus,
+    public void finishExecutionAndRequest(long id,long expectedRequestVersion,String commandRequestId,
+            String leaseOwner,long fenceToken,String executionStatus,
             String requestStatus,String code,String message,boolean recovery,String operatorId,
             String reason,String eventData,String transactionId){
-        finishExecution(id,executionStatus,code,message,recovery,operatorId);
+        finishExecution(id,commandRequestId,leaseOwner,fenceToken,executionStatus,code,message,recovery,operatorId);
         int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS=?,VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING' AND VERSION_NO=?
@@ -436,13 +439,15 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
 
     /** Atomically preserves a post-reservation integrity failure as UNKNOWN with an audit event. */
     @Transactional(transactionManager = "admTransactionManager")
-    public void recordExecutionIntegrityFailure(long id,String code,String message,String operatorId,
+    public void recordExecutionIntegrityFailure(long id,String commandRequestId,String leaseOwner,long fenceToken,
+                                                String code,String message,String operatorId,
                                                 String reason,String eventData,String transactionId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
                    OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
-             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
-            """,code,message,operatorId,id);
+             WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+               AND LEASE_OWNER=? AND FENCE_TOKEN=?
+            """,code,message,operatorId,id,commandRequestId,leaseOwner,fenceToken);
         int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
@@ -453,12 +458,14 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     }
 
     @Transactional(transactionManager = "admTransactionManager")
-    public void markExecutionUnknown(long id,String code,String message,String operatorId){
+    public void markExecutionUnknown(long id,String commandRequestId,String leaseOwner,long fenceToken,
+                                     String code,String message,String operatorId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE=?,
                    OWNER_RESULT_MESSAGE=?,COMPLETED_AT=CURRENT_TIMESTAMP,RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
-             WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
-            """,code,message,operatorId,id);
+             WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+               AND LEASE_OWNER=? AND FENCE_TOKEN=?
+            """,code,message,operatorId,id,commandRequestId,leaseOwner,fenceToken);
         int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?
              WHERE APPROVAL_REQUEST_ID=? AND APPROVAL_STATUS='EXECUTING'
@@ -482,23 +489,37 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
         if(maxRows<1) return 0;
         Timestamp nowTs=Timestamp.from(now);
         Timestamp legacyCutoff=Timestamp.from(now.minus(LEGACY_RUNNING_GRACE));
-        List<Long> candidates=jdbc.queryForList("""
-            SELECT APPROVAL_REQUEST_ID FROM adm_approval_execution
+        List<Map<String,Object>> candidates=jdbc.queryForList("""
+            SELECT APPROVAL_REQUEST_ID approvalRequestId,COMMAND_REQUEST_ID commandRequestId,
+                   LEASE_OWNER leaseOwner,FENCE_TOKEN fenceToken FROM adm_approval_execution
              WHERE EXECUTION_STATUS='RUNNING'
                AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
                     OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
              ORDER BY STARTED_AT,APPROVAL_REQUEST_ID
-            """,Long.class,nowTs,legacyCutoff);
+            """,nowTs,legacyCutoff);
         int recovered=0;
-        for(Long id:candidates.stream().limit(maxRows).toList()){
-            int executionChanged=jdbc.update("""
+        for(Map<String,Object> candidate:candidates.stream().limit(maxRows).toList()){
+            long id=((Number)value(candidate,"approvalRequestId")).longValue();
+            String commandRequestId=nullable(value(candidate,"commandRequestId"));
+            String leaseOwner=nullable(value(candidate,"leaseOwner"));
+            long fenceToken=((Number)value(candidate,"fenceToken")).longValue();
+            int executionChanged=leaseOwner==null ? jdbc.update("""
                 UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
                        OWNER_RESULT_MESSAGE='실행 Lease 만료로 Owner 결과 확인이 필요합니다.',COMPLETED_AT=CURRENT_TIMESTAMP,
                        RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
-                 WHERE APPROVAL_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+                 WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+                   AND LEASE_OWNER IS NULL AND FENCE_TOKEN=?
                    AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
                         OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
-                """,operatorId,id,nowTs,legacyCutoff);
+                """,operatorId,id,commandRequestId,fenceToken,nowTs,legacyCutoff) : jdbc.update("""
+                UPDATE adm_approval_execution SET EXECUTION_STATUS='UNKNOWN',OWNER_RESULT_CODE='ADM-EXECUTION-LEASE-EXPIRED',
+                       OWNER_RESULT_MESSAGE='실행 Lease 만료로 Owner 결과 확인이 필요합니다.',COMPLETED_AT=CURRENT_TIMESTAMP,
+                       RECOVERY_REQUIRED_YN='Y',LEASE_OWNER=NULL,LEASE_EXPIRES_AT=NULL,updated_by=?
+                 WHERE APPROVAL_REQUEST_ID=? AND COMMAND_REQUEST_ID=? AND EXECUTION_STATUS='RUNNING'
+                   AND LEASE_OWNER=? AND FENCE_TOKEN=?
+                   AND ((LEASE_EXPIRES_AT IS NOT NULL AND LEASE_EXPIRES_AT<=?)
+                        OR (LEASE_EXPIRES_AT IS NULL AND STARTED_AT IS NOT NULL AND STARTED_AT<=?))
+                """,operatorId,id,commandRequestId,leaseOwner,fenceToken,nowTs,legacyCutoff);
             if(executionChanged!=1) continue;
             int requestChanged=jdbc.update("""
                 UPDATE adm_approval_request SET APPROVAL_STATUS='UNKNOWN',VERSION_NO=VERSION_NO+1,updated_by=?

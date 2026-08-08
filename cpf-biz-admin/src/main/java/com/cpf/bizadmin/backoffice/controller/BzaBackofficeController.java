@@ -8,6 +8,7 @@ import com.cpf.core.api.security.CpfSensitiveDataAccessRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -110,6 +111,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     }
 
     @GetMapping("/approvals")
+    @Hidden
     @CpfOnlineTransaction(id = "OBZAAP0001", name = "BzaApprovalList")
     @Operation(operationId = "bzaBackofficeFindApprovals", summary = "Legacy 결재 목록 API(410)",
             description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
@@ -121,6 +123,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     }
 
     @PostMapping("/approvals")
+    @Hidden
     @CpfOnlineTransaction(id = "OBZAAP0002", name = "BzaApprovalCreate")
     @Operation(operationId = "bzaBackofficeCreateApproval", summary = "Legacy 결재 작성 API(410)", deprecated = true,
             description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
@@ -131,6 +134,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     }
 
     @GetMapping("/approvals/{approvalId}")
+    @Hidden
     @CpfOnlineTransaction(id = "OBZAAP0003", name = "BzaApprovalDetail")
     @Operation(operationId = "bzaBackofficeFindApproval", summary = "Legacy 결재 상세 API(410)",
             description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")
@@ -139,6 +143,7 @@ public class BzaBackofficeController extends com.cpf.bizadmin.common.base.BzaBas
     }
 
     @PostMapping("/approvals/{approvalId}/actions")
+    @Hidden
     @CpfOnlineTransaction(id = "OBZAAP0004", name = "BzaApprovalAction")
     @Operation(operationId = "bzaBackofficeActApproval", summary = "Legacy 결재 상태 변경 API(410)", deprecated = true,
             description = "직접 결재 API는 영구 폐기되었습니다. 정책 기반 /api/bza/approvals/** API를 사용합니다.")

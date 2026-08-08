@@ -1,6 +1,15 @@
 package com.cpf.core.config;
 
 import com.cpf.core.common.database.CpfSqlResourceResolver;
+import com.cpf.core.common.logging.spi.CpfTransactionLogPersistencePort;
+import com.cpf.core.common.logging.spi.CpfTransactionSegmentPersistencePort;
+import com.cpf.core.common.logging.spi.CpfTransactionLineageProjectionPort;
+import com.cpf.core.mapper.common.logging.TransactionLogMapper;
+import com.cpf.core.mapper.common.logging.TransactionSegmentMapper;
+import com.cpf.starter.persistence.mybatis.logging.MyBatisTransactionLogPersistenceAdapter;
+import com.cpf.starter.persistence.mybatis.logging.MyBatisTransactionSegmentPersistenceAdapter;
+import com.cpf.starter.persistence.mybatis.logging.JdbcTransactionLineageProjectionAdapter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
@@ -40,6 +49,21 @@ public class CpfMyBatisConfig {
         sqlSessionFactoryBean.setConfigLocation(new ClassPathResource("mybatis/config/cpf-mybatis-config.xml"));
         sqlSessionFactoryBean.setMapperLocations(CpfSqlResourceResolver.mapperResources(environment, "cpf"));
         return sqlSessionFactoryBean.getObject();
+    }
+
+    @Bean
+    public CpfTransactionLogPersistencePort cpfTransactionLogPersistencePort(TransactionLogMapper mapper) {
+        return new MyBatisTransactionLogPersistenceAdapter(mapper);
+    }
+
+    @Bean
+    public CpfTransactionSegmentPersistencePort cpfTransactionSegmentPersistencePort(TransactionSegmentMapper mapper) {
+        return new MyBatisTransactionSegmentPersistenceAdapter(mapper);
+    }
+
+    @Bean
+    public CpfTransactionLineageProjectionPort cpfTransactionLineageProjectionPort() {
+        return new JdbcTransactionLineageProjectionAdapter(new JdbcTemplate(cpfDataSource));
     }
 
     @Bean(name = "cpfSqlSessionTemplate")

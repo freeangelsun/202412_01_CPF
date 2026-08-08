@@ -1,3 +1,8 @@
+import {
+  admBatchRuntimeInstances, admBatchRuntimeView, admBatchRuntimeCommand,
+  admBatchRuntimeCommandState, admBatchRuntimeCreateDeploymentPlan,
+  type AdmBatchRuntimeCommandBody, type AdmBatchRuntimeCreateDeploymentPlanBody
+} from "../../generated/cpf-api";
 import { admApi, admInvokeOperation, CpfApiError } from "../../shared/cpfApi";
 
 export interface RuntimeInstance {
@@ -39,15 +44,13 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   }
 }
 export async function fetchRuntimeInstances(): Promise<RuntimeEnvelope> {
-  return request('/adm/api/batch-runtime/instances', { credentials: 'same-origin' })
+  return admBatchRuntimeInstances<RuntimeEnvelope>()
 }
 export async function fetchBatchView(view: string): Promise<BatchViewEnvelope> {
-  return request(`/adm/api/batch-runtime/views/${encodeURIComponent(view)}`, { credentials: 'same-origin' })
+  return admBatchRuntimeView<BatchViewEnvelope>({ path: { view } })
 }
-export async function createDeploymentPlan(body: unknown): Promise<Record<string, unknown>> {
-  return request('/adm/api/batch-runtime/deployment-plans', {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-  })
+export async function createDeploymentPlan(body: AdmBatchRuntimeCreateDeploymentPlanBody): Promise<Record<string, unknown>> {
+  return admBatchRuntimeCreateDeploymentPlan({ data: body })
 }
 
 export async function fetchJobDefinitions(jobId = "", state = ""): Promise<BatchViewEnvelope> {
@@ -114,27 +117,7 @@ export async function fetchBatchExecutionDetail(executionId: number): Promise<Ba
 }
 
 
-export interface BatchRuntimeCommandRequest {
-  commandId: string
-  idempotencyKey: string
-  commandType: 'START' | 'STOP' | 'RESTART' | 'DRAIN' | 'RESUME' | 'ROLLBACK'
-  targetType: 'INSTANCE' | 'POOL' | 'AGENT'
-  targetIds: string[]
-  targetSnapshot?: string
-  targetSnapshotHash?: string
-  expectedVersion: number
-  reason: string
-  requestedAt: string
-  approvalPolicyVersion: string
-  approvalRequestId: string
-  approvedBy: string
-  expiresAt: string
-  executionState?: string
-  executionAttempt?: number
-  parameters?: Record<string, unknown>
-  transactionId?: string
-  evidenceRef?: string
-}
+export type BatchRuntimeCommandRequest = AdmBatchRuntimeCommandBody
 
 export async function fetchBatchSchedules(): Promise<Array<Record<string, unknown>>> {
   return request('/adm/api/batch/schedules', { credentials: 'same-origin' })
@@ -190,12 +173,10 @@ export async function actBatchGhostExecution(executionId: number, actionType: st
   return actGhostExecution(String(executionId), { actionType, reason, approvalId: approvalRequestId, expectedVersion, idempotencyKey })
 }
 export async function submitBatchRuntimeCommand(command: BatchRuntimeCommandRequest): Promise<Record<string, unknown>> {
-  return request('/adm/api/batch-runtime/commands', {
-    method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(command),
-  })
+  return admBatchRuntimeCommand({ data: command })
 }
 export async function fetchBatchRuntimeCommandState(key: string): Promise<Record<string, unknown>> {
-  return request(`/adm/api/batch-runtime/commands/${encodeURIComponent(key)}`, { credentials: 'same-origin' })
+  return admBatchRuntimeCommandState({ path: { key } })
 }
 
 export async function fetchBatchJobDetail(jobId: string): Promise<Record<string, unknown>> {

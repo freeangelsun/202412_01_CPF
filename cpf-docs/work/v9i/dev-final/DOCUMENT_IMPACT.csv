@@ -1,0 +1,7 @@
+﻿path,action,impact,basis_sha
+cpf-docs/governance/**,READ_ONLY,Central currentization canonical/control; not modified by developer overlay,64dcb0c1
+cpf-docs/work/v9i/final-control/**,READ_ONLY,Central QA Merge truth; not modified,64dcb0c1
+cpf-docs/work/v9i/qa/final-a/**,READ_ONLY,QA A source input; not modified,64dcb0c1
+cpf-docs/work/v9i/qa/final-b/**,READ_ONLY,QA B source input; not modified,64dcb0c1
+cpf-docs/work/v9i/dev-final/**,CURRENT_UPDATE,Developer current-state result only; fixed filenames,64dcb0c1
+README/guides/deliverables/manual assets,NO_CHANGE,Role boundary protected,64dcb0c1

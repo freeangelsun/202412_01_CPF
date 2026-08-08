@@ -1,0 +1,29 @@
+package com.cpf.starter.data.persistence.jpa;
+
+import com.cpf.core.api.error.CpfPersistenceException;
+import com.cpf.core.api.error.CpfPersistenceFailureType;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.PessimisticLockException;
+import jakarta.persistence.QueryTimeoutException;
+
+/** JPA provider별 RuntimeException을 CPF persistence 실패 분류로 정규화합니다. */
+public final class CpfJpaExceptionTranslator {
+    private CpfJpaExceptionTranslator() { }
+
+    public static RuntimeException translate(String operation, RuntimeException cause) {
+        if (cause instanceof CpfPersistenceException) return cause;
+        CpfPersistenceFailureType type = switch (cause) {
+            case EntityNotFoundException ignored -> CpfPersistenceFailureType.NOT_FOUND;
+            case OptimisticLockException ignored -> CpfPersistenceFailureType.OPTIMISTIC_LOCK;
+            case PessimisticLockException ignored -> CpfPersistenceFailureType.PESSIMISTIC_LOCK;
+            case LockTimeoutException ignored -> CpfPersistenceFailureType.TIMEOUT;
+            case QueryTimeoutException ignored -> CpfPersistenceFailureType.TIMEOUT;
+            case PersistenceException ignored -> CpfPersistenceFailureType.QUERY;
+            default -> CpfPersistenceFailureType.UNKNOWN;
+        };
+        return new CpfPersistenceException(type, operation, "CPF JPA operation failed: " + operation, cause);
+    }
+}

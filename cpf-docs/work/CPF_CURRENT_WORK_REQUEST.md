@@ -1,8 +1,9 @@
 # CPF QA 전 최종 Core Hardening 개발 요청서
 
-> Current canonical path: `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md`  
-> Package source master: `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)  
-> Canonical requirement target after this currentization: **180**  
+> Current canonical path: `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md`
+> Request authoring source master: `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
+> Developer execution basis: `9f16468cccae71523f65f0aefcd94322788c4dd0` (successor `master`, session 17 direct source review)
+> Canonical requirement target after this currentization: **180**
 > 목적: 직전 QA A/B 재개발 결과를 successor에서 다시 검산하고, 신규 Core Transaction/Starter DX 요구와 기존 미흡점을 한 사이클에서 구현 완료한 뒤 강화 QA A/B로 넘긴다.
 
 ## 1. 최우선 실행 원칙
@@ -469,3 +470,22 @@ Developer GPT는 사용자 승인 없이 Commit/Push/Pull/Merge/Branch/Tag/PR/Re
 
 QA/Codex 상태를 임의 PASS로 바꾸지 않는다.
 
+
+
+## 17. Session 17 Fundamental Baseline Audit currentization
+
+이번 개발 사이클은 기존 Core Hardening과 별도로 **Fundamental Baseline Audit**을 독립 Gate로 수행한다. Core 진행률을 Fundamental 완료율로 환산하지 않는다.
+
+- Core direct-review ledger: `CPF_CORE_HARDENING_AUDIT.csv` = 180 checks
+- Fundamental direct-review ledger: `CPF_FUNDAMENTAL_BASELINE_AUDIT.csv` = 16 areas × 15 questions = 240 checks
+- Persistence detail ledger: `CPF_PERSISTENCE_BASELINE_AUDIT.csv` = 35 checks
+- exact status ledger: `REQUIREMENT_STATUS.csv`
+- execution basis: `9f16468cccae71523f65f0aefcd94322788c4dd0`
+
+Fundamental areas are Web/API, Persistence/Data, Transaction/Lock, Security, Cache, Integration, Messaging, Batch, Config, Common Utility, Observability, Generator/Generated Domain, EDU/Reference, ADM/BZA, OpenAPI/Generated Client, Repository Hygiene. 각 영역은 capability 존재 여부만이 아니라 Consumer, call path, failure/recovery, safe-default/fail-fast, native escape, cross-axis consistency, zero-footprint를 직접 Source 기준으로 검토한다.
+
+### Session 17 developer-remediable closure
+
+이번 사이클에서 XA/JTA, durable TCC, Inbox consumer-identity dedup/recovery, Saga UNKNOWN/manual-review, AI optional routing, OAuth2/JWT convenience API, OIDC login/logout/refresh, KMS/HSM key lifecycle/signature, tamper-evident audit, common CRUD DX, optional JPA provider, Generator JPA profile, Multipart adapter, SOAP client, typed config mutability catalog, stale delete-manifest currentization을 보완했다.
+
+Developer-remediable Gap은 Source/SQL/Config/Test/Harness/Reference 관점에서 0으로 정리한다. 단, Java 25/Gradle 9.1 fresh build, DB3 XA/JPA/TCC runtime, live broker process-kill, live IdP, live PKCS#11 HSM, live SOAP upstream, PowerShell generator full execution은 외부 실행 환경이 필요한 **Runtime-only verification**이며 PASS로 기록하지 않는다.

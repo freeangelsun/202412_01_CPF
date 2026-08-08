@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.ApplicationContext;
+import com.cpf.core.api.config.CpfConfigCatalog;
 import org.springframework.core.env.Environment;
 
 @AutoConfiguration
@@ -72,4 +74,10 @@ public class CpfBaseAutoConfiguration {
                     .build();
         };
     }
+    @Bean
+    @ConditionalOnMissingBean(CpfConfigCatalog.class)
+    CpfConfigCatalog cpfConfigCatalog(ApplicationContext context) {
+        return new CpfConfigurationPolicyCatalog(context);
+    }
+
 }

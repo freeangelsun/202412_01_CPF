@@ -1,7 +1,7 @@
 {
   "schemaVersion": "2.1.0",
   "catalogId": "CPF-QA39-CANONICAL-STARTER-CATALOG",
-  "baselineSha": "RUNTIME_GIT_HEAD",
+  "baselineSha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
   "publicProfiles": [
     "minimal-domain",
     "web-api",
@@ -117,6 +117,36 @@
       ]
     },
     {
+      "projectPath": ":cpf-starter-data-persistence-jpa",
+      "ownerPath": "cpf-starters/data/persistence-jpa",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-persistence-jpa",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.data.persistence.jpa",
+      "configPrefix": "cpf.data.persistence.jpa",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-data-transaction-jta",
+      "ownerPath": "cpf-starters/data/transaction-jta",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-data-transaction-jta",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "data",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.data.transaction.jta",
+      "configPrefix": "cpf.data.transaction.jta",
+      "legacyArtifactIds": []
+    },
+    {
       "projectPath": ":cpf-starter-file-archive",
       "ownerPath": "cpf-starters/file/archive",
       "groupId": "com.cpf.starter",
@@ -142,7 +172,7 @@
       "role": "capability-runtime",
       "ownerGroup": "file",
       "internalRole": "capability-runtime",
-      "packageBase": "com.cpf.starter.file.attachment",
+      "packageBase": "com.cpf.starter.attachment",
       "configPrefix": "cpf.file.attachment",
       "legacyArtifactIds": [
         "cpf-starter-attachment"
@@ -198,6 +228,21 @@
       "legacyArtifactIds": [
         "cpf-starter-base"
       ]
+    },
+    {
+      "projectPath": ":cpf-starter-integration-ai",
+      "ownerPath": "cpf-starters/integration/ai",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-ai",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.integration.ai",
+      "configPrefix": "cpf.integration.ai",
+      "legacyArtifactIds": []
     },
     {
       "projectPath": ":cpf-starter-integration-fixedlength",
@@ -276,6 +321,21 @@
       "internalRole": "capability-runtime",
       "packageBase": "com.cpf.starter.integration.resilience",
       "configPrefix": "cpf.integration.resilience",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-integration-soap",
+      "ownerPath": "cpf-starters/integration/soap",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-integration-soap",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "provider",
+      "packageBase": "com.cpf.starter.integration.soap",
+      "configPrefix": "cpf.integration.soap",
       "legacyArtifactIds": []
     },
     {
@@ -610,6 +670,36 @@
       ]
     },
     {
+      "projectPath": ":cpf-starter-security-audit-jdbc",
+      "ownerPath": "cpf-starters/security/audit-jdbc",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-audit-jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "security",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.security.audit.jdbc",
+      "configPrefix": "cpf.security.audit",
+      "legacyArtifactIds": []
+    },
+    {
+      "projectPath": ":cpf-starter-security-oidc-login",
+      "ownerPath": "cpf-starters/security/oidc-login",
+      "groupId": "com.cpf.starter",
+      "artifactId": "cpf-starter-security-oidc-login",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "publicationRequired": true,
+      "role": "capability-runtime",
+      "ownerGroup": "security",
+      "internalRole": "capability-runtime",
+      "packageBase": "com.cpf.starter.security.oidc",
+      "configPrefix": "cpf.security.oidc",
+      "legacyArtifactIds": []
+    },
+    {
       "projectPath": ":cpf-starter-security-resource-server",
       "ownerPath": "cpf-starters/security/resource-server",
       "groupId": "com.cpf.starter",
@@ -620,7 +710,7 @@
       "role": "provider",
       "ownerGroup": "security",
       "internalRole": "provider",
-      "packageBase": "com.cpf.starter.security.resource.server",
+      "packageBase": "com.cpf.starter.security.resource",
       "configPrefix": "cpf.security.resource-server",
       "legacyArtifactIds": []
     },
@@ -699,6 +789,10 @@
       "mybatis": {
         "projectPath": ":cpf-starter-data-persistence-mybatis",
         "coordinate": "com.cpf.starter:cpf-starter-data-persistence-mybatis"
+      },
+      "jpa": {
+        "projectPath": ":cpf-starter-data-persistence-jpa",
+        "coordinate": "com.cpf.starter:cpf-starter-data-persistence-jpa"
       }
     },
     "cache": {
@@ -719,6 +813,10 @@
       "tcp": {
         "projectPath": ":cpf-starter-integration-tcp",
         "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      },
+      "soap": {
+        "projectPath": ":cpf-starter-integration-soap",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-soap"
       }
     },
     "integration-codec": {
@@ -1071,7 +1169,7 @@
     ],
     "capabilityGroupCount": 7,
     "profileCount": 6,
-    "moduleCount": 39,
+    "moduleCount": 45,
     "retainedInactiveCount": 1
   },
   "profileMode": "ACTUAL_PROFILE_ARTIFACT",

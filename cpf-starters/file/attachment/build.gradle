@@ -3,7 +3,11 @@ group = 'com.cpf.starter'
 dependencies {
     implementation project(':cpf-starter-platform-operations-runtime-control-client')
     api project(':cpf-core')
-implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    compileOnly 'org.springframework:spring-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework:spring-web'
 }
 tasks.named('test') { useJUnitPlatform() }
 publishing {
@@ -14,4 +18,3 @@ publishing {
         }
     }
 }
-

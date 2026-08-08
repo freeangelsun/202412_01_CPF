@@ -3,13 +3,16 @@ package com.cpf.reference.attachment.controller;
 import com.cpf.core.api.attachment.CpfStoredAttachment;
 import com.cpf.core.api.execution.CpfOnlineTransaction;
 import com.cpf.reference.attachment.ReferenceAttachmentEducationSample;
+import com.cpf.starter.attachment.CpfMultipartAttachmentAdapter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /** CPF 첨부 저장 port를 실행해 보는 REF 교육 API입니다. */
 @RestController
@@ -17,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "REF Reference 17. 첨부파일", description = "안전한 첨부 저장, checksum, 저장 adapter 교체 교육 샘플")
 public class ReferenceAttachmentEducationController extends com.cpf.reference.common.base.ReferenceBaseController {
     private final ReferenceAttachmentEducationSample sample;
+    private final CpfMultipartAttachmentAdapter multipart;
 
-    public ReferenceAttachmentEducationController(ReferenceAttachmentEducationSample sample) {
+    public ReferenceAttachmentEducationController(ReferenceAttachmentEducationSample sample, CpfMultipartAttachmentAdapter multipart) {
         this.sample = sample;
+        this.multipart = multipart;
     }
 
     @PostMapping("/text")
@@ -29,6 +34,15 @@ public class ReferenceAttachmentEducationController extends com.cpf.reference.co
     public ResponseEntity<CpfStoredAttachment> storeText(
             @RequestBody ReferenceAttachmentEducationSample.AttachmentTextRequest request) {
         return ResponseEntity.ok(sample.storeText(request));
+    }
+
+    @PostMapping(path = "/multipart", consumes = "multipart/form-data")
+    @CpfOnlineTransaction(id = "OREFAA0067", name = "REFMultipart첨부저장")
+    @Operation(operationId = "refAttachmentEducationStoreMultipart", summary = "교육용 Multipart 첨부 저장",
+            description = "Spring MultipartFile을 CPF streaming storage port로 연결하면서 크기, 파일명, content-type 정책을 적용합니다.")
+    public ResponseEntity<CpfStoredAttachment> storeMultipart(
+            @RequestParam("groupId") String groupId, @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(multipart.store(groupId, file));
     }
 
     @PostMapping("/verify")

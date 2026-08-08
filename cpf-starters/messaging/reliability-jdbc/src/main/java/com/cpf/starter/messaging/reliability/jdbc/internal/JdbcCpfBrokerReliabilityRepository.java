@@ -327,47 +327,48 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
-    public boolean markReceived(String messageId, String idempotencyKey) {
+    public boolean markReceived(String consumerIdentity, String messageId, String idempotencyKey) {
+        java.util.Objects.requireNonNull(consumerIdentity, "consumerIdentity");
         java.util.Objects.requireNonNull(messageId, "messageId");
         try {
             jdbcTemplate.update("""
-                    INSERT INTO cpf_broker_inbox (message_id, idempotency_key, inbox_status, received_at, created_by, updated_by)
-                    VALUES (?, ?, 'RECEIVED', CURRENT_TIMESTAMP, 'CPF_BROKER', 'CPF_BROKER')
-                    """, messageId, idempotencyKey);
+                    INSERT INTO cpf_broker_inbox (consumer_identity, message_id, idempotency_key, inbox_status, received_at, created_by, updated_by)
+                    VALUES (?, ?, ?, 'RECEIVED', CURRENT_TIMESTAMP, 'CPF_BROKER', 'CPF_BROKER')
+                    """, consumerIdentity, messageId, idempotencyKey);
             return true;
         } catch (DuplicateKeyException ex) {
             Instant staleBefore = Instant.now(clock).minus(claimLease);
             int reclaimed = jdbcTemplate.update("""
                     UPDATE cpf_broker_inbox SET received_at = CURRENT_TIMESTAMP, result_detail = NULL,
-                        updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
-                    WHERE message_id = ? AND inbox_status = 'RECEIVED' AND updated_at <= ?
-                    """, messageId, timestamp(staleBefore));
+                        lease_version = lease_version + 1, updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
+                    WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED' AND updated_at <= ?
+                    """, consumerIdentity, messageId, timestamp(staleBefore));
             return reclaimed == 1;
         }
     }
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
-    public void markConsumed(String messageId, CpfBrokerResult result) {
+    public void markConsumed(String consumerIdentity, String messageId, CpfBrokerResult result) {
         Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_broker_inbox SET inbox_status = ?, consumed_at = ?, result_detail = ?,
                     updated_by = 'CPF_BROKER', updated_at = ?
-                WHERE message_id = ? AND inbox_status = 'RECEIVED'
+                WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
                 """, result.status(), timestamp(processedAt), CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()),
-                timestamp(processedAt), messageId);
-        if (updated != 1) throw new IllegalStateException("Broker inbox finalization conflict: " + messageId);
+                timestamp(processedAt), consumerIdentity, messageId);
+        if (updated != 1) throw new IllegalStateException("Broker inbox finalization conflict");
     }
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
-    public void markConsumerUnknown(String messageId, String detail) {
+    public void markConsumerUnknown(String consumerIdentity, String messageId, String detail) {
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_broker_inbox SET inbox_status = 'UNKNOWN', result_detail = ?,
                     updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ? AND inbox_status = 'RECEIVED'
-                """, CpfBrokerFailureSanitizer.sanitize(detail), messageId);
-        if (updated != 1) throw new IllegalStateException("Broker inbox UNKNOWN transition conflict: " + messageId);
+                WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
+                """, CpfBrokerFailureSanitizer.sanitize(detail), consumerIdentity, messageId);
+        if (updated != 1) throw new IllegalStateException("Broker inbox UNKNOWN transition conflict");
     }
 
     @Override
@@ -381,15 +382,29 @@ public class JdbcCpfBrokerReliabilityRepository
 
     @Override
     @Transactional(transactionManager = "cpfTransactionManager")
-    public CpfBrokerResult moveToDlq(CpfBrokerEnvelope envelope, String reason) {
+    public CpfBrokerResult moveToDlq(String consumerIdentity, CpfBrokerEnvelope envelope, String reason) {
         CpfBrokerResult result = sendToDlq(envelope, reason);
         int updated = jdbcTemplate.update("""
                 UPDATE cpf_broker_inbox SET inbox_status = 'DLQ', consumed_at = CURRENT_TIMESTAMP,
                     result_detail = ?, updated_by = 'CPF_BROKER', updated_at = CURRENT_TIMESTAMP
-                WHERE message_id = ? AND inbox_status = 'RECEIVED'
-                """, result.detail(), envelope.message().messageId());
-        if (updated != 1) throw new IllegalStateException("Broker inbox DLQ transition conflict: " + envelope.message().messageId());
+                WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
+                """, result.detail(), consumerIdentity, envelope.message().messageId());
+        if (updated != 1) throw new IllegalStateException("Broker inbox DLQ transition conflict");
         return result;
+    }
+
+    /** 완료/실패 inbox 보존기간이 지난 행을 bounded batch로 정리합니다. */
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public int purgeInboxBefore(Instant cutoff, int limit) {
+        if (cutoff == null) throw new IllegalArgumentException("cutoff is required");
+        if (limit < 1 || limit > 10_000) throw new IllegalArgumentException("limit must be 1..10000");
+        List<Map<String,Object>> rows = queryForListLimited("""
+                SELECT inbox_id AS inboxId FROM cpf_broker_inbox
+                WHERE inbox_status <> 'RECEIVED' AND updated_at < ? ORDER BY inbox_id
+                """, List.of(timestamp(cutoff)), limit);
+        int deleted=0;
+        for (Map<String,Object> row : rows) deleted += jdbcTemplate.update("DELETE FROM cpf_broker_inbox WHERE inbox_id = ? AND inbox_status <> 'RECEIVED'", row.get("inboxId"));
+        return deleted;
     }
 
     @Override

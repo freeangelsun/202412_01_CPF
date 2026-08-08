@@ -1,0 +1,13 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    api project(':cpf-core')
+    api project(':cpf-starter-foundation-base')
+    implementation 'org.springframework.boot:spring-boot-starter-webservices'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webservices-test'
+    testImplementation 'org.assertj:assertj-core'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId='cpf-starter-integration-soap'} } }

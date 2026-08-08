@@ -1,0 +1,12 @@
+package com.cpf.starter.security.secret;
+
+import static org.assertj.core.api.Assertions.*;import com.cpf.core.api.security.audit.*;import com.cpf.core.api.security.crypto.*;import java.security.MessageDigest;import java.time.*;import java.util.*;import org.junit.jupiter.api.Test;
+class CpfTamperAuditServiceTest {
+ @Test void detectsDeletionAndReordering(){var store=new MemoryStore();var svc=new CpfTamperAuditService(store,new DigestSignature(),"k","SHA256",Clock.fixed(Instant.parse("2026-08-08T00:00:00Z"),ZoneOffset.UTC));svc.append("tx","a","ONE","x".getBytes());svc.append("tx","a","TWO","y".getBytes());assertThat(svc.verify(1,10).valid()).isTrue();store.rows.remove(0);assertThat(svc.verify(1,10).valid()).isFalse();}
+ @Test void appendCasPreventsStaleHead(){var store=new MemoryStore();var svc=new CpfTamperAuditService(store,new DigestSignature(),"k","SHA256",Clock.systemUTC());var first=svc.append("tx","a","ONE",new byte[0]);assertThat(first.sequence()).isEqualTo(1);store.failNextCas=true;var second=svc.append("tx","a","TWO",new byte[0]);assertThat(second.sequence()).isEqualTo(2);}
+ static final class MemoryStore implements CpfTamperAuditStore {final List<CpfTamperAuditRecord> rows=new ArrayList<>();CpfTamperAuditHead head=new CpfTamperAuditHead(0,"GENESIS");boolean failNextCas;
+  public Optional<CpfTamperAuditRecord> latest(){return rows.stream().max(Comparator.comparingLong(CpfTamperAuditRecord::sequence));}public CpfTamperAuditHead head(){return head;}
+  public boolean append(String expected,CpfTamperAuditRecord r){if(failNextCas){failNextCas=false;return false;}if(!head.currentHash().equals(expected)||r.sequence()!=head.sequence()+1)return false;rows.add(r);head=new CpfTamperAuditHead(r.sequence(),r.currentHash());return true;}
+  public List<CpfTamperAuditRecord> scan(long from,int limit){return rows.stream().filter(r->r.sequence()>=from).sorted(Comparator.comparingLong(CpfTamperAuditRecord::sequence)).limit(limit).toList();}}
+ static final class DigestSignature implements CpfDigitalSignatureOperations {public CpfDigitalSignature sign(String tx,String key,String alg,byte[] payload){return new CpfDigitalSignature(key,"1",alg,null,digest(payload),Instant.now());}public boolean verify(String tx,byte[] payload,CpfDigitalSignature sig){return Arrays.equals(digest(payload),sig.signature());}private static byte[] digest(byte[] p){try{return MessageDigest.getInstance("SHA-256").digest(p);}catch(Exception e){throw new IllegalStateException(e);}}}
+}

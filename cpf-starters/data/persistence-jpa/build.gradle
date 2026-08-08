@@ -1,0 +1,23 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+
+dependencies {
+    api project(':cpf-core')
+    api project(':cpf-starter-foundation-base')
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-actuator'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-data-persistence-jpa'
+        }
+    }
+}

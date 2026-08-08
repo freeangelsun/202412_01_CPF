@@ -18,6 +18,8 @@ public class CpfSagaEngine {
         String sagaId="SAGA-"+UUID.randomUUID();
         CpfSagaContext context=new CpfSagaContext(sagaId,definition.sagaType(),businessKey,transactionId,attributes);
         store.create(context);
+        store.markSaga(sagaId,CpfSagaStatus.STARTED,null);
+        store.markSaga(sagaId,CpfSagaStatus.RUNNING,null);
         List<Completed> completed=new ArrayList<>();
         for(int i=0;i<definition.steps().size();i++){
             CpfSagaStep step=definition.steps().get(i);int stepNo=i+1;
@@ -27,8 +29,13 @@ public class CpfSagaEngine {
                 CpfSagaStepResult safe=result==null?CpfSagaStepResult.success(null):result;
                 store.markStep(sagaId,stepNo,step.stepId(),CpfSagaStepStatus.COMPLETED,safe,null,false);
                 completed.add(new Completed(stepNo,step,safe));
+            }catch(CpfSagaUnknownOutcomeException ex){
+                store.markStep(sagaId,stepNo,step.stepId(),CpfSagaStepStatus.FAILED,null,safe(ex),false);
+                store.markSaga(sagaId,CpfSagaStatus.UNKNOWN,safe(ex));
+                return store.find(sagaId).orElseThrow();
             }catch(Exception ex){
                 store.markStep(sagaId,stepNo,step.stepId(),CpfSagaStepStatus.FAILED,null,safe(ex),false);
+                store.markSaga(sagaId,CpfSagaStatus.FAILED,safe(ex));
                 compensate(context,completed,ex);
                 return store.find(sagaId).orElseThrow();
             }
@@ -46,7 +53,7 @@ public class CpfSagaEngine {
             try{c.step.compensate(context,c.result);store.markStep(context.sagaId(),c.stepNo,c.step.stepId(),CpfSagaStepStatus.COMPENSATED,c.result,null,true);}
             catch(Exception ex){failed=true;store.markStep(context.sagaId(),c.stepNo,c.step.stepId(),CpfSagaStepStatus.COMPENSATION_FAILED,c.result,safe(ex),true);}
         }
-        store.markSaga(context.sagaId(),failed?CpfSagaStatus.MANUAL_INTERVENTION_REQUIRED:CpfSagaStatus.COMPENSATED,failed?"일부 Compensation 실패 - 수동 복구 필요":safe(cause));
+        store.markSaga(context.sagaId(),failed?CpfSagaStatus.MANUAL_REVIEW:CpfSagaStatus.COMPENSATED,failed?"일부 Compensation 실패 - 수동 복구 필요":safe(cause));
     }
 
     private static String safe(Exception ex){String m=ex==null?null:ex.getMessage();return m==null?ex==null?null:ex.getClass().getSimpleName():m.substring(0,Math.min(1000,m.length()));}

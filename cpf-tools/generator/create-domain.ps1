@@ -1546,8 +1546,126 @@ public class ${FeatureClassPrefix}Repository {
 }
 "@
 
+$jpaRepository = @"
+package $FeaturePackage.repository;
+
+$([string]::Concat('import ', $BasePackage, '.common.contract.', $ModuleClassName, 'RepositoryPort;'))
+import $FeaturePackage.dto.*;
+import com.cpf.core.api.page.CpfSlice;
+import com.cpf.core.api.error.CpfPersistenceException;
+import com.cpf.core.api.error.CpfPersistenceFailureType;
+import com.cpf.starter.data.persistence.jpa.CpfJpaNativeAccess;
+import jakarta.persistence.*;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
+import java.util.*;
+
+/**
+ * CPF Optional JPA Provider를 사용하는 Generated Domain 저장소입니다.
+ * <p>JDBC/MyBatis와 같은 API/idempotency/optimistic-lock/logical-delete 의미를 유지합니다.
+ * 복잡 Query는 {@link #entityManager()} escape hatch를 사용할 수 있습니다.</p>
+ */
+@Repository
+public class ${FeatureClassPrefix}Repository implements ${FeatureClassPrefix}QueryPort, ${FeatureClassPrefix}CommandPort, CpfJpaNativeAccess {
+    private static final Map<String,String> SORTS = Map.of(
+            "created_at","createdAt", "updated_at","updatedAt", "sample_item_id","sampleItemId", "item_name","itemName");
+    private final EntityManager em;
+    private final TransactionTemplate tx;
+
+    public ${FeatureClassPrefix}Repository(EntityManager em, PlatformTransactionManager manager) {
+        this.em = Objects.requireNonNull(em,"em");
+        this.tx = new TransactionTemplate(Objects.requireNonNull(manager,"manager"));
+    }
+    @Override public EntityManager entityManager(){ return em; }
+
+    @Override public ${FeatureClassPrefix}SearchResult search(${FeatureClassPrefix}SearchRequest request) {
+        var n=request.normalized(); String sort=SORTS.get(n.sortBy());
+        if(sort==null) throw new IllegalArgumentException("허용되지 않은 정렬 field: "+n.sortBy());
+        String order="ASC".equals(n.sortDirection())?"ASC":"DESC";
+        String where="e.deletedYn='N' and (:keyword='' or lower(e.sampleKey) like :kw or lower(e.itemName) like :kw)";
+        var q=em.createQuery("select e from ${FeatureClassPrefix}SampleItemEntity e where "+where+" order by e."+sort+" "+order,${FeatureClassPrefix}SampleItemEntity.class);
+        String keyword=n.keyword()==null?"":n.keyword().trim().toLowerCase(Locale.ROOT); q.setParameter("keyword",keyword);q.setParameter("kw","%"+keyword+"%");
+        q.setFirstResult(n.offset());q.setMaxResults(n.size());
+        var cq=em.createQuery("select count(e) from ${FeatureClassPrefix}SampleItemEntity e where "+where,Long.class);cq.setParameter("keyword",keyword);cq.setParameter("kw","%"+keyword+"%");
+        return new ${FeatureClassPrefix}SearchResult(q.getResultStream().map(${FeatureClassPrefix}Repository::dto).toList(),n,cq.getSingleResult());
+    }
+    @Override public Optional<${FeatureClassPrefix}SampleItem> findBySampleKey(String key){
+        return em.createQuery("select e from ${FeatureClassPrefix}SampleItemEntity e where e.sampleKey=:key and e.deletedYn='N'",${FeatureClassPrefix}SampleItemEntity.class)
+                .setParameter("key",key).setMaxResults(1).getResultStream().findFirst().map(${FeatureClassPrefix}Repository::dto);
+    }
+    @Override public ${FeatureClassPrefix}SampleItem create(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("CREATE",0,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()); var replay=replay(idem,"CREATE",hash,0); if(replay!=null)return requiredItem(replay.sampleItemId);
+        if(findBySampleKey(c.sampleKey()).isPresent())throw new CpfPersistenceException(CpfPersistenceFailureType.CONSTRAINT,"create","sampleKey duplicate",null);
+        Instant now=Instant.now(); var e=new ${FeatureClassPrefix}SampleItemEntity();e.sampleKey=c.sampleKey();e.itemName=c.itemName();e.statusCode=c.statusCode();e.versionNo=0;e.idempotencyKey=idem;e.transactionId=txId;e.transactionSequence=sequence;e.transactionAt=now;e.deletedYn="N";e.createdBy=actor;e.createdAt=now;e.updatedBy=actor;e.updatedAt=now;em.persist(e);em.flush();
+        persistReplay(idem,"CREATE",hash,e.sampleItemId,e.versionNo,false,txId); return dto(e);
+    }
+    @Override public ${FeatureClassPrefix}SampleItem update(long id,${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("UPDATE",id,c.sampleKey(),c.itemName(),c.statusCode(),c.expectedVersion()); var replay=replay(idem,"UPDATE",hash,id);if(replay!=null)return requiredItem(id);
+        var e=requiredEntity(id);if(e.versionNo!=c.expectedVersion())throw new CpfPersistenceException(CpfPersistenceFailureType.OPTIMISTIC_LOCK,"update","version conflict",null);
+        e.sampleKey=c.sampleKey();e.itemName=c.itemName();e.statusCode=c.statusCode();e.idempotencyKey=idem;e.transactionId=txId;e.transactionSequence=sequence;e.transactionAt=Instant.now();e.updatedBy=actor;e.updatedAt=Instant.now();em.flush();
+        persistReplay(idem,"UPDATE",hash,id,e.versionNo,false,txId);return dto(e);
+    }
+    @Override public ${FeatureClassPrefix}DeleteResult delete(long id,long version,String txId,String idem,long sequence,String actor){
+        String hash=requestHash("DELETE",id,"","","",version);var replay=replay(idem,"DELETE",hash,id);if(replay!=null)return new ${FeatureClassPrefix}DeleteResult(true,id,replay.resultVersion);
+        var e=requiredEntity(id);if(e.versionNo!=version)throw new CpfPersistenceException(CpfPersistenceFailureType.OPTIMISTIC_LOCK,"delete","version conflict",null);
+        e.deletedYn="Y";e.idempotencyKey=idem;e.transactionId=txId;e.transactionSequence=sequence;e.transactionAt=Instant.now();e.updatedBy=actor;e.updatedAt=Instant.now();em.flush();
+        persistReplay(idem,"DELETE",hash,id,e.versionNo,true,txId);return new ${FeatureClassPrefix}DeleteResult(true,id,e.versionNo);
+    }
+    @Override public CpfSlice<${FeatureClassPrefix}SampleItem> cursor(Long afterId,int size){
+        int safe=Math.max(1,Math.min(size,200));var rows=em.createQuery("select e from ${FeatureClassPrefix}SampleItemEntity e where e.sampleItemId>:id and e.deletedYn='N' order by e.sampleItemId asc",${FeatureClassPrefix}SampleItemEntity.class).setParameter("id",afterId==null?0L:afterId).setMaxResults(safe+1).getResultList();boolean next=rows.size()>safe;var values=(next?rows.subList(0,safe):rows).stream().map(${FeatureClassPrefix}Repository::dto).toList();return new CpfSlice<>(values,0,safe,next);
+    }
+    @Override public boolean verifyRollback(${FeatureClassPrefix}SampleCommand c,String txId,String idem,long sequence,String actor){
+        boolean before=findBySampleKey(c.sampleKey()).isPresent();boolean[] seen={false};tx.executeWithoutResult(status->{create(c,txId,idem,sequence,actor);seen[0]=findBySampleKey(c.sampleKey()).isPresent();status.setRollbackOnly();});em.clear();return seen[0]&&before==findBySampleKey(c.sampleKey()).isPresent()&&em.find(${FeatureClassPrefix}IdempotencyEntity.class,idem)==null;
+    }
+    private ${FeatureClassPrefix}SampleItem requiredItem(long id){return dto(requiredEntity(id));}
+    private ${FeatureClassPrefix}SampleItemEntity requiredEntity(long id){var e=em.find(${FeatureClassPrefix}SampleItemEntity.class,id,LockModeType.OPTIMISTIC);if(e==null||"Y".equals(e.deletedYn))throw new CpfPersistenceException(CpfPersistenceFailureType.NOT_FOUND,"findById","Sample Item not found: "+id,null);return e;}
+    private ${FeatureClassPrefix}IdempotencyEntity replay(String key,String op,String hash,long expected){var x=em.find(${FeatureClassPrefix}IdempotencyEntity.class,key);if(x==null)return null;if(!op.equals(x.operationCode)||!hash.equals(x.requestHash)||(expected>0&&x.sampleItemId!=expected))throw new IllegalStateException("동일 idempotencyKey에 다른 요청을 사용할 수 없습니다.");return x;}
+    private void persistReplay(String key,String op,String hash,long id,long version,boolean deleted,String txId){var x=new ${FeatureClassPrefix}IdempotencyEntity();x.idempotencyKey=key;x.operationCode=op;x.requestHash=hash;x.sampleItemId=id;x.resultVersion=version;x.deletedYn=deleted?"Y":"N";x.transactionId=txId;x.createdAt=Instant.now();em.persist(x);}
+    private String requestHash(String operation,long id,String sampleKey,String itemName,String statusCode,long version){String canonical=operation+'|'+id+'|'+sampleKey+'|'+itemName+'|'+statusCode+'|'+version;try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));}catch(Exception ex){throw new IllegalStateException("멱등 요청 Hash 생성 실패",ex);}}
+    private static ${FeatureClassPrefix}SampleItem dto(${FeatureClassPrefix}SampleItemEntity e){return new ${FeatureClassPrefix}SampleItem(e.sampleItemId,e.sampleKey,e.itemName,e.statusCode,e.versionNo,e.idempotencyKey,e.transactionId,e.transactionSequence,e.transactionAt,e.createdBy,e.createdAt,e.updatedBy,e.updatedAt);}
+}
+
+@Entity(name="${FeatureClassPrefix}SampleItemEntity")
+@Table(name="$($TablePrefix)_sample_item", schema="$SchemaName")
+class ${FeatureClassPrefix}SampleItemEntity {
+    @Id @GeneratedValue(strategy=GenerationType.IDENTITY) @Column(name="sample_item_id") long sampleItemId;
+    @Column(name="sample_key",nullable=false,length=100,unique=true) String sampleKey;
+    @Column(name="item_name",nullable=false,length=200) String itemName;
+    @Column(name="status_code",nullable=false,length=30) String statusCode;
+    @Version @Column(name="version_no",nullable=false) long versionNo;
+    @Column(name="idempotency_key",nullable=false,length=180) String idempotencyKey;
+    @Column(name="transaction_id",nullable=false,length=34) String transactionId;
+    @Column(name="transaction_sequence",nullable=false) long transactionSequence;
+    @Column(name="transaction_at",nullable=false) Instant transactionAt;
+    @Column(name="deleted_yn",nullable=false,length=1) String deletedYn;
+    @Column(name="created_by",nullable=false,length=100) String createdBy;
+    @Column(name="created_at",nullable=false) Instant createdAt;
+    @Column(name="updated_by",nullable=false,length=100) String updatedBy;
+    @Column(name="updated_at",nullable=false) Instant updatedAt;
+    protected ${FeatureClassPrefix}SampleItemEntity(){}
+}
+
+@Entity(name="${FeatureClassPrefix}IdempotencyEntity")
+@Table(name="$($TablePrefix)_sample_item_idem", schema="$SchemaName")
+class ${FeatureClassPrefix}IdempotencyEntity {
+    @Id @Column(name="idempotency_key",length=180) String idempotencyKey;
+    @Column(name="operation_code",nullable=false,length=20) String operationCode;
+    @Column(name="request_hash",nullable=false,length=64) String requestHash;
+    @Column(name="sample_item_id",nullable=false) long sampleItemId;
+    @Column(name="result_version",nullable=false) long resultVersion;
+    @Column(name="deleted_yn",nullable=false,length=1) String deletedYn;
+    @Column(name="transaction_id",nullable=false,length=34) String transactionId;
+    @Column(name="created_at",nullable=false) Instant createdAt;
+    protected ${FeatureClassPrefix}IdempotencyEntity(){}
+}
+"@
+
 $dataProvider = if ($DatabaseEnabled) { [string]$resolvedProviderBindings['data'] } else { '' }
-$repository = if ($dataProvider -eq 'jdbc') { $jdbcRepository } else { $myBatisRepository }
+$repository = if ($dataProvider -eq 'jdbc') { $jdbcRepository } elseif ($dataProvider -eq 'mybatis') { $myBatisRepository } elseif ($dataProvider -eq 'jpa') { $jpaRepository } else { throw "지원하지 않는 Data Provider입니다: $dataProvider" }
 
 $searchResult = @"
 package $FeaturePackage.dto;
@@ -1851,33 +1969,28 @@ $flywayDatabaseMapGradle
 
 $databaseProviderResourceAssembly = if ($dataProvider -eq 'jdbc') {
 @"
-    from(new File(cpfCentralDbPackRoot, "`${cpfDbVendor}/pack.json")) {
-        into '.'
-    }
+    from(new File(cpfCentralDbPackRoot, "`${cpfDbVendor}/pack.json")) { into '.' }
     from(new File(cpfSelectedDomainTemplate, 'runtime/repository')) {
-        include '**/*.template'
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
-        rename { fileName ->
-            fileName.replace('.template', '').replace('__DOMAIN__', '$module')
-        }
-        into "runtime/$module/repository"
-        includeEmptyDirs = false
+        include '**/*.template'; filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName -> fileName.replace('.template', '').replace('__DOMAIN__', '$module') }
+        into "runtime/$module/repository"; includeEmptyDirs = false
+    }
+"@
+} elseif ($dataProvider -eq 'mybatis') {
+@"
+    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
+        include '**/*.template'; filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
+        rename { fileName -> fileName.replace('.template', '').replace('__DOMAIN__', '$module').replace('__MAPPER__', '${FeatureClassPrefix}Mapper') }
+        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/sampleitem"; includeEmptyDirs = false
     }
 "@
 } else {
 @"
-    from(new File(cpfSelectedDomainTemplate, 'runtime/mybatis')) {
-        include '**/*.template'
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: tokenValues)
-        rename { fileName ->
-            fileName.replace('.template', '').replace('__DOMAIN__', '$module').replace('__MAPPER__', '${FeatureClassPrefix}Mapper')
-        }
-        into "mybatis/vendor/`${cpfDbVendor}/mapper/$module/sampleitem"
-        includeEmptyDirs = false
-    }
+    // JPA는 Entity/JPQL을 사용하고 vendor-specific runtime mapper를 생성하지 않습니다.
+    // DDL/migration/verify/rollback은 동일 canonical 3-Vendor template를 그대로 조립합니다.
 "@
 }
-$databaseProviderTemplateCheck = if ($dataProvider -eq 'jdbc') { 'runtime/repository' } else { 'runtime/mybatis' }
+$databaseProviderTemplateCheck = if ($dataProvider -eq 'jdbc') { 'runtime/repository' } elseif ($dataProvider -eq 'mybatis') { 'runtime/mybatis' } else { 'migration' }
 
 $databaseResourceAssembly = if ($DatabaseEnabled) {
 @"

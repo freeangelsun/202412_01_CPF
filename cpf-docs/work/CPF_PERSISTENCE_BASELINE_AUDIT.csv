@@ -1,0 +1,36 @@
+﻿check_id,capability,judgement,source_evidence,consumer,runtime_verification,developer_remediable_gap
+PERSIST-001,Create,PASS,Existing JDBC/MyBatis consumers + new CpfCrudRepositoryPort/JPA create,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-002,Read by ID,PASS,CpfCrudRepositoryPort.findById + provider consumers,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-003,Update,PASS,Versioned Golden/generated domain + JPA update,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-004,Delete,PASS,logical delete generated domain + generic delete contract,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-005,Exists,PASS,CpfCrudRepositoryPort.existsById + JPA adapter,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-006,Count,PASS,CpfCrudRepositoryPort.count + provider queries,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-007,Page,PASS,existing CpfPage/CpfPageRequest reused,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-008,Slice,PASS,existing CpfSlice reused by Golden/generated domain,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-009,Cursor Pagination,PASS,existing CpfCursor/CpfCursorPage + Golden cursor,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-010,Sort,PASS,existing CpfSort reused,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-011,Multi-column Sort,FIXED,CpfSortPolicy max 5 + JPA Pageable mapper,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-012,Filter/Search,PASS,generated/golden typed search; CpfSearchSpec common contract,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-013,Dynamic Condition,PASS,CpfSearchSpec/FilterCriterion; complex query stays domain-owned,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-014,Bulk Insert,FIXED,CpfBulkRepositoryPort + JPA bounded bulkPersist,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-015,Bulk Update,FIXED,CpfBulkRepositoryPort + JPA bounded bulkMerge,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-016,Bulk Delete,FIXED,CpfBulkRepositoryPort + JPA bounded bulkDeleteById,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-017,Optimistic Lock/version,PASS,Generated/Golden version + JPA @Version/lock translation,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-018,Pessimistic Lock boundary,FIXED,CpfLockMode/LockingRepositoryPort + JPA lock map; advanced native escape,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-019,Transaction,PASS,existing Spring/JDBC transaction + optional JTA,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-020,Exception -> CPF Error,FIXED,CpfPersistenceException/FailureType + JPA translator,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-021,Audit,FIXED,CpfJpaAuditHook + generated audit fields,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-022,transactionId,PASS,generated transaction_id + JPA execution context/observer,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-023,Tenant/Security Context,FIXED,CpfPersistenceContext + JPA tenant guard/context supplier,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-024,Soft Delete Optional policy,PASS,Generated Domain explicit deleted_yn; generic CRUD does not force it,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-025,Connection timeout,PASS,DataSource/provider configuration owns connection timeout; no JPA duplicate,Generated Domain / cpf-member / Reference / provider adapter as applicable,RUNTIME_ONLY,N
+PERSIST-026,Query timeout,FIXED,CpfJpaProperties + query hint; JDBC/MyBatis existing provider config,Generated Domain / cpf-member / Reference / provider adapter as applicable,RUNTIME_ONLY,N
+PERSIST-027,Slow Query Observability,FIXED,CpfJpaQueryObserver + existing observability,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-028,SQL Injection defense,PASS,parameterized JDBC/MyBatis/JPA; dynamic sort allow-list,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-029,Sort Field Allow-list,FIXED,single CpfSortPolicy + JPA/generated mappings,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-030,Page Size limit,PASS,CpfPageRequest max 200,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-031,Large read defense,PASS,page/cursor/bulk bounds and JDBC setMaxRows where needed,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N
+PERSIST-032,Oracle parity,PASS,canonical Oracle domain template + hardening SQL,Generated Domain / cpf-member / Reference / provider adapter as applicable,RUNTIME_ONLY,N
+PERSIST-033,PostgreSQL parity,PASS,canonical PostgreSQL domain template + hardening SQL,Generated Domain / cpf-member / Reference / provider adapter as applicable,RUNTIME_ONLY,N
+PERSIST-034,MariaDB parity,PASS,canonical MariaDB domain template + hardening SQL,Generated Domain / cpf-member / Reference / provider adapter as applicable,RUNTIME_ONLY,N
+PERSIST-035,Native/Advanced Query Escape,PASS,CpfJdbcOperations/MyBatis mapper/native EntityManager/JpaRepository remain available,Generated Domain / cpf-member / Reference / provider adapter as applicable,SOURCE_TEST_READY,N

@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @AutoConfiguration
 @EnableConfigurationProperties(CpfResourceServerProperties.class)
@@ -49,8 +50,17 @@ public class CpfResourceServerAutoConfiguration {
         return http.build();
     }
 
+    @Bean
+    CpfSecurityContext cpfSecurityContext(CpfResourceServerProperties properties) {
+        return new CpfSecurityContext(properties, SecurityContextHolder::getContext);
+    }
+
     @Bean("cpfResourceServerHealthIndicator")
     HealthIndicator cpfResourceServerHealthIndicator(CpfResourceServerProperties properties) {
-        return () -> Health.up().withDetail("mode", properties.getIssuerUri() != null ? "issuer" : "jwk-set").build();
+        return () -> Health.unknown()
+                .withDetail("configured", true)
+                .withDetail("mode", properties.getIssuerUri() != null ? "issuer" : "jwk-set")
+                .withDetail("reason", "configuration-present; token endpoint/JWK reachability is not asserted by this indicator")
+                .build();
     }
 }

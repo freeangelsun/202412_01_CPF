@@ -1,28 +1,30 @@
-# CPF Core Hardening Pre-Development Review Evidence
+# CPF Test and Evidence — Current
 
-## Source basis
+## Basis
+- remote `master`: `9f16468cccae71523f65f0aefcd94322788c4dd0`
+- request authoring source: `a570b366ef85b23863e41173c991025c072a2427`
+- GitHub connector used read-only; no commit/push/delete.
+- local full repository clone unavailable because external GitHub DNS/network access from the execution container failed.
+- execution JVM: OpenJDK 21; canonical target from `gradle/cpf-stack.properties`: Java 25 / Gradle 9.1.0 / Spring Boot 4.1.0.
 
-- repository: `freeangelsun/202412_01_CPF`
-- branch: `master`
-- inspected successor: `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
-- previous basis: `f6d7080c5a14b7dd7595093f9497470169e18d80`
+## Direct review gates
+- Core Hardening direct Source review: **180/180** (`CPF_CORE_HARDENING_AUDIT.csv`)
+- Fundamental Baseline Audit: **240/240** (`CPF_FUNDAMENTAL_BASELINE_AUDIT.csv`)
+- Persistence detail: **35/35** (`CPF_PERSISTENCE_BASELINE_AUDIT.csv`)
+- Consumer review: **180/180 checked** (actual consumer or explicit N/A boundary)
+- Test/Harness review: **180/180 checked** (actual test/harness or explicit N/A; execution separated)
+- developer-remediable gaps: **21 found / 21 remediated / 0 remaining**
+- runtime-only verification: **10** (`RUNTIME_ONLY_VERIFICATION.csv`)
 
-## Verified from pushed successor
+## Executed low-cost validations
+1. `javac --release 21` for new/changed provider-neutral Core API + broker contracts: **EXIT 0**, 69 classes.
+2. `javac --release 21` for pure durable TCC business/recovery classes: **EXIT 0**.
+3. New Public Core API Korean JavaDoc gate: **0 missing**.
+4. Starter catalog JSON parse/partition static check: 45 physical modules; 6 public profiles; 7 capability groups; new modules internal.
+5. DB3 static parity: Oracle/PostgreSQL/MariaDB all contain inbox hardening, XA recovery, tamper audit, durable TCC in Source/Migration/Install/Verify/Rollback.
+6. DB vendor policy scan: product SQL/evidence uses only Oracle, PostgreSQL, MariaDB; an unsupported-vendor rejection Negative Test remains outside product evidence.
+7. Stale relocation parent review on successor: MyBatis old `com/cpf/core`/`com/cpf/common` and old `starter/persistence`; messaging direct `.../reliability/*` replaced by `.../reliability/jdbc`; session direct `.../security/*` replaced by `.../security/session`. Current delete target count = 0.
+8. Overlay JSON/CSV/package/hash gates are executed again before packaging.
 
-- `07_12` is actual current master successor.
-- commit contains substantial Source/Test/Starter/DB/Frontend/Evidence changes from the previous Developer rework.
-- Online/Batch reference, transaction identity, FileLog, Timeline, locking, messaging reliability, package relocation and verification scripts are physically represented in the commit.
-- current Canonical Final Target still had 169 requirements and had Outbox/Saga/JMS/IBM MQ but no explicit JTA/XA or TCC canonical requirements.
-- `cpf-starters/security/resource-server` contains Resource Server AutoConfiguration/Properties/Audience validation; enhanced CPF convenience API/SSO requirement is therefore a hardening target, not a claim that security is absent.
-- messaging reliability Source contains Outbox/Router/Unknown Reconcile related implementation; Outbox is retained and hardened, not replaced.
-- QA39-041 referenced `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md` but that file was absent on `a570b366ef85b23863e41173c991025c072a2427`; this overlay restores the stable Current path.
-- old and new session-jdbc package trees were both observed on `a570b366ef85b23863e41173c991025c072a2427`. The prior Developer delete manifest contains 66 exact relocation paths across persistence-mybatis, messaging-reliability-jdbc and security-session-jdbc. The delete command in this package requires each replacement file to exist before deleting the old file.
-
-## Not claimed as executed
-
-This central packaging session does not claim Java/Gradle/DB/Broker/browser runtime PASS for the new requirements. New implementation does not exist yet and is correctly marked development-required/unverified.
-
-## Protected paths
-
-No protected path is present in the delete manifest.
-
+## Not executed / not claimed PASS
+The 10 rows in `RUNTIME_ONLY_VERIFICATION.csv` require Java25/Gradle9.1, PowerShell, DB3, broker, IdP, HSM or external SOAP runtime. They remain `미검증`; no READY/PLANNED value is counted as PASS.

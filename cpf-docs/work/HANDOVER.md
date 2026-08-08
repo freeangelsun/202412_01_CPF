@@ -1,10 +1,14 @@
-# CPF Core Hardening Handover
+# CPF Current Handover
 
-Use `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md` as the current Developer GPT instruction.
+## Basis
+- Remote master reviewed: `9f16468cccae71523f65f0aefcd94322788c4dd0`
+- Overlay is not committed/pushed.
 
-Package source SHA: `a570b366ef85b23863e41173c991025c072a2427`. After the user applies/commits/pushes this overlay, always re-read latest `origin/master` and bind all new evidence to that successor SHA.
+## Developer closure
+Core direct review 180/180 and Fundamental independent audit 240/240 completed. 21 developer-remediable gaps were fixed; no developer-remediable gap remains in this overlay. Persistence detail 35/35 is complete.
 
-Do not inherit the previous Developer statement that only Runtime verification remains; that statement predates the 2026-08-08 canonical hardening requirements.
+## Mandatory next verification
+Run the 10 runtime-only rows in `RUNTIME_ONLY_VERIFICATION.csv` on an exact clean snapshot with Java25/Gradle9.1 and required DB3/broker/IdP/HSM/SOAP environments. Any failure reopens the corresponding Session 17 requirement; do not convert `미검증` to PASS without execution evidence.
 
-Development must close all developer-remediable gaps before QA A/B.
-
+## Git safety
+No commit/push/branch/tag/delete/history operation was performed. Apply overlay only after checking target SHA.

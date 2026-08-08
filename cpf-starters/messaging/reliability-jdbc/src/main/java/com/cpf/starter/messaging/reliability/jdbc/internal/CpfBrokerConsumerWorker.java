@@ -21,9 +21,9 @@ public class CpfBrokerConsumerWorker {
 
     public ConsumeResult consume(CpfBrokerEnvelope envelope, CpfBrokerMessageHandler handler) {
         Objects.requireNonNull(envelope,"envelope"); Objects.requireNonNull(handler,"handler");
-        var policy=runtimePolicy.current(); String messageId=envelope.message().messageId();
+        var policy=runtimePolicy.current(); String messageId=envelope.message().messageId(); String consumerIdentity=consumerIdentity(envelope);
         if(policy.paused()) return new ConsumeResult("PAUSED",messageId,false,"consumer runtime policy paused");
-        if(!inboxPort.markReceived(messageId,envelope.idempotencyKey())) return new ConsumeResult("DUPLICATE",messageId,true,null);
+        if(!inboxPort.markReceived(consumerIdentity,messageId,envelope.idempotencyKey())) return new ConsumeResult("DUPLICATE",messageId,true,null);
         RuntimeException last=null;
         for(int attempt=1;attempt<=policy.maxAttempts();attempt++) {
             CpfBrokerResult result;
@@ -35,10 +35,10 @@ public class CpfBrokerConsumerWorker {
                 break;
             }
             try {
-                inboxPort.markConsumed(messageId,result);
+                inboxPort.markConsumed(consumerIdentity,messageId,result);
                 return new ConsumeResult(result.status(),messageId,false,CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()));
             } catch(RuntimeException finalizationFailure) {
-                try { inboxPort.markConsumerUnknown(messageId,"handler completed but inbox finalization was uncertain: "+safe(finalizationFailure)); }
+                try { inboxPort.markConsumerUnknown(consumerIdentity,messageId,"handler completed but inbox finalization was uncertain: "+safe(finalizationFailure)); }
                 catch(RuntimeException unknownFailure){ finalizationFailure.addSuppressed(unknownFailure); }
                 return new ConsumeResult("UNKNOWN",messageId,false,safe(finalizationFailure));
             }
@@ -46,13 +46,15 @@ public class CpfBrokerConsumerWorker {
         String reason=safe(last);
         CpfBrokerResult dlqResult;
         if(inboxPort instanceof CpfBrokerFailureTransitionPort transition) {
-            dlqResult=transition.moveToDlq(envelope,reason);
+            dlqResult=transition.moveToDlq(consumerIdentity,envelope,reason);
         } else {
             dlqResult=dlqPort.sendToDlq(envelope,reason);
-            inboxPort.markConsumed(messageId,dlqResult);
+            inboxPort.markConsumed(consumerIdentity,messageId,dlqResult);
         }
         return new ConsumeResult("DLQ",messageId,false,dlqResult.detail());
     }
+
+    private static String consumerIdentity(CpfBrokerEnvelope envelope){ String value=envelope.consumerModule(); return value==null||value.isBlank()?"default":value; }
 
     private void sleep(long millis){if(millis<=0)return;try{Thread.sleep(millis);}catch(InterruptedException ex){Thread.currentThread().interrupt();throw new IllegalStateException("Broker retry interrupted",ex);}}
     private String safe(RuntimeException ex){if(ex==null)return "UNKNOWN_BROKER_CONSUMER_FAILURE";String m=ex.getMessage();return CpfBrokerFailureSanitizer.sanitize(m==null||m.isBlank()?ex.getClass().getSimpleName():m);}

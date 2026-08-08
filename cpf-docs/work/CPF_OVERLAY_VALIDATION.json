@@ -1,74 +1,57 @@
 {
-  "source_sha": "a570b366ef85b23863e41173c991025c072a2427",
-  "table_requirement_rows_total_including_legacy_aliases": 188,
-  "expected_canonical_count": 180,
-  "new_canonical_ids": [
-    "TX-STRATEGY",
-    "TX-LOCAL",
-    "TX-XA-JTA",
-    "TX-XA-RECOVERY",
-    "TX-INBOX",
-    "TX-TCC",
-    "TX-E2E",
-    "TX-DX",
-    "TX-EDU",
-    "STARTER-DX",
-    "AI-OPTIONAL"
-  ],
-  "missing_new_ids": [],
-  "duplicate_requirement_ids": [],
-  "qa39_requirement_rows": 76,
-  "scenario_rows": 57,
-  "starter_value_rows": 68,
-  "source_finding_rows": 42,
-  "delete_allowlist_rows": 66,
-  "protected_delete_rows": [],
-  "max_relative_path_length": 68,
-  "max_relative_path": "cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md",
-  "csv_validation": {
-    "cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv": {
-      "rows": 76,
-      "columns": 12
-    },
-    "cpf-docs/work/CPF_SCENARIO_MATRIX.csv": {
-      "rows": 57,
-      "columns": 6
-    },
-    "cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv": {
-      "rows": 68,
-      "columns": 10
-    },
-    "cpf-docs/work/CPF_SOURCE_FINDINGS.csv": {
-      "rows": 42,
-      "columns": 10
-    },
-    "cpf-docs/work/current/CPF_REQUIREMENT_CONTINUITY.csv": {
-      "rows": 207,
-      "columns": 12
-    },
-    "cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv": {
-      "rows": 29,
-      "columns": 10
-    },
-    "cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv": {
-      "rows": 18,
-      "columns": 10
-    },
-    "cpf-docs/work/CPF_DELETE_MANIFEST.csv": {
-      "rows": 66,
-      "columns": 6
-    },
-    "cpf-docs/work/CPF_CHANGE_MANIFEST.csv": {
-      "rows": 24,
-      "columns": 5
-    }
+  "schemaVersion": "1.0",
+  "basisSha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
+  "status": "DEVELOPER_SOURCE_COMPLETE_RUNTIME_ONLY_REMAINS",
+  "coreDirectReview": {
+    "complete": 180,
+    "total": 180
   },
-  "delete_manifest_mapping_checks": {
-    "row_count": 66,
-    "empty_replacement": 0,
-    "same_old_replacement": 0,
-    "duplicate_replacement": 0,
-    "double_jdbc_path": 0,
-    "double_session_jdbc_path": 0
-  }
+  "fundamentalDirectReview": {
+    "complete": 240,
+    "total": 240
+  },
+  "persistenceDetail": {
+    "complete": 35,
+    "total": 35
+  },
+  "consumerReview": {
+    "complete": 180,
+    "total": 180,
+    "meaning": "actual consumer or explicit N/A boundary checked"
+  },
+  "testHarnessReview": {
+    "complete": 180,
+    "total": 180,
+    "meaning": "test/harness or explicit N/A checked; runtime execution separated"
+  },
+  "findings": {
+    "total": 21,
+    "remediated": 21,
+    "remainingDeveloperRemediable": 0
+  },
+  "runtimeOnly": 10,
+  "deleteTargets": 0,
+  "catalog": {
+    "modules": 45,
+    "publicProfiles": 6,
+    "capabilityGroups": 7
+  },
+  "maxRootRelativePathLength": 145,
+  "lowCostGates": [
+    "CORE_API_JAVAC_EXIT_0_69_CLASSES",
+    "TCC_REFERENCE_JAVAC_EXIT_0",
+    "AI_ROUTER_AND_TAMPER_JAVAC_EXIT_0",
+    "PUBLIC_KOREAN_JAVADOC_0_MISSING",
+    "DB3_STATIC_PARITY_PASS",
+    "JSON_CSV_CATALOG_HYGIENE_PASS",
+    "LOCAL_SECRET_PATTERN_SCAN_0"
+  ],
+  "notPass": [
+    "Java25 Gradle9.1 fresh full build",
+    "external DB3/XA/JMS/Broker/IdP/HSM/SOAP runtime",
+    "PowerShell generator full execution"
+  ],
+  "gitWritesPerformed": false,
+  "deletionsPerformed": false,
+  "protectedPathsTouched": false
 }

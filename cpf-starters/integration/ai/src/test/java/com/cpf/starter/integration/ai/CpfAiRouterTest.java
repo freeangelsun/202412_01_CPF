@@ -1,0 +1,12 @@
+package com.cpf.starter.integration.ai;
+
+import static org.assertj.core.api.Assertions.*;import com.cpf.core.api.ai.*;import java.time.Duration;import java.util.*;import java.util.concurrent.atomic.AtomicInteger;import org.junit.jupiter.api.Test;
+class CpfAiRouterTest {
+ @Test void routesAndAuditsUsage(){var audit=new AtomicInteger();CpfAiPolicy policy=new CpfAiPolicy(){public CpfAiRequest authorizeAndMask(CpfAiRequest r){return r;}public void audit(CpfAiRequest r,CpfAiResponse s,Throwable f){audit.incrementAndGet();}};CpfAiProvider p=provider("p1",true);var props=new CpfAiProperties();try(var router=new CpfAiRouter(List.of(p),policy,props)){var out=router.execute(req(false));assertThat(out.provider()).isEqualTo("p1");assertThat(audit).hasValue(1);}}
+ @Test void timeoutWithUnsafeFallbackIsUnknown(){CpfAiPolicy policy=noopPolicy();CpfAiProvider p=new CpfAiProvider(){public String providerId(){return "slow";}public boolean supports(String m){return true;}public boolean safeToFallbackAfterTimeout(){return false;}public CpfAiResponse execute(CpfAiRequest r)throws Exception{Thread.sleep(100);return response("slow");}};var props=new CpfAiProperties();props.setTimeout(Duration.ofMillis(10));try(var router=new CpfAiRouter(List.of(p),policy,props)){assertThatThrownBy(()->router.execute(req(false))).isInstanceOf(CpfAiUnknownResultException.class);}}
+ @Test void highRiskRequiresApproval(){var props=new CpfAiProperties();try(var router=new CpfAiRouter(List.of(provider("p",true)),noopPolicy(),props)){assertThatThrownBy(()->router.execute(req(true))).isInstanceOf(SecurityException.class);}}
+ private static CpfAiRequest req(boolean high){return new CpfAiRequest("tx-1","m","masked",high?CpfAiRisk.HIGH:CpfAiRisk.LOW,Duration.ofMillis(50),false,Map.of());}
+ private static CpfAiResponse response(String provider){return new CpfAiResponse(provider,"m","ok",new CpfAiUsage(1,1,2),Map.of());}
+ private static CpfAiProvider provider(String id,boolean safe){return new CpfAiProvider(){public String providerId(){return id;}public boolean supports(String m){return true;}public boolean safeToFallbackAfterTimeout(){return safe;}public CpfAiResponse execute(CpfAiRequest r){return response(id);}};}
+ private static CpfAiPolicy noopPolicy(){return new CpfAiPolicy(){public CpfAiRequest authorizeAndMask(CpfAiRequest r){return r;}public void audit(CpfAiRequest r,CpfAiResponse s,Throwable f){}};}
+}

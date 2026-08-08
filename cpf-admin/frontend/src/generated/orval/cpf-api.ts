@@ -553,26 +553,26 @@ export type admApprovalExecuteResponse = (admApprovalExecuteResponseSuccess)
 
 export const getAdmApprovalExecuteUrl = (id: number) => `/adm/api/approvals/requests/${encodeURIComponent(String(id))}/execute`;
 
-export const admApprovalExecute = async (id: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admApprovalExecuteResponse> => {
+export const admApprovalExecute = async (id: number, params: { reason: string }, options?: CpfOrvalGeneratedRequestOptions): Promise<admApprovalExecuteResponse> => {
   return cpfOrvalRequest<admApprovalExecuteResponse>(getAdmApprovalExecuteUrl(id), {
     ...options,
     method: 'POST',
-
+    params: { reason: params.reason },
   });
 };
 
 export const getAdmApprovalExecuteMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number; params: { reason: string }}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number; params: { reason: string }}, TContext> => {
   const mutationKey = ['admApprovalExecute'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admApprovalExecute>>, {id: number}> = (props) => {
-    const { id } = props;
-    return admApprovalExecute(id, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admApprovalExecute>>, {id: number; params: { reason: string }}> = (props) => {
+    const { id, params } = props;
+    return admApprovalExecute(id, params, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
@@ -582,7 +582,7 @@ export type AdmApprovalExecuteMutationBody = never;
 export type AdmApprovalExecuteMutationError = unknown;
 
 export const useAdmApprovalExecute = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number; params: { reason: string }}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admApprovalExecute>>, TError, {id: number}, TContext> => {
   return useMutation(getAdmApprovalExecuteMutationOptions(options), queryClient);

@@ -5,12 +5,26 @@ import java.util.Objects;
 
 /** Service Registry의 topology-independent Typed 운영 Command Port입니다. */
 public interface CpfServiceRegistryControlPort {
+    /** 서비스 정의를 생성 또는 낙관적 version 기준으로 변경합니다. @param command 서비스 변경 명령 @return 저장 결과 */
     CpfServiceRegistryView.MutationResult saveService(ServiceDefinition command);
+    /** Endpoint 정의를 생성 또는 변경합니다. @param command Endpoint 변경 명령 @return 저장 결과 */
     CpfServiceRegistryView.MutationResult saveEndpoint(EndpointDefinition command);
+    /** Service Instance 정의를 생성 또는 변경합니다. @param command Instance 변경 명령 @return 저장 결과 */
     CpfServiceRegistryView.MutationResult saveInstance(InstanceDefinition command);
+    /** 서비스를 낙관적 version과 감사 사유를 확인한 뒤 삭제합니다. @param serviceId 서비스 식별자 @param command 삭제 명령 @return 삭제 결과 */
     CpfServiceRegistryView.MutationResult deleteService(String serviceId, DeleteCommand command);
+    /** Endpoint를 낙관적 version과 감사 사유를 확인한 뒤 삭제합니다. @param endpointCode Endpoint 코드 @param command 삭제 명령 @return 삭제 결과 */
     CpfServiceRegistryView.MutationResult deleteEndpoint(String endpointCode, DeleteCommand command);
+    /** Instance를 낙관적 version과 감사 사유를 확인한 뒤 삭제합니다. @param instanceId Instance 식별자 @param command 삭제 명령 @return 삭제 결과 */
     CpfServiceRegistryView.MutationResult deleteInstance(String instanceId, DeleteCommand command);
+    /**
+     * Instance의 drain/disable/resume 운영 상태를 변경합니다.
+     * @param serviceId 서비스 식별자
+     * @param endpointCode Endpoint 코드
+     * @param instanceId Instance 식별자
+     * @param command 상태 변경 명령
+     * @return 상태 변경 결과
+     */
     CpfServiceRegistryView.MutationResult changeInstanceState(
             String serviceId, String endpointCode, String instanceId, InstanceStateCommand command);
 
@@ -30,6 +44,7 @@ public interface CpfServiceRegistryControlPort {
             reason = validatedReason(reason);
             requestedBy = required(requestedBy, "requestedBy");
         }
+        /** 인증 경계에서 파생한 실행 주체를 주입한 새 명령을 만듭니다. @param actor 인증된 실행 주체 @return actor가 교체된 서비스 명령 */
         public ServiceDefinition withActor(String actor) {
             return new ServiceDefinition(operationId, serviceId, serviceName, serviceType, ownerModuleCode,
                     description, useYn, expectedVersion, reason, actor);
@@ -57,6 +72,7 @@ public interface CpfServiceRegistryControlPort {
             reason = validatedReason(reason);
             requestedBy = required(requestedBy, "requestedBy");
         }
+        /** 인증 경계에서 파생한 실행 주체를 주입한 새 명령을 만듭니다. @param actor 인증된 실행 주체 @return actor가 교체된 Endpoint 명령 */
         public EndpointDefinition withActor(String actor) {
             return new EndpointDefinition(operationId, endpointCode, serviceId, endpointName, endpointType,
                     baseUrl, contextPath, defaultTimeoutMs, defaultRetryCount, useYn, expectedVersion, reason, actor);
@@ -88,6 +104,7 @@ public interface CpfServiceRegistryControlPort {
             reason = validatedReason(reason);
             requestedBy = required(requestedBy, "requestedBy");
         }
+        /** 인증 경계에서 파생한 실행 주체를 주입한 새 명령을 만듭니다. @param actor 인증된 실행 주체 @return actor가 교체된 Instance 명령 */
         public InstanceDefinition withActor(String actor) {
             return new InstanceDefinition(operationId, instanceId, serviceId, endpointCode, instanceName,
                     baseUrl, hostName, portNo, environmentCode, zoneCode, cellCode, weight, priorityNo,
@@ -104,6 +121,7 @@ public interface CpfServiceRegistryControlPort {
             reason = validatedReason(reason);
             requestedBy = required(requestedBy, "requestedBy");
         }
+        /** 인증 경계에서 파생한 실행 주체를 주입한 새 삭제 명령을 만듭니다. @param actor 인증된 실행 주체 @return actor가 교체된 삭제 명령 */
         public DeleteCommand withActor(String actor) {
             return new DeleteCommand(operationId, expectedVersion, reason, actor);
         }
@@ -121,6 +139,7 @@ public interface CpfServiceRegistryControlPort {
             reason = validatedReason(reason);
             requestedBy = required(requestedBy, "requestedBy");
         }
+        /** 인증 경계에서 파생한 실행 주체를 주입한 새 상태 명령을 만듭니다. @param actor 인증된 실행 주체 @return actor가 교체된 상태 명령 */
         public InstanceStateCommand withActor(String actor) {
             return new InstanceStateCommand(operationId, command, expectedVersion, reason, actor);
         }

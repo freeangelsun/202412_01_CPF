@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import sys
+from pathlib import Path as _TrustPath
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]))
+from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse,datetime as dt,hashlib,json,os,re,sys,urllib.request,uuid
 from pathlib import Path
 from urllib.parse import urlparse
@@ -50,12 +54,15 @@ def self_test(head):
  print('[CPF][DR][PASS] selfTest=true externalHarness=true measuredHashesRpoRto=true');return 0
 
 def main()->int:
- ap=argparse.ArgumentParser();ap.add_argument('--expected-head',required=True);ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');a=ap.parse_args();head=a.expected_head.lower().strip()
+ ap=argparse.ArgumentParser();ap.add_argument('--expected-head',default='');ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');a=ap.parse_args();head=(a.expected_head or ('0'*40 if a.self_test else '')).lower().strip()
  if not SHA40.fullmatch(head):raise DrError('expected head must be a 40-char SHA')
- if a.self_test:return self_test(head)
+ if a.self_test:
+  trust_self_test();return self_test(head)
  if not a.output_json:raise DrError('--output-json is required')
+ if not a.self_test and len(head)!=40: raise DrError('--expected-head exact checkout SHA is required')
  url=os.getenv('CPF_R6_DR_CHAOS_PROBE_URL','').strip();token=os.getenv('CPF_R6_DR_CHAOS_PROBE_TOKEN','').strip();ev_path=os.getenv('CPF_R6_DR_HARNESS_EVIDENCE_JSON','').strip()
  if not url or not ev_path:raise DrError('CPF_R6_DR_CHAOS_PROBE_URL and CPF_R6_DR_HARNESS_EVIDENCE_JSON are required')
+ verify_release_target(url,head)
  u=urlparse(url)
  if u.scheme not in {'http','https'} or not u.hostname:raise DrError('DR chaos probe URL must be http/https')
  if u.scheme!='https' and u.hostname not in {'127.0.0.1','localhost','::1'}:raise DrError('non-local DR chaos probe must use https')

@@ -9,5 +9,9 @@ package com.cpf.core.api.batch;
  */
 public interface CpfBatchEventPublisher {
 
+    /**
+     * publish 운영 조작을 수행합니다. 구현체는 인증 주체, 승인, 멱등성, 동시성, 감사와 UNKNOWN/복구 의미를 보존해야 합니다.
+     * @param event 발행할 배치 이벤트입니다. null은 허용하지 않아야 합니다.
+     */
     void publish(CpfBatchEvent event);
 }

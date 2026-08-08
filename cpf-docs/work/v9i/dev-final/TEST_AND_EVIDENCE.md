@@ -1,28 +1,39 @@
-# Test and Evidence
+# Test and Evidence — Current Developer Rework
 
-## Provenance
-- Target basis: `08d8beb4a664039904c30aeac07115a04707924a` (`master`)
-- Prior development SHA is provenance only and is not promoted as current PASS.
-- Central currentization changed Governance/Control surfaces but no Product Source files.
+Basis checkout SHA: `f6d7080c5a14b7dd7595093f9497470169e18d80`.
 
-## Executed in this environment
-A consolidated final-target rerun produced **21 PASS / 0 FAIL** with explicit Exit Code 0 for: canonical 169+8, Core persistence boundary, TransactionId trust/E2E, FileLog recovery, DB3 lineage, DB3 runner, BZA OpenAPI, BZA Simulation, ADM CSP, ADM high-risk client, ADM Reliability CAS, transaction freshness applicability, EDU ADM architecture, Observability, Security Negative, Resource, Batch, Broker, and DR semantic/mutation gates.
+## Direct/mutation gates executed
 
-Additional gates: `verify-adm-batch-runtime-approval.py --self-test` PASS Exit 0; `verify-adm-incident-lifecycle.py --self-test` PASS Exit 0. ADM operation consumer current changed-scope gate passed `operations=332 consumed=267 waived=0`; a generated→raw HIGH mutation failed Exit 1 as required and restore returned Exit 0.
+| Gate | Result |
+|---|---|
+| Central direct ledger | PASS — Source/Consumer/Test 36/36 |
+| Canonical direct ledger | PASS — 169/169, 124 unique files opened by gate |
+| Previous QA findings direct ledger | PASS — 56/56, 47 unique files opened by gate |
+| Special Review direct ledger | PASS — 1000/1000 Source/Consumer/Test, exact basis SHA |
+| Runtime readiness | PASS — 13/13 repository-owned runner/script/config/pass criteria |
+| EDU runtime consumer contract | PASS — 135 features, 8 concrete consumer types, mutation 8/8 |
+| EDU ADM architecture | PASS — 13 non-executable redirects and retained executable 02/03/04/07 |
+| Javadoc contract | PASS — 43 files, 44 public types, 244 methods, 8 constructors, missing 0; self-test PASS |
+| Starter package ownership | PASS — persistence 10 Java, messaging 25, session-jdbc 17; stale refs 0; mutation PASS |
+| DB3 transaction lineage/lifecycle | PASS — Oracle/PostgreSQL/MariaDB static parity + mutation PASS |
+| `CpfLockManager` provider contract | PASS — JDBC provider, lease/fencing/epoch/reconcile, DB3 assets + mutation PASS |
+| Online/Batch integrated source contract | PASS |
+| Integrated Java runtime harness | PASS |
+| Batch actual OS process kill/restart | PASS — checkpoint retained, competing lease blocked, restart completed, duplicate remote effects 0 |
+| Transaction identity | PASS — authenticated first-hop identity producer + filter/consumer mutation |
+| FileLog recovery/fairness | PASS — failed target no longer blocks healthy tail |
+| Timeline/ADM batch failure semantics | PASS — `QUERY_FAILED`, `partial=true`, failed source preserved |
+| ADM/BZA OpenAPI + typed high-risk clients | PASS — applicable standard errors and generated concrete requests; mutation PASS |
+| Release qualification trust self-tests | PASS — Resource/Batch/Broker/Security/DR/Observability; fake localhost rejected 6/6 |
+| Package/current-SHA provenance | PASS — pre-push composite provenance and manifest basis bound to current SHA; self-test mutation PASS |
 
-Static format/hygiene: Python AST 23 / JSON 5 / MJS node-check 2, errors 0. Deleted-currentization path references (`V7/V9`, QA38/39 old, requirement-rebase, REV004) in overlay: 0.
+## Environment/runtime still unverified
 
-## Environment and not-executed live qualification
-- Java: OpenJDK 21.0.11 (required release toolchain Java 25)
-- Gradle CLI: unavailable; clean exact-SHA repository checkout unavailable in container
-- Node: 22.16.0; npm 10.9.2; Python 3.13.5; Git 2.47.3
-- PowerShell: unavailable
-- Docker: unavailable
-- Oracle/PostgreSQL/MariaDB live endpoints/credentials: unavailable
-- ADM/BZA deployed browser/auth targets: unavailable
-- 2+ instance/process-kill/broker/network/DR target: unavailable
+- Java 25 + Gradle 9.1 clean build/test/publication: current container does not provide the required runtime; repository runner is ready.
+- Oracle/PostgreSQL/MariaDB live lifecycle: SQL/migrations/rollback/runtime query/harness ready; live endpoints not available.
+- Authenticated ADM/BZA 3-browser matrix: source/generated client/gates ready; browser/auth environment unavailable.
+- Real authorized release target, broker/network fault, DR and remaining real multi-instance axes: runners and fail criteria ready; authorized infrastructure unavailable.
+- Successor exact-SHA post-apply evidence: cannot exist before user-controlled apply/commit/push.
+- Local fresh clone was not available because this execution environment could not resolve GitHub through git; exact-SHA source reads used the GitHub connector instead.
 
-These live axes are recorded as `미검증`, not PASS. Commands, rerun conditions, expected results and failure criteria are in `RUNTIME_QUALIFICATION_MATRIX.csv`.
-
-## Exact-SHA clean release rerun
-On a clean checkout of `08d8beb4a664039904c30aeac07115a04707924a`, run the current `cpf-tools/verification/final-dev/run-r6-release-gates.ps1` with the required exact-head and live inputs. The runner no longer references deleted QA38/QA39/REV004 historical gates and includes the current TXID/ADM/EDU gates.
+Unexecuted runtime checks are **not PASS**.

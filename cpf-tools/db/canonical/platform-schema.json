@@ -42,7 +42,7 @@
     "batchExecutionAttemptDetailPolicy": "Shell/external attempt detail including exit/stdout/stderr/truncation/duration/artifactHash/unknown is durable and transactionally finalized.",
     "qa39RuntimeControlPlane": "RESILIENCE_AND_FEATURE_FLAG_FAIL_CLOSED_APPROVAL_AUDIT"
   },
-  "tableCount": 214,
+  "tableCount": 215,
   "tables": [
     {
       "name": "BATCH_JOB_EXECUTION",
@@ -37396,6 +37396,146 @@
         }
       ],
       "comment": "Persistent DQ replay/reconcile idempotency ledger",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB"
+    },
+    {
+      "name": "cpf_runtime_lock",
+      "columns": [
+        {
+          "name": "lock_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "잠금 키"
+        },
+        {
+          "name": "owner_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 owner"
+        },
+        {
+          "name": "request_id",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "획득 요청 ID"
+        },
+        {
+          "name": "fencing_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "단조 증가 fencing token"
+        },
+        {
+          "name": "owner_epoch",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "owner takeover epoch"
+        },
+        {
+          "name": "version_no",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "optimistic version"
+        },
+        {
+          "name": "acquired_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "획득 시각"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "lease 만료 시각"
+        },
+        {
+          "name": "lock_state",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "ACTIVE/RELEASED/EXPIRED/FORCE_RELEASED"
+        },
+        {
+          "name": "last_reason",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마지막 상태 변경 사유"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 변경 시각"
+        }
+      ],
+      "primaryKey": [
+        "lock_key"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "idx_cpf_runtime_lock_lease",
+          "columns": [
+            "lock_state",
+            "lease_until",
+            "lock_key"
+          ]
+        },
+        {
+          "name": "idx_cpf_runtime_lock_owner",
+          "columns": [
+            "owner_id",
+            "request_id",
+            "lock_state"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_cpf_runtime_lock_state",
+          "expression": "lock_state IN ('ACTIVE','RELEASED','EXPIRED','FORCE_RELEASED')"
+        },
+        {
+          "name": "ck_cpf_runtime_lock_token",
+          "expression": "fencing_token >= 1 AND owner_epoch >= 1 AND version_no >= 1"
+        }
+      ],
+      "comment": "CPF topology-independent lock 계약의 JDBC durable provider 상태. lease/fencing/owner epoch/stale writer 차단을 지원.",
       "module": "cpf",
       "logicalDatabase": "cpfDB"
     }

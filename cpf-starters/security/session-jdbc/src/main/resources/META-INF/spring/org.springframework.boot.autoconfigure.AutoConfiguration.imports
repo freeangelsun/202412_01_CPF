@@ -1,2 +1,2 @@
-com.cpf.starter.security.CpfServerSessionSecurityAutoConfiguration
-com.cpf.starter.security.runtimecontrol.CpfSecurityRuntimeControlAutoConfiguration
+com.cpf.starter.security.session.jdbc.CpfServerSessionSecurityAutoConfiguration
+com.cpf.starter.security.session.jdbc.runtimecontrol.CpfSecurityRuntimeControlAutoConfiguration

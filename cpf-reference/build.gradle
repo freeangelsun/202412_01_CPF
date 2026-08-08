@@ -86,6 +86,8 @@ dependencies {
     implementation project(':cpf-core')
     implementation project(':cpf-common')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework:spring-tx'
+    implementation 'org.springframework:spring-jdbc'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
     if (batchEnabled) {
@@ -155,3 +157,11 @@ tasks.register('printReferenceFeatureVariant') {
 }
 
 check.dependsOn tasks.named('verifyReferenceFeatureBoundaries')
+
+
+tasks.register('runOnlineAbcdSpringJdbcHarness', JavaExec) {
+    group = 'verification'
+    description = 'Runs the real DB Online A->B->C/D Spring TransactionTemplate reference harness.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.cpf.reference.online.integrated.OnlineAbcdSpringJdbcRuntimeHarness'
+}

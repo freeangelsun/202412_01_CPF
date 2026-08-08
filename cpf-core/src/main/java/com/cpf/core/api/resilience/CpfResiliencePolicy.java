@@ -2,7 +2,7 @@ package com.cpf.core.api.resilience;
 
 import java.time.Duration;
 
-/** Immutable operation policy independent of Resilience4j/Spring Cloud types. */
+/** Resilience4j 또는 Spring Cloud 구현 타입에 의존하지 않는 CPF 불변 복원력 정책 계약입니다. */
 public record CpfResiliencePolicy(
         String operationId,
         long revision,

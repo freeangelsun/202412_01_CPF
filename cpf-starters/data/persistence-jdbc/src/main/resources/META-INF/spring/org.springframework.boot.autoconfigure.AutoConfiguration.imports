@@ -1,7 +1,8 @@
-com.cpf.core.config.CpfDataSourceConfig
+com.cpf.starter.data.persistence.jdbc.config.CpfDataSourceConfig
 com.cpf.starter.data.persistence.jdbc.CpfDomainDataSourceAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.CpfJdbcStarterAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.CpfDomainJdbcOperationsAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.CpfVendorSqlCatalogAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.runtimecontrol.CpfPersistenceRuntimeControlAutoConfiguration
 com.cpf.starter.data.persistence.jdbc.quality.CpfDataQualityJdbcAutoConfiguration
+com.cpf.starter.data.persistence.jdbc.locking.CpfJdbcLockAutoConfiguration

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import sys
+from pathlib import Path as _TrustPath
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]))
+from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse,hashlib,json,os,re,subprocess,sys,urllib.error,urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
@@ -112,16 +116,20 @@ def self_test()->int:
  print(f'[CPF][SECNEG][PASS] selfTest=true semanticCategories={len(REQUIRED)}');return 0
 
 def main()->int:
- ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');ap.add_argument('--corpus',default=os.getenv('CPF_R6_SECURITY_CORPUS',''));ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');a=ap.parse_args()
- if a.self_test:return self_test()
+ ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');ap.add_argument('--corpus',default=os.getenv('CPF_R6_SECURITY_CORPUS',''));ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');ap.add_argument('--expected-head',default=os.getenv('CPF_EXPECTED_HEAD',''));a=ap.parse_args()
+ if a.self_test:
+  trust_self_test();return self_test()
  if not a.output_json:raise SecurityError('--output-json is required')
  root=Path(a.root).resolve()
+ if len(a.expected_head.strip())!=40:raise SecurityError('expected checkout HEAD is required')
  if not a.corpus:raise SecurityError('CPF_R6_SECURITY_CORPUS / --corpus is required')
  corpus_path=Path(a.corpus);corpus_path=corpus_path if corpus_path.is_absolute() else root/corpus_path;raw=json.loads(corpus_path.read_text(encoding='utf-8-sig'));validate_corpus(raw)
  rows=[];covered=set();failures=[]
  for original in raw['cases']:
   try:
-   case=expand(original);cid=str(case['id']);cat=str(case['category']).lower();kind=str(case.get('kind','http')).lower();covered.add(cat);detail=http_case(case) if kind=='http' else command_case(root,case) if kind=='command' else (_ for _ in ()).throw(SecurityError(f'{cid}: unsupported kind {kind}'));rows.append({'id':cid,'category':cat,'kind':kind,'status':'PASS',**detail})
+   case=expand(original);cid=str(case['id']);cat=str(case['category']).lower();kind=str(case.get('kind','http')).lower();covered.add(cat)
+   if kind=='http': verify_release_target(str(case.get('url','')),a.expected_head)
+   detail=http_case(case) if kind=='http' else command_case(root,case) if kind=='command' else (_ for _ in ()).throw(SecurityError(f'{cid}: unsupported kind {kind}'));rows.append({'id':cid,'category':cat,'kind':kind,'status':'PASS',**detail})
   except Exception as e:rows.append({'id':str(original.get('id','unknown')),'category':str(original.get('category','unknown')).lower(),'kind':str(original.get('kind','http')),'status':'FAIL','errorType':type(e).__name__});failures.append(str(e))
  summary={'schemaVersion':2,'protocol':'CPF-R6-SECURITY-NEGATIVE-SEMANTIC','status':'FAIL' if failures else 'PASS','requiredCategories':sorted(REQUIRED),'coveredCategories':sorted(covered),'cases':rows,'failureCount':len(failures)};text=json.dumps(summary,ensure_ascii=False,indent=2)+'\n'
  if SECRET_PATTERN.search(text):failures.append('secret pattern found in sanitized evidence')

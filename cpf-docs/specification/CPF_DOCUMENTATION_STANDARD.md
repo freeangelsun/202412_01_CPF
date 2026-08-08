@@ -1,171 +1,91 @@
 # CPF 고객사 README·매뉴얼·설계 산출물 작성 및 관리 표준
 
-> Repository: `freeangelsun/202412_01_CPF`
-> Branch: `master`
-> 문서 표준 기준 Commit: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+> Repository: `freeangelsun/202412_01_CPF`  
+> Branch: `master`  
+> Repository 기준 Commit: `f6d7080c5a14b7dd7595093f9497470169e18d80`  
+> Product Source 기준: `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c`  
 > 최상위 요구사항 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
-## 1. 문서의 정체성과 독자
+## 1. 목적
+CPF 사용자 문서는 **제품 완료 상태에서 사용자가 실제 업무를 끝낼 수 있는 완성 기준 문서**로 작성한다. 현재 개발 진행률이나 QA 일지는 사용자 매뉴얼의 본문 목적이 아니다. 사용자는 어떤 표현으로 질문하더라도 Source 역분석 없이 `질문 의도 → 기능 → 정본 문서 → 정확한 절 → 실행 → 정상/실패 판정 → 복구 → Evidence`로 이동할 수 있어야 한다.
 
-CPF 문서는 CPF 내부 개발일지가 아니라 고객사가 CPF 제품을 선택·개발·운영·복구·감사·확장하는 데 사용하는 제품 문서다. 고객은 CPF 제품 본체를 다시 개발하지 않는다.
-
-주 독자는 도입 검토자, 업무/배치 개발자, ADM 연동 개발자와 운영자, 플랫폼 운영자·DBA·보안·DR 담당자, BZA 조직/권한/결재 담당자, Gateway API/보안/운영 담당자다.
-
-## 2. 사실 우선순위와 기준 Repository
-
-1. 최신 `origin/master`의 실제 Source·SQL·API·Config·Frontend·Script·Test
+## 2. 사실 우선순위
+1. 최신 master의 실제 Source·SQL·API·Config·Frontend·Script·Test
 2. 최상위 제품 요구사항과 Architecture/Specification
 3. 공식 사용자 문서
 
-작업 시작마다 `origin/master` SHA를 기록한다. 과거 ZIP·다른 Branch·이전 대화만으로 현행 기능을 확정하지 않는다. Local Working Tree의 기존 변경은 보호한다. 사용자 승인 없이 Commit/Push/Branch/Tag/PR/Merge/Rebase/Cherry-pick/Revert/Stash/Checkout/Switch/Restore/Reset/Clean/Remote 변경을 수행하지 않는다.
+Source에 없는 API·Class·Property·화면·Permission·State를 만들지 않는다. 다만 사용자 문서는 구현 진행상태 보고서가 아니라 **완료된 제품이 반드시 만족해야 하는 최종 사용 계약**을 기술한다. 구현이 문서 계약을 충족하지 못하면 Source/Test/SQL/API를 보완해야 하며 문서 범위를 축소해 맞추지 않는다.
 
-## 3. 공식 사용자 문서와 배포 형식
+## 3. 공식 사용자 문서
+README + Guide 8종 PDF/DOCX + 설계 산출물 5종 PDF/DOCX만 공식 사용자 문서로 유지한다. 별도 Quick Start/FAQ/Reference/Case/Troubleshooting/Runbook 문서를 추가하지 않는다. 필요한 내용은 Owner Document 내부에 포함한다.
 
-공식 사용자 진입 문서는 다음 9개 역할만 사용한다.
+## 4. 질문 라우팅 4축
+### 4.1 Persona
+의사결정자/제안자, PM, 아키텍트, 온라인 개발자, 배치 개발자, ADM 연동 개발자, ADM 운영자, 플랫폼/SRE/DBA, 보안/감사, BZA 관리자, Gateway/API 운영자, 장애 대응자, 인수/검수자.
 
-- `README.md`
-- `cpf-docs/guides/00_프레임워크안내.pdf`
-- `cpf-docs/guides/01_개발자매뉴얼.pdf`
-- `cpf-docs/guides/02_배치개발매뉴얼.pdf`
-- `cpf-docs/guides/03_ADM개발자매뉴얼.pdf`
-- `cpf-docs/guides/04_ADM운영자매뉴얼.pdf`
-- `cpf-docs/guides/05_플랫폼운영매뉴얼.pdf`
-- `cpf-docs/guides/90_BZA매뉴얼.pdf`
-- `cpf-docs/guides/91_Gateway매뉴얼.pdf`
+### 4.2 Lifecycle
+검토, 선택, 설치, Bootstrap, 설정, 개발, 시험, 배포, 관측, 운영, 복구, 감사, Upgrade, 인계/폐기.
 
-각 Guide는 같은 basename의 `.docx` 편집본을 함께 제공한다. 설계 산출물 5종(`산출물목록`, `아키텍처설계서`, `기술사양서`, `기술표준서`, `데이터베이스표준서`)도 `.pdf` 정식 열람본과 같은 basename의 `.docx` 편집본을 함께 제공한다.
+### 4.3 Feature
+제품 가치/범위/Topology/Module/Starter/Generator/Public API/Paging/Transaction/Idempotency/Remote/Messaging/HTTP/TCP/전문/File/Notification/Security/DB/Batch/ADM/BZA/Gateway/Observability/Runtime Control/Feature Flag/Approval/DR 등 실제 제품 Capability를 사용한다.
 
-**README만 Markdown으로 유지한다. Guide 8종과 설계 산출물 5종의 `.md` Authoring 파일은 Repository에 보존하지 않는다. README의 공식 매뉴얼·설계 링크는 PDF를 가리킨다.**
+### 4.4 Intent
+무엇/왜/언제/어디/선택/비선택/선행조건/입력/기본값/범위/순서/정상 결과/상태/오류/Timeout/동시성/중복/부분 실패/Retry/Restart/Reprocess/Reconcile/Compensation/Rollback/권한/보안/감사/로그/Metric/Trace/Test/Source/비교/인계/완료 판정.
 
-`cpf-docs/guides/README.md`와 별도 Quick Start/EDU/Reference/Case/Troubleshooting/Runbook 사용자 Guide를 만들지 않는다. 해당 내용은 담당 매뉴얼 내부에 포함한다.
+## 5. Owner Document 단일 정본
+- 제품 가치·범위·기능 Navigator·독자/업무단계 지도: `00_프레임워크안내`
+- 온라인 개발·Starter/Profile·Generator·Public API·Paging·Transaction·Messaging·외부연계: `01_개발자매뉴얼`
+- Batch 의미/개발/Restart/Reprocess/Reconcile: `02_배치개발매뉴얼`
+- 고객 업무의 ADM 연동 개발: `03_ADM개발자매뉴얼`
+- ADM 실제 Route 운영: `04_ADM운영자매뉴얼`
+- 설치/Bootstrap/Config/DB/기동/배포/관측/Backup/Restore/DR/Runbook: `05_플랫폼운영매뉴얼`
+- BZA: `90_BZA매뉴얼`
+- Gateway: `91_Gateway매뉴얼`
+- Architecture/Trade-off: `아키텍처설계서`
+- 제품 계약/Capability Reference: `기술사양서`
+- Coding/API/Transaction/Security/Test 규칙: `기술표준서`
+- DB Ownership/Naming/Migration/Vendor lifecycle: `데이터베이스표준서`
+- Deliverable/Artifact/Evidence/인수 지도: `산출물목록`
 
-## 4. README 보호
+## 6. 중복 금지와 교차참조
+동일 상세 설명은 한 정본만 소유한다. 다른 문서는 필요한 맥락과 `문서명 + 절 제목`을 제공하고 가능한 경우 PDF 상대링크를 건다. Transaction 코드/오류 Matrix, Batch Restart, Gateway LKG, FileLog Recovery 같은 상세 표를 여러 문서에 복사하지 않는다.
 
-README는 제품 브로셔, Architecture 시각 소개, 공식 PDF 진입점, 최소 빠른 시작 역할을 한다. 승인 없이 Hero, Architecture, Product Map, Topology, Execution/Operations 흐름, Domain Journey, Guide Map, Desktop/Mobile 구성을 전면 재작성하지 않는다. 사실 오류·깨진 링크·정본 경로를 기존 구조 안에서 최소 수정한다.
+## 7. 기능별 완성 기준
+각 기능은 다음을 모두 답해야 한다: 목적, 대상 역할, Owner Module, 실제 Consumer, Public API/SPI/Internal, Source/Config/SQL/화면, 선행조건, 입력/기본값/범위, 전체 흐름, 단계별 절차, 정상 결과, 상태 변화, Log/Metric/Trace, 오류/동시성/Timeout/응답 유실/부분 실패, Retry/Restart/Reprocess/Reconcile/Compensation/Rollback, Permission/Data Scope/Masking/Reason/Approval/Audit, Test, ADM 확인, 운영 인계, 완료 판정 Gate.
 
-README가 직접 참조하는 `cpf-docs/assets/readme/**`, `cpf-docs/assets/manuals/cpf-reader-start.svg`, `cpf-docs/guides/png/cpf-guide-map.png`는 사용 중 자산으로 보호한다.
+`지원한다/관리한다/처리한다/등록한다/확인한다`로 끝내지 않는다. 누가 어떤 권한으로 어디에 무엇을 입력하고 어떤 상태로 바뀌며 실패하면 무엇으로 정상화를 판정하는지 쓴다.
 
-## 5. 모든 기능 설명이 답해야 할 질문
+## 8. 완료 상태 문서 작성 규칙
+사용자 문서는 특정 검수 회차의 결함 목록, 배포 차단 상태, 후속 검증 계획 같은 진행 보고를 중심에 두지 않는다. 대신 **완료된 제품에서 성립해야 하는 정상 계약과 Acceptance Gate**를 쓴다. 예:
+- Timeline Source query 예외 → `FAILED`로 보존, `NOT_APPLICABLE`과 분리
+- FileLog Replay → 실패 Target 격리, 다른 Entry Replay 지속, quarantine/terminalLoss 종료 기준
+- Remote 응답 유실 → `UNKNOWN_RESULT` 후 Operation/Reconcile
+- Multi-instance → Lease/Fencing으로 stale writer 차단
+- DB Restore → row/count/amount/version/checksum/hash와 업무 원장 대사
 
-각 기능은 목적, 대상 역할, Owner Module, 실제 Consumer, Public API/SPI/Internal 경계, Source/Config/SQL/화면 위치, 선행조건, 입력·기본값·범위, 전체 흐름, 단계별 절차, 정상 결과와 상태 변화, Log/Metric/Trace, 오류·동시성·Timeout·응답 유실·부분 실패, Retry/Restart/Reprocess/Reconcile/Compensation/Rollback, Permission/Data Scope/Masking/Reason/Approval/Audit, Test, ADM 확인, 미검증·제한사항을 설명한다.
+이 계약과 Source가 불일치하면 문서를 약화시키지 말고 구현 보완 대상으로 처리한다.
 
-“지원한다/관리한다/처리한다/등록한다/확인한다”만으로 완료 처리하지 않는다. 누가 어떤 권한으로 어디에 무엇을 입력하고 어떤 상태로 바뀌며 실패하면 무엇으로 정상화를 판정하는지 쓴다.
+## 9. 초기 설치/Bootstrap 문서 규칙
+설치 순서는 Artifact → 계정/Directory → Secret/Certificate → DB Profile/Lifecycle → Runtime Config → Bootstrap → Start/Health → 첫 로그인/비밀번호 변경 → 운영 인계로 설명한다. 고정 초기 비밀번호를 만들지 않는다. Bootstrap Secret 주입과 첫 로그인 후 변경 절차를 기술한다.
 
-## 6. 상태 표현과 검증
+## 10. Route/화면 문서 규칙
+실제 Route Registry와 Component/Operation을 대조한다. Query-only 화면에 Command/Approval/Rollback 절차를 억지로 적용하지 않는다. Command 화면은 Permission/Reason/Approval/Expected Version/Idempotency/UNKNOWN/PARTIAL/Audit를 실제 Operation에 맞춰 설명한다.
 
-허용 상태는 `완료`, `부분 구현`, `미구현`, `미검증`, `실패`, `재확인 필요`다. 직접 실행하지 않은 Runtime/DB/Browser/다중 인스턴스/장애 Test는 성공으로 기록하지 않는다. Static Source 정합성과 Runtime 검증을 분리한다.
+## 11. Property 문서 규칙
+Key, env, Type, Default, required, range, Consumer, Profile, restart, Secret, 오류, 확인 방법, 정상 결과, rollback을 포함한다. Prefix만 나열하지 않는다.
 
-## 7. 제품 본체와 EDU/Reference 경계
+## 12. Reader Question + Completion Contract QA
+FAQ를 수동으로 무한 확장하지 않는다. 최소 10만 개 이상의 `Persona × Lifecycle × Feature × Intent` 조합 Probe가 단일 Owner Document와 절로 라우팅되어야 하고, 각 Feature는 정상·오류·복구·보안·관측·인계·완료 판정 계약을 가져야 한다. 대표 자연어 질문은 별도 수동 검수한다.
 
-ADM, BZA, Gateway, Batch Runtime은 제품 Module이 소유한다. 제품 내부 기능을 이름만 바꾼 Generic Handler/JDBC Example로 Reference에 복제하지 않는다. `cpf-reference`/EDU는 도입 개발자가 실제 사용하는 Public API·SPI·Extension Point·Integration Contract·Generator 산출물 사용법을 교육한다.
+## 13. 현행화 Trigger
+Public API/SPI, Starter/Profile, Route/Menu/Permission/Operation, Property, SQL/Migration, State/Error, Script/Command가 변경되면 Owner Document를 같은 변경 단위에서 갱신한다. 소비 문서는 링크/요약만 최소 현행화한다.
 
-EDU 개수는 품질 점수가 아니다. 각 항목이 교육 대상 사용자, 공개 계약, 실제 Consumer, 교육 필요성을 설명하지 못하면 Architecture 재분류 대상이다. 기존 EDU ID의 유지/통합/Product 귀속/공식 Extension Sample/삭제 후보 판정은 QA 결과를 따른다.
+## 14. PDF/DOCX 검수
+DOCX는 Heading/Navigation/Hyperlink/Bookmark/반복 Table Header/Page number를 제공한다. PDF/DOCX 모두 전 페이지 렌더해 clipping/overlap/blank/orphan/table split/font/link를 검수한다.
 
-## 8. 거래·로그·추적 표준
+## 15. 문서 완료 판정
+문서 수/페이지 수/링크 수/자동 PASS만으로 완료 처리하지 않는다. 다음 전체 체인이 닫혀야 한다.
 
-최상위 `transactionId`는 Local/Remote, Gateway, Message, File, Batch, 외부연계에서도 유지한다. Retry는 attempt로 구분하고 `segmentId/parentSegmentId`, `traceId/spanId`, request/idempotency 및 Batch/Remote 식별자를 연결한다.
+`질문 → 단일 정본 → 실제 API/Config/Route/SQL → 실행 절차 → 정상 결과 → 오류/부분 실패 → 복구/대사 → 보안/감사 → Test → 운영 인계 → 완료 Gate`
 
-File Log는 표준 경로·파일명·UTF-8 구조화 Record·Rotation·Compression·Retention·권한, bounded queue/backpressure/fallback, disk-full/write-failure, shutdown drain, spool/replay/dedup/checksum/gap/loss metric을 검증한다. DB Timeline은 transactionId Index, segment hierarchy, append/idempotency, outage recovery, retention/partition/archive/purge, Audit tamper evidence를 검증한다. Secret/Token/PII 원문을 기록하지 않는다.
-
-ADM은 transactionId 하나로 가능한 전체 계보를 연결하고 Source 누락·지연에는 Partial/Stale을 표시한다.
-
-## 9. 매뉴얼별 최소 범위
-
-### 9.1 00 프레임워크 안내
-제품 범위/비범위, Architecture, Module Ownership, 의존 방향, MSA/Modular Monolith, Local/Remote, 다중 인스턴스, 온라인/비동기/Batch/보안/DB Lifecycle/Generator, 제품-EDU 경계, 문서 지도를 다룬다.
-
-### 9.2 01 개발자 매뉴얼
-환경/Build, Generator, 신규 Domain, API/Application/Domain/Persistence, Transaction/동시성, Local/Remote, 멱등/UNKNOWN_RESULT, Kafka/Outbox/Inbox, File/Attachment/외부연계, Security/Audit/Secret SPI, DB Migration, OpenAPI/Generated Client, Test, ADM 확인, 배포 인계와 실제 Public Consumer EDU를 다룬다.
-
-### 9.3 02 배치 개발 매뉴얼
-Spring Batch Primary Engine, Job/Step/Tasklet/Chunk, Reader/Processor/Writer, Parameter/Metadata/Checkpoint, Stop/Restart/Abandon, Partition/Remote Worker, Scheduler/Misfire, Center-Cut, Artifact/Job Pack, Runner/Worker/Agent, Lease/Claim/Fencing, Dry Run, 승인/실행/UNKNOWN/Reprocess/Reconcile, transaction lineage, ADM 운영을 다룬다.
-
-### 9.4 03 ADM 개발자 매뉴얼
-완성된 ADM 제품에 고객 Owner Query/Command를 Same-JVM/Remote로 연결하고 Timeout/Expected Version/Idempotency/UNKNOWN/Reconciliation, Permission/Masking/Reason/Approval/Audit, canonical OpenAPI/Generated Client, Route/Menu/State/Table/Form, Browser Fault Test와 고객 Extension 경계를 다룬다.
-
-### 9.5 04 ADM 운영자 매뉴얼
-실제 Route/Component/Permission을 전수 대조한다. 각 화면의 검색 Field/기본값/Column/상세 Field/상태/Button/활성조건/입력/Reason/Approval/Expected Version/응답 유실/부분 적용/Retry/Reprocess/Reconcile/Rollback/Audit를 다룬다. 가상 화면 목록으로 대신하지 않는다.
-
-### 9.6 05 플랫폼 운영 매뉴얼
-지원 환경/Artifact/Checksum, 계정/Directory, 전체 Leaf Property·환경변수·Profile, Secret/Certificate, DB3 설치/Migration/Drift, Kafka, 설치, 기동/종료/Health, 배포, Config Partial Apply, Log/Metric/Trace, Capacity, Backup/Restore, Upgrade/Rollback, DR와 장애 Runbook을 다룬다.
-
-### 9.7 90 BZA 매뉴얼
-BZA 도입/설치, 초기 관리자, 조직/직원/사용자, Role/Permission/Data Scope, 결재/위임/대결, Attachment/Notification, Session/Masking/Audit/Export, 업무 Domain 연계, Backup/Restore/Upgrade/Rollback을 제품 Source 기준으로 다룬다.
-
-### 9.8 91 Gateway 매뉴얼
-선택/설치, Route/Predicate/Filter/Rewrite, Target/Discovery/LB, AuthN/AuthZ/HMAC/Audience/Body Hash/Nonce/SSRF/TLS, Timeout/Retry/Circuit/Bulkhead, Idempotency/Attempt/UNKNOWN, Validation/Approval/Publish, ACK/NACK/Partial, LKG/Rollback, Scale-out/Drift/Reconcile, transaction lineage, Probe/Health/ADM/Runbook을 다룬다.
-
-## 10. Property 문서화
-
-Leaf Property는 Key, 환경변수, Type, Default, 필수, 범위, Consumer, Profile, 재기동, Secret, 오류 증상, 확인 명령/정상 결과, Rollback을 포함한다. Prefix만 나열해 전체 Reference로 부르지 않는다.
-
-## 11. 화면 문서화
-
-Route Registry와 실제 Vue Component를 함께 확인한다. `expectedOperationIds`를 Button Permission과 동일하다고 간주하지 않는다. Server Session의 실제 Operation/Button 권한, 활성조건, Version/Approval/Idempotency와 Runtime 오류 처리까지 쓴다.
-
-## 12. OpenAPI·Generated Code
-
-Canonical OpenAPI, Generated Client, Runtime Route/Operation이 같은 계약을 사용해야 한다. Generated Client를 수기 변경해 Drift를 숨기지 않는다. canonical-compat generation/verification, operation consumer, runtime OpenAPI parity 같은 Gate의 Source 존재와 실제 실행 결과를 분리해 기록한다.
-
-## 13. PDF·DOCX 제작 표준
-
-13개 문서는 DOCX를 편집 원본으로 생성하고 그 DOCX에서 PDF를 변환한다. PDF는 단순 텍스트 덤프가 아니라 고객 열람용 제품 문서로 제작한다.
-
-필수 시각 기준:
-- 첫 페이지는 문서명, 대상 독자, 목적, 기준 Source SHA, Source/Runtime/Release 상태를 한 화면에서 식별할 수 있는 표지로 구성한다.
-- 두 번째 페이지에는 빠른 찾기, 핵심 업무 흐름, 주요 장 Navigator를 제공한다.
-- Heading 계층, 장 시작 여백, 본문 문단 간격, 목록 들여쓰기와 행간을 문서 전체에서 통일한다. 장·절 사이가 본문 한 덩어리처럼 붙어 보이면 통과시키지 않는다.
-- 표는 Header 강조, 반복 Header, Row 구분, 셀 여백, 행 분할 방지, 열 폭을 적용한다. 한 셀에 과도한 정보를 밀어 넣어 세로로 찢어지는 표를 만들지 않는다. 필요한 경우 Reference Card나 복수 행 구조로 바꾼다.
-- 위험, 주의, 정상 판정, UNKNOWN_RESULT, 부분 실패, Retry 금지, Recovery/Rollback은 Callout 또는 색상·아이콘·구획으로 주변 본문과 구분한다. 색상만으로 의미를 전달하지 않는다.
-- Architecture, Ownership, Transaction Lineage, Batch, Gateway, Approval, FileLog Recovery, DB Lifecycle 같이 흐름 이해가 중요한 내용은 실제 Source 의미와 일치하는 도식/그림을 배치한다. 장식용 이미지는 사용하지 않는다.
-- Header/Footer에는 문서명, 기준 Source Revision, 페이지 번호를 제공한다. PDF Bookmark와 검색(Ctrl+F)으로 장·절을 찾을 수 있어야 한다.
-- 코드/경로/API/Property는 본문과 구분되는 고정폭 스타일 또는 Reference Card를 사용하고 한글 글꼴과 영문/숫자 글꼴의 혼용으로 깨진 글리프가 생기지 않게 한다.
-- PDF와 DOCX는 같은 내용·같은 순서를 유지한다. PDF에서만 보이거나 DOCX에서만 보이는 공식 정보가 없어야 한다.
-
-변환 후 DOCX와 PDF를 모두 페이지 이미지로 렌더하고 전 페이지를 확인한다. 잘림, 겹침, 깨진 글리프, 표 폭 침범, 완전 빈 페이지, 의미 없는 반쪽 꼬리 페이지, Heading만 남은 페이지가 있으면 수정 후 재렌더한다. 첫 페이지와 빠른 찾기 페이지는 별도 Contact Sheet로 비교해 13개 문서가 하나의 문서군처럼 보이는지 확인한다.
-
-## 14. Source Trace와 문서 변경 Trigger
-
-Source/API/SQL/Config/Frontend/Permission/Route/Test 변경이 사용자 절차·입력·상태·복구·보안에 영향을 주면 담당 PDF/DOCX를 같은 변경 단위에서 현행화한다. 문서의 기준 Commit을 기록한다.
-
-## 15. 삭제·가비지 규칙
-
-Guide/설계 `.md` Authoring 파일, 이전 문서 Revision Evidence, 현재 README/PDF/DOCX에서 참조하지 않는 문서 전용 이미지와 이번 작업의 tmp/bak/중간 Script/중복 ZIP은 정확한 삭제 Manifest로 관리한다. Source, 추적 파일, 다른 작업자의 변경, 전체 미추적 파일을 광범위하게 삭제하지 않는다. `git clean`과 wildcard 전체 삭제를 사용하지 않는다.
-
-README가 참조하는 브로셔 자산은 삭제하지 않는다. 빈 폴더는 하위부터, 실제로 비었을 때만 제거한다.
-
-## 16. 최종 검증
-
-작업 종료 전 `git status --short`, `git diff --name-status`, `git diff --stat`, `git diff --check`, 미추적 파일, README 링크, PDF/DOCX Pair, 문서 수, 이미지 참조, 삭제 Manifest, 민감정보 패턴을 확인한다. Local Working Tree를 직접 확인하지 못한 경우 `미검증`으로 명시한다.
-
-## 17. 전달 패키지
-
-문서 변경 산출물은 Repository Root 상대경로를 유지한 단일 ZIP으로 제공한다. ZIP에는 최종 신규/수정 파일과 정확한 삭제 Manifest만 넣고 build/log/tmp/bak/.git/IDE/과거본을 넣지 않는다. ZIP SHA-256, 기준 Repository/Branch/Commit, 파일 수와 경로, 신규/수정/삭제, 적용/검증/미검증/Rollback, Commit·Push 미수행 여부를 기록한다.
-
-
-## 18. Current Release 상태와 문서 표현
-
-현재 기준 Commit은 `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)이다. `07_06`은 `07_05` Product Source 위에 Final QA A/B 및 중앙 Control 산출물을 추가한 Commit이며 Product Source 자체는 변경하지 않았다.
-
-`07_05` 개발 결과에는 known direct Source/Contract/Gate rework 34/34가 반영되었고 개발 로컬 Gate 실패 0, 기존 R6 behavior regression 43/43 + negative mutation 17/17 PASS가 기록되어 있다. 이 결과는 개발 입력 근거이며 제품 완료나 Release 승인 근거가 아니다.
-
-`07_06` Final QA 중앙 Merge 판정은 **실패 / 재개발 필요 + 미검증 / RELEASE_BLOCKED**다. 완료 분모는 Canonical Requirement **169개**이며 신규 독립 개발 Action은 **31개(P0 22 / P1 9)**다. 31개는 Scope 상한이 아니며 `169 Requirement + 기존 56 Finding + 신규 31 + self-found + Runtime 13 + 개발 중 추가 발견` 전체를 닫아야 한다.
-
-문서는 current Source에 존재하는 기능과 Final QA가 확인한 결함을 분리해 기록한다. 특히 다음 항목은 Source 일부가 존재하더라도 완료 기능으로 설명하지 않는다.
-
-- Approval terminal fencing과 stale owner 차단
-- external transactionId trust boundary
-- `cpf-core` persistence 구현 Ownership
-- DB persistence masking fail-closed
-- DB3 canonical lineage와 실제 writer/runner
-- FileLog recovery replay 안전성, 8MiB 초과 dedup, managed durable spool/root와 autonomous retry
-- Observability/Security/Performance/Batch/Broker/DR false-green 방지
-- ADM HIGH/CRITICAL generated-client 강제
-- BZA retired OpenAPI와 Approval Simulation permission
-- EDU-ADM Product/Merge 13개 non-executable 전환과 retained role 정합
-
-Mandatory Runtime qualification 13개 축은 이 문서 작업에서 실행하지 않았으며 `미검증`으로 유지한다. 후속 Source 재개발 후 successor exact SHA에서 Runtime 13축과 독립 QA/Release Qualification 결과가 확보되기 전까지 Release PASS를 기록하지 않는다.
-
-### 18.1 문서 현행화 Trigger
-
-Source/API/SQL/Config/Frontend/Permission/Route/Test와 Final QA 판정이 바뀌면 해당 PDF/DOCX를 같은 exact SHA 기준으로 다시 현행화한다. 과거 SHA Evidence는 provenance로만 보존하고 successor Source의 PASS 근거로 승계하지 않는다.
+정본을 찾았지만 Source를 역분석해야 답이 나오거나, 실패/복구/판정 기준이 없거나, 같은 상세 내용이 여러 문서에 복제되어 있으면 사용자 문서 완료가 아니다.

@@ -15,6 +15,18 @@ public record CpfSort(String field, CpfSortDirection direction) {
         direction = direction == null ? CpfSortDirection.ASC : direction;
     }
 
+    /** 오름차순 정렬 계약을 생성합니다.
+     * @param field Repository allow-list와 대조할 정렬 필드
+     * @return ASC 정렬 값
+     * @throws NullPointerException field가 null인 경우
+     * @throws IllegalArgumentException field가 blank인 경우
+     */
     public static CpfSort asc(String field) { return new CpfSort(field, CpfSortDirection.ASC); }
+    /** 내림차순 정렬 계약을 생성합니다.
+     * @param field Repository allow-list와 대조할 정렬 필드
+     * @return DESC 정렬 값
+     * @throws NullPointerException field가 null인 경우
+     * @throws IllegalArgumentException field가 blank인 경우
+     */
     public static CpfSort desc(String field) { return new CpfSort(field, CpfSortDirection.DESC); }
 }

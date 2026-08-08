@@ -120,7 +120,27 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { admApi, admInvokeOperation } from "../../shared/cpfApi";
+import {
+  admRuntimeControlCancelChange,
+  admRuntimeControlChangeGroupMember,
+  admRuntimeControlCreateChange,
+  admRuntimeControlDeleteGroup,
+  admRuntimeControlFindChange,
+  admRuntimeControlFindGroup,
+  admRuntimeControlFindHealth,
+  admRuntimeControlFindStatus,
+  admRuntimeControlPreviewChange,
+  admRuntimeControlPreviewTargets,
+  admRuntimeControlRollbackChange,
+  admRuntimeControlSaveGroup,
+  admRuntimeControlVerifyAudit,
+} from "../../generated/orval/cpf-api";
+import type { AdmRuntimeControlChangeGroupMemberRequest } from "../../generated/orval/model/admRuntimeControlChangeGroupMemberRequest";
+import type { AdmRuntimeControlCreateChangeRequest } from "../../generated/orval/model/admRuntimeControlCreateChangeRequest";
+import type { AdmRuntimeControlPreviewTargetsRequest } from "../../generated/orval/model/admRuntimeControlPreviewTargetsRequest";
+import type { AdmRuntimeControlSaveGroupRequest } from "../../generated/orval/model/admRuntimeControlSaveGroupRequest";
+import type { CpfRuntimePayload } from "../../generated/orval/model/cpfRuntimePayload";
+import type { CpfRuntimeTargetSelector } from "../../generated/orval/model/cpfRuntimeTargetSelector";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import StructuredDetails from "../../components/StructuredDetails.vue";
 
@@ -159,44 +179,42 @@ export default defineComponent({
   mounted() { this.loadOverview(); },
   methods: {
     stateClass(state:string) { const v=String(state||"").toUpperCase(); return v==="SUCCESS"||v==="ACKED"?"success":v==="FAILED"||v==="UNKNOWN_RESULT"?"danger":"warning"; },
-    operatorId() { return String((this.currentOperator as any)?.operatorId || ""); },
-    target() {
+    target(): CpfRuntimeTargetSelector {
       return {
-        environment: this.form.environment || null, serviceId: this.form.serviceId || null, groupId: this.form.groupId || null,
+        environment: this.form.environment || undefined, serviceId: this.form.serviceId || undefined, groupId: this.form.groupId || undefined,
         instanceIds: this.form.instanceIds.split(",").map((v:string)=>v.trim()).filter(Boolean), excludeInstanceIds: [], labels: {},
-        zone: null, cell: null, includeDraining: false, includeMaintenance: false, allowAll: this.form.allowAll
+        zone: undefined, cell: undefined, includeDraining: false, includeMaintenance: false, allowAll: this.form.allowAll
       };
     },
-    command() {
+    command(): AdmRuntimeControlCreateChangeRequest {
       if (!this.form.payloadKey.trim()) throw new Error("설정 Key가 필요합니다.");
       let normalizedValue:any=this.form.payloadValue;
       if(this.form.payloadValueType==="NUMBER") { normalizedValue=Number(this.form.payloadValue); if(Number.isNaN(normalizedValue)) throw new Error("숫자 Value를 확인하세요."); }
       if(this.form.payloadValueType==="BOOLEAN") { const v=String(this.form.payloadValue).toLowerCase(); if(!["true","false","y","n"].includes(v)) throw new Error("Boolean Value는 true/false 또는 Y/N입니다."); normalizedValue=["true","y"].includes(v); }
-      const payload:Json={key:this.form.payloadKey,value:normalizedValue,valueType:this.form.payloadValueType,policyVersion:this.form.policyVersion,description:this.form.payloadDescription};
-      const requestedBy=this.operatorId(); if(!requestedBy) throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");
+      const payload:CpfRuntimePayload={key:this.form.payloadKey,value:normalizedValue,valueType:this.form.payloadValueType,policyVersion:this.form.policyVersion,description:this.form.payloadDescription};
       return {
         operationId:this.form.operationId, changeType:this.form.changeType, payloadSchemaVersion:this.form.payloadSchemaVersion,
-        target:this.target(), payload, expectedVersion:this.form.expectedVersion, rolloutMode:this.form.rolloutMode,
-        waveSize:this.form.waveSize, quorumPercent:this.form.quorumPercent, scheduledAt:null, expiresAt:null,
-        reason:this.form.reason, approvalId:this.form.approvalId||null, breakGlassId:this.form.breakGlassId||null, requestedBy
+        target:this.target(), payload, expectedVersion:this.form.expectedVersion ?? undefined, rolloutMode:this.form.rolloutMode,
+        waveSize:this.form.waveSize, quorumPercent:this.form.quorumPercent, scheduledAt:undefined, expiresAt:undefined,
+        reason:this.form.reason, approvalId:this.form.approvalId||undefined, breakGlassId:this.form.breakGlassId||undefined
       };
     },
     async run(action:()=>Promise<any>) { this.busy=true; this.error=""; try{return await action();}catch(e){this.error=e instanceof Error?e.message:String(e);return null;}finally{this.busy=false;} },
     async loadOverview(){ await Promise.allSettled([this.loadHealth(),this.loadStatus()]); },
-    async loadHealth(){ this.health=await admApi("/adm/api/runtime-control/health"); },
-    async loadStatus(){ const p=new URLSearchParams();if(this.search.environment)p.set("environment",this.search.environment);if(this.search.serviceId)p.set("serviceId",this.search.serviceId);this.status=await admApi(`/adm/api/runtime-control/status?${p}`); },
-    async previewTargets(){ await this.run(async()=>{this.preview=await admApi("/adm/api/runtime-control/preview-targets",{method:"POST",body:JSON.stringify({changeType:this.form.changeType,payloadSchemaVersion:this.form.payloadSchemaVersion,target:this.target()})});}); },
-    async previewChange(){ await this.run(async()=>{this.preview=await admApi("/adm/api/runtime-control/preview-change",{method:"POST",body:JSON.stringify(this.command())});}); },
-    async createChange(){ await this.run(async()=>{this.change=await admApi("/adm/api/runtime-control/changes",{method:"POST",body:JSON.stringify(this.command())});this.lookup.changeId=this.change.changeId||"";this.form.operationId=crypto.randomUUID();this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
-    async loadChange(){ await this.run(async()=>{if(!this.lookup.changeId&&!this.lookup.operationId)throw new Error("Change ID 또는 Operation ID가 필요합니다.");const url=this.lookup.changeId?`/adm/api/runtime-control/changes/${encodeURIComponent(this.lookup.changeId)}`:`/adm/api/runtime-control/operations/${encodeURIComponent(this.lookup.operationId)}`;this.change=await admApi(url);this.lookup.changeId=this.change.changeId||this.lookup.changeId;}); },
-    async verifyAudit(){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");this.auditVerification=await admApi(`/adm/api/runtime-control/changes/${encodeURIComponent(this.lookup.changeId)}/audit/verify`);}); },
+    async loadHealth(){ this.health=(await admRuntimeControlFindHealth()).data as Json; },
+    async loadStatus(){ this.status=(await admRuntimeControlFindStatus({environment:this.search.environment||undefined,serviceId:this.search.serviceId||undefined})).data as Json; },
+    async previewTargets(){ await this.run(async()=>{const request:AdmRuntimeControlPreviewTargetsRequest={changeType:this.form.changeType,payloadSchemaVersion:this.form.payloadSchemaVersion,target:this.target()};this.preview=(await admRuntimeControlPreviewTargets(request)).data as Json;}); },
+    async previewChange(){ await this.run(async()=>{this.preview=(await admRuntimeControlPreviewChange(this.command())).data as Json;}); },
+    async createChange(){ await this.run(async()=>{this.change=(await admRuntimeControlCreateChange(this.command())).data as Json;this.lookup.changeId=this.change.changeId||"";this.form.operationId=crypto.randomUUID();this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
+    async loadChange(){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");this.change=(await admRuntimeControlFindChange(this.lookup.changeId)).data as Json;this.lookup.changeId=this.change.changeId||this.lookup.changeId;}); },
+    async verifyAudit(){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");this.auditVerification=(await admRuntimeControlVerifyAudit(this.lookup.changeId)).data as Json;}); },
     async cancelChange(){ await this.controlChange("cancel"); },
     async rollbackChange(){ await this.controlChange("rollback"); },
-    async controlChange(action:"cancel"|"rollback"){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");if(!this.control.reason.trim())throw new Error("통제 사유가 필요합니다.");const operationId=action==="cancel"?"admRuntimeControlCancelChange":"admRuntimeControlRollbackChange";this.change=await admInvokeOperation<Json>(operationId,{path:{changeId:this.lookup.changeId},body:this.control});this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
-    async loadGroup(){ await this.run(async()=>{if(!this.groupForm.groupId)throw new Error("Group ID가 필요합니다.");this.group=await admApi(`/adm/api/runtime-control/groups/${encodeURIComponent(this.groupForm.groupId)}`);this.groupForm.groupName=this.group.groupName||"";this.groupForm.parentGroupId=this.group.parentGroupId||"";this.groupForm.environment=this.group.environment||"";this.groupForm.description=this.group.description||"";this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.active=Boolean(this.group.active);}); },
-    async saveGroup(){ await this.run(async()=>{const requestedBy=this.operatorId();if(!requestedBy)throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");if(!this.groupForm.groupId||!this.groupForm.groupName||!this.groupForm.environment||!this.groupForm.reason)throw new Error("Group ID, 이름, 환경, 사유가 필요합니다.");this.group=await admApi("/adm/api/runtime-control/groups",{method:"POST",body:JSON.stringify({...this.groupForm,parentGroupId:this.groupForm.parentGroupId||null,requestedBy})});this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.operationId=crypto.randomUUID();}); },
-    async changeGroupMember(){ await this.run(async()=>{const requestedBy=this.operatorId();if(!requestedBy)throw new Error("인증된 운영자 정보를 확인할 수 없습니다.");if(!this.groupForm.groupId||!this.memberForm.instanceId||!this.memberForm.reason)throw new Error("Group ID, Instance ID, 사유가 필요합니다.");this.group=await admApi(`/adm/api/runtime-control/groups/${encodeURIComponent(this.groupForm.groupId)}/members`,{method:"POST",body:JSON.stringify({...this.memberForm,groupId:this.groupForm.groupId,requestedBy})});this.groupForm.expectedVersion=Number(this.group.rowVersion);this.memberForm.operationId=crypto.randomUUID();}); },
-    async deleteGroup(){ await this.run(async()=>{if(!this.groupForm.groupId||this.groupForm.expectedVersion===null||!this.groupForm.reason)throw new Error("Group ID, Expected Version, 사유가 필요합니다.");const p=new URLSearchParams({operationId:this.groupForm.operationId,expectedVersion:String(this.groupForm.expectedVersion),reason:this.groupForm.reason});await admApi(`/adm/api/runtime-control/groups/${encodeURIComponent(this.groupForm.groupId)}?${p}`,{method:"DELETE"});this.group={};this.groupForm.operationId=crypto.randomUUID();this.groupForm.expectedVersion=null;}); }
+    async controlChange(action:"cancel"|"rollback"){ await this.run(async()=>{if(!this.lookup.changeId)throw new Error("Change ID가 필요합니다.");if(!this.control.reason.trim())throw new Error("통제 사유가 필요합니다.");const response=action==="cancel"?await admRuntimeControlCancelChange(this.lookup.changeId,this.control):await admRuntimeControlRollbackChange(this.lookup.changeId,this.control);this.change=response.data as Json;this.control.operationId=crypto.randomUUID();await this.loadOverview();}); },
+    async loadGroup(){ await this.run(async()=>{if(!this.groupForm.groupId)throw new Error("Group ID가 필요합니다.");this.group=(await admRuntimeControlFindGroup(this.groupForm.groupId)).data as Json;this.groupForm.groupName=this.group.groupName||"";this.groupForm.parentGroupId=this.group.parentGroupId||"";this.groupForm.environment=this.group.environment||"";this.groupForm.description=this.group.description||"";this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.active=Boolean(this.group.active);}); },
+    async saveGroup(){ await this.run(async()=>{if(!this.groupForm.groupId||!this.groupForm.groupName||!this.groupForm.environment||!this.groupForm.reason)throw new Error("Group ID, 이름, 환경, 사유가 필요합니다.");const request:AdmRuntimeControlSaveGroupRequest={operationId:this.groupForm.operationId,groupId:this.groupForm.groupId,groupName:this.groupForm.groupName,parentGroupId:this.groupForm.parentGroupId||undefined,environment:this.groupForm.environment,description:this.groupForm.description||undefined,expectedVersion:this.groupForm.expectedVersion??undefined,active:this.groupForm.active,reason:this.groupForm.reason};this.group=(await admRuntimeControlSaveGroup(request)).data as Json;this.groupForm.expectedVersion=Number(this.group.rowVersion);this.groupForm.operationId=crypto.randomUUID();}); },
+    async changeGroupMember(){ await this.run(async()=>{if(!this.groupForm.groupId||!this.memberForm.instanceId||!this.memberForm.reason)throw new Error("Group ID, Instance ID, 사유가 필요합니다.");const request:AdmRuntimeControlChangeGroupMemberRequest={operationId:this.memberForm.operationId,groupId:this.groupForm.groupId,instanceId:this.memberForm.instanceId,active:this.memberForm.active,reason:this.memberForm.reason};this.group=(await admRuntimeControlChangeGroupMember(this.groupForm.groupId,request)).data as Json;this.groupForm.expectedVersion=Number(this.group.rowVersion);this.memberForm.operationId=crypto.randomUUID();}); },
+    async deleteGroup(){ await this.run(async()=>{if(!this.groupForm.groupId||this.groupForm.expectedVersion===null||!this.groupForm.reason)throw new Error("Group ID, Expected Version, 사유가 필요합니다.");await admRuntimeControlDeleteGroup(this.groupForm.groupId,{operationId:this.groupForm.operationId,expectedVersion:this.groupForm.expectedVersion,reason:this.groupForm.reason});this.group={};this.groupForm.operationId=crypto.randomUUID();this.groupForm.expectedVersion=null;}); }
   }
 });
 </script>

@@ -1,12 +1,7 @@
 # Codex Independent Review Request
 
-Review the current Developer Product Source completion against exact target `08d8beb4a664039904c30aeac07115a04707924a` without inheriting prior PASS evidence.
+Review the applied successor HEAD independently; do not inherit Developer PASS claims or basis-SHA runtime claims. Development basis before apply is `f6d7080c5a14b7dd7595093f9497470169e18d80`.
 
-Required independent checks:
-1. Re-run current `cpf-tools/verification/final-dev/run-r6-release-gates.ps1` from a clean exact-SHA tree with Java 25 / Gradle 9.1.
-2. Execute live DB3, browser and multiprocess options with current runtime inputs.
-3. Recheck Canonical 169, previous 56, Central 31, QA A/B new findings and self-found rows against actual Source/Consumer/Test.
-4. Pay special attention to TransactionId trusted Channel/System E2E propagation, Approval fence/process-kill recovery, DB3 V107 lineage, FileLog recovery, ADM typed mutation/CAS/CSP, BZA contracts, EDU ownership, and false-green mutation behavior.
-5. Do not modify QA-owned status fields; record Codex-owned current result only.
+Re-run: Central 36, Canonical 169, Previous 56, Special Review 1000, EDU 135 and Runtime 13. Pay special attention to exact-SHA provenance/package integrity, first-hop transaction identity, FileLog fairness, timeline failed-source semantics, canonical Starter ownership, OpenAPI/generated-client high-risk closure, JDBC lock fencing/lease/reconcile, Online Spring/JDBC transaction rollback/UNKNOWN/reconcile, Batch actual process-kill/restart/duplicate prevention, DB3 lifecycle, and six release-target trust boundaries.
 
-Developer runtime-unverified axes are enumerated in `RUNTIME_QUALIFICATION_MATRIX.csv`; they must not be converted to PASS without execution evidence.
+Only live executions made on the actual successor checkout may be promoted to PASS. Keep unexecuted runtime axes `미검증`.

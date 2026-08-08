@@ -14,8 +14,10 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HexFormat;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -121,15 +123,21 @@ final class CpfFileLogRecoverySpool implements AutoCloseable {
     void replayAvailable() {
         if (!replaying.compareAndSet(false, true)) return;
         try {
+            Set<Path> blockedTargets = new HashSet<>();
             for (Path item : pending()) {
+                Envelope envelope = null;
                 try {
                     Instant modifiedAt = Files.getLastModifiedTime(item).toInstant();
                     if (modifiedAt.plusMillis(baseBackoffMillis).isAfter(clock.instant())) continue;
-                    Envelope envelope = readEnvelope(item);
-                    boolean applied = appender.append(envelope.target(), envelope.record(), envelope.checksum());
+                    envelope = readEnvelope(item);
+                    Path target = envelope.target();
+                    if (blockedTargets.contains(target)) continue;
+                    boolean applied = appender.append(target, envelope.record(), envelope.checksum());
                     if (!applied) {
+                        // 동일 target의 순서는 보존하되 다른 target의 healthy tail은 계속 처리한다.
+                        blockedTargets.add(target);
                         Files.setLastModifiedTime(item, FileTime.from(clock.instant()));
-                        break;
+                        continue;
                     }
                     Files.deleteIfExists(item);
                     replayed.incrementAndGet();
@@ -138,11 +146,11 @@ final class CpfFileLogRecoverySpool implements AutoCloseable {
                     deduplicated.incrementAndGet();
                     replayed.incrementAndGet();
                 } catch (FileSystemException transientFailure) {
+                    if (envelope != null) blockedTargets.add(envelope.target());
                     touch(item);
-                    break;
                 } catch (IOException transientFailure) {
+                    if (envelope != null) blockedTargets.add(envelope.target());
                     touch(item);
-                    break;
                 } catch (Exception poison) {
                     quarantine(item, poison.getClass().getSimpleName());
                 }

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Validate measured resource budgets and cleanup evidence; self-attested booleans never suffice."""
 from __future__ import annotations
+import sys
+from pathlib import Path as _TrustPath
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]/'verification'))
+from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse, json, math, os, urllib.request, uuid
 from pathlib import Path
 from urllib.parse import urlparse
@@ -66,13 +70,16 @@ def self_test()->int:
     print('[CPF][RESOURCE][PASS] selfTest=true numericBudget=true cleanup=true backpressure=true'); return 0
 
 def main()->int:
-    ap=argparse.ArgumentParser(); ap.add_argument('--output-json',type=Path); ap.add_argument('--self-test',action='store_true'); a=ap.parse_args()
-    if a.self_test:return self_test()
+    ap=argparse.ArgumentParser(); ap.add_argument('--output-json',type=Path); ap.add_argument('--self-test',action='store_true'); ap.add_argument('--expected-head',default=os.environ.get('CPF_EXPECTED_HEAD','')); a=ap.parse_args()
+    if a.self_test:
+        trust_self_test(); return self_test()
     url=os.environ.get('CPF_PERF_RESOURCE_PROBE_URL','').strip()
+    if len(a.expected_head.strip())!=40:return fail('expected checkout HEAD is required',a.output_json)
     if not url:return fail('CPF_PERF_RESOURCE_PROBE_URL is required',a.output_json)
     u=urlparse(url)
     if u.scheme not in {'http','https'} or not u.hostname:return fail('resource probe URL must be http/https',a.output_json)
     if u.scheme!='https' and u.hostname not in {'127.0.0.1','localhost','::1'}:return fail('non-local resource probe must use https',a.output_json)
+    verify_release_target(url,a.expected_head)
     request_id=str(uuid.uuid4()); body=json.dumps({'requestId':request_id,'scenario':'resource-budget-cleanup'}).encode()
     req=urllib.request.Request(url,data=body,headers={'Content-Type':'application/json','X-Cpf-Request-Id':request_id},method='POST')
     token=os.environ.get('CPF_PERF_RESOURCE_PROBE_TOKEN','').strip()

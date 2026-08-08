@@ -1,13 +1,9 @@
-# CPF Developer Final Current Handover
+# Handover
 
-## Basis
-`master` target `08d8beb4a664039904c30aeac07115a04707924a`. Central currentization is preserved; deleted historical control/session/review/evidence files are not restored.
+Development basis: `f6d7080c5a14b7dd7595093f9497470169e18d80` (`master`).
 
-## Current state
-Product Source implementation and executable semantic/static gates in this environment are complete. Full release/runtime qualification is not complete because required live/toolchain environments are unavailable.
+Direct review completed: Central 36/36, Canonical 169/169, Previous 56/56, Special Review 1000/1000, EDU 135/135. Unified Developer ledger is `REQUIREMENT_STATUS.csv` (1,409 rows). Current source-remediable gaps found in this cycle were implemented; self-discovered defects are recorded in `SELF_DISCOVERED_FINDINGS.csv`.
 
-## Next consumer
-Codex/QA should start from `REVIEW_INDEX.md`, apply the Overlay to a clean `08d8beb4a664039904c30aeac07115a04707924a` checkout, run the exact-SHA release gate with Java25/Gradle9.1 and live DB3/browser/multiprocess inputs, then adjudicate remaining `미검증` runtime axes.
+After user-controlled apply/commit/push, bind every verification to the new successor HEAD and do not promote this basis SHA as successor execution evidence. Run low-cost direct/mutation gates first, then Java25/Gradle9.1 build/test/publication, DB3 live lifecycle, authenticated browsers, real multi-instance/broker/DR and authorized release-target qualification.
 
-## Repository hygiene
-Use only this current `dev-final` surface. Do not create dated/session/REV copies. `DELETE_MANIFEST.csv` has no developer-requested repository deletions.
+`DELETE_MANIFEST.csv` is allowlist-only. No Git commit/push/branch/tag/reset/restore/stash/clean or repository deletion was performed by Developer GPT.

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Broker produce/consume/reconnect/retry-DLQ/backpressure semantic qualification."""
 from __future__ import annotations
+import sys
+from pathlib import Path as _TrustPath
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]/'verification'))
+from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse,json,math,os,urllib.request,uuid
 from urllib.parse import urlparse
 class BrokerError(RuntimeError):pass
@@ -49,13 +53,16 @@ def self_test():
  validate_payload(good,'r');print('[CPF][BROKER][PASS] selfTest=true idsOffsets=true reconnect=true retryDlq=true backpressure=true');return 0
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--self-test',action='store_true');a=ap.parse_args()
- if a.self_test:return self_test()
+ ap=argparse.ArgumentParser();ap.add_argument('--self-test',action='store_true');ap.add_argument('--expected-head',default=os.environ.get('CPF_EXPECTED_HEAD',''));a=ap.parse_args()
+ if a.self_test:
+  trust_self_test();return self_test()
  url=os.environ.get('CPF_PERF_BROKER_PROBE_URL','').strip()
+ if len(a.expected_head.strip())!=40:return fail('expected checkout HEAD is required')
  if not url:return fail('CPF_PERF_BROKER_PROBE_URL is required')
  u=urlparse(url)
  if u.scheme not in {'http','https'} or not u.hostname:return fail('broker probe URL must be http/https')
  if u.scheme!='https' and u.hostname not in {'127.0.0.1','localhost','::1'}:return fail('non-local broker probe must use https')
+ verify_release_target(url,a.expected_head)
  rid=str(uuid.uuid4());body=json.dumps({'requestId':rid,'scenario':'produce-consume-fault-reconnect-retry-dlq-backpressure'}).encode();req=urllib.request.Request(url,data=body,headers={'Content-Type':'application/json','X-Cpf-Request-Id':rid},method='POST');token=os.environ.get('CPF_PERF_BROKER_PROBE_TOKEN','').strip()
  if token:req.add_header('Authorization','Bearer '+token)
  try:

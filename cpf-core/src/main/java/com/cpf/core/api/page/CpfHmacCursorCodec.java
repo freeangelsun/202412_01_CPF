@@ -18,6 +18,11 @@ public final class CpfHmacCursorCodec implements CpfCursorCodec {
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private final byte[] secret;
 
+    /** HMAC-SHA256 cursor codec을 생성합니다.
+     * @param secret 최소 32 byte의 외부 주입 Secret. 내부에서 복사하여 보관합니다.
+     * @throws NullPointerException secret이 null인 경우
+     * @throws IllegalArgumentException secret이 32 byte 미만인 경우
+     */
     public CpfHmacCursorCodec(byte[] secret) {
         Objects.requireNonNull(secret, "secret");
         if (secret.length < 32) {
@@ -26,6 +31,12 @@ public final class CpfHmacCursorCodec implements CpfCursorCodec {
         this.secret = secret.clone();
     }
 
+    /** payload를 version/body/HMAC 형태의 URL-safe token으로 변환합니다.
+     * @param payload null이 아닌 cursor 원문
+     * @return 서명된 외부 cursor token
+     * @throws NullPointerException payload가 null인 경우
+     * @throws IllegalStateException HMAC 계산을 수행할 수 없는 경우
+     */
     @Override
     public String encode(String payload) {
         Objects.requireNonNull(payload, "payload");
@@ -35,6 +46,12 @@ public final class CpfHmacCursorCodec implements CpfCursorCodec {
         return signingInput + "." + base64(sign(signingInput));
     }
 
+    /** token의 version과 HMAC을 상수시간 비교로 검증한 뒤 payload를 반환합니다.
+     * @param token 외부에서 받은 cursor token
+     * @return 검증된 UTF-8 payload
+     * @throws IllegalArgumentException null/blank, 형식 오류, 서명 불일치, Base64 오류인 경우
+     * @throws IllegalStateException HMAC 계산을 수행할 수 없는 경우
+     */
     @Override
     public String decode(String token) {
         if (token == null || token.isBlank()) {

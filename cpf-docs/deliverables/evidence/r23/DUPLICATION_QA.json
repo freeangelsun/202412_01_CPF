@@ -1,0 +1,107 @@
+{
+  "shared_blocks": [
+    {
+      "chars": 164,
+      "text": "Repository f6d7080c5a14b7dd7595093f9497470169e18d80 Product Source f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c QA Source basis b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb",
+      "occurrences": [
+        [
+          "00_프레임워크안내.docx",
+          "t0r2c1"
+        ],
+        [
+          "01_개발자매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "02_배치개발매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "03_ADM개발자매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "04_ADM운영자매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "05_플랫폼운영매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "90_BZA매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "91_Gateway매뉴얼.docx",
+          "t0r2c1"
+        ],
+        [
+          "기술사양서.docx",
+          "t0r2c1"
+        ],
+        [
+          "기술표준서.docx",
+          "t0r2c1"
+        ],
+        [
+          "데이터베이스표준서.docx",
+          "t0r2c1"
+        ],
+        [
+          "산출물목록.docx",
+          "t0r2c1"
+        ],
+        [
+          "아키텍처설계서.docx",
+          "t0r2c1"
+        ]
+      ],
+      "allowed_boilerplate": true
+    },
+    {
+      "chars": 180,
+      "text": "검증 상태 구분 문서 기준 master f6d7080c5a14, Product Source f0aa49f29cba, QA basis b4b6b18b43e9. 직접 실행하지 않은 Runtime/DB/Browser/다중 인스턴스/장애 검증은 미검증으로 유지합니다. 문서 탐색성 점수와 제품 Release 상태를 섞지 않습니다.",
+      "occurrences": [
+        [
+          "03_ADM개발자매뉴얼.docx",
+          "paragraph"
+        ],
+        [
+          "04_ADM운영자매뉴얼.docx",
+          "paragraph"
+        ],
+        [
+          "90_BZA매뉴얼.docx",
+          "paragraph"
+        ],
+        [
+          "91_Gateway매뉴얼.docx",
+          "paragraph"
+        ],
+        [
+          "기술사양서.docx",
+          "paragraph"
+        ],
+        [
+          "기술표준서.docx",
+          "paragraph"
+        ],
+        [
+          "데이터베이스표준서.docx",
+          "paragraph"
+        ],
+        [
+          "산출물목록.docx",
+          "paragraph"
+        ],
+        [
+          "아키텍처설계서.docx",
+          "paragraph"
+        ]
+      ],
+      "allowed_boilerplate": true
+    }
+  ],
+  "meaningful_duplicates": []
+}

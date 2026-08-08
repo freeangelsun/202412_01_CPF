@@ -19,7 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+@Order(Ordered.HIGHEST_PRECEDENCE + 20)
 public class TransactionContextFilter extends OncePerRequestFilter {
 
     private final TransactionIdGenerator transactionIdGenerator;

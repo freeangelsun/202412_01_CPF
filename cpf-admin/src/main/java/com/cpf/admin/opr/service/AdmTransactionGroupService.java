@@ -61,13 +61,14 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
         detail.put("summary", summarize(transactionId, segments));
         detail.put("headers", headerSnapshots(segments));
         detail.put("externalLogs", findExternalLogs(transactionId, 100));
-        List<Map<String, Object>> batchLineage = findBatchLineage(transactionId, 200);
+        BatchLineageResult batchLineageResult = findBatchLineage(transactionId, 200);
+        List<Map<String, Object>> batchLineage = batchLineageResult.rows();
         List<Map<String, Object>> lineage = new ArrayList<>(timelineQueryPort.findLineage(transactionId, 500));
         lineage.addAll(batchLineage);
         lineage.sort((left, right) -> text(left, "occurredAt").compareTo(text(right, "occurredAt")));
         detail.put("lineage", List.copyOf(lineage));
         detail.put("tree", lineageTree(lineage));
-        detail.put("sourceFreshness", mergeBatchFreshness(timelineQueryPort.sourceFreshness(transactionId), batchLineage));
+        detail.put("sourceFreshness", mergeBatchFreshness(timelineQueryPort.sourceFreshness(transactionId), batchLineageResult));
         return detail;
     }
 
@@ -226,15 +227,15 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
     }
 
 
-    private List<Map<String, Object>> findBatchLineage(String transactionId, int limit) {
+    private BatchLineageResult findBatchLineage(String transactionId, int limit) {
         if (!hasText(transactionId) || batchOperations == null) {
-            return List.of();
+            return BatchLineageResult.notApplicable();
         }
         try {
             List<CpfDataRow> executions = batchOperations.findExecutions(
                     null, transactionId.trim(), null, null, null, boundedLimit(limit));
             if (executions == null || executions.isEmpty()) {
-                return List.of();
+                return BatchLineageResult.success(List.of());
             }
             List<Map<String, Object>> rows = new ArrayList<>();
             for (CpfDataRow execution : executions) {
@@ -283,14 +284,15 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
                 row.put("freshnessAt", endedAt == null ? startedAt : endedAt);
                 rows.add(row);
             }
-            return List.copyOf(rows);
-        } catch (RuntimeException ignored) {
-            // Batch owner unavailability is represented as partial freshness, never as a false complete result.
-            return List.of();
+            return BatchLineageResult.success(List.copyOf(rows));
+        } catch (RuntimeException queryFailure) {
+            // Applicable BATCH source query failures must remain operator-visible.
+            // Never collapse an unavailable owner into a normal empty/not-applicable result.
+            return BatchLineageResult.queryFailed(queryFailure.getClass().getSimpleName());
         }
     }
 
-    private Map<String, Object> mergeBatchFreshness(Map<String, Object> base, List<Map<String, Object>> batchRows) {
+    private Map<String, Object> mergeBatchFreshness(Map<String, Object> base, BatchLineageResult batchResult) {
         Map<String, Object> result = new LinkedHashMap<>(base == null ? Map.of() : base);
         List<Map<String, Object>> sources = new ArrayList<>();
         Object existingSources = result.get("sources");
@@ -303,9 +305,36 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
                 }
             }
         }
-        if (!batchRows.isEmpty()) {
+
+        if (!batchResult.applicable()) {
+            result.put("sources", List.copyOf(sources));
+            return result;
+        }
+
+        sources.removeIf(source -> "BATCH".equals(String.valueOf(source.get("sourceType"))));
+        List<String> missing = stringList(result.get("missingSources"));
+        List<String> failed = stringList(result.get("failedSources"));
+        missing.removeIf("BATCH"::equals);
+        failed.removeIf("BATCH"::equals);
+
+        if (batchResult.queryFailed()) {
+            Map<String, Object> batch = new LinkedHashMap<>();
+            batch.put("sourceType", "BATCH");
+            batch.put("state", "QUERY_FAILED");
+            batch.put("availability", "UNAVAILABLE");
+            batch.put("reason", "BATCH_QUERY_FAILED");
+            batch.put("failureType", batchResult.failureType());
+            batch.put("eventCount", 0);
+            batch.put("freshnessAt", null);
+            sources.add(batch);
+            missing.add("BATCH");
+            failed.add("BATCH");
+            result.put("partial", true);
+            result.put("available", false);
+            result.put("resultState", "PARTIAL");
+        } else {
             Object latest = null;
-            for (Map<String, Object> row : batchRows) {
+            for (Map<String, Object> row : batchResult.rows()) {
                 Object candidate = row.get("freshnessAt");
                 if (candidate != null && (latest == null || String.valueOf(candidate).compareTo(String.valueOf(latest)) > 0)) {
                     latest = candidate;
@@ -313,20 +342,44 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
             }
             Map<String, Object> batch = new LinkedHashMap<>();
             batch.put("sourceType", "BATCH");
-            batch.put("eventCount", batchRows.size());
+            batch.put("state", "AVAILABLE");
+            batch.put("eventCount", batchResult.rows().size());
             batch.put("freshnessAt", latest);
-            sources.removeIf(source -> "BATCH".equals(String.valueOf(source.get("sourceType"))));
             sources.add(batch);
-            List<String> missing = new ArrayList<>();
-            Object currentMissing = result.get("missingSources");
-            if (currentMissing instanceof List<?> list) {
-                for (Object value : list) if (!"BATCH".equals(String.valueOf(value))) missing.add(String.valueOf(value));
-            }
-            result.put("missingSources", List.copyOf(missing));
-            result.put("partial", !missing.isEmpty());
         }
+        result.put("missingSources", List.copyOf(missing));
+        result.put("failedSources", List.copyOf(failed));
+        result.put("partial", Boolean.TRUE.equals(result.get("partial")) || !missing.isEmpty() || !failed.isEmpty());
         result.put("sources", List.copyOf(sources));
         return result;
+    }
+
+    private List<String> stringList(Object value) {
+        List<String> result = new ArrayList<>();
+        if (value instanceof List<?> list) {
+            for (Object item : list) {
+                if (item != null && !String.valueOf(item).isBlank()) result.add(String.valueOf(item));
+            }
+        }
+        return result;
+    }
+
+    private record BatchLineageResult(
+            List<Map<String, Object>> rows,
+            boolean applicable,
+            boolean queryFailed,
+            String failureType) {
+        private static BatchLineageResult notApplicable() {
+            return new BatchLineageResult(List.of(), false, false, null);
+        }
+
+        private static BatchLineageResult success(List<Map<String, Object>> rows) {
+            return new BatchLineageResult(rows == null ? List.of() : List.copyOf(rows), true, false, null);
+        }
+
+        private static BatchLineageResult queryFailed(String failureType) {
+            return new BatchLineageResult(List.of(), true, true, failureType == null ? "RuntimeException" : failureType);
+        }
     }
 
     private Object firstValue(Map<String, Object> row, String... keys) {

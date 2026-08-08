@@ -45,4 +45,17 @@ class CpfTransactionTimelineFreshnessTest {
         assertEquals(List.of("LOCAL"), result.get("failedSources"));
         assertFalse(((List<?>) result.get("notApplicableSources")).contains("LOCAL"));
     }
+
+    @Test
+    void queryFailureMarkerIsPartialAndNeverNotApplicable() {
+        for (String source : List.of("REMOTE", "MESSAGE", "DLQ", "BATCH", "FILE", "TRACE", "AUDIT")) {
+            var result = CpfTransactionTimelineQueryFacade.classifySourceFreshness(
+                    "T001",
+                    List.of(Map.of("sourceType", source, "queryState", "QUERY_FAILED", "failureStage", "RuntimeException")),
+                    Set.of());
+            assertEquals(true, result.get("partial"), source);
+            assertTrue(((List<?>) result.get("failedSources")).contains(source), source);
+            assertFalse(((List<?>) result.get("notApplicableSources")).contains(source), source);
+        }
+    }
 }

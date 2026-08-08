@@ -289,10 +289,16 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
             java.util.Set<String> failedSources) {
         String tx = transactionId == null ? "" : transactionId.trim();
         List<Map<String,Object>> safeLineage = lineage == null ? List.of() : lineage;
-        java.util.Set<String> failures = failedSources == null ? java.util.Set.of() : failedSources;
+        LinkedHashSet<String> failures = new LinkedHashSet<>(
+                failedSources == null ? java.util.Set.of() : failedSources);
         LinkedHashMap<String, Map<String,Object>> observed = new LinkedHashMap<>();
         for (Map<String,Object> row : safeLineage) {
             String type = Objects.toString(value(row,"sourceType"), "UNKNOWN").trim().toUpperCase(java.util.Locale.ROOT);
+            String queryState = Objects.toString(value(row,"queryState"), "").trim().toUpperCase(java.util.Locale.ROOT);
+            if ("QUERY_FAILED".equals(queryState) || "TABLE_UNAVAILABLE".equals(queryState)) {
+                failures.add(type);
+                continue;
+            }
             Map<String,Object> current = observed.computeIfAbsent(type, ignored -> new LinkedHashMap<>());
             current.put("sourceType", type);
             current.put("eventCount", ((Number)current.getOrDefault("eventCount",0)).intValue()+1);
@@ -354,9 +360,32 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     }
 
     private void appendIfTable(List<Map<String,Object>> target, String table, String sql, String transactionId, int limit) {
+        String sourceType = sourceTypeForTable(table);
         if (!namedTableAvailable(table)) return;
-        try { target.addAll(queryForListLimited(sql, List.of(transactionId), limit)); }
-        catch (RuntimeException ignored) { /* one broken source makes the result partial, never falsely complete */ }
+        try {
+            target.addAll(queryForListLimited(sql, List.of(transactionId), limit));
+        } catch (RuntimeException failure) {
+            // 조회 실패는 N/A가 아니다. 운영자가 부분 실패를 식별하도록 명시적인 source marker를 남긴다.
+            target.add(Map.of(
+                    "sourceType", sourceType,
+                    "sourceRefId", "QUERY:" + table,
+                    "queryState", "QUERY_FAILED",
+                    "failureStage", failure.getClass().getSimpleName(),
+                    "freshnessAt", java.time.Instant.now()));
+        }
+    }
+
+    private static String sourceTypeForTable(String table) {
+        return switch (table) {
+            case "cpf_transaction_log" -> "TRACE";
+            case "cpf_broker_outbox" -> "MESSAGE";
+            case "cpf_broker_dlq" -> "DLQ";
+            case "cpf_file_transfer_history" -> "FILE";
+            case "cpf_unknown_result" -> "UNKNOWN";
+            case "cpf_service_call_history" -> "REMOTE";
+            case "cpf_security_token_audit_log" -> "AUDIT";
+            default -> "LOCAL";
+        };
     }
 
     private static boolean staleTimestamp(Object value) {

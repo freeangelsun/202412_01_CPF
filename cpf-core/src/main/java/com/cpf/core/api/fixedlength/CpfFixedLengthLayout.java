@@ -18,6 +18,12 @@ public record CpfFixedLengthLayout(
         List<CpfFixedLengthFieldSpec> fields,
         List<CpfFixedLengthGroupSpec> groups) {
 
+    /**
+     * 익명 layoutId/version을 사용하는 단순 고정길이 Layout을 생성합니다.
+     * @param charset 전문 charset; {@code null}이면 UTF-8
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 고정길이 필드 정의
+     */
     public CpfFixedLengthLayout(
             Charset charset,
             int totalLength,
@@ -25,6 +31,13 @@ public record CpfFixedLengthLayout(
         this("anonymous", "1", charset, totalLength, fields, List.of());
     }
 
+    /**
+     * 반복부를 포함하는 익명 고정길이 Layout을 생성합니다.
+     * @param charset 전문 charset; {@code null}이면 UTF-8
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 고정길이 필드 정의
+     * @param groups 반복부 정의 목록
+     */
     public CpfFixedLengthLayout(
             Charset charset,
             int totalLength,
@@ -50,12 +63,25 @@ public record CpfFixedLengthLayout(
         validate(totalLength, fields, groups);
     }
 
+    /**
+     * UTF-8 단순 Layout을 생성합니다.
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 필드 정의
+     * @return UTF-8 고정길이 Layout
+     */
     public static CpfFixedLengthLayout utf8(
             int totalLength,
             List<CpfFixedLengthFieldSpec> fields) {
         return new CpfFixedLengthLayout(StandardCharsets.UTF_8, totalLength, fields);
     }
 
+    /**
+     * UTF-8 반복부 Layout을 생성합니다.
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 필드 정의
+     * @param groups 반복부 정의
+     * @return UTF-8 고정길이 Layout
+     */
     public static CpfFixedLengthLayout utf8(
             int totalLength,
             List<CpfFixedLengthFieldSpec> fields,
@@ -63,12 +89,25 @@ public record CpfFixedLengthLayout(
         return new CpfFixedLengthLayout(StandardCharsets.UTF_8, totalLength, fields, groups);
     }
 
+    /**
+     * EUC-KR 단순 Layout을 생성합니다.
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 필드 정의
+     * @return EUC-KR 고정길이 Layout
+     */
     public static CpfFixedLengthLayout eucKr(
             int totalLength,
             List<CpfFixedLengthFieldSpec> fields) {
         return new CpfFixedLengthLayout(Charset.forName("EUC-KR"), totalLength, fields);
     }
 
+    /**
+     * EUC-KR 반복부 Layout을 생성합니다.
+     * @param totalLength 전문 전체 byte 길이
+     * @param fields 필드 정의
+     * @param groups 반복부 정의
+     * @return EUC-KR 고정길이 Layout
+     */
     public static CpfFixedLengthLayout eucKr(
             int totalLength,
             List<CpfFixedLengthFieldSpec> fields,

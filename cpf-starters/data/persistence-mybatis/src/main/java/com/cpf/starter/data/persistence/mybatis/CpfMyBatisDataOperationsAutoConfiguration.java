@@ -11,7 +11,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Exposes the provider-neutral CPF data operations over the CPF MyBatis session. */
-@AutoConfiguration(afterName = "com.cpf.core.config.CpfMyBatisConfig")
+@AutoConfiguration(afterName = "com.cpf.starter.data.persistence.mybatis.config.CpfMyBatisConfig")
 public class CpfMyBatisDataOperationsAutoConfiguration {
     @Bean
     @ConditionalOnBean(name = {"cpfSqlSessionTemplate", "cpfTransactionManager"})

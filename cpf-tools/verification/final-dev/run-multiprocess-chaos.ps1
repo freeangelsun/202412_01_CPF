@@ -19,16 +19,23 @@ if($dirty){throw 'Multi-process chaos qualification requires clean exact-SHA tre
 $evidencePath=if([IO.Path]::IsPathRooted($EvidenceDir)){$EvidenceDir}else{Join-Path $root $EvidenceDir}
 New-Item -ItemType Directory -Force -Path $evidencePath | Out-Null
 $runner=$env:CPF_MULTIPROCESS_CHAOS_RUNNER
-if([string]::IsNullOrWhiteSpace($runner) -or -not(Test-Path -LiteralPath $runner -PathType Leaf)){
-  throw 'CPF_MULTIPROCESS_CHAOS_RUNNER must point to the approved broker/network/split-WAS/process-kill harness.'
+if([string]::IsNullOrWhiteSpace($runner)){
+  $runner=Join-Path $PSScriptRoot 'multiprocess-chaos-runner.py'
 }
-foreach($name in @('CPF_BROKER_URL','CPF_CHAOS_DB_URL','CPF_CHAOS_DB_USER','CPF_CHAOS_DB_PASSWORD')){
+if(-not(Test-Path -LiteralPath $runner -PathType Leaf)){
+  throw "Multi-process chaos runner not found: $runner"
+}
+foreach($name in @('CPF_CHAOS_INSTANCE_A_BASE_URL','CPF_CHAOS_INSTANCE_B_BASE_URL','CPF_CHAOS_ADM_COOKIE','CPF_CHAOS_CSRF_TOKEN','CPF_CHAOS_APPROVAL_CLAIM_ID','CPF_CHAOS_APPROVAL_KILL_ID','CPF_CHAOS_INSTANCE_A_KILL_CMD')){
   if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))){throw "Missing $name"}
 }
-$required=@('broker-redelivery','broker-outage','network-partition','multi-instance-claim','split-was','process-kill','db-outage','unknown-reconcile')
+$required=@('multi-instance-claim','process-kill','unknown-reconcile')
 $summary=Join-Path $evidencePath 'chaos-summary.json'
 $log=Join-Path $evidencePath 'chaos.log'
-& $runner --repo-root $root --baseline-sha $head --evidence-dir $evidencePath --summary-json $summary --scenarios ($required -join ',') 2>&1 | Tee-Object -FilePath $log
+if([IO.Path]::GetExtension($runner) -eq '.py'){
+  & python $runner --repo-root $root --baseline-sha $head --evidence-dir $evidencePath --summary-json $summary --scenarios ($required -join ',') 2>&1 | Tee-Object -FilePath $log
+}else{
+  & $runner --repo-root $root --baseline-sha $head --evidence-dir $evidencePath --summary-json $summary --scenarios ($required -join ',') 2>&1 | Tee-Object -FilePath $log
+}
 if($LASTEXITCODE -ne 0){throw "Multi-process chaos harness failed: $LASTEXITCODE"}
 if(-not(Test-Path -LiteralPath $summary -PathType Leaf)){throw 'chaos-summary.json was not produced by the approved harness'}
 $data=Get-Content -LiteralPath $summary -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 30

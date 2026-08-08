@@ -1,242 +1,248 @@
-﻿path,change_type,category,basis_sha,reason,delete
-cpf-admin/frontend/index.html,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/openapi/cpf-openapi.json,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/scripts/generate-canonical-compat-client.mjs,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/scripts/verify-operation-consumer.mjs,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/app/methods/accessMethods.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/app/methods/observabilityMethods.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/app/methods/platformMethods.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/app/methods/routeClosureMethods.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/app/routes.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/batch-deployment/BatchDeploymentPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/batch-deployment/DeploymentPlanCreatePanel.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/batch-runtime-control/BatchOperationsWorkbench.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/batch-runtime-control/api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/break-glass/BreakGlassPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/core/methods.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/gateway-operations/GatewayOperationsPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/integration-closure/integrationClosureApi.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/maintenance/MaintenancePage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/operations/ErrorWorkbenchPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/operations/IncidentLifecyclePanel.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/operations/api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/secrets/SecretsPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/features/transactions/api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/generated/cpf-api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/generated/orval/cpf-api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/generated/orval/model/admChannelRefreshSnapshotParams.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/generated/orval/model/admReliabilityActionRequest.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/frontend/src/generated/orval/model/index.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/approval/api/AdmApprovedOperationCommand.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/approval/owner/CenterCutApprovalOwnerCommandAdapter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/approval/repository/AdmApprovalRepository.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/approval/service/AdmApprovalService.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeCommandRequest.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeDeploymentPlanRequest.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmChannelController.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmReliabilityController.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmReliabilityActionRequest.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/test/java/com/cpf/admin/approval/owner/BatchRuntimeApprovalOwnerCommandAdapterTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/test/java/com/cpf/admin/approval/owner/CenterCutApprovalOwnerCommandAdapterTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/test/java/com/cpf/admin/approval/repository/AdmApprovalRecoveryRepositoryContractTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-admin/src/test/java/com/cpf/admin/approval/service/AdmApprovalServiceExecutionTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/openapi/cpf-openapi.json,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/src/features/approval-simulation/ApprovalSimulationPage.vue,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/src/generated/bza-route-operation-contract.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/src/generated/cpf-api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/src/generated/cpf-operation-contract.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/frontend/src/generated/orval/cpf-api.ts,OVERLAY_REPLACE_OR_ADD,FRONTEND/OPENAPI,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/src/main/java/com/cpf/bizadmin/config/BzaOpenApiContractConfig.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-biz-admin/src/test/java/com/cpf/bizadmin/auth/filter/BzaApiAuthFilterTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/api/reliability/CpfReliabilityOperationsPort.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/filter/TransactionContextFilter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/SensitiveDataMasker.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/file/CpfFileLogRecoverySpool.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/file/CpfFileLogWriter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/lineage/CpfTransactionLineageRecord.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineQueryFacade.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/segment/TransactionSegmentPersistenceService.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/spi/CpfTransactionLineageProjectionPort.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/spi/CpfTransactionLogPersistencePort.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/logging/spi/CpfTransactionSegmentPersistencePort.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/reliability/CpfReliabilityOperationsFacade.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/common/transaction/CpfInboundTransactionIdPolicy.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/main/java/com/cpf/core/service/common/logging/TransactionLogService.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/test/java/com/cpf/core/common/logging/file/CpfFileLogRecoveryContractTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/test/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineFreshnessTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/test/java/com/cpf/core/common/transaction/CpfInboundTransactionIdPolicyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-core/src/test/java/com/cpf/core/service/common/logging/TransactionLogServicePolicyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/ADM_BZA_CONSUMER_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/APPROVAL_RECOVERY_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/CANONICAL_169_STATUS.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/CENTRAL_FINAL_ACTION_RESULT.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/CODEX_REVIEW_REQUEST.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/DB3_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/DELETE_MANIFEST.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/DEVELOPMENT_RESULT.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/DEVELOPMENT_SESSION_RESULT.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/DOCUMENT_IMPACT.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/EDU_135_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/FALSE_GREEN_MUTATION_RESULT.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/FILELOG_RECOVERY_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/HANDOVER.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/OPEN_ISSUES.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/PREVIOUS_56_FINDING_RESULT.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/REVIEW_INDEX.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/RUNTIME_QUALIFICATION_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/SELF_DISCOVERED_FINDINGS.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/SOURCE_CONSUMER_TRACE.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/TEST_AND_EVIDENCE.md,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-docs/work/v9i/dev-final/TRANSACTION_LOGGING_MATRIX.csv,OVERLAY_REPLACE_OR_ADD,EVIDENCE/CURRENT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/approval/EduAdm04Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/bulk/EduAdm10Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/command/EduAdm03Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/config/EduAdmRedirectMetadata.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/config/ReferenceOperationsCapabilityContributor.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/configuration/EduAdm11Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/correlation/EduAdm15Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/customscreen/EduAdm07Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/detail/EduAdm09Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/evidence/EduAdm13Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/incident/EduAdm12Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/notification/EduAdm16Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/query/EduAdm02Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/reuse/EduAdm01Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/search/EduAdm08Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/session/EduAdm17Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/main/java/com/cpf/reference/optional/operations/topology/EduAdm14Handler.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/asyncoperation/EduAdm05UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/bulk/EduAdm10ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/bulk/EduAdm10FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/bulk/EduAdm10IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/bulk/EduAdm10RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/bulk/EduAdm10UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/configuration/EduAdm11ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/configuration/EduAdm11FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/configuration/EduAdm11IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/configuration/EduAdm11RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/configuration/EduAdm11UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/correlation/EduAdm15ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/correlation/EduAdm15FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/correlation/EduAdm15IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/correlation/EduAdm15RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/correlation/EduAdm15UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/detail/EduAdm09ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/detail/EduAdm09FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/detail/EduAdm09IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/detail/EduAdm09RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/detail/EduAdm09UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/evidence/EduAdm13ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/evidence/EduAdm13FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/evidence/EduAdm13IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/evidence/EduAdm13RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/evidence/EduAdm13UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/incident/EduAdm12ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/incident/EduAdm12FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/incident/EduAdm12IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/incident/EduAdm12RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/incident/EduAdm12UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/notification/EduAdm16ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/notification/EduAdm16FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/notification/EduAdm16IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/notification/EduAdm16RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/notification/EduAdm16UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/partialrecovery/EduAdm06UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/reuse/EduAdm01ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/reuse/EduAdm01FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/reuse/EduAdm01IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/reuse/EduAdm01RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/reuse/EduAdm01UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/search/EduAdm08UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/session/EduAdm17ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/session/EduAdm17FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/session/EduAdm17IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/session/EduAdm17RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/session/EduAdm17UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/topology/EduAdm14ConcurrencyTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/topology/EduAdm14FailureTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/topology/EduAdm14IntegrationTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/topology/EduAdm14RecoveryTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-reference/src/test/java/com/cpf/reference/optional/operations/topology/EduAdm14UnitTest.java,OVERLAY_REPLACE_OR_ADD,TEST,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/core/config/CpfMyBatisConfig.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/persistence/mybatis/logging/JdbcTransactionLineageProjectionAdapter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/persistence/mybatis/logging/MyBatisTransactionLogPersistenceAdapter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/persistence/mybatis/logging/MyBatisTransactionSegmentPersistenceAdapter.java,OVERLAY_REPLACE_OR_ADD,SOURCE,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/canonical/platform-schema.json,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/cpf-db-lifecycle-contract.json,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/metadata/bza-permission-manifest.json,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/install/11_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/migration/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/migration/flyway/cpfDB/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/rollback/R107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/runtime/cpf/transaction_lineage_archive.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/runtime/cpf/transaction_lineage_large_lookup.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/runtime/cpf/transaction_lineage_purge.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/source/22_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/mariadb/verify/107_verify_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/install/11_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/migration/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/rollback/R107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/runtime/cpf/transaction_lineage_archive.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/runtime/cpf/transaction_lineage_large_lookup.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/runtime/cpf/transaction_lineage_purge.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/source/22_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/oracle/verify/107_verify_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/install/11_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/migration/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/rollback/R107__transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/runtime/cpf/transaction_lineage_archive.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/runtime/cpf/transaction_lineage_large_lookup.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/runtime/cpf/transaction_lineage_purge.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/source/22_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/db/vendor/postgresql/verify/107_verify_transaction_logging_lineage_r6j.sql,OVERLAY_REPLACE_OR_ADD,SQL/DB3,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/performance/run-batch-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/performance/run-broker-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/performance/run-resource-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/scripts/invoke-cpf-qa34-db-runtime-matrix.ps1,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/run-db3-lifecycle.ps1,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/run-r6-dr-chaos-probe.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/run-r6-observability-qualification.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/run-r6-release-gates.ps1,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/run-r6-security-negative-qualification.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/tests/run-db3-lifecycle.Tests.ps1,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/tests/test_verify_canonical_requirements.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-batch-runtime-approval.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-csp.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-high-risk-consumers.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-high-risk-generated-client.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-incident-lifecycle.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-adm-reliability-cas.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-bza-approval-simulation-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-bza-openapi-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-canonical-requirements.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-core-persistence-boundary.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-current-sha-evidence.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-db3-runner-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-edu-adm-architecture.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-filelog-recovery-contract.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-r6j-transaction-db3.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-transaction-freshness-applicability.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
-cpf-tools/verification/final-dev/verify-transactionid-trust-lineage.py,OVERLAY_REPLACE_OR_ADD,GATE/SCRIPT,08d8beb4a664039904c30aeac07115a04707924a,Final Product Source completion/current evidence,False
+﻿path,action,owner,reason
+cpf-admin/frontend/openapi/cpf-openapi.json,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-admin/frontend/scripts/verify-operation-consumer.mjs,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/features/runtime-control/RuntimeControlPage.vue,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/generated/orval/cpf-api.ts,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/generated/orval/model/decisionCommand.ts,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/generated/orval/model/policyCommand.ts,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/frontend/src/generated/orval/model/requestCommand.ts,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/src/main/java/com/cpf/admin/config/AdmOpenApiErrorContractConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmTransactionGroupService.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/src/test/java/com/cpf/admin/approval/repository/AdmApprovalFenceRepositoryTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-admin/src/test/java/com/cpf/admin/opr/service/AdmTransactionGroupServiceFailureTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-biz-admin/frontend/openapi/cpf-openapi.json,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-biz-admin/src/main/java/com/cpf/bizadmin/config/BzaOpenApiErrorContractConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/batch/CpfBatchEventPublisher.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/batch/CpfBatchOperationsPort.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/batch/CpfCenterCutOperationsPort.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/fixedlength/CpfFixedLengthLayout.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/fixedlength/CpfFixedLengthLogDecoder.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/http/CpfHttpClient.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/api/locking/CpfLockManager.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/locking/CpfLockingExecutionGuard.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/logging/CpfAsyncLogWriterOperations.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/logging/CpfLogRecoveryOperations.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/logging/CpfTransactionTimelineQueryPort.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfCursor.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfCursorCodec.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfCursorPage.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfHmacCursorCodec.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfPage.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfPageRequest.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfSlice.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfSort.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/page/CpfSortDirection.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/resilience/CpfResiliencePolicy.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/servicecall/CpfServiceRegistryControlPort.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfAttributes.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfClock.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfDates.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfDecimals.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfFiles.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfHashes.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfHeaders.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfIds.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfJson.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfLists.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfMaps.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfNumbers.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfPages.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfStrings.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfTimes.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfValidation.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/api/util/CpfValues.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/common/filter/CpfAuthenticatedSystemIdentityFilter.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/filter/TransactionContextFilter.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/file/CpfFileLogRecoverySpool.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/file/CpfFileLogWriter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/lineage/CpfTransactionLineageRecord.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineQueryFacade.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/spi/CpfTransactionLineageProjectionPort.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/logging/spi/CpfTransactionLogPersistencePort.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/main/java/com/cpf/core/common/transaction/CpfInboundTransactionIdPolicy.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/test/java/com/cpf/core/api/locking/CpfLockingExecutionGuardTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/test/java/com/cpf/core/api/page/CpfPagingContractTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/test/java/com/cpf/core/api/util/CpfUtilityContractTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/test/java/com/cpf/core/common/filter/CpfAuthenticatedSystemIdentityFilterIntegrationTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-core/src/test/java/com/cpf/core/common/logging/file/CpfFileLogRecoveryContractTest.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-core/src/test/java/com/cpf/core/common/logging/segment/CpfTransactionTimelineFreshnessTest.java,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/ADM_BZA_CONSUMER_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/APPROVAL_RECOVERY_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/CANONICAL_169_STATUS.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/CENTRAL_FINAL_ACTION_RESULT.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/CHANGE_MANIFEST.csv,UPDATE,DeveloperGPT,Current Developer root-relative overlay manifest regenerated from final delivered file set
+cpf-docs/work/v9i/dev-final/CODEX_REVIEW_REQUEST.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/DB3_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/DELETE_MANIFEST.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/DEVELOPMENT_RESULT.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/DEVELOPMENT_SESSION_RESULT.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/DOCUMENT_IMPACT.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/EDU_135_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/FALSE_GREEN_MUTATION_RESULT.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/FILELOG_RECOVERY_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/HANDOVER.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/OPEN_ISSUES.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/PACKAGE_MANIFEST.json,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-docs/work/v9i/dev-final/PREVIOUS_56_FINDING_RESULT.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/QA_REWORK_REQUEST.md,ADD,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-docs/work/v9i/dev-final/REQUIREMENT_STATUS.csv,ADD,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-docs/work/v9i/dev-final/REVIEW_INDEX.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/RUNTIME_QUALIFICATION_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/SELF_DISCOVERED_FINDINGS.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/SHA256SUMS.txt,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-docs/work/v9i/dev-final/SOURCE_CONSUMER_TRACE.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/TEST_AND_EVIDENCE.md,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-docs/work/v9i/dev-final/TRANSACTION_LOGGING_MATRIX.csv,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-reference/build.gradle,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/batch/integrated/BatchAbcProcessWorker.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/batch/integrated/BatchAbcReferenceFlow.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-reference/src/main/java/com/cpf/reference/online/foundation/FoundationApiReferenceConsumer.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdJdbcReferenceConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdJdbcRuntimeHarness.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdReferenceConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdReferenceFlow.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdReferenceHttpController.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdSpringJdbcRepository.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdSpringJdbcRuntimeHarness.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/java/com/cpf/reference/online/integrated/OnlineAbcdSpringTransactionService.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/resources/db/reference/online/mariadb/setup.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/resources/db/reference/online/oracle/setup.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/main/resources/db/reference/online/postgresql/setup.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/test/java/com/cpf/reference/batch/integrated/BatchAbcReferenceFlowTest.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-reference/src/test/java/com/cpf/reference/online/foundation/FoundationApiReferenceConsumerTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-reference/src/test/java/com/cpf/reference/online/integrated/OnlineAbcdReferenceFlowTest.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-reference/src/test/java/com/cpf/reference/online/integrated/OnlineAbcdSpringTransactionServiceTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/data/persistence/jdbc/locking/CpfJdbcLockAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/data/persistence/jdbc/locking/CpfJdbcLockManager.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/starter/data/persistence/jdbc/locking/JdbcCpfLockStore.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-jdbc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-jdbc/src/test/java/com/cpf/starter/data/persistence/jdbc/locking/CpfJdbcLockManagerTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/CpfMyBatisDataOperationsAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/config/CmnMyBatisConfig.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/config/CpfMyBatisConfig.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/logging/JdbcTransactionLineageProjectionAdapter.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/logging/MyBatisTransactionLogPersistenceAdapter.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/logging/MyBatisTransactionSegmentPersistenceAdapter.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/mapper/logging/TransactionLogMapper.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/starter/data/persistence/mybatis/mapper/logging/TransactionSegmentMapper.java,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-starters/data/persistence-mybatis/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerClientRouter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerHeaderPolicy.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerReliabilityAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerReliabilityOperations.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerUnknownResultReconciler.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfMessageCompatibilityGuard.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfMessagingReliabilityProperties.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfNamedBrokerClient.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfProviderBrokerPublisher.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/CpfReliableBrokerClient.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerBridgeAdapter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerConsumerRuntimePolicy.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerConsumerWorker.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerOutboxIdentity.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerPublisherWorker.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/internal/JdbcCpfBrokerReliabilityRepository.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/runtimecontrol/CpfBrokerConsumerRuntimeApplier.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/runtimecontrol/CpfBrokerRetryDlqRuntimeApplier.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/java/com/cpf/starter/messaging/reliability/jdbc/runtimecontrol/CpfMessagingRuntimeControlAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerClientRouterTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerHeaderPolicyTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerReliabilityOperationsTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfBrokerUnknownResultReconcilerTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfMessageCompatibilityGuardTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfProviderBrokerPublisherTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/CpfReliableBrokerClientTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerBridgeAdapterTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerConsumerWorkerRecoveryTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerOutboxIdentityTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerPublisherWorkerMaskingTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerPublisherWorkerUnknownResultTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/CpfBrokerWorkerTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/JdbcCpfBrokerReliabilityRepositoryQa39Test.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/messaging/reliability-jdbc/src/test/java/com/cpf/starter/messaging/reliability/jdbc/internal/JdbcCpfBrokerReliabilityRepositoryTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffConcurrentSessionController.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffCredential.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffCredentialResponseAdvice.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffCredentialVault.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffCsrfFilter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffLogoutFilter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffSessionBridgeFilter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfBffSessionDestroyedListener.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfCredentialCipher.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfCsrfCookieExposureFilter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfServerSessionProperties.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfServerSessionSecurityAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfSessionReadinessVerifier.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/CpfTrustedOriginFilter.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/JdbcCpfBffCredentialVault.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/runtimecontrol/CpfPasswordPolicyRuntimeApplier.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/java/com/cpf/starter/security/session/jdbc/runtimecontrol/CpfSecurityRuntimeControlAutoConfiguration.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfBffConcurrentSessionControllerTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfBffCredentialResponseAdviceTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfBffLogoutFilterTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfBffSessionBridgeFilterTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfCredentialCipherTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfServerSessionSecurityFilterChainTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfSessionReadinessVerifierTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-starters/security/session-jdbc/src/test/java/com/cpf/starter/security/session/jdbc/CpfTrustedOriginFilterTest.java,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/canonical/platform-schema.json,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/install/12_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/migration/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/migration/flyway/cpfDB/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/rollback/R108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/runtime/cpf/runtime_lock_expired_candidates.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/source/24_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/mariadb/verify/108_verify_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/install/12_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/migration/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/rollback/R108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/runtime/cpf/runtime_lock_expired_candidates.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/source/24_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/oracle/verify/108_verify_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/install/12_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/migration/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/rollback/R108__runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/runtime/cpf/runtime_lock_expired_candidates.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/source/24_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/db/vendor/postgresql/verify/108_verify_runtime_lock_r6j.sql,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/performance/run-batch-contract.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/performance/run-broker-contract.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/performance/run-resource-contract.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/_cli.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/multiprocess-chaos-runner.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-integrated-reference-flows.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-multiprocess-chaos.ps1,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-r6-dr-chaos-probe.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/run-r6-observability-qualification.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/run-r6-release-gates.ps1,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-r6-security-negative-qualification.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/run-reference-batch-process-kill.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-reference-online-jdbc.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/run-reference-online-spring-jdbc.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-adm-approval-typed-generated-client.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-adm-high-risk-generated-client.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-bza-openapi-contract.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-canonical-169-direct.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-current-sha-evidence.py,UPDATE,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-edu-adm-architecture.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-edu-source-test-closure.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-filelog-recovery-contract.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-first-hop-transaction-identity.py,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-integrated-reference-flows.py,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-lock-manager-contract.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-openapi-operation-errors.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-operation-error-contract.py,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-persistence-package-owner.py,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-previous-56-direct.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-public-api-korean-javadoc.py,ADD,DeveloperGPT,QA A/B full rework/currentization
+cpf-tools/verification/final-dev/verify-r6-edu-consumer-runtime-contract.py,ADD,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-special-1000-trace.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-starter-package-owner.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/final-dev/verify-transaction-freshness-applicability.py,UPDATE,DeveloperGPT,Current exact-SHA QA A/B redevelopment/direct-review currentization
+cpf-tools/verification/release_target_trust.py,ADD,DeveloperGPT,QA A/B full rework/currentization

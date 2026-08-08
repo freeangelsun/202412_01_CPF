@@ -127,9 +127,9 @@ for(const operation of operations){
   if(["POST","PUT","PATCH","DELETE"].includes(operation.method)
       && highRiskOperationIds.has(operation.operationId)
       && consumed.has(operation.operationId)
-      && !generatedConsumed.has(operation.operationId)
+      && !typedGeneratedConsumed.has(operation.operationId)
       && !waived.has(operation.operationId)) {
-    failures.push(`high-risk mutation must call generated API directly: ${operation.operationId} ${operation.method} ${operation.template}`);
+    failures.push(`high-risk mutation must call concrete typed Orval generated API/model: ${operation.operationId} ${operation.method} ${operation.template}`);
   }
 }
 const publicPrefix=String(openapi["x-cpf-product-module"]).toUpperCase()==="ADM"?"/adm/api/":"/api/bza/";

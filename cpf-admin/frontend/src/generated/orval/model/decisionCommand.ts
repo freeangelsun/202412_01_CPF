@@ -1,2 +1,7 @@
-/** Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details. */
-export type DecisionCommand = Record<string, unknown>;
+/** 멱등 승인/반려 결정 요청. */
+export interface DecisionCommand {
+  action: 'APPROVE' | 'REJECT';
+  idempotencyKey: string;
+  reason: string;
+  breakGlass?: boolean;
+}

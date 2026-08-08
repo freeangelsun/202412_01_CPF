@@ -1,4 +1,4 @@
-﻿vendor,canonical,migration,lifecycle,runtime_query,writer,verification
-Oracle,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증
-PostgreSQL,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증
-MariaDB,cpf_transaction_lineage + archive,V107,install + upgrade + rollback + reapply,archive/purge/large-lookup/verify,idempotent projection writer,PASS semantic/mutation; live DB 미검증
+﻿vendor,development_status,verification_status,condition
+Oracle,완료(기존 lifecycle/gate 보존),미검증,live Oracle endpoint + successor SHA
+PostgreSQL,완료(기존 lifecycle/gate 보존),미검증,live PostgreSQL endpoint + successor SHA
+MariaDB,완료(기존 lifecycle/gate 보존),미검증,live MariaDB endpoint + successor SHA

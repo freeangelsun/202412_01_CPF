@@ -22,11 +22,14 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Trust-boundary policy for inbound CPF transaction ids.
+ * 외부 요청에서 전달된 CPF 거래 식별자를 신뢰할 수 있는지 판정하는 인바운드 정책이다.
  *
- * <p>An official transaction starter or a trusted propagation hop may preserve the canonical
- * transaction id. Header presence and syntax alone are never sufficient. A transport trust signal,
- * origin-system provenance and (for a new channel start) durable replay identity are required.</p>
+ * <p>헤더 형식만으로 거래 식별자를 신뢰하지 않으며, 서버가 확인한 호출자 식별·mTLS·신뢰 프록시
+ * 정보와 최초 Channel 거래의 durable replay identity를 함께 검증한다. 내부 전파 호출에서는 원
+ * transactionId를 보존하되 현재 전파 주체가 인증되어야 한다.</p>
+ *
+ * <p>동일 객체는 요청별 상태를 보관하지 않으며, 최초 거래 시작 replay 방지는 주입된
+ * {@link CpfIdempotencyPort}의 원자적 reserve/find 계약에 의존한다.</p>
  */
 @Component
 public final class CpfInboundTransactionIdPolicy {
@@ -37,16 +40,36 @@ public final class CpfInboundTransactionIdPolicy {
 
     private final CpfIdempotencyPort idempotencyPort;
 
+    /**
+     * Spring 환경에서 replay 방지 저장소를 지연 조회해 정책을 생성한다.
+     *
+     * @param provider 구성된 {@link CpfIdempotencyPort}를 제공하는 Spring provider. 저장소가 없으면
+     *                 최초 Channel 거래 시작은 fail-closed로 거부된다.
+     */
     @Autowired
     public CpfInboundTransactionIdPolicy(ObjectProvider<CpfIdempotencyPort> provider) {
         this.idempotencyPort = provider == null ? null : provider.getIfAvailable();
     }
 
-    /** Test/embedded constructor; an inbound channel-start id is rejected when no durable replay port exists. */
+    /**
+     * 테스트 또는 임베디드 환경에서 replay 저장소를 직접 주입한다.
+     *
+     * @param idempotencyPort 최초 거래 시작의 중복·replay를 원자적으로 차단할 저장소. {@code null}이면
+     *                        전파된 거래는 검증할 수 있지만 신규 Channel 거래 시작은 거부된다.
+     */
     public CpfInboundTransactionIdPolicy(CpfIdempotencyPort idempotencyPort) {
         this.idempotencyPort = idempotencyPort;
     }
 
+    /**
+     * 요청의 거래 식별자를 신뢰 경계 규칙에 따라 생성하거나 보존한다.
+     *
+     * @param request 인증 필터가 서버측 신뢰 속성을 설정한 현재 HTTP 요청
+     * @param generator 신규 거래 식별자 생성 및 전달값 형식 검증에 사용하는 생성기
+     * @return 신규 생성/전파 여부와 판정 사유를 포함한 정규화 결과
+     * @throws NullPointerException 요청 또는 생성기가 {@code null}인 경우
+     * @throws CpfValidationException 거래 식별자 형식, 전송 신뢰, System provenance 또는 replay 검증에 실패한 경우
+     */
     public Resolution resolve(HttpServletRequest request, TransactionIdGenerator generator) {
         Objects.requireNonNull(request, "request");
         Objects.requireNonNull(generator, "generator");
@@ -196,5 +219,13 @@ public final class CpfInboundTransactionIdPolicy {
         }
     }
 
+    /**
+     * 인바운드 거래 식별자 판정 결과다.
+     *
+     * @param transactionId 후속 호출과 로그에 사용할 canonical 거래 식별자
+     * @param propagated 기존 거래에서 안전하게 전파된 식별자인지 여부
+     * @param transactionStart 이번 요청이 공식 거래 시작점으로 판정되었는지 여부
+     * @param reason 운영 추적을 위한 신뢰 판정 사유 코드
+     */
     public record Resolution(String transactionId, boolean propagated, boolean transactionStart, String reason) {}
 }

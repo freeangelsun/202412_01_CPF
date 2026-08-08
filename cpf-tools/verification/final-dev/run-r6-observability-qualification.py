@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import sys
+from pathlib import Path as _TrustPath
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]))
+from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse,hashlib,hmac,json,os,re,sys,urllib.parse,urllib.request,uuid
 from pathlib import Path
 from typing import Any
@@ -95,12 +99,15 @@ def self_test(head:str)->int:
  print('[CPF][OBS][PASS] selfTest=true signedProvenance=true workloadCorrelation=true exactSha=true');return 0
 
 def main()->int:
- ap=argparse.ArgumentParser();ap.add_argument('--expected-head',required=True);ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');a=ap.parse_args();head=a.expected_head.lower().strip()
+ ap=argparse.ArgumentParser();ap.add_argument('--expected-head',default='');ap.add_argument('--output-json',type=Path);ap.add_argument('--self-test',action='store_true');a=ap.parse_args();head=(a.expected_head or ('0'*40 if a.self_test else '')).lower().strip()
  if not SHA40.fullmatch(head):raise ObsError('expected head must be a 40-char SHA')
- if a.self_test:return self_test(head)
+ if a.self_test:
+  trust_self_test();return self_test(head)
  if not a.output_json:raise ObsError('--output-json is required')
+ if not a.self_test and len(head)!=40: raise ObsError('--expected-head exact checkout SHA is required')
  probe=os.getenv('CPF_R6_OBSERVABILITY_PROBE_URL','').strip();probe_token=os.getenv('CPF_R6_OBSERVABILITY_PROBE_TOKEN','').strip()
  if not probe:raise ObsError('CPF_R6_OBSERVABILITY_PROBE_URL is required')
+ verify_release_target(probe,head)
  rid=str(uuid.uuid4());proof=request_json(probe,'POST',{'requestId':rid,'sourceSha':head,'scenario':'known-traffic-and-failure'},probe_token)
  if not isinstance(proof,dict) or proof.get('sourceSha') not in {None,head} or proof.get('requestId') not in {None,rid}:raise ObsError('probe identity mismatch')
  qid=str(proof.get('qualificationId','')).strip();txid=str(proof.get('transactionId','')).strip();traceid=str(proof.get('traceId','')).strip()

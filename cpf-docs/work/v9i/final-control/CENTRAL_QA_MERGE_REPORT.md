@@ -1,69 +1,144 @@
-# CPF Final QA A/B 중앙 Merge 판정
+# CPF Final QA A/B 중앙 Merge 및 Current QA Control
 
-- QA Source basis SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
-- Final Control currentization basis SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
-- QA A package SHA-256: `b4e8929066517bf122ef2ea2d9fd54a7b43f29f5a37e14afa0839700cb0e203b`
-- QA B package SHA-256: `a1929d223125cc93182013030bf141856125efc35581fae8b7b7906b00336f95`
-- 중앙 판정: **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**
+- Previous QA Source basis: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`
+- Previous Central Currentization basis: `64dcb0c1383a74008698053bb4832af9c04e9fd6`
+- Documentation successor: `08d8beb4a664039904c30aeac07115a04707924a`
+- **Current Product / Final QA basis: `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c` (`07_08`)**
+- Current release judgment: **UNVERIFIED / RELEASE_BLOCKED**
+- Final QA mode: **QA A/B same full scope, reverse execution order only**
+- Special control: **Optimized 1,000 mandatory cross-cutting review points**
 
-## 1. 중앙 분모
+## 1. Previous Central Merge
 
-최상위 프로젝트 완료 분모는 **Canonical 169 Requirement**다.
-93 개발 원장, 기존 Finding 56, QA A 신규 25, QA B 신규 8, 중앙 정규화 Action 31은 모두 입력·결함 추적 단위이며 프로젝트 완료율 분모가 아니다.
+이전 QA A/B 결과는:
+- QA A new findings: 25
+- QA B new findings: 8
+- Raw: 33
+- Root-cause overlap: 2
+- Central normalized actions: **31 (P0 22 / P1 9)**
 
-QA A 25 + QA B 8에서 Root Cause 중복 2개 계열을 통합해 **중앙 신규 Action 31(P0 22 / P1 9)**로 정규화했다.
-Scope의 상한은 31건이 아니라 Canonical 169 전체 + 기존 56 + 신규 31 + self-found + Runtime 13 + 개발 중 추가발견 전체다.
+였다.
 
-## 2. 중앙 Source 재확인 결함
+이 31개는 전체 Product Scope의 상한이 아니다.
 
-QA Merge 당시 current Product Source에서 다음 Root Cause를 중앙이 직접 재확인했다.
+전체 검수는:
+- Canonical 169
+- Previous Findings 56
+- Central Actions 31
+- Developer self-found
+- Product Source 전체
+- Runtime Qualification
+- Special Review 1,000
+- QA 신규 발견 전체
 
-- Approval terminal UPDATE의 fencing 조건 미완성
-- Batch Runtime UNKNOWN reconcile의 부분문자열 identity matching
-- Center-Cut 비종료 상태의 terminal 성공 오판 가능성
-- TransactionId trust-boundary가 정식 Channel과 비신뢰 injection을 명확히 구분하지 못하는 문제
-- FileLog spool의 tmpdir/dedup/replay durability 문제
+를 포함한다.
 
-위 항목은 current Product Source Finalization에서 반드시 닫는다.
+## 2. Developer Rework Push State
 
-## 3. 중앙 Architecture 결정
+Developer Product Source Completion 결과가 `cpf-docs/work/v9i/dev-final/**`과 Product Source에 반영되어 `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c`로 Push됐다.
 
-1. **Core persistence**: `cpf-core`는 topology-independent API/SPI/기술 계약만 소유하며 MyBatis/JDBC 구현은 downstream Provider/Starter가 소유한다.
-2. **Transaction lineage**: `cpf_transaction_lineage`는 normalized operational lineage projection/index다. 기존 Domain/Message/Batch 저장소를 대체하는 dual-primary가 아니다.
-3. **TransactionId**: 정식 거래 기동 Channel/System은 CPF 규격 transactionId를 최초 1회 생성할 수 있다. 이후 동일 거래의 모든 참여 시스템은 같은 transactionId를 End-to-End로 승계한다. Retry는 같은 transactionId + attempt 증가다. 비신뢰 주체의 spoof/replay/manipulation만 인증된 Channel/System identity와 trust policy로 차단한다. **모든 inbound transactionId 일괄 재생성은 금지한다.**
-4. **EDU-ADM**: PRODUCT_ADM/MERGE_EDU는 runtime Product Handler가 아니다. EXTENSION_SAMPLE만 실행형 Extension Example로 유지한다.
-5. **EDU retained role**: 실행형 EDU-ADM 02/03/04/07은 canonical `CPF_ADM_OPERATOR` 계약을 따른다.
-6. **Retired BZA API**: compatibility 410은 필요 시 남길 수 있으나 active OpenAPI/generated client/consumer count에서는 제외한다.
-7. **HIGH/CRITICAL Frontend**: strict generated typed client gate를 유지하고 raw mutation 우회를 허용하지 않는다.
-8. **FileLog spool**: managed durable spool root + autonomous retry/replay/dedup/safety를 제공한다.
+`07_08`은 단순 Evidence successor가 아니라 실제 Product Source 변경을 포함한다.
+중앙에서 확인한 Commit 규모는 +9,108 / -2,411이며 ADM/BZA, cpf-core, transactionId, FileLog, Approval, OpenAPI, EDU 등 실제 Source가 변경되었다.
 
-## 4. 역할 경계
+따라서 QA는 predecessor `08d8beb4...` 기준 Developer PASS를 자동 승계하지 않고 `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c`에서 재검증한다.
 
-### 중앙 관리자
-README/Guide/고객 PDF·DOCX를 제외한 프로젝트 목표, Governance, Canonical Requirement, Architecture/Specification 제품 계약, Module Ownership, Current Control, QA Merge와 문서 상호 정합성을 관리·현행화한다.
+Developer 현재 보고:
+- Canonical Source development: 169/169
+- Central Action development: 31/31
+- Previous Finding development: 56/56
+- Runtime Qualification: 13/13 미검증
+- Developer independent gates: reported 21/21 PASS
 
-### Product Developer GPT
-Product Source/SQL/API/SPI/Test/Config/Frontend/Generator/Runtime Gate와 자기 개발 결과/Evidence를 수정한다.
-중앙 정본·Final QA 원본을 임의 변경하지 않고 정본 모호성은 `PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv`로 보고한다.
+위 수치는 **Developer 상태**이며 QA 최종 판정이 아니다.
 
-### QA A/B
-동일 전체 범위를 독립 전수검수하고 상대 판정을 승계하지 않는다.
+## 3. Final QA A/B 운영
 
-### Documentation Finalization
-다음 고객 문서를 별도 관리한다.
-- `README.md`
-- `cpf-docs/guides/**`
-- `cpf-docs/deliverables/**`
-- `cpf-docs/assets/manuals/**`
-- `cpf-docs/assets/readme/**`
-- `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
+QA A와 QA B는 영역을 분할하지 않는다.
 
-## 5. 최종 개발 목표
+동일 전체 Scope를 서로 독립적으로 검수한다.
 
-이번 개발은 subset closure가 아니라 **CPF Product Source Finalization**이다.
-부분 구현, 구현 가능한 미구현, P0/P1, false-green verification, Consumer 단절, Ownership 위반을 계획 이월하지 않는다.
+### QA A
+Canonical → Architecture → Source → Consumer → Transaction/Batch/DB3 → ADM/BZA/EDU → Runtime/Evidence → Special 1000 `0001 → 1000`
 
-## 6. Project Control currentization
+### QA B
+Special 1000 `1000 → 0001` → Runtime/Evidence → ADM/BZA/EDU → DB3/Transaction → Consumer → Source → Architecture → Canonical
 
-이 문서와 `CENTRAL_FINAL_ACTIONS.csv`, `ROLE_BOUNDARY.md`, Final Developer instruction은 중앙 현행화에서 TransactionId와 역할 경계를 동일하게 맞췄다.
-과거 QA38/QA39/V7/V9 Session Control과 날짜별 중복 자료는 current canonical이 아니며 exact Delete Manifest로 정리한다.
+다른 것은 순서뿐이다.
+
+- Acceptance 동일
+- Scope 동일
+- Runtime 기준 동일
+- Evidence 기준 동일
+- PASS/FAIL 기준 동일
+
+## 4. Special Review 1000
+
+`SPECIAL_REVIEW_1000.csv`를 중앙 특별관리 원장으로 사용한다.
+
+이 원장은 Canonical Requirement를 대체하지 않는다.
+전체 전수검수를 축소하지 않는다.
+
+각 Review ID:
+- `CPF-RV-0001` ~ `CPF-RV-1000`
+- QA A status
+- QA B status
+- Central status
+- Developer rework status
+- last verified SHA
+
+를 추적한다.
+
+특히 사용자 지정 Mandatory 항목은 최상위:
+- Online multi-domain transaction / rollback / logging
+- Batch multi-domain transaction / rollback / restart
+- Utils / Paging / WebClient / common APIs
+- Korean Javadoc / comments / Javadoc build
+- Swagger/OpenAPI / generated client / real consumer
+
+로 유지한다.
+
+## 5. Central Adjudication Rule
+
+QA 결과 수신 후 중앙은:
+1. 동일 SHA 확인
+2. QA A/B raw finding 보존
+3. Duplicate/root cause 병합
+4. 어느 한쪽 Finding도 임의 삭제·약화 금지
+5. 충돌은 Canonical + Source + Runtime으로 판정
+6. Special 1000 A/B 상태 취합
+7. P0/P1 및 미검증 Runtime 분리
+8. Developer 재개발 요청 생성
+9. successor SHA에서 다시 QA
+
+한다.
+
+## 6. Release Gate
+
+다음 중 하나라도 존재하면 Release Block:
+- P0 open
+- P1 open
+- 필수 Runtime 미검증
+- Canonical mismatch
+- Consumer 단절
+- DB3 unresolved
+- Security unresolved
+- Special 1000 미검수
+- Special 1000 FAIL
+- exact SHA Evidence mismatch
+- false-green gate
+
+`1000/1000 PASS` 자체만으로 Release PASS가 아니다.
+전체 Source 전수검수에서 신규 결함이 있으면 그대로 Release Block이다.
+
+## 7. Current Next Action
+
+현재 다음 액션은 **QA A와 QA B를 `f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c` 기준으로 즉시 독립 전체 검수시키는 것**이다.
+
+QA 결과가 도착하면 중앙관리자는:
+- 전체 Finding Merge
+- Special 1000 취합
+- Requirement/Runtime 상태 판정
+- Developer 재개발 지침
+- Current 중앙문서 현행화
+
+를 수행한다.

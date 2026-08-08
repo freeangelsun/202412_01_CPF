@@ -1,0 +1,26 @@
+﻿path,action,purpose,source_master_sha,protected_path
+cpf-docs/architecture/ARCHITECTURE_GUIDE.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/development/DEVELOPER_GUIDE.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/development/EDU_GUIDE.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/operations/RECOVERY_GUIDE.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/security/SECURITY_GUIDE.md,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_APPLY_ONE_LINE.ps1.txt,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_DELETE_MANIFEST.csv,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.txt,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_OVERLAY_VALIDATION.json,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_SCENARIO_MATRIX.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_SOURCE_FINDINGS.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/CPF_VERIFY_ONE_LINE.ps1.txt,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/HANDOVER.md,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/OPEN_ISSUES.md,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/REVIEW_INDEX.md,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/TEST_AND_EVIDENCE.md,ADD,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/current/CPF_REQUIREMENT_CONTINUITY.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N
+cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv,MODIFY,Core Transaction/Starter DX/AI canonical currentization and final pre-QA development request,a570b366ef85b23863e41173c991025c072a2427,N

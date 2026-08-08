@@ -78,3 +78,27 @@ EDU Coverage Matrix는 Script로 재생성하는 파생 산출물이다. Source�
 - Negative/Recovery 포함
 - Secret과 개인정보 없음
 - Guide, Source, Test와 결과 일치
+
+## 8. Core Transaction Reference Track
+
+EDU는 문서 예제가 아니라 다음 실행형 Reference를 제공한다.
+
+1. LOCAL commit / rollback
+2. XA/JTA DB+DB commit / rollback
+3. XA/JTA DB+JMS commit / rollback
+4. XA prepare 이후 process kill → restart recovery
+5. Business DB + Outbox 동일 Transaction
+6. Broker ACK loss / duplicate publish / Publisher kill
+7. Inbox/Dedup duplicate suppression
+8. Saga A→B→C 성공, C 실패 후 B/A compensation
+9. Saga compensation failure/retry/UNKNOWN/Reconcile
+10. TCC Try→Confirm
+11. TCC Try→Cancel
+12. TCC duplicate Confirm/Cancel, empty rollback, hanging
+13. External REST timeout→UNKNOWN→Reconcile
+14. Domain A→B→C local/remote parity
+15. Batch→Domain→Messaging/DB transaction boundary
+16. 모든 흐름의 동일 transactionId와 ADM Timeline
+
+각 Lab은 Source, Consumer, Test/Harness, Config/SQL, 실행 명령, 기대 상태, failure injection, cleanup, exact-SHA Evidence를 포함한다. Mock-only로 실제 DB/Broker/XA 의미론을 PASS 처리하지 않는다.
+

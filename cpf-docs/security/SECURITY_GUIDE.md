@@ -194,3 +194,13 @@ Masking 전 원문을 다른 Logger에서 출력하지 않는지 검증합니다
 ADM 위험조치는 단순 RBAC 허용만으로 실행하지 않는다. 정책에 따라 requester/approver separation, SoD, ALL/ANY/N_OF_M, command payload hash, TTL, idempotency, immutable history를 적용하고 승인 후 Owner Command API를 호출한다. Break-glass는 별도 권한/TTL/사후 Review가 필요하다.
 
 BZA 업무결재는 조직/직원/Role/Position Directory와 분리된 Policy/Instance를 사용하고 상신 시 참여자 Snapshot을 고정한다. 위임/대결은 유효기간과 Audit을 가져야 하며 조직개편이 과거 승인 기록을 변경하면 안 된다.
+
+## 15. Security Starter Developer Experience
+
+- Resource Server는 issuer/audience/expiry/claim mapping을 안전 Default로 제공하고 `currentUserId`, `currentTenantId`, `currentPrincipal`, `hasRole`, `hasScope` 수준의 반복 업무 접근을 Typed API로 단순화한다.
+- OIDC/OAuth2 Login 기반 SSO는 외부 IdP Provider별 설정 차이를 CPF User/Tenant/Authority Context로 표준화하되 Spring Security Native 확장점을 막지 않는다.
+- KMS/HSM은 `CpfSecretProvider`/Crypto 계약을 재사용하고 Key Version/Rotation/Revocation/Health/Timeout/Audit를 제공한다. PKCS#11은 필요 시 Optional이다.
+- Digital Signature는 sign/verify metadata와 key/certificate lifecycle을 감사 가능하게 제공한다.
+- Tamper-evident Audit은 canonical payload/hash-chain/signature/concurrency/multi-instance/delete detection을 검증한다.
+- Token/Secret/Private Key/PII 원문은 Source, Config, Log, ADM, Test Evidence에 남기지 않는다.
+

@@ -1,7 +1,7 @@
 # CPF Starter Architecture·Lifecycle 정책
 
 - 기준 Repository: `freeangelsun/202412_01_CPF`
-- 중앙 정책 현행화 기준 Branch/SHA: `master` / `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+- 중앙 정책 현행화 기준 Branch/SHA: `master` / `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
 - 적용 Root: `cpf-starters`
 - Root 분류: `FIXED_PRODUCT_CONTAINER`
 - Architecture 방향: **Lightweight Core + Explicit Opt-in Starter**
@@ -443,3 +443,52 @@ cpf-starter-bundle-event-jms-ibm-mq
 ```
 
 Generator Profile을 기본 방식으로 사용하고 Aggregate Starter는 외부 Consumer가 단일 Dependency를 요구하는 안정 조합에만 제공한다.
+
+## 15. 2026-08-08 Starter Developer Experience·신규 Capability 고도화
+
+### 15.1 완료 기준
+
+Starter의 완료 조건은 Dependency/AutoConfiguration/Interface/Sample 존재가 아니다. Canonical Starter Catalog의 활성 Starter **전부**를 실제 개발자 Consumer 기준으로 다시 검증한다.
+
+각 Starter는 최소 다음을 만족한다.
+
+- OSS 직접 사용보다 반복 코드와 설정이 실질적으로 감소한다.
+- Typed CPF convenience API 또는 업무 의도 중심 API를 제공한다.
+- safe default와 최소 Config를 제공한다.
+- 오설정·Provider 충돌·필수 보안 설정 누락은 startup/build 시 Fail-Fast한다.
+- 필요 시 per-call/고급 Override가 가능하다.
+- underlying OSS Native API/extension point를 고급 사용자가 사용할 수 있는 Escape Hatch가 있다.
+- transactionId/context, 표준 Error, Security/Authorization, Masking, Audit, Logging, Observability를 특성에 맞게 자동/최소 설정으로 연결한다.
+- 외부 호출/비동기 기능은 Timeout/Retry/Circuit Breaker/Idempotency/UNKNOWN/Reconcile을 일관되게 연결한다.
+- 미사용 시 Bean/Dependency/Config/SQL/Migration Side Effect가 0이다.
+- 실제 Product/Generated Domain/Reference Consumer와 executable EDU가 있다.
+- 정상뿐 아니라 Timeout/Retry/Partial/UNKNOWN/Process Kill/Multi-instance 경계를 검증한다.
+
+`wrapper-only`, `consumer-less`, `metadata-only`, `sample-only`는 완료로 판정하지 않는다.
+
+### 15.2 신규/보강 Capability
+
+- **AI Optional**: Provider-neutral API/SPI, routing, resilience, masking, usage/cost, audit, transactionId, policy/approval, failure/UNKNOWN. 자체 LLM/Vector DB/대형 Agent Platform은 기본범위에서 제외한다.
+- **OAuth2/JWT**: 기존 resource-server를 유지하면서 `currentUserId/currentTenantId/currentPrincipal/hasRole/hasScope`, safe claim access, issuer/audience/expiry, role/scope/claim mapping, token propagation과 표준 401/403 개발 경험을 고도화한다.
+- **SSO/OIDC**: 기존 Security 구조 위 Optional Capability로 OIDC/OAuth2 Login, Keycloak/Entra ID/Okta, User/Role/Group/Claim mapping, CPF User/Tenant/Authority Context, login/logout/session/token refresh와 Frontend/BFF를 연결한다. SAML2는 Optional이다.
+- **KMS/HSM**: 기존 `CpfSecretProvider`/Crypto를 확장하여 KMS/HSM/PKCS#11, key version/rotation/revocation/provider health/timeout/audit를 지원하며 key 원문 노출을 금지한다.
+- **Digital Signature**: 기존 Crypto/Secret/Certificate를 재사용하여 sign/verify/keyId/keyVersion/certificate/signature metadata/audit를 범용화한다.
+- **Hash/HMAC/AES-GCM**: 기존 Crypto를 재사용하며 중복 Starter를 만들지 않는다.
+- **Tamper-evident Audit**: 별도 유행성 Starter 대신 기존 Audit/Logging/Security를 append-only/hash-chain/signature/concurrency/multi-instance/delete detection 수준으로 완성한다.
+- **Blockchain/DLT**: 이번 범위에서 신규 Starter를 만들지 않는다.
+
+### 15.3 Transaction Starter/Capability
+
+`LOCAL / XA-JTA / OUTBOX / INBOX-DEDUP / SAGA / TCC`를 서로 대체 관계가 아니라 선택 가능한 Transaction Strategy로 제공한다.
+
+- XA/JTA는 Optional이며 `cpf-core`에 Narayana/Atomikos 등 특정 구현을 강제하지 않는다.
+- Tomcat은 standalone JTA Transaction Manager Adapter로, JTA-capable WAS는 managed JTA Adapter로 지원한다.
+- Outbox/Saga/UNKNOWN/Reconcile 기존 구현은 유지·고도화한다.
+- DB+Kafka/RabbitMQ/Event는 Outbox 우선, 강한 DB+DB/DB+JMS 원자성이 필요할 때 XA/JTA를 선택할 수 있게 한다.
+- Hold/Reservation은 TCC를 선택할 수 있게 한다.
+- 모든 전략은 transactionId/log/audit/trace/ADM Timeline에 연결한다.
+
+### 15.4 Catalog Admission
+
+신규 AI/JTA/SSO Capability 이름만 먼저 Canonical `modules`에 등록하여 `settings.gradle`을 깨뜨리지 않는다. 개발 사이클에서 실제 폴더·`build.gradle`·AutoConfiguration·Consumer·Test·Profile/Group owner를 만든 뒤 **같은 변경 단위에서** settings/BOM/Catalog/Generator/Publication을 동기화한다.
+

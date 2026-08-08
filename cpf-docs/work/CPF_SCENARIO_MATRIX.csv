@@ -36,3 +36,23 @@ QA39-SC-034,CPF 표준 Starter가 존재하는 기능에 업무 Domain이 외부
 QA39-SC-035,이용 Domain이 불가피한 외부 OSS 사용을 선언형 예외 설정으로 등록한다.,Platform Source 수정 없이 승인된 Domain·Capability·환경·기간·Artifact Version·Config Hash 범위에서만 build/runtime가 허용되고 resolved lock·감사·운영 조회에 예외 ID와 결과가 기록된다.,QA39-043;QA39-044,재확인 필요,Domain-side approved registry/version/hash/expiry/lock implementation present; runtime execution remains.
 QA39-SC-036,등록된 예외가 미승인·만료·범위 초과·Version 변경·Config Hash 불일치 상태가 된다.,Build 또는 Runtime이 fail-closed하며 이전 승인만으로 자동 허용하지 않고 원인과 필요한 재승인 절차를 마스킹된 감사 Evidence로 남긴다.,QA39-044,재확인 필요,Fail-closed tests cover unapproved/expired/version/hash drift in Source; Gradle/runtime execution remains.
 QA39-SC-037,예외 사용을 종료하고 CPF 표준 Starter 경로로 복귀하거나 기존 Generated Domain을 정책 적용 버전으로 upgrade한다.,외부 dependency·직접 Bean·예외 Config·stale lock이 제거되고 사용자 수정 영역을 보존한 채 표준 경로로 fresh build/runtime가 성공한다.,QA39-015;QA39-043;QA39-044,재확인 필요,Upgrade script preserves user areas and removes stale policy artifacts; fresh upgrade build remains.
+QA39-SC-038,Tomcat 배포 업무가 DB1+DB2 또는 DB+JMS를 하나의 강한 원자 거래로 처리한다.,standalone JTA TM과 XA resource가 enlist되고 prepare/commit 또는 rollback이 두 Resource에 일관되게 적용된다.,QA39-058;QA39-059,미검증,개발 전
+QA39-SC-039,JTA-capable WAS에서 동일 XA 업무를 실행한다.,CPF가 특정 standalone TM을 강제하지 않고 managed JTA adapter를 사용해 동일 Public Contract가 동작한다.,QA39-058;QA39-059,미검증,개발 전
+QA39-SC-040,XA prepare 직후 프로세스를 강제 종료한다.,restart 후 recovery scan이 in-doubt를 찾아 최종 commit/rollback하고 duplicate side effect가 없다.,QA39-060,미검증,개발 전
+QA39-SC-041,업무 DB 변경 후 Broker publish 직전 프로세스가 종료된다.,업무 데이터와 Outbox가 동일 Local TX로 남고 restart Publisher가 누락 없이 발행한다.,QA39-061,미검증,개발 전
+QA39-SC-042,Broker publish는 성공했지만 Outbox confirmation 전에 프로세스가 종료된다.,재시도 duplicate가 발생해도 Inbox/Dedup과 idempotent consumer 때문에 업무 side effect는 1회다.,QA39-061;QA39-062,미검증,개발 전
+QA39-SC-043,동일 eventId를 여러 Consumer instance가 동시에 수신한다.,consumer identity/fencing/dedup으로 단일 업무 효과만 남고 재시작 후 상태가 일관된다.,QA39-062,미검증,개발 전
+QA39-SC-044,Saga A와 B가 성공하고 C가 실패한다.,B→A 역순 compensation이 수행되고 compensation 실패/재시도/UNKNOWN이 durable state와 timeline에 남는다.,QA39-063,미검증,개발 전
+QA39-SC-045,TCC Try 이후 Confirm이 중복 호출된다.,Confirm side effect는 한 번만 발생하고 duplicate가 안전하게 종료된다.,QA39-064,미검증,개발 전
+QA39-SC-046,TCC Try 수행 전 Cancel이 도착하거나 Try 후 프로세스가 종료된다.,empty rollback/hanging policy로 안전하게 수렴하고 manual review/reconcile 경로가 있다.,QA39-064,미검증,개발 전
+QA39-SC-047,"Online A→B→C에서 DB, 외부 API, Outbox/Broker를 거친다.",동일 transactionId가 모든 segment/log/audit/timeline에 유지되고 retry는 attempt만 증가한다.,QA39-065;QA39-066;QA39-067,미검증,개발 전
+QA39-SC-048,외부 API 요청 전송 후 응답이 유실된다.,FAILED로 단정하거나 무조건 retry하지 않고 UNKNOWN→reconcile→최종상태로 전이된다.,QA39-065;QA39-066,미검증,개발 전
+QA39-SC-049,개발자가 Security Starter에서 현재 사용자/tenant/role/scope를 조회한다.,Spring Security boilerplate 없이 typed CPF API를 사용하고 invalid/missing claim은 안전하게 처리된다.,QA39-052,미검증,개발 전
+QA39-SC-050,외부 IdP를 Keycloak에서 Entra 또는 Okta로 교체한다.,업무 Source 변경 없이 provider config/mapping으로 CPF User/Tenant/Authority Context가 유지된다.,QA39-053,미검증,개발 전
+QA39-SC-051,KMS/HSM provider가 timeout 또는 key rotation 중 장애를 일으킨다.,key 원문 노출 없이 명확한 error/health/audit가 남고 rotation/version/retry 정책에 따라 안전하게 처리된다.,QA39-054,미검증,개발 전
+QA39-SC-052,Audit record 하나를 수정/삭제/재정렬한다.,hash-chain/signature 검증이 조작 위치를 탐지하고 운영 Evidence가 원문 민감정보 없이 남는다.,QA39-055,미검증,개발 전
+QA39-SC-053,AI Provider가 timeout 또는 정책상 금지 응답을 반환한다.,fallback/UNKNOWN/policy/approval가 적용되고 sensitive data와 usage/cost/audit가 추적된다.,QA39-051,미검증,개발 전
+QA39-SC-054,활성 Starter 하나를 신규 Generated Domain에서 사용한다.,OSS 직접 조립보다 설정/코드가 적고 표준 error/security/audit/observability가 자동 연결되며 미사용 Provider는 classpath/bean/config에 없다.,QA39-048;QA39-049;QA39-050,미검증,개발 전
+QA39-SC-055,직전 package relocation 후 old/new package가 동시에 존재한다.,replacement 존재를 확인한 exact allowlist만 삭제한 후 stale package/import/reference가 0이다.,QA39-070,미검증,개발 전
+QA39-SC-056,Developer GPT가 Runtime 환경을 사용할 수 없다.,Source/Consumer/Test/Harness/Script/Config가 모두 준비된 항목만 미검증으로 남고 구현 가능한 Gap은 FAIL/재개발로 처리된다.,QA39-072;QA39-073,미검증,개발 전
+QA39-SC-057,개발 종료 직전 Repository를 다시 스캔한다.,Current-State 문서만 남고 신규 REV/SESSION/checkpoint/tmp/obsolete package가 없으며 protected path 삭제는 0이다.,QA39-071;QA39-076,미검증,개발 전

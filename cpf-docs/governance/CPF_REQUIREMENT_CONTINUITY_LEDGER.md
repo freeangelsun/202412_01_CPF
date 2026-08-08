@@ -1,8 +1,8 @@
 # CPF Requirement Continuity Ledger
 
 > Canonical path: `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
-> Synchronized with Final Target revision: `2026-08-02`
-> Synchronization review baseline: `38089a96e3f4c7c2ba05cda549785b47f67cd462`
+> Synchronized with Final Target revision: `2026-08-08`
+> Synchronization review baseline: `a570b366ef85b23863e41173c991025c072a2427`
 > Final Target reviewed blob: `262077e913db1d83731c0f3b643565859af431c1`
 
 ## 1. 목적
@@ -26,14 +26,14 @@
 
 | 구분 | 수량 | 완료율 집계 |
 |---|---:|---|
-| Canonical Product Requirement | **169개** | 포함 |
+| Canonical Product Requirement | **180개** | 포함 |
 | Legacy Alias | **8개** | 제외 |
 | QA33 Remediation Requirement | **138개** | 별도 작업 원장, 제품 Requirement 수에 미포함 |
 | QA33 Mandatory Scenario | **414개** | 별도 검증 원장, 제품 Requirement 수에 미포함 |
 
-2026-08-02 신규 정본화 이후 Canonical Product Requirement는 **169개**다.
+2026-08-08 Core Transaction/Starter DX/AI 현행화 이후 Canonical Product Requirement는 **180개**다.
 
-QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과 검증을 위한 **작업 패키지 ID**다. 이 ID를 169개 Canonical Product Requirement에 추가하거나 완료율에 합산하지 않는다.
+QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과 검증을 위한 **작업 패키지 ID**다. 이 ID를 180개 Canonical Product Requirement에 추가하거나 완료율에 합산하지 않는다.
 
 작업 패키지의 각 행은 반드시 하나 이상의 Canonical Product Requirement와 연결해야 한다. 연결이 없으면 `REQ-GAP` 절차로 신규 제품 Requirement 필요성을 먼저 검토한다.
 
@@ -47,6 +47,7 @@ QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과
 | 전수검수 신규 정본화 | **162** | `ADM-APPROVAL`, `BZA-ORG` 신규 추가 |
 | 2026-07-31 상세 현행화 | **162** | ID 증감 없이 Owner·최소 목표·완료 증명 상세화 |
 | 2026-08-02 누락 요구 복구 | **169** | Starter Architecture, Fresh DB, MQ/JMS/IBM MQ/RabbitMQ/TCP 7개 신규 정본화 |
+| 2026-08-08 Core Transaction/Starter DX/AI 현행화 | **180** | 신규 11개 추가, 기존 SSO/KMS-HSM/Signature/Tamper/Outbox/Saga는 기존 ID 강화 |
 
 2026-07-31 현행화는 Requirement 추가·삭제가 아니다. 기존 162개 각각에 상세 Owner, 최소 제품 목표와 필수 완료 증명을 부여한 정본 강화다.
 
@@ -117,6 +118,29 @@ QA33의 `QA33-REQ-*`, `QA33-DF-*`, `QA33-SC-*`는 특정 Source 결함 수정과
 | `TCP` | `EXS-TCP` |
 
 
+## 6.2 2026-08-08 Core Transaction / Starter DX / AI 신규 정본화
+
+기준 Source master SHA는 `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)다. 기존 169개 중 의미가 이미 존재하는 SSO/OIDC, KMS/HSM, Digital Signature, Tamper-evident Audit, Outbox, Saga, Domain/External Call, ADM Timeline은 신규 ID로 복제하지 않고 기존 `SEC-*`, `EVENT-*`, `SAGA-*`, `CPF-*`, `EXS-*`, `ADM-*` Requirement를 강화했다.
+
+실제 공백인 다음 11개만 신규 Canonical Requirement로 추가하여 총 **180개**로 관리한다.
+
+| ID | 신규 사유 | 기존 Requirement 연결 |
+|---|---|---|
+| `TX-STRATEGY` | LOCAL/XA/OUTBOX/SAGA/TCC 선택·혼합 정책 부재 | CPF-CONTEXT, EVENT-OUTBOX, SAGA-CORE |
+| `TX-LOCAL` | Local Transaction의 Framework 수준 DX/정책을 독립 Acceptance로 고정 | CMN-SAMPLE-DB, DB-MULTI |
+| `TX-XA-JTA` | JTA/XA, Tomcat standalone TM, managed JTA, DB+DB/DB+JMS 2PC 부재 | EVENT-JMS, DB-MULTI |
+| `TX-XA-RECOVERY` | in-doubt/crash/heuristic recovery 부재 | ADM-TX, ADM-TIMELINE |
+| `TX-INBOX` | Outbox counterpart인 Inbox/Dedup을 독립 상용 계약으로 고정 | EVENT-OUTBOX, CPF-IDEMP |
+| `TX-TCC` | Try/Confirm/Cancel 기반 Hold/Reservation 전략 부재 | SAGA-COMP, CPF-IDEMP |
+| `TX-E2E` | Transaction/Domain/External/Messaging/Batch/Log/ADM 기능별 PASS의 분절 방지 | CPF-CALL, CPF-TXID, EXS-*, EVENT-*, ADM-* |
+| `TX-DX` | 개발자 사용성·Fail-Fast·Native Escape를 Transaction Acceptance로 고정 | CORE-CONFIG, CPF-ERROR |
+| `TX-EDU` | Transaction 전략별 Executable Reference를 Release Gate로 고정 | SAMPLE-REF, SAMPLE-EDU |
+| `STARTER-DX` | 활성 Starter 전수 OSS-direct 대비 부가가치/사용성 검증 부재 | ARCH-STARTER |
+| `AI-OPTIONAL` | Provider-neutral Enterprise AI Optional Capability 부재 | SEC-*, CPF-RESILIENCE, ADM-* |
+
+위 11개는 이번 개발 사이클에서 `CPF_REQUIREMENT_MASTER` 논리 Dataset과 Scenario Master로 분해·연결한다. 현재 Overlay는 상위 Canonical ID와 개발 요청을 먼저 확정하며, Source 구현 전 임의 CPF-FR/CPF-SC PASS를 선발급하지 않는다.
+
+
 ## 7. Requirement 변경 절차
 
 ### 7.1 신규
@@ -178,7 +202,7 @@ QA Matrix는 다음 Column 또는 동등한 구조를 가져야 한다.
 
 ## 9. 완료율 계산 규칙
 
-- 분모는 Canonical 169개다.
+- 분모는 Canonical 180개다.
 - Legacy Alias, QA Defect, QA Scenario, OSS Migration Decision ID를 분모에 합산하지 않는다.
 - Requirement 하나가 여러 QA 행에 연결돼도 한 번만 집계한다.
 - `완료`는 Final Target 공통 완료 축과 해당 Requirement의 필수 완료 증명을 모두 만족할 때만 가능하다.

@@ -391,3 +391,34 @@ Architecture 변경은 다음이 함께 있어야 합니다.
 - Mandatory Audit은 Owner 작업 전에 ADM DB에 durable reservation을 `REQUIRES_NEW`로 기록하고 `PENDING/RETRY/FAILED/DELIVERED` 상태로 복구합니다. 운영 변경과 ADM Audit DB 사이에 XA를 강제하지 않습니다.
 - BAT Ghost 조치는 `cpf-batch` transaction 안에서 terminal-state CAS와 실제 lock key/owner 검증을 수행합니다. Owner 불명 lock은 삭제하지 않습니다.
 - `cpf-common` product mode는 CMN DB/Calendar를 필수로 하고, DB-less mode는 Library/EDU/Test/Local의 조회 전용 범위로 제한합니다.
+
+## 19. Core Transaction & Integration Reliability
+
+CPF의 Transaction, Domain Call, External Integration, Messaging, Batch, Logging, Observability, Recovery와 ADM은 개별 기능 섬이 아니라 하나의 신뢰성 축으로 관리한다.
+
+```text
+Channel / External Request
+        ↓
+authenticated transaction context
+        ↓
+Domain A → Domain B → Domain C
+        ↓
+DB / External API / JMS-Kafka-RabbitMQ / Batch-File
+        ↓
+LOCAL / XA-JTA / OUTBOX-INBOX / SAGA / TCC
+        ↓
+Retry / Compensation / UNKNOWN / Reconcile / Recovery
+        ↓
+Transaction Log + Integration Log + Audit + Trace
+        ↓
+ADM E2E Timeline / approved recovery
+```
+
+- `transactionId`는 정식 거래 시작점에서 한 번 생성하고 retry/recovery/compensation에서도 보존한다. attempt/segment/span/execution은 별도 식별자다.
+- Transaction Log, Integration Log, Audit Log, Outbox, Inbox/Dedup은 목적을 분리하되 transactionId/eventId/correlationId로 연결한다.
+- 기능별 Unit PASS가 E2E 완료를 대신하지 않는다.
+- 동일 JVM Domain call도 transaction boundary, error mapping, timeout/retry, cycle, context/audit/latency를 검증한다.
+- Remote REST/SOAP/TCP/File/JMS/Kafka/RabbitMQ는 전송 전 실패, 전송 후 결과 불명, duplicate, partial, timeout을 구분한다.
+- XA/JTA는 강한 원자성이 실제 필요한 경우의 Optional 전략이고, MSA 전체 HTTP 호출을 XA로 묶는 수단으로 사용하지 않는다.
+- Outbox/Saga/TCC는 XA의 하위 호환이 아니라 각각 Eventual Consistency/Long-running/Reservation 업무를 위한 독립 전략이다.
+

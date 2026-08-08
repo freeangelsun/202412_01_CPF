@@ -208,3 +208,34 @@ Service가 다시 기동된 것만으로 종료하지 않습니다.
 - monitoring/alert 정상
 - audit와 incident timeline
 - root cause와 prevention action
+
+## 16. Transaction Strategy Recovery
+
+### XA/JTA
+
+- prepare 완료 후 process kill
+- Transaction Manager restart
+- Resource Manager restart
+- in-doubt scan/recovery
+- heuristic commit/rollback/manual review
+- duplicate recovery/fencing
+- transactionId/Audit/ADM Timeline 연결
+
+### Outbox/Inbox
+
+- Publisher kill/ACK loss 후 duplicate-safe retry
+- CLAIMED/IN_FLIGHT lease reclaim
+- Consumer duplicate/partial processing
+- Inbox/Dedup retention과 replay
+- UNKNOWN/Reconcile
+
+### Saga/TCC
+
+- compensation/confirm/cancel 자체 실패
+- idempotent retry
+- empty rollback/hanging
+- multi-instance stale owner 방지
+- MANUAL_REVIEW 전환과 승인된 운영조치
+
+Recovery가 실제 업무 결과를 재확인하지 않고 상태 Column만 변경하면 완료가 아니다.
+

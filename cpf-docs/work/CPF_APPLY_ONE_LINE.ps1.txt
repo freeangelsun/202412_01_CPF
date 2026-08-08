@@ -1,0 +1,1 @@
+$r=(git rev-parse --show-toplevel).Trim(); $z=Join-Path $r 'CPF_FINAL_CORE_HARDENING_OVERLAY.zip'; if(!(Test-Path -LiteralPath $z)){throw "ZIP not found: $z"}; Expand-Archive -LiteralPath $z -DestinationPath $r -Force

@@ -467,3 +467,50 @@ Source 변경에는 적용 가능한 SQL/Migration, Security/Audit, Operations, 
 Java Public API/SPI와 운영/복구에 중요한 Class/Method에는 JavaDoc을 작성한다. 단순 구현 설명보다 입력 계약, 상태/동시성, 오류/복구, 보안 경계를 기록한다. REST API는 OpenAPI operationId, DTO field, 오류, 권한, idempotency와 transactionId를 Source와 일치시킨다.
 
 Windows 검증 Script는 PowerShell 7(`pwsh`)를 기본으로 사용한다.
+
+## 19. Transaction Strategy 개발 기준
+
+업무 개발자는 먼저 일관성 요구를 선택하고 Framework가 제공하는 안전한 기본경로를 사용한다.
+
+| 상황 | 기본 전략 |
+|---|---|
+| 단일 DB/Resource | LOCAL |
+| DB+DB 강한 원자성 | XA/JTA |
+| DB+JMS 강한 원자성 | XA/JTA 또는 명시적 Outbox 선택 |
+| DB+Kafka/RabbitMQ/Event | OUTBOX 우선 |
+| MSA A→B→C 장기 흐름 | SAGA |
+| 잔액/한도/재고 Hold/Reservation | TCC |
+| 외부 결과 불명 | UNKNOWN + RECONCILE |
+
+개발자는 transactionId, logging, audit, metrics, masking, retry, idempotency를 기능마다 수동 재조립하지 않는다. Starter가 표준 연결을 제공해야 하며, 오설정은 Fail-Fast해야 한다.
+
+XA/JTA 사용 시 다음을 코드와 Test에서 명시한다.
+
+- Transaction Manager Provider/managed JTA 선택
+- XADataSource / XAConnectionFactory
+- enlistment와 transaction boundary
+- timeout/isolation 정책
+- prepare/commit/rollback
+- in-doubt/heuristic recovery
+- process kill/restart
+- recovery log와 운영 조회
+
+Outbox는 일반 로그가 아니다. 업무 DB 변경과 Outbox INSERT를 동일 Local Transaction으로 묶고 Publisher가 durable state를 외부 Broker로 전달한다. Publisher ACK 유실 때문에 duplicate가 가능하므로 Inbox/Dedup·Idempotent Consumer와 함께 사용한다.
+
+TCC의 Confirm/Cancel은 반드시 idempotent해야 하며 empty rollback, hanging, duplicate confirm/cancel을 처리한다.
+
+## 20. Starter Developer Experience 기준
+
+Starter를 도입했는데 OSS 직접 적용보다 코드·Config가 늘면 고도화 대상이다. 모든 활성 Starter는 다음을 실제 Consumer 코드로 검증한다.
+
+1. 최소 설정 Quick Start
+2. 업무 의도 중심 Typed API
+3. safe default
+4. Fail-Fast와 actionable error
+5. Override/Native API Escape Hatch
+6. CPF Security/Audit/Observability/Transaction 연계
+7. Provider 확장 시 업무 Source 변경 최소화
+8. 미사용 시 dependency/bean/config/sql 0
+9. 정상/실패/timeout/retry/unknown/recovery
+10. executable EDU/reference
+

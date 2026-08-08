@@ -1,0 +1,143 @@
+{
+  "schema_version": 2,
+  "package": "CPF_FINAL_CORE_HARDENING_OVERLAY",
+  "source_master_sha": "a570b366ef85b23863e41173c991025c072a2427",
+  "canonical_requirement_count": 180,
+  "expected_zip_entry_count": 28,
+  "delete_allowlist_count": 66,
+  "protected_delete_count": 0,
+  "hash_scope": "all overlay files except CPF_PACKAGE_MANIFEST.json and CPF_FILES.sha256 to avoid self-referential hashing",
+  "payload_file_count": 26,
+  "files": [
+    {
+      "path": "cpf-docs/architecture/ARCHITECTURE_GUIDE.md",
+      "size": 14436,
+      "sha256": "1da83a78f9092dd10dc0297ed6f82540b2d4beec9332d3d3449a8d87d7efc6f8"
+    },
+    {
+      "path": "cpf-docs/development/DEVELOPER_GUIDE.md",
+      "size": 13158,
+      "sha256": "0188337a3c627ccb5f26861ef04e990069f60b923ec221b0cbbb2928e8b6c69b"
+    },
+    {
+      "path": "cpf-docs/development/EDU_GUIDE.md",
+      "size": 3982,
+      "sha256": "d7ae874b2bbe4a2e1c6601c6796ed98d0e2783b7bf64ddff215c41e18dff4e0b"
+    },
+    {
+      "path": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+      "size": 103635,
+      "sha256": "3dfea64ea1d131a17b881dfcc86d23d15055e80da7f0e488da27df8ba30f1024"
+    },
+    {
+      "path": "cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md",
+      "size": 11789,
+      "sha256": "058d521307df3f5b8ab89150b9bb216357d3d62351e25a9b105fe7cfe6542135"
+    },
+    {
+      "path": "cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md",
+      "size": 24546,
+      "sha256": "fbfb1f2c8cc60ef1b66ece33465f697e1f6c297503092c2c5dc558c2a4810626"
+    },
+    {
+      "path": "cpf-docs/operations/RECOVERY_GUIDE.md",
+      "size": 5205,
+      "sha256": "357048171a764b3d1860700b23578f4ce0055b9c8e58c850ef2871b22dcc9d40"
+    },
+    {
+      "path": "cpf-docs/security/SECURITY_GUIDE.md",
+      "size": 5226,
+      "sha256": "7ec77b8f337b98548fc825f113623f3d333b5a28e97fe5fc660479256a95a267"
+    },
+    {
+      "path": "cpf-docs/work/CPF_APPLY_ONE_LINE.ps1.txt",
+      "size": 218,
+      "sha256": "0bfe2ec799fe19de24484bd8125dcef9ee8ce42edc915b5e6cbc2de1b7a8c017"
+    },
+    {
+      "path": "cpf-docs/work/CPF_CHANGE_MANIFEST.csv",
+      "size": 4665,
+      "sha256": "833a686274f57623bd9b0b2ec8a46966aeccc30b69545bc4d347aac0ff35419a"
+    },
+    {
+      "path": "cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md",
+      "size": 15966,
+      "sha256": "c7c1a02987be5619e83e46c8cb5b7b687c23f59d519fbd25ab232b0abf661805"
+    },
+    {
+      "path": "cpf-docs/work/CPF_DELETE_MANIFEST.csv",
+      "size": 28390,
+      "sha256": "4ae9104fa03ea5f835eab18272915ced0beca034f9f73994ab463749b805d549"
+    },
+    {
+      "path": "cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.txt",
+      "size": 917,
+      "sha256": "c086aa104a49befdf54cc1df2966d8c493e7fd045b8223afd9851070b214554d"
+    },
+    {
+      "path": "cpf-docs/work/CPF_OVERLAY_VALIDATION.json",
+      "size": 1863,
+      "sha256": "c8645dd224d619a514bb420c49132b44a21f389e389833774799877fd944b9f9"
+    },
+    {
+      "path": "cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv",
+      "size": 43439,
+      "sha256": "fe888d8ce432115e5c3eadd9627dd8c28f08c2691f9e2d21a278f0945fe9abff"
+    },
+    {
+      "path": "cpf-docs/work/CPF_SCENARIO_MATRIX.csv",
+      "size": 14640,
+      "sha256": "00b4a43098739c393c0e477f581dca9a8fd38a55c680161ec652077f8bb802fc"
+    },
+    {
+      "path": "cpf-docs/work/CPF_SOURCE_FINDINGS.csv",
+      "size": 15022,
+      "sha256": "7d5be3b7dea731627bedd5ef635546f052242d90d48f8342592fef85d202e02b"
+    },
+    {
+      "path": "cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv",
+      "size": 18451,
+      "sha256": "92948f5aebdeecd7ff6087c7b4ee307108c188391f77f01f00d7281e606a4af1"
+    },
+    {
+      "path": "cpf-docs/work/CPF_VERIFY_ONE_LINE.ps1.txt",
+      "size": 420,
+      "sha256": "8a68b34c6a4d7cda277cff39bd4999aa9fa605ad3a2c5e131ec63ab347ac43e0"
+    },
+    {
+      "path": "cpf-docs/work/HANDOVER.md",
+      "size": 557,
+      "sha256": "b57abb7e9fbba6bcea7295c8ec55a574fc2baec3922eb3fba1697cec717cc7d3"
+    },
+    {
+      "path": "cpf-docs/work/OPEN_ISSUES.md",
+      "size": 1048,
+      "sha256": "51cc36e2d5a7f686cfd24c8333bb1d48baf50574e5efc2c4e48f6bd64540f5e8"
+    },
+    {
+      "path": "cpf-docs/work/REVIEW_INDEX.md",
+      "size": 1350,
+      "sha256": "a0d2c3f4f2c9e15ec728eaa5669420fbc9ce5d3e3660e68426c367123a1d378d"
+    },
+    {
+      "path": "cpf-docs/work/TEST_AND_EVIDENCE.md",
+      "size": 2036,
+      "sha256": "febaf5172a9a6976043c6484098ebb16d36d266b75adf5fe901edc7995da78d1"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv",
+      "size": 10865,
+      "sha256": "265cca9e8e44faf3012ff0b5f07841832c52f4fc981b395524cdc2acd84cb67b"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_CONTINUITY.csv",
+      "size": 105927,
+      "sha256": "7cea9ee0bd80af6b4cb561f627f53a2090d6cf9731541b626cce5606d68fe292"
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv",
+      "size": 6713,
+      "sha256": "fde5aad25b190be0bee74d2ec7407bf803e392b9f616db75318dfb9b0d3f442b"
+    }
+  ]
+}

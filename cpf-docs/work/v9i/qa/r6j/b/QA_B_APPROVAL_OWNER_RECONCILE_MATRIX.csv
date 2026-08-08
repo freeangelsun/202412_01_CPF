@@ -1,8 +1,0 @@
-﻿owner_port,source,execute_unknown_capability,reconcile_behavior,static_verdict,runtime_verdict,linked_finding,exact_sha
-AdmApprovalOwnerCommandPort default,cpf-admin/.../approval/spi/AdmApprovalOwnerCommandPort.java,DEFAULT,UNKNOWN/ADM-RECONCILE-UNSUPPORTED,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-BatchRuntimeApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/BatchRuntimeApprovalOwnerCommandAdapter.java,UNKNOWN possible,inherits default,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-BatchJobDefinitionApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/BatchJobDefinitionApprovalOwnerCommandAdapter.java,UNKNOWN possible,inherits default,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-BrokerReliabilityApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/BrokerReliabilityApprovalOwnerCommandAdapter.java,UNKNOWN possible,inherits default,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-CenterCutApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/CenterCutApprovalOwnerCommandAdapter.java,UNKNOWN possible,inherits default,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-GatewayApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/GatewayApprovalOwnerCommandAdapter.java,UNKNOWN possible,inherits default,FAIL,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929
-DataQualityCorrectionApprovalOwnerCommandAdapter,cpf-admin/.../approval/owner/DataQualityCorrectionApprovalOwnerCommandAdapter.java,UNKNOWN possible,explicit reconcile,SOURCE_REVIEWED,미검증,QA-B-R6J-NEW-004,3ed676061246c9db3e44f29e254c0393ecca3929

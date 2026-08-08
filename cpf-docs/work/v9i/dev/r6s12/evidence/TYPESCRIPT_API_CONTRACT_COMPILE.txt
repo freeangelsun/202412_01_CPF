@@ -1,5 +1,0 @@
-COMMAND: tsc strict integrationClosureApi.ts with API-shaped cpfApi declaration
-START_UTC: 2026-08-06T19:24:54Z
-EXIT_CODE: 0
-END_UTC: 2026-08-06T19:24:55Z
-PASS integration closure API TypeScript contract compile

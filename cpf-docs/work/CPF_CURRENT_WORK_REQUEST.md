@@ -1,491 +1,1799 @@
-# CPF QA 전 최종 Core Hardening 개발 요청서
+# CPF Current Development Request / Developer GPT Execution Contract
+## Core Slimming · Unified Utility · Modern Starter Portfolio · Repository Hygiene · QA 전수 교차검수
 
 > Current canonical path: `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md`
-> Request authoring source master: `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
-> Developer execution basis: `9f16468cccae71523f65f0aefcd94322788c4dd0` (successor `master`, session 17 direct source review)
-> Canonical requirement target after this currentization: **180**
-> 목적: 직전 QA A/B 재개발 결과를 successor에서 다시 검산하고, 신규 Core Transaction/Starter DX 요구와 기존 미흡점을 한 사이클에서 구현 완료한 뒤 강화 QA A/B로 넘긴다.
+>
+> 문서 성격: **신규 개발 작업의 정식 Requirement / Acceptance + Developer GPT 실행 계약**
+>
+> 이 문서는 임시 Steering이 아니다. 다음 Developer GPT 작업은 이 문서를 독립 실행 가능한 신규 작업 요청으로 사용한다.
+>
+> Repository: `https://github.com/freeangelsun/202412_01_CPF`  
+> Branch: `master`  
+> Currentization basis master: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)  
+> 직전 Developer 실행 기준 SHA: `9f16468cccae71523f65f0aefcd94322788c4dd0`  
+> 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
+>
+> **중요:** 실제 개발 시작 시 latest `origin/master`, exact SHA, HEAD, Working Tree를 다시 확인한다. 위 SHA는 이 요구사항 작성 시점의 조사 기준일 뿐이며, 실제 실행 기준은 작업 시작 시점의 최신 `master`다.
 
-## 1. 최우선 실행 원칙
+---
 
-이 요청은 **신규 XA/JTA/TCC 기능만 추가하는 작업이 아니다**.
+## 1. 목적
 
-개발 시작 시 반드시 최신 `origin/master`, exact SHA, Working Tree를 다시 확인한다. 이 패키지는 `a570b366ef85b23863e41173c991025c072a2427`를 검토하여 작성되었지만 사용자가 Overlay를 적용·commit·push하면 Developer GPT의 실제 기준은 그 successor SHA다.
+직전 세션에서 XA/JTA, TCC, Inbox/Dedup, Saga, JPA, CRUD/Search, AI, OIDC, KMS/HSM 경계, Digital Signature, Tamper-evident Audit, SOAP, Generator/DB3 보강이 실제 `master`에 반영되었다.
 
-직전 Developer GPT의 다음 문구를 자동 승계하지 않는다.
+그러나 다음 단계는 이전 작업을 단순 연장하는 것이 아니다.
 
-`개발GPT 추가 구현 작업 없음 / Remaining = Runtime-only verification`
+이번 신규 작업은 CPF를 **Lightweight Core + 명확한 Capability Ownership + 실제로 쓰기 쉬운 Starter + Modern Enterprise Operations** 구조로 재정렬하고, 기존에 구현된 기능도 새 Architecture 기준에서 다시 검수한다.
 
-그 판정은 신규 Requirement가 정본화되기 전 `a570b366ef85b23863e41173c991025c072a2427` 기준 판정이다. 이번 현행화 후에는 **다시 직접 Source를 검토하여 구현 가능한 Gap이 없을 때만** 같은 결론을 낼 수 있다.
+최종 목표는 다음과 같다.
 
-QA가 아직 재검수하지 않았더라도 다음이 보이면 즉시 같은 개발 사이클에서 보완한다.
+1. `cpf-core`를 topology-independent 계약과 최소 의미론 중심으로 Slimming한다.
+2. Core 안에 남아 있는 Spring/Servlet/OTel/Provider/편의 구현을 올바른 Owner로 이동한다.
+3. 공통 Utility는 Core 창고가 아니라 명확한 Foundation/Utility 개발경험으로 제공한다.
+4. Transaction ID는 Core 의미론/계약과 실제 생성·채널 구현을 분리한다.
+5. Runtime Health / Instance Operations를 독립 운영 Capability로 완성한다.
+6. Spring Data JPA, CRUD/Paging/Search를 JDBC/MyBatis와 동일한 CPF 개발경험으로 정착시킨다.
+7. Distributed Session, S3-compatible Object Storage, Event Schema Governance, GraphQL Optional 등 실사용 가치가 높은 Modern Capability를 보강한다.
+8. 모든 신규/이동 기능을 Generator, Generated Domain, OpenAPI, ADM/BZA, EDU, Test와 실제 Consumer까지 연결한다.
+9. 이동으로 발생한 old package, duplicate source, stale config/test/doc, empty directory, session artifact 등 Garbage를 최종 정리한다.
+10. Developer 자체검수 후 QA A/B가 **동일 전체 범위를 각각 100% 전수검수하고 상호 교차검증**할 수 있는 Evidence와 인계자료를 완성한다.
 
-- 불완전 Source
-- Consumer 없는 API/SPI
-- Interface/DTO/Sample만 존재
-- Wrapper-only Starter
-- Test/Harness 부재
-- Config/SQL/OpenAPI/Generator/Frontend 누락
-- 잘못된 Owner/Package
-- Dead/duplicate/stale Source
-- False-green verifier
-- 오류/UNKNOWN/복구 누락
-- 개발자 사용성이 OSS 직접 적용보다 나쁨
-- 문서와 실제 Source 불일치
+---
 
-**QA Finding이 없다는 것은 구현 완성의 증거가 아니다.**
+## 2. 현재 기준선에서 직접 확인된 사항
 
-## 2. 이번 작업 시작 시 먼저 재검토할 successor 변경
+아래는 작성 시점 `master=b2da6bd720d1a8506db6bddf5d2e35feb9dca964`에서 직접 확인한 기준선이다.
 
-`a570b366ef85b23863e41173c991025c072a2427`에서 직전 개발 결과는 실제로 다음 영역에 들어왔다.
+### 2.1 이미 반영된 주요 기능
 
-- authenticated first-hop transaction identity
-- FileLog HOL recovery
-- Timeline QUERY_FAILED/PARTIAL
-- release qualification root-of-trust
-- persistence-mybatis / messaging-reliability-jdbc / session-jdbc package relocation
-- ADM/BZA OpenAPI error + typed high-risk client
-- Online A→B→C(/D) Spring/JDBC reference
-- Batch durable checkpoint / OS process kill / multi-process lease
-- DB3 runtime lock lifecycle
-- Public API/SPI Korean JavaDoc gate
-- JDBC `CpfLockManager`
-- messaging reliability Outbox/Router/Reconcile
+다음은 신규로 다시 만드는 대상이 아니라 **직접 재검수·보강 대상**이다.
 
-위 목록은 PASS 선언이 아니다. Requirement→Source→Symbol→Consumer→Call Path→Failure→Recovery→Test/Harness를 다시 확인한다.
+- `cpf-starters/data/persistence-jpa`
+- `cpf-starters/data/transaction-jta`
+- `cpf-starters/integration/ai`
+- `cpf-starters/integration/soap`
+- `cpf-starters/security/audit-jdbc`
+- `cpf-starters/security/oidc-login`
+- `cpf-starters/security/resource-server` 보강
+- `cpf-starters/security/secret` KMS/HSM/Signature/Audit 보강
+- DB3 XA/Inbox/Core Transaction Security SQL
+- XA Crash Recovery Harness
+- Generator persistence 선택 보강
+- Core Transaction Strategy / TCC / XA Public Contract
+- Core Persistence CRUD/Search/Bulk/Lock Contract
 
-특히 successor에는 직전 `DELETE_MANIFEST.csv`의 구 package 파일이 함께 남은 정황이 확인되었다. 새 canonical replacement가 존재하는 것을 확인한 뒤 `cpf-docs/work/CPF_DELETE_MANIFEST.csv`의 exact allowlist만 정리하고 stale package/import/reference가 0인지 재검증한다.
+### 2.2 다음 작업에서 반드시 재정리할 구조
 
-## 3. P0 Core Transaction & Integration Reliability
+`cpf-core/build.gradle`에는 현재 다음 compile boundary가 남아 있다.
 
-### 3.1 공식 전략
+- Spring WebFlux
+- Spring Boot RestClient
+- Spring Batch
+- Jakarta Servlet
+- Spring Web
+- Spring WebMVC
+- OpenTelemetry API
 
-다음을 CPF 공식 Transaction Capability Matrix로 구현한다.
+`compileOnly`라는 이유만으로 Core Ownership을 정당화해서는 안 된다. Public Contract에 정말 필요한 최소 타입인지 전수 검토하고, Runtime/Adapter 성격이면 Core 밖으로 이동한다.
 
-`LOCAL / XA_JTA / OUTBOX / INBOX_DEDUP / SAGA / TCC`
+### 2.3 Core Utility 현황
 
-전략은 상호 대체가 아니라 업무 일관성 요구에 따라 선택·혼합 가능해야 한다.
+현재 `cpf-core/src/main/java/com/cpf/core/api/util`에는 다음이 존재한다.
 
-권장 기본:
+- `CpfAttributes`
+- `CpfClock`
+- `CpfDates`
+- `CpfDecimals`
+- `CpfFiles`
+- `CpfHashes`
+- `CpfHeaders`
+- `CpfIds`
+- `CpfJson`
+- `CpfLists`
+- `CpfMaps`
+- `CpfNumbers`
+- `CpfPages`
+- `CpfStrings`
+- `CpfTimes`
+- `CpfValidation`
+- `CpfValues`
 
-| 업무 | 기본 전략 |
-|---|---|
-| 단일 DB | LOCAL |
-| DB+DB 강한 원자성 | XA/JTA |
-| DB+JMS 강한 원자성 | XA/JTA |
-| DB+Kafka/RabbitMQ/Event | OUTBOX 우선 |
-| MSA A→B→C | SAGA |
-| 잔액/한도/재고 Hold | TCC |
-| 외부 결과 불명 | UNKNOWN+RECONCILE |
+이 목록은 모두 KEEP 대상이 아니다. 각 항목을 `KEEP_CORE / MOVE_FOUNDATION / MOVE_CAPABILITY / ABSORB / REMOVE_CANDIDATE`로 분류한다.
 
-### 3.2 LOCAL
+### 2.4 문서 Currentization 기준
 
-실제 Domain Consumer에서 commit/rollback, propagation, isolation, timeout, read-only, exception translation을 검증한다. 기본 사용에 XA/JTA Provider가 필요하면 안 된다.
+본 Overlay에서 최상위 정본·Starter Architecture·Architecture/Developer/EDU/Security/Recovery Guide와
+Current Work/Matrix/QA 표준을 `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` 기준으로 먼저 현행화했다.
 
-### 3.3 XA/JTA
+최상위 Canonical Requirement Count는 **186개**다.
 
-다음을 실제 Source로 구현한다.
+- 기존 180개는 약화하지 않는다.
+- 신규 Canonical은 `FOUNDATION-UTILITY`, `SEC-SESSION-DIST`, `FILE-OBJECT-STORAGE`, `EVENT-SCHEMA`, `API-GRAPHQL`, `API-REALTIME` 6개다.
+- Core Slimming, transactionId ownership, Health, Lock, Testkit, Documentation Governance, QA Cross Review는 기존 Canonical ID를 강화하여 중복 ID를 만들지 않았다.
+- Developer가 실제 Source를 변경한 뒤 최종 successor SHA와 물리 구현에 맞춰 같은 문서를 다시 currentize한다.
 
-- topology-neutral transaction contract
-- Optional JTA integration
-- Tomcat-compatible standalone Transaction Manager Adapter
-- JTA-capable WAS managed Transaction Manager Adapter 경계
-- `XADataSource`
-- `XAConnectionFactory` / `XAResource`
-- DB+DB
-- DB+JMS
-- 2PC prepare/commit/rollback
-- transaction timeout
-- heuristic outcome
-- in-doubt state
-- recovery log
-- startup recovery scan
-- duplicate recovery/fencing
+### 2.5 현재 Starter Tree에서 신규 검토가 필요한 영역
 
-Narayana/Atomikos 등 특정 구현을 `cpf-core`에 강제하지 않는다. Reference Provider를 하나 선택할 수 있으나 Public Contract는 Provider-neutral이어야 한다.
+작성 시점 Starter tree에서 별도 Capability로 확인되지 않은 영역:
 
-공식 DB Vendor는 Oracle/PostgreSQL/MariaDB만 사용한다.
+- Runtime Health 전용 Starter
+- `session-valkey`
+- S3-compatible Object Storage
+- GraphQL Optional
 
-### 3.4 XA Crash Recovery
+따라서 실제 최신 작업 시작 시 전체 tree를 다시 검색하여 이미 추가되었는지 먼저 확인하고, 없으면 본 Requirement대로 구현한다.
 
-반드시 다음 Harness를 작성한다.
+---
 
-1. XA begin
-2. 두 Resource enlist
-3. prepare 완료
-4. Process Kill
-5. restart
-6. recovery scan
-7. 최종 commit/rollback 판정
-8. duplicate side effect 0
-9. ADM/Log/transactionId 확인
+# PART A. Architecture 강제 요구
 
-실행 환경이 없으면 Source/Harness/Script/Config까지 구현하고 `미검증`으로 남긴다. Harness 자체가 없으면 FAIL이다.
+## NXT-ARCH-001 — Core Dependency Direction 불변 규칙
 
-### 3.5 Outbox / Inbox-Dedup
+### Requirement
 
-기존 `messaging-reliability-jdbc`를 새로 갈아엎지 말고 직접 검산·고도화한다.
-
-Outbox:
-
-- Business update + Outbox INSERT = 동일 Local TX
-- stable eventId/messageId
-- transactionId
-- PENDING/CLAIMED/PUBLISHED/CONFIRMED/FAILED/UNKNOWN/RETRYING/DEAD/RECONCILED
-- lease/fencing
-- ACK loss
-- Publisher kill/restart
-- multi-instance
-- cleanup/retention
-
-Inbox/Dedup:
-
-- event/message ID + consumer identity
-- idempotency
-- concurrent duplicate
-- partial processing
-- Consumer kill/restart
-- replay
-- retention
-- duplicate business side effect 0
-
-Outbox를 Transaction/Audit Log와 동일 개념으로 합치지 않는다.
-
-### 3.6 Saga
-
-기존 `SAGA-*` Requirement를 실제 구현/Consumer까지 확인한다.
-
-상태 최소:
-
-`STARTED / RUNNING / COMPLETED / FAILED / COMPENSATING / COMPENSATED / UNKNOWN / MANUAL_REVIEW`
-
-A→B→C(/D), C 실패, 역순 compensation, compensation 자체 실패/retry, process kill, duplicate, UNKNOWN/Reconcile을 실행 가능한 Reference로 검증한다.
-
-### 3.7 TCC
-
-Optional TCC Contract와 실제 Reference Consumer를 구현한다.
-
-- Try idempotency
-- Confirm idempotency
-- Cancel idempotency
-- Empty Rollback
-- Hanging
-- Duplicate Confirm/Cancel
-- Timeout
-- Process Kill
-- Recovery
-- UNKNOWN/Reconcile
-- Manual Review
-
-Framework가 업무 Hold/Reservation 의미를 임의로 구현하지 않고 Business Consumer가 명확한 Contract를 제공한다.
-
-## 4. P0 E2E Transaction Lineage
-
-다음을 각각 PASS하고 끝내지 않는다.
-
-`Transaction + Domain Call + External Call + Messaging + Batch + Logging + Audit + Trace + Recovery + ADM`
-
-동일 Reference Transaction에서 확인한다.
+CPF Dependency Direction을 다음과 같이 강제한다.
 
 ```text
-Authenticated Channel
- → transactionId
- → Domain A
- → Domain B
- → DB
- → External API
- → Outbox/Broker
- → Domain C
- → Retry/UNKNOWN/Reconcile
- → Transaction/Integration/Audit Log
- → ADM Timeline
+Pure Foundation / Core Contract
+            ↑
+Capability / Provider
+            ↑
+Starter / AutoConfiguration
+            ↑
+Application
 ```
 
-Retry 시 transactionId 재발급 금지. attempt/segment/span/execution은 별도다.
+다음은 허용하지 않는다.
 
-Local/Remote, REST/SOAP/TCP/File, JMS/Kafka/RabbitMQ, Batch, Saga/TCC/XA recovery에서도 동일 lineage를 유지한다.
+- `cpf-core -> cpf-starters/*`
+- `cpf-core -> Optional Provider implementation`
+- `cpf-core -> Vendor Runtime implementation`
+- `Foundation -> Starter`
+- `Foundation -> Optional Provider`
+- 순환 의존
+- Runtime 기술을 Core Public API에 불필요하게 노출
 
-## 5. Log / Audit / Timeline
+### Acceptance
 
-목적을 분리한다.
+- Core → Starter dependency: `0`
+- Core → Optional Provider implementation: `0`
+- Foundation → Starter dependency: `0`
+- Build graph cycle: `0`
+- Internal package 외부 참조: `0`
 
-- Transaction Log: 거래 진행/상태
-- Integration Log: 외부 요청/응답/Message
-- Audit Log: 누가 무엇을 했는지
-- Outbox: 아직 외부 전달이 완료되지 않은 durable message state
-- Inbox/Dedup: 수신 처리/중복 제어
+### Evidence
 
-ADM transaction detail에서 이들을 transactionId/eventId/correlationId로 연결해 하나의 Timeline으로 재구성한다.
+- Gradle dependency graph
+- settings/catalog validation
+- Architecture Gate
+- Negative fixture
 
-Source query 실패를 `NOT_APPLICABLE`로 숨기지 않는다. Partial/QUERY_FAILED/UNKNOWN을 명시한다.
+---
 
-## 6. Starter 전체 Developer Experience 전수 고도화
+## NXT-ARCH-002 — `cpf-core` Slimming 전수검수
 
-`CPF_STARTER_VALUE_CATALOG.csv`와 Canonical Starter Catalog의 **활성 Starter 전부**를 직접 연다.
+### Requirement
 
-각 Starter마다 다음을 기록하고 필요한 Source를 고친다.
+`cpf-core`의 `api/common/config/internal/service/spi` 전체 Source를 직접 열어 Class 단위로 판정한다.
 
-1. 실제 convenience API
-2. OSS 직접 사용 대비 제거되는 boilerplate
-3. actual Consumer
-4. AutoConfiguration
-5. 최소/직관적 Config
-6. safe default
-7. Fail-Fast
-8. 표준 Error
-9. transactionId/context
-10. Security/Authorization
-11. Masking
-12. Audit/Logging/Observability
-13. Timeout/Retry/Circuit Breaker
-14. Idempotency/UNKNOWN/Reconcile
-15. Provider 확장성
-16. Native API Escape Hatch
-17. 미사용 0-footprint
-18. Sample/EDU
-19. 정상/실패/timeout/partial/recovery
-20. 실제 OSS-direct 대비 사용성
+허용 판정:
 
-Wrapper-only Starter는 완료 처리하지 않는다.
+- `KEEP_CORE`
+- `MOVE_FOUNDATION`
+- `MOVE_CAPABILITY`
+- `MOVE_PROVIDER`
+- `MOVE_STARTER`
+- `ABSORB_EXISTING`
+- `REMOVE_CANDIDATE`
 
-Consumer가 하나뿐이고 Provider 확장 가치가 없으면 형식적 SPI를 만들지 않는다.
+다음 패턴은 집중 전수검색한다.
 
-## 7. 신규/보강 Capability
+- `Default*`
+- `*Adapter`
+- `*Configuration`
+- `*Filter`
+- `*Repository`
+- `*Provider`
+- `*Client`
+- `*Controller`
+- `*Endpoint`
+- `*HealthIndicator`
+- `*Contributor`
 
-### 7.1 AI Optional
+### Core에 남을 수 있는 것
 
-- Provider-neutral API/SPI
-- model/provider routing
-- timeout/retry/circuit breaker/fallback
-- masking/sensitive-data policy
-- token/usage/cost metering
-- audit/observability
-- transactionId
-- authorization/policy
-- high-risk human approval
-- provider failure/timeout/UNKNOWN
-- 실제 Consumer/EDU
+- topology-independent Public Contract
+- Provider-independent SPI/Port
+- Framework 핵심 Value Object
+- Error/Transaction/Security/Context 의미론
+- Provider-independent Policy
+- 외부 Runtime 없이 동작하는 최소 순수 Logic
 
-자체 LLM, 자체 Vector DB, 대형 Agent Framework는 기본범위가 아니다.
+### Core에 남겨서는 안 되는 것
 
-### 7.2 OAuth2/JWT Developer API
+- Spring AutoConfiguration
+- Servlet/Web Runtime Filter
+- Spring MVC/WebFlux Runtime 구현
+- OpenTelemetry Adapter/Configuration
+- Actuator Runtime
+- HealthIndicator/HealthContributor
+- JDBC/JPA/MyBatis 구현
+- Feature Flag 특정 Provider
+- Cache/Messaging/File/Cloud 특정 Provider
+- Optional Capability 구현
+- 단순 편의 Utility 집합
 
-기존 Resource Server를 유지하고 반복 코드를 줄인다.
+### Acceptance
 
-`currentUserId()`, `currentTenantId()`, `currentPrincipal()`, `hasRole()`, `hasScope()`, safe claim access, issuer/audience/expiry, role/scope mapping, token propagation, 401/403를 검토·보강한다.
+Core에 부적절한 Runtime 구현 `0`.
 
-### 7.3 SSO/OIDC
+---
 
-OIDC/OAuth2 Login, Keycloak/Entra ID/Okta, user/role/group/claim mapping, CPF User/Tenant/Authority Context, login/logout/session/token 만료·갱신, Frontend/BFF를 최소 설정으로 연결한다. SAML2는 Optional.
+## NXT-ARCH-003 — compileOnly Ownership Gate
 
-### 7.4 KMS/HSM / Digital Signature
+### Requirement
 
-기존 Secret/Crypto/Certificate를 재사용한다.
+`compileOnly`는 Ownership 면죄부가 아니다.
 
-- KMS/HSM Provider
-- PKCS#11 Optional
-- key version/rotation/revocation/health/timeout
-- sign/verify
-- algorithm/keyId/certificate/signature metadata
+Core build의 Spring Web, WebFlux, Servlet, Batch, OTel 등은 Public Contract를 표현하는 데 진짜 필요한지 확인한다.
+
+- 불필요하면 Core에서 제거한다.
+- Runtime 구현 때문에 필요하면 구현을 Owner Starter로 이동한다.
+- Public API가 특정 Runtime 타입을 노출하는 경우 Contract 자체를 재설계한다.
+
+### Acceptance
+
+Core compile dependency 각각에 `why_core_required` 근거가 존재한다. 근거 없는 compile dependency `0`.
+
+---
+
+# PART B. Foundation / Unified Utility
+
+## NXT-UTIL-001 — Unified CPF Utility 재설계
+
+### Requirement
+
+Core를 Utility 창고로 사용하지 않는다.
+
+현재 `cpf-core/api/util` 전체를 아래 규칙으로 재분류한다.
+
+### A. 단순 Wrapper
+
+JDK/Spring보다 의미 있는 가치가 없는 Wrapper는 유지하지 않는다.
+
+예:
+
+- 단순 `trim`
+- 단순 `isEmpty`
+- 단순 Map getter
+- 단순 숫자 parse
+
+이 경우 `REMOVE_CANDIDATE` 또는 기존 API 흡수를 선택한다.
+
+### B. CPF 고유 공통 Utility
+
+아래처럼 CPF 정책 가치가 있는 순수 기능은 Foundation/Unified Utility로 이동한다.
+
+- ID
+- Clock
+- Date/Time/Timezone
+- Business Date
+- Decimal
+- 금융 Amount Precision
+- Rounding Policy
+- Validation
+- Code/Enum Conversion
+- Mapping
+- Common Attribute
+- deterministic test support
+
+### C. Capability Owner가 명확한 Utility
+
+- Header → Web/Header Capability
+- Hash/Crypto → Security/Crypto
+- File → File Capability
+- Paging → Page/Persistence Contract
+- Transaction ID → Transaction Contract + Foundation/Provider
+- Health → Platform Operations
+- Secret → Security/Secret
+
+### Acceptance
+
+- Core의 단순 Utility Wrapper: `0`
+- Owner 없는 Utility: `0`
+- Unified Utility 실제 Consumer 존재
+- 단순 OSS/JDK Wrapper만 모은 새 Starter 금지
+
+---
+
+## NXT-UTIL-002 — Pure Foundation과 Application Convenience 분리
+
+### Requirement
+
+업무 개발자는 통합 Utility/기본 기능을 쉽게 쓸 수 있어야 한다. 그러나 Core가 Starter를 참조하면 안 된다.
+
+필요 시 다음 역할을 물리적으로 구분한다.
+
+```text
+Pure Foundation
+      ↑
+Core / Capability
+      ↑
+Application Convenience Starter
+      ↑
+Application
+```
+
+기존 `cpf-starters/foundation/base`가 순수 Foundation인지 Spring Boot Convenience Starter인지 실제 역할을 확정한다. 한 Module이 두 역할을 섞고 있으면 분리한다.
+
+### Pure Foundation 조건
+
+- 순수 Java
+- topology-independent
+- Spring Runtime 비종속
+- Vendor 비종속
+- Starter 비종속
+- Optional Provider 비종속
+
+### Acceptance
+
+Core가 Foundation을 사용할 필요가 있다면 순수 Foundation만 사용한다. Starter 역참조 `0`.
+
+---
+
+# PART C. Transaction ID / Context
+
+## NXT-TXID-001 — Transaction ID Contract와 구현 분리
+
+### Requirement
+
+`CpfTransactionIdGenerator`와 Transaction Context 의미론은 Core Contract로 유지할 수 있다.
+
+다음은 Core 밖으로 이동한다.
+
+- UUID/ULID 등 실제 기본 생성 알고리즘
+- Default Generator 구현
+- Spring Bean/AutoConfiguration
+- HTTP Servlet Filter
+- Messaging/Channel Adapter
+- transport-specific extraction/propagation 구현
+
+Core Consumer는 구현 Class가 아니라 Contract에 의존한다.
+
+### Acceptance
+
+```text
+Core Contract
+   ↑
+Foundation/Provider Implementation
+   ↑
+Starter Wiring
+```
+
+구조가 실제 Source/Gradle에 반영되어야 한다.
+
+### E2E 보존
+
+동일 transactionId가 다음 전체에서 유지되어야 한다.
+
+- REST
+- SOAP
+- Local/Remote Domain Call
+- Gateway
+- Kafka
+- RabbitMQ
+- JMS
+- IBM MQ
+- Async
+- Batch
+- File
+- Outbox/Inbox
+- Saga
+- TCC
+- XA Recovery
+- Reconcile
+- Log/Audit
+- ADM Timeline
+
+Retry/Hop마다 새 transactionId 생성 금지.
+
+---
+
+# PART D. Core Runtime 구현 Ownership 이동
+
+## NXT-OWN-001 — Observability 구현 이동
+
+Core에 존재하는 OpenTelemetry Adapter/Aspect/Configuration 등 특정 Runtime 구현을 Observability/OTel Starter로 이동한다.
+
+Core에는 Telemetry/Trace Context의 Provider-neutral Contract만 남긴다.
+
+### Acceptance
+
+Core의 OTel runtime implementation `0`.
+
+---
+
+## NXT-OWN-002 — Feature Flag Provider 이동
+
+Property/OpenFeature Provider, Spring Configuration 등은 Feature Flag Capability가 소유한다.
+
+Core에는 Provider-neutral evaluation contract만 남긴다.
+
+### Acceptance
+
+Core의 Feature Flag Provider implementation `0`.
+
+---
+
+## NXT-OWN-003 — Web/Security Filter 이동
+
+Servlet Filter, Spring Security Filter, HTTP-specific transaction/context filter는 Web/Security Starter가 소유한다.
+
+Core에는 Identity/Context/Header/Trust 의미론만 남긴다.
+
+### Acceptance
+
+Core의 Servlet runtime filter `0`.
+
+---
+
+## NXT-OWN-004 — Persistent Repository/Scanner 이동
+
+Core 내부의 DB-backed repository/scanner/store가 존재하면 해당 JDBC/Persistence/Operations Provider로 이동한다.
+
+Contract와 Value Object만 Core에 유지한다.
+
+---
+
+# PART E. Runtime Health / Instance Operations
+
+## NXT-HEALTH-001 — Runtime Health Starter
+
+### Requirement
+
+전용 Platform Operations Health Capability를 정식 제공한다.
+
+단순 Actuator Wrapper로 완료 처리하지 않는다.
+
+최소:
+
+- liveness
+- readiness
+- startup
+- `UP`
+- `DEGRADED`
+- `DOWN`
+- `OUT_OF_SERVICE`
+- `UNKNOWN`
+- dependency health
+- version/build SHA
+- start time/uptime
+- active profile/capability
+- draining
+- maintenance
+
+### Ownership
+
+Core:
+- 필요 최소 Health Contract/Status/Port
+
+Health Starter:
+- Spring Actuator
+- HealthIndicator
+- HealthContributor
+- Probe Endpoint
+- dependency check
+- Runtime status implementation
+- AutoConfiguration
+
+### Acceptance
+
+Actuator/Health Runtime implementation이 Core에 남지 않는다.
+
+---
+
+## NXT-HEALTH-002 — Dependency Health 안전성
+
+활성 Capability만 Health에 참여한다.
+
+대상 예:
+
+- Oracle/PostgreSQL/MariaDB
+- JDBC/MyBatis/JPA
+- Valkey
+- Kafka/RabbitMQ/JMS/IBM MQ
+- External HTTP
+- Object Storage
+- Batch/File
+
+Health 자체가 장애를 확대하지 않도록:
+
+- short timeout
+- concurrency limit
+- resource isolation
+- cache policy
+- rate protection
+- secret masking
+- normalized failure reason
+
+을 제공한다.
+
+DB Down 상황에서 `Liveness UP / Readiness DOWN` 같은 구분을 지원한다.
+
+---
+
+## NXT-HEALTH-003 — Multi-instance Health / ADM
+
+실제 흐름:
+
+```text
+Instance
+ → Health/Heartbeat
+ → Runtime/Registry
+ → ADM
+```
+
+ADM에서 최소:
+
+- system
+- application
+- instance
+- version
+- build SHA
+- start time
+- uptime
+- last seen
+- liveness/readiness
+- degraded dependency
+- draining
+- maintenance
+- overall state
+
+검색/Paging/상세/권한/오류처리를 제공한다.
+
+Public probe와 privileged diagnostic endpoint를 분리한다.
+
+---
+
+## NXT-OPS-001 — Graceful Drain
+
+Lifecycle:
+
+```text
+RUNNING
+ → DRAINING
+ → READINESS DOWN
+ → 신규 작업 차단
+ → in-flight 완료/timeout
+ → STOPPED
+```
+
+HTTP, Batch Worker, Message Consumer별 drain semantics를 구분한다.
+
+기존 Runtime Control과 중복 구현하지 않는다.
+
+---
+
+# PART F. Persistence / JPA 보강
+
+## NXT-JPA-001 — 기존 Spring Data JPA Starter 재검수
+
+`cpf-starters/data/persistence-jpa`는 이미 존재하므로 재생성하지 않는다.
+
+다음을 실제 Consumer까지 확인하고 부족하면 보완한다.
+
+- Spring Data JPA
+- Hibernate
+- `JpaRepository`
+- `PagingAndSortingRepository`
+- `Pageable`
+- Spring Data `Sort`
+- `Specification`
+- `@Query`
+- `EntityManager`
+- CPF Page/Sort Adapter
+- native escape
+- lock
+- transaction/XA-JTA
+- Audit/transactionId/Tenant/Security
+- N+1 guard/observation
+- slow query
+- bulk
+- DB3
+- Generator
+- EDU
+- Golden/Generated Domain Consumer
+
+### 0-footprint
+
+JPA 미사용 Profile에는 Hibernate/JPA Bean/EntityManager/Config/side effect `0`.
+
+---
+
+## NXT-PERSIST-001 — CRUD/Paging/Search Provider Parity
+
+다음 E2E를 JDBC/MyBatis/JPA 모두에서 검증한다.
+
+```text
+API
+ → Controller
+ → Service
+ → Repository Contract
+ → Provider
+ → DB3
+ → CPF Page/Result
+ → API
+ → OpenAPI
+ → Generated Client
+ → Real Consumer
+```
+
+기능:
+
+- Create
+- Read by ID
+- Update
+- Delete
+- Exists
+- Count
+- Page
+- Slice
+- Cursor
+- Sort
+- Multi-sort
+- Search
+- Filter
+- Dynamic Condition
+- Bulk Insert/Update/Delete
+- Optimistic Lock
+- Pessimistic Lock
+- Transaction
+- Query timeout
 - Audit
-- Private Key/Secret 원문 노출 금지
+- transactionId
+- Tenant/Security
+- Slow Query
+- SQL Injection defense
+- Sort Field Allow-list
+- Page Size limit
+- Large Query protection
 
-Hash/HMAC/AES-GCM은 중복 Starter를 만들지 않는다.
+복잡 JOIN/Aggregation/Hint/Vendor SQL/Bulk 특수처리는 Domain Repository + Native Escape를 허용한다.
 
-### 7.5 Tamper-evident Audit
+---
 
-기존 `SEC-AUDIT`를 검산·고도화한다.
+# PART G. Security / Session
 
-append-only, canonical payload, previousHash/currentHash, 수정/삭제/순서변경 탐지, signature, concurrency, multi-instance, masking/evidence integrity.
+## NXT-SEC-001 — OIDC/SSO 기존 구현 재검수
 
-Blockchain/DLT Starter는 이번 범위에 추가하지 않는다.
+기존 `oidc-login`과 `resource-server`를 재사용한다.
 
-## 8. EDU/Reference 보완
+최소:
 
-기존 EDU 135를 삭제하거나 임의 숫자 증가로 해결하지 않는다. 기존 Track과 중복 여부를 먼저 확인하고, 필요한 Feature/Scenario를 기존 EDU에 통합하거나 신규 executable feature로 추가한다.
+- OAuth2 Resource Server
+- JWT
+- OAuth2 Client
+- OIDC Login
+- SSO
+- Current User
+- Current Tenant
+- Role/Scope
+- Token propagation
+- Logout
+- Session integration
+- 401/403
+- Audit
+- transactionId
+- Observability
 
-최소 실행형 Reference:
+특정 IdP Public API 종속 금지.
 
-- LOCAL commit/rollback
-- XA DB+DB
-- XA DB+JMS
-- XA prepare kill/recovery
-- Outbox 동일 TX
-- ACK loss/Publisher kill/duplicate
-- Inbox/Dedup
-- Saga compensation/retry
-- TCC confirm/cancel/empty rollback/hanging
-- External timeout/UNKNOWN/Reconcile
-- Domain A→B→C local/remote
-- Batch→A→B→C transaction boundary
-- 동일 transactionId + ADM Timeline
+Keycloak/Entra ID/Okta 등은 표준 OIDC Provider 경계로 교체 가능해야 한다.
 
-Generator/Generated Domain도 같은 Public API를 실제 Consumer로 사용해야 한다.
+---
 
-## 9. Catalog / Settings / BOM / Generator 규칙
+## NXT-SESSION-001 — Valkey Distributed Session
 
-신규 모듈 이름만 Catalog에 먼저 넣지 않는다.
+기존 JDBC Session은 유지한다.
 
-실제 Source 폴더와 `build.gradle`, AutoConfiguration, Owner Group/Internal Role, Consumer, Test가 준비된 뒤 같은 변경 단위에서:
+Multi-instance용 Optional Valkey Session Provider를 제공한다.
 
-- settings.gradle
-- Canonical Starter Catalog
-- BOM/publication
-- capability profiles
-- generator template/schema/lock
-- generated domain
-- reference/EDU
-- docs
+최소:
 
-를 동기화한다.
+- create/read/update/delete
+- expiration
+- renewal
+- rotation
+- session fixation defense
+- concurrent session control
+- forced logout
+- logout propagation
+- user/session index
+- tenant isolation
+- Audit
+- Metrics
+- multi-instance
+- provider failure semantics
 
-Public BOM에 Internal Leaf를 무분별하게 노출하지 않는다.
+미사용 시 0-footprint.
 
-## 10. 직전 push 후 Repository Hygiene
+---
 
-현재 successor에서 구 package + 신규 package가 동시에 남은 정황이 있다.
+# PART H. File / Object Storage
 
-`cpf-docs/work/CPF_DELETE_MANIFEST.csv`는 직전 Developer의 66개 allowlist를 Current-State 형태로 승계한다.
+## NXT-STORE-001 — S3-compatible Object Storage
 
-삭제 조건:
+기존 Attachment/Archive/SFTP를 먼저 확인하고 중복 API를 만들지 않는다.
 
-1. exact old path가 실제 존재
-2. manifest의 exact replacement path가 존재
-3. protected path가 아님
-4. replacement가 consumer/build 기준 canonical
-5. 삭제 후 stale import/package/reference 0
+우선 기존 Attachment abstraction을 Provider 방식으로 확장한다. 불가능할 때만 별도 Object Storage Contract를 추가한다.
 
-광범위 wildcard 삭제 금지.
+Public API는 AWS에 종속시키지 않는다.
 
-`cpf-docs/deliverables/**`, `cpf-docs/guides/**`, `cpf-docs/assets/manuals/**`, `cpf-docs/assets/readme/**`, `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`, `cpf-docs/environment/docker/**`, `cpf-tools/environment/docker-development-test/**`는 보호한다.
+최소:
 
-작업 종료 시 날짜/REV/SESSION/checkpoint/debug/tmp/pycache/obsolete zip/hash/duplicate current 문서가 새로 쌓이지 않았는지 검사한다.
+- put/get/delete
+- stream
+- metadata
+- checksum
+- multipart
+- range
+- content-type
+- presigned access
+- expiry
+- encryption
+- Secret/KMS
+- tenant isolation
+- retry/timeout
+- partial failure
+- orphan reconcile
+- retention/lifecycle
+- malware scan hook
 
-## 11. 직접 검수 방법 — 상태값 Shortcut 금지
+Provider는 S3-compatible boundary로 AWS S3/MinIO 등을 교체 가능하게 한다.
 
-각 Requirement/Review ID는 최소:
+---
 
-`Requirement → Source Path → Symbol → Consumer → Call Path → Failure/Recovery → Test/Harness → Config/SQL/OpenAPI/Generator/Frontend → Execution → Evidence → Judgement`
+# PART I. Messaging Contract Governance
 
-를 연결한다.
+## NXT-EVENT-001 — Event Schema / Contract Governance
 
-Source를 직접 열지 않은 항목은 완료로 세지 않는다.
+기존 Kafka/Rabbit/JMS/IBM MQ를 유지한다.
 
-`재확인 필요`를 미검수의 대체값으로 사용하지 않는다.
+다음 Schema Contract를 Provider-neutral하게 제공한다.
 
-`미검증`은 Source+Consumer+Call Path+Test/Harness+Script/Config/SQL/Generator가 모두 준비되고 **외부 Runtime 환경만** 없을 때만 허용한다.
+- JSON Schema
+- Avro
+- Protobuf
+- schema version
+- backward compatibility
+- forward compatibility
+- breaking-change gate
+- producer contract
+- consumer contract
+- generated model
+- runtime validation
+- schema id/content type
+- CI gate
+- Generator
+- EDU
 
-Generic Evidence 문구를 수백 행 복사해 개별 검수로 계산하지 않는다.
+특정 Schema Registry Vendor를 Public API에 노출하지 않는다.
 
-## 12. 진행률 보고 — 작업 중단점 아님
+---
 
-약 5분마다 화면에 다음을 짧게 표시하고 즉시 작업을 계속한다.
+# PART J. GraphQL / Realtime
 
-- 현재 Phase
-- 전체 진행률 %
-- Requirement 직접 Source 확인 x/total
-- Consumer 확인 x/total
-- Test/Harness 확인 x/total
-- 개발 완료 x/total
-- FAIL/미구현 수
-- Runtime-only 수
-- 신규 Finding 수
-- 지금 작업 영역
+## NXT-GQL-001 — GraphQL Optional Capability
+
+GraphQL은 Optional Capability로 구현한다.
+
+REST/OpenAPI는 계속 기본 API다.
+
+Spring for GraphQL 기반을 우선한다.
+
+실제 활용:
+
+- Browser BFF
+- Mobile BFF
+- Domain Query aggregation
+- client-driven field selection
+- ADM/BZA 복합조회
+
+최소:
+
+- Query
+- Mutation
+- Subscription은 실제 필요 시
+- Schema/version
+- CPF Error
+- CPF Paging/Cursor
+- Sort/Search
+- Validation
+- Authentication
+- Authorization
+- field authorization
+- Tenant
+- transactionId
+- Audit
+- Logging/Metrics/Trace
+- timeout/rate limit
+- query depth
+- complexity limit
+- request size
+- N+1/DataLoader
+- exception masking
+- introspection production policy
+- GraphiQL production policy
+- Generator
+- contract test
+- EDU
+- 실제 BFF Consumer
+- native Spring GraphQL escape
+
+Resolver에 업무 로직을 복제하지 않는다. REST와 Application/Service Layer를 재사용한다.
+
+미사용 시 0-footprint.
+
+---
+
+## NXT-RT-001 — SSE / WebSocket Realtime
+
+Server→Browser 단방향 상태는 SSE 우선.
+
+양방향 필요 시 WebSocket.
+
+사용 예:
+
+- Batch progress
+- Transaction timeline
+- Runtime/Health state
+- Notification
+- Long-running operation
+
+최소:
+
+- auth/authz
+- reconnect
+- heartbeat
+- duplicate control
+- slow consumer
+- backpressure
+- rate limit
+- multi-instance
+- graceful shutdown
+- fallback polling
+- frontend typed consumer
+
+독립 Starter가 필요 없으면 기존 Web/Operations Capability에 흡수한다.
+
+---
+
+# PART K. Lock / AI / Testkit / Execution
+
+## NXT-LOCK-001 — Valkey Lock/Lease Provider
+
+기존 `CpfDistributedLockPort`, JDBC lock, fencing semantics를 유지한다.
+
+Valkey Provider를 추가할 경우 단순 SETNX Wrapper 금지.
+
+필수:
+
+- fencing token
+- lease
+- expiry
+- owner identity
+- stale owner block
+- process kill
+- network partition
+- multi-instance
+- retry/recovery
+- idempotency
+
+---
+
+## NXT-AI-001 — 기존 AI Optional 재검수
+
+기존 `cpf-starters/integration/ai`를 재사용한다.
+
+Provider-neutral Public API를 유지하며:
+
+- provider switch
+- timeout/retry
+- quota/rate
+- resource/token limit
+- masking
+- Security/Audit
+- Observability
+- UNKNOWN/failure mapping
+- 0-footprint
+
+을 검증한다.
+
+---
+
+## NXT-TESTKIT-001 — 공식 CPF Testkit
+
+기존 `CORE-TESTKIT` Requirement를 실제 제품 Test Support로 완성한다.
+
+최소 fixture/harness:
+
+- deterministic Clock
+- deterministic ID
+- transaction context
+- authenticated user
+- tenant
+- HTTP
+- DB
+- Messaging
+- Outbox/Inbox
+- Saga/TCC
+- Batch
+- Object Storage
+- Health
+- GraphQL
+- failure injection
+- multi-instance
+- process kill
+- Generator smoke
+
+Testcontainers는 사용 가능하지만 단순 Wrapper가 목적이 아니다.
+
+---
+
+## NXT-EXEC-001 — Java 25 Modern Execution
+
+Virtual Thread 적용 가치가 있는 blocking I/O 경로를 검수한다.
+
+지원 시 반드시 보존:
+
+- transactionId
+- Security Context
+- MDC/trace
+- transaction boundary
+- deadline
+- resource pool safety
+
+Virtual Thread 전용 Starter를 무조건 만들지 않는다.
+
+R2DBC/WebFlux reactive persistence는 실제 Consumer가 없으면 이번 작업에서 강제 추가하지 않는다.
+
+gRPC도 실제 consumer requirement가 없으므로 이번 작업에서는 신규 Starter를 강제하지 않는다.
+
+---
+
+# PART L. Starter Developer Experience
+
+## NXT-DX-001 — 모든 Starter DX 전수검수
+
+각 Starter마다 다음을 직접 확인한다.
+
+- 존재 이유
+- actual consumer
+- CPF API
+- OSS 직접 사용 대비 장점
+- Typed Properties
+- Config Metadata
+- Safe Default
+- Fail-Fast
+- Actionable Error
+- Security
+- Audit
+- Masking
+- transactionId
+- Observability
+- Timeout/Retry/Recovery
+- Native Escape
+- Generator
+- EDU
+- Test
+- Optional removal / 0-footprint
+- Provider 교체 가능성
+- 중복 Owner 여부
+
+단순 OSS Dependency + AutoConfig만 있는 Wrapper-only Starter는 FAIL.
+
+---
+
+# PART M. Generator / Generated Domain / Frontend
+
+## NXT-GEN-001 — Generator 정합성
+
+Framework Contract/Starter가 변경되면 Generator를 같은 사이클에서 수정한다.
+
+특히 persistence profile:
+
+- JDBC
+- MyBatis
+- JPA
+
+선택 시 다음이 일관되게 생성되어야 한다.
+
+- Repository
+- Service
+- Controller
+- DTO
+- Validation
+- CRUD
+- Paging
+- Sort
+- Search
+- Test
+- SQL/Migration
+- OpenAPI
+- Generated Client
+- EDU Fixture
+
+Health/Security/GraphQL/Object Storage/Utility 역시 새 프로젝트에서 실제 사용할 수 있어야 한다.
+
+---
+
+## NXT-GEN-002 — Golden Domain / Reference Consumer
+
+`cpf-member`와 `cpf-reference`에서 새 Public API를 실제 소비한다.
+
+Sample/Interface 존재만으로 완료 처리하지 않는다.
+
+```text
+Public API
+ → Runtime implementation
+ → Real Consumer
+ → Test/Harness
+ → Evidence
+```
+
+경로를 요구한다.
+
+---
+
+## NXT-FE-001 — ADM/BZA/OpenAPI/Generated Client 영향
+
+Backend 계약 변경 시 반드시 확인:
+
+- OpenAPI
+- Generated Client
+- ADM
+- BZA
+- 400/401/403/404/409/429/500/503
+- search/paging/detail
+- permission
+- risky operation
+- accessibility
+- responsive
+- realtime consumer
+
+---
+
+# PART N. Canonical / 작업 문서 Currentization
+
+## NXT-DOC-001 — 최상위 Canonical Requirement 갱신
+
+Developer는 구현 후 아래 정본을 실제 최신 successor SHA 기준으로 currentize한다.
+
+필수:
+
+- `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
+- `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`
+- `cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md`
+
+원칙:
+
+1. 기존 Requirement와 중복되는 것은 새 ID를 남발하지 않고 기존 Requirement를 강화한다.
+2. 실제 새로운 제품 Requirement만 신규 Canonical ID를 추가한다.
+3. Canonical Requirement Count를 실제 행 수와 정확히 맞춘다.
+4. 이전 currentization source SHA를 최신 successor로 갱신한다.
+5. Alias/Supersede/Split/Merge 관계를 Continuity Ledger에 남긴다.
+6. 삭제/통합된 Requirement를 조용히 소실시키지 않는다.
+
+---
+
+## NXT-DOC-002 — Architecture / Developer / Security / Operations Guide 갱신
+
+최소:
+
+- `cpf-docs/architecture/ARCHITECTURE_GUIDE.md`
+- `cpf-docs/development/DEVELOPER_GUIDE.md`
+- `cpf-docs/development/EDU_GUIDE.md`
+- `cpf-docs/security/SECURITY_GUIDE.md`
+- `cpf-docs/operations/RECOVERY_GUIDE.md`
+
+에 다음을 실제 Source와 일치시키며 반영한다.
+
+- Core Slimming
+- Dependency Direction
+- Unified Utility
+- Transaction ID Ownership
+- Health/Instance Operations
+- JPA/JDBC/MyBatis
+- OIDC/SSO
+- Distributed Session
+- Object Storage
+- Event Schema
+- GraphQL
+- Realtime
+- Testkit
+- Generator
+- Garbage cleanup/migration
+
+---
+
+## NXT-DOC-003 — Current Work / Matrix / Evidence Currentization
+
+기존 Current-State 문서만 갱신한다.
+
+필수:
+
+- `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md`
+- `cpf-docs/work/CPF_REQUIREMENT_MATRIX.csv`
+- `cpf-docs/work/CPF_SCENARIO_MATRIX.csv`
+- `cpf-docs/work/CPF_STARTER_VALUE_CATALOG.csv`
+- `cpf-docs/work/CPF_SOURCE_FINDINGS.csv`
+- `cpf-docs/work/current/CPF_REQUIREMENT_CONTINUITY.csv`
+- `cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv`
+- `cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv`
+- `cpf-docs/work/REQUIREMENT_STATUS.csv`
+- `cpf-docs/work/REVIEW_INDEX.md`
+- `cpf-docs/work/CPF_CHANGE_MANIFEST.csv`
+- `cpf-docs/work/TEST_AND_EVIDENCE.md`
+- `cpf-docs/work/OPEN_ISSUES.md`
+- `cpf-docs/work/HANDOVER.md`
+- `cpf-docs/work/CODEX_REVIEW_REQUEST.md`
+
+새 날짜/REV/SESSION/FINAL_FINAL 문서 복제 금지.
+
+---
+
+# PART O. Repository Hygiene / Garbage Cleanup
+
+## NXT-HYG-001 — Core 이동 후 Garbage 전수검사
+
+Core Slimming은 많은 Source relocation을 발생시킬 수 있다.
+
+따라서 이동마다 다음을 즉시 검사한다.
+
+- old source
+- old test
+- old package
+- stale import
+- stale AutoConfiguration
+- stale resources
+- duplicate bean
+- duplicate catalog entry
+- duplicate publication
+- stale generator template
+- stale generated output
+- stale docs
+- stale SQL/config
+- empty directory
+- session workspace
+- temporary CSV/TXT/log
+- obsolete ZIP/hash/manifest
+- ignored build artifact
+- resurrected deprecated file
+
+### Acceptance
+
+- Duplicate relocation: `0`
+- Stale import/reference: `0`
+- Empty abandoned package: `0`
+- Untracked garbage: `0`
+- obsolete session artifacts: `0`
+
+---
+
+## NXT-HYG-002 — DELETE_MANIFEST 강제
+
+사용자 승인 없이 실제 삭제하지 않는다.
+
+삭제가 필요한 모든 파일은:
+
+`cpf-docs/work/CPF_DELETE_MANIFEST.csv`
+
+에 기록한다.
+
+필수 컬럼:
+
+- `path`
+- `reason`
+- `replacement_path`
+- `owner`
+- `requirement_id`
+- `protected_check`
+- `delete_status`
+
+규칙:
+
+- Repository Root 상대경로
+- 파일 단위 exact path
+- wildcard 금지
+- directory 단위 삭제 금지
+- protected path 차단
+- replacement가 필요한 경우 replacement 존재 확인
+- 중복 path `0`
+
+보호 경로:
+
+- `cpf-docs/deliverables/**`
+- `cpf-docs/guides/**`
+- `cpf-docs/assets/manuals/**`
+- `cpf-docs/assets/readme/**`
+- `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
+- `cpf-docs/environment/docker/**`
+- `cpf-tools/environment/docker-development-test/**`
+
+---
+
+## NXT-HYG-003 — 사용자용 Garbage 정리 PowerShell 한 줄
+
+Developer 최종 결과물에는 반드시:
+
+`cpf-docs/work/CPF_DELETE_ONE_LINE.ps1.txt`
+
+를 생성한다.
+
+이 파일에는 **Repository Root에서 그대로 복사/실행 가능한 PowerShell 한 줄**만 둔다.
+
+그 한 줄은 다음을 모두 수행해야 한다.
+
+1. `git rev-parse --show-toplevel`로 Root 확인
+2. `CPF_DELETE_MANIFEST.csv` 존재 확인
+3. exact root-relative path만 처리
+4. `..` traversal 차단
+5. protected path 차단
+6. replacement_path가 필요한 항목은 replacement 존재 확인
+7. `Remove-Item -LiteralPath` 사용
+8. 파일이 이미 없어도 실패하지 않음
+9. wildcard 사용 금지
+10. manifest에 없는 파일 삭제 금지
+11. 삭제 결과 count 출력
+12. 마지막에 `git status --short` 출력
+13. `exit` 사용 금지
+14. `git clean/reset/restore/stash` 사용 금지
+
+빈 Directory 정리가 필요한 경우에도 manifest 삭제 완료 후 **비어 있는 Directory만** leaf부터 제거하며 보호경로와 Repository Root를 절대 건드리지 않는다.
+
+### 중요
+
+Core→Starter 이동 후 old/new Source가 동시에 남는 상태로 ZIP을 최종본이라 하지 않는다.
+
+실제 삭제가 사용자 승인 때문에 아직 수행되지 않았다면:
+
+- `development_status`: Source relocation 완료
+- `verification_status`: cleanup pending
+- `DELETE_MANIFEST`: 완료
+- `CPF_DELETE_ONE_LINE.ps1.txt`: 완료
+
+로 명확히 분리한다.
+
+---
+
+## NXT-HYG-004 — Windows Path Compatibility
+
+새 Current 문서/Source/Package 경로는 짧게 유지한다.
+
+- 날짜/Session 중첩 directory 금지
+- `_workspace/.../REV.../sessions/...` 형태 금지
+- 불필요한 깊은 Package 금지
+- Overlay Root-relative max path를 검산한다.
+- 목표: 새로 추가되는 경로는 가능한 한 160자 이하
+
+---
+
+# PART P. Verification / Evidence
+
+## NXT-EVD-001 — Developer 자체검수
+
+Developer는 구현 완료 전 독립 Self Review를 수행한다.
+
+확인:
+
+1. Core→Starter dependency 0
+2. Core Optional Provider implementation 0
+3. Core Runtime pollution 0
+4. Core simple utility wrapper 0
+5. Owner-less capability 0
+6. Consumer-less API/SPI 0
+7. Wrapper-only Starter 0
+8. Transaction ID E2E gap 0
+9. CRUD/Paging/Search parity gap 0
+10. JPA/JDBC/MyBatis gap 0
+11. Health/Instance Operations gap 0
+12. OIDC/SSO/Session gap 0
+13. Object Storage gap 0
+14. Event Schema gap 0
+15. GraphQL gap 0
+16. Generator impact gap 0
+17. OpenAPI/ADM/BZA gap 0
+18. EDU/Reference gap 0
+19. DB3 gap 0
+20. Duplicate/garbage gap 0
+
+실행하지 않은 Runtime Test는 PASS로 쓰지 않는다.
+
+---
+
+## NXT-EVD-002 — 이전 Runtime-only 항목 처리
+
+직전 세션의 Runtime-only 10건을 PASS로 승계하지 않는다.
+
+이번 Source 이동/보강 영향이 있으면 Harness/Config/Script를 갱신한다.
+
+외부 환경이 필요한 항목은:
+
+- 상태 `미검증`
+- 환경
+- 실행 명령
+- 기대 결과
+- 실패 기준
+- 필요 Evidence
+
+를 기록한다.
+
+---
+
+# PART Q. QA A/B 전수 교차검수 강제
+
+## NXT-QA-001 — QA A 전체 전수검수
+
+Developer 완료 후 QA A는 **전체 Scope 100%**를 독립 검수한다.
+
+샘플링, 대표 ID, 상위 Requirement 하나로 하위 일괄 PASS 금지.
+
+QA A 순서:
+
+```text
+Canonical
+→ Architecture
+→ Core/Foundation
+→ Starter/Provider
+→ Source
+→ Consumer
+→ Generator/Generated Domain
+→ DB3
+→ Transaction/Security
+→ Health/Operations
+→ ADM/BZA/OpenAPI
+→ Test/Harness
+→ Runtime/Evidence
+→ Repository Hygiene
+```
+
+각 Requirement마다:
+
+```text
+Requirement ID
+→ Source Path/Symbol
+→ Consumer
+→ Call Path
+→ Failure/Boundary
+→ Test/Harness
+→ Execution/Evidence
+→ Judgement
+```
+
+를 남긴다.
+
+---
+
+## NXT-QA-002 — QA B 전체 전수검수
+
+QA B도 QA A와 **같은 전체 Scope를 100%** 독립 검수한다.
+
+QA A의 PASS/Evidence를 판정 근거로 상속하지 않는다.
+
+QA B 순서는 반대로 한다.
+
+```text
+Repository Hygiene
+→ Runtime/Evidence
+→ Test/Harness
+→ ADM/BZA/OpenAPI
+→ Health/Operations
+→ Transaction/Security
+→ DB3
+→ Generator/Generated Domain
+→ Consumer
+→ Source
+→ Starter/Provider
+→ Core/Foundation
+→ Architecture
+→ Canonical
+```
+
+---
+
+## NXT-QA-003 — QA A/B Cross Validation
+
+A/B 완료 후 모든 Requirement ID를 교차대조한다.
+
+반드시 산출:
+
+- A 판정
+- B 판정
+- A evidence
+- B evidence
+- 일치/불일치
+- 불일치 원인
+- 재개발 필요 여부
+- 재검수 필요 여부
+- 최종 QA 판단 대기 상태
+
+규칙:
+
+- A PASS + B FAIL → 완료 금지
+- A FAIL + B PASS → 완료 금지
+- 한쪽 미검수 → 완료 금지
+- 동일 generic evidence 반복 → 완료 금지
+- Source 직접 open 없이 deep-review 완료 처리 금지
+- Runtime 미실행 → 미검증
+- Developer 보고만 근거로 PASS 금지
+
+QA는 반드시 신규 추가 Requirement와 기존 Canonical Requirement를 함께 전수검수한다.
+
+---
+
+## NXT-QA-004 — QA가 다시 확인할 Framework Fundamentals
+
+QA A/B 모두 Canonical 목록과 별도로 다음 Fundamentals Sweep을 수행한다.
+
+### Web/API
+Request/Response, Validation, Error, Paging, Sort/Search, Header, File, Idempotency, Rate Limit, OpenAPI, Generated Client.
+
+### Persistence
+CRUD, Paging/Cursor, JDBC, MyBatis, JPA, Transaction, Lock, DB3, Timeout, Multi-datasource.
+
+### Security
+Current User/Tenant/Role/Scope, OAuth2/JWT/OIDC/SSO, Secret/KMS/HSM, Masking, Audit.
+
+### Utility
+Date/Time, Decimal, ID, Serialization, Validation, Mapping. 단순 wrapper 여부.
+
+### Reliability
+Timeout, Retry, CB, Idempotency, UNKNOWN, Reconcile, Multi-instance, Process Kill.
+
+### Integration
+REST, SOAP, TCP, File, JMS, IBM MQ, Kafka, RabbitMQ, Batch.
+
+### Operations
+Health, Readiness, Liveness, Drain, Registry, Runtime Control, ADM.
+
+### Observability
+transactionId, Log, Audit, Metrics, Trace, Timeline.
+
+### Developer Experience
+Quick Start, minimal config, safe default, fail-fast, native escape, JavaDoc, EDU.
+
+누락된 기본 기능은 QA 자체 Finding으로 등록한다.
+
+---
+
+# PART R. Canonical Requirement / QA 인계 산출물
+
+## NXT-HO-001 — Developer 최종 산출물
+
+Developer 완료 시 반드시 Root-relative Overlay에 포함:
+
+- Source/SQL/API/Test/Config/Frontend/Script
+- `REVIEW_INDEX.md`
+- `REQUIREMENT_STATUS.csv`
+- `CPF_CHANGE_MANIFEST.csv`
+- `TEST_AND_EVIDENCE.md`
+- `OPEN_ISSUES.md`
+- `HANDOVER.md`
+- `CODEX_REVIEW_REQUEST.md`
+- `CPF_DELETE_MANIFEST.csv`
+- `CPF_DELETE_ONE_LINE.ps1.txt`
+- Apply one-line
+- Verify one-line
+- Package Manifest
+- SHA-256
+- Runtime-only matrix
+- QA A/B 실행 요청서 또는 QA 인계 Section
+
+현재 Canonical/Current 문서는 동일 경로를 갱신한다. 별도 Session/REV duplicate 문서를 만들지 않는다.
+
+---
+
+# PART S. 개발 진행률 보고
+
+## NXT-PROG-001 — 실제 분모 기반 진행률
+
+장시간 작업 중에는 작업을 멈추지 않고 진행률을 표시한다.
+
+최소:
+
+- 전체 통합 진행률
+- Core Slimming: 완료/전체
+- Utility/Foundation: 완료/전체
+- Starter Portfolio: 완료/전체
+- Consumer: 완료/전체
+- Generator: 완료/전체
+- Test/Harness: 완료/전체
+- Documentation: 완료/전체
+- Hygiene/Delete Manifest: 완료/전체
+- 발견 Gap / 수정 완료 / 남음
+- Runtime-only 수량
+- 현재 작업 영역
+- 직전 보고 이후 완료한 일
 - 다음 작업
 
-`100% review`와 `QA PASS/Release Ready`를 혼동하지 않는다.
+새 Gap 발견 시 전체 분모를 늘린다. 인위적 % 고정 금지.
 
-## 13. 검증 순서
+진행 보고는 종료점이 아니다.
 
-1. latest master/exact SHA/working tree
-2. Canonical/Current Request 정합성
-3. prior successor implementation re-review
-4. package stale duplicate cleanup plan
-5. low-cost static gates
-6. Source implementation
-7. unit/contract/negative tests
-8. Generator/Catalog/DB3/OpenAPI/Frontend
-9. integrated reference runtime
-10. process-kill/multi-instance
-11. available Build/Test
-12. self-review
-13. matrices/evidence/currentization
-14. package/hygiene/hash
+---
 
-단일 Gate 실패 후 멈추지 말고 가능한 독립 Gate를 계속 실행하여 공통 원인별로 일괄 수정한다.
+# PART T. 완료 조건
 
-## 14. 완료 판정
+Developer는 다음 조건을 모두 만족할 때만 이번 신규 작업 개발 완료를 선언한다.
 
-다음이 모두 만족될 때만 Developer GPT가 구현 종료를 선언할 수 있다.
+### Architecture
 
-- 이번 Current Request의 모든 개발 가능한 Requirement 직접 Source 검토 완료
-- developer-remediable FAIL 0
-- Consumer 없는 API/SPI 0
-- Wrapper-only Starter 0
-- 핵심 Harness 누락 0
-- Config/SQL/OpenAPI/Generator/Frontend 누락 0
-- stale duplicate package/reference 0
-- required EDU/Reference 누락 0
-- exact current Source와 Evidence 일치
-- 남은 항목이 실제 외부 Runtime 실행뿐
+- Core → Starter dependency = 0
+- Core → Optional Provider implementation = 0
+- Foundation → Starter dependency = 0
+- Core Spring Runtime pollution = 0
+- Core OTel implementation = 0
+- Core Health Runtime = 0
+- Core Persistence implementation ownership gap = 0
+
+### Utility
+
+- Core simple wrapper = 0
+- Owner-less Utility = 0
+- Unified Utility actual consumer 존재
+
+### Transaction
+
+- Transaction ID Contract/Implementation 분리 완료
+- transactionId E2E propagation gap = 0
+
+### Persistence
+
+- JDBC/MyBatis/JPA parity gap = 0
+- CRUD/Paging/Search gap = 0
+- DB3 gap = 0
+- JPA 0-footprint gap = 0
+
+### Operations
+
+- Health/Readiness/Liveness gap = 0
+- Multi-instance health/ADM gap = 0
+- Graceful drain gap = 0
+
+### Security
+
+- OAuth2/JWT/OIDC/SSO gap = 0
+- Distributed Session gap = 0
+- Secret/KMS/HSM/Signature gap = 0
+
+### Modern Capability
+
+- Object Storage gap = 0
+- Event Schema Governance gap = 0
+- GraphQL Optional gap = 0
+- Realtime gap = 0
+- Lock/Lease gap = 0
+- AI gap = 0
+- Testkit gap = 0
+
+### Product Integration
+
+- Consumer-less API/SPI = 0
+- Wrapper-only Starter = 0
+- Generator impact gap = 0
+- Golden/Generated Domain gap = 0
+- OpenAPI/Generated Client gap = 0
+- ADM/BZA gap = 0
+- EDU/Reference gap = 0
+
+### Documentation / Hygiene
+
+- Canonical currentization 완료
+- Requirement Count 정합성
+- Continuity Ledger 정합성
+- Matrix 정합성
+- stale/duplicate docs = 0
+- Duplicate relocation = 0
+- Garbage candidate 누락 = 0
+- Delete Manifest exact path 오류 = 0
+- Protected delete = 0
+- Windows path 문제 = 0
+
+### Verification
+
+외부 환경만 필요한 검증을 제외하고 Developer-remediable FAIL = `0`.
 
 그때만:
 
-`현행 요건상 개발GPT 추가 구현 없음 / Remaining = Runtime-only verification`
+`현행 요건상 개발GPT 추가 구현 없음 / Remaining=Runtime-only verification`
 
-이라고 기록한다.
+으로 기록할 수 있다.
 
-그 전에는 QA로 넘기지 않는다.
+---
 
-## 15. Git/삭제 안전
+# PART U. Developer 완료 후 QA 인계 원칙
 
-Developer GPT는 사용자 승인 없이 Commit/Push/Pull/Merge/Branch/Tag/PR/Release/Reset/Restore/Stash/Clean/실제 파일 삭제를 수행하지 않는다.
+이번 신규 개발이 끝나면 **추가 Developer 반복보다 QA A/B 전수 교차검수를 우선한다.**
 
-삭제가 필요하면 `CPF_DELETE_MANIFEST.csv`와 한 줄 명령을 갱신하고 사용자 실행 대상으로 남긴다.
+순서:
 
-## 16. 최종 산출물
+```text
+Developer 구현/자체검수
+→ 최신 master successor 확인
+→ QA A 100% 전수
+→ QA B 100% 전수
+→ A/B Cross Matrix
+→ QA Finding이 있으면 동일 Requirement ID로 재개발/재검수
+→ Runtime-only는 Codex/실환경 검증
+→ QA 최종 판정
+```
 
-기존 Current 파일을 직접 현행화하고 동일 목적의 R/REV/SESSION/날짜 복제 파일을 만들지 않는다.
+Developer 자체 완료는 QA PASS가 아니다.
 
-최종 결과에는 최소:
+QA A와 QA B 모두 통과하지 않은 Requirement는 전체 완료로 판단하지 않는다.
 
-- `CPF_CURRENT_WORK_REQUEST.md`
-- `CPF_REQUIREMENT_MATRIX.csv`
-- `CPF_SCENARIO_MATRIX.csv`
-- `CPF_STARTER_VALUE_CATALOG.csv`
-- `CPF_SOURCE_FINDINGS.csv`
-- Canonical/Continuity currentization
-- Source/SQL/API/Test/Config/Frontend/Generator
-- `CHANGE_MANIFEST.csv`
-- `TEST_AND_EVIDENCE.md`
-- `OPEN_ISSUES.md`
-- `REQUIREMENT_STATUS.csv`
-- `REVIEW_INDEX.md`
-- `PACKAGE_MANIFEST.json`
-- SHA-256
-- exact Delete Manifest
-- Handover/Codex 요청
+---
 
-을 Current-State 방식으로 제공한다.
+# PART V. Git / 삭제 안전
 
-QA/Codex 상태를 임의 PASS로 바꾸지 않는다.
+사용자 명시 승인 없이 다음을 실행하지 않는다.
+
+- Commit
+- Push
+- Branch
+- Tag
+- PR
+- Release
+- Reset
+- Restore
+- Stash
+- Clean
+- 실제 File Delete
+- History 변경
+
+다음 명령은 금지:
+
+- `git clean`
+- `git reset --hard`
+- `git restore .`
+
+삭제는 exact `CPF_DELETE_MANIFEST.csv` + 사용자 승인 + 안전한 PowerShell 한 줄로만 수행한다.
+
+---
+
+## 최종 판정 문구
+
+이 신규 작업의 목적은 기능 수를 늘리는 것이 아니다.
+
+최종 CPF는 다음이어야 한다.
+
+```text
+Core
+= 최소 계약과 의미론
+
+Pure Foundation
+= 정말 필요한 topology-independent 공통 구현
+
+Capability / Provider
+= 실제 기술 구현
+
+Starter
+= 고객 애플리케이션에서 쉽게 켜고 쓰는 개발자 경험
+
+Application
+= 필요한 Starter만 선택하여 조립
+```
+
+Core는 Starter를 모른다.
+
+Starter는 Core Contract를 구현/조립한다.
+
+Optional 기능은 미사용 시 0-footprint다.
+
+신규 기능은 Consumer, Generator, Test, Operations, Documentation까지 연결된다.
+
+Repository에는 현재 제품 정본과 필요한 Source만 남고, relocation garbage와 duplicate artifact를 남기지 않는다.
+
+Developer 완료 후 QA A/B가 같은 전체 범위를 각각 직접 전수검수하고 교차대조할 수 있어야 한다.
 
 
+---
 
-## 17. Session 17 Fundamental Baseline Audit currentization
+# PART W. Tool / Gate / Script Currentization
 
-이번 개발 사이클은 기존 Core Hardening과 별도로 **Fundamental Baseline Audit**을 독립 Gate로 수행한다. Core 진행률을 Fundamental 완료율로 환산하지 않는다.
+## NXT-HYG-005 — Verification Tool Consumer 전수검수
 
-- Core direct-review ledger: `CPF_CORE_HARDENING_AUDIT.csv` = 180 checks
-- Fundamental direct-review ledger: `CPF_FUNDAMENTAL_BASELINE_AUDIT.csv` = 16 areas × 15 questions = 240 checks
-- Persistence detail ledger: `CPF_PERSISTENCE_BASELINE_AUDIT.csv` = 35 checks
-- exact status ledger: `REQUIREMENT_STATUS.csv`
-- execution basis: `9f16468cccae71523f65f0aefcd94322788c4dd0`
+`cpf-tools/**`, `.github/workflows/**`의 검증·Gate·Helper Script를 현재 제품 기준으로 전수 Inventory한다.
 
-Fundamental areas are Web/API, Persistence/Data, Transaction/Lock, Security, Cache, Integration, Messaging, Batch, Config, Common Utility, Observability, Generator/Generated Domain, EDU/Reference, ADM/BZA, OpenAPI/Generated Client, Repository Hygiene. 각 영역은 capability 존재 여부만이 아니라 Consumer, call path, failure/recovery, safe-default/fail-fast, native escape, cross-axis consistency, zero-footprint를 직접 Source 기준으로 검토한다.
+대상:
 
-### Session 17 developer-remediable closure
+- `*.py`
+- `*.ps1`
+- `*.sh`
+- Gradle verification helper
+- 날짜/QA회차 이름의 verification directory
+- `final-*`, `qa38`, `qa39`, `r6*` 등 과거 캠페인 도구
+- 일회성 migration/currentization/overlay helper
 
-이번 사이클에서 XA/JTA, durable TCC, Inbox consumer-identity dedup/recovery, Saga UNKNOWN/manual-review, AI optional routing, OAuth2/JWT convenience API, OIDC login/logout/refresh, KMS/HSM key lifecycle/signature, tamper-evident audit, common CRUD DX, optional JPA provider, Generator JPA profile, Multipart adapter, SOAP client, typed config mutability catalog, stale delete-manifest currentization을 보완했다.
+각 파일은 반드시 아래 중 하나로 판정한다.
 
-Developer-remediable Gap은 Source/SQL/Config/Test/Harness/Reference 관점에서 0으로 정리한다. 단, Java 25/Gradle 9.1 fresh build, DB3 XA/JPA/TCC runtime, live broker process-kill, live IdP, live PKCS#11 HSM, live SOAP upstream, PowerShell generator full execution은 외부 실행 환경이 필요한 **Runtime-only verification**이며 PASS로 기록하지 않는다.
+- `KEEP_CANONICAL_GATE`
+- `MERGE_INTO_CANONICAL_GATE`
+- `RENAME_CURRENT`
+- `REMOVE_CANDIDATE`
+
+Consumer 판정은 다음을 실제 검색한다.
+
+- GitHub Workflow
+- Gradle task
+- `verify-full-product.ps1`
+- 다른 script
+- Runbook
+- README/Developer Guide
+- QA/Release process
+
+파일 이름이 오래됐다는 이유만으로 제품 Gate를 삭제하지 않는다.
+반대로 Consumer가 없고 현재 Canonical Gate가 같은 검증을 수행한다면 과거 캠페인 Script를 유지하지 않는다.
+
+특히 작성 시점에 존재하는:
+
+- `cpf-tools/verification/final_dev_campaign.py`
+- `cpf-tools/verification/release_target_trust.py`
+- `cpf-tools/verification/verify_integration_closure_contract.py`
+- `cpf-tools/verification/verify_starter_catalog.py`
+- 날짜형 `cpf-tools/verification/20260728_*`, `20260729_*`, `20260801_*`
+- `qa38`, `qa39`, `final-dev`, `java21`
+
+을 직접 Consumer 기준으로 판정한다.
+
+현재 기준 Canonical 통합 검증 Entry는
+`cpf-tools/scripts/verify-full-product.ps1`이며, 개별 Gate는 이 Script/CI에서 호출되거나
+독립 Runtime Harness로 명확한 Consumer를 가져야 한다.
+
+### Acceptance
+
+- Consumer 없는 verification/helper = 0
+- 동일 검증을 수행하는 중복 Gate = 0
+- 날짜/QA 회차 전용 history tool이 Current product gate처럼 남는 건 = 0
+- 실제 CI/Release Consumer가 있는 Gate 오삭제 = 0
+- 제거 대상은 exact Delete Manifest에 기록
+- `cpf-tools/build/**`가 ignore 누락으로 사라지지 않는지 확인
+
+---
+
+## NXT-HYG-006 — Development Document Consolidation
+
+개발 관련 모든 문서를 최신 Source와 본 Request 기준으로 현행화한 뒤 문서 종류 자체를 최소화한다.
+
+Narrative Current Owner는 다음 7개를 기본으로 한다.
+
+1. `CPF_CURRENT_WORK_REQUEST.md`
+2. `REQUIREMENT_STATUS.csv`
+3. `REVIEW_INDEX.md`
+4. `TEST_AND_EVIDENCE.md`
+5. `HANDOVER.md`
+6. `CPF_CHANGE_MANIFEST.csv`
+7. `CPF_DELETE_MANIFEST.csv`
+
+`CPF_REQUIREMENT_MATRIX.csv`, `CPF_SCENARIO_MATRIX.csv`, `current/**`의 대용량 Part는
+Narrative 문서가 아니라 논리 Dataset으로 관리한다.
+
+다음은 Current Owner에 내용이 흡수되면 제거한다.
+
+- 세션별 Handover
+- 세션별 Review Index
+- 세션별 Test/Evidence
+- 세션별 Open Issues
+- 세션별 Codex Request
+- REV/FINAL/Checkpoint 결과
+- 과거 Package Manifest/Hash
+- 과거 단발 Audit Matrix
+- 동일 목적 Starter/Public Surface/Source Findings Snapshot
+- `cpf-docs/work/v9i/**` 같은 누적 역사 Workspace
+
+Git history가 과거를 보존한다.
+
+문서 수를 줄이기 위해 내용을 축약하지 않는다. 남기는 문서는 Architecture 이유, Owner, Consumer,
+오류/복구, Security, DB3, Generator, Runtime, QA Acceptance를 상세히 보존한다.
+
+Developer/QA/Codex는 임의의 새 관리 문서 종류를 생성하지 않는다.

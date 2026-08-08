@@ -514,3 +514,55 @@ Starter를 도입했는데 OSS 직접 적용보다 코드·Config가 늘면 고�
 9. 정상/실패/timeout/retry/unknown/recovery
 10. executable EDU/reference
 
+
+
+## 21. Modern Starter 사용 원칙
+
+업무 개발자는 가능한 한 Starter/Profile을 선택한 뒤 CPF Typed API로 개발한다.
+Starter 내부 구현을 알지 못해도 정상적인 기본 사용이 가능해야 하며, 고급 사용자는
+Native Spring/OSS API로 빠져나갈 수 있어야 한다.
+
+### Utility
+
+Core의 `api.util`을 무조건 직접 호출하는 패턴을 신규 코드 표준으로 만들지 않는다.
+Utility는 다음 경계로 사용한다.
+
+- Date/Time/Clock/Decimal/ID/Validation → Foundation/Utility
+- Header → Web/Header
+- Crypto/Hash → Security
+- File → File
+- Paging → CPF Page API
+- transactionId → Transaction Context/Generator Contract
+
+### Persistence
+
+JDBC/MyBatis/JPA 모두 아래 호출 경로를 유지한다.
+
+`Controller → Service → Repository Contract → Provider → DB → CPF Page/Result`
+
+기본 CRUD, Exists/Count, Page/Slice/Cursor, Sort/Search/Filter/Bulk, Optimistic/Pessimistic Lock,
+Timeout, Audit, transactionId, Tenant/Security, Slow Query와 Injection 방어를 제공한다.
+
+JPA는 Spring Data JPA를 사용하며 CPF Paging과 `Pageable/Sort` 사이 Adapter를 제공한다.
+고급 개발자는 `JpaRepository`, `EntityManager`, `Specification`, `@Query`, Criteria를 직접 사용할 수 있다.
+
+### Runtime Health
+
+개발자는 `/health` 하나를 직접 만드는 대신 Health Starter의 contributor extension을 사용한다.
+각 contributor는 짧은 timeout과 bounded resource 사용을 지켜야 한다. 상세 진단은 인증된
+Operations API에서만 노출한다.
+
+### Object Storage
+
+업무 코드는 AWS SDK 타입을 Public Contract에 노출하지 않는다. Attachment/Object Storage
+CPF API를 사용하고 필요하면 S3-compatible Native Client escape를 사용한다.
+
+### GraphQL
+
+GraphQL Resolver에 업무 로직을 복제하지 않는다. REST Controller와 동일 Service/Application
+Layer를 재사용한다. Query depth/complexity/field authorization/N+1 방어가 기본 적용되어야 한다.
+
+### Distributed Session
+
+JDBC/Valkey Session Provider 선택은 인증 업무 코드에 영향을 주지 않아야 한다.
+forced logout, session rotation, concurrent-session policy와 multi-instance propagation은 CPF 정책을 사용한다.

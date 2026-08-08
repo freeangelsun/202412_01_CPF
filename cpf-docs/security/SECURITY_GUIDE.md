@@ -204,3 +204,29 @@ BZA 업무결재는 조직/직원/Role/Position Directory와 분리된 Policy/In
 - Tamper-evident Audit은 canonical payload/hash-chain/signature/concurrency/multi-instance/delete detection을 검증한다.
 - Token/Secret/Private Key/PII 원문은 Source, Config, Log, ADM, Test Evidence에 남기지 않는다.
 
+
+
+## 16. Distributed Session / GraphQL / Object Storage Security
+
+### Distributed Session
+
+- JDBC/Valkey Provider 모두 동일 Authentication/Authorization semantics를 사용한다.
+- session fixation 방지를 위해 인증 경계에서 rotation을 수행한다.
+- concurrent-session 정책, forced logout, logout propagation은 사용자/tenant index와 감사기록을 가진다.
+- Session ID/Token을 Log/Evidence에 원문으로 남기지 않는다.
+- Valkey 장애 시 fail-open으로 임의 인증을 허용하지 않는다.
+
+### GraphQL
+
+- Resolver/Field 단위 Authorization을 적용한다.
+- Query depth, complexity, request size와 rate limit을 적용한다.
+- Introspection/GraphiQL의 운영 노출은 정책으로 통제한다.
+- Exception detail과 민감 Field를 외부에 노출하지 않는다.
+- transactionId/Tenant/Security Context를 REST와 동일하게 전파한다.
+
+### Object Storage
+
+- Presigned URL은 짧은 TTL, 최소 권한, object/tenant scope를 사용한다.
+- Storage credential은 Secret/KMS/HSM 경계를 사용한다.
+- upload content type/magic number/size/malware scan hook을 적용한다.
+- object metadata와 감사기록에 개인정보 원문을 최소화한다.

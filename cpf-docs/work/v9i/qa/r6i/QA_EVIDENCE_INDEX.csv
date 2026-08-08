@@ -1,6 +1,0 @@
-﻿evidence_id,path,type,source_sha,status,description
-R6I-E001,inputs/QA_AB_INPUT_33_RECORD.md,QA input,77db10ad9aff44ee422795080fb2e96b364c9d65,VALID,QA A 19 + QA B 14 integrated record
-R6I-E002,inputs/QA_AB_DEEP_REVIEW_40_CANDIDATES.md,QA input,77db10ad9aff44ee422795080fb2e96b364c9d65,VALID,A+B independent deep review and 40 candidates
-R6I-E003,QA_FINDINGS.csv,canonical ledger,77db10ad9aff44ee422795080fb2e96b364c9d65,VALID,AB-R6-001~040
-R6I-E004,QA_REQUIREMENT_STATUS.csv,requirement ledger,77db10ad9aff44ee422795080fb2e96b364c9d65,VALID,FDEV-001~025 R6I status
-R6I-E005,QA_TEST_EXECUTION_LEDGER.csv,execution ledger,77db10ad9aff44ee422795080fb2e96b364c9d65,VALID,executed and not-executed boundary

@@ -1,1 +1,0 @@
-PASS FDEV-005 runner contract: ExpectedHead, stdin-only secret transport, preflight, redaction, vendor result propagation

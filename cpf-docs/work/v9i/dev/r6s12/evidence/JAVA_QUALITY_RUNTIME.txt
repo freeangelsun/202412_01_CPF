@@ -1,6 +1,0 @@
-COMMAND: javac R6QualityHarness.java && java R6QualityHarness
-START_UTC: 2026-08-06T19:21:00Z
-COMPILE_EXIT_CODE: 0
-RUNTIME_EXIT_CODE: 0
-PASS null-handling forged-proof rejection correction CAS concurrent replay convergence stale-CAS rejection operationId-collision rejection
-END_UTC: 2026-08-06T19:21:01Z

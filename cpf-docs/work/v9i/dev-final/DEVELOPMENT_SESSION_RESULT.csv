@@ -1,7 +1,0 @@
-﻿scope,total,development_complete,verification_complete,verification_pending,basis_sha,note
-CENTRAL_FINAL_ACTION,36,36,24,12,f6d7080c5a14b7dd7595093f9497470169e18d80,36/36 direct source+consumer+test; 12 successor/runtime-only
-CANONICAL,169,169,16,153,f6d7080c5a14b7dd7595093f9497470169e18d80,169/169 direct source+consumer+test; prior PASS not inherited
-PREVIOUS_FINDING,56,56,13,43,f6d7080c5a14b7dd7595093f9497470169e18d80,56/56 direct source+consumer+test
-EDU,135,135,13,122,f6d7080c5a14b7dd7595093f9497470169e18d80,135/135 physical consumer direct closure; executable runtime pending
-SPECIAL_REVIEW,1000,1000,225,775,f6d7080c5a14b7dd7595093f9497470169e18d80,1000/1000 direct source+consumer+test; runtime/successor-only kept unverified
-RUNTIME,13,13,0,13,f6d7080c5a14b7dd7595093f9497470169e18d80,repository-owned runners/config/pass criteria ready; live environment not executed

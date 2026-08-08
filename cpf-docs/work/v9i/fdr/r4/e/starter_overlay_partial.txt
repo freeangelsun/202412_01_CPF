@@ -1,3 +1,0 @@
-===== starter_overlay =====
-PARTIAL modules=39 public=6 internal=33 retained=1; physical repository closure NOT_EXECUTED
-EXIT_CODE=3

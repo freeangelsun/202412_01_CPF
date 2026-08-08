@@ -3,8 +3,8 @@
 > Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 > Revision date: `2026-08-08`
 > Previous reviewed blob SHA: `f5650f502fc11d87afb92f775588c710a02373d4`
-> Currentization source master SHA: `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
-> Canonical Requirement Count: **180개**
+> Currentization source master SHA: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)
+> Canonical Requirement Count: **186개**
 > Legacy Alias: **8개** — 완료율 중복 집계 금지
 
 ## 1. 문서 목적과 정본성
@@ -661,7 +661,7 @@ Evidence 최소 필드:
 - Canonical Count 감소는 Continuity Mapping으로 완전히 설명돼야 한다.
 - 새 요구는 `REQ-GAP` 절차로 기존 ID와 중복을 먼저 검사한다.
 
-현재 Canonical Requirement Count는 **180개**이며, 아래 Catalog가 각 ID의 최소 제품 의미와 완료 증명을 정의한다.
+현재 Canonical Requirement Count는 **186개**이며, 아래 Catalog가 각 ID의 최소 제품 의미와 완료 증명을 정의한다.
 
 ## 22. 상세 Requirement Catalog
 
@@ -883,6 +883,43 @@ Evidence 최소 필드:
 | `REQ-REVIEW` | requirement governance | 각 작업 전후 Requirement→구현과 구현→Requirement를 독립 검수하고 완료 보고와 실제 Git 차이를 기록한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
 | `REQ-CODEX` | requirement governance | Codex/AI 요청서가 이전 대화 없이 실행 가능하도록 baseline, scope, architecture, acceptance, evidence, 금지조건과 output을 포함한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
 | `REQ-GAP` | requirement governance | 새 상용 필수 요구를 기존 ID와 중복 검사해 intake하고 split/supersede/deprecate 관계와 count 변화를 기록한다. | Continuity Ledger, 양방향 Trace Matrix, 독립 Review와 Count/상태 무결성 Gate |
+
+## 22.42 Core Slimming / Modern Starter Portfolio Currentization
+
+본 절은 기존 `ARCH-STARTER`, `CPF-TXID`, `CPF-HEALTH`, `CPF-LOCK`, `CORE-TESTKIT`,
+`SEC-AUTHN`, `SEC-SECRET`, `SEC-CERT`, `SEC-AUDIT`, `EVENT-*`, `AI-OPTIONAL`,
+`DOC-GOV`, `REQ-REVIEW`를 대체하지 않는다. 기존 Requirement의 의미를 유지하면서
+2026-08-08 `07_15` 이후 제품 구조에서 새로 명시가 필요한 Capability만 추가하고,
+기존 Requirement에는 아래 강제 해석을 적용한다.
+
+### 기존 Requirement 강제 해석
+
+- `ARCH-STARTER`: `cpf-core -> cpf-starters/*` 의존은 0이어야 한다. Core는 topology-independent 계약·Value Object·Provider-neutral Policy만 소유한다. Spring AutoConfiguration, Servlet/Web Runtime, OTel Adapter, Actuator Runtime, JDBC/JPA/MyBatis 구현, 특정 Provider와 일반 개발 편의 Utility를 Core에 적치하지 않는다. `compileOnly`도 Ownership 면죄부가 아니다.
+- `CPF-TXID`: transactionId 의미·Context·Generator Contract는 Core에 둘 수 있으나 UUID/ULID/sequence 등 실제 기본 생성 구현, Spring wiring, Servlet/Message/Channel Adapter는 Foundation/Capability/Starter가 소유한다. 최초 신뢰 Entry에서 생성된 동일 transactionId는 Retry/Hop에서도 바꾸지 않는다.
+- `CPF-HEALTH`: Core는 Health 의미·Port만 소유하고 Actuator, `HealthIndicator`, `HealthContributor`, Probe, Dependency Check와 Instance Runtime 구현은 Platform Operations Health Capability가 소유한다. Liveness/Readiness/Startup/Drain/DEGRADED/UNKNOWN과 Multi-instance ADM projection을 제공한다.
+- `CPF-LOCK`: JDBC/Valkey 등 Provider 구현은 Core 밖에 둔다. 분산 Lock은 fencing token, lease, owner identity, stale-writer 차단, process kill/network partition/multi-instance recovery를 포함한다.
+- `CORE-TESTKIT`: Runtime 제품 Module이 아니라 공식 Test Support로 제공하며 deterministic clock/id, transaction/security/tenant fixture, DB/Messaging/Batch/Health/Object Storage/GraphQL fixture, failure injection, multi-instance/process-kill harness를 지원한다.
+- `DOC-GOV`: 개발·QA·Codex가 세션마다 `*_REV*`, `*_SESSION*`, 날짜별 `*_FINAL*`, Checkpoint, 중복 결과서·Matrix를 만들지 않는다. 동일 목적은 기존 Canonical/Current 파일을 직접 현행화하고 Git history가 과거 상태를 보존한다.
+- `REQ-REVIEW`: QA A와 QA B는 같은 전체 Scope를 각각 100% 독립 전수검수한다. 한쪽 PASS/Evidence 승계, 대표 ID·샘플링 일괄 PASS, Source 직접 확인 없는 Deep Review를 금지하며 A/B 판정을 Requirement ID 단위로 Cross Validation한다.
+
+### 신규 Canonical Requirement
+
+| Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
+|---|---|---|---|
+| `FOUNDATION-UTILITY` | pure foundation + foundation convenience starter | Core를 Utility 창고로 사용하지 않는다. `CpfClock/Dates/Decimals/Ids/Json/Lists/Maps/Numbers/Strings/Times/Validation/Values/Files/Hashes/Headers/Pages/Attributes` 등 현재 Core Utility를 전수 분류하여 JDK/Spring 단순 Wrapper는 제거 후보로 전환하고, CPF 고유 정책 가치가 있는 순수 기능만 topology-independent Foundation으로 이동한다. Header/Crypto/File/Paging/TransactionId처럼 Owner가 분명한 기능은 해당 Capability로 이동한다. 업무 개발자는 Application Convenience Starter/Profile을 통해 쉽게 사용하되 Core는 Starter를 참조하지 않는다. | Core Utility class-by-class ownership matrix, Core→Starter 0, simple-wrapper 0, actual consumer, deterministic test, native JDK/OSS escape, relocation duplicate 0 |
+| `SEC-SESSION-DIST` | security/session provider | 기존 JDBC Session을 유지하면서 Multi-instance용 Valkey Distributed Session Provider를 Optional로 제공한다. expiration/renewal/rotation, fixation 방어, concurrent-session control, forced logout/logout propagation, user·tenant index, audit/metrics, provider failure와 0-footprint를 제공한다. | JDBC/Valkey provider parity, 2+ instance login/logout/revoke, provider outage/expiry/rotation test, security negative corpus, optional removal boot evidence |
+| `FILE-OBJECT-STORAGE` | file/attachment + object-storage provider | Attachment/Archive/SFTP와 중복 Public API를 만들지 않고 S3-compatible Object Storage를 Provider-neutral하게 제공한다. streaming, multipart, checksum, range, metadata, presigned access, encryption/KMS, tenant isolation, timeout/retry, partial failure, orphan reconcile, retention/lifecycle와 malware-scan hook을 지원한다. | Attachment/Object Storage ownership trace, AWS S3 또는 MinIO reference provider, stream/multipart/failure/reconcile test, security/audit, 0-footprint, actual consumer |
+| `EVENT-SCHEMA` | messaging contract governance + generator | Kafka/RabbitMQ/JMS/IBM MQ의 Broker 선택과 독립적인 Event Contract Governance를 제공한다. JSON Schema/Avro/Protobuf version, backward/forward compatibility, breaking-change gate, producer/consumer validation, generated model, schema id/content type와 provider-neutral registry boundary를 제공한다. | compatibility corpus, producer/consumer contract test, breaking-change CI gate, generated model, broker-independent reference, EDU |
+| `API-GRAPHQL` | optional web/graphql starter + application service owner | REST/OpenAPI를 기본 API로 유지하면서 Browser/Mobile BFF와 복합 Domain Query를 위한 Optional GraphQL을 제공한다. Resolver는 Service/Application Layer를 재사용하고 Query/Mutation, 필요 시 Subscription, CPF Error/Paging/Cursor/Sort/Search, authN/authZ/field auth/tenant/transactionId/audit/trace, depth/complexity/size/rate-limit, N+1/DataLoader, introspection/GraphiQL prod policy와 Native Spring GraphQL escape를 제공한다. | real BFF consumer, schema/contract test, field-auth negative test, N+1 guard, query limit test, REST service reuse, 0-footprint |
+| `API-REALTIME` | web/operations capability | Batch progress, Transaction Timeline, Runtime/Health State와 long-running operation을 위해 Server→Browser 단방향은 SSE를 우선하고 실제 양방향 요구에만 WebSocket을 사용한다. authN/authZ, reconnect/heartbeat, duplicate, slow-consumer/backpressure, rate limit, multi-instance fan-out, graceful shutdown, fallback polling과 typed frontend consumer를 제공한다. | SSE reference consumer, optional WebSocket consumer where justified, reconnect/duplicate/backpressure/multi-instance test, frontend typed consumer, fallback evidence |
+
+### 신규 Capability 채택 경계
+
+- Spring Data JPA는 이미 `cpf-starters/data/persistence-jpa`에 반영된 Optional Provider이므로 재생성하지 않고 `JpaRepository/Pageable/Sort/Specification/@Query/EntityManager`, CPF Paging Adapter, Lock, XA/JTA, DB3, Generator, EDU와 실제 Consumer를 재검수·보강한다.
+- OAuth2/JWT/OIDC/SSO, KMS/HSM, Digital Signature, Tamper-evident Audit, AI Optional, XA/JTA/TCC/Inbox/Saga는 `07_15` Source를 기준으로 재검수하며 신규 중복 Starter를 만들지 않는다.
+- gRPC는 실제 Product Consumer가 없는 한 이번 Canonical 기본 Portfolio에 추가하지 않는다. Protobuf는 `EVENT-SCHEMA`에서 사용할 수 있다.
+- R2DBC/WebFlux persistence는 실제 채택 Requirement가 생길 때까지 강제하지 않는다.
+- GraphQL, Distributed Session, Object Storage 등 Optional Capability는 미선택 Application에서 dependency/bean/config/sql/thread/endpoint/background runtime side effect가 0이어야 한다.
 
 ## 23. Legacy Alias Mapping
 

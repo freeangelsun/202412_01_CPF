@@ -1,2 +1,0 @@
-PASS REV-004 overlay source closure integrationOperations=8 openapiOperations=332 starterModules=39
-NOT_EXECUTED full repository Gradle/Node/DB3 runtime/Playwright gates require complete checkout and external services

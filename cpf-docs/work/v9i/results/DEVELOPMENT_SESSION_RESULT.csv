@@ -1,2 +1,0 @@
-﻿session_id,baseline_sha,source_sessions,source_result_files,source_capture_files,total_exact_ids,completed_exact_ids,self_review_completed_exact_ids,integration_target_exact_ids,target_runtime_reexecution_tracked,request_total,request_closed_devgpt,request_external_ready,development_status,verification_status,evidence_ref,updated_at
-DEVGPT-V9-INTEGRATION,2a013663090d4e430a15983ad7269f8e86c5ef58,6,82,36,47745,47745,47745,18120,2618,32,30,2,완료,DEVGPT_INTERNAL_COMPLETE_TARGET_RUNTIME_TRACKED,evidence/FINAL_INTEGRITY.json,2026-08-06T05:17:26+09:00

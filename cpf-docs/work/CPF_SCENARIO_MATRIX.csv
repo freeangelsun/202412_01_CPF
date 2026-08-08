@@ -68,3 +68,29 @@ DEV17-S009,Persistence provider parity,JDBC/MyBatis/JPA share paging/sort/public
 DEV17-S010,Multipart streaming safety,name/path/size/type policy and storage streaming,DEV17-014,재확인 필요,CpfMultipartAttachmentAdapter
 DEV17-S011,SOAP timeout/UNKNOWN,"fixed endpoint typed/raw SOAP, txId header, transport timeout UNKNOWN",DEV17-015,미검증,CpfSoapClient + ReferenceSoap controller
 DEV17-S012,Fundamental independent gate,16 areas ×15 questions all direct-reviewed,DEV17-017,재확인 필요,CPF_FUNDAMENTAL_BASELINE_AUDIT.csv 240 rows
+MOD-S001,Core dependency direction,cpf-core has no starter/provider dependency and non-Boot core consumer compiles,"NXT-ARCH-001,NXT-ARCH-003",미검증,NOT_EXECUTED — new current request.
+MOD-S002,Core class ownership sweep,Every core class has KEEP/MOVE/ABSORB/REMOVE rationale and no runtime pollution remains,"NXT-ARCH-002,NXT-OWN-001,NXT-OWN-002,NXT-OWN-003,NXT-OWN-004",미검증,NOT_EXECUTED — new current request.
+MOD-S003,Unified Utility classification,Simple wrappers removed/absorbed; CPF-value utility moved to pure foundation; capability utilities owned correctly,"NXT-UTIL-001,NXT-UTIL-002",미검증,NOT_EXECUTED — new current request.
+MOD-S004,TransactionId first-hop and retry,Trusted entry creates once; local/remote/message/batch/retry/reconcile keep same transactionId,NXT-TXID-001,미검증,NOT_EXECUTED — new current request.
+MOD-S005,Health dependency failure,"JVM live + DB down => liveness can remain UP, readiness DOWN; health contributor bounded","NXT-HEALTH-001,NXT-HEALTH-002",미검증,NOT_EXECUTED — new current request.
+MOD-S006,Multi-instance health,2+ instances heartbeat/last-seen/dependency state projected to ADM with auth,NXT-HEALTH-003,미검증,NOT_EXECUTED — new current request.
+MOD-S007,Graceful drain,RUNNING→DRAINING→readiness DOWN→new work blocked→in-flight completion→STOPPED,NXT-OPS-001,미검증,NOT_EXECUTED — new current request.
+MOD-S008,JPA optional zero footprint,non-JPA profile has no Hibernate/JPA bean/config/runtime side effect,NXT-JPA-001,미검증,NOT_EXECUTED — new current request.
+MOD-S009,Persistence provider parity,JDBC/MyBatis/JPA CRUD/Page/Search/Lock return same CPF semantics on DB3,"NXT-JPA-001,NXT-PERSIST-001",미검증,NOT_EXECUTED — new current request.
+MOD-S010,OIDC provider portability,Keycloak/Entra/Okta-shaped configuration maps to CPF identity without vendor public API lock-in,NXT-SEC-001,미검증,NOT_EXECUTED — new current request.
+MOD-S011,Distributed session multi-instance,"Login on instance A, request on B, rotation/forced logout propagates; Valkey outage fails safely",NXT-SESSION-001,미검증,NOT_EXECUTED — new current request.
+MOD-S012,Object storage streaming,multipart upload/checksum/range/download with timeout and orphan reconcile; no AWS type in public API,NXT-STORE-001,미검증,NOT_EXECUTED — new current request.
+MOD-S013,Event schema compatible evolution,backward/forward compatible schema passes; breaking field change fails CI/contract gate,NXT-EVENT-001,미검증,NOT_EXECUTED — new current request.
+MOD-S014,GraphQL BFF consumer,"GraphQL query/mutation reuse service layer, field auth enforced, query limits/N+1 guard active",NXT-GQL-001,미검증,NOT_EXECUTED — new current request.
+MOD-S015,SSE reconnect,"client reconnect uses event id, duplicate safe, slow consumer bounded, multi-instance works",NXT-RT-001,미검증,NOT_EXECUTED — new current request.
+MOD-S016,Valkey lock stale owner,process kill/lease expiry/fencing prevents stale writer after takeover,NXT-LOCK-001,미검증,NOT_EXECUTED — new current request.
+MOD-S017,AI provider failure,"provider timeout/quota failure maps to CPF error/UNKNOWN policy, masked audit and optional footprint",NXT-AI-001,미검증,NOT_EXECUTED — new current request.
+MOD-S018,Testkit deterministic run,clock/id/security/tenant fixture plus failure injection produces repeatable result,NXT-TESTKIT-001,미검증,NOT_EXECUTED — new current request.
+MOD-S019,Virtual thread context propagation,transactionId/security/MDC/deadline retained under blocking I/O virtual-thread execution,NXT-EXEC-001,미검증,NOT_EXECUTED — new current request.
+MOD-S020,Starter DX misuse,minimal config boots; invalid/conflicting config fails fast; native escape remains available,NXT-DX-001,미검증,NOT_EXECUTED — new current request.
+MOD-S021,Generator JPA/JDBC/MyBatis,fresh arbitrary domain generates consistent repository/service/api/paging/test/openapi by selected provider,"NXT-GEN-001,NXT-GEN-002",미검증,NOT_EXECUTED — new current request.
+MOD-S022,ADM/BZA changed API errors,generated client and UI handle 400/401/403/404/409/429/500/503 and paging/detail,NXT-FE-001,미검증,NOT_EXECUTED — new current request.
+MOD-S023,Current docs no duplicates,canonical/current docs show same requirements and no REV/SESSION/FINAL duplicate management docs remain,"NXT-DOC-001,NXT-DOC-002,NXT-DOC-003,NXT-HYG-006",미검증,NOT_EXECUTED — new current request.
+MOD-S024,Garbage exact cleanup,"delete manifest uses exact paths, protects protected docs, old/new relocation duplicates are absent","NXT-HYG-001,NXT-HYG-002,NXT-HYG-003,NXT-HYG-004",미검증,NOT_EXECUTED — new current request.
+MOD-S025,Tool consumer hygiene,every verification py/ps1/sh has CI/Gradle/script/runbook consumer or is removed via manifest,NXT-HYG-005,미검증,NOT_EXECUTED — new current request.
+MOD-S026,QA A/B cross audit,A and B each review 100% independently; disagreement blocks completion and creates rework/recheck,"NXT-QA-001,NXT-QA-002,NXT-QA-003,NXT-QA-004",미검증,NOT_EXECUTED — new current request.

@@ -1,9 +1,0 @@
-﻿candidate_id,priority,area,status,observation,required_qa
-CENTRAL-POST-001,P0,Evidence/Provenance,QA 검증 필요,개발 원장 result_sha가 PENDING_USER_APPLY_COMMIT이며 실제 master는 0427758db041d38eb0f34d88b55bd5366e2d9e47,current SHA에 Evidence/Artifact 재결속
-CENTRAL-POST-002,P0,Evidence/Provenance,QA 검증 필요,개발 원장이 14개 evidence/*.log를 참조하지만 pushed evidence directory에서는 environment.txt만 확인,로그 존재/패키징/재생성 가능성/Hash 검증
-CENTRAL-POST-003,P0,Runtime,OPEN,verification_status=미검증 51/77,실행 가능한 환경에서 target runtime 실행; 미실행은 PASS 금지
-CENTRAL-POST-004,P0,ADM Consumer,QA 검증 필요,ADM full 332-operation clean checkout closure가 개발 OPEN_ISSUES에 미검증,full clean product closure 독립 실행
-CENTRAL-POST-005,P0,Quality Gate,QA 검증 필요,다수 신규 Verification Tool의 self-referential/false-green 위험,mutation/adversarial/consumer/runtime 반증
-CENTRAL-POST-006,P0,EDU/Architecture,Architecture 결정 필요,ADM은 제품인데 EDU-ADM 17이 product duplication인지 Public consumer education인지 재판정 필요,17/135 ID keep/merge/product/extension/remove 분류
-CENTRAL-POST-007,P0,Transaction/Logging,신규 QA 핵심축,transactionId 하나로 ADM end-to-end lookup 및 file/db/batch/external log 표준 완전성 미독립검수,양 QA 독립검수 후 부족분 다음 개발 Requirement
-CENTRAL-POST-008,P1,Repository/Docs,QA 검증 필요,개발 변경과 문서/Manual/Generated/OpenAPI/SQL/Artifact Traceability 대규모 동시 변경,stale/dead/dual-primary/manifest/hash 전수 확인

@@ -53,3 +53,25 @@ Generated Domain 동기화는 `generator-ownership.json`의 이전 SHA-256과 �
 
 `verify-full-product.ps1`은 동일 검증을 PC마다 여러 번 수작업하는 대신 Build/Test/DB/Generator/Frontend/Browser/Evidence를 하나의 재현 가능한 순서로 모읍니다.
 실행하지 않은 그룹은 `SKIPPED`이며 `-RequireAll`에서 전체 완료가 될 수 없습니다.
+
+
+## Verification Tool Current-State Policy
+
+정식 통합 검증 진입점은 `cpf-tools/scripts/verify-full-product.ps1`이다.
+
+개별 verification helper는 다음 중 하나의 실제 Consumer를 가져야 한다.
+
+- `verify-full-product.ps1`
+- GitHub Workflow
+- Gradle Task
+- 다른 canonical Script
+- 공식 Runbook/Developer workflow
+- 독립 Runtime fault harness
+
+날짜/QA 회차/`final-*` 이름의 과거 캠페인 Script와 Python helper가 현재 Gate에 흡수되었고
+Consumer가 없다면 Repository에 역사 보관하지 않는다. Git history가 과거를 보존하며,
+삭제 대상은 exact `cpf-docs/work/CPF_DELETE_MANIFEST.csv`로 관리한다.
+
+반대로 실제 CI/Build/Release/Runtime Consumer가 있는 Script는 이름이 오래됐다는 이유만으로 삭제하지 않는다.
+Developer는 Tool Hygiene 작업에서 `KEEP_CANONICAL_GATE / MERGE_INTO_CANONICAL_GATE /
+RENAME_CURRENT / REMOVE_CANDIDATE`를 전수 판정한다.

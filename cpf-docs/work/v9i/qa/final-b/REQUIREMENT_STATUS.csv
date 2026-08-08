@@ -1,7 +1,0 @@
-﻿denominator,count,qa_pass,fail,unverified,recheck,basis_sha,note
-Canonical Requirement,169,0,19,53,97,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,No Developer completion inherited.
-Central Final Action,31,0,7,24,0,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,31 current central actions independently reclassified.
-Previous Finding,56,0,2,8,46,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Previous close status not inherited.
-Developer Self Finding,5,0,2,2,1,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,5 current self-discovered rows.
-Special Review Point,1000,0,30,559,411,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Zero 미검수.
-Mandatory Runtime Axis,13,0,0,13,0,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,No current-SHA executable release runtime evidence.

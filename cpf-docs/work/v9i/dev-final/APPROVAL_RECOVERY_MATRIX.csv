@@ -1,2 +1,0 @@
-﻿scenario,development_status,verification_status,evidence
-terminal commandRequestId+leaseOwner+fenceToken fencing,완료(보존),미검증,QA recognized fix preserved; successor rerun pending

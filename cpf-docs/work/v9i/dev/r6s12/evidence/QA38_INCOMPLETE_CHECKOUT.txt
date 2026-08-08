@@ -1,6 +1,0 @@
-COMMAND: python /mnt/data/CPF_R6_S12_FINAL_OVERLAY/cpf-tools/verification/qa38/verify-qa38-structure.py /mnt/data/CPF_R6_S12_FINAL_OVERLAY
-START_UTC: 2026-08-06T18:57:26Z
-[CPF][QA38][FAIL] missing canonical starter catalog: /mnt/data/CPF_R6_S12_FINAL_OVERLAY/cpf-tools/generator/contracts/cpf-starter-catalog.json
-RAW_EXIT_CODE: 1
-CLASSIFICATION: NOT_EXECUTED_COMPLETE_CHECKOUT_REQUIRED
-END_UTC: 2026-08-06T18:57:27Z

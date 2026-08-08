@@ -1,4 +1,0 @@
-﻿vendor,development_status,verification_status,condition
-Oracle,완료(기존 lifecycle/gate 보존),미검증,live Oracle endpoint + successor SHA
-PostgreSQL,완료(기존 lifecycle/gate 보존),미검증,live PostgreSQL endpoint + successor SHA
-MariaDB,완료(기존 lifecycle/gate 보존),미검증,live MariaDB endpoint + successor SHA

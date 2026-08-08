@@ -1,5 +1,95 @@
 # CPF Test and Evidence — Current
 
+> Currentization basis: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)  
+> 본 문서는 실행된 사실과 미실행 항목을 분리한다. 계획/READY/Script 존재를 PASS로 기록하지 않는다.
+
+## 1. Currentization 자체 검증
+
+이번 문서 currentization에서 확인한 사실:
+
+- latest master: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`
+- `07_15` commit stats: additions 5,914 / deletions 402 / total 6,316
+- `cpf-starters/data/persistence-jpa` 존재
+- `cpf-starters/data/transaction-jta` 존재
+- `cpf-starters/security/oidc-login` 존재
+- `cpf-starters/security/audit-jdbc` 존재
+- `cpf-starters/integration/ai` 존재
+- `cpf-starters/integration/soap` 존재
+- Core `api/util` 17종이 현재 존재함
+- Core transaction API에 `CpfTransactionIdGenerator`, TCC/XA contract가 존재함
+- `cpf-tools/verification`에 dated/QA/final campaign 디렉터리와 Python helper가 혼재함
+- `cpf-docs/work/v9i/**`에 과거 Session/Final/Checkpoint/Result 문서가 다수 남아 있음
+
+위 확인은 신규 제품 Requirement의 구현 PASS를 의미하지 않는다.
+
+## 2. 신규 Current Request 상태
+
+`CPF_CURRENT_WORK_REQUEST.md`의 신규 Requirement는 모두 시작 상태:
+
+- development: `미완료`
+- verification: `미검증`
+- prior PASS inheritance: 금지
+
+Developer는 각 ID별 Source/Consumer/Test/Harness/Evidence를 채운다.
+
+## 3. 직전 세션 Runtime-only
+
+직전 개발에서 다음 10건은 미검증이었다.
+
+1. Java25/Gradle9.1 fresh full build/test
+2. XA DB+DB DB3
+3. XA DB+JMS prepare-kill/recovery
+4. Broker ACK loss/process kill/multi-instance
+5. Saga/TCC process-kill/restart
+6. Optional JPA DB3/JTA
+7. OIDC live SSO
+8. PKCS#11 KMS/HSM
+9. SOAP live timeout/UNKNOWN
+10. PowerShell Generator full execution
+
+신규 변경이 영향을 주면 이전 Harness를 그대로 성공 근거로 사용하지 않고 재검증한다.
+
+## 4. Evidence 기록 형식
+
+각 실행은 최소 다음을 남긴다.
+
+```text
+requirement_id
+exact_source_sha
+environment
+command
+started_at
+finished_at
+exit_code
+actual_result
+expected_result
+failure_stage
+runtime_dependency
+evidence_path
+evidence_sha256
+sanitization
+judgement
+```
+
+민감정보 원문은 금지한다.
+
+## 5. QA Evidence 규칙
+
+QA A/B는 서로 다른 독립 Evidence를 남긴다.
+
+`Requirement → Source/Symbol → Consumer → Call Path → Test/Harness → Execution → Evidence → Judgement`
+
+generic evidence를 다수 Requirement에 복사해 완료 처리하지 않는다.
+
+---
+
+## 6. 직전 세션 17 Evidence 보존
+
+아래 내용은 `07_15` 직전 Developer 자체검수의 역사적 Current 근거로 보존한다.
+QA PASS로 승격하지 않는다.
+
+# CPF Test and Evidence — Current
+
 ## Basis
 - remote `master`: `9f16468cccae71523f65f0aefcd94322788c4dd0`
 - request authoring source: `a570b366ef85b23863e41173c991025c072a2427`
@@ -28,3 +118,4 @@
 
 ## Not executed / not claimed PASS
 The 10 rows in `RUNTIME_ONLY_VERIFICATION.csv` require Java25/Gradle9.1, PowerShell, DB3, broker, IdP, HSM or external SOAP runtime. They remain `미검증`; no READY/PLANNED value is counted as PASS.
+

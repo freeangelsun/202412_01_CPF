@@ -1,6 +1,0 @@
-﻿environment_id,target_environment,available,direct_command,actual_result,equivalence_result,remaining_runtime_gap
-ENV-LOCAL-JAVA21,Java 21 local direct harness,true,javac/java harness,PASS,DIRECT_FOR_PURE_JAVA_CONTRACTS,
-ENV-JAVA25-GRADLE91,Java 25 + Gradle 9.1,false,gradlew tasks/compile/check,Not available in container,IMPLEMENTATION_COMPLETE_TARGET_REEXECUTION_REQUIRED,target compile/check
-ENV-BROWSER,Node/Playwright browser engines,false,npm test/playwright test,TypeScript strict compile/syntax PASS; browser unavailable,STATIC_AND_TYPE_VERIFIED,real browser matrix
-ENV-DB3,Oracle/PostgreSQL/MariaDB services,false,vendor install/migration/verify/runtime,3-vendor semantic/static parity PASS,SQL_LIFECYCLE_IMPLEMENTED,real vendor execution
-ENV-MULTIPROCESS,Broker/multi-process/process-kill,false,target runtime script,contracts/reconcile/fencing paths statically reviewed,IMPLEMENTATION_COMPLETE,real process kill/rebalance

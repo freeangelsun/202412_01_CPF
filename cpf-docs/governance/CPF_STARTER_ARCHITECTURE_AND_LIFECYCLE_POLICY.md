@@ -1,7 +1,7 @@
 # CPF Starter Architecture·Lifecycle 정책
 
 - 기준 Repository: `freeangelsun/202412_01_CPF`
-- 중앙 정책 현행화 기준 Branch/SHA: `master` / `a570b366ef85b23863e41173c991025c072a2427` (`07_12`)
+- 중앙 정책 현행화 기준 Branch/SHA: `master` / `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_12`)
 - 적용 Root: `cpf-starters`
 - Root 분류: `FIXED_PRODUCT_CONTAINER`
 - Architecture 방향: **Lightweight Core + Explicit Opt-in Starter**
@@ -492,3 +492,132 @@ Starter의 완료 조건은 Dependency/AutoConfiguration/Interface/Sample 존재
 
 신규 AI/JTA/SSO Capability 이름만 먼저 Canonical `modules`에 등록하여 `settings.gradle`을 깨뜨리지 않는다. 개발 사이클에서 실제 폴더·`build.gradle`·AutoConfiguration·Consumer·Test·Profile/Group owner를 만든 뒤 **같은 변경 단위에서** settings/BOM/Catalog/Generator/Publication을 동기화한다.
 
+
+
+## Current Architecture Rule — Core Slimming / Foundation / Modern Optional Portfolio
+
+기준 currentization SHA: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`. 실제 구현 시 최신 `origin/master` exact SHA를 다시 확인한다.
+
+### 1. Core / Foundation / Capability / Starter 물리 경계
+
+```text
+Pure Foundation
+      ↑
+cpf-core (contract/semantics only)
+      ↑
+Capability / Provider
+      ↑
+Starter / AutoConfiguration
+      ↑
+Application
+```
+
+강제 규칙:
+
+- `cpf-core -> cpf-starters/*` 의존은 0이다.
+- Core가 특정 기능을 필요로 해도 Starter를 직접 참조하지 않는다.
+- Core는 계약·Value Object·Provider-neutral Policy에만 의존하고 Runtime 구현은 외부에서 주입한다.
+- Foundation은 순수 Java/topology-independent/vendor-independent여야 하며 Starter나 Optional Provider를 참조하지 않는다.
+- `compileOnly`라고 해서 Spring MVC/WebFlux/Servlet/Batch/OTel type을 Core에 두는 것이 자동으로 정당화되지 않는다.
+- Starter는 OSS Dependency 묶음이 아니라 CPF 표준 Transaction/Security/Audit/Observability/Error/Config와 연결된 실제 개발경험을 제공해야 한다.
+- Optional Starter 미선택 시 dependency, Bean, SQL/Migration, Endpoint, Thread, Background Task, Secret 요구와 Runtime side effect가 0이어야 한다.
+
+### 2. Core Slimming 판정
+
+Core Class는 모두 다음 중 하나로 판정한다.
+
+`KEEP_CORE / MOVE_FOUNDATION / MOVE_CAPABILITY / MOVE_PROVIDER / MOVE_STARTER / ABSORB_EXISTING / REMOVE_CANDIDATE`
+
+특히 `Default*`, `*Adapter`, `*Configuration`, `*Filter`, `*Repository`, `*Provider`,
+`*Client`, `*Endpoint`, `*HealthIndicator`, `*Contributor`를 집중 검수한다.
+
+Core 유지 조건은 topology-independent, provider-independent, optional-technology-independent,
+Core 의미론 자체에 필요하다는 조건을 모두 만족하는 것이다.
+
+### 3. Unified Utility
+
+현재 Core의 일반 Utility는 자동 KEEP하지 않는다.
+
+- 단순 JDK/Spring Wrapper → 제거/흡수 후보
+- CPF 정책 가치가 있는 Date/Time/Clock/Decimal/ID/Validation/Conversion → Pure Foundation
+- Header → Web/Header Capability
+- Hash/Crypto → Security/Crypto
+- File → File Capability
+- Paging → Page/Persistence Contract
+- transactionId → Core Contract + Foundation/Channel Implementation
+
+Application 개발자는 하나의 Foundation/Utility Convenience 경로로 쉽게 사용하되,
+Core는 그 Starter를 참조하지 않는다.
+
+### 4. Transaction ID
+
+Core에는 transactionId 의미, Context, Generator Contract, Validation/Propagation의
+topology-independent 부분만 둔다. 실제 UUID/ULID/Sequence Generator, Spring Bean,
+HTTP/Servlet/Message Adapter는 Foundation/Capability/Starter가 소유한다.
+
+### 5. Operations Starter Ownership
+
+`CPF-HEALTH`의 실제 Spring Actuator/Probe/Dependency Check/Instance Runtime은
+`platform-operations/health` 또는 Canonical 동등 Owner가 소유한다.
+Observability는 OTel Adapter/Aspect/Exporter를 소유하고 Core에는 contract만 둔다.
+Feature Flag Property/OpenFeature Provider와 AutoConfiguration도 Feature Flag Capability가 소유한다.
+
+### 6. Persistence Portfolio
+
+- JDBC: Provider
+- MyBatis: Provider
+- Spring Data JPA: Optional Provider
+- Public business semantics: CPF Repository/Service/API에서 일관
+- JPA Native Escape: `JpaRepository`, `EntityManager`, `Specification`, `@Query`, Criteria
+- JPA 미사용 Profile: Hibernate/JPA footprint 0
+- Oracle/PostgreSQL/MariaDB parity 유지
+
+### 7. Modern Optional Portfolio
+
+정식 추가/보강 대상:
+
+- Runtime Health / Instance Operations
+- Valkey Distributed Session
+- S3-compatible Object Storage
+- Event Contract / Schema Governance
+- GraphQL Optional
+- SSE 우선 Realtime + 실제 필요 시 WebSocket
+- Valkey Lock/Lease Provider
+- CPF Testkit 보강
+
+실제 Product Consumer가 없는 현재 단계에서는 gRPC와 R2DBC를 기술 보유 목적만으로 추가하지 않는다.
+
+### 8. Starter DX Acceptance
+
+모든 Starter는 다음을 실제 Consumer로 검증한다.
+
+1. Quick Start
+2. Typed Properties / Config Metadata
+3. Safe Default
+4. Fail-Fast + actionable error
+5. CPF Error/Security/Audit/transactionId/Observability 연결
+6. timeout/retry/unknown/recovery
+7. Native OSS escape
+8. Generator/EDU/Test
+9. Provider 교체
+10. 0-footprint
+
+### 9. 물리 이동 완료 Gate
+
+Module 이동 후 old/new package가 동시에 남으면 완료가 아니다. 다음을 모두 맞춘다.
+
+- `settings.gradle`
+- Gradle dependencies
+- BOM/publication
+- AutoConfiguration imports
+- starter catalog
+- profile resolution
+- generator/template/lock
+- generated domain
+- source/test/resource/config/sql
+- OpenAPI/frontend consumer
+- EDU/reference
+- documentation
+- exact Delete Manifest
+
+사용자 승인 없는 실제 삭제는 하지 않는다.

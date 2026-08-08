@@ -1,7 +1,0 @@
-===== owner_mutation_smoke =====
-/mnt/data/rev004-javac-current/src/Smoke.java:16: warning: [removal] correct(String,long,Map<String,Object>,String,String,boolean) in CpfDataQualityOperations has been deprecated and marked for removal
-    try { ops.correct(decision.quarantineId(), 2, Map.of("name","X"), "caller", "bypass", true); }
-             ^
-1 warning
-PASS FDEV-003 core owner mutation smoke
-EXIT_CODE=0

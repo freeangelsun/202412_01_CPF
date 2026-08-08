@@ -1,5 +1,0 @@
-﻿id,status,finding_id,source,consumer,note
-TXID-INGRESS,FAIL,QA-B-1000-NEW-003,CpfInboundTransactionIdPolicy.java; TransactionContextFilter.java,Ingress -> highest-precedence transaction filter,Trust transport and starter system identity producer are not proven/wired for valid mTLS/proxy first hop.
-TIMELINE-FRESHNESS,FAIL,QA-B-1000-NEW-002,CpfTransactionTimelineQueryFacade.java,timeline facade -> ADM transaction groups,RuntimeException in source query can be swallowed and later appear NOT_APPLICABLE.
-LINEAGE-PROJECTION,재확인 필요,QA-B-1000-NEW-005,CpfTransactionLineageRecord.java; TransactionSegmentPersistenceService.java; JdbcTransactionLineageProjectionAdapter.java,segment persistence -> projection port -> persistence-mybatis,"Projection writer exists, but persistence starter namespace violates canonical ownership and live DB3 writer path not executed."
-DB3-V107,미검증,,Oracle/PostgreSQL/MariaDB V107 lineage SQL,lineage projection/query,Static 3-vendor schema/index inspection performed; live lifecycle/runtime query not executed.

@@ -1,1 +1,0 @@
-[CPF][R6J][PASS] rework contracts selfTest=true

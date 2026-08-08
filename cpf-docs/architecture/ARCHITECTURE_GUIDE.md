@@ -422,3 +422,68 @@ ADM E2E Timeline / approved recovery
 - XA/JTA는 강한 원자성이 실제 필요한 경우의 Optional 전략이고, MSA 전체 HTTP 호출을 XA로 묶는 수단으로 사용하지 않는다.
 - Outbox/Saga/TCC는 XA의 하위 호환이 아니라 각각 Eventual Consistency/Long-running/Reservation 업무를 위한 독립 전략이다.
 
+
+
+## Core Slimming 및 Modern Capability Architecture
+
+### Dependency Direction
+
+CPF의 장기 의존 방향은 `Pure Foundation → Core Contract → Capability/Provider → Starter → Application`이다.
+화살표의 역방향 의존을 금지하며 특히 Core가 Starter를 참조하지 않는다.
+
+Core는 **무엇을 의미하는지**를 정의하고, Provider는 **어떻게 구현하는지**, Starter는
+**Application이 어떻게 쉽게 활성화하는지**를 책임진다.
+
+### Core에 남기는 범위
+
+- Error/Context/Identity/Transaction/Security/Health의 provider-neutral 의미
+- Public API/SPI/Port
+- 최소 Value Object
+- topology-independent policy와 pure algorithm
+
+다음은 Core Owner가 아니다.
+
+- Spring AutoConfiguration
+- Servlet/Spring MVC/WebFlux Runtime Adapter
+- OTel/OTLP Adapter
+- Actuator/Health runtime
+- JDBC/JPA/MyBatis runtime
+- Feature Flag provider
+- Cache/Messaging/File/Cloud provider
+- 일반 개발 편의 Utility 집합
+
+### Foundation
+
+Foundation은 Core보다 낮은 순수 재사용 계층이다. 날짜/시간/금융 Decimal/ID/Validation처럼
+CPF 정책가치가 있고 특정 Runtime에 의존하지 않는 기능만 둔다. Foundation이라는 이름으로
+잡동사니 Helper를 적치하지 않는다.
+
+### Operations
+
+Health/Heartbeat/Registry/Drain은 다음 흐름으로 연결한다.
+
+```text
+Instance → Health/Heartbeat → Runtime Registry → ADM
+```
+
+Liveness와 Readiness를 분리한다. Dependency 장애 때문에 업무를 받을 수 없으면
+Readiness는 DOWN이지만 JVM 자체가 살아 있으면 Liveness는 UP일 수 있다.
+Health check는 짧은 timeout, concurrency/resource limit, secret masking을 사용한다.
+
+### Persistence
+
+```text
+Business API
+  → Service
+  → Domain Repository Contract
+  → JDBC | MyBatis | JPA(Optional)
+  → Oracle | PostgreSQL | MariaDB
+```
+
+Provider 선택이 업무 API semantics를 바꾸지 않는다. 복잡 SQL은 generic CRUD에 억지로
+넣지 않고 Provider Native API와 Domain Repository extension을 허용한다.
+
+### Optional Capability
+
+GraphQL/Object Storage/Valkey Session/Event Schema/Realtime은 Core가 아니라
+Optional Capability/Provider/Starter가 소유한다. 미사용 시 0-footprint가 필수다.

@@ -1,5 +1,0 @@
-COMMAND: javac --release 21 -d /mnt/data/cpf_session12_work/javac-main <exact quality sources>
-START_UTC: 2026-08-06T19:20:58Z
-EXIT_CODE: 0
-END_UTC: 2026-08-06T19:20:59Z
-PASS Java21 independent compile of changed topology-independent Data Quality API/SPI/provider

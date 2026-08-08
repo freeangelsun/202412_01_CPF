@@ -1,5 +1,0 @@
-﻿id,status,finding_id,source,note
-FILELOG-DURABLE-ROOT,미검증,,CpfFileLogRecoverySpool.java,07_08 requires explicit durable root in production-like env and adds scheduled retry; hard-kill runtime not executed.
-FILELOG-HARDENED-REPLAY,미검증,,CpfFileLogWriter.appendRecoveredRecord,Replay reuses safe path/process lock/NOFOLLOW and scans checksum marker; fault tests not executed.
-FILELOG-FAIRNESS,FAIL,QA-B-1000-NEW-004,CpfFileLogRecoverySpool.replayAvailable,Per-item transient FileSystemException/IOException uses break and can starve healthy later entries.
-FILELOG-FAULT-RUNTIME,미검증,,CpfFileLogRecoveryContractTest.java / release runtime,disk-full/read-only/hard-kill/restart/partial file runtime not executed.

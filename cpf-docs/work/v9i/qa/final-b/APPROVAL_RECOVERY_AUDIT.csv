@@ -1,5 +1,0 @@
-﻿id,status,finding_id,source,consumer,note
-APPROVAL-FENCE,미검증,,AdmApprovalService.java; AdmApprovalRepository.java,reserve -> owner execute -> fenced terminal write,leaseOwner/fenceToken are carried and terminal update WHERE is fenced; process-kill/multi-instance DB runtime not executed.
-BATCH-EXACT-IDENTITY,미검증,,BatchRuntimeApprovalOwnerCommandAdapter.java; test,reconcile -> operation ledger observation,Prior substring match is replaced by exact tuple and collision test source; test/runtime not executed.
-CENTER-CUT-TERMINAL,미검증,,CenterCutApprovalOwnerCommandAdapter.java,reconcile -> Owner observe,Only COMPLETED/SUCCEEDED/RECOVERED resolve success; live state-machine fault not executed.
-APPROVAL-RUNTIME,미검증,,release qualification runtime axis,2+ instance/process-kill,No multi-instance/process kill runtime.

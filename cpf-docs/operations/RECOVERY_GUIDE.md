@@ -239,3 +239,28 @@ Service가 다시 기동된 것만으로 종료하지 않습니다.
 
 Recovery가 실제 업무 결과를 재확인하지 않고 상태 Column만 변경하면 완료가 아니다.
 
+
+
+## 17. Modern Operations Recovery
+
+### Health / Drain
+
+Health dependency timeout이 전체 probe thread/connection pool을 고갈시키지 않도록 bounded check를 사용한다.
+배포 시 `RUNNING → DRAINING → READINESS DOWN → 신규 작업 차단 → in-flight 정리 → STOPPED`를 따른다.
+Message Consumer와 Batch Worker는 HTTP와 다른 drain semantics를 사용하므로 Owner Runtime이 별도 처리한다.
+
+### Distributed Session
+
+Valkey 장애/재기동/partition 후 Session 상태를 자동 성공으로 가정하지 않는다.
+forced logout, expiry, rotation, replicated state와 stale session을 검증하며 보안상 불명 상태는 fail-closed 정책을 따른다.
+
+### Object Storage
+
+multipart 중단, client timeout, network loss, checksum mismatch는 orphan/partial object를 만들 수 있다.
+Upload ID/object key/checksum/tenant를 기준으로 reconcile하고, 안전하게 재개할 수 없으면 abort 후 재시작한다.
+Presigned URL revoke가 즉시 불가능한 Provider 특성이 있으면 짧은 TTL과 access policy로 위험을 제한한다.
+
+### GraphQL / Realtime
+
+GraphQL timeout은 resolver별 하위 side effect를 확인해 UNKNOWN/Reconcile이 필요한지 판단한다.
+SSE/WebSocket reconnect는 duplicate delivery를 가정하고 event id/last-event-id 기반 중복 처리를 제공한다.

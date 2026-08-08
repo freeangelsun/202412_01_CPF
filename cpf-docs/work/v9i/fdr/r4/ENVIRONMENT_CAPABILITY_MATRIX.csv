@@ -1,9 +1,0 @@
-﻿capability,required_version_or_resource,observed,status,executed_scope,remaining_gate,evidence
-origin/master identity,exact SHA,GitHub Connector a8be27a34bdac0b7c075e06d6e86571244c96421,PASS,latest master commit and selected current paths checked,apply overlay to clean checkout and re-check working tree,BASELINE.md
-Python,3.11+,3.13.5,PASS,AST/JSON/CSV/custom/static/starters/DB3 protocol,rerun in clean checkout,e/static_syntax.log
-Java,25 for project; 21 sufficient for isolated classes,OpenJDK 21.0.10,PARTIAL,approval integrity and owner mutation isolated javac/runtime,full Gradle with Java 25,e/approval_javac.log;e/owner_mutation_smoke.log
-Node,>=22.18.0 <25,22.16.0,PARTIAL,node syntax and isolated TypeScript/runtime harness,npm ci + lint/typecheck/test/build/Playwright on Node 22.18+,e/idempotency_runtime.log;e/static_syntax.log
-PowerShell/Pester,pwsh + Pester,not installed,NOT_EXECUTED,Python DB3 protocol/static contract only,Invoke-Pester and wrapper execution,e/db3_contract.log;e/db3_protocol.log
-Oracle/PostgreSQL/MariaDB,JDBC endpoints and credentials,not available,NOT_EXECUTED,runner protocol and secret transport static/fake validation,live install/upgrade/rollback/runtime query,OPEN_ISSUES.md
-GitHub Advanced Security,repository secret scanning enabled,not enabled,NOT_EXECUTED,local targeted secret/hygiene scan,organization/repository scan when enabled,e/secret_scan.log
-full repository checkout,clean exact-SHA checkout,not mountable; direct DNS blocked,NOT_EXECUTED,GitHub Connector source comparison + root-relative overlay static gates,full root Gradle/QA38/QA39/publication,BASELINE.md

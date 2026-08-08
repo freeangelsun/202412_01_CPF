@@ -1,1 +1,0 @@
-PASS DB3 runner protocol static contract

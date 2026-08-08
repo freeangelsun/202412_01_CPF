@@ -1,3 +1,0 @@
-﻿dataset_name,part_number,part_path,entity_type,first_exact_id,last_exact_id,row_count,file_size_bytes,sha256,baseline_sha,generated_at
-REOPENED_IDS,1,results/scope/reopened/REOPENED_IDS_PART_001.csv,CPF_FR|CPF_SC,CPF-FR-000010,CPF-SC-018068,12000,4088925,23f1d19b5d05afabec81a6dc8a8efbd33f07f53f53484f9f5727acb4469ff65a,2a013663090d4e430a15983ad7269f8e86c5ef58,2026-08-06T05:14:50+09:00
-REOPENED_IDS,2,results/scope/reopened/REOPENED_IDS_PART_002.csv,CPF_SC|GATE|WORK_ITEM,CPF-SC-018069,STAB-028,6120,1800356,4c0ffbb47777a924c0c8e000ac05c5f2c6fd370b935b0aea271bcc1967b3e745,2a013663090d4e430a15983ad7269f8e86c5ef58,2026-08-06T05:14:50+09:00

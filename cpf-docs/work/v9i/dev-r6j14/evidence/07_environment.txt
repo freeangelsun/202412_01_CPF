@@ -1,9 +1,0 @@
-timestamp_utc=2026-08-07T18:26:54Z
-java=openjdk version "21.0.10" 2026-01-20
-javac=javac 21.0.10
-node=v22.16.0
-npm=10.9.2
-python=Python 3.13.5
-pwsh=NOT_FOUND
-gradle=NOT_FOUND
-git=git version 2.47.3

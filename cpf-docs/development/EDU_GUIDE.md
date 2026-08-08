@@ -102,3 +102,23 @@ EDU는 문서 예제가 아니라 다음 실행형 Reference를 제공한다.
 
 각 Lab은 Source, Consumer, Test/Harness, Config/SQL, 실행 명령, 기대 상태, failure injection, cleanup, exact-SHA Evidence를 포함한다. Mock-only로 실제 DB/Broker/XA 의미론을 PASS 처리하지 않는다.
 
+
+
+## 9. Modern Capability 실행형 Lab
+
+다음은 신규/보강 Capability가 실제 개발자 Consumer를 갖는지 확인하기 위한 필수 Lab이다.
+
+1. Pure Foundation Utility: deterministic Clock/ID, 금융 Decimal rounding, Validation boundary
+2. Core Slimming: `cpf-core`만 소비하는 non-Boot compile과 Starter removal compile
+3. Spring Data JPA: CRUD/Page/Sort/Search/Lock + Native `EntityManager` escape
+4. Runtime Health: Liveness UP + Dependency failure Readiness DOWN + DEGRADED
+5. Multi-instance Health: 2개 Instance heartbeat와 ADM projection
+6. Graceful Drain: RUNNING→DRAINING→Readiness DOWN→in-flight 완료
+7. Valkey Session: 2개 Instance login/rotation/forced logout/provider outage
+8. S3-compatible Object Storage: stream/multipart/checksum/range/orphan reconcile
+9. Event Schema: compatible evolution PASS / breaking change FAIL
+10. GraphQL: REST와 동일 Service 재사용, field auth, depth/complexity, DataLoader
+11. SSE: reconnect/duplicate/slow consumer/multi-instance
+12. Testkit: deterministic fixture와 process-kill/failure-injection 사용
+
+각 Lab은 Source, 실제 Consumer, Config, Test/Harness, 실패 시나리오, cleanup과 exact-SHA Evidence를 포함한다.

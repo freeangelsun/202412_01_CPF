@@ -1,2 +1,0 @@
-path,reason,approval_required,performed
-cpf-starters/openapi-webmvc,Implementation internalized into canonical web-api profile; retire only after independent consumer scan,Y,N

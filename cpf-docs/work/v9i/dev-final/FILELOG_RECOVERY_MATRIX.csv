@@ -1,3 +1,0 @@
-﻿scenario,development_status,verification_status,evidence
-failed-head healthy-tail fairness,완료,test source added / Gradle 미검증,CpfFileLogRecoveryContractTest
-disk/read-only/restart/concurrent/maxEntries existing coverage,완료(보존),미검증,post-apply full recovery gate required

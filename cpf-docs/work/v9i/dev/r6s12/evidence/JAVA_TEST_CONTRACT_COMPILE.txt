@@ -1,7 +1,0 @@
-COMMAND: javac --release 21 -proc:none with exact changed test sources and compiled main/API-shaped dependency stubs
-SOURCE_SCOPE: all changed cpf-admin/cpf-common Java tests in Root Overlay
-START_UTC: 2026-08-06T19:22:29Z
-EXIT_CODE: 0
-END_UTC: 2026-08-06T19:22:30Z
-RESULT: PASS
-LIMITATION: JUnit/Spring/Mockito/AssertJ are API-shaped stubs; Gradle/JUnit runtime remains NOT_EXECUTED

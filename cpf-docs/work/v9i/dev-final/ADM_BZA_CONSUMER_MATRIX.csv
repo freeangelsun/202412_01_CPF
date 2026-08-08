@@ -1,4 +1,0 @@
-﻿area,development_status,verification_status,evidence
-ADM operation error contract 330,완료,정적 PASS/Runtime 미검증,verify-operation-error-contract.py
-BZA operation error contract 80,완료,정적 PASS/Runtime 미검증,verify-operation-error-contract.py
-HIGH/CRITICAL typed generated client,완료,Gate source updated/Repo execution pending,verify-adm-high-risk-generated-client.py

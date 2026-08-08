@@ -1,4 +1,0 @@
-﻿id,status,finding_id,source,note
-ADM-RUNTIME-OPENAPI,미검증,,cpf-admin/frontend/openapi/cpf-openapi.json,Checked-in source export declares CONTROLLER_SOURCE_PRE_RUNTIME and x-cpf-release-eligible=false; runtime OpenAPI zero-drift is mandatory but unavailable.
-ADM-HIGH-RISK-TYPED,FAIL,QA-B-1000-NEW-007,verify-operation-consumer.mjs; ApprovalsPage.vue; generated/cpf-api.ts,Gate tracks typedGeneratedConsumed but enforces generatedConsumed; generic compatibility client can satisfy HIGH/CRITICAL check.
-BZA-SIMULATION,미검증,,ApprovalSimulationPage.vue; bza-permission-manifest.json; BzaApiAuthFilterTest.java,Current source has explicit SIMULATE + generated call + backend auth test source; browser/backend execution unavailable.

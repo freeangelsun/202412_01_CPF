@@ -1,3 +1,0 @@
-﻿scenario,development_status,verification_status,evidence
-first-hop authenticated producer before policy,완료,정적 PASS / Runtime 미검증,verify-first-hop-transaction-identity.py
-timeline query failure explicit PARTIAL/QUERY_FAILED,완료,source/test added / Runtime 미검증,CpfTransactionTimelineQueryFacade; CpfTransactionTimelineFreshnessTest

@@ -1,6 +1,0 @@
-﻿id,status,finding_id,mutation_required,actual_static_gap
-FG-PROVENANCE,FAIL,QA-B-1000-NEW-001,Change current dev-final target SHA to non-HEAD; current gate must fail.,Gate does not scan dev-final and does not dynamically require all current evidence basis == HEAD.
-FG-TIMELINE-QUERY,FAIL,QA-B-1000-NEW-002,Make one applicable timeline source query throw; freshness gate/test must fail.,Current tests/gate inject failed source state instead of mutation at actual query catch.
-FG-FILELOG-HOL,FAIL,QA-B-1000-NEW-004,Oldest item permanently fails while next item succeeds; healthy tail must replay.,Current loop break prevents fairness; existing static gate does not test this.
-FG-PACKAGE-OWNER,FAIL,QA-B-1000-NEW-005,Place downstream class under com.cpf.core.* or outside catalog packageBase; owner gate must fail.,verify-core-persistence-boundary scans cpf-core source only.
-FG-TYPED-CLIENT,FAIL,QA-B-1000-NEW-007,Replace Orval high-risk client with generic generated compatibility client; gate must fail.,high-risk rule checks generatedConsumed rather than typedGeneratedConsumed.

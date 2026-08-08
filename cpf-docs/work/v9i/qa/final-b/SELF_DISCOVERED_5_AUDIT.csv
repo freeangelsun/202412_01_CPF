@@ -1,6 +1,0 @@
-﻿finding_id,qa_status,superseding_finding,basis_sha,qa_note
-DEV-FINAL-SELF-001,FAIL,QA-B-1000-NEW-003,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Policy semantics improved but real authenticated starter-system producer/filter-order path is not closed.
-DEV-FINAL-SELF-002,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,row_version CAS source path exists; Java/runtime/backend execution not performed.
-DEV-FINAL-SELF-003,FAIL,QA-B-1000-NEW-007,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,"Raw mutation bypass check improved, but typedGeneratedConsumed is still not enforced for HIGH/CRITICAL compatibility generated clients."
-DEV-FINAL-SELF-004,재확인 필요,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,No QA-owned clean checkout/package staging was available to prove hygiene; no Developer PASS inherited.
-DEV-FINAL-SELF-005,미검증,,b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb,Static DB3 artifacts inspected; live 3-vendor lifecycle remains unexecuted.

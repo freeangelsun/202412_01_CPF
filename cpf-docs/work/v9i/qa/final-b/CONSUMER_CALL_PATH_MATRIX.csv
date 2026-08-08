@@ -1,8 +1,0 @@
-﻿id,status,finding,path,gap
-CALL-TXID,FAIL,QA-B-1000-NEW-003,Official ingress -> TransactionContextFilter(HIGHEST_PRECEDENCE) -> CpfInboundTransactionIdPolicy -> TransactionContext,Authoritative starter-system attribute producer/order not proven for mTLS/trusted proxy.
-CALL-TIMELINE,FAIL,QA-B-1000-NEW-002,source tables -> CpfTransactionTimelineQueryFacade -> AdmTransactionGroupService -> ADM transactionGroups,Query exception swallowed before freshness classification.
-CALL-APPROVAL,미검증,,Approval Controller/Service -> reserveExecution -> Owner SPI -> exact owner adapter -> fenced repository terminal update,Source coherent; no multi-instance/process-kill execution.
-CALL-FILELOG,FAIL,QA-B-1000-NEW-004,File append failure -> durable spool -> scheduled replay -> hardened append,Oldest transient target failure breaks entire replay pass and starves later items.
-CALL-LINEAGE,FAIL,QA-B-1000-NEW-005,TransactionSegmentPersistenceService -> CpfTransactionLineageProjectionPort -> persistence-mybatis adapter -> DB3 V107,Provider implementation package ownership drifts into com.cpf.core and outside canonical packageBase.
-CALL-ADM-TYPED,FAIL,QA-B-1000-NEW-007,ADM HIGH route -> ApprovalsPage -> generated/cpf-api compatibility -> backend,Gate accepts generated but not necessarily typedGenerated consumer.
-CALL-BZA-SIM,미검증,,BZA approvalSimulation -> Orval bzaApprovalPolicySimulate -> BzaApiAuthFilter/permission manifest -> backend,Source fixed; runtime/browser negative not executed.

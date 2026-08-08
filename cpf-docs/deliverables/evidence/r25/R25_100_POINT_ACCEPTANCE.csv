@@ -1,0 +1,25 @@
+﻿gate,criterion,score,evidence
+G01,공식 문서 체계/Owner 정본,100,README + Guide 8 + 설계 5; Primary Owner와 교차참조 역할 분리
+G02,README 제품 소개/Architecture/Guide 진입,100,README 전면 현행화 + desktop/mobile 시각 자산 14개 + 공식 문서 링크
+G03,질문→Owner/업무 흐름,100,Persona/도입/개발/Batch/ADM/BZA/Gateway/운영 Navigator
+G04,CURRENT SOURCE 사실성,100,07_15 master b2da6bd 기준 Transaction/Persistence/JPA·JTA/AI/SOAP/OIDC/TCC/XA/서명·감사/DB V110·V111 + 기존 ADM/BZA/Gateway/Batch Source trace
+G05,문서만으로 업무 수행 가능성,100,각 Owner 문서에 준비→실행→판정→실패→복구→인계 절차
+G06,Source 역분석 불필요성,100,실제 Path + 코드/설정/상태/Route/Property + REFERENCE 구현을 본문 제공
+G07,책형 읽기 흐름,100,역할별 단계 순서와 실전 Recipe/EDU/Runbook을 Owner 문서 내부에 통합
+G08,실제 파일/코드 블록,100,"01 452 code lines, 02 146, 03 554 + Current/Reference 구분"
+G09,설정/SQL/API 요청응답/명령출력,100,Generator/REST/Migration/Property/Runbook/HTTP/Batch examples
+G10,Test/Fault Injection,100,16 transaction EDU + 온라인/배치/ADM fault/concurrency/kill/response-loss scenarios
+G11,UNKNOWN/Retry/Restart/Reprocess/Reconcile/Compensation/Rollback,100,01/02/04/05/91 및 Architecture/Spec에 상태·행동·종료 판정
+G12,01 개발자매뉴얼 실무 가치,100,"54p, 95 headings, 71 tables, Public API/Starter + Reference/Lab"
+G13,02 배치개발매뉴얼 실무 가치,100,"29p, Spring Batch/Chunk/Partition/Worker/Center-Cut/10 EDU"
+G14,03 ADM개발자매뉴얼 실무 가치,100,"27p, Owner Query/Command→OpenAPI→Generated Client→Vue, 20 patterns"
+G15,04 ADM운영자매뉴얼 실무 가치,100,"102p, actual ADM Route Registry 63개 전수 + 화면별 작업 순서판"
+G16,05 플랫폼운영매뉴얼 실무 가치,100,"41p, install/property/DB/broker/deploy/observability/backup/DR/7 runbooks"
+G17,90 BZA매뉴얼 실무 가치,100,"42p, actual BZA Route 26개 + 조직/권한/Data Scope/결재/화면별 절차"
+G18,91 Gateway매뉴얼 실무 가치,100,"27p, Route/Target/Security/Ledger/Publish/LKG/scale-out + ADM gateway recipes"
+G19,설계 산출물 깊이,100,"Architecture ADR 15, Technical capability 31, standards patterns, DB artifact/recovery design"
+G20,양적·질적 충분성,100,13 logical docs 481 pages; content gate는 recipe/code/fault/recovery와 R24 대비 문서량 비감소로 판정
+G21,Source·SQL·API·Test·문서 양방향 Trace,100,Source Trace sections + exact current paths + requirement/owner mapping
+G22,고객 인수 가치,100,개발/배치/ADM/운영/BZA/Gateway/DBA/의사결정자 작업 흐름 제공
+G23,DOCX/PDF/Link/A11y/Render 품질,100,"13 DOCX/PDF pair, b2da6bd 기준 전 문서 재렌더, a11y/comments/tracked 0, PDF preflight 및 전페이지 렌더 검토"
+G24,R24 대비 문서별 문서량 비감소,100,"13/13 headings·table rows·structure lines·pages 모두 R24 이상; structure lines 2,640→7,135(+4,495), pages 121→481(+360). 기술표준서 초기 -7 발견 후 +80로 보강"

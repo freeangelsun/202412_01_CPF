@@ -1,5 +1,0 @@
-[CPF][OPENAPI][PASS] explicit ADM contracts output=openapi/cpf-openapi.json sha256=935f1063cf0330f0d404cbed98f5a4301a762d754792cddea8e5120b6c68b2d1
-PASS REV-004 overlay source closure integrationOperations=8 openapiOperations=332 starterModules=39
-NOT_EXECUTED full repository Gradle/Node/DB3 runtime/Playwright gates require complete checkout and external services
-PASS byte-idempotent sha256=935f1063cf0330f0d404cbed98f5a4301a762d754792cddea8e5120b6c68b2d1
-EXIT_CODE=0

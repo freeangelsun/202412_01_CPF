@@ -1,5 +1,0 @@
-﻿mutation,expected,actual,status,basis_sha
-unconfigured fake localhost release target,KILL,release_target_trust self_test rejects before semantic payload,PASS(static self-test),f6d7080c5a14b7dd7595093f9497470169e18d80
-prior evidence SHA differs from checkout,KILL,dynamic verifier implemented; full git checkout execution pending,미검증,f6d7080c5a14b7dd7595093f9497470169e18d80
-FileLog failed head + healthy tail,healthy tail replays,regression test added; Gradle pending,미검증,f6d7080c5a14b7dd7595093f9497470169e18d80
-HIGH/CRITICAL typed→generic Record body,KILL,gate rejects generic Record,Gate implementation 완료/실행 미검증,f6d7080c5a14b7dd7595093f9497470169e18d80

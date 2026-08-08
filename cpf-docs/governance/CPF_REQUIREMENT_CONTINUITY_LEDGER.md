@@ -218,3 +218,42 @@ QA Matrix는 다음 Column 또는 동등한 구조를 가져야 한다.
 5. 이름만 바꾼 동일 Gap을 신규 Requirement로 중복 등록하지 않는다.
 6. Owner 이동은 Source·Consumer·SQL·Test·Guide·Evidence를 함께 이관한다.
 7. 사용자 승인 없는 Canonical Requirement 삭제·Count 감소를 금지한다.
+
+
+## 2026-08-08 Modernization Currentization — basis `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`
+
+이번 currentization은 기존 Canonical 180개를 약화하지 않고 6개 신규 제품 Requirement를 추가하여
+Canonical Count를 **186개**로 확장한다. Legacy Alias 8개는 완료율에 포함하지 않는다.
+
+| 신규 ID | 관계 | 기존 연속성 | 추가 사유 |
+|---|---|---|---|
+| `FOUNDATION-UTILITY` | ADD | `ARCH-STARTER`, `CORE-CONFIG`, `CPF-TXID`, `CMN-FILE` 보완 | Core Utility 창고화 방지와 Pure Foundation/Application Convenience 경계를 독립 완료축으로 추적할 필요가 있음 |
+| `SEC-SESSION-DIST` | ADD | `SEC-AUTHN`, 기존 JDBC Session 보완 | Multi-instance distributed session의 provider/lifecycle/failure/0-footprint가 기존 인증 요구만으로 충분히 추적되지 않음 |
+| `FILE-OBJECT-STORAGE` | ADD | `CMN-FILE`, Attachment/Archive/SFTP 보완 | S3-compatible object storage의 streaming/multipart/reconcile/retention을 별도 상용 Capability로 추적 |
+| `EVENT-SCHEMA` | ADD | `EVENT-*` 보완 | Broker와 독립적인 schema compatibility/breaking-change/generated-model governance가 신규 필요 |
+| `API-GRAPHQL` | ADD | `API-*`, BFF 요구 보완 | REST/OpenAPI 기본을 유지하면서 선택형 client-driven query surface를 독립 Optional Capability로 추적 |
+| `API-REALTIME` | ADD | ADM/BZA/Batch/Timeline 요구 보완 | SSE/WebSocket 운영 realtime의 auth/reconnect/backpressure/multi-instance 계약을 독립 추적 |
+
+### 기존 ID 의미 강화 — 새 ID를 만들지 않음
+
+- Core Slimming / Core→Starter 0 / compileOnly ownership: `ARCH-STARTER`
+- Transaction ID Contract/Implementation 분리: `CPF-TXID`
+- Runtime Health/Instance/Drain: `CPF-HEALTH` + `CPF-REGISTRY`
+- Valkey Lock/Lease: `CPF-LOCK`
+- Spring Data JPA 보강: 기존 Persistence/Data + `ARCH-STARTER`
+- OIDC/SSO: `SEC-AUTHN`
+- KMS/HSM: `SEC-SECRET`
+- Digital Signature: `SEC-CERT`
+- Tamper-evident Audit: `SEC-AUDIT`
+- AI Optional: `AI-OPTIONAL`
+- 공식 Testkit: `CORE-TESTKIT`
+- Current-State 문서/문서 증식 금지: `DOC-GOV`
+- QA A/B 100% 독립 전수 + Cross Validation: `REQ-REVIEW`
+
+### 문서 연속성 규칙
+
+과거 `v9i`, `REV-*`, `SESSION`, 날짜별 Final/Checkpoint/중복 Result/Evidence는
+제품 Requirement의 역사적 근거일 수 있으나 Current 정본이 아니다. 필요한 제품 의미는
+본 Ledger, `CPF_FINAL_TARGET_REQUIREMENTS.md`, `CPF_CURRENT_WORK_REQUEST.md`,
+`REQUIREMENT_STATUS.csv`, `TEST_AND_EVIDENCE.md`, `HANDOVER.md`에 흡수하고,
+물리 파일은 exact Delete Manifest로 정리한다. Git history가 과거 원문을 보존한다.

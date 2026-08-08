@@ -9,7 +9,7 @@
 >
 > Repository: `https://github.com/freeangelsun/202412_01_CPF`  
 > Branch: `master`  
-> Currentization basis master: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)  
+> Currentization basis master: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)  
 > 직전 Developer 실행 기준 SHA: `9f16468cccae71523f65f0aefcd94322788c4dd0`  
 > 최상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 >
@@ -42,7 +42,7 @@
 
 ## 2. 현재 기준선에서 직접 확인된 사항
 
-아래는 작성 시점 `master=b2da6bd720d1a8506db6bddf5d2e35feb9dca964`에서 직접 확인한 기준선이다.
+아래 기준선은 원래 `07_15` 조사 결과를 계승하되, 이번 Core Architecture 재검토는 `master=4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)에서 다시 확인한 Source 구조를 반영한다.
 
 ### 2.1 이미 반영된 주요 기능
 
@@ -103,7 +103,7 @@
 ### 2.4 문서 Currentization 기준
 
 본 Overlay에서 최상위 정본·Starter Architecture·Architecture/Developer/EDU/Security/Recovery Guide와
-Current Work/Matrix/QA 표준을 `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` 기준으로 먼저 현행화했다.
+Current Work/Matrix/QA 표준을 `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`) 기준으로 다시 현행화했다.
 
 최상위 Canonical Requirement Count는 **186개**다.
 
@@ -200,17 +200,35 @@ Application
 - `*HealthIndicator`
 - `*Contributor`
 
+### Core Admission Rule — 전부 충족해야 `KEEP_CORE`
+
+`Provider-neutral`, `interface`, `SPI`, `Port`라는 이유만으로 Core에 남기지 않는다.
+
+다음을 **모두** 충족해야 한다.
+
+1. CPF 대부분 Capability가 공통으로 알아야 한다.
+2. Admin/Batch/Gateway/File/AI/Notification 등 특정 Owner 전용 계약이 아니다.
+3. Optional Capability를 사용하지 않는 Application에도 존재 가치가 있다.
+4. Runtime/Topology/Provider와 독립적이다.
+5. 기술 교체 후에도 장기간 의미가 유지된다.
+6. CPF 자체의 Contract/Semantics/Value 또는 최소 순수 Logic이다.
+
+하나라도 충족하지 못하면 `MOVE_CAPABILITY / MOVE_PROVIDER / MOVE_STARTER / ABSORB_EXISTING`을 우선한다.
+
 ### Core에 남을 수 있는 것
 
-- topology-independent Public Contract
-- Provider-independent SPI/Port
+- CPF 전역 topology-independent Contract/Semantics
 - Framework 핵심 Value Object
-- Error/Transaction/Security/Context 의미론
-- Provider-independent Policy
-- 외부 Runtime 없이 동작하는 최소 순수 Logic
+- Error/Transaction/Execution/Security/Tenant Context의 최소 의미
+- UNKNOWN/Reconcile/Idempotency/Deadline 등 CPF 전역 semantics
+- 외부 Runtime 없이 동작하고 Owner가 없는 최소 순수 Logic
+- 여러 Capability가 공유하지만 특정 Capability 자체의 언어가 아닌 최소 SPI/Port
 
 ### Core에 남겨서는 안 되는 것
 
+- 특정 Owner/Optional Capability 전용 API/SPI/DTO/Port
+- `admin`, `batch`, `centercut`, `gateway` 전용 Command/Query/Operations/Status
+- `ai`, `archive`, `attachment`, `filetransfer`, `fixedlength`, `notification`, `tabular`, `webhook`, `remotelog` 전용 Contract를 Core가 소유하는 구조
 - Spring AutoConfiguration
 - Servlet/Web Runtime Filter
 - Spring MVC/WebFlux Runtime 구현
@@ -223,9 +241,27 @@ Application
 - Optional Capability 구현
 - 단순 편의 Utility 집합
 
+### Owner-specific Contract 전수 재분류
+
+특히 다음 Core 영역은 구현뿐 아니라 API/SPI/DTO/Port Ownership까지 Class 단위로 확인한다.
+
+- `cpf-core/api/admin/**` → `cpf-admin`
+- `cpf-core/api/batch/**`, Center-Cut 전용 계약 → `cpf-batch`
+- `cpf-core/api/gateway/**` → `cpf-gateway`
+- AI 전용 계약 → integration AI capability
+- Archive/Attachment/FileTransfer/Tabular → file capability owner
+- FixedLength Layout/Field/Group/Parser/Writer 전용 계약 → `integration/fixedlength-core`
+- Notification/Webhook 등 선택 기능 전용 계약 → 해당 capability
+- Remote Log/Log Operations → platform operations/observability
+
+해당 Owner가 Core의 범용 Error/Transaction/Context/Security 계약을 소비하는 방향만 허용한다.
+
 ### Acceptance
 
-Core에 부적절한 Runtime 구현 `0`.
+- Core에 부적절한 Runtime 구현: `0`
+- Core의 Owner-specific/Optional Capability API·SPI pollution: `0`
+- Core → Owner-specific Module dependency: `0`
+- Optional Capability 미선택 Application의 전용 API/Bean/Config/Thread/Endpoint side effect: `0`.
 
 ---
 
@@ -401,17 +437,58 @@ Retry/Hop마다 새 transactionId 생성 금지.
 
 # PART D. Core Runtime 구현 Ownership 이동
 
-## NXT-OWN-001 — Observability 구현 이동
+## NXT-OWN-001 — Observability / Logging Runtime·Operations Ownership 이동
 
-Core에 존재하는 OpenTelemetry Adapter/Aspect/Configuration 등 특정 Runtime 구현을 Observability/OTel Starter로 이동한다.
+Core에 존재하는 OpenTelemetry Adapter/Aspect/Configuration뿐 아니라 Logging Runtime과 운영 기능까지 전수 재분류한다.
 
-Core에는 Telemetry/Trace Context의 Provider-neutral Contract만 남긴다.
+Core에 남길 수 있는 것은 transaction/trace/execution context와 masking/redaction의 **최소 provider-neutral 의미/contract**뿐이다.
+
+다음은 Core Owner가 아니다.
+
+- `CpfLoggingRuntimeAutoConfiguration`
+- `CpfLogPolicyVersionAutoConfiguration`
+- `CpfRemoteLogAutoConfiguration`
+- `DefaultCpfDynamicLogLevelOperations`
+- File/Async Log Writer
+- Log Recovery Spool / File Recovery
+- Logback/SLF4J/MDC/Structured Logging Runtime
+- Sampling/Exporter Runtime
+- Dynamic Log Level Command/Query/Runtime Snapshot
+- Log Policy Runtime/Version Store
+- Remote Log Artifact/Search/Bundle/Download/Node Registry/Node Client
+- 인스턴스별 Log Runtime 조회·제어
+
+권장 Ownership:
+
+```text
+cpf-core
+  └ transaction/trace/execution context + 최소 masking/security semantics
+
+platform-operations/observability
+  ├ structured logging / MDC / trace / metrics
+  ├ logging runtime / sampling
+  └ runtime status integration
+
+platform operations logging/remote-log capability
+  ├ dynamic log level / log policy
+  ├ file/async logging / recovery spool
+  ├ remote log artifact/search/bundle/download
+  └ node/instance operation
+
+cpf-admin
+  └ 권한·사유·승인·감사를 포함한 운영 조회/제어 UI
+```
+
+`CpfTransactionContext`처럼 본질이 Transaction/Execution Context인 타입이 `logging` package에 있다면 Core 내부에서도 더 정확한 `transaction/context/execution` ownership으로 재배치한다.
 
 ### Acceptance
 
-Core의 OTel runtime implementation `0`.
-
----
+- Core의 OTel runtime implementation: `0`
+- Core의 Logging Runtime implementation: `0`
+- Core의 Dynamic Log Level/Remote Log 운영 구현: `0`
+- Core의 Spring Logging AutoConfiguration: `0`
+- 일반 Log / Transaction Log / Integration Log / Audit / Outbox / Inbox가 목적·저장수명 기준으로 분리되고 공통 transactionId/lineage로 연결됨
+- ADM 위험조치가 권한·사유·승인·Audit를 가짐
 
 ## NXT-OWN-002 — Feature Flag Provider 이동
 
@@ -1163,7 +1240,11 @@ Core Slimming은 많은 Source relocation을 발생시킬 수 있다.
 - stale generated output
 - stale docs
 - stale SQL/config
-- empty directory
+- old/new duplicate Interface/DTO/SPI
+- stale Spring AutoConfiguration imports / metadata
+- stale BOM/publication/catalog/profile entry
+- stale JavaDoc/README/EDU/OpenAPI reference
+- 이동 후 비어 있는 source/resource/package directory
 - session workspace
 - temporary CSV/TXT/log
 - obsolete ZIP/hash/manifest
@@ -1174,7 +1255,10 @@ Core Slimming은 많은 Source relocation을 발생시킬 수 있다.
 
 - Duplicate relocation: `0`
 - Stale import/reference: `0`
-- Empty abandoned package: `0`
+- Empty abandoned package/source/resource directory: `0`
+- Moved-source residue: `0`
+- Old/new duplicate Contract/Implementation: `0`
+- Stale AutoConfiguration/BOM/catalog/publication/generator/doc reference: `0`
 - Untracked garbage: `0`
 - obsolete session artifacts: `0`
 
@@ -1205,7 +1289,7 @@ Core Slimming은 많은 Source relocation을 발생시킬 수 있다.
 - Repository Root 상대경로
 - 파일 단위 exact path
 - wildcard 금지
-- directory 단위 삭제 금지
+- directory 단위 삭제 금지(빈 directory 정리는 manifest file 삭제 완료 후 leaf-first로 수행)
 - protected path 차단
 - replacement가 필요한 경우 replacement 존재 확인
 - 중복 path `0`
@@ -1289,10 +1373,12 @@ Developer는 구현 완료 전 독립 Self Review를 수행한다.
 1. Core→Starter dependency 0
 2. Core Optional Provider implementation 0
 3. Core Runtime pollution 0
-4. Core simple utility wrapper 0
-5. Owner-less capability 0
-6. Consumer-less API/SPI 0
-7. Wrapper-only Starter 0
+4. Core Owner-specific/Optional Capability API·SPI pollution 0
+5. Core Logging Runtime/Dynamic Log Level/Remote Log operations 0
+6. Core simple utility wrapper 0
+7. Owner-less capability 0
+8. Consumer-less API/SPI 0
+9. Wrapper-only Starter 0
 8. Transaction ID E2E gap 0
 9. CRUD/Paging/Search parity gap 0
 10. JPA/JDBC/MyBatis gap 0

@@ -21,17 +21,16 @@ CPF는 다음 품질 속성을 우선합니다.
 
 ### cpf-core
 
-기술 공통 Contract와 Runtime capability를 소유합니다.
+CPF 전체가 공유하는 **최소 Kernel / Contract / Semantics**를 소유합니다. Runtime Capability나 선택 기능의 계약 저장소가 아닙니다.
 
-- 표준 Header와 거래 식별자
-- 오류, Validation과 Message 조립
-- Local/Remote 호출 공통 Contract
-- Retry, Timeout, Circuit Breaker와 Bulkhead
-- Idempotency, Lock과 상태 전이 기반
-- Logging, Tracing, Audit 공통 계약
-- Public API와 확장 SPI
+- 표준 Transaction/Execution Context와 거래 식별 의미
+- Error/Result/Validation의 전역 의미
+- Security/Tenant/Identity Context의 최소 계약
+- UNKNOWN/Reconcile/Idempotency/Deadline 등 기술 중립 semantics
+- 장기간 기술 교체에도 유지되는 최소 Value Object와 전역 SPI/Port
+- 특정 Owner가 없는 topology-independent 최소 순수 Logic
 
-업무 Entity, 특정 기관 전문, 관리자 화면과 AI 전용 기능을 소유하지 않습니다.
+`Provider-neutral`, `interface`, `SPI`, `Port`라는 이유만으로 Core에 둘 수 없습니다. Admin/Batch/Gateway/File/AI 등 특정 Owner 또는 Optional Capability 전용 API·SPI·DTO·Port, Spring AutoConfiguration, Logging/Observability Runtime, JDBC/JPA/MyBatis 구현 등은 해당 Owner/Capability/Provider/Starter가 소유합니다.
 
 ### cpf-gateway
 
@@ -345,7 +344,7 @@ Observability 실패가 거래를 중단할지 여부는 데이터 중요도와 
 
 ### Fixed-Length
 
-범용 고정길이 전문 Engine, Layout/Field/Group Contract, byte-length parsing/writing, encoding, validation, masking과 extension SPI는 `cpf-core`가 소유합니다. 기관별 Layout, Mapping, Endpoint, Adapter와 기관 오류 정책은 `cpf-external`이 소유합니다. `cpf-common` 또는 `cmnDB`는 이를 소유하지 않습니다.
+고정길이 전문 전용 Engine과 Layout/Field/Group/Parser/Writer/encoding/byte-length/validation extension Contract는 `cpf-starters/integration/fixedlength-core`가 소유하고, Spring Runtime/AutoConfiguration은 `cpf-starters/integration/fixedlength`가 소유합니다. `cpf-core`에는 고정길이 전문 자체의 전용 계약을 두지 않고 범용 Error/Validation/Masking/Transaction Context만 제공합니다. 기관별 Layout/Mapping/Endpoint/Adapter와 기관 오류 정책은 실제 고객/기관 Adapter Owner가 소유합니다. `cpf-common` 또는 `cmnDB`를 기술 Runtime Owner로 사용하지 않습니다.
 
 ### 업무 채번
 
@@ -436,10 +435,22 @@ Core는 **무엇을 의미하는지**를 정의하고, Provider는 **어떻게 �
 
 ### Core에 남기는 범위
 
-- Error/Context/Identity/Transaction/Security/Health의 provider-neutral 의미
-- Public API/SPI/Port
+Core Admission Rule은 다음을 모두 만족해야 합니다.
+
+1. CPF 대부분 Capability에 공통으로 필요
+2. 특정 Owner/Admin/Batch/Gateway/File/AI 등의 전용 계약이 아님
+3. Optional Capability를 사용하지 않아도 필요
+4. Runtime/Topology/Provider 독립
+5. 기술 교체 후에도 의미 유지
+6. CPF 자체 Contract/Semantics/Value 또는 최소 순수 Logic
+
+따라서 `Public API/SPI/Port`라는 형식만으로 Core 유지 사유가 되지 않습니다.
+
+Core 후보:
+- Error/Transaction/Execution/Security/Tenant Context의 전역 의미
+- UNKNOWN/Reconcile/Idempotency/Deadline의 전역 semantics
 - 최소 Value Object
-- topology-independent policy와 pure algorithm
+- 특정 Owner가 없는 topology-independent policy/pure logic
 
 다음은 Core Owner가 아니다.
 
@@ -457,6 +468,27 @@ Core는 **무엇을 의미하는지**를 정의하고, Provider는 **어떻게 �
 Foundation은 Core보다 낮은 순수 재사용 계층이다. 날짜/시간/금융 Decimal/ID/Validation처럼
 CPF 정책가치가 있고 특정 Runtime에 의존하지 않는 기능만 둔다. Foundation이라는 이름으로
 잡동사니 Helper를 적치하지 않는다.
+
+### Logging / Observability Ownership
+
+Core는 로그를 실제로 기록·저장·검색·제어하지 않습니다.
+
+```text
+cpf-core
+  → transaction/trace/execution context + 최소 masking/security semantics
+
+platform-operations/observability
+  → structured logging / MDC / trace / metrics / sampling / logging runtime
+
+platform operations logging/remote-log capability
+  → file/async writer / recovery spool / dynamic log level / log policy
+  → remote log search/bundle/download/node operation
+
+cpf-admin
+  → 권한·사유·승인·Audit를 포함한 운영 조회/제어
+```
+
+Application/Technical Log, Transaction Log, Integration Log, Audit, Outbox, Inbox/Dedup은 목적과 보존수명을 분리하고 transactionId/lineage로 연결합니다.
 
 ### Operations
 
@@ -485,5 +517,4 @@ Provider 선택이 업무 API semantics를 바꾸지 않는다. 복잡 SQL은 ge
 
 ### Optional Capability
 
-GraphQL/Object Storage/Valkey Session/Event Schema/Realtime은 Core가 아니라
-Optional Capability/Provider/Starter가 소유한다. 미사용 시 0-footprint가 필수다.
+GraphQL/Object Storage/Valkey Session/Event Schema/Realtime뿐 아니라 AI/File/FixedLength/Notification/Webhook 등 선택 Capability의 전용 API·SPI 자체도 Core가 아니라 해당 Capability/Owner가 소유한다. 미사용 시 0-footprint가 필수다.

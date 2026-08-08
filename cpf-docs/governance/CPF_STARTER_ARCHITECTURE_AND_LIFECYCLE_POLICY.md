@@ -1,7 +1,7 @@
 # CPF Starter Architecture·Lifecycle 정책
 
 - 기준 Repository: `freeangelsun/202412_01_CPF`
-- 중앙 정책 현행화 기준 Branch/SHA: `master` / `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_12`)
+- 중앙 정책 현행화 기준 Branch/SHA: `master` / `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)
 - 적용 Root: `cpf-starters`
 - Root 분류: `FIXED_PRODUCT_CONTAINER`
 - Architecture 방향: **Lightweight Core + Explicit Opt-in Starter**
@@ -9,7 +9,7 @@
 
 ## 1. 제품 원칙
 
-`cpf-core`는 topology-independent Public API/SPI, 표준 식별자·오류·보안 문맥과 최소 실행 계약만 소유한다.
+`cpf-core`는 CPF 전역 Kernel로서 topology-independent Contract/Semantics/Value, 표준 식별자·오류·보안/거래 문맥과 최소 순수 Logic만 소유한다. Provider-neutral이라는 이유만으로 특정 Owner/Optional Capability 전용 API·SPI를 Core에 두지 않는다.
 Spring Boot Web, Security, Session, Kafka, Redis, Caffeine, OpenTelemetry Exporter, OpenAPI UI, MyBatis와 같은 선택 Runtime은 Core에 강제로 포함하지 않는다.
 
 선택 Runtime은 승인된 Starter 또는 실제 Owner Module로 분리한다.
@@ -496,7 +496,7 @@ Starter의 완료 조건은 Dependency/AutoConfiguration/Interface/Sample 존재
 
 ## Current Architecture Rule — Core Slimming / Foundation / Modern Optional Portfolio
 
-기준 currentization SHA: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`. 실제 구현 시 최신 `origin/master` exact SHA를 다시 확인한다.
+기준 currentization SHA: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d`. 실제 구현 시 최신 `origin/master` exact SHA를 다시 확인한다.
 
 ### 1. Core / Foundation / Capability / Starter 물리 경계
 
@@ -516,7 +516,8 @@ Application
 
 - `cpf-core -> cpf-starters/*` 의존은 0이다.
 - Core가 특정 기능을 필요로 해도 Starter를 직접 참조하지 않는다.
-- Core는 계약·Value Object·Provider-neutral Policy에만 의존하고 Runtime 구현은 외부에서 주입한다.
+- Core는 CPF 전역 계약·Value Object·Semantics에만 의존하고 Runtime 구현은 외부에서 주입한다.
+- Provider-neutral/interface/SPI/Port라는 이유만으로 Core 소유를 허용하지 않는다. 특정 Owner/Optional Capability의 언어를 표현하는 Contract는 해당 Capability/Owner Module이 소유한다.
 - Foundation은 순수 Java/topology-independent/vendor-independent여야 하며 Starter나 Optional Provider를 참조하지 않는다.
 - `compileOnly`라고 해서 Spring MVC/WebFlux/Servlet/Batch/OTel type을 Core에 두는 것이 자동으로 정당화되지 않는다.
 - Starter는 OSS Dependency 묶음이 아니라 CPF 표준 Transaction/Security/Audit/Observability/Error/Config와 연결된 실제 개발경험을 제공해야 한다.
@@ -531,8 +532,32 @@ Core Class는 모두 다음 중 하나로 판정한다.
 특히 `Default*`, `*Adapter`, `*Configuration`, `*Filter`, `*Repository`, `*Provider`,
 `*Client`, `*Endpoint`, `*HealthIndicator`, `*Contributor`를 집중 검수한다.
 
-Core 유지 조건은 topology-independent, provider-independent, optional-technology-independent,
-Core 의미론 자체에 필요하다는 조건을 모두 만족하는 것이다.
+Core 유지 조건은 단순히 topology-independent/provider-independent인 것으로 충분하지 않다.
+다음 Core Admission Rule을 **모두** 만족해야 한다.
+
+1. CPF 대부분 Capability에 공통으로 필요하다.
+2. Admin/Batch/Gateway/File/AI 등 특정 Owner 전용이 아니다.
+3. Optional Capability를 사용하지 않아도 필요하다.
+4. Runtime/Topology/Provider와 독립적이다.
+5. 기술 교체 후에도 의미가 유지된다.
+6. CPF 자체 Contract/Semantics/Value 또는 최소 순수 Logic이다.
+
+따라서 Owner-specific/Optional Capability API·SPI·DTO·Port는 Core에서 해당 Owner로 이동한다.
+
+### 2.1 Capability Contract Ownership
+
+Core가 모든 Capability의 계약 저장소가 되어서는 안 된다.
+
+- `admin` 전용 Command/Query/Operations/DTO → `cpf-admin`
+- `batch`/Center-Cut 전용 Contract → `cpf-batch`
+- `gateway` Route/Registry/RateLimit/Auth/Control Contract → `cpf-gateway`
+- FixedLength Layout/Field/Group/Parser/Writer Contract → `integration/fixedlength-core`
+- Archive/Attachment/FileTransfer/Tabular/Object Storage Contract → file capability
+- AI/Notification/Webhook 등 Optional Contract → 해당 capability
+- Remote Log/Log Operations Contract → platform operations/observability
+
+각 Capability는 Core의 범용 Error/Transaction/Context/Security/Tenant semantics를 소비한다.
+Core가 해당 Capability 전용 API를 역으로 소유하거나 참조하지 않는다.
 
 ### 3. Unified Utility
 
@@ -559,7 +584,8 @@ HTTP/Servlet/Message Adapter는 Foundation/Capability/Starter가 소유한다.
 
 `CPF-HEALTH`의 실제 Spring Actuator/Probe/Dependency Check/Instance Runtime은
 `platform-operations/health` 또는 Canonical 동등 Owner가 소유한다.
-Observability는 OTel Adapter/Aspect/Exporter를 소유하고 Core에는 contract만 둔다.
+Observability는 OTel Adapter/Aspect/Exporter뿐 아니라 Structured Logging/MDC/Logging Runtime/Sampling을 소유하고 Core에는 transaction/trace/execution context의 최소 contract만 둔다.
+Dynamic Log Level, Log Policy Runtime, File/Async Logging, Recovery Spool, Remote Log Artifact/Search/Bundle/Download/Node 운영은 Platform Operations/Observability가 소유하며 ADM은 권한·사유·승인·감사를 포함한 제어 UI를 제공한다.
 Feature Flag Property/OpenFeature Provider와 AutoConfiguration도 Feature Flag Capability가 소유한다.
 
 ### 6. Persistence Portfolio

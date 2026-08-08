@@ -1,13 +1,13 @@
 # CPF Test and Evidence — Current
 
-> Currentization basis: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)  
+> Architecture currentization basis: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)  
 > 본 문서는 실행된 사실과 미실행 항목을 분리한다. 계획/READY/Script 존재를 PASS로 기록하지 않는다.
 
 ## 1. Currentization 자체 검증
 
 이번 문서 currentization에서 확인한 사실:
 
-- latest master: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964`
+- architecture currentization basis master: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d`
 - `07_15` commit stats: additions 5,914 / deletions 402 / total 6,316
 - `cpf-starters/data/persistence-jpa` 존재
 - `cpf-starters/data/transaction-jta` 존재
@@ -31,6 +31,37 @@
 - prior PASS inheritance: 금지
 
 Developer는 각 ID별 Source/Consumer/Test/Harness/Evidence를 채운다.
+
+
+## 2.1 Core Architecture Optimization 추가 Acceptance — NOT_EXECUTED
+
+`07_16` Source 직접 리뷰에서 기존 Requirement의 해석을 다음과 같이 강화했다. 이는 **문서 현행화이며 실행 PASS가 아니다.**
+
+- Provider-neutral/interface/SPI/Port라는 이유만으로 Core KEEP 금지
+- Owner-specific/Optional Capability API·SPI·DTO·Port는 해당 Owner/Capability로 이동
+- `admin/batch/centercut/gateway` 전용 Contract Core pollution 0
+- FixedLength/File/AI 등 선택 Capability Contract의 Core 중복 Ownership 0
+- Core Logging Runtime/AutoConfiguration 0
+- Core Dynamic Log Level/Remote Log Operations 0
+- moved-source residue / old-new duplicate / stale metadata/reference / empty migrated directory 0
+
+Developer 완료 시 다음 Closure Gate를 최신 exact SHA에서 직접 실행·기록한다.
+
+```text
+Core→Starter = 0
+Core→Optional Provider = 0
+Core→Owner-specific Module = 0
+Core Owner-specific/Optional API·SPI pollution = 0
+Core Logging Runtime = 0
+Core Dynamic Log Level/Remote Log Operations = 0
+old/new duplicate = 0
+moved-source residue = 0
+stale AutoConfiguration/BOM/catalog/publication/generator/doc reference = 0
+empty migrated source/resource/package directory = 0
+Delete Manifest unresolved = 0
+```
+
+현재 판정: `NOT_EXECUTED / 미검증`.
 
 ## 3. 직전 세션 Runtime-only
 

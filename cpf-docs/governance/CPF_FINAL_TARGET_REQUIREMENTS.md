@@ -1,9 +1,9 @@
 # CPF 최종 목표 요구사항 정본
 
 > Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-> Revision date: `2026-08-08`
+> Revision date: `2026-08-09`
 > Previous reviewed blob SHA: `f5650f502fc11d87afb92f775588c710a02373d4`
-> Currentization source master SHA: `b2da6bd720d1a8506db6bddf5d2e35feb9dca964` (`07_15`)
+> Currentization source master SHA: `4c4248a12e699c07f9f5fb11fbb33b97ca04077d` (`07_16`)
 > Canonical Requirement Count: **186개**
 > Legacy Alias: **8개** — 완료율 중복 집계 금지
 
@@ -94,7 +94,7 @@ Local 구현이 Remote보다 기능이 적거나, Remote 전환을 위해 업무
 
 | 역할 | Module | Java Root Package | SystemCode | 필수 Owner 책임 |
 |---|---|---|---:|---|
-| 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | topology-independent Public API/SPI, 기술 계약과 최소 Runtime |
+| 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | CPF 전역 Kernel: topology-independent Contract/Semantics/Value와 최소 순수 Logic. 특정 Owner/Optional Capability API·SPI와 Runtime 구현은 소유하지 않음 |
 | 고객 업무 공통 | `cpf-common` | `com.cpf.common` | CMN | 고객 공통 정책, Core SPI 확장, Calendar/Code/Message 등 명시된 고객 공통 |
 | 플랫폼 관리자 | `cpf-admin` | `com.cpf.admin` | ADM | 플랫폼 운영 Control Plane, 플랫폼 위험조치 승인과 운영자 감사 |
 | 고객 업무 관리자 | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | 고객 업무 관리, 조직·업무 결재, 선택형 Customization Sample |
@@ -145,7 +145,7 @@ com.cpf.<owner>.internal
 
 ### 5.3 Lightweight Core·Starter·Capability Profile
 
-`cpf-starters/`는 CPF의 정식 Root 제품 영역이다. `cpf-core`는 Spring Boot 선택 Runtime을 직접 조립하는 범용 실행 모듈이 아니라, topology-independent Public API/SPI·표준 식별자·오류·문맥·순수 Java 계약을 제공하는 초경량 Artifact여야 한다.
+`cpf-starters/`는 CPF의 정식 Root 제품 영역이다. `cpf-core`는 Spring Boot 선택 Runtime을 직접 조립하는 범용 실행 모듈이 아니라, CPF 전역 Kernel로서 topology-independent Contract/Semantics/Value·표준 식별자·오류·문맥·최소 순수 Logic만 제공하는 초경량 Artifact여야 한다. Provider-neutral이라는 이유만으로 Core 소유가 정당화되지 않으며, 특정 Owner 또는 Optional Capability에만 필요한 API/SPI/DTO/Port도 해당 Owner/Capability가 소유한다.
 
 선택 기술은 다음 계층으로 제공한다.
 
@@ -694,13 +694,13 @@ Evidence 최소 필드:
 | `CPF-DEADLINE` | cpf-core / repository architecture | 요청 전체 deadline budget을 하위 호출·DB·Broker·파일·process에 분배하고 초과 시 cancel·cleanup·unknown-result 규칙을 적용한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-SCHED` | cpf-core / repository architecture | 기술 Scheduler의 trigger, cluster claim, misfire, calendar, idempotency, pause/resume, 운영 제어 계약을 정의하고 Batch Scheduler와 Owner를 분리한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-OPSDB` | cpf-core / repository architecture | 운영 DB의 공유/분리 topology, schema ownership, 연결 장애 시 fail-open/fail-closed, backpressure, 복구와 readiness를 정의한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-LOGDB` | cpf-core / repository architecture | DB Log의 schema·index·retention·masking·비동기 적재·조회 성능·장애 격리와 ADM projection을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-FILELOG` | cpf-core / repository architecture | 환경·Domain·Instance·transactionId·execution 단위로 탐색 가능한 구조화 File Log, rotation, retention, secure permission과 수집 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-LOGFAIL` | cpf-core / repository architecture | 로그 저장 실패가 업무를 오염시키지 않도록 정책별 fail-open/closed, local spool, 재전송, 중복 제거, 유실 탐지와 alert를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-TRACE` | cpf-core / repository architecture | transactionId와 trace/span/segment/attempt를 연결하고 sampling, trace boost, baggage allowlist, cardinality·민감정보 통제를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-MASK` | cpf-core / repository architecture | PII/Secret/Credential 분류, context-aware masking/redaction, raw 조회 승인, logging/evidence/download 정책과 테스트 corpus를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CORE-FIXED` | cpf-core / repository architecture | 고정길이 전문 Layout/Field/Group/encoding/byte length/parser/writer/validator/version/streaming과 secure diagnostic engine을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CORE-FILE` | cpf-core / repository architecture | Path Alias, bounded streaming, checksum, atomic publish, symlink/path traversal 방지, cleanup, cancellation을 포함한 File/Attachment/Archive 기술 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-LOGDB` | platform-operations/logging + persistence provider; core는 공통 transaction/error/context 의미만 | DB Log의 schema·index·retention·masking·비동기 적재·조회 성능·장애 격리와 ADM projection을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-FILELOG` | platform-operations/observability logging capability; core는 공통 context 의미만 | 환경·Domain·Instance·transactionId·execution 단위로 탐색 가능한 구조화 File Log, rotation, retention, secure permission과 수집 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-LOGFAIL` | platform-operations/observability logging capability | 로그 저장 실패가 업무를 오염시키지 않도록 정책별 fail-open/closed, local spool, 재전송, 중복 제거, 유실 탐지와 alert를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-TRACE` | core trace/context contract + platform-operations/observability provider | transactionId와 trace/span/segment/attempt를 연결하고 sampling, trace boost, baggage allowlist, cardinality·민감정보 통제를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-MASK` | core classification/redaction contract + security/masking capability | PII/Secret/Credential 분류, context-aware masking/redaction, raw 조회 승인, logging/evidence/download 정책과 테스트 corpus를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-FIXED` | integration/fixedlength-core contract + fixedlength starter/provider | 고정길이 전문 Layout/Field/Group/encoding/byte length/parser/writer/validator/version/streaming과 secure diagnostic engine을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CORE-FILE` | file capability contracts + archive/attachment/transfer/object-storage providers | Path Alias, bounded streaming, checksum, atomic publish, symlink/path traversal 방지, cleanup, cancellation을 포함한 File/Attachment/Archive 기술 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CORE-MESSAGE` | cpf-core / repository architecture | versioned broker envelope, correlation, idempotency key, schema, TTL, producer/environment binding, size limit와 serialization allowlist를 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 
 | `ARCH-STARTER` | product architecture + cpf-tools generator/build | `cpf-core`를 Spring Boot 없는 초경량 계약 Artifact로 유지하고 Leaf Starter·Capability Profile·Aggregate Starter·BOM의 역할, Provider 충돌, Consumer와 Footprint를 정본화한다. Starter는 단순 OSS Dependency Wrapper가 아니며 OSS 직접 적용보다 설정·API·오류처리·보안·감사·운영이 더 단순하고 안전해야 하고, 좋은 Default·Fail-Fast·세밀한 Override·Native API Escape Hatch를 제공한다. | non-Boot Core consumer, Starter removal compile, Profile resolution lock, Aggregate POM, BOM/publication, actual Consumer, startup/classpath/fault Evidence + OSS 직접 적용 대비 boilerplate/설정 감소와 misuse fail-fast 검증 |
@@ -889,18 +889,21 @@ Evidence 최소 필드:
 본 절은 기존 `ARCH-STARTER`, `CPF-TXID`, `CPF-HEALTH`, `CPF-LOCK`, `CORE-TESTKIT`,
 `SEC-AUTHN`, `SEC-SECRET`, `SEC-CERT`, `SEC-AUDIT`, `EVENT-*`, `AI-OPTIONAL`,
 `DOC-GOV`, `REQ-REVIEW`를 대체하지 않는다. 기존 Requirement의 의미를 유지하면서
-2026-08-08 `07_15` 이후 제품 구조에서 새로 명시가 필요한 Capability만 추가하고,
+2026-08-08 `07_16` Currentization 이후 제품 구조에서 새로 명시가 필요한 Capability와 Core Ownership 해석만 보강하고,
 기존 Requirement에는 아래 강제 해석을 적용한다.
 
 ### 기존 Requirement 강제 해석
 
-- `ARCH-STARTER`: `cpf-core -> cpf-starters/*` 의존은 0이어야 한다. Core는 topology-independent 계약·Value Object·Provider-neutral Policy만 소유한다. Spring AutoConfiguration, Servlet/Web Runtime, OTel Adapter, Actuator Runtime, JDBC/JPA/MyBatis 구현, 특정 Provider와 일반 개발 편의 Utility를 Core에 적치하지 않는다. `compileOnly`도 Ownership 면죄부가 아니다.
+- `ARCH-STARTER`: `cpf-core -> cpf-starters/*` 의존은 0이어야 한다. Core는 CPF 전역 Kernel에 필요한 topology-independent Contract/Semantics/Value와 최소 순수 Logic만 소유한다. **Provider-neutral이라는 사실만으로 Core 소유를 허용하지 않는다.** Core Class는 (1) 대부분의 CPF Capability에 공통으로 필요하고, (2) Admin/Batch/Gateway/File/AI 등 특정 Owner 전용이 아니며, (3) Optional Capability를 사용하지 않아도 필요하고, (4) Runtime/Topology/Provider와 독립적이며, (5) 기술 교체 후에도 의미가 유지되고, (6) CPF 자체 Contract/Semantics/Value라는 조건을 충족해야 한다. 조건을 충족하지 못하는 API/SPI/DTO/Port는 해당 Capability/Owner Module이 소유한다. Spring AutoConfiguration, Servlet/Web Runtime, Logging Runtime, Dynamic Log Level/Remote Log 운영, OTel Adapter, Actuator Runtime, JDBC/JPA/MyBatis 구현, 특정 Provider와 일반 개발 편의 Utility를 Core에 적치하지 않는다. `compileOnly`도 Ownership 면죄부가 아니다.
 - `CPF-TXID`: transactionId 의미·Context·Generator Contract는 Core에 둘 수 있으나 UUID/ULID/sequence 등 실제 기본 생성 구현, Spring wiring, Servlet/Message/Channel Adapter는 Foundation/Capability/Starter가 소유한다. 최초 신뢰 Entry에서 생성된 동일 transactionId는 Retry/Hop에서도 바꾸지 않는다.
 - `CPF-HEALTH`: Core는 Health 의미·Port만 소유하고 Actuator, `HealthIndicator`, `HealthContributor`, Probe, Dependency Check와 Instance Runtime 구현은 Platform Operations Health Capability가 소유한다. Liveness/Readiness/Startup/Drain/DEGRADED/UNKNOWN과 Multi-instance ADM projection을 제공한다.
 - `CPF-LOCK`: JDBC/Valkey 등 Provider 구현은 Core 밖에 둔다. 분산 Lock은 fencing token, lease, owner identity, stale-writer 차단, process kill/network partition/multi-instance recovery를 포함한다.
 - `CORE-TESTKIT`: Runtime 제품 Module이 아니라 공식 Test Support로 제공하며 deterministic clock/id, transaction/security/tenant fixture, DB/Messaging/Batch/Health/Object Storage/GraphQL fixture, failure injection, multi-instance/process-kill harness를 지원한다.
 - `DOC-GOV`: 개발·QA·Codex가 세션마다 `*_REV*`, `*_SESSION*`, 날짜별 `*_FINAL*`, Checkpoint, 중복 결과서·Matrix를 만들지 않는다. 동일 목적은 기존 Canonical/Current 파일을 직접 현행화하고 Git history가 과거 상태를 보존한다.
 - `REQ-REVIEW`: QA A와 QA B는 같은 전체 Scope를 각각 100% 독립 전수검수한다. 한쪽 PASS/Evidence 승계, 대표 ID·샘플링 일괄 PASS, Source 직접 확인 없는 Deep Review를 금지하며 A/B 판정을 Requirement ID 단위로 Cross Validation한다.
+- `ARCH-BOUNDARY/ARCH-LAYER`: 특정 Owner 전용 Contract는 그 Owner가 소유한다. `admin`, `batch`, `centercut`, `gateway` 등 전용 Command/Query/Operations/DTO/Status/Port를 단지 interface라는 이유로 `cpf-core`에 유지하지 않는다. 해당 Owner가 Core의 범용 Error/Transaction/Context/Security 계약을 소비하는 방향만 허용한다.
+- `CPF-LOGDB/CPF-FILELOG/CPF-LOGFAIL/CPF-TRACE/CPF-MASK`: Core는 transaction/trace/context, 민감정보 분류·redaction 의미와 필요한 최소 contract만 보유할 수 있다. Structured/File/Async Logging, Logback/SLF4J 연계, Log Policy Runtime, Dynamic Log Level, Recovery Spool, Remote Log Artifact/Search/Bundle/Download/Node 운영은 Platform Operations/Observability 또는 Security/Masking Capability가 소유한다.
+- `CORE-FIXED/CORE-FILE/AI-OPTIONAL`: FixedLength/File/AI처럼 선택 Capability의 Contract/API/SPI는 해당 capability owner가 소유한다. `fixedlength-core`, file capability contract, AI capability가 Core의 범용 contract를 소비하며, 선택 기능을 사용하지 않는 Application의 `cpf-core`에 해당 전용 API가 따라오지 않게 한다.
 
 ### 신규 Canonical Requirement
 

@@ -296,6 +296,17 @@ Migration 파일에는 다음을 기록합니다.
 
 원문 Token, Password, 주민번호, 계좌번호 전체와 인증서 Private Key를 기록하지 않습니다.
 
+### Logging Runtime Ownership
+
+개발자가 사용하는 Logging API와 Core Kernel을 혼동하지 않습니다.
+
+- Core: transaction/trace/execution context와 최소 masking/security semantics
+- Observability/Logging Capability: Structured Logging, MDC, SLF4J/Logback 연계, Async/File Logging, Sampling, Recovery
+- Platform Operations: Dynamic Log Level, Log Policy, Remote Log/Search/Bundle/Download/Node operation
+- ADM: 운영권한·사유·승인·Audit를 포함한 조회/제어
+
+`transactionId`가 모든 로그를 연결하더라도 Application Log, Transaction Log, Integration Log, Audit, Outbox, Inbox/Dedup의 저장 목적과 보존수명은 분리합니다.
+
 ## 13. Security Development
 
 - 입력값 allowlist
@@ -433,11 +444,24 @@ API DTO를 화면에서 임의 해석하지 않고 TypeScript contract로 관리
 
 ### Owner First
 
-신규 기능을 만들기 전에 기술 공통, 고객 업무 공통, 특정 업무, Platform Admin, Business Admin, Batch 또는 External 중 실제 Owner를 결정합니다. 빠른 구현을 위해 `cpf-core`나 `cpf-common`에 임시 적치하지 않습니다.
+신규 기능을 만들기 전에 Core Kernel, Capability Contract, Provider, Starter, 고객 업무 공통, Platform Admin, Business Admin, Batch, Gateway 또는 고객/기관 Adapter 중 실제 Owner를 결정합니다. 빠른 구현을 위해 `cpf-core`나 `cpf-common`에 임시 적치하지 않습니다. `Provider-neutral`/`interface`/`SPI`라는 이유만으로 Core Owner로 정하지 않으며, Optional 또는 특정 Owner 전용 계약은 해당 Capability/Owner가 소유합니다.
+
+### Core Admission Rule
+
+새 Class/API/SPI를 Core에 추가하기 전 다음을 모두 확인합니다.
+
+1. CPF 대부분 Capability가 공통으로 알아야 하는가
+2. 특정 Owner/Admin/Batch/Gateway/File/AI 등의 전용 계약이 아닌가
+3. Optional Capability를 사용하지 않아도 필요한가
+4. Runtime/Topology/Provider와 독립적인가
+5. 기술 교체 후에도 의미가 유지되는가
+6. CPF 자체 Contract/Semantics/Value 또는 최소 순수 Logic인가
+
+하나라도 아니면 Core가 아니라 Capability/Owner/Provider/Starter에 둡니다.
 
 ### Core API 사용
 
-업무와 Generator Reference는 날짜, 문자열, Collection, Paging, Header, Validation, Service Call과 Idempotency를 직접 재구현하지 않고 공식 Core Public API를 사용합니다. Public API가 부족하면 실제 Consumer와 호환성 기준을 갖춰 보완합니다.
+업무와 Generator Reference는 CPF가 제공하는 공식 **Owner별 Public API**를 사용합니다. Error/Transaction/Context처럼 전역 Kernel 계약은 Core API를 사용하고, Paging/Persistence·Header/Web·File·Security·AI·Batch·Gateway 등은 해당 Capability/Owner API를 사용합니다. 모든 편의기능을 Core로 끌어올리지 않습니다. Public API가 부족하면 실제 Consumer와 호환성 기준을 갖춰 올바른 Owner에 보완합니다.
 
 ### Paging
 
@@ -454,7 +478,7 @@ API DTO를 화면에서 임의 해석하지 않고 TypeScript contract로 관리
 
 ### Fixed-Length와 Sequence
 
-Fixed-Length Engine은 Core, 기관별 Adapter는 External입니다. 업무 채번은 업무 도메인 또는 고객 확장 기능이며 BZA Sample을 Runtime 의존점으로 사용하지 않습니다.
+Fixed-Length 전용 Contract/Engine은 `integration/fixedlength-core`, Spring Runtime/AutoConfiguration은 `integration/fixedlength`가 소유합니다. Core는 범용 Error/Validation/Masking/Transaction Context만 제공합니다. 기관별 Adapter는 실제 고객/기관 Owner가 소유합니다. 업무 채번은 업무 도메인 또는 고객 확장 기능이며 BZA Sample을 Runtime 의존점으로 사용하지 않습니다.
 
 ### 완료 묶음
 

@@ -1,48 +1,56 @@
 # CPF Final QA A/B 중앙 Merge 판정
 
-- Basis SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
+- QA Source basis SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
+- Final Control currentization basis SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 - QA A package SHA-256: `b4e8929066517bf122ef2ea2d9fd54a7b43f29f5a37e14afa0839700cb0e203b`
 - QA B package SHA-256: `a1929d223125cc93182013030bf141856125efc35581fae8b7b7906b00336f95`
-- Latest master recheck at merge start: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2`
-- Central verdict: **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**
+- 중앙 판정: **FAIL / REDEVELOPMENT REQUIRED + UNVERIFIED / RELEASE_BLOCKED**
 
 ## 1. 중앙 분모
 
 최상위 프로젝트 완료 분모는 **Canonical 169 Requirement**다.
+93 개발 원장, 기존 Finding 56, QA A 신규 25, QA B 신규 8, 중앙 정규화 Action 31은 모두 입력·결함 추적 단위이며 프로젝트 완료율 분모가 아니다.
 
-개발 원장 `93`, 기존 중앙 Finding `56`, 개발 자체발견 `4`는 모두 입력자료다.
-QA A 신규 25 + QA B 신규 8은 중복 2개 계열을 합쳐 **신규 독립 개발 Action 31개(P0 22 / P1 9)**로 중앙 정규화했다.
+QA A 25 + QA B 8에서 Root Cause 중복 2개 계열을 통합해 **중앙 신규 Action 31(P0 22 / P1 9)**로 정규화했다.
+Scope의 상한은 31건이 아니라 Canonical 169 전체 + 기존 56 + 신규 31 + self-found + Runtime 13 + 개발 중 추가발견 전체다.
 
-33이라는 숫자나 31이라는 숫자 자체가 개발 Scope의 상한이 아니다.
-이번 개발 Scope는 **CPF 프로젝트 169 Requirement 전체 + 기존 56 + 신규 31 + self-found + Runtime 13 + 개발 중 추가발견 전체**다.
+## 2. 중앙 Source 재확인 결함
 
-## 2. 중앙에서 직접 재확인한 Source 결함
+QA Merge 당시 current Product Source에서 다음 Root Cause를 중앙이 직접 재확인했다.
 
-현재 exact SHA에서 다음은 중앙이 실제 Source를 다시 열어 QA 지적을 확인했다.
+- Approval terminal UPDATE의 fencing 조건 미완성
+- Batch Runtime UNKNOWN reconcile의 부분문자열 identity matching
+- Center-Cut 비종료 상태의 terminal 성공 오판 가능성
+- TransactionId trust-boundary가 정식 Channel과 비신뢰 injection을 명확히 구분하지 못하는 문제
+- FileLog spool의 tmpdir/dedup/replay durability 문제
 
-- `AdmApprovalRepository.finishExecution* / markExecutionUnknown / integrity transition`의 terminal UPDATE에 `FENCE_TOKEN` 조건이 없다.
-- `BatchRuntimeApprovalOwnerCommandAdapter.matchesAny()`가 모든 row 값을 합친 뒤 `haystack.contains(needle)`로 identity를 선택한다.
-- `CenterCutApprovalOwnerCommandAdapter`가 `RUNNING`, `RETRYING`을 failedCount=0 조건에서 성공으로 확정할 수 있다.
-- `TransactionContextFilter`가 외부 Header의 transactionId를 `generateOrUse()`에 넘기고, Generator는 문법상 유효하면 그대로 사용한다.
-- `CpfFileLogRecoverySpool` 기본 root가 `java.io.tmpdir`; replay가 직접 `Files.writeString(APPEND)`하고 8MiB 이하에서만 marker dedup을 수행한다.
-
-따라서 위 P0는 문서 해석 문제가 아니라 current-source deterministic defect로 처리한다.
+위 항목은 current Product Source Finalization에서 반드시 닫는다.
 
 ## 3. 중앙 Architecture 결정
 
-1. **Core persistence**: `cpf-core`는 API/SPI/기술 중립 계약만 소유한다. MyBatis/JDBC 구현은 downstream provider/starter가 소유한다.
-2. **Transaction lineage**: `cpf_transaction_lineage`는 normalized operational lineage projection/index로 사용한다. 원래 도메인/메시지/배치/외부로그 저장소를 대체하는 dual-primary가 아니다. idempotent writer가 projection을 유지한다.
-3. **EDU-ADM**: PRODUCT_ADM/MERGE_EDU 13개는 runtime handler가 아니어야 한다. 삭제 승인 없이도 concrete handler/bean/registry/duplicate Product logic을 제거하고 reference/redirect metadata로 비실행화한다.
-4. **EDU retained role**: 02/03/04/07은 canonical `CPF_ADM_OPERATOR`를 따른다.
-5. **Retired BZA API**: compatibility 410 구현은 남길 수 있으나 active OpenAPI/generated client/consumer count에서는 제외한다.
-6. **HIGH/CRITICAL Frontend**: strict generated-client gate를 유지한다. Gate를 약화하지 않는다.
-7. **FileLog spool**: 임시 디렉터리 기본값 금지. 운영 지속성 있는 managed spool root + autonomous retry lifecycle을 소유한다.
-8. **Transaction trust boundary**: 외부 caller가 내부 transactionId를 결정할 수 없다. trusted internal hop만 lineage propagation 가능.
+1. **Core persistence**: `cpf-core`는 topology-independent API/SPI/기술 계약만 소유하며 MyBatis/JDBC 구현은 downstream Provider/Starter가 소유한다.
+2. **Transaction lineage**: `cpf_transaction_lineage`는 normalized operational lineage projection/index다. 기존 Domain/Message/Batch 저장소를 대체하는 dual-primary가 아니다.
+3. **TransactionId**: 정식 거래 기동 Channel/System은 CPF 규격 transactionId를 최초 1회 생성할 수 있다. 이후 동일 거래의 모든 참여 시스템은 같은 transactionId를 End-to-End로 승계한다. Retry는 같은 transactionId + attempt 증가다. 비신뢰 주체의 spoof/replay/manipulation만 인증된 Channel/System identity와 trust policy로 차단한다. **모든 inbound transactionId 일괄 재생성은 금지한다.**
+4. **EDU-ADM**: PRODUCT_ADM/MERGE_EDU는 runtime Product Handler가 아니다. EXTENSION_SAMPLE만 실행형 Extension Example로 유지한다.
+5. **EDU retained role**: 실행형 EDU-ADM 02/03/04/07은 canonical `CPF_ADM_OPERATOR` 계약을 따른다.
+6. **Retired BZA API**: compatibility 410은 필요 시 남길 수 있으나 active OpenAPI/generated client/consumer count에서는 제외한다.
+7. **HIGH/CRITICAL Frontend**: strict generated typed client gate를 유지하고 raw mutation 우회를 허용하지 않는다.
+8. **FileLog spool**: managed durable spool root + autonomous retry/replay/dedup/safety를 제공한다.
 
-## 4. 문서/매뉴얼은 개발GPT 범위에서 분리
+## 4. 역할 경계
 
-사용자 지시에 따라 이번 Product Developer GPT는 다음을 수정하지 않는다.
+### 중앙 관리자
+README/Guide/고객 PDF·DOCX를 제외한 프로젝트 목표, Governance, Canonical Requirement, Architecture/Specification 제품 계약, Module Ownership, Current Control, QA Merge와 문서 상호 정합성을 관리·현행화한다.
 
+### Product Developer GPT
+Product Source/SQL/API/SPI/Test/Config/Frontend/Generator/Runtime Gate와 자기 개발 결과/Evidence를 수정한다.
+중앙 정본·Final QA 원본을 임의 변경하지 않고 정본 모호성은 `PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv`로 보고한다.
+
+### QA A/B
+동일 전체 범위를 독립 전수검수하고 상대 판정을 승계하지 않는다.
+
+### Documentation Finalization
+다음 고객 문서를 별도 관리한다.
 - `README.md`
 - `cpf-docs/guides/**`
 - `cpf-docs/deliverables/**`
@@ -50,12 +58,12 @@ QA A 신규 25 + QA B 신규 8은 중복 2개 계열을 합쳐 **신규 독립 �
 - `cpf-docs/assets/readme/**`
 - `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`
 
-고객 매뉴얼/PDF/DOCX/README의 시각·한글화·편집 품질은 **별도 Documentation Finalization 작업**으로 처리한다.
-
-단, 개발 제어용 `cpf-docs/work/**`와 Requirement 정본 `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`는 개발 결과/Evidence/Canonical count 정합성 목적에 한해 수정 가능하다.
-
 ## 5. 최종 개발 목표
 
 이번 개발은 subset closure가 아니라 **CPF Product Source Finalization**이다.
+부분 구현, 구현 가능한 미구현, P0/P1, false-green verification, Consumer 단절, Ownership 위반을 계획 이월하지 않는다.
 
-부분 구현, 구현 가능한 미구현, known P0/P1, false-green verification, Consumer 단절, ownership 위반을 다음 회차로 계획 이월하지 않는다.
+## 6. Project Control currentization
+
+이 문서와 `CENTRAL_FINAL_ACTIONS.csv`, `ROLE_BOUNDARY.md`, Final Developer instruction은 중앙 현행화에서 TransactionId와 역할 경계를 동일하게 맞췄다.
+과거 QA38/QA39/V7/V9 Session Control과 날짜별 중복 자료는 current canonical이 아니며 exact Delete Manifest로 정리한다.

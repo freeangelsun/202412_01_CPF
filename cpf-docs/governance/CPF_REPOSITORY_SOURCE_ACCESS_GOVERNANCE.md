@@ -1,5 +1,7 @@
 # CPF Repository / Source / Release Governance
 
+- 중앙 정책 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+
 - master 직접 Push 금지, 보호 Branch와 Review 사용
 - Core/Batch/Security/Deployment 변경은 Code Owner Review 대상
 - Source Merge 권한과 Artifact Promotion/Production Deployment 권한 분리

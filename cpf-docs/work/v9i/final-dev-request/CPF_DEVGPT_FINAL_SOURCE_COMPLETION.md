@@ -8,13 +8,14 @@
 
 - Repository: `https://github.com/freeangelsun/202412_01_CPF`
 - Branch: `master`
-- 현재 중앙 기준 SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`)
+- 현재 중앙 Control 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+- Product Source 직전 기준 SHA: `3aa1dd12f8a5938d33feb6ed598b3dd2442bf2e2` (`07_05`, `07_06`은 Control/Evidence currentization only)
 - 최상위 Requirement 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 - Canonical Requirement denominator: **169**
 - Legacy Alias: **8, 완료율 중복집계 금지**
 
 작업 시작 즉시 최신 `origin/master`, exact SHA, HEAD, Working Tree를 다시 확인한다.
-최신 master가 위 SHA와 다르면 **새 SHA를 실제 기준으로 사용**하고 과거 QA evidence를 자동승계하지 않는다.
+이 Central Currentization Overlay가 먼저 적용·Push되었다면 그 successor `master` exact SHA를 실제 개발 시작 기준으로 사용한다. Product Source 차이가 없더라도 Evidence와 결과는 실제 시작 SHA를 기록하고 과거 QA evidence를 자동승계하지 않는다.
 
 ## 1. 최상위 완료 목표
 
@@ -55,13 +56,37 @@
 위 경로의 PDF/DOCX/MD/이미지/README를 생성·수정·이동·삭제하지 않는다.
 Product API/화면/설정 변경으로 문서 영향이 생기면 `DOCUMENT_IMPACT.csv`에 기록만 한다.
 
-### 허용되는 개발 제어 문서
+### 개발 결과 작성 가능 범위
 
-- `cpf-docs/work/**` — 개발 결과, 원장, Evidence
-- `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` — Canonical count/Requirement 정합성 목적
-- Source와 직접 결합된 기술 metadata/catalog/schema는 제품 구현 범위
+- Product Source와 직접 결합된 기술 metadata/catalog/schema
+- 중앙이 지정한 신규 개발 결과 경로(권장 `cpf-docs/work/v9i/dev-final/**`)
+- `PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv`
+- `DOCUMENT_IMPACT.csv`
 
+### 중앙 정본 수정 금지
+
+개발GPT는 다음을 임의 수정하지 않는다.
+
+- `cpf-docs/governance/**`
+- `cpf-docs/work/v9i/final-control/**`
+- `cpf-docs/work/v9i/qa/final-a/**`
+- `cpf-docs/work/v9i/qa/final-b/**`
+- 중앙 Architecture/Specification 제품 계약 정본
+
+정본 문구가 모호하거나 Source/Acceptance와 충돌하면 Product Requirement를 약화하거나 자기 해석으로 고치지 말고
+`PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv`에 document path, section/requirement id, ambiguity, related source/consumer/test,
+developer interpretation, recommended canonical text, impact, severity, basis SHA를 기록한다.
+
+중앙 관리자가 프로젝트 정본을 현행화한다.
 매뉴얼/README는 별도 Documentation Finalization 작업이 처리한다.
+
+## 2-A. 프로젝트 정본 Owner
+
+프로젝트 목표, Canonical Requirement, Governance, Architecture/Specification 제품 계약, Module Ownership,
+Final Control, QA Merge와 정본 간 충돌 판정의 Owner는 **중앙 관리자**다.
+
+개발GPT는 정본 문제를 발견하면 `PROJECT_DOCUMENT_ALIGNMENT_REQUEST.csv`로 보고하고 Final Product Source 개발을 계속한다.
+중앙 정본을 직접 고치거나 현재 Source에 맞춰 Requirement를 약화하지 않는다.
 
 ## 3. Git/삭제 안전
 
@@ -146,25 +171,23 @@ Acceptance:
 
 ### 5.2 Transaction/Logging/Security
 
-1. 외부 trust boundary에서는 inbound transactionId를 내부 ID로 수용하지 않음
-2. trusted internal hop 여부를 Header 문자열만으로 결정하지 않음
-3. 외부 correlation은 별도 안전한 field로 보존 가능
-4. DB transaction summary는 persistence 직전 fail-closed masking
-5. `cpf_transaction_lineage`를 canonical normalized operational projection/index로 확정
-6. 실제 idempotent writer/upsert path 구현
-7. lineage writer는:
-   - transaction
-   - segment/parent
-   - attempt
-   - remote call
-   - message/DLQ
-   - batch execution/step/worker
-   - UNKNOWN/reconcile
-   을 연결
-8. ADM one-shot freshness는 `NOT_APPLICABLE`과 `MISSING/FAILED/STALE`를 구분
+1. **정식 거래 기동 Channel 또는 최초 기동 System은 CPF 규격 transactionId를 최초 1회 생성할 수 있음**
+2. 이후 동일 거래의 Local/Remote/REST/SOAP/Gateway/Message/Async/Retry/Batch/File/UNKNOWN/Reconcile 전체는 같은 transactionId를 승계·보존
+3. System hop이나 Retry마다 새 transactionId 생성 금지; 하위 호출/재시도는 segmentId/parentSegmentId/attempt/traceId/spanId 등으로 구분
+4. transactionId 신뢰 여부를 Header 존재·형식만으로 결정하지 않고 인증된 Channel/System identity, 호출 경로와 trust policy로 검증
+5. 정식 Channel/System transactionId는 검증 후 그대로 수용하고, 비신뢰 Client의 타 거래 ID spoof/replay/manipulation만 차단 또는 신규 거래로 격리
+6. 외부 기관 자체 correlation은 필요 시 별도 field로 보존
+7. DB transaction summary는 persistence 직전 fail-closed masking
+8. `cpf_transaction_lineage`를 canonical normalized operational projection/index로 확정하고 실제 idempotent writer/upsert path 구현
+9. lineage writer는 transaction, segment/parent, attempt, remote, message/DLQ, batch, UNKNOWN/reconcile을 연결
+10. ADM one-shot freshness는 `NOT_APPLICABLE`과 `MISSING/FAILED/STALE`를 구분
 
 Acceptance:
-- spoofed valid 34-char transactionId negative Test
+- 공식 Channel 생성 transactionId가 Backend→Remote→Message→Batch/Async까지 동일하게 유지
+- Retry는 transactionId 동일 + attempt 증가
+- UNKNOWN/Reconcile은 원 transactionId 유지
+- untrusted client의 기존 transactionId replay/spoof는 타 lineage에 편입되지 않음
+- 모든 inbound transactionId를 일괄 재생성하는 구현이 없음
 - malicious raw secret persistence negative Test
 - pure local transaction이 FILE/DLQ 없음 때문에 partial로 표시되지 않음
 - lineage projection이 실제 writer에 의해 채워지고 중복 write가 idempotent

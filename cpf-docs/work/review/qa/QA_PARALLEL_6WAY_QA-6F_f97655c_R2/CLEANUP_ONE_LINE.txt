@@ -1,1 +1,0 @@
-Write-Host '정리 대상 없음: 이 Overlay는 Repository 임시파일을 생성하지 않습니다.'

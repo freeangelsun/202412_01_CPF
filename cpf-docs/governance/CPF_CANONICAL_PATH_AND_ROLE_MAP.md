@@ -1,121 +1,79 @@
 # CPF Canonical Path and Role Map
 
-## 목적
+- 중앙 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+- 목적: 어떤 세션·PC·AI에서도 같은 정본을 찾고 과거 QA/개발 경로를 Current로 복원하지 않게 한다.
 
-회사 Codex, 집 Codex, ChatGPT가 Root 정리 이후 정본을 찾지 못해 과거 경로를 복구하는 일을 막는다.
+## 1. Canonical 위치
 
-## Canonical 위치
-
-| 역할 | 정본 위치 | 비고 |
+| 역할 | 정본 위치 | Owner |
 |---|---|---|
-| 제품 README | `README.md` | Root 유일 문서 |
-| 최종 목표 WIP 정본 | `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` | 최종 제품화 시 영구 Spec에 흡수 후 제거 대상 |
-| Requirement 연속성 | `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md` | ID 삭제/통합 추적 |
-| 현재 전체 작업 요청 | `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` | Codex/ChatGPT 첫 실행 문서 |
-| Continuity State | `cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md` | PC/세션 인수인계 |
-| Decision Log | `cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md` | 장기 Architecture 결정 |
-| Gap/Stabilization | `cpf-docs/work/state/` | 작업 중 상태 정본 |
-| Review/Change Handover | `cpf-docs/work/review/<date_seq>/` | 현재 작업 검수 기록 |
-| Evidence Index | `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md` | 실제 실행 Evidence 인덱스 |
-| 개발/Generator 가이드 | `cpf-docs/development/` | 개발자용 |
-| 운영/설치/복구 가이드 | `cpf-docs/operations/` | 운영자용 |
-| Architecture/Specification | `cpf-docs/architecture/` | 영구 제품 구조/계약 |
-| 제품 Tool/Shell | `cpf-tools/scripts/` | Root `scripts/`를 사용하지 않음 |
-| Gradle Convention Plugin | `cpf-tools/build/gradle-plugin/` | 제품 Runtime과 분리된 추적 대상 격리 Build |
-| Platform BOM | `cpf-tools/build/platform-bom/` | 제품 Runtime과 분리된 추적 대상 격리 Build |
-| DB Source SSOT | `cpf-tools/db/vendor/<vendor>/source/` | Vendor Pack 경계 안의 사람이 수정하는 split SQL/metadata |
-| DB Vendor Pack | `cpf-tools/db/vendor/<vendor>/` | Source·Lifecycle·Runtime·Template을 함께 소유하는 배포/Runtime 선택 Pack |
-| Generated Domain DB Template | `cpf-tools/db/vendor/<vendor>/domain-template/` | 임의 Domain 생성 정본 |
+| 최상위 제품 목표·Canonical 169 | `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` | 중앙 관리자 |
+| Requirement 연속성·Alias | `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md` | 중앙 관리자 |
+| Repository/Module Ownership | `cpf-docs/governance/CPF_REPOSITORY_SURFACE_INDEX.md` | 중앙 관리자 |
+| 문서 정본 Index | `cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md` | 중앙 관리자 |
+| 문서 통제 정책 | `cpf-docs/governance/CPF_DOCUMENT_CONTROL_POLICY.md` | 중앙 관리자 |
+| 현재 Final Cycle 중앙 진입점 | `cpf-docs/work/v9i/final-control/REVIEW_INDEX.md` | 중앙 관리자 |
+| 현재 중앙 Finding/Action | `cpf-docs/work/v9i/final-control/CENTRAL_FINAL_ACTIONS.csv` | 중앙 관리자 |
+| 현재 Product 개발지침 | `cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_FINAL_SOURCE_COMPLETION.md` | 중앙 관리자 |
+| Final QA A | `cpf-docs/work/v9i/qa/final-a/**` | QA A |
+| Final QA B | `cpf-docs/work/v9i/qa/final-b/**` | QA B |
+| Product 개발 결과 | `cpf-docs/work/v9i/dev-final/**` 또는 중앙 지정 stable result path | 개발GPT |
+| Architecture/Specification | `cpf-docs/architecture/**` 및 중앙 지정 Specification 계약 | 중앙 관리자 |
+| Evidence Index | `cpf-docs/evidence/**` 및 current exact-SHA Evidence | 역할별 Owner |
+| Product Tool/Script | `cpf-tools/**` | Product Owner |
+| DB Source SSOT | `cpf-tools/db/vendor/<vendor>/source/**` | DB/Tools |
+| README·Guide·PDF/DOCX | 해당 고객 문서 경로 | Documentation Finalization |
 
-## 이전 경로 → 현재 경로
+`CPF_FINAL_TARGET_REQUIREMENTS.md`는 WIP 임시 문서가 아니라 **최상위 영구 제품 정본**이다.
+다른 영구 Specification에 내용을 반영하더라도 사용자의 명시적 정본 변경 결정 없이 제거하지 않는다.
 
-| 이전 | 현재 | 처리 |
-|---|---|---|
-| `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` | `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` | 이동 |
-| `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` | `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` | 이동 |
-| `cpf-docs/work/state/CPF_GAP_MATRIX.md` | `cpf-docs/work/state/CPF_GAP_MATRIX.md` | 이동 |
-| `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md` | `cpf-docs/work/state/CPF_STABILIZATION_REPORT.md` | 이동 |
-| `cpf-docs/governance/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` | `cpf-docs/work/state/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md` | 이동/최종 흡수 |
-| `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md` | `cpf-docs/evidence/CPF_EVIDENCE_INDEX.md` | 이동 |
-| Root `scripts/*` | `cpf-tools/scripts/*` | Merge 후 Root scripts 삭제 |
-| Root `cpf-gradle-plugin/*` | `cpf-tools/build/gradle-plugin/*` | Build Tooling Owner로 이동 |
-| Root `cpf-platform-bom/*` | `cpf-tools/build/platform-bom/*` | Build Tooling Owner로 이동 |
-| `cpf-tools/db/source/mariadb/*` | `cpf-tools/db/vendor/mariadb/source/*` | 중앙 Vendor Pack 경계의 DB Source SSOT로 이동 |
+## 2. 현재 사용하지 않는 과거 진입점
 
-## DB 수정 절차
+다음 유형은 현재 정본이 아니다.
 
-다음 순서를 거꾸로 하지 않는다.
+- `cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md`
+- `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`
+- QA38/QA39 전용 Request/Report/Backlog
+- `cpf-docs/work/current/CPF_DEVELOPMENT_WORKLIST_V7_1/**`
+- `cpf-docs/work/current/CPF_DEVGPT_CONTROL_V9/**`
+- `cpf-docs/work/codex/qa38/**`
+- 날짜별 과거 Session Handover/Review
 
-```text
-Requirement / Data Model
-→ Canonical Schema / Metadata
-→ Generator / Domain Template
-→ cpf-tools/db/vendor/<vendor>/source
-→ build-all-install-sql
-→ cpf-tools/db/vendor/<vendor>
-→ migration/rollback
-→ Mapper/Repository
-→ Service/API/UI
-→ Test/Runtime/Evidence
-```
+유효 결론은 Canonical/Final Control에 흡수하고, 과거 파일은 Git History로 보존한 뒤 exact Manifest로 제거한다.
 
-Generated Domain DB는 별도로 `domain-template`이 정본이다.
+## 3. 역할 경계
 
-## Codex/ChatGPT 시작 순서
+### 중앙 관리자
+프로젝트 목표, Requirement, Architecture 계약, Module Ownership, 문서 정본, QA A/B Merge, Current Control, 역할 경계와 충돌 판정을 관리한다.
 
-```text
-git status
-→ HEAD/origin/master
-→ Final Target
-→ Requirement Continuity Ledger
-→ Current Work Request
-→ Decision Log
-→ Continuity State
-→ Path/Role Map
-→ 최신 Review/Handover
-→ Source/Diff/Evidence
-```
+### Product Developer GPT
+정본에 따라 Source/SQL/API/SPI/Test/Config/Frontend/Generator/Runtime Gate를 구현하고 자기 결과/Evidence만 기록한다.
+정본 모호성은 Alignment Request로 보고하고 중앙 정본을 임의 수정하지 않는다.
 
-옛 Root 경로가 없다는 이유로 파일을 새로 만들거나 복구하지 않는다.
+### QA A / QA B
+동일 전체 범위를 독립 전수검수한다.
+상대 QA나 개발GPT의 PASS를 승계하지 않고, 중앙 정본의 모순도 Finding으로 올린다.
 
-## 2026-08-02 추가 정본 경로
+### Documentation Finalization
+`README.md`, 공식 Guide, 고객 PDF/DOCX 산출물의 내용·한글화·시각 편집을 담당한다.
+Product Source를 수정하지 않는다.
 
-| 역할 | 정본 위치 | 규칙 |
-|---|---|---|
-| Starter Architecture | `cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md` | Leaf/Profile/Aggregate/BOM과 Core 이동 경계 |
-| Active integrated development | `cpf-docs/work/current/CPF_20260802_05_POST_QA37_INTEGRATED_DEVELOPMENT_REQUEST.md` | QA37 이후 단일 통합 Backlog |
-| Next Codex entry | `cpf-docs/work/codex/qa38/CODEX_START_HERE.md` | 과거 PASS 재사용 조건과 Stage 재개 |
-| Codex current state | `cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md` | Push 후 최신 SHA와 미검증 상태 |
-| DB Fresh lifecycle | `cpf-tools/db/cpf-db-lifecycle-contract.json` + Canonical/Generator | Vendor별 초기 Object 0에서 시작 |
-| Starter Profile catalog target | `cpf-tools/generator/`의 versioned capability catalog | `resolvedStarters`를 Domain Manifest에 고정 |
+## 4. Root/Module Ownership
 
-DB Source 수정 순서는 `Canonical Schema/Metadata/Runtime Contract → Generator → Vendor Source → Lifecycle Pack → Consumer/Test`다.
+- `cpf-core`: topology-independent 기술 핵심 계약
+- `cpf-common`: 고객 업무 공통
+- `cpf-admin`: 플랫폼 운영·관리 Product
+- `cpf-biz-admin`: 고객 업무 관리자 Product
+- `cpf-batch`: Batch·Worker·Scheduler·Center-Cut Runtime
+- `cpf-gateway`: Gateway Runtime
+- `cpf-reference`: Adopter Public API/SPI/Extension/EDU Example
+- `cpf-member`: Generator Golden Generated Domain
+- `cpf-starters`: 선택 Provider/AutoConfiguration/Library Artifact
+- `cpf-tools`: Build/Generator/DB/Verification/Supply-chain
 
-## 타 GPT 전담 보호 경로
+역방향·순환 의존, 외부 Module의 Internal Package 참조, Public BOM의 Internal Leaf 노출을 금지한다.
 
-다음 경로는 Read Only다.
+## 5. 시작 규칙
 
-```text
-cpf-docs/deliverables/**
-cpf-docs/guides/**
-cpf-docs/environment/docker/**
-cpf-tools/environment/docker-development-test/**
-```
-
-이 작업과 다음 Codex 작업은 해당 경로를 참조할 수 있지만 수정·추가·삭제·이동·이름 변경·자동 포맷·일괄 치환·Stage하지 않는다.
-변경 필요성이 발견되면 실제 파일을 건드리지 않고 담당 GPT용 영향도와 작업요건만 기록한다.
-Overlay·Delete Manifest·Cleanup 대상에도 포함하지 않는다.
-
-<!-- CPF_QA38_STABLE_PATHS_START -->
-## QA38 Stable Paths
-| 역할 | 경로 |
-|---|---|
-| Current | `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` |
-| Detailed | `cpf-docs/work/current/CPF_QA38_FINAL_DEVELOPMENT_REQUIREMENTS.md` |
-| Requirement | `cpf-docs/quality/CPF_QA38_FINAL_REQUIREMENT_MATRIX.csv` |
-| Scenario | `cpf-docs/quality/CPF_QA38_FINAL_SCENARIO_MATRIX.csv` |
-| Starter Review | `cpf-docs/work/review/CPF_QA38_STARTER_INDEPENDENT_REVIEW.md` |
-| Codex | `cpf-docs/work/codex/qa38/CODEX_START_HERE.md` |
-| History | `cpf-docs/work/history/CPF_QA37_TO_QA38_CONSOLIDATED_HISTORY.md` |
-| Handover | `cpf-docs/work/handover/CPF_QA38_HANDOVER.md` |
-<!-- CPF_QA38_STABLE_PATHS_END -->
+새 Developer/QA/Codex/중앙 세션은 과거 Handover를 먼저 찾지 않는다.
+항상 `CPF_DOCUMENT_CANONICAL_INDEX.md` → Final Target → `work/v9i/final-control/REVIEW_INDEX.md` 순서로 시작하고 최신 `origin/master` exact SHA를 확인한다.

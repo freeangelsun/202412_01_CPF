@@ -1,1 +1,0 @@
-Set-Location "C:\dev\projects\jck\202412_01_CPF"; Write-Host "정리 대상 없음"; git diff --check; if($LASTEXITCODE-ne 0){throw "git diff --check 실패"}; git -c core.quotepath=false status --short --branch

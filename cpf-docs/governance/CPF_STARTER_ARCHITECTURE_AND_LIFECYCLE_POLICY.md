@@ -1,11 +1,11 @@
 # CPF Starter Architecture·Lifecycle 정책
 
 - 기준 Repository: `freeangelsun/202412_01_CPF`
-- 분석 기준 Branch/SHA: `master` / `38089a96e3f4c7c2ba05cda549785b47f67cd462`
+- 중앙 정책 현행화 기준 Branch/SHA: `master` / `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 - 적용 Root: `cpf-starters`
 - Root 분류: `FIXED_PRODUCT_CONTAINER`
 - Architecture 방향: **Lightweight Core + Explicit Opt-in Starter**
-- 현재 상태: `development_status = 부분 구현`, `verification_status = 재확인 필요`
+- 상태 판정: 이 정책 파일에 고정하지 않으며 current exact-SHA Source, Final QA와 Runtime Evidence에서 `development_status` / `verification_status`를 별도 판정한다.
 
 ## 1. 제품 원칙
 

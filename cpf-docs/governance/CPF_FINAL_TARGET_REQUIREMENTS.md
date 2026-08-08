@@ -230,7 +230,11 @@ Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 �
 
 - 거래 실행 인스턴스 ID는 `transactionId` 하나다.
 - 기본 생성 규격은 `yyyyMMddHHmmssSSS(17)+SystemCode(3)+wasId(7)+sequence(7)`의 34자리다.
-- Local/Remote/Async/Retry/Batch/File 후속 처리는 동일 transactionId를 사용하고 호출 계층은 segmentId/parentSegmentId/attempt로 구분한다.
+- **정식 거래 기동 Channel 또는 최초 기동 System은 CPF 규격의 transactionId를 최초 1회 생성할 수 있다.**
+- 이후 Local/Remote/REST/SOAP/Gateway/Message/Async/Retry/Batch/File/UNKNOWN/Reconcile 등 동일 거래의 모든 참여 구간은 **동일 transactionId를 End-to-End로 승계·보존**하며, System hop이나 재시도마다 새 transactionId를 만들지 않는다.
+- 하위 호출·병렬 호출·재시도는 `segmentId`, `parentSegmentId`, `attempt`, `traceId`, `spanId` 등 세부 실행 식별자로 구분한다.
+- 정식 거래 기동 Channel/System이 생성한 transactionId와 비신뢰 Client가 임의 주입·변조·재사용한 transactionId를 구분한다.
+- transactionId의 신뢰 여부를 Header 존재나 형식 적합성만으로 판단하지 않고 인증된 Channel/System identity, 호출 경로와 trust policy를 함께 검증한다.
 - Client가 보낸 내부 Header, principal, environment, instance ID를 무조건 신뢰하지 않는다.
 - 오류는 code, message, field/offset, retryability, failure stage, unknown-result 여부와 operator guidance를 가져야 한다.
 - pre-execution failure, side-effect confirmed failure, success, stopped, retryable failure와 unknown result를 구분한다.
@@ -248,7 +252,8 @@ Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 �
 - 하위 호출은 `segmentId`, `parentSegmentId`, `attempt`, `traceId`, `spanId`로 계층과 재시도를 구분한다.
 - Batch 전환 시 `jobId/jobInstanceId/jobExecutionId/stepExecutionId/partitionId/itemId/agentId/workerId`와 원 `transactionId/requestId`를 연결한다.
 - 외부 연계는 destination/service/operation/requestId/attempt/timeout/result/error를 거래 계보에 연결한다.
-- Client가 임의 입력한 내부 transaction/instance/security header를 신뢰하지 않고 trust boundary에서 검증·재생성 정책을 적용한다.
+- 정식 거래 기동 Channel/System이 생성하거나 신뢰된 내부 호출 체인에서 승계된 transactionId는 End-to-End로 유지한다.
+- 비신뢰 Client의 내부 transaction/instance/security context 주입·변조·replay는 trust boundary에서 차단하거나 정책에 따라 별도 신규 거래로 격리하며, 이 경우 외부 correlation 정보는 내부 transactionId와 분리해 보존할 수 있다.
 
 #### 표준 로그 필드
 
@@ -655,7 +660,7 @@ Evidence 최소 필드:
 - Canonical Count 감소는 Continuity Mapping으로 완전히 설명돼야 한다.
 - 새 요구는 `REQ-GAP` 절차로 기존 ID와 중복을 먼저 검사한다.
 
-현재 Canonical Requirement Count는 **162개**이며, 아래 Catalog가 각 ID의 최소 제품 의미와 완료 증명을 정의한다.
+현재 Canonical Requirement Count는 **169개**이며, 아래 Catalog가 각 ID의 최소 제품 의미와 완료 증명을 정의한다.
 
 ## 22. 상세 Requirement Catalog
 
@@ -677,7 +682,7 @@ Evidence 최소 필드:
 | `CPF-HEALTH` | cpf-core / repository architecture | liveness·readiness·startup·dependency·business readiness를 구분하고 service identity·build SHA·schema version까지 검증 가능한 health 계약을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-HEADER` | cpf-core / repository architecture | 표준/확장 Header의 이름·형식·신뢰경계·생성자·전파·masking·최대크기·호환성을 정본화하고 spoofing을 차단한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-CONTEXT` | cpf-core / repository architecture | transaction, trace, segment, caller, principal, environment, channel, deadline, attempt context를 동기·비동기·Batch 전 구간에 보존한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
-| `CPF-TXID` | cpf-core / repository architecture | 34자리 transactionId 단일 정본을 생성·검증·승계하며 Local/Remote/Async/Batch/File/Log/ADM Timeline이 같은 값을 사용한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
+| `CPF-TXID` | cpf-core / repository architecture | 정식 거래 기동 Channel/System이 34자리 transactionId를 최초 생성할 수 있고 이후 Local/Remote/REST/SOAP/Gateway/Message/Async/Retry/Batch/File/UNKNOWN/Reconcile/Log/ADM Timeline 전체가 같은 transactionId를 승계한다. 비신뢰 주체의 사칭·변조·replay는 인증된 Channel/System identity와 trust policy로 차단한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-ROLE` | cpf-core / repository architecture | transaction role, direction, source/target, caller/receiver 관계를 표준 Context·Log·Audit에 일관되게 기록한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-ERROR` | cpf-core / repository architecture | 표준 오류 코드·HTTP/Protocol mapping·retryability·unknown-result·field error·operator message를 버전 가능한 계약으로 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |
 | `CPF-VALID` | cpf-core / repository architecture | 입력·출력·설정·Header·파일·메시지·SQL parameter 검증과 오류 위치, allowlist, 크기·깊이·개수 상한을 제공한다. | ArchUnit/Build graph, Published API 소비 Test, Local·Remote parity, 오류·동시성·fault Runtime Evidence |

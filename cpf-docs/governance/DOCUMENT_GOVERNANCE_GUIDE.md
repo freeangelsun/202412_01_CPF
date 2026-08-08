@@ -1,5 +1,7 @@
 # CPF Document Governance Guide
 
+- 중앙 정책 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+
 ## 1. 정본 원칙
 
 - Root `README.md`: 유일한 제품 README
@@ -19,7 +21,9 @@
 
 ## 3. 작성 시점
 
-구현이 변하는 동안 Markdown을 정본으로 사용합니다. DOCX/PDF는 기능, API, SQL, UI와 구조가 안정된 최종 제품화 단계에서 생성합니다.
+프로젝트 목표·Governance·Architecture·Requirement·Current Control 같은 **프로젝트 통제 문서**는 Markdown 정본을 사용할 수 있습니다.
+
+반면 공식 고객 Guide는 `cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md`의 최종 형식 정책을 따릅니다. 현재 Final 단계에서 공식 Guide의 인도 형식은 DOCX/PDF이며, README는 Markdown 정본으로 유지합니다. 고객 Guide Authoring Markdown의 보존/삭제는 Documentation Finalization에서 해당 표준과 Delete Manifest에 따라 처리합니다.
 
 ## 4. Source 정합성
 
@@ -39,4 +43,6 @@ Generated Matrix는 Script, Tool Version과 기준 Commit을 포함합니다. Ev
 
 ## 7. Root 정리
 
-Work Request, Gap, Stabilization, Evidence Index는 최종적으로 `cpf-docs/work`, `review`, `governance`, `evidence`의 정본 위치로 이동합니다. 이동은 단순 파일 이동이 아니라 모든 Script/Gradle/CI Link를 함께 보정한 뒤 수행합니다.
+Current Project Control은 `cpf-docs/work/v9i/final-control/**`의 안정된 진입점으로 수렴합니다. 날짜·QA 번호·세션별 과거 Work/Review 복제본은 유효 결론을 Current Canonical에 흡수한 뒤 Git History로 보존하고 exact Delete Manifest로 Working Tree에서 제거합니다.
+
+경로 이동·삭제가 필요한 경우 Script/Build/CI/Canonical Link를 함께 검토하며, 중앙 관리자가 Current/History 경계를 판정합니다.

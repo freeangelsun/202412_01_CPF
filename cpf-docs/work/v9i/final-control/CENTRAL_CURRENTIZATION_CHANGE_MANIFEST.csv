@@ -1,0 +1,29 @@
+﻿path,action,summary,basis_sha
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,UPDATE,169 count + official channel transactionId origin/propagation/trust-boundary clarification,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,UPDATE,replace QA38/current stale entry points with final-control,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_DOCUMENT_CONTROL_POLICY.md,UPDATE,central ownership/current control/garbage policy,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,UPDATE,permanent Final Target + current stable paths + strict roles,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md,UPDATE,strict role separation and final full-audit continuity,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md,UPDATE,162→169 stale sentence; remove QA38 currentization tail,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_REPOSITORY_SURFACE_INDEX.md,UPDATE,currentization provenance and cpf-docs ownership,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/CENTRAL_FINAL_ACTIONS.csv,UPDATE,CENTRAL-FINAL-001/006 corrected,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/CENTRAL_QA_MERGE_REPORT.md,UPDATE,transactionId and central ownership decision corrected,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/ROLE_BOUNDARY.md,UPDATE,central project-doc ownership,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/REVIEW_INDEX.md,UPDATE,current stable read order/currentization/cleanup,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-dev-request/CPF_DEVGPT_FINAL_SOURCE_COMPLETION.md,UPDATE,transactionId correction + developer canonical no-write boundary,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/PROJECT_CONTROL_DELETE_MANIFEST.csv,ADD,874 exact stale project-control/history file paths,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/PROJECT_CONTROL_EMPTY_DIR_MANIFEST.csv,ADD,71 exact empty-dir cleanup candidates,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/PROJECT_CONTROL_CLEANUP_ONE_LINE.ps1.txt,ADD,safe exact-manifest PowerShell cleanup one-line,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/PROJECT_CONTROL_CLEANUP_REVIEW.md,ADD,cleanup scope and retained areas,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/APPLY_PROJECT_CONTROL_CLEANUP.ps1,ADD,executable exact-manifest cleanup script; no wildcard/recursive directory deletion,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_GENERATED_DOMAIN_LIFECYCLE_POLICY.md,UPDATE,currentization provenance and no fixed stale implementation status,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_NO_PARTIAL_IMPLEMENTATION_COMPLETION_STANDARD.md,UPDATE,162→169 and current basis,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_OSS_LICENSE_AND_SUPPLY_CHAIN_STANDARD.md,UPDATE,current Final Target/currentization basis,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_REPOSITORY_SOURCE_ACCESS_GOVERNANCE.md,UPDATE,currentization basis,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_REPOSITORY_TEAM_PERMISSION_MATRIX.md,UPDATE,currentization basis,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_REVIEW_PROGRESS_COMPLETION_GUIDE.md,UPDATE,162→169 canonical denominator,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md,UPDATE,remove stale fixed status and currentize policy basis,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/CPF_VERIFICATION_GATE_LIFECYCLE_POLICY.md,UPDATE,actual current workflows and legacy gate dependency policy,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/governance/DOCUMENT_GOVERNANCE_GUIDE.md,UPDATE,central current control + customer-document format separation,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/GOVERNANCE_CURRENTIZATION_AUDIT.md,ADD,top-level governance currentization audit,4870b20733875c3955f93846307fa5041e6f6c22
+cpf-docs/work/v9i/final-control/VERIFY_CENTRAL_CURRENTIZATION.ps1,ADD,low-cost currentization/protected-path/stale-control gate,4870b20733875c3955f93846307fa5041e6f6c22

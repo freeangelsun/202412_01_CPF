@@ -1,6 +1,0 @@
-change_type,path,summary
-MODIFY,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv,대용량 단일 CSV를 삭제하지 않고 분할 Part 인덱스 CSV로 대체
-ADD,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/,Requirement 전체 행을 45MB 미만 Part로 분할
-MODIFY,cpf-docs/work/current/CPF_SCENARIO_MASTER.csv,대용량 단일 CSV를 삭제하지 않고 분할 Part 인덱스 CSV로 대체
-ADD,cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/,Scenario 전체 행을 45MB 미만 Part로 분할
-ADD,cpf-docs/work/current/CPF_SPLIT_MASTER_DATASET_GUIDE.md,분할 원장 해석·검증·갱신 규칙

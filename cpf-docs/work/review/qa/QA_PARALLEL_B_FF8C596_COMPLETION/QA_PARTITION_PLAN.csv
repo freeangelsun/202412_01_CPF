@@ -1,4 +1,0 @@
-plan_version,plan_status,baseline_sha,partition_id,logical_start,logical_end,requirement_count,first_requirement_id,last_requirement_id,scenario_assignment_rule,notes
-QA-MANAGER-ASSIGNMENT-20260804,MANAGER_ASSIGNED_PENDING_LEDGER_VALIDATION,ff8c596042583eba665a5475b1c3e43d2ef39ba6,QA-A,1,9650,9650,CPF-FR-000001,CPF-FR-009650,linked_requirement_partition,QA 관리자 배정 경계; actual ledger validation required
-QA-MANAGER-ASSIGNMENT-20260804,MANAGER_ASSIGNED_PENDING_LEDGER_VALIDATION,ff8c596042583eba665a5475b1c3e43d2ef39ba6,QA-B,9651,19612,9962,CPF-FR-009651,CPF-FR-019612,linked_requirement_partition,현재 세션 배정; actual ledger validation required
-QA-MANAGER-ASSIGNMENT-20260804,MANAGER_ASSIGNED_PENDING_LEDGER_VALIDATION,ff8c596042583eba665a5475b1c3e43d2ef39ba6,QA-C,19613,30558,10946,,,linked_requirement_partition,Requirement IDs are not assumed to equal logical ordinals; derive boundaries from actual ledger

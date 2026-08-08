@@ -1,8 +1,0 @@
-change_type,path,summary
-MODIFY,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv,8MB Requirement Part 인덱스
-REPLACE,cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/,Requirement 전체 재분할
-MODIFY,cpf-docs/work/current/CPF_SCENARIO_MASTER.csv,8MB Scenario Part 인덱스
-REPLACE,cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/,Scenario 전체 재분할
-MODIFY,cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv,8MB Execution Sequence Part 인덱스
-ADD,cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/,Execution Sequence 전체 분할
-MODIFY,cpf-docs/work/current/CPF_SPLIT_MASTER_DATASET_GUIDE.md,3개 논리 원장 해석 규칙

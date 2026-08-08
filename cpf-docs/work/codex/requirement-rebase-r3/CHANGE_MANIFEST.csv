@@ -1,8 +1,0 @@
-﻿path,change_type,summary,baseline_sha
-cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv,ADD,R3 기능 Requirement·Phase·선행관계·상태 원장,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_SCENARIO_MASTER.csv,ADD,R3 실행 Scenario·Phase 순서 원장,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv,ADD,Requirement 실행 순서·Work Package,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_PHASE_GATE_REGISTER.csv,ADD,P00~P15 Gate,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_COVERAGE_CLOSURE_MATRIX.csv,ADD,최종 Inventory Closure,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv,ADD,과거·현재 Source 현행화 범위,4aea798c913787e86341809e2cef2b9495cbf7ba
-cpf-docs/work/current/CPF_REQUIREMENT_CONTROL_REGISTER.xlsx,ADD,관리 Workbook,4aea798c913787e86341809e2cef2b9495cbf7ba

@@ -1,1 +1,0 @@
-$z=Get-ChildItem "$env:USERPROFILE\Downloads" -File -Filter "CPF_DEVGPT-6D_09dd686_ROOT_OVERLAY*.zip" | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if(-not $z){throw "Overlay ZIP을 찾을 수 없습니다."}; Expand-Archive -LiteralPath $z.FullName -DestinationPath (Get-Location) -Force

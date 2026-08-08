@@ -1,3 +1,0 @@
-﻿request_id,requester,target_roles,path,finding_ids,reason,requested_action,status,baseline_sha
-QA-B-XP-001,QA-B,개발GPT;Codex;독립QA,cpf-batch/control-server/src/main/java/com/cpf/batch/control/compat/CpfBatchRiskCommandCoordinator.java,QA-B-DEF-003,Shared BAT risk-command contract and consumer error mapping,Review patch; run Gradle/JDBC/HTTP consumer tests; reconcile ownership,OPEN,ff8c596042583eba665a5475b1c3e43d2ef39ba6
-QA-B-XP-002,QA-B,개발GPT;Codex;독립QA;DBA,cpf-tools/db/vendor/mariadb/rollback/R100__bat_operation_request_ledger.sql,QA-B-DEF-004,Vendor rollback/retry lifecycle,Run real MariaDB fail/export/retry/reapply and preserve logs,OPEN,ff8c596042583eba665a5475b1c3e43d2ef39ba6

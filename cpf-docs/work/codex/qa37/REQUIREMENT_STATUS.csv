@@ -1,7 +1,0 @@
-requirement_scope,development_status,verification_status,evidence
-Root Build Recovery,미구현,실패,latest root build equals BZA build
-Included Build Closure,미구현,실패,settings reference missing paths
-EDU 32,재확인 필요,미검증,development verifier release=False
-Manual EDU 135,미구현,미검증,requirement document only
-Docker Runtime,미구현,미검증,no latest exact-SHA runtime
-Codex Review,대기,미검증,deferred until QA37 push

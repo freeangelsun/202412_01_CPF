@@ -1,2 +1,0 @@
-# QA36 Delete Manifest
-# 정리 대상 없음. fresh-clone filesystem scan 전에는 삭제하지 않는다.

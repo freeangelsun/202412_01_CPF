@@ -1,5 +1,7 @@
 # CPF Review / Progress / Completion Guide
 
+- 중앙 정책 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+
 ## 1. 판정 상태
 
 허용 상태는 `완료 / 부분 구현 / 미구현 / 미검증 / 실패 / 재확인 필요`뿐이다.
@@ -15,7 +17,7 @@ Requirement는 Source/Class가 있다는 이유로 완료하지 않는다. 적�
 ## 3. Requirement 연속성
 
 - Canonical Requirement ID는 Mapping 없이 삭제/rename하지 않는다.
-- 기준 Catalog는 162 canonical + 8 legacy alias다.
+- 기준 Catalog는 **169 canonical + 8 legacy alias**다. Legacy Alias는 Canonical 169에 추가 집계하지 않는다.
 - Alias는 완료율에 중복 집계하지 않는다.
 - Merge/Split/Supersede는 `cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md`에 기록한다.
 - Count 감소는 명시적 폐기 승인 또는 Mapping 없이는 허용하지 않는다.

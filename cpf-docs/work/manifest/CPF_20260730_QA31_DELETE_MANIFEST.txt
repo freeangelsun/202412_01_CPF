@@ -1,5 +1,0 @@
-cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayAuthorizationPort.java
-cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRoute.java
-cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalog.java
-cpf-core/src/main/java/com/cpf/core/common/gateway/CpfGatewayRouteProviderAdapter.java
-cpf-core/src/test/java/com/cpf/core/common/gateway/CpfGatewayRouteCatalogTest.java

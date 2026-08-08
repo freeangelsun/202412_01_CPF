@@ -1,7 +1,8 @@
 # CPF Generated Domain Lifecycle 정책
 
-- 기준 SHA: `1eda8e12fe123281748a4388938c62f11819da1e`
-- 대상: `cpf-member`와 향후 `cpf-<domain>` 업무영역
+- 중앙 정책 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+- 대상: `cpf-member`와 Generator로 생성되는 `cpf-<domain>` 업무영역
+- 구현·Runtime 완료 여부는 이 정책의 고정 상태값이 아니라 current exact-SHA Source/Evidence에서 판정한다.
 
 ## 1. 생성 원칙
 

@@ -1,8 +1,8 @@
 # CPF 부분 구현 금지 및 완료 판정 표준
 
-> Canonical path: `cpf-docs/governance/CPF_NO_PARTIAL_IMPLEMENTATION_COMPLETION_STANDARD.md`  
-> Final Target synchronization: `2026-07-31`  
-> Review baseline: `c1f273f1ea4fafac6fd5d23bd837adfc38a04497`
+> Canonical path: `cpf-docs/governance/CPF_NO_PARTIAL_IMPLEMENTATION_COMPLETION_STANDARD.md`
+> Final Target synchronization: `2026-08-08`
+> Central currentization basis: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 
 ## 1. 목적
 
@@ -45,7 +45,7 @@ Final Target의 해당 Requirement 행에 정의된 최소 제품 목표와 필�
 
 ### 3.3 GA 완료
 
-Final Target의 **Canonical 162개 Requirement**와 최종 제품화 Gate가 모두 완료되어야 한다. QA 패키지 하나가 끝났다는 이유로 GA를 선언하지 않는다.
+Final Target의 **Canonical 169개 Requirement**와 최종 제품화 Gate가 모두 완료되어야 한다. QA 패키지 하나가 끝났다는 이유로 GA를 선언하지 않는다.
 
 ## 4. 공통 완료 축
 

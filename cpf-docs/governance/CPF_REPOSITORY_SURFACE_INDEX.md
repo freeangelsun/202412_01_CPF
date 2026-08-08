@@ -1,6 +1,6 @@
 # CPF Repository Surface와 Root Ownership
 
-- 기준 SHA: `1eda8e12fe123281748a4388938c62f11819da1e`
+- 중앙 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 - 목적: Repository Root에 무엇이 존재해야 하는지, 누가 소유하는지, 새 Root를 어떻게 승인하는지 정의한다.
 
 ## 1. Root Surface
@@ -18,7 +18,7 @@
 | `cpf-member` | GENERATED_DOMAIN | Generator Golden Reference Instance | Generator/Reference | 유지 |
 | `cpf-starters` | FIXED_PRODUCT_CONTAINER | 선택 기술 Adapter·AutoConfiguration·독립 Library JAR | Starter Platform | **정식 유지** |
 | `cpf-tools` | FIXED_PRODUCT_CONTAINER | Build·Generator·DB·검증·Supply-chain 도구 | Tools | 유지 |
-| `cpf-docs` | DOCUMENTATION | Requirement·Architecture·Guide·Evidence·Work | Documentation/QA | 유지 |
+| `cpf-docs` | DOCUMENTATION | Requirement·Architecture·Guide·Evidence·Work | Project Canonical=중앙 관리자 / 고객문서=Documentation / QA Evidence=QA | 유지 |
 | `gradle` | BUILD_CONFIG | Wrapper·Stack·Version 설정 | Build | 유지 |
 
 `cpf-starters`는 Generated Domain이 아니다. 하위 Starter는 독립 Artifact이며 Product/Domain이 필요한 것만 선택한다.

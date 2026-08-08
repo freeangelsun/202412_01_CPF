@@ -1,9 +1,0 @@
-path,purpose,requirement,impact
-cpf-docs/work/review/CPF_20260801_QA37_PRE_DEVELOPMENT_REVIEW.md,latest master independent pre-review,QA37-REQ-001~010,HIGH
-cpf-docs/work/current/CPF_20260801_QA37_EDU_SOURCE_CLOSURE_AND_RECOVERY_REQUEST.md,integrated development request,QA37-REQ-001~064,CRITICAL
-cpf-docs/work/current/CPF_20260801_QA37_SELF_DEVELOPMENT_REQUIREMENTS.md,self development baseline,QA37-REQ-001~064,HIGH
-cpf-docs/quality/CPF_20260801_QA37_REQUIREMENT_MATRIX.csv,detailed requirements and acceptance,QA37-REQ-001~064,CRITICAL
-cpf-docs/work/current/CPF_20260801_QA37_DEVELOPMENT_GPT_PROMPT.md,copy-paste execution prompt,QA37-REQ-001~064,HIGH
-cpf-docs/work/review/CPF_20260801_QA37_POST_REVIEW.md,latest checkpoint independent result,QA37-REQ-001~010,HIGH
-cpf-docs/work/handover/CPF_CONVERSATION_SESSION_HANDOVER_20260801_SESSION8.md,next session continuity,QA37-REQ-001~064,HIGH
-cpf-docs/work/review/CPF_20260801_QA37_SOURCE_EVIDENCE_INDEX.csv,source evidence index,QA37-REQ-001~010,HIGH

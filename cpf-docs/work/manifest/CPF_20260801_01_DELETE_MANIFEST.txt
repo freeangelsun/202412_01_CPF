@@ -1,2 +1,0 @@
-# No tracked file is authorized for automatic deletion by this overlay.
-# README and README-linked Manual/Guide are protected and must not be deleted or overwritten.

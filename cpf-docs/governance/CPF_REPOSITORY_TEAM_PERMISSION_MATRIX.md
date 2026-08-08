@@ -1,5 +1,7 @@
 # CPF Repository Team / Permission Matrix
 
+- 중앙 정책 현행화 기준 SHA: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
+
 | Role | Source | Merge | Release/Artifact | Production Deploy | Approval |
 |---|---|---|---|---|---|
 | Platform Core Maintainer | Core/Common read-write | Core PR approve | no production promotion | no | architecture owner |

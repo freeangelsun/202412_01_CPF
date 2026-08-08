@@ -1,2 +1,0 @@
-﻿request_id,request_session,target_session,requirement_ids,path,defect,required_contract,regression_command,expected_result,evidence
-QA6E-X001,QA-6E,개발GPT·Codex ADM Frontend 교차검토,CPF-FR-018338;CPF-FR-018350,cpf-admin/frontend/src/app/methods/referenceMethods.ts,Notification action 3개 누락,상세조회·신규 안전 기본값·선택 Rule 수정 동작과 기존 action 회귀 0,npm --prefix cpf-admin/frontend run typecheck; npm --prefix cpf-admin/frontend test -- referenceMethods.notification.test.ts,TypeScript/Vitest PASS,cpf-docs/evidence/qa/QA_PARALLEL_6WAY_QA-6E_f97655c/PATCH_STATIC_CONTRACT_CHECK.json

@@ -1,3 +1,0 @@
-﻿path,change_type,related_requirement_ids,reason
-cpf-docs/work/review/qa/QA_PARALLEL_12WAY_QA-12E_f97655c/REQUIREMENT_STATUS.csv,ADD,CPF-FR-012539;CPF-FR-012541;CPF-FR-012542;CPF-FR-012543;CPF-FR-012544;CPF-FR-012545;CPF-FR-012547,QA-12E non-final checkpoint; 7 individually opened requirements recorded as environment-difference unverified
-cpf-docs/evidence/qa/QA_PARALLEL_12WAY_QA-12E_f97655c/QA12E_CHECKPOINT_EVIDENCE.md,ADD,CPF-FR-012539;CPF-FR-012541;CPF-FR-012542;CPF-FR-012543;CPF-FR-012544;CPF-FR-012545;CPF-FR-012547,"Exact-SHA source identity, boundary verification, commands, failures and rerun conditions"

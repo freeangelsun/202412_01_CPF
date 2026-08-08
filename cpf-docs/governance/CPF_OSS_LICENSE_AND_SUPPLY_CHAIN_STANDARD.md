@@ -1,8 +1,8 @@
 # CPF OSS 라이선스·공급망 표준
 
-> Canonical path: `cpf-docs/governance/CPF_OSS_LICENSE_AND_SUPPLY_CHAIN_STANDARD.md`  
-> Final Target synchronization: `2026-07-31`  
-> Review baseline: `c1f273f1ea4fafac6fd5d23bd837adfc38a04497`
+> Canonical path: `cpf-docs/governance/CPF_OSS_LICENSE_AND_SUPPLY_CHAIN_STANDARD.md`
+> Final Target synchronization: `2026-08-08`
+> Central currentization basis: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 
 ## 1. 목적
 

@@ -1,2 +1,0 @@
-command=npx tsc -p tsconfig.json --pretty false
-exit_code=0

@@ -1,9 +1,0 @@
-﻿finding_id,priority,finding,paths,evidence,status
-QA37-FIND-001,P0,Root build.gradle equals BZA build.gradle,build.gradle; cpf-biz-admin/build.gradle,blob fdbb273124e280596a1b8d2aae3842a4e8948c89,실패
-QA37-FIND-002,P0,settings.gradle dangling includeBuild,settings.gradle; cpf-tools/build/gradle-plugin; cpf-tools/build/platform-bom,latest included source missing,실패
-QA37-FIND-003,P0,EDU dev gate does not resolve files,cpf-tools/scripts/verify-cpf-edu-executable-coverage.py,resolve only inside release block,실패
-QA37-FIND-004,P0,EDU evidence release=False,CPF_20260801_01_LOCAL_STATIC_VERIFICATION.sanitized.json,edu-coverage PASS release=False,재확인 필요
-QA37-FIND-005,P0,Evidence SHA stale,Current Request/Completion/Evidence,19dd72b vs latest 23a16f3; resultSha null,실패
-QA37-FIND-006,P1,README/Guide protected boundary mismatch,README.md; cpf-docs/guides/*,blob changed while report says unchanged,실패
-QA37-FIND-007,P0,Manual EDU 135 not in completed scope,CPF_CUSTOMER_MANUAL_EDU_IMPLEMENTATION_REQUIREMENTS.md,135 input added; current request still 115,미구현
-QA37-FIND-008,P1,latest runtime CI evidence absent,GitHub commit status/workflow,no result returned,미검증

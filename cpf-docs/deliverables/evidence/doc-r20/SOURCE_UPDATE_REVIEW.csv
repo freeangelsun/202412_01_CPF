@@ -1,8 +1,0 @@
-item,basis,result,document_action
-latest_master,cd5baccb02245a980e5998aa0dc9bac579fc019f 07_04,CONFIRMED,13 PDF/DOCX와 문서표준 기준 SHA 반영
-07_03_to_07_04_delta,c0e4d9c9447ef6fb34c3ac2917a5e82a68a6f18e -> cd5baccb02245a980e5998aa0dc9bac579fc019f,POLICY_QA_ONLY,전체 100% Finalization Mandate와 Scope Correction 반영
-product_source_qa_basis,3ed676061246c9db3e44f29e254c0393ecca3929 07_02,UNCHANGED_R6J_BASIS,Product Source 재개발이 후속 SHA에서 검증되기 전 RELEASE_BLOCKED 유지
-r6j_scope,Requirement 93 + Finding 56 + known direct rework 34,WHOLE_PROJECT_SCOPE,34개를 전체 개발 Scope로 오해하지 않도록 모든 문서에 보정
-readme_surface,README.md at cd5baccb,PDF_LINKS_CONFIRMED,README는 변경하지 않고 8 Guide와 5 설계 PDF 진입점 유지
-legacy_authoring_md,Guide 8 + deliverable 5 authoring md,PENDING_DELETE,DELETE_MANIFEST exact path 적용 대상
-superseded_evidence,doc-r15 + doc-r18 + doc-r19,PENDING_DELETE,R20 Evidence로 교체 후 exact path 정리

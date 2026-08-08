@@ -11,7 +11,10 @@
 
 동일 JVM · 분리 WAS · 모듈형 단일 애플리케이션 · 마이크로서비스 · 다중 인스턴스 · 정기·대량 처리 · 비동기 메시지 처리 · 운영 통제
 
-[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.pdf) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)
+[프레임워크 안내](cpf-docs/guides/00_프레임워크안내.pdf) · [개발자 매뉴얼](cpf-docs/guides/01_개발자매뉴얼.pdf) · [배치 개발](cpf-docs/guides/02_배치개발매뉴얼.pdf) · [ADM 연동 개발](cpf-docs/guides/03_ADM개발자매뉴얼.pdf) · [ADM 운영](cpf-docs/guides/04_ADM운영자매뉴얼.pdf) · [플랫폼 운영](cpf-docs/guides/05_플랫폼운영매뉴얼.pdf)<br>
+[BZA 운영](cpf-docs/guides/90_BZA매뉴얼.pdf) · [Gateway 운영](cpf-docs/guides/91_Gateway매뉴얼.pdf) · [아키텍처 설계](cpf-docs/deliverables/아키텍처설계서.pdf) · [기술 사양](cpf-docs/deliverables/기술사양서.pdf)
+
+> **공식 문서 형식** · 열람은 PDF, 편집·인수 원본은 같은 이름의 DOCX를 사용합니다. Guide/설계 Authoring Markdown은 공식 사용자 문서로 제공하지 않습니다.
 
 </div>
 
@@ -32,7 +35,7 @@
 | 조직·사용자·권한·결재 적용 방법 | [90 BZA 매뉴얼](cpf-docs/guides/90_BZA매뉴얼.pdf) | 조직 기준일·Effective Permission·결재·위임·감사를 업무에 적용 |
 | 외부 API 공개와 게시 복구 방법 | [91 Gateway 매뉴얼](cpf-docs/guides/91_Gateway매뉴얼.pdf) | Route·보안·Target·Publish·ACK/NACK·LKG·Rollback을 운영 |
 
-처음 접하는 독자는 각 매뉴얼의 **용어 준비 → 선택 기준 → 따라 하기 → 정상 판정 → 오류 재현 → 복구 → 운영 인계** 순서로 읽습니다. 숙련자는 기능별 판단표, 실패·복구 표, Source/API/SQL/Config/화면 정합성 확인 지점을 바로 참조합니다.
+각 PDF는 **표지 → 현재 Source/검증 상태 → 빠른 찾기 → 핵심 업무 흐름 → 본문** 순서로 시작합니다. 표·절차·주의/복구 구역은 시각적으로 구분하고 PDF Bookmarks·검색(Ctrl+F)으로 필요한 지점에 빠르게 이동할 수 있게 구성합니다. 처음 접하는 독자는 **선택 기준 → 절차 → 정상 판정 → 오류/부분 실패 → 복구 → 운영 인계** 순서로 읽고, 숙련자는 PDF Bookmarks·검색과 화면/Source Trace를 이용해 필요한 지점으로 이동합니다.
 
 ---
 
@@ -165,4 +168,3 @@ Generator를 사용할 때에는 Dry Run으로 Module·Package·System Code·Pro
 - [기술 사양서](cpf-docs/deliverables/기술사양서.pdf)
 - [기술 표준서](cpf-docs/deliverables/기술표준서.pdf)
 - [데이터베이스 표준서](cpf-docs/deliverables/데이터베이스표준서.pdf)
-- [최상위 제품 요구사항](cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md)

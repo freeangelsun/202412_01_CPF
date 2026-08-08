@@ -2,7 +2,7 @@
 
 > Repository: `freeangelsun/202412_01_CPF`
 > Branch: `master`
-> 문서 표준 기준 Commit: `cd5baccb02245a980e5998aa0dc9bac579fc019f` (`07_04`)
+> 문서 표준 기준 Commit: `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)
 > 최상위 요구사항 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
 
 ## 1. 문서의 정체성과 독자
@@ -109,9 +109,20 @@ Canonical OpenAPI, Generated Client, Runtime Route/Operation이 같은 계약을
 
 ## 13. PDF·DOCX 제작 표준
 
-13개 문서는 DOCX를 편집 정본으로 생성하고 그 DOCX에서 PDF를 변환한다. 제목/Heading 계층, TOC, 반복 Table Header, 표 행 분할 방지, Page Header/Footer, 한글 글꼴, 코드/경로 가독성을 유지한다. PDF/DOCX 내부에 Authoring Markdown Anchor나 Backtick Artifact를 노출하지 않는다.
+13개 문서는 DOCX를 편집 원본으로 생성하고 그 DOCX에서 PDF를 변환한다. PDF는 단순 텍스트 덤프가 아니라 고객 열람용 제품 문서로 제작한다.
 
-변환 후 DOCX와 PDF를 모두 페이지 이미지로 렌더하고 전 페이지를 확인한다. 잘림, 겹침, 깨진 글리프, 표 폭 침범, 빈 페이지, 과도한 반쪽 공백이 있으면 수정 후 재렌더한다.
+필수 시각 기준:
+- 첫 페이지는 문서명, 대상 독자, 목적, 기준 Source SHA, Source/Runtime/Release 상태를 한 화면에서 식별할 수 있는 표지로 구성한다.
+- 두 번째 페이지에는 빠른 찾기, 핵심 업무 흐름, 주요 장 Navigator를 제공한다.
+- Heading 계층, 장 시작 여백, 본문 문단 간격, 목록 들여쓰기와 행간을 문서 전체에서 통일한다. 장·절 사이가 본문 한 덩어리처럼 붙어 보이면 통과시키지 않는다.
+- 표는 Header 강조, 반복 Header, Row 구분, 셀 여백, 행 분할 방지, 열 폭을 적용한다. 한 셀에 과도한 정보를 밀어 넣어 세로로 찢어지는 표를 만들지 않는다. 필요한 경우 Reference Card나 복수 행 구조로 바꾼다.
+- 위험, 주의, 정상 판정, UNKNOWN_RESULT, 부분 실패, Retry 금지, Recovery/Rollback은 Callout 또는 색상·아이콘·구획으로 주변 본문과 구분한다. 색상만으로 의미를 전달하지 않는다.
+- Architecture, Ownership, Transaction Lineage, Batch, Gateway, Approval, FileLog Recovery, DB Lifecycle 같이 흐름 이해가 중요한 내용은 실제 Source 의미와 일치하는 도식/그림을 배치한다. 장식용 이미지는 사용하지 않는다.
+- Header/Footer에는 문서명, 기준 Source Revision, 페이지 번호를 제공한다. PDF Bookmark와 검색(Ctrl+F)으로 장·절을 찾을 수 있어야 한다.
+- 코드/경로/API/Property는 본문과 구분되는 고정폭 스타일 또는 Reference Card를 사용하고 한글 글꼴과 영문/숫자 글꼴의 혼용으로 깨진 글리프가 생기지 않게 한다.
+- PDF와 DOCX는 같은 내용·같은 순서를 유지한다. PDF에서만 보이거나 DOCX에서만 보이는 공식 정보가 없어야 한다.
+
+변환 후 DOCX와 PDF를 모두 페이지 이미지로 렌더하고 전 페이지를 확인한다. 잘림, 겹침, 깨진 글리프, 표 폭 침범, 완전 빈 페이지, 의미 없는 반쪽 꼬리 페이지, Heading만 남은 페이지가 있으면 수정 후 재렌더한다. 첫 페이지와 빠른 찾기 페이지는 별도 Contact Sheet로 비교해 13개 문서가 하나의 문서군처럼 보이는지 확인한다.
 
 ## 14. Source Trace와 문서 변경 Trigger
 
@@ -134,13 +145,27 @@ README가 참조하는 브로셔 자산은 삭제하지 않는다. 빈 폴더는
 
 ## 18. Current Release 상태와 문서 표현
 
-현재 기준 Commit은 `cd5baccb02245a980e5998aa0dc9bac579fc019f` (`07_04`)이다. 이 Commit에는 전체 프로젝트 Finalization Mandate와 QA Scope 보정이 추가되었고, R6J가 검수한 Product Source는 `3ed676061246c9db3e44f29e254c0393ecca3929` (`07_02`)와 동일하다. R6J 중앙 판정은 `미통과 — RELEASE_BLOCKED`이며 56개 통합 Finding(P0 44/P1 11/P2 1), 34개 직접 재개발 항목이 존재한다.
+현재 기준 Commit은 `4870b20733875c3955f93846307fa5041e6f6c22` (`07_06`)이다. `07_06`은 `07_05` Product Source 위에 Final QA A/B 및 중앙 Control 산출물을 추가한 Commit이며 Product Source 자체는 변경하지 않았다.
 
-공식 PDF/DOCX는 현재 Source가 제공하는 기능과 현재 미검증/실패/재확인 필요 경계를 함께 기록한다. QA Finding 전체를 README에 노출하지 않지만, 사용자 절차의 안전성에 영향을 주는 Release workflow, transaction/file/DB logging, Approval UNKNOWN/reconcile, ADM/BZA action permission, OpenAPI drift, EDU security, false-green Gate와 target runtime 미검증은 담당 매뉴얼에서 숨기지 않는다.
+`07_05` 개발 결과에는 known direct Source/Contract/Gate rework 34/34가 반영되었고 개발 로컬 Gate 실패 0, 기존 R6 behavior regression 43/43 + negative mutation 17/17 PASS가 기록되어 있다. 이 결과는 개발 입력 근거이며 제품 완료나 Release 승인 근거가 아니다.
 
-`RELEASE_BLOCKED` 상태에서 문서를 Release 승인서처럼 표현하지 않는다. 후속 Product Source가 변경되면 exact result SHA를 다시 기록하고 해당 PDF/DOCX를 같은 변경 단위에서 현행화한다. Source 개선만 확인된 항목은 Runtime/Evidence가 없으면 `완료`로 승격하지 않는다.
+`07_06` Final QA 중앙 Merge 판정은 **실패 / 재개발 필요 + 미검증 / RELEASE_BLOCKED**다. 완료 분모는 Canonical Requirement **169개**이며 신규 독립 개발 Action은 **31개(P0 22 / P1 9)**다. 31개는 Scope 상한이 아니며 `169 Requirement + 기존 56 Finding + 신규 31 + self-found + Runtime 13 + 개발 중 추가 발견` 전체를 닫아야 한다.
 
+문서는 current Source에 존재하는 기능과 Final QA가 확인한 결함을 분리해 기록한다. 특히 다음 항목은 Source 일부가 존재하더라도 완료 기능으로 설명하지 않는다.
 
-### 18.1 07_04 Scope Correction
+- Approval terminal fencing과 stale owner 차단
+- external transactionId trust boundary
+- `cpf-core` persistence 구현 Ownership
+- DB persistence masking fail-closed
+- DB3 canonical lineage와 실제 writer/runner
+- FileLog recovery replay 안전성, 8MiB 초과 dedup, managed durable spool/root와 autonomous retry
+- Observability/Security/Performance/Batch/Broker/DR false-green 방지
+- ADM HIGH/CRITICAL generated-client 강제
+- BZA retired OpenAPI와 Approval Simulation permission
+- EDU-ADM Product/Merge 13개 non-executable 전환과 retained role 정합
 
-34개 직접 재개발 항목은 전체 프로젝트 Scope가 아니다. 프로젝트 완료 범위는 중앙 Requirement 93/93, Finding 56/56, known direct rework 34/34, 최상위 Requirement 전체, Runtime/GA 전체와 개발·QA 중 자체 발견 결함 전체다. 문서도 이 전체 범위의 Source 변화와 상태 변화에 따라 다시 현행화한다.
+Mandatory Runtime qualification 13개 축은 이 문서 작업에서 실행하지 않았으며 `미검증`으로 유지한다. 후속 Source 재개발 후 successor exact SHA에서 Runtime 13축과 독립 QA/Release Qualification 결과가 확보되기 전까지 Release PASS를 기록하지 않는다.
+
+### 18.1 문서 현행화 Trigger
+
+Source/API/SQL/Config/Frontend/Permission/Route/Test와 Final QA 판정이 바뀌면 해당 PDF/DOCX를 같은 exact SHA 기준으로 다시 현행화한다. 과거 SHA Evidence는 provenance로만 보존하고 successor Source의 PASS 근거로 승계하지 않는다.

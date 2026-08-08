@@ -1,9 +1,0 @@
-id,source,change,documents,status
-REQ-07_02-PRODUCT-EDU,CPF_FINAL_TARGET_REQUIREMENTS.md,ADM/BZA/Gateway/Batch 제품 본체와 Public Consumer EDU 경계 재정의,"00,01,02,03,90,91,Architecture",반영
-REQ-07_02-TX-LINEAGE,CPF_FINAL_TARGET_REQUIREMENTS.md; LOGGING_TRANSACTION_QA_STANDARD.md,"transactionId 단일 계보, segment/attempt, Batch/Message/File/Gateway 연결","00,01,02,04,05,91,Architecture,TechSpec,TechStandard,DBStandard",반영
-ADM-APPROVAL-PERM,cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue,operationId별 Session Button permission으로 위험 조치 활성 조건 변경,"04,03,TechSpec",반영
-ADM-INTEGRATION-CLOSURE,cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue,Session permission + strict JSON + Expected Version + localStorage idempotency TTL,"04,03,TechSpec",반영
-BZA-ORGANIZATION,cpf-biz-admin/frontend/src/features/organizations/OrganizationsPage.vue,Tree search/orphan-cycle/CAS expectedVersion/reason/ORGANIZATION WRITE,90,반영
-BZA-NOTIFICATION,cpf-biz-admin/frontend/src/features/notifications/NotificationsPage.vue,"unread filter, read/create permission and approval deep-link",90,반영
-SECRET-SPI,cpf-core/src/main/java/com/cpf/core/spi/security/CpfSecretProvider.java,"opaque secretRef, resolved secret 비노출/비Evidence","01,05,TechSpec,TechStandard",반영
-OPENAPI-LIFECYCLE,cpf-admin/frontend/openapi + scripts,"canonical compat generated client, operation-consumer/parity Gate","03,04,05,TechSpec",정적 Source 반영; Runtime/Browser 실행 미검증

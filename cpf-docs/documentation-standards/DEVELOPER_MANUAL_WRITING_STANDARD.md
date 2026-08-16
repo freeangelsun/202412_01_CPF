@@ -1,12 +1,34 @@
 # CPF 개발자 매뉴얼 작성 작업 지침
 
+## 실무 개발자 관점 보완 규칙 (2026-08-16)
+
+- 기본 실행 환경과 프로젝트 셋업이 준비된 뒤 **업무 코드를 작성하는 개발자**를 기준으로 한다. 프로젝트 생성·Framework 내부 Architecture 설명은 필요한 만큼만 두고, Controller·Service·Repository/DAO·Transaction·Domain 호출·외부 연계·Cache/Lock·Messaging·Security·Test를 중심으로 구성한다.
+- 개발자가 가장 많이 쓰는 CPF 비즈니스 개발 Surface를 실제 Source에서 inventory한다. 각 기능은 `선행 Profile/Starter/구성 → 적용 계층 → 공통 API/메소드/Annotation → 주요 옵션/선택 기준 → 표준 흐름 → 최소 예제`를 연결한다.
+- `CpfBaseController`, Domain Base Controller, `CpfBaseService`, Domain Base Service, `CpfBaseRepository`/`CpfBaseDao`의 **실제로 제공되는 helper**를 영역별 Summary로 보여준다. 존재하지 않는 helper를 추정해서 작성하지 않는다.
+- 내부 Domain 호출은 Generated Typed Client/`CpfDomainClient.execute()`와 `CpfResult` 중심으로, 외부·서비스 연계는 실제 `CpfServiceCaller.invoke()`/`CpfServiceRequest`/`CpfServiceResult` 등 공개 진입점 중심으로 각각 별도 표준 흐름과 Summary를 제공한다.
+- Transaction은 옵션 표부터 시작하지 않는다. `Controller → Service(@CpfTx) → Repository/DAO → DB`의 기본 범위와 Domain/외부 호출 경계를 그림으로 먼저 보여주고, 기본 코드 → 옵션별 적용 코드 → 선택 기준표 → self-invocation/remote boundary 주의 순으로 설명한다.
+- Cache는 `get/put/evict/evictNamespace/getOrLoad` 등 실제 공개 API를 사용 목적별로 정리하고 TTL/failOpen/cacheNull/single-flight 등 옵션은 선택 판단에 필요한 것만 보여준다.
+- Code/Parameter/Message/Calendar 같은 지원 기능은 빠른 찾기 영역에 제공하되, 개발자 가이드의 중심은 실제 업무 개발 흐름과 비즈니스 호출 공통 Surface다.
+- 실행 명령은 `전체 로컬 통합 실행`, `ADM/BZA/Gateway/Education/Batch 단독 실행`, `대상 모듈 Test`, `전체 Test`, `빠른 검증`, `전체 로컬 검증`, `모듈 확인`처럼 실제 사용 시나리오로 그룹화한다. `cpf-dev.ps1` Action과 Root Gradle Task의 역할 차이를 실제 Source 기준으로 명확히 한다.
+
+
+## 핵심 기능 Quick Reference / TOP 100 규칙 (2026-08-16 보완)
+
+- 개발자 가이드 앞부분에는 **핵심 20 수준의 자주 쓰는 개발 Surface**를 기능군별로 보여준다. `Annotation`, `공통 API/메소드`, `내부 Domain 호출`, `외부 연계`, `Transaction`, `Cache`, `Messaging`, `Security`, `실행/검증`을 한눈에 파악할 수 있어야 한다.
+- 개발팀이 알아두면 좋다고 정리한 범위를 버리지 않고, 문서 후반에는 **CPF 개발 기능 TOP 100 Quick Reference**를 둔다. 다만 100행짜리 거대한 단일 표로 만들지 않고 기능군별로 분할한다.
+- TOP 100은 수량 채우기가 아니다. 실제 Source에서 확인되는 Public API/Annotation/메소드/명령만 포함하고 Internal Starter·구현 전용 Class는 제외한다.
+- 각 항목은 최소 `기능/API`, `용도`, `필요 Starter/실행 경로`, `주요 옵션·선택 기준`, `상세 장`을 연결한다. 사용 조건·주의사항이 길면 표 셀에 넣지 말고 해당 상세 장으로 이동시킨다.
+- `callService` 같은 관용 표현을 실제 API명처럼 쓰지 않는다. 실제 공개 계약이 `CpfDomainClient.execute()`, `CpfServiceCaller.invoke()`처럼 존재하면 정확한 이름을 사용한다.
+- 외부 연계는 일반 업무 Client/Adapter에서 `@CpfClient + @CpfTimeout + @CpfRetry`를 사용하는 정책 적용과, Registry/Health/Failover를 직접 조합하는 고급 `CpfServiceCaller.invoke()` 경로를 구분한다.
+- Messaging은 일반 업무 발행의 Provider-neutral Publisher를 먼저 설명하고, `CpfBrokerClient.enqueue()` 같은 저수준/신뢰성 발행 API는 목적이 필요한 경우에만 후순위로 배치한다.
+
 ## 1. 문서 목적
 
 본 지침은 `cpf-docs/guides/01_개발자매뉴얼.md`를 작성·검수하기 위한 작업 기준을 정의한다.
 
 개발자 매뉴얼의 목적은 CPF의 구조와 기능을 설명하는 데 그치지 않는다.
 
-CPF를 처음 접한 Java 개발자가 Framework Source를 역분석하거나 Framework 담당자에게 별도 설명을 요청하지 않고 다음 업무를 수행할 수 있어야 한다.
+기본 실행 환경과 프로젝트 셋업이 준비된 Java 개발자가 업무 코드를 작성하면서 Framework Source를 역분석하거나 담당자에게 별도 설명을 요청하지 않고 필요한 기능을 선택·적용할 수 있어야 한다. 환경 구성·Generator 상세는 업무 개발에 필요한 연결 지점만 제공한다.
 
 1. 개발환경을 구성한다.
 2. CPF Repository와 Module 구조를 이해한다.
@@ -2014,6 +2036,58 @@ ADM 연결을 보면:
 
 ---
 
+# 73.1 실무 개발자 중심 구성 원칙
+
+개발자 매뉴얼은 Framework 내부 구조를 학습시키는 교재가 아니라, 기본 실행 환경이 준비된 개발자가 업무 코드를 작성하면서 필요한 기능을 빠르게 찾고 적용하는 실무 문서로 작성한다. 문서의 성격이나 읽는 방법을 장황하게 설명하지 말고 실제 사용 정보부터 제공한다.
+
+각 주요 기능은 가능하면 다음 순서로 구성한다.
+
+1. **표준 그림/흐름** - 기능이 Controller·Service·Repository/DAO·Domain Call·외부 연계 중 어디에서 사용되는지 한눈에 보여준다.
+2. **Summary** - `기능`, `용도`, `사용 API/Annotation/공통 메소드`, `선택 기준`, `주요 옵션`, `참고사항` 중 필요한 컬럼만 사용한다.
+3. **선행 구성** - 필요한 Public Starter/Profile/Provider가 있을 때만 간단히 명시한다.
+4. **기본 사용 패턴** - 대부분의 업무에서 그대로 적용할 최소 코드를 먼저 보여준다.
+5. **옵션별 적용 예** - 옵션 목록만 나열하지 말고 옵션을 코드 어디에 붙이며 동작 의미가 어떻게 달라지는지 보여준다.
+6. **주의사항** - 실제 개발 시 오류를 만들기 쉬운 항목만 짧게 분리한다.
+7. **상세 Reference** - 정확한 Class/Method/Property 전수 정보는 뒤쪽 Reference 또는 Specification으로 이동한다.
+
+특히 다음 영역은 업무 개발자가 자주 사용하는 공개 Surface를 Source에서 확인해 기능군별로 정리한다.
+
+- Controller: Annotation, Base helper, Context/Header, 성공/오류 응답
+- Service: Annotation, Base helper, 입력 검증, Transaction, 업무 서비스 호출
+- Repository/DAO: CRUD, 검색/Paging, Bulk, Lock, Native escape hatch
+- Transaction: `@CpfTx`, propagation/isolation/readOnly/timeout 등 실제 옵션과 적용 위치
+- 내부 Domain 호출: Generated Typed Client, 결과 계약, 동기/비동기 등 실제 지원 방식
+- 외부 연계: 공개 Client/Caller, Timeout/Retry/Circuit, 결과/UNKNOWN 처리
+- Cache/Lock, Messaging, Security/권한, Logging/Audit, Test
+
+Code/Message/Calendar 같은 지원 기능도 필요하지만, 핵심 업무 개발 Surface보다 앞세워 문서 분량을 채우지 않는다.
+
+## 73.2 Summary와 표
+
+- 표가 나오기 전 1~3문장으로 그 표가 정리하는 실제 기능 범위를 설명한다.
+- `먼저 볼 것`, `얼마나 자주 쓰는가`, `결과가 무엇인가` 같은 모호하거나 비표준적인 Header를 쓰지 않는다.
+- 긴 설명은 표 밖으로 이동하고, 표 셀은 빠른 비교와 선택에 필요한 문장만 남긴다.
+- 컬럼 폭은 내용 길이에 맞게 가변으로 배분하며 균등 폭을 기본값으로 사용하지 않는다.
+- 기능이 많으면 한 개의 긴 표로 만들지 말고 목적별 그룹/목차/내부 링크로 나눈다.
+
+## 73.3 개발 명령과 실행 경로
+
+명령어는 구현 배경이 아니라 실제 활용 시나리오를 기준으로 정리한다. 실제 Source가 지원하는 명령/Task만 사용하며 추정해서 만들지 않는다.
+
+우선 검토할 그룹은 다음과 같다.
+
+- 전체 로컬 통합 실행
+- 특정 서비스/모듈 실행
+- Batch 별도 실행
+- 특정 모듈/서비스 Test
+- 전체 Test
+- 빠른 검증 / 전체 로컬 검증
+- Build
+- 실행 상태 확인 / 종료
+- 모듈·Resource Profile·구성 확인
+
+표에는 필요에 따라 `작업 목적`, `실행 위치/경로`, `명령어`, `대상/주요 옵션`, `참고사항`을 사용한다.
+
 # 74. 최종 검수 질문
 
 개발자 매뉴얼을 완료 상태로 판단하기 전에 다음 질문을 다시 확인한다.
@@ -2093,3 +2167,95 @@ CPF 개발자 매뉴얼은 다음 세 가지를 동시에 제공해야 한다.
 **찾기 → 선택 → 구현 → 실행 → 실패 확인 → 복구 → 검증 → 운영 인계**
 
 까지 하나의 개발자 매뉴얼 안에서 연결되도록 작성한다.
+
+---
+
+# 76. 업무 개발자 실사용 우선 기준
+
+이 문서는 기본 실행 환경과 프로젝트 골격이 준비된 상태에서 **업무 코드를 작성하는 개발자**가 반복해서 찾는 내용을 우선한다.
+
+문서 앞부분에는 Source 구조나 Framework 내부 구현보다 다음 정보를 빠르게 판단할 수 있게 배치한다.
+
+1. 어떤 업무 기능을 만들려는가.
+2. 어떤 Public Starter가 선행되어야 하는가.
+3. 어느 계층(Controller / Service / Repository·DAO / Client)에서 사용하는가.
+4. 실제로 쓰는 Annotation / API / 메소드는 무엇인가.
+5. 주요 옵션 중 무엇을 선택해야 하는가.
+6. 최소 코드 패턴은 무엇인가.
+7. 더 자세한 설명과 예제는 어느 장에 있는가.
+
+특히 다음 업무 개발 Surface는 반드시 하나의 기능 지도에서 찾을 수 있어야 한다.
+
+- `@CpfController`, `@CpfService`, `@CpfRepository` / `@CpfDao`, `@CpfTx`
+- 동일 Application 내부의 직접 Service method 호출
+- `CpfDomainClient.execute()`와 `CpfResult`
+- 외부 Typed Client의 `@CpfClient`, `@CpfTimeout`, `@CpfRetry`
+- 고급 Service Call의 `CpfServiceCaller.invoke()`
+- `CpfContexts`의 거래·실행 식별자
+- `CpfCodeService`, `CpfMessageService`, `CpfParameterService`, `CpfCalendarService`
+- `@CpfLogging`, `@CpfPerformance`, `@CpfIdempotent`
+- `@CpfPermission`, `@CpfApprovalRequired`, `@CpfAudit`
+- `CpfCachePort`, `CpfCacheAsideService.getOrLoad()`
+- Provider-neutral Messaging 발행/수신 API
+
+기능 수를 20개, 100개처럼 **숫자를 채우는 것을 목표로 하지 않는다.** 실제 Source와 Consumer를 기준으로 업무 개발자가 반복해서 선택하는 Surface를 선별한다.
+
+## 기능 Summary 표
+
+기능 Summary에는 필요한 경우 다음 컬럼을 사용한다.
+
+`기능 그룹 | 기능/API | 용도 | 필요 Starter | 주요 옵션/선택 기준 | 상세`
+
+모든 표에 동일한 컬럼을 강제하지 않는다. 긴 설명, Source 경로, 내부 구현은 표 밖으로 이동한다. 8개를 넘는 컬럼의 거대한 API 목록표를 만들지 않는다.
+
+## 기능 장의 기본 순서
+
+Transaction, Domain Call, External Integration, Cache, Messaging 등 선택 판단이 필요한 기능은 가능하면 다음 순서로 작성한다.
+
+`표준 그림 → 빠른 Summary → 기본 사용 패턴 → 옵션별 적용 예 → 주의사항 → 최소 실무 예제 → 상세 Reference`
+
+예제만 먼저 나열해 사용자가 스스로 체계를 추론하게 만들지 않는다.
+
+## 호출 경계
+
+업무 호출은 최소 다음 세 가지를 명확히 구분한다.
+
+- 같은 Application/JVM: `service.method()` 직접 호출
+- CPF Domain 간 호출: Generated Typed Client의 `execute()`
+- CPF Domain 계약 밖 외부 시스템: CPF Integration Annotation을 적용한 Typed Client
+
+`CpfServiceCaller.invoke()`는 일반 업무 Typed Client보다 낮은 수준의 직접 Service Call 조합이 필요한 Adapter/고급 사용 위치로 설명한다.
+
+## 실행 명령과 API 용어
+
+Shell/Gradle은 `명령`, Java 호출은 `API/메소드`, 선언은 `Annotation`으로 구분한다. `명령어`라는 표현으로 Java API와 실행 명령을 섞지 않는다.
+
+
+
+---
+
+## 핵심 기능 지도와 Quick Reference 계층 규칙 (2026-08-16)
+
+개발자 가이드는 API를 무작정 많이 나열하지 않고 **두 단계 탐색 구조**를 사용한다.
+
+1. 문서 앞부분에는 업무 개발에서 반복 사용하는 약 20개 핵심 Surface를 기능군별 Summary로 보여준다. 개발자는 이 영역에서 `어떤 기능이 있고 / 무엇을 쓰며 / 어떤 Starter가 필요한지`를 빠르게 판단한다.
+2. 문서 뒤쪽에는 **CPF 개발 기능 TOP 100 Quick Reference**를 기능군별로 제공한다. TOP 100은 API 수를 채우는 목록이 아니라 실제 Source에서 확인된 Public API·Annotation·공통 메소드·개발 명령을 `기능/API / 용도 / 필요 Starter 또는 경로 / 주요 옵션·선택 / 상세 장`으로 연결한다.
+3. 100개를 한 개의 초대형 표로 만들지 않는다. 업무 개발 기본, Context/Validation, Transaction/Persistence, 내부 Domain 호출, 외부 연계, 공통 업무 기능, Cache/Lock, Messaging/Event, Logging/Security/Idempotency, 실행/검증처럼 **기능군별로 분리**한다.
+4. 본문 Guide는 Summary보다 상세하지만 API Reference처럼 모든 필드를 반복하지 않는다. `표준 흐름 그림 → 선택표 → 최소 코드 → 주의사항` 중심으로 설명한다.
+5. `callService()`처럼 실제 Canonical API가 아닌 표현을 만들지 않는다. 현재 Source의 정확한 메소드명(`execute()`, `invoke()`, `getOrLoad()`, `publish()` 등)을 사용한다.
+
+
+---
+
+## Public Surface 사용 수준 표시 (2026-08-16)
+
+개발자 가이드와 TOP 100은 Public API가 모두 같은 우선순위인 것처럼 보이지 않게 한다. 필요한 경우 다음 사용 수준을 적용한다.
+
+- `Golden`: 일반 업무 개발자가 반복해서 쓰는 기본 경로
+- `Capability`: 해당 기능을 선택했을 때 사용하는 API
+- `Advanced`: Adapter/Framework 성격의 확장 또는 저수준 제어 API
+- `Internal`: 일반 업무 Source에서 직접 사용하지 않는 구현 영역
+
+문서 앞부분에는 Golden Path가 먼저 보여야 한다. `CpfDomainClientRouter`, `CpfServiceCaller`, Provider Bridge 등 Advanced API를 Controller/Service/@CpfTx 같은 Golden Path와 동급으로 앞에 나열하지 않는다.
+
+비즈니스 개발 공통 메소드는 `service.method()`, `domainClient.execute()`, Typed External Client, `CpfResult`, Base helper, Cache/Messaging/Common Function처럼 **업무 코드에서 반복해서 쓰는 Surface**를 우선 정리한다. Source 예제만 나열하지 말고 `선행 Starter → 적용 위치 → API/메소드 → 주요 옵션 → 선택 기준 → 최소 예제`를 연결한다.

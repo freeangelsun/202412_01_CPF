@@ -1,0 +1,10 @@
+finding_id=QA-B3-019
+status=PASS
+exit_code=0
+elapsed_seconds=1.488
+command=python cpf-tools/verification/verify_admin_dependency_boundaries.py --root .
+--- stdout ---
+CPF_ADMIN_DEPENDENCY_BOUNDARIES=PASS failures=0
+
+--- stderr ---
+

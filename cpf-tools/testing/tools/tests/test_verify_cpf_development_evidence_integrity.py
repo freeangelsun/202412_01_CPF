@@ -9,16 +9,16 @@ def digest(path:Path)->str:return hashlib.sha256(path.read_bytes()).hexdigest()
 
 class T(unittest.TestCase):
  def fixture(self,stale=False,missing=False):
-  td=tempfile.TemporaryDirectory();root=Path(td.name);review=root/'review';ev=root/'evidence';review.mkdir();ev.mkdir();(ev/'F1.log').write_text('PASS\n')
+  td=tempfile.TemporaryDirectory();root=Path(td.name);review=root/'review';ev=root/'evidence';review.mkdir();ev.mkdir();(ev/'F1.txt').write_text('PASS\n')
   req_fields=['requirement_id','development_status','verification_status'];
   with (review/'REQUIREMENT_STATUS.csv').open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=req_fields);w.writeheader();w.writerow({'requirement_id':'R1','development_status':'완료','verification_status':'완료'})
   ff=['finding_id','개발GPT_상태','source_head','positive_exit_code','negative_exit_code','regression_exit_code','evidence_paths','execution_command','미완료사유']
-  with (review/'QA_FINDING_REVALIDATION.csv').open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=ff);w.writeheader();w.writerow({'finding_id':'F1','개발GPT_상태':'완료','source_head':'b'*40 if stale else SHA,'positive_exit_code':'0','negative_exit_code':'0','regression_exit_code':'0','evidence_paths':'evidence/missing.log' if missing else 'evidence/F1.log','execution_command':'python gate.py','미완료사유':''})
+  with (review/'QA_FINDING_REVALIDATION.csv').open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=ff);w.writeheader();w.writerow({'finding_id':'F1','개발GPT_상태':'완료','source_head':'b'*40 if stale else SHA,'positive_exit_code':'0','negative_exit_code':'0','regression_exit_code':'0','evidence_paths':'evidence/missing.txt' if missing else 'evidence/F1.txt','execution_command':'python gate.py','미완료사유':''})
   (review/'TEST_AND_EVIDENCE.md').write_text('clean\n')
   # CHANGE_MANIFEST must verify real payload bytes and is itself part of the package payload.
   with (review/'CHANGE_MANIFEST.csv').open('w',newline='',encoding='utf-8') as f:
-   w=csv.DictWriter(f,fieldnames=['path','change_type','size_bytes','sha256','category']);w.writeheader();p=ev/'F1.log';w.writerow({'path':'evidence/F1.log','change_type':'MODIFIED','size_bytes':p.stat().st_size,'sha256':digest(p),'category':'EVIDENCE'})
-  payload=[ev/'F1.log',review/'REQUIREMENT_STATUS.csv',review/'QA_FINDING_REVALIDATION.csv',review/'TEST_AND_EVIDENCE.md',review/'CHANGE_MANIFEST.csv']
+   w=csv.DictWriter(f,fieldnames=['path','change_type','size_bytes','sha256','category']);w.writeheader();p=ev/'F1.txt';w.writerow({'path':'evidence/F1.txt','change_type':'MODIFIED','size_bytes':p.stat().st_size,'sha256':digest(p),'category':'EVIDENCE'})
+  payload=[ev/'F1.txt',review/'REQUIREMENT_STATUS.csv',review/'QA_FINDING_REVALIDATION.csv',review/'TEST_AND_EVIDENCE.md',review/'CHANGE_MANIFEST.csv']
   files=[{'path':p.relative_to(root).as_posix(),'sizeBytes':p.stat().st_size,'sha256':digest(p)} for p in payload]
   manifest=review/'PACKAGE_MANIFEST.json';manifest.write_text(json.dumps({'baselineSha':BASELINE,'resultContentSha1':SHA,'files':files}))
   sha_entries=payload+[manifest]
@@ -64,17 +64,24 @@ class T(unittest.TestCase):
   with self.assertRaises(m.GateError) as ctx:m.verify(root,Path('review'),SHA,SHA,1,1)
   self.assertIn('change manifest hash mismatch',str(ctx.exception))
 
+ def test_non_package_safe_evidence_extension_fails(self):
+  td,root=self.fixture();self.addCleanup(td.cleanup);review=root/'review';ev=root/'evidence'
+  (ev/'F1.log').write_text('PASS\n');path=review/'QA_FINDING_REVALIDATION.csv';rows=list(csv.DictReader(path.open(encoding='utf-8')));rows[0]['evidence_paths']='evidence/F1.log'
+  with path.open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
+  manifest=json.loads((review/'PACKAGE_MANIFEST.json').read_text());manifest['files'].append({'path':'evidence/F1.log','sizeBytes':(ev/'F1.log').stat().st_size,'sha256':digest(ev/'F1.log')});(review/'PACKAGE_MANIFEST.json').write_text(json.dumps(manifest));self.refresh_package(root)
+  with self.assertRaises(m.GateError) as ctx:m.verify(root,Path('review'),SHA,SHA,1,1)
+  self.assertIn('package-safe',str(ctx.exception))
  def test_duplicate_completed_command_fails(self):
-  td,root=self.fixture();self.addCleanup(td.cleanup);review=root/'review';ev=root/'evidence';(ev/'F2.log').write_text('PASS\n')
-  path=review/'QA_FINDING_REVALIDATION.csv';rows=list(csv.DictReader(path.open(encoding='utf-8')));fieldnames=list(rows[0].keys());r=dict(rows[0]);r.update({'finding_id':'F2','evidence_paths':'evidence/F2.log'});rows.append(r)
+  td,root=self.fixture();self.addCleanup(td.cleanup);review=root/'review';ev=root/'evidence';(ev/'F2.txt').write_text('PASS\n')
+  path=review/'QA_FINDING_REVALIDATION.csv';rows=list(csv.DictReader(path.open(encoding='utf-8')));fieldnames=list(rows[0].keys());r=dict(rows[0]);r.update({'finding_id':'F2','evidence_paths':'evidence/F2.txt'});rows.append(r)
   with path.open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=fieldnames);w.writeheader();w.writerows(rows)
-  manifest=json.loads((review/'PACKAGE_MANIFEST.json').read_text());manifest['files'].append({'path':'evidence/F2.log','sizeBytes':(ev/'F2.log').stat().st_size,'sha256':digest(ev/'F2.log')});(review/'PACKAGE_MANIFEST.json').write_text(json.dumps(manifest));self.refresh_package(root)
+  manifest=json.loads((review/'PACKAGE_MANIFEST.json').read_text());manifest['files'].append({'path':'evidence/F2.txt','sizeBytes':(ev/'F2.txt').stat().st_size,'sha256':digest(ev/'F2.txt')});(review/'PACKAGE_MANIFEST.json').write_text(json.dumps(manifest));self.refresh_package(root)
   with self.assertRaises(m.GateError) as ctx:m.verify(root,Path('review'),SHA,SHA,1,2)
   self.assertIn('execution command duplicates',str(ctx.exception))
  def test_completed_finding_requires_dedicated_evidence(self):
-  td,root=self.fixture();self.addCleanup(td.cleanup);path=root/'review/QA_FINDING_REVALIDATION.csv';rows=list(csv.DictReader(path.open(encoding='utf-8')));rows[0]['evidence_paths']='evidence/common.log';(root/'evidence/common.log').write_text('PASS\n')
+  td,root=self.fixture();self.addCleanup(td.cleanup);path=root/'review/QA_FINDING_REVALIDATION.csv';rows=list(csv.DictReader(path.open(encoding='utf-8')));rows[0]['evidence_paths']='evidence/common.txt';(root/'evidence/common.txt').write_text('PASS\n')
   with path.open('w',newline='',encoding='utf-8') as f:w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
-  manifest=json.loads((root/'review/PACKAGE_MANIFEST.json').read_text());manifest['files'].append({'path':'evidence/common.log','sizeBytes':(root/'evidence/common.log').stat().st_size,'sha256':digest(root/'evidence/common.log')});(root/'review/PACKAGE_MANIFEST.json').write_text(json.dumps(manifest));self.refresh_package(root)
+  manifest=json.loads((root/'review/PACKAGE_MANIFEST.json').read_text());manifest['files'].append({'path':'evidence/common.txt','sizeBytes':(root/'evidence/common.txt').stat().st_size,'sha256':digest(root/'evidence/common.txt')});(root/'review/PACKAGE_MANIFEST.json').write_text(json.dumps(manifest));self.refresh_package(root)
   with self.assertRaises(m.GateError) as ctx:m.verify(root,Path('review'),SHA,SHA,1,1)
   self.assertIn('dedicated evidence',str(ctx.exception))
  def refresh_package(self,root:Path):

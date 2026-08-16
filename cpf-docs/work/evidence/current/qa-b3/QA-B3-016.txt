@@ -1,0 +1,11 @@
+finding_id=QA-B3-016
+status=PASS
+exit_code=0
+elapsed_seconds=4.430
+command=python -m pytest cpf-tools/generator/verification/tests/test_generator_federation_contract.py -q -p no:cacheprovider
+--- stdout ---
+s.sss.s                                                                  [100%]
+2 passed, 5 skipped in 0.11s
+
+--- stderr ---
+

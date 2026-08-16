@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse, importlib.util, json, shutil, stat, subprocess, sys, tempfile
 from pathlib import Path
+from generated_domain_layout import domain_surface_dirs
 
 
 def run(cmd:list[str], cwd:Path, timeout_seconds:int=6)->dict:
@@ -71,7 +72,7 @@ def main()->int:
     all_verify=run([*launcher,'verify','all'],root,10)
     check('retained-member-external-verify-all',all_verify['rc']==0 and '"status": "PASS"' in all_verify['stdout'],all_verify)
     for name in ('cpf-member','cpf-external'):
-        d=root/name; dirs={p.name for p in d.iterdir() if p.is_dir()}
+        d=root/name; dirs=domain_surface_dirs(d)
         check(f'{name}-minimal-ia',dirs=={'online'},sorted(dirs))
         check(f'{name}-no-readme-verification-db',not any((d/x).exists() for x in ['README.md','verification','db']),str(d))
     for name in ('cpf-member','cpf-external'):

@@ -1,5 +1,11 @@
 # 스펙 기술문서 작성 가이드
 
+## Reference 탐색성 보완 규칙 (2026-08-16)
+
+- Specification은 사용자 Guide와 중복되는 Tutorial을 늘리지 않고 Public API/Annotation/Config/State/Command의 정확한 계약을 빠르게 찾는 Reference 역할에 집중한다.
+- API Summary는 Package보다 `기능`, `공개 API/Annotation`, `적용 위치`, `주요 입력/옵션`, `반환/상태`, `상세`를 우선하고, Package/Source 경로는 Source Index로 분리한다.
+- README의 상세 CPF Architecture와 동일한 Ownership/경계 그림을 사용해 각 계약이 어디에 속하는지 먼저 이해하게 한다.
+
 ## 1. 문서 목적
 
 스펙 기술문서는 단순히 기능을 소개하는 문서가 아니다.

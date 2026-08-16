@@ -1,0 +1,50 @@
+[
+  {
+    "file": "BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "0a40e6ebcbadfd46003aa6acc057689819b0cf11269241a35a5e37860eac8f61",
+    "actual": "0a40e6ebcbadfd46003aa6acc057689819b0cf11269241a35a5e37860eac8f61"
+  },
+  {
+    "file": "BATCH_OPERATION_MANUAL_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "aed9561408e41fe7fe94800ad6274151301da7362a2cf334fa43473a50a382b6",
+    "actual": "aed9561408e41fe7fe94800ad6274151301da7362a2cf334fa43473a50a382b6"
+  },
+  {
+    "file": "CPF_OFFICIAL_DOCUMENT_REORGANIZATION_STANDARD.md",
+    "pass": true,
+    "expected": "ad099c8817f4c1c7cfa73ab85f28cd5294cbeb35bb84e9a0258554c73fa78003",
+    "actual": "ad099c8817f4c1c7cfa73ab85f28cd5294cbeb35bb84e9a0258554c73fa78003"
+  },
+  {
+    "file": "DEVELOPER_MANUAL_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "07c5db17734b98ce309dd598218f44688ecb1ef297dea7094e978794884816fa",
+    "actual": "07c5db17734b98ce309dd598218f44688ecb1ef297dea7094e978794884816fa"
+  },
+  {
+    "file": "GATEWAY_OPERATION_MANUAL_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "13bea7904a4011dda359830a97576b85e86429635fc0d4384842b23562c8ccb1",
+    "actual": "13bea7904a4011dda359830a97576b85e86429635fc0d4384842b23562c8ccb1"
+  },
+  {
+    "file": "OPERATOR_MANUAL_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "602917db8ba55c25b91c348cb711c33e56a052d6b2cff002f89cb4c765eff58d",
+    "actual": "602917db8ba55c25b91c348cb711c33e56a052d6b2cff002f89cb4c765eff58d"
+  },
+  {
+    "file": "README_WRITING_AND_REVIEW_STANDARD.md",
+    "pass": true,
+    "expected": "53c27f24bf2873f0c3b54c05595ebebc34a50097e47858a038327154f9ae3e79",
+    "actual": "53c27f24bf2873f0c3b54c05595ebebc34a50097e47858a038327154f9ae3e79"
+  },
+  {
+    "file": "SPECIFICATION_DOCUMENT_WRITING_STANDARD.md",
+    "pass": true,
+    "expected": "ef4f10328f5f0110a57dfa7e75c047f8177f4863225c5ec9cf2e9bddeceec949",
+    "actual": "ef4f10328f5f0110a57dfa7e75c047f8177f4863225c5ec9cf2e9bddeceec949"
+  }
+]

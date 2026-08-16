@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "identityPolicy": "TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE",
   "openApiPath": "openapi/cpf-openapi.json",
-  "openApiSha256": "94eff2db0ce731c15aaf03137f544f55ce774a0b452014eff51561c93513ddd5",
+  "openApiSha256": "657c6c86cad6064b619c1906e4ddbc33feadf09671aa53389838712c23074f63",
   "openApiOperationCount": 96,
   "openApiOperationIdsSha256": "5e578f365966dfce76cd7a8b4bddde25baa77beee22eee9f1a32abe9d4534be5",
   "generator": {

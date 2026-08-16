@@ -1,0 +1,11 @@
+finding_id=QA-B3-007
+status=PASS
+exit_code=0
+elapsed_seconds=3.277
+command=python -m pytest cpf-tools/testing/tools/tests/test_verify_cpf_development_evidence_integrity.py -q -p no:cacheprovider
+--- stdout ---
+...........                                                              [100%]
+11 passed in 0.14s
+
+--- stderr ---
+

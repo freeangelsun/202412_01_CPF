@@ -1,5 +1,12 @@
 # CPF Gateway 운영 매뉴얼 작성 지침
 
+## Gateway 사용자 관점 보완 규칙 (2026-08-16)
+
+- Gateway는 먼저 `L4만`, `Gateway만`, `L4 + Gateway` 구성 Case를 비교하고, 각 구성에서 외부 진입점·Route 정책·Health/Timeout 책임이 어디에 있는지 그림으로 이해시킨다.
+- Gateway를 선택했을 때 여러 CPF 서비스의 외부 진입을 Gateway Endpoint/Port와 Route로 단순화하는 효과, 인증/인가·Rate Limit·Routing·관측 정책을 한 곳에서 적용하는 효과를 사용자 관점에서 설명한다.
+- 내부 Domain 간 호출은 Gateway 필수 경로가 아니며 Typed Domain Client를 사용하는 별도 개발 표준임을 혼동하지 않게 한다.
+- Route/Target/Policy 표는 실제 사용자가 설정하는 필드와 선택 기준만 제공하고 내부 Registry 구현을 일반 사용자 표에 노출하지 않는다.
+
 ## 1. 문서 목적
 
 Gateway 운영 매뉴얼은 **Gateway를 처음 접하는 운영자도 현재 상태를 확인하고, 설정을 조회하고, 요청 흐름을 추적하고, 이상 상황의 원인을 좁혀 필요한 조치를 수행할 수 있도록 하는 실무 문서**로 작성한다.

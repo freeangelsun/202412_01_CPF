@@ -1,95 +1,28 @@
-# TEST AND EVIDENCE - Documentation Delivery 2026-08-16
+# TEST AND EVIDENCE - CPF Documentation Rework
 
-## Baseline
+## 기준
+- Input: `CPF_FULL_SOURCE_FOR_NEXT_QA(9).zip`
+- Input SHA-256: `7334ce55d1529cd5910f7b67ed97375ebcce63c0324b9668eb7bab38ccd0756e`
+- exact Git SHA: 미확인 (`.git` 미포함 입력 ZIP)
 
-- Source archive: `CPF_FULL_SOURCE_FOR_NEXT_QA(9).zip`
-- SHA-256: `7334ce55d1529cd5910f7b67ed97375ebcce63c0324b9668eb7bab38ccd0756e`
-- Git exact SHA: `미확인` - supplied local ZIP has no `.git` directory.
+## 수행 결과
+| Gate | 결과 | 근거 |
+|---|---|---|
+| DOCX 재생성 | PASS | 공식 02~07 최신 Source 기준 재생성 |
+| DOCX 실제 렌더 | PASS | 6종 총 76페이지 전 페이지 PNG 확인 |
+| PDF 재생성 | PASS | 최신 DOCX에서 `--emit_pdf` 재생성 |
+| 접근성 | PASS | 6종 high=0 / medium=0 / low=0 |
+| 전체 목차/내부 링크 | PASS | 6종 TOC bookmark 존재, DOCX/PDF broken link 0 |
+| 표 레이아웃 | PASS | 3열 이상 균등 Grid 0, Header flag 누락 0 |
+| README 이미지/상대 링크 | PASS | broken 0 |
+| README 핵심 정체성 6항목 | PASS | CPF 정의/문제/Spring Boot 관계/Golden Path/적합 범위/5분 실행 |
+| README 시각화 | PASS | Quick Overview/전체 Architecture/Gateway/Batch/Starter 이미지 실제 확인 |
+| 작성 지침 SHA | PASS | 8/8 checksum 일치 |
+| Source 공개 Surface 정합 | PASS | `SOURCE_CONTRACT_QA.json` |
+| Application Build/Test/Runtime | NOT_EXECUTED | 문서 산출물 재작업으로 Source 변경 없음; 사용자 로컬 Java/pwsh Gate 대상 |
 
-## Writing-standard integrity
+## 시각검수
+02 개발자 28p, 03 배치 개발자 18p, 04 운영자 7p, 05 배치 운영 7p, 06 Gateway 6p, 07 Specification 10p를 최신 DOCX에서 다시 렌더해 확인했습니다. 표 잘림, 빈 페이지, 고아 제목, 깨진 한글 glyph, 이미지 침범을 최종본에서 발견하지 않았습니다.
 
-Command:
-`cd cpf-docs/documentation-standards && sha256sum -c IMMUTABLE_SHA256SUMS.txt`
-
-Result: 8/8 OK.
-
-## Source contract review
-
-Actual Source and consumer/sample paths were reviewed before finalizing examples. Representative evidence:
-
-- `cpf-starters/web/.../CpfController.java`, `CpfBaseController.java`
-- `cpf-starters/base/runtime/.../CpfService.java`, `CpfBaseService.java`
-- `cpf-starters/data/persistence/.../CpfTx.java`, `CpfBaseRepository.java`, `CpfBaseDao.java`
-- `cpf-starters/data/.../CpfCachePort.java`, `CpfCacheAsideService.java`
-- `cpf-starters/integration/.../CpfClient.java`, `CpfTimeout.java`, `CpfRetry.java`
-- `cpf-starters/messaging/.../CpfMessageListener.java`
-- `cpf-starters/security/.../CpfPermission.java`, `CpfApprovalRequired.java`
-- `cpf-starters/platform-operations/.../CpfAudit.java`
-- `cpf-member/online/.../SampleTransactionController.java`, `SampleTransactionService.java`, `SampleTransactionRepository.java`
-- `cpf-batch/api/.../CpfBatchJob.java`, `api/annotation/CpfBatchJob.java`, `CpfBatchStep.java`
-- `cpf-batch/api/.../BusinessJobProvider.java`, `JobPackManifest.java`, `BatchExecutionControlPort.java`
-- `cpf-education/.../EducationBatchEducationConfig.java`
-- Canonical starter catalog: `cpf-tools/generator/contracts/cpf-starter-catalog.json` (`publicProfiles`=5, `capabilityGroups`=9).
-
-## DOCX final render
-
-Renderer: `/home/oai/skills/docx/render_docx.py --emit_pdf`
-
-- 02 Framework Developer Guide: 16 pages
-- 03 Batch Developer Guide: 12 pages
-- 04 Operator Manual: 9 pages
-- 05 Batch Operations Guide: 8 pages
-- 06 Gateway Guide: 8 pages
-- 07 Specification: 12 pages
-- Total: 65 pages
-
-Visual review result: no clipping, overlap, missing glyph, broken table, or page-boundary defect found in final render.
-
-Final visual correction cycle: the 06 Gateway guide exposed Korean fallback-glyph squares in `cpf-gateway-route-workbench` / `cpf-gateway-publish`. The SVG font stack and PNG assets were corrected, the DOCX embedded images were replaced, and all 8 DOCX pages plus the regenerated PDF were rendered and visually reviewed again. No fallback glyphs remain.
-
-## Accessibility
-
-`a11y_audit.py` final result:
-
-- 02: high=0 / medium=0 / low=0
-- 03: high=0 / medium=0 / low=0
-- 04: high=0 / medium=0 / low=0
-- 05: high=0 / medium=0 / low=0
-- 06: high=0 / medium=0 / low=0
-- 07: high=0 / medium=0 / low=0
-
-Final fix applied before shipping: image alt text and first-row table-header metadata. Re-render after this fix had 0 visually changed pages.
-
-## Navigation / table structure
-
-- DOCX broken internal hyperlinks: 0 for all six documents.
-- PDF broken internal hyperlinks: 0 for all six documents.
-- Dedicated TOC bookmark: present in all six documents.
-- Equal-width multi-column tables: 0.
-- Cells longer than 220 characters: 0.
-
-PDF internal links after final export:
-- 02: 44
-- 03: 40
-- 04: 32
-- 05: 34
-- 06: 29
-- 07: 34
-
-## PDF verification
-
-All 6 final PDFs were rendered again with `/home/oai/skills/pdfs/scripts/render_pdf.py` at 150 dpi and visually reviewed. Page counts matched the DOCX exports (65 total).
-
-## README verification
-
-- Relative links/images: checked against overlay paths.
-- README images: all 8 regenerated; 7 body graphics use 1672x941, hero uses 1800x560.
-- Manual image fixes shipped with the overlay: `cpf-command-lifecycle`, `cpf-gateway-route-workbench`, `cpf-gateway-publish` (source SVG/PNG as applicable).
-- Architecture/Gateway/Batch/Starter/Lifecycle visuals reviewed as one consistent set.
-- Final section: `## License` with requested Community & Evaluation License wording.
-
-## Not executed / not claimed
-
-- Git HEAD/Working Tree verification: not executable because the supplied local source ZIP contains no `.git` metadata.
-- Application runtime/build verification is outside this documentation-only overlay QA; documentation content was instead checked against the supplied Source contracts and existing consumers/samples.
-- No commit, push, branch, reset, restore, clean, stash, or deletion was performed.
+## 문서 상태
+개발 GPT 문서 산출물 자체검수는 PASS입니다. QA 최종 통과 여부는 QA 역할에서 별도 판정해야 합니다.

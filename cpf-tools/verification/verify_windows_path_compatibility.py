@@ -20,6 +20,7 @@ FORBIDDEN_SEGMENT_PATTERNS = (
     re.compile(r"^FINAL_FINAL$", re.I),
 )
 EPHEMERAL_SEGMENTS = {".git", ".gradle", ".pytest_cache", "__pycache__", "node_modules", ".venv", ".cpf-python", "dist"}
+VERSIONED_DIR_EXEMPT_PREFIXES = ("cpf-docs/deliverables/",)
 
 
 def is_managed_source(path: Path, root: Path) -> bool:
@@ -36,6 +37,16 @@ def is_managed_source(path: Path, root: Path) -> bool:
 def projected_length(target_root: str, rel: str) -> int:
     root_text = target_root.rstrip("\\/")
     return len(root_text) + (1 if root_text else 0) + len(rel)
+
+
+def is_versioned_dir_exempt(rel: str) -> bool:
+    """Allow dated archival folders only under protected deliverables.
+
+    This exemption applies to the naming rule only. Path-length budgets still
+    cover every managed file under the protected path.
+    """
+    normalized = rel.replace("\\", "/")
+    return any(normalized.startswith(prefix) for prefix in VERSIONED_DIR_EXEMPT_PREFIXES)
 
 
 def main() -> int:
@@ -71,9 +82,10 @@ def main() -> int:
                 warnings.append(message)
         if full_len > ns.max_full_path:
             failures.append(f"FULL_PATH_TOO_LONG {full_len} {rel}")
-        for segment in Path(rel).parts[:-1]:
-            if any(rx.match(segment) for rx in FORBIDDEN_SEGMENT_PATTERNS):
-                failures.append(f"FORBIDDEN_VERSIONED_DIR {segment} {rel}")
+        if not is_versioned_dir_exempt(rel):
+            for segment in Path(rel).parts[:-1]:
+                if any(rx.match(segment) for rx in FORBIDDEN_SEGMENT_PATTERNS):
+                    failures.append(f"FORBIDDEN_VERSIONED_DIR {segment} {rel}")
 
     print(f"WINDOWS_PATH_FILES={len(files)}")
     print(f"WINDOWS_PATH_MAX_RELATIVE={max_seen[0]} {max_seen[1]}")

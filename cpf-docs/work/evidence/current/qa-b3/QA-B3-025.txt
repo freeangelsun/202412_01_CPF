@@ -1,0 +1,10 @@
+finding_id=QA-B3-025
+status=PASS
+exit_code=0
+elapsed_seconds=3.856
+command=python cpf-tools/verification/tools/verify-cpf-evidence-semantics.py --root .
+--- stdout ---
+[PASS] CPF evidence semantics verifiedRows=0 documents=0 bulkIdForbidden=true
+
+--- stderr ---
+

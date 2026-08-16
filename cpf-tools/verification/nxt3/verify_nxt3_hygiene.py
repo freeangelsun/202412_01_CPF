@@ -7,6 +7,17 @@ PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/doc
 APPROVED_TOOLS={'build','contracts','db','environment','generator','governance','release','runtime','security','supply-chain','testing','verification'}
 LEGACY_TOOLS={'config','performance','product-governance','promotion','runtime-alternatives','scripts','analysis'}
 
+GENERATED_CACHE_DIRS={'.gradle','.pytest_cache','node_modules','dist','out'}
+def is_generated_cache_path(rel:str)->bool:
+ parts=Path(rel).parts
+ if any(part in GENERATED_CACHE_DIRS for part in parts): return True
+ for idx,part in enumerate(parts):
+  if part=='build':
+   # cpf-tools/build/** is product Source; nested build directories below it are generated output.
+   if idx==1 and parts[0]=='cpf-tools': continue
+   return True
+ return False
+
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); a=ap.parse_args(); r=Path(a.root).resolve(); fail=[]
  mf=r/'cpf-docs/work/CPF_DELETE_MANIFEST.csv'; gf=r/'cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'
@@ -42,7 +53,7 @@ def main():
  for p in r.rglob('*'):
   if not p.is_file(): continue
   rel=p.relative_to(r).as_posix(); parts=set(p.relative_to(r).parts)
-  if '.git' in parts or any(rel==x.rstrip('/') or rel.startswith(x) for x in PROTECTED): continue
+  if '.git' in parts or is_generated_cache_path(rel) or any(rel==x.rstrip('/') or rel.startswith(x) for x in PROTECTED): continue
   if '__pycache__' in parts or p.suffix.lower()=='.pyc':
    if rel not in seen: fail.append('generated_garbage_unmanifested='+rel)
  # cpf-tools/build broad ignore 금지

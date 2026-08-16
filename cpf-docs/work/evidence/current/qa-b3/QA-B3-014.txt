@@ -1,0 +1,10 @@
+finding_id=QA-B3-014
+status=PASS
+exit_code=0
+elapsed_seconds=1.387
+command=python cpf-tools/verification/verify_nxt_zero_footprint.py
+--- stdout ---
+PASS NXT zero-footprint gate
+
+--- stderr ---
+

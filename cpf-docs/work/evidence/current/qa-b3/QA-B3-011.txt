@@ -1,0 +1,44 @@
+finding_id=QA-B3-011
+status=PASS
+exit_code=0
+elapsed_seconds=2.611
+command=python cpf-tools/verification/verify_windows_path_compatibility.py --root . --target-root-text 'C:\dev\projects\jck\202412_01_CPF'
+--- stdout ---
+WINDOWS_PATH_FILES=9435
+WINDOWS_PATH_MAX_RELATIVE=179 cpf-starters/platform-operations/channel-registry/jdbc/src/main/java/com/cpf/platform/operations/channelregistry/jdbc/runtimecontrol/CpfChannelRuntimeControlAutoConfiguration.java
+WINDOWS_PATH_MAX_FULL=213 cpf-starters/platform-operations/channel-registry/jdbc/src/main/java/com/cpf/platform/operations/channelregistry/jdbc/runtimecontrol/CpfChannelRuntimeControlAutoConfiguration.java
+WINDOWS_PATH_TARGET_ROOT=C:\dev\projects\jck\202412_01_CPF
+WINDOWS_PATH_RELATIVE_BUDGET=160
+WINDOWS_PATH_FULL_BUDGET=240
+WINDOWS_PATH_WARNINGS=26
+RELATIVE_BUDGET_EXCEEDED 166 cpf-starters/platform-operations/feature-flag/openfeature/src/main/java/com/cpf/platform/operations/featureflag/openfeature/CpfSpringFeatureFlagTransactionRunner.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/feature-flag/openfeature/src/main/java/com/cpf/platform/operations/featureflag/openfeature/CpfFeatureFlagRuntimeChangeApplier.java
+RELATIVE_BUDGET_EXCEEDED 167 cpf-starters/platform-operations/feature-flag/openfeature/src/test/java/com/cpf/platform/operations/featureflag/openfeature/CpfFeatureFlagRuntimeChangeApplierTest.java
+RELATIVE_BUDGET_EXCEEDED 169 cpf-starters/platform-operations/observability/src/main/java/com/cpf/starter/platform/operations/observability/internal/security/InMemoryCpfSensitiveDataAccessStore.java
+RELATIVE_BUDGET_EXCEEDED 165 cpf-starters/platform-operations/observability/src/main/java/com/cpf/starter/platform/operations/observability/internal/logging/InMemoryCpfLogPolicyVersionStore.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/spi/logging/lineage/CpfTransactionLineageProjectionPort.java
+RELATIVE_BUDGET_EXCEEDED 164 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/spi/logging/segment/CpfTransactionSegmentPersistencePort.java
+RELATIVE_BUDGET_EXCEEDED 161 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/api/logging/policy/CpfLogPolicyVersionRollbackCommand.java
+RELATIVE_BUDGET_EXCEEDED 162 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/api/logging/policy/CpfLogPolicyVersionReconcileCommand.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/policy/CpfLogPolicyCacheVersionApplier.java
+RELATIVE_BUDGET_EXCEEDED 165 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionSegmentFallbackStore.java
+RELATIVE_BUDGET_EXCEEDED 161 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionLogFallbackStore.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/CpfTransactionLogFallbackPort.java
+RELATIVE_BUDGET_EXCEEDED 164 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionLogFallbackEnvelope.java
+RELATIVE_BUDGET_EXCEEDED 168 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionSegmentRecoveryEnvelope.java
+RELATIVE_BUDGET_EXCEEDED 162 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionLogRecoveryWorker.java
+RELATIVE_BUDGET_EXCEEDED 166 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/fallback/TransactionSegmentRecoveryWorker.java
+RELATIVE_BUDGET_EXCEEDED 169 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/TransactionSegmentPersistenceService.java
+RELATIVE_BUDGET_EXCEEDED 166 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/CpfTransactionTimelineQueryFacade.java
+RELATIVE_BUDGET_EXCEEDED 165 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/CpfTransactionSegmentPortAdapter.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/audit/CpfFileLogPolicyVersionAuditSink.java
+RELATIVE_BUDGET_EXCEEDED 166 cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/audit/CpfFileSensitiveDataAccessAuditSink.java
+RELATIVE_BUDGET_EXCEEDED 163 cpf-starters/platform-operations/observability/src/test/java/com/cpf/starter/platform/operations/observability/CpfLogPolicyVersionJdbcAutoConfigurationHarness.java
+RELATIVE_BUDGET_EXCEEDED 179 cpf-starters/platform-operations/channel-registry/jdbc/src/main/java/com/cpf/platform/operations/channelregistry/jdbc/runtimecontrol/CpfChannelRuntimeControlAutoConfiguration.java
+RELATIVE_BUDGET_EXCEEDED 168 cpf-starters/platform-operations/channel-registry/jdbc/src/main/java/com/cpf/platform/operations/channelregistry/jdbc/runtimecontrol/CpfChannelPolicyRuntimeApplier.java
+RELATIVE_BUDGET_EXCEEDED 167 cpf-starters/platform-operations/channel-registry/jdbc/src/main/java/com/cpf/platform/operations/channelregistry/jdbc/jdbc/CpfChannelRegistryJdbcAutoConfiguration.java
+WINDOWS_PATH_FAILURES=0
+WINDOWS_PATH_COMPATIBILITY=PASS
+
+--- stderr ---
+

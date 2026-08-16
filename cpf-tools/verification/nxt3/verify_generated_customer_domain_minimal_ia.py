@@ -4,6 +4,7 @@
 from __future__ import annotations
 import argparse, importlib.util, json, sys
 from pathlib import Path
+from generated_domain_layout import domain_surface_dirs
 
 def load_engine(root:Path):
     p=root/'cpf-tools/generator/engine/cpf_domain_generator.py'; sys.path.insert(0,str(p.parent))
@@ -19,7 +20,7 @@ def main()->int:
         d=eng.validate_definition(eng.load_yaml_subset(definition)); domains.append(d.name)
         ck(f'{d.name}-root-prefix',out.name==f'cpf-{d.name}',out.name)
         expected={'online'}
-        actual={p.name for p in out.iterdir() if p.is_dir() and any(x.is_file() for x in p.rglob('*'))}; ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})
+        actual=domain_surface_dirs(out); ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})
         forbidden=['README.md','verification','db','canonical','vendors',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
         bad=[x for x in forbidden if (out/x).exists()]; ck(f'{d.name}-forbidden-surface-zero',not bad,bad)
         ck(f'{d.name}-customer-metadata-zero',not (out/'.cpf').exists(),str(out/'.cpf'))

@@ -1,0 +1,23 @@
+finding_id=QA-B3-020
+status=PASS
+exit_code=0
+elapsed_seconds=1.325
+command=python cpf-tools/verification/tools/verify-cpf-integration-closure.py --root .
+--- stdout ---
+{
+  "missing": [],
+  "vendorParity": {
+    "oracle": true,
+    "postgresql": true,
+    "mariadb": true
+  },
+  "webhookCatalogExactlyOne": true,
+  "settingsCatalogDriven": true,
+  "routeRawAbsoluteUrlAbsent": true,
+  "generatedClientRelativeRoutes": true,
+  "typedIntegrationFacade": true,
+  "coreProviderBoundary": true
+}
+
+--- stderr ---
+

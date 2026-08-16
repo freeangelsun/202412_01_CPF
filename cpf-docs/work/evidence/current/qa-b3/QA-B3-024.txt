@@ -1,0 +1,32 @@
+finding_id=QA-B3-024
+status=PASS
+exit_code=0
+elapsed_seconds=1.421
+command=python cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py .
+--- stdout ---
+{
+  "vendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "requiredRuntimeKeys": [
+    "scheduler-trigger-find-dispatchable.sql",
+    "scheduler-trigger-claim.sql",
+    "centercut-item-complete.sql",
+    "execution-remote-message-reclaim.sql",
+    "scheduler-trigger-reconcile-load.sql",
+    "scheduler-trigger-reconcile-unknown-retry.sql",
+    "scheduler-trigger-reconcile-audit.sql",
+    "scheduler-trigger-reconcile-audit-find.sql",
+    "execution-remote-message-reconcile-load.sql",
+    "execution-remote-message-reconcile-unknown-retry.sql",
+    "execution-remote-message-reconcile-audit.sql"
+  ],
+  "errors": [],
+  "semanticParity": true,
+  "pass": true
+}
+
+--- stderr ---
+

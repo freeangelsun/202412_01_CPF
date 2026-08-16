@@ -57,3 +57,32 @@ def test_ephemeral_build_output_is_ignored_but_cpf_tools_build_is_product_source
     result = run_gate(tmp_path, "--target-root-text", r"C:\\cpf")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "WINDOWS_PATH_FILES=1" in result.stdout
+
+
+def test_dated_protected_deliverable_is_allowed_but_still_managed(tmp_path: Path):
+    report = tmp_path / "cpf-docs" / "deliverables" / "documentation" / "20260816" / "report.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("ok\n", encoding="utf-8")
+    result = run_gate(tmp_path, "--target-root-text", r"C:\cpf")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "WINDOWS_PATH_FILES=1" in result.stdout
+    assert "FORBIDDEN_VERSIONED_DIR" not in result.stdout
+
+
+def test_dated_directory_outside_protected_deliverables_still_fails(tmp_path: Path):
+    source = tmp_path / "cpf-starters" / "data" / "20260816" / "Sample.java"
+    source.parent.mkdir(parents=True)
+    source.write_text("class Sample {}\n", encoding="utf-8")
+    result = run_gate(tmp_path, "--target-root-text", r"C:\cpf")
+    assert result.returncode == 1
+    assert "FORBIDDEN_VERSIONED_DIR 20260816" in result.stdout
+
+
+def test_protected_deliverable_remains_subject_to_full_path_budget(tmp_path: Path):
+    report = tmp_path / "cpf-docs" / "deliverables" / "documentation" / "20260816" / "report.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("ok\n", encoding="utf-8")
+    long_root = "C:\\" + ("root" * 60)
+    result = run_gate(tmp_path, "--target-root-text", long_root)
+    assert result.returncode == 1
+    assert "FULL_PATH_TOO_LONG" in result.stdout

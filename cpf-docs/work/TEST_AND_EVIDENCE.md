@@ -1,8 +1,8 @@
 # CPF Current Test and Evidence
 
 > 입력 baseline provenance: `4b6f96796c3bf26b1c3324cc4d9b701bd9415acd`  
-> 현재 결과 Content SHA-1: `9f7a088a4282a6b8ff6f1f05adf6b1a744756975`  
-> 현재 결과 Content SHA-256: `06ef019f7cd01a2007313e292fd4e3dcc9f1875a831c2b938df7de1fc2663129`  
+> 현재 결과 Content SHA-1: `470ce244d05cdd2674385eb743630e2537f2963c`  
+> 현재 결과 Content SHA-256: `f049bf01a59cf57bc823ef59656516c867db9cab2aed6262abc26c4d840d2618`  
 > identity 정책: Git 조회 없이 제품 Source canonical path/size/SHA-256 목록으로 계산. baseline SHA와 result content identity를 분리한다.  
 > 전체 판정: **개발 GPT 재개발/정적·독립 재검수 범위 PASS. Java25/PowerShell7/Docker live/Browser Runtime은 미검증이며 최종 QA 완료가 아니다.**
 
@@ -36,7 +36,7 @@
 - DB verification: **75/75 PASS**.
 - Generator verification: **27 PASS / 10 SKIP / FAIL 0**.
 - Runtime + Security + Release + OpenAPI: **108 PASS / 2 SKIP / FAIL 0**.
-- Verification tests: **35/35 PASS**.
+- Verification tests: **45/45 PASS**.
 - Docker-development fixture tests: **6/6 PASS**.
 - QA-V41 performance/source-state/evidence/full-local focused regression도 PASS 범위 확인.
 
@@ -44,11 +44,35 @@
 
 - 개발 GPT 완료: **22/25**.
 - 개발 GPT 미완료: **3/25** (`QA-B3-008`, `QA-B3-010`, `QA-B3-011`).
-- 25건은 `cpf-docs/work/evidence/current/qa-b3/QA-B3-xxx.log` 전용 Evidence를 사용한다.
+- 25건은 `cpf-docs/work/evidence/current/qa-b3/QA-B3-xxx.txt` 전용 Evidence를 사용한다.
 - 완료 22건은 각각 서로 다른 exact command와 exit code 0으로 재실행했다.
 - `QA-B3-008`: result content identity는 확정했으나 post-commit exact Git SHA는 미확정. Git 조회를 수행하지 않았다.
 - `QA-B3-010`: Java25/DB3/Process Kill/Browser/Deployment/Performance 실제 FullLocal Runtime 미실행.
 - `QA-B3-011`: 실제 사용자 경로 정적 projection은 PASS이나 Windows fresh extract + Java25 Gradle/Runtime Evidence는 미실행.
+
+
+## 2A. 2026-08-16 사용자 Full Source 재검수 추가 보정
+
+- 입력은 사용자 로컬 적용 후 전체 Source ZIP `CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-025824).zip`이며 Git/GitHub 조회 없이 byte/독립 실행 기준으로 검토했다.
+- 이전 QA-B3 전용 Evidence가 `*.log`여서 Repository `*.log` ignore 정책에 의해 전체 Source 전달본에서 25개 증적이 누락되는 전달 결함을 확인했다. 전용 Evidence를 package-safe `QA-B3-xxx.txt`로 전환하고 Evidence Integrity가 비허용 확장자를 fail-closed하도록 보강했다.
+- Windows canonical EOL 정책(`*.ps1` CRLF) 때문에 이전 LF 작업본의 result identity가 사용자 실제 Source byte와 달랐던 문제를 확인했다. 현재 result content identity는 실제 사용자 Source byte + 이번 보정 Source 기준으로 다시 계산했다.
+- ADM/BZA tracked pre-runtime OpenAPI가 Controller Source보다 stale하여 오류 응답 계약이 200-only로 남은 drift를 확인했다. canonical Controller Source writer 결과로 ADM 321 operations / BZA 96 operations를 currentize하고 generated marker를 재계산했다. ADM/BZA Source validation/lifecycle/generated-client/consumer가 다시 PASS했다.
+- FullLocal에 `ADM_CONTROLLER_SOURCE_OPENAPI_CURRENT` / `BZA_CONTROLLER_SOURCE_OPENAPI_CURRENT` fail-closed 단계를 추가하여 동일 drift 재발을 막았다.
+- Windows path verifier가 보호 대상 `cpf-docs/deliverables/**`의 날짜형 archival directory까지 일반 Source version-folder 위반으로 판정하던 false FAIL을 수정했다. 보호 경로도 path-length budget은 그대로 검사하며, 날짜형 directory naming 예외만 `cpf-docs/deliverables/**`에 한정한다. 회귀 7/7 및 사용자 root projection max 213/240 PASS.
+- 사용자 `CPF_LOCAL_VALIDATION_20260816_124024.zip`을 직접 분석했다. `[01]~[05]`는 PASS였고 `[06] NXT3_22`에서 FullLocal 결과 log directory 소실과 NXT3 generated-cache 오탐이 발생해 본 재개발에서 수정했다. 수정본의 Windows FullLocal 재실행은 아직 필요하다.
+
+### 2B. 2026-08-16 12:40 FullLocal 실패 및 통합로그 보강
+
+- FullLocal 결과 log directory가 `[06] NXT3_22` 도중 사라져 `Add-Content`가 연쇄 실패한 오케스트레이터 결함을 확인했다. 진행 로그/Evidence를 OS TEMP scratch에 기록하고 결과 directory를 stage마다 재보장한 뒤 최종 결과/ZIP으로 복사하도록 변경했다.
+- Repository 내부 Python venv가 Garbage/Hygiene의 `__pycache__/.pyc` false failure를 만들던 구조를 외부 local/temp cache로 이동했다.
+- `cpf-member/.gradle`, `cpf-external/.gradle`, root `.pytest_cache` 등 실행 생성 cache를 Generated Domain IA로 오인하던 Gate를 보정했다. 동일 cache를 의도적으로 만든 재현 상태에서 Root/Minimal IA, Garbage, Hygiene, NXT3 전체 22/22를 재검수했다.
+- Runtime logging 검증을 다음 3개 독립 stage로 추가했다.
+  - `LOCAL_FILE_LOG_STANDARD`: 실제 거래 후 structured FileLog 경로/JSON/transactionId 확인.
+  - `LOCAL_DB_LOG_POLICY_RUNTIME`: DB log ON/OFF, request/response/error policy, ADM DB/Audit 조회 확인.
+  - `LOCAL_INTEGRATED_LOG_CORRELATION`: FileLog↔DB/ADM의 동일 transactionId/traceId, file-log recovery pending/quarantine/terminal-loss=0, local WAS stdout/stderr fatal pattern 부재, password/access-token 원문 미노출 확인.
+- 로컬 로그 확인 위치는 structured FileLog `<repo>/logs`, WAS stdout/stderr `<repo>/build/cpf-local-runtime/logs`, FullLocal 최종 Evidence는 `CPF_LOCAL_VALIDATION_<timestamp>.zip` 내부 stage log/evidence다.
+- 통합로그 static closure와 verification regression은 PASS지만 실제 Java25/MariaDB/1-WAS runtime correlation은 다음 Windows FullLocal 결과로 최종 판정한다.
+- QA-V41 영향도 재검수: focused regression 34/34 PASS, `broker-backpressure`, `batch-reconcile`, `resource-budget` 실제 dry-run 모두 RC=0.
 
 ## 3. QA-V41 재개발 반영
 

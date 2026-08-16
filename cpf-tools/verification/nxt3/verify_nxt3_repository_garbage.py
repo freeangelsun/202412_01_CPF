@@ -6,7 +6,17 @@ import argparse,csv,json,re
 from pathlib import Path
 PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
 BAD=re.compile(r'(?i)(?:^|[_\-.])(qa\d*|fix(?:ed)?|session\d*|rev\d*|rework|checkpoint|one[-_]?shot)(?:[_\-.]|$)|(?:\.bak|\.backup|\.orig|\.rej|\.tmp|~)$')
-SKIP={'.git','.gradle','node_modules','dist','out','build'}
+
+GENERATED_CACHE_DIRS={'.gradle','.pytest_cache','node_modules','dist','out'}
+def is_generated_cache_path(rel:str)->bool:
+ parts=Path(rel).parts
+ if any(part in GENERATED_CACHE_DIRS for part in parts): return True
+ for idx,part in enumerate(parts):
+  if part=='build':
+   # cpf-tools/build/** is product Source; nested build directories below it are generated output.
+   if idx==1 and parts[0]=='cpf-tools': continue
+   return True
+ return False
 
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); ap.add_argument('--manifest',default='cpf-docs/work/CPF_DELETE_MANIFEST.csv'); a=ap.parse_args(); root=Path(a.root).resolve(); fail=[]
@@ -35,7 +45,7 @@ def main():
  for p in root.rglob('*'):
   if not p.is_file(): continue
   rel=p.relative_to(root).as_posix(); parts=set(p.relative_to(root).parts)
-  if '.git' in parts or any(rel==x.rstrip('/') or rel.startswith(x) for x in PROTECTED): continue
+  if '.git' in parts or is_generated_cache_path(rel) or any(rel==x.rstrip('/') or rel.startswith(x) for x in PROTECTED): continue
   if '__pycache__' in parts or p.suffix.lower()=='.pyc':
    if not any((x.get('decision') or x.get('action'))=='DELETE' for x in bypath.get(rel,[])): fail.append('generated_garbage_undecided='+rel)
  # old catalog active path must be 0 outside ledgers/evidence/verification/legacy source itself.

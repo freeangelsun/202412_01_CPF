@@ -1,34 +1,53 @@
-path,action,reason
-README.md,REPLACE,README Quick Start/License/usability alignment
-cpf-docs/assets/readme/cpf-readme-hero.png,REPLACE,README visual consistency
-cpf-docs/assets/readme/cpf-architecture-overview.png,REPLACE,Actual CPF architecture and readable scale
-cpf-docs/assets/readme/cpf-composition-model.png,REPLACE,Composition model visual redesign
-cpf-docs/assets/readme/cpf-orchestration.png,REPLACE,Transaction/integration orchestration visual redesign
-cpf-docs/assets/readme/cpf-gateway-topology.png,REPLACE,Gateway topology visual redesign
-cpf-docs/assets/readme/cpf-batch-runtime.png,REPLACE,Batch runtime visual redesign
-cpf-docs/assets/readme/cpf-starter-selection.png,REPLACE,Starter selection visual redesign
-cpf-docs/assets/readme/cpf-development-operation-lifecycle.png,REPLACE,Development-operation lifecycle visual redesign
-cpf-docs/assets/manuals/cpf-command-lifecycle.png,REPLACE,Fix broken Korean glyph rendering
-cpf-docs/guides/02_프레임워크_개발자_가이드.docx,REPLACE,Practical business-development manual rework
-cpf-docs/guides/02_프레임워크_개발자_가이드.pdf,REPLACE,Final rendered PDF
-cpf-docs/guides/03_배치_개발자_가이드.docx,REPLACE,Practical batch-development manual rework
-cpf-docs/guides/03_배치_개발자_가이드.pdf,REPLACE,Final rendered PDF
-cpf-docs/guides/04_운영자_매뉴얼.docx,REPLACE,Task-oriented operator manual rework
-cpf-docs/guides/04_운영자_매뉴얼.pdf,REPLACE,Final rendered PDF
-cpf-docs/guides/05_배치_운영_가이드.docx,REPLACE,Task-oriented batch operations guide rework
-cpf-docs/guides/05_배치_운영_가이드.pdf,REPLACE,Final rendered PDF
-cpf-docs/guides/06_Gateway_개발_사용_가이드.docx,REPLACE,Gateway choice-to-operation guide rework
-cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf,REPLACE,Final rendered PDF
-cpf-docs/guides/07_Specification_기술_명세.docx,REPLACE,Public contract reference rework
-cpf-docs/guides/07_Specification_기술_명세.pdf,REPLACE,Final rendered PDF
-cpf-docs/deliverables/documentation/20260816/CPF_DOCUMENTATION_REVIEW_20260816.md,ADD,Per-file change review
-cpf-docs/deliverables/documentation/20260816/TEST_AND_EVIDENCE.md,ADD,Documentation QA evidence
-cpf-docs/deliverables/documentation/20260816/OPEN_ISSUES.md,ADD,Known limitations/open items
-cpf-docs/deliverables/documentation/20260816/HANDOVER.md,ADD,Next-session continuity
-cpf-docs/deliverables/documentation/20260816/CODEX_REVIEW_REQUEST.md,ADD,Independent review request
-cpf-docs/deliverables/documentation/20260816/DELETE_MANIFEST.csv,ADD,No-delete manifest
-cpf-docs/deliverables/documentation/20260816/CHANGE_MANIFEST.csv,ADD,Overlay change list
-cpf-docs/assets/manuals/cpf-gateway-route-workbench.svg,REPLACE,Fix Korean font fallback and preserve reproducible source visual
-cpf-docs/assets/manuals/cpf-gateway-route-workbench.png,REPLACE,Fix Korean glyph rendering in Gateway guide
-cpf-docs/assets/manuals/cpf-gateway-publish.svg,REPLACE,Fix Korean font fallback and headless render compatibility
-cpf-docs/assets/manuals/cpf-gateway-publish.png,REPLACE,Fix Korean glyph rendering in Gateway guide
+﻿path,action,reason
+README.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/batch-development-flow.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/batch-development-flow.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-business-function-map.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-business-function-map.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-domain-call.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-domain-call.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-external-integration.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-external-integration.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-standard-flow.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-standard-flow.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-transaction-patterns.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/developer-transaction-patterns.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/operator-troubleshooting-flow.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/manuals/operator-troubleshooting-flow.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-architecture-overview.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-architecture-overview.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-batch-runtime.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-batch-runtime.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-composition-model.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-composition-model.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-development-operation-lifecycle.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-gateway-topology.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-gateway-topology.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-orchestration.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-orchestration.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-quick-overview.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-quick-overview.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-readme-hero.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-starter-selection.png,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/assets/readme/cpf-starter-selection.svg,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/BATCH_DEVELOPER_MANUAL_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/BATCH_OPERATION_MANUAL_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/CPF_OFFICIAL_DOCUMENT_REORGANIZATION_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/DEVELOPER_MANUAL_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/GATEWAY_OPERATION_MANUAL_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/IMMUTABLE_SHA256SUMS.txt,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/OPERATOR_MANUAL_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/README_WRITING_AND_REVIEW_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/documentation-standards/SPECIFICATION_DOCUMENT_WRITING_STANDARD.md,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/02_프레임워크_개발자_가이드.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/02_프레임워크_개발자_가이드.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/03_배치_개발자_가이드.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/03_배치_개발자_가이드.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/04_운영자_매뉴얼.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/04_운영자_매뉴얼.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/05_배치_운영_가이드.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/05_배치_운영_가이드.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/06_Gateway_개발_사용_가이드.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/07_Specification_기술_명세.docx,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영
+cpf-docs/guides/07_Specification_기술_명세.pdf,ADD_OR_REPLACE,문서 재작업/시각화/작성 지침 반영

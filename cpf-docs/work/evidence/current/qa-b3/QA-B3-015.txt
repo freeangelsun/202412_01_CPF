@@ -1,0 +1,12 @@
+finding_id=QA-B3-015
+status=PASS
+exit_code=0
+elapsed_seconds=21.808
+command=python -m pytest cpf-tools/db/verification/tests -q -p no:cacheprovider
+--- stdout ---
+........................................................................ [ 96%]
+...                                                                      [100%]
+75 passed in 17.23s
+
+--- stderr ---
+

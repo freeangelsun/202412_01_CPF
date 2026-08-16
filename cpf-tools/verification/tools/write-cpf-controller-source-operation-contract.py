@@ -646,6 +646,76 @@ def quote(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+
+def build_openapi_spec(module: str, records: list[dict[str, Any]], schemas: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Build the deterministic tracked pre-runtime OpenAPI contract from controller source."""
+    paths: dict[str, dict[str, Any]] = {}
+    for record in records:
+        responses: dict[str, Any] = {
+            "200": {
+                "description": "Controller source contract response",
+                "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CpfControllerSourceResponse"}}},
+            }
+        }
+        applicable = standard_error_statuses(module, record["method"], record["template"])
+        explicit = record.get("responses", {})
+        for status in applicable:
+            responses.setdefault(status, error_response(status, explicit.get(status)))
+        for status, description in explicit.items():
+            responses.setdefault(status, error_response(status, description))
+        operation: dict[str, Any] = {
+            "operationId": record["operationId"],
+            "responses": responses,
+            "x-cpf-applicable-error-statuses": applicable,
+            "x-cpf-controller-source": record["source"],
+        }
+        if record.get("security"):
+            # Multiple named requirements form one AND security alternative.
+            operation["security"] = [{name: [] for name in record["security"]}]
+        if record["parameters"]:
+            operation["parameters"] = record["parameters"]
+        if record["requestBody"]:
+            operation["requestBody"] = {
+                "required": record["requestBody"]["required"],
+                "content": {record["requestBody"].get("contentType", "application/json"): {"schema": record["requestBody"]["schema"]}},
+            }
+        paths.setdefault(record["template"], {})[record["method"].lower()] = operation
+    all_schemas = {
+        "CpfControllerSourceResponse": {"type": "object", "additionalProperties": True},
+        "CpfApiError": {
+            "type": "object", "additionalProperties": True,
+            "required": ["status", "code", "message", "path"],
+            "properties": {
+                "timestamp": {"type": "string", "format": "date-time"},
+                "status": {"type": "integer", "format": "int32"},
+                "error": {"type": "string"}, "code": {"type": "string"},
+                "message": {"type": "string"}, "path": {"type": "string"},
+                "transactionId": {"type": "string", "minLength": 34, "maxLength": 34},
+            },
+        },
+        **schemas,
+    }
+    components: dict[str, Any] = {"schemas": all_schemas}
+    if module == "ADM":
+        components["securitySchemes"] = {
+            "admSessionCookie": {"type": "apiKey", "in": "cookie", "name": "JSESSIONID"},
+            "admCsrfHeader": {"type": "apiKey", "in": "header", "name": "X-XSRF-TOKEN"},
+        }
+    return {
+        "openapi": "3.1.0",
+        "info": {"title": f"{MODULES[module][2]} controller source pre-runtime contract", "version": "0.0.0-pre-runtime"},
+        "paths": paths,
+        "components": components,
+        "x-cpf-export-origin": "CONTROLLER_SOURCE_PRE_RUNTIME",
+        "x-cpf-product-module": module,
+        "x-cpf-openapi-operation-count": len(records),
+        "x-cpf-public-operation-count": len(records),
+        "x-cpf-canonical-schema-version": 5,
+        "x-cpf-controller-source-contract-version": 2,
+        "x-cpf-release-eligible": False,
+    }
+
+
 def write(root: Path, module: str, output: Path, records: list[dict[str, Any]], schemas: dict[str, dict[str, Any]], openapi_output: Path | None = None) -> None:
     output.mkdir(parents=True, exist_ok=True)
     ids = " | ".join(quote(record["operationId"]) for record in records)
@@ -694,71 +764,7 @@ export function resolveCpfOperation(method: string, rawUrl: string): CpfOperatio
         encoding="utf-8",
     )
     if openapi_output is not None:
-        paths: dict[str, dict[str, Any]] = {}
-        for record in records:
-            responses: dict[str, Any] = {
-                "200": {
-                    "description": "Controller source contract response",
-                    "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CpfControllerSourceResponse"}}},
-                }
-            }
-            applicable = standard_error_statuses(module, record["method"], record["template"])
-            explicit = record.get("responses", {})
-            for status in applicable:
-                responses.setdefault(status, error_response(status, explicit.get(status)))
-            for status, description in explicit.items():
-                responses.setdefault(status, error_response(status, description))
-            operation: dict[str, Any] = {
-                "operationId": record["operationId"],
-                "responses": responses,
-                "x-cpf-applicable-error-statuses": applicable,
-                "x-cpf-controller-source": record["source"],
-            }
-            if record.get("security"):
-                # Multiple named requirements form one AND security alternative.
-                operation["security"] = [{name: [] for name in record["security"]}]
-            if record["parameters"]:
-                operation["parameters"] = record["parameters"]
-            if record["requestBody"]:
-                operation["requestBody"] = {
-                    "required": record["requestBody"]["required"],
-                    "content": {record["requestBody"].get("contentType", "application/json"): {"schema": record["requestBody"]["schema"]}},
-                }
-            paths.setdefault(record["template"], {})[record["method"].lower()] = operation
-        all_schemas = {
-            "CpfControllerSourceResponse": {"type": "object", "additionalProperties": True},
-            "CpfApiError": {
-                "type": "object", "additionalProperties": True,
-                "required": ["status", "code", "message", "path"],
-                "properties": {
-                    "timestamp": {"type": "string", "format": "date-time"},
-                    "status": {"type": "integer", "format": "int32"},
-                    "error": {"type": "string"}, "code": {"type": "string"},
-                    "message": {"type": "string"}, "path": {"type": "string"},
-                    "transactionId": {"type": "string", "minLength": 34, "maxLength": 34},
-                },
-            },
-            **schemas,
-        }
-        components: dict[str, Any] = {"schemas": all_schemas}
-        if module == "ADM":
-            components["securitySchemes"] = {
-                "admSessionCookie": {"type": "apiKey", "in": "cookie", "name": "JSESSIONID"},
-                "admCsrfHeader": {"type": "apiKey", "in": "header", "name": "X-XSRF-TOKEN"},
-            }
-        spec = {
-            "openapi": "3.1.0",
-            "info": {"title": f"{MODULES[module][2]} controller source pre-runtime contract", "version": "0.0.0-pre-runtime"},
-            "paths": paths,
-            "components": components,
-            "x-cpf-export-origin": "CONTROLLER_SOURCE_PRE_RUNTIME",
-            "x-cpf-product-module": module,
-            "x-cpf-openapi-operation-count": len(records),
-            "x-cpf-public-operation-count": len(records),
-            "x-cpf-canonical-schema-version": 5,
-            "x-cpf-controller-source-contract-version": 2,
-            "x-cpf-release-eligible": False,
-        }
+        spec = build_openapi_spec(module, records, schemas)
         openapi_output.parent.mkdir(parents=True, exist_ok=True)
         openapi_output.write_text(json.dumps(spec, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
 
@@ -813,6 +819,7 @@ def main() -> int:
     parser.add_argument("--module", choices=sorted(MODULES), default="ADM")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--openapi-output", type=Path)
+    parser.add_argument("--check-openapi", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
     default_output = Path("cpf-admin/frontend/src/generated" if args.module == "ADM" else "cpf-biz-admin/frontend/src/generated")
@@ -820,6 +827,17 @@ def main() -> int:
     output = raw_output if raw_output.is_absolute() else root / raw_output
     records, schemas = discover(root, args.module)
     openapi_output = None if args.openapi_output is None else (args.openapi_output if args.openapi_output.is_absolute() else root / args.openapi_output)
+    if args.check_openapi:
+        frontend_root = root / ("cpf-admin/frontend" if args.module == "ADM" else "cpf-biz-admin/frontend")
+        tracked = openapi_output or (frontend_root / "openapi/cpf-openapi.json")
+        if not tracked.is_file():
+            raise ContractError(f"tracked pre-runtime OpenAPI missing: {tracked}")
+        actual = json.loads(tracked.read_text(encoding="utf-8"))
+        expected = build_openapi_spec(args.module, records, schemas)
+        if actual != expected:
+            raise ContractError(f"tracked pre-runtime OpenAPI drift: module={args.module} path={tracked}")
+        print(f"[PASS] tracked pre-runtime OpenAPI current module={args.module} operations={len(records)} path={tracked}")
+        return 0
     write(root, args.module, output, records, schemas, openapi_output)
     print(f"[PASS] pre-runtime controller operation contract module={args.module} operations={len(records)} output={output}")
     return 0

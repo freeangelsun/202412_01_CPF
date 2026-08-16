@@ -129,6 +129,8 @@ def verify(root:Path, review_dir:Path, expected_sha:str|None, source_head:str|No
   refs=[x.strip() for x in re.split(r'[;\n]',row['evidence_paths']) if x.strip()]
   if not refs: raise GateError(f'{fid}: evidence missing')
   for rel in refs:
+   suffix=Path(rel).suffix.lower()
+   if suffix not in {'.txt','.json','.csv','.md'}: raise GateError(f'{fid}: evidence extension is not package-safe: {rel}')
    if not _safe(root,rel).is_file(): raise GateError(f'{fid}: referenced evidence missing: {rel}')
    evidence_refs+=1
   if state=='완료':

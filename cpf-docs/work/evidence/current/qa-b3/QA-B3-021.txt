@@ -1,0 +1,451 @@
+finding_id=QA-B3-021
+status=PASS
+exit_code=0
+elapsed_seconds=3.083
+command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
+--- stdout ---
+{
+  "status": "PASS",
+  "pass": 87,
+  "fail": 0,
+  "checks": [
+    {
+      "name": "DELETE_MANIFEST_PRESENT",
+      "status": "PASS",
+      "detail": "cpf-docs/work/CPF_DELETE_MANIFEST.csv"
+    },
+    {
+      "name": "DELETE_MANIFEST_FILE_ONLY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DELETE_MANIFEST_PROTECTED_ZERO",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_REQUIRED_OWNERS",
+      "status": "PASS",
+      "detail": "missing="
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_ANALYSIS",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_CONFIG",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_PERFORMANCE",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_PRODUCT_GOVERNANCE",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_PROMOTION",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_RUNTIME_ALTERNATIVES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_LEGACY_FILES_MANIFESTED_SCRIPTS",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_RUNTIME_PROFILES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_WRONG_RUNTIME_ALTERNATIVES_TARGET",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "TOOLS_CANONICAL_STARTER_CATALOG",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LOCAL_SERVICES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LOCAL_INVENTORY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LOCAL_TOPOLOGY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_DEV_SERVICES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_DEV_INVENTORY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_DEV_TOPOLOGY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_STG_SERVICES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_STG_INVENTORY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_STG_TOPOLOGY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_PROD_SERVICES",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_PROD_INVENTORY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_PROD_TOPOLOGY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_RUNTIMES_PLATFORM",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_RUNTIMES_BATCH",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_CI_RETAINED",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SCHEMAS",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_LOCAL",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_CELLS",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_INVENTORY",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_BATCH",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_LEGACY_FILES_MANIFESTED_SCHEMA",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-EDUCATION.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_INVENTORY_ENV_STG-SERVICES.JSON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-EDUCATION.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_INVENTORY_ENV_LOCAL-SERVICES.JSON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-EDUCATION.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_INVENTORY_ENV_DEV-SERVICES.JSON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-EDUCATION.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_INVENTORY_ENV_PROD-SERVICES.TEMPLATE.JSON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_EXACT_TARGET_DIRS",
+      "status": "PASS",
+      "detail": "missing="
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_CENTER_CUT_RUNNER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_CONTRACT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_CONTROL_SERVER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_EXECUTION_RUNTIME",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_HOST_AGENT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_LEGACY_FILES_MANIFESTED_RUNTIME_COMMON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_CPF_BATCH_CONTROL_SERVER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_CPF_BATCH_HOST_AGENT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_CPF_BATCH_RUNTIME_COMMON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_CPF_BATCH_CENTER_CUT_RUNNER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_RUNTIME_BATCH_CONTROL_SERVER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_RUNTIME_BATCH_HOST_AGENT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_RUNTIME_BATCH_RUNTIME_COMMON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "BATCH_STALE_RUNTIME_BATCH_CENTER_CUT_RUNNER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "STALE_CATALOG_ACTIVE_REFERENCE_ZERO",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "OLD_CURRENTIZER_NOT_ACTIVE",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "EDUCATION_ROOT_PRESENT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "REFERENCE_ROOT_ABSENT",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_REFERENCE_ZERO",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GEN_ROOT_CPF-MEMBER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GEN_PUBLIC_ONLY_CPF-MEMBER",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GEN_ROOT_CPF-EXTERNAL",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GEN_PUBLIC_ONLY_CPF-EXTERNAL",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GENERATED_BUILD_IGNORED",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "GARBAGE_LEDGER_PRESENT",
+      "status": "PASS",
+      "detail": "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv"
+    },
+    {
+      "name": "DELETE_DECISIONS_COVER_MANIFEST",
+      "status": "PASS",
+      "detail": ""
+    }
+  ]
+}
+
+--- stderr ---
+

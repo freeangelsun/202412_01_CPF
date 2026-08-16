@@ -1,0 +1,10 @@
+finding_id=QA-B3-001
+status=PASS
+exit_code=0
+elapsed_seconds=2.882
+command=python cpf-tools/verification/tools/verify-cpf-transaction-id-standard.py --root .
+--- stdout ---
+{"status": "PASS", "scannedFileCount": 7124, "controllerCount": 58, "routeMappingCount": 246, "transactionAnnotationCount": 89, "fallbackHeaderValidation": true, "legacyOccurrences": [], "findings": []}
+
+--- stderr ---
+

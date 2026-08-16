@@ -1,5 +1,13 @@
 # CPF 배치 개발자 매뉴얼 작성 작업 지침
 
+## 실무 배치 개발자 관점 보완 규칙 (2026-08-16)
+
+- 배치 Framework 내부 구현보다 **신규 업무 Job을 작성·테스트·실행하는 개발자**의 작업 순서를 우선한다.
+- `Job 유형 선택 → Job/Step 표준 구조 → Tasklet/Chunk → Reader/Processor/Writer → Parameter → Transaction/Checkpoint → Retry/Skip/Restart/Reprocess → Partition/Worker → Scheduler → Center-Cut → Test/운영 인계` 흐름으로 구성한다.
+- 각 기능군에는 `용도`, `사용 Annotation/API`, `주요 옵션`, `선택 기준`, `재시작/Transaction 영향`, `최소 예제`를 제공한다. 내부 Runtime 객체 목록이나 운영용 Artifact 정보는 실제 개발 시점에 필요한 절로 후순위 배치한다.
+- Batch 실행 명령은 개발 Shell과 운영 Command를 혼합하지 않는다. 로컬 Runtime 기동/빌드/Test/검증은 개발 명령으로, Job 실행/Stop/Restart/Reprocess는 실제 ADM/운영 경로로 분리한다.
+- Worker/Agent/Center-Cut은 단순 Component 설명이 아니라 **업무 증가 시 Worker/Agent 확장, 실행 제어와 처리 분리, 실패/재처리/대사** 같은 사용자 관점의 효과가 이해되게 시각화한다.
+
 ## 1. 문서 목적
 
 본 지침은 `cpf-docs/guides/02_배치개발매뉴얼.md`를 작성·개정·검수하기 위한 기준을 정의한다.
@@ -1941,3 +1949,78 @@ CPF 배치 개발자 매뉴얼의 최종 목표는 다음 질문에 답하는 �
 중 적절한 위치에 보강한다.
 
 배치 매뉴얼은 **Job 생성 방법을 설명하는 문서가 아니라, 배치를 설계하고 실행하고 실패를 판단하고 다시 정상 상태로 가져오는 전 과정을 개발자가 스스로 수행할 수 있게 하는 개발 작업 문서**로 작성한다.
+
+---
+
+# 88. 처음 사용하는 배치 개발자 우선 기준
+
+기본 Batch Runtime과 프로젝트 골격이 준비된 개발자가 신규 Job을 추가하는 상황을 우선한다. 내부 Scheduler/Control Plane 구현보다 다음을 빠르게 찾을 수 있어야 한다.
+
+- 어떤 처리 모델(Tasklet / Chunk / Partition)을 선택하는가.
+- Job/Step Annotation을 어디에 붙이는가.
+- Parameter가 JobInstance와 재실행에 어떤 영향을 주는가.
+- Chunk size와 Transaction/Checkpoint가 어떻게 연결되는가.
+- Retry / Skip / Restart / Reprocess / Reconcile 중 무엇을 선택하는가.
+- Worker/Agent를 추가하면 무엇이 확장되는가.
+- 외부 Side Effect가 UNKNOWN일 때 어떻게 판단하는가.
+- 전체 Batch Runtime / 특정 Job Test / 검증 명령을 어디서 실행하는가.
+
+각 장은 `선택 기준 → 공개 API/Annotation → 주요 옵션 → 최소 코드/설정 예 → 실패·재실행 기준` 순서를 우선하며, 배치 내부 구현 설명으로 분량을 채우지 않는다.
+
+
+
+---
+
+# 89. Batch TOP 50·실행 계약·튜닝표 현행화 기준 (2026-08-16)
+
+배치 개발자 가이드는 처음 CPF Batch를 사용하는 업무 개발자가 **처리 모델을 고르고, 실행 요청/재실행 의미를 구분하고, 필요한 설정을 찾는 것**을 우선한다.
+
+## 89.1 탐색 계층
+
+문서 앞부분은 `Quick Map → 실행/테스트 명령 → 처리 모델 선택` 순으로 구성하고, 뒤쪽에 **Batch 개발 기능 TOP 50 Quick Reference**를 둔다. TOP 50은 50개 수를 채우는 목록이 아니라 최신 Source에서 확인된 공개 계약과 개발자가 알아야 할 실행 개념을 기능군별로 정리한다.
+
+TOP 50의 각 항목은 필요에 따라 `Golden / Capability / Advanced`로 구분한다.
+
+- `Golden`: 일반 업무 Job 개발자가 우선 익힐 계약
+- `Capability`: 해당 기능/Topology를 사용할 때 확인할 계약
+- `Advanced`: Worker/Adapter/Control Plane 확장 개발에서 주로 사용하는 계약
+
+Advanced API를 Golden Path와 같은 비중으로 앞쪽에 노출하지 않는다.
+
+## 89.2 처리 모델과 Topology
+
+최소 다음 선택을 구분한다.
+
+`Tasklet / Chunk / LOCAL / PARALLEL_STEPS / LOCAL_PARTITION / REMOTE_PARTITION / REMOTE_CHUNK / REMOTE_STEP / Center-Cut`
+
+각 항목은 단순 정의가 아니라 `적합한 경우 / 분할 또는 Commit 단위 / 실패 후 영향 / 반드시 확인할 조건`을 제공한다.
+
+## 89.3 실행 요청과 제어 계약
+
+실행 요청은 다음 의미를 섞지 않는다.
+
+`run / scheduledRun / retry / restart / rerun / stop / onDemand`
+
+Control Plane 공개 제어 계약은 다음을 별도 Summary로 제공한다.
+
+`start / stop / restart / abandon / reconcile`
+
+일반 업무 개발자에게 Spring Batch `JobLauncher`를 운영 호출 Surface로 안내하지 않는다.
+
+## 89.4 실패 후 용어
+
+`Retry / Restart / Rerun / Reprocess / Reconcile / Abandon`은 각각 독립 기능으로 정의한다. 특히 `UNKNOWN_RESULT`는 실패 확정 상태가 아니므로 Blind Retry나 FAILED 강제 변환을 안내하지 않는다.
+
+## 89.5 JobParameter
+
+`name / type / required / defaultValue / identifying / sensitive / allowedValues / pattern / min / max`를 단순 필드 목록이 아니라 **JobInstance 식별, Restart/Rerun, Validation, Masking**과 연결해 설명한다.
+
+## 89.6 Batch 실행 Property
+
+Source에 `@ConfigurationProperties`로 존재하는 튜닝값은 별도 표로 제공하고 `Property / 기본값 / 허용 범위 / 용도`를 표시한다. 기본값과 범위를 추정하지 않고 최신 Source에서 검증한다.
+
+최소 대상은 Chunk, Partition, Remote poll/timeout/throttle, materialized jobs, executor core/max/queue이다.
+
+## 89.7 운영 인계
+
+개발 장 마지막에는 운영자가 알아야 할 `Job ID / Parameter / 재실행 조건 / 외부 Side Effect / 예상 처리량 / Schedule / ADM 위치 / 권한·승인`을 짧게 정리한다.

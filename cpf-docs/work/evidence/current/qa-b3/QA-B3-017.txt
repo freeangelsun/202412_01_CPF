@@ -1,0 +1,11 @@
+finding_id=QA-B3-017
+status=PASS
+exit_code=0
+elapsed_seconds=7.445
+command=python -m pytest cpf-tools/verification/tests/test_korean_comment_wrapper_coverage.py -q -p no:cacheprovider
+--- stdout ---
+.                                                                        [100%]
+1 passed in 3.06s
+
+--- stderr ---
+

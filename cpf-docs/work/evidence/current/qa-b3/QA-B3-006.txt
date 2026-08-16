@@ -1,0 +1,10 @@
+finding_id=QA-B3-006
+status=PASS
+exit_code=0
+elapsed_seconds=4.151
+command=python cpf-tools/verification/tools/verify-cpf-requirement-projection-consistency.py --root .
+--- stdout ---
+{"status": "PASS", "canonicalParts": 19, "canonicalLogicalRequirements": 30605, "developerProjectionRows": 31, "projectionRole": "DEVELOPMENT_ONLY_NOT_CANONICAL_COMPLETION_LEDGER"}
+
+--- stderr ---
+

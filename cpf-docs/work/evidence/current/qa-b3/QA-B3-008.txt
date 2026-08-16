@@ -1,0 +1,10 @@
+finding_id=QA-B3-008
+status=PASS
+exit_code=0
+elapsed_seconds=3.048
+command=python cpf-tools/verification/tools/cpf-source-state.py --root . --scope source
+--- stdout ---
+{"schemaVersion": 1, "scope": "source", "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES", "contentSha1": "470ce244d05cdd2674385eb743630e2537f2963c", "contentSha256": "f049bf01a59cf57bc823ef59656516c867db9cab2aed6262abc26c4d840d2618", "fileCount": 9198, "totalBytes": 110215141}
+
+--- stderr ---
+

@@ -1,5 +1,17 @@
 # CPF README.md 작성·검수 상세 지침
 
+## README 시각화·용어 보완 규칙 (2026-08-16)
+
+- README에는 Architecture를 한 장으로 축약하지 않고 **두 수준**으로 제공한다. `CPF 한눈에 보기`는 처음 보는 사용자가 10초 안에 구조를 파악하는 단순 Overview로, `CPF 전체 Architecture`는 외부 진입·업무 Domain·Starter/Common Function·Core·Batch/ADM/Tools·DB/Messaging/Storage/External을 포함하는 대표 상세 그림으로 구성한다.
+- `기본형 / 선택형 / 생성형`처럼 의미가 추상적인 분류보다 `기본 제공`, `필요한 기능 선택`, `필요 시 업무 Domain 생성`처럼 행동과 의미가 바로 드러나는 용어를 우선한다. 한국어 설명 속 영문 용어는 실제 코드/고유명칭에 필요한 경우만 병기한다.
+- Gateway는 기능 목록만 보여주지 않고 `L4만`, `Gateway만`, `L4 + Gateway` 등 실제 사용 Case를 그림으로 비교하며, Gateway를 사용할 때 여러 CPF Runtime의 외부 진입을 하나의 Gateway Endpoint/Port와 Route 정책으로 단순화하는 장점을 보여준다. Domain 간 내부 호출은 Gateway 필수가 아님을 분리한다.
+- Batch Runtime은 Component 관계만 그리지 않고 Worker/Agent 확장, 실행 제어와 실제 처리의 분리, 업무 증가에 따른 확장, Restart/Reprocess/Reconcile의 장점을 보인다.
+- Starter 그림은 Starter 이름 나열로 끝내지 않는다. `필요 기능 선택 → Profile/Starter/Provider 조합 → 설정·의존성·AutoConfiguration 표준화 → 업무 Domain에서 Public API 사용` 흐름과 `추가/교체 용이`, `Provider 변경 영향 최소화`, `Canonical Catalog/Generator 연계`를 사용자 관점에서 보여준다.
+- 본문 시각화는 외곽 비율·여백·폰트 크기·명도·선 두께를 일관되게 유지하고 README 실제 표시 크기에서 읽히지 않는 글자를 넣지 않는다.
+- README는 Repository 주소만 전달받은 사람이나 검색·AI 도구가 README만 읽어도 CPF를 엉뚱한 방향으로 해석하지 않도록 **핵심 정체성과 사용 방향을 명시적으로 서술**한다. 그림이나 Module 이름만 보고 추론하게 두지 않는다.
+- README 앞부분에는 장황한 FAQ를 만들지 않되 최소한 `CPF가 무엇인가`, `어떤 문제를 해결하는가`, `Spring Boot와 어떤 관계인가`, `개발 Golden Path`, `적합한 시스템 범위`, `빠른 실행 경로`를 짧고 독립적인 문장으로 확인할 수 있어야 한다.
+- 위 핵심 설명은 마케팅 문구보다 Source로 확인 가능한 사실을 우선하며, `Spring Boot 기반`, `Public Starter/Public API`, `업무 Domain`, `선택 기능`, `Generator`, `Runtime` 등 CPF의 Canonical 용어를 일관되게 사용한다.
+
 ## 1. 문서 목적
 
 본 지침은 Core Platform Framework(CPF)의 Repository 최상위 `README.md`를 신규 작성, 보완, 사실성 검증, 구조 검수할 때 적용하는 기준이다.
@@ -421,9 +433,17 @@ Repository의 Directory 이름만 보고 역할을 임의 추론하지 않는다
 
 # 11. Architecture 작성 기준
 
-Architecture 영역은 README의 핵심이다.
+Architecture 영역은 README의 핵심이다. **README에서 삭제하거나 기능별 그림으로 대체하지 않는다.**
 
-목표는 사용자가 Source를 열지 않고도 CPF의 큰 구조와 책임 경계를 이해하는 것이다.
+목표는 사용자가 Source를 열지 않고도 CPF의 **전체 기능과 구조, 주요 실행 경로, CPF 영역과 외부 영역의 경계**를 한눈에 이해하는 것이다. README의 다른 Gateway·Batch·Starter 그림은 이 대표 Architecture를 보완하는 상세 시각화이며 대표 Architecture를 대신하지 않는다.
+
+대표 Architecture는 처음 CPF를 보는 사용자가 다음 질문에 답할 수 있게 해야 한다.
+
+- 요청은 어디에서 들어오고 업무 Domain까지 어떻게 연결되는가?
+- 업무 Domain과 CPF Framework의 책임 경계는 어디인가?
+- Starter/Common Function, Batch, ADM/BZA, Gateway가 전체 구조에서 어디에 위치하는가?
+- DB, Messaging, File/Storage, 외부 시스템은 CPF 밖의 어떤 자원으로 연결되는가?
+- 기능을 선택하거나 업무 Domain을 추가해도 전체 구조가 어떻게 유지되는가?
 
 ## 11.1 Architecture에 표현할 대상
 
@@ -1801,7 +1821,7 @@ README 작업 과정에서 다음을 생성했다면 종료 전 확인한다.
 
 - README에 너무 상세한 Reference를 넣지 않았는가?
 - 상세 내용이 적절한 Guide로 이동되어 있는가?
-- 공식 9개 문서 외 사용자 문서를 생성하지 않았는가?
+- 공식 7개 문서 외 사용자 문서를 생성하지 않았는가?
 
 모든 질문을 충족하지 못하면 README 작업을 완료로 처리하지 않는다.
 
@@ -1848,7 +1868,7 @@ README 작업자는 최소 다음 15개 규칙을 항상 지킨다.
 9. Online·Async·Batch·운영 흐름을 필요한 범위에서 시각적으로 보여준다.
 10. Quick Start는 최소 시작 경로만 다룬다.
 11. 상세 개발·운영 절차는 공식 Guide로 연결한다.
-12. 공식 사용자 문서는 지정된 9개만 유지한다.
+12. 공식 사용자 문서는 지정된 7개만 유지한다.
 13. 사용자 승인 없이 기존 README 브로셔 구조를 전면 변경하지 않는다.
 14. 근거 없는 품질·지원·운영성 표현을 사용하지 않는다.
 15. README를 읽은 사용자가 **“CPF가 무엇이고, 어떻게 구성되며, 나는 다음에 어느 문서를 읽어야 하는가”**에 답할 수 있어야 한다.

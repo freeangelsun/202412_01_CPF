@@ -1,0 +1,4 @@
+finding_id=QA-B3-010
+status=NOT_EXECUTED_ENV
+command=pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\verification\tools\run-cpf-local-full-validation.ps1 -ResourceProfile local -OutputRoot "$HOME\Downloads" -FullLocal
+reason=pwsh unavailable in assistant validation environment; Windows Java25/PowerShell7/Docker/Browser FullLocal remains required.

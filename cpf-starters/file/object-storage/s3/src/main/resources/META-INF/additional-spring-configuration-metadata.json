@@ -1,0 +1,61 @@
+{
+  "properties": [
+    {
+      "name": "cpf.file.object-storage.s3.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false
+    },
+    {
+      "name": "cpf.file.object-storage.s3.bucket",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.region",
+      "type": "java.lang.String",
+      "defaultValue": "us-east-1"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.endpoint",
+      "type": "java.net.URI"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.path-style",
+      "type": "java.lang.Boolean",
+      "defaultValue": true
+    },
+    {
+      "name": "cpf.file.object-storage.s3.kms-key-id",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.api-call-timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "PT30S"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.api-call-attempt-timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "PT10S"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.max-attempts",
+      "type": "java.lang.Integer",
+      "defaultValue": 3
+    },
+    {
+      "name": "cpf.file.object-storage.s3.reconcile-delay",
+      "type": "java.time.Duration",
+      "defaultValue": "PT10M"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.orphan-multipart-age",
+      "type": "java.time.Duration",
+      "defaultValue": "PT24H"
+    },
+    {
+      "name": "cpf.file.object-storage.s3.allow-presigned-put",
+      "type": "java.lang.Boolean",
+      "defaultValue": false
+    }
+  ]
+}

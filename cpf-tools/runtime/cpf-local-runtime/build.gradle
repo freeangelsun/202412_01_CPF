@@ -1,0 +1,57 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
+group = 'com.cpf.local'
+
+dependencies {
+    implementation project(':framework:core')
+    implementation project(':starters:common')
+    implementation project(':apps:admin')
+    implementation project(':apps:biz-admin')
+    implementation project(':runtime:gateway')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+springBoot {
+    mainClass = 'com.cpf.local.runtime.CpfLocalRuntimeApplication'
+}
+
+tasks.named('bootJar') {
+    enabled = true
+    archiveClassifier = 'local-web'
+}
+
+// Generated Customer Domain은 기본 Build Graph에 강제하지 않습니다.
+// -PcpfIncludeGeneratedDomains=true일 때만 Composite Build의 online 모듈을 Local Runtime classpath에 조립합니다.
+// Batch는 Generated Domain 산출물이 아니며, 별도 cpf-local-batch-runtime / cpf-starter-batch 선택으로 조립합니다.
+def cpfRunLocalRequested = gradle.startParameter.taskNames.any { it == 'cpfRunLocal' || it.endsWith(':cpfRunLocal') }
+def cpfMountGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(cpfRunLocalRequested).get()
+if (cpfMountGeneratedDomains) {
+    def definitionRoot = rootProject.file('cpf-tools/generator/definitions')
+    (definitionRoot.listFiles() ?: [] as File[])
+            .findAll { it.isDirectory() && new File(it, 'cpf-domain.yaml').isFile() }
+            .sort { a, b -> a.name <=> b.name }
+            .each { definitionDir ->
+                def generatedRoot = rootProject.file("cpf-${definitionDir.name}")
+                if (!generatedRoot.isDirectory() || !new File(generatedRoot, 'settings.gradle').isFile()) return
+                def text = new File(definitionDir, 'cpf-domain.yaml').getText('UTF-8')
+                def packageMatch = (text =~ /(?m)^\s*packageName:\s*([A-Za-z0-9_.-]+)\s*$/)
+                if (!packageMatch.find()) throw new GradleException("Generated Domain packageName missing: ${definitionDir}")
+                def packageName = packageMatch.group(1)
+                def online = (text =~ /(?m)^\s*online:\s*true\s*$/).find()
+                if (online) dependencies.add('implementation', "${packageName}:online:1.0.0-SNAPSHOT")
+            }
+}

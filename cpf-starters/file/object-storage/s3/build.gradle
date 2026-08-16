@@ -1,0 +1,18 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    api project(':framework:file')
+    implementation project(':framework:core')
+    implementation project(':framework:base-runtime')
+    // The AWS BOM must be part of the published/runtime variant, not only Gradle's
+    // local dependency-management model. Otherwise a project consumer such as EDU
+    // receives versionless s3/auth coordinates from this module.
+    implementation platform("software.amazon.awssdk:bom:${rootProject.ext.cpfAwsSdkVersion}")
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:auth'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId = 'cpf-starter-object-storage-s3'} } }

@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {"name":"cpf.common.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"CPF Common Product Service를 활성화합니다."},
+    {"name":"cpf.common.datasource.url","type":"java.lang.String","description":"CPF Platform DB(cpfDB) Common owner JDBC URL."},
+    {"name":"cpf.common.datasource.jndi-name","type":"java.lang.String","description":"CPF Platform DB(cpfDB) Common owner JNDI DataSource."},
+    {"name":"cpf.common.datasource.username","type":"java.lang.String","description":"Common owner DB credential user. Secret은 metadata에 기록하지 않습니다."},
+    {"name":"cpf.common.datasource.password","type":"java.lang.String","description":"Common owner DB credential secret."},
+    {"name":"cpf.common.datasource.driver-class-name","type":"java.lang.String"},
+    {"name":"cpf.common.datasource.validation-timeout-seconds","type":"java.lang.Integer","defaultValue":3},
+    {"name":"cpf.common.cache.preload-enabled","type":"java.lang.Boolean","defaultValue":true},
+    {"name":"cpf.common.cache.fail-fast-on-startup","type":"java.lang.Boolean","defaultValue":true}
+  ]
+}

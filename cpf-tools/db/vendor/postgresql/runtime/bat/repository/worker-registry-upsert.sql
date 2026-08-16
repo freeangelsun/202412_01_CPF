@@ -1,0 +1,33 @@
+INSERT INTO bat_worker (
+    worker_id,
+    server_instance_id,
+    host_name,
+    process_id,
+    worker_version,
+    capabilities_json,
+    max_concurrency,
+    queue_capacity,
+    control_status,
+    worker_status,
+    active_yn,
+    last_heartbeat_at,
+    current_execution_id,
+    created_by,
+    updated_by
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'Y', CURRENT_TIMESTAMP(3), ?, 'BAT', 'BAT'
+)
+ON CONFLICT (worker_id) DO UPDATE
+   SET server_instance_id = EXCLUDED.server_instance_id,
+       host_name = EXCLUDED.host_name,
+       process_id = EXCLUDED.process_id,
+       worker_version = EXCLUDED.worker_version,
+       capabilities_json = EXCLUDED.capabilities_json,
+       max_concurrency = EXCLUDED.max_concurrency,
+       control_status = EXCLUDED.control_status,
+       worker_status = EXCLUDED.worker_status,
+       active_yn = 'Y',
+       last_heartbeat_at = CURRENT_TIMESTAMP(3),
+       current_execution_id = EXCLUDED.current_execution_id,
+       updated_by = 'BAT',
+       updated_at = CURRENT_TIMESTAMP

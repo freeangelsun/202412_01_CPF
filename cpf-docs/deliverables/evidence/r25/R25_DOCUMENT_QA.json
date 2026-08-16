@@ -1,0 +1,71 @@
+{
+  "work_start_sha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
+  "final_source_basis_sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+  "logical_documents": 13,
+  "docx_pdf_pairs": 13,
+  "total_pdf_pages": 481,
+  "total_pdf_bookmarks": 1315,
+  "total_tables": 673,
+  "total_code_lines": 1437,
+  "total_table_rows": 5820,
+  "readme_local_references": 43,
+  "readme_missing_targets": [],
+  "render_blank_pages": {},
+  "render_edge_warnings": {},
+  "a11y_findings_total": 0,
+  "comments_total": 0,
+  "tracked_insertions_total": 0,
+  "tracked_deletions_total": 0,
+  "banned_expression_findings": 0,
+  "pdf_preflight": {
+    "openable": 13,
+    "encrypted": 0,
+    "scan_only": 0,
+    "xfa": 0
+  },
+  "document_quality_acceptance_gates": {
+    "passed": 24,
+    "total": 24,
+    "score_policy": "each criterion must be 100 before packaging"
+  },
+  "product_runtime_qualification": "not executed as part of this document-generation session; document acceptance does not assert runtime qualification",
+  "commit_push_performed": false,
+  "document_size_delta_review": {
+    "baseline": "R24 exact structure evidence",
+    "metric": "structure_lines = headings/bookmarks + table rows",
+    "r24_structure_lines": 2640,
+    "r25_structure_lines": 7135,
+    "delta": 4495,
+    "r24_pages": 121,
+    "r25_pages": 481,
+    "page_delta": 360,
+    "all_documents_no_decrease": true,
+    "initial_regression_found_and_fixed": "기술표준서 initial 128 -> 121 (-7) rejected; final 128 -> 208 (+80) after standards matrix/Review Record/07_15 source rule additions"
+  },
+  "latest_source_currentization": {
+    "sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+    "message": "07_15",
+    "affected_owner_documents": [
+      "00_프레임워크안내",
+      "01_개발자매뉴얼",
+      "05_플랫폼운영매뉴얼",
+      "기술사양서",
+      "기술표준서",
+      "데이터베이스표준서",
+      "아키텍처설계서"
+    ],
+    "rendered_after_currentization": true
+  },
+  "latest_remote_recheck": {
+    "sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+    "message": "07_15",
+    "checked_before_packaging": true
+  },
+  "visual_qa": {
+    "docx_final_render_pages_inspected": 481,
+    "contact_sheet_groups_inspected": 18,
+    "new_07_15_tail_pages_directly_inspected": true,
+    "visible_clipping_overlap_broken_table_found": 0,
+    "technical_standard_sparse_tail_remediated": true
+  }
+}

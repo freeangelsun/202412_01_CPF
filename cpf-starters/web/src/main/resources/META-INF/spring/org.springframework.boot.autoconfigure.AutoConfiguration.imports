@@ -1,0 +1,5 @@
+com.cpf.web.internal.openapi.CpfOpenApiAutoConfiguration
+com.cpf.web.runtime.CpfWebRuntimeAutoConfiguration
+com.cpf.web.runtime.CpfWebContextAutoConfiguration
+com.cpf.web.runtime.CpfWebErrorAutoConfiguration
+com.cpf.web.runtime.CpfControllerPolicyAutoConfiguration

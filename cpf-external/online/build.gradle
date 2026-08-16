@@ -1,0 +1,71 @@
+// Generated Customer Domain online 실행 Module 설정입니다.
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+dependencies {
+    implementation platform("com.cpf:cpf-platform-bom:${cpfPlatformVersion}")
+    implementation "com.cpf.starter:cpf-starter:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-secure-api:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-data-mybatis:${cpfPlatformVersion}"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('bootJar') { archiveBaseName = 'cpf-external-online' }
+
+def cpfSupportedDbVendors = ['mariadb', 'postgresql', 'oracle'] as Set
+def cpfSelectedDbVendor = providers.gradleProperty('cpfDbVendor').orElse(providers.environmentVariable('CPF_DB_VENDOR'))
+def cpfVendorResourceRoot = layout.buildDirectory.dir('generated-resources/cpf-vendor')
+
+tasks.register('prepareCpfVendorResources') {
+    inputs.property('cpfDbVendor', providers.provider { cpfSelectedDbVendor.orNull ?: 'UNSET' })
+    inputs.files(configurations.runtimeClasspath)
+        .withPropertyName('cpfVendorRuntimeClasspath')
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(cpfVendorResourceRoot)
+    doLast {
+        def selectedVendor = cpfSelectedDbVendor.orNull
+        if (selectedVendor == null || selectedVendor.trim().isEmpty()) {
+            throw new GradleException("DB Vendor가 지정되지 않았습니다. -PcpfDbVendor=<mariadb|postgresql|oracle> 또는 CPF_DB_VENDOR 환경변수를 설정하세요.")
+        }
+        def vendor = selectedVendor.toLowerCase(Locale.ROOT)
+        if (!cpfSupportedDbVendors.contains(vendor)) {
+            throw new GradleException("Unsupported cpfDbVendor: ${vendor}")
+        }
+        def relative = "cpf-generated-domain-dialect/${vendor}/mybatis/__MAPPER__.xml.template"
+        def candidates = []
+        configurations.runtimeClasspath.files.each { entry ->
+            if (entry.isDirectory()) {
+                def candidate = new File(entry, relative)
+                if (candidate.isFile()) candidates << candidate
+            } else if (entry.isFile() && entry.name.endsWith('.jar')) {
+                candidates.addAll(zipTree(entry).matching { include relative }.files)
+            }
+        }
+        if (candidates.size() != 1) {
+            throw new GradleException("Selected CPF vendor mapper template must resolve exactly once: vendor=${vendor} matches=${candidates.size()}")
+        }
+        def rendered = candidates[0].getText('UTF-8')
+        def replacements = [
+            '@CPF_MAPPER_NAMESPACE@': 'external.domain.mapper.SampleTransactionMapper',
+            '@CPF_RESULT_TYPE@': 'external.domain.model.SampleItem',
+            '@CPF_IDEMPOTENCY_RESULT_TYPE@': 'external.domain.model.SampleIdempotencyRecord',
+            '@CPF_TABLE_PREFIX@': 'EXS',
+            '@CPF_SCHEMA_NAME@': ''
+        ]
+        replacements.each { token, value -> rendered = rendered.replace(token, value) }
+        def unresolved = (rendered =~ /@CPF_[A-Z_]+@/).findAll()
+        if (!unresolved.isEmpty()) {
+            throw new GradleException("Unresolved CPF vendor mapper tokens: ${unresolved.unique()}")
+        }
+        def target = cpfVendorResourceRoot.get().file('db/mapper/SampleTransactionMapper.xml').asFile
+        target.parentFile.mkdirs()
+        target.setText(rendered.replace('\r\n','\n'), 'UTF-8')
+    }
+}
+sourceSets.main.resources.srcDir(cpfVendorResourceRoot)
+tasks.named('processResources') { dependsOn tasks.named('prepareCpfVendorResources') }
+

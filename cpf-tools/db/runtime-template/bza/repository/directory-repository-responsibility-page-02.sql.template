@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM bza_organization_responsibility WHERE (:organizationCode IS NULL OR organization_code=:organizationCode) AND effective_from<=:effectiveAt AND (effective_to IS NULL OR effective_to>:effectiveAt)

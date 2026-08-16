@@ -1,0 +1,28 @@
+SELECT sample_item_id AS sampleItemId,
+       sample_key AS sampleKey,
+       item_name AS itemName,
+       status_code AS statusCode,
+       version_no AS versionNo,
+       idempotency_key AS idempotencyKey,
+       transaction_id AS transactionId,
+       transaction_sequence AS transactionSequence,
+       transaction_at AS transactionAt,
+       created_by AS createdBy,
+       created_at AS createdAt,
+       updated_by AS updatedBy,
+       updated_at AS updatedAt
+FROM `@CPF_TABLE_PREFIX@_sample_item`
+WHERE deleted_yn = 'N'
+  AND (:keyword IS NULL OR :keyword = '' OR sample_key LIKE CONCAT('%', :keyword, '%') OR item_name LIKE CONCAT('%', :keyword, '%'))
+  AND (:statusCode IS NULL OR :statusCode = '' OR status_code = :statusCode)
+ORDER BY
+  CASE WHEN :sortBy = 'created_at' AND :sortDirection = 'ASC' THEN created_at END ASC,
+  CASE WHEN :sortBy = 'created_at' AND :sortDirection = 'DESC' THEN created_at END DESC,
+  CASE WHEN :sortBy = 'updated_at' AND :sortDirection = 'ASC' THEN updated_at END ASC,
+  CASE WHEN :sortBy = 'updated_at' AND :sortDirection = 'DESC' THEN updated_at END DESC,
+  CASE WHEN :sortBy = 'sample_item_id' AND :sortDirection = 'ASC' THEN sample_item_id END ASC,
+  CASE WHEN :sortBy = 'sample_item_id' AND :sortDirection = 'DESC' THEN sample_item_id END DESC,
+  CASE WHEN :sortBy = 'item_name' AND :sortDirection = 'ASC' THEN item_name END ASC,
+  CASE WHEN :sortBy = 'item_name' AND :sortDirection = 'DESC' THEN item_name END DESC,
+  sample_item_id ASC
+LIMIT :size OFFSET :offset

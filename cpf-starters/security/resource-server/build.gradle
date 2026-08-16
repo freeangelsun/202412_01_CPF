@@ -1,0 +1,22 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':framework:security')
+    api project(':framework:core')
+    implementation project(':framework:web')
+implementation project(':framework:base-runtime')
+api 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-security-resource-server'
+        }
+    }
+}

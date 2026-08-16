@@ -1,0 +1,10 @@
+cpf:
+  gateway:
+    # Production은 분산 Counter와 TLS Data Plane을 필수로 하며 누락 시 Startup Validator가 fail-fast 합니다.
+    environment-code: prod
+    require-distributed-rate-limit-counter: true
+    rate-limit-counter-mode: JDBC
+    require-tls-ingress: true
+server:
+  ssl:
+    enabled: true

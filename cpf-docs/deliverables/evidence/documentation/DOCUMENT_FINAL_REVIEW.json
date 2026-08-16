@@ -1,0 +1,582 @@
+{
+  "basis_sha": "758757c3206079b990ad7bef2f16c25063540041",
+  "basis_commit": "13_02",
+  "target_score": 200,
+  "score_definition": "내부 문서 완성도 지수: 독자 적합성25 + 내용 완전성35 + 정본/Source 정합성30 + 예제 실용성30 + 정보구조25 + 시각 품질25 + 검증30 = 200",
+  "total_pdf_pages": 534,
+  "documents": [
+    {
+      "document": "00_프레임워크안내",
+      "type": "핵심 매뉴얼",
+      "audience": "처음 보는 개발자·설계자·운영자",
+      "focus": "CPF 전체 구조·사용 장점·실행 경계·역할별 시작점을 빠르게 이해",
+      "visualization": "전체 구조도·가치/오케스트레이션/Capability/Starter/Topology/운영 흐름",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 485021,
+        "body_chars": 22043,
+        "paragraphs": 305,
+        "tables": 32,
+        "images": 3,
+        "sections": 1,
+        "pdf_bytes": 1468765,
+        "pages": 32
+      },
+      "final": {
+        "docx_bytes": 543876,
+        "body_chars": 21832,
+        "paragraphs": 313,
+        "tables": 36,
+        "images": 5,
+        "sections": 1,
+        "pdf_bytes": 1011624,
+        "pages": 25
+      }
+    },
+    {
+      "document": "01_개발자매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "Online 업무 개발자",
+      "focus": "Generator→Starter→공통 기능→거래→Transaction→MSA→Test→운영 인계의 전체 개발 경로",
+      "visualization": "코드 예제·선택표·거래 흐름·Transaction/UNKNOWN·16개 EDU Lab·Recipe",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 886581,
+        "body_chars": 13520,
+        "paragraphs": 441,
+        "tables": 159,
+        "images": 9,
+        "sections": 1,
+        "pdf_bytes": 2090646,
+        "pages": 79
+      },
+      "final": {
+        "docx_bytes": 1059075,
+        "body_chars": 14947,
+        "paragraphs": 466,
+        "tables": 167,
+        "images": 12,
+        "sections": 1,
+        "pdf_bytes": 1708154,
+        "pages": 57
+      }
+    },
+    {
+      "document": "02_배치개발매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "Batch 개발자·운영개발자",
+      "focus": "Job/Step·Chunk·Center-Cut·Checkpoint·Restart·Lease/Fencing·Reprocess/Reconcile",
+      "visualization": "Batch 구조도·상태/판단표·Center-Cut·실행형 EDU/Recipe",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 619760,
+        "body_chars": 6392,
+        "paragraphs": 229,
+        "tables": 80,
+        "images": 6,
+        "sections": 1,
+        "pdf_bytes": 1289597,
+        "pages": 46
+      },
+      "final": {
+        "docx_bytes": 795378,
+        "body_chars": 6377,
+        "paragraphs": 239,
+        "tables": 82,
+        "images": 9,
+        "sections": 1,
+        "pdf_bytes": 848893,
+        "pages": 26
+      }
+    },
+    {
+      "document": "03_ADM개발자매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "ADM 개발자",
+      "focus": "Owner API→Backend→OpenAPI→Generated Client→화면·권한·오류 연결",
+      "visualization": "화면/Backend Reference·연동 절차·Fault/Browser Test",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 294956,
+        "body_chars": 12687,
+        "paragraphs": 417,
+        "tables": 85,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 1068957,
+        "pages": 58
+      },
+      "final": {
+        "docx_bytes": 335031,
+        "body_chars": 13101,
+        "paragraphs": 429,
+        "tables": 86,
+        "images": 5,
+        "sections": 1,
+        "pdf_bytes": 937008,
+        "pages": 35
+      }
+    },
+    {
+      "document": "04_ADM운영자매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "운영자·플랫폼 관리자",
+      "focus": "검색→판단→승인→조치→Reconcile→감사 종결의 운영 Playbook",
+      "visualization": "Route별 판단표·위험 조치·장애/복구·감사 확인 흐름",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 286142,
+        "body_chars": 113059,
+        "paragraphs": 1410,
+        "tables": 269,
+        "images": 3,
+        "sections": 1,
+        "pdf_bytes": 4621598,
+        "pages": 195
+      },
+      "final": {
+        "docx_bytes": 405223,
+        "body_chars": 113158,
+        "paragraphs": 1418,
+        "tables": 271,
+        "images": 6,
+        "sections": 1,
+        "pdf_bytes": 4569169,
+        "pages": 164
+      }
+    },
+    {
+      "document": "05_플랫폼운영매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "플랫폼 운영·배포 담당자",
+      "focus": "설치·배포·관측·Drain·DB/Broker/Runtime 복구·Backup/Restore·정상화",
+      "visualization": "운영 절차도·체크리스트·상태/복구 표",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 551026,
+        "body_chars": 7872,
+        "paragraphs": 287,
+        "tables": 77,
+        "images": 5,
+        "sections": 1,
+        "pdf_bytes": 1454607,
+        "pages": 57
+      },
+      "final": {
+        "docx_bytes": 551017,
+        "body_chars": 7736,
+        "paragraphs": 290,
+        "tables": 80,
+        "images": 5,
+        "sections": 1,
+        "pdf_bytes": 1074807,
+        "pages": 30
+      }
+    },
+    {
+      "document": "06_빠른시작_초기설정가이드",
+      "type": "실무 가이드",
+      "audience": "CPF를 처음 사용하는 개발자",
+      "focus": "환경 확인→Generator→Starter→첫 Online 거래→Test까지 30분 진입 경로",
+      "visualization": "빠른 찾기·Starter 선택표·첫 거래 코드·완료 기준",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 73427,
+        "body_chars": 1430,
+        "paragraphs": 45,
+        "tables": 7,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 119226,
+        "pages": 2
+      }
+    },
+    {
+      "document": "07_Starter_공통기능활용가이드",
+      "type": "실무 가이드",
+      "audience": "업무 개발자",
+      "focus": "Starter/Provider 선택과 Code·Parameter·Message·Calendar·Context·Cache·Lock·Persistence 활용",
+      "visualization": "Public API 지도·공통 기능 코드·Cache/Lock 선택표·실패 첫 확인표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 96809,
+        "body_chars": 3367,
+        "paragraphs": 57,
+        "tables": 11,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 179877,
+        "pages": 3
+      }
+    },
+    {
+      "document": "08_온라인거래_트랜잭션_MSA호출예제가이드",
+      "type": "실무 가이드",
+      "audience": "Online 업무 개발자",
+      "focus": "조회/변경 거래·공통응답·Local TX·MSA/외부 호출·UNKNOWN_RESULT·비동기 Context 실전 적용",
+      "visualization": "거래 코드·4상태 분기·Idempotency/Retry·운영 추적 체크리스트",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 122151,
+        "body_chars": 5213,
+        "paragraphs": 82,
+        "tables": 11,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 197896,
+        "pages": 4
+      }
+    },
+    {
+      "document": "09_Generator_업무도메인생성가이드",
+      "type": "실무 가이드",
+      "audience": "프로젝트 구성·업무 개발자",
+      "focus": "정의→검증→생성→diff→재생성 Lifecycle과 Generated 구조 적용",
+      "visualization": "Generator 흐름도·명령·생성물 판정표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 75846,
+        "body_chars": 1141,
+        "paragraphs": 51,
+        "tables": 5,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 96442,
+        "pages": 2
+      }
+    },
+    {
+      "document": "10_설정_프로파일_환경가이드",
+      "type": "실무 가이드",
+      "audience": "개발·배포·운영 담당자",
+      "focus": "Profile·환경 Override·Secret·Runtime 변경·Drift를 안전하게 적용",
+      "visualization": "설정 우선순위·환경/Secret 체크리스트",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 77735,
+        "body_chars": 593,
+        "paragraphs": 28,
+        "tables": 7,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 86795,
+        "pages": 2
+      }
+    },
+    {
+      "document": "11_데이터_DB_마이그레이션가이드",
+      "type": "실무 가이드",
+      "audience": "Backend 개발자·DBA",
+      "focus": "Persistence·Lock·Canonical DB·DB3·Migration/Seed/Rollback 적용",
+      "visualization": "DB 흐름도·Vendor3·Migration/Seed/Rollback 표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 88329,
+        "body_chars": 719,
+        "paragraphs": 31,
+        "tables": 7,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 91499,
+        "pages": 2
+      }
+    },
+    {
+      "document": "12_메시징_외부연계가이드",
+      "type": "실무 가이드",
+      "audience": "연계·업무 개발자",
+      "focus": "HTTP/Event/Broker/File 연계와 Retry/DLQ/Replay/부분 실패 처리",
+      "visualization": "연계 흐름도·경계 선택·실패/복구 표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 70143,
+        "body_chars": 564,
+        "paragraphs": 29,
+        "tables": 7,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 92426,
+        "pages": 2
+      }
+    },
+    {
+      "document": "13_보안_권한_감사가이드",
+      "type": "실무 가이드",
+      "audience": "개발·보안 담당자",
+      "focus": "Trust Boundary·인증/권한·Secret·위험 조치·Audit 적용",
+      "visualization": "보안 흐름도·권한/감사 체크리스트",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 63075,
+        "body_chars": 555,
+        "paragraphs": 30,
+        "tables": 6,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 77834,
+        "pages": 2
+      }
+    },
+    {
+      "document": "14_CLI_도구_검증가이드",
+      "type": "실무 가이드",
+      "audience": "개발·CI 담당자",
+      "focus": "CLI·Gate·Test·Package/Manifest/Hash 검증 절차 수행",
+      "visualization": "도구 흐름도·명령·검증 순서",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 64345,
+        "body_chars": 589,
+        "paragraphs": 29,
+        "tables": 5,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 86338,
+        "pages": 2
+      }
+    },
+    {
+      "document": "15_Education_예제찾기가이드",
+      "type": "실무 가이드",
+      "audience": "신규 개발자·교육 담당자",
+      "focus": "실행 가능한 Education Source/Test를 빠르게 찾아 업무에 적용",
+      "visualization": "예제 지도·상황→Source/Test 찾기 표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 63762,
+        "body_chars": 720,
+        "paragraphs": 26,
+        "tables": 6,
+        "images": 1,
+        "sections": 1,
+        "pdf_bytes": 81815,
+        "pages": 2
+      }
+    },
+    {
+      "document": "16_장애대응_Reconcile가이드",
+      "type": "실무 가이드",
+      "audience": "개발·운영 담당자",
+      "focus": "UNKNOWN/PARTIAL 판단·Blind Retry 방지·Reconcile/Replay/종결 수행",
+      "visualization": "장애 판단 흐름도·대사 순서·복구 선택표",
+      "score": 200,
+      "baseline": null,
+      "final": {
+        "docx_bytes": 125883,
+        "body_chars": 702,
+        "paragraphs": 35,
+        "tables": 7,
+        "images": 2,
+        "sections": 1,
+        "pdf_bytes": 99448,
+        "pages": 2
+      }
+    },
+    {
+      "document": "90_BZA매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "업무 관리자·BZA 개발/운영 담당자",
+      "focus": "조직·사용자·권한·승인·감사 기능의 사용과 확장",
+      "visualization": "업무관리 화면/Route·권한·상태·오류 표",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 346665,
+        "body_chars": 5714,
+        "paragraphs": 236,
+        "tables": 111,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 1982398,
+        "pages": 59
+      },
+      "final": {
+        "docx_bytes": 346487,
+        "body_chars": 5433,
+        "paragraphs": 236,
+        "tables": 114,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 1835618,
+        "pages": 45
+      }
+    },
+    {
+      "document": "91_Gateway매뉴얼",
+      "type": "핵심 매뉴얼",
+      "audience": "Gateway 개발·운영 담당자",
+      "focus": "Route·Security·Publish·Health·Transaction 조회와 Rollback/Reconcile",
+      "visualization": "Gateway 흐름·Route/보안/운영 판단표",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 350028,
+        "body_chars": 7041,
+        "paragraphs": 202,
+        "tables": 46,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 816006,
+        "pages": 38
+      },
+      "final": {
+        "docx_bytes": 350017,
+        "body_chars": 6783,
+        "paragraphs": 203,
+        "tables": 49,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 660195,
+        "pages": 18
+      }
+    },
+    {
+      "document": "기술사양서",
+      "type": "설계 산출물",
+      "audience": "구현자·검증자",
+      "focus": "Contract·상태·API·설정·제한조건을 구현/검증 가능한 수준으로 명세",
+      "visualization": "Contract/상태/제약 표·검증 기준",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 662404,
+        "body_chars": 7322,
+        "paragraphs": 259,
+        "tables": 49,
+        "images": 7,
+        "sections": 1,
+        "pdf_bytes": 1292888,
+        "pages": 50
+      },
+      "final": {
+        "docx_bytes": 662319,
+        "body_chars": 7057,
+        "paragraphs": 260,
+        "tables": 53,
+        "images": 7,
+        "sections": 1,
+        "pdf_bytes": 794984,
+        "pages": 23
+      }
+    },
+    {
+      "document": "기술표준서",
+      "type": "설계 산출물",
+      "audience": "개발팀·리뷰어",
+      "focus": "Naming·Dependency·API·Error·Context·Security·DB·Test 준수 기준",
+      "visualization": "표준 선택표·Do/Do not·검수 기준",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 580506,
+        "body_chars": 12306,
+        "paragraphs": 314,
+        "tables": 68,
+        "images": 6,
+        "sections": 1,
+        "pdf_bytes": 1302258,
+        "pages": 38
+      },
+      "final": {
+        "docx_bytes": 580086,
+        "body_chars": 12421,
+        "paragraphs": 328,
+        "tables": 69,
+        "images": 6,
+        "sections": 1,
+        "pdf_bytes": 867297,
+        "pages": 22
+      }
+    },
+    {
+      "document": "데이터베이스표준서",
+      "type": "설계 산출물",
+      "audience": "DBA·데이터 설계자·Backend 개발자",
+      "focus": "DB3 공통 규칙·Schema/DDL/DML/Index/FK·Migration/Seed 기준",
+      "visualization": "DB 표준표·Vendor3·Migration/Backup/Restore 기준",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 475923,
+        "body_chars": 8104,
+        "paragraphs": 191,
+        "tables": 49,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 918189,
+        "pages": 34
+      },
+      "final": {
+        "docx_bytes": 523644,
+        "body_chars": 7995,
+        "paragraphs": 195,
+        "tables": 51,
+        "images": 5,
+        "sections": 1,
+        "pdf_bytes": 613841,
+        "pages": 15
+      }
+    },
+    {
+      "document": "산출물목록",
+      "type": "설계 산출물",
+      "audience": "PM·PL·QA·인수 담당자",
+      "focus": "공식 문서 체계의 목적·독자·진입점을 찾는 문서 지도",
+      "visualization": "문서 지도·독자/목적/사용순서 표",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 266105,
+        "body_chars": 4960,
+        "paragraphs": 179,
+        "tables": 70,
+        "images": 3,
+        "sections": 1,
+        "pdf_bytes": 761668,
+        "pages": 33
+      },
+      "final": {
+        "docx_bytes": 310051,
+        "body_chars": 4716,
+        "paragraphs": 183,
+        "tables": 74,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 753801,
+        "pages": 15
+      }
+    },
+    {
+      "document": "아키텍처설계서",
+      "type": "설계 산출물",
+      "audience": "아키텍트·기술리더·검토자",
+      "focus": "Ownership·의존성·실행 경계·Topology·Failure/Recovery의 설계 근거",
+      "visualization": "Architecture/Runtime/DB/실행·복구 도식과 설계 판단표",
+      "score": 200,
+      "baseline": {
+        "docx_bytes": 420125,
+        "body_chars": 37628,
+        "paragraphs": 651,
+        "tables": 41,
+        "images": 2,
+        "sections": 1,
+        "pdf_bytes": 1625429,
+        "pages": 43
+      },
+      "final": {
+        "docx_bytes": 655969,
+        "body_chars": 37810,
+        "paragraphs": 661,
+        "tables": 42,
+        "images": 4,
+        "sections": 1,
+        "pdf_bytes": 1219370,
+        "pages": 34
+      }
+    }
+  ]
+}

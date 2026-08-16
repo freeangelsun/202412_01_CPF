@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="470" viewBox="0 0 1160 470" role="img" aria-labelledby="title desc">
+  <title id="title">UNKNOWN_RESULT 판정 흐름</title>
+  <desc id="desc">응답 유실을 성공·실패로 추정하지 않고 근거로 확정</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.15"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b5268"/>
+    </marker>
+    <style>
+      .title{font:700 28px 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;fill:#102a43}
+      .subtitle{font:400 15px 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;fill:#486581}
+      .boxTitle{font:700 16px 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;fill:#102a43}
+      .boxText{font:400 13px 'Pretendard','Noto Sans KR','Malgun Gothic',sans-serif;fill:#334e68}
+      .line{stroke:#3b5268;stroke-width:2;fill:none;marker-end:url(#arrow)}
+      .dash{stroke:#829ab1;stroke-width:2;fill:none;stroke-dasharray:7 5;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="100%" height="100%" rx="24" fill="#f7fafc"/>
+  <text x="44" y="48" class="title">UNKNOWN_RESULT 판정 흐름</text>
+  <text x="44" y="76" class="subtitle">응답 유실을 성공·실패로 추정하지 않고 근거로 확정</text>
+  <g filter="url(#shadow)"><rect x="55" y="130" width="220" height="110" rx="14" fill="#e8f1f8" stroke="#8bb8d8" stroke-width="1.5"/><text x="71" y="158" class="boxTitle">요청 전</text><text x="71" y="182" class="boxText">Operation·Request Hash</text><text x="71" y="202" class="boxText">Attempt=CREATED</text></g><g filter="url(#shadow)"><rect x="330" y="130" width="220" height="110" rx="14" fill="#e8f1f8" stroke="#8bb8d8" stroke-width="1.5"/><text x="346" y="158" class="boxTitle">외부 Write</text><text x="346" y="182" class="boxText">Attempt=SENT</text><text x="346" y="202" class="boxText">Tracking ID</text></g><g filter="url(#shadow)"><rect x="605" y="130" width="220" height="110" rx="14" fill="#fff4e6" stroke="#e7a75f" stroke-width="1.5"/><text x="621" y="158" class="boxTitle">응답 유실</text><text x="621" y="182" class="boxText">UNKNOWN 보존</text><text x="621" y="202" class="boxText">재전송 금지</text></g><g filter="url(#shadow)"><rect x="880" y="130" width="220" height="110" rx="14" fill="#e8f6f3" stroke="#57a995" stroke-width="1.5"/><text x="896" y="158" class="boxTitle">대사</text><text x="896" y="182" class="boxText">원장·Provider Probe</text><text x="896" y="202" class="boxText">Evidence</text></g><path d="M275,185 L330,185" class="line"/><path d="M550,185 L605,185" class="line"/><path d="M825,185 L880,185" class="line"/><g filter="url(#shadow)"><rect x="290" y="320" width="220" height="95" rx="14" fill="#e8f6f3" stroke="#57a995" stroke-width="1.5"/><text x="306" y="348" class="boxTitle">성공 확정</text><text x="306" y="372" class="boxText">기존 결과 반환</text></g><g filter="url(#shadow)"><rect x="610" y="320" width="220" height="95" rx="14" fill="#fdecec" stroke="#d97b7b" stroke-width="1.5"/><text x="626" y="348" class="boxTitle">실패 확정</text><text x="626" y="372" class="boxText">새 Operation 판단</text></g><path d="M990,240 L400,320" class="dash"/><path d="M990,240 L720,320" class="dash"/>
+</svg>

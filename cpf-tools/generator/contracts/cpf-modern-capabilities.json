@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 2,
+  "capabilities": [
+    {
+      "id": "runtime-health",
+      "projectPath": ":internal:platform-operations:health",
+      "default": true,
+      "profileHints": [
+        "web-api",
+        "secure-api",
+        "browser-bff",
+        "event-service",
+        "batch-service"
+      ]
+    },
+    {
+      "id": "session-valkey",
+      "projectPath": ":starters:security:session:valkey",
+      "default": false,
+      "requires": [
+        "valkey"
+      ]
+    },
+    {
+      "id": "lock-valkey",
+      "projectPath": ":starters:data:lock:valkey",
+      "default": false,
+      "requires": [
+        "valkey"
+      ]
+    },
+    {
+      "id": "object-storage-s3",
+      "projectPath": ":starters:file:object-storage:s3",
+      "default": false,
+      "requires": [
+        "s3-compatible"
+      ]
+    },
+    {
+      "id": "event-schema-governance",
+      "projectPath": ":cpf-starter-messaging-schema-governance",
+      "default": false
+    },
+    {
+      "id": "graphql",
+      "projectPath": ":starters:integration:graphql",
+      "default": false
+    },
+    {
+      "id": "realtime-sse",
+      "projectPath": ":starters:integration:realtime",
+      "default": false
+    },
+    {
+      "id": "runtime-health-jdbc",
+      "projectPath": ":internal:platform-operations:runtime-health:jdbc",
+      "default": false,
+      "internal": true
+    }
+  ]
+}

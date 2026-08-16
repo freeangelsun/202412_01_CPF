@@ -1,0 +1,2 @@
+<script setup lang="ts">import RuntimeFleetWorkbench from '../batch-runtime-control/RuntimeFleetWorkbench.vue'</script>
+<template><RuntimeFleetWorkbench view="worker-pools" title="Worker Pool Workbench" description="Pool별 Capacity·Concurrency·Artifact Version·Drain·Fencing 상태와 승인 기반 조치를 관리합니다." target-type="POOL" :id-keys="['poolId','pool_id','workerPoolId']" :allowed-actions="['DRAIN','RESUME','RESTART']" /></template>

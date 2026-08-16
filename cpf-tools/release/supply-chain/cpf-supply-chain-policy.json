@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "policyId": "CPF-SUPPLY-CHAIN-POLICY",
+  "allowedLicenses": [
+    "Apache-2.0",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC"
+  ],
+  "conditionalLicenses": [
+    "MPL-2.0",
+    "EPL-2.0",
+    "LGPL-2.1-only",
+    "LGPL-3.0-only"
+  ],
+  "deniedLicenses": [
+    "GPL-2.0-only",
+    "GPL-3.0-only",
+    "AGPL-3.0-only",
+    "SSPL-1.0",
+    "BUSL-1.1",
+    "RSAL",
+    "UNKNOWN",
+    "NOASSERTION"
+  ],
+  "releaseRequiredEvidence": [
+    "artifact-manifest.json",
+    "artifact-sha256.txt",
+    "cyclonedx-bom.json",
+    "license-report.json",
+    "vulnerability-report.json",
+    "signature-verification.json"
+  ],
+  "requiredTools": [
+    {
+      "name": "cyclonedx-gradle",
+      "purpose": "JVM SBOM"
+    },
+    {
+      "name": "ort",
+      "purpose": "license obligations"
+    },
+    {
+      "name": "syft",
+      "purpose": "filesystem/container SBOM"
+    },
+    {
+      "name": "grype",
+      "purpose": "vulnerability scan"
+    },
+    {
+      "name": "cpf-release-signer",
+      "purpose": "artifact signature"
+    }
+  ],
+  "failClosed": true
+}

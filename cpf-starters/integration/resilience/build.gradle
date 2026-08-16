@@ -1,0 +1,21 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':framework:integration')
+    implementation project(':framework:base-runtime')
+    implementation project(':framework:core')
+    implementation project(':framework:data')
+    implementation project(':framework:data:persistence')
+    implementation project(':framework:operations')
+    implementation project(':framework:operations:observability')
+    implementation project(':framework:security')
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation project(':internal:testing:testkit')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-integration-resilience' } } }

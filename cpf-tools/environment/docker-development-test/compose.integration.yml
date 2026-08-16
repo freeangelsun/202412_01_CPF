@@ -1,0 +1,102 @@
+services:
+  wiremock:
+    image: ${WIREMOCK_IMAGE}
+    container_name: cpf-wiremock
+    restart: "no"
+    command: ["--global-response-templating", "--verbose"]
+    ports:
+      - "127.0.0.1:18080:8080"
+    volumes:
+      - ./fixtures/wiremock:/home/wiremock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/__admin/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  sftp:
+    image: ${SFTP_FIXTURE_IMAGE}
+    container_name: cpf-sftp
+    restart: "no"
+    environment:
+      SFTP_USER: ${CPF_SFTP_USER}
+    ports:
+      - "127.0.0.1:2222:22"
+    secrets:
+      - sftp_password
+    volumes:
+      - cpf-sftp-data:/home/${CPF_SFTP_USER}/exchange
+    healthcheck:
+      test: ["CMD-SHELL", "pidof sshd >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  vault:
+    image: ${VAULT_IMAGE}
+    container_name: cpf-vault
+    restart: "no"
+    cap_add:
+      - IPC_LOCK
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        export VAULT_DEV_ROOT_TOKEN_ID="$$(cat /run/secrets/vault_token)";
+        exec docker-entrypoint.sh server -dev -dev-listen-address=0.0.0.0:8200
+    ports:
+      - "127.0.0.1:8200:8200"
+    secrets:
+      - vault_token
+    healthcheck:
+      test: ["CMD-SHELL", "VAULT_ADDR=http://127.0.0.1:8200 vault status >/dev/null 2>&1 || test $$? -eq 2"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE}
+    container_name: cpf-keycloak
+    restart: "no"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${CPF_KEYCLOAK_ADMIN_USER}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - >-
+        export KC_BOOTSTRAP_ADMIN_PASSWORD="$$(cat /run/secrets/keycloak_admin_password)";
+        exec /opt/keycloak/bin/kc.sh start-dev --import-realm --http-port=8080
+    ports:
+      - "127.0.0.1:18081:8080"
+    secrets:
+      - keycloak_admin_password
+      - keycloak_test_password
+      - keycloak_service_client_secret
+    volumes:
+      - cpf-keycloak-data:/opt/keycloak/data
+      - ./fixtures/keycloak/cpf-test-realm.json:/opt/keycloak/data/import/cpf-test-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+
+secrets:
+  sftp_password:
+    file: C:/dev/Docker/Secrets/sftp-password.txt
+  vault_token:
+    file: C:/dev/Docker/Secrets/vault-token.txt
+  keycloak_admin_password:
+    file: C:/dev/Docker/Secrets/keycloak-admin-password.txt
+  keycloak_test_password:
+    file: C:/dev/Docker/Secrets/keycloak-test-password.txt
+  keycloak_service_client_secret:
+    file: C:/dev/Docker/Secrets/keycloak-service-client-secret.txt
+
+volumes:
+  cpf-sftp-data:
+    name: cpf-sftp-data
+  cpf-keycloak-data:
+    name: cpf-keycloak-data

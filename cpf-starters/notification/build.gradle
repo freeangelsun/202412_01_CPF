@@ -1,0 +1,9 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+
+dependencies {
+    api project(':framework:core')
+}
+
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-notification' } } }

@@ -1,0 +1,14 @@
+INSERT INTO bat_job_pack(
+    job_pack_id, owner_domain, artifact_coordinate, artifact_version, artifact_checksum,
+    signature_present_yn, platform_range, manifest_json, last_registered_at
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6))
+ON DUPLICATE KEY UPDATE
+    owner_domain = VALUES(owner_domain),
+    artifact_coordinate = VALUES(artifact_coordinate),
+    artifact_version = VALUES(artifact_version),
+    artifact_checksum = VALUES(artifact_checksum),
+    signature_present_yn = VALUES(signature_present_yn),
+    platform_range = VALUES(platform_range),
+    manifest_json = VALUES(manifest_json),
+    last_registered_at = CURRENT_TIMESTAMP(6)

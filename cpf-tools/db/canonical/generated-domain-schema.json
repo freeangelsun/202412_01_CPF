@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "contract": "CPF_GENERATED_DOMAIN_CANONICAL_SCHEMA",
+  "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+  "tablePrefixToken": "@CPF_TABLE_PREFIX@",
+  "systemCodeToken": "@CPF_SYSTEM_CODE@",
+  "tables": [
+    {
+      "name": "CPF_DOMAIN_sample_item",
+      "targetTableName": "CPF_DOMAIN_sample_item",
+      "columns": [
+        {"name":"sample_item_id","type":"BIGINT","nullable":false,"default":null,"autoIncrement":true,"onUpdate":null},
+        {"name":"sample_key","type":"VARCHAR(100)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"item_name","type":"VARCHAR(200)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"status_code","type":"VARCHAR(30)","nullable":false,"default":"'ACTIVE'","autoIncrement":false,"onUpdate":null},
+        {"name":"version_no","type":"BIGINT","nullable":false,"default":"0","autoIncrement":false,"onUpdate":null},
+        {"name":"idempotency_key","type":"VARCHAR(180)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"transaction_id","type":"CHAR(34)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"transaction_sequence","type":"BIGINT","nullable":false,"default":"1","autoIncrement":false,"onUpdate":null},
+        {"name":"transaction_at","type":"DATETIME(3)","nullable":false,"default":"CURRENT_TIMESTAMP(3)","autoIncrement":false,"onUpdate":null},
+        {"name":"deleted_yn","type":"CHAR(1)","nullable":false,"default":"'N'","autoIncrement":false,"onUpdate":null},
+        {"name":"created_by","type":"VARCHAR(100)","nullable":false,"default":"'@CPF_SYSTEM_CODE@'","autoIncrement":false,"onUpdate":null},
+        {"name":"created_at","type":"DATETIME(3)","nullable":false,"default":"CURRENT_TIMESTAMP(3)","autoIncrement":false,"onUpdate":null},
+        {"name":"updated_by","type":"VARCHAR(100)","nullable":false,"default":"'@CPF_SYSTEM_CODE@'","autoIncrement":false,"onUpdate":null},
+        {"name":"updated_at","type":"DATETIME(3)","nullable":false,"default":"CURRENT_TIMESTAMP(3)","autoIncrement":false,"onUpdate":"CURRENT_TIMESTAMP(3)"}
+      ],
+      "primaryKey":["sample_item_id"],
+      "uniqueKeys":[{"name":"uk_CPF_DOMAIN_sample_item_key","columns":["sample_key"]}],
+      "indexes":[
+        {"name":"ix_CPF_DOMAIN_sample_item_idem","columns":["idempotency_key"]},
+        {"name":"ix_CPF_DOMAIN_sample_item_status","columns":["status_code","deleted_yn","sample_item_id"]},
+        {"name":"ix_CPF_DOMAIN_sample_item_tx","columns":["transaction_id","transaction_sequence"]}
+      ],
+      "foreignKeys":[],
+      "checks":[
+        {"name":"ck_CPF_DOMAIN_sample_item_status","expression":"status_code IN ('ACTIVE','INACTIVE')"},
+        {"name":"ck_CPF_DOMAIN_sample_item_deleted","expression":"deleted_yn IN ('Y','N')"}
+      ]
+    },
+    {
+      "name":"CPF_DOMAIN_sample_item_idem",
+      "targetTableName":"CPF_DOMAIN_sample_item_idem",
+      "columns":[
+        {"name":"idempotency_key","type":"VARCHAR(180)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"operation_code","type":"VARCHAR(20)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"request_hash","type":"CHAR(64)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"sample_item_id","type":"BIGINT","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"result_version","type":"BIGINT","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"deleted_yn","type":"CHAR(1)","nullable":false,"default":"'N'","autoIncrement":false,"onUpdate":null},
+        {"name":"transaction_id","type":"CHAR(34)","nullable":false,"default":null,"autoIncrement":false,"onUpdate":null},
+        {"name":"created_at","type":"DATETIME(3)","nullable":false,"default":"CURRENT_TIMESTAMP(3)","autoIncrement":false,"onUpdate":null}
+      ],
+      "primaryKey":["idempotency_key"],
+      "uniqueKeys":[],
+      "indexes":[
+        {"name":"ix_CPF_DOMAIN_sample_idem_item","columns":["sample_item_id","created_at"]},
+        {"name":"ix_CPF_DOMAIN_sample_idem_tx","columns":["transaction_id","created_at"]}
+      ],
+      "foreignKeys":[{"name":"fk_CPF_DOMAIN_sample_idem_item","columns":["sample_item_id"],"refTable":"CPF_DOMAIN_sample_item","refColumns":["sample_item_id"],"onDelete":null,"onUpdate":null}],
+      "checks":[
+        {"name":"ck_CPF_DOMAIN_sample_idem_op","expression":"operation_code IN ('CREATE','UPDATE','DELETE')"},
+        {"name":"ck_CPF_DOMAIN_sample_idem_deleted","expression":"deleted_yn IN ('Y','N')"}
+      ]
+    }
+  ]
+}

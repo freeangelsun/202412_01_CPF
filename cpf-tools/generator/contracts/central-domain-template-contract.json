@@ -1,0 +1,215 @@
+{
+  "contractVersion": "3.0",
+  "owner": "CPF DB Tool",
+  "templateRoot": "cpf-tools/db/generated/domain-template/{vendor}",
+  "supportedVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "requiredTemplates": [
+    "install/10_empty_install.sql.template",
+    "seed/20_product_seed.sql.template",
+    "migration/V1____DOMAIN___domain.sql.template",
+    "verify/90_verify.sql.template",
+    "rollback/R1__remove___DOMAIN___domain.sql.template"
+  ],
+  "tokens": [
+    "CPF_VENDOR",
+    "CPF_DOMAIN",
+    "CPF_SYSTEM_CODE",
+    "CPF_DISPLAY_NAME",
+    "CPF_MODULE_NAME",
+    "CPF_PACKAGE_NAME",
+    "CPF_TABLE_PREFIX",
+    "CPF_MAPPER_NAMESPACE",
+    "CPF_MAPPER_NAME",
+    "CPF_RESULT_TYPE",
+    "CPF_IDEMPOTENCY_RESULT_TYPE"
+  ],
+  "physicalTableContract": {
+    "totalTables": 2,
+    "businessTableCount": 1,
+    "supportLedgerCount": 1,
+    "additionalTablesAllowed": false
+  },
+  "verifyContract": {
+    "model": "sample-item",
+    "tableRole": "business-sample",
+    "requiredTable": "@CPF_TABLE_PREFIX@_sample_item",
+    "logicalTable": "@CPF_TABLE_PREFIX@_sample_item",
+    "requiredColumns": [
+      "sample_item_id",
+      "sample_key",
+      "item_name",
+      "status_code",
+      "version_no",
+      "idempotency_key",
+      "transaction_id",
+      "transaction_sequence",
+      "transaction_at",
+      "deleted_yn",
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at"
+    ],
+    "transactionIdWidth": 34,
+    "requiredKeys": [
+      "primary-key",
+      "sample-key-unique"
+    ],
+    "requiredIndexes": [
+      "idempotency-key-audit",
+      "status-deleted-id",
+      "transaction-id-sequence"
+    ],
+    "requiredChecks": [
+      "status-active-inactive",
+      "deleted-yn"
+    ],
+    "requiredOperations": [
+      "create",
+      "read",
+      "update",
+      "delete",
+      "search",
+      "offset-page",
+      "slice",
+      "cursor",
+      "validation",
+      "transaction-commit",
+      "transaction-rollback",
+      "optimistic-lock",
+      "duplicate",
+      "local-call",
+      "remote-call",
+      "standard-header",
+      "transaction-id",
+      "error-mapping",
+      "idempotency",
+      "audit",
+      "masking",
+      "framework-edu"
+    ]
+  },
+  "idempotencyLedgerContract": {
+    "model": "sample-item-idempotency-ledger",
+    "tableRole": "non-business-support-ledger",
+    "requiredTable": "@CPF_TABLE_PREFIX@_sample_item_idem",
+    "logicalTable": "@CPF_TABLE_PREFIX@_sample_item_idem",
+    "requiredColumns": [
+      "idempotency_key",
+      "operation_code",
+      "request_hash",
+      "sample_item_id",
+      "result_version",
+      "deleted_yn",
+      "transaction_id",
+      "created_at"
+    ],
+    "transactionIdWidth": 34,
+    "requiredKeys": [
+      "primary-key",
+      "sample-item-foreign-key"
+    ],
+    "requiredIndexes": [
+      "sample-item-created-at",
+      "transaction-id-created-at"
+    ],
+    "requiredChecks": [
+      "operation-create-update-delete",
+      "deleted-yn"
+    ],
+    "replayPolicy": "same-key-and-request-hash-replay-different-hash-conflict",
+    "logicalDeleteReplayRequired": true
+  },
+  "runtimeContract": {
+    "pessimisticLock": "vendor-native-row-lock",
+    "optimisticLock": "version_no compare-and-increment",
+    "requiredStatements": [
+      "search",
+      "count",
+      "findBySampleKey",
+      "findById",
+      "findIdempotency",
+      "findForUpdate",
+      "cursorSlice",
+      "insert",
+      "insertIdempotency",
+      "updateWithVersion",
+      "logicalDeleteWithVersion"
+    ],
+    "paging": [
+      "offset",
+      "slice",
+      "cursor"
+    ],
+    "productSeedPolicy": "metadata-only-no-business-sample-row"
+  },
+  "buildRuntimeContract": {
+    "selectionProperty": "cpfDbVendor",
+    "selectedVendorOnly": true,
+    "vendors": {
+      "mariadb": {
+        "jdbcDriver": "org.mariadb.jdbc:mariadb-java-client",
+        "flywayDatabase": "org.flywaydb:flyway-mysql"
+      },
+      "postgresql": {
+        "jdbcDriver": "org.postgresql:postgresql",
+        "flywayDatabase": "org.flywaydb:flyway-database-postgresql"
+      },
+      "oracle": {
+        "jdbcDriver": "com.oracle.database.jdbc:ojdbc11",
+        "flywayDatabase": "org.flywaydb:flyway-database-oracle"
+      }
+    }
+  },
+  "selection": {
+    "metadataSource": "cpf-domain.yaml",
+    "metadataLocations": [
+      "cpf-tools/generator/definitions/{domain}/cpf-domain.yaml",
+      "explicit --file"
+    ],
+    "generatedProjectMetadata": "NONE",
+    "selectedVendorOnly": true,
+    "sourceTreeMutation": false,
+    "moduleLocalVendorPack": false,
+    "assemblyTarget": "build/generated-resources/cpf-vendor",
+    "platformTemplateRoot": "cpf-tools/db/generated/domain-template/{vendor}",
+    "federatedRepositoryTemplateRoot": "cpf-db/generated/domain-template/{vendor}",
+    "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+    "runtimeDialectRoot": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/{vendor}"
+  },
+  "referenceOwnedExclusions": {
+    "ownerModule": "cpf-tools/db",
+    "logicalDatabase": "referenceFixture",
+    "generatedDomainAllowed": false,
+    "forbiddenTablePrefixes": [
+      "CPF_EDU_",
+      "CPF_REF_BAT_"
+    ],
+    "forbiddenTemplateTokens": [
+      "CPF_EDU_",
+      "CPF_REF_BAT_",
+      "REFERENCE_EDU",
+      "MANUAL_EDU",
+      "REFERENCE_BATCH_EDU"
+    ],
+    "reason": "DB Tool-owned REFERENCE_FIXTURE persistence is non-production and must never be copied into generated business domains; cpf-education is only a consumer.",
+    "consumerModule": "cpf-education",
+    "databaseRole": "REFERENCE_FIXTURE"
+  },
+  "businessDatabaseContract": {
+    "role": "CUSTOMER_BUSINESS_DB",
+    "physicalDatabaseProvisioning": "EXTERNAL_DEPLOYMENT_OWNER",
+    "generatedDomainCreatesPhysicalDatabase": false,
+    "generatedDomainCreatesSchema": false,
+    "tableQualification": "CONNECTION_DEFAULT_SCHEMA",
+    "domainIsolation": "TABLE_PREFIX_AND_OWNER_DOMAIN",
+    "atomicStateLocation": "CUSTOMER_BUSINESS_DB"
+  },
+  "canonicalSchemaSource": "cpf-tools/db/canonical/generated-domain-schema.json",
+  "renderer": "cpf-tools/db/render_generated_domain_template.py",
+  "runtimeDialectOwner": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/{vendor}"
+}

@@ -1,0 +1,100 @@
+{
+  "requirementId": "EDU-BAT-02",
+  "title": "회원 등급 10,000건 Chunk",
+  "kind": "BATCH",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_BATCH_OPERATOR",
+  "requiredFields": [
+    "businessDate",
+    "criteriaVersion",
+    "chunkSize"
+  ],
+  "businessStates": [
+    "STARTING",
+    "STARTED",
+    "COMPLETED",
+    "FAILED",
+    "STOPPED"
+  ],
+  "exceptionScenarios": [
+    "중간 Process 종료",
+    "Skip",
+    "Retry",
+    "Writer 실패"
+  ],
+  "requiredVerification": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 5,
+  "implementationPackage": "com.cpf.education.batch.chunk.membergrade",
+  "handlerClass": "com.cpf.education.batch.chunk.membergrade.EduBat02Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/batch/chunk/membergrade/EduBat02Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/batch/chunk/membergrade/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/batch/chunk/membergrade/EduBat02ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/chunk/membergrade/EduBat02FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/chunk/membergrade/EduBat02IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/chunk/membergrade/EduBat02RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/chunk/membergrade/EduBat02UnitTest.java"
+  ],
+  "manualAnchor": "EDU-BAT-02",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-education",
+    "entryPoint": "eduBat02Job",
+    "operation": "STOPPED",
+    "publicContract": "cpf-education optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-BAT-02/executions",
+    "configurationKey": "cpf.education.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "businessDate",
+      "criteriaVersion",
+      "chunkSize"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

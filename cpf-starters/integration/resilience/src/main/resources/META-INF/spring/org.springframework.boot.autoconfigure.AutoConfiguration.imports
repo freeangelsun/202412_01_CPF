@@ -1,0 +1,2 @@
+com.cpf.integration.resilience.internal.CpfResilienceAutoConfiguration
+com.cpf.integration.resilience.runtime.CpfIntegrationResilienceAutoConfiguration

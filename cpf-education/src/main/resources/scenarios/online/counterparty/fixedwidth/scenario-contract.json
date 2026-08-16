@@ -1,0 +1,112 @@
+{
+  "requirementId": "EDU-DEV-10",
+  "title": "고정길이 전문 기관 이체",
+  "kind": "ONLINE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_EDU_DEVELOPER",
+  "requiredFields": [
+    "institution",
+    "transfers",
+    "amount",
+    "currency",
+    "endpointAlias",
+    "institutionRequestId"
+  ],
+  "businessStates": [
+    "CREATED",
+    "ENCODED",
+    "SENT",
+    "ACKNOWLEDGED",
+    "REJECTED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "exceptionScenarios": [
+    "문자 Byte 길이 초과",
+    "잘못된 Encoding",
+    "전문 길이 부족/초과",
+    "Header 거래번호 불일치",
+    "응답 Code 미등록",
+    "지연 응답",
+    "부분 수신",
+    "중복 응답"
+  ],
+  "requiredVerification": [
+    "Golden Byte 비교",
+    "한글 Byte Length",
+    "Layout Version 호환",
+    "응답 Code Mapping",
+    "전송 후 Timeout 대사",
+    "원문 Masking"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": false,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 5,
+  "implementationPackage": "com.cpf.education.scenarios.online.counterparty.fixedwidth",
+  "handlerClass": "com.cpf.education.scenarios.online.counterparty.fixedwidth.EduDev10Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/scenarios/online/counterparty/fixedwidth/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/counterparty/fixedwidth/EduDev10UnitTest.java"
+  ],
+  "manualAnchor": "EDU-DEV-10",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "HTTP",
+    "ownerModule": "cpf-education",
+    "entryPoint": "/external/10",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-education counterparty simulator HTTP contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-DEV-10/executions",
+    "configurationKey": "cpf.edu.counterparty.base-url",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "institution",
+      "transfers",
+      "amount",
+      "currency",
+      "endpointAlias",
+      "institutionRequestId"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

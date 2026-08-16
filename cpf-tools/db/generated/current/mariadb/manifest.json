@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "generated": true,
+  "owner": "cpf-tools/db",
+  "canonical": {
+    "platformSchemaVersion": 49,
+    "seedModelVersion": 42,
+    "nonTableObjectVersion": 1
+  },
+  "artifacts": {
+    "cpf-platform-schema.sql": "f209ae1960e0d2b16761e418ff5e760bc8519bda0390b0da91d4c63602df06b4",
+    "cpf-platform-seed.sql": "dd49ba8e9b256a200c998e0ab80ca96fcf98a0ffa2ddc2f89e956a4bf3200540",
+    "cpf-platform-verify.sql": "7ddea2d00e559f45c567e0b6056cbb25f721eec8361ad988148925748115feda",
+    "cpf-platform-rollback.sql": "253190bc576c58024543a5cb736516c9f2b41c36b220b919ca2b1241ddc6bb58",
+    "bza-schema.sql": "0a4ffc5aa607a7834bc33ec9f3073e1fb6829856b7ce2dc313a20600c0b68a97",
+    "bza-seed.sql": "3612b977c1f26085fc3279054b74bd864472bc23925b1636575daf01ed2be3d5",
+    "bza-verify.sql": "b1460fea8ff24f2a06b33ab557885b534e8febfc4cb06c21d9094055bfcf6268",
+    "bza-rollback.sql": "e6ae7e32ff6e15fde2f9e0f8a82f360ea0ac45d29d142bd700234d1080368897",
+    "reference-fixture-schema.sql": "f2c8d1e696ad3dbec4fb03e3b0367473f9e25b7cc65a6dba69764a4d0d26767e",
+    "reference-fixture-seed.sql": "afe6430c162f515d8739e9afa9114a6b73390d457a11ecc4048e827613f8a2da",
+    "reference-fixture-verify.sql": "5ece61023ef48859918d48d7219064e6c9b229d3285c1b083fce2341908a3e9c",
+    "reference-fixture-rollback.sql": "2089a124c4af60bac3fb307ae59bebd3d9434712d314f21569e97e5c40d8e1b4",
+    "non-table-objects.sql": "4eaf189e06007d93cb02b1dc4d1d37a69e802dde73224901d9545513c3d91375"
+  },
+  "historicalMigrationImmutable": true,
+  "overrideManifest": "cpf-tools/db/canonical/vendor-overrides.json"
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="770" viewBox="0 0 1600 770">
+<rect width="1600" height="770" rx="30" fill="#F7FAFC"/>
+<text x="70" y="72" font-family="NanumSquare,Arial,sans-serif" font-size="42" font-weight="800" fill="#102A43">CPF 주요 기능</text>
+<text x="70" y="112" font-family="NanumSquare,Arial,sans-serif" font-size="22" fill="#627D98">업무 개발자가 자주 사용하는 기능을 목적별로 묶었습니다.</text>
+
+<g font-family="NanumSquare,Arial,sans-serif">
+<!-- group 1 -->
+<rect x="70" y="155" width="455" height="240" rx="24" fill="#EAF2FF" stroke="#C9DAF3"/>
+<text x="105" y="198" font-size="25" font-weight="700" fill="#174A84">업무 개발 기본</text>
+<text x="105" y="238" font-size="19" fill="#334E68">API · 입력 검증 · 표준 오류</text>
+<text x="105" y="274" font-size="19" fill="#334E68">DB 조회·등록·수정·삭제</text>
+<text x="105" y="310" font-size="19" fill="#334E68">Page · Slice · Cursor 조회</text>
+<text x="105" y="346" font-size="19" fill="#334E68">트랜잭션 · 동시성 · 중복 방지</text>
+
+<!-- group 2 -->
+<rect x="572" y="155" width="455" height="240" rx="24" fill="#EAF9F6" stroke="#C7E8E2"/>
+<text x="607" y="198" font-size="25" font-weight="700" fill="#0D766E">공통 기능</text>
+<text x="607" y="238" font-size="19" fill="#334E68">공통 코드 · 파라미터 · 메시지</text>
+<text x="607" y="274" font-size="19" fill="#334E68">캐시 · 분산 Lock · Session</text>
+<text x="607" y="310" font-size="19" fill="#334E68">파일 · Object Storage · SFTP</text>
+<text x="607" y="346" font-size="19" fill="#334E68">마스킹 · 보안 · 권한 · 감사</text>
+
+<!-- group 3 -->
+<rect x="1075" y="155" width="455" height="240" rx="24" fill="#F5F0FF" stroke="#DCCEF7"/>
+<text x="1110" y="198" font-size="25" font-weight="700" fill="#6941C6">연계·메시징</text>
+<text x="1110" y="238" font-size="19" fill="#334E68">타 도메인 거래 호출</text>
+<text x="1110" y="274" font-size="19" fill="#334E68">REST · SOAP · TCP · 고정길이</text>
+<text x="1110" y="310" font-size="19" fill="#334E68">Kafka · RabbitMQ · JMS · IBM MQ</text>
+<text x="1110" y="346" font-size="19" fill="#334E68">Timeout · Retry · 결과 확인 · 재처리</text>
+
+<!-- group 4 -->
+<rect x="70" y="435" width="455" height="245" rx="24" fill="#FFF6E8" stroke="#F2D9B1"/>
+<text x="105" y="478" font-size="25" font-weight="700" fill="#A65E00">배치·대량 처리</text>
+<text x="105" y="518" font-size="19" fill="#334E68">Job · Step · Chunk</text>
+<text x="105" y="554" font-size="19" fill="#334E68">Scheduler · Worker · Center-Cut</text>
+<text x="105" y="590" font-size="19" fill="#334E68">Checkpoint · Restart · Reprocess</text>
+<text x="105" y="626" font-size="19" fill="#334E68">다중 인스턴스 실행·중복 방지</text>
+
+<!-- group 5 -->
+<rect x="572" y="435" width="455" height="245" rx="24" fill="#EAF6FB" stroke="#CBE2EC"/>
+<text x="607" y="478" font-size="25" font-weight="700" fill="#176B87">관리·운영</text>
+<text x="607" y="518" font-size="19" fill="#334E68">ADM · BZA · Gateway 운영</text>
+<text x="607" y="554" font-size="19" fill="#334E68">거래 추적 · 상태 확인 · 오류 분류</text>
+<text x="607" y="590" font-size="19" fill="#334E68">Retry · Reprocess · Reconcile</text>
+<text x="607" y="626" font-size="19" fill="#334E68">권한 · 승인 · 위험 조치 · 감사</text>
+
+<!-- group 6 -->
+<rect x="1075" y="435" width="455" height="245" rx="24" fill="#F1F4F8" stroke="#D7DFE8"/>
+<text x="1110" y="478" font-size="25" font-weight="700" fill="#334E68">프로젝트·운영 환경</text>
+<text x="1110" y="518" font-size="19" fill="#334E68">Generator · Starter · Profile</text>
+<text x="1110" y="554" font-size="19" fill="#334E68">Oracle · PostgreSQL · MariaDB</text>
+<text x="1110" y="590" font-size="19" fill="#334E68">단일 JVM · 분리 WAS · MSA</text>
+<text x="1110" y="626" font-size="19" fill="#334E68">로컬 실행 · 테스트 · 배포·검증</text>
+</g>
+</svg>

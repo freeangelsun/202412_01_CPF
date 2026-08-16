@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "contract": "CPF_DB_CANONICAL_MIGRATION_INTENT",
+  "baselinePolicy": "PRE_GA_CURRENT_SNAPSHOT_REGENERATABLE",
+  "releasedMigrationPolicy": "IMMUTABLE_CHECKSUM_PROTECTED",
+  "currentSnapshot": {
+    "canonicalSchema": "cpf-tools/db/canonical/platform-schema.json",
+    "canonicalSeed": "cpf-tools/db/canonical/seed-model.json",
+    "canonicalNonTableObjects": "cpf-tools/db/canonical/platform-non-table-objects.json",
+    "renderMode": "REPRODUCIBLE_VENDOR3"
+  },
+  "migrationHistory": {
+    "root": "cpf-tools/db/migration-history",
+    "rendererMayRewriteReleasedMigration": false,
+    "checksumAlgorithm": "SHA-256"
+  },
+  "officialVendors": ["mariadb", "postgresql", "oracle"]
+}

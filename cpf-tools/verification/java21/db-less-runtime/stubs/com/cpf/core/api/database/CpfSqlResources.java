@@ -1,0 +1,1 @@
+package com.cpf.data.persistence.api.database; import org.springframework.core.env.Environment; public final class CpfSqlResources {public static Object[] mapperResources(Environment e,String s){return new Object[0];}}

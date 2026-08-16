@@ -1,0 +1,13 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    implementation project(':framework:base-runtime')
+    api project(':framework:messaging')
+    api 'org.springframework:spring-jms'
+    api 'jakarta.jms:jakarta.jms-api'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-messaging-jms' } } }

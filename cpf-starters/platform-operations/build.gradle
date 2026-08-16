@@ -1,0 +1,14 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+dependencies {
+    api project(':framework:core')
+    api project(':framework:base-runtime')
+    api project(':framework:security')
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework:spring-aop'
+    implementation 'org.springframework:spring-tx'
+    implementation 'org.aspectj:aspectjweaver'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-platform-operations' } } }

@@ -1,0 +1,9 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' apply false
+    id 'io.spring.dependency-management' apply false
+    id 'org.cyclonedx.bom'
+}
+
+// Root는 선언 중심으로 유지하고 실행 규칙은 cpf-tools/build가 소유합니다.
+apply from: file('cpf-tools/build/cpf-root-conventions.gradle')

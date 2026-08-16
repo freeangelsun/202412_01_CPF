@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: member-online
+  datasource:
+    # 운영 Secret/Endpoint는 환경 Binding으로 주입하며 Sample credential fallback을 두지 않습니다.
+    url: ${MBR_DATASOURCE_URL}
+    username: ${MBR_DATASOURCE_USERNAME}
+    password: ${MBR_DATASOURCE_PASSWORD}
+    driver-class-name: ${MBR_DATASOURCE_DRIVER}
+cpf:
+  generated-domain:
+    name: member
+    system-code: MBR
+    database-role: CUSTOMER_BUSINESS_DB
+    table-prefix: MBR
+mybatis:
+  # Oracle/PostgreSQL/MariaDB 공통 Mapper만 로드하며 Vendor별 Business SQL 복제를 금지합니다.
+  mapper-locations: classpath*:db/mapper/*.xml

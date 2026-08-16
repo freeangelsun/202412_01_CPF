@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+dependencies {
+    api project(':framework:core')
+    api project(':framework:base-runtime')
+    api project(':starters:common')
+    api 'org.springframework.boot:spring-boot-starter-webmvc'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${rootProject.ext.cpfSpringdocVersion}"
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+tasks.named('test') { useJUnitPlatform() }
+
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-web-runtime' } } }

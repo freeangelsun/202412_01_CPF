@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {"name":"cpf.integration.annotation.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"@CpfClient/@CpfRetry/@CpfTimeout Runtime 활성화"},
+    {"name":"cpf.integration.annotation.default-timeout-millis","type":"java.lang.Long","defaultValue":3000,"description":"@CpfTimeout 미지정 외부 호출의 기본 전체 timeout(ms)"},
+    {"name":"cpf.integration.annotation.circuit-failure-threshold","type":"java.lang.Integer","defaultValue":5,"description":"Annotation 기본 circuit failure threshold"},
+    {"name":"cpf.integration.annotation.circuit-open-millis","type":"java.lang.Long","defaultValue":30000,"description":"Annotation 기본 circuit open 기간(ms)"},
+    {"name":"cpf.integration.annotation.bulkhead-max-concurrent","type":"java.lang.Integer","defaultValue":100,"description":"Annotation 기본 동시 호출 상한"},
+    {"name":"cpf.integration.annotation.rate-limit-permits","type":"java.lang.Integer","defaultValue":1000,"description":"Annotation 기본 rate-limit permit"},
+    {"name":"cpf.integration.annotation.rate-limit-window-millis","type":"java.lang.Long","defaultValue":1000,"description":"Annotation 기본 rate-limit window(ms)"}
+  ]
+}

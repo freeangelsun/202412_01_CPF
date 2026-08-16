@@ -1,0 +1,39 @@
+cellId: local-center-cut-a
+environment: local
+runtimeRole: CENTER_CUT
+serviceId: cpf-batch-center-cut
+artifact:
+  coordinate: com.cpf.batch:cpf-batch-center-cut
+  version: dev
+  sha256: REPLACE_WITH_64_HEX_CHECKSUM
+  signatureRef: local://unsigned-dev-only
+  sbomRef: build://sbom
+  provenanceRef: build://provenance
+instances:
+  - instanceId: center-cut-local-01
+    wasId: batCC01
+    hostAlias: localhost
+    port: 8283
+    profile: local
+    zone: local-a
+    pool: center-cut
+    capability: [CENTER_CUT]
+  - instanceId: center-cut-local-02
+    wasId: batCC02
+    hostAlias: localhost
+    port: 8284
+    profile: local
+    zone: local-a
+    pool: center-cut
+    capability: [CENTER_CUT]
+desiredState: RUNNING
+deployment:
+  strategy: rolling
+  minHealthy: 1
+  maxUnavailable: 1
+  healthPath: /actuator/health/readiness
+  drainTimeoutSeconds: 600
+  rollbackVersion: previous
+dependencies: [batDB, cpf-batch-control-plane]
+secretReferences:
+  - vault://cpf/local/bat/center-cut

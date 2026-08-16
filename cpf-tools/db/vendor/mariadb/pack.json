@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 5,
+  "vendor": "mariadb",
+  "status": "완료",
+  "runtimeVerification": "미검증",
+  "owner": "cpf-tools/db",
+  "currentSnapshotAuthority": "CANONICAL_JSON_GENERATED_VENDOR_PACK",
+  "canonicalSchema": "cpf-tools/db/canonical/platform-schema.json",
+  "canonicalSeed": "cpf-tools/db/canonical/seed-model.json",
+  "generatedCurrentRoot": "cpf-tools/db/generated/current/mariadb",
+  "generatedDomainTemplateRoot": "cpf-tools/db/generated/domain-template/mariadb",
+  "historicalMigrationRoot": "cpf-tools/db/vendor/mariadb/migration",
+  "historicalRollbackRoot": "cpf-tools/db/vendor/mariadb/rollback",
+  "historicalMigrationImmutable": true,
+  "runtimeRoot": "cpf-tools/db/vendor/mariadb/runtime",
+  "generatedDomainRuntimeDialectRoot": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/mariadb",
+  "databaseRoles": {
+    "CPF_PLATFORM_DB": "cpfDB",
+    "BZA_DB": "bzaDB",
+    "CUSTOMER_BUSINESS_DB": "customer-defined",
+    "REFERENCE_FIXTURE": "non-production"
+  },
+  "freshInstall": {
+    "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
+    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-schema.sql",
+    "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-schema.sql"
+  },
+  "seed": {
+    "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql",
+    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-seed.sql",
+    "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-seed.sql"
+  },
+  "verify": {
+    "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-verify.sql",
+    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-verify.sql",
+    "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-verify.sql"
+  },
+  "currentRollback": {
+    "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-rollback.sql",
+    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-rollback.sql",
+    "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-rollback.sql"
+  },
+  "generatedDomainContract": {
+    "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+    "databaseVendorIsRuntimePackSelection": true,
+    "generatedSourceVendorFork": false,
+    "physicalDatabaseProvisioning": "EXTERNAL_DEPLOYMENT_OWNER"
+  },
+  "operationLedger": {
+    "tables": [
+      "CPF_EDU_OPERATION",
+      "CPF_EDU_OPERATION_TARGET",
+      "CPF_EDU_OPERATION_AUDIT",
+      "CPF_EDU_OUTBOX",
+      "CPF_EDU_LEASE",
+      "CPF_EDU_BUSINESS_RECORD",
+      "CPF_EDU_COUNTERPARTY_REQUEST"
+    ],
+    "canonicalSource": "source/57_reference_edu_operation_ledger.sql",
+    "freshInstall": "install/01_reference_edu_operation_ledger.sql",
+    "migration": "migration/flyway/refDB/V93__manual_edu_135_operation_ledger.sql",
+    "rollback": "rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
+    "runtimeQueries": "runtime/ref/manual_edu_135_operation_queries.sql",
+    "verify": "verify/93_verify_manual_edu_135_operation_ledger.sql",
+    "checksumManifest": "migration/flyway/refDB/checksums.sha256"
+  },
+  "referenceBatchPack": {
+    "tables": [
+      "CPF_REF_BAT_JOB_EXECUTION",
+      "CPF_REF_BAT_CHECKPOINT",
+      "CPF_REF_BAT_TARGET_RESULT"
+    ],
+    "canonicalSource": "source/58_reference_batch_job_pack.sql",
+    "freshInstall": "install/02_reference_batch_job_pack.sql",
+    "migration": "migration/flyway/refDB/V94__reference_batch_job_pack.sql",
+    "rollback": "rollback/refDB/U94__reference_batch_job_pack.sql",
+    "runtimeQueries": "runtime/ref/reference_batch_job_queries.sql",
+    "verify": "verify/94_verify_reference_batch_job_pack.sql",
+    "checksumManifest": "migration/flyway/refDB/checksums.sha256"
+  }
+}

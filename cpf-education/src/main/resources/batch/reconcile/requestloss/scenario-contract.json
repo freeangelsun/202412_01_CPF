@@ -1,0 +1,92 @@
+{
+  "requirementId": "EDU-BAT-10",
+  "title": "실행 요청 응답 유실·결과 대사",
+  "kind": "BATCH",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_BATCH_OPERATOR",
+  "requiredFields": [
+    "jobParametersHash"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "exceptionScenarios": [
+    "요청 수신 전/후 Drop",
+    "중복 시작",
+    "Metadata 지연"
+  ],
+  "requiredVerification": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 5,
+  "implementationPackage": "com.cpf.education.batch.reconcile.requestloss",
+  "handlerClass": "com.cpf.education.batch.reconcile.requestloss.EduBat10Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/batch/reconcile/requestloss/EduBat10Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/batch/reconcile/requestloss/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/batch/reconcile/requestloss/EduBat10ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/reconcile/requestloss/EduBat10FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/reconcile/requestloss/EduBat10IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/reconcile/requestloss/EduBat10RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/reconcile/requestloss/EduBat10UnitTest.java"
+  ],
+  "manualAnchor": "EDU-BAT-10",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-education",
+    "entryPoint": "eduBat10Job",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-education optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-BAT-10/executions",
+    "configurationKey": "cpf.education.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "jobParametersHash"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

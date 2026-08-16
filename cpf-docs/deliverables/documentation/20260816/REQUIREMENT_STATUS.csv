@@ -1,0 +1,9 @@
+requirement_id,development_status,verification_status,developer_gpt_status,evidence
+DOC-README,완료,완료,완료,CPF_DOCUMENTATION_REVIEW_20260816.md;TEST_AND_EVIDENCE.md
+DOC-02-DEVELOPER,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/02_프레임워크_개발자_가이드.json
+DOC-03-BATCH-DEVELOPER,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/03_배치_개발자_가이드.json
+DOC-04-OPERATOR,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/04_운영자_매뉴얼.json
+DOC-05-BATCH-OPERATIONS,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/05_배치_운영_가이드.json
+DOC-06-GATEWAY,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/06_Gateway_개발_사용_가이드.json
+DOC-07-SPEC,완료,완료,완료,evidence/docx_structure_qa.json;evidence/a11y/07_Specification_기술_명세.json
+DOC-NAV-A11Y,완료,완료,완료,evidence/docx_structure_qa.json;evidence/pdf_link_qa.json

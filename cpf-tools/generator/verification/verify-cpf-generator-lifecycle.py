@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Canonical stateless Generated Domain lifecycle contract verifier."""
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+VENDORS = ["mariadb", "postgresql", "oracle"]
+OPERATIONS = ["preflight", "dry-run", "generate", "diff", "regenerate", "upgrade", "remove", "restore", "verify"]
+
+class ContractError(RuntimeError):
+    pass
+
+def load_json(path: Path) -> dict:
+    if not path.is_file():
+        raise ContractError(f"missing JSON: {path}")
+    try:
+        value=json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception as exc:
+        raise ContractError(f"invalid JSON {path}: {exc}") from exc
+    if not isinstance(value,dict): raise ContractError(f"JSON root must be object: {path}")
+    return value
+
+def require_file(root: Path, rel: str) -> Path:
+    path=root/rel
+    if not path.is_file(): raise ContractError(f"required file missing: {rel}")
+    return path
+
+def _require_tokens(path: Path, tokens: list[str]) -> None:
+    text=path.read_text(encoding="utf-8-sig",errors="ignore")
+    missing=[token for token in tokens if token not in text]
+    if missing: raise ContractError(f"{path}: required lifecycle tokens missing={missing}")
+
+def validate_contract(root: Path, contract: dict) -> None:
+    if contract.get("schemaVersion") != 3: raise ContractError("schemaVersion must be 3")
+    if contract.get("supportedVendors") != VENDORS: raise ContractError(f"supportedVendors must be exactly {VENDORS}")
+    if contract.get("operations") != OPERATIONS: raise ContractError(f"operations must be exactly {OPERATIONS}")
+    engine=require_file(root,str(contract.get("canonicalEngine","")))
+    cli=require_file(root,str(contract.get("canonicalCli","")))
+    schema=require_file(root,str(contract.get("canonicalInputSchema","")))
+    load_json(schema)
+    _require_tokens(engine,["def preflight(","def dry_run(","def generate(","def diff(","def regenerate(","def upgrade(","def restore(","def remove_owned(","def verify_generated(","_write_transient_state","generation-state.json","customerMetadata':'NONE'"])
+    _require_tokens(cli,["domain","generate","dry-run","diff","regenerate","upgrade","restore","remove","verify"])
+    state=contract.get("transientState")
+    if not isinstance(state,dict) or state.get("customerProjectMetadata") != "NONE" or "build/domain-generator/verification" not in str(state.get("directory","")):
+        raise ContractError("transientState must keep lifecycle state outside the generated customer project")
+    forbidden=contract.get("forbiddenPermanentProjectEntries")
+    if not isinstance(forbidden,list) or len(forbidden)!=len(set(forbidden)) or not {".cpf","cpf-domain.yaml","manifest"}.issubset(set(forbidden)):
+        raise ContractError("forbiddenPermanentProjectEntries must block permanent generator metadata")
+    protection=contract.get("userProtection")
+    required={
+      "generatedFileDriftBlocksRegenerate":True,"generatedFileDriftBlocksUpgrade":True,
+      "generatedFileDriftBlocksRemove":True,"unmanagedFilesAreNeverRemoved":True,
+      "databaseObjectsNeverAutoDropped":True,"restoreRequiresMatchingDefinitionAndExpectedSeed":True,
+      "purgeDefinitionRequiresExplicitOption":True,"frameworkIntegrationPointsRemovedWithDomain":True,
+    }
+    if protection != required: raise ContractError("userProtection must remain fail-closed")
+
+def _load_engine(root: Path, rel: str):
+    path=root/rel
+    sys.path.insert(0,str(path.parent))
+    spec=importlib.util.spec_from_file_location("cpf_generator_lifecycle_engine",path)
+    if spec is None or spec.loader is None: raise ContractError(f"cannot load engine: {path}")
+    module=importlib.util.module_from_spec(spec); sys.modules[spec.name]=module; spec.loader.exec_module(module); return module
+
+def validate_lifecycle_runtime(root: Path, contract: dict) -> None:
+    engine=_load_engine(root,contract["canonicalEngine"])
+    with tempfile.TemporaryDirectory(prefix="cpf-generator-lifecycle-") as td:
+        stage=Path(td); repo=stage/"repo"; repo.mkdir()
+        for rel in [contract["canonicalInputSchema"],"cpf-tools/generator/config/application-starters.yml","gradle/cpf-stack.properties"]:
+            src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
+        for rel in ["cpf-tools/db/generated/domain-template",
+                    "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect"]:
+            src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst)
+        definition=stage/"ledger.yaml"
+        definition.write_text("""domain:
+  name: ledger
+  systemCode: LDG
+  packageName: ledger
+database:
+  role: CUSTOMER_BUSINESS_DB
+  tablePrefix: LDG
+preset: standard-enterprise
+modules:
+  online: true
+features:
+  persistence: mybatis
+  httpClient: true
+  resilience: true
+  cache: none
+  messaging: none
+generation:
+  sampleTransaction: true
+""",encoding="utf-8")
+        output=repo/"cpf-ledger"
+        dry=engine.dry_run(repo,definition,output)
+        if dry.get("status")!="DRY_RUN_PASS": raise ContractError("dry-run did not pass")
+        transient=repo/"build/domain-generator/verification/cpf-ledger"
+        if transient.exists(): raise ContractError("dry-run mutated persistent transient state/evidence")
+        gen=engine.generate(repo,definition,output)
+        if gen.get("status")!="GENERATED": raise ContractError("generate did not materialize project")
+        d=engine.validate_definition(engine.load_yaml_subset(definition))
+        vr=engine.verify_generated(repo,definition,output,d)
+        if vr.get("status")!="PASS" or vr.get("customerMetadata")!="NONE": raise ContractError("generated project verification failed")
+        if any((output/name).exists() for name in contract["forbiddenPermanentProjectEntries"]): raise ContractError("permanent generator metadata leaked into customer project")
+        state=repo/"build/domain-generator/verification/cpf-ledger/generation-state.json"
+        if not state.is_file(): raise ContractError("transient generation-state missing")
+        target=next(output.rglob("SampleTransactionController.java")); original=target.read_text(encoding="utf-8")
+        target.write_text(original+"\n// 사용자 변경\n",encoding="utf-8",newline="\n")
+        for action,name in ((engine.regenerate,"regenerate"),(engine.upgrade,"upgrade")):
+            try: action(repo,definition,output)
+            except Exception: pass
+            else: raise ContractError(f"{name} accepted user-modified generated file")
+        try: engine.remove_owned(repo,definition,output,apply=True)
+        except Exception: pass
+        else: raise ContractError("remove accepted user-modified generated file")
+        target.write_text(original,encoding="utf-8",newline="\n")
+        up=engine.upgrade(repo,definition,output)
+        if up.get("status")!="UPGRADED": raise ContractError("upgrade did not pass on unchanged seed")
+        rem=engine.remove_owned(repo,definition,output,apply=True)
+        if rem.get("status")!="REMOVED" or output.exists(): raise ContractError("safe remove did not remove generated-owned project")
+        restored=engine.restore(repo,definition,output)
+        if restored.get("status")!="RESTORED": raise ContractError("restore did not restore matching seed")
+        if not engine.diff(repo,definition,output).get("clean"): raise ContractError("restore parity is not clean")
+
+def main() -> int:
+    parser=argparse.ArgumentParser(); parser.add_argument("--root",type=Path,default=Path.cwd()); parser.add_argument("--contract",default="cpf-tools/generator/contracts/generator-lifecycle-contract.json"); parser.add_argument("--static-only",action="store_true")
+    args=parser.parse_args(); root=args.root.resolve(); contract=load_json(root/args.contract); validate_contract(root,contract)
+    if not args.static_only: validate_lifecycle_runtime(root,contract)
+    print(f"[PASS] CPF generator lifecycle schema=3 vendors={len(VENDORS)} operations={len(OPERATIONS)} runtime={not args.static_only}")
+    return 0
+
+if __name__=="__main__":
+    try: raise SystemExit(main())
+    except ContractError as exc:
+        print(f"[FAIL] {exc}",file=sys.stderr); raise SystemExit(1)

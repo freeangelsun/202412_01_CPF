@@ -1,0 +1,23 @@
+plugins { id 'java'; id 'org.springframework.boot'; id 'io.spring.dependency-management' }
+group='com.cpf.gateway'
+dependencies {
+    // Gateway deployable uses exactly one top-level profile.
+    implementation project(':starters:profiles:secure-api')
+    // Deployable source가 직접 import하는 Owner API는 profile의 implementation 전이에 의존하지 않습니다.
+    implementation project(':framework:core')
+    implementation project(':framework:integration')
+    implementation project(':internal:integration:resilience')
+    implementation project(':framework:web')
+    implementation project(':framework:operations')
+    implementation project(':framework:operations:observability')
+    implementation project(':internal:platform-operations:runtime-control')
+    implementation project(':starters:data:jdbc')
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
+    // Boot 4 splits Tomcat compile API from the runtime-only starter.
+    implementation 'org.springframework.boot:spring-boot-tomcat'
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+tasks.named('bootJar'){enabled=true}

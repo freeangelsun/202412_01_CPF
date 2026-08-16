@@ -1,0 +1,1 @@
+package com.cpf.common.calendar;import org.junit.jupiter.api.Test;import java.time.LocalDate;import static org.junit.jupiter.api.Assertions.*;class CmnWeekendCalendarTest{@Test void skipsWeekend(){var c=new CmnWeekendCalendar();assertEquals(LocalDate.of(2026,7,27),c.nextBusinessDay("DEFAULT",LocalDate.of(2026,7,24)));}}

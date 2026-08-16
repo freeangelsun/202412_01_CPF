@@ -1,0 +1,96 @@
+{
+  "requirementId": "EDU-ADM-02",
+  "title": "고객 업무 조회 연동",
+  "kind": "ADM",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_ADM_OPERATOR",
+  "requiredFields": [
+    "businessId",
+    "approvalId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "ACCEPTED",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "exceptionScenarios": [
+    "조회 Timeout",
+    "권한 밖 조직",
+    "부분 데이터",
+    "Stale Version"
+  ],
+  "requiredVerification": [
+    "Backend Contract Test",
+    "Same-JVM/Remote Adapter Test",
+    "권한·Masking Test",
+    "Timeout·응답 유실 Test",
+    "Browser Test",
+    "Audit·Trace 연결"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "READ_SNAPSHOT",
+    "PROTECT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "TIMEOUT",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "readOnly": true,
+  "idempotent": true,
+  "versioned": false,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.operations.admin.query",
+  "handlerClass": "com.cpf.education.operations.admin.query.EduAdm02Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/operations/admin/query/EduAdm02Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/operations/admin/query/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/query/EduAdm02ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/query/EduAdm02FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/query/EduAdm02IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/query/EduAdm02RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/query/EduAdm02UnitTest.java"
+  ],
+  "manualAnchor": "EDU-ADM-02",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_QUERY",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-education EDU fixture DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-ADM-02/executions",
+    "configurationKey": "cpf.education.features.operations.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "businessId",
+      "approvalId"
+    ]
+  },
+  "featurePack": "operations",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.operations.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING",
+  "architectureDecision": "EXTENSION_SAMPLE",
+  "executable": true,
+  "architectureDecisionReason": "Retained adopter-facing public query/integration extension sample."
+}

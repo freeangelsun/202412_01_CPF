@@ -1,0 +1,25 @@
+plugins { id 'java'; id 'org.springframework.boot'; id 'maven-publish' }
+group='com.cpf.batch'
+dependencies {
+    implementation project(':framework:base-runtime')
+    implementation project(':framework:operations')
+    implementation project(':framework:data')
+    implementation project(':runtime:batch:api')
+    implementation project(':runtime:batch:runtime-support')
+    implementation project(':runtime:batch:runtime')
+    implementation project(':framework:core')
+    implementation project(':starters:common')
+    implementation project(':starters:messaging:kafka')
+    implementation project(':framework:operations:observability')
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    implementation 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.springframework.integration:spring-integration-kafka'
+    testImplementation project(':runtime:batch:testkit')
+    testImplementation 'org.springframework.batch:spring-batch-test'
+}
+tasks.named('bootJar') { archiveFileName = "cpf-batch-center-cut-${project.version}.jar" }
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { executable(MavenPublication) { groupId='com.cpf.batch'; artifactId='cpf-batch-center-cut'; version=project.version.toString(); artifact tasks.named('bootJar') } } }

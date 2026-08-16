@@ -1,0 +1,149 @@
+{
+  "requirementId": "NXT3-ANNOTATION-001",
+  "executionSourceSha": "dd13e607f89fa4af71b3499b635a89a789b15007",
+  "status": "PASS",
+  "failedCount": 0,
+  "checks": [
+    {
+      "name": "annotation-contract-requiredPermission",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "annotation-contract-auditReasonRequired",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "annotation-contract-visibility",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "annotation-contract-gatewayAllowed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "annotation-contract-directAllowed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "runtime-aspect-consumer",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "context-required",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "transaction-id-preserved",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "policy-evaluator-contract",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "policy-missing-fail-closed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "policy-ambiguous-fail-closed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "startup-metadata-validator",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "duplicate-id-fail-fast",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "invalid-entry-path-fail-fast",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "web-auto-config-consumer",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "resource-server-web-runtime-composition",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "security-policy-adapter",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "permission-exact-match",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "permission-authenticated",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "audit-reason-required",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "audit-reason-safe",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "authorization-audit",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "resource-auto-config-adapter",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "cpf-member-generated-consumer",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "cpf-external-generated-consumer",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "web-runtime-tests",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "security-runtime-test",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "javac-smoke",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "runtimeVerification": "Static/javac PASS does not replace full Spring Boot/Java25 runtime; Gradle runtime unavailable in current environment."
+}

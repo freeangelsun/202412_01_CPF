@@ -1,0 +1,35 @@
+{
+  "operationId": "db-op-20260805-002",
+  "capabilityId": "DB-BACKUP",
+  "vendor": "oracle",
+  "environment": "integration",
+  "topology": "single-instance",
+  "operator": "db-operator-a",
+  "reason": "Validate UNKNOWN fail-closed behavior",
+  "approvalReference": "APR-20260805-002",
+  "approvedBy": "db-approver-b",
+  "startedAt": "2026-08-05T03:10:00Z",
+  "finishedAt": "2026-08-05T03:10:01Z",
+  "resultStatus": "UNKNOWN",
+  "reconcileRequired": false,
+  "sourceSha": "09dd686c5ae0826594b9c5e1f871d95d95d3ce1c",
+  "evidenceSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "metrics": {
+    "durationMs": 1000,
+    "affectedRows": 0,
+    "errorCount": 1,
+    "retryCount": 1
+  },
+  "trace": {
+    "traceId": "fedcba9876543210fedcba9876543210",
+    "spanId": "fedcba9876543210"
+  },
+  "health": {
+    "before": "UP",
+    "after": "UNKNOWN"
+  },
+  "alerts": [
+    "CPF_DB_BACKUP_UNKNOWN"
+  ],
+  "runbookRef": "cpf-docs/operations/RECOVERY_GUIDE.md"
+}

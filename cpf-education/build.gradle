@@ -1,0 +1,179 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
+group = 'com.cpf.education'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+    }
+}
+
+repositories { mavenCentral() }
+
+// Education은 단일 모듈을 유지하되 기능군을 Canonical 14개 Package Root로 물리 분리합니다.
+def featureEnabled = { String name ->
+    providers.gradleProperty("cpf.education.features.${name}.enabled")
+            .map { it.toBoolean() }
+            .orElse(true)
+            .get()
+}
+def batchEnabled = featureEnabled('batch')
+def operationsEnabled = featureEnabled('operations')
+def backofficeEnabled = featureEnabled('backoffice')
+def gatewayEnabled = featureEnabled('gateway')
+def isolationVerification = providers.gradleProperty('cpf.education.featureIsolationVerification')
+        .map { it.toBoolean() }.orElse(false).get()
+def featureVariant = [
+        batchEnabled ? 'batch' : 'no-batch',
+        operationsEnabled ? 'operations' : 'no-operations',
+        backofficeEnabled ? 'backoffice' : 'no-backoffice',
+        gatewayEnabled ? 'gateway' : 'no-gateway'
+].join('-')
+
+def educationDbVendor = (findProperty('cpfDbVendor')
+        ?: System.getenv('EDU_DATABASE_VENDOR')
+        ?: 'mariadb')
+        .toString()
+        .toLowerCase(Locale.ROOT)
+def educationSupportedDbVendors = ['mariadb', 'oracle', 'postgresql'] as Set
+if (!educationSupportedDbVendors.contains(educationDbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor for cpf-education: ${educationDbVendor}")
+}
+def educationDbResourceRoot = rootProject.file("cpf-tools/db/vendor/${educationDbVendor}")
+def educationJdbcDriverByVendor = [
+        'mariadb': 'org.mariadb.jdbc:mariadb-java-client',
+        'oracle': 'com.oracle.database.jdbc:ojdbc11',
+        'postgresql': 'org.postgresql:postgresql'
+]
+if (isolationVerification) {
+    layout.buildDirectory = rootProject.layout.buildDirectory.dir("education-feature-variants/${featureVariant}")
+}
+
+sourceSets {
+    main {
+        java {
+            if (!batchEnabled) exclude 'com/cpf/education/batch/**'
+            if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
+            if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
+            if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
+        }
+        resources {
+            if (!batchEnabled) exclude 'batch/**'
+            if (!operationsEnabled) exclude 'operations/**'
+            if (!backofficeEnabled) exclude 'operations/backoffice/**'
+            if (!gatewayEnabled) exclude 'operations/gateway/**'
+        }
+    }
+    test {
+        java {
+            if (!batchEnabled) exclude 'com/cpf/education/batch/**'
+            if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
+            if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
+            if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
+        }
+        resources {
+            if (!batchEnabled) exclude 'batch/**'
+            if (!operationsEnabled) exclude 'operations/**'
+            if (!backofficeEnabled) exclude 'operations/backoffice/**'
+            if (!gatewayEnabled) exclude 'operations/gateway/**'
+        }
+    }
+}
+
+dependencies {
+    // 고객 Golden Path는 최소 하나의 Public Profile을 직접 사용합니다.
+    implementation project(':starters:profiles:secure-api')
+
+    // Education이 실제로 시연하는 Owner API/Provider를 명시합니다.
+    implementation project(':framework:integration')
+    implementation project(':internal:integration:http')
+    implementation project(':internal:integration:fixed-length')
+    implementation project(':internal:integration:soap')
+    implementation project(':internal:integration:ai')
+    implementation project(':framework:security')
+    implementation project(':framework:messaging')
+    implementation project(':starters:messaging:kafka')
+    implementation project(':framework:operations')
+    implementation project(':framework:operations:observability')
+    implementation project(':runtime:gateway')
+    implementation project(':framework:data')
+    implementation project(':starters:data:jdbc')
+    implementation project(':starters:data:mybatis')
+    implementation project(':starters:data:jpa')
+    implementation project(':framework:file')
+    implementation project(':starters:cache:redis')
+    implementation project(':starters:cache:valkey')
+    implementation project(':starters:data:lock:valkey')
+    implementation project(':starters:security:session:valkey')
+    implementation project(':starters:file:object-storage:s3')
+    implementation project(':starters:integration:graphql')
+    implementation project(':starters:integration:realtime')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework:spring-tx'
+    implementation 'org.springframework:spring-jdbc'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    if (batchEnabled) {
+        // Spring Batch Primary Runtime은 Public Batch Profile을 통해 소비합니다.
+        implementation project(':starters:profiles:batch')
+        implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    }
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly educationJdbcDriverByVendor[educationDbVendor]
+}
+
+tasks.register('verifyEducationStarterGoldenPath') {
+    group = 'verification'
+    description = 'Education이 Public Starter Golden Path와 새 Batch IA를 사용하는지 검증합니다.'
+    doLast {
+        def direct = configurations.implementation.dependencies
+                .findAll { it instanceof org.gradle.api.artifacts.ProjectDependency }
+                .collect { it.path }
+                .toSet()
+        if (!direct.contains(':starters:profiles:secure-api')) {
+            throw new GradleException('EDU must exercise the public secure-api profile')
+        }
+        def forbidden = [
+                ':cpf-common', ':framework:base-runtime', ':cpf-starter-profile-minimal-domain',
+                ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime',
+                ':runtime:batch:control-plane', ':runtime:batch:center-cut', ':runtime:batch:agent'
+        ] as Set
+        def leaked = direct.intersect(forbidden)
+        if (!leaked.isEmpty()) throw new GradleException("EDU contains retired/internal dependency: ${leaked.sort()}")
+    }
+}
+
+tasks.register('verifyEducationCanonicalPackageRoots') {
+    group = 'verification'
+    description = 'Education Main Source의 최상위 Package Root가 Canonical 14개와 정확히 일치하는지 검증합니다.'
+    doLast {
+        def expected = [
+                'base','batch','common','data','file','generator','integration','messaging',
+                'operations','scenarios','security','transaction','verification','web'
+        ] as Set
+        def root = file('src/main/java/com/cpf/education')
+        def actual = root.listFiles()?.findAll { it.isDirectory() }*.name as Set
+        if (actual != expected) {
+            throw new GradleException("Education package roots mismatch. expected=${expected.sort()}, actual=${actual.sort()}")
+        }
+    }
+}
+
+tasks.named('test') {
+    dependsOn 'verifyEducationStarterGoldenPath', 'verifyEducationCanonicalPackageRoots'
+    useJUnitPlatform()
+    systemProperty 'cpf.db.vendor', educationDbVendor
+    systemProperty 'cpf.db.resource-root', educationDbResourceRoot.absolutePath
+    systemProperty 'cpf.education.features.batch.enabled', batchEnabled
+    systemProperty 'cpf.education.features.operations.enabled', operationsEnabled
+    systemProperty 'cpf.education.features.backoffice.enabled', backofficeEnabled
+    systemProperty 'cpf.education.features.gateway.enabled', gatewayEnabled
+}
+
+check.dependsOn tasks.named('verifyEducationStarterGoldenPath'), tasks.named('verifyEducationCanonicalPackageRoots')

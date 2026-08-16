@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "vendor": "postgresql",
+  "generated": true,
+  "canonicalSource": "cpf-tools/db/canonical/generated-domain-schema.json",
+  "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+  "artifacts": {
+    "install/10_empty_install.sql.template": "43491f086990231d35596b9ec5543edbcc3c7ba431aff06ddc8b2c39a9099e37",
+    "migration/V1____DOMAIN___domain.sql.template": "43491f086990231d35596b9ec5543edbcc3c7ba431aff06ddc8b2c39a9099e37",
+    "seed/20_product_seed.sql.template": "74086489d8a6568d188fd6c9d598cd677e04cd4ab7995d75e5ceabc064a09b03",
+    "rollback/R1__remove___DOMAIN___domain.sql.template": "f6d1a3033114f4d5979fab92be510dde000d626b507301cd55eb1649af8d3d20",
+    "verify/90_verify.sql.template": "3874c1bd0448b264387dc31a92135ef162c6ab7da34e83980cf5174bc11097c8"
+  },
+  "runtimeDialectOwner": "cpf-starters/data/persistence/dialect/postgresql/generated-domain"
+}

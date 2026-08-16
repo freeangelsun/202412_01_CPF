@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "defaultLocal": "local-integrated",
+  "serverProfiles": ["single-node", "split-online", "split-batch", "full-distributed", "custom"],
+  "profiles": {
+    "local-integrated": {
+      "scope": "local",
+      "descriptionKo": "개발자 기본값. Generated Domain과 CPF 기능을 한 JVM/한 HTTP Port에 조립하고 Gateway는 기본 사용하지 않습니다."
+    },
+    "single-node": {
+      "scope": "server",
+      "descriptionKo": "개발/테스트/운영을 한 서버에 올리고 싶을 때 모든 배포 JAR을 같은 host group에 설치합니다. 프로세스는 독립 유지합니다."
+    },
+    "split-online": {
+      "scope": "server",
+      "descriptionKo": "온라인/관리 영역과 Batch를 분리하고 Generated Online Domain을 별도 online host group에 배치합니다."
+    },
+    "split-batch": {
+      "scope": "server",
+      "descriptionKo": "온라인/관리/Gateway는 app host group, Batch/Generated Batch는 batch host group에 배치합니다."
+    },
+    "full-distributed": {
+      "scope": "server",
+      "descriptionKo": "서비스/Runtime Role별 독립 host group으로 배치합니다. 다중 인스턴스는 같은 group에서 inventory로 확장합니다."
+    },
+    "custom": {
+      "scope": "server",
+      "descriptionKo": "환경 inventory의 hostAlias/targetGroup을 그대로 사용하여 고객 topology를 구성합니다."
+    }
+  }
+}

@@ -1,0 +1,7 @@
+INSERT INTO @CPF_TABLE_PREFIX@_sample_item_idem (
+  idempotency_key, operation_code, request_hash, sample_item_id,
+  result_version, deleted_yn, transaction_id, created_at
+) VALUES (
+  :idempotencyKey, :operationCode, :requestHash, :sampleItemId,
+  :resultVersion, :deletedYn, :transactionId, CURRENT_TIMESTAMP
+)

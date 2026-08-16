@@ -1,0 +1,102 @@
+{
+  "requirementId": "EDU-BZA-03",
+  "title": "결재정책 Version·경로 사전 계산",
+  "kind": "BACKOFFICE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_BZA_OPERATOR",
+  "requiredFields": [
+    "policyVersion",
+    "businessType",
+    "amount",
+    "organizationId",
+    "approvalPolicyId"
+  ],
+  "businessStates": [
+    "DRAFT",
+    "SUBMITTED",
+    "APPROVED",
+    "REJECTED",
+    "WITHDRAWN",
+    "CANCELLED"
+  ],
+  "exceptionScenarios": [
+    "정책 없음",
+    "다중 정책 충돌",
+    "미래 Version",
+    "조직장 부재"
+  ],
+  "requiredVerification": [
+    "기준일 경계",
+    "유효기간 겹침",
+    "권한 Matrix",
+    "Version 충돌",
+    "응답 유실 대사",
+    "Browser 메뉴 Field·Button",
+    "감사·Download 권한"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PREVIEW",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.operations.backoffice.policysimulation",
+  "handlerClass": "com.cpf.education.operations.backoffice.policysimulation.EduBackoffice03Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/operations/backoffice/policysimulation/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/backoffice/policysimulation/EduBackoffice03UnitTest.java"
+  ],
+  "manualAnchor": "EDU-BZA-03",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "CANCELLED",
+    "publicContract": "cpf-education EDU fixture DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-BZA-03/executions",
+    "configurationKey": "cpf.education.features.backoffice.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "policyVersion",
+      "businessType",
+      "amount",
+      "organizationId",
+      "approvalPolicyId"
+    ]
+  },
+  "featurePack": "backoffice",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.backoffice.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

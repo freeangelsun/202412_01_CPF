@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "ownerModule": "cpf-education",
+  "systemCode": "EDU",
+  "canonicalCatalog": "cpf-education/src/main/resources/verification/manual-135-catalog.json",
+  "generatedDomainDependencies": [],
+  "canonicalRoots": [
+    {
+      "name": "base",
+      "package": "com.cpf.education.base"
+    },
+    {
+      "name": "common",
+      "package": "com.cpf.education.common"
+    },
+    {
+      "name": "web",
+      "package": "com.cpf.education.web"
+    },
+    {
+      "name": "data",
+      "package": "com.cpf.education.data"
+    },
+    {
+      "name": "integration",
+      "package": "com.cpf.education.integration"
+    },
+    {
+      "name": "messaging",
+      "package": "com.cpf.education.messaging"
+    },
+    {
+      "name": "file",
+      "package": "com.cpf.education.file"
+    },
+    {
+      "name": "security",
+      "package": "com.cpf.education.security"
+    },
+    {
+      "name": "batch",
+      "package": "com.cpf.education.batch"
+    },
+    {
+      "name": "operations",
+      "package": "com.cpf.education.operations"
+    },
+    {
+      "name": "recovery",
+      "package": "com.cpf.education.recovery"
+    },
+    {
+      "name": "testing",
+      "package": "com.cpf.education.testing"
+    },
+    {
+      "name": "scenario",
+      "package": "com.cpf.education.scenario"
+    },
+    {
+      "name": "advanced",
+      "package": "com.cpf.education.advanced"
+    }
+  ],
+  "trackingPolicy": "Requirement ID는 Catalog/Source/Test/Scenario Contract로 추적하고 package segment로 사용하지 않는다."
+}

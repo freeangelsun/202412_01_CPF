@@ -1,0 +1,355 @@
+package com.cpf.batch.control;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.cpf.batch.api.AgentCommandResult;
+import com.cpf.batch.api.CommandState;
+import com.cpf.batch.api.RuntimeCommand;
+import com.cpf.batch.control.deploy.RuntimeLifecycleService;
+import com.cpf.batch.control.internal.JdbcRuntimeCommandRepository;
+import com.cpf.batch.control.internal.JdbcRuntimeRegistry;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class RuntimeCommandExecutorFailureClassificationTest {
+    private JdbcRuntimeCommandRepository commands;
+    private JdbcRuntimeRegistry registry;
+    private RuntimeLifecycleService lifecycle;
+    private RuntimeCommandExecutor executor;
+
+    @BeforeEach
+    void setUp() {
+        commands = mock(JdbcRuntimeCommandRepository.class);
+        registry = mock(JdbcRuntimeRegistry.class);
+        lifecycle = mock(RuntimeLifecycleService.class);
+        executor = new RuntimeCommandExecutor(commands, registry, lifecycle);
+    }
+
+
+    @Test
+    void duplicateTargetsAreRejectedBeforeDispatch() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-1"));
+        persisted(command, CommandState.APPROVED);
+
+        executor.execute(command);
+
+        verify(lifecycle, never()).operate(
+                eq("runtime-1"), eq("RESTART"), eq("requester"), eq("approver"),
+                eq("APR-1"), eq("approved maintenance"));
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.FAILED), eq("VALIDATION"),
+                eq("Duplicate target IDs are not allowed"));
+    }
+
+    @Test
+    void validationPersistenceFailureUsesStableUnknownClassification() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        doThrow(new IllegalStateException("command store unavailable"))
+                .when(commands).transition(
+                        eq("CMD-1"), eq(CommandState.FAILED), eq("VALIDATION"),
+                        eq("Duplicate target IDs are not allowed"));
+
+        RuntimeCommandExecutionException failure = assertThrows(
+                RuntimeCommandExecutionException.class,
+                () -> executor.execute(command));
+
+        assertEquals("BATCH_RUNTIME_COMMAND_VALIDATION_FINALIZE_UNKNOWN", failure.code());
+        assertEquals(CommandState.UNKNOWN_RESULT, failure.state());
+        verify(lifecycle, never()).operate(
+                eq("runtime-1"), eq("RESTART"), eq("requester"), eq("approver"),
+                eq("APR-1"), eq("approved maintenance"));
+    }
+
+    @Test
+    void snapshotFailureBeforeDispatchIsDeterministicFailed() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1"))
+                .thenThrow(new IllegalArgumentException("Runtime instance not found"));
+
+        executor.execute(command);
+
+        verify(lifecycle, never()).operate(
+                eq("runtime-1"), eq("RESTART"), eq("requester"), eq("approver"),
+                eq("APR-1"), eq("approved maintenance"));
+        verify(commands).recordAttempt(
+                eq("CMD-1"), eq(1), eq("runtime-1"), eq("CONTROL_SNAPSHOT"),
+                eq(CommandState.FAILED), argThat(message -> message.contains("Runtime instance not found")));
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.FAILED), eq("CONTROL_SNAPSHOT"),
+                argThat(summary -> summary.contains("runtime-1=FAILED")));
+    }
+
+    @Test
+    void responseLossAfterDispatchIsUnknownAndSecretIsMasked() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenThrow(new IllegalStateException("token=raw-secret response lost"));
+
+        executor.execute(command);
+
+        verify(commands).recordAttempt(
+                eq("CMD-1"), eq(1), eq("runtime-1"), eq("OWNER_API_DISPATCH"),
+                eq(CommandState.UNKNOWN_RESULT),
+                argThat(message -> message.contains("token=<masked>")
+                        && !message.contains("raw-secret")));
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT), eq("OWNER_API_DISPATCH"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void attemptEvidenceFailureAfterAgentSuccessIsUnknown() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "restarted"));
+        doThrow(new IllegalStateException("attempt store unavailable"))
+                .when(commands)
+                .recordAttempt(
+                        eq("CMD-1"), eq(1), eq("runtime-1"), eq("AGENT_RESTART"),
+                        eq(CommandState.SUCCEEDED), eq("restarted"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("ATTEMPT_EVIDENCE_PERSISTENCE"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+
+    @Test
+    void responseLossWithoutAttemptEvidenceUsesEvidencePersistenceStage() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenThrow(new IllegalStateException("response lost"));
+        doThrow(new IllegalStateException("attempt store unavailable"))
+                .when(commands).recordAttempt(
+                        eq("CMD-1"), eq(1), eq("runtime-1"), eq("OWNER_API_DISPATCH"),
+                        eq(CommandState.UNKNOWN_RESULT), any(String.class));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("ATTEMPT_EVIDENCE_PERSISTENCE"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void postRollbackEvidenceFailureDoesNotHideTheEvidenceGap() {
+        RuntimeCommand command = new RuntimeCommand(
+                "CMD-1", "IDEM-1", "ROLLBACK", "INSTANCE", List.of("runtime-1"),
+                null, null, 7L, "requester", "approved maintenance",
+                Instant.now(), "POLICY-1", "APR-1", "approver",
+                Instant.now().plusSeconds(300), CommandState.APPROVED, 0, Map.of(),
+                null, null, "before", null,
+                "OBAT-AA-00000000000000000000000000", null);
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "ROLLBACK", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "rolled back"));
+        doThrow(new IllegalStateException("desired state store unavailable"))
+                .when(registry).updateDesiredState(
+                        eq("runtime-1"), eq(com.cpf.batch.api.DesiredState.RUNNING), eq(0L));
+        doThrow(new IllegalStateException("attempt store unavailable"))
+                .when(commands).recordAttempt(
+                        eq("CMD-1"), eq(1), eq("runtime-1"), eq("POST_ROLLBACK_STATE"),
+                        eq(CommandState.UNKNOWN_RESULT), any(String.class));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("ATTEMPT_EVIDENCE_PERSISTENCE"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void nonTerminalAgentStateRequiresExplicitReconcile() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.EXECUTING, "still running"));
+
+        executor.execute(command);
+
+        verify(commands).recordAttempt(
+                eq("CMD-1"), eq(1), eq("runtime-1"),
+                eq("AGENT_RESTART_NON_TERMINAL_RESULT"), eq(CommandState.UNKNOWN_RESULT),
+                argThat(message -> message.contains("explicit reconcile")));
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT),
+                eq("AGENT_RESTART_NON_TERMINAL_RESULT"),
+                argThat(summary -> summary.contains("runtime-1=UNKNOWN_RESULT")));
+    }
+
+    @Test
+    void partiallyRolledBackAgentStateIsNeverCollapsedToSuccess() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.PARTIALLY_ROLLED_BACK, "rollback incomplete"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.PARTIALLY_ROLLED_BACK), eq("AGENT_RESTART"),
+                argThat(summary -> summary.contains("runtime-1=PARTIALLY_ROLLED_BACK")));
+    }
+
+    @Test
+    void fullyRolledBackTargetsPreserveRolledBackTerminalState() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-2"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(registry.snapshot("runtime-2")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                any(String.class), eq("RESTART"), eq("requester"), eq("approver"), eq("APR-1"),
+                eq("approved maintenance")))
+                .thenReturn(result(CommandState.ROLLED_BACK, "rolled back"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.ROLLED_BACK), eq(null),
+                argThat(summary -> summary.contains("runtime-1=ROLLED_BACK")
+                        && summary.contains("runtime-2=ROLLED_BACK")));
+    }
+
+    @Test
+    void mixedRollbackAndSuccessIsPartialRollback() {
+        RuntimeCommand command = command(List.of("runtime-1", "runtime-2"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(registry.snapshot("runtime-2")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.ROLLED_BACK, "rolled back"));
+        when(lifecycle.operate(
+                "runtime-2", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "restarted"));
+
+        executor.execute(command);
+
+        verify(commands).transition(
+                eq("CMD-1"), eq(CommandState.PARTIALLY_ROLLED_BACK), eq("AGENT_RESTART"),
+                argThat(summary -> summary.contains("runtime-1=ROLLED_BACK")
+                        && summary.contains("runtime-2=SUCCEEDED")));
+    }
+
+    @Test
+    void finalTransitionFailureDoesNotReportSuccess() {
+        RuntimeCommand command = command(List.of("runtime-1"));
+        persisted(command, CommandState.APPROVED);
+        when(commands.beginExecution(command.commandId())).thenReturn(true);
+        when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(lifecycle.operate(
+                "runtime-1", "RESTART", "requester", "approver", "APR-1",
+                "approved maintenance"))
+                .thenReturn(result(CommandState.SUCCEEDED, "restarted"));
+        doThrow(new IllegalStateException("command store unavailable"))
+                .when(commands)
+                .transition(
+                        eq("CMD-1"), eq(CommandState.SUCCEEDED), eq(null),
+                        argThat(summary -> summary.contains("runtime-1=SUCCEEDED")));
+
+        RuntimeCommandExecutionException failure = assertThrows(
+                RuntimeCommandExecutionException.class,
+                () -> executor.execute(command));
+
+        assertEquals("BATCH_RUNTIME_COMMAND_FINALIZE_UNKNOWN", failure.code());
+        assertEquals(CommandState.UNKNOWN_RESULT, failure.state());
+    }
+
+    private void persisted(RuntimeCommand command, CommandState resultState) {
+        RuntimeCommand normalized = RuntimeCommandIdentity.normalize(command);
+        when(commands.create(any(RuntimeCommand.class))).thenReturn(persistedRow(normalized));
+        when(commands.find(command.idempotencyKey())).thenReturn(Optional.of(Map.of(
+                "command_id", command.commandId(), "command_state", resultState.name())));
+    }
+
+    private static RuntimeCommand command(List<String> targets) {
+        Instant now = Instant.now();
+        return new RuntimeCommand(
+                "CMD-1", "IDEM-1", "RESTART", "INSTANCE", targets,
+                null, null, 7L, "requester", "approved maintenance",
+                now, "POLICY-1", "APR-1", "approver", now.plusSeconds(300),
+                CommandState.APPROVED, 0, Map.of(), null, null, "before", null,
+                "OBAT-AA-00000000000000000000000000", null);
+    }
+
+    private static Map<String, Object> persistedRow(RuntimeCommand command) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("command_id", command.commandId());
+        row.put("idempotency_key", command.idempotencyKey());
+        row.put("command_type", command.commandType());
+        row.put("target_type", command.targetType());
+        row.put("target_snapshot", command.targetSnapshot());
+        row.put("target_snapshot_hash", command.targetSnapshotHash());
+        row.put("expected_version", command.expectedVersion());
+        row.put("requested_by", command.requestedBy());
+        row.put("reason_text", command.reason());
+        row.put("approval_policy_version", command.approvalPolicyVersion());
+        row.put("approval_request_id", command.approvalRequestId());
+        row.put("approved_by", command.approvedBy());
+        row.put("requested_at", Timestamp.from(command.requestedAt()));
+        row.put("expires_at", Timestamp.from(command.expiresAt()));
+        row.put("transaction_id", command.transactionId());
+        return row;
+    }
+
+    private static AgentCommandResult result(CommandState state, String message) {
+        Instant now = Instant.now();
+        return new AgentCommandResult(
+                "agent-command", "service-1", "restart", state,
+                "OK", message, "1.0.0", now, now.plusSeconds(1));
+    }
+}

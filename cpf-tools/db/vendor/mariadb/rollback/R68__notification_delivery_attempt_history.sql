@@ -1,0 +1,1 @@
+DROP TABLE cpf_notification_delivery_attempt;

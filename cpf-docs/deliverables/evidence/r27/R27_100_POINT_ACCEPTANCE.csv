@@ -1,0 +1,20 @@
+﻿id,dimension,status,evidence
+A01,README brochure/product visual flow,PASS,Hero/Architecture/Product Map/Topology/Execution/Operations/Journey/Guide Map; 07_19 Root Layout + 07_20 Unified Context reflected in visual assets
+A02,Latest 07_20 currentization,PASS,34ef7bcef9ac; 186 canonical; 07_18 implementation + 07_19 Root + 07_20 Context/Header contract distinguished
+A03,Source/SQL/API/Config/Frontend/Test factual trace,PASS,actual symbols/paths embedded; CURRENT vs TARGET/PRODUCT CONTRACT separated
+A04,Manual-only task executability,PASS,531 code/execution windows plus step/result/failure/recovery in owner manuals
+A05,No Source reverse-engineering dependency,PASS,file path + source/config/sql/command/result/fault/recovery evidence embedded at task points
+A06,Book-like sequential flow,PASS,Generator→domain→runtime→fault→recovery→handover; owner-specific end-to-end flows
+A07,Timeout/concurrency/response-loss/partial/UNKNOWN,PASS,manual-specific failure tables/runbooks and retry prohibitions
+A08,Retry/restart/reprocess/reconcile/compensation/rollback,PASS,owner manuals/design docs include decision and closure criteria
+A09,Security/permission/masking/reason/approval/audit,PASS,ADM/BZA/Gateway/Security negative boundaries and audit evidence
+A10,Test/Fault Injection/EDU practical transition,PASS,Testkit/process-kill/fencing/reference and customer-domain transition; runtime boundary explicit
+A11,ADM/BZA actual screen/route alignment,PASS,ADM 64 routes including health-instances; BZA source-based route/field/operation contracts
+A12,Operations/Property/DB/DR runbook depth,PASS,Health/V112/Valkey/S3/GraphQL/SSE + install/config/backup/restore/rollback/DR evidence commands
+A13,Architecture/Spec/Standard/DB depth,PASS,07_19 Root ADR/transition contract/Good-Bad rules/DB lifecycle and reversal conditions
+A14,Document quantity non-decrease,PASS,R26→R27 13/13 logical lines/chars/pages non-decrease
+A15,DOCX/PDF layout/accessibility,PASS,844-page final render review; a11y 0; blank/outside 0; comments/tracked 0
+A16,Runtime/DB/Browser/Multi-instance execution,미검증,Not executed in documentation session; exact environments/scenarios remain runtime-only
+A17,07_19 physical Foundation/Testkit relocation,재확인 필요,settings/catalog point to target paths while current Git tree retains old roots; authority/apply/delete/build needed
+A18,Unified Context/Header implementation closure,재확인 필요,"07_20 Canonical contract is documented; current Web adapters exist, but target Core Context + all owner adapters/tests are not proven implemented"
+A19,Independent QA A/B cross validation,미검증,Documentation author self-review does not substitute independent QA

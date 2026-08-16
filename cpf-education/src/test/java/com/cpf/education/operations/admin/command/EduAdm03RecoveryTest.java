@@ -1,0 +1,9 @@
+package com.cpf.education.operations.admin.command;
+
+import com.cpf.education.verification.runtime.AbstractManualEduRecoveryTest;
+import com.cpf.education.operations.runtime.application.AbstractEduCapabilityHandler;
+
+/** EDU-ADM-03 RecoveryTest — 안전한 운영 조치 */
+public final class EduAdm03RecoveryTest extends AbstractManualEduRecoveryTest {
+    @Override protected AbstractEduCapabilityHandler handler() { return new EduAdm03Handler(); }
+}

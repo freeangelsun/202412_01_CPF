@@ -1,0 +1,2 @@
+com.cpf.common.runtime.CpfCommonJdbcAutoConfiguration
+com.cpf.common.runtime.control.CpfCommonRuntimeControlAutoConfiguration

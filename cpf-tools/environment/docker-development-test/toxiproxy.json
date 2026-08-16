@@ -1,0 +1,104 @@
+[
+  {
+    "name": "cpf_mariadb",
+    "listen": "0.0.0.0:13306",
+    "upstream": "cpf-mariadb:3306",
+    "enabled": true
+  },
+  {
+    "name": "cpf_postgresql",
+    "listen": "0.0.0.0:15432",
+    "upstream": "cpf-postgresql:5432",
+    "enabled": true
+  },
+  {
+    "name": "cpf_oracle",
+    "listen": "0.0.0.0:11521",
+    "upstream": "cpf-oracle:1521",
+    "enabled": true
+  },
+  {
+    "name": "cpf_redis",
+    "listen": "0.0.0.0:16379",
+    "upstream": "cpf-redis:6379",
+    "enabled": true
+  },
+  {
+    "name": "cpf_kafka",
+    "listen": "0.0.0.0:19093",
+    "upstream": "cpf-kafka:19092",
+    "enabled": true
+  },
+  {
+    "name": "cpf_wiremock",
+    "listen": "0.0.0.0:18090",
+    "upstream": "cpf-wiremock:8080",
+    "enabled": true
+  },
+  {
+    "name": "cpf_sftp",
+    "listen": "0.0.0.0:12222",
+    "upstream": "cpf-sftp:22",
+    "enabled": true
+  },
+  {
+    "name": "cpf_vault",
+    "listen": "0.0.0.0:18200",
+    "upstream": "cpf-vault:8200",
+    "enabled": true
+  },
+  {
+    "name": "cpf_keycloak",
+    "listen": "0.0.0.0:18091",
+    "upstream": "cpf-keycloak:8080",
+    "enabled": true
+  },
+  {
+    "name": "cpf_rabbitmq",
+    "listen": "0.0.0.0:15673",
+    "upstream": "cpf-rabbitmq:5672",
+    "enabled": true
+  },
+  {
+    "name": "cpf_artemis",
+    "listen": "0.0.0.0:16161",
+    "upstream": "cpf-artemis:61616",
+    "enabled": true
+  },
+  {
+    "name": "cpf_ibm_mq",
+    "listen": "0.0.0.0:11414",
+    "upstream": "cpf-ibm-mq:1414",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_length",
+    "listen": "0.0.0.0:19020",
+    "upstream": "cpf-tcp-simulator:9010",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_crlf",
+    "listen": "0.0.0.0:19021",
+    "upstream": "cpf-tcp-simulator:9011",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_stxetx",
+    "listen": "0.0.0.0:19022",
+    "upstream": "cpf-tcp-simulator:9012",
+    "enabled": true
+  },
+  {
+    "name": "cpf_tcp_fixed",
+    "listen": "0.0.0.0:19023",
+    "upstream": "cpf-tcp-simulator:9013",
+    "enabled": true
+  },
+  {
+    "name": "cpf_mailpit_smtp",
+    "listen": "0.0.0.0:11026",
+    "upstream": "cpf-mailpit:1025",
+    "enabled": true
+  }
+]

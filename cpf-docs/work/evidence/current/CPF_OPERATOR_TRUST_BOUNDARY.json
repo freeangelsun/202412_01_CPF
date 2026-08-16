@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "frontendGuardFiles": 3,
+  "controllerFileCount": 64,
+  "privilegedAliases": [
+    "requestUser",
+    "requestedBy",
+    "actorId",
+    "operatorIdOverride"
+  ],
+  "findings": []
+}

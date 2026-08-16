@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "vendor": "postgresql",
+  "generated": true,
+  "owner": "cpf-tools/db",
+  "canonical": {
+    "platformSchemaVersion": 49,
+    "seedModelVersion": 42,
+    "nonTableObjectVersion": 1
+  },
+  "artifacts": {
+    "cpf-platform-schema.sql": "82306c579db219b5b43f1c81dda9a5a0e52ea50600265fe37ad28a9895a594e4",
+    "cpf-platform-seed.sql": "bfd6ba32e8b977d938d74f1f77576de51582d56d99da2cbc42e40fcbec2f23d5",
+    "cpf-platform-verify.sql": "cc750f4b92b253c38804e3bacb8107f2015cfc71e29a1f69770ed926a5b95c73",
+    "cpf-platform-rollback.sql": "25773394ec8348835a5641f7c3f95dbdd6aca5316268f53a45fa94c4531c87af",
+    "bza-schema.sql": "ad180a610e1a507f0b8bf5d5f7a1a0228a7b9a510b694a8abce6b0a2f7cbf70e",
+    "bza-seed.sql": "e8910ec2d9fa354d3d7f644519872330c5ea784da5a6afa1fd6e4d2e82e0e38a",
+    "bza-verify.sql": "aa2dfb6d3a325bf7cd97652986d5f0287b0a12b378809ac6064447ca2340b825",
+    "bza-rollback.sql": "2656a2affb3178ca4f1758cfc560ad866931aca87e312cf109af96cad41dda6c",
+    "reference-fixture-schema.sql": "900eaeabd1022c54af3f14de211bb238538079135a950bdb42f0a3dc0df602b2",
+    "reference-fixture-seed.sql": "09b9849eef3b495eeb235737f81e27d34a44c7a654952f679b8554e02331a0c3",
+    "reference-fixture-verify.sql": "a74b3047673417e6d3ada50efafa2c6110993b9316b3491c343391308af24c5a",
+    "reference-fixture-rollback.sql": "63f95700f15b94e4cf13f2b24a2ae9f4d0681f60f7af420b5aa0ee01ada68cb6",
+    "non-table-objects.sql": "5a48bdc9e5602b2dab7dec54aafa0598e709fd12dca005ad620743408ba9ba64"
+  },
+  "historicalMigrationImmutable": true,
+  "overrideManifest": "cpf-tools/db/canonical/vendor-overrides.json"
+}

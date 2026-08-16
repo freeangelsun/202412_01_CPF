@@ -1,0 +1,108 @@
+{
+  "requirementId": "EDU-BAT-08",
+  "title": "Job Pack Version·Artifact 배포",
+  "kind": "BATCH",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_BATCH_OPERATOR",
+  "requiredFields": [
+    "jobPackId",
+    "artifactSha",
+    "fileName",
+    "contentLength",
+    "checksum"
+  ],
+  "businessStates": [
+    "BUILT",
+    "VALIDATED",
+    "APPROVED",
+    "DEPLOYED",
+    "PARTIAL"
+  ],
+  "exceptionScenarios": [
+    "Checksum 불일치",
+    "일부 Agent NACK",
+    "이전 Version 실행"
+  ],
+  "requiredVerification": [
+    "정상 실행",
+    "중간 실패·Process 종료",
+    "중복 Trigger",
+    "Stop·Restart",
+    "업무 건수·금액·Hash 대사",
+    "ADM Execution ID 연결"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CLAIM_LEASE",
+    "CHECKSUM",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "TIMEOUT",
+    "PROCESS_KILL",
+    "LEASE_LOST"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": true,
+  "externalEffect": true,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 5,
+  "implementationPackage": "com.cpf.education.batch.jobpack.version",
+  "handlerClass": "com.cpf.education.batch.jobpack.version.EduBat08Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/batch/jobpack/version/EduBat08Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/batch/jobpack/version/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/batch/jobpack/version/EduBat08ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/jobpack/version/EduBat08FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/jobpack/version/EduBat08IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/jobpack/version/EduBat08RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/batch/jobpack/version/EduBat08UnitTest.java"
+  ],
+  "manualAnchor": "EDU-BAT-08",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "SPRING_BATCH",
+    "ownerModule": "cpf-education",
+    "entryPoint": "eduBat08Job",
+    "operation": "PARTIAL",
+    "publicContract": "cpf-education optional Spring Batch Job/Step contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-BAT-08/executions",
+    "configurationKey": "cpf.education.features.batch.enabled",
+    "timeoutSeconds": 3600,
+    "argumentFields": [
+      "jobPackId",
+      "artifactSha",
+      "fileName",
+      "contentLength",
+      "checksum"
+    ]
+  },
+  "featurePack": "batch",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.batch.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

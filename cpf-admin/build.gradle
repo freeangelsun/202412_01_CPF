@@ -1,0 +1,136 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+    id 'war'
+}
+
+group = 'com.cpf.admin'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+    }
+}
+
+dependencies {
+    // ADM 기능 Source가 직접 소비하는 Owner Contract입니다. Provider 구현과 구분해 명시합니다.
+    implementation project(':framework:integration')
+    implementation project(':framework:operations')
+    implementation project(':internal:platform-operations:runtime-control')
+    implementation project(':internal:messaging:reliability:jdbc')
+    implementation project(':internal:integration:fixed-length')
+    implementation project(':framework:file')
+    implementation project(':runtime:gateway')
+    // ADM Dynamic Log/Trace 운영 화면이 실제 runtime bean을 제어하므로 선택 Observability 구현을 명시합니다.
+    implementation project(':framework:operations:observability')
+    implementation project(':internal:platform-operations:runtime-health:jdbc')
+    implementation project(':starters:profiles:bff')
+    implementation project(':internal:integration:webhook')
+    implementation project(':starters:data:mybatis')
+    implementation project(':internal:file:attachment')
+    implementation project(':internal:file:tabular:poi')
+    // ADM은 browser-bff Profile의 CPF 공통 Runtime과 CMN 공통 기능을 사용합니다.
+    implementation project(':starters:common')
+    // ADM은 BAT 내부 구현/DB가 아니라 버전된 Owner Contract에만 의존합니다.
+    implementation project(':runtime:batch:api')
+
+    // ADM REST API와 정적 관리 화면을 제공합니다.
+    // BAT/Gateway Owner Remote Port의 WebClient를 제공합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // AdmApiAuthFilter가 직접 사용하는 servlet filter API를 runtime에도 명시적으로 포함합니다.
+
+    // ADM 소유 DB와 CPF 플랫폼 read-model만 JdbcTemplate으로 조회합니다.
+
+    // 공식 지원 Vendor(Oracle/PostgreSQL/MariaDB) Driver는 DataSource Owner가 명시적으로 소유합니다.
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
+        // 외부 Tomcat만 provided 처리하고, 애플리케이션 소유 Spring Web은 WAR/runtime에서 제외하지 않습니다.
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+
+    // Tests use the selected central Vendor Pack; module-local SQL fallback remains forbidden.
+    systemProperty 'cpf.db.vendor', 'mariadb'
+    systemProperty 'cpf.db.resource-root', rootProject.file('cpf-tools/db/vendor/mariadb').absolutePath
+}
+
+def frontendDir = layout.projectDirectory.dir('frontend')
+def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
+def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
+def windowsHost = System.getProperty('os.name').toLowerCase().contains('windows')
+def npmExecutable = windowsHost ? 'npm.cmd' : 'npm'
+def nodeExecutable = windowsHost ? 'node.exe' : 'node'
+def nodeVersionProvider = providers.exec { commandLine nodeExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+def npmVersionProvider = providers.exec { commandLine npmExecutable, '--version' }.standardOutput.asText.map { it.trim() }
+
+
+sourceSets.main.resources.srcDir(frontendOutputDir)
+
+tasks.register('frontendInstall', Exec) {
+    group = 'frontend'
+    description = 'ADM frontend의 package-lock 기준 의존성을 설치합니다.'
+    workingDir frontendDir
+    commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
+    inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
+    outputs.file(frontendInstallMarker)
+    doLast {
+        frontendInstallMarker.asFile.setText("node=${nodeVersionProvider.get()}\nnpm=${npmVersionProvider.get()}\n", 'UTF-8')
+    }
+}
+
+['Lint': 'lint', 'Typecheck': 'typecheck', 'Test': 'test'].each { taskSuffix, npmScript ->
+    tasks.register("frontend${taskSuffix}", Exec) {
+        group = 'verification'
+        dependsOn 'frontendInstall'
+        workingDir frontendDir
+        commandLine npmExecutable, 'run', npmScript
+        inputs.dir(frontendDir.dir('src'))
+        inputs.dir(frontendDir.dir('scripts'))
+        inputs.dir(frontendDir.dir('openapi'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'),
+                frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'),
+                frontendDir.file('orval.config.ts'), frontendDir.file('vite.config.ts'))
+        inputs.property('nodeVersion', nodeVersionProvider)
+        inputs.property('npmVersion', npmVersionProvider)
+    }
+}
+
+tasks.register('frontendBuild', Exec) {
+    group = 'build'
+    description = 'ADM Vue frontend를 Spring Boot 정적 리소스로 빌드합니다.'
+    dependsOn 'frontendInstall'
+    workingDir frontendDir
+    commandLine npmExecutable, 'run', 'build'
+    inputs.dir(frontendDir.dir('src'))
+    inputs.dir(frontendDir.dir('scripts'))
+    inputs.dir(frontendDir.dir('openapi'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package.json'),
+            frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'),
+            frontendDir.file('orval.config.ts'), frontendDir.file('tsconfig.json'))
+    inputs.property('nodeVersion', nodeVersionProvider)
+    inputs.property('npmVersion', npmVersionProvider)
+    outputs.dir(frontendOutputDir.map { it.dir('static/adm') })
+}
+
+tasks.register('frontendVerify') {
+    group = 'verification'
+    description = 'ADM frontend lint, typecheck, test와 production build를 검증합니다.'
+    dependsOn 'frontendLint', 'frontendTypecheck', 'frontendTest', 'frontendBuild'
+}
+
+def cpfSkipFrontendBuild = providers.gradleProperty('cpfSkipFrontendBuild').map { it.toBoolean() }.orElse(false)
+
+tasks.named('processResources') {
+    if (!cpfSkipFrontendBuild.get()) dependsOn 'frontendBuild'
+}

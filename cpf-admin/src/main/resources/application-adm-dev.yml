@@ -1,0 +1,21 @@
+# ADM dev profile 설정입니다.
+
+server:
+  port: ${ADM_SERVER_PORT}
+
+spring:
+  datasource:
+    adm:
+      url: ${ADM_DATASOURCE_URL}
+      username: ${ADM_DATASOURCE_USERNAME}
+      password: ${ADM_DATASOURCE_PASSWORD}
+
+cpf:
+  adm:
+    integration-closure:
+      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:true}
+      ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:true}
+      correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}

@@ -1,0 +1,6 @@
+RENAME adm_incident_policy TO cpf_incident_policy;
+RENAME adm_maintenance_window TO cpf_maintenance_window;
+RENAME adm_incident_lifecycle TO cpf_incident;
+RENAME adm_incident_signal TO cpf_incident_signal;
+RENAME adm_incident_timeline TO cpf_incident_timeline;
+RENAME adm_incident_command TO cpf_incident_command;

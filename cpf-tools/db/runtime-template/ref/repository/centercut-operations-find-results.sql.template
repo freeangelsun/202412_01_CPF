@@ -1,0 +1,17 @@
+SELECT result_id AS resultId,
+       center_cut_job_id AS centerCutJobId,
+       target_id AS targetId,
+       business_key AS businessKey,
+       result_status AS resultStatus,
+       result_message AS resultMessage,
+       transaction_id AS transactionId,
+       parent_segment_id AS parentSegmentId,
+       transaction_segment_id AS transactionSegmentId,
+       @CHAR_LENGTH@(result_payload) AS resultPayloadLength,
+       created_at AS createdAt,
+       updated_at AS updatedAt
+  FROM ref_center_cut_sample_result
+ WHERE center_cut_job_id = ?
+   AND (? IS NULL OR result_status = ?)
+ ORDER BY result_id DESC
+@LIMIT_POSITIONAL@

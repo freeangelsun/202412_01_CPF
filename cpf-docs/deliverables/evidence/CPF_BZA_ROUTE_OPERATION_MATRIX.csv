@@ -1,0 +1,27 @@
+﻿index,route_id,label,purpose,search_fields,columns,actions,permission,failure,recovery,status
+1,dashboard,업무관리 현황,조직·사용자·결재·알림 이상을 분류,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+2,organizations,조직,기준일 조직 계층 생성·변경,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+3,employees,직원,발령·소속·재직 상태 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+4,users,사용자,직원과 로그인 계정 연결,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+5,roles,역할,업무 역할 Version 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+6,permissions,권한,Menu·Button·API Permission 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+7,dataScopes,데이터 범위,조직·고객·업무 Scope 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+8,approvalPolicies,결재 정책,조건별 결재선 정책 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+9,approvalRequests,결재 요청,제출·승인·반려·회수,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+10,delegations,위임·대결,기간·Scope 제한 위임,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+11,attachments,첨부,업무/결재 첨부 권한 관리,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+12,notifications,알림,Rule·Delivery·Receipt 운영,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+13,sessions,세션,활성 Session·강제 종료,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+14,auditLogs,감사,Before/After·Actor·Reason 조회,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+15,exports,내보내기,권한·Masking·Download Audit,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+16,referenceCatalogs,기준정보,업무 Code·Reference 연결,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+17,organizationChanges,조직 변경,미래 조직 개편 Preview,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+18,employeeAppointments,발령,겹침·취소·미래 발령,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+19,userRoles,사용자 역할,기준일 Role 할당,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+20,rolePermissions,역할 권한,Role별 Permission Matrix,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+21,scopeSimulations,범위 시뮬레이션,Effective Data Scope 검증,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+22,approvalSimulations,결재선 시뮬레이션,조건별 Participant 계산,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+23,approvalHistory,결재 이력,Snapshot·Decision Timeline,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+24,notificationDlq,알림 DLQ,실패 Delivery 격리·Replay,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+25,security,BZA 보안,MFA·IP·Session 정책,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료
+26,systemSettings,BZA 설정,업무관리 제품 설정·Version,기준일·ID·상태·Version,식별자·상태·Version·Effective·Audit,조회/생성/변경/상태전이 (권한별),BZA role + data scope,403·409·Timeout·유효기간 충돌,최신 Snapshot·Simulation·새 Operation,완료

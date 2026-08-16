@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "artifactFormat": "CPFBAK01",
+  "encryption": {
+    "required": true,
+    "algorithm": "AES-256-GCM-CHUNKED",
+    "keyTransport": "environment-reference-only",
+    "plaintextRetention": "forbidden"
+  },
+  "manifest": {
+    "required": true,
+    "hashAlgorithm": "SHA-256",
+    "requiredFields": [
+      "schemaVersion",
+      "backupId",
+      "status",
+      "vendor",
+      "database",
+      "primaryRegion",
+      "artifactFile",
+      "artifactSha256",
+      "sourceSha256",
+      "encrypted",
+      "encryptionAlgorithm",
+      "startedAt",
+      "finishedAt",
+      "retentionUntil",
+      "legalHold",
+      "baseCommit",
+      "credentialEmbedded",
+      "sanitized"
+    ]
+  },
+  "restoreControl": {
+    "confirmationRequired": true,
+    "operatorRequired": true,
+    "reasonRequired": true,
+    "approvalReferenceRequired": true,
+    "manifestAndHashValidationRequired": true,
+    "vendorAndDatabaseMatchRequired": true,
+    "unknownState": "fail-closed"
+  },
+  "retention": {
+    "minimumDays": 1,
+    "maximumDays": 3650,
+    "legalHoldOverridesExpiry": true,
+    "purgeRequiresReason": true,
+    "purgeRequiresOperator": true,
+    "purgeWritesAuditEvidence": true,
+    "purgeRequiresApprovalReference": true,
+    "purgeRequiresReviewedPlanSha256": true,
+    "purgeRequiresVerifiedCrossRegionReplica": true,
+    "partialPurgeState": "UNKNOWN_RECONCILE_REQUIRED"
+  },
+  "vendorModes": {
+    "mariadb": {
+      "backupClient": [
+        "mariadb-dump"
+      ],
+      "restoreClient": [
+        "mariadb"
+      ],
+      "logicalPitr": false
+    },
+    "postgresql": {
+      "backupClient": [
+        "pg_dump"
+      ],
+      "restoreClient": [
+        "pg_restore"
+      ],
+      "logicalPitr": false
+    },
+    "oracle": {
+      "backupClient": [
+        "expdp"
+      ],
+      "restoreClient": [
+        "impdp"
+      ],
+      "credentialMode": "external-password-store",
+      "nativeEncryptionRequired": true,
+      "logicalPitr": false
+    }
+  },
+  "crossRegionReplication": {
+    "supported": true,
+    "minimumVerifiedReplicaCountBeforePrimaryPurge": 1,
+    "replicaHashMustMatchPrimary": true,
+    "regionMustDifferFromPrimary": true,
+    "operatorRequired": true,
+    "reasonRequired": true,
+    "approvalReferenceRequired": true,
+    "auditEvidenceRequired": true,
+    "unknownState": "fail-closed",
+    "evidenceMode": "sha256-sidecar",
+    "sidecarStatus": "VERIFIED",
+    "separationOfDutiesRequiredForPurge": true,
+    "consumers": [
+      "cpf-tools/db/tools/replicate-cpf-backup-artifact.ps1",
+      "cpf-tools/db/tools/register-cpf-backup-replica.ps1",
+      "cpf-tools/db/tools/invoke-cpf-backup-retention.ps1"
+    ]
+  }
+}

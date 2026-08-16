@@ -1,0 +1,9 @@
+cpf:
+  local:
+    batch:
+      modules:
+        control-plane: true
+        scheduler: false
+        worker: true
+        center-cut: false
+        agent: false

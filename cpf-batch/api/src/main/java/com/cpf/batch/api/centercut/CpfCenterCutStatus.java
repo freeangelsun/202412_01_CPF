@@ -1,0 +1,15 @@
+package com.cpf.batch.api.centercut;
+
+/**
+ * center-cut 대상과 처리 결과가 공통으로 사용하는 상태 코드입니다.
+ */
+public enum CpfCenterCutStatus {
+    READY,
+    RUNNING,
+    SUCCESS,
+    FAILED,
+    SKIPPED,
+    RETRY_REQUESTED,
+    UNKNOWN_RESULT,
+    STOP_REQUESTED
+}

@@ -1,0 +1,2 @@
+package com.cpf.batch.runtime; import org.slf4j.MDC; import java.util.Map;
+public final class LogContext implements AutoCloseable { private static final String[] KEYS={"cpfEnvironment","cpfCellId","cpfServiceId","cpfInstanceId","transactionId","segmentId","executionId","jobId"}; private LogContext(){} public static LogContext open(Map<String,String> values){for(String k:KEYS){String v=values.get(k);if(v!=null&&!v.isBlank())MDC.put(k,v);}return new LogContext();} public void close(){for(String k:KEYS)MDC.remove(k);} }

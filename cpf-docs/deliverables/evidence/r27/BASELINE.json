@@ -1,0 +1,13 @@
+{
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "instruction_basis_sha": "34ef7bcef9ac4bb408221df843b25b7f6bb9d996",
+  "work_start_sha": "bd9bb2ad3b5cdd2441b1c070c24c1ed9e2b63d52",
+  "documentation_delta_sha": "34ef7bcef9ac4bb408221df843b25b7f6bb9d996",
+  "evidence_source_sha": "34ef7bcef9ac4bb408221df843b25b7f6bb9d996",
+  "product_source_basis_sha": "34ef7bcef9ac4bb408221df843b25b7f6bb9d996",
+  "result_commit_sha": null,
+  "canonical_requirement_count": 186,
+  "transition_note": "07_19 settings/catalog target Foundation/Testkit physical locations but current Git tree still contains old root files; 07_20 adds Unified Context/Header canonical rules. Docs mark relocation and Unified Context implementation closure separately and do not claim completion.",
+  "repository_write_performed": false
+}

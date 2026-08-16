@@ -1,0 +1,76 @@
+services:
+  redis:
+    image: ${CPF_CACHE_LIVE_REDIS_IMAGE:-redis:8.8.1-trixie@sha256:3eafabb4c93fcb8b36b666e07a43f096cb157bc6b07dce4b2492b895c63cf37f}
+    restart: "no"
+    command:
+      - sh
+      - -ec
+      - >-
+        exec redis-server
+        --requirepass "$$(cat /run/secrets/cache_password)"
+        --save ""
+        --appendonly no
+        --maxmemory-policy noeviction
+    ports:
+      - target: 6379
+        published: ${CPF_CACHE_LIVE_REDIS_PORT:?CPF_CACHE_LIVE_REDIS_PORT must be an isolated loopback port}
+        host_ip: 127.0.0.1
+        protocol: tcp
+    secrets:
+      - cache_password
+    volumes:
+      - redis_data:/data
+    networks:
+      - cache_live
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli --no-auth-warning -a "$$(cat /run/secrets/cache_password)" ping | grep -qx PONG
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
+
+  valkey:
+    image: ${CPF_CACHE_LIVE_VALKEY_IMAGE:-valkey/valkey:9.1.1-alpine@sha256:ee91f7a174ac4d6a6b0685b3a60e321f0a9dbbb691f9b0e285be2ba1d1be8328}
+    restart: "no"
+    command:
+      - sh
+      - -ec
+      - >-
+        exec valkey-server
+        --requirepass "$$(cat /run/secrets/cache_password)"
+        --save ""
+        --appendonly no
+        --maxmemory-policy noeviction
+    ports:
+      - target: 6379
+        published: ${CPF_CACHE_LIVE_VALKEY_PORT:?CPF_CACHE_LIVE_VALKEY_PORT must be an isolated loopback port}
+        host_ip: 127.0.0.1
+        protocol: tcp
+    secrets:
+      - cache_password
+    volumes:
+      - valkey_data:/data
+    networks:
+      - cache_live
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - valkey-cli --no-auth-warning -a "$$(cat /run/secrets/cache_password)" ping | grep -qx PONG
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
+
+secrets:
+  cache_password:
+    file: ${CPF_CACHE_LIVE_PASSWORD_FILE:?CPF_CACHE_LIVE_PASSWORD_FILE must point to a temporary secret file}
+
+volumes:
+  redis_data:
+  valkey_data:
+
+networks:
+  cache_live:
+    driver: bridge

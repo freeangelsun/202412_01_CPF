@@ -1,0 +1,5 @@
+﻿commit,sha,change,documentation_impact,evidence_status
+06_06,2929163b3bb40159e22e1f57e79b6cd070abf7ad,OpenAPI WebMVC contract·management snapshot·verification package,01·03·04·05·기술사양서,완료
+06_07,ee977cf66c251081df78ea5e9675b81c3dfafa59,ADM integration closure·immutable correction approval snapshot·generated client,00·01·03·04·05·아키텍처·기술사양,완료
+06_08,a8be27a34bdac0b7c075e06d6e86571244c96421,초보자용 문서 구조·Journey SVG·Reader Matrix 반영,README·공식 Guide·설계 산출물·Evidence,완료
+R10 overlay,a8be27a34bdac0b7c075e06d6e86571244c96421,06_08 구조를 유지하면서 상세 기능·EDU·Route·Property·Runbook·설계 계약 복원·확장,공식 문서 9·설계 산출물 5·Evidence 17·신규 SVG 6,완료

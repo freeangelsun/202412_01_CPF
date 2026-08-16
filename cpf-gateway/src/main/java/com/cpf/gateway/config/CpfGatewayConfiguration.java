@@ -1,0 +1,154 @@
+package com.cpf.gateway.config;
+
+import com.cpf.gateway.api.CpfGatewayAuditPort;
+import com.cpf.gateway.api.CpfGatewayAuthenticationPort;
+import com.cpf.gateway.api.CpfGatewayAuthorizationPort;
+import com.cpf.gateway.api.CpfGatewayEntryPolicyPort;
+import com.cpf.gateway.api.CpfGatewayRateLimitCounterPort;
+import com.cpf.platform.operations.runtimecontrol.CpfRuntimeChangeApplier;
+import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
+import com.cpf.gateway.runtime.CpfApiClientSecurityPolicy;
+import com.cpf.gateway.runtime.CpfApiClientSecurityRuntimeApplier;
+import com.cpf.gateway.runtime.CpfGatewayRouteRuntimeApplier;
+import com.cpf.gateway.runtime.CpfGatewayRuntimeApplier;
+import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
+import com.cpf.gateway.runtime.CpfGatewayEntryRuntimeApplier;
+import com.cpf.gateway.runtime.DefaultCpfGatewayEntryPolicy;
+import com.cpf.gateway.runtime.InMemoryCpfGatewayRateLimitCounterAdapter;
+import com.cpf.gateway.runtime.JdbcCpfGatewayRateLimitCounterAdapter;
+import com.cpf.web.context.CpfHttpHeaderNames;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.PlatformTransactionManager;
+
+/** CPF Gateway runtime의 data plane Bean을 구성합니다. */
+@Configuration
+@EnableScheduling
+public class CpfGatewayConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayEntryPolicyPort cpfGatewayEntryPolicyPort(CpfGatewaySafetyProperties safety) {
+        return new DefaultCpfGatewayEntryPolicy(safety);
+    }
+
+    @Bean(name = "cpfGatewayEntryRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayEntryRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayEntryRuntimeApplier(CpfGatewayEntryPolicyPort policy) {
+        return new CpfGatewayEntryRuntimeApplier(policy);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfApiClientSecurityPolicy cpfApiClientSecurityPolicy() {
+        return new CpfApiClientSecurityPolicy();
+    }
+
+    @Bean(name = "cpfApiClientSecurityRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfApiClientSecurityRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfApiClientSecurityRuntimeApplier(CpfApiClientSecurityPolicy policy) {
+        return new CpfApiClientSecurityRuntimeApplier(policy);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayRateLimitCounterPort cpfGatewayRateLimitCounterPort(
+            CpfGatewaySafetyProperties safety,
+            ObjectProvider<JdbcTemplate> jdbcTemplates,
+            ObjectProvider<PlatformTransactionManager> transactionManagers) {
+        if ("JDBC".equalsIgnoreCase(safety.getRateLimitCounterMode())) {
+            JdbcTemplate jdbc = jdbcTemplates.getIfAvailable();
+            PlatformTransactionManager transactionManager = transactionManagers.getIfAvailable();
+            if (jdbc == null || transactionManager == null) {
+                throw new IllegalStateException(
+                        "JDBC rate-limit counter requires JdbcTemplate and PlatformTransactionManager");
+            }
+            return new JdbcCpfGatewayRateLimitCounterAdapter(jdbc, transactionManager);
+        }
+        return new InMemoryCpfGatewayRateLimitCounterAdapter(
+                safety.getRateLimitCounterEntriesCap());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayRuntimePolicy cpfGatewayRuntimePolicy(
+            CpfGatewayRateLimitCounterPort counters,
+            CpfGatewaySafetyProperties safety) {
+        return new CpfGatewayRuntimePolicy(
+                counters,
+                safety.isRateLimitFailClosedOnCounterFailure());
+    }
+
+    @Bean(name = "cpfGatewayRouteRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayRouteRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayRouteRuntimeApplier(CpfGatewayRouteSnapshot snapshot) {
+        return new CpfGatewayRouteRuntimeApplier(snapshot);
+    }
+
+    @Bean(name = "cpfGatewayHeaderRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayHeaderRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayHeaderRuntimeApplier(CpfGatewayRuntimePolicy policy) {
+        return new CpfGatewayRuntimeApplier("GATEWAY_HEADER", policy);
+    }
+
+    @Bean(name = "cpfGatewayCorsRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayCorsRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayCorsRuntimeApplier(CpfGatewayRuntimePolicy policy) {
+        return new CpfGatewayRuntimeApplier("GATEWAY_CORS", policy);
+    }
+
+    @Bean(name = "cpfGatewayRateLimitRuntimeApplier")
+    @ConditionalOnMissingBean(name = "cpfGatewayRateLimitRuntimeApplier")
+    public CpfRuntimeChangeApplier cpfGatewayRateLimitRuntimeApplier(CpfGatewayRuntimePolicy policy) {
+        return new CpfGatewayRuntimeApplier("RATE_LIMIT", policy);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayAuthenticationPort cpfGatewayAuthenticationPort(CpfApiClientSecurityPolicy policy) {
+        // 기본 Adapter는 hash/IP/cert/expiry/quota가 검증된 API Client만 Principal로 승격합니다.
+        // 고객사 OAuth2/JWT/mTLS Adapter는 동일 Port Bean으로 교체할 수 있습니다.
+        return (route, credentials) -> policy.authenticate(
+                credentials.get(CpfHttpHeaderNames.API_KEY),
+                credentials.get("cpf.client.ip"),
+                credentials.get("cpf.client.cert.serial"));
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayAuthorizationPort cpfGatewayAuthorizationPort() {
+        // 실제 Principal authority와 route permission을 비교하며, 보호 route는 권한 미확인 시 fail-closed 합니다.
+        return (route, trustedHeaders) -> {
+            String required = route.requiredPermission();
+            if (required == null || required.isBlank()) return true;
+            String authorities = trustedHeaders.get("cpf.principal.authorities");
+            if (authorities == null || authorities.isBlank()) return false;
+            for (String authority : authorities.split(",")) {
+                if (required.equals(authority.trim())) return true;
+            }
+            return false;
+        };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CpfGatewayAuditPort cpfGatewayAuditPort() {
+        // durable Audit adapter가 없으면 auditReasonRequired route는 ProxyService가 fail-closed 처리합니다.
+        return new CpfGatewayAuditPort() {
+            @Override
+            public boolean durable() {
+                return false;
+            }
+
+            @Override
+            public void record(com.cpf.gateway.api.CpfGatewayAuditEvent event) {
+                // no-op default; 위험 거래는 durable=false로 차단됩니다.
+            }
+        };
+    }
+
+}

@@ -1,0 +1,27 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    api project(':framework:operations')
+    api project(':framework:integration')
+    api project(':framework:operations:observability')
+    api project(':framework:messaging')
+    implementation project(':internal:platform-operations:runtime-control')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    api project(':framework:core')
+implementation project(':framework:base-runtime')
+api project(':starters:data:jdbc')
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+implementation 'org.springframework.boot:spring-boot-autoconfigure'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-messaging-reliability-jdbc'
+        }
+    }
+}

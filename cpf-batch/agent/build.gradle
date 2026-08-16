@@ -1,0 +1,27 @@
+plugins { id 'java'; id 'org.springframework.boot'; id 'maven-publish' }
+group='com.cpf.batch'
+dependencies {
+    implementation project(':framework:security')
+    implementation project(':framework:operations')
+    implementation project(':runtime:batch:api')
+    implementation project(':runtime:batch:runtime-support')
+    implementation project(':framework:core')
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation project(':runtime:batch:testkit')
+}
+tasks.named('bootJar') { archiveFileName = "cpf-batch-agent-${project.version}.jar" }
+tasks.named('test') { useJUnitPlatform() }
+
+
+publishing {
+    publications {
+        executable(MavenPublication) {
+            groupId = 'com.cpf.batch'
+            artifactId = 'cpf-batch-agent'
+            version = project.version.toString()
+            artifact tasks.named('bootJar')
+        }
+    }
+}

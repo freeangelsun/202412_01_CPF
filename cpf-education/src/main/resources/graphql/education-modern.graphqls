@@ -1,0 +1,2 @@
+type Query { cpfRuntimeHealth: CpfRuntimeHealth! }
+type CpfRuntimeHealth { status: String!, instanceId: String!, draining: Boolean! }

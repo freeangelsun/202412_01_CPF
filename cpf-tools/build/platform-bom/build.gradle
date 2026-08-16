@@ -1,0 +1,15 @@
+plugins { id 'base' }
+
+tasks.register('publishCpfBomToLocal') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfLocalRepository', ':internal-bom:publishAllPublicationsToCpfLocalRepository'
+}
+tasks.register('publishCpfBomToStaging') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfStagingRepository', ':internal-bom:publishAllPublicationsToCpfStagingRepository'
+}
+tasks.register('publishCpfBomToInternal') {
+    group = 'publishing'
+    dependsOn ':public-bom:publishAllPublicationsToCpfInternalRepository', ':internal-bom:publishAllPublicationsToCpfInternalRepository'
+}
+check.dependsOn ':public-bom:check', ':internal-bom:check'

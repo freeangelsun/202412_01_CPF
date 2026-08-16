@@ -1,0 +1,26 @@
+# ADM prod profile 설정입니다.
+
+server:
+  port: ${ADM_SERVER_PORT}
+
+spring:
+  datasource:
+    adm:
+      mode: ${ADM_DATASOURCE_MODE:url}
+      url: ${ADM_DATASOURCE_URL:${ADM_DB_URL}}
+      username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME}}
+      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD}}
+      jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
+
+logging:
+  level:
+    com.cpf.admin: INFO
+
+cpf:
+  adm:
+    persistence:
+      mode: DATABASE
+    integration-closure:
+      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:false}
+      ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:false}
+      correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}

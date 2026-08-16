@@ -1,0 +1,32 @@
+<template>
+      <section class="panel">
+        <div class="panel-title">
+          <h2>동적 로그 레벨</h2>
+          <button type="button" @click="loadLogLevelRules">조회</button>
+        </div>
+        <div class="filters">
+          <label>업무 거래 ID <input v-model="logLevelForm.businessTransactionId" type="text" placeholder="REF01EDU0001"></label>
+          <label>거래 ID <input v-model="logLevelForm.transactionId" type="text"></label>
+          <label>레벨 <select v-model="logLevelForm.logLevel"><option>DEBUG</option><option>INFO</option><option>TRACE</option></select></label>
+          <label>TTL 초 <input v-model.number="logLevelForm.ttlSeconds" type="number"></label>
+          <label>사유 <input v-model="logLevelForm.reason" type="text"></label>
+          <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="registerLogLevelRule">등록 승인 요청</button>
+        </div>
+        <CpfStructuredData class="detail" :value="logLevelResult" />
+      </section>
+
+      <section class="panel route-operation-panel">
+        <h3>동적 로그 규칙 제거</h3>
+        <div class="filters"><label>Rule ID <input v-model="operationForm.ruleId"></label><label>사유 <input v-model="operationForm.reason"></label></div>
+        <button type="button" v-if="canWrite('DYNAMIC_LOG')" @click="removeLogLevelRule">규칙 제거 승인 요청</button>
+      </section>
+</template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+import { useAdmConsolePage } from "../../app/useAdmConsolePage";
+
+export default defineComponent({setup(){return useAdmConsolePage()},
+  name: "LogLevelPage",
+  });
+</script>

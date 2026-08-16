@@ -1,0 +1,4 @@
+# BZA prod profile 설정입니다.
+
+server:
+  port: ${BZA_SERVER_PORT}

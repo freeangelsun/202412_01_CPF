@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "productionEnvironmentNames": ["prod", "production", "prd", "live"],
+  "syntheticMarker": "CPF_SYNTHETIC_DATA_V1",
+  "reservedEmailDomain": "example.invalid",
+  "reservedIpv4": "192.0.2.1",
+  "directProductionRestoreToTest": "forbidden",
+  "masking": {
+    "excludeFormalPrimaryAndForeignKeys": true,
+    "deterministicSeedRequired": true,
+    "classes": [
+      {"name": "email", "columnPattern": "(^|_)(EMAIL|EMAIL_ADDRESS)$"},
+      {"name": "phone", "columnPattern": "(^|_)(PHONE|PHONE_NO|MOBILE|MOBILE_NO|TEL|TEL_NO)$"},
+      {"name": "ip", "columnPattern": "(^|_)(IP|CLIENT_IP|SOURCE_IP|LAST_LOGIN_IP|REMOTE_ADDRESS|IP_PATTERN)$"},
+      {"name": "person_name", "columnPattern": "(^|_)(EMPLOYEE_NAME|OPERATOR_NAME|DISPLAY_NAME|APPROVER_NAME_SNAPSHOT|TARGET_NAME_SNAPSHOT)$"},
+      {"name": "employee_number", "columnPattern": "(^|_)(EMPLOYEE_NO|MANAGER_EMPLOYEE_NO)$"},
+      {"name": "secret", "columnPattern": "(PASSWORD|SECRET|TOKEN_HASH|SECRET_REF|CIPHER|CREDENTIAL|ACCESS_TOKEN|REFRESH_TOKEN)"},
+      {"name": "payload", "columnPattern": "(PAYLOAD|REQUEST_BODY|COMMAND_PAYLOAD_SNAPSHOT|HEADER_JSON|ARTIFACT_CONTENT|MESSAGE_BODY)"},
+      {"name": "message", "columnPattern": "(ERROR_MESSAGE|FAILURE_MESSAGE|RESULT_MESSAGE|EXIT_MESSAGE|SAFE_MESSAGE|OWNER_RESULT_MESSAGE)"},
+      {"name": "file_name", "columnPattern": "(ORIGINAL_FILE_NAME|STORED_FILE_NAME|FILE_NAME)$"}
+    ]
+  }
+}

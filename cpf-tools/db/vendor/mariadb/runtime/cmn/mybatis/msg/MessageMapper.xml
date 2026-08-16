@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cpf.common.msg.mapper.MessageMapper">
+
+    <sql id="messageColumns">
+        message_id,
+        message_code,
+        message_code AS message_key,
+        locale,
+        message_format_type,
+        external_message,
+        external_message AS message_value,
+        internal_message,
+        parameter_count,
+        parameter_sample,
+        description,
+        use_yn,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at
+    </sql>
+
+    <select id="findAllMessages" resultType="map">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM cpf_message
+        ORDER BY message_code, locale
+    </select>
+
+    <select id="findMessageByKey" resultType="map" parameterType="string">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM cpf_message
+        WHERE message_code = #{messageKey}
+          AND use_yn = 'Y'
+        ORDER BY locale, message_id
+        LIMIT 1
+    </select>
+
+    <select id="findMessageByKeyAndLocale" resultType="map">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM cpf_message
+        WHERE message_code = #{messageKey}
+          AND locale = #{locale}
+          AND use_yn = 'Y'
+        ORDER BY message_id
+        LIMIT 1
+    </select>
+
+    <select id="findMessageByKeyLocaleType" resultType="map">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM cpf_message
+        WHERE message_code = #{messageKey}
+          AND locale = #{locale}
+          AND use_yn = 'Y'
+        ORDER BY message_id
+        LIMIT 1
+    </select>
+
+    <select id="findMessageById" resultType="map" parameterType="long">
+        SELECT
+            <include refid="messageColumns"/>
+        FROM cpf_message
+        WHERE message_id = #{messageId}
+    </select>
+
+    <insert id="insertMessage" parameterType="com.cpf.common.msg.dto.CommonMessageRequest"
+            useGeneratedKeys="true"
+            keyProperty="messageId"
+            keyColumn="message_id">
+        INSERT INTO cpf_message (
+            message_code,
+            locale,
+            message_format_type,
+            external_message,
+            internal_message,
+            parameter_count,
+            parameter_sample,
+            description,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{effectiveMessageCode},
+            #{locale},
+            IFNULL(NULLIF(#{messageFormatType}, ''), 'FIXED'),
+            #{effectiveExternalMessage},
+            #{effectiveInternalMessage},
+            IFNULL(#{parameterCount}, 0),
+            #{parameterSample},
+            #{description},
+            IFNULL(NULLIF(#{useYn}, ''), 'Y'),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW(),
+            IFNULL(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            NOW()
+        )
+    </insert>
+
+    <update id="updateMessage">
+        UPDATE cpf_message
+        SET
+            message_code = #{request.effectiveMessageCode},
+            locale = #{request.locale},
+            message_format_type = IFNULL(NULLIF(#{request.messageFormatType}, ''), 'FIXED'),
+            external_message = #{request.effectiveExternalMessage},
+            internal_message = #{request.effectiveInternalMessage},
+            parameter_count = IFNULL(#{request.parameterCount}, 0),
+            parameter_sample = #{request.parameterSample},
+            description = #{request.description},
+            use_yn = IFNULL(NULLIF(#{request.useYn}, ''), 'Y'),
+            updated_by = IFNULL(NULLIF(#{request.requestUser}, ''), 'SYSTEM'),
+            updated_at = NOW()
+        WHERE message_id = #{messageId}
+    </update>
+
+    <delete id="deleteMessage" parameterType="long">
+        DELETE FROM cpf_message
+        WHERE message_id = #{messageId}
+    </delete>
+
+</mapper>

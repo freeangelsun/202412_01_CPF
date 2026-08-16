@@ -1,0 +1,26 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+
+dependencies {
+    api project(':framework:data')
+    api project(':framework:data:persistence')
+    api project(':framework:core')
+    api project(':starters:data:jdbc')
+    api project(':framework:operations:observability')
+    api 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.assertj:assertj-core'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-data-mybatis'
+        }
+    }
+}

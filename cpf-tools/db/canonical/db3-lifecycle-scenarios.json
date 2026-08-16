@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "referenceVendor": "postgresql",
+  "scenarios": [
+    {
+      "id": "CPF-DB3-NXT2-CONSOLIDATED-001",
+      "steps": [
+        "fresh-install",
+        "seed",
+        "upgrade",
+        "rollback-or-forward-recovery",
+        "reapply",
+        "representative-query",
+        "representative-transaction",
+        "restart-reconcile",
+        "checksum-drift"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true
+    },
+    {
+      "id": "CPF-DB3-NXT2-ERROR-CATALOG-001",
+      "steps": [
+        "fresh-install",
+        "seed",
+        "insert-arbitrary-response-code",
+        "insert-locale-message",
+        "resolve",
+        "disable-expire",
+        "rollback",
+        "restart-cache-reconcile"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true
+    },
+    {
+      "id": "CPF-DB3-D009-BAT-RUNTIME-ROLE-001",
+      "steps": [
+        "install-pre-v116-fixture",
+        "mixed-canonical-and-retired-role-preflight",
+        "unknown-role-preflight-no-write",
+        "constraint-name-collision-preflight-no-write",
+        "v116-upgrade",
+        "canonical-role-check-constraint",
+        "r116-rollback",
+        "v116-reapply"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "all-target-preflight-before-write",
+        "unknown-role-causes-zero-writes",
+        "nullable-ops-runtime-role-preserved",
+        "canonical-role-check-is-case-sensitive-on-mariadb"
+      ]
+    },
+    {
+      "id": "CPF-DB3-D010-PLATFORM-SEED-001",
+      "steps": [
+        "install-pre-v117-fixture",
+        "insert-exact-retired-owned-seed",
+        "insert-unrelated-and-customer-modified-sentinels",
+        "v117-upgrade",
+        "canonical-edu-message-and-response",
+        "exact-retired-owned-row-cleanup",
+        "no-unrelated-write",
+        "r117-preserve-current-noop",
+        "v117-reapply"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "canonical-seed-model-is-single-current-row-source",
+        "exact-full-ownership-fingerprint-delete-only",
+        "referenced-retired-message-is-preserved",
+        "unknown-and-customer-modified-data-is-preserved",
+        "rollback-never-reintroduces-retired-ref-ownership",
+        "reapply-is-idempotent"
+      ]
+    },
+    {
+      "id": "CPF-DB3-QAB3-ADM-INCIDENT-001",
+      "steps": [
+        "install-v92-incident-fixture",
+        "insert-policy-signal-incident-timeline-command",
+        "v118-upgrade",
+        "canonical-adm-table-query",
+        "r118-rollback",
+        "legacy-table-query",
+        "v118-reapply",
+        "canonical-service-query"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "v92-data-preserved",
+        "active-service-uses-canonical-adm-owner",
+        "fresh-and-upgrade-table-names-match",
+        "rollback-restores-v92-physical-names",
+        "reapply-preserves-data"
+      ]
+    }
+  ]
+}

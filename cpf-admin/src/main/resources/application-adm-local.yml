@@ -1,0 +1,26 @@
+# ADM local profile 설정입니다.
+
+server:
+  port: ${ADM_SERVER_PORT:8090}
+
+spring:
+  datasource:
+    adm:
+      mode: ${ADM_DATASOURCE_MODE:url}
+      url: ${ADM_DATASOURCE_URL:${ADM_DB_URL:jdbc:mariadb://localhost:3306/admDB}}
+      username: ${ADM_DATASOURCE_USERNAME:${ADM_DB_USERNAME:cpf_adm_app}}
+      password: ${ADM_DATASOURCE_PASSWORD:${ADM_DB_PASSWORD:__REPLACE_BY_ENV__}}
+      jndi-name: ${ADM_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfAdminDataSource}
+
+cpf:
+  adm:
+    persistence:
+      mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}
+    integration-closure:
+      approval-proof-key-base64: ${CPF_ADM_APPROVAL_PROOF_KEY_BASE64}
+      enabled: ${CPF_ADM_INTEGRATION_CLOSURE_ENABLED:true}
+      ephemeral-providers-enabled: ${CPF_ADM_INTEGRATION_CLOSURE_EPHEMERAL_ENABLED:true}
+      correction-approval-ttl: ${CPF_ADM_INTEGRATION_CLOSURE_APPROVAL_TTL:15m}
+  openapi:
+    webmvc:
+      api-docs-enabled: ${CPF_OPENAPI_WEBMVC_API_DOCS_ENABLED:true}

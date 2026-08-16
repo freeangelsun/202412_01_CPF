@@ -1,0 +1,461 @@
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.artifacts.ExternalModuleDependency
+
+/*
+ * CPF Root Build Convention.
+ * Root build.gradle은 선언만 유지하고 공통 Build/검증 책임은 이 파일에서 소유합니다.
+ */
+def stack = new Properties()
+file('gradle/cpf-stack.properties').withInputStream { stack.load(it) }
+def platform = new Properties()
+file('gradle/cpf-platform.properties').withInputStream { platform.load(it) }
+
+def stackInt = { String key -> Integer.parseInt(stack.getProperty(key)) }
+def stackText = { String key -> stack.getProperty(key) }
+
+def cpfPython = providers.environmentVariable('CPF_PYTHON').orElse('python').get()
+
+// CPF 프로젝트 자원 정책은 gradle/cpf-runtime/{common,profile}.properties 한 곳에서 관리합니다.
+// 모듈별 예외는 해당 모듈의 cpf-resource.properties가 있을 때만 적용합니다.
+def loadCpfResourceProperties = { File source ->
+    def values = new Properties()
+    if (!source.isFile()) throw new GradleException("CPF resource policy is missing: ${source}")
+    source.withInputStream { values.load(it) }
+    values
+}
+def cpfResourceProfile = providers.gradleProperty('cpfResourceProfile')
+        .orElse(providers.environmentVariable('CPF_RESOURCE_PROFILE'))
+        .orElse('local').get()
+if (!(cpfResourceProfile in ['local','dev','test','stg','prod'])) {
+    throw new GradleException("Unsupported cpfResourceProfile=${cpfResourceProfile}; expected local/dev/test/stg/prod")
+}
+def cpfResourceCommon = loadCpfResourceProperties(file('gradle/cpf-runtime/common.properties'))
+def cpfResourceEnvironment = loadCpfResourceProperties(file("gradle/cpf-runtime/${cpfResourceProfile}.properties"))
+def cpfResourceCli = { String key ->
+    def value = providers.gradleProperty("cpfResource.${key}").orNull
+    value == null || value.toString().trim().isEmpty() ? null : value.toString().trim()
+}
+def cpfResourceGlobal = { String key ->
+    cpfResourceCli(key) ?: cpfResourceEnvironment.getProperty(key) ?: cpfResourceCommon.getProperty(key)
+}
+def cpfModuleResourceCache = [:]
+def cpfModuleResources = { Project target ->
+    cpfModuleResourceCache.computeIfAbsent(target.path) {
+        def values = new Properties()
+        def source = target.file('cpf-resource.properties')
+        if (source.isFile()) source.withInputStream { values.load(it) }
+        values
+    }
+}
+def cpfResourceValue = { Project target, String key ->
+    // 사용자 확정 우선순위: 모듈 명시값 > 실행 시 -P 값 > 환경별 중앙값 > 공통 기본값
+    cpfModuleResources(target).getProperty(key) ?: cpfResourceGlobal(key)
+}
+def cpfMemoryMb = { String value ->
+    if (value == null) return null
+    def normalized = value.trim().toLowerCase(Locale.ROOT)
+    def matcher = normalized =~ /^([0-9]+)([mg])$/
+    if (!matcher.matches()) throw new GradleException("Invalid CPF memory value=${value}; use <number>m or <number>g")
+    def amount = Integer.parseInt(matcher.group(1))
+    matcher.group(2) == 'g' ? amount * 1024 : amount
+}
+def cpfValidateHeap = { String key, String value ->
+    if (value == null) return
+    def enforce = (cpfResourceGlobal('runtime.memory.enforceCeiling') ?: 'true').toBoolean()
+    if (!enforce) return
+    def mb = cpfMemoryMb(value)
+    def step = Integer.parseInt(cpfResourceCommon.getProperty('heap.step.mb', '250'))
+    def ceiling = Integer.parseInt(cpfResourceGlobal('runtime.memory.ceiling.mb') ?: '1000')
+    if (mb < step || mb > ceiling || mb % step != 0) {
+        throw new GradleException("CPF memory ${key}=${value} must use ${step}MB increments and stay between ${step}MB and ${ceiling}MB")
+    }
+}
+ext.cpfJavaVersion = stackInt('javaVersion')
+ext.cpfPlatformVersion = platform.getProperty('platformVersion')
+ext.cpfSpringBootVersion = stackText('springBootVersion')
+ext.cpfSpringCloudVersion = stackText('springCloudVersion')
+ext.cpfAwsSdkVersion = stackText('awsSdkVersion')
+ext.cpfMybatisVersion = stackText('mybatisVersion')
+ext.cpfSpringdocVersion = stackText('springdocVersion')
+ext.cpfOpenFeatureVersion = stackText('openFeatureVersion')
+ext.cpfDbSchedulerVersion = stackText('dbSchedulerVersion')
+
+version = ext.cpfPlatformVersion
+
+allprojects {
+    version = rootProject.ext.cpfPlatformVersion
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    plugins.withId('java') {
+        // cpf-core를 제외한 Root Build Java Module은 동일한 기술 Stack BOM을 사용합니다.
+        // cpf-core는 JDK-only public contract이므로 POM에 dependencyManagement를 노출하지 않습니다.
+        // 개별 Module이 Boot application plugin을 적용하는지와 무관하게 versionless
+        // Spring/OSS 좌표가 해석되어야 하므로 dependency-management 적용 책임은
+        // Module build.gradle이 아니라 이 Root Convention이 소유합니다.
+        if (path != ':framework:core') {
+            pluginManager.apply('io.spring.dependency-management')
+            dependencies.add('testImplementation', 'org.junit.jupiter:junit-jupiter')
+            dependencies.add('testImplementation', 'org.assertj:assertj-core')
+            dependencies.add('testRuntimeOnly', 'org.junit.platform:junit-platform-launcher')
+        }
+        java {
+            toolchain { languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion) }
+        }
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.release = rootProject.ext.cpfJavaVersion
+            options.compilerArgs += ['-parameters']
+        }
+        tasks.withType(Test).configureEach {
+            useJUnitPlatform()
+            def xms = cpfResourceValue(project, 'test.xms')
+            def xmx = cpfResourceValue(project, 'test.xmx')
+            def forksText = cpfResourceValue(project, 'test.maxParallelForks')
+            cpfValidateHeap("${project.path}:test.xms", xms)
+            cpfValidateHeap("${project.path}:test.xmx", xmx)
+            if (xms) minHeapSize = xms
+            if (xmx) maxHeapSize = xmx
+            if (forksText) {
+                def forks = Integer.parseInt(forksText)
+                if (forks < 1 || forks > 16) throw new GradleException("Invalid ${project.path} test.maxParallelForks=${forks}")
+                maxParallelForks = forks
+            }
+        }
+        tasks.withType(AbstractArchiveTask).configureEach {
+            preserveFileTimestamps = false
+            reproducibleFileOrder = true
+        }
+    }
+    plugins.withId('org.springframework.boot') {
+        // Spring Boot plugin이 bootRun Task를 등록하는 시점보다 먼저 조회하면 IDE/Gradle configuration 자체가 실패합니다.
+        // matching(...).configureEach는 Task 생성 이후에만 적용되는 lazy configuration입니다.
+        tasks.matching { it.name == 'bootRun' }.configureEach {
+            def batchRuntime = project.path.toLowerCase(Locale.ROOT).contains('batch')
+            def moduleValues = cpfModuleResources(project)
+            def xms = moduleValues.getProperty('runtime.xms') ?: cpfResourceValue(project, batchRuntime ? 'runtime.batch.xms' : 'runtime.web.xms')
+            def xmx = moduleValues.getProperty('runtime.xmx') ?: cpfResourceValue(project, batchRuntime ? 'runtime.batch.xmx' : 'runtime.web.xmx')
+            cpfValidateHeap("${project.path}:bootRun.xms", xms)
+            cpfValidateHeap("${project.path}:bootRun.xmx", xmx)
+            if (cpfMemoryMb(xms) > cpfMemoryMb(xmx)) throw new GradleException("${project.path}: bootRun Xms must be <= Xmx")
+            jvmArgs = [
+                    "-Xms${xms}", "-Xmx${xmx}",
+                    "-XX:MaxMetaspaceSize=${cpfResourceValue(project, 'runtime.jvm.maxMetaspace')}",
+                    "-XX:MaxDirectMemorySize=${cpfResourceValue(project, 'runtime.jvm.maxDirectMemory')}",
+                    "-XX:ReservedCodeCacheSize=${cpfResourceValue(project, 'runtime.jvm.reservedCodeCache')}",
+                    "-Xss${cpfResourceValue(project, 'runtime.jvm.threadStack')}"
+            ]
+        }
+    }
+    tasks.withType(Exec).matching { it.name.toLowerCase(Locale.ROOT).startsWith('frontend') }.configureEach {
+        def nodeMb = cpfResourceValue(project, 'frontend.node.maxOldSpace.mb')
+        if (nodeMb) environment 'NODE_OPTIONS', "--max-old-space-size=${nodeMb}"
+    }
+    plugins.withId('io.spring.dependency-management') {
+        dependencyManagement {
+            imports {
+                mavenBom "org.springframework.boot:spring-boot-dependencies:${rootProject.ext.cpfSpringBootVersion}"
+                mavenBom "org.springframework.cloud:spring-cloud-dependencies:${rootProject.ext.cpfSpringCloudVersion}"
+            }
+        }
+    }
+}
+
+tasks.register('cpfResourcePolicy') {
+    group = 'CPF 50 | 설정'
+    description = '현재 CPF 환경별 중앙 자원정책과 모듈 override 우선순위를 표시합니다.'
+    doLast {
+        println "CPF_RESOURCE_PROFILE=${cpfResourceProfile}"
+        println "CPF_RESOURCE_DIR=${file('gradle/cpf-runtime').absolutePath}"
+        println 'PRIORITY=module cpf-resource.properties > -PcpfResource.<key> > environment profile > common'
+        ['gradle.maxWorkers','gradle.parallel','test.xms','test.xmx','test.maxParallelForks',
+         'frontend.node.maxOldSpace.mb','runtime.web.xms','runtime.web.xmx','runtime.batch.xms','runtime.batch.xmx'].each { key ->
+            println "${key}=${cpfResourceGlobal(key)}"
+        }
+    }
+}
+
+tasks.register('cpfResourcePolicyGate') {
+    group = 'verification'
+    description = 'CPF 환경별 자원정책 파일, 250MB step/1000MB ceiling, module override contract를 검증합니다.'
+    doLast {
+        ['common','local','dev','test','stg','prod'].each { profile ->
+            def source = file("gradle/cpf-runtime/${profile}.properties")
+            if (!source.isFile()) throw new GradleException("Missing CPF resource profile: ${source}")
+        }
+        ['test.xms','test.xmx','runtime.web.xms','runtime.web.xmx','runtime.batch.xms','runtime.batch.xmx'].each { key ->
+            def value = cpfResourceGlobal(key)
+            if (value == null) throw new GradleException("Missing CPF resource key=${key}")
+            cpfValidateHeap(key, value)
+        }
+    }
+}
+
+tasks.register('managedDependencyGate') {
+    group = 'verification'
+    description = '무버전 External Dependency가 적용된 canonical BOM에서 실제 관리되는지 검증합니다.'
+    doLast {
+        def violations = []
+        subprojects.findAll { it.plugins.hasPlugin('java') }.each { p ->
+            if (p.path == ':framework:core') {
+                if (p.plugins.hasPlugin('io.spring.dependency-management')) {
+                    violations << ':framework:core: dependency-management must not be applied to the JDK-only contract'
+                }
+                p.configurations.each { configuration ->
+                    configuration.dependencies.withType(ExternalModuleDependency).each { dependency ->
+                        if (dependency.version == null || dependency.version.trim().isEmpty()) {
+                            violations << ":framework:core:${configuration.name}: ${dependency.group}:${dependency.name} must declare an explicit test-only version"
+                        }
+                    }
+                }
+                return
+            }
+            def management = p.extensions.findByName('dependencyManagement')
+            if (management == null) {
+                violations << "${p.path}: dependency-management convention missing"
+                return
+            }
+            p.configurations.each { configuration ->
+                def managedVersions = management.getManagedVersionsForConfigurationHierarchy(configuration)
+                configuration.dependencies.withType(ExternalModuleDependency).each { dependency ->
+                    if (dependency.version == null || dependency.version.trim().isEmpty()) {
+                        // Groovy interpolation returns GString; Map<String, String>#containsKey does not
+                        // consider an otherwise equal GString key equal to java.lang.String.
+                        def coordinate = "${dependency.group}:${dependency.name}".toString()
+                        if (!managedVersions.containsKey(coordinate)) {
+                            violations << "${p.path}:${configuration.name}: ${coordinate}"
+                        }
+                    }
+                }
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("Unmanaged versionless dependencies:\n - ${violations.unique().sort().join('\n - ')}")
+        }
+    }
+}
+
+tasks.register('corePomPurityGate') {
+    group = 'verification'
+    description = 'JDK-only cpf-core POM에 BOM/dependencyManagement 또는 Runtime dependency가 없는지 검증합니다.'
+    dependsOn ':framework:core:generatePomFileForMavenJavaPublication'
+    doLast {
+        def pom = file('cpf-core/build/publications/mavenJava/pom-default.xml')
+        if (!pom.isFile()) throw new GradleException("cpf-core generated POM is missing: ${pom}")
+        def text = pom.getText('UTF-8')
+        if (text.contains('<dependencyManagement>') || text.contains('<dependencies>')) {
+            throw new GradleException('cpf-core POM must remain JDK-only without dependencyManagement/dependencies')
+        }
+    }
+}
+
+def registerPythonGate = { String taskName, String scriptPath ->
+    tasks.register(taskName, Exec) {
+        group = 'verification'
+        description = "CPF static gate: ${scriptPath}"
+        workingDir rootDir
+        commandLine cpfPython, scriptPath, '--root', rootDir.absolutePath
+    }
+}
+
+registerPythonGate('cpfResourcePolicyStaticGate', 'cpf-tools/verification/verify-cpf-resource-policy.py')
+registerPythonGate('nxt3ConfigGate', 'cpf-tools/verification/nxt3/verify_nxt3_config_contract.py')
+registerPythonGate('nxt3HygieneGate', 'cpf-tools/verification/nxt3/verify_nxt3_hygiene.py')
+registerPythonGate('nxt3LayoutGate', 'cpf-tools/verification/nxt3/verify_nxt3_layout.py')
+registerPythonGate('nxt3Db3Gate', 'cpf-tools/verification/nxt3/verify_nxt3_query_db3.py')
+registerPythonGate('nxt3GeneratorGate', 'cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py')
+registerPythonGate('nxt3GeneratedBoundaryGate', 'cpf-tools/verification/nxt3/verify_generated_public_boundary.py')
+registerPythonGate('nxt3AnnotationGate', 'cpf-tools/verification/nxt3/verify_annotation_runtime_consumer.py')
+registerPythonGate('nxt3AdmBzaGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_bza_framework.py')
+registerPythonGate('nxt3FrontendGatewayGate', 'cpf-tools/verification/nxt3/verify_nxt3_adm_bza_frontend_gateway.py')
+registerPythonGate('nxt3CommonPropagationGate', 'cpf-tools/verification/nxt3/verify_nxt3_common_management_propagation.py')
+registerPythonGate('nxt3RedisValkeyGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_current.py')
+registerPythonGate('nxt3RedisValkeyProviderGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_provider_currentization.py')
+registerPythonGate('starterCatalogGate', 'cpf-tools/verification/verify_starter_catalog.py')
+registerPythonGate('gradleProjectDependencyClosureGate', 'cpf-tools/verification/verify_gradle_project_dependency_closure.py')
+registerPythonGate('gradleLogicalTreeGate', 'cpf-tools/verification/verify-cpf-gradle-logical-tree.py')
+registerPythonGate('batRuntimeRoleContractGate', 'cpf-tools/runtime/tools/sync_bat_runtime_roles.py')
+
+tasks.register('gradleProjectDependencyClosureTest', Exec) {
+    group = 'verification'
+    description = 'Gradle project SCC/undeclared/aggregate boundary Gate fixtures.'
+    workingDir rootDir
+    commandLine cpfPython, '-m', 'unittest', 'discover',
+            '-s', 'cpf-tools/verification/tests',
+            '-p', 'test_gradle_project_dependency_closure.py'
+}
+
+// 빠른 정적 품질 Gate. 한 실패가 다른 독립 Gate 실행을 막지 않도록 CI에서는 --continue와 함께 사용합니다.
+tasks.register('qualityGate') {
+    group = 'verification'
+    dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
+            'nxt3GeneratorGate', 'nxt3GeneratedBoundaryGate', 'nxt3AnnotationGate',
+            'nxt3AdmBzaGate', 'nxt3FrontendGatewayGate', 'nxt3CommonPropagationGate',
+            'nxt3RedisValkeyGate', 'nxt3RedisValkeyProviderGate'
+}
+
+tasks.register('aggregateQualityBuild') {
+    group = 'verification'
+    description = '전체 CPF Java 모듈의 check/assemble과 static quality gate를 집계합니다.'
+    dependsOn 'qualityGate'
+}
+
+tasks.register('publicationGate') {
+    group = 'verification'
+    description = 'Canonical Starter Catalog parity와 공개 가능한 Maven publication의 POM 생성 가능성을 검증합니다.'
+    dependsOn 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'managedDependencyGate', 'corePomPurityGate'
+}
+
+tasks.register('qa34IntegrationTest') {
+    group = 'verification'
+    description = 'QA34 Batch integration/fencing/recovery test aggregate입니다.'
+}
+
+gradle.projectsEvaluated {
+    def checks = subprojects.collect { p -> p.tasks.findByName('check') }.findAll { it != null }
+    def assemblies = subprojects.collect { p -> p.tasks.findByName('assemble') }.findAll { it != null }
+    tasks.named('aggregateQualityBuild') { dependsOn checks; dependsOn assemblies }
+
+    def publicationChecks = subprojects.collectMany { p ->
+        p.tasks.matching { t -> t.name.startsWith('generatePomFileFor') && t.name.endsWith('Publication') }.toList()
+    }
+    tasks.named('publicationGate') { dependsOn publicationChecks }
+
+    def qa34 = project.findProject(':runtime:batch:testkit')?.tasks?.findByName('qa34IntegrationTest')
+    if (qa34 != null) tasks.named('qa34IntegrationTest') { dependsOn qa34 }
+
+    def allJavaTests = subprojects.collectMany { p -> p.tasks.withType(Test).toList() }
+    tasks.named('cpfTest') { dependsOn allJavaTests }
+}
+
+
+// -----------------------------------------------------------------------------
+// Canonical developer build / test / verify entry points
+// -----------------------------------------------------------------------------
+tasks.register('cpfBuild') {
+    group = 'CPF 10 | 빌드'
+    description = '[권장] 전체 CPF Java 모듈 check/assemble + 정적 품질 Gate를 저메모리 정책으로 실행합니다.'
+    dependsOn 'aggregateQualityBuild'
+}
+
+tasks.register('cpfTest') {
+    group = 'CPF 10 | 빌드'
+    description = '전체 CPF Java Test만 실행합니다. Build/Publication은 반복하지 않습니다.'
+}
+
+tasks.register('cpfVerifyFast') {
+    group = 'CPF 20 | 검증'
+    description = '개발 중 빠르게 확인하는 Resource/Catalog/Dependency/NXT3 핵심 정적 Gate입니다.'
+    dependsOn 'qualityGate'
+}
+
+tasks.register('cpfVerifyFullLocal', Exec) {
+    group = 'CPF 20 | 검증'
+    description = '[실환경] Java25/Frontend/DB/Runtime/Browser를 가능한 범위까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
+    workingDir rootDir
+    commandLine 'pwsh', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+            file('cpf-tools/verification/tools/run-cpf-local-full-validation.ps1').absolutePath,
+            '-ResourceProfile', cpfResourceProfile, '-FullLocal'
+}
+
+// -----------------------------------------------------------------------------
+// Developer entry points / module readability
+// -----------------------------------------------------------------------------
+def cpfStarterCatalogForUx = new groovy.json.JsonSlurper().parse(file('cpf-tools/generator/contracts/cpf-starter-catalog.json'))
+def cpfUxModulesByProjectPath = (cpfStarterCatalogForUx.modules ?: []).collectEntries { row -> [(row.projectPath?.toString()): row] }
+def cpfUxGroupLabels = [
+        'profiles':'실행 Profile','data':'데이터','integration':'외부 연계','messaging':'메시징','security':'보안',
+        'file':'파일','common':'업무 공통','base':'기본','platform-operations':'운영','notification':'알림','web':'웹'
+]
+def cpfRunnableDescriptions = [
+        ':runtime:local':'[실행/권장] ADM+BZA 중심 통합 로컬 Runtime - 1 JVM / 1 Port',
+        ':apps:admin':'[실행] CPF ADM 관리 Backend/Frontend',
+        ':apps:biz-admin':'[실행] CPF BZA 업무관리 Backend/Frontend',
+        ':runtime:gateway':'[실행] CPF Gateway',
+        ':runtime:local-batch':'[실행] Batch 선택 프로젝트용 로컬 Batch Runtime',
+        ':apps:education':'[실행/학습] CPF 기능 예제 및 교육 Runtime',
+        ':framework:core':'[계약] topology-independent CPF Core Public Contract'
+]
+allprojects { target ->
+    def catalogRow = cpfUxModulesByProjectPath[target.path]
+    if (catalogRow != null) {
+        def visibility = catalogRow.visibility?.toString() == 'public' ? '공개' : '내부'
+        def selectable = catalogRow.userSelectable == true ? '선택 가능' : '직접 선택 안 함'
+        def displayName = catalogRow.displayNameKo?.toString() ?: catalogRow.artifactId?.toString()
+        def purpose = catalogRow.usageHintKo?.toString() ?: ''
+        target.description = "[${visibility}/${selectable}] ${displayName} - ${purpose}".trim()
+    } else if (cpfRunnableDescriptions.containsKey(target.path)) {
+        target.description = cpfRunnableDescriptions[target.path]
+    }
+}
+def registerCpfRunAlias = { String taskName, String targetTask, String descriptionText ->
+    tasks.register(taskName) { group = 'CPF 30 | 실행'; description = descriptionText; dependsOn targetTask }
+}
+registerCpfRunAlias('cpfRunLocal', ':runtime:local:bootRun', '[권장] 통합 로컬 Runtime을 1 JVM/1 Port로 실행합니다.')
+registerCpfRunAlias('cpfRunAdm', ':apps:admin:bootRun', 'ADM만 단독 실행합니다.')
+registerCpfRunAlias('cpfRunBza', ':apps:biz-admin:bootRun', 'BZA만 단독 실행합니다.')
+registerCpfRunAlias('cpfRunGateway', ':runtime:gateway:bootRun', 'Gateway만 단독 실행합니다.')
+registerCpfRunAlias('cpfRunBatch', ':runtime:local-batch:bootRun', 'Batch를 사용하는 프로젝트의 로컬 Batch Runtime을 실행합니다.')
+registerCpfRunAlias('cpfRunEducation', ':apps:education:bootRun', 'CPF Education 예제 Runtime을 실행합니다.')
+
+tasks.register('cpfHelp') {
+    group = 'CPF 00 | 시작'
+    description = '처음 사용하는 개발자를 위한 실행/검증/모듈/자원설정 안내를 표시합니다.'
+    doLast {
+        println ''
+        println '================ CPF QUICK START ================='
+        println '[1. 전체 빌드] ./gradlew cpfBuild'
+        println '[2. 전체 테스트] ./gradlew cpfTest'
+        println '[3. 빠른 검증] ./gradlew cpfVerifyFast'
+        println '[4. 로컬 실행] ./gradlew cpfRunLocal      - 권장: 1 JVM / 1 Port'
+        println '[5. Batch 실행] ./gradlew cpfRunBatch      - Batch 사용 시에만'
+        println '[6. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
+        println ''
+        println '[개발 메뉴] pwsh ./cpf-tools/build/tools/cpf-dev.ps1   - 인자 없이 실행하면 번호 메뉴'
+        println '[전체 로컬 검증] ./gradlew cpfVerifyFullLocal  또는  pwsh ./cpf-tools/build/tools/cpf-dev.ps1 verify-full'
+        println '[VS Code] Gradle Projects는 apps / runtime / framework / starters / internal 계층으로 정리되어 있습니다.'
+        println '[VS Code Tasks] Root Tasks의 CPF 00~50 그룹에서 cpfRunLocal / cpfBuild / cpfVerifyFast를 바로 실행할 수 있습니다.'
+        println '[환경 선택] -PcpfResourceProfile=local|dev|test|stg|prod'
+        println '[자원 설정] gradle/cpf-runtime/<profile>.properties (250/500/750/1000m)'
+        println '[모듈 예외] 해당 모듈/cpf-resource.properties가 있을 때만 중앙값보다 우선'
+        println '[내부 포함] ./gradlew cpfModulesAll'
+        println '=================================================='
+        println ''
+    }
+}
+
+tasks.register('cpfModules') {
+    group = 'CPF 40 | 구성'
+    description = '개발자가 직접 선택할 Public Profile/Provider를 기능별로 표시합니다.'
+    doLast {
+        println ''
+        println '================ CPF PUBLIC MODULES ================'
+        def rows = (cpfStarterCatalogForUx.modules ?: []).findAll { it.visibility?.toString() == 'public' && it.userSelectable == true }
+        rows.groupBy { it.selectionGroup?.toString() ?: it.ownerGroup?.toString() ?: 'other' }.sort { a,b -> a.key <=> b.key }.each { groupId, groupRows ->
+            println "\n[${cpfUxGroupLabels[groupId] ?: groupId}]"
+            groupRows.sort { a,b -> (a.displayNameKo?.toString() ?: a.artifactId?.toString()) <=> (b.displayNameKo?.toString() ?: b.artifactId?.toString()) }.each { row ->
+                println " - ${row.displayNameKo ?: row.artifactId} (${row.artifactId})"
+                if (row.usageHintKo) println "   언제/역할: ${row.usageHintKo}"
+            }
+        }
+        println '\nInternal leaf는 숨겨져 있습니다. ./gradlew cpfModulesAll 로만 확인합니다.'
+    }
+}
+
+tasks.register('cpfModulesAll') {
+    group = 'CPF 40 | 구성'
+    description = 'Public/Internal 전체 Starter를 역할과 함께 표시합니다.'
+    doLast {
+        println ''
+        println '================ CPF ALL STARTERS ================'
+        (cpfStarterCatalogForUx.modules ?: []).sort { a,b -> a.artifactId?.toString() <=> b.artifactId?.toString() }.each { row ->
+            def visibility = row.visibility?.toString() == 'public' ? 'PUBLIC' : 'INTERNAL'
+            println "[${visibility}] ${row.displayNameKo ?: row.artifactId} (${row.artifactId})"
+        }
+    }
+}

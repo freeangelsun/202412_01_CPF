@@ -1,0 +1,4 @@
+com.cpf.batch.execution.CpfBatchAnnotationAutoConfiguration
+com.cpf.batch.execution.CpfBatchKafkaRemoteConfiguration
+com.cpf.batch.execution.CpfBatchExecutionAutoConfiguration
+com.cpf.batch.execution.CpfBatchRemoteWorkerConfiguration

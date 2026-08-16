@@ -1,0 +1,2 @@
+-- Oracle PDB/service is provisioned by DBA. This phase validates connectivity only.
+SELECT SYS_CONTEXT('USERENV','DB_NAME') AS db_name FROM dual;

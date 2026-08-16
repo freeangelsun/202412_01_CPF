@@ -1,0 +1,1 @@
+package com.cpf.batch.spi; import java.util.*; public interface CenterCutTargetProvider { String providerKey(); List<Target> next(String jobId,String snapshotId,String cursor,int limit,Map<String,Object> parameters); record Target(String businessKey,String cursor,String payload,boolean last){} }

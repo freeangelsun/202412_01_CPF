@@ -1,0 +1,2 @@
+DROP INDEX ix_cpf_transaction_segment_execution ON cpf_transaction_segment;
+ALTER TABLE cpf_transaction_segment DROP COLUMN execution_id;

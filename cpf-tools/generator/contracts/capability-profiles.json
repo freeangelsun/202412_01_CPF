@@ -1,0 +1,884 @@
+{
+  "schemaVersion": "3.0",
+  "profileVersion": "2026.08.10-NXT2",
+  "canonicalStarterCatalog": "cpf-starter-catalog.json",
+  "publicProfiles": [
+    "web-api",
+    "secure-api",
+    "bff",
+    "event",
+    "batch"
+  ],
+  "capabilityGroups": [
+    {
+      "id": "common",
+      "path": "cpf-starters/common",
+      "selectionSurface": "always-on-product-service"
+    },
+    {
+      "id": "web",
+      "path": "cpf-starters/web",
+      "selectionSurface": "profile-internal"
+    },
+    {
+      "id": "data",
+      "path": "cpf-starters/data",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "messaging",
+      "path": "cpf-starters/messaging",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "integration",
+      "path": "cpf-starters/integration",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "file",
+      "path": "cpf-starters/file",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "notification",
+      "path": "cpf-starters/notification",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "security",
+      "path": "cpf-starters/security",
+      "selectionSurface": "profile-or-binding"
+    },
+    {
+      "id": "platform-operations",
+      "path": "cpf-starters/platform-operations",
+      "selectionSurface": "profile-or-binding"
+    }
+  ],
+  "providerSlots": {
+    "messaging": {
+      "kafka": {
+        "projectPath": ":starters:messaging:kafka",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-kafka"
+      },
+      "rabbitmq": {
+        "projectPath": ":starters:messaging:rabbitmq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-rabbitmq"
+      },
+      "jms": {
+        "projectPath": ":starters:messaging:jms",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-jms"
+      },
+      "ibm-mq": {
+        "projectPath": ":starters:messaging:ibm-mq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-ibm-mq"
+      }
+    },
+    "data": {
+      "jdbc": {
+        "projectPath": ":starters:data:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jdbc"
+      },
+      "mybatis": {
+        "projectPath": ":starters:data:mybatis",
+        "coordinate": "com.cpf.starter:cpf-starter-data-mybatis"
+      },
+      "jpa": {
+        "projectPath": ":starters:data:jpa",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jpa"
+      }
+    },
+    "cache": {
+      "caffeine": {
+        "projectPath": ":starters:cache:caffeine",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-caffeine"
+      },
+      "valkey": {
+        "projectPath": ":starters:cache:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-valkey"
+      },
+      "redis": {
+        "projectPath": ":starters:cache:redis",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-redis"
+      }
+    },
+    "integration-transport": {
+      "http": {
+        "projectPath": ":internal:integration:http",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-http"
+      },
+      "tcp": {
+        "projectPath": ":internal:integration:tcp",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      },
+      "soap": {
+        "projectPath": ":internal:integration:soap",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-soap"
+      }
+    },
+    "integration-codec": {
+      "fixed-length": {
+        "projectPath": ":internal:integration:fixed-length",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
+      },
+      "iso8583": {
+        "projectPath": ":internal:integration:iso8583",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-iso8583"
+      }
+    },
+    "file": {
+      "sftp": {
+        "projectPath": ":internal:file:sftp",
+        "coordinate": "com.cpf.starter:cpf-starter-file-sftp"
+      }
+    },
+    "notification": {
+      "email": {
+        "projectPath": ":internal:notification:email",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-email"
+      },
+      "sms": {
+        "projectPath": ":internal:notification:sms",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-sms"
+      }
+    },
+    "observability": {
+      "otlp": {
+        "projectPath": ":internal:platform-operations:observability:otlp",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-observability-otlp"
+      }
+    },
+    "security-mode": {
+      "resource-server": {
+        "projectPath": ":internal:security:resource-server",
+        "coordinate": "com.cpf.starter:cpf-starter-security-resource-server"
+      },
+      "browser-session": {
+        "projectPath": ":starters:security:session:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-session-jdbc"
+      },
+      "service-identity": {
+        "projectPath": ":internal:security:service-identity",
+        "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      },
+      "browser-session-valkey": {
+        "projectPath": ":starters:security:session:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-session-valkey"
+      }
+    },
+    "locking": {
+      "valkey": {
+        "projectPath": ":starters:data:lock:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-lock-valkey"
+      }
+    },
+    "object-storage": {
+      "s3-compatible": {
+        "projectPath": ":starters:file:object-storage:s3",
+        "coordinate": "com.cpf.starter:cpf-starter-object-storage-s3"
+      }
+    },
+    "graphql": {
+      "spring-graphql": {
+        "projectPath": ":starters:integration:graphql",
+        "coordinate": "com.cpf.starter:cpf-starter-graphql"
+      }
+    },
+    "realtime": {
+      "sse": {
+        "projectPath": ":starters:integration:realtime",
+        "coordinate": "com.cpf.starter:cpf-starter-realtime"
+      }
+    },
+    "health-registry": {
+      "jdbc": {
+        "projectPath": ":internal:platform-operations:runtime-health:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-runtime-health-jdbc"
+      }
+    },
+    "oidc": {
+      "oidc": {
+        "projectPath": ":starters:security:oidc",
+        "coordinate": "com.cpf.starter:cpf-starter-oidc"
+      }
+    }
+  },
+  "profiles": [
+    {
+      "profileId": "BASE",
+      "publicName": "base",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter",
+      "resolvedStarters": [
+        "cpf-starter"
+      ],
+      "requiredProviderBindings": [],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "resource-server",
+          "browser-session",
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [],
+      "allowedCapabilityGroups": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {},
+      "embeddedProviderBindings": {},
+      "embeddedRuntimeProjects": [],
+      "embeddedRuntimeCoordinates": []
+    },
+    {
+      "profileId": "WEB_API",
+      "publicName": "web-api",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter-web-api",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-web-api",
+      "resolvedStarters": [
+        "cpf-starter-web-api"
+      ],
+      "requiredProviderBindings": [],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "resource-server",
+          "browser-session",
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [],
+      "allowedCapabilityGroups": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {},
+      "embeddedProviderBindings": {},
+      "embeddedRuntimeProjects": [],
+      "embeddedRuntimeCoordinates": []
+    },
+    {
+      "profileId": "SECURE_API",
+      "publicName": "secure-api",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter-secure-api",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-secure-api",
+      "resolvedStarters": [
+        "cpf-starter-secure-api"
+      ],
+      "requiredProviderBindings": [],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "resource-server",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [
+        "security"
+      ],
+      "allowedCapabilityGroups": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {
+        "security-mode": "resource-server"
+      },
+      "embeddedProviderBindings": {
+        "security-mode": "resource-server"
+      },
+      "embeddedRuntimeProjects": [
+        ":internal:security:resource-server",
+        ":internal:integration:http",
+        ":internal:integration:resilience"
+      ],
+      "embeddedRuntimeCoordinates": [
+        "com.cpf.starter:cpf-starter-security-resource-server",
+        "com.cpf.starter:cpf-starter-integration-http",
+        "com.cpf.starter:cpf-starter-integration-resilience"
+      ]
+    },
+    {
+      "profileId": "BROWSER_BFF",
+      "publicName": "bff",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter-bff",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-bff",
+      "resolvedStarters": [
+        "cpf-starter-bff"
+      ],
+      "requiredProviderBindings": [
+        "security-mode"
+      ],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "browser-session",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [
+        "security"
+      ],
+      "allowedCapabilityGroups": [
+        "data",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {},
+      "embeddedProviderBindings": {},
+      "embeddedRuntimeProjects": [],
+      "embeddedRuntimeCoordinates": []
+    },
+    {
+      "profileId": "EVENT_SERVICE",
+      "publicName": "event",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter-event",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-event",
+      "resolvedStarters": [
+        "cpf-starter-event"
+      ],
+      "requiredProviderBindings": [
+        "messaging"
+      ],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "resource-server",
+          "browser-session",
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [
+        "messaging"
+      ],
+      "allowedCapabilityGroups": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {},
+      "embeddedProviderBindings": {},
+      "embeddedRuntimeProjects": [],
+      "embeddedRuntimeCoordinates": []
+    },
+    {
+      "profileId": "BATCH_SERVICE",
+      "publicName": "batch",
+      "profileVersion": "2026.08.10-NXT2",
+      "aggregateProject": "cpf-starter-batch",
+      "aggregateArtifact": "com.cpf.starter:cpf-starter-batch",
+      "resolvedStarters": [
+        "cpf-starter-batch"
+      ],
+      "requiredProviderBindings": [],
+      "allowedProviderBindings": {
+        "data": [
+          "jdbc",
+          "mybatis",
+          "jpa"
+        ],
+        "cache": [
+          "caffeine",
+          "valkey",
+          "redis"
+        ],
+        "messaging": [
+          "kafka",
+          "rabbitmq",
+          "jms",
+          "ibm-mq"
+        ],
+        "integration-transport": [
+          "http",
+          "tcp",
+          "soap"
+        ],
+        "integration-codec": [
+          "fixed-length",
+          "iso8583"
+        ],
+        "file": [
+          "sftp"
+        ],
+        "notification": [
+          "email",
+          "sms"
+        ],
+        "observability": [
+          "otlp"
+        ],
+        "security-mode": [
+          "resource-server",
+          "browser-session",
+          "service-identity",
+          "browser-session-valkey"
+        ],
+        "locking": [
+          "valkey"
+        ],
+        "object-storage": [
+          "s3-compatible"
+        ],
+        "graphql": [
+          "spring-graphql"
+        ],
+        "realtime": [
+          "sse"
+        ],
+        "oidc": [
+          "oidc"
+        ]
+      },
+      "mandatoryCapabilityGroups": [],
+      "allowedCapabilityGroups": [
+        "data",
+        "messaging",
+        "integration",
+        "file",
+        "notification",
+        "security",
+        "platform-operations"
+      ],
+      "defaultProviderBindings": {},
+      "embeddedProviderBindings": {},
+      "embeddedRuntimeProjects": [
+        ":internal:integration:http",
+        ":internal:integration:resilience"
+      ],
+      "embeddedRuntimeCoordinates": [
+        "com.cpf.starter:cpf-starter-integration-http",
+        "com.cpf.starter:cpf-starter-integration-resilience"
+      ]
+    }
+  ],
+  "standardInheritancePolicy": {
+    "policyVersion": "1.0",
+    "mandatoryStandards": [
+      "standard-error",
+      "header-context",
+      "transaction-id",
+      "security-boundary",
+      "audit",
+      "masking",
+      "observability",
+      "config",
+      "dependency-version",
+      "architecture-gate"
+    ],
+    "defaultProfile": "base",
+    "optionalCapabilities": [
+      "data",
+      "messaging",
+      "integration",
+      "file",
+      "notification",
+      "security",
+      "platform-operations"
+    ],
+    "unselectedCapabilityPolicy": "NO_DEPENDENCY_NO_BEAN_NO_CONFIG_NO_SQL",
+    "enforcement": [
+      "generator",
+      "convention-plugin",
+      "runtime-auto-configuration",
+      "architecture-test",
+      "resolved-lock"
+    ],
+    "failClosed": true,
+    "defaultStarter": "cpf-starter"
+  },
+  "approvedExternalExceptionPolicy": {
+    "schemaVersion": "2.0",
+    "registryPath": "config/cpf-approved-exceptions.csv",
+    "runtimeResource": "META-INF/cpf/cpf-approved-exceptions.csv",
+    "requiredFields": [
+      "exception_id",
+      "module",
+      "capability",
+      "artifact",
+      "version",
+      "owner",
+      "reason",
+      "standard_path_gap",
+      "environments",
+      "security_impact",
+      "license_review",
+      "supply_chain_review",
+      "operations_responsibility",
+      "approved_by",
+      "approved_at",
+      "expires_at",
+      "rollback",
+      "return_plan",
+      "rule_ids",
+      "config_files",
+      "evidence_path",
+      "status",
+      "config_hash"
+    ],
+    "approvedStatus": "APPROVED",
+    "hashAlgorithm": "SHA-256-METADATA-AND-CONFIG-CONTENT",
+    "versionDriftPolicy": "FAIL_CLOSED",
+    "expiredPolicy": "FAIL_CLOSED",
+    "unregisteredPolicy": "FAIL_CLOSED",
+    "returnToStandardPathRequired": true,
+    "registryFormat": "CSV",
+    "configFilePolicy": "GENERATED_DOMAIN_SRC_MAIN_RESOURCES_ONLY",
+    "buildValidation": "METADATA_AND_CONFIG_BYTES_SHA256",
+    "runtimeValidation": "PACKAGED_REGISTRY_AND_CONFIG_BYTES_SHA256"
+  },
+  "capabilityComposition": {
+    "data": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    },
+    "messaging": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": [
+        "messaging"
+      ]
+    },
+    "integration": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [
+        ":internal:integration:resilience",
+        ":internal:integration:http"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-integration-resilience",
+        "com.cpf.starter:cpf-starter-integration-http"
+      ],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    },
+    "file": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    },
+    "notification": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [
+        ":internal:notification:dispatch"
+      ],
+      "runtimeCoordinates": [
+        "com.cpf.starter:cpf-starter-notification-dispatch"
+      ],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    },
+    "security": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    },
+    "platform-operations": {
+      "requiresCapabilities": [],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
+      "defaultProviderBindings": {},
+      "requiredProviderSlots": []
+    }
+  },
+  "publicBaseStarter": "cpf-starter",
+  "selectableCapabilityGroups": [
+    "data",
+    "messaging",
+    "integration",
+    "file",
+    "notification",
+    "security",
+    "platform-operations"
+  ],
+  "alwaysOnOwners": [
+    "common"
+  ],
+  "profileInternalOwners": [
+    "web"
+  ]
+}

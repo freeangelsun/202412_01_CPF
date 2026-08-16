@@ -1,0 +1,1677 @@
+{
+  "schemaVersion": "2.1.0",
+  "catalogId": "CPF-FINAL-ARTIFACT-CATALOG",
+  "sourceShaPolicy": "runtime-exact-sha-evidence",
+  "baselineSha": "RUNTIME_GIT_HEAD",
+  "officialDatabaseVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "canonicalStarterCatalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
+  "publicSelectionSurface": {
+    "baseStarter": "cpf-starter",
+    "profiles": [
+      "web-api",
+      "secure-api",
+      "browser-bff",
+      "event-service",
+      "batch-service"
+    ],
+    "providerSelection": "binding-and-resolved-lock-only",
+    "directInternalArtifactSelection": false
+  },
+  "artifacts": [
+    {
+      "artifactId": "cpf-core",
+      "ownerPath": "cpf-core",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-core/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-admin",
+      "ownerPath": "cpf-admin",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-admin/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-biz-admin",
+      "ownerPath": "cpf-biz-admin",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-biz-admin/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-gateway",
+      "ownerPath": "cpf-gateway",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-gateway/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-education",
+      "ownerPath": "cpf-education",
+      "kind": "education-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-education/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-local-runtime",
+      "ownerPath": "cpf-tools/runtime/cpf-local-runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-tools/runtime/cpf-local-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-local-batch-runtime",
+      "ownerPath": "cpf-tools/runtime/cpf-local-batch-runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-tools/runtime/cpf-local-batch-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-member",
+      "ownerPath": "cpf-member",
+      "kind": "generated-domain",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-member/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-api",
+      "ownerPath": "cpf-batch/api",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/api/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-runtime-support",
+      "ownerPath": "cpf-batch/runtime-support",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/runtime-support/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-runtime",
+      "ownerPath": "cpf-batch/runtime",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-control-plane",
+      "ownerPath": "cpf-batch/control-plane",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/control-plane/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-scheduler",
+      "ownerPath": "cpf-batch/scheduler",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/scheduler/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-worker",
+      "ownerPath": "cpf-batch/worker",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/worker/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-center-cut",
+      "ownerPath": "cpf-batch/center-cut",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/center-cut/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-agent",
+      "ownerPath": "cpf-batch/agent",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/agent/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-batch-testkit",
+      "ownerPath": "cpf-batch/testkit",
+      "kind": "testkit",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/testkit/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-admin-frontend",
+      "ownerPath": "cpf-admin/frontend",
+      "kind": "frontend",
+      "producer": "npm run build",
+      "outputPattern": "cpf-admin/frontend/dist/**",
+      "requiredAttestations": [
+        "sha256",
+        "npm-lock",
+        "browser-test"
+      ],
+      "consumer": "cpf-admin-runtime"
+    },
+    {
+      "artifactId": "cpf-biz-admin-frontend",
+      "ownerPath": "cpf-biz-admin/frontend",
+      "kind": "frontend",
+      "producer": "npm run build",
+      "outputPattern": "cpf-biz-admin/frontend/dist/**",
+      "requiredAttestations": [
+        "sha256",
+        "npm-lock",
+        "browser-test"
+      ],
+      "consumer": "cpf-biz-admin-runtime"
+    },
+    {
+      "artifactId": "cpf-db-oracle-pack",
+      "ownerPath": "cpf-tools/db/vendor/oracle",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/oracle/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "oracle-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-db-postgresql-pack",
+      "ownerPath": "cpf-tools/db/vendor/postgresql",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/postgresql/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "postgresql-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-db-mariadb-pack",
+      "ownerPath": "cpf-tools/db/vendor/mariadb",
+      "kind": "database-pack",
+      "producer": "build-official-db-vendor-packs.ps1",
+      "outputPattern": "cpf-tools/db/vendor/mariadb/**",
+      "requiredAttestations": [
+        "sha256",
+        "migration-checksum",
+        "lifecycle-evidence"
+      ],
+      "consumer": "mariadb-install-upgrade-rollback"
+    },
+    {
+      "artifactId": "cpf-platform-bom",
+      "ownerPath": "cpf-tools/build/platform-bom",
+      "kind": "bom",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-tools/build/platform-bom/build/publications/**",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "external-cpf-consumers"
+    },
+    {
+      "artifactId": "cpf-gradle-plugin",
+      "ownerPath": "cpf-tools/build/gradle-plugin",
+      "kind": "gradle-plugin",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-tools/build/gradle-plugin/build/publications/**",
+      "requiredAttestations": [
+        "sha256",
+        "plugin-marker",
+        "fresh-cache-test"
+      ],
+      "consumer": "cpf-builds-and-generated-domains"
+    },
+    {
+      "artifactId": "cpf-testkit",
+      "ownerPath": "cpf-tools/testing/cpf-testkit",
+      "kind": "testkit",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-tools/testing/cpf-testkit/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
+      "artifactId": "cpf-starter",
+      "ownerPath": "cpf-starters/base",
+      "kind": "starter-base",
+      "visibility": "public",
+      "role": "base",
+      "ownerGroup": "base",
+      "internalRole": "public-base",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/base/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-cache-caffeine",
+      "ownerPath": "cpf-starters/data/cache/caffeine",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/cache/caffeine/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-cache-spring-data-redis",
+      "ownerPath": "cpf-starters/data/cache/spring-data-redis",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "foundation",
+      "ownerGroup": "data",
+      "internalRole": "shared-provider-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/cache/spring-data-redis/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-cache-redis",
+      "ownerPath": "cpf-starters/data/cache/redis",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/cache/redis/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-cache-valkey",
+      "ownerPath": "cpf-starters/data/cache/valkey",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/cache/valkey/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-data-jdbc",
+      "ownerPath": "cpf-starters/data/persistence/jdbc",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/persistence/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-data-mybatis",
+      "ownerPath": "cpf-starters/data/persistence/mybatis",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/persistence/mybatis/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-data-jpa",
+      "ownerPath": "cpf-starters/data/persistence/jpa",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/persistence/jpa/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-file-archive",
+      "ownerPath": "cpf-starters/file/archive",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "internal-file-provider",
+      "ownerGroup": "file",
+      "internalRole": "internal-file-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/file/archive/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-file-attachment",
+      "ownerPath": "cpf-starters/file/attachment",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "file",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/file/attachment/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-file-sftp",
+      "ownerPath": "cpf-starters/file/sftp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "file",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/file/sftp/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-file-tabular-poi",
+      "ownerPath": "cpf-starters/file/tabular/poi",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "internal-file-provider",
+      "ownerGroup": "file",
+      "internalRole": "internal-file-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/file/tabular/poi/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-ai",
+      "ownerPath": "cpf-starters/integration/ai",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/ai/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-fixed-length",
+      "ownerPath": "cpf-starters/integration/fixed-length",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "internal-codec",
+      "ownerGroup": "integration",
+      "internalRole": "internal-codec",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/fixed-length/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-http",
+      "ownerPath": "cpf-starters/integration/http",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/http/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-iso8583",
+      "ownerPath": "cpf-starters/integration/iso8583",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "internal-protocol",
+      "ownerGroup": "integration",
+      "internalRole": "internal-protocol",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/iso8583/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-resilience",
+      "ownerPath": "cpf-starters/integration/resilience",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/resilience/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-integration-soap",
+      "ownerPath": "cpf-starters/integration/soap",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/soap/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-integration-tcp",
+      "ownerPath": "cpf-starters/integration/tcp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/tcp/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-integration-webhook",
+      "ownerPath": "cpf-starters/integration/webhook",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "integration",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/webhook/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-ibm-mq",
+      "ownerPath": "cpf-starters/messaging/ibm-mq",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/ibm-mq/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-jms",
+      "ownerPath": "cpf-starters/messaging/jms",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/jms/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-kafka",
+      "ownerPath": "cpf-starters/messaging/kafka",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/kafka/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-rabbitmq",
+      "ownerPath": "cpf-starters/messaging/rabbitmq",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "messaging",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/rabbitmq/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-reliability-jdbc",
+      "ownerPath": "cpf-starters/messaging/reliability/jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "messaging",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/reliability/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-notification-dispatch",
+      "ownerPath": "cpf-starters/notification/dispatch",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "notification",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/notification/dispatch/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-notification-email",
+      "ownerPath": "cpf-starters/notification/email",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "notification",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/notification/email/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-notification-sms",
+      "ownerPath": "cpf-starters/notification/sms",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "extension-spi",
+      "ownerGroup": "notification",
+      "internalRole": "extension-spi",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/notification/sms/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-channel-registry-jdbc",
+      "ownerPath": "cpf-starters/platform-operations/channel-registry/jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "platform-operations",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/channel-registry/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-feature-flag-openfeature",
+      "ownerPath": "cpf-starters/platform-operations/feature-flag/openfeature",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/feature-flag/openfeature/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-observability-otlp",
+      "ownerPath": "cpf-starters/platform-operations/observability/otlp",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "internal-exporter",
+      "ownerGroup": "platform-operations",
+      "internalRole": "internal-exporter",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/observability/otlp/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-runtime-control",
+      "ownerPath": "cpf-starters/platform-operations/runtime-control",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/runtime-control/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-batch",
+      "ownerPath": "cpf-starters/profiles/batch-service",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/profiles/batch-service/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "application-profile-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-bff",
+      "ownerPath": "cpf-starters/profiles/browser-bff",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/profiles/browser-bff/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "application-profile-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-event",
+      "ownerPath": "cpf-starters/profiles/event-service",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/profiles/event-service/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "application-profile-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-secure-api",
+      "ownerPath": "cpf-starters/profiles/secure-api",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/profiles/secure-api/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "application-profile-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-web-api",
+      "ownerPath": "cpf-starters/profiles/web-api",
+      "kind": "starter-profile",
+      "visibility": "public",
+      "role": "profile",
+      "ownerGroup": "profiles",
+      "internalRole": "public-profile",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/profiles/web-api/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "application-profile-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-security-audit-jdbc",
+      "ownerPath": "cpf-starters/security/audit/jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "security",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/audit/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-oidc",
+      "ownerPath": "cpf-starters/security/oidc",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/oidc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-security-resource-server",
+      "ownerPath": "cpf-starters/security/resource-server",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/resource-server/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-security-secret",
+      "ownerPath": "cpf-starters/security/secret",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "security",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/secret/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-security-service-identity",
+      "ownerPath": "cpf-starters/security/service-identity",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/service-identity/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-starter-session-jdbc",
+      "ownerPath": "cpf-starters/security/session/jdbc",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/session/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-lock-valkey",
+      "ownerPath": "cpf-starters/data/lock/valkey",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "data",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/lock/valkey/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-messaging-schema",
+      "ownerPath": "cpf-starters/messaging/schema",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "messaging",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/messaging/schema/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-graphql",
+      "ownerPath": "cpf-starters/integration/graphql",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/graphql/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-realtime",
+      "ownerPath": "cpf-starters/integration/realtime",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "integration",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/integration/realtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-object-storage-s3",
+      "ownerPath": "cpf-starters/file/object-storage/s3",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "file",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/file/object-storage/s3/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-session-valkey",
+      "ownerPath": "cpf-starters/security/session/valkey",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
+      "ownerGroup": "security",
+      "internalRole": "public-provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/security/session/valkey/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-health",
+      "ownerPath": "cpf-starters/platform-operations/health",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "platform-operations",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/health/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-platform-operations-runtime-health-jdbc",
+      "ownerPath": "cpf-starters/platform-operations/runtime-health/jdbc",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "provider",
+      "ownerGroup": "platform-operations",
+      "internalRole": "provider",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/platform-operations/runtime-health/jdbc/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "profile-or-resolved-provider-binding"
+    },
+    {
+      "artifactId": "cpf-base-runtime",
+      "ownerPath": "cpf-starters/base/runtime",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "foundation-runtime",
+      "ownerGroup": "base",
+      "internalRole": "foundation-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/base/runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-starter-common",
+      "ownerPath": "cpf-starters/common",
+      "kind": "starter-common",
+      "visibility": "public",
+      "role": "product-service",
+      "ownerGroup": "common",
+      "internalRole": "public-common",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/common/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "framework-starter-consumer"
+    },
+    {
+      "artifactId": "cpf-web-runtime",
+      "ownerPath": "cpf-starters/web",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "capability-runtime",
+      "ownerGroup": "web",
+      "internalRole": "capability-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/web/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-data-transaction-jta",
+      "ownerPath": "cpf-starters/data/transaction/jta",
+      "kind": "internal-starter",
+      "visibility": "internal",
+      "role": "optional-transaction-runtime",
+      "ownerGroup": "data",
+      "internalRole": "optional-provider-runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-starters/data/transaction/jta/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "internal-starter-composition"
+    }
+  ],
+  "removedArtifactIds": [
+    "cpf-integration-fixedlength-core",
+    "cpf-notification-sms-spi",
+    "cpf-starter-aop-service-access",
+    "cpf-starter-attachment",
+    "cpf-starter-base",
+    "cpf-starter-cache",
+    "cpf-starter-channel-registry-jdbc",
+    "cpf-starter-data-cache-caffeine",
+    "cpf-starter-data-cache-redis",
+    "cpf-starter-data-cache-spring-data-redis",
+    "cpf-starter-data-cache-valkey",
+    "cpf-starter-data-lock-valkey",
+    "cpf-starter-data-persistence-jdbc",
+    "cpf-starter-data-persistence-jpa",
+    "cpf-starter-data-persistence-mybatis",
+    "cpf-starter-data-transaction-jta",
+    "cpf-starter-featureflag",
+    "cpf-starter-file-object-storage-s3",
+    "cpf-starter-foundation-base",
+    "cpf-starter-http-client",
+    "cpf-starter-integration-graphql",
+    "cpf-starter-integration-realtime",
+    "cpf-starter-integration-sftp",
+    "cpf-starter-notification",
+    "cpf-starter-observability",
+    "cpf-starter-observability-otlp",
+    "cpf-starter-openapi-webmvc",
+    "cpf-starter-persistence-jdbc",
+    "cpf-starter-persistence-mybatis",
+    "cpf-starter-platform-operations-observability",
+    "cpf-starter-profile-batch-service",
+    "cpf-starter-profile-browser-bff",
+    "cpf-starter-profile-browser-bff-session",
+    "cpf-starter-profile-domain-web-api",
+    "cpf-starter-profile-event-jms-ibm-mq",
+    "cpf-starter-profile-event-kafka",
+    "cpf-starter-profile-event-rabbitmq",
+    "cpf-starter-profile-event-service",
+    "cpf-starter-profile-integration-tcp",
+    "cpf-starter-profile-minimal-boot-domain",
+    "cpf-starter-profile-minimal-domain",
+    "cpf-starter-profile-notification-service",
+    "cpf-starter-profile-observable-resilient-service",
+    "cpf-starter-profile-persistence-mybatis",
+    "cpf-starter-profile-scheduled-service",
+    "cpf-starter-profile-secure-api",
+    "cpf-starter-profile-secure-resource-api",
+    "cpf-starter-profile-sftp-integration",
+    "cpf-starter-profile-web-api",
+    "cpf-starter-resilience",
+    "cpf-starter-runtime-control-client",
+    "cpf-starter-scheduler-quartz",
+    "cpf-starter-secret",
+    "cpf-starter-security",
+    "cpf-starter-security-oidc",
+    "cpf-starter-security-session-jdbc",
+    "cpf-starter-security-session-valkey",
+    "cpf-starter-tabular-poi",
+    "cpf-starter-validation"
+  ],
+  "removedRepositoryRoots": [
+    "cpf-starters/aop-service-access",
+    "cpf-starters/cache-aggregate",
+    "cpf-starters/data/cache-caffeine",
+    "cpf-starters/data/cache-valkey",
+    "cpf-starters/data/core",
+    "cpf-starters/data/lock-valkey",
+    "cpf-starters/data/persistence-jdbc",
+    "cpf-starters/data/persistence-jpa",
+    "cpf-starters/data/persistence-mybatis",
+    "cpf-starters/data/transaction-jta",
+    "cpf-starters/featureflag",
+    "cpf-starters/file/core",
+    "cpf-starters/file/object-storage-s3",
+    "cpf-starters/file/tabular-poi",
+    "cpf-starters/foundation/base",
+    "cpf-starters/foundation/core",
+    "cpf-starters/integration-ftps",
+    "cpf-starters/integration-grpc",
+    "cpf-starters/integration-object-storage-s3",
+    "cpf-starters/integration-realtime-webflux",
+    "cpf-starters/integration-smb",
+    "cpf-starters/integration-soap",
+    "cpf-starters/integration-webhook",
+    "cpf-starters/integration/core",
+    "cpf-starters/integration/fixedlength",
+    "cpf-starters/integration/fixedlength-core",
+    "cpf-starters/integration/http-client",
+    "cpf-starters/integration/reliability-core",
+    "cpf-starters/messaging/core",
+    "cpf-starters/messaging/reliability-jdbc",
+    "cpf-starters/messaging/schema-governance",
+    "cpf-starters/notification/core",
+    "cpf-starters/notification/sms-spi",
+    "cpf-starters/openapi-webmvc",
+    "cpf-starters/platform-operations/channel-registry-jdbc",
+    "cpf-starters/platform-operations/core",
+    "cpf-starters/platform-operations/feature-flag-openfeature",
+    "cpf-starters/platform-operations/otlp",
+    "cpf-starters/platform-operations/runtime-control-client",
+    "cpf-starters/platform-operations/runtime-health-jdbc",
+    "cpf-starters/profiles/browser-bff-session",
+    "cpf-starters/profiles/domain-web-api",
+    "cpf-starters/profiles/event-jms-ibm-mq",
+    "cpf-starters/profiles/event-kafka",
+    "cpf-starters/profiles/event-rabbitmq",
+    "cpf-starters/profiles/integration-tcp",
+    "cpf-starters/profiles/minimal-boot-domain",
+    "cpf-starters/profiles/minimal-domain",
+    "cpf-starters/profiles/notification-service",
+    "cpf-starters/profiles/observable-resilient-service",
+    "cpf-starters/profiles/persistence-mybatis",
+    "cpf-starters/profiles/scheduled-service",
+    "cpf-starters/profiles/secure-resource-api",
+    "cpf-starters/profiles/sftp-integration",
+    "cpf-starters/resilience",
+    "cpf-starters/scheduler-quartz",
+    "cpf-starters/security-aggregate",
+    "cpf-starters/security/audit-jdbc",
+    "cpf-starters/security/core",
+    "cpf-starters/security/oidc-login",
+    "cpf-starters/security/session-jdbc",
+    "cpf-starters/security/session-valkey",
+    "cpf-starters/validation"
+  ],
+  "starterAdmissionPolicy": {
+    "policyVersion": "1.0",
+    "failClosed": true,
+    "requiredFields": [
+      "current_value",
+      "public_api_spi",
+      "actual_consumer",
+      "target_public_surface",
+      "evidence"
+    ],
+    "requiredBeforeRegistration": [
+      "value-contract",
+      "convenience-api",
+      "extension-spi-or-explicit-not-applicable",
+      "actual-consumer",
+      "removal-alternative-comparison",
+      "footprint-classification",
+      "runtime-evidence-plan"
+    ],
+    "evidenceIndex": "cpf-docs/work/TEST_AND_EVIDENCE.md"
+  },
+  "profileMode": {
+    "rule": "EXACTLY_ONE_TOP_LEVEL_PROFILE_PER_DEPLOYABLE",
+    "publicProfileArtifactIds": [
+      "cpf-starter-web-api",
+      "cpf-starter-secure-api",
+      "cpf-starter-bff",
+      "cpf-starter-event",
+      "cpf-starter-batch"
+    ]
+  },
+  "profileDefinitions": {
+    "web-api": {
+      "artifactId": "cpf-starter-web-api",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "requiredCapabilities": [
+        "web"
+      ],
+      "providerSlots": []
+    },
+    "secure-api": {
+      "artifactId": "cpf-starter-secure-api",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security",
+        ":internal:security:resource-server",
+        ":framework:integration",
+        ":internal:integration:http",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api",
+        ":framework:integration"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": []
+    },
+    "bff": {
+      "artifactId": "cpf-starter-bff",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": [
+        "security-mode"
+      ]
+    },
+    "event": {
+      "artifactId": "cpf-starter-event",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:messaging",
+        ":framework:integration",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:base"
+      ],
+      "requiredCapabilities": [
+        "messaging"
+      ],
+      "providerSlots": [
+        "messaging"
+      ]
+    },
+    "batch": {
+      "artifactId": "cpf-starter-batch",
+      "runtimeProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":runtime:batch:runtime",
+        ":framework:integration",
+        ":internal:integration:resilience",
+        ":internal:integration:http"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":framework:integration"
+      ],
+      "requiredCapabilities": [],
+      "providerSlots": []
+    }
+  },
+  "providerSlots": {
+    "messaging": {
+      "kafka": {
+        "projectPath": ":starters:messaging:kafka",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-kafka"
+      },
+      "rabbitmq": {
+        "projectPath": ":starters:messaging:rabbitmq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-rabbitmq"
+      },
+      "jms": {
+        "projectPath": ":starters:messaging:jms",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-jms"
+      },
+      "ibm-mq": {
+        "projectPath": ":starters:messaging:ibm-mq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-ibm-mq"
+      }
+    },
+    "data": {
+      "jdbc": {
+        "projectPath": ":starters:data:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jdbc"
+      },
+      "mybatis": {
+        "projectPath": ":starters:data:mybatis",
+        "coordinate": "com.cpf.starter:cpf-starter-data-mybatis"
+      },
+      "jpa": {
+        "projectPath": ":starters:data:jpa",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jpa"
+      }
+    },
+    "cache": {
+      "caffeine": {
+        "projectPath": ":starters:cache:caffeine",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-caffeine"
+      },
+      "valkey": {
+        "projectPath": ":starters:cache:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-valkey"
+      },
+      "redis": {
+        "projectPath": ":starters:cache:redis",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-redis"
+      }
+    },
+    "integration-transport": {
+      "http": {
+        "projectPath": ":internal:integration:http",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-http"
+      },
+      "tcp": {
+        "projectPath": ":internal:integration:tcp",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      },
+      "soap": {
+        "projectPath": ":internal:integration:soap",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-soap"
+      }
+    },
+    "integration-codec": {
+      "fixed-length": {
+        "projectPath": ":internal:integration:fixed-length",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
+      },
+      "iso8583": {
+        "projectPath": ":internal:integration:iso8583",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-iso8583"
+      }
+    },
+    "file": {
+      "sftp": {
+        "projectPath": ":internal:file:sftp",
+        "coordinate": "com.cpf.starter:cpf-starter-file-sftp"
+      }
+    },
+    "notification": {
+      "email": {
+        "projectPath": ":internal:notification:email",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-email"
+      },
+      "sms": {
+        "projectPath": ":internal:notification:sms",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-sms"
+      }
+    },
+    "observability": {
+      "otlp": {
+        "projectPath": ":internal:platform-operations:observability:otlp",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-observability-otlp"
+      }
+    },
+    "security-mode": {
+      "resource-server": {
+        "projectPath": ":internal:security:resource-server",
+        "coordinate": "com.cpf.starter:cpf-starter-security-resource-server"
+      },
+      "browser-session": {
+        "projectPath": ":starters:security:session:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-session-jdbc"
+      },
+      "service-identity": {
+        "projectPath": ":internal:security:service-identity",
+        "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      },
+      "browser-session-valkey": {
+        "projectPath": ":starters:security:session:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-session-valkey"
+      }
+    },
+    "locking": {
+      "valkey": {
+        "projectPath": ":starters:data:lock:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-lock-valkey"
+      }
+    },
+    "object-storage": {
+      "s3-compatible": {
+        "projectPath": ":starters:file:object-storage:s3",
+        "coordinate": "com.cpf.starter:cpf-starter-object-storage-s3"
+      }
+    },
+    "graphql": {
+      "spring-graphql": {
+        "projectPath": ":starters:integration:graphql",
+        "coordinate": "com.cpf.starter:cpf-starter-graphql"
+      }
+    },
+    "realtime": {
+      "sse": {
+        "projectPath": ":starters:integration:realtime",
+        "coordinate": "com.cpf.starter:cpf-starter-realtime"
+      }
+    },
+    "health-registry": {
+      "jdbc": {
+        "projectPath": ":internal:platform-operations:runtime-health:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-runtime-health-jdbc"
+      }
+    }
+  },
+  "baselinePolicy": "GIT_HEAD_RUNTIME",
+  "retainedInactiveRoots": []
+}

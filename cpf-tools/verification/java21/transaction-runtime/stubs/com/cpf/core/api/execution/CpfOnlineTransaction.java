@@ -1,0 +1,1 @@
+package com.cpf.foundation.execution.api; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD}) public @interface CpfOnlineTransaction {String id();String name();}

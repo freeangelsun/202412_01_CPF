@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {"name":"cpf.platform-operations.health.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"CPF runtime health와 drain 기능 활성화 여부"},
+    {"name":"cpf.platform-operations.health.dependency-timeout","type":"java.time.Duration","defaultValue":"2s","description":"외부 의존성 개별 health check timeout"},
+    {"name":"cpf.platform-operations.health.cache-ttl","type":"java.time.Duration","defaultValue":"3s","description":"dependency health snapshot cache TTL"},
+    {"name":"cpf.platform-operations.health.max-concurrent-checks","type":"java.lang.Integer","defaultValue":8,"description":"동시 dependency health check 상한"},
+    {"name":"cpf.platform-operations.health.system-id","type":"java.lang.String","description":"ADM 집계용 시스템 ID"},
+    {"name":"cpf.platform-operations.health.instance-id","type":"java.lang.String","description":"ADM 집계용 인스턴스 ID"},
+    {"name":"cpf.platform-operations.health.maintenance","type":"java.lang.Boolean","defaultValue":false,"description":"Maintenance 상태에서는 readiness를 OUT_OF_SERVICE로 전환"}
+  ]
+}

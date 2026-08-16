@@ -1,0 +1,1 @@
+package org.springframework.beans.factory; import java.util.function.Supplier; public interface ObjectProvider<T>{T getIfAvailable(); default T getIfAvailable(Supplier<T> s){T v=getIfAvailable();return v==null?s.get():v;}}

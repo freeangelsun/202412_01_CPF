@@ -1,0 +1,14 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.internal'
+dependencies {
+    api project(':framework:core')
+    implementation project(':framework:base-runtime')
+    implementation project(':framework:data:persistence')
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework:spring-jdbc'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework:spring-aop'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){ from components.java; artifactId='cpf-messaging' } } }

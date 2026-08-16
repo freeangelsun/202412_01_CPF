@@ -1,0 +1,15 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.testkit'
+dependencies {
+    api project(':framework:data')
+    api project(':framework:operations')
+    api project(':framework:core')
+    api project(':framework:base-runtime')
+    implementation project(':internal:integration:resilience')
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework:spring-context'
+    implementation 'org.aspectj:aspectjweaver'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId='cpf-testkit'} } }

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CPF Compatibility Contract",
+  "type": "object",
+  "required": [
+    "contractId",
+    "kind",
+    "version",
+    "fields"
+  ],
+  "properties": {
+    "contractId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "enum": [
+        "REST",
+        "SHARED_API",
+        "EVENT",
+        "FIXED_LENGTH",
+        "FILE",
+        "BATCH"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "type",
+          "required"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "length": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "scale": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "encoding": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

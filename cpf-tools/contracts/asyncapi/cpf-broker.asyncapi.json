@@ -1,0 +1,88 @@
+{
+  "asyncapi": "3.1.0",
+  "info": {
+    "title": "CPF Provider-Neutral Broker Event",
+    "version": "1.0.0",
+    "description": "Canonical event envelope matching CpfBrokerPublishRequest and the CPF transactional reliability path."
+  },
+  "channels": {
+    "cpfBrokerEvents": {
+      "address": "cpf.{producer_module}.{topic}",
+      "messages": {
+        "CpfBrokerEvent": {
+          "$ref": "#/components/messages/CpfBrokerEvent"
+        }
+      }
+    }
+  },
+  "operations": {
+    "publishCpfBrokerEvent": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/cpfBrokerEvents"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/cpfBrokerEvents/messages/CpfBrokerEvent"
+        }
+      ]
+    },
+    "consumeCpfBrokerEvent": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/cpfBrokerEvents"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/cpfBrokerEvents/messages/CpfBrokerEvent"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "CpfBrokerEvent": {
+        "messageId": "CpfBrokerEvent.v1",
+        "contentType": "application/json",
+        "correlationId": {
+          "location": "$message.header#/correlationId"
+        },
+        "payload": {
+          "$ref": "#/components/schemas/CpfBrokerEventPayload"
+        }
+      }
+    },
+    "schemas": {
+      "CpfBrokerEventPayload": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "messageId",
+          "topic",
+          "key",
+          "payloadBase64",
+          "contentType",
+          "producerModule",
+          "consumerModule",
+          "idempotencyKey",
+          "headers",
+          "attributes"
+        ],
+        "properties": {
+          "messageId": {"type": "string", "minLength": 1},
+          "topic": {"type": "string", "minLength": 1},
+          "key": {"type": "string", "minLength": 1},
+          "payloadBase64": {"type": "string", "contentEncoding": "base64"},
+          "contentType": {"type": "string", "minLength": 1},
+          "transactionId": {"type": ["string", "null"]},
+          "segmentId": {"type": ["string", "null"]},
+          "producerModule": {"type": "string", "minLength": 1},
+          "consumerModule": {"type": "string", "minLength": 1},
+          "idempotencyKey": {"type": "string", "minLength": 1},
+          "headers": {"type": "object", "additionalProperties": {"type": "string"}},
+          "attributes": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

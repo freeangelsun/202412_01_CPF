@@ -1,0 +1,111 @@
+SELECT
+    CASE
+        WHEN (SELECT COUNT(*)
+              FROM information_schema.tables
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND table_type = 'BASE TABLE') = 1
+         AND (SELECT COUNT(*)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item') = 14
+         AND (SELECT COUNT(DISTINCT column_name)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND column_name IN (
+                    'sample_item_id', 'sample_key', 'item_name', 'status_code', 'version_no',
+                    'idempotency_key', 'transaction_id', 'transaction_sequence', 'transaction_at',
+                    'deleted_yn', 'created_by', 'created_at', 'updated_by', 'updated_at'
+                )) = 14
+         AND (SELECT COUNT(*)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND column_name = 'transaction_id'
+                AND data_type = 'char'
+                AND character_maximum_length = 34) = 1
+         AND (SELECT COUNT(*)
+              FROM information_schema.table_constraints
+              WHERE constraint_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND ((constraint_type = 'PRIMARY KEY' AND constraint_name = 'PRIMARY')
+                  OR (constraint_type = 'UNIQUE'
+                      AND constraint_name = 'uk_@CPF_TABLE_PREFIX@_sample_item_key'))) = 2
+         AND (SELECT COUNT(DISTINCT index_name)
+              FROM information_schema.statistics
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND index_name IN (
+                    'ix_@CPF_TABLE_PREFIX@_sample_item_idem',
+                    'ix_@CPF_TABLE_PREFIX@_sample_item_status',
+                    'ix_@CPF_TABLE_PREFIX@_sample_item_tx'
+                )) = 3
+         AND (SELECT COUNT(DISTINCT constraint_name)
+              FROM information_schema.table_constraints
+              WHERE constraint_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item'
+                AND constraint_type = 'CHECK'
+                AND constraint_name IN (
+                    'ck_@CPF_TABLE_PREFIX@_sample_item_status',
+                    'ck_@CPF_TABLE_PREFIX@_sample_item_deleted'
+                )) = 2
+        THEN 'PASS'
+        ELSE 'FAILED'
+    END AS generated_domain_sample_verify,
+    CASE
+        WHEN (SELECT COUNT(*)
+              FROM information_schema.tables
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND table_type = 'BASE TABLE') = 1
+         AND (SELECT COUNT(*)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem') = 8
+         AND (SELECT COUNT(DISTINCT column_name)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND column_name IN (
+                    'idempotency_key', 'operation_code', 'request_hash', 'sample_item_id',
+                    'result_version', 'deleted_yn', 'transaction_id', 'created_at'
+                )) = 8
+         AND (SELECT COUNT(*)
+              FROM information_schema.columns
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND column_name = 'transaction_id'
+                AND data_type = 'char'
+                AND character_maximum_length = 34) = 1
+         AND (SELECT COUNT(*)
+              FROM information_schema.table_constraints
+              WHERE constraint_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND constraint_type = 'PRIMARY KEY'
+                AND constraint_name = 'PRIMARY') = 1
+         AND (SELECT COUNT(*)
+              FROM information_schema.referential_constraints
+              WHERE constraint_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND constraint_name = 'fk_@CPF_TABLE_PREFIX@_sample_idem_item') = 1
+         AND (SELECT COUNT(DISTINCT index_name)
+              FROM information_schema.statistics
+              WHERE table_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND index_name IN (
+                    'ix_@CPF_TABLE_PREFIX@_sample_idem_item',
+                    'ix_@CPF_TABLE_PREFIX@_sample_idem_tx'
+                )) = 2
+         AND (SELECT COUNT(DISTINCT constraint_name)
+              FROM information_schema.table_constraints
+              WHERE constraint_schema = '@CPF_SCHEMA_NAME@'
+                AND table_name = '@CPF_TABLE_PREFIX@_sample_item_idem'
+                AND constraint_type = 'CHECK'
+                AND constraint_name IN (
+                    'ck_@CPF_TABLE_PREFIX@_sample_idem_op',
+                    'ck_@CPF_TABLE_PREFIX@_sample_idem_deleted'
+                )) = 2
+        THEN 'PASS'
+        ELSE 'FAILED'
+    END AS generated_domain_idempotency_verify;

@@ -1,0 +1,2 @@
+com.cpf.security.session.jdbc.CpfServerSessionSecurityAutoConfiguration
+com.cpf.security.session.jdbc.runtimecontrol.CpfSecurityRuntimeControlAutoConfiguration

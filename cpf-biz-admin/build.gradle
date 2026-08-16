@@ -1,0 +1,96 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+    id 'war'
+}
+
+group = 'com.cpf.bizadmin'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+    }
+}
+
+dependencies {
+    // Core/Foundation/Security 기본 Runtime은 Public Profile -> cpf-starter 경로로만 수신합니다.
+    implementation project(':starters:profiles:bff')
+    implementation project(':starters:data:mybatis')
+    implementation project(':internal:file:attachment')
+    implementation project(':starters:common')
+    // BZA servlet filter/controller가 직접 사용하는 Spring Web은 외부 Tomcat과 별개로
+    // 애플리케이션 WAR 및 test runtime에 반드시 포함되어야 합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+    providedRuntime('org.springframework.boot:spring-boot-starter-tomcat') {
+        // Servlet container만 provided 처리하고 애플리케이션 소유 Spring Web은 제외하지 않습니다.
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def frontendDir = layout.projectDirectory.dir('frontend')
+def frontendOutputDir = layout.buildDirectory.dir('generated/frontend')
+def frontendInstallMarker = frontendDir.file('node_modules/.cpf-install-marker')
+def frontendNpmCache = layout.buildDirectory.dir('npm-cache')
+def npmExecutable = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
+def bzaPermissionManifest = rootProject.layout.projectDirectory.file('cpf-tools/db/metadata/bza-permission-manifest.json')
+
+sourceSets.main.resources.srcDir(frontendOutputDir)
+
+tasks.register('frontendInstall', Exec) {
+    group = 'frontend'
+    description = 'BZA frontend의 package-lock 기준 의존성을 설치합니다.'
+    workingDir frontendDir
+    commandLine npmExecutable, 'ci', '--no-audit', '--no-fund'
+    environment 'npm_config_cache', frontendNpmCache.get().asFile.absolutePath
+    inputs.files(frontendDir.file('package.json'), frontendDir.file('package-lock.json'))
+    outputs.file(frontendInstallMarker)
+    doLast {
+        frontendInstallMarker.asFile.setText('package-lock 기반 설치 완료\n', 'UTF-8')
+    }
+}
+
+['Lint': 'lint', 'Typecheck': 'typecheck', 'Test': 'test'].each { taskSuffix, npmScript ->
+    tasks.register("frontend${taskSuffix}", Exec) {
+        group = 'verification'
+        dependsOn 'frontendInstall'
+        workingDir frontendDir
+        commandLine npmExecutable, 'run', npmScript
+        inputs.dir(frontendDir.dir('src'))
+        inputs.files(frontendDir.file('package.json'), frontendDir.file('tsconfig.json'), frontendDir.file('eslint.config.js'), bzaPermissionManifest)
+    }
+}
+
+tasks.register('frontendBuild', Exec) {
+    group = 'build'
+    description = 'BZA Vue frontend를 Spring Boot 정적 리소스로 빌드합니다.'
+    dependsOn 'frontendInstall'
+    workingDir frontendDir
+    commandLine npmExecutable, 'run', 'build'
+    inputs.dir(frontendDir.dir('src'))
+    inputs.files(frontendDir.file('index.html'), frontendDir.file('package-lock.json'), frontendDir.file('vite.config.ts'), bzaPermissionManifest)
+    outputs.dir(frontendOutputDir.map { it.dir('static/bza') })
+}
+
+tasks.register('frontendVerify') {
+    group = 'verification'
+    description = 'BZA frontend lint, typecheck, test와 production build를 검증합니다.'
+    dependsOn 'frontendLint', 'frontendTypecheck', 'frontendTest', 'frontendBuild'
+}
+
+def cpfSkipFrontendBuild = providers.gradleProperty('cpfSkipFrontendBuild').map { it.toBoolean() }.orElse(false)
+
+tasks.named('processResources') {
+    if (!cpfSkipFrontendBuild.get()) dependsOn 'frontendBuild'
+    from(bzaPermissionManifest) {
+        into 'cpf/bza'
+    }
+}

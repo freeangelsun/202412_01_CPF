@@ -1,0 +1,12 @@
+UPDATE cpf_batch_execution_control
+   SET control_status = ?,
+       unknown_reason = ?,
+       unknown_detail = ?,
+       last_error_code = ?,
+       last_error_detail = ?,
+       reconcile_after = ?,
+       reconcile_attempts = CASE WHEN ? = 'UNKNOWN_RESULT' THEN reconcile_attempts + 1 ELSE reconcile_attempts END,
+       control_version = control_version + 1,
+       updated_at = @NOW6@
+ WHERE cpf_execution_id = ?
+   AND control_status = ?

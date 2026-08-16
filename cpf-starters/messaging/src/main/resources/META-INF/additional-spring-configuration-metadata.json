@@ -1,0 +1,5 @@
+{
+  "properties": [
+    {"name":"cpf.messaging.listener.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"@CpfMessageListener 자동 등록을 활성화합니다."}
+  ]
+}

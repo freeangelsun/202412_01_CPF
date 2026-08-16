@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "baselineCommit": "6b2d5d669c2e3e6c44f7b7350ce3577c428df20a",
+  "policy": "Historical migration trees are immutable. Current schema snapshots are rendered under cpf-tools/db/generated/current and never overwrite these trees.",
+  "trees": [
+    {"vendor":"mariadb","path":"cpf-tools/db/vendor/mariadb/migration","gitTreeSha":"11b4d93946b7f4db7e104cd6267f56c7091d6397"},
+    {"vendor":"postgresql","path":"cpf-tools/db/vendor/postgresql/migration","gitTreeSha":"6e2490194b9607b275d4ba141b0e64996ba73612"},
+    {"vendor":"oracle","path":"cpf-tools/db/vendor/oracle/migration","gitTreeSha":"f1b6bca3e14ac72f1d90c973d6508aa5a1ee937b"}
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 3,
+  "contractId": "CPF-GENERATOR-LIFECYCLE-3",
+  "owner": "cpf-tools/generator",
+  "canonicalEngine": "cpf-tools/generator/engine/cpf_domain_generator.py",
+  "canonicalCli": "cpf-tools/runtime/cli/cpf.py",
+  "canonicalInputSchema": "cpf-tools/generator/contracts/cpf-domain.schema.json",
+  "supportedVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "operations": [
+    "preflight",
+    "dry-run",
+    "generate",
+    "diff",
+    "regenerate",
+    "upgrade",
+    "remove",
+    "restore",
+    "verify"
+  ],
+  "transientState": {
+    "directory": "build/domain-generator/verification/cpf-<domain>",
+    "stateFile": "generation-state.json",
+    "verificationFile": "verify-result.json",
+    "db3Directory": "db3/<vendor>",
+    "customerProjectMetadata": "NONE"
+  },
+  "forbiddenPermanentProjectEntries": [
+    ".cpf",
+    "README.md",
+    "verification",
+    "db",
+    "canonical",
+    "vendors",
+    "cpf-domain.yaml",
+    "generator.lock",
+    "manifest"
+  ],
+  "userProtection": {
+    "generatedFileDriftBlocksRegenerate": true,
+    "generatedFileDriftBlocksUpgrade": true,
+    "generatedFileDriftBlocksRemove": true,
+    "unmanagedFilesAreNeverRemoved": true,
+    "databaseObjectsNeverAutoDropped": true,
+    "restoreRequiresMatchingDefinitionAndExpectedSeed": true,
+    "purgeDefinitionRequiresExplicitOption": true,
+    "frameworkIntegrationPointsRemovedWithDomain": true
+  },
+  "topology": {
+    "generatedRoot": "cpf-<domain>",
+    "repositoryRegressionRoots": [
+      "cpf-member",
+      "cpf-external"
+    ],
+    "thirdDomainVerificationRoot": "build/domain-generator/verification/<scenario>"
+  },
+  "releaseEvidence": {
+    "requiredVendors": [
+      "mariadb",
+      "postgresql",
+      "oracle"
+    ],
+    "requireExactSha": true,
+    "requireSanitized": true,
+    "runtimeSuccessNotInferredFromStaticGate": true
+  },
+  "localRuntimeIntegration": {
+    "descriptor": "<runtime>/src/main/resources/META-INF/cpf/generated-domain.properties",
+    "defaultMode": "local-integrated",
+    "defaultPortPolicy": "single-http-port",
+    "gatewayRequired": false,
+    "distributedPortsUsedOnlyWhenTopologySplits": true
+  },
+  "removeImpact": [
+    "generated source/resources/tests",
+    "generated runtime descriptor",
+    "generated build outputs",
+    "local integrated classpath discovery",
+    "distributed port/registry derived from definition",
+    "distribution manifest derived from definition",
+    "settings/includeBuild derived from physical root",
+    "canonical definition only when --purge-definition is explicit"
+  ]
+}

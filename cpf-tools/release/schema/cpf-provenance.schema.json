@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpf.provenance",
+  "type": "object",
+  "required": ["schema", "schemaVersion", "platformVersion", "source", "builder", "invocation", "inputs", "outputs"],
+  "properties": {
+    "schema": {"const": "cpf.provenance"},
+    "schemaVersion": {"type": "integer", "minimum": 2},
+    "source": {"type": "object", "required": ["commit", "branch", "dirty"]},
+    "builder": {"type": "object"},
+    "invocation": {"type": "object"},
+    "inputs": {"type": "array"},
+    "outputs": {"type": "array"}
+  }
+}

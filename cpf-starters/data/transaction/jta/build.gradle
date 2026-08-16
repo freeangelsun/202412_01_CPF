@@ -1,0 +1,27 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+
+dependencies {
+    api project(':framework:core')
+    api project(':framework:base-runtime')
+    api project(':framework:data')
+    api project(':starters:data:jdbc')
+    api 'jakarta.transaction:jakarta.transaction-api'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-actuator'
+    implementation 'org.jboss.narayana.jta:narayana-jta:7.3.4.Final'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.assertj:assertj-core'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-data-transaction-jta' } } }
+
+tasks.register('runXaCrashHarness', JavaExec) {
+    group = 'verification'
+    description = 'Runs the opt-in DB+DB prepare-kill/recovery harness against disposable XA resources.'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.cpf.starter.data.transaction.jta.CpfXaCrashRecoveryHarness'
+    args providers.gradleProperty('cpfXaHarnessMode').orElse('recover').get()
+}

@@ -1,0 +1,15 @@
+{
+  "properties": [
+    {"name":"cpf.integration.realtime.enabled","type":"java.lang.Boolean","defaultValue":false,"description":"Realtime SSE capability enable flag."},
+    {"name":"cpf.integration.realtime.stream-path","type":"java.lang.String","defaultValue":"/cpf/realtime/stream"},
+    {"name":"cpf.integration.realtime.poll-path","type":"java.lang.String","defaultValue":"/cpf/realtime/events"},
+    {"name":"cpf.integration.realtime.replay-capacity","type":"java.lang.Integer","defaultValue":2000},
+    {"name":"cpf.integration.realtime.subscriber-queue-capacity","type":"java.lang.Integer","defaultValue":128},
+    {"name":"cpf.integration.realtime.max-connections-per-tenant","type":"java.lang.Integer","defaultValue":100},
+    {"name":"cpf.integration.realtime.max-subscribe-attempts-per-second","type":"java.lang.Integer","defaultValue":30},
+    {"name":"cpf.integration.realtime.poll-limit","type":"java.lang.Integer","defaultValue":200},
+    {"name":"cpf.integration.realtime.emitter-timeout","type":"java.time.Duration","defaultValue":"30m"},
+    {"name":"cpf.integration.realtime.heartbeat-interval","type":"java.time.Duration","defaultValue":"15s"},
+    {"name":"cpf.integration.realtime.drain-timeout","type":"java.time.Duration","defaultValue":"20s"}
+  ]
+}

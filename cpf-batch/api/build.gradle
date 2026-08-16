@@ -1,0 +1,13 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.batch'
+
+dependencies {
+    api project(':framework:core')
+    api project(':framework:data')
+    api project(':framework:operations:observability')
+    compileOnly 'org.springframework:spring-context'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId='cpf-batch-api' } } }

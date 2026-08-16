@@ -1,0 +1,9 @@
+﻿old_scope,new_official_document
+cpf-docs/guides/00_프레임워크안내.*,cpf-docs/guides/00_CPF_사용_안내.*
+cpf-docs/guides/01_개발자매뉴얼.* + 07/08/11/15 일부,cpf-docs/guides/01_개발자_가이드.*
+cpf-docs/guides/02_배치개발매뉴얼.*,cpf-docs/guides/02_배치_개발_가이드.*
+cpf-docs/guides/03_ADM개발자매뉴얼.* + 90_BZA매뉴얼.*,cpf-docs/guides/03_ADM_BZA_개발_가이드.*
+cpf-docs/guides/04_ADM운영자매뉴얼.* + 05_플랫폼운영매뉴얼.* + 16_장애대응_Reconcile가이드.* + 91_Gateway매뉴얼.*,cpf-docs/guides/04_운영자_가이드.*
+cpf-docs/guides/06_빠른시작_초기설정가이드.* + 09_Generator_업무도메인생성가이드.* + 10_설정_프로파일_환경가이드.* + 14_CLI_도구_검증가이드.*,cpf-docs/guides/05_프로젝트_생성_설정_배포_가이드.*
+cpf-docs/guides/12_메시징_외부연계가이드.* + 파일/연계 관련 내용,cpf-docs/guides/06_외부연계_메시징_파일_가이드.*
+cpf-docs/guides/13_보안_권한_감사가이드.*,cpf-docs/guides/07_보안_권한_감사_가이드.*

@@ -1,0 +1,145 @@
+[
+  {
+    "file": "00_프레임워크안내.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 18,
+    "table_count": 15,
+    "tables_with_repeat_header": 15,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 7
+  },
+  {
+    "file": "01_개발자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 48,
+    "table_count": 29,
+    "tables_with_repeat_header": 29,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 1
+  },
+  {
+    "file": "02_배치개발매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 32,
+    "table_count": 26,
+    "tables_with_repeat_header": 26,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "03_ADM개발자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 24,
+    "table_count": 21,
+    "tables_with_repeat_header": 21,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "04_ADM운영자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 82,
+    "table_count": 9,
+    "tables_with_repeat_header": 9,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 4
+  },
+  {
+    "file": "05_플랫폼운영매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 42,
+    "table_count": 33,
+    "tables_with_repeat_header": 33,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 1
+  },
+  {
+    "file": "90_BZA매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 26,
+    "table_count": 17,
+    "tables_with_repeat_header": 17,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "91_Gateway매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 32,
+    "table_count": 22,
+    "tables_with_repeat_header": 22,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "기술사양서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 21,
+    "table_count": 18,
+    "tables_with_repeat_header": 18,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "기술표준서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 20,
+    "table_count": 12,
+    "tables_with_repeat_header": 12,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  },
+  {
+    "file": "데이터베이스표준서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 21,
+    "table_count": 13,
+    "tables_with_repeat_header": 13,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 2
+  },
+  {
+    "file": "산출물목록.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 13,
+    "table_count": 12,
+    "tables_with_repeat_header": 12,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 0
+  },
+  {
+    "file": "아키텍처설계서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "heading_count": 23,
+    "table_count": 17,
+    "tables_with_repeat_header": 17,
+    "rows_without_cantSplit": 0,
+    "external_doc_links": 3
+  }
+]

@@ -1,0 +1,21 @@
+module,dependency,kind,consumer_path,evidence
+cpf-admin,:starters:profiles:bff,profile,cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java,ADM browser BFF security/session assembly
+cpf-admin,:framework:integration,capability-parent,cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureConfiguration.java,Service registry and integration operations API consumers
+cpf-admin,:framework:operations,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,Reliability/approval/runtime policy public operation consumers
+cpf-admin,:internal:platform-operations:runtime-control,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java,Approved runtime control owner command execution
+cpf-admin,:internal:messaging:reliability:jdbc,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,JDBC reliability runtime provider for ADM reliability operations
+cpf-admin,:internal:integration:fixed-length,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java,Fixed-length layout registry/log decoder/parser consumer
+cpf-admin,:framework:file,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,File attachment/tabular operation contracts
+cpf-admin,:runtime:gateway,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/gateway/AdmGatewayRegistryController.java,Gateway registry/control direct consumer
+cpf-admin,:framework:operations:observability,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmTransactionGroupService.java,Transaction timeline/logging/remote-log runtime consumers
+cpf-admin,:internal:platform-operations:runtime-health:jdbc,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/health/CpfRuntimeHealthAdminQueryService.java,JDBC runtime health read model provider
+cpf-admin,:internal:integration:webhook,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/integration/AdmIntegrationClosureService.java,Webhook operations runtime provider
+cpf-admin,:starters:data:mybatis,provider,cpf-admin/src/main/java/com/cpf/admin/opr/repository/AdmControlPlaneRepository.java,ADM owned persistence provider
+cpf-admin,:internal:file:attachment,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,ADM attachment/file job runtime
+cpf-admin,:internal:file:tabular:poi,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,Tabular API runtime provider
+cpf-admin,:starters:common,business-common,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java,Common message/code/parameter/calendar product services
+cpf-admin,:runtime:batch:api,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBatchController.java,Batch approved command/query contract consumer
+cpf-biz-admin,:starters:profiles:bff,profile,cpf-biz-admin/src/main/java/com/cpf/bizadmin/BzaApplication.java,BZA browser BFF security/session assembly
+cpf-biz-admin,:starters:data:mybatis,provider,cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/repository/BzaOperationRepository.java,BZA owned persistence provider
+cpf-biz-admin,:internal:file:attachment,capability-runtime,cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/service/BzaSupportService.java,BZA attachment storage runtime
+cpf-biz-admin,:starters:common,business-common,cpf-biz-admin/src/main/java/com/cpf/bizadmin/common/management/BzaCommonManagementService.java,Customer common management/message product services

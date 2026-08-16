@@ -1,0 +1,2197 @@
+{
+  "schemaVersion": 2,
+  "module": "bat",
+  "ownerArtifact": "cpf-batch",
+  "parameterStyle": "JDBC_POSITIONAL",
+  "authoringTemplateRoot": "cpf-tools/db/runtime-template/bat",
+  "generatedPackPath": "runtime/bat/repository",
+  "migrationScope": [
+    "cpf-batch/worker/src/main/java",
+    "cpf-batch/scheduler/src/main/java",
+    "cpf-batch/center-cut/src/main/java",
+    "cpf-batch/control-plane/src/main/java",
+    "cpf-batch/runtime/src/main/java"
+  ],
+  "remainingScope": [],
+  "status": "완료",
+  "tokens": {
+    "NOW": "Vendor current timestamp",
+    "NOW3": "Vendor current timestamp with at least millisecond precision",
+    "NOW6": "Vendor current timestamp with at least microsecond precision",
+    "LIMIT_100": "ORDER BY 뒤의 Vendor별 100-row 제한 절",
+    "LIMIT_20": "ORDER BY 뒤의 Vendor별 20-row 제한 절",
+    "LIMIT_500": "ORDER BY 뒤의 Vendor별 500-row 제한 절",
+    "LIMIT_PARAM": "ORDER BY 뒤의 Vendor별 JDBC parameter row 제한 절",
+    "NOW6_MINUS_30_SECONDS": "Vendor별 현재 시각에서 30초를 차감한 표현식",
+    "NOW3_MINUS_SECONDS_PARAM": "Vendor별 JDBC 초 parameter를 현재 시각에서 차감한 표현식",
+    "NOW6_PLUS_60_SECONDS": "Vendor별 현재 시각에 60초를 더한 표현식"
+  },
+  "vendorOverrides": {
+    "worker-registry-upsert": [
+      "postgresql",
+      "oracle"
+    ],
+    "centercut-target-insert-item-idempotent": [
+      "postgresql",
+      "oracle"
+    ],
+    "centercut-admission-insert-rate-window-idempotent": [
+      "postgresql",
+      "oracle"
+    ],
+    "control-view-agents": [
+      "postgresql",
+      "oracle"
+    ],
+    "control-view-recovery": [
+      "postgresql",
+      "oracle"
+    ],
+    "control-view-leases": [
+      "postgresql",
+      "oracle"
+    ],
+    "jobpack-upsert": [
+      "postgresql",
+      "oracle"
+    ],
+    "compat-ghost-candidates": [
+      "postgresql",
+      "oracle"
+    ],
+    "compat-job-upsert": [
+      "postgresql",
+      "oracle"
+    ],
+    "deploy-lock-acquire": [
+      "postgresql",
+      "oracle"
+    ],
+    "deploy-cell-upsert": [
+      "postgresql",
+      "oracle"
+    ],
+    "runtime-instances-list": [
+      "postgresql",
+      "oracle"
+    ],
+    "centercut-operations-find-targets": [
+      "oracle"
+    ],
+    "centercut-operations-find-results": [
+      "oracle"
+    ],
+    "centercut-operations-find-result-detail": [
+      "oracle"
+    ]
+  },
+  "statements": [
+    {
+      "key": "execution-control-reserve",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.reserve",
+      "parameters": [
+        "executionId",
+        "jobId",
+        "definitionVersion",
+        "approvalId",
+        "operatorId",
+        "reason",
+        "idempotencyScope",
+        "idempotencyKey",
+        "requestHash",
+        "planChecksum",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-control-transition",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.transition",
+      "parameters": [
+        "targetStatus",
+        "unknownReason",
+        "unknownDetail",
+        "lastErrorCode",
+        "lastErrorDetail",
+        "reconcileAfter",
+        "targetStatusForAttempt",
+        "executionId",
+        "expectedStatus"
+      ]
+    },
+    {
+      "key": "execution-link-update",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
+      "parameters": [
+        "jobInstanceId",
+        "jobExecutionId",
+        "stepExecutionId",
+        "springStatus",
+        "executionId",
+        "linkKey",
+        "jobId",
+        "definitionVersion",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-link-insert",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
+      "parameters": [
+        "executionId",
+        "linkKey",
+        "jobId",
+        "definitionVersion",
+        "jobInstanceId",
+        "jobExecutionId",
+        "stepExecutionId",
+        "springStatus",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-control-bind-job",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.bind",
+      "parameters": [
+        "jobInstanceId",
+        "jobExecutionId",
+        "controlStatus",
+        "executionId",
+        "jobId",
+        "definitionVersion",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-control-find",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findReservation",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "execution-link-find-by-control",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findByCpfExecutionId",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "execution-control-assert-current",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.assertCurrent",
+      "parameters": [
+        "jobId",
+        "fencingToken",
+        "executionId"
+      ]
+    },
+    {
+      "key": "execution-epoch-advance",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
+      "parameters": [
+        "fencingToken",
+        "jobId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-epoch-insert",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
+      "parameters": [
+        "jobId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "execution-epoch-find",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.claimLatestEpoch",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "execution-epoch-lock",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.lockCurrentEpoch",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "execution-control-find-idempotency",
+      "consumer": "JdbcBatchExecutionControlPlaneAdapter.findByScopeAndKey",
+      "parameters": [
+        "idempotencyScope",
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "execution-approved-launch-find-trigger",
+      "consumer": "JdbcBatchApprovedLaunchRequestResolver.resolve(TriggerContext)",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum"
+      ]
+    },
+    {
+      "key": "execution-approved-launch-find-manual",
+      "consumer": "JdbcBatchApprovedLaunchRequestResolver.resolve(ManualContext)",
+      "parameters": [
+        "approvalId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-insert",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "direction",
+        "messageId",
+        "payloadHash",
+        "status",
+        "ownerId",
+        "leaseUntil",
+        "expiresAt",
+        "attemptNo",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    {
+      "key": "execution-remote-message-find",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "direction",
+        "messageId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-reclaim",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.claim",
+      "parameters": [
+        "ownerId",
+        "leaseUntil",
+        "updatedAt",
+        "direction",
+        "messageId",
+        "version"
+      ]
+    },
+    {
+      "key": "execution-remote-message-transition",
+      "consumer": "JdbcCpfBatchRemoteMessageLedger.transition",
+      "parameters": [
+        "status",
+        "lastErrorCode",
+        "leaseUntil",
+        "updatedAt",
+        "direction",
+        "messageId",
+        "ownerId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-reconcile-load",
+      "consumer": "RemoteMessageReconciliationController.message",
+      "parameters": [
+        "direction",
+        "messageId"
+      ]
+    },
+    {
+      "key": "execution-remote-message-reconcile-unknown-retry",
+      "consumer": "RemoteMessageReconciliationController.retryUnknown",
+      "parameters": [
+        "reconciliationCode",
+        "direction",
+        "messageId",
+        "payloadSha256",
+        "expectedAttemptNo",
+        "expectedVersion"
+      ]
+    },
+    {
+      "key": "execution-remote-message-reconcile-audit",
+      "consumer": "RemoteMessageReconciliationController.audit",
+      "parameters": [
+        "jobId",
+        "requestedBy",
+        "reason",
+        "beforeData",
+        "afterData",
+        "resultMessage",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "worker-registry-upsert",
+      "consumer": "WorkerRegistryReporter.heartbeat",
+      "parameters": [
+        "workerId",
+        "serverInstanceId",
+        "hostName",
+        "processId",
+        "workerVersion",
+        "capabilitiesJson",
+        "maxConcurrency",
+        "controlStatus",
+        "workerStatus",
+        "currentExecutionId"
+      ]
+    },
+    {
+      "key": "scheduler-leader-acquire-update",
+      "consumer": "JdbcSchedulerLeaderRepository.acquire",
+      "parameters": [
+        "instanceId",
+        "leaseUntil",
+        "heartbeatAt",
+        "schedulerKey",
+        "currentInstanceId",
+        "expiredBefore"
+      ]
+    },
+    {
+      "key": "scheduler-leader-insert",
+      "consumer": "JdbcSchedulerLeaderRepository.acquire",
+      "parameters": [
+        "schedulerKey",
+        "instanceId",
+        "leaseUntil",
+        "heartbeatAt"
+      ]
+    },
+    {
+      "key": "scheduler-leader-find",
+      "consumer": "JdbcSchedulerLeaderRepository.acquire",
+      "parameters": [
+        "schedulerKey"
+      ]
+    },
+    {
+      "key": "scheduler-leader-heartbeat",
+      "consumer": "JdbcSchedulerLeaderRepository.heartbeat",
+      "parameters": [
+        "leaseUntil",
+        "schedulerKey",
+        "instanceId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "scheduler-leader-is-current",
+      "consumer": "JdbcSchedulerLeaderRepository.isCurrent",
+      "parameters": [
+        "schedulerKey",
+        "instanceId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "scheduler-find-due",
+      "consumer": "SchedulerDispatchService.dispatchDue",
+      "parameters": []
+    },
+    {
+      "key": "scheduler-trigger-insert-fenced",
+      "consumer": "SchedulerDispatchService",
+      "parameters": [
+        "scheduleId",
+        "scheduledFireAt",
+        "fencingToken",
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "businessDate",
+        "fireZone",
+        "idempotencyKey",
+        "schedulerKey",
+        "instanceId",
+        "currentFencingToken"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-mark-dispatched",
+      "consumer": "SchedulerDispatchService",
+      "parameters": [
+        "executionId",
+        "scheduleId",
+        "scheduledFireAt",
+        "dispatchOwner",
+        "dispatchToken"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-count",
+      "consumer": "SchedulerDispatchService.fire",
+      "parameters": [
+        "scheduleId",
+        "scheduledFireAt"
+      ]
+    },
+    {
+      "key": "scheduler-advance",
+      "consumer": "SchedulerDispatchService.advance",
+      "parameters": [
+        "lastFireAt",
+        "nextFireAt",
+        "scheduleId",
+        "expectedNextFireAtNull",
+        "expectedNextFireAt",
+        "schedulerKey",
+        "instanceId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "centercut-lifecycle-mark-drained-paused",
+      "consumer": "CenterCutLifecycleReconciler.reconcile",
+      "parameters": []
+    },
+    {
+      "key": "centercut-target-find-pending",
+      "consumer": "CenterCutTargetGenerator.generate",
+      "parameters": []
+    },
+    {
+      "key": "centercut-target-mark-failed",
+      "consumer": "CenterCutTargetGenerator.generate",
+      "parameters": [
+        "errorMessage",
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-target-mark-targeting",
+      "consumer": "CenterCutTargetGenerator.generateOne",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-target-insert-item-idempotent",
+      "consumer": "CenterCutTargetGenerator.generateOne",
+      "parameters": [
+        "executionId",
+        "businessKey",
+        "segmentId",
+        "itemPayload",
+        "sourceExecutionId"
+      ]
+    },
+    {
+      "key": "centercut-target-update-progress",
+      "consumer": "CenterCutTargetGenerator.generateOne",
+      "parameters": [
+        "nextCursor",
+        "targetCompleteYn",
+        "insertedCount",
+        "executionState",
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-admission-lock-execution",
+      "consumer": "JdbcCenterCutAdmissionControl.acquire",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-admission-count-active",
+      "consumer": "JdbcCenterCutAdmissionControl.acquire",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-admission-insert-rate-window-idempotent",
+      "consumer": "JdbcCenterCutAdmissionControl.acquire",
+      "parameters": [
+        "executionId",
+        "windowSecond"
+      ]
+    },
+    {
+      "key": "centercut-admission-increment-rate-window",
+      "consumer": "JdbcCenterCutAdmissionControl.acquire",
+      "parameters": [
+        "executionId",
+        "windowSecond",
+        "tpsLimit"
+      ]
+    },
+    {
+      "key": "centercut-claim-find-expired-running",
+      "consumer": "JdbcCenterCutClaimRepository.recoverExpiredToUnknown",
+      "parameters": []
+    },
+    {
+      "key": "centercut-claim-expire",
+      "consumer": "JdbcCenterCutClaimRepository.recoverExpiredToUnknown",
+      "parameters": [
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-item-mark-unknown",
+      "consumer": "JdbcCenterCutClaimRepository.recoverExpiredToUnknown",
+      "parameters": [
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-execution-increment-unknown",
+      "consumer": "JdbcCenterCutClaimRepository.recoverExpiredToUnknown",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-claim-find-candidates",
+      "consumer": "JdbcCenterCutClaimRepository.claim",
+      "parameters": []
+    },
+    {
+      "key": "centercut-claim-find-fencing",
+      "consumer": "JdbcCenterCutClaimRepository.tryClaim",
+      "parameters": [
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-claim-reclaim",
+      "consumer": "JdbcCenterCutClaimRepository.tryClaim",
+      "parameters": [
+        "runnerId",
+        "poolId",
+        "claimToken",
+        "fencingToken",
+        "leaseUntil",
+        "heartbeatAt",
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-claim-insert",
+      "consumer": "JdbcCenterCutClaimRepository.tryClaim",
+      "parameters": [
+        "itemId",
+        "runnerId",
+        "poolId",
+        "claimToken",
+        "leaseUntil",
+        "heartbeatAt"
+      ]
+    },
+    {
+      "key": "centercut-item-mark-running",
+      "consumer": "JdbcCenterCutClaimRepository.tryClaim",
+      "parameters": [
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-claim-release-after-item-conflict",
+      "consumer": "JdbcCenterCutClaimRepository.tryClaim",
+      "parameters": [
+        "itemId",
+        "runnerId",
+        "claimToken",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "centercut-claim-renew",
+      "consumer": "JdbcCenterCutClaimRepository.renew",
+      "parameters": [
+        "leaseUntil",
+        "itemId",
+        "runnerId",
+        "claimToken",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "centercut-item-load-work",
+      "consumer": "JdbcCenterCutClaimRepository.load",
+      "parameters": [
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-claim-release-complete",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "itemId",
+        "runnerId",
+        "claimToken",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "centercut-item-complete",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "itemStatus",
+        "errorMessage",
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-result-insert",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "resultStatus",
+        "resultPayload",
+        "resultMessage",
+        "itemId"
+      ]
+    },
+    {
+      "key": "centercut-execution-update-counters",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "successStatus",
+        "unknownStatus",
+        "failureStatus",
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-item-count-remaining",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-execution-finalize",
+      "consumer": "JdbcCenterCutClaimRepository.complete",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-item-requeue-failed",
+      "consumer": "JdbcCenterCutClaimRepository.requeueFailed",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "centercut-item-reconcile-unknown",
+      "consumer": "JdbcCenterCutClaimRepository.reconcileUnknown",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "control-view-overview",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-instances",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-scheduler",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-worker-pools",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-centercut",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-agents",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-job-packs",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-executions",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-deployments",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-recovery",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-leases",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-alerts",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "control-view-audit",
+      "consumer": "BatchControlQueryController.view",
+      "parameters": []
+    },
+    {
+      "key": "centercut-reconcile-failed-items",
+      "consumer": "CenterCutReconciliationController.failedExecution",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-failed-execution",
+      "consumer": "CenterCutReconciliationController.failedExecution",
+      "parameters": [
+        "changedForFloor",
+        "changedForSubtract",
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-unknown-items",
+      "consumer": "CenterCutReconciliationController.unknownExecution",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-unknown-execution",
+      "consumer": "CenterCutReconciliationController.unknownExecution",
+      "parameters": [
+        "changedForFloor",
+        "changedForSubtract",
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-failed-job",
+      "consumer": "CenterCutReconciliationController.failedJob",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-unknown-job",
+      "consumer": "CenterCutReconciliationController.unknownJob",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-load-execution",
+      "consumer": "CenterCutReconciliationController.execution",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-reconcile-audit",
+      "consumer": "CenterCutReconciliationController.audit",
+      "parameters": [
+        "jobId",
+        "operation",
+        "operatorId",
+        "reason",
+        "afterData",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "jobpack-upsert",
+      "consumer": "JobPackRegistryController.register",
+      "parameters": [
+        "jobPackId",
+        "ownerDomain",
+        "artifactCoordinate",
+        "artifactVersion",
+        "artifactChecksum",
+        "signaturePresentYn",
+        "platformRange",
+        "manifestJson"
+      ]
+    },
+    {
+      "key": "jobpack-delete-jobs",
+      "consumer": "JobPackRegistryController.register",
+      "parameters": [
+        "jobPackId"
+      ]
+    },
+    {
+      "key": "jobpack-insert-job",
+      "consumer": "JobPackRegistryController.register",
+      "parameters": [
+        "jobPackId",
+        "jobId",
+        "restartableYn",
+        "centerCutProviderKey",
+        "centerCutHandlerKey"
+      ]
+    },
+    {
+      "key": "jobpack-list",
+      "consumer": "JobPackRegistryController.list",
+      "parameters": []
+    },
+    {
+      "key": "centercut-execution-find-by-idempotency",
+      "consumer": "CenterCutExecutionService.create",
+      "parameters": [
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "centercut-job-find-active",
+      "consumer": "CenterCutExecutionService.create",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-execution-insert",
+      "consumer": "CenterCutExecutionService.create",
+      "parameters": [
+        "executionId",
+        "centerCutJobId",
+        "idempotencyKey",
+        "parameterCiphertext",
+        "parameterHash",
+        "parameterSchemaVersion",
+        "tpsLimit",
+        "concurrencyLimit",
+        "transactionId",
+        "parentSegmentId",
+        "requestedBy",
+        "reasonText"
+      ]
+    },
+    {
+      "key": "centercut-execution-detail",
+      "consumer": "CenterCutExecutionService.detail",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "centercut-execution-transition",
+      "consumer": "CenterCutExecutionService.transition",
+      "parameters": [
+        "nextState",
+        "executionId",
+        "currentState"
+      ]
+    },
+    {
+      "key": "centercut-execution-audit",
+      "consumer": "CenterCutExecutionService.transition",
+      "parameters": [
+        "jobId",
+        "operation",
+        "operatorId",
+        "reason",
+        "beforeData",
+        "afterData",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "compat-jobs",
+      "consumer": "BatchOperationsCompatibilityService.findJobs",
+      "parameters": []
+    },
+    {
+      "key": "compat-job-detail",
+      "consumer": "BatchOperationsCompatibilityService.findJobDetail",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "compat-schedules",
+      "consumer": "BatchOperationsCompatibilityService.findSchedules",
+      "parameters": []
+    },
+    {
+      "key": "compat-executions-search",
+      "consumer": "BatchOperationsCompatibilityService.findExecutions",
+      "parameters": [
+        "jobIdNull",
+        "jobId",
+        "transactionIdNull",
+        "transactionId",
+        "springInstanceIdNull",
+        "springInstanceId",
+        "workerIdNull",
+        "workerId",
+        "serverInstanceIdNull",
+        "serverInstanceId",
+        "fromDateNull",
+        "fromDate",
+        "toDateNull",
+        "toDate",
+        "limit"
+      ]
+    },
+    {
+      "key": "compat-execution-detail",
+      "consumer": "BatchOperationsCompatibilityService.findExecutionDetail",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "compat-instances",
+      "consumer": "BatchOperationsCompatibilityService.findInstances",
+      "parameters": []
+    },
+    {
+      "key": "compat-workers",
+      "consumer": "BatchOperationsCompatibilityService.findWorkers",
+      "parameters": []
+    },
+    {
+      "key": "compat-step-executions",
+      "consumer": "BatchOperationsCompatibilityService.findStepExecutions",
+      "parameters": [
+        "executionIdNull",
+        "executionId",
+        "jobIdNull",
+        "jobId",
+        "limit"
+      ]
+    },
+    {
+      "key": "compat-relations",
+      "consumer": "BatchOperationsCompatibilityService.findRelations",
+      "parameters": [
+        "jobIdNull",
+        "jobId",
+        "relatedJobId"
+      ]
+    },
+    {
+      "key": "compat-execution-targets",
+      "consumer": "BatchOperationsCompatibilityService.findExecutionTargets",
+      "parameters": [
+        "jobIdNull",
+        "jobId",
+        "statusNull",
+        "status",
+        "limit"
+      ]
+    },
+    {
+      "key": "compat-locks",
+      "consumer": "BatchOperationsCompatibilityService.findLocks",
+      "parameters": [
+        "jobIdNull",
+        "jobId"
+      ]
+    },
+    {
+      "key": "compat-lock-for-update",
+      "consumer": "BatchOperationsCompatibilityService.releaseLock",
+      "parameters": [
+        "lockKey"
+      ]
+    },
+    {
+      "key": "compat-lock-delete-expired",
+      "consumer": "BatchOperationsCompatibilityService.releaseLock",
+      "parameters": [
+        "lockKey",
+        "expectedVersion"
+      ]
+    },
+    {
+      "key": "compat-ghost-candidates",
+      "consumer": "BatchOperationsCompatibilityService.findGhostCandidates",
+      "parameters": [
+        "timeoutSeconds"
+      ]
+    },
+    {
+      "key": "compat-execution-lock",
+      "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
+      "parameters": [
+        "executionId"
+      ]
+    },
+    {
+      "key": "compat-lock-expired-for-job-for-update",
+      "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "compat-lock-delete-job-expired",
+      "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "compat-execution-finish-ghost",
+      "consumer": "BatchOperationsCompatibilityService.actGhostExecution",
+      "parameters": [
+        "executionStatus",
+        "updatedBy",
+        "executionId",
+        "expectedVersion"
+      ]
+    },
+    {
+      "key": "compat-operation-logs",
+      "consumer": "BatchOperationsCompatibilityService.findOperationLogs",
+      "parameters": [
+        "jobIdNull",
+        "jobId",
+        "executionIdNull",
+        "executionId",
+        "limit"
+      ]
+    },
+    {
+      "key": "compat-schedule-detail",
+      "consumer": "BatchOperationsCompatibilityService.simulateSchedule",
+      "parameters": [
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "compat-schedule-lock",
+      "consumer": "BatchOperationsCompatibilityService.updateScheduleEnabled",
+      "parameters": [
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "compat-job-upsert",
+      "consumer": "BatchOperationsCompatibilityService.registerJob",
+      "parameters": [
+        "jobId",
+        "jobName",
+        "jobType",
+        "description",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "compat-execution-stop",
+      "consumer": "BatchOperationsCompatibilityService.requestStop",
+      "parameters": [
+        "updatedBy",
+        "executionId",
+        "expectedVersion"
+      ]
+    },
+    {
+      "key": "compat-schedule-update-enabled",
+      "consumer": "BatchOperationsCompatibilityService.updateScheduleEnabled",
+      "parameters": [
+        "enabledYn",
+        "updatedBy",
+        "scheduleId",
+        "expectedVersion"
+      ]
+    },
+    {
+      "key": "compat-scheduler-due",
+      "consumer": "BatchOperationsCompatibilityService.runSchedulerOnce",
+      "parameters": []
+    },
+    {
+      "key": "compat-job-validate-enabled",
+      "consumer": "BatchOperationsCompatibilityService.createExecution",
+      "parameters": [
+        "jobId"
+      ]
+    },
+    {
+      "key": "compat-execution-insert",
+      "consumer": "BatchOperationsCompatibilityService.createExecution",
+      "parameters": [
+        "jobId",
+        "scheduleId",
+        "jobParameters",
+        "requestedBy",
+        "createdBy"
+      ]
+    },
+    {
+      "key": "compat-operation-audit",
+      "consumer": "BatchOperationsCompatibilityService.audit",
+      "parameters": [
+        "jobId",
+        "executionId",
+        "operationType",
+        "operatorId",
+        "reason",
+        "beforeData",
+        "afterData",
+        "resultType",
+        "resultMessage",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "deploy-cell-detail",
+      "consumer": "CellOperationsService.status",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-cell-status-instances",
+      "consumer": "CellOperationsService.status",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-cell-scale-inventory",
+      "consumer": "CellOperationsService.scale",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-cell-update-desired-count",
+      "consumer": "CellOperationsService.scale",
+      "parameters": [
+        "desiredInstanceCount",
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-cell-reconcile-inventory",
+      "consumer": "CellOperationsService.reconcile",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-runtime-current-execution-count",
+      "consumer": "CellOperationsService.waitIdle",
+      "parameters": [
+        "instanceId"
+      ]
+    },
+    {
+      "key": "deploy-cell-operation-audit",
+      "consumer": "CellOperationsService.audit",
+      "parameters": [
+        "operationType",
+        "operatorId",
+        "reason",
+        "afterData",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "deploy-compatibility-required-capabilities",
+      "consumer": "CompatibilityService.evaluate",
+      "parameters": [
+        "environmentId",
+        "providerCoordinate"
+      ]
+    },
+    {
+      "key": "deploy-runtime-healthy-count",
+      "consumer": "DeploymentEngine.currentHealthy",
+      "parameters": [
+        "serviceId"
+      ]
+    },
+    {
+      "key": "deploy-lock-acquire",
+      "consumer": "DeploymentEngine.lock",
+      "parameters": [
+        "cellId",
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-lock-owner",
+      "consumer": "DeploymentEngine.lock",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-lock-release",
+      "consumer": "DeploymentEngine.unlock",
+      "parameters": [
+        "cellId",
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-begin",
+      "consumer": "DeploymentExecutionRepository.begin",
+      "parameters": [
+        "deploymentId",
+        "cellId",
+        "idempotencyScope",
+        "idempotencyKey",
+        "requestHash",
+        "toVersion",
+        "strategyCode",
+        "expectedVersion",
+        "approvalRequestId",
+        "requestedBy",
+        "approvedBy",
+        "reasonText"
+      ]
+    },
+    {
+      "key": "deploy-execution-instance-result",
+      "consumer": "DeploymentExecutionRepository.instance",
+      "parameters": [
+        "deploymentId",
+        "sequenceNo",
+        "instanceId",
+        "stageCode",
+        "resultState",
+        "resultMessage"
+      ]
+    },
+    {
+      "key": "deploy-execution-finish",
+      "consumer": "DeploymentExecutionRepository.finish",
+      "parameters": [
+        "executionState",
+        "failureStage",
+        "resultMessage",
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-find-idempotency",
+      "consumer": "DeploymentExecutionRepository.findByIdempotency",
+      "parameters": [
+        "idempotencyScope",
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "deploy-plan-insert",
+      "consumer": "DeploymentPlanRepository.create",
+      "parameters": [
+        "planId",
+        "cellId",
+        "manifestJson",
+        "manifestHash",
+        "requestedBy",
+        "reasonText"
+      ]
+    },
+    {
+      "key": "deploy-cell-upsert",
+      "consumer": "DeploymentPlanRepository.create",
+      "parameters": [
+        "cellId",
+        "environmentId",
+        "runtimeRole",
+        "serviceId",
+        "manifestVersion",
+        "manifestHash",
+        "desiredState"
+      ]
+    },
+    {
+      "key": "deploy-instances-delete",
+      "consumer": "DeploymentPlanRepository.create",
+      "parameters": [
+        "cellId"
+      ]
+    },
+    {
+      "key": "deploy-instance-insert",
+      "consumer": "DeploymentPlanRepository.create",
+      "parameters": [
+        "cellId",
+        "instanceId",
+        "hostAlias",
+        "portNo",
+        "profileName",
+        "zoneId",
+        "poolId",
+        "agentBaseUrl",
+        "configRef",
+        "desiredState"
+      ]
+    },
+    {
+      "key": "deploy-plan-load",
+      "consumer": "DeploymentPlanRepository.load",
+      "parameters": [
+        "planId"
+      ]
+    },
+    {
+      "key": "deploy-plan-mark",
+      "consumer": "DeploymentPlanRepository.mark",
+      "parameters": [
+        "planState",
+        "planId"
+      ]
+    },
+    {
+      "key": "deploy-runtime-route",
+      "consumer": "RuntimeLifecycleService.operate",
+      "parameters": [
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-command-insert",
+      "consumer": "JdbcRuntimeCommandRepository.create",
+      "parameters": [
+        "commandId",
+        "idempotencyKey",
+        "commandType",
+        "targetType",
+        "targetSnapshot",
+        "targetSnapshotHash",
+        "expectedVersion",
+        "requestedBy",
+        "reasonText",
+        "approvalPolicyVersion",
+        "approvalRequestId",
+        "approvedBy",
+        "commandState",
+        "executionAttempt",
+        "requestedAt",
+        "expiresAt",
+        "resultText",
+        "failureStage",
+        "beforeState",
+        "afterState",
+        "transactionId",
+        "evidenceRef"
+      ]
+    },
+    {
+      "key": "runtime-command-find",
+      "consumer": "JdbcRuntimeCommandRepository.find",
+      "parameters": [
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "runtime-command-begin",
+      "consumer": "JdbcRuntimeCommandRepository.beginExecution",
+      "parameters": [
+        "commandId"
+      ]
+    },
+    {
+      "key": "runtime-command-transition",
+      "consumer": "JdbcRuntimeCommandRepository.transition",
+      "parameters": [
+        "commandState",
+        "failureStage",
+        "resultText",
+        "commandId"
+      ]
+    },
+    {
+      "key": "runtime-command-attempt-insert",
+      "consumer": "JdbcRuntimeCommandRepository.recordAttempt",
+      "parameters": [
+        "commandId",
+        "attemptNo",
+        "instanceId",
+        "stageCode",
+        "attemptState",
+        "resultMessage"
+      ]
+    },
+    {
+      "key": "runtime-registry-update",
+      "consumer": "JdbcRuntimeRegistry.register",
+      "parameters": [
+        "runtimeRole",
+        "serviceId",
+        "wasId",
+        "hostAlias",
+        "zoneId",
+        "poolId",
+        "artifactVersion",
+        "gitSha",
+        "artifactChecksum",
+        "profileName",
+        "configVersion",
+        "schemaCompatibility",
+        "startedAt",
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-registry-insert",
+      "consumer": "JdbcRuntimeRegistry.register",
+      "parameters": [
+        "instanceId",
+        "runtimeRole",
+        "serviceId",
+        "wasId",
+        "hostAlias",
+        "zoneId",
+        "poolId",
+        "artifactVersion",
+        "gitSha",
+        "artifactChecksum",
+        "profileName",
+        "configVersion",
+        "schemaCompatibility",
+        "startedAt"
+      ]
+    },
+    {
+      "key": "runtime-capabilities-delete",
+      "consumer": "JdbcRuntimeRegistry.register",
+      "parameters": [
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-capability-insert",
+      "consumer": "JdbcRuntimeRegistry.register",
+      "parameters": [
+        "instanceId",
+        "capabilityCode"
+      ]
+    },
+    {
+      "key": "runtime-heartbeat-update",
+      "consumer": "JdbcRuntimeRegistry.heartbeat",
+      "parameters": [
+        "actualState",
+        "heartbeatAt",
+        "fencingToken",
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-heartbeat-insert",
+      "consumer": "JdbcRuntimeRegistry.heartbeat",
+      "parameters": [
+        "instanceId",
+        "heartbeatAt",
+        "readyYn",
+        "availableCapacity",
+        "queueDepth",
+        "drainingYn",
+        "currentExecutionCount",
+        "activeLeaseCount",
+        "lastErrorCode",
+        "deploymentVersion"
+      ]
+    },
+    {
+      "key": "runtime-row-version",
+      "consumer": "JdbcRuntimeRegistry.updateDesiredState",
+      "parameters": [
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-desired-state-update",
+      "consumer": "JdbcRuntimeRegistry.updateDesiredState",
+      "parameters": [
+        "desiredState",
+        "instanceId",
+        "rowVersion"
+      ]
+    },
+    {
+      "key": "runtime-instance-snapshot",
+      "consumer": "JdbcRuntimeRegistry.snapshot",
+      "parameters": [
+        "instanceId"
+      ]
+    },
+    {
+      "key": "runtime-instances-list",
+      "consumer": "JdbcRuntimeRegistry.list",
+      "parameters": [
+        "staleBefore"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-jobs",
+      "consumer": "BatCenterCutOperationsService.findJobs",
+      "parameters": []
+    },
+    {
+      "key": "centercut-operations-find-job-detail",
+      "consumer": "BatCenterCutOperationsService.findJobDetail",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-parameters",
+      "consumer": "BatCenterCutOperationsService.findParameters",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-summarize-items",
+      "consumer": "BatCenterCutOperationsService.findSummary",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-summarize-results",
+      "consumer": "BatCenterCutOperationsService.findSummary",
+      "parameters": [
+        "centerCutJobId"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-targets",
+      "consumer": "BatCenterCutOperationsService.findTargets",
+      "parameters": [
+        "centerCutJobId",
+        "statusNull",
+        "status",
+        "limit"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-results",
+      "consumer": "BatCenterCutOperationsService.findResults",
+      "parameters": [
+        "centerCutJobId",
+        "statusNull",
+        "status",
+        "limit"
+      ]
+    },
+    {
+      "key": "centercut-operations-find-result-detail",
+      "consumer": "BatCenterCutOperationsService.findResultDetail",
+      "parameters": [
+        "resultId"
+      ]
+    },
+    {
+      "key": "retention-operation-log-count",
+      "consumer": "BatOperationLogRetentionHandler.execute",
+      "parameters": [
+        "cutoff"
+      ]
+    },
+    {
+      "key": "retention-operation-log-archive",
+      "consumer": "BatOperationLogRetentionHandler.execute",
+      "parameters": [
+        "archivedBy",
+        "archiveReason",
+        "cutoff"
+      ]
+    },
+    {
+      "key": "retention-operation-log-purge",
+      "consumer": "BatOperationLogRetentionHandler.execute",
+      "parameters": [
+        "cutoff"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-find-dispatchable",
+      "consumer": "SchedulerDispatchService.dispatchPending",
+      "parameters": [
+        "limit"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-claim",
+      "consumer": "SchedulerDispatchService.dispatchPending",
+      "parameters": [
+        "dispatchOwner",
+        "dispatchToken",
+        "scheduleId",
+        "scheduledFireAt",
+        "schedulerKey",
+        "leaderInstanceId",
+        "leaderFencingToken"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-mark-unknown",
+      "consumer": "SchedulerDispatchService.dispatchClaimed",
+      "parameters": [
+        "errorCode",
+        "scheduleId",
+        "scheduledFireAt",
+        "dispatchOwner",
+        "dispatchToken"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-reconcile-load",
+      "consumer": "SchedulerTriggerReconciliationController.trigger",
+      "parameters": [
+        "scheduleId",
+        "scheduledFireAt"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-reconcile-unknown-retry",
+      "consumer": "SchedulerTriggerReconciliationController.retryUnknown",
+      "parameters": [
+        "reconciliationCode",
+        "scheduleId",
+        "scheduledFireAt",
+        "triggerIdempotencyKey",
+        "expectedAttemptCount"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-reconcile-audit",
+      "consumer": "SchedulerTriggerReconciliationController.audit",
+      "parameters": [
+        "requestId",
+        "entityKey",
+        "requestedBy",
+        "approvedBy",
+        "reason",
+        "idempotencyKey",
+        "expectedAttemptCount"
+      ]
+    },
+    {
+      "key": "scheduler-trigger-reconcile-audit-find",
+      "consumer": "SchedulerTriggerReconciliationController.auditByIdempotencyKey",
+      "parameters": [
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "deploy-execution-find-by-id",
+      "consumer": "DeploymentExecutionRepository.find_by_id",
+      "parameters": [
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-instance-results",
+      "consumer": "DeploymentExecutionRepository.instance_results",
+      "parameters": [
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "deploy-execution-reconcile-terminal",
+      "consumer": "DeploymentExecutionRepository.reconcile_terminal",
+      "parameters": [
+        "executionState",
+        "failureStage",
+        "resultMessage",
+        "requestedBy",
+        "approvedBy",
+        "approvalRequestId",
+        "reason",
+        "deploymentId"
+      ]
+    },
+    {
+      "key": "projection-sync-outbox-find",
+      "consumer": "BatchProjectionScheduleSynchronizer.claim",
+      "parameters": []
+    },
+    {
+      "key": "projection-sync-outbox-claim",
+      "consumer": "BatchProjectionScheduleSynchronizer.claim",
+      "parameters": [
+        "instanceId",
+        "leaseUntil",
+        "fencingToken",
+        "outboxId"
+      ]
+    },
+    {
+      "key": "projection-sync-outbox-deliver",
+      "consumer": "BatchProjectionScheduleSynchronizer.apply",
+      "parameters": [
+        "outboxId",
+        "instanceId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "projection-sync-outbox-retry",
+      "consumer": "BatchProjectionScheduleSynchronizer.apply",
+      "parameters": [
+        "nextAttemptAt",
+        "errorCode",
+        "outboxId",
+        "instanceId",
+        "fencingToken"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-count",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": [
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-insert",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": [
+        "scheduleId",
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "cronExpression",
+        "businessDayOnlyYn",
+        "holidayPolicy",
+        "timezone",
+        "nextFireAt",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-update",
+      "consumer": "BatchProjectionScheduleSynchronizer.project",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "cronExpression",
+        "businessDayOnlyYn",
+        "holidayPolicy",
+        "timezone",
+        "nextFireAt",
+        "updatedBy",
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "projection-job-update",
+      "consumer": "BatchProjectionScheduleSynchronizer.projectJob;BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "jobName",
+        "jobType",
+        "definitionVersion",
+        "definitionChecksum",
+        "executorReference",
+        "description",
+        "restartableYn",
+        "updatedBy",
+        "jobId"
+      ]
+    },
+    {
+      "key": "projection-job-insert",
+      "consumer": "BatchProjectionScheduleSynchronizer.projectJob;BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "jobId",
+        "jobName",
+        "jobType",
+        "definitionVersion",
+        "definitionChecksum",
+        "executorReference",
+        "description",
+        "restartableYn",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "projection-sync-schedule-disable",
+      "consumer": "BatchProjectionScheduleSynchronizer.disableSchedule",
+      "parameters": [
+        "updatedBy",
+        "scheduleId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "projection-job-disable-version",
+      "consumer": "BatchProjectionScheduleSynchronizer.disableSchedule;BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": [
+        "updatedBy",
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-list",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": []
+    },
+    {
+      "key": "definition-list-by-job",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": [
+        "jobIdLike"
+      ]
+    },
+    {
+      "key": "definition-list-by-state",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": [
+        "definitionState"
+      ]
+    },
+    {
+      "key": "definition-list-by-job-and-state",
+      "consumer": "BatchJobDefinitionService.list",
+      "parameters": [
+        "jobIdLike",
+        "definitionState"
+      ]
+    },
+    {
+      "key": "definition-state-find",
+      "consumer": "BatchJobDefinitionService.state",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-publish-audit-count",
+      "consumer": "BatchJobDefinitionService.publishApproved",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "approvalRequestId"
+      ]
+    },
+    {
+      "key": "definition-draft-find",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-draft-insert",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "jobName",
+        "executorType",
+        "definitionState",
+        "ownerDomain",
+        "description",
+        "triggerType",
+        "triggerExpression",
+        "timezoneId",
+        "misfirePolicy",
+        "agentPool",
+        "zoneId",
+        "maxConcurrency",
+        "timeoutSeconds",
+        "restartableYn",
+        "maxAttempts",
+        "initialBackoffSeconds",
+        "backoffMultiplier",
+        "maxBackoffSeconds",
+        "skipLimit",
+        "unknownResultPolicy",
+        "compensationReference",
+        "alertDelaySeconds",
+        "slaSeconds",
+        "notifyFailureYn",
+        "notifyMissedYn",
+        "executorReference",
+        "definitionJson",
+        "checksum",
+        "effectiveFrom",
+        "effectiveUntil",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "definition-draft-update",
+      "consumer": "BatchJobDefinitionService.saveDraft",
+      "parameters": [
+        "jobName",
+        "executorType",
+        "definitionState",
+        "ownerDomain",
+        "description",
+        "triggerType",
+        "triggerExpression",
+        "timezoneId",
+        "misfirePolicy",
+        "agentPool",
+        "zoneId",
+        "maxConcurrency",
+        "timeoutSeconds",
+        "restartableYn",
+        "maxAttempts",
+        "initialBackoffSeconds",
+        "backoffMultiplier",
+        "maxBackoffSeconds",
+        "skipLimit",
+        "unknownResultPolicy",
+        "compensationReference",
+        "alertDelaySeconds",
+        "slaSeconds",
+        "notifyFailureYn",
+        "notifyMissedYn",
+        "executorReference",
+        "definitionJson",
+        "checksum",
+        "effectiveFrom",
+        "effectiveUntil",
+        "updatedBy",
+        "jobId",
+        "definitionVersion",
+        "rowVersion"
+      ]
+    },
+    {
+      "key": "definition-transition-find",
+      "consumer": "BatchJobDefinitionService.transition",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-transition-update",
+      "consumer": "BatchJobDefinitionService.transition",
+      "parameters": [
+        "definitionState",
+        "definitionJson",
+        "updatedBy",
+        "jobId",
+        "definitionVersion",
+        "rowVersion"
+      ]
+    },
+    {
+      "key": "definition-project-schedule-update",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "definitionVersion",
+        "definitionChecksum",
+        "cronExpression",
+        "timezone",
+        "updatedBy",
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "definition-project-schedule-insert",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "scheduleId",
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "cronExpression",
+        "timezone",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "definition-project-schedule-disable",
+      "consumer": "BatchJobDefinitionService.projectPublishedDefinition",
+      "parameters": [
+        "updatedBy",
+        "scheduleId"
+      ]
+    },
+    {
+      "key": "definition-projection-retire-other",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-projection-update",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": [
+        "definitionChecksum",
+        "executorType",
+        "executorReference",
+        "triggerType",
+        "triggerExpression",
+        "timezone",
+        "projectionJson",
+        "projectionHash",
+        "effectiveFrom",
+        "effectiveUntil",
+        "publishedBy",
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-projection-insert",
+      "consumer": "BatchJobDefinitionService.persistRuntimeProjection",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum",
+        "executorType",
+        "executorReference",
+        "triggerType",
+        "triggerExpression",
+        "timezone",
+        "projectionJson",
+        "projectionHash",
+        "effectiveFrom",
+        "effectiveUntil",
+        "publishedBy"
+      ]
+    },
+    {
+      "key": "definition-projection-outbox-insert",
+      "consumer": "BatchJobDefinitionService.enqueueProjectionEvent",
+      "parameters": [
+        "outboxId",
+        "jobId",
+        "definitionVersion",
+        "eventType",
+        "payloadHash",
+        "eventPayload"
+      ]
+    },
+    {
+      "key": "definition-projection-retire",
+      "consumer": "BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "definitionChecksum"
+      ]
+    },
+    {
+      "key": "definition-retire-schedule",
+      "consumer": "BatchJobDefinitionService.retireRuntimeProjection",
+      "parameters": [
+        "updatedBy",
+        "scheduleId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-dependency-graph",
+      "consumer": "BatchJobDefinitionService.validateDependencyGraph",
+      "parameters": []
+    },
+    {
+      "key": "definition-audit-insert",
+      "consumer": "BatchJobDefinitionService.audit",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "actionCode",
+        "fromState",
+        "toState",
+        "reason",
+        "operatorId",
+        "requestedBy",
+        "approvalRequestId",
+        "transactionId",
+        "traceId",
+        "beforeJson",
+        "afterJson"
+      ]
+    },
+    {
+      "key": "definition-parameters-delete",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-parameter-insert",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "parameterName",
+        "parameterType",
+        "labelText",
+        "descriptionText",
+        "requiredYn",
+        "sensitiveYn",
+        "defaultValue",
+        "allowedValues",
+        "validationPattern",
+        "minValue",
+        "maxValue",
+        "minLength",
+        "maxLength",
+        "referenceType",
+        "aliasRequiredYn",
+        "runtimeOverrideAllowedYn",
+        "sortOrder"
+      ]
+    },
+    {
+      "key": "definition-dependencies-delete",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId",
+        "definitionVersion"
+      ]
+    },
+    {
+      "key": "definition-dependency-insert",
+      "consumer": "BatchJobDefinitionService.replaceChildren",
+      "parameters": [
+        "jobId",
+        "definitionVersion",
+        "relatedJobId",
+        "conditionCode",
+        "timeoutSeconds",
+        "requiredYn",
+        "sortOrder"
+      ]
+    }
+  ],
+  "verificationStatus": "미검증",
+  "runtimeVerificationScope": [
+    "Java 25/Boot 4.1 compile 및 MariaDB/PostgreSQL/Oracle runtime 실검증"
+  ]
+}

@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS cpf_incident_command CASCADE;
+DROP TABLE IF EXISTS cpf_incident_timeline CASCADE;
+DROP TABLE IF EXISTS cpf_incident_signal CASCADE;
+DROP TABLE IF EXISTS cpf_incident CASCADE;
+DROP TABLE IF EXISTS cpf_maintenance_window CASCADE;
+DROP TABLE IF EXISTS cpf_incident_policy CASCADE;
+DROP FUNCTION IF EXISTS cpf_touch_cpf_incident_command();
+DROP FUNCTION IF EXISTS cpf_touch_cpf_incident();
+DROP FUNCTION IF EXISTS cpf_touch_cpf_maintenance_window();
+DROP FUNCTION IF EXISTS cpf_touch_cpf_incident_policy();

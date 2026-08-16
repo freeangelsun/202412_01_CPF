@@ -1,0 +1,26 @@
+category,classification,required_externalization,programmatic_extension,security_rule
+url,environment-operation,true,Customizer|Provider|Builder,credential-in-url forbidden
+host,environment-operation,true,Customizer|Provider|Builder,loopback allowed only explicit local/test
+port,environment-operation,true,Customizer|Provider|Builder,well-known protocol defaults must be documented
+path,framework-default-overrideable,true,Customizer|Strategy|Builder,secret path forbidden
+vendor,immutable-contract,false,Provider|Strategy,official DB vendors only oracle|postgresql|mariadb
+schema,environment-operation,true,Customizer|Provider,customer schema must not be hardcoded
+user,environment-operation,true,Provider,plain credential forbidden
+timeout,framework-default-overrideable,true,Customizer|Builder,unit required
+retry,framework-default-overrideable,true,Customizer|Strategy,idempotency required
+pool,framework-default-overrideable,true,Customizer|Builder,bounds required
+batch,framework-default-overrideable,true,Customizer|Strategy,concurrency bounds required
+cache,framework-default-overrideable,true,Customizer|Provider,provider exactly-one
+header,immutable-contract,false,Strategy,standard header literals centralized
+locale,framework-default-overrideable,true,Customizer|Provider,BCP47/default documented
+topic,environment-operation,true,Customizer|Provider,tenant/system isolation required
+storage,environment-operation,true,Customizer|Provider,credentials externalized
+security,immutable-contract,false,Strategy|Provider,security weakening runtime override forbidden
+rate-limit,framework-default-overrideable,true,Customizer|Strategy,positive bounds required
+feature,framework-default-overrideable,true,Customizer|Provider,audited runtime override when mutable
+error,immutable-contract,false,Provider,error taxonomy centralized
+runtime,environment-operation,true,Customizer|Provider,runtime mutation requires authority/reason/audit
+page,framework-default-overrideable,true,Customizer|Builder,max page bound required
+file,environment-operation,true,Customizer|Provider,path traversal protection required
+schedule,environment-operation,true,Customizer|Strategy,timezone/misfire policy required
+reconcile,framework-default-overrideable,true,Customizer|Strategy,retry/backoff/idempotency required

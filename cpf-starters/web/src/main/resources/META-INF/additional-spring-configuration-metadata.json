@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "name": "cpf.web.controller-policy.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "CPF @CpfController 구조/Context Runtime 정책 활성화 여부"
+    },
+    {
+      "name": "cpf.web.controller-policy.require-base-class",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfController가 CpfBaseController 3단 상속 구조를 따르도록 fail-fast 검증"
+    },
+    {
+      "name": "cpf.web.dto-validation.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enables automatic Jakarta Bean Validation for @CpfDto arguments at @CpfController boundaries."
+    }
+  ]
+}

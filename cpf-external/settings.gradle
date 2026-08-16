@@ -1,0 +1,14 @@
+// Generated Customer Domain 최소 IA settings입니다.
+rootProject.name = 'cpf-external'
+include 'online'
+
+// CPF Product Source와 함께 하는 회귀검증에서만 명시적으로 Composite Build를 연결합니다.
+// 고객 Release Build는 이 속성을 지정하지 않고 배포된 CPF Artifact를 소비합니다.
+def cpfProductCompositeRoot = providers.gradleProperty('cpfProductCompositeRoot').orNull
+if (cpfProductCompositeRoot) {
+    def productRoot = file(cpfProductCompositeRoot).canonicalFile
+    if (!new File(productRoot, 'settings.gradle').isFile()) {
+        throw new GradleException("CPF Product composite root가 유효하지 않습니다: ${productRoot}")
+    }
+    includeBuild(productRoot) { name = 'cpf-product-source' }
+}

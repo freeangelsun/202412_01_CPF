@@ -1,0 +1,6 @@
+DROP TABLE cpf_incident_command CASCADE CONSTRAINTS;
+DROP TABLE cpf_incident_timeline CASCADE CONSTRAINTS;
+DROP TABLE cpf_incident_signal CASCADE CONSTRAINTS;
+DROP TABLE cpf_incident CASCADE CONSTRAINTS;
+DROP TABLE cpf_maintenance_window CASCADE CONSTRAINTS;
+DROP TABLE cpf_incident_policy CASCADE CONSTRAINTS;

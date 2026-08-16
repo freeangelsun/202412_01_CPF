@@ -1,0 +1,100 @@
+FROM eclipse-temurin:25.0.3_9-jdk AS java_runtime
+FROM node:22.16.0-bookworm AS node_runtime
+FROM mcr.microsoft.com/playwright:v1.62.0-noble
+
+ARG POWERSHELL_VERSION=7.6.4
+ARG DOCKER_VERSION=29.6.2
+ARG COMPOSE_VERSION=v5.3.1
+ARG ORACLE_CLIENT_VERSION=23.26.3.0.0
+ARG ORACLE_CLIENT_PATH_VERSION=2326300
+ARG ORACLE_BASICLITE_SHA256=88c2b59d473f0d34615556dbee51cb90cce61a9104b4c1c772d13c344fba19c9
+ARG ORACLE_SQLPLUS_SHA256=6570d7939856767cdbb549b51e1423d6a5f53143c57c30c015669706f65a632a
+
+USER root
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       ca-certificates \
+       curl \
+       git \
+       jq \
+       openssl \
+       zip \
+       unzip \
+       python3 \
+       python3-pip \
+       python3-venv \
+       mariadb-client \
+       postgresql-client \
+       libaio1t64 \
+       libnsl2 \
+       libicu74 \
+       procps \
+       iputils-ping \
+       netcat-openbsd \
+       openssh-client \
+       sshpass \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=java_runtime /opt/java/openjdk /opt/java/openjdk
+COPY --from=node_runtime /usr/local /usr/local
+RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" -o /tmp/docker.tgz \
+    && tar -xzf /tmp/docker.tgz -C /tmp \
+    && install -m 0755 /tmp/docker/docker /usr/local/bin/docker \
+    && mkdir -p /usr/local/libexec/docker/cli-plugins \
+    && curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+       -o /usr/local/libexec/docker/cli-plugins/docker-compose \
+    && chmod +x /usr/local/libexec/docker/cli-plugins/docker-compose \
+    && rm -rf /tmp/docker /tmp/docker.tgz
+
+RUN mkdir -p /opt/microsoft/powershell/7 \
+    && curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz" \
+       -o /tmp/powershell.tar.gz \
+    && tar -xzf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 \
+    && chmod +x /opt/microsoft/powershell/7/pwsh \
+    && ln -s /opt/microsoft/powershell/7/pwsh /usr/local/bin/pwsh \
+    && rm -f /tmp/powershell.tar.gz
+
+RUN mkdir -p /opt/oracle \
+    && curl -fsSL \
+       "https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_CLIENT_PATH_VERSION}/instantclient-basiclite-linux.x64-${ORACLE_CLIENT_VERSION}.zip" \
+       -o /tmp/oracle-basiclite.zip \
+    && echo "${ORACLE_BASICLITE_SHA256}  /tmp/oracle-basiclite.zip" | sha256sum -c - \
+    && curl -fsSL \
+       "https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_CLIENT_PATH_VERSION}/instantclient-sqlplus-linux.x64-${ORACLE_CLIENT_VERSION}.zip" \
+       -o /tmp/oracle-sqlplus.zip \
+    && echo "${ORACLE_SQLPLUS_SHA256}  /tmp/oracle-sqlplus.zip" | sha256sum -c - \
+    && unzip -oq /tmp/oracle-basiclite.zip -d /opt/oracle \
+    && unzip -oq /tmp/oracle-sqlplus.zip -d /opt/oracle \
+    && rm -f /tmp/oracle-basiclite.zip /tmp/oracle-sqlplus.zip \
+    && ln -sf /opt/oracle/instantclient_23_26/sqlplus /usr/local/bin/sqlplus \
+    && if [ ! -e /usr/lib/x86_64-linux-gnu/libaio.so.1 ] && [ -e /usr/lib/x86_64-linux-gnu/libaio.so.1t64 ]; then ln -s /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1; fi \
+    && echo /opt/oracle/instantclient_23_26 > /etc/ld.so.conf.d/oracle-instantclient.conf \
+    && ldconfig
+
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="${JAVA_HOME}/bin:/opt/microsoft/powershell/7:/opt/oracle/instantclient_23_26:${PATH}"
+ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_23_26
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+WORKDIR /workspace
+
+RUN java -version \
+    && node --version \
+    && npm --version \
+    && pwsh -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' \
+    && python3 --version \
+    && git --version \
+    && mariadb --version \
+    && psql --version \
+    && sqlplus -V \
+    && docker --version \
+    && docker compose version \
+    && jq --version \
+    && openssl version \
+    && ssh -V \
+    && sshpass -V
+
+CMD ["pwsh", "-NoLogo", "-NoProfile"]

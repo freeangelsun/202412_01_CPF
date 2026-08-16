@@ -1,0 +1,5 @@
+{"properties":[
+{"name":"cpf.platform-operations.audit.enabled","type":"java.lang.Boolean","defaultValue":true,"description":"CPF audit annotation runtime enablement."},
+{"name":"cpf.platform-operations.audit.fail-closed","type":"java.lang.Boolean","defaultValue":true,"description":"Fail the managed operation when audit persistence is unavailable."},
+{"name":"cpf.platform-operations.audit.summary-max-length","type":"java.lang.Integer","defaultValue":256,"description":"Maximum safe scalar result summary length."}
+]}

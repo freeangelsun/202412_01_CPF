@@ -1,0 +1,1 @@
+package com.cpf.integration.iso8583;import java.util.*;public record CpfIso8583Message(String mti,Map<Integer,String> fields){public CpfIso8583Message{if(mti==null||!mti.matches("\\d{4}"))throw new IllegalArgumentException("MTI must be 4 digits");fields=Map.copyOf(fields);}}

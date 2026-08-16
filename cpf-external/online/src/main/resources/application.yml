@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: external-online
+  datasource:
+    # 운영 Secret/Endpoint는 환경 Binding으로 주입하며 Sample credential fallback을 두지 않습니다.
+    url: ${EXS_DATASOURCE_URL}
+    username: ${EXS_DATASOURCE_USERNAME}
+    password: ${EXS_DATASOURCE_PASSWORD}
+    driver-class-name: ${EXS_DATASOURCE_DRIVER}
+cpf:
+  generated-domain:
+    name: external
+    system-code: EXS
+    database-role: CUSTOMER_BUSINESS_DB
+    table-prefix: EXS
+mybatis:
+  # Oracle/PostgreSQL/MariaDB 공통 Mapper만 로드하며 Vendor별 Business SQL 복제를 금지합니다.
+  mapper-locations: classpath*:db/mapper/*.xml

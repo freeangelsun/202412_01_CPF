@@ -1,0 +1,94 @@
+import importlib.util, json, pathlib, re, subprocess, sys, unittest
+import xml.etree.ElementTree as ET
+
+ROOT=pathlib.Path(__file__).resolve().parents[3]
+DB=ROOT/'cpf-tools/db'
+OFFICIAL={'mariadb','postgresql','oracle'}
+
+class VendorRendererTest(unittest.TestCase):
+    def test_render_drift_and_domain_template_drift(self):
+        for script in ('render_vendor_pack.py','render_generated_domain_template.py'):
+            cp=subprocess.run([sys.executable,str(DB/script),'--root',str(ROOT),'--check'],capture_output=True,text=True)
+            self.assertEqual(0,cp.returncode,cp.stdout+cp.stderr)
+
+    def test_role_counts_and_vendor_dirs(self):
+        schema=json.loads((DB/'canonical/platform-schema.json').read_text(encoding='utf-8-sig'))
+        counts={r:sum(1 for t in schema['tables'] if t.get('targetDatabaseRole')==r) for r in ('CPF_PLATFORM_DB','BZA_DB','REFERENCE_FIXTURE')}
+        self.assertEqual({'CPF_PLATFORM_DB':190,'BZA_DB':29,'REFERENCE_FIXTURE':4},counts)
+        self.assertEqual(OFFICIAL,{p.name for p in (DB/'generated/current').iterdir() if p.is_dir()})
+        self.assertEqual(OFFICIAL,{p.name for p in (DB/'generated/domain-template').iterdir() if p.is_dir()})
+
+    def test_generated_sql_has_no_cross_vendor_syntax_or_non_executable_seed_markers(self):
+        forbidden={
+          'mariadb':[r'GENERATED\s+BY\s+DEFAULT\s+AS\s+IDENTITY',r'\bBYTEA\b',r'\bVARCHAR2\b'],
+          'postgresql':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bVARCHAR2\b',r'\bFROM\s+dual\b'],
+          'oracle':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bBYTEA\b',r'\bON\s+DUPLICATE\s+KEY\b',r'\bON\s+CONFLICT\b',r'\bLIMIT\s+\d+\b']
+        }
+        for vendor in OFFICIAL:
+            sql='\n'.join(p.read_text(encoding='utf-8-sig') for p in (DB/'generated/current'/vendor).glob('*.sql'))
+            for pat in forbidden[vendor]: self.assertIsNone(re.search(pat,sql,re.I),f'{vendor}: {pat}')
+            for marker in ('CPF_SEED_VARIABLE_DEPENDENT','CPF_SEED_CANONICAL_UPSERT','TODO','UNVERIFIED'):
+                self.assertNotIn(marker,sql,f'{vendor}: {marker}')
+        oracle=(DB/'generated/current/oracle/cpf-platform-seed.sql').read_text(encoding='utf-8-sig')
+        self.assertIn('MERGE INTO CMN_MESSAGE',oracle)
+        self.assertIn("'CPF @CpfTransaction 메타데이터",oracle)
+
+    def test_override_contract(self):
+        data=json.loads((DB/'canonical/vendor-overrides.json').read_text(encoding='utf-8-sig'))
+        seen=set()
+        for row in data.get('overrides',[]):
+            for key in ('canonicalId','vendor','owner','reason','testId'): self.assertTrue(row.get(key),row)
+            self.assertIn(row['vendor'],OFFICIAL)
+            k=(row['canonicalId'],row['vendor']); self.assertNotIn(k,seen); seen.add(k)
+
+    def test_generator_contract_is_canonical_all_vendor_pack(self):
+        contract=json.loads((ROOT/'cpf-tools/generator/contracts/central-domain-template-contract.json').read_text(encoding='utf-8-sig'))
+        packed=json.dumps(contract,ensure_ascii=False)
+        self.assertIn('cpf-tools/db/generated/domain-template/{vendor}',packed)
+        self.assertIn('cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/{vendor}',packed)
+        self.assertNotIn('cpf-tools/db/vendor/{vendor}/domain-template',packed)
+        gen=(ROOT/'cpf-tools/generator/create-domain.ps1').read_text(encoding='utf-8-sig')
+        self.assertNotIn('"selectedVendorOnly": true',gen)
+        self.assertNotIn("'${TablePrefix}DB'",gen)
+        self.assertNotIn('CPF_SCHEMA_NAME=mbrDB',gen)
+
+    def test_generated_runtime_resources_use_connection_default_schema(self):
+        contract=json.loads((ROOT/'cpf-tools/generator/contracts/central-domain-template-contract.json').read_text(encoding='utf-8-sig'))
+        self.assertEqual('CONNECTION_DEFAULT_SCHEMA',contract['businessDatabaseContract']['tableQualification'])
+        self.assertFalse(contract['businessDatabaseContract']['generatedDomainCreatesSchema'])
+
+        for vendor in OFFICIAL:
+            owner_root=ROOT/'cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect'/vendor
+            compatibility_root=DB/'vendor'/vendor/'domain-template/runtime'
+            owner_files={path.relative_to(owner_root).as_posix():path for path in owner_root.rglob('*.template')}
+            compatibility_files={path.relative_to(compatibility_root).as_posix():path for path in compatibility_root.rglob('*.template')}
+            self.assertEqual(set(owner_files),set(compatibility_files),vendor)
+            self.assertEqual(11,len(owner_files),vendor)
+            for relative,owner_path in owner_files.items():
+                owner_resource=owner_path.read_text(encoding='utf-8-sig')
+                self.assertEqual(owner_resource,compatibility_files[relative].read_text(encoding='utf-8-sig'),f'{vendor}: {relative}')
+                self.assertNotIn('@CPF_SCHEMA_NAME@',owner_resource,f'{vendor}: {relative}')
+                self.assertNotIn('.@CPF_TABLE_PREFIX@',owner_resource,f'{vendor}: {relative}')
+
+            for repository_name in ('sample-search.sql.template','sample-count.sql.template','sample-cursor.sql.template'):
+                repository_text=owner_files[f'repository/{repository_name}'].read_text(encoding='utf-8-sig')
+                self.assertIn(':keyword',repository_text,f'{vendor}: {repository_name}')
+                self.assertIn(':statusCode',repository_text,f'{vendor}: {repository_name}')
+
+            owner=owner_files['mybatis/__MAPPER__.xml.template']
+            compatibility=compatibility_files['mybatis/__MAPPER__.xml.template']
+            owner_text=owner.read_text(encoding='utf-8-sig')
+            self.assertEqual(owner_text,compatibility.read_text(encoding='utf-8-sig'),vendor)
+            self.assertIn('@CPF_TABLE_PREFIX@_sample_item',owner_text,vendor)
+            self.assertIn('@CPF_TABLE_PREFIX@_sample_item_idem',owner_text,vendor)
+
+            xml_text=re.sub(r'<!DOCTYPE[^>]+>','',owner_text,count=1)
+            mapper=ET.fromstring(xml_text)
+            for statement_id in ('search','count','cursorSlice'):
+                statement=mapper.find(f"./select[@id='{statement_id}']")
+                self.assertIsNotNone(statement,f'{vendor}: {statement_id}')
+                predicates={child.attrib.get('test') for child in statement.findall('if')}
+                self.assertIn("keyword != null and keyword != ''",predicates,f'{vendor}: {statement_id}')
+                self.assertIn("statusCode != null and statusCode != ''",predicates,f'{vendor}: {statement_id}')
+
+if __name__=='__main__': unittest.main()

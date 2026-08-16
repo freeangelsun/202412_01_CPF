@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+  parameters {
+    booleanParam(name: 'FULL_BUILD', defaultValue: false, description: 'Build every registered CPF module')
+    string(name: 'MODULES', defaultValue: 'cpf-core,cpf-common,cpf-education', description: 'Comma-separated Gradle root projects')
+    choice(name: 'GOAL', choices: ['test','assemble','build'], description: 'Gradle goal per selected module')
+    booleanParam(name: 'PREPARE_DISTRIBUTION', defaultValue: false, description: '배포 JAR을 topology-aware distribution으로 수집')
+    choice(name: 'DEPLOY_ENV', choices: ['dev','stg','prod','local'], description: 'Distribution 대상 환경')
+    choice(name: 'TOPOLOGY', choices: ['single-node','split-online','split-batch','full-distributed','custom'], description: '서버 배치 topology')
+  }
+  stages {
+    stage('Source Gates') {
+      steps {
+        script {
+          if (isUnix()) { sh './gradlew --no-daemon qualityGate' }
+          else { pwsh './gradlew.bat --no-daemon qualityGate' }
+        }
+      }
+    }
+    stage('Build') {
+      steps {
+        script {
+          def command
+          if (params.FULL_BUILD) {
+            command = 'aggregateQualityBuild publicationGate'
+          } else {
+            command = params.MODULES.split(',').collect { ":${it.trim()}:${params.GOAL}" }.join(' ')
+          }
+          if (isUnix()) { sh "./gradlew --no-daemon ${command}" }
+          else { pwsh "./gradlew.bat --no-daemon ${command}" }
+        }
+      }
+    }
+    stage('Prepare Distribution') {
+      when { expression { return params.PREPARE_DISTRIBUTION } }
+      steps {
+        script {
+          // 실제 install/start는 대상 서버에서 distribution/runtime/cpf-instance.*를 사용한다.
+          // Jenkins와 수동배포가 서로 다른 설치 규약을 만들지 않는다.
+          if (isUnix()) {
+            sh "./deploy/tools/prepare-distribution.sh ${params.DEPLOY_ENV} ${params.TOPOLOGY}"
+          } else {
+            pwsh ".\\deploy\\tools\\prepare-distribution.ps1 -Environment ${params.DEPLOY_ENV} -Topology ${params.TOPOLOGY}"
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      archiveArtifacts artifacts: '**/build/reports/**', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'build/cpf-distribution/**', allowEmptyArchive: true, fingerprint: true
+    }
+  }
+}

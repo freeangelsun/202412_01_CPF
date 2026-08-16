@@ -1,0 +1,15 @@
+# Gateway까지 포함한 Local 분산/진입점 검증용 확장 모드입니다.
+cpf:
+  local:
+    runtime:
+      minimum-max-memory-mb: 1000
+    modules:
+      core: true
+      common: true
+      gateway: true
+      admin: true
+      biz-admin: true
+      domains:
+        enabled: true
+        auto-discover: true
+        base-packages: ${CPF_LOCAL_EXTRA_DOMAIN_PACKAGES:}

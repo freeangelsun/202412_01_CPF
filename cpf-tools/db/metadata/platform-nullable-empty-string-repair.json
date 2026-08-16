@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "repairId": "CPF-MIGRATION-096-NULLABLE-EMPTY-STRING",
+  "sourceSchemaVersion": 46,
+  "version": 96,
+  "description": "nullable_empty_string_standard",
+  "logicalDatabase": "cpfDB",
+  "historicalMigrations": [
+    "V69__enterprise_cache_invalidation.sql",
+    "V74__gateway_registry_binding_observability.sql"
+  ],
+  "columns": [
+    { "table": "cpf_cache_invalidation_event", "column": "cache_key" },
+    { "table": "cpf_gateway_server_group", "column": "hash_key_source" },
+    { "table": "cpf_gateway_server_group", "column": "health_policy_id" },
+    { "table": "cpf_gateway_server_group", "column": "failover_group_id" },
+    { "table": "cpf_gateway_binding", "column": "tls_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "authentication_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "authorization_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "header_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "rate_limit_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "health_policy_id" },
+    { "table": "cpf_gateway_binding", "column": "failover_group_id" },
+    { "table": "cpf_gateway_binding", "column": "approval_id" },
+    { "table": "cpf_gateway_apply_status", "column": "applied_version" },
+    { "table": "cpf_gateway_apply_status", "column": "error_code" },
+    { "table": "cpf_gateway_apply_status", "column": "error_message" },
+    { "table": "cpf_gateway_connection_test", "column": "gateway_instance_id" },
+    { "table": "cpf_gateway_connection_test", "column": "instance_id" },
+    { "table": "cpf_gateway_connection_test", "column": "failure_stage" },
+    { "table": "cpf_gateway_connection_test", "column": "trace_id" },
+    { "table": "cpf_gateway_connection_test", "column": "operation_id" },
+    { "table": "cpf_gateway_transaction", "column": "channel_id" },
+    { "table": "cpf_gateway_transaction", "column": "source_ip" },
+    { "table": "cpf_gateway_transaction", "column": "final_instance_id" },
+    { "table": "cpf_gateway_transaction", "column": "protocol_status" },
+    { "table": "cpf_gateway_transaction", "column": "business_code" },
+    { "table": "cpf_gateway_transaction", "column": "failure_stage" },
+    { "table": "cpf_gateway_attempt", "column": "target_host" },
+    { "table": "cpf_gateway_attempt", "column": "protocol_status" },
+    { "table": "cpf_gateway_attempt", "column": "failure_code" },
+    { "table": "cpf_gateway_attempt", "column": "failure_message" }
+  ],
+  "rollbackPolicy": {
+    "mariadb": "EXACT_LEGACY_EMPTY_STRING",
+    "postgresql": "EXACT_LEGACY_EMPTY_STRING",
+    "oracle": "FAIL_CLOSED_UNREPRESENTABLE_EMPTY_STRING"
+  }
+}

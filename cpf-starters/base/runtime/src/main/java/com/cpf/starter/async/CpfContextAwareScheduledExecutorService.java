@@ -1,0 +1,7 @@
+package com.cpf.starter.async;
+import java.util.*; import java.util.concurrent.*;
+public final class CpfContextAwareScheduledExecutorService extends AbstractExecutorService implements ScheduledExecutorService {
+ private final ScheduledExecutorService d; private final CpfAsyncContextPropagation p; public CpfContextAwareScheduledExecutorService(ScheduledExecutorService d,CpfAsyncContextPropagation p){this.d=d;this.p=p;}
+ public void shutdown(){d.shutdown();}public List<Runnable> shutdownNow(){return d.shutdownNow();}public boolean isShutdown(){return d.isShutdown();}public boolean isTerminated(){return d.isTerminated();}public boolean awaitTermination(long t,TimeUnit u)throws InterruptedException{return d.awaitTermination(t,u);}public void execute(Runnable r){d.execute(p.wrap(r,CpfAsyncForkType.SCHEDULER));}
+ public ScheduledFuture<?> schedule(Runnable c,long delay,TimeUnit u){return d.schedule(p.wrap(c,CpfAsyncForkType.SCHEDULER),delay,u);}public <V> ScheduledFuture<V> schedule(Callable<V> c,long delay,TimeUnit u){return d.schedule(p.wrap(c,CpfAsyncForkType.SCHEDULER),delay,u);}public ScheduledFuture<?> scheduleAtFixedRate(Runnable c,long i,long p0,TimeUnit u){return d.scheduleAtFixedRate(p.wrap(c,CpfAsyncForkType.SCHEDULER),i,p0,u);}public ScheduledFuture<?> scheduleWithFixedDelay(Runnable c,long i,long d0,TimeUnit u){return d.scheduleWithFixedDelay(p.wrap(c,CpfAsyncForkType.SCHEDULER),i,d0,u);}
+}

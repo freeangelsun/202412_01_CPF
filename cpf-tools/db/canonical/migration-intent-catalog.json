@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "contract": "CPF_DB_MIGRATION_INTENT_CATALOG",
+  "baseline": {
+    "sourceCommit": "6b2d5d669c2e3e6c44f7b7350ce3577c428df20a",
+    "historicalMigrationImmutable": true,
+    "rendererRegeneratesHistoricalMigration": false,
+    "currentSnapshotRoot": "cpf-tools/db/generated/current"
+  },
+  "currentIntents": [
+    {
+      "id": "NXT2-DB-CONSOLIDATE-PLATFORM",
+      "owner": "cpf-tools/db",
+      "description": "Render consolidated cpfDB/BZA_DB/reference-fixture current snapshot from canonical 215-table model.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-NXT2-CONSOLIDATED-001"
+    },
+    {
+      "id": "NXT2-DB-SEED-CURRENT",
+      "owner": "cpf-tools/db",
+      "description": "Render canonical seed model independently from immutable migration history.",
+      "source": "cpf-tools/db/canonical/seed-model.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-NXT2-SEED-001"
+    },
+    {
+      "id": "D-009-BAT-RUNTIME-ROLE-CURRENTIZATION",
+      "owner": "cpf-tools/runtime",
+      "description": "Fail-closed one-to-one currentization of persistent Batch runtime roles to the canonical Java RuntimeRole contract.",
+      "source": "cpf-tools/runtime/metadata/bat-runtime-role-contract.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-D009-BAT-RUNTIME-ROLE-001"
+    },
+    {
+      "id": "D-010-PLATFORM-SEED-CURRENTIZATION",
+      "owner": "cpf-tools/db",
+      "description": "Currentize immutable baseline installs to the canonical EDU-owned message/response seed while deleting only exact CPF-owned retired REF fingerprints.",
+      "source": "cpf-tools/db/canonical/platform-seed-currentization.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-D010-PLATFORM-SEED-001"
+    },
+    {
+      "id": "QA-B3-004-ADM-INCIDENT-CURRENTIZATION",
+      "owner": "cpf-admin",
+      "description": "Currentize the active ADM notification incident lifecycle from legacy cpf_* physical tables to canonical ADM_* ownership while preserving V92 data and immutable history.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-QAB3-ADM-INCIDENT-001"
+    }
+  ]
+}

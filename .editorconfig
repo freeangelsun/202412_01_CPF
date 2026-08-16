@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.ps1]
+charset = utf-8
+end_of_line = crlf
+
+[*.{sh,gradlew}]
+end_of_line = lf
+
+[*.{jar,png,jpg,jpeg,gif,ico,zip,docx,pdf}]
+insert_final_newline = false
+trim_trailing_whitespace = false

@@ -1,0 +1,1 @@
+package com.cpf.starter.platform.operations.observability;import io.opentelemetry.api.trace.Span;public final class CpfTraceContextProjection {public TraceIds current(){var c=Span.current().getSpanContext();return c.isValid()?new TraceIds(c.getTraceId(),c.getSpanId()):new TraceIds(null,null);}public record TraceIds(String traceId,String spanId){} }

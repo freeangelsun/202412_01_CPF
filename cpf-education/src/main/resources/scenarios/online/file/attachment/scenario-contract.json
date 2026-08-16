@@ -1,0 +1,110 @@
+{
+  "requirementId": "EDU-DEV-08",
+  "title": "파일 업로드·검사·첨부·다운로드",
+  "kind": "ONLINE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_EDU_DEVELOPER",
+  "requiredFields": [
+    "attachmentId",
+    "mediaType",
+    "ownerType",
+    "fileName",
+    "contentLength",
+    "checksum"
+  ],
+  "businessStates": [
+    "UPLOADING",
+    "UPLOADED",
+    "SCANNING",
+    "AVAILABLE",
+    "REJECTED",
+    "FAILED",
+    "EXPIRED",
+    "DELETED"
+  ],
+  "exceptionScenarios": [
+    "허용하지 않는 확장자",
+    "MIME 위조",
+    "Chunk 누락",
+    "업로드 중단",
+    "Hash 불일치",
+    "검사 실패/Timeout",
+    "Storage 장애",
+    "권한 밖 Download",
+    "만료 파일"
+  ],
+  "requiredVerification": [
+    "대용량 Streaming",
+    "중단 후 Resume 또는 정리",
+    "Hash 검증",
+    "검사 상태별 접근 제한",
+    "동시 첨부 연결",
+    "다운로드 감사·Masking"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CHECKSUM",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.scenarios.online.file.attachment",
+  "handlerClass": "com.cpf.education.scenarios.online.file.attachment.EduDev08Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/scenarios/online/file/attachment/EduDev08Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/scenarios/online/file/attachment/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/file/attachment/EduDev08ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/file/attachment/EduDev08FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/file/attachment/EduDev08IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/file/attachment/EduDev08RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/file/attachment/EduDev08UnitTest.java"
+  ],
+  "manualAnchor": "EDU-DEV-08",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "FILE",
+    "ownerModule": "cpf-education",
+    "entryPoint": "cpf-education EDU file store",
+    "operation": "DELETED",
+    "publicContract": "cpf-education safe file/checksum contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-DEV-08/executions",
+    "configurationKey": "cpf.edu.business-file-root",
+    "timeoutSeconds": 120,
+    "argumentFields": [
+      "attachmentId",
+      "mediaType",
+      "ownerType",
+      "fileName",
+      "contentLength",
+      "checksum"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

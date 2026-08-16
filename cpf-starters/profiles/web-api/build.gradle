@@ -1,0 +1,12 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    api project(':starters:base')
+    api project(':framework:web')
+    api "org.springdoc:springdoc-openapi-starter-webmvc-api:${rootProject.ext.cpfSpringdocVersion}"
+    api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${rootProject.ext.cpfSpringdocVersion}"
+    api "org.springdoc:springdoc-openapi-starter-webmvc-scalar:${rootProject.ext.cpfSpringdocVersion}"
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId = 'cpf-starter-web-api'} } }

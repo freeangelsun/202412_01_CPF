@@ -1,0 +1,3 @@
+com.cpf.data.persistence.mybatis.config.CpfMyBatisConfig
+com.cpf.data.persistence.mybatis.CpfDomainMyBatisAutoConfiguration
+com.cpf.data.persistence.mybatis.CpfMyBatisDataOperationsAutoConfiguration

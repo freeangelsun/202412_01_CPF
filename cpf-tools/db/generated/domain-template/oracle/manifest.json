@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "vendor": "oracle",
+  "generated": true,
+  "canonicalSource": "cpf-tools/db/canonical/generated-domain-schema.json",
+  "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+  "artifacts": {
+    "install/10_empty_install.sql.template": "5f9ea01b7bd21f8ed3e09f876a533d76eaf4b473c1abb1064b53d0d1bbc2fd93",
+    "migration/V1____DOMAIN___domain.sql.template": "5f9ea01b7bd21f8ed3e09f876a533d76eaf4b473c1abb1064b53d0d1bbc2fd93",
+    "seed/20_product_seed.sql.template": "74086489d8a6568d188fd6c9d598cd677e04cd4ab7995d75e5ceabc064a09b03",
+    "rollback/R1__remove___DOMAIN___domain.sql.template": "6e1f6b6262f08cb0dfe33126decc9448684ff0e389bd0ea324936c4e82755b1d",
+    "verify/90_verify.sql.template": "dbae05faf5bdc1a92d44c24218b6b084f1166c911baf12c15f26fa131bde3be4"
+  },
+  "runtimeDialectOwner": "cpf-starters/data/persistence/dialect/oracle/generated-domain"
+}

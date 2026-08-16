@@ -1,0 +1,42 @@
+package com.cpf.admin.opr.controller;
+
+import com.cpf.admin.opr.service.AdmObservabilityService;
+import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.cpf.web.api.CpfController;
+
+import java.util.Map;
+
+/**
+ * CPF 로그 정책 감사 로그 조회 API입니다.
+ */
+@CpfController
+@RequestMapping("/adm/api/log-policy-audits")
+@Tag(name = "ADM-LogPolicyAudit", description = "CPF 로그 정책 감사 조회 API")
+public class AdmLogPolicyAuditController extends com.cpf.admin.common.base.AdmBaseController {
+    private final AdmObservabilityService observabilityService;
+
+    public AdmLogPolicyAuditController(AdmObservabilityService observabilityService) {
+        this.observabilityService = observabilityService;
+    }
+
+    @GetMapping
+    @CpfOnlineTransaction(id = "OADMLG0018", name = "ADMLogPolicyAuditList", ownerDomain="ADM")
+    @Operation(operationId = "admLogPolicyAuditFindPolicyAudits", summary = "로그 정책 감사 목록 조회", description = "정책 변경, override 등록/중지, cache refresh 이력을 cpf_log_policy_audit 기준으로 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findPolicyAudits(
+            @RequestParam(required = false) String operatorId,
+            @RequestParam(required = false) String actionType,
+            @RequestParam(required = false) String targetType,
+            @RequestParam(required = false) String targetId,
+            @RequestParam(required = false) Long policyId,
+            @RequestParam(required = false) Long overrideId,
+            @RequestParam(defaultValue = "100") int limit) {
+        return ResponseEntity.ok(observabilityService.findPolicyAudits(
+                operatorId, actionType, targetType, targetId, policyId, overrideId, limit));
+    }
+}

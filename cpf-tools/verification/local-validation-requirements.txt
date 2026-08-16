@@ -1,0 +1,3 @@
+# Project-local dependencies used only by run-cpf-local-full-validation.ps1
+pytest>=8,<10
+cryptography>=44,<47

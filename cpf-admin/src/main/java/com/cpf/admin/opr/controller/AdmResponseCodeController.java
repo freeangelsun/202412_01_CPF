@@ -1,0 +1,136 @@
+/* ADM/BZA 실제 Consumer가 CPF Framework Annotation을 사용하도록 currentize한다. */
+package com.cpf.admin.opr.controller;
+
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.message.dto.CommonResponseCodeRequest;
+import com.cpf.common.message.service.ResponseCodeCacheService;
+import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.core.api.context.CpfContexts;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.cpf.web.api.CpfController;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/** ADM response-code catalog API. */
+@CpfController
+@RequestMapping("/adm/api/response-codes")
+@Tag(name = "ADM-OPR Response Codes", description = "cpf_response_code management API")
+public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBaseController {
+    private final ResponseCodeCacheService responseCodeCacheService;
+    private final AdmAuditLogService auditLogService;
+
+    public AdmResponseCodeController(ResponseCodeCacheService responseCodeCacheService, AdmAuditLogService auditLogService) {
+        this.responseCodeCacheService = responseCodeCacheService;
+        this.auditLogService = auditLogService;
+    }
+
+    @GetMapping
+    @CpfOnlineTransaction(id = "OADMOP0040", name = "ADMResponseCodeList", ownerDomain="ADM")
+    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from cpf_response_code.")
+    public ResponseEntity<Map<String, Object>> findAll(HttpServletRequest request) {
+        requireOperator(request);
+        return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
+    }
+
+    @GetMapping("/{responseCode}")
+    @CpfOnlineTransaction(id = "OADMOP0042", name = "ADMResponseCodeDetail", ownerDomain="ADM")
+    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from cpf_response_code.")
+    public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode, HttpServletRequest request) {
+        requireOperator(request);
+        return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
+    }
+
+    @PostMapping
+    @CpfOnlineTransaction(id = "OADMOP0044", name = "ADMResponseCodeCreate", ownerDomain="ADM")
+    @Operation(operationId = "admResponseCodeCreate", summary = "Create response code", description = "Creates a response code and refreshes responseCodeCache.")
+    public ResponseEntity<Map<String, Object>> create(
+            @Valid @RequestBody CommonResponseCodeRequest request,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
+        String auditReason = auditLogService.requireReason(reason);
+        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.createResponseCode(request));
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_CREATE", request.getResponseCode(), auditReason);
+        return response;
+    }
+
+    @PutMapping("/{responseCode}")
+    @CpfOnlineTransaction(id = "OADMOP0045", name = "ADMResponseCodeUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admResponseCodeUpdate", summary = "Update response code", description = "Updates a response code and refreshes responseCodeCache.")
+    public ResponseEntity<Map<String, Object>> update(
+            @PathVariable String responseCode,
+            @Valid @RequestBody CommonResponseCodeRequest request,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
+        String auditReason = auditLogService.requireReason(reason);
+        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.updateResponseCode(responseCode, request));
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_UPDATE", responseCode, auditReason);
+        return response;
+    }
+
+    @DeleteMapping("/{responseCode}")
+    @CpfOnlineTransaction(id = "OADMOP0048", name = "ADMResponseCodeDelete", ownerDomain="ADM")
+    @Operation(operationId = "admResponseCodeDelete", summary = "Delete response code", description = "Deletes a response code and refreshes responseCodeCache.")
+    public ResponseEntity<Map<String, Object>> delete(
+            @PathVariable String responseCode,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        String auditReason = auditLogService.requireReason(reason);
+        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.deleteResponseCode(responseCode));
+        recordAudit(servletRequest, operator, "RESPONSE_CODE_DELETE", responseCode, auditReason);
+        return response;
+    }
+
+    private ResponseEntity<Map<String, Object>> safeResponse(ResponseCodeAction action) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        try {
+            response.put("available", true);
+            response.put("result", action.run());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            response.put("available", false);
+            response.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (DataAccessException ex) {
+            response.put("available", false);
+            response.put("result", Map.of());
+            response.put("message", "cpf_response_code operation is temporarily unavailable.");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+        }
+    }
+
+    @FunctionalInterface
+    private interface ResponseCodeAction {
+        Object run();
+    }
+
+    private void recordAudit(
+            HttpServletRequest servletRequest,
+            String operator,
+            String actionType,
+            String responseCode,
+            String reason) {
+        auditLogService.record(
+                CpfContexts.transactionId(), operator, actionType, "cpf_response_code", responseCode, reason,
+                servletRequest.getRemoteAddr());
+    }
+}

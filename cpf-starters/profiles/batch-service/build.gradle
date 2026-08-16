@@ -1,0 +1,14 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    api project(':starters:base')
+    api project(':runtime:batch:api')
+    implementation project(':runtime:batch:runtime')
+    api project(':framework:integration')
+    // Generated Batch는 Internal integration leaf를 직접 참조하지 않고 Public batch Profile을 통해 상속합니다.
+    implementation project(':internal:integration:http')
+    implementation project(':internal:integration:resilience')
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId = 'cpf-starter-batch'} } }

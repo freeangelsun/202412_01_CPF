@@ -1,0 +1,101 @@
+{
+  "requirementId": "EDU-DEV-12",
+  "title": "Cache·기능 전환·Secret 교체",
+  "kind": "ONLINE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_EDU_DEVELOPER",
+  "requiredFields": [
+    "codes",
+    "discounts",
+    "secretAlias"
+  ],
+  "businessStates": [
+    "HIT",
+    "MISS",
+    "STALE",
+    "BYPASS",
+    "OFF",
+    "ACTIVE",
+    "ROTATING",
+    "FAILED"
+  ],
+  "exceptionScenarios": [
+    "Redis 연결 실패",
+    "Stale 데이터",
+    "직렬화 불일치",
+    "Flag Service 장애",
+    "잘못된 대상 규칙",
+    "Secret 누락",
+    "Secret 교체 후 인증 실패",
+    "Secret 로그 노출"
+  ],
+  "requiredVerification": [
+    "Cache Hit/Miss/TTL",
+    "장애 시 Fallback 정책",
+    "Flag 대상 분리",
+    "Secret Rotation 전후",
+    "민감정보 Scan",
+    "다중 인스턴스 Cache 무효화"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.scenarios.online.runtime.featuremanagement",
+  "handlerClass": "com.cpf.education.scenarios.online.runtime.featuremanagement.EduDev12Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/scenarios/online/runtime/featuremanagement/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/runtime/featuremanagement/EduDev12UnitTest.java"
+  ],
+  "manualAnchor": "EDU-DEV-12",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "FAILED",
+    "publicContract": "cpf-education EDU fixture DB business record contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-DEV-12/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "codes",
+      "discounts",
+      "secretAlias"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

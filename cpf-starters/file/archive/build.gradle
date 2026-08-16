@@ -1,0 +1,21 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':framework:file')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    api project(':framework:core')
+api 'org.apache.commons:commons-compress:1.28.0'
+implementation 'org.springframework.boot:spring-boot-autoconfigure'
+annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-file-archive'
+        }
+    }
+}
+

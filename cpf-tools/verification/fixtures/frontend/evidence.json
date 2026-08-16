@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "baselineSha": "b7d3cdacff3adba757d852faacf4cff5ee80cdaf",
+  "modules": {
+    "cpf-admin": {
+      "featureSourcePath": "cpf-admin/frontend/src/features/approvals/methods.ts",
+      "featureFixture": "cpf-admin/feature-consumer.ts",
+      "featureBlobSha": "d072181ebe39ef176c7620690202d6d268b72c7c",
+      "mutatorSourcePath": "cpf-admin/frontend/src/shared/orval-mutator.ts",
+      "mutatorFixture": "cpf-admin/orval-mutator.ts",
+      "mutatorBlobSha": "63a26c51d01cb807307321adb3907098834e7035",
+      "indexSourcePath": "cpf-admin/frontend/index.html",
+      "indexFixture": "cpf-admin/index.html",
+      "indexBlobSha": "5af4192e2d2d913e37866ed9be95ad4e6136a58b",
+      "markerSourcePath": "cpf-admin/frontend/src/generated/.cpf-openapi-source.json",
+      "markerFixture": "cpf-admin/openapi-source.json",
+      "markerBlobSha": "e36035beb29fa6fa4cd7373a6a7e6d6a8cd135c9",
+      "requiredFeatureTokens": [
+        "../../generated/cpf-api",
+        "admRuntimeControlPreviewChange",
+        "admRuntimeControlCreateChange",
+        "admRuntimeControlRollbackChange",
+        "admRuntimeControlVerifyAudit"
+      ]
+    },
+    "cpf-biz-admin": {
+      "featureSourcePath": "cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue",
+      "featureFixture": "cpf-biz-admin/feature-consumer.vue",
+      "featureBlobSha": "5a101f6b2a4f2cb8bcc45a1058b45e7f201e4c16",
+      "mutatorSourcePath": "cpf-biz-admin/frontend/src/shared/orval-mutator.ts",
+      "mutatorFixture": "cpf-biz-admin/orval-mutator.ts",
+      "mutatorBlobSha": "b7582c8db0f355860c16cd2e7244024828574dfb",
+      "indexSourcePath": "cpf-biz-admin/frontend/index.html",
+      "indexFixture": "cpf-biz-admin/index.html",
+      "indexBlobSha": "6f258baf56f0119717b2b0b40e26e48e4320ee40",
+      "markerSourcePath": "cpf-biz-admin/frontend/src/generated/.cpf-openapi-source.json",
+      "markerFixture": "cpf-biz-admin/openapi-source.json",
+      "markerBlobSha": "a495921de59c38239b29000946d6998de682500f",
+      "requiredFeatureTokens": [
+        "../../generated/orval/cpf-api",
+        "bzaApprovalParticipantDecision",
+        "crypto.randomUUID()",
+        "reason:reason.value",
+        "comment:reason.value"
+      ]
+    }
+  }
+}

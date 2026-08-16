@@ -1,0 +1,11 @@
+# EDU/EDU dev profile 설정입니다.
+
+server:
+  port: ${EDU_SERVER_PORT}
+
+spring:
+  datasource:
+    ref:
+      url: ${EDU_DATASOURCE_URL}
+      username: ${EDU_DATASOURCE_USERNAME}
+      password: ${EDU_DATASOURCE_PASSWORD}

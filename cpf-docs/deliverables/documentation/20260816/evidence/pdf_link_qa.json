@@ -1,0 +1,38 @@
+{
+  "02_프레임워크_개발자_가이드": {
+    "pages": 16,
+    "links": 44,
+    "internal_links": 44,
+    "bad_internal_links": []
+  },
+  "03_배치_개발자_가이드": {
+    "pages": 12,
+    "links": 40,
+    "internal_links": 40,
+    "bad_internal_links": []
+  },
+  "04_운영자_매뉴얼": {
+    "pages": 9,
+    "links": 32,
+    "internal_links": 32,
+    "bad_internal_links": []
+  },
+  "05_배치_운영_가이드": {
+    "pages": 8,
+    "links": 34,
+    "internal_links": 34,
+    "bad_internal_links": []
+  },
+  "06_Gateway_개발_사용_가이드": {
+    "pages": 8,
+    "links": 29,
+    "internal_links": 29,
+    "bad_internal_links": []
+  },
+  "07_Specification_기술_명세": {
+    "pages": 12,
+    "links": 34,
+    "internal_links": 34,
+    "bad_internal_links": []
+  }
+}

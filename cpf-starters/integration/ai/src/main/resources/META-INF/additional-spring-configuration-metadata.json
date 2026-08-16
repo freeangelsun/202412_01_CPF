@@ -1,0 +1,64 @@
+{
+  "properties": [
+    {
+      "name": "cpf.integration.ai.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Enable CPF provider-neutral AI runtime."
+    },
+    {
+      "name": "cpf.integration.ai.max-attempts",
+      "type": "java.lang.Integer",
+      "defaultValue": 3
+    },
+    {
+      "name": "cpf.integration.ai.retry-attempts-per-provider",
+      "type": "java.lang.Integer",
+      "defaultValue": 2
+    },
+    {
+      "name": "cpf.integration.ai.timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "10s"
+    },
+    {
+      "name": "cpf.integration.ai.retry-backoff",
+      "type": "java.time.Duration",
+      "defaultValue": "100ms"
+    },
+    {
+      "name": "cpf.integration.ai.circuit-failure-threshold",
+      "type": "java.lang.Integer",
+      "defaultValue": 3
+    },
+    {
+      "name": "cpf.integration.ai.circuit-open-duration",
+      "type": "java.time.Duration",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "cpf.integration.ai.requests-per-minute",
+      "type": "java.lang.Integer",
+      "defaultValue": 60,
+      "description": "Tenant-scoped AI request rate limit."
+    },
+    {
+      "name": "cpf.integration.ai.estimated-tokens-per-minute",
+      "type": "java.lang.Long",
+      "defaultValue": 120000,
+      "description": "Tenant-scoped estimated token quota."
+    },
+    {
+      "name": "cpf.integration.ai.max-payload-chars",
+      "type": "java.lang.Integer",
+      "defaultValue": 200000,
+      "description": "Maximum masked payload characters per AI request."
+    },
+    {
+      "name": "cpf.integration.ai.max-requested-output-tokens",
+      "type": "java.lang.Long",
+      "defaultValue": 32768,
+      "description": "Maximum requested output token limit."
+    }
+  ]
+}

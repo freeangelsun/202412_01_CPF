@@ -1,0 +1,15 @@
+// CPF Generator가 생성한 Domain 공통 Gradle 설정입니다.
+plugins { id 'base' }
+
+allprojects {
+    group = 'member'
+    version = '1.0.0-SNAPSHOT'
+    repositories { mavenLocal(); mavenCentral() }
+}
+
+subprojects {
+    plugins.withId('java') {
+        java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+        tasks.withType(Test).configureEach { useJUnitPlatform() }
+    }
+}

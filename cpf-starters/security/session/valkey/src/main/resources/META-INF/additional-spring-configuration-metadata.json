@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {"name":"cpf.security.session.valkey.enabled","type":"java.lang.Boolean","defaultValue":false,"description":"Enable the Valkey distributed-session provider."},
+    {"name":"cpf.security.session.valkey.key-prefix","type":"java.lang.String","defaultValue":"cpf:session:","description":"Tenant/session key namespace prefix."},
+    {"name":"cpf.security.session.valkey.default-ttl","type":"java.time.Duration","defaultValue":"30m","description":"Default session lifetime."},
+    {"name":"cpf.security.session.valkey.max-concurrent-sessions","type":"java.lang.Integer","defaultValue":5,"description":"Maximum active sessions per tenant/principal."}
+  ]
+}

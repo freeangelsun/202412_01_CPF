@@ -1,0 +1,10 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    implementation project(':framework:base-runtime')
+    api project(':framework:integration')
+    api project(':framework:core')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId = 'cpf-starter-integration-webhook'} } }

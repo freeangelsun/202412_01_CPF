@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':framework:data')
+    implementation project(':framework:data:persistence')
+    api project(':framework:operations')
+    implementation project(':internal:platform-operations:runtime-control')
+    api project(':framework:core')
+api project(':starters:data:jdbc')
+implementation 'org.springframework.boot:spring-boot-autoconfigure'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-platform-operations-channel-registry-jdbc'
+        }
+    }
+}

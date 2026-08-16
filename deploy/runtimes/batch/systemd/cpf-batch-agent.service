@@ -1,0 +1,21 @@
+[Unit]
+Description=CPF cpf-batch-agent
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=cpf
+Group=cpf
+EnvironmentFile=-/etc/cpf/cpf-batch-agent.env
+ExecStart=/opt/cpf/bin/cpf-batch-agent.sh run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=600
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cpf/cpf-batch-agent /var/log/cpf/cpf-batch-agent
+[Install]
+WantedBy=multi-user.target

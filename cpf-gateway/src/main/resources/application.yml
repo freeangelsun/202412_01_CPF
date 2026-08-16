@@ -1,0 +1,115 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: ${GWY_SHUTDOWN_TIMEOUT:30s}
+  application:
+    name: cpf-gateway
+  datasource:
+    cpf:
+      mode: ${GWY_DATASOURCE_MODE:${CPF_DB_MODE:url}}
+      url: ${GWY_DATASOURCE_URL:${CPF_DB_URL:}}
+      database-name: ${GWY_DB_NAME:${CPF_DB_NAME:cpfDB}}
+      username: ${GWY_DATASOURCE_USERNAME:cpf_app}
+      password: ${GWY_DATASOURCE_PASSWORD:__REPLACE_BY_ENV__}
+      jndi-name: ${GWY_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfGatewayDataSource}
+      driver-class-name: ${GWY_DB_DRIVER:${CPF_DB_DRIVER:}}
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:file:${CPF_CONFIG_DIR:./config}/application-cpf.yml
+      - optional:file:${CPF_CONFIG_DIR:./config}/application-cpf-${SPRING_PROFILES_ACTIVE:local}.yml
+
+server:
+  # [역할] Gateway Data Plane listener. 기존 Canonical port는 8070이며 환경에서는 GWY_SERVER_PORT로 명시합니다.
+  port: ${GWY_SERVER_PORT:8070}
+  # [운영주의] 종료 시 신규 요청을 막고 진행 중 거래의 제한된 종료 시간을 보장합니다.
+  shutdown: graceful
+  max-http-request-header-size: ${GWY_HEADER_BYTES_CAP:64KB}
+  ssl:
+    enabled: ${GWY_TLS_ENABLED:false}
+    key-store: ${GWY_TLS_KEY_STORE:}
+    key-store-password: ${GWY_TLS_KEY_STORE_PASSWORD:}
+    key-store-type: ${GWY_TLS_KEY_STORE_TYPE:PKCS12}
+    enabled-protocols: ${GWY_TLS_PROTOCOLS:TLSv1.3,TLSv1.2}
+
+cpf:
+  framework:
+    module-id: ${GWY_MODULE_ID:GWY}
+    instance-id: ${GWY_INSTANCE_ID:gwy-local-01}
+    was-id: ${GWY_WAS_ID:gwLC001}
+  gateway:
+    # 설치 Property는 운영 정책이 넘을 수 없는 안전 상한입니다.
+    # [역할] profile 안전정책 판정에 사용하는 환경 코드입니다. prod에서는 localhost/sample fallback을 허용하지 않습니다.
+    environment-code: ${GWY_ENVIRONMENT_CODE:${SPRING_PROFILES_ACTIVE:local}}
+    # [역할] Gateway 인스턴스 상관관계 ID. Log/Trace/ADM Apply 상태와 동일 값을 사용합니다.
+    instance-id: ${GWY_INSTANCE_ID:${CPF_INSTANCE_ID:gwy-local-01}}
+    # [역할] Zone/사이트 routing 정보. Multi-instance에서 canary/health/routing projection에 사용합니다.
+    zone-code: ${GWY_ZONE_CODE:}
+    route-refresh: ${GWY_ROUTE_REFRESH:30s}
+    policy-refresh: ${GWY_POLICY_REFRESH:15s}
+    health-probe-interval: ${GWY_HEALTH_PROBE_INTERVAL:30s}
+    stale-after: ${GWY_HEALTH_STALE_AFTER:90s}
+    connect-timeout-cap: ${GWY_CONNECT_TIMEOUT_CAP:10s}
+    response-timeout-cap: ${GWY_RESPONSE_TIMEOUT_CAP:60s}
+    overall-timeout-cap: ${GWY_OVERALL_TIMEOUT_CAP:90s}
+    retry-count-cap: ${GWY_RETRY_COUNT_CAP:2}
+    # [기본값] 1000. Data Plane 동시 요청 안전 상한이며 초과 요청은 503/Retry-After로 fail-fast 합니다.
+    max-concurrent-requests-cap: ${GWY_MAX_CONCURRENT_REQUESTS_CAP:1000}
+    rate-limit-counter-entries-cap: ${GWY_RATE_LIMIT_COUNTER_ENTRIES_CAP:100000}
+    rate-limit-counter-mode: ${GWY_RATE_LIMIT_COUNTER_MODE:LOCAL}
+    rate-limit-fail-closed-on-counter-failure: ${GWY_RATE_LIMIT_FAIL_CLOSED:true}
+    require-distributed-rate-limit-counter: ${GWY_REQUIRE_DISTRIBUTED_RATE_LIMIT_COUNTER:false}
+    # Target SSRF/TLS 안전 경계. 운영에서는 CIDR/Port를 Deployment policy로 좁혀 사용합니다.
+    allow-private-targets: ${GWY_ALLOW_PRIVATE_TARGETS:true}
+    allow-public-targets: ${GWY_ALLOW_PUBLIC_TARGETS:false}
+    allow-dns-targets: ${GWY_ALLOW_DNS_TARGETS:true}
+    require-tls-targets: ${GWY_REQUIRE_TLS_TARGETS:true}
+    allowed-target-ports: ${GWY_ALLOWED_TARGET_PORTS:443,8443,9443}
+    allowed-target-cidrs: ${GWY_ALLOWED_TARGET_CIDRS:}
+    data-plane-port: ${GWY_DATA_PLANE_PORT:${GWY_SERVER_PORT:8070}}
+    require-tls-ingress: ${GWY_REQUIRE_TLS_INGRESS:false}
+    allowed-ingress-protocols: ${GWY_ALLOWED_INGRESS_PROTOCOLS:HTTP/1.1,HTTP/2.0}
+    maintenance-mode: ${GWY_MAINTENANCE_MODE:false}
+    maintenance-retry-after: ${GWY_MAINTENANCE_RETRY_AFTER:60s}
+    maintenance-retry-after-cap: ${GWY_MAINTENANCE_RETRY_AFTER_CAP:15m}
+    # 외부에서 전달받아도 되는 Context Header allowlist. x-forwarded-*와 내부 x-cpf-*는 Handler가 별도 차단/재생성합니다.
+    trusted-context-headers: ${GWY_TRUSTED_CONTEXT_HEADERS:accept,content-type,idempotency-key,traceparent,tracestate,x-api-version,x-channel-id,x-client-id,x-operation-reason,x-transaction-id,x-original-channel-code,x-channel-code,x-request-type,x-cpf-idempotency-key}
+    request-body-bytes-cap: ${GWY_REQUEST_BODY_BYTES_CAP:10485760}
+    response-body-bytes-cap: ${GWY_RESPONSE_BODY_BYTES_CAP:10485760}
+    header-count-cap: ${GWY_HEADER_COUNT_CAP:100}
+    header-bytes-cap: ${GWY_HEADER_BYTES_CAP:65536}
+    raw-body-capture-allowed: ${GWY_RAW_BODY_CAPTURE_ALLOWED:false}
+    log-spool-bytes-cap: ${GWY_LOG_SPOOL_BYTES_CAP:2147483648}
+    log-spool-directory: ${GWY_LOG_SPOOL_DIR:./data/gateway-log-spool}
+    bootstrap-mode: ${GWY_BOOTSTRAP_MODE:FAIL_CLOSED}
+    transfer:
+      max-request-bytes: ${GWY_TRANSFER_MAX_REQUEST_BYTES:${GWY_REQUEST_BODY_BYTES_CAP:10485760}}
+      memory-threshold-bytes: ${GWY_TRANSFER_MEMORY_THRESHOLD_BYTES:1048576}
+      io-buffer-bytes: ${GWY_TRANSFER_IO_BUFFER_BYTES:65536}
+      connect-timeout-millis: ${GWY_TRANSFER_CONNECT_TIMEOUT_MILLIS:3000}
+      request-timeout-millis: ${GWY_TRANSFER_REQUEST_TIMEOUT_MILLIS:30000}
+      temp-directory: ${GWY_TRANSFER_TEMP_DIRECTORY:${java.io.tmpdir}/cpf-gateway}
+    control:
+      enabled: ${GWY_CONTROL_ENABLED:false}
+      shared-secret: ${CPF_GATEWAY_CONTROL_SHARED_SECRET:}
+      allowed-skew-seconds: ${GWY_CONTROL_ALLOWED_SKEW_SECONDS:60}
+      nonce-retention-seconds: ${GWY_CONTROL_NONCE_RETENTION_SECONDS:180}
+      listener-port: ${GWY_CONTROL_LISTENER_PORT:0}
+      bind-address: ${GWY_CONTROL_BIND_ADDRESS:127.0.0.1}
+      tls-enabled: ${GWY_CONTROL_TLS_ENABLED:false}
+      key-store: ${GWY_CONTROL_TLS_KEY_STORE:}
+      key-store-password: ${GWY_CONTROL_TLS_KEY_STORE_PASSWORD:}
+      key-store-type: ${GWY_CONTROL_TLS_KEY_STORE_TYPE:PKCS12}
+      enabled-protocols: ${GWY_CONTROL_TLS_PROTOCOLS:TLSv1.3,TLSv1.2}
+    route-event:
+      worker-millis: ${GWY_ROUTE_EVENT_WORKER_MILLIS:1000}
+    route-reconcile-millis: ${GWY_ROUTE_RECONCILE_MILLIS:30000}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

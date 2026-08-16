@@ -1,0 +1,22 @@
+# EDU/EDU prod profile 설정입니다.
+
+server:
+  port: ${EDU_SERVER_PORT}
+
+spring:
+  datasource:
+    ref:
+      mode: ${EDU_DATASOURCE_MODE:url}
+      url: ${EDU_DATASOURCE_URL:${EDU_DB_URL}}
+      username: ${EDU_DATASOURCE_USERNAME:${EDU_DB_USERNAME}}
+      password: ${EDU_DATASOURCE_PASSWORD:${EDU_DB_PASSWORD}}
+      jndi-name: ${EDU_DATASOURCE_JNDI_NAME:java:comp/env/jdbc/cpfEducationDataSource}
+
+logging:
+  level:
+    com.cpf.education: INFO
+
+cpf:
+  cmn:
+    sample-db:
+      enabled: ${CPF_CMN_SAMPLE_DB_ENABLED:false}

@@ -1,0 +1,112 @@
+{
+  "requirementId": "EDU-GW-05",
+  "title": "Draft·검증·승인·게시·부분 적용",
+  "kind": "GATEWAY",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_GATEWAY_OPERATOR",
+  "requiredFields": [
+    "routeVersion",
+    "checksum",
+    "approvalId",
+    "approvalPolicyId"
+  ],
+  "businessStates": [
+    "DRAFT",
+    "VALIDATED",
+    "APPROVAL_REQUESTED",
+    "APPROVED",
+    "PUBLISHING",
+    "APPLIED",
+    "PARTIAL",
+    "REJECTED",
+    "ROLLED_BACK"
+  ],
+  "exceptionScenarios": [
+    "NACK",
+    "일부 ACK",
+    "승인 만료",
+    "Checksum 불일치",
+    "게시 응답 유실"
+  ],
+  "requiredVerification": [
+    "Target 직접/경유 비교",
+    "인증·권한 실패 구분",
+    "Timeout·Retry 단계",
+    "부분 적용·Reconcile",
+    "LKG Rollback",
+    "다중 인스턴스 Drift",
+    "Browser Publish Flow"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "APPROVAL",
+    "CHECKSUM",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "OUTBOX",
+    "EXTERNAL_SEND",
+    "ACK",
+    "RECONCILE",
+    "COMPENSATION_READY",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "BEFORE_EXTERNAL_SEND",
+    "AFTER_EXTERNAL_SEND",
+    "RESPONSE_LOST",
+    "PARTIAL_TARGET_FAILURE"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": true,
+  "compensationSupported": true,
+  "rollbackSupported": false,
+  "maxRetries": 5,
+  "implementationPackage": "com.cpf.education.operations.gateway.publish",
+  "handlerClass": "com.cpf.education.operations.gateway.publish.EduGw05Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/operations/gateway/publish/EduGw05Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/operations/gateway/publish/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/operations/gateway/publish/EduGw05ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/gateway/publish/EduGw05FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/gateway/publish/EduGw05IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/gateway/publish/EduGw05RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/gateway/publish/EduGw05UnitTest.java"
+  ],
+  "manualAnchor": "EDU-GW-05",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "REFERENCE_GATEWAY",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "ROLLED_BACK",
+    "publicContract": "cpf-education EDU Gateway simulator + cpfDB contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-GW-05/executions",
+    "configurationKey": "cpf.education.features.gateway.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "routeVersion",
+      "checksum",
+      "approvalId",
+      "approvalPolicyId"
+    ]
+  },
+  "featurePack": "gateway",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.gateway.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

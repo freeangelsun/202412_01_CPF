@@ -1,0 +1,4 @@
+DELETE FROM bat_lock
+WHERE lock_key = ?
+  AND expire_at < @NOW3@
+  AND row_version = ?

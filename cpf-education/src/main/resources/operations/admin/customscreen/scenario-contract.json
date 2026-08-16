@@ -1,0 +1,97 @@
+{
+  "requirementId": "EDU-ADM-07",
+  "title": "고객 전용 화면 추가의 마지막 선택",
+  "kind": "ADM",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_ADM_OPERATOR",
+  "requiredFields": [
+    "businessId",
+    "approvalId"
+  ],
+  "businessStates": [
+    "REQUESTED",
+    "ACCEPTED",
+    "RUNNING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "exceptionScenarios": [
+    "기존 기능 중복",
+    "직접 DB 수정",
+    "권한 누락",
+    "Frontend/Backend 계약 불일치"
+  ],
+  "requiredVerification": [
+    "Backend Contract Test",
+    "Same-JVM/Remote Adapter Test",
+    "권한·Masking Test",
+    "Timeout·응답 유실 Test",
+    "Browser Test",
+    "Audit·Trace 연결"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.operations.admin.customscreen",
+  "handlerClass": "com.cpf.education.operations.admin.customscreen.EduAdm07Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/operations/admin/customscreen/EduAdm07Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/operations/admin/customscreen/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/customscreen/EduAdm07ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/customscreen/EduAdm07FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/customscreen/EduAdm07IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/customscreen/EduAdm07RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/operations/admin/customscreen/EduAdm07UnitTest.java"
+  ],
+  "manualAnchor": "EDU-ADM-07",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-education EDU fixture DB backoffice/operations contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-ADM-07/executions",
+    "configurationKey": "cpf.education.features.operations.enabled",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "businessId",
+      "approvalId"
+    ]
+  },
+  "featurePack": "operations",
+  "optionalFeature": true,
+  "featureToggle": "cpf.education.features.operations.enabled",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING",
+  "architectureDecision": "EXTENSION_SAMPLE",
+  "executable": true,
+  "architectureDecisionReason": "Retained only for a documented public ADM custom-screen/extension surface."
+}

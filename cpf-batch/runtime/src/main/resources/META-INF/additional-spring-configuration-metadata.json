@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "cpf.batch.annotation.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfBatchJob/@CpfBatchStep 기반 Batch runtime 등록을 활성화합니다."
+    }
+  ]
+}

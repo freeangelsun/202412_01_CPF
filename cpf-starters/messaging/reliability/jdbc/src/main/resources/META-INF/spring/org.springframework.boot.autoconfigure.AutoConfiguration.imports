@@ -1,0 +1,3 @@
+com.cpf.messaging.reliability.jdbc.CpfBrokerReliabilityAutoConfiguration
+com.cpf.messaging.reliability.api.jdbc.runtimecontrol.CpfMessagingRuntimeControlAutoConfiguration
+com.cpf.messaging.config.CpfSagaAutoConfiguration

@@ -1,0 +1,391 @@
+package com.cpf.admin.opr.controller;
+
+import com.cpf.admin.opr.dto.AdmApiPermission;
+import com.cpf.admin.opr.dto.AdmApiPermissionRoleUpdateRequest;
+import com.cpf.admin.opr.dto.AdmApiPermissionSaveRequest;
+import com.cpf.admin.opr.dto.AdmButton;
+import com.cpf.admin.opr.dto.AdmButtonPermissionUpdateRequest;
+import com.cpf.admin.opr.dto.AdmButtonSaveRequest;
+import com.cpf.admin.opr.dto.AdmMenuManagement;
+import com.cpf.admin.opr.dto.AdmMenuPermissionUpdateRequest;
+import com.cpf.admin.opr.dto.AdmMenuSaveRequest;
+import com.cpf.admin.opr.dto.AdmRoleManagement;
+import com.cpf.admin.opr.dto.AdmRoleSaveRequest;
+import com.cpf.admin.opr.dto.AdmStatusUpdateRequest;
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.service.AdmPermissionService;
+import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.core.api.context.CpfContexts;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.cpf.web.api.CpfController;
+
+import java.util.List;
+import java.util.Map;
+
+@CpfController
+@RequestMapping("/adm/api/permissions")
+@Tag(name = "ADM-OPR Permissions", description = "ADM 메뉴/버튼 권한 관리 API")
+public class AdmPermissionController extends com.cpf.admin.common.base.AdmBaseController {
+    private final AdmPermissionService permissionService;
+    private final AdmAuditLogService auditLogService;
+
+    public AdmPermissionController(AdmPermissionService permissionService, AdmAuditLogService auditLogService) {
+        this.permissionService = permissionService;
+        this.auditLogService = auditLogService;
+    }
+
+    @GetMapping("/roles")
+    @CpfOnlineTransaction(id = "OADMPE0014", name = "ADMRoleManagementList", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindRoles", summary = "역할 관리 목록 조회", description = "ADM 역할의 유형, 사용 여부, 등록/수정 시각을 조회합니다.")
+    public ResponseEntity<List<AdmRoleManagement>> findRoles() {
+        return ResponseEntity.ok(permissionService.findRoles());
+    }
+
+    @GetMapping("/roles/{roleId}")
+    @CpfOnlineTransaction(id = "OADMPE0015", name = "ADMRoleManagementDetail", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindRole", summary = "역할 상세 조회", description = "ADM 역할 상세 정보를 조회합니다.")
+    public ResponseEntity<AdmRoleManagement> findRole(@PathVariable String roleId) {
+        return ResponseEntity.ok(permissionService.findRole(roleId));
+    }
+
+    @PostMapping("/roles")
+    @CpfOnlineTransaction(id = "OADMPE0016", name = "ADMRoleCreate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionCreateRole", summary = "역할 등록", description = "ADM 역할을 등록하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmRoleManagement> createRole(
+            @RequestBody AdmRoleSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmRoleManagement role = permissionService.createRole(request);
+        recordChange(servletRequest, request.requestUser(), "ROLE_CREATE", "adm_role",
+                role.roleId(), reason, null, role, "역할 등록");
+        return ResponseEntity.ok(role);
+    }
+
+    @PutMapping("/roles/{roleId}")
+    @CpfOnlineTransaction(id = "OADMPE0017", name = "ADMRoleUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateRole", summary = "역할 수정", description = "ADM 역할을 수정하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmRoleManagement> updateRole(
+            @PathVariable String roleId,
+            @RequestBody AdmRoleSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmRoleManagement before = permissionService.findRole(roleId);
+        AdmRoleManagement after = permissionService.updateRole(roleId, request);
+        recordChange(servletRequest, request.requestUser(), "ROLE_UPDATE", "adm_role",
+                roleId, reason, before, after, "역할 수정");
+        return ResponseEntity.ok(after);
+    }
+
+    @PutMapping("/roles/{roleId}/status")
+    @CpfOnlineTransaction(id = "OADMPE0018", name = "ADMRoleStatusUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateRoleStatus", summary = "역할 사용 여부 변경", description = "ADM 역할 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmRoleManagement> updateRoleStatus(
+            @PathVariable String roleId,
+            @RequestBody AdmStatusUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmRoleManagement before = permissionService.findRole(roleId);
+        AdmRoleManagement after = permissionService.updateRoleStatus(roleId, request);
+        recordChange(servletRequest, request.requestUser(), "ROLE_STATUS_UPDATE", "adm_role",
+                roleId, reason, before, after, "역할 사용 여부 변경");
+        return ResponseEntity.ok(after);
+    }
+
+    @GetMapping("/menus")
+    @CpfOnlineTransaction(id = "OADMPE0019", name = "ADMMenuManagementList", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindManagedMenus", summary = "메뉴 관리 목록 조회", description = "ADM 메뉴 계층과 사용 여부를 조회합니다.")
+    public ResponseEntity<List<AdmMenuManagement>> findManagedMenus() {
+        return ResponseEntity.ok(permissionService.findManagedMenus());
+    }
+
+    @GetMapping("/menus/{menuId}")
+    @CpfOnlineTransaction(id = "OADMPE0020", name = "ADMMenuManagementDetail", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindManagedMenu", summary = "메뉴 상세 조회", description = "ADM 메뉴 상세 정보를 조회합니다.")
+    public ResponseEntity<AdmMenuManagement> findManagedMenu(@PathVariable String menuId) {
+        return ResponseEntity.ok(permissionService.findManagedMenu(menuId));
+    }
+
+    @PostMapping("/menus")
+    @CpfOnlineTransaction(id = "OADMPE0021", name = "ADMMenuCreate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionCreateMenu", summary = "메뉴 등록", description = "ADM 메뉴를 등록하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmMenuManagement> createMenu(
+            @RequestBody AdmMenuSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmMenuManagement menu = permissionService.createMenu(request);
+        recordChange(servletRequest, request.requestUser(), "MENU_CREATE", "adm_menu",
+                menu.menuId(), reason, null, menu, "메뉴 등록");
+        return ResponseEntity.ok(menu);
+    }
+
+    @PutMapping("/menus/{menuId}")
+    @CpfOnlineTransaction(id = "OADMPE0022", name = "ADMMenuUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateMenu", summary = "메뉴 수정", description = "ADM 메뉴를 수정하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmMenuManagement> updateMenu(
+            @PathVariable String menuId,
+            @RequestBody AdmMenuSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmMenuManagement before = permissionService.findManagedMenu(menuId);
+        AdmMenuManagement after = permissionService.updateMenu(menuId, request);
+        recordChange(servletRequest, request.requestUser(), "MENU_UPDATE", "adm_menu",
+                menuId, reason, before, after, "메뉴 수정");
+        return ResponseEntity.ok(after);
+    }
+
+    @PutMapping("/menus/{menuId}/status")
+    @CpfOnlineTransaction(id = "OADMPE0023", name = "ADMMenuStatusUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateMenuStatus", summary = "메뉴 사용 여부 변경", description = "ADM 메뉴 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmMenuManagement> updateMenuStatus(
+            @PathVariable String menuId,
+            @RequestBody AdmStatusUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmMenuManagement before = permissionService.findManagedMenu(menuId);
+        AdmMenuManagement after = permissionService.updateMenuStatus(menuId, request);
+        recordChange(servletRequest, request.requestUser(), "MENU_STATUS_UPDATE", "adm_menu",
+                menuId, reason, before, after, "메뉴 사용 여부 변경");
+        return ResponseEntity.ok(after);
+    }
+
+    @GetMapping("/buttons")
+    @CpfOnlineTransaction(id = "OADMPE0024", name = "ADMButtonManagementList", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindButtons", summary = "버튼 관리 목록 조회", description = "ADM 메뉴별 버튼/행위와 연결 API 패턴을 조회합니다.")
+    public ResponseEntity<List<AdmButton>> findButtons(@RequestParam(required = false) String menuId) {
+        return ResponseEntity.ok(permissionService.findButtons(menuId));
+    }
+
+    @GetMapping("/buttons/{buttonId}")
+    @CpfOnlineTransaction(id = "OADMPE0025", name = "ADMButtonManagementDetail", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindButton", summary = "버튼 상세 조회", description = "ADM 버튼/행위 상세 정보를 조회합니다.")
+    public ResponseEntity<AdmButton> findButton(@PathVariable String buttonId) {
+        return ResponseEntity.ok(permissionService.findButton(buttonId));
+    }
+
+    @PostMapping("/buttons")
+    @CpfOnlineTransaction(id = "OADMPE0026", name = "ADMButtonCreate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionCreateButton", summary = "버튼 등록", description = "ADM 버튼/행위를 등록하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmButton> createButton(
+            @RequestBody AdmButtonSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmButton button = permissionService.createButton(request);
+        recordChange(servletRequest, request.requestUser(), "BUTTON_CREATE", "adm_button",
+                button.buttonId(), reason, null, button, "버튼 등록");
+        return ResponseEntity.ok(button);
+    }
+
+    @PutMapping("/buttons/{buttonId}")
+    @CpfOnlineTransaction(id = "OADMPE0027", name = "ADMButtonUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateButton", summary = "버튼 수정", description = "ADM 버튼/행위를 수정하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmButton> updateButton(
+            @PathVariable String buttonId,
+            @RequestBody AdmButtonSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmButton before = permissionService.findButton(buttonId);
+        AdmButton after = permissionService.updateButton(buttonId, request);
+        recordChange(servletRequest, request.requestUser(), "BUTTON_UPDATE", "adm_button",
+                buttonId, reason, before, after, "버튼 수정");
+        return ResponseEntity.ok(after);
+    }
+
+    @PutMapping("/buttons/{buttonId}/status")
+    @CpfOnlineTransaction(id = "OADMPE0028", name = "ADMButtonStatusUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateButtonStatus", summary = "버튼 사용 여부 변경", description = "ADM 버튼/행위 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmButton> updateButtonStatus(
+            @PathVariable String buttonId,
+            @RequestBody AdmStatusUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmButton before = permissionService.findButton(buttonId);
+        AdmButton after = permissionService.updateButtonStatus(buttonId, request);
+        recordChange(servletRequest, request.requestUser(), "BUTTON_STATUS_UPDATE", "adm_button",
+                buttonId, reason, before, after, "버튼 사용 여부 변경");
+        return ResponseEntity.ok(after);
+    }
+
+    @GetMapping("/api-permissions")
+    @CpfOnlineTransaction(id = "OADMPE0029", name = "ADMApiPermissionList", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindApiPermissions", summary = "API 권한 목록 조회", description = "ADM API 권한과 실제 API 경로 패턴을 조회합니다.")
+    public ResponseEntity<List<AdmApiPermission>> findApiPermissions() {
+        return ResponseEntity.ok(permissionService.findApiPermissions());
+    }
+
+    @GetMapping("/api-permissions/{apiPermissionId}")
+    @CpfOnlineTransaction(id = "OADMPE0030", name = "ADMApiPermissionDetail", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindApiPermission", summary = "API 권한 상세 조회", description = "ADM API 권한 상세 정보를 조회합니다.")
+    public ResponseEntity<AdmApiPermission> findApiPermission(@PathVariable String apiPermissionId) {
+        return ResponseEntity.ok(permissionService.findApiPermission(apiPermissionId));
+    }
+
+    @PostMapping("/api-permissions")
+    @CpfOnlineTransaction(id = "OADMPE0031", name = "ADMApiPermissionCreate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionCreateApiPermission", summary = "API 권한 등록", description = "ADM API 권한을 등록하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmApiPermission> createApiPermission(
+            @RequestBody AdmApiPermissionSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmApiPermission permission = permissionService.createApiPermission(request);
+        recordChange(servletRequest, request.requestUser(), "API_PERMISSION_CREATE", "adm_api_permission",
+                permission.apiPermissionId(), reason, null, permission, "API 권한 등록");
+        return ResponseEntity.ok(permission);
+    }
+
+    @PutMapping("/api-permissions/{apiPermissionId}")
+    @CpfOnlineTransaction(id = "OADMPE0032", name = "ADMApiPermissionUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateApiPermission", summary = "API 권한 수정", description = "ADM API 권한을 수정하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmApiPermission> updateApiPermission(
+            @PathVariable String apiPermissionId,
+            @RequestBody AdmApiPermissionSaveRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmApiPermission before = permissionService.findApiPermission(apiPermissionId);
+        AdmApiPermission after = permissionService.updateApiPermission(apiPermissionId, request);
+        recordChange(servletRequest, request.requestUser(), "API_PERMISSION_UPDATE", "adm_api_permission",
+                apiPermissionId, reason, before, after, "API 권한 수정");
+        return ResponseEntity.ok(after);
+    }
+
+    @PutMapping("/api-permissions/{apiPermissionId}/status")
+    @CpfOnlineTransaction(id = "OADMPE0033", name = "ADMApiPermissionStatusUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateApiPermissionStatus", summary = "API 권한 사용 여부 변경", description = "ADM API 권한 사용/중지 상태를 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<AdmApiPermission> updateApiPermissionStatus(
+            @PathVariable String apiPermissionId,
+            @RequestBody AdmStatusUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        AdmApiPermission before = permissionService.findApiPermission(apiPermissionId);
+        AdmApiPermission after = permissionService.updateApiPermissionStatus(apiPermissionId, request);
+        recordChange(servletRequest, request.requestUser(), "API_PERMISSION_STATUS_UPDATE", "adm_api_permission",
+                apiPermissionId, reason, before, after, "API 권한 사용 여부 변경");
+        return ResponseEntity.ok(after);
+    }
+
+    @GetMapping("/api-matrix")
+    @CpfOnlineTransaction(id = "OADMPE0034", name = "ADMApiPermissionMatrix", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindApiPermissionMatrix", summary = "API 권한 매트릭스 조회", description = "역할별 ADM API 권한 허용 여부를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findApiPermissionMatrix() {
+        return ResponseEntity.ok(permissionService.findApiPermissionMatrix());
+    }
+
+    @PutMapping("/roles/{roleId}/api-permissions/{apiPermissionId}")
+    @CpfOnlineTransaction(id = "OADMPE0035", name = "ADMRoleApiPermissionUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateRoleApiPermission", summary = "역할별 API 권한 변경", description = "역할별 API 권한 허용 여부를 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<Map<String, Object>> updateRoleApiPermission(
+            @PathVariable String roleId,
+            @PathVariable String apiPermissionId,
+            @RequestBody AdmApiPermissionRoleUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        Map<String, Object> before = permissionService.findRoleApiPermission(roleId, apiPermissionId);
+        Map<String, Object> after = permissionService.updateRoleApiPermission(
+                roleId, apiPermissionId, request.allowYn(), requestUser(servletRequest, request.requestUser()));
+        recordChange(servletRequest, request.requestUser(), "ROLE_API_PERMISSION_UPDATE", "adm_role_api_permission",
+                roleId + ":" + apiPermissionId, reason, before, after, "역할별 API 권한 변경");
+        return ResponseEntity.ok(after);
+    }
+
+    @GetMapping("/menu-matrix")
+    @CpfOnlineTransaction(id = "OADMPE0010", name = "ADMMenuPermissionMatrix", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindMenuMatrix", summary = "메뉴 권한 매트릭스 조회", description = "역할별 ADM 메뉴 조회/쓰기/삭제 권한을 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findMenuMatrix() {
+        return ResponseEntity.ok(permissionService.findMenuPermissions());
+    }
+
+    @GetMapping("/button-matrix")
+    @CpfOnlineTransaction(id = "OADMPE0011", name = "ADMButtonPermissionMatrix", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionFindButtonMatrix", summary = "버튼 권한 매트릭스 조회", description = "역할별 ADM 버튼/행위 권한을 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findButtonMatrix() {
+        return ResponseEntity.ok(permissionService.findButtonPermissions());
+    }
+
+    @PutMapping("/roles/{roleId}/menus/{menuId}")
+    @CpfOnlineTransaction(id = "OADMPE0012", name = "ADMMenuPermissionUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateMenuPermission", summary = "메뉴 권한 변경", description = "역할별 메뉴 권한을 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<Map<String, Object>> updateMenuPermission(
+            @PathVariable String roleId,
+            @PathVariable String menuId,
+            @RequestBody AdmMenuPermissionUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        Map<String, Object> before = permissionService.findMenuPermission(roleId, menuId);
+        Map<String, Object> after = permissionService.updateMenuPermission(
+                roleId, menuId, request.readYn(), request.writeYn(), request.deleteYn(), requestUser(servletRequest, request.requestUser()));
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                requestUser(servletRequest, request.requestUser()),
+                "MENU_PERMISSION_UPDATE",
+                "adm_role_menu",
+                roleId + ":" + menuId,
+                reason,
+                String.valueOf(before),
+                String.valueOf(after),
+                "메뉴 권한 변경",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(after);
+    }
+
+    @PutMapping("/roles/{roleId}/buttons/{buttonId}")
+    @CpfOnlineTransaction(id = "OADMPE0013", name = "ADMButtonPermissionUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admPermissionUpdateButtonPermission", summary = "버튼 권한 변경", description = "역할별 버튼/행위 권한을 변경하고 감사 로그를 남깁니다.")
+    public ResponseEntity<Map<String, Object>> updateButtonPermission(
+            @PathVariable String roleId,
+            @PathVariable String buttonId,
+            @RequestBody AdmButtonPermissionUpdateRequest request,
+            HttpServletRequest servletRequest) {
+        String reason = auditLogService.requireReason(request.reason());
+        Map<String, Object> before = permissionService.findButtonPermission(roleId, buttonId);
+        Map<String, Object> after = permissionService.updateButtonPermission(
+                roleId, buttonId, request.allowYn(), requestUser(servletRequest, request.requestUser()));
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                requestUser(servletRequest, request.requestUser()),
+                "BUTTON_PERMISSION_UPDATE",
+                "adm_role_button",
+                roleId + ":" + buttonId,
+                reason,
+                String.valueOf(before),
+                String.valueOf(after),
+                "버튼 권한 변경",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(after);
+    }
+
+    private void recordChange(
+            HttpServletRequest request,
+            String fallbackUser,
+            String actionType,
+            String targetType,
+            String targetId,
+            String reason,
+            Object before,
+            Object after,
+            String diff) {
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                requestUser(request, fallbackUser),
+                actionType,
+                targetType,
+                targetId,
+                reason,
+                before == null ? null : String.valueOf(before),
+                after == null ? null : String.valueOf(after),
+                diff,
+                request.getRemoteAddr());
+    }
+
+    private String requestUser(HttpServletRequest request, String fallback) {
+        return requireOperator(request);
+    }
+}

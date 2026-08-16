@@ -1,0 +1,1 @@
+package org.springframework.http.client.reactive; import reactor.netty.http.client.HttpClient; public class ReactorClientHttpConnector {public final HttpClient client;public ReactorClientHttpConnector(HttpClient c){client=c;}}

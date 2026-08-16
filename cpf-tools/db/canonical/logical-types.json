@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "contract": "CPF_DB_LOGICAL_TYPE_SEMANTICS",
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "semantics": {
+    "BIGINT": "signed 64-bit integer",
+    "INT": "signed 32-bit integer",
+    "INTEGER": "signed 32-bit integer",
+    "SMALLINT": "signed 16-bit integer",
+    "DECIMAL(p,s)": "fixed precision decimal",
+    "VARCHAR(n)": "bounded variable-length unicode text",
+    "CHAR(n)": "fixed-length unicode text",
+    "TEXT": "unbounded text",
+    "MEDIUMTEXT": "large text",
+    "LONGTEXT": "large text",
+    "CLOB": "large text",
+    "VARBINARY(n)": "bounded binary",
+    "LONGBLOB": "large binary",
+    "DATE": "calendar date",
+    "TIME": "local time",
+    "DATETIME(p)": "local timestamp without timezone",
+    "TIMESTAMP(p)": "local timestamp without timezone"
+  },
+  "rules": {
+    "optionalText": "NULL_NOT_EMPTY_DEFAULT",
+    "identity": "CANONICAL_AUTO_INCREMENT_RENDERED_PER_VENDOR",
+    "timestampOnUpdate": "CANONICAL_TOUCH_SEMANTIC_RENDERED_PER_VENDOR",
+    "identifierCase": "CANONICAL_NAME_PRESERVED_UNQUOTED"
+  }
+}

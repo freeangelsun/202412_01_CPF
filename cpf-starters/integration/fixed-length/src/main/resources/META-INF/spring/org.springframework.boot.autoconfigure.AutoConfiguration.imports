@@ -1,0 +1,2 @@
+com.cpf.integration.fixedlength.CpfFixedLengthAutoConfiguration
+com.cpf.integration.fixedlength.runtimecontrol.CpfFixedLengthRuntimeControlAutoConfiguration

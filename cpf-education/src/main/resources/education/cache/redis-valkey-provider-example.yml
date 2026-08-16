@@ -1,0 +1,10 @@
+# Redis 선택 예시. Valkey를 사용할 때는 redis.enabled=false, valkey.enabled=true로 명시합니다.
+cpf:
+  data:
+    cache:
+      redis:
+        enabled: true
+        key-prefix: "cpf:"
+        invalidation-channel: "cpf.cache.invalidate"
+      valkey:
+        enabled: false

@@ -1,0 +1,41 @@
+-- Secret tokens in this template are rendered only into an ephemeral file by
+-- initialize-domain-database.ps1. Rendered passwords must never be persisted.
+SET @cpf_migration_password = CONVERT(0x@CPF_MIGRATION_PASSWORD_HEX@ USING utf8mb4);
+SET @cpf_runtime_password = CONVERT(0x@CPF_RUNTIME_PASSWORD_HEX@ USING utf8mb4);
+
+SET @cpf_sql = CONCAT(
+    'CREATE USER IF NOT EXISTS ''@CPF_MIGRATION_USERNAME@''@''%'' IDENTIFIED BY ',
+    QUOTE(@cpf_migration_password));
+PREPARE cpf_statement FROM @cpf_sql;
+EXECUTE cpf_statement;
+DEALLOCATE PREPARE cpf_statement;
+
+SET @cpf_sql = CONCAT(
+    'ALTER USER ''@CPF_MIGRATION_USERNAME@''@''%'' IDENTIFIED BY ',
+    QUOTE(@cpf_migration_password));
+PREPARE cpf_statement FROM @cpf_sql;
+EXECUTE cpf_statement;
+DEALLOCATE PREPARE cpf_statement;
+
+SET @cpf_sql = CONCAT(
+    'CREATE USER IF NOT EXISTS ''@CPF_RUNTIME_USERNAME@''@''%'' IDENTIFIED BY ',
+    QUOTE(@cpf_runtime_password));
+PREPARE cpf_statement FROM @cpf_sql;
+EXECUTE cpf_statement;
+DEALLOCATE PREPARE cpf_statement;
+
+SET @cpf_sql = CONCAT(
+    'ALTER USER ''@CPF_RUNTIME_USERNAME@''@''%'' IDENTIFIED BY ',
+    QUOTE(@cpf_runtime_password));
+PREPARE cpf_statement FROM @cpf_sql;
+EXECUTE cpf_statement;
+DEALLOCATE PREPARE cpf_statement;
+
+GRANT ALL PRIVILEGES ON `@CPF_DATABASE_NAME@`.* TO '@CPF_MIGRATION_USERNAME@'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE
+    ON `@CPF_DATABASE_NAME@`.* TO '@CPF_RUNTIME_USERNAME@'@'%';
+
+SET @cpf_migration_password = NULL;
+SET @cpf_runtime_password = NULL;
+SET @cpf_sql = NULL;
+

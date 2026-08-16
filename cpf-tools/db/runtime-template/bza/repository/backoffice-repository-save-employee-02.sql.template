@@ -1,0 +1,4 @@
+UPDATE bza_employee SET admin_user_id=:adminUserId,organization_code=:organizationCode,employee_name=:employeeName,position_code=:positionCode,job_title_code=:jobTitleCode,
+       manager_employee_no=:managerEmployeeNo,employment_status=:employmentStatus,join_date=:joinDate,leave_date=:leaveDate,email=:email,mobile_no=:mobileNo,office_phone_no=:officePhoneNo,use_yn=:useYn,
+       version_no=version_no+1,updated_by=:requestUser,updated_at=@NOW3@
+ WHERE employee_no=:employeeNo AND version_no=:expectedVersion

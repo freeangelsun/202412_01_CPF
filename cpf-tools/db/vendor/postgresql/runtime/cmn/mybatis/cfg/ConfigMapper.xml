@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cpf.common.cfg.mapper.ConfigMapper">
+
+    <!-- CPF 설정 설명입니다. -->
+    <select id="findAllConfigs" resultType="map">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM cpf_config
+        ORDER BY config_key
+    </select>
+
+    <!-- CPF 설정 설명입니다. -->
+    <select id="findConfigByKey" resultType="map" parameterType="string">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM cpf_config
+        WHERE config_key = #{configKey}
+    </select>
+
+    <!-- CPF 설정 설명입니다. -->
+    <select id="findConfigById" resultType="map" parameterType="long">
+        SELECT
+            config_id,
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        FROM cpf_config
+        WHERE config_id = #{configId}
+    </select>
+
+    <!-- CPF 설정 설명입니다. -->
+    <insert id="insertConfig" parameterType="com.cpf.common.cfg.dto.CommonConfigRequest"
+            useGeneratedKeys="true"
+            keyProperty="configId"
+            keyColumn="config_id">
+        INSERT INTO cpf_config (
+            config_key,
+            config_value,
+            config_type,
+            description,
+            encrypted_yn,
+            use_yn,
+            created_by,
+            created_at,
+            updated_by,
+            updated_at
+        ) VALUES (
+            #{configKey},
+            #{configValue},
+            COALESCE(NULLIF(#{configType}, ''), 'STRING'),
+            #{description},
+            COALESCE(NULLIF(#{encryptedYn}, ''), 'N'),
+            COALESCE(NULLIF(#{useYn}, ''), 'Y'),
+            COALESCE(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            CURRENT_TIMESTAMP,
+            COALESCE(NULLIF(#{requestUser}, ''), 'SYSTEM'),
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- CPF 설정 설명입니다. -->
+    <update id="updateConfig">
+        UPDATE cpf_config
+        SET
+            config_key = #{request.configKey},
+            config_value = #{request.configValue},
+            config_type = COALESCE(NULLIF(#{request.configType}, ''), 'STRING'),
+            description = #{request.description},
+            encrypted_yn = COALESCE(NULLIF(#{request.encryptedYn}, ''), 'N'),
+            use_yn = COALESCE(NULLIF(#{request.useYn}, ''), 'Y'),
+            updated_by = COALESCE(NULLIF(#{request.requestUser}, ''), 'SYSTEM'),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE config_id = #{configId}
+    </update>
+
+    <!-- CPF 설정 설명입니다. -->
+    <delete id="deleteConfig" parameterType="long">
+        DELETE FROM cpf_config
+        WHERE config_id = #{configId}
+    </delete>
+</mapper>

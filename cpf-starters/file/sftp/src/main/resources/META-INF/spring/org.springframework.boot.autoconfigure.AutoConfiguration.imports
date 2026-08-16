@@ -1,0 +1,2 @@
+com.cpf.file.sftp.CpfSftpAutoConfiguration
+com.cpf.file.sftp.runtimecontrol.CpfSftpRuntimeControlAutoConfiguration

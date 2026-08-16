@@ -1,0 +1,17 @@
+UPDATE cpf_batch_execution_control
+   SET job_instance_id = ?,
+       job_execution_id = ?,
+       control_status = ?,
+       control_version = control_version + 1,
+       updated_at = CURRENT_TIMESTAMP(6)
+ WHERE cpf_execution_id = ?
+   AND job_id = ?
+   AND definition_version = ?
+   AND plan_checksum IS NOT NULL
+   AND fencing_token = ?
+   AND EXISTS (
+       SELECT 1
+         FROM cpf_batch_execution_epoch epoch
+        WHERE epoch.job_id = cpf_batch_execution_control.job_id
+          AND epoch.current_fencing_token = cpf_batch_execution_control.fencing_token
+   )

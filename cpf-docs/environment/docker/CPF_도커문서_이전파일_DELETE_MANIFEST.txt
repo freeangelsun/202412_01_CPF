@@ -1,0 +1,6 @@
+# CPF Docker 문서 이전 파일 삭제 Manifest
+# 기준 Repository: freeangelsun/202412_01_CPF
+# 기준 Branch: master
+# 기준 Commit: 54bcc10887a83b933685bff462c0b0d7df824923
+
+cpf-docs/environment/docker/CPF_QA38_메시징환경_사용가이드.md

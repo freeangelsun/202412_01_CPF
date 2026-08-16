@@ -1,0 +1,1 @@
+INSERT INTO cmn_business_calendar_day (calendar_id,business_date,business_day_yn,day_type,institution_code,reason,version_no,created_by,updated_by,updated_at) VALUES (?,?,?,?,?,?,1,?,?,CURRENT_TIMESTAMP)

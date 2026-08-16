@@ -1,0 +1,56 @@
+{
+  "name": "cpf-adm-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0 <25",
+    "npm": "10.9.2"
+  },
+  "scripts": {
+    "generate:api": "npm run validate:openapi:source && node scripts/generate-checked-client.mjs",
+    "verify:generated": "node scripts/verify-generated-client.mjs && node scripts/verify-orval-operation-contract.mjs && node scripts/verify-orval-request-boundary.mjs && node scripts/test-generated-client-contract.mjs && node scripts/test-orval-operation-contract.mjs && node scripts/test-orval-mutator-runtime.mjs && node scripts/test-reference-notification-runtime.mjs && node scripts/test-reference-message-runtime.mjs && node scripts/test-reference-cache-runtime.mjs && node scripts/test-reference-catalog-runtime.mjs && node scripts/test-reference-backend-contract.mjs && node scripts/test-openapi-operations-page-runtime.mjs && node scripts/test-cpf-api-orval-envelope-runtime.mjs && node scripts/test-route-operation-contract.mjs",
+    "build": "npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run build:prod",
+    "lint": "eslint src vite.config.ts playwright.config.ts",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test --grep @a11y",
+    "verify:primary": "node scripts/verify-primary-frontend.mjs",
+    "verify": "npm run verify:lock && npm run verify:installed && npm run verify:primary && npm run test:openapi:lifecycle && npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run lint && npm run typecheck && npm run test && npm run build:prod",
+    "verify:lock": "node scripts/verify-lockfile.mjs",
+    "validate:openapi": "npm run validate:openapi:source",
+    "verify:consumer": "node scripts/verify-operation-consumer.mjs && node scripts/test-approval-consumer-contract.mjs && node scripts/test-adm-mfa-login-contract.mjs && node scripts/test-center-cut-execution-contract.mjs",
+    "verify:installed": "node scripts/verify-installed-dependencies.mjs",
+    "validate:openapi:source": "node scripts/validate-openapi.mjs --scope=source",
+    "validate:openapi:release": "node scripts/validate-openapi.mjs --scope=release",
+    "build:prod": "vite build && node scripts/write-bundle-manifest.mjs",
+    "test:openapi:lifecycle": "node scripts/test-openapi-lifecycle.mjs"
+  },
+  "dependencies": {
+    "@tanstack/vue-query": "5.101.4",
+    "@tanstack/vue-table": "8.21.3",
+    "element-plus": "2.14.3",
+    "pinia": "4.0.2",
+    "vue": "3.5.40",
+    "vue-router": "5.2.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.62.0",
+    "@types/node": "24.10.1",
+    "@typescript-eslint/parser": "8.64.0",
+    "@vitejs/plugin-vue": "6.0.8",
+    "@vue/test-utils": "2.4.6",
+    "eslint": "9.39.5",
+    "eslint-plugin-vue": "10.10.0",
+    "jsdom": "29.1.1",
+    "orval": "8.23.0",
+    "typescript": "6.0.3",
+    "vite": "8.1.5",
+    "vitest": "4.1.10",
+    "vue-tsc": "3.3.7"
+  },
+  "packageManager": "npm@10.9.2"
+}

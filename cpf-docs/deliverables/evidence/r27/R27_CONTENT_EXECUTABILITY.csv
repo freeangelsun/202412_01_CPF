@@ -1,0 +1,14 @@
+﻿document,source_windows,terminal_windows,sql_windows,config_windows,http_windows,json_windows,output_windows,code_windows,test_windows,window_body_lines,role_review,status
+cpf-docs/guides/00_프레임워크안내.docx,0,1,0,1,0,0,0,9,0,149,07_18 Modern Capability와 07_19 Root Layout + 07_20 Unified Context/Core Closure 정책을 제품 범위·Owner·도입 판단·과도상태까지 분리해 보강,PASS
+cpf-docs/guides/01_개발자매뉴얼.docx,20,22,5,6,3,0,5,48,2,988,Foundation/Testkit/Health/Session/Lock/S3/Schema/GraphQL/SSE 실제 Source·Config·Test·복구와 07_19 논리 project/목표 물리 Owner 전환 계약을 보강,PASS
+cpf-docs/guides/02_배치개발매뉴얼.docx,6,13,2,1,0,0,1,11,3,299,공식 Test Support 목표 경로와 Process Kill/Lease/Fencing/Restart/Reprocess/Reconcile 실습 및 장애 종료기준을 보강,PASS
+cpf-docs/guides/03_ADM개발자매뉴얼.docx,24,2,0,1,0,0,0,33,1,682,ADM Runtime Health backend→OpenAPI→generated client→Vue→Browser/Fault 검증과 07_19 Root 영향 판정을 보강,PASS
+cpf-docs/guides/04_ADM운영자매뉴얼.docx,63,1,0,0,0,1,0,8,0,368,ADM 실제 Route를 64개 기준으로 currentize하고 health-instances 실제 Field/Operation/Stale/Drain/DB Evidence와 전환 상태를 보강,PASS
+cpf-docs/guides/05_플랫폼운영매뉴얼.docx,1,5,1,2,0,0,0,26,0,306,Health/V112/Valkey/S3/GraphQL/SSE 설치·설정·검증·복구 Runbook과 07_19 Foundation/Testkit 목표 물리 경로 및 인수 중단기준을 보강,PASS
+cpf-docs/guides/90_BZA매뉴얼.docx,26,3,0,0,0,2,1,8,0,229,BZA build/frontend·Session/권한/강제로그아웃·Backup/Restore/Upgrade 명령과 07_19 배포 의존성 확인을 보강,PASS
+cpf-docs/guides/91_Gateway매뉴얼.docx,0,3,0,1,0,1,1,13,0,137,Gateway build/test/artifact·probe·NACK/PARTIAL/response-loss/LKG rollback과 07_19 배포 의존성 확인을 보강,PASS
+cpf-docs/deliverables/산출물목록.docx,0,0,0,0,0,0,0,3,0,16,"07_18/07_19 Currentization Gate, Evidence Bundle, 인수 묶음별 실패 예·통과 기준·검수 질문을 추가",PASS
+cpf-docs/deliverables/아키텍처설계서.docx,0,0,0,0,0,0,0,12,0,173,"Pure Foundation/Core/Capability/Starter/Application 의존 방향, 07_19 Root Layout + 07_20 Unified Context ADR, transition/rollback/acceptance 조건을 보강",PASS
+cpf-docs/deliverables/기술사양서.docx,0,0,0,0,0,0,0,9,0,99,"Modern Public/Starter Surface, typed property, Health API/V112, logical project↔target physical owner transition contract를 보강",PASS
+cpf-docs/deliverables/기술표준서.docx,2,0,1,0,0,1,0,45,1,225,"Core/Foundation/Capability Good-Bad 코드와 Root/Owner Migration Review Checklist, opt-in/zero-footprint/compatibility 규칙을 보강",PASS
+cpf-docs/deliverables/데이터베이스표준서.docx,0,0,21,0,0,0,0,4,0,131,Runtime Health V112 3-Vendor lifecycle/stale query와 DB Artifact Owner/rollback/evidence 기준을 보강,PASS

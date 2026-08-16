@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "canonicalContract": "CPF_DB_LOGICAL_DATATYPE_SEMANTICS",
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "types": {
+    "INTEGER": {"semantics": "signed 32-bit integer"},
+    "BIGINT": {"semantics": "signed 64-bit integer"},
+    "SMALLINT": {"semantics": "signed 16-bit integer"},
+    "DECIMAL": {"semantics": "exact decimal with declared precision and scale"},
+    "VARCHAR": {"semantics": "bounded variable-length Unicode text"},
+    "CHAR": {"semantics": "fixed-length Unicode text"},
+    "TEXT": {"semantics": "unbounded text payload"},
+    "BINARY": {"semantics": "binary payload"},
+    "DATE": {"semantics": "calendar date without time zone"},
+    "TIME": {"semantics": "local time-of-day without date or time zone"},
+    "DATETIME": {"semantics": "local timestamp without time zone"},
+    "TIMESTAMP": {"semantics": "timestamp value using CPF runtime time-zone policy"}
+  },
+  "renderingPolicy": {
+    "applicationOwnsBusinessBlankNormalization": true,
+    "emptyStringDefaultForbidden": true,
+    "databaseGeneratedIdentity": "vendor identity syntax emitted only by renderer",
+    "updatedAtSemantics": "canonical onUpdate=CURRENT_TIMESTAMP is emitted as MariaDB column clause or generated trigger for PostgreSQL/Oracle",
+    "oracleTimeOfDay": "VARCHAR2(15 CHAR) with canonical HH:mm:ss[.fraction] application codec; Oracle has no native TIME-only type"
+  }
+}

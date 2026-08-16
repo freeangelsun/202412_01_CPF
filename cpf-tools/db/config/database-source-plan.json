@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 3,
+  "policy": {
+    "generatedBusinessDomainFixedModulesAllowed": false,
+    "generatedDomainDiscovery": "manifest/domain-manifest.json",
+    "artifactSyncCommand": "pwsh -File cpf-tools/db/tools/sync-database-artifacts.ps1",
+    "platformVendorSourceRootPattern": "cpf-tools/db/vendor/{vendor}/source",
+    "platformVendorLifecycleRootPattern": "cpf-tools/db/vendor/{vendor}",
+    "noStandaloneVendorSourceTree": true,
+    "canonicalAuthority": "cpf-tools/db/canonical/**",
+    "currentSnapshotAuthority": "cpf-tools/db/generated/current/{vendor}",
+    "vendorSourceRole": "DERIVED_COMPATIBILITY_INPUT",
+    "vendorSourceGeneratedBy": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+    "directVendorSourceEditing": "FORBIDDEN"
+  },
+  "mariadb": {
+    "provisionFiles": [
+      "01_create_databases.sql",
+      "02_create_service_users.sql"
+    ],
+    "emptyInstallFiles": [
+      "10_cpf_schema.sql",
+      "20_cmn_schema.sql",
+      "30_adm_schema.sql",
+      "35_bat_schema.sql",
+      "40_business_modules_schema.sql"
+    ],
+    "productSeedFiles": [
+      "50_framework_seed_data.sql",
+      "52_standard_execution_alias_seed.sql",
+      "56_bza_product_seed.sql",
+      "60_adm_seed_data.sql",
+      "61_adm_gateway_seed.sql"
+    ],
+    "optionalSampleSeedFiles": [
+      "55_cmn_seed_data.sql",
+      "58_reference_external_edu_seed.sql",
+      "58_reference_runtime_seed.sql",
+      "59_adm_local_seed.sql"
+    ],
+    "testSeedFiles": [
+      "70_test_data.sql"
+    ],
+    "verifyFiles": [
+      "99_smoke_check.sql"
+    ],
+    "sourceRoot": "cpf-tools/db/vendor/mariadb/source",
+    "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+  },
+  "vendorSourceStatus": {
+    "mariadb": {
+      "status": "implemented",
+      "sourceRoot": "cpf-tools/db/vendor/mariadb/source",
+      "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+    },
+    "postgresql": {
+      "status": "implemented",
+      "sourceRoot": "cpf-tools/db/vendor/postgresql/source",
+      "runtimeVerification": "미검증",
+      "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+    },
+    "oracle": {
+      "status": "implemented",
+      "sourceRoot": "cpf-tools/db/vendor/oracle/source",
+      "runtimeVerification": "미검증",
+      "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+    }
+  },
+  "postgresql": {
+    "provisionFiles": [
+      "00_provision.sql"
+    ],
+    "emptyInstallFiles": [
+      "10_cpf_schema.sql",
+      "20_cmn_schema.sql",
+      "30_adm_schema.sql",
+      "35_bat_schema.sql",
+      "40_business_modules_schema.sql"
+    ],
+    "productSeedFiles": [
+      "50_framework_seed_data.sql",
+      "52_standard_execution_alias_seed.sql",
+      "56_bza_product_seed.sql",
+      "60_adm_seed_data.sql",
+      "61_adm_gateway_seed.sql"
+    ],
+    "optionalSampleSeedFiles": [
+      "55_cmn_seed_data.sql",
+      "58_reference_external_edu_seed.sql",
+      "58_reference_runtime_seed.sql",
+      "59_adm_local_seed.sql"
+    ],
+    "testSeedFiles": [
+      "70_test_data.sql"
+    ],
+    "verifyFiles": [
+      "99_smoke_check.sql"
+    ],
+    "sourceRoot": "cpf-tools/db/vendor/postgresql/source",
+    "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+  },
+  "oracle": {
+    "provisionFiles": [
+      "00_provision.sql"
+    ],
+    "emptyInstallFiles": [
+      "10_cpf_schema.sql",
+      "20_cmn_schema.sql",
+      "30_adm_schema.sql",
+      "35_bat_schema.sql",
+      "40_business_modules_schema.sql"
+    ],
+    "productSeedFiles": [
+      "50_framework_seed_data.sql",
+      "52_standard_execution_alias_seed.sql",
+      "56_bza_product_seed.sql",
+      "60_adm_seed_data.sql",
+      "61_adm_gateway_seed.sql"
+    ],
+    "optionalSampleSeedFiles": [
+      "55_cmn_seed_data.sql",
+      "58_reference_external_edu_seed.sql",
+      "58_reference_runtime_seed.sql",
+      "59_adm_local_seed.sql"
+    ],
+    "testSeedFiles": [
+      "70_test_data.sql"
+    ],
+    "verifyFiles": [
+      "99_smoke_check.sql"
+    ],
+    "sourceRoot": "cpf-tools/db/vendor/oracle/source",
+    "sourceRole": "DERIVED_COMPATIBILITY_INPUT"
+  }
+}

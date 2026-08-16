@@ -1,0 +1,1 @@
+package com.cpf.core.api.error; import com.cpf.core.api.error.*; public record CpfErrorResponse(String message){public static CpfErrorResponse of(CpfResolvedResponse r,String m,String t,Object x){return new CpfErrorResponse(m);}}

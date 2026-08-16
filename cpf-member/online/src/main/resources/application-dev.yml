@@ -1,0 +1,11 @@
+# 공유/운영 환경은 명시적 Deployment Binding이 없으면 시작에 실패하도록 기본값을 두지 않습니다.
+server:
+  port: ${MBR_ONLINE_PORT}
+cpf:
+  integration:
+    domain-call:
+      bindings:
+        EXS:
+          # 공유/운영 환경은 topology와 serviceId를 Deployment Binding으로 명시합니다.
+          mode: ${CPF_DOMAIN_EXS_MODE}
+          service-id: ${CPF_DOMAIN_EXS_SERVICE_ID}

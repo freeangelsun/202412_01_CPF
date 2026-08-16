@@ -1,0 +1,1 @@
+package com.cpf.core.common.execution; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD}) public @interface CpfSharedApi {String id();String name();String[] allowedCallers() default {};}

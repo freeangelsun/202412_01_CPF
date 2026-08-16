@@ -1,0 +1,2 @@
+UPDATE bza_user_role SET primary_yn='N',version_no=version_no+1,updated_by=:actor,updated_at=CURRENT_TIMESTAMP(3)
+ WHERE admin_user_id=:id AND primary_yn='Y' AND (valid_to IS NULL OR valid_to>:from) AND (:to IS NULL OR valid_from IS NULL OR valid_from<:to)

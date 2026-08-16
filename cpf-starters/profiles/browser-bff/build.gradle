@@ -1,0 +1,11 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group='com.cpf.starter'
+dependencies {
+    api project(':starters:profiles:web-api')
+    implementation project(':framework:security')
+    api 'org.springframework.boot:spring-boot-starter-security'
+    api 'org.springframework.session:spring-session-core'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+}
+tasks.named('test'){useJUnitPlatform()}
+publishing { publications { mavenJava(MavenPublication){from components.java;artifactId = 'cpf-starter-bff'} } }

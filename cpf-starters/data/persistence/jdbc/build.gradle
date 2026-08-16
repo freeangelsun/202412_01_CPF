@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    api project(':framework:core')
+    api project(':framework:base-runtime')
+    api project(':framework:data')
+    api project(':framework:data:persistence')
+    api project(':framework:operations')
+    api project(':framework:operations:observability')
+    implementation project(':internal:platform-operations:runtime-control')
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.assertj:assertj-core'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-data-jdbc' } } }

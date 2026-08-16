@@ -1,0 +1,1 @@
+package com.cpf.platform.operations.api.runtimecontrol; public interface CpfRuntimeChangeApplier {String changeType();boolean supportsIdempotentReplay();boolean snapshotCapable();CpfRuntimeApplyResult apply(CpfRuntimeDelivery d);}

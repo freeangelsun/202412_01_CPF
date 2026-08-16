@@ -1,0 +1,37 @@
+{
+  "repository": "https://github.com/freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "remote": "origin",
+  "work_start_sha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
+  "documentation_delta_sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+  "final_source_basis_sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+  "latest_remote_sha_rechecked": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+  "latest_message": "07_15",
+  "canonical_requirement_count": 180,
+  "prior_r24_sha": "f6d7080c5a14b7dd7595093f9497470169e18d80",
+  "commits_since_r24": [
+    "a570b366ef85b23863e41173c991025c072a2427",
+    "bd0d47bed40dda1305b7b1e1961e1c52fa79d30a",
+    "9f16468cccae71523f65f0aefcd94322788c4dd0",
+    "b2da6bd720d1a8506db6bddf5d2e35feb9dca964"
+  ],
+  "document_stance": {
+    "CURRENT SOURCE": "latest master symbol/path directly verified",
+    "PRODUCT CONTRACT": "completed-product user/operations contract",
+    "REFERENCE": "completed-product example not claimed as current internal CPF symbol"
+  },
+  "local_working_tree": "not available in this runtime; repository was inspected through the connected GitHub source, and no local checkout was modified",
+  "commit_push_performed": false,
+  "document_size_regression_policy": {
+    "comparison_baseline": "R24 exact structure evidence retained in repository",
+    "comparable_structure_metric": "headings/bookmarks + table rows",
+    "supplemental_r25_metric": "non-empty body paragraphs + table rows + embedded line breaks, plus chars/words",
+    "hard_gate": "each of 13 documents must have headings, table rows, comparable structure lines, and PDF pages >= R24",
+    "result": "13/13 passed; initial 기술표준서 regression was rejected and remediated"
+  },
+  "latest_source_delta_review": {
+    "from_sha": "9f16468cccae71523f65f0aefcd94322788c4dd0",
+    "to_sha": "b2da6bd720d1a8506db6bddf5d2e35feb9dca964",
+    "scope": "07_15 added Core transaction/TCC/XA, persistence contracts, AI/config/security contracts, JPA/JTA/AI/SOAP/OIDC/audit-jdbc starters, TCC/AI/SOAP references, and DB V110/V111 packs; affected owner documents were currentized before final render."
+  }
+}

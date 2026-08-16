@@ -1,0 +1,110 @@
+{
+  "requirementId": "EDU-DEV-24",
+  "title": "장시간 비동기 Operation 조회·취소",
+  "kind": "ONLINE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_EDU_DEVELOPER",
+  "requiredFields": [
+    "requestHash",
+    "cancelReason",
+    "pollingCursor"
+  ],
+  "businessStates": [
+    "ACCEPTED",
+    "RUNNING",
+    "CANCEL_REQUESTED",
+    "CANCELLED",
+    "COMPLETED",
+    "FAILED"
+  ],
+  "exceptionScenarios": [
+    "취소와 완료 경합",
+    "중복 취소",
+    "Worker 재시작",
+    "진행률 후퇴",
+    "결과 URL 만료",
+    "상태 변경이 있는 경우 DB Commit 전 실패와 Commit 후 응답 유실을 구분한다.",
+    "같은 요청의 중복·동시 실행·순서 역전·늦은 응답을 포함한다.",
+    "Retry 가능한 오류와 즉시 중단해야 하는 업무 오류를 구분한다.",
+    "대량·다중 대상 기능에서 부분 성공이 발생하면 성공 대상을 다시 실행하지 않고 실패 대상만 Reprocess·Reconcile한다.",
+    "복구·보상이 필요한 기능은 복구 실패와 보상 실패도 별도 상태·Attempt·Audit로 남긴다."
+  ],
+  "requiredVerification": [
+    "Polling",
+    "SSE가 있으면 보조",
+    "취소 Checkpoint",
+    "결과 보존",
+    "멱등",
+    "입력 Validation·권한·Data Scope·Masking Negative Test",
+    "해당 기능에 적용되는 중복·동시성·Timeout·응답 유실·부분 실패 Test",
+    "해당 기능의 Failure Injection 후 필요한 Retry·Restart·Reprocess·Reconcile·Rollback Test",
+    "Oracle·PostgreSQL·MariaDB 또는 해당 Infra의 의미 동일성 Test",
+    "Log·Metric·Trace·Audit에 Secret·개인정보 원문이 없는지 검사"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "CHECKPOINT",
+    "RECONCILE",
+    "COMPENSATION_READY",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "PARTIAL_TARGET_FAILURE",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": true,
+  "rollbackSupported": true,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.scenarios.online.asyncoperation.lifecycle",
+  "handlerClass": "com.cpf.education.scenarios.online.asyncoperation.lifecycle.EduDev24Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/scenarios/online/asyncoperation/lifecycle/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/asyncoperation/lifecycle/EduDev24UnitTest.java"
+  ],
+  "manualAnchor": "EDU-DEV-24",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "FAILED",
+    "publicContract": "cpf-education EDU fixture DB business record contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-DEV-24/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "requestHash",
+      "cancelReason",
+      "pollingCursor"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "cpf.data.persistence.repository-policy.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enables managed-context and structure policy for @CpfRepository beans."
+    }
+  ]
+}

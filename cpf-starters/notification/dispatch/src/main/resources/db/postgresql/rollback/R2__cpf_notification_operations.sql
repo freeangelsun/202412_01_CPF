@@ -1,0 +1,2 @@
+DROP TABLE cpf_notification_receipt;
+DROP TABLE cpf_notification_operation_audit;

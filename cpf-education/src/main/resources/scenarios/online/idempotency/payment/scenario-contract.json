@@ -1,0 +1,101 @@
+{
+  "requirementId": "EDU-DEV-05",
+  "title": "지급 등록 멱등성·응답 유실·결과 대사",
+  "kind": "ONLINE",
+  "owner": "cpf-education",
+  "requiredRole": "CPF_EDU_DEVELOPER",
+  "requiredFields": [
+    "customerId",
+    "amount",
+    "currency"
+  ],
+  "businessStates": [
+    "RECEIVED",
+    "PROCESSING",
+    "SUCCEEDED",
+    "FAILED",
+    "UNKNOWN_RESULT",
+    "RECONCILED"
+  ],
+  "exceptionScenarios": [
+    "같은 Key·같은 본문",
+    "같은 Key·다른 본문",
+    "PROCESSING 중 재호출",
+    "DB Commit 전 중단",
+    "DB Commit 후 응답 유실",
+    "외부 이체 전송 후 응답 유실",
+    "Operation 만료 후 재호출"
+  ],
+  "requiredVerification": [
+    "원장 1건 보장",
+    "요청 Hash 충돌",
+    "동시 10회 같은 Key",
+    "Failure Point별 상태",
+    "대사 후 UNKNOWN_RESULT 해소",
+    "로그·Trace·감사에 같은 operationId"
+  ],
+  "steps": [
+    "VALIDATE",
+    "AUTHORIZE",
+    "SCOPE",
+    "DEDUPE",
+    "VERSION_CHECK",
+    "CHECKSUM",
+    "PROTECT",
+    "MUTATE",
+    "COMMIT",
+    "RECONCILE",
+    "AUDIT",
+    "OBSERVE"
+  ],
+  "failurePoints": [
+    "BEFORE_COMMIT",
+    "AFTER_COMMIT",
+    "TIMEOUT",
+    "PROCESS_KILL"
+  ],
+  "readOnly": false,
+  "idempotent": true,
+  "versioned": true,
+  "leaseRequired": false,
+  "externalEffect": false,
+  "compensationSupported": false,
+  "rollbackSupported": false,
+  "maxRetries": 3,
+  "implementationPackage": "com.cpf.education.scenarios.online.idempotency.payment",
+  "handlerClass": "com.cpf.education.scenarios.online.idempotency.payment.EduDev05Handler",
+  "sourcePath": "cpf-education/src/main/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05Handler.java",
+  "resourceContract": "cpf-education/src/main/resources/scenarios/online/idempotency/payment/scenario-contract.json",
+  "tests": [
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05ConcurrencyTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05FailureTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05IntegrationTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05RecoveryTest.java",
+    "cpf-education/src/test/java/com/cpf/education/scenarios/online/idempotency/payment/EduDev05UnitTest.java"
+  ],
+  "manualAnchor": "EDU-DEV-05",
+  "developmentStatus": "완료",
+  "verificationStatus": "미검증",
+  "consumerBinding": {
+    "type": "JDBC_COMMAND",
+    "ownerModule": "cpf-education",
+    "entryPoint": "CPF_EDU_BUSINESS_RECORD",
+    "operation": "RECONCILED",
+    "publicContract": "cpf-education EDU fixture DB business record contract",
+    "runtimeCommand": "POST /api/education/edu-capabilities/EDU-DEV-05/executions",
+    "configurationKey": "",
+    "timeoutSeconds": 60,
+    "argumentFields": [
+      "customerId",
+      "amount",
+      "currency"
+    ]
+  },
+  "featurePack": "core",
+  "optionalFeature": false,
+  "featureToggle": "",
+  "generatedDomainIndependent": true,
+  "productModuleIndependent": true,
+  "databaseOwner": "REFERENCE_FIXTURE",
+  "verificationEvidence": "MATERIALIZED_SOURCE_AND_STATIC_GATE; JAVA25_GRADLE_AND_EXTERNAL_RUNTIME_PENDING"
+}

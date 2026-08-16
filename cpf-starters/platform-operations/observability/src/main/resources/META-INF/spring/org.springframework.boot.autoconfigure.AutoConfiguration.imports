@@ -1,0 +1,7 @@
+com.cpf.starter.platform.operations.observability.CpfObservabilityAutoConfiguration
+com.cpf.starter.observability.runtimecontrol.CpfObservabilityRuntimeControlAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfRemoteLogLocalAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfLogPolicyVersionJdbcAutoConfiguration
+com.cpf.platform.operations.observability.CpfLogPolicyVersionAutoConfiguration
+com.cpf.platform.operations.observability.CpfRemoteLogAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfTelemetryFallbackAutoConfiguration

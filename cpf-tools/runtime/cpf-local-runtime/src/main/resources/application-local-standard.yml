@@ -1,0 +1,15 @@
+# local-standard는 개발자 기본 통합모드와 동일합니다. Gateway를 전제로 하지 않습니다.
+cpf:
+  local:
+    runtime:
+      minimum-max-memory-mb: 500
+    modules:
+      core: true
+      common: true
+      gateway: false
+      admin: true
+      biz-admin: true
+      domains:
+        enabled: true
+        auto-discover: true
+        base-packages: ${CPF_LOCAL_EXTRA_DOMAIN_PACKAGES:}

@@ -1,0 +1,10 @@
+{
+  "repository": "freeangelsun/202412_01_CPF",
+  "branch": "master",
+  "work_start_sha": "f6d7080c5a14b7dd7595093f9497470169e18d80",
+  "documentation_basis_sha": "b4b6b18b43e9ff83436ceb8b1816b31594e8d6eb",
+  "product_source_sha": "f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c",
+  "documentation_result_commit_sha": null,
+  "commit_push_performed": false,
+  "scope": "README 구조 보호; Guide 8종 + 설계 5종 PDF/DOCX 전체 체계 재보강; documentation standard + evidence"
+}

@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':framework:base-runtime')
+    api project(':framework:data:persistence')
+    api project(':runtime:batch:api')
+    implementation project(':framework:core')
+    implementation project(':starters:common')
+    implementation project(':framework:operations:observability')
+
+    api 'org.springframework.boot:spring-boot-starter-batch-jdbc'
+    api 'org.springframework.batch:spring-batch-integration'
+    implementation 'org.springframework.integration:spring-integration-core'
+    implementation 'org.springframework.integration:spring-integration-kafka'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    testImplementation project(':internal:testing:testkit')
+    testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+// cpf-batch:runtime is a library runtime; executable applications are composed by cpf-local-batch-runtime/consumers.
+tasks.named('bootJar') { enabled = false }
+tasks.named('jar') { enabled = true }

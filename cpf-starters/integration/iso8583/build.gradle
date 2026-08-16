@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+dependencies {
+    implementation project(':framework:base-runtime')
+    api project(':framework:integration')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core'
+    api project(':framework:core')
+implementation 'org.springframework.boot:spring-boot-autoconfigure'
+}
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter-integration-iso8583'
+        }
+    }
+}
+

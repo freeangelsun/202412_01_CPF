@@ -1,0 +1,31 @@
+// Generated from BZA route registry, component consumers and canonical runtime OpenAPI.
+export const bzaRouteOperationContract = {
+  "dashboard": ["bzaApprovalInbox","bzaSupportDashboard"],
+  "organizations": ["bzaBackofficeFindOrganizations","bzaBackofficeFindOrganizationsPage","bzaBackofficeSaveOrganization"],
+  "employees": ["bzaBackofficeEmployeeRawContact","bzaBackofficeFindEmployees","bzaBackofficeFindEmployeesPage","bzaBackofficeSaveEmployee"],
+  "positions": ["bzaDirectoryFindPositions","bzaDirectoryFindPositionsPage","bzaDirectorySavePosition"],
+  "jobTitles": ["bzaDirectoryFindJobTitles","bzaDirectoryFindJobTitlesPage","bzaDirectorySaveJobTitle"],
+  "assignments": ["bzaDirectoryFindAssignments","bzaDirectoryFindAssignmentsPage","bzaDirectorySaveAssignment"],
+  "organizationResponsibilities": ["bzaDirectoryFindResponsibilities","bzaDirectoryFindResponsibilitiesPage","bzaDirectorySaveResponsibility"],
+  "users": ["bzaOperationFindAdminUsers","bzaOperationFindAdminUsersPage","bzaOperationSaveAdminUser"],
+  "roles": ["bzaOperationFindRoles","bzaOperationFindRolesPage","bzaOperationSaveRole"],
+  "userRoles": ["bzaDirectoryFindUserRoles","bzaDirectoryFindUserRolesPage","bzaDirectorySaveUserRole"],
+  "menus": ["bzaOperationDeleteMenu","bzaOperationFindMenuImpact","bzaOperationFindMenus","bzaOperationFindMenusPage","bzaOperationSaveMenu"],
+  "permissions": ["bzaBackofficeFindEffectivePermissions","bzaOperationFindPermissions","bzaOperationFindPermissionsPage","bzaOperationSavePermission"],
+  "permissionTools": ["bzaBackofficeFindEffectivePermissions","bzaSupportCompareRolePermissions","bzaSupportSimulatePermission"],
+  "approvalInbox": ["bzaApprovalInbox"],
+  "approvalSubmissions": ["bzaApprovalCancel","bzaApprovalExpireDue","bzaApprovalParticipantDecision","bzaApprovalPolicySubmit","bzaApprovalResubmit","bzaApprovalSubmissionDetail","bzaApprovalSubmissions","bzaApprovalWithdraw"],
+  "approvalPolicies": ["bzaApprovalPolicies","bzaApprovalPolicyDetail","bzaApprovalPolicySave"],
+  "approvalSimulation": ["bzaApprovalPolicySimulate"],
+  "approvalDelegations": ["bzaApprovalDelegationSave","bzaApprovalDelegations"],
+  "sessions": ["bzaAuthRevokeSession","bzaAuthSessions"],
+  "audits": ["bzaBackofficeFindBusinessAudits","bzaBusinessAuditVerify"],
+  "notifications": ["bzaSupportCreateNotification","bzaSupportFindNotifications","bzaSupportReadAllNotifications","bzaSupportReadNotification"],
+  "attachments": ["bzaSupportDownloadAttachment","bzaSupportFindAttachments","bzaSupportRecheckAttachment","bzaSupportUpdateAttachmentSecurity","bzaSupportUploadAttachment"],
+  "savedSearches": ["bzaSupportDisableSavedSearch","bzaSupportFindSavedSearches","bzaSupportSaveSavedSearch"],
+  "settings": ["bzaOperationFindSettings"],
+  "commonCatalog": ["bzaCommonCatalogRefresh","bzaCommonMessageCreate","bzaCommonMessageDetail","bzaCommonMessageDisable","bzaCommonMessageSearch","bzaCommonMessageUpdate","bzaCommonResponseCodeCreate","bzaCommonResponseCodeDetail","bzaCommonResponseCodeDisable","bzaCommonResponseCodeSearch","bzaCommonResponseCodeUpdate"],
+  "downloads": ["bzaOperationFindDownloadPolicies"],
+  "downloadAudits": ["bzaSupportFindDownloadAudits"]
+} as const;
+export type BzaRouteOperationContract = typeof bzaRouteOperationContract;

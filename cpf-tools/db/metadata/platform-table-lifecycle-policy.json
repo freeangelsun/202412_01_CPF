@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "defaultPolicy": {
+    "policyId": "full-audit",
+    "requiredColumns": [
+      "created_by",
+      "created_at",
+      "updated_by",
+      "updated_at"
+    ],
+    "reason": "Mutable product master and transaction tables retain explicit creator and last-updater accountability."
+  },
+  "policies": {
+    "full-audit": "Mutable product master or transaction data.",
+    "immutable-event": "Append-only evidence whose semantic actor and event time are authoritative.",
+    "semantic-lifecycle": "Runtime state whose domain lifecycle fields are more precise than duplicate CRUD audit fields.",
+    "lease": "Short-lived concurrency coordination state identified by owner, fencing token and lease timestamps.",
+    "projection": "Child/projection state whose ownership and lifecycle are recorded by its aggregate root.",
+    "sequence": "Allocation primitive whose requester and request timestamp are the audit record.",
+    "static-contract": "Versioned product compatibility/configuration data installed and changed only through controlled SQL lifecycle.",
+    "framework": "Third-party framework-owned schema whose physical contract must remain vendor/framework compatible."
+  },
+  "patterns": [
+    {
+      "pattern": "^BATCH_[A-Z0-9_]+$",
+      "policyId": "framework",
+      "requiredColumns": [],
+      "reason": "Spring Batch JobRepository physical schema is owned by Spring Batch."
+    }
+  ],
+  "tablePolicies": {
+    "cpf_saga_execution": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["started_at", "updated_at"],
+      "reason": "Saga start and state-update timestamps are the authoritative lifecycle."
+    },
+    "cpf_saga_step_execution": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["created_at", "updated_at"],
+      "reason": "Saga step creation and latest transition timestamps record its lifecycle."
+    },
+    "cpf_saga_manual_action": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["operator_id", "created_at"],
+      "reason": "Each manual recovery action is immutable evidence of its operator and action time."
+    },
+    "adm_approval_history": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["created_by", "created_at"],
+      "reason": "Approval history is append-only evidence; updating a historical decision is prohibited."
+    },
+    "adm_maintenance_action": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["requested_by", "requested_at"],
+      "reason": "Maintenance command evidence is attributed to its requester and request time."
+    },
+    "bat_runtime_instance": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["started_at", "last_heartbeat_at", "created_at", "updated_at"],
+      "reason": "Runtime registration, start, heartbeat and update timestamps express the instance lifecycle."
+    },
+    "bat_runtime_capability": {
+      "policyId": "projection",
+      "requiredColumns": ["instance_id"],
+      "reason": "Capabilities are a cascade-owned projection of the runtime instance registration."
+    },
+    "bat_runtime_heartbeat": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["instance_id", "heartbeat_at"],
+      "reason": "Heartbeat rows are append-only runtime observations."
+    },
+    "bat_runtime_command": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["requested_by", "requested_at", "updated_at"],
+      "reason": "Command requester, request time and latest state transition time are authoritative."
+    },
+    "bat_runtime_command_attempt": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["started_at", "finished_at"],
+      "reason": "An execution attempt is immutable evidence bounded by start and finish timestamps."
+    },
+    "bat_scheduler_lease": {
+      "policyId": "lease",
+      "requiredColumns": ["owner_instance_id", "fencing_token", "lease_until", "last_heartbeat_at", "updated_at"],
+      "reason": "Scheduler leadership is concurrency state governed by owner, fencing and lease time."
+    },
+    "bat_schedule_trigger": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["scheduled_fire_at", "created_at"],
+      "reason": "A scheduled trigger is immutable evidence of the intended and recorded fire time."
+    },
+    "bat_center_cut_claim": {
+      "policyId": "lease",
+      "requiredColumns": ["runner_id", "fencing_token", "lease_until", "last_heartbeat_at", "updated_at"],
+      "reason": "Center-cut claim ownership is governed by runner, fencing and lease timestamps."
+    },
+    "bat_center_cut_execution": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["requested_by", "created_at", "updated_at", "completed_at"],
+      "reason": "Requester and execution lifecycle timestamps are authoritative."
+    },
+    "bat_center_cut_rate_window": {
+      "policyId": "lease",
+      "requiredColumns": ["window_second", "updated_at"],
+      "reason": "The rate bucket is short-lived coordination state identified by window and last update."
+    },
+    "bat_deployment_cell": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["created_at", "updated_at"],
+      "reason": "Deployment-cell desired state is system reconciled; lifecycle timestamps are authoritative."
+    },
+    "bat_deployment_instance": {
+      "policyId": "projection",
+      "requiredColumns": ["cell_id", "instance_id"],
+      "reason": "Instance placement is a cascade-owned projection of a deployment cell."
+    },
+    "bat_deployment_plan": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["requested_by", "created_at", "updated_at"],
+      "reason": "Plan requester and lifecycle timestamps preserve operational accountability."
+    },
+    "bat_deployment_lock": {
+      "policyId": "lease",
+      "requiredColumns": ["owner_deployment_id", "fencing_token", "locked_at", "expires_at"],
+      "reason": "Deployment serialization is governed by owner, fencing, acquisition and expiry."
+    },
+    "bat_deployment_execution": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["requested_by", "approved_by", "created_at", "started_at", "finished_at"],
+      "reason": "Deployment execution evidence retains requester, approver and lifecycle timestamps."
+    },
+    "bat_deployment_instance_result": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["instance_id", "recorded_at"],
+      "reason": "Per-instance deployment result is append-only evidence."
+    },
+    "bat_version_compatibility": {
+      "policyId": "static-contract",
+      "requiredColumns": ["compatibility_id"],
+      "reason": "Compatibility rows are controlled product configuration changed through SQL lifecycle."
+    },
+    "bat_job_pack": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["owner_domain", "last_registered_at"],
+      "reason": "Job-pack ownership and last registration time form the catalog lifecycle."
+    },
+    "bat_job_pack_job": {
+      "policyId": "projection",
+      "requiredColumns": ["job_pack_id", "job_id"],
+      "reason": "Job entries are a cascade-owned projection of their immutable job-pack manifest."
+    },
+    "cpf_batch_approved_launch": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["approved_by", "approved_at", "effective_from"],
+      "reason": "Approver, approval time and bounded effective period are the authoritative launch-approval lifecycle."
+    },
+    "cpf_batch_execution_control": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["operator_id", "created_at", "updated_at"],
+      "reason": "The approved operator and control-state timestamps are the authoritative execution lifecycle."
+    },
+    "cpf_batch_execution_link": {
+      "policyId": "projection",
+      "requiredColumns": ["cpf_execution_id", "link_key", "updated_at"],
+      "reason": "Spring Batch metadata links are fencing-protected projections owned by the execution control ledger."
+    },
+    "cpf_batch_execution_epoch": {
+      "policyId": "lease",
+      "requiredColumns": ["job_id", "current_fencing_token", "updated_at"],
+      "reason": "The current fencing token and update time serialize execution ownership per job."
+    },
+    "cpf_cache_invalidation_checkpoint": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["consumer_id", "last_event_id", "updated_at"],
+      "reason": "The durable consumer cursor and update time are the authoritative replay lifecycle."
+    },
+    "cpf_cache_invalidation_event": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["requested_by", "created_at"],
+      "reason": "Cache invalidation events are append-only evidence attributed to their requester."
+    },
+    "cpf_notification_delivery_attempt": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["created_by", "created_at"],
+      "reason": "Each provider call attempt is immutable delivery evidence."
+    },
+    "cpf_runtime_change_audit": {
+      "policyId": "immutable-event",
+      "requiredColumns": ["actor_id", "created_at"],
+      "reason": "Runtime control audit rows are immutable hash-chain events attributed to an actor."
+    },
+    "adm_file_job": {
+      "policyId": "semantic-lifecycle",
+      "requiredColumns": ["requested_by", "created_at", "updated_at"],
+      "reason": "Requester and job lifecycle timestamps are the authoritative file-job audit fields."
+    },
+    "adm_file_job_row": {
+      "policyId": "projection",
+      "requiredColumns": ["job_id", "row_no", "created_at", "updated_at"],
+      "reason": "Row outcomes are lifecycle projections owned by their file job."
+    },
+    "bza_audit_chain_lock": {
+      "policyId": "lease",
+      "requiredColumns": ["updated_by", "updated_at"],
+      "reason": "The single audit-chain head records the actor and time of the last serialized update."
+    }
+  }
+}

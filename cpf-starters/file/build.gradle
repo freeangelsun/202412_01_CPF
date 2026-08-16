@@ -1,0 +1,12 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    api project(':framework:core')
+    api project(':framework:security')
+    implementation project(':framework:base-runtime')
+}
+
+tasks.named('test') { useJUnitPlatform() }
+publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-file' } } }

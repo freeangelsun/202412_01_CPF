@@ -1,0 +1,1 @@
+package com.cpf.batch.api; import java.time.Instant; public record DeploymentRequest(String deploymentId,String idempotencyKey,DeploymentCellManifest manifest,long expectedVersion,String requestedBy,String reason,String approvalRequestId,String approvedBy,Instant expiresAt){}

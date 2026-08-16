@@ -1,0 +1,129 @@
+package com.cpf.admin.opr.controller;
+
+import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.code.dto.CommonCodeRequest;
+import com.cpf.common.code.service.CodeCacheService;
+import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.core.api.context.CpfContexts;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.cpf.web.api.CpfController;
+
+import java.util.List;
+import java.util.Map;
+
+/** 공통 코드 Group·Item·Version·유효기간을 운영하는 ADM API입니다. */
+@CpfController
+@RequestMapping("/adm/api/codes")
+@Tag(name = "ADM-CPF Codes", description = "CPF 공통 코드 관리 API")
+public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseController {
+    private final CodeCacheService codeCacheService;
+    private final AdmAuditLogService auditLogService;
+
+    public AdmCodeController(CodeCacheService codeCacheService, AdmAuditLogService auditLogService) {
+        this.codeCacheService = codeCacheService;
+        this.auditLogService = auditLogService;
+    }
+
+    @GetMapping
+    @CpfOnlineTransaction(id = "OADMCD0010", name = "ADMCodeList", ownerDomain="ADM")
+    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "cpf_code 기준 코드 그룹과 코드를 조회합니다.")
+    public ResponseEntity<List<Map<String, Object>>> findCodes(HttpServletRequest request) {
+        requireOperator(request);
+        return ResponseEntity.ok(codeCacheService.getAllCodes());
+    }
+
+    @GetMapping("/{codeId}")
+    @CpfOnlineTransaction(id = "OADMCD0011", name = "ADMCodeDetail", ownerDomain="ADM")
+    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 cpf_code 상세 정보를 조회합니다.")
+    public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId, HttpServletRequest request) {
+        requireOperator(request);
+        return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
+    }
+
+    @PostMapping
+    @CpfOnlineTransaction(id = "OADMCD0012", name = "ADMCodeCreate", ownerDomain="ADM")
+    @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록", description = "cpf_code에 신규 코드를 등록하고 코드 캐시를 갱신합니다.")
+    public ResponseEntity<Map<String, Object>> createCode(
+            @Valid @RequestBody CommonCodeRequest request,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
+        String reason = auditLogService.requireReason(request.getReason());
+        Map<String, Object> created = codeCacheService.createCode(request);
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                operator,
+                "CODE_CREATE",
+                "cpf_code",
+                String.valueOf(created.getOrDefault("codeId", request.getCodeKey())),
+                reason,
+                null,
+                String.valueOf(created),
+                String.valueOf(created),
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping("/{codeId}")
+    @CpfOnlineTransaction(id = "OADMCD0013", name = "ADMCodeUpdate", ownerDomain="ADM")
+    @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정", description = "cpf_code를 수정하고 코드 캐시를 갱신합니다.")
+    public ResponseEntity<Map<String, Object>> updateCode(
+            @PathVariable Long codeId,
+            @Valid @RequestBody CommonCodeRequest request,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        request.setRequestUser(operator);
+        String reason = auditLogService.requireReason(request.getReason());
+        Map<String, Object> before = codeCacheService.getCodeById(codeId);
+        Map<String, Object> updated = codeCacheService.updateCode(codeId, request);
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                operator,
+                "CODE_UPDATE",
+                "cpf_code",
+                String.valueOf(codeId),
+                reason,
+                String.valueOf(before),
+                String.valueOf(updated),
+                "코드 수정",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{codeId}")
+    @CpfOnlineTransaction(id = "OADMCD0014", name = "ADMCodeDisable", ownerDomain="ADM")
+    @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성", description = "cpf_code를 비활성화하고 코드 캐시를 갱신합니다.")
+    public ResponseEntity<List<Map<String, Object>>> deleteCode(
+            @PathVariable Long codeId,
+            @RequestParam String reason,
+            HttpServletRequest servletRequest) {
+        String operator = requireOperator(servletRequest);
+        String requiredReason = auditLogService.requireReason(reason);
+        Map<String, Object> before = codeCacheService.getCodeById(codeId);
+        List<Map<String, Object>> latest = codeCacheService.deleteCode(codeId);
+        auditLogService.record(
+                CpfContexts.transactionId(),
+                operator,
+                "CODE_DISABLE",
+                "cpf_code",
+                String.valueOf(codeId),
+                requiredReason,
+                String.valueOf(before),
+                null,
+                "코드 비활성",
+                servletRequest.getRemoteAddr());
+        return ResponseEntity.ok(latest);
+    }
+}

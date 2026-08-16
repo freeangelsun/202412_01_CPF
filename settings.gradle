@@ -1,0 +1,327 @@
+/*
+ * Gradle plugin management는 settings 파일 최상단에 유지합니다.
+ * 품질 gate는 offline 실행을 기본으로 보장해야 하므로 외부 Build Scan 플러그인은 필수 경로에서 제외합니다.
+ */
+pluginManagement {
+    // Convention Plugin은 plugin resolution 단계에서 Included Build로 공급한다.
+    // 빈 GRADLE_USER_HOME에서도 과거 로컬 Marker 없이 해석되어야 한다.
+    includeBuild('cpf-tools/build/gradle-plugin') {
+        name = 'cpf-gradle-plugin'
+    }
+    def cpfStackProperties = new Properties()
+    def cpfStackFile = file('gradle/cpf-stack.properties')
+    if (!cpfStackFile.isFile()) {
+        throw new GradleException("CPF stack properties is missing: ${cpfStackFile}")
+    }
+    cpfStackFile.withInputStream { cpfStackProperties.load(it) }
+
+    plugins {
+        id 'org.springframework.boot' version cpfStackProperties.getProperty('springBootVersion')
+        id 'io.spring.dependency-management' version cpfStackProperties.getProperty('springDependencyManagementVersion')
+        id 'org.cyclonedx.bom' version cpfStackProperties.getProperty('cycloneDxGradleVersion')
+    }
+
+    def cpfArtifactMode = providers.gradleProperty('cpfArtifactMode')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_MODE'))
+            .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl').map { 'REMOTE' })
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL').map { 'REMOTE' })
+            .orElse('LOCAL_DEV')
+            .get()
+            .trim()
+            .toUpperCase(Locale.ROOT)
+    if (!(cpfArtifactMode in ['LOCAL_DEV', 'REMOTE', 'OFFLINE'])) {
+        throw new GradleException("Unsupported CPF artifact mode: ${cpfArtifactMode}")
+    }
+    def cpfRemoteRepo = providers.gradleProperty('cpfArtifactRepositoryUrl')
+            .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL')).orNull
+    def cpfLocalRepo = providers.gradleProperty('cpfLocalArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+            .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+            .get()
+    def cpfOfflineRepo = providers.gradleProperty('cpfOfflineArtifactRepository')
+            .orElse(providers.environmentVariable('CPF_OFFLINE_ARTIFACT_REPOSITORY'))
+            .orNull
+    if (cpfArtifactMode == 'REMOTE' && !cpfRemoteRepo) {
+        throw new GradleException('CPF_ARTIFACT_MODE=REMOTE requires cpfArtifactRepositoryUrl or CPF_ARTIFACT_REPOSITORY_URL.')
+    }
+    if (cpfArtifactMode == 'OFFLINE' && !cpfOfflineRepo) {
+        throw new GradleException('CPF_ARTIFACT_MODE=OFFLINE requires cpfOfflineArtifactRepository or CPF_OFFLINE_ARTIFACT_REPOSITORY.')
+    }
+
+    repositories {
+        if (cpfArtifactMode == 'REMOTE') {
+            maven {
+                name = 'cpfRemotePlugin'
+                url = uri(cpfRemoteRepo)
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+                def cpfRepoUser = providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_USER').orNull
+                if (cpfRepoUser) {
+                    credentials {
+                        username = cpfRepoUser
+                        password = providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_PASSWORD').orNull
+                    }
+                }
+            }
+        } else if (cpfArtifactMode == 'OFFLINE') {
+            maven {
+                name = 'cpfOfflinePlugin'
+                url = uri(file(cpfOfflineRepo))
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        } else {
+            maven {
+                name = 'cpfLocalPlugin'
+                url = uri(file(cpfLocalRepo))
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        }
+        if (cpfArtifactMode != 'OFFLINE') {
+            gradlePluginPortal {
+                content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+            mavenCentral {
+                content { excludeGroupByRegex 'com[.]cpf([.].*)?' }
+            }
+        }
+    }
+}
+
+rootProject.name = 'cpf-core-platform-framework'
+
+include ':framework:core', ':apps:admin', ':apps:biz-admin', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
+include ':internal:verification:core-only-consumer'
+include ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime', ':runtime:batch:control-plane', ':runtime:batch:scheduler', ':runtime:batch:worker', ':runtime:batch:center-cut', ':runtime:batch:agent', ':runtime:batch:testkit'
+
+project(':framework:core').projectDir = file('cpf-core')
+project(':apps:education').projectDir = file('cpf-education')
+project(':internal:testing:testkit').projectDir = file('cpf-tools/testing/cpf-testkit')
+project(':apps:admin').projectDir = file('cpf-admin')
+project(':apps:biz-admin').projectDir = file('cpf-biz-admin')
+project(':runtime:gateway').projectDir = file('cpf-gateway')
+project(':runtime:local').projectDir = file('cpf-tools/runtime/cpf-local-runtime')
+project(':runtime:local-batch').projectDir = file('cpf-tools/runtime/cpf-local-batch-runtime')
+project(':internal:verification:core-only-consumer').projectDir = file('cpf-tools/verification/core-only-consumer')
+project(':runtime:batch:api').projectDir = file('cpf-batch/api')
+project(':runtime:batch:runtime-support').projectDir = file('cpf-batch/runtime-support')
+project(':runtime:batch:runtime').projectDir = file('cpf-batch/runtime')
+project(':runtime:batch:control-plane').projectDir = file('cpf-batch/control-plane')
+project(':runtime:batch:scheduler').projectDir = file('cpf-batch/scheduler')
+project(':runtime:batch:worker').projectDir = file('cpf-batch/worker')
+project(':runtime:batch:center-cut').projectDir = file('cpf-batch/center-cut')
+project(':runtime:batch:agent').projectDir = file('cpf-batch/agent')
+project(':runtime:batch:testkit').projectDir = file('cpf-batch/testkit')
+
+// Internal Capability parents and leaves are included only from the canonical Starter Catalog below.
+
+// QA39/FDEV-025: Starter Build Graph의 단일 정본과 물리 Layout을 exact equality로 검증합니다.
+def cpfStarterCatalogFile = file('cpf-tools/generator/contracts/cpf-starter-catalog.json')
+if (!cpfStarterCatalogFile.isFile()) throw new GradleException("CPF canonical starter catalog is missing: ${cpfStarterCatalogFile}")
+def cpfStarterCatalog = new groovy.json.JsonSlurper().parse(cpfStarterCatalogFile)
+def cpfPublicProfiles = (cpfStarterCatalog.publicProfiles ?: [])*.toString()
+def cpfPublicBaseStarter = cpfStarterCatalog.publicBaseStarter?.toString()
+def cpfCapabilityGroups = (cpfStarterCatalog.capabilityGroups ?: []).collect { it.id?.toString() }
+if (cpfPublicBaseStarter != 'cpf-starter') throw new GradleException("CPF public base starter mismatch: ${cpfPublicBaseStarter}")
+def cpfStarterModules = cpfStarterCatalog.modules ?: []
+def layout = cpfStarterCatalog.targetPhysicalLayout ?: [:]
+def cpfPublicBaseModules = cpfStarterModules.findAll { it.visibility?.toString() == 'public' && it.kind?.toString() == 'starter-base' }
+def cpfPublicProfileModules = cpfStarterModules.findAll { it.visibility?.toString() == 'public' && it.kind?.toString() == 'starter-profile' }
+def moduleProfileIds = cpfPublicProfileModules.collect { it.profileId?.toString() } as Set
+if (cpfPublicBaseModules.size() != 1 || cpfPublicBaseModules[0].artifactId?.toString() != cpfPublicBaseStarter) throw new GradleException("CPF public base partition mismatch: ${cpfPublicBaseModules}")
+if ((cpfPublicProfiles as Set) != moduleProfileIds || cpfPublicProfiles.size() != moduleProfileIds.size()) throw new GradleException("CPF public profile surface mismatch: declared=${cpfPublicProfiles}, modules=${moduleProfileIds.sort()}")
+if ((cpfCapabilityGroups as Set).size() != cpfCapabilityGroups.size()) throw new GradleException("Duplicate CPF capability group id: ${cpfCapabilityGroups}")
+def capabilityOwnerIds = (cpfStarterCatalog.capabilityGroups ?: []).collect { it.id?.toString() } as Set
+def catalogInternalOwners = cpfStarterModules.findAll { it.visibility?.toString() == 'internal' }.collect { it.ownerGroup?.toString() }.findAll { it && !(it in ['base','profiles']) } as Set
+def unknownInternalOwners = catalogInternalOwners - capabilityOwnerIds
+if (!unknownInternalOwners.isEmpty()) throw new GradleException("Internal Starter owner missing from capabilityGroups: ${unknownInternalOwners.sort()}")
+def allowedRoots = (layout.rootDirectories ?: [])*.toString() as Set
+def seen = [projectPath:new LinkedHashSet<String>(), ownerPath:new LinkedHashSet<String>(), gav:new LinkedHashSet<String>(), artifactId:new LinkedHashSet<String>(), configPrefix:new LinkedHashSet<String>()]
+cpfStarterModules.each { module ->
+    def projectPath = module.projectPath?.toString()
+    def ownerPath = module.ownerPath?.toString()?.replace('\\', '/')
+    def visibility = module.visibility?.toString()
+    def kind = module.kind?.toString()
+    def ownerGroup = module.ownerGroup?.toString()
+    def internalRole = module.internalRole?.toString()
+    def gav = "${module.groupId}:${module.artifactId}"
+    if (!(projectPath ==~ /^:(starters|internal|framework):.+/) || !ownerPath?.startsWith('cpf-starters/')) throw new GradleException("Invalid CPF starter catalog entry: ${module}")
+    [projectPath:projectPath, ownerPath:ownerPath, gav:gav, artifactId:module.artifactId?.toString(), configPrefix:module.configPrefix?.toString()].each { k,v ->
+        if (!v || !seen[k].add(v)) throw new GradleException("Duplicate/blank ${k} in canonical catalog: ${v}")
+    }
+    if (!(visibility in ['public','internal'])) throw new GradleException("Invalid visibility: ${module}")
+    if (visibility == 'public') {
+        def validProfile = kind == 'starter-profile' && ownerGroup == 'profiles' && internalRole == 'public-profile' && module.profileId
+        def validBase = kind == 'starter-base' && ownerGroup == 'base' && internalRole == 'public-base' && module.artifactId?.toString() == cpfPublicBaseStarter
+        def validCommon = kind == 'starter-common' && ownerGroup == 'common' && internalRole == 'public-common' && module.artifactId?.toString() == 'cpf-starter-common'
+        def validProvider = kind == 'starter-provider' && internalRole == 'public-provider' && capabilityOwnerIds.contains(ownerGroup)
+        if (!(validProfile || validBase || validCommon || validProvider)) throw new GradleException("Invalid public Starter partition: ${module}")
+    }
+    if (visibility == 'internal' && kind != 'internal-starter') throw new GradleException("Invalid internal partition: ${module}")
+    def rel = ownerPath.substring('cpf-starters/'.length())
+    def root = rel.contains('/') ? rel.substring(0, rel.indexOf('/')) : rel
+    if (!allowedRoots.contains(root)) throw new GradleException("Owner path is outside targetPhysicalLayout roots: ${ownerPath}")
+    if (!file(ownerPath).isDirectory() || !file("${ownerPath}/build.gradle").isFile()) throw new GradleException("Catalog physical module is missing: ${ownerPath}")
+    include projectPath
+    project(projectPath).projectDir = file(ownerPath)
+}
+def activeIds = cpfStarterModules.collect { it.artifactId?.toString() } as Set
+
+// NXT2 one-shot public coordinate currentization. No compatibility shim is allowed because no Release/Tag exists.
+def stalePublicProfilePrefix = cpfStarterCatalog.namingPolicy?.publicProfilePrefixForbidden?.toString()
+if (!stalePublicProfilePrefix) throw new GradleException('CPF stale public profile prefix policy is missing')
+def staleActive = activeIds.findAll { it.startsWith(stalePublicProfilePrefix) }
+if (!staleActive.isEmpty()) throw new GradleException("Legacy public profile coordinates remain active: ${staleActive.sort()}")
+if (project(':framework:core').projectDir.toPath().startsWith(file('cpf-starters').toPath())) throw new GradleException('cpf-core must be the only Core and stay outside cpf-starters')
+def activeOwnerPaths = cpfStarterModules.collect { it.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') } as Set
+def removedIds = (cpfStarterCatalog.removedArtifactIds ?: [])*.toString() as Set
+def removedPaths = (cpfStarterCatalog.removedRepositoryRoots ?: [])*.toString()*.replace('\\', '/')*.replaceAll('/+$', '') as Set
+def retainedRows = (cpfStarterCatalog.retainedInactiveRoots ?: [])
+if (!(retainedRows instanceof List)) throw new GradleException('retainedInactiveRoots must be an array')
+def retainedPaths = new LinkedHashSet<String>()
+def retainedIds = new LinkedHashSet<String>()
+retainedRows.each { retained ->
+    def path = retained.path?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    def artifactId = retained.artifactId?.toString()
+    def replacementId = retained.replacementArtifactId?.toString()
+    def replacementPath = retained.replacementOwnerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+    if (!path || !artifactId || !replacementId || !replacementPath) throw new GradleException("Incomplete retained inactive Starter contract: ${retained}")
+    if (!retainedPaths.add(path) || !retainedIds.add(artifactId)) throw new GradleException("Duplicate retained inactive Starter: ${retained}")
+    if (retained.status?.toString() != 'PENDING_USER_DELETE_APPROVAL' || retained.active != false ||
+            retained.includeInSettings != false || retained.publishable != false || retained.consumerAllowed != false || retained.approvalRequired != true) {
+        throw new GradleException("Invalid retained inactive Starter transition contract: ${retained}")
+    }
+    def replacement = cpfStarterModules.find { it.artifactId?.toString() == replacementId }
+    if (replacement == null || replacement.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') != replacementPath) {
+        throw new GradleException("Retained inactive Starter replacement is not active/canonical: ${retained}")
+    }
+    // 삭제 승인 전에는 inactive root가 남아 있을 수 있고, 사용자 삭제 후에는 없어도 정상입니다.
+    // 존재할 때만 최소 물리 정합성을 확인하여 pre-delete/post-delete 모두 동일 settings가 동작하게 합니다.
+    if (file(path).exists() && (!file(path).isDirectory() || !file("${path}/build.gradle").isFile())) {
+        throw new GradleException("Retained inactive Starter root is malformed: ${path}")
+    }
+}
+if (!removedIds.intersect(activeIds).isEmpty()) throw new GradleException("Removed CPF artifact is still active: ${removedIds.intersect(activeIds)}")
+if (!activeIds.intersect(retainedIds).isEmpty()) throw new GradleException("Active/retained artifact overlap: ${activeIds.intersect(retainedIds)}")
+if (!activeOwnerPaths.intersect(retainedPaths).isEmpty()) throw new GradleException("Active/retained path overlap: ${activeOwnerPaths.intersect(retainedPaths)}")
+if (!retainedPaths.intersect(removedPaths).isEmpty()) throw new GradleException("Retained/removed path overlap: ${retainedPaths.intersect(removedPaths)}")
+def nonStarterInternalRoots = (layout.nonStarterInternalRoots ?: [])*.toString()*.replace('\\', '/')*.replaceAll('/+$', '') as Set
+nonStarterInternalRoots.each { path ->
+    if (!path.startsWith('cpf-starters/')) throw new GradleException("Non-starter internal root must stay under cpf-starters/: ${path}")
+    if (activeOwnerPaths.contains(path) || retainedPaths.contains(path)) throw new GradleException("Non-starter internal root overlaps Starter ownership: ${path}")
+    if (!file(path).isDirectory() || !file("${path}/build.gradle").isFile()) throw new GradleException("Non-starter internal root is missing: ${path}")
+}
+def physicalStarterPaths = (fileTree('cpf-starters') { include '**/build.gradle'; exclude 'build/**', '**/build/**' }.files.collect {
+    rootDir.toPath().relativize(it.parentFile.toPath()).toString().replace('\\', '/')
+} as Set) - nonStarterInternalRoots
+def retainedPresentPaths = retainedPaths.findAll { file(it).isDirectory() } as Set
+def expectedPhysicalPaths = activeOwnerPaths + retainedPresentPaths
+def missingPhysical = expectedPhysicalPaths - physicalStarterPaths
+def extraPhysical = physicalStarterPaths - expectedPhysicalPaths
+def removedPhysical = physicalStarterPaths.intersect(removedPaths)
+if (!missingPhysical.isEmpty() || !extraPhysical.isEmpty() || !removedPhysical.isEmpty()) {
+    throw new GradleException("Starter physical closure mismatch: missing=${missingPhysical.sort()}, extra=${extraPhysical.sort()}, retained=${retainedPaths.sort()}, removedPresent=${removedPhysical.sort()}")
+}
+def retainedDependencyLeaks = []
+cpfStarterModules.each { module ->
+    def buildText = file("${module.ownerPath}/build.gradle").getText('UTF-8')
+    def leaked = retainedIds.findAll { id -> buildText.contains("project(':${id}')") || buildText.contains(":${id}:") }
+    if (!leaked.isEmpty()) retainedDependencyLeaks << "${module.artifactId} -> ${leaked.sort()}"
+}
+if (!retainedDependencyLeaks.isEmpty()) {
+    throw new GradleException("Active Starters depend on retained inactive coordinates: ${retainedDependencyLeaks.sort()}")
+}
+def removedStillPresent = removedPaths.findAll { file(it).exists() }
+if (!removedStillPresent.isEmpty()) throw new GradleException("Removed CPF repository roots still exist: ${removedStillPresent.sort()}")
+
+// Gradle 9 requires every implicit logical parent project directory to exist.
+project(':apps').projectDir = file('cpf-tools/build/logical-project-groups/apps')
+project(':framework').projectDir = file('cpf-tools/build/logical-project-groups/framework')
+project(':internal').projectDir = file('cpf-tools/build/logical-project-groups/internal')
+project(':internal:data').projectDir = file('cpf-tools/build/logical-project-groups/internal/data')
+project(':internal:data:cache').projectDir = file('cpf-tools/build/logical-project-groups/internal/data/cache')
+project(':internal:data:transaction').projectDir = file('cpf-tools/build/logical-project-groups/internal/data/transaction')
+project(':internal:file').projectDir = file('cpf-tools/build/logical-project-groups/internal/file')
+project(':internal:file:tabular').projectDir = file('cpf-tools/build/logical-project-groups/internal/file/tabular')
+project(':internal:integration').projectDir = file('cpf-tools/build/logical-project-groups/internal/integration')
+project(':internal:messaging').projectDir = file('cpf-tools/build/logical-project-groups/internal/messaging')
+project(':internal:messaging:reliability').projectDir = file('cpf-tools/build/logical-project-groups/internal/messaging/reliability')
+project(':internal:notification').projectDir = file('cpf-tools/build/logical-project-groups/internal/notification')
+project(':internal:platform-operations').projectDir = file('cpf-tools/build/logical-project-groups/internal/platform-operations')
+project(':internal:platform-operations:channel-registry').projectDir = file('cpf-tools/build/logical-project-groups/internal/platform-operations/channel-registry')
+project(':internal:platform-operations:feature-flag').projectDir = file('cpf-tools/build/logical-project-groups/internal/platform-operations/feature-flag')
+project(':internal:platform-operations:observability').projectDir = file('cpf-tools/build/logical-project-groups/internal/platform-operations/observability')
+project(':internal:platform-operations:runtime-health').projectDir = file('cpf-tools/build/logical-project-groups/internal/platform-operations/runtime-health')
+project(':internal:security').projectDir = file('cpf-tools/build/logical-project-groups/internal/security')
+project(':internal:security:audit').projectDir = file('cpf-tools/build/logical-project-groups/internal/security/audit')
+project(':internal:testing').projectDir = file('cpf-tools/build/logical-project-groups/internal/testing')
+project(':internal:verification').projectDir = file('cpf-tools/build/logical-project-groups/internal/verification')
+project(':runtime').projectDir = file('cpf-tools/build/logical-project-groups/runtime')
+project(':runtime:batch').projectDir = file('cpf-batch')
+project(':starters').projectDir = file('cpf-tools/build/logical-project-groups/starters')
+project(':starters:cache').projectDir = file('cpf-tools/build/logical-project-groups/starters/cache')
+project(':starters:data').projectDir = file('cpf-tools/build/logical-project-groups/starters/data')
+project(':starters:data:lock').projectDir = file('cpf-tools/build/logical-project-groups/starters/data/lock')
+project(':starters:file').projectDir = file('cpf-tools/build/logical-project-groups/starters/file')
+project(':starters:file:object-storage').projectDir = file('cpf-tools/build/logical-project-groups/starters/file/object-storage')
+project(':starters:integration').projectDir = file('cpf-tools/build/logical-project-groups/starters/integration')
+project(':starters:messaging').projectDir = file('cpf-tools/build/logical-project-groups/starters/messaging')
+project(':starters:profiles').projectDir = file('cpf-tools/build/logical-project-groups/starters/profiles')
+project(':starters:security').projectDir = file('cpf-tools/build/logical-project-groups/starters/security')
+project(':starters:security:session').projectDir = file('cpf-tools/build/logical-project-groups/starters/security/session')
+
+// CPF BOM과 convention 정책은 cpf-tools 소유의 추적 가능한 isolated build 정본으로 관리합니다.
+// Root Build는 아래 Included Build의 check/publication task를 직접 소비합니다.
+includeBuild('cpf-tools/build/platform-bom') {
+    name = 'cpf-platform-bom'
+    dependencySubstitution {
+        substitute module('com.cpf:cpf-platform-bom') using project(':public-bom')
+    }
+}
+
+// Customer domains are independent repositories and never affect the default build graph.
+def includeLocalDomains = providers.gradleProperty('cpfIncludeLocalDomains').map { it.toBoolean() }.orElse(false).get()
+def localDomainsDir = file('local-domains')
+if (includeLocalDomains) {
+    def manifestFile = new File(localDomainsDir, 'manifest.json')
+    if (!manifestFile.isFile()) throw new GradleException('cpfIncludeLocalDomains=true requires local-domains/manifest.json')
+    def manifest = new groovy.json.JsonSlurper().parse(manifestFile)
+    if (!(manifest.builds instanceof List) || manifest.builds.isEmpty())
+        throw new GradleException('local-domains manifest must declare non-empty builds')
+    manifest.builds.each { entry ->
+        if (!(entry.path instanceof String) || !(entry.settingsSha256 instanceof String))
+            throw new GradleException('local-domains manifest entry requires path/settingsSha256')
+        def candidate = new File(localDomainsDir, entry.path).canonicalFile
+        if (!candidate.toPath().startsWith(localDomainsDir.canonicalFile.toPath()))
+            throw new GradleException("local-domains path escapes root: ${entry.path}")
+        def settingsFile = [new File(candidate,'settings.gradle'),new File(candidate,'settings.gradle.kts')].find { it.isFile() }
+        if (settingsFile == null) throw new GradleException("local domain settings missing: ${entry.path}")
+        def digest = java.security.MessageDigest.getInstance('SHA-256').digest(settingsFile.bytes).encodeHex().toString()
+        if (!digest.equalsIgnoreCase(entry.settingsSha256))
+            throw new GradleException("local domain settings hash mismatch: ${entry.path}")
+        includeBuild(candidate)
+    }
+} else if (localDomainsDir.isDirectory()) {
+    logger.lifecycle('local-domains exists but is not mounted; use -PcpfIncludeLocalDomains=true with a verified manifest')
+}
+
+// Repository-tracked Generated Customer Domain은 Product Module/BOM 대상이 아니며 opt-in Composite Build로만 연결합니다.
+// Generated Project 내부 metadata를 읽지 않고 Framework canonical definition과 실제 settings.gradle만 사용합니다.
+def includeGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(false).get()
+def generatedDefinitionRoot = file('cpf-tools/generator/definitions')
+def generatedDomainRoots = generatedDefinitionRoot.isDirectory()
+        ? (generatedDefinitionRoot.listFiles() ?: [] as File[])
+            .findAll { definitionDir -> definitionDir.isDirectory() && new File(definitionDir, 'cpf-domain.yaml').isFile() }
+            .collect { definitionDir -> file("cpf-${definitionDir.name}") }
+            .findAll { candidate -> candidate.isDirectory() && new File(candidate, 'settings.gradle').isFile() }
+            .sort { a, b -> a.name <=> b.name }
+        : []
+if (includeGeneratedDomains) {
+    generatedDomainRoots.each { candidate ->
+        def canonical = candidate.canonicalFile
+        if (!canonical.toPath().startsWith(rootDir.canonicalFile.toPath())) {
+            throw new GradleException("Generated Domain path escapes root: ${candidate}")
+        }
+        includeBuild(canonical) { name = "cpf-generated-${candidate.name}" }
+    }
+} else if (!generatedDomainRoots.isEmpty()) {
+    logger.lifecycle("Generated Customer Domains are retained but not mounted: ${generatedDomainRoots*.name}; use -PcpfIncludeGeneratedDomains=true for regression build")
+}

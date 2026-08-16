@@ -1,0 +1,2 @@
+com.cpf.platform.operations.channelregistry.jdbc.jdbc.CpfChannelRegistryJdbcAutoConfiguration
+com.cpf.platform.operations.channelregistry.jdbc.runtimecontrol.CpfChannelRuntimeControlAutoConfiguration

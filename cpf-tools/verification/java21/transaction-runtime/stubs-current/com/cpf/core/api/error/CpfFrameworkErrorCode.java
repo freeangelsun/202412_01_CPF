@@ -1,0 +1,2 @@
+package com.cpf.core.api.error;
+public enum CpfFrameworkErrorCode { MISSING_TRANSACTION_HEADER, INVALID_TRANSACTION_METADATA }

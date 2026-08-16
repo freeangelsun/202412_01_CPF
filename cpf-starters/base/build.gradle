@@ -1,0 +1,20 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.starter'
+
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // Public default entry = Base runtime + CPF Common Product Service (which owns mandatory Data JDBC wiring).
+    api project(':framework:base-runtime')
+    api project(':starters:common')
+    api project(':starters:data:jdbc')
+}
+
+tasks.named('test') { useJUnitPlatform() }
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-starter'
+        }
+    }
+}

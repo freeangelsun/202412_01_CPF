@@ -1,0 +1,45 @@
+{
+  "all_duplicate_blocks": [
+    {
+      "length": 245,
+      "documents": [
+        "00_프레임워크안내.docx",
+        "01_개발자매뉴얼.docx",
+        "02_배치개발매뉴얼.docx",
+        "03_ADM개발자매뉴얼.docx",
+        "04_ADM운영자매뉴얼.docx",
+        "05_플랫폼운영매뉴얼.docx",
+        "90_BZA매뉴얼.docx",
+        "91_Gateway매뉴얼.docx",
+        "기술사양서.docx",
+        "기술표준서.docx",
+        "데이터베이스표준서.docx",
+        "산출물목록.docx",
+        "아키텍처설계서.docx"
+      ],
+      "kind": [
+        "table-row"
+      ],
+      "text": "기준 Source / 정본 | Repository f6d7080c5a14b7dd7595093f9497470169e18d80 Product Source f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c 최상위 요구사항 cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md 문서 표준 cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md"
+    },
+    {
+      "length": 146,
+      "documents": [
+        "03_ADM개발자매뉴얼.docx",
+        "04_ADM운영자매뉴얼.docx",
+        "90_BZA매뉴얼.docx",
+        "91_Gateway매뉴얼.docx",
+        "기술사양서.docx",
+        "기술표준서.docx",
+        "데이터베이스표준서.docx",
+        "산출물목록.docx",
+        "아키텍처설계서.docx"
+      ],
+      "kind": [
+        "paragraph"
+      ],
+      "text": "완성 기준 이 문서는 제품 완료 상태에서 사용자가 수행할 최종 업무 계약을 기술합니다. 각 절은 선행조건 → 입력/설정 → 실행 → 정상 판정 → 실패/부분 실패 → 복구/대사 → Evidence 순서로 닫으며, Source Trace는 구현 위치를 제공합니다."
+    }
+  ],
+  "meaningful_duplicates": []
+}

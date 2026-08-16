@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="486" viewBox="0 0 1500 486" role="img">
+<title>CPF 설치·기동 순서</title><desc>Artifact·Config·DB·Dependency·Runtime·화면을 단계적으로 확인</desc>
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="50" y="58" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#0f172a">CPF 설치·기동 순서</text>
+<text x="50" y="92" font-family="Arial,sans-serif" font-size="17" fill="#475569">Artifact·Config·DB·Dependency·Runtime·화면을 단계적으로 확인</text>
+<rect x="50" y="135" width="323" height="171" rx="16" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="72" y="173" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">수령</text>
+<text x="72" y="210" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Artifact Hash</text>
+<text x="72" y="242" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Source SHA</text>
+<text x="72" y="274" font-family="Arial,sans-serif" font-size="16" fill="#334155">• SBOM·License</text>
+<line x1="377" y1="220" x2="400" y2="220" stroke="#334155" stroke-width="3"/>
+<polygon points="400,213 400,227 408,220" fill="#334155"/>
+<rect x="408" y="135" width="323" height="171" rx="16" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="430" y="173" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">기반</text>
+<text x="430" y="210" font-family="Arial,sans-serif" font-size="16" fill="#334155">• 계정·Directory</text>
+<text x="430" y="242" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Secret·Certificate</text>
+<text x="430" y="274" font-family="Arial,sans-serif" font-size="16" fill="#334155">• DB·Broker</text>
+<line x1="735" y1="220" x2="758" y2="220" stroke="#334155" stroke-width="3"/>
+<polygon points="758,213 758,227 766,220" fill="#334155"/>
+<rect x="766" y="135" width="323" height="171" rx="16" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="788" y="173" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">Runtime</text>
+<text x="788" y="210" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Migration</text>
+<text x="788" y="242" font-family="Arial,sans-serif" font-size="16" fill="#334155">• 기동·Health</text>
+<text x="788" y="274" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Topology·Capacity</text>
+<line x1="1093" y1="220" x2="1116" y2="220" stroke="#334155" stroke-width="3"/>
+<polygon points="1116,213 1116,227 1124,220" fill="#334155"/>
+<rect x="1124" y="135" width="323" height="171" rx="16" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="1146" y="173" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#0f172a">인수</text>
+<text x="1146" y="210" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Smoke</text>
+<text x="1146" y="242" font-family="Arial,sans-serif" font-size="16" fill="#334155">• ADM/BZA/Gateway</text>
+<text x="1146" y="274" font-family="Arial,sans-serif" font-size="16" fill="#334155">• Backup·Rollback</text>
+</svg>

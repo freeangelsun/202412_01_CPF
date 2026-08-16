@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "contract": "CPF_PLATFORM_SEED_CURRENTIZATION",
+  "intentId": "D-010-PLATFORM-SEED-CURRENTIZATION",
+  "sourceSeedModel": "cpf-tools/db/canonical/seed-model.json",
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "migration": {
+    "allocatedVersion": 117,
+    "observedRepositoryMaxVersionAtAllocation": 116,
+    "logicalDatabase": "cpfDB",
+    "name": "platform_seed_currentization",
+    "historicalMigrationsImmutable": true
+  },
+  "currentRows": [
+    {
+      "canonicalTable": "CMN_MESSAGE",
+      "historicalTable": "cpf_message",
+      "key": {"message_code": "MEDU010001", "locale": "ko"}
+    },
+    {
+      "canonicalTable": "CMN_RESPONSE_CODE",
+      "historicalTable": "cpf_response_code",
+      "key": {"response_code": "EEDU010001"}
+    }
+  ],
+  "retiredOwnedRows": [
+    {
+      "historicalTable": "cpf_response_code",
+      "ownershipFingerprint": {
+        "response_code": "EREF090001",
+        "message_code": "MREF090001",
+        "result_type": "E",
+        "module_id": "REF",
+        "response_group": "09",
+        "sequence_no": "0001",
+        "http_status": 409,
+        "description": "REF 샘플 중복 오류",
+        "use_yn": "Y",
+        "created_by": "SYSTEM",
+        "updated_by": "SYSTEM"
+      }
+    },
+    {
+      "historicalTable": "cpf_message",
+      "ownershipFingerprint": {
+        "message_code": "MREF090001",
+        "locale": "ko",
+        "message_format_type": "INDEXED",
+        "external_message": "이미 등록된 {0}입니다.",
+        "internal_message": "{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE",
+        "parameter_count": 2,
+        "parameter_sample": "[\"회원번호\",\"M0001\"]",
+        "description": "REF 동적 중복 교육 메시지",
+        "use_yn": "Y",
+        "created_by": "SYSTEM",
+        "updated_by": "SYSTEM"
+      },
+      "protectWhileReferencedBy": {
+        "table": "cpf_response_code",
+        "column": "message_code",
+        "value": "MREF090001"
+      }
+    }
+  ],
+  "safetyPolicy": {
+    "unknownCustomerRows": "PRESERVE",
+    "retiredRowDeletion": "EXACT_FULL_OWNERSHIP_FINGERPRINT_ONLY",
+    "currentProductKeyConflict": "CURRENTIZE_FROM_CANONICAL_SEED_MODEL",
+    "reapply": "IDEMPOTENT"
+  },
+  "rollbackPolicy": {
+    "mode": "PRESERVE_CURRENT_NOOP",
+    "reason": "Exact pre-upgrade customer state cannot be reconstructed safely; rollback must not reintroduce retired REF ownership or remove current EDU product rows."
+  }
+}

@@ -1,0 +1,10 @@
+cpf:
+  local:
+    batch:
+      enabled: true
+      modules:
+        control-plane: true
+        scheduler: true
+        worker: true
+        center-cut: false
+        agent: false

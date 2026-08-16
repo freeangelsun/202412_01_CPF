@@ -1,0 +1,1 @@
+package com.cpf.platform.operations.api.runtimecontrol; public record CpfRuntimeApplyResult(boolean success,String code,String detail,String hash){public static CpfRuntimeApplyResult success(String h){return new CpfRuntimeApplyResult(true,"OK","",h);}public static CpfRuntimeApplyResult failure(String c,String d){return new CpfRuntimeApplyResult(false,c,d,"");}}

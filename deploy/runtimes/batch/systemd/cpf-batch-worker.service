@@ -1,0 +1,21 @@
+[Unit]
+Description=CPF cpf-batch-worker
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=cpf
+Group=cpf
+EnvironmentFile=-/etc/cpf/cpf-batch-worker.env
+ExecStart=/opt/cpf/bin/cpf-batch-worker.sh run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=600
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cpf/cpf-batch-worker /var/log/cpf/cpf-batch-worker
+[Install]
+WantedBy=multi-user.target

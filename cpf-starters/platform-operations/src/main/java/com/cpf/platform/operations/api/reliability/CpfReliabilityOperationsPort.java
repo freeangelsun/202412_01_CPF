@@ -1,0 +1,47 @@
+package com.cpf.platform.operations.api.reliability;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * CPF 신뢰성 상태 조회와 운영 명령을 제공하는 공개 포트입니다.
+ */
+public interface CpfReliabilityOperationsPort {
+    List<Map<String, Object>> findIdempotency(String scope, String status, String key, int limit);
+
+    List<Map<String, Object>> findOutbox(String status, String transactionId, String topic, int limit);
+
+    List<Map<String, Object>> findInbox(String status, String key, int limit);
+
+    List<Map<String, Object>> findDlq(String status, String transactionId, String topic, int limit);
+
+    List<Map<String, Object>> findFileTransfers(String status, String transactionId, String endpointCode, int limit);
+
+    List<Map<String, Object>> findUnknownResults(String type, String status, String transactionId, int limit);
+
+    Optional<Map<String, Object>> findUnknownResult(String unknownId);
+
+    UnknownResultRecord recordUnknownResult(UnknownResultCommand command);
+
+    ChangeResult requestDlqReplay(String messageId, String operatorId, String reason);
+
+    ChangeResult resolveUnknown(String unknownId, String targetStatus, String operatorId, String reason);
+
+    /**
+     * Optimistic-CAS variant for operator driven UNKNOWN resolution. Implementations that do not
+     * support durable row-version fencing must fail closed rather than silently ignoring the token.
+     */
+    default ChangeResult resolveUnknown(
+            String unknownId, String targetStatus, long expectedVersion, String operatorId, String reason) {
+        throw new UnsupportedOperationException("expectedVersion-aware UNKNOWN resolution requires durable row-version support");
+    }
+
+    record ChangeResult(Map<String, Object> before, Map<String, Object> after, String reason) { }
+
+    record UnknownResultCommand(
+            String unknownId, String type, String transactionId, String segmentId, String externalKey,
+            String failureCode, String failureMessage, String nextAction, String createdBy) { }
+
+    record UnknownResultRecord(String unknownId, String status) { }
+}

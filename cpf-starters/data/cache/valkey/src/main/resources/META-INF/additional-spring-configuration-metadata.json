@@ -1,0 +1,12 @@
+{
+  "properties": [
+    {"name":"cpf.data.cache.valkey.enabled","type":"java.lang.Boolean","defaultValue":false,"description":"Enable the explicit CPF Valkey distributed-cache provider. Redis and Valkey providers are mutually exclusive."},
+    {"name":"cpf.data.cache.valkey.key-prefix","type":"java.lang.String","defaultValue":"cpf:","description":"Prefix for CPF cache, lock, and fencing-token keys."},
+    {"name":"cpf.data.cache.valkey.invalidation-channel","type":"java.lang.String","defaultValue":"cpf.cache.invalidate","description":"Redis-protocol pub/sub channel used as the fast invalidation signal; durable JDBC invalidation remains authoritative."},
+    {"name":"cpf.data.cache.valkey.default-ttl","type":"java.time.Duration","defaultValue":"10m","description":"Default cache TTL used by convenience consumers."},
+    {"name":"cpf.data.cache.valkey.required","type":"java.lang.Boolean","defaultValue":true,"description":"Whether provider health must fail readiness when durable invalidation is unavailable."},
+    {"name":"cpf.data.cache.valkey.tls","type":"java.lang.Boolean","defaultValue":false,"description":"Operational metadata indicating the configured Redis-protocol connection is TLS protected. Connection details remain Spring Data Redis properties."},
+    {"name":"cpf.data.cache.valkey.maximum-payload-bytes","type":"java.lang.Long","defaultValue":1048576,"description":"Maximum encoded application payload accepted by CPF cache operations."},
+    {"name":"cpf.data.cache.valkey.scan-count","type":"java.lang.Long","defaultValue":500,"description":"SCAN batch hint used for bounded namespace eviction."}
+  ]
+}

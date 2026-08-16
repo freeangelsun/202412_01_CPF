@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""Fail-closed static contract for the current exhaustive ADM browser suite."""
+from __future__ import annotations
+import argparse, os, re, sys
+from pathlib import Path
+
+class ContractError(RuntimeError): pass
+ENTRY = re.compile(r'^\s*"(?P<route_id>[^"]+)": \{ routeId: "(?P=route_id)", path: "(?P<path>[^"]+)"', re.MULTILINE)
+
+def require(text: str, token: str, label: str) -> None:
+    if token not in text: raise ContractError(f"{label} missing token={token}")
+
+def validate(root: Path) -> dict:
+    routes_file = root / "cpf-admin/frontend/src/app/routes.ts"
+    generated = root / "cpf-admin/frontend/src/generated/adm-route-operation-contract.ts"
+    config = root / "cpf-admin/frontend/playwright.config.ts"
+    route_spec = root / "cpf-admin/frontend/e2e/adm-route-contract.spec.ts"
+    state_spec = root / "cpf-admin/frontend/e2e/adm-route-error-states.spec.ts"
+    api = root / "cpf-admin/frontend/src/shared/cpfApi.ts"
+    package = root / "cpf-admin/frontend/package.json"
+    for path in (routes_file, generated, config, route_spec, state_spec, api, package):
+        if not path.is_file(): raise ContractError(f"missing {path.relative_to(root)}")
+
+    route_text = routes_file.read_text(encoding="utf-8")
+    rows = list(ENTRY.finditer(route_text))
+    expected = int(os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "65"))
+    ids = [m.group("route_id") for m in rows]; paths = [m.group("path") for m in rows]
+    if len(rows) != expected: raise ContractError(f"route registry drift expected={expected} actual={len(rows)}")
+    if len(set(ids)) != expected or len(set(paths)) != expected: raise ContractError("route id/path duplicates")
+    generated_text = generated.read_text(encoding="utf-8")
+    for route_id in ids:
+        require(generated_text, f'"{route_id}": [', "generated route-operation contract")
+
+    config_text = config.read_text(encoding="utf-8")
+    for browser in ("chromium", "firefox", "webkit"): require(config_text, f'name: "{browser}"', "playwright project")
+    require(config_text, "CPF_E2E_AUTH_STATE", "authenticated storage state")
+    require(config_text, "CPF_E2E_RELEASE", "release fail-closed mode")
+
+    route_contract = route_spec.read_text(encoding="utf-8")
+    for token in ('admCapabilityRegistry', 'admRouteOperationContract', 'data-route-id', '.adm-sidebar button.active', 'x-cpf-operation-id', 'expectedOperations'):
+        require(route_contract, token, "route E2E")
+    if "20260801" in route_contract: raise ContractError("route E2E references retired campaign artifact")
+    state_text = state_spec.read_text(encoding="utf-8")
+    require(state_text, "admCapabilityRegistry", "error-state E2E")
+    for status in ("401", "403", "404", "409", "429", "500", "503"): require(state_text, status, "error-state E2E")
+    require(state_text, "**/adm/api/**", "backend state interception")
+    if "20260801" in state_text: raise ContractError("error-state E2E references retired campaign artifact")
+
+    api_text = api.read_text(encoding="utf-8")
+    if api_text.count("X-CPF-Operation-Id") < 3: raise ContractError("query/mutation/raw-response operation identity propagation incomplete")
+    package_text = package.read_text(encoding="utf-8")
+    for token in ('"test:e2e"', '"test:a11y"'): require(package_text, token, "package browser command")
+    return {"routes": len(rows), "browsers": 3, "mandatoryStatuses": 7}
+
+def main() -> int:
+    ap = argparse.ArgumentParser(); ap.add_argument("--root", type=Path, default=Path.cwd()); args = ap.parse_args()
+    result = validate(args.root.resolve())
+    print(f"[PASS] ADM E2E contract routes={result['routes']} browsers={result['browsers']} statuses={result['mandatoryStatuses']}")
+    return 0
+
+if __name__ == "__main__":
+    try: raise SystemExit(main())
+    except ContractError as error:
+        print(f"[FAIL] {error}", file=sys.stderr); raise SystemExit(1)

@@ -1,0 +1,70 @@
+{
+  "properties": [
+    {
+      "name": "cpf.integration.graphql.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "GraphQL optional capability를 활성화합니다."
+    },
+    {
+      "name": "cpf.integration.graphql.max-depth",
+      "type": "java.lang.Integer",
+      "defaultValue": 12,
+      "description": "GraphQL query depth 상한입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.max-complexity",
+      "type": "java.lang.Integer",
+      "defaultValue": 250,
+      "description": "GraphQL query complexity 상한입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.max-document-length",
+      "type": "java.lang.Integer",
+      "defaultValue": 32768,
+      "description": "GraphQL document 최대 길이입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.introspection",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Production introspection 허용 여부입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.graphiql",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Production GraphiQL 허용 여부입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.max-requests-per-second",
+      "type": "java.lang.Integer",
+      "defaultValue": 50,
+      "description": "Tenant/subject GraphQL ingress rate limit입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.require-authenticated",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "CPF authenticated subject가 없는 요청을 fail-closed 합니다."
+    },
+    {
+      "name": "cpf.integration.graphql.max-request-bytes",
+      "type": "java.lang.Integer",
+      "defaultValue": 131072,
+      "description": "GraphQL document+variables 요청 크기 상한입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.timeout",
+      "type": "java.time.Duration",
+      "defaultValue": "5s",
+      "description": "GraphQL 요청 전체 timeout입니다."
+    },
+    {
+      "name": "cpf.integration.graphql.require-tenant",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Tenant 없는 GraphQL 요청을 fail-closed 합니다."
+    }
+  ]
+}

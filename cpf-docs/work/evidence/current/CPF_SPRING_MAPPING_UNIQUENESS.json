@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "controllerFileCount": 129,
+  "handlerCount": 263,
+  "duplicateMappingCount": 0,
+  "conflicts": [],
+  "meaning": "Source mapping uniqueness only; full Spring ApplicationContext remains required"
+}

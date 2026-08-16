@@ -1,0 +1,1 @@
+package org.mybatis.spring; import javax.sql.DataSource; import org.apache.ibatis.session.SqlSessionFactory; public class SqlSessionFactoryBean {public void setDataSource(DataSource d){}public void setConfigLocation(Object o){}public void setMapperLocations(Object...o){}public SqlSessionFactory getObject(){return new SqlSessionFactory(){};}}

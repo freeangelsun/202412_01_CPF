@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "cpf.data.dao-policy.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfDao 3단 Base 구조 및 관리 Context Runtime 정책 활성화 여부"
+    }
+  ]
+}

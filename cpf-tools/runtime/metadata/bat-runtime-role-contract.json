@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-batch/api:RuntimeRole",
+  "canonicalJavaEnum": "cpf-batch/api/src/main/java/com/cpf/batch/api/RuntimeRole.java",
+  "roles": [
+    {
+      "name": "CONTROL_PLANE",
+      "legacyAliases": [
+        "CONTROL_SERVER"
+      ],
+      "envPrefix": "BAT_CONTROL_PLANE",
+      "legacyEnvPrefixes": [
+        "BAT_CONTROL_SERVER"
+      ],
+      "projectPath": ":runtime:batch:control-plane",
+      "artifactName": "cpf-batch-control-plane",
+      "legacyArtifactNames": [
+        "cpf-batch-control-server"
+      ],
+      "localPort": 8180
+    },
+    {
+      "name": "SCHEDULER",
+      "legacyAliases": [],
+      "envPrefix": "BAT_SCHEDULER",
+      "legacyEnvPrefixes": [],
+      "projectPath": ":runtime:batch:scheduler",
+      "artifactName": "cpf-batch-scheduler",
+      "legacyArtifactNames": [],
+      "localPort": 8181
+    },
+    {
+      "name": "WORKER",
+      "legacyAliases": [],
+      "envPrefix": "BAT_WORKER",
+      "legacyEnvPrefixes": [],
+      "projectPath": ":runtime:batch:worker",
+      "artifactName": "cpf-batch-worker",
+      "legacyArtifactNames": [],
+      "localPort": 8182
+    },
+    {
+      "name": "CENTER_CUT",
+      "legacyAliases": [
+        "CENTER_CUT_RUNNER"
+      ],
+      "envPrefix": "BAT_CENTER_CUT",
+      "legacyEnvPrefixes": [
+        "BAT_CENTER_CUT_RUNNER"
+      ],
+      "projectPath": ":runtime:batch:center-cut",
+      "artifactName": "cpf-batch-center-cut",
+      "legacyArtifactNames": [
+        "cpf-center-cut-runner"
+      ],
+      "localPort": 8183
+    },
+    {
+      "name": "AGENT",
+      "legacyAliases": [
+        "HOST_AGENT"
+      ],
+      "envPrefix": "BAT_AGENT",
+      "legacyEnvPrefixes": [
+        "BAT_HOST_AGENT"
+      ],
+      "projectPath": ":runtime:batch:agent",
+      "artifactName": "cpf-batch-agent",
+      "legacyArtifactNames": [
+        "cpf-batch-host-agent"
+      ],
+      "localPort": 8184
+    }
+  ],
+  "runtimeSql": {
+    "authoringFiles": [
+      "cpf-tools/db/runtime-template/bat/repository/centercut-result-insert.sql.template",
+      "cpf-tools/db/runtime-template/bat/repository/control-view-agents.sql.template",
+      "cpf-tools/db/runtime-template/bat/vendor/postgresql/repository/control-view-agents.sql.template",
+      "cpf-tools/db/runtime-template/bat/vendor/oracle/repository/control-view-agents.sql.template"
+    ],
+    "generatedKeys": [
+      "centercut-result-insert",
+      "control-view-agents"
+    ],
+    "vendors": [
+      "mariadb",
+      "postgresql",
+      "oracle"
+    ]
+  },
+  "deployment": {
+    "schema": "deploy/schemas/deployment-cell.schema.json",
+    "inventories": [
+      "deploy/environments/local/inventory/local-services.json",
+      "deploy/environments/dev/inventory/dev-services.json",
+      "deploy/environments/stg/inventory/stg-services.json",
+      "deploy/environments/prod/inventory/prod-services.template.json"
+    ],
+    "environmentFiles": [
+      "deploy/environments/local/services/local-cpf-batch.env",
+      "deploy/environments/dev/services/dev-cpf-batch.env",
+      "deploy/environments/stg/services/stg-cpf-batch.env",
+      "deploy/environments/prod/services/prod-cpf-batch.env"
+    ],
+    "topologies": [
+      "deploy/environments/local/topology/center-cut-cell.yml",
+      "deploy/environments/prod/topology/batch-control-cell.yml",
+      "deploy/environments/prod/topology/center-cut-cell.yml",
+      "deploy/environments/prod/topology/managed-host-agent.yml"
+    ],
+    "canonicalRuntimeArtifacts": [
+      "deploy/runtimes/batch/config/cpf-batch-center-cut.properties",
+      "deploy/runtimes/batch/systemd/cpf-batch-center-cut.service",
+      "deploy/runtimes/batch/agent/install-batch-agent.sh",
+      "deploy/runtimes/batch/agent/install-batch-agent.ps1"
+    ],
+    "inactiveLegacyArtifacts": []
+  },
+  "migration": {
+    "intentId": "D-009-BAT-RUNTIME-ROLE-CURRENTIZATION",
+    "allocatedVersion": 116,
+    "observedRepositoryMaxVersionAtAllocation": 115,
+    "historicalMigrationsImmutable": true,
+    "unknownRolePolicy": "FAIL_CLOSED_BEFORE_UPDATE",
+    "rollbackPolicy": "REVERSE_CANONICAL_TO_RETIRED_ALIAS_WITH_UNKNOWN_PRECHECK",
+    "targets": [
+      {
+        "logicalDatabase": "cpfDB",
+        "table": "OPS_RUNTIME_INSTANCE_STATE",
+        "column": "runtime_role",
+        "nullable": true,
+        "constraint": "ck_ops_runtime_instance_role"
+      },
+      {
+        "logicalDatabase": "cpfDB",
+        "table": "BAT_RUNTIME_INSTANCE",
+        "column": "runtime_role",
+        "nullable": false,
+        "constraint": "ck_bat_runtime_instance_role"
+      },
+      {
+        "logicalDatabase": "cpfDB",
+        "table": "BAT_DEPLOYMENT_CELL",
+        "column": "runtime_role",
+        "nullable": false,
+        "constraint": "ck_bat_deployment_runtime_role"
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+spring:
+  config:
+    import:
+      - optional:classpath:application-cpf.yml
+      - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bat-runtime.yml
+      - optional:classpath:application-cmn.yml
+      - optional:classpath:application-cmn-${spring.profiles.active:local}.yml
+  application:
+    name: cpf-batch-center-cut
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+server:
+  port: ${CPF_PORT:8183}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cpf:
+  framework:
+    module-id: BAT
+    was-id: ${CPF_WAS_ID:cpf-batch-center-cut-local-01}
+  batch:
+    control:
+      base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
+    runtime:
+      role: CENTER_CUT
+      instance-id: ${CPF_INSTANCE_ID:cpf-batch-center-cut-local-01}
+      heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
+  center-cut:
+    max-concurrency: ${CPF_CENTER_CUT_MAX_CONCURRENCY:1}
+    lease-seconds: ${CPF_CENTER_CUT_LEASE_SECONDS:30}
+    heartbeat-ms: ${CPF_CENTER_CUT_HEARTBEAT_MS:5000}

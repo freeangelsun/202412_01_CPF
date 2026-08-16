@@ -1,0 +1,9 @@
+server:
+  # Test Harness만 ephemeral port를 허용합니다.
+  port: 0
+cpf:
+  gateway:
+    environment-code: test
+    require-distributed-rate-limit-counter: false
+    rate-limit-counter-mode: LOCAL
+    require-tls-ingress: false

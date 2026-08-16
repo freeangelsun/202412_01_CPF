@@ -1,0 +1,67 @@
+plugins { id 'base' }
+group='com.cpf.batch'
+tasks.register('verifyStandaloneArtifacts') {
+ group='verification'
+ dependsOn ':runtime:batch:api:build', ':runtime:batch:runtime-support:build',
+ ':runtime:batch:control-plane:bootJar', ':runtime:batch:scheduler:bootJar', ':runtime:batch:worker:bootJar',
+ ':runtime:batch:center-cut:bootJar', ':runtime:batch:agent:bootJar', ':runtime:batch:testkit:build'
+}
+
+
+tasks.register('publishStandaloneArtifacts') {
+    group = 'publishing'
+    description = 'Blocked ambiguous legacy publish entry. Use the explicit cpfLocal/cpfStaging/cpfInternal task.'
+    doLast {
+        throw new GradleException(
+                'Ambiguous BAT publish is blocked. Use publishStandaloneArtifactsToCpfLocal, ' +
+                'publishStandaloneArtifactsToCpfStaging, or publishStandaloneArtifactsToCpfInternal.'
+        )
+    }
+}
+
+
+tasks.register('publishStandaloneArtifactsToCpfLocal') {
+    group = 'publishing'
+    description = 'Publishes BAT public libraries and executable artifacts only to the shared CPF local repository.'
+    dependsOn(
+      ':runtime:batch:api:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:runtime-support:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:testkit:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:control-plane:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:scheduler:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:worker:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:center-cut:publishAllPublicationsToCpfLocalRepository',
+      ':runtime:batch:agent:publishAllPublicationsToCpfLocalRepository'
+    )
+}
+
+
+tasks.register('publishStandaloneArtifactsToCpfStaging') {
+    group = 'publishing'
+    description = 'Publishes BAT public libraries and executable artifacts only to the isolated CPF staging repository.'
+    dependsOn(
+      ':runtime:batch:api:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:runtime-support:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:testkit:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:control-plane:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:scheduler:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:worker:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:center-cut:publishAllPublicationsToCpfStagingRepository',
+      ':runtime:batch:agent:publishAllPublicationsToCpfStagingRepository'
+    )
+}
+
+tasks.register('publishStandaloneArtifactsToCpfInternal') {
+    group = 'publishing'
+    description = 'Publishes BAT public libraries and executable artifacts only to the configured remote CPF repository.'
+    dependsOn(
+      ':runtime:batch:api:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:runtime-support:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:testkit:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:control-plane:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:scheduler:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:worker:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:center-cut:publishAllPublicationsToCpfInternalRepository',
+      ':runtime:batch:agent:publishAllPublicationsToCpfInternalRepository'
+    )
+}

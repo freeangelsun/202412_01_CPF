@@ -1,0 +1,12 @@
+ARG ALPINE_IMAGE=alpine:3.23.5
+FROM ${ALPINE_IMAGE}
+
+RUN apk add --no-cache openssh shadow \
+    && mkdir -p /run/sshd \
+    && ssh-keygen -A
+
+COPY sftp-entrypoint.sh /usr/local/bin/sftp-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/sftp-entrypoint.sh
+
+EXPOSE 22
+ENTRYPOINT ["/usr/local/bin/sftp-entrypoint.sh"]

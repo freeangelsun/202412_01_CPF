@@ -1,0 +1,33 @@
+INSERT INTO bat_worker (
+    worker_id,
+    server_instance_id,
+    host_name,
+    process_id,
+    worker_version,
+    capabilities_json,
+    max_concurrency,
+    queue_capacity,
+    control_status,
+    worker_status,
+    active_yn,
+    last_heartbeat_at,
+    current_execution_id,
+    created_by,
+    updated_by
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'Y', @NOW3@, ?, 'BAT', 'BAT'
+)
+ON DUPLICATE KEY UPDATE
+    server_instance_id = VALUES(server_instance_id),
+    host_name = VALUES(host_name),
+    process_id = VALUES(process_id),
+    worker_version = VALUES(worker_version),
+    capabilities_json = VALUES(capabilities_json),
+    max_concurrency = VALUES(max_concurrency),
+    control_status = VALUES(control_status),
+    worker_status = VALUES(worker_status),
+    active_yn = 'Y',
+    last_heartbeat_at = @NOW3@,
+    current_execution_id = VALUES(current_execution_id),
+    updated_by = 'BAT',
+    updated_at = @NOW@

@@ -1,0 +1,14 @@
+﻿document,source_windows,terminal_windows,sql_windows,config_windows,http_windows,json_windows,output_windows,window_body_lines,purpose_review,status
+cpf-docs/guides/00_프레임워크안내.docx,0,1,0,1,0,0,0,60,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/01_개발자매뉴얼.docx,20,22,5,6,3,0,5,709,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/02_배치개발매뉴얼.docx,6,13,2,1,0,0,1,271,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/03_ADM개발자매뉴얼.docx,24,2,0,1,0,0,0,630,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/04_ADM운영자매뉴얼.docx,63,1,0,0,0,1,0,346,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/05_플랫폼운영매뉴얼.docx,0,5,1,2,0,0,0,157,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/90_BZA매뉴얼.docx,26,3,0,0,0,2,1,214,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/guides/91_Gateway매뉴얼.docx,0,3,0,1,0,1,1,117,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/deliverables/산출물목록.docx,0,0,0,0,0,0,0,14,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/deliverables/아키텍처설계서.docx,0,0,0,0,0,0,0,78,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/deliverables/기술사양서.docx,0,0,0,0,0,0,0,14,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/deliverables/기술표준서.docx,2,0,1,0,0,1,0,166,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS
+cpf-docs/deliverables/데이터베이스표준서.docx,0,0,21,0,0,0,0,109,설명/표만으로 닫지 않고 문서 역할에 맞는 실행 블록을 제공,PASS

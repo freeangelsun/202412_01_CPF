@@ -1,0 +1,1 @@
+package io.swagger.v3.oas.annotations; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD) public @interface Operation {String operationId() default ""; String summary() default ""; String description() default "";}

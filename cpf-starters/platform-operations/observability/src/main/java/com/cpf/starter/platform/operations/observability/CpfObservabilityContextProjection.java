@@ -1,0 +1,4 @@
+package com.cpf.starter.platform.operations.observability;
+import com.cpf.core.api.context.CpfContextSnapshot;import com.cpf.foundation.context.CpfContextProjection;import org.slf4j.MDC;
+/** Downstream-only projection: CPF Context never imports MDC or OpenTelemetry. */
+public final class CpfObservabilityContextProjection implements CpfContextProjection {private final CpfMdcContextProjection mdc;private final CpfTraceContextProjection trace;public CpfObservabilityContextProjection(CpfMdcContextProjection m,CpfTraceContextProjection t){mdc=m;trace=t;}public void project(CpfContextSnapshot s){mdc.bind(s);var ids=trace.current();if(ids.traceId()!=null)MDC.put("trace_id",ids.traceId());if(ids.spanId()!=null)MDC.put("span_id",ids.spanId());}public void clear(){mdc.clear();MDC.remove("trace_id");MDC.remove("span_id");}}

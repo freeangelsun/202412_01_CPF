@@ -1,0 +1,21 @@
+package com.cpf.education.data.query.dto;
+import java.time.LocalDateTime;
+
+/**
+ * 조회 EDU 샘플에서 사용하는 읽기 전용 항목 DTO입니다.
+ *
+ * @param itemId 샘플 항목 ID
+ * @param itemName 화면에 표시할 샘플 항목명
+ * @param categoryCode 조회 샘플 분류 코드
+ * @param statusCode 사용 상태 코드
+ * @param ownerEducation 다른 Domain을 직접 조인하지 않고 값만 보관하는 중립 참조값
+ * @param createdAt JDBC 표준 타입으로 읽은 생성 일시
+ */
+public record EducationQueryEducationItem(
+        Long itemId,
+        String itemName,
+        String categoryCode,
+        String statusCode,
+        String ownerEducation,
+        LocalDateTime createdAt) {
+}

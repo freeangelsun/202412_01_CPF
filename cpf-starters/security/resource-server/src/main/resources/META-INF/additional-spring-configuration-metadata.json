@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "cpf.security.annotation.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfPermission/@CpfApprovalRequired Runtime 활성화"
+    }
+  ]
+}

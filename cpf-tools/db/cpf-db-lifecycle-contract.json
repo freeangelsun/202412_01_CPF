@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "statusModel": {
+    "development": "완료",
+    "runtimeVerification": "미검증"
+  },
+  "orderedStages": [
+    "baseline-install",
+    "sequential-upgrade",
+    "runtime-query",
+    "schema-drift",
+    "reverse-rollback",
+    "forward-reapply",
+    "performance-regression",
+    "backup-restore",
+    "point-in-time-recovery"
+  ],
+  "runtimeExecutor": "cpf-tools/db/verification/invoke-cpf-db-runtime-matrix.ps1",
+  "environmentManifestVariable": "CPF_DB_RUNTIME_MANIFEST",
+  "runtimeEnvironmentManifest": {
+    "schemaVersion": 1,
+    "vendorOrder": [
+      "mariadb",
+      "postgresql",
+      "oracle"
+    ],
+    "secretValuePolicy": "ENVIRONMENT_REFERENCE_ONLY",
+    "requiredEnvironmentKeys": {
+      "mariadb": [
+        "CPF_MARIADB_HOST",
+        "CPF_MARIADB_PORT",
+        "CPF_MARIADB_DATABASE",
+        "CPF_MARIADB_USER",
+        "CPF_MARIADB_PASSWORD"
+      ],
+      "postgresql": [
+        "CPF_PG_HOST",
+        "CPF_PG_PORT",
+        "CPF_PG_DATABASE",
+        "CPF_PG_USER",
+        "CPF_PG_PASSWORD"
+      ],
+      "oracle": [
+        "CPF_ORACLE_USER",
+        "CPF_ORACLE_PASSWORD",
+        "CPF_ORACLE_CONNECT"
+      ]
+    }
+  },
+  "requiredStaticGates": [
+    "cpf-tools/db/verification/check-db-vendor-pack-parity.ps1",
+    "cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1",
+    "cpf-tools/db/verification/check-migration-checksums.ps1",
+    "cpf-tools/db/verification/check-sql-standard.ps1",
+    "cpf-tools/db/verification/check-sql-canonical.ps1",
+    "cpf-tools/runtime/tools/check-platform-runtime-query-packs.ps1",
+    "cpf-tools/db/verification/check-reference-database-lifecycle.ps1",
+    "cpf-tools/db/verification/verify-cpf-db-schema-governance.py",
+    "cpf-tools/db/verification/verify-cpf-db-performance-evidence.py",
+    "cpf-tools/verification/tools/verify-cpf-data-observability-evidence.py",
+    "cpf-tools/runtime/tools/verify-cpf-datasource-runtime-evidence.py",
+    "cpf-tools/db/verify_migration_lifecycle.py"
+  ],
+  "vendorContracts": {
+    "mariadb": {
+      "client": "mariadb",
+      "migrationRoot": "cpf-tools/db/vendor/mariadb/migration/flyway",
+      "rollbackRoot": "cpf-tools/db/vendor/mariadb/rollback"
+    },
+    "postgresql": {
+      "client": "psql",
+      "migrationRoot": "cpf-tools/db/vendor/postgresql/migration/flyway/{logicalDatabase}",
+      "rollbackRoot": "cpf-tools/db/vendor/postgresql/rollback/{logicalDatabase}"
+    },
+    "oracle": {
+      "client": "sqlplus",
+      "migrationRoot": "cpf-tools/db/vendor/oracle/migration/flyway/{logicalDatabase}",
+      "rollbackRoot": "cpf-tools/db/vendor/oracle/rollback/{logicalDatabase}"
+    }
+  },
+  "evidenceRequired": [
+    "sourceSha",
+    "resultSha",
+    "vendor",
+    "databaseVersion",
+    "command",
+    "startedAt",
+    "endedAt",
+    "exitCode",
+    "stageResults",
+    "schemaHashBefore",
+    "schemaHashAfter",
+    "sanitized"
+  ],
+  "pitrContract": "cpf-tools/db/cpf-pitr-lifecycle-contract.json",
+  "backupContract": "cpf-tools/db/cpf-backup-lifecycle-contract.json",
+  "dataRetentionContract": "cpf-tools/db/cpf-data-retention-policy.json",
+  "testDataPolicy": "cpf-tools/db/cpf-test-data-policy.json",
+  "performanceContract": "cpf-tools/db/cpf-db-performance-policy.json",
+  "dataObservabilityContract": "cpf-tools/db/cpf-data-observability-policy.json",
+  "dataSourceRuntimeContract": "cpf-tools/db/cpf-datasource-runtime-policy.json",
+  "migrationLifecyclePolicy": "cpf-tools/db/migration-lifecycle-policy.json",
+  "migrationDiscoveryPolicy": {
+    "mode": "ALL_CHECKSUM_MANIFEST_MIGRATIONS",
+    "hardCodedVersionAllowlistForbidden": true,
+    "recursiveLogicalDatabasePacks": true,
+    "rollbackOrForwardRecoveryRequired": true,
+    "unknownResultFailClosed": true,
+    "reapplyChecksumLocked": true
+  },
+  "runtimeExecutorRequirements": {
+    "migrationSelection": "ALL_DISCOVERED_FROM_CHECKSUM_MANIFEST",
+    "partialFailureCheckpoint": true,
+    "unknownResultReconcileBeforeRetry": true,
+    "reverseRollbackThenForwardReapply": true,
+    "backupManifestRequiredForDestructiveTransition": true
+  }
+}

@@ -1,0 +1,1 @@
+package com.cpf.batch.spi; public interface CenterCutHandler { String handlerKey(); Result handle(Context context); record Context(String jobId,long itemId,String businessKey,String payload,String transactionId,String segmentId,long fencingToken){} record Result(String status,String payload,String message,boolean retryable,boolean compensationRequired){} }

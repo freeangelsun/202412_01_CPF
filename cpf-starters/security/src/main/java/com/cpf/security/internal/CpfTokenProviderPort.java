@@ -1,0 +1,9 @@
+package com.cpf.security.internal;
+
+/**
+ * OAuth/JWT token 발급 port입니다.
+ */
+public interface CpfTokenProviderPort {
+
+    CpfTokenResult issueToken(CpfTokenRequest tokenRequest);
+}

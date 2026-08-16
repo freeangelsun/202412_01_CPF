@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "generated": true,
+  "canonicalSource": "cpf-tools/db/canonical/generated-domain-schema.json",
+  "businessDatabaseRole": "CUSTOMER_BUSINESS_DB",
+  "artifacts": {
+    "install/10_empty_install.sql.template": "36bbdf267330007166a4054766e5b581091f7c5d62a7cf78748403221a63a221",
+    "migration/V1____DOMAIN___domain.sql.template": "36bbdf267330007166a4054766e5b581091f7c5d62a7cf78748403221a63a221",
+    "seed/20_product_seed.sql.template": "74086489d8a6568d188fd6c9d598cd677e04cd4ab7995d75e5ceabc064a09b03",
+    "rollback/R1__remove___DOMAIN___domain.sql.template": "b21d19eb5a05321693d5e4b1b31aee1a7d01957c10babdeb5f2df6d33f1e3b58",
+    "verify/90_verify.sql.template": "a0948a9442ad6df40cfc77d924457c5a545d12549e58c43f5ad98e627141466a"
+  },
+  "runtimeDialectOwner": "cpf-starters/data/persistence/dialect/mariadb/generated-domain"
+}

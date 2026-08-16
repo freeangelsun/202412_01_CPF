@@ -1,0 +1,4 @@
+-- MariaDB treats DatabaseName and SchemaName as the same physical namespace;
+-- initialize-domain-database.ps1 rejects a mismatch before this template runs.
+CREATE DATABASE IF NOT EXISTS `@CPF_SCHEMA_NAME@`
+    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

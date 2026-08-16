@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 2,
+  "planId": "cpf-current-final-onepass",
+  "orderedStages": ["source", "java", "frontend", "database", "closure"],
+  "commands": [
+    {
+      "id": "nxt3-current-source",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/nxt3/run_nxt3_final_all.py",
+      "args": ["--root", "{root}", "--evidence", "{evidence}/nxt3-final.json", "--log", "{evidence}/nxt3-final.log"],
+      "required": true
+    },
+    {
+      "id": "generator-lifecycle",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py",
+      "args": ["--root", "{root}"],
+      "required": true
+    },
+    {
+      "id": "requirement-traceability",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/governance/tools/verify-cpf-requirement-traceability.py",
+      "args": ["--root", "{root}", "--expected-sha", "{sha}", "--require-clean"],
+      "required": true
+    },
+    {
+      "id": "adm-browser-contract",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/tools/verify-cpf-adm-e2e-contract.py",
+      "args": ["--root", "{root}"],
+      "required": true
+    },
+    {
+      "id": "java25-build-test",
+      "stage": "java",
+      "runner": "gradle",
+      "path": "gradlew.bat",
+      "args": ["clean", "test", "assemble", "qualityGate", "--no-daemon", "--stacktrace"],
+      "required": true,
+      "requiredTool": "java25"
+    },
+    {
+      "id": "adm-frontend-verify",
+      "stage": "frontend",
+      "runner": "npm",
+      "path": "package.json",
+      "workingDirectory": "cpf-admin/frontend",
+      "args": ["run", "verify"],
+      "required": true,
+      "requiredTool": "node22"
+    },
+    {
+      "id": "bza-frontend-verify",
+      "stage": "frontend",
+      "runner": "npm",
+      "path": "package.json",
+      "workingDirectory": "cpf-biz-admin/frontend",
+      "args": ["run", "verify"],
+      "required": true,
+      "requiredTool": "node22"
+    },
+    {
+      "id": "db-vendor-pack-parity",
+      "stage": "database",
+      "runner": "pwsh",
+      "path": "cpf-tools/db/verification/check-db-vendor-pack-parity.ps1",
+      "args": ["-Root", "{root}"],
+      "required": true
+    },
+    {
+      "id": "db-canonical-lifecycle-contract",
+      "stage": "database",
+      "runner": "pwsh",
+      "path": "cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1",
+      "args": ["-Root", "{root}"],
+      "required": true
+    },
+    {
+      "id": "final-completion-runtime",
+      "stage": "closure",
+      "runner": "pwsh",
+      "path": "cpf-tools/verification/tools/verify-cpf-final-completion.ps1",
+      "args": ["-RepoRoot", "{root}", "-ExpectedSourceSha", "{sha}"],
+      "required": true,
+      "requiredTool": "java25"
+    }
+  ]
+}

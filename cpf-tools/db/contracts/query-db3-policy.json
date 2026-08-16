@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "1.0",
+  "officialVendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "rendererOwners": [
+    {
+      "pattern": "cpf-tools/db/**",
+      "owner": "CPF_DATA_DIALECT_RENDERER",
+      "reason": "Canonical DB 모델을 Oracle/PostgreSQL/MariaDB 산출물로 렌더링하는 Framework 소유 영역",
+      "testId": "NXT3-QUERY-001-RENDERER"
+    },
+    {
+      "pattern": "cpf-tools/generator/engine/cpf_domain_generator.py",
+      "owner": "CPF_GENERATOR_DB_RENDERER",
+      "reason": "Generated Domain의 DB3 DDL/rollback/verify 산출물을 생성하는 Domain-neutral Engine",
+      "testId": "NXT3-QUERY-001-GENERATOR-RENDERER"
+    },
+    {
+      "pattern": "build/domain-generator/verification/cpf-*/db3/**",
+      "owner": "TRANSIENT_GENERATED_DB_RENDERER_OUTPUT",
+      "reason": "제3 임의 Domain 및 lifecycle 검증용 transient DB3 renderer 산출물",
+      "testId": "NXT3-GENERATOR-003-DB3"
+    }
+  ],
+  "explicitVendorOverrides": [
+    {
+      "pattern": "cpf-tools/runtime/tools/**",
+      "owner": "CPF_RUNTIME_DB_VENDOR_SELECTOR",
+      "reason": "Runtime harness가 공식 DB3 외부 Vendor Pack과 JDBC Driver를 선택하는 Tooling Owner",
+      "testId": "NXT3-QUERY-001-RUNTIME-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/build/tools/**",
+      "owner": "CPF_BUILD_DB_VENDOR_PACKAGER",
+      "reason": "Offline/배포 Bundle에서 공식 DB3 Vendor Pack을 선택하는 Build Tooling Owner",
+      "testId": "NXT3-QUERY-001-BUILD-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/security/tools/**",
+      "owner": "CPF_SECURITY_DB_MIGRATION_TOOL",
+      "reason": "보안 Migration 운영 Tool이 공식 DB3 실행 Resource를 선택하는 Tooling Owner",
+      "testId": "NXT3-QUERY-001-SECURITY-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/supply-chain/tools/**",
+      "owner": "CPF_SUPPLY_CHAIN_DB_VALIDATOR",
+      "reason": "Supply-chain 검증 Tool이 공식 DB3 산출물 존재성을 검증하는 Tooling Owner",
+      "testId": "NXT3-QUERY-001-SUPPLYCHAIN-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/generator/tools/**",
+      "owner": "CPF_GENERATOR_DB_TOOL",
+      "reason": "Generator 운영 Tool이 Canonical DB3 Template/Pack을 순회하는 Tooling Owner",
+      "testId": "NXT3-QUERY-001-GENERATOR-TOOL"
+    },
+    {
+      "pattern": ".github/workflows/**",
+      "owner": "CPF_CI_DB3_MATRIX",
+      "reason": "CI Matrix가 공식 DB3 Vendor 조합을 명시적으로 실행하는 Automation Owner",
+      "testId": "NXT3-QUERY-001-CI-MATRIX"
+    },
+    {
+      "pattern": "cpf-starters/data/cache/spring-data-redis/src/main/java/**/JdbcCpfCacheInvalidationStore.java",
+      "owner": "CPF_CACHE_DB3_NATIVE_PROVIDER",
+      "reason": "Cache invalidation JDBC Provider가 DB metadata로 공식 DB3 paging syntax를 선택하는 Provider-native Owner",
+      "testId": "NXT3-QUERY-001-CACHE-PROVIDER"
+    },
+    {
+      "pattern": "cpf-starters/data/persistence/mybatis/src/main/java/**/CpfSqlResources.java",
+      "owner": "CPF_MYBATIS_DB3_RESOURCE_SELECTOR",
+      "reason": "MyBatis Provider가 cpf.db.vendor 계약으로 공식 DB3 Resource Pack을 선택하는 Provider Owner",
+      "testId": "NXT3-QUERY-001-MYBATIS-PROVIDER"
+    },
+    {
+      "pattern": "cpf-starters/data/persistence/src/main/java/**/CpfDatabaseVendor.java",
+      "owner": "CPF_DATABASE_VENDOR_CONTRACT",
+      "reason": "Framework의 공식 Oracle/PostgreSQL/MariaDB Vendor enum과 JDBC URL 계약 Owner",
+      "testId": "NXT3-QUERY-001-VENDOR-CONTRACT"
+    },
+    {
+      "pattern": "cpf-batch/worker/src/main/java/**/BatchRepositoryConfiguration.java",
+      "owner": "CPF_BATCH_DB3_ADAPTER",
+      "reason": "Spring Batch Repository가 공식 DB3 databaseType을 Framework Vendor 계약으로 변환하는 Adapter Owner",
+      "testId": "NXT3-QUERY-001-BATCH-ADAPTER"
+    },
+    {
+      "pattern": "cpf-education/src/main/java/**/CmnSampleSqlDialect.java",
+      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
+      "reason": "EDU가 DB Tool 소유 REFERENCE_FIXTURE를 소비하기 위해 공식 DB3 DML resource를 선택하는 교육 Adapter",
+      "testId": "NXT3-EDU-DB-CONSUMER"
+    },
+    {
+      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-oracle.sql",
+      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
+      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 Oracle 교육 DML",
+      "testId": "NXT3-EDU-DB-CONSUMER"
+    },
+    {
+      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-postgresql.sql",
+      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
+      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 PostgreSQL 교육 DML",
+      "testId": "NXT3-EDU-DB-CONSUMER"
+    },
+    {
+      "pattern": "cpf-education/src/main/resources/sql/common/sample/*-mariadb.sql",
+      "owner": "CPF_EDUCATION_REFERENCE_FIXTURE_QUERY_ADAPTER",
+      "reason": "DB Tool 소유 REF_CMN_SAMPLE_ITEM을 소비하는 MariaDB 교육 DML",
+      "testId": "NXT3-EDU-DB-CONSUMER"
+    },
+    {
+      "pattern": "cpf-tools/generator/generate-reference-db-verify.py",
+      "owner": "CPF_GENERATOR_REFERENCE_FIXTURE_VERIFY_TOOL",
+      "reason": "DB Tool generated reference fixture 검증 SQL을 생성하는 내부 Generator Tool",
+      "testId": "NXT3-QUERY-001-GENERATOR-VERIFY"
+    },
+    {
+      "pattern": "cpf-tools/governance/tools/**",
+      "owner": "CPF_GOVERNANCE_DB3_VALIDATOR",
+      "reason": "Governance Tool이 금지 dialect/vendor token을 검출하기 위해 DB vendor 문자열을 정의하는 검증 Owner",
+      "testId": "NXT3-QUERY-001-GOVERNANCE-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/release/tools/**",
+      "owner": "CPF_RELEASE_DB3_VALIDATOR",
+      "reason": "Release Tool이 공식 DB3 readiness를 검증하는 Tooling Owner",
+      "testId": "NXT3-QUERY-001-RELEASE-TOOL"
+    },
+    {
+      "pattern": "cpf-tools/testing/**",
+      "owner": "CPF_TESTING_DB3_HARNESS",
+      "reason": "DB3 portability/failure test data와 negative dialect corpus를 실행하는 Test Harness Owner",
+      "testId": "NXT3-QUERY-001-TESTING-HARNESS"
+    },
+    {
+      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-oracle.sql",
+      "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
+      "reason": "Common sample query pack의 oracle 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
+      "testId": "NXT3-CMN-SAMPLE-DB3"
+    },
+    {
+      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-postgresql.sql",
+      "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
+      "reason": "Common sample query pack의 postgresql 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
+      "testId": "NXT3-CMN-SAMPLE-DB3"
+    },
+    {
+      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-mariadb.sql",
+      "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
+      "reason": "Common sample query pack의 mariadb 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
+      "testId": "NXT3-CMN-SAMPLE-DB3"
+    }
+  ],
+  "unsupportedVendorNegativeContractAllow": [
+    "cpf-tools/generator/contracts/cpf-starter-catalog.json",
+    "cpf-tools/generator/contracts/cpf-domain.schema.json",
+    "cpf-tools/db/contracts/query-db3-policy.json",
+    "cpf-tools/db/canonical/platform-schema.json",
+    "cpf-tools/generator/verification/tests/**",
+    "cpf-tools/db/tests/**",
+    "cpf-tools/runtime/tools/tests/**",
+    "cpf-starters/**/src/test/**",
+    "cpf-starters/**/src/jtaTest/**",
+    "cpf-tools/environment/docker-development-test/**",
+    "**/src/test/**",
+    "**/src/jtaTest/**",
+    "**/tests/**",
+    "**/verification/**",
+    "cpf-tools/governance/**",
+    "cpf-tools/release/**",
+    "cpf-tools/testing/**",
+    "cpf-tools/generator/contracts/central-domain-template-contract.json",
+    "deploy/environments/local/docker-compose.local.yml",
+    "cpf-tools/db/tools/reset-cpf-databases.ps1",
+    "cpf-tools/db/tools/initialize-cpf-database.ps1",
+    "cpf-tools/runtime/tools/check-platform-runtime-query-packs.ps1"
+  ]
+}

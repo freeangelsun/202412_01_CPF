@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools DB",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "capabilities": [
+    {
+      "id": "DB-OWNERSHIP",
+      "consumer": "verify-cpf-db-schema-governance.py",
+      "verifier": "verify-cpf-db-schema-governance.py"
+    },
+    {
+      "id": "DB-INSTALL",
+      "consumer": "run-db-vendor-lifecycle.ps1",
+      "verifier": "verify-cpf-db-development-contract.py"
+    },
+    {
+      "id": "DB-FRESH",
+      "consumer": "run-db-vendor-lifecycle.ps1",
+      "verifier": "verify-cpf-db-development-contract.py"
+    },
+    {
+      "id": "DB-MIGRATION",
+      "consumer": "invoke-platform-database-migration.ps1",
+      "verifier": "simulate-cpf-migration-lifecycle.py"
+    },
+    {
+      "id": "DB-ROLLBACK",
+      "consumer": "invoke-platform-database-migration.ps1",
+      "verifier": "simulate-cpf-migration-lifecycle.py"
+    },
+    {
+      "id": "DB-BACKUP",
+      "consumer": "backup-cpf-database.ps1",
+      "verifier": "verify-dr-restore.ps1"
+    },
+    {
+      "id": "DB-MULTI-VENDOR",
+      "consumer": "invoke-official-db-vendor-sql.ps1",
+      "verifier": "verify-cpf-db-vendor-semantic-parity.py"
+    },
+    {
+      "id": "DB-SQL",
+      "consumer": "invoke-official-db-vendor-sql.ps1",
+      "verifier": "verify-cpf-db-development-contract.py"
+    },
+    {
+      "id": "DB-PERF",
+      "consumer": "invoke-cpf-db-performance-gate.ps1",
+      "verifier": "verify-cpf-db-performance-evidence.py"
+    },
+    {
+      "id": "DB-MULTI",
+      "consumer": "invoke-cpf-datasource-runtime-gate.ps1",
+      "verifier": "verify-cpf-datasource-runtime-evidence.py"
+    },
+    {
+      "id": "DATA-LINEAGE",
+      "consumer": "invoke-cpf-data-observability-gate.ps1",
+      "verifier": "verify-cpf-data-observability-evidence.py"
+    },
+    {
+      "id": "DATA-RETENTION",
+      "consumer": "invoke-cpf-data-retention.ps1",
+      "verifier": "verify-cpf-db-development-contract.py"
+    }
+  ],
+  "publicContract": {
+    "requestRequiredFields": [
+      "operationId",
+      "capabilityId",
+      "vendor",
+      "environment",
+      "topology",
+      "operator",
+      "reason",
+      "approvalReference",
+      "approvedBy",
+      "startedAt",
+      "finishedAt",
+      "resultStatus",
+      "reconcileRequired",
+      "sourceSha",
+      "evidenceSha256",
+      "metrics",
+      "trace",
+      "health",
+      "alerts",
+      "runbookRef"
+    ],
+    "resultStates": [
+      "PLANNED",
+      "RUNNING",
+      "SUCCEEDED",
+      "FAILED",
+      "UNKNOWN",
+      "RECONCILED"
+    ],
+    "errorCodes": [
+      "CPF_DB_OP_INVALID_REQUEST",
+      "CPF_DB_OP_UNSUPPORTED_VENDOR",
+      "CPF_DB_OP_UNAUTHORIZED",
+      "CPF_DB_OP_APPROVAL_REQUIRED",
+      "CPF_DB_OP_EVIDENCE_HASH_MISMATCH",
+      "CPF_DB_OP_SECRET_DETECTED",
+      "CPF_DB_OP_UNKNOWN_RECONCILE_REQUIRED",
+      "CPF_DB_OP_HEALTH_INVALID"
+    ],
+    "metricsRequired": [
+      "durationMs",
+      "affectedRows",
+      "errorCount",
+      "retryCount"
+    ],
+    "traceRequired": [
+      "traceId",
+      "spanId"
+    ],
+    "healthStates": [
+      "UP",
+      "DEGRADED",
+      "DOWN",
+      "UNKNOWN"
+    ],
+    "secretKeyPattern": "(?i)(password|passwd|secret|token|private.?key|credential)"
+  },
+  "security": {
+    "separationOfDuties": true,
+    "reasonRequired": true,
+    "approvalReferenceRequired": true,
+    "sanitizedEvidenceRequired": true,
+    "rawSecretProhibited": true
+  },
+  "observability": {
+    "failureAlertRequired": true,
+    "unknownAlertRequired": true,
+    "runbookRequired": true,
+    "sourceShaRequired": true,
+    "evidenceSha256Required": true
+  },
+  "generatedArtifacts": [
+    "cpf-tools/db/generated/cpf-db-operations.openapi.json"
+  ],
+  "consumerBoundary": {
+    "providerStatus": "DB_PROVIDER_CONTRACT_IMPLEMENTED",
+    "admBackendRoute": "CROSS_SESSION_REQUIRED",
+    "admFrontend": "CROSS_SESSION_REQUIRED",
+    "bzaFrontend": "CROSS_SESSION_REQUIRED"
+  }
+}

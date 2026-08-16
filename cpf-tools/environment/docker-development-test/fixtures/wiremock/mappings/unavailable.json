@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/cpf-test/unavailable"
+  },
+  "response": {
+    "status": 503,
+    "headers": {
+      "Content-Type": "application/json",
+      "Retry-After": "3"
+    },
+    "jsonBody": {
+      "code": "CPF_FIXTURE_UNAVAILABLE",
+      "message": "Temporary fixture failure"
+    }
+  }
+}

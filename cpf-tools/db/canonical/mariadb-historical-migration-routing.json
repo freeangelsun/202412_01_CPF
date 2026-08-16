@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "contract": "CPF_MARIADB_HISTORICAL_MIGRATION_ROUTING",
+  "policy": {
+    "historicalSqlImmutable": true,
+    "checksumRequired": true,
+    "implicitPrefixRoutingForbidden": true,
+    "unlistedUnqualifiedMigrationFailsClosed": true
+  },
+  "files": {
+    "V64__runtime_control_plane.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R64__runtime_control_plane.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "V65__bza_login_idempotent_result.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "bzaDB"
+        }
+      ]
+    },
+    "R65__bza_login_idempotent_result.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "bzaDB"
+        }
+      ]
+    },
+    "V66__adm_runtime_control_menu.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    },
+    "R66__adm_runtime_control_menu.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    },
+    "V67__notification_durable_outbox.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R67__notification_durable_outbox.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "V68__notification_delivery_attempt_history.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R68__notification_delivery_attempt_history.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "V69__enterprise_cache_file_job.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB",
+          "endMarker": "CREATE TABLE IF NOT EXISTS adm_file_job ("
+        },
+        {
+          "logicalDatabase": "admDB",
+          "startMarker": "CREATE TABLE IF NOT EXISTS adm_file_job ("
+        }
+      ]
+    },
+    "R69__enterprise_cache_file_job.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB",
+          "endMarker": "DROP TABLE IF EXISTS cpf_cache_invalidation_checkpoint;"
+        },
+        {
+          "logicalDatabase": "cpfDB",
+          "startMarker": "DROP TABLE IF EXISTS cpf_cache_invalidation_checkpoint;"
+        }
+      ]
+    },
+    "V70__bza_action_permission_hardening.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "bzaDB"
+        }
+      ]
+    },
+    "R70__bza_action_permission_hardening.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "bzaDB"
+        }
+      ]
+    },
+    "V71__adm_notification_action_permissions.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    },
+    "R71__adm_notification_action_permissions.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    },
+    "V72__adm_file_job_control_audit.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    },
+    "R72__adm_file_job_control_audit.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "admDB"
+        }
+      ]
+    }
+  }
+}

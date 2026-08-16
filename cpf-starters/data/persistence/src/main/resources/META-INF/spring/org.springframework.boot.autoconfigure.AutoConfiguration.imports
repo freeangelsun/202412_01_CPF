@@ -1,0 +1,2 @@
+com.cpf.data.persistence.transaction.CpfTxAutoConfiguration
+com.cpf.data.persistence.runtime.CpfRepositoryPolicyAutoConfiguration

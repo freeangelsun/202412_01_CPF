@@ -1,0 +1,1 @@
+package org.springframework.web.bind.annotation; import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD,ElementType.PARAMETER}) public @interface RequestAttribute { String value() default ""; }

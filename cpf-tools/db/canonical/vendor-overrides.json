@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "policy": "Overrides are allowed only when canonical semantics cannot be rendered generically. Every entry requires canonicalId/vendor/owner/reason/testId.",
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "overrides": []
+}

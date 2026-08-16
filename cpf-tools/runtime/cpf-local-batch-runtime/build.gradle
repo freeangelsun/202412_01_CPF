@@ -1,0 +1,39 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
+group = 'com.cpf.local.batch'
+
+dependencies {
+    implementation project(':framework:core')
+    implementation project(':runtime:batch:api')
+    implementation project(':runtime:batch:runtime-support')
+    implementation project(':runtime:batch:control-plane')
+    implementation project(':runtime:batch:scheduler')
+    implementation project(':runtime:batch:worker')
+    implementation project(':runtime:batch:center-cut')
+    implementation project(':runtime:batch:agent')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+springBoot {
+    mainClass = 'com.cpf.local.batch.CpfLocalBatchRuntimeApplication'
+}
+
+tasks.named('bootJar') {
+    enabled = true
+    archiveClassifier = 'local-batch'
+}

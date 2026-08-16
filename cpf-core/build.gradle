@@ -1,0 +1,47 @@
+plugins {
+    id 'maven-publish'
+    id 'java-library'
+}
+
+group = 'com.cpf.core'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
+    }
+}
+
+dependencies {
+    // Core는 JDK 외 Runtime/compile contract dependency를 노출하지 않습니다.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.assertj:assertj-core:3.26.3'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.4'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = project.group.toString()
+            artifactId = 'cpf-core'
+            version = project.version.toString()
+        }
+    }
+    repositories {
+        maven {
+            name = 'cpfInternal'
+            def repo = System.getenv('CPF_ARTIFACT_REPOSITORY_URL')
+            url = uri(repo ?: layout.buildDirectory.dir('repository'))
+            if (repo) {
+                credentials {
+                    username = System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                    password = System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                }
+            }
+        }
+    }
+}

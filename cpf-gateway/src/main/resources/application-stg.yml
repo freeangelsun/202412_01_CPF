@@ -1,0 +1,10 @@
+cpf:
+  gateway:
+    # Stage는 운영과 같은 분산 Rate Limit/TLS 계약을 검증합니다.
+    environment-code: stg
+    require-distributed-rate-limit-counter: true
+    rate-limit-counter-mode: JDBC
+    require-tls-ingress: true
+server:
+  ssl:
+    enabled: true

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "configurationPrefix": "cpf.",
+  "precedence": ["DEFAULT", "PROPERTY", "PROGRAMMATIC", "RUNTIME"],
+  "allowedExtensionMechanisms": ["Builder", "Customizer", "Strategy", "Provider", "SPI", "BeanOverride", "TemplateHook"],
+  "providerSelection": {
+    "explicit": true,
+    "exactlyOneWhenRequired": true,
+    "collisionPolicy": "FAIL_FAST"
+  },
+  "secretPolicy": {
+    "plainSecretInSource": false,
+    "plainSecretInEvidence": false,
+    "runtimeSecretMasking": true
+  },
+  "compatibilityPolicy": {
+    "canonicalPrefix": "cpf.",
+    "compatibilityShimAllowed": false,
+    "rootBuildMustRemainDeclarative": true
+  }
+}

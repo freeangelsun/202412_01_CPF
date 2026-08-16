@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "semanticConventionVersion": "1.30.0",
+  "schemaUrl": "https://opentelemetry.io/schemas/1.30.0",
+  "signals": ["traces", "metrics", "logs"],
+  "signalOwners": {
+    "traces": "cpf-starters/platform-operations/observability/otlp",
+    "metrics": "cpf-starters/platform-operations/observability",
+    "logs": "cpf-starters/platform-operations/observability"
+  },
+  "resourceRequired": [
+    "service.name",
+    "service.version",
+    "deployment.environment.name",
+    "service.instance.id"
+  ],
+  "sensitiveAttributeDenyPatterns": [
+    "password",
+    "secret",
+    "token",
+    "authorization",
+    "cookie",
+    "account"
+  ],
+  "cardinality": {
+    "maxSpanAttributes": 128,
+    "maxAttributeValueLength": 4096
+  },
+  "export": {
+    "overflowPolicy": "DROP_WITH_METRIC_AND_HEALTH_DEGRADED"
+  },
+  "compatibility": {
+    "breakingChangeRequiresNewProfile": true,
+    "mixedVersionWindowRequired": true
+  }
+}

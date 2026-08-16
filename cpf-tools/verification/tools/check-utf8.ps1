@@ -1,0 +1,131 @@
+param(
+    [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
+    [switch] $CheckMojibake
+)
+
+# CPF의 정본 실행기인 PowerShell 7과 Java/Gradle 사이의 한글 입출력 인코딩을 UTF-8로 고정합니다.
+$CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::InputEncoding = $CpfUtf8ConsoleEncoding
+[Console]::OutputEncoding = $CpfUtf8ConsoleEncoding
+$OutputEncoding = $CpfUtf8ConsoleEncoding
+
+$ErrorActionPreference = "Stop"
+
+$textExtensions = @(
+    ".bat", ".cmd", ".css", ".csv", ".gradle", ".groovy", ".html", ".java", ".js",
+    ".json", ".md", ".properties", ".ps1", ".sql", ".txt", ".xml", ".yml", ".yaml"
+)
+$skipDirectories = @(
+    "\.git\", "\.gradle\", "\.idea\", "\.vscode\", "\bin\", "\build\", "\out\",
+    "\logs\", "\node_modules\", "\vendor\"
+)
+$skipFileNames = @()
+$mojibakeLiteralChars = @(
+    # UTF-8 한글이 잘못 디코딩될 때 자주 남는 Latin-1 계열 marker입니다.
+    [char]0x00C2,
+    [char]0x00C3,
+    [char]0x00D0,
+    [char]0x00EC,
+    [char]0x00F0,
+    [char]0x00EB,
+    [char]0x00ED,
+    [char]0x00EA,
+    [char]0x533B,
+    [char]0x5BC3,
+    [char]0x5DDB,
+    [char]0x63F6,
+    [char]0x6E1D,
+    [char]0x6FE1,
+    [char]0x7B4C,
+    [char]0x7344,
+    [char]0x56A5,
+    [char]0x8B70,
+    [char]0x8E30,
+    [char]0x7652,
+    [char]0xF9CF,
+    [char]0xF9D0,
+    [char]0xFFFD
+)
+$mojibakeRegexPatterns = @(
+    '\?[\u3130-\u318F\uA960-\uA97F\uAC00-\uD7AF]',
+    '(?:\u00C3|\u00C2|\u00D0|\u00F0|\u00EC|\u00ED|\u00EB|\u00EA)[\u0080-\u00BF]',
+    '[\u2464\u4E8C\u533B\u56A5\u5BC3\u5DDB\u63F6\u6E1D\u6FE1\u7344\u7652\u7B4C\u8B70\u8E30\uF9CF\uF9D0]'
+)
+$utf8Strict = [System.Text.UTF8Encoding]::new($false, $true)
+$maximumTextBytes = 64MB
+$failures = New-Object System.Collections.Generic.List[string]
+
+Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object {
+    $relative = $_.FullName.Substring($Root.Length)
+    $isCanonicalBuildToolSource =
+        $relative -match '^\\cpf-tools\\build\\(gradle-plugin|platform-bom)\\(build\.gradle|settings\.gradle|src\\(main|test)\\.+)$'
+    if (-not $isCanonicalBuildToolSource) {
+        foreach ($directory in $skipDirectories) {
+            if ($relative.Contains($directory)) {
+                return
+            }
+        }
+    }
+    if ($textExtensions -notcontains $_.Extension.ToLowerInvariant()) {
+        return
+    }
+    if ($skipFileNames -contains $_.Name) {
+        return
+    }
+
+    try {
+        if ($_.Length -gt $maximumTextBytes) {
+            $failures.Add("text file exceeds bounded UTF-8 scan limit: $($_.FullName) bytes=$($_.Length)")
+            return
+        }
+        $header = [byte[]]::new(3)
+        $stream = [System.IO.File]::OpenRead($_.FullName)
+        $headerLength = 0
+        try {
+            while ($headerLength -lt $header.Length) {
+                $read = $stream.Read($header, $headerLength, $header.Length - $headerLength)
+                if ($read -eq 0) { break }
+                $headerLength += $read
+            }
+        }
+        finally { $stream.Dispose() }
+        $hasUtf8Bom = $headerLength -eq 3 `
+            -and $header[0] -eq 0xEF `
+            -and $header[1] -eq 0xBB `
+            -and $header[2] -eq 0xBF
+        # CPF PowerShell 스크립트는 pwsh 7 + UTF-8(no BOM)을 정본으로 사용합니다.
+        # 한글 QA 원장을 Excel 등에서 직접 열 수 있도록 CSV의 UTF-8 BOM만 호환 입력으로 허용합니다.
+        $extension = $_.Extension.ToLowerInvariant()
+        if ($hasUtf8Bom -and $extension -ne ".csv") {
+            $failures.Add("utf-8 bom detected: $($_.FullName)")
+            return
+        }
+        $text = [System.IO.File]::ReadAllText($_.FullName, $utf8Strict)
+        if ($CheckMojibake) {
+            foreach ($pattern in $mojibakeLiteralChars) {
+                if ($text.Contains($pattern)) {
+                    $failures.Add("mojibake marker '$pattern': $($_.FullName)")
+                    break
+                }
+            }
+            foreach ($pattern in $mojibakeRegexPatterns) {
+                if ([regex]::IsMatch($text, $pattern)) {
+                    $failures.Add("mojibake regex '$pattern': $($_.FullName)")
+                    break
+                }
+            }
+        }
+    } catch {
+        $failures.Add("invalid utf-8: $($_.FullName) - $($_.Exception.Message)")
+    }
+}
+
+if ($failures.Count -gt 0) {
+    $failures | Sort-Object | ForEach-Object { Write-Host $_ }
+    exit 1
+}
+
+Write-Host "UTF-8 check passed."
+if (-not $CheckMojibake) {
+    Write-Host "Run with -CheckMojibake to also fail on common mojibake markers."
+}

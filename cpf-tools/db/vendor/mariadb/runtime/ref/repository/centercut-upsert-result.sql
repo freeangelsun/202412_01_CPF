@@ -1,0 +1,22 @@
+INSERT INTO ref_center_cut_sample_result (
+    target_id,
+    center_cut_job_id,
+    business_key,
+    result_status,
+    result_payload,
+    result_message,
+    transaction_id,
+    parent_segment_id,
+    transaction_segment_id,
+    created_by,
+    updated_by
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'REF_CENTER_CUT', 'REF_CENTER_CUT')
+ON DUPLICATE KEY UPDATE
+    result_status = VALUES(result_status),
+    result_payload = VALUES(result_payload),
+    result_message = VALUES(result_message),
+    transaction_id = VALUES(transaction_id),
+    parent_segment_id = VALUES(parent_segment_id),
+    transaction_segment_id = VALUES(transaction_segment_id),
+    updated_by = VALUES(updated_by),
+    updated_at = CURRENT_TIMESTAMP

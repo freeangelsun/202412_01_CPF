@@ -1,0 +1,2497 @@
+{
+  "schemaVersion": 1,
+  "contract": "CPF_PLATFORM_CENTRAL_RUNTIME_QUERY_PACK",
+  "vendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "authoringRoot": "cpf-tools/db/runtime-template",
+  "tokens": {
+    "NOW": "Vendor current timestamp",
+    "NOW3": "Vendor current timestamp with millisecond precision",
+    "NOW6": "Vendor current timestamp with microsecond precision",
+    "LIMIT_POSITIONAL": "Ordered JDBC positional row limit",
+    "LIMIT_NAMED": "Ordered Spring named-parameter row limit",
+    "PAGE_NAMED": "Ordered Spring named-parameter limit and offset page window",
+    "WITH_RECURSIVE": "Vendor recursive common-table-expression introducer",
+    "COALESCE_CREATED_BY": "MyBatis createdBy fallback expression",
+    "COALESCE_UPDATED_BY": "MyBatis updatedBy fallback expression",
+    "CHAR_LENGTH": "Vendor character-length function",
+    "PAGE_POSITIONAL": "Ordered JDBC positional offset and limit page window"
+  },
+  "forbiddenRuntimeIdentifiers": [
+    "transaction_global_id",
+    "root_transaction_global_id",
+    "parent_transaction_global_id",
+    "transactionGlobalId",
+    "idempotency_id",
+    "delegated_approver_no",
+    "absence_from",
+    "absence_to"
+  ],
+  "modules": [
+    {
+      "module": "cpf",
+      "ownerArtifact": "cpf-core",
+      "profileModuleKey": "core",
+      "parameterStyle": "JDBC_POSITIONAL",
+      "templateRoot": "cpf-tools/db/runtime-template/cpf",
+      "generatedPackPath": "runtime/cpf/repository",
+      "sourceScopes": [
+        "cpf-core/src/main/java"
+      ],
+      "status": "완료",
+      "inlineSqlPolicy": "PORTABLE_ONLY",
+      "statements": [
+        {
+          "key": "channel-policy-find-all",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "channel-policy-upsert",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 15
+        },
+        {
+          "key": "channel-policy-version-current",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "channel-policy-version-insert",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "channel-registry-find-all",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "channel-registry-upsert",
+          "consumer": "JdbcCpfChannelRegistryAdapter",
+          "usage": "ACTIVE",
+          "parameterCount": 13
+        },
+        {
+          "key": "execution-catalog-find-all",
+          "consumer": "CpfExecutionCatalogRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "execution-catalog-resolve-alias",
+          "consumer": "CpfExecutionCatalogRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "execution-catalog-upsert",
+          "consumer": "CpfExecutionCatalogRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 18
+        },
+        {
+          "key": "file-transfer-already-processed",
+          "consumer": "JdbcCpfFileTransferRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "file-transfer-find-history",
+          "consumer": "JdbcCpfFileTransferRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "file-transfer-insert",
+          "consumer": "JdbcCpfFileTransferRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 13
+        },
+        {
+          "key": "file-transfer-update",
+          "consumer": "JdbcCpfFileTransferRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "idempotency-complete",
+          "consumer": "JdbcCpfIdempotencyRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "idempotency-expire-before",
+          "consumer": "JdbcCpfIdempotencyRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "idempotency-find",
+          "consumer": "JdbcCpfIdempotencyRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "idempotency-reserve",
+          "consumer": "JdbcCpfIdempotencyRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "idempotency-restart",
+          "consumer": "JdbcCpfIdempotencyRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "reconciliation-find",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "reconciliation-register",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 10
+        },
+        {
+          "key": "reconciliation-resolve",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "transaction-meta-count",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "transaction-meta-find-all",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "STAGED",
+          "parameterCount": 7
+        },
+        {
+          "key": "transaction-meta-find-by-id",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "transaction-meta-find-page",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 8
+        },
+        {
+          "key": "transaction-meta-inactivate",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "transaction-meta-mark-missing-inactive",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1,
+          "formatTokens": [
+            "POSITIONAL_LIST"
+          ]
+        },
+        {
+          "key": "transaction-meta-table-available",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "transaction-meta-upsert",
+          "consumer": "CpfTransactionMetaRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 14
+        }
+      ],
+      "managedMyBatis": [
+        {
+          "key": "transaction-log-mapper",
+          "relativePath": "mybatis/logging/TransactionLogMapper.xml",
+          "templateRelativePath": "vendor/{vendor}/mybatis/logging/TransactionLogMapper.xml.template",
+          "vendors": [
+            "mariadb",
+            "postgresql",
+            "oracle"
+          ]
+        },
+        {
+          "key": "transaction-segment-mapper",
+          "relativePath": "mybatis/logging/TransactionSegmentMapper.xml",
+          "templateRelativePath": "vendor/{vendor}/mybatis/logging/TransactionSegmentMapper.xml.template",
+          "vendors": [
+            "mariadb",
+            "postgresql",
+            "oracle"
+          ]
+        }
+      ],
+      "verificationStatus": "미검증"
+    },
+    {
+      "module": "bza",
+      "ownerArtifact": "cpf-biz-admin",
+      "profileModuleKey": "bizAdmin",
+      "parameterStyle": "SPRING_NAMED",
+      "templateRoot": "cpf-tools/db/runtime-template/bza",
+      "generatedPackPath": "runtime/bza/repository",
+      "sourceScopes": [
+        "cpf-biz-admin/src/main/java"
+      ],
+      "status": "완료",
+      "inlineSqlPolicy": "PORTABLE_ONLY",
+      "statements": [
+        {
+          "key": "approval-policy-repository-decide-participant-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "comment",
+            "decisionStatus",
+            "idempotencyKey",
+            "operatorId",
+            "participantId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-active-delegate-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "at",
+            "businessDomain",
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-active-policy-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "at",
+            "businessDomain"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-approval-by-idempotency-key-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "key"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-delegations-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-document-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-due-approval-ids-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "now"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-employee-no-by-login-id-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-inbox-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "decisionStatus",
+            "employeeNo",
+            "limit"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-line-statuses-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-participants-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-policies-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "businessDomain"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-policy-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "policyCode",
+            "policyVersion"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-policy-steps-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "policyCode",
+            "policyVersion"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-submissions-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo",
+            "limit",
+            "status"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-waiting-participant-parallel",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "approvalId",
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-waiting-participant-sequential",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "approvalId",
+            "currentStep",
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-history-action-exists-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "key"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-insert-history-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actionType",
+            "actorEmployeeNo",
+            "afterStatus",
+            "approvalId",
+            "beforeStatus",
+            "comment",
+            "idempotencyKey",
+            "operatorId",
+            "reason",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-insert-line-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "decisionRule",
+            "directApprover",
+            "operatorId",
+            "requiredCount",
+            "requiredYn",
+            "stepNo",
+            "stepType",
+            "targetCode",
+            "targetName",
+            "targetType"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-insert-participant-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "approvalLineId",
+            "approverEmployeeNo",
+            "delegatedFrom",
+            "jobTitleCode",
+            "operatorId",
+            "organizationCode",
+            "positionCode",
+            "resolutionSource",
+            "stepNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-insert-policy-approval-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalMode",
+            "approvalNo",
+            "approvalType",
+            "attachmentGroupId",
+            "businessDomain",
+            "dueAt",
+            "operatorId",
+            "payloadHash",
+            "payloadJson",
+            "policyCode",
+            "policySnapshotJson",
+            "policyVersion",
+            "requesterEmployeeNo",
+            "requesterJobTitleCode",
+            "requesterOrganizationCode",
+            "requesterPositionCode",
+            "requestIdempotencyKey",
+            "resubmittedFromApprovalId",
+            "title",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-participant-counts-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "lineId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-participant-decision-exists-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "key"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-replace-policy-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "businessDomain",
+            "description",
+            "effectiveFrom",
+            "effectiveTo",
+            "enabledYn",
+            "operatorId",
+            "policyCode",
+            "policyName",
+            "policyVersion",
+            "selfApprovalAllowedYn"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-replace-policy-02",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "businessDomain",
+            "description",
+            "effectiveFrom",
+            "effectiveTo",
+            "enabledYn",
+            "operatorId",
+            "policyCode",
+            "policyName",
+            "policyVersion",
+            "selfApprovalAllowedYn"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-replace-policy-03",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "policyCode",
+            "policyVersion"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-replace-policy-04",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "decisionRule",
+            "operatorId",
+            "policyCode",
+            "policyVersion",
+            "requiredCount",
+            "requiredYn",
+            "sortOrder",
+            "stepNo",
+            "stepType",
+            "targetCode",
+            "targetType"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-resolve-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "targetCode"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-resolve-02",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "targetCode"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-resolve-03",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "targetCode"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-resolve-04",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "targetCode"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-resolve-05",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "at",
+            "targetCode"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-save-delegation-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "businessDomain",
+            "delegateEmployeeNo",
+            "delegatorEmployeeNo",
+            "operatorId",
+            "reason",
+            "useYn",
+            "validFrom",
+            "validTo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-save-delegation-02",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalType",
+            "businessDomain",
+            "delegateEmployeeNo",
+            "delegationId",
+            "delegatorEmployeeNo",
+            "operatorId",
+            "reason",
+            "useYn",
+            "validFrom",
+            "validTo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-update-document-status-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "completed",
+            "currentStep",
+            "operatorId",
+            "status",
+            "versionNo"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-update-line-status-01",
+          "consumer": "BzaApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "comment",
+            "lineId",
+            "operatorId",
+            "status"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-bind-operation",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "operationId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-find-login",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-find-operation",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "operationId",
+            "operatorName",
+            "passwordExpireAt",
+            "passwordHash",
+            "roleCode"
+          ]
+        },
+        {
+          "key": "auth-change-password",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "newHash",
+            "previousHash",
+            "updatedBy"
+          ]
+        },
+        {
+          "key": "auth-find-buttons",
+          "consumer": "BzaAuthRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "roleCode"
+          ]
+        },
+        {
+          "key": "auth-find-login-histories",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit"
+          ]
+        },
+        {
+          "key": "auth-find-refresh-sessions",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "limit"
+          ]
+        },
+        {
+          "key": "auth-find-user-ids-by-role-code",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "roleCode"
+          ]
+        },
+        {
+          "key": "auth-increase-login-fail-count",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId"
+          ]
+        },
+        {
+          "key": "auth-login-operation-insert",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "loginId",
+            "operationId",
+            "requestHash"
+          ]
+        },
+        {
+          "key": "auth-login-operation-lock",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId"
+          ]
+        },
+        {
+          "key": "auth-login-operation-success",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId",
+            "resultAccessTokenEnc",
+            "resultExpiresAt",
+            "resultRefreshExpiresAt",
+            "resultRefreshTokenEnc"
+          ]
+        },
+        {
+          "key": "auth-mark-login-success",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId"
+          ]
+        },
+        {
+          "key": "auth-repository-find-buttons-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "environmentCode",
+            "roleCodes"
+          ]
+        },
+        {
+          "key": "auth-repository-find-effective-role-codes-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId"
+          ]
+        },
+        {
+          "key": "auth-repository-find-effective-role-codes-02",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "roleCode"
+          ]
+        },
+        {
+          "key": "auth-repository-find-effective-role-codes-03",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId"
+          ]
+        },
+        {
+          "key": "auth-repository-find-menus-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "environmentCode",
+            "roleCodes"
+          ]
+        },
+        {
+          "key": "auth-repository-find-operator-by-login-id-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "auth-repository-find-refresh-token-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "refreshTokenHash"
+          ]
+        },
+        {
+          "key": "auth-repository-insert-business-audit-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actionType",
+            "actorId",
+            "afterData",
+            "beforeData",
+            "reason",
+            "targetId",
+            "targetType",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "auth-repository-insert-login-history-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminLoginId",
+            "adminUserId",
+            "clientIp",
+            "failureReason",
+            "loginDomain",
+            "loginResult",
+            "moduleId",
+            "serverInstanceId",
+            "transactionId",
+            "userAgent",
+            "wasId"
+          ]
+        },
+        {
+          "key": "auth-repository-insert-refresh-token-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "expireAt",
+            "loginDomain",
+            "loginOperationId",
+            "refreshTokenHash",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "auth-repository-update-password-hash-if-unchanged-01",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "newHash",
+            "previousHash",
+            "updatedBy"
+          ]
+        },
+        {
+          "key": "auth-revoke-all-refresh-by-login-id",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "auth-revoke-all-refresh-tokens",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId"
+          ]
+        },
+        {
+          "key": "auth-revoke-refresh-by-login-operation",
+          "consumer": "BzaAuthRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "operationId"
+          ]
+        },
+        {
+          "key": "auth-revoke-refresh-session",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "sessionId",
+            "updatedBy"
+          ]
+        },
+        {
+          "key": "auth-revoke-refresh-token",
+          "consumer": "BzaAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "refreshTokenHash"
+          ]
+        },
+        {
+          "key": "auth-update-password-hash-if-unchanged",
+          "consumer": "BzaAuthRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "adminUserId",
+            "newHash",
+            "previousHash",
+            "updatedBy"
+          ]
+        },
+        {
+          "key": "backoffice-decide-line",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "actorEmployeeNo",
+            "approvalId",
+            "comment",
+            "decision",
+            "stepNo"
+          ]
+        },
+        {
+          "key": "backoffice-find-approvals",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "employeeNo",
+            "limit",
+            "status"
+          ]
+        },
+        {
+          "key": "backoffice-find-business-audits",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit"
+          ]
+        },
+        {
+          "key": "backoffice-repository-employee-page-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "organizationCode",
+            "status"
+          ]
+        },
+        {
+          "key": "backoffice-repository-employee-page-02",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset",
+            "organizationCode",
+            "status"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-effective-permissions-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-employee-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-employee-no-by-login-id-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-employee-raw-contact-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo"
+          ],
+          "resultFields": [
+            "employeeNo",
+            "email",
+            "mobileNo",
+            "officePhoneNo"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-employees-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "organizationCode",
+            "status"
+          ]
+        },
+        {
+          "key": "backoffice-repository-find-organizations-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "backoffice-repository-insert-business-audit-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actionType",
+            "actorId",
+            "afterData",
+            "beforeData",
+            "reason",
+            "targetId",
+            "targetType",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "backoffice-repository-organization-exists-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "code"
+          ]
+        },
+        {
+          "key": "backoffice-repository-organization-page-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "backoffice-repository-organization-page-02",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "backoffice-repository-save-employee-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "email",
+            "employeeName",
+            "employeeNo",
+            "employmentStatus",
+            "jobTitleCode",
+            "joinDate",
+            "leaveDate",
+            "managerEmployeeNo",
+            "mobileNo",
+            "officePhoneNo",
+            "organizationCode",
+            "positionCode",
+            "requestUser",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-repository-save-employee-02",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "email",
+            "employeeName",
+            "employeeNo",
+            "employmentStatus",
+            "expectedVersion",
+            "jobTitleCode",
+            "joinDate",
+            "leaveDate",
+            "managerEmployeeNo",
+            "mobileNo",
+            "officePhoneNo",
+            "organizationCode",
+            "positionCode",
+            "requestUser",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-repository-save-employee-03",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "backoffice-repository-save-organization-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveFrom",
+            "effectiveTo",
+            "organizationCode",
+            "organizationName",
+            "organizationType",
+            "parentOrganizationCode",
+            "requestUser",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-repository-save-organization-02",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveFrom",
+            "effectiveTo",
+            "expectedVersion",
+            "organizationCode",
+            "organizationName",
+            "organizationType",
+            "parentOrganizationCode",
+            "requestUser",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-repository-would-create-organization-cycle-01",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "organizationCode",
+            "parentCode"
+          ]
+        },
+        {
+          "key": "backoffice-save-employee",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "adminUserId",
+            "email",
+            "employeeName",
+            "employeeNo",
+            "employmentStatus",
+            "jobTitleCode",
+            "joinDate",
+            "leaveDate",
+            "managerEmployeeNo",
+            "mobileNo",
+            "organizationCode",
+            "positionCode",
+            "requestUser",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-save-organization",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "organizationCode",
+            "organizationName",
+            "organizationType",
+            "parentOrganizationCode",
+            "requestUser",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "backoffice-update-approval-status",
+          "consumer": "BzaBackofficeRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "actor",
+            "approvalId",
+            "currentStep",
+            "expectedVersion",
+            "status"
+          ]
+        },
+        {
+          "key": "business-audit-service-ensure-lock-row-01",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "id"
+          ]
+        },
+        {
+          "key": "business-audit-service-ensure-lock-row-02",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "hash",
+            "id"
+          ]
+        },
+        {
+          "key": "business-audit-service-record-01",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "action",
+            "actor",
+            "afterData",
+            "beforeData",
+            "hash",
+            "previous",
+            "reason",
+            "targetId",
+            "targetType",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "business-audit-service-record-02",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "id"
+          ]
+        },
+        {
+          "key": "business-audit-service-record-03",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actor",
+            "auditId",
+            "hash",
+            "id"
+          ]
+        },
+        {
+          "key": "business-audit-service-verify-01",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "business-audit-service-verify-02",
+          "consumer": "BzaBusinessAuditService",
+          "usage": "ACTIVE",
+          "parameters": [
+            "id"
+          ]
+        },
+        {
+          "key": "directory-repository-assignment-page-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "employeeNo",
+            "limit",
+            "offset",
+            "organizationCode"
+          ]
+        },
+        {
+          "key": "directory-repository-assignment-page-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "employeeNo",
+            "organizationCode"
+          ]
+        },
+        {
+          "key": "directory-repository-clear-primary-roles-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actor",
+            "from",
+            "id",
+            "to"
+          ]
+        },
+        {
+          "key": "directory-repository-count-overlapping-primary-assignment-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo",
+            "exclude",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "key": "directory-repository-find-job-title-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "code"
+          ]
+        },
+        {
+          "key": "directory-repository-find-position-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "code"
+          ]
+        },
+        {
+          "key": "directory-repository-find-user-role-by-operation-id-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId"
+          ]
+        },
+        {
+          "key": "directory-repository-insert-job-title-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "jobTitleCode",
+            "jobTitleName",
+            "managerYn",
+            "operatorId",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-insert-position-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operatorId",
+            "positionCode",
+            "positionName",
+            "rankOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-insert-user-role-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "grantReason",
+            "operationId",
+            "operatorId",
+            "primaryYn",
+            "roleCode",
+            "validFrom",
+            "validTo"
+          ]
+        },
+        {
+          "key": "directory-repository-job-title-page-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "directory-repository-job-title-page-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "directory-repository-lock-employee-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "employeeNo"
+          ]
+        },
+        {
+          "key": "directory-repository-lock-user-and-id-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "directory-repository-position-page-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "directory-repository-position-page-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "directory-repository-responsibility-page-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "limit",
+            "offset",
+            "organizationCode"
+          ]
+        },
+        {
+          "key": "directory-repository-responsibility-page-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "organizationCode"
+          ]
+        },
+        {
+          "key": "directory-repository-save-assignment-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "assignmentType",
+            "effectiveFrom",
+            "effectiveTo",
+            "employeeNo",
+            "jobTitleCode",
+            "operatorId",
+            "organizationCode",
+            "positionCode",
+            "primaryYn"
+          ]
+        },
+        {
+          "key": "directory-repository-save-assignment-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "assignmentId",
+            "assignmentType",
+            "effectiveFrom",
+            "effectiveTo",
+            "employeeNo",
+            "expectedVersion",
+            "jobTitleCode",
+            "operatorId",
+            "organizationCode",
+            "positionCode",
+            "primaryYn"
+          ]
+        },
+        {
+          "key": "directory-repository-save-responsibility-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveFrom",
+            "effectiveTo",
+            "employeeNo",
+            "operatorId",
+            "organizationCode",
+            "priorityNo",
+            "responsibilityType",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-save-responsibility-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveFrom",
+            "effectiveTo",
+            "employeeNo",
+            "expectedVersion",
+            "operatorId",
+            "organizationCode",
+            "priorityNo",
+            "responsibilityId",
+            "responsibilityType",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-sync-legacy-primary-role-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actor",
+            "id",
+            "role"
+          ]
+        },
+        {
+          "key": "directory-repository-update-job-title-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "expectedVersion",
+            "jobTitleCode",
+            "jobTitleName",
+            "managerYn",
+            "operatorId",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-update-position-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "expectedVersion",
+            "operatorId",
+            "positionCode",
+            "positionName",
+            "rankOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "directory-repository-user-role-page-01",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "limit",
+            "loginId",
+            "offset"
+          ]
+        },
+        {
+          "key": "directory-repository-user-role-page-02",
+          "consumer": "BzaDirectoryRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "effectiveAt",
+            "loginId"
+          ]
+        },
+        {
+          "key": "operation-repository-admin-user-page-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "operation-repository-admin-user-page-02",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-count-effective-roles-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "operation-repository-ensure-initial-user-role-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actor",
+            "loginId",
+            "roleCode"
+          ]
+        },
+        {
+          "key": "operation-repository-find-admin-user-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "operation-repository-find-download-policies-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-find-menu-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "code"
+          ]
+        },
+        {
+          "key": "operation-repository-find-permission-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "id"
+          ]
+        },
+        {
+          "key": "operation-repository-find-role-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "code"
+          ]
+        },
+        {
+          "key": "operation-repository-find-settings-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-insert-admin-user-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "accountStatus",
+            "adminName",
+            "lockYn",
+            "loginId",
+            "passwordChangeRequiredYn",
+            "passwordHash",
+            "requestUser",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-insert-business-audit-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actionType",
+            "actorId",
+            "afterData",
+            "beforeData",
+            "reason",
+            "targetId",
+            "targetType",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "operation-repository-insert-menu-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "apiPath",
+            "environmentCode",
+            "iconCode",
+            "menuCode",
+            "menuName",
+            "moduleCode",
+            "parentMenuCode",
+            "requestUser",
+            "routePath",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-insert-permission-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "allowYn",
+            "apiPattern",
+            "buttonCode",
+            "dataScope",
+            "domainCode",
+            "environmentCode",
+            "httpMethod",
+            "menuCode",
+            "permissionType",
+            "requestUser",
+            "roleCode",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-insert-role-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "dataScope",
+            "requestUser",
+            "roleCode",
+            "roleName",
+            "useYn",
+            "writeAllowedYn"
+          ]
+        },
+        {
+          "key": "operation-repository-menu-page-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "operation-repository-menu-page-02",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-permission-page-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "operation-repository-permission-page-02",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-role-page-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "offset"
+          ]
+        },
+        {
+          "key": "operation-repository-role-page-02",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        },
+        {
+          "key": "operation-repository-sync-legacy-primary-role-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actor",
+            "loginId",
+            "roleCode"
+          ]
+        },
+        {
+          "key": "operation-repository-update-admin-user-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "accountStatus",
+            "adminName",
+            "expectedVersion",
+            "lockYn",
+            "loginId",
+            "passwordChangeRequiredYn",
+            "passwordHash",
+            "requestUser",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-update-menu-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "apiPath",
+            "environmentCode",
+            "expectedVersion",
+            "iconCode",
+            "menuCode",
+            "menuName",
+            "moduleCode",
+            "parentMenuCode",
+            "requestUser",
+            "routePath",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-update-permission-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "allowYn",
+            "apiPattern",
+            "buttonCode",
+            "dataScope",
+            "domainCode",
+            "environmentCode",
+            "expectedVersion",
+            "httpMethod",
+            "menuCode",
+            "permissionId",
+            "permissionType",
+            "requestUser",
+            "roleCode",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-repository-update-role-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "dataScope",
+            "expectedVersion",
+            "requestUser",
+            "roleCode",
+            "roleName",
+            "useYn",
+            "writeAllowedYn"
+          ]
+        },
+        {
+          "key": "operation-save-admin-user",
+          "consumer": "BzaOperationRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "adminName",
+            "lockYn",
+            "loginId",
+            "passwordChangeRequiredYn",
+            "passwordHash",
+            "requestUser",
+            "roleCode",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-save-menu",
+          "consumer": "BzaOperationRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "apiPath",
+            "environmentCode",
+            "iconCode",
+            "menuCode",
+            "menuName",
+            "moduleCode",
+            "parentMenuCode",
+            "requestUser",
+            "routePath",
+            "sortOrder",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-save-permission",
+          "consumer": "BzaOperationRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "allowYn",
+            "apiPattern",
+            "buttonCode",
+            "dataScope",
+            "domainCode",
+            "environmentCode",
+            "httpMethod",
+            "menuCode",
+            "permissionType",
+            "requestUser",
+            "roleCode",
+            "useYn"
+          ]
+        },
+        {
+          "key": "operation-save-role",
+          "consumer": "BzaOperationRepository",
+          "usage": "STAGED",
+          "parameters": [
+            "dataScope",
+            "requestUser",
+            "roleCode",
+            "roleName",
+            "useYn",
+            "writeAllowedYn"
+          ]
+        },
+        {
+          "key": "support-find-download-audits",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit"
+          ]
+        },
+        {
+          "key": "support-find-notifications",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "limit",
+            "loginId",
+            "unreadOnly"
+          ]
+        },
+        {
+          "key": "support-repository-dashboard-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "support-repository-disable-saved-search-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "requestUser",
+            "savedSearchId"
+          ]
+        },
+        {
+          "key": "support-repository-find-attachment-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "attachmentId"
+          ]
+        },
+        {
+          "key": "support-repository-find-attachments-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "groupId"
+          ]
+        },
+        {
+          "key": "support-repository-find-role-permissions-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "roleCodes"
+          ]
+        },
+        {
+          "key": "support-repository-find-saved-search-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "screenCode",
+            "searchName"
+          ]
+        },
+        {
+          "key": "support-repository-find-saved-searches-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "screenCode"
+          ]
+        },
+        {
+          "key": "support-repository-insert-attachment-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "attachmentGroupId",
+            "checksumSha256",
+            "contentType",
+            "dataClassification",
+            "fileSize",
+            "originalFileName",
+            "quarantineYn",
+            "requestUser",
+            "scanStatus",
+            "storageKey",
+            "storedFileName"
+          ]
+        },
+        {
+          "key": "support-repository-insert-business-audit-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actionType",
+            "actorId",
+            "afterData",
+            "beforeData",
+            "reason",
+            "targetId",
+            "targetType",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "support-repository-insert-download-audit-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "actorId",
+            "downloadCode",
+            "fileName",
+            "filterJson",
+            "maskingAppliedYn",
+            "reason",
+            "resultStatus",
+            "rowCount",
+            "transactionId"
+          ]
+        },
+        {
+          "key": "support-repository-insert-notification-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "messageBody",
+            "notificationType",
+            "recipientLoginId",
+            "referenceId",
+            "referenceType",
+            "requestUser",
+            "title"
+          ]
+        },
+        {
+          "key": "support-repository-mark-all-notifications-read-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "requestUser"
+          ]
+        },
+        {
+          "key": "support-repository-mark-notification-read-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "notificationId",
+            "requestUser"
+          ]
+        },
+        {
+          "key": "support-repository-update-attachment-security-01",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "attachmentId",
+            "classification",
+            "quarantineYn",
+            "requestUser",
+            "retentionUntil",
+            "scanStatus",
+            "useYn"
+          ]
+        },
+        {
+          "key": "support-save-saved-search",
+          "consumer": "BzaSupportRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "criteriaJson",
+            "ownerLoginId",
+            "requestUser",
+            "screenCode",
+            "searchName",
+            "sharedYn"
+          ]
+        },
+        {
+          "key": "operation-repository-count-menu-permissions-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "menuCode"
+          ]
+        },
+        {
+          "key": "operation-repository-delete-menu-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "expectedVersion",
+            "menuCode"
+          ]
+        },
+        {
+          "key": "operation-repository-find-menu-hierarchy-01",
+          "consumer": "BzaOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
+        }
+      ],
+      "managedMyBatis": [],
+      "verificationStatus": "미검증"
+    },
+    {
+      "module": "education",
+      "ownerArtifact": "cpf-education",
+      "profileModuleKey": "referenceFixture",
+      "parameterStyle": "JDBC_POSITIONAL",
+      "templateRoot": "cpf-tools/db/runtime-template/ref",
+      "generatedPackPath": "runtime/ref/repository",
+      "sourceScopes": [
+        "cpf-education/src/main/java/com/cpf/education/operations/centercut"
+      ],
+      "status": "완료",
+      "inlineSqlPolicy": "PORTABLE_ONLY",
+      "statements": [
+        {
+          "key": "centercut-count-results-by-status",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-delete-smoke-results",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-find-ready-targets",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "centercut-find-result-snapshots",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-mark-result-target",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "centercut-mark-running",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "centercut-operations-find-result-detail",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-operations-find-results",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "centercut-operations-find-targets",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "centercut-operations-summarize-results",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-operations-summarize-targets",
+          "consumer": "RefCenterCutOperationsExtension",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-reset-smoke-targets",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "centercut-upsert-result",
+          "consumer": "EducationCenterCutTargetRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 9
+        }
+      ],
+      "managedMyBatis": [],
+      "verificationStatus": "미검증"
+    },
+    {
+      "module": "cmn",
+      "ownerArtifact": "cpf-starter-common",
+      "profileModuleKey": "common",
+      "parameterStyle": "JDBC_POSITIONAL",
+      "templateRoot": "cpf-tools/db/runtime-template/cmn",
+      "generatedPackPath": "cpf-starters/common/src/main/resources/cpf-sql/cmn",
+      "sourceScopes": [
+        "cpf-starters/common/src/main/java/com/cpf/common/calendar",
+        "cpf-starters/common/src/main/java/com/cpf/common/template",
+        "cpf-education/src/main/java/com/cpf/education/common/sample"
+      ],
+      "status": "완료",
+      "inlineSqlPolicy": "FORBIDDEN",
+      "statements": [
+        {
+          "key": "calendar-delete",
+          "resource": "calendar/delete.sql",
+          "consumer": "CmnJdbcCalendarStore",
+          "usage": "ACTIVE",
+          "parameterCount": 3
+        },
+        {
+          "key": "calendar-find-range",
+          "resource": "calendar/find-range.sql",
+          "consumer": "CmnJdbcCalendarStore",
+          "usage": "ACTIVE",
+          "parameterCount": 3
+        },
+        {
+          "key": "calendar-find",
+          "resource": "calendar/find.sql",
+          "consumer": "CmnJdbcCalendarStore",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "calendar-insert",
+          "resource": "calendar/insert.sql",
+          "consumer": "CmnJdbcCalendarStore",
+          "usage": "ACTIVE",
+          "parameterCount": 8
+        },
+        {
+          "key": "calendar-update",
+          "resource": "calendar/update.sql",
+          "consumer": "CmnJdbcCalendarStore",
+          "usage": "ACTIVE",
+          "parameterCount": 8
+        },
+        {
+          "key": "sample-count-by-key",
+          "resource": "sample/count-by-key.sql",
+          "consumer": "CmnSampleItemService",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "sample-cursor-mariadb",
+          "resource": "sample/cursor-mariadb.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "sample-cursor-oracle",
+          "resource": "sample/cursor-oracle.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "sample-cursor-postgresql",
+          "resource": "sample/cursor-postgresql.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "sample-find-by-id",
+          "resource": "sample/find-by-id.sql",
+          "consumer": "CmnSampleItemService",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "sample-insert",
+          "resource": "sample/insert.sql",
+          "consumer": "CmnSampleItemService",
+          "usage": "ACTIVE",
+          "parameterCount": 9
+        },
+        {
+          "key": "sample-offset-mariadb",
+          "resource": "sample/offset-mariadb.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "sample-offset-oracle",
+          "resource": "sample/offset-oracle.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "sample-offset-postgresql",
+          "resource": "sample/offset-postgresql.sql",
+          "consumer": "CmnSampleSqlDialect",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "sample-soft-delete",
+          "resource": "sample/soft-delete.sql",
+          "consumer": "CmnSampleItemService",
+          "usage": "ACTIVE",
+          "parameterCount": 3
+        },
+        {
+          "key": "sample-update",
+          "resource": "sample/update.sql",
+          "consumer": "CmnSampleItemService",
+          "usage": "ACTIVE",
+          "parameterCount": 9
+        },
+        {
+          "key": "template-approve",
+          "resource": "template/approve.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
+          "key": "template-insert-audit",
+          "resource": "template/insert-audit.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 10
+        },
+        {
+          "key": "template-insert-draft",
+          "resource": "template/insert-draft.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "template-lock-history",
+          "resource": "template/lock-history.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "template-retire",
+          "resource": "template/retire.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "template-select-active",
+          "resource": "template/select-active.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "template-select-audit",
+          "resource": "template/select-audit.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 3
+        },
+        {
+          "key": "template-select-version",
+          "resource": "template/select-version.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 3
+        },
+        {
+          "key": "template-supersede",
+          "resource": "template/supersede.sql",
+          "consumer": "CmnJdbcTemplateStore",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        }
+      ]
+    }
+  ],
+  "bzaLoginAtomicityContract": {
+    "requiredKeys": [
+      "auth-login-operation-insert",
+      "auth-login-operation-lock",
+      "auth-login-operation-success",
+      "auth-revoke-refresh-by-login-operation",
+      "auth-repository-insert-refresh-token-01"
+    ],
+    "officialVendors": [
+      "mariadb",
+      "postgresql",
+      "oracle"
+    ],
+    "requirements": [
+      "CPF-QA-BR-023",
+      "CPF-QA-BR-024"
+    ]
+  }
+}

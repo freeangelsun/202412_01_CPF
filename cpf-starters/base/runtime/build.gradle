@@ -1,0 +1,41 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.internal'
+
+
+dependencies {
+    api project(':framework:core')
+
+    // Developer annotation contracts. Runtime policies are owned by the Base starter itself.
+    compileOnly 'org.springframework:spring-context'
+    compileOnly 'org.springframework:spring-tx'
+    compileOnly 'org.springframework:spring-web'
+    compileOnly 'io.projectreactor:reactor-core'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // XA/JTA is an opt-in feature. These dependencies MUST NOT leak into Base main runtime.
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-core'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'cpf-base-runtime'
+        }
+    }
+}
+

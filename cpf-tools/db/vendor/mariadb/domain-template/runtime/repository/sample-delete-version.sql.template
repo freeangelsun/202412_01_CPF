@@ -1,0 +1,5 @@
+UPDATE `@CPF_TABLE_PREFIX@_sample_item`
+SET deleted_yn = 'Y', version_no = version_no + 1, idempotency_key = :idempotencyKey,
+    transaction_id = :transactionId, transaction_sequence = :transactionSequence,
+    transaction_at = CURRENT_TIMESTAMP, updated_by = :updatedBy, updated_at = CURRENT_TIMESTAMP
+WHERE sample_item_id = :sampleItemId AND version_no = :versionNo AND deleted_yn = 'N'

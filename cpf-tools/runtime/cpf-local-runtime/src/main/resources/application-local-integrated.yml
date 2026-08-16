@@ -1,0 +1,17 @@
+# 개발자 기본 모드: 하나의 JVM/하나의 HTTP Port에서 CPF와 생성 Domain을 함께 사용합니다.
+# Gateway는 선택 Capability이므로 기본 OFF이며 필요할 때 cpf.local.modules.gateway=true로 켭니다.
+cpf:
+  local:
+    runtime:
+      minimum-max-memory-mb: 500
+    modules:
+      core: true
+      common: true
+      gateway: false
+      admin: true
+      biz-admin: true
+      domains:
+        enabled: true
+        auto-discover: true
+        # 특수 확장 package만 수동 지정합니다. Generated Domain은 descriptor로 자동 발견됩니다.
+        base-packages: ${CPF_LOCAL_EXTRA_DOMAIN_PACKAGES:}

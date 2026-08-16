@@ -1,0 +1,58 @@
+{
+  "properties": [
+    {
+      "name": "cpf.starter.strict",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Generated Domain/Capability 표준을 startup fail-closed로 검증합니다."
+    },
+    {
+      "name": "cpf.starter.diagnostics",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "cpf-starter 경량 진단 HealthIndicator를 활성화합니다."
+    },
+    {
+      "name": "cpf.starter.logging-annotation-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfLogging 선택형 Runtime 지원 여부입니다."
+    },
+    {
+      "name": "cpf.starter.log-value-max-length",
+      "type": "java.lang.Integer",
+      "defaultValue": 256,
+      "description": "명시적 allowlist scalar 값의 masking 전 최대 길이입니다."
+    },
+    {
+      "name": "cpf.starter.performance-annotation-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfPerformance Micrometer 계측 Runtime 활성화 여부"
+    },
+    {
+      "name": "cpf.service-policy.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "CPF @CpfService 구조/Context 정책 활성화 여부"
+    },
+    {
+      "name": "cpf.service-policy.require-base-class",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfService가 CpfBaseService 3단 상속 구조를 따르도록 fail-fast 검증"
+    },
+    {
+      "name": "cpf.reliability.idempotency.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "@CpfIdempotent durable Runtime 활성화 여부"
+    },
+    {
+      "name": "cpf.reliability.idempotency.fail-closed",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "durable CpfIdempotencyStore가 없을 때 관리 호출을 차단할지 여부"
+    }
+  ]
+}

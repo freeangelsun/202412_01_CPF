@@ -1,0 +1,6 @@
+UPDATE bat_deployment_execution
+SET execution_state = ?,
+    failure_stage = ?,
+    result_message = ?,
+    finished_at = @NOW6@
+WHERE deployment_id = ?

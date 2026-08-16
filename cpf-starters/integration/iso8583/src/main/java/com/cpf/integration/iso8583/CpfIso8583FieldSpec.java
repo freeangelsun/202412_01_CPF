@@ -1,0 +1,1 @@
+package com.cpf.integration.iso8583;public record CpfIso8583FieldSpec(int number,int maxLength,Format format,boolean numeric){public enum Format{FIXED,LLVAR,LLLVAR}public CpfIso8583FieldSpec{if(number<2||number>128||maxLength<1)throw new IllegalArgumentException("invalid ISO8583 field spec");}}

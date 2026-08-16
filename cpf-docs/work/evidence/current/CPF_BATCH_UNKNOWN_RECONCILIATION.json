@@ -1,0 +1,22 @@
+{
+  "vendors": [
+    "oracle",
+    "postgresql",
+    "mariadb"
+  ],
+  "requiredRuntimeKeys": [
+    "scheduler-trigger-find-dispatchable.sql",
+    "scheduler-trigger-claim.sql",
+    "centercut-item-complete.sql",
+    "execution-remote-message-reclaim.sql",
+    "scheduler-trigger-reconcile-load.sql",
+    "scheduler-trigger-unknown-retry.sql",
+    "scheduler-trigger-reconcile-audit.sql",
+    "execution-remote-message-reconcile-load.sql",
+    "execution-remote-message-unknown-retry.sql",
+    "execution-remote-message-reconcile-audit.sql"
+  ],
+  "errors": [],
+  "semanticParity": true,
+  "pass": true
+}

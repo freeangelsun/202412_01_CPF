@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/db",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "stateModel": [
+    "PENDING",
+    "RUNNING",
+    "PARTIAL",
+    "UNKNOWN",
+    "PASS",
+    "FAIL",
+    "RECONCILED"
+  ],
+  "executionControls": {
+    "sourceShaRequired": true,
+    "operationIdRequired": true,
+    "reasonRequired": true,
+    "independentApprovalRequired": true,
+    "sanitizedEvidenceOnly": true,
+    "unknownOnPartialFailure": true,
+    "reconcilePlanRequiredForUnknown": true,
+    "rawRowValuesProhibited": true,
+    "blindRetryProhibited": true
+  },
+  "lineage": {
+    "contractVersion": "LINEAGE_V1",
+    "minimumNodeCount": 2,
+    "minimumEdgeCount": 1,
+    "requiredNodeFields": [
+      "nodeId",
+      "owner",
+      "logicalDatabase",
+      "objectType",
+      "objectName",
+      "schemaHash"
+    ],
+    "requiredEdgeFields": [
+      "edgeId",
+      "sourceNodeId",
+      "targetNodeId",
+      "operation",
+      "mappingHash"
+    ],
+    "allowedObjectTypes": [
+      "TABLE",
+      "VIEW",
+      "QUERY",
+      "FILE",
+      "TOPIC",
+      "API"
+    ],
+    "allowedOperations": [
+      "READ",
+      "WRITE",
+      "TRANSFORM",
+      "COPY",
+      "ARCHIVE",
+      "PURGE"
+    ]
+  },
+  "quality": {
+    "contractVersion": "DATA_QUALITY_V1",
+    "severityLevels": [
+      "INFO",
+      "WARN",
+      "ERROR",
+      "CRITICAL"
+    ],
+    "requiredRuleFields": [
+      "ruleId",
+      "ruleVersion",
+      "owner",
+      "queryId",
+      "severity",
+      "thresholdType",
+      "thresholdValue"
+    ],
+    "allowedThresholdTypes": [
+      "MAX_INVALID_COUNT",
+      "MAX_INVALID_RATIO",
+      "MIN_VALID_RATIO",
+      "EXACT_COUNT"
+    ],
+    "criticalFailureMustFail": true
+  },
+  "reconciliation": {
+    "contractVersion": "RECONCILIATION_V1",
+    "requiredComparisonFields": [
+      "comparisonId",
+      "leftCount",
+      "rightCount",
+      "mismatchCount",
+      "leftHash",
+      "rightHash"
+    ],
+    "hashAlgorithm": "SHA-256",
+    "zeroMismatchRequiredForPass": true,
+    "partialResultState": "UNKNOWN"
+  },
+  "consumers": [
+    "cpf-tools/verification/tools/invoke-cpf-data-observability-gate.ps1",
+    "cpf-tools/verification/tools/verify-cpf-data-observability-evidence.py"
+  ]
+}

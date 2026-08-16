@@ -1,0 +1,1 @@
+package jakarta.servlet.http; import java.io.*; public interface HttpServletResponse {void setStatus(int s);void setContentType(String s);void setCharacterEncoding(String s);void setHeader(String n,String v);Writer getWriter() throws IOException;}

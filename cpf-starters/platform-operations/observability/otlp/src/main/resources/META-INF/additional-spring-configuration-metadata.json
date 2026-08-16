@@ -1,0 +1,11 @@
+{
+  "properties": [
+    {"name":"cpf.platform-operations.observability.otlp.enabled","type":"java.lang.Boolean","defaultValue":false,"description":"Enable the CPF OTLP exporter."},
+    {"name":"cpf.platform-operations.observability.otlp.endpoint","type":"java.lang.String","description":"OTLP gRPC endpoint."},
+    {"name":"cpf.platform-operations.observability.otlp.timeout","type":"java.time.Duration","defaultValue":"10s","description":"OTLP export timeout."},
+    {"name":"cpf.platform-operations.observability.otlp.sample-probability","type":"java.lang.Double","defaultValue":1.0,"description":"Trace sampling probability between 0 and 1."},
+    {"name":"cpf.platform-operations.observability.otlp.service-name","type":"java.lang.String","defaultValue":"cpf-application","description":"OTel service.name resource attribute."},
+    {"name":"cpf.platform-operations.observability.otlp.service-instance-id","type":"java.lang.String","defaultValue":"unknown","description":"OTel service.instance.id resource attribute."},
+    {"name":"cpf.platform-operations.observability.otlp.max-attributes-per-span","type":"java.lang.Integer","defaultValue":32,"description":"Bounded CPF span attribute count."}
+  ]
+}

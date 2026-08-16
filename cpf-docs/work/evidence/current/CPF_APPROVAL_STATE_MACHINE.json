@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "files": [
+    "cpf-admin/src/main/java/com/cpf/admin/approval/service/AdmApprovalService.java",
+    "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmApprovalEngineService.java"
+  ],
+  "checks": {
+    "legacy_execute_has_single_reservation_cas": true,
+    "decision_is_bound_to_current_step": true,
+    "new_engine_reserves_execution_before_owner_call": true,
+    "new_engine_records_final_or_unknown_result": true,
+    "new_engine_execution_is_idempotent": true
+  },
+  "findings": [],
+  "risk": "future-step approval, duplicate owner execution, normal legacy execution CAS failure, UNKNOWN loss"
+}

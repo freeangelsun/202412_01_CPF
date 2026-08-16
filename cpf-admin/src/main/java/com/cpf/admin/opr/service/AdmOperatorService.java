@@ -891,6 +891,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         fallbackRoles.add(new AdmRole("ADM_OPERATOR", "운영자 호환 역할", "기존 ADM_OPERATOR 호환을 위한 역할입니다."));
 
         fallbackMenus.add(new AdmMenu("DASHBOARD", null, "대시보드", "/adm", 10));
+        fallbackMenus.add(new AdmMenu("CAPABILITY_FLEET", null, "CPF Capability", "/adm#capabilities", 15));
         fallbackMenus.add(new AdmMenu("LOG_LIST", null, "온라인 거래 로그", "/adm#logs", 20));
         fallbackMenus.add(new AdmMenu("STANDARD_EXECUTION", null, "표준 실행 카탈로그", "/adm#standard-executions", 23));
         fallbackMenus.add(new AdmMenu("REMOTE_LOG", null, "원격 로그 관리", "/adm#remote-logs", 24));
@@ -945,7 +946,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
                     .toList();
         }
         return fallbackMenus.stream()
-                .filter(menu -> List.of("DASHBOARD", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
+                .filter(menu -> List.of("DASHBOARD", "CAPABILITY_FLEET", "LOG_LIST", "STANDARD_EXECUTION", "REMOTE_LOG", "AUDIT_LOG", "BATCH", "CACHE", "MESSAGE", "CODE", "RESPONSE_CODE", "CONFIG").contains(menu.menuId()))
                 .map(menu -> new AdmMenu(menu.menuId(), menu.parentMenuId(), menu.menuName(),
                         menu.path(), menu.sortOrder(), true, false, false))
                 .sorted(Comparator.comparingInt(AdmMenu::sortOrder))

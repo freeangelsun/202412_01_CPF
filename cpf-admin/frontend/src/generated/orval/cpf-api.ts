@@ -59,6 +59,8 @@ import type {
   AdmCalendarResolveDateParams,
   AdmCalendarSaveDayParams,
   AdmCalendarSaveDayRequest,
+  AdmCapabilityManagementIssuesParams,
+  AdmCapabilityManagementOverviewParams,
   AdmCenterCutActionRequest,
   AdmCenterCutFindResultsParams,
   AdmCenterCutFindTargetsParams,
@@ -236,6 +238,7 @@ import type {
   ConnectionTestCancel,
   ConnectionTestRequest,
   ConnectionTestRevalidation,
+  CpfApiError,
   CpfCacheHealth,
   CpfCacheInvalidationEvent,
   CpfCacheMetricsSnapshot,
@@ -3546,6 +3549,102 @@ export function useAdmCacheSummary<TData = Awaited<ReturnType<typeof admCacheSum
 // CPF PRE-RUNTIME FALLBACK END admCacheSummary
 
 
+// CPF PRE-RUNTIME FALLBACK START admCapabilityManagementIssues
+export type admCapabilityManagementIssuesResponse200 = {
+  data: CpfControllerSourceResponse
+  status: 200
+}
+
+export type admCapabilityManagementIssuesResponseSuccess = (admCapabilityManagementIssuesResponse200) & {
+  headers: Headers;
+};
+
+export type admCapabilityManagementIssuesResponse = (admCapabilityManagementIssuesResponseSuccess)
+
+export const getAdmCapabilityManagementIssuesUrl = () => `/adm/api/capability-management/issues`;
+
+export const admCapabilityManagementIssues = async (params?: AdmCapabilityManagementIssuesParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admCapabilityManagementIssuesResponse> => {
+  return cpfOrvalRequest<admCapabilityManagementIssuesResponse>(getAdmCapabilityManagementIssuesUrl(), {
+    ...options,
+    method: 'GET',
+    params: { systemCode: params?.systemCode, systemId: params?.systemId, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, includeStale: params?.includeStale },
+  });
+};
+
+export const getAdmCapabilityManagementIssuesQueryKey = (params?: MaybeRefOrGetter<AdmCapabilityManagementIssuesParams>) => ["adm", "api", "capability-management", "issues", toValue(params)] as const;
+
+export const getAdmCapabilityManagementIssuesQueryOptions = <TData = Awaited<ReturnType<typeof admCapabilityManagementIssues>>, TError = unknown>(
+  params?: MaybeRefOrGetter<AdmCapabilityManagementIssuesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementIssues>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = getAdmCapabilityManagementIssuesQueryKey(toValue(params));
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof admCapabilityManagementIssues>>> = ({ signal }) => admCapabilityManagementIssues(toValue(params), { signal, ...requestOptions });
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementIssues>>, TError, TData>;
+};
+
+export type AdmCapabilityManagementIssuesQueryResult = NonNullable<Awaited<ReturnType<typeof admCapabilityManagementIssues>>>;
+export type AdmCapabilityManagementIssuesQueryError = unknown;
+
+export function useAdmCapabilityManagementIssues<TData = Awaited<ReturnType<typeof admCapabilityManagementIssues>>, TError = unknown>(
+  params?: MaybeRefOrGetter<AdmCapabilityManagementIssuesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementIssues>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdmCapabilityManagementIssuesQueryOptions(params, options);
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+  return query;
+}
+// CPF PRE-RUNTIME FALLBACK END admCapabilityManagementIssues
+
+
+// CPF PRE-RUNTIME FALLBACK START admCapabilityManagementOverview
+export type admCapabilityManagementOverviewResponse200 = {
+  data: CpfControllerSourceResponse
+  status: 200
+}
+
+export type admCapabilityManagementOverviewResponseSuccess = (admCapabilityManagementOverviewResponse200) & {
+  headers: Headers;
+};
+
+export type admCapabilityManagementOverviewResponse = (admCapabilityManagementOverviewResponseSuccess)
+
+export const getAdmCapabilityManagementOverviewUrl = () => `/adm/api/capability-management/overview`;
+
+export const admCapabilityManagementOverview = async (params?: AdmCapabilityManagementOverviewParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admCapabilityManagementOverviewResponse> => {
+  return cpfOrvalRequest<admCapabilityManagementOverviewResponse>(getAdmCapabilityManagementOverviewUrl(), {
+    ...options,
+    method: 'GET',
+    params: { environment: params?.environment, systemCode: params?.systemCode, systemId: params?.systemId, domainCode: params?.domainCode, domainId: params?.domainId, application: params?.application, module: params?.module, host: params?.host, instanceId: params?.instanceId, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, version: params?.version, status: params?.status, includeStale: params?.includeStale, page: params?.page, size: params?.size },
+  });
+};
+
+export const getAdmCapabilityManagementOverviewQueryKey = (params?: MaybeRefOrGetter<AdmCapabilityManagementOverviewParams>) => ["adm", "api", "capability-management", "overview", toValue(params)] as const;
+
+export const getAdmCapabilityManagementOverviewQueryOptions = <TData = Awaited<ReturnType<typeof admCapabilityManagementOverview>>, TError = unknown>(
+  params?: MaybeRefOrGetter<AdmCapabilityManagementOverviewParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementOverview>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = getAdmCapabilityManagementOverviewQueryKey(toValue(params));
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof admCapabilityManagementOverview>>> = ({ signal }) => admCapabilityManagementOverview(toValue(params), { signal, ...requestOptions });
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementOverview>>, TError, TData>;
+};
+
+export type AdmCapabilityManagementOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof admCapabilityManagementOverview>>>;
+export type AdmCapabilityManagementOverviewQueryError = unknown;
+
+export function useAdmCapabilityManagementOverview<TData = Awaited<ReturnType<typeof admCapabilityManagementOverview>>, TError = unknown>(
+  params?: MaybeRefOrGetter<AdmCapabilityManagementOverviewParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCapabilityManagementOverview>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  queryClient?: QueryClient
+): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdmCapabilityManagementOverviewQueryOptions(params, options);
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+  return query;
+}
+// CPF PRE-RUNTIME FALLBACK END admCapabilityManagementOverview
+
+
 // CPF PRE-RUNTIME FALLBACK START admCenterCutReconcileUnknownExecution
 export type admCenterCutReconcileUnknownExecutionResponse200 = {
   data: CpfControllerSourceResponse
@@ -4301,16 +4400,17 @@ export type admCodeFindCodesResponseSuccess = (admCodeFindCodesResponse200) & {
 
 export type admCodeFindCodesResponse = (admCodeFindCodesResponseSuccess)
 
-export const getAdmCodeFindCodesUrl = () => {
-  const base = `/adm/api/codes`;
-  return base;
-};
+export const getAdmCodeFindCodesUrl = () => `/adm/api/codes`;
 
 export const admCodeFindCodes = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeFindCodesResponse> => {
-  return cpfOrvalRequest<admCodeFindCodesResponse>(getAdmCodeFindCodesUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admCodeFindCodesResponse>(getAdmCodeFindCodesUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmCodeFindCodesQueryKey = () => ["adm","api","codes"] as const;
+export const getAdmCodeFindCodesQueryKey = () => ["adm", "api", "codes"] as const;
 
 export const getAdmCodeFindCodesQueryOptions = <TData = Awaited<ReturnType<typeof admCodeFindCodes>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCodes>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -4333,8 +4433,10 @@ export function useAdmCodeFindCodes<TData = Awaited<ReturnType<typeof admCodeFin
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admCodeFindCodes
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeCreateCode
 export type admCodeCreateCodeResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4346,13 +4448,15 @@ export type admCodeCreateCodeResponseSuccess = (admCodeCreateCodeResponse200) & 
 
 export type admCodeCreateCodeResponse = (admCodeCreateCodeResponseSuccess)
 
-export const getAdmCodeCreateCodeUrl = () => {
-  const base = `/adm/api/codes`;
-  return base;
-};
+export const getAdmCodeCreateCodeUrl = () => `/adm/api/codes`;
 
 export const admCodeCreateCode = async (data: CommonCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeCreateCodeResponse> => {
-  return cpfOrvalRequest<admCodeCreateCodeResponse>(getAdmCodeCreateCodeUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admCodeCreateCodeResponse>(getAdmCodeCreateCodeUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmCodeCreateCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4361,7 +4465,8 @@ export const getAdmCodeCreateCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeCreateCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeCreateCode>>, {data: CommonCodeRequest}> = (props) => {
     const { data } = props;
@@ -4377,9 +4482,13 @@ export type AdmCodeCreateCodeMutationError = unknown;
 export const useAdmCodeCreateCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext> => useMutation(getAdmCodeCreateCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext> => {
+  return useMutation(getAdmCodeCreateCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeCreateCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeDeleteCode
 export type admCodeDeleteCodeResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4391,15 +4500,14 @@ export type admCodeDeleteCodeResponseSuccess = (admCodeDeleteCodeResponse200) & 
 
 export type admCodeDeleteCodeResponse = (admCodeDeleteCodeResponseSuccess)
 
-export const getAdmCodeDeleteCodeUrl = (codeId: number, params: AdmCodeDeleteCodeParams) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmCodeDeleteCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeDeleteCode = async (codeId: number, params: AdmCodeDeleteCodeParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeDeleteCodeResponse> => {
-  return cpfOrvalRequest<admCodeDeleteCodeResponse>(getAdmCodeDeleteCodeUrl(codeId, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admCodeDeleteCodeResponse>(getAdmCodeDeleteCodeUrl(codeId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmCodeDeleteCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4408,7 +4516,8 @@ export const getAdmCodeDeleteCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeDeleteCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeDeleteCode>>, {codeId: number; params: AdmCodeDeleteCodeParams}> = (props) => {
     const { codeId, params } = props;
@@ -4424,9 +4533,13 @@ export type AdmCodeDeleteCodeMutationError = unknown;
 export const useAdmCodeDeleteCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext> => useMutation(getAdmCodeDeleteCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext> => {
+  return useMutation(getAdmCodeDeleteCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeDeleteCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeFindCode
 export type admCodeFindCodeResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4438,16 +4551,17 @@ export type admCodeFindCodeResponseSuccess = (admCodeFindCodeResponse200) & {
 
 export type admCodeFindCodeResponse = (admCodeFindCodeResponseSuccess)
 
-export const getAdmCodeFindCodeUrl = (codeId: number) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  return base;
-};
+export const getAdmCodeFindCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeFindCode = async (codeId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeFindCodeResponse> => {
-  return cpfOrvalRequest<admCodeFindCodeResponse>(getAdmCodeFindCodeUrl(codeId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admCodeFindCodeResponse>(getAdmCodeFindCodeUrl(codeId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmCodeFindCodeQueryKey = (codeId: MaybeRefOrGetter<number>) => ["adm","api","codes",codeId] as const;
+export const getAdmCodeFindCodeQueryKey = (codeId: MaybeRefOrGetter<number>) => ["adm", "api", "codes", codeId] as const;
 
 export const getAdmCodeFindCodeQueryOptions = <TData = Awaited<ReturnType<typeof admCodeFindCode>>, TError = unknown>(
   codeId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -4455,7 +4569,7 @@ export const getAdmCodeFindCodeQueryOptions = <TData = Awaited<ReturnType<typeof
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmCodeFindCodeQueryKey(toValue(codeId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admCodeFindCode>>> = ({ signal }) => admCodeFindCode(toValue(codeId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(codeId) !== null && toValue(codeId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>;
 };
 
 export type AdmCodeFindCodeQueryResult = NonNullable<Awaited<ReturnType<typeof admCodeFindCode>>>;
@@ -4465,13 +4579,15 @@ export function useAdmCodeFindCode<TData = Awaited<ReturnType<typeof admCodeFind
   codeId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmCodeFindCodeQueryOptions(toValue(codeId), options);
+  const queryOptions = getAdmCodeFindCodeQueryOptions(codeId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admCodeFindCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeUpdateCode
 export type admCodeUpdateCodeResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4483,13 +4599,15 @@ export type admCodeUpdateCodeResponseSuccess = (admCodeUpdateCodeResponse200) & 
 
 export type admCodeUpdateCodeResponse = (admCodeUpdateCodeResponseSuccess)
 
-export const getAdmCodeUpdateCodeUrl = (codeId: number) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  return base;
-};
+export const getAdmCodeUpdateCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeUpdateCode = async (codeId: number, data: CommonCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeUpdateCodeResponse> => {
-  return cpfOrvalRequest<admCodeUpdateCodeResponse>(getAdmCodeUpdateCodeUrl(codeId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admCodeUpdateCodeResponse>(getAdmCodeUpdateCodeUrl(codeId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmCodeUpdateCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4498,7 +4616,8 @@ export const getAdmCodeUpdateCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeUpdateCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeUpdateCode>>, {codeId: number; data: CommonCodeRequest}> = (props) => {
     const { codeId, data } = props;
@@ -4514,9 +4633,13 @@ export type AdmCodeUpdateCodeMutationError = unknown;
 export const useAdmCodeUpdateCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext> => useMutation(getAdmCodeUpdateCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext> => {
+  return useMutation(getAdmCodeUpdateCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeUpdateCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigFindConfigs
 export type admConfigFindConfigsResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4528,16 +4651,17 @@ export type admConfigFindConfigsResponseSuccess = (admConfigFindConfigsResponse2
 
 export type admConfigFindConfigsResponse = (admConfigFindConfigsResponseSuccess)
 
-export const getAdmConfigFindConfigsUrl = () => {
-  const base = `/adm/api/configs`;
-  return base;
-};
+export const getAdmConfigFindConfigsUrl = () => `/adm/api/configs`;
 
 export const admConfigFindConfigs = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigFindConfigsResponse> => {
-  return cpfOrvalRequest<admConfigFindConfigsResponse>(getAdmConfigFindConfigsUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admConfigFindConfigsResponse>(getAdmConfigFindConfigsUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmConfigFindConfigsQueryKey = () => ["adm","api","configs"] as const;
+export const getAdmConfigFindConfigsQueryKey = () => ["adm", "api", "configs"] as const;
 
 export const getAdmConfigFindConfigsQueryOptions = <TData = Awaited<ReturnType<typeof admConfigFindConfigs>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfigs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -4560,8 +4684,10 @@ export function useAdmConfigFindConfigs<TData = Awaited<ReturnType<typeof admCon
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admConfigFindConfigs
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigCreateConfig
 export type admConfigCreateConfigResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4573,13 +4699,15 @@ export type admConfigCreateConfigResponseSuccess = (admConfigCreateConfigRespons
 
 export type admConfigCreateConfigResponse = (admConfigCreateConfigResponseSuccess)
 
-export const getAdmConfigCreateConfigUrl = () => {
-  const base = `/adm/api/configs`;
-  return base;
-};
+export const getAdmConfigCreateConfigUrl = () => `/adm/api/configs`;
 
 export const admConfigCreateConfig = async (data: CommonConfigRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigCreateConfigResponse> => {
-  return cpfOrvalRequest<admConfigCreateConfigResponse>(getAdmConfigCreateConfigUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admConfigCreateConfigResponse>(getAdmConfigCreateConfigUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmConfigCreateConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4588,7 +4716,8 @@ export const getAdmConfigCreateConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigCreateConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigCreateConfig>>, {data: CommonConfigRequest}> = (props) => {
     const { data } = props;
@@ -4604,9 +4733,13 @@ export type AdmConfigCreateConfigMutationError = unknown;
 export const useAdmConfigCreateConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext> => useMutation(getAdmConfigCreateConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext> => {
+  return useMutation(getAdmConfigCreateConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigCreateConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigDeleteConfig
 export type admConfigDeleteConfigResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4618,15 +4751,14 @@ export type admConfigDeleteConfigResponseSuccess = (admConfigDeleteConfigRespons
 
 export type admConfigDeleteConfigResponse = (admConfigDeleteConfigResponseSuccess)
 
-export const getAdmConfigDeleteConfigUrl = (configId: number, params: AdmConfigDeleteConfigParams) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmConfigDeleteConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigDeleteConfig = async (configId: number, params: AdmConfigDeleteConfigParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigDeleteConfigResponse> => {
-  return cpfOrvalRequest<admConfigDeleteConfigResponse>(getAdmConfigDeleteConfigUrl(configId, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admConfigDeleteConfigResponse>(getAdmConfigDeleteConfigUrl(configId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmConfigDeleteConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4635,7 +4767,8 @@ export const getAdmConfigDeleteConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigDeleteConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigDeleteConfig>>, {configId: number; params: AdmConfigDeleteConfigParams}> = (props) => {
     const { configId, params } = props;
@@ -4651,9 +4784,13 @@ export type AdmConfigDeleteConfigMutationError = unknown;
 export const useAdmConfigDeleteConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext> => useMutation(getAdmConfigDeleteConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext> => {
+  return useMutation(getAdmConfigDeleteConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigDeleteConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigFindConfig
 export type admConfigFindConfigResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4665,16 +4802,17 @@ export type admConfigFindConfigResponseSuccess = (admConfigFindConfigResponse200
 
 export type admConfigFindConfigResponse = (admConfigFindConfigResponseSuccess)
 
-export const getAdmConfigFindConfigUrl = (configId: number) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  return base;
-};
+export const getAdmConfigFindConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigFindConfig = async (configId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigFindConfigResponse> => {
-  return cpfOrvalRequest<admConfigFindConfigResponse>(getAdmConfigFindConfigUrl(configId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admConfigFindConfigResponse>(getAdmConfigFindConfigUrl(configId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmConfigFindConfigQueryKey = (configId: MaybeRefOrGetter<number>) => ["adm","api","configs",configId] as const;
+export const getAdmConfigFindConfigQueryKey = (configId: MaybeRefOrGetter<number>) => ["adm", "api", "configs", configId] as const;
 
 export const getAdmConfigFindConfigQueryOptions = <TData = Awaited<ReturnType<typeof admConfigFindConfig>>, TError = unknown>(
   configId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -4682,7 +4820,7 @@ export const getAdmConfigFindConfigQueryOptions = <TData = Awaited<ReturnType<ty
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmConfigFindConfigQueryKey(toValue(configId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admConfigFindConfig>>> = ({ signal }) => admConfigFindConfig(toValue(configId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(configId) !== null && toValue(configId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>;
 };
 
 export type AdmConfigFindConfigQueryResult = NonNullable<Awaited<ReturnType<typeof admConfigFindConfig>>>;
@@ -4692,13 +4830,15 @@ export function useAdmConfigFindConfig<TData = Awaited<ReturnType<typeof admConf
   configId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmConfigFindConfigQueryOptions(toValue(configId), options);
+  const queryOptions = getAdmConfigFindConfigQueryOptions(configId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admConfigFindConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigUpdateConfig
 export type admConfigUpdateConfigResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -4710,13 +4850,15 @@ export type admConfigUpdateConfigResponseSuccess = (admConfigUpdateConfigRespons
 
 export type admConfigUpdateConfigResponse = (admConfigUpdateConfigResponseSuccess)
 
-export const getAdmConfigUpdateConfigUrl = (configId: number) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  return base;
-};
+export const getAdmConfigUpdateConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigUpdateConfig = async (configId: number, data: CommonConfigRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigUpdateConfigResponse> => {
-  return cpfOrvalRequest<admConfigUpdateConfigResponse>(getAdmConfigUpdateConfigUrl(configId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admConfigUpdateConfigResponse>(getAdmConfigUpdateConfigUrl(configId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmConfigUpdateConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4725,7 +4867,8 @@ export const getAdmConfigUpdateConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigUpdateConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigUpdateConfig>>, {configId: number; data: CommonConfigRequest}> = (props) => {
     const { configId, data } = props;
@@ -4741,9 +4884,13 @@ export type AdmConfigUpdateConfigMutationError = unknown;
 export const useAdmConfigUpdateConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext> => useMutation(getAdmConfigUpdateConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext> => {
+  return useMutation(getAdmConfigUpdateConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigUpdateConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admDownloadFindDownloadAuditLogs
 export type admDownloadFindDownloadAuditLogsResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8358,7 +8505,7 @@ export const admLogFindLogs = async (params?: AdmLogFindLogsParams, options?: Cp
   return cpfOrvalRequest<admLogFindLogsResponse>(getAdmLogFindLogsUrl(), {
     ...options,
     method: 'GET',
-    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, channelCode: params?.channelCode, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, serverInstanceId: params?.serverInstanceId, hostName: params?.hostName, limit: params?.limit },
+    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, channelCode: params?.channelCode, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, serverInstanceId: params?.serverInstanceId, hostName: params?.hostName, systemCode: params?.systemCode, domainCode: params?.domainCode, application: params?.application, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, operation: params?.operation, limit: params?.limit },
   });
 };
 
@@ -8551,10 +8698,14 @@ export type admMessageFindMessagesResponse = (admMessageFindMessagesResponseSucc
 export const getAdmMessageFindMessagesUrl = () => `/adm/api/messages`;
 
 export const admMessageFindMessages = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageFindMessagesResponse> => {
-  return cpfOrvalRequest<admMessageFindMessagesResponse>(getAdmMessageFindMessagesUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admMessageFindMessagesResponse>(getAdmMessageFindMessagesUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmMessageFindMessagesQueryKey = () => ['adm','api','messages'] as const;
+export const getAdmMessageFindMessagesQueryKey = () => ["adm", "api", "messages"] as const;
 
 export const getAdmMessageFindMessagesQueryOptions = <TData = Awaited<ReturnType<typeof admMessageFindMessages>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessages>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -8577,8 +8728,10 @@ export function useAdmMessageFindMessages<TData = Awaited<ReturnType<typeof admM
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admMessageFindMessages
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageCreateMessage
 export type admMessageCreateMessageResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8593,7 +8746,12 @@ export type admMessageCreateMessageResponse = (admMessageCreateMessageResponseSu
 export const getAdmMessageCreateMessageUrl = () => `/adm/api/messages`;
 
 export const admMessageCreateMessage = async (data: CommonMessageRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageCreateMessageResponse> => {
-  return cpfOrvalRequest<admMessageCreateMessageResponse>(getAdmMessageCreateMessageUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admMessageCreateMessageResponse>(getAdmMessageCreateMessageUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmMessageCreateMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -8602,7 +8760,8 @@ export const getAdmMessageCreateMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageCreateMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageCreateMessage>>, {data: CommonMessageRequest}> = (props) => {
     const { data } = props;
@@ -8618,9 +8777,13 @@ export type AdmMessageCreateMessageMutationError = unknown;
 export const useAdmMessageCreateMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext> => useMutation(getAdmMessageCreateMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext> => {
+  return useMutation(getAdmMessageCreateMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageCreateMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageDeleteMessage
 export type admMessageDeleteMessageResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8635,7 +8798,11 @@ export type admMessageDeleteMessageResponse = (admMessageDeleteMessageResponseSu
 export const getAdmMessageDeleteMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageDeleteMessage = async (messageId: number, params: AdmMessageDeleteMessageParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageDeleteMessageResponse> => {
-  return cpfOrvalRequest<admMessageDeleteMessageResponse>((() => { const base = getAdmMessageDeleteMessageUrl(messageId); const search = new URLSearchParams(); search.set('reason', params.reason); return base + '?' + search.toString(); })(), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admMessageDeleteMessageResponse>(getAdmMessageDeleteMessageUrl(messageId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmMessageDeleteMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -8644,7 +8811,8 @@ export const getAdmMessageDeleteMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageDeleteMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageDeleteMessage>>, {messageId: number; params: AdmMessageDeleteMessageParams}> = (props) => {
     const { messageId, params } = props;
@@ -8660,9 +8828,13 @@ export type AdmMessageDeleteMessageMutationError = unknown;
 export const useAdmMessageDeleteMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext> => useMutation(getAdmMessageDeleteMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext> => {
+  return useMutation(getAdmMessageDeleteMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageDeleteMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageFindMessage
 export type admMessageFindMessageResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8677,10 +8849,14 @@ export type admMessageFindMessageResponse = (admMessageFindMessageResponseSucces
 export const getAdmMessageFindMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageFindMessage = async (messageId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageFindMessageResponse> => {
-  return cpfOrvalRequest<admMessageFindMessageResponse>(getAdmMessageFindMessageUrl(messageId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admMessageFindMessageResponse>(getAdmMessageFindMessageUrl(messageId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmMessageFindMessageQueryKey = (messageId: MaybeRefOrGetter<number>) => ['adm','api','messages',messageId] as const;
+export const getAdmMessageFindMessageQueryKey = (messageId: MaybeRefOrGetter<number>) => ["adm", "api", "messages", messageId] as const;
 
 export const getAdmMessageFindMessageQueryOptions = <TData = Awaited<ReturnType<typeof admMessageFindMessage>>, TError = unknown>(
   messageId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -8688,7 +8864,7 @@ export const getAdmMessageFindMessageQueryOptions = <TData = Awaited<ReturnType<
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmMessageFindMessageQueryKey(toValue(messageId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admMessageFindMessage>>> = ({ signal }) => admMessageFindMessage(toValue(messageId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(messageId) !== null && toValue(messageId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>;
 };
 
 export type AdmMessageFindMessageQueryResult = NonNullable<Awaited<ReturnType<typeof admMessageFindMessage>>>;
@@ -8698,13 +8874,15 @@ export function useAdmMessageFindMessage<TData = Awaited<ReturnType<typeof admMe
   messageId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmMessageFindMessageQueryOptions(toValue(messageId), options);
+  const queryOptions = getAdmMessageFindMessageQueryOptions(messageId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admMessageFindMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageUpdateMessage
 export type admMessageUpdateMessageResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8719,7 +8897,12 @@ export type admMessageUpdateMessageResponse = (admMessageUpdateMessageResponseSu
 export const getAdmMessageUpdateMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageUpdateMessage = async (messageId: number, data: CommonMessageRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageUpdateMessageResponse> => {
-  return cpfOrvalRequest<admMessageUpdateMessageResponse>(getAdmMessageUpdateMessageUrl(messageId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admMessageUpdateMessageResponse>(getAdmMessageUpdateMessageUrl(messageId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmMessageUpdateMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -8728,7 +8911,8 @@ export const getAdmMessageUpdateMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageUpdateMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageUpdateMessage>>, {messageId: number; data: CommonMessageRequest}> = (props) => {
     const { messageId, data } = props;
@@ -8744,9 +8928,13 @@ export type AdmMessageUpdateMessageMutationError = unknown;
 export const useAdmMessageUpdateMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext> => useMutation(getAdmMessageUpdateMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext> => {
+  return useMutation(getAdmMessageUpdateMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageUpdateMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDeliveryLogs
 export type admNotificationFindDeliveryLogsResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8758,26 +8946,20 @@ export type admNotificationFindDeliveryLogsResponseSuccess = (admNotificationFin
 
 export type admNotificationFindDeliveryLogsResponse = (admNotificationFindDeliveryLogsResponseSuccess)
 
-export const getAdmNotificationFindDeliveryLogsUrl = (params?: AdmNotificationFindDeliveryLogsParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDeliveryLogsUrl = () => `/adm/api/notifications/delivery-logs`;
 
 export const admNotificationFindDeliveryLogs = async (params?: AdmNotificationFindDeliveryLogsParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDeliveryLogsResponse> => {
-  return cpfOrvalRequest<admNotificationFindDeliveryLogsResponse>(getAdmNotificationFindDeliveryLogsUrl(params), {
+  return cpfOrvalRequest<admNotificationFindDeliveryLogsResponse>(getAdmNotificationFindDeliveryLogsUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDeliveryLogsQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs",params] as const;
-};
+export const getAdmNotificationFindDeliveryLogsQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>) => ["adm", "api", "notifications", "delivery-logs", toValue(params)] as const;
 
 export const getAdmNotificationFindDeliveryLogsQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDeliveryLogsQueryKey(toValue(params));
@@ -8789,16 +8971,18 @@ export type AdmNotificationFindDeliveryLogsQueryResult = NonNullable<Awaited<Ret
 export type AdmNotificationFindDeliveryLogsQueryError = unknown;
 
 export function useAdmNotificationFindDeliveryLogs<TData = Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDeliveryLogsQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindDeliveryLogsQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDeliveryLogs
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDlq
 export type admNotificationFindDlqResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8810,26 +8994,20 @@ export type admNotificationFindDlqResponseSuccess = (admNotificationFindDlqRespo
 
 export type admNotificationFindDlqResponse = (admNotificationFindDlqResponseSuccess)
 
-export const getAdmNotificationFindDlqUrl = (params?: AdmNotificationFindDlqParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/dlq` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDlqUrl = () => `/adm/api/notifications/delivery-logs/dlq`;
 
 export const admNotificationFindDlq = async (params?: AdmNotificationFindDlqParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDlqResponse> => {
-  return cpfOrvalRequest<admNotificationFindDlqResponse>(getAdmNotificationFindDlqUrl(params), {
+  return cpfOrvalRequest<admNotificationFindDlqResponse>(getAdmNotificationFindDlqUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDlqQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs","dlq",params] as const;
-};
+export const getAdmNotificationFindDlqQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>) => ["adm", "api", "notifications", "delivery-logs", "dlq", toValue(params)] as const;
 
 export const getAdmNotificationFindDlqQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDlq>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDlqQueryKey(toValue(params));
@@ -8841,16 +9019,18 @@ export type AdmNotificationFindDlqQueryResult = NonNullable<Awaited<ReturnType<t
 export type AdmNotificationFindDlqQueryError = unknown;
 
 export function useAdmNotificationFindDlq<TData = Awaited<ReturnType<typeof admNotificationFindDlq>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDlqQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindDlqQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDlq
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDeliveryAttempts
 export type admNotificationFindDeliveryAttemptsResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8862,26 +9042,20 @@ export type admNotificationFindDeliveryAttemptsResponseSuccess = (admNotificatio
 
 export type admNotificationFindDeliveryAttemptsResponse = (admNotificationFindDeliveryAttemptsResponseSuccess)
 
-export const getAdmNotificationFindDeliveryAttemptsUrl = (deliveryId: number, params?: AdmNotificationFindDeliveryAttemptsParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/attempts` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDeliveryAttemptsUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/attempts`;
 
 export const admNotificationFindDeliveryAttempts = async (deliveryId: number, params?: AdmNotificationFindDeliveryAttemptsParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDeliveryAttemptsResponse> => {
-  return cpfOrvalRequest<admNotificationFindDeliveryAttemptsResponse>(getAdmNotificationFindDeliveryAttemptsUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationFindDeliveryAttemptsResponse>(getAdmNotificationFindDeliveryAttemptsUrl(deliveryId), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDeliveryAttemptsQueryKey = (deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs",deliveryId,"attempts",params] as const;
-};
+export const getAdmNotificationFindDeliveryAttemptsQueryKey = (deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>) => ["adm", "api", "notifications", "delivery-logs", deliveryId, "attempts", toValue(params)] as const;
 
 export const getAdmNotificationFindDeliveryAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError = unknown>(
-  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDeliveryAttemptsQueryKey(toValue(deliveryId), toValue(params));
@@ -8893,16 +9067,18 @@ export type AdmNotificationFindDeliveryAttemptsQueryResult = NonNullable<Awaited
 export type AdmNotificationFindDeliveryAttemptsQueryError = unknown;
 
 export function useAdmNotificationFindDeliveryAttempts<TData = Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError = unknown>(
-  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDeliveryAttemptsQueryOptions(deliveryId,params,options);
+  const queryOptions = getAdmNotificationFindDeliveryAttemptsQueryOptions(deliveryId, params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDeliveryAttempts
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationCancelDelivery
 export type admNotificationCancelDeliveryResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8914,18 +9090,13 @@ export type admNotificationCancelDeliveryResponseSuccess = (admNotificationCance
 
 export type admNotificationCancelDeliveryResponse = (admNotificationCancelDeliveryResponseSuccess)
 
-export const getAdmNotificationCancelDeliveryUrl = (deliveryId: number, params: AdmNotificationCancelDeliveryParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.expectedVersion !== undefined && params?.expectedVersion !== null) searchParams.append("expectedVersion", String(params.expectedVersion));
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/cancel` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationCancelDeliveryUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/cancel`;
 
 export const admNotificationCancelDelivery = async (deliveryId: number, params: AdmNotificationCancelDeliveryParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationCancelDeliveryResponse> => {
-  return cpfOrvalRequest<admNotificationCancelDeliveryResponse>(getAdmNotificationCancelDeliveryUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationCancelDeliveryResponse>(getAdmNotificationCancelDeliveryUrl(deliveryId), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    params: { expectedVersion: params.expectedVersion, reason: params.reason },
   });
 };
 
@@ -8954,9 +9125,11 @@ export const useAdmNotificationCancelDelivery = <TError = unknown, TContext = un
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationCancelDelivery>>, TError, {deliveryId: number; params: AdmNotificationCancelDeliveryParams}, TContext> => {
   return useMutation(getAdmNotificationCancelDeliveryMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationCancelDelivery
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationRetryDelivery
 export type admNotificationRetryDeliveryResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -8968,18 +9141,13 @@ export type admNotificationRetryDeliveryResponseSuccess = (admNotificationRetryD
 
 export type admNotificationRetryDeliveryResponse = (admNotificationRetryDeliveryResponseSuccess)
 
-export const getAdmNotificationRetryDeliveryUrl = (deliveryId: number, params: AdmNotificationRetryDeliveryParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.expectedVersion !== undefined && params?.expectedVersion !== null) searchParams.append("expectedVersion", String(params.expectedVersion));
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/retry` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationRetryDeliveryUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/retry`;
 
 export const admNotificationRetryDelivery = async (deliveryId: number, params: AdmNotificationRetryDeliveryParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationRetryDeliveryResponse> => {
-  return cpfOrvalRequest<admNotificationRetryDeliveryResponse>(getAdmNotificationRetryDeliveryUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationRetryDeliveryResponse>(getAdmNotificationRetryDeliveryUrl(deliveryId), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    params: { expectedVersion: params.expectedVersion, reason: params.reason },
   });
 };
 
@@ -9008,9 +9176,11 @@ export const useAdmNotificationRetryDelivery = <TError = unknown, TContext = unk
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationRetryDelivery>>, TError, {deliveryId: number; params: AdmNotificationRetryDeliveryParams}, TContext> => {
   return useMutation(getAdmNotificationRetryDeliveryMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationRetryDelivery
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindRules
 export type admNotificationFindRulesResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9022,26 +9192,20 @@ export type admNotificationFindRulesResponseSuccess = (admNotificationFindRulesR
 
 export type admNotificationFindRulesResponse = (admNotificationFindRulesResponseSuccess)
 
-export const getAdmNotificationFindRulesUrl = (params?: AdmNotificationFindRulesParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/rules` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindRulesUrl = () => `/adm/api/notifications/rules`;
 
 export const admNotificationFindRules = async (params?: AdmNotificationFindRulesParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindRulesResponse> => {
-  return cpfOrvalRequest<admNotificationFindRulesResponse>(getAdmNotificationFindRulesUrl(params), {
+  return cpfOrvalRequest<admNotificationFindRulesResponse>(getAdmNotificationFindRulesUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindRulesQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>) => {
-  return ["adm","api","notifications","rules",params] as const;
-};
+export const getAdmNotificationFindRulesQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>) => ["adm", "api", "notifications", "rules", toValue(params)] as const;
 
 export const getAdmNotificationFindRulesQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindRules>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindRulesQueryKey(toValue(params));
@@ -9053,16 +9217,18 @@ export type AdmNotificationFindRulesQueryResult = NonNullable<Awaited<ReturnType
 export type AdmNotificationFindRulesQueryError = unknown;
 
 export function useAdmNotificationFindRules<TData = Awaited<ReturnType<typeof admNotificationFindRules>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindRulesQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindRulesQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindRules
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationSaveRule
 export type admNotificationSaveRuleResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9081,7 +9247,7 @@ export const admNotificationSaveRule = async (data: AdmNotificationRuleRequest, 
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9110,9 +9276,11 @@ export const useAdmNotificationSaveRule = <TError = unknown, TContext = unknown>
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationSaveRule>>, TError, {data: AdmNotificationRuleRequest}, TContext> => {
   return useMutation(getAdmNotificationSaveRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationSaveRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindRule
 export type admNotificationFindRuleResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9129,13 +9297,12 @@ export const getAdmNotificationFindRuleUrl = (ruleId: number) => `/adm/api/notif
 export const admNotificationFindRule = async (ruleId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindRuleResponse> => {
   return cpfOrvalRequest<admNotificationFindRuleResponse>(getAdmNotificationFindRuleUrl(ruleId), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+
   });
 };
 
-export const getAdmNotificationFindRuleQueryKey = (ruleId: MaybeRefOrGetter<number>) => {
-  return ["adm","api","notifications","rules",ruleId] as const;
-};
+export const getAdmNotificationFindRuleQueryKey = (ruleId: MaybeRefOrGetter<number>) => ["adm", "api", "notifications", "rules", ruleId] as const;
 
 export const getAdmNotificationFindRuleQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindRule>>, TError = unknown>(
   ruleId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRule>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -9153,13 +9320,15 @@ export function useAdmNotificationFindRule<TData = Awaited<ReturnType<typeof adm
   ruleId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRule>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindRuleQueryOptions(ruleId,options);
+  const queryOptions = getAdmNotificationFindRuleQueryOptions(ruleId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationUpdateRule
 export type admNotificationUpdateRuleResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9178,7 +9347,7 @@ export const admNotificationUpdateRule = async (ruleId: number, data: AdmNotific
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9207,9 +9376,11 @@ export const useAdmNotificationUpdateRule = <TError = unknown, TContext = unknow
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationUpdateRule>>, TError, {ruleId: number; data: AdmNotificationRuleRequest}, TContext> => {
   return useMutation(getAdmNotificationUpdateRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationUpdateRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationDisableRule
 export type admNotificationDisableRuleResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9221,17 +9392,13 @@ export type admNotificationDisableRuleResponseSuccess = (admNotificationDisableR
 
 export type admNotificationDisableRuleResponse = (admNotificationDisableRuleResponseSuccess)
 
-export const getAdmNotificationDisableRuleUrl = (ruleId: number, params: AdmNotificationDisableRuleParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/rules/${encodeURIComponent(String(ruleId))}/disable` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationDisableRuleUrl = (ruleId: number) => `/adm/api/notifications/rules/${encodeURIComponent(String(ruleId))}/disable`;
 
 export const admNotificationDisableRule = async (ruleId: number, params: AdmNotificationDisableRuleParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationDisableRuleResponse> => {
-  return cpfOrvalRequest<admNotificationDisableRuleResponse>(getAdmNotificationDisableRuleUrl(ruleId, params), {
+  return cpfOrvalRequest<admNotificationDisableRuleResponse>(getAdmNotificationDisableRuleUrl(ruleId), {
     ...options,
-    method: 'PUT'
+    method: 'PUT',
+    params: { reason: params.reason },
   });
 };
 
@@ -9260,9 +9427,11 @@ export const useAdmNotificationDisableRule = <TError = unknown, TContext = unkno
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationDisableRule>>, TError, {ruleId: number; params: AdmNotificationDisableRuleParams}, TContext> => {
   return useMutation(getAdmNotificationDisableRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationDisableRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationSendTest
 export type admNotificationSendTestResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -9281,7 +9450,7 @@ export const admNotificationSendTest = async (ruleId: number, data: AdmNotificat
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9310,9 +9479,11 @@ export const useAdmNotificationSendTest = <TError = unknown, TContext = unknown>
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationSendTest>>, TError, {ruleId: number; data: AdmNotificationTestSendRequest}, TContext> => {
   return useMutation(getAdmNotificationSendTestMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationSendTest
 
 
+// CPF PRE-RUNTIME FALLBACK START traceAdmByBusinessTransactionId
 export type traceAdmByBusinessTransactionIdResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -13564,16 +13735,17 @@ export type admResponseCodeFindAllResponseSuccess = (admResponseCodeFindAllRespo
 
 export type admResponseCodeFindAllResponse = (admResponseCodeFindAllResponseSuccess)
 
-export const getAdmResponseCodeFindAllUrl = () => {
-  const base = `/adm/api/response-codes`;
-  return base;
-};
+export const getAdmResponseCodeFindAllUrl = () => `/adm/api/response-codes`;
 
 export const admResponseCodeFindAll = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeFindAllResponse> => {
-  return cpfOrvalRequest<admResponseCodeFindAllResponse>(getAdmResponseCodeFindAllUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admResponseCodeFindAllResponse>(getAdmResponseCodeFindAllUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmResponseCodeFindAllQueryKey = () => ["adm","api","response-codes"] as const;
+export const getAdmResponseCodeFindAllQueryKey = () => ["adm", "api", "response-codes"] as const;
 
 export const getAdmResponseCodeFindAllQueryOptions = <TData = Awaited<ReturnType<typeof admResponseCodeFindAll>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindAll>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -13596,8 +13768,10 @@ export function useAdmResponseCodeFindAll<TData = Awaited<ReturnType<typeof admR
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeFindAll
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeCreate
 export type admResponseCodeCreateResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -13609,28 +13783,30 @@ export type admResponseCodeCreateResponseSuccess = (admResponseCodeCreateRespons
 
 export type admResponseCodeCreateResponse = (admResponseCodeCreateResponseSuccess)
 
-export const getAdmResponseCodeCreateUrl = (params: AdmResponseCodeCreateParams) => {
-  const base = `/adm/api/response-codes`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeCreateUrl = () => `/adm/api/response-codes`;
 
-export const admResponseCodeCreate = async (params: AdmResponseCodeCreateParams, data: CommonResponseCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeCreateResponse> => {
-  return cpfOrvalRequest<admResponseCodeCreateResponse>(getAdmResponseCodeCreateUrl(params), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+export const admResponseCodeCreate = async (data: CommonResponseCodeRequest, params: AdmResponseCodeCreateParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeCreateResponse> => {
+  return cpfOrvalRequest<admResponseCodeCreateResponse>(getAdmResponseCodeCreateUrl(), {
+    ...options,
+    method: 'POST',
+    params: { reason: params.reason },
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmResponseCodeCreateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext> => {
   const mutationKey = ['admResponseCodeCreate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeCreate>>, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}> = (props) => {
-    const { params, data } = props;
-    return admResponseCodeCreate(params, data, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeCreate>>, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}> = (props) => {
+    const { data, params } = props;
+    return admResponseCodeCreate(data, params, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
@@ -13640,11 +13816,15 @@ export type AdmResponseCodeCreateMutationBody = CommonResponseCodeRequest;
 export type AdmResponseCodeCreateMutationError = unknown;
 
 export const useAdmResponseCodeCreate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext> => useMutation(getAdmResponseCodeCreateMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext> => {
+  return useMutation(getAdmResponseCodeCreateMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeCreate
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeDelete
 export type admResponseCodeDeleteResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -13656,15 +13836,14 @@ export type admResponseCodeDeleteResponseSuccess = (admResponseCodeDeleteRespons
 
 export type admResponseCodeDeleteResponse = (admResponseCodeDeleteResponseSuccess)
 
-export const getAdmResponseCodeDeleteUrl = (responseCode: string, params: AdmResponseCodeDeleteParams) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeDeleteUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
 export const admResponseCodeDelete = async (responseCode: string, params: AdmResponseCodeDeleteParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeDeleteResponse> => {
-  return cpfOrvalRequest<admResponseCodeDeleteResponse>(getAdmResponseCodeDeleteUrl(responseCode, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admResponseCodeDeleteResponse>(getAdmResponseCodeDeleteUrl(responseCode), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmResponseCodeDeleteMutationOptions = <TError = unknown, TContext = unknown>(
@@ -13673,7 +13852,8 @@ export const getAdmResponseCodeDeleteMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admResponseCodeDelete'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeDelete>>, {responseCode: string; params: AdmResponseCodeDeleteParams}> = (props) => {
     const { responseCode, params } = props;
@@ -13689,9 +13869,13 @@ export type AdmResponseCodeDeleteMutationError = unknown;
 export const useAdmResponseCodeDelete = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext> => useMutation(getAdmResponseCodeDeleteMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext> => {
+  return useMutation(getAdmResponseCodeDeleteMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeDelete
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeFindOne
 export type admResponseCodeFindOneResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -13703,16 +13887,17 @@ export type admResponseCodeFindOneResponseSuccess = (admResponseCodeFindOneRespo
 
 export type admResponseCodeFindOneResponse = (admResponseCodeFindOneResponseSuccess)
 
-export const getAdmResponseCodeFindOneUrl = (responseCode: string) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  return base;
-};
+export const getAdmResponseCodeFindOneUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
 export const admResponseCodeFindOne = async (responseCode: string, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeFindOneResponse> => {
-  return cpfOrvalRequest<admResponseCodeFindOneResponse>(getAdmResponseCodeFindOneUrl(responseCode), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admResponseCodeFindOneResponse>(getAdmResponseCodeFindOneUrl(responseCode), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmResponseCodeFindOneQueryKey = (responseCode: MaybeRefOrGetter<string>) => ["adm","api","response-codes",responseCode] as const;
+export const getAdmResponseCodeFindOneQueryKey = (responseCode: MaybeRefOrGetter<string>) => ["adm", "api", "response-codes", responseCode] as const;
 
 export const getAdmResponseCodeFindOneQueryOptions = <TData = Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError = unknown>(
   responseCode: MaybeRefOrGetter<string>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -13720,7 +13905,7 @@ export const getAdmResponseCodeFindOneQueryOptions = <TData = Awaited<ReturnType
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmResponseCodeFindOneQueryKey(toValue(responseCode));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admResponseCodeFindOne>>> = ({ signal }) => admResponseCodeFindOne(toValue(responseCode), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(responseCode) !== null && toValue(responseCode) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>;
 };
 
 export type AdmResponseCodeFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof admResponseCodeFindOne>>>;
@@ -13730,13 +13915,15 @@ export function useAdmResponseCodeFindOne<TData = Awaited<ReturnType<typeof admR
   responseCode: MaybeRefOrGetter<string>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmResponseCodeFindOneQueryOptions(toValue(responseCode), options);
+  const queryOptions = getAdmResponseCodeFindOneQueryOptions(responseCode, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeFindOne
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeUpdate
 export type admResponseCodeUpdateResponse200 = {
   data: CpfControllerSourceResponse
   status: 200
@@ -13748,28 +13935,30 @@ export type admResponseCodeUpdateResponseSuccess = (admResponseCodeUpdateRespons
 
 export type admResponseCodeUpdateResponse = (admResponseCodeUpdateResponseSuccess)
 
-export const getAdmResponseCodeUpdateUrl = (responseCode: string, params: AdmResponseCodeUpdateParams) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeUpdateUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
-export const admResponseCodeUpdate = async (responseCode: string, params: AdmResponseCodeUpdateParams, data: CommonResponseCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeUpdateResponse> => {
-  return cpfOrvalRequest<admResponseCodeUpdateResponse>(getAdmResponseCodeUpdateUrl(responseCode, params), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+export const admResponseCodeUpdate = async (responseCode: string, data: CommonResponseCodeRequest, params: AdmResponseCodeUpdateParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeUpdateResponse> => {
+  return cpfOrvalRequest<admResponseCodeUpdateResponse>(getAdmResponseCodeUpdateUrl(responseCode), {
+    ...options,
+    method: 'PUT',
+    params: { reason: params.reason },
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmResponseCodeUpdateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext> => {
   const mutationKey = ['admResponseCodeUpdate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeUpdate>>, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}> = (props) => {
-    const { responseCode, params, data } = props;
-    return admResponseCodeUpdate(responseCode, params, data, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeUpdate>>, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}> = (props) => {
+    const { responseCode, data, params } = props;
+    return admResponseCodeUpdate(responseCode, data, params, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
@@ -13779,11 +13968,15 @@ export type AdmResponseCodeUpdateMutationBody = CommonResponseCodeRequest;
 export type AdmResponseCodeUpdateMutationError = unknown;
 
 export const useAdmResponseCodeUpdate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext> => useMutation(getAdmResponseCodeUpdateMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext> => {
+  return useMutation(getAdmResponseCodeUpdateMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeUpdate
 
 
+// CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindCapabilities
 export type admRuntimeControlFindCapabilitiesResponse200 = {
   data: CpfControllerSourceResponse
   status: 200

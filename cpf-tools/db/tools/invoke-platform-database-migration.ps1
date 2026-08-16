@@ -18,7 +18,9 @@ param(
     [string[]] $BackupManifestPath = @(),
     [string] $Operator = "",
     [string] $Reason = "",
-    [string] $ApprovalReference = ""
+    [string] $ApprovalReference = "",
+    [switch] $VerifierOwnedDisposable,
+    [string] $VerifierRunId = ""
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -515,6 +517,47 @@ function Test-CpfBackupCoverage {
     }
 }
 
+function Assert-CpfVerifierOwnedDisposableTarget {
+    param(
+        [Parameter(Mandatory = $true)] $Profile,
+        [Parameter(Mandatory = $true)][string] $Vendor,
+        [Parameter(Mandatory = $true)][object[]] $Operations
+    )
+    if (-not $VerifierOwnedDisposable) { return $false }
+    $environment = ([string]$Profile.environment).Trim().ToLowerInvariant()
+    if ($environment -notin @('development','dev','local','test')) {
+        throw "Verifier-owned disposable migration is forbidden outside non-production profiles: environment=$environment"
+    }
+    if ($VerifierRunId -notmatch '^[a-f0-9]{8,24}$') {
+        throw 'Verifier-owned disposable migration requires a lowercase hex -VerifierRunId (8..24 chars).'
+    }
+    if ($Operator -cne 'CPF_FULLLOCAL' -or $Reason -cne 'cpf-full-local-isolated-db-lifecycle' -or
+            $ApprovalReference -cne ("CPF-VERIFY-" + $VerifierRunId)) {
+        throw 'Verifier-owned disposable migration requires the canonical FullLocal operator/reason/approval tuple.'
+    }
+    $allowedHosts = @('mariadb','cpf-mariadb','postgresql','cpf-postgresql','oracle','cpf-oracle')
+    foreach ($operation in @($Operations)) {
+        $target = $operation.target
+        $host = ([string]$target.host).Trim().ToLowerInvariant()
+        if ($host -notin $allowedHosts) {
+            throw "Verifier-owned disposable migration forbids non-Docker target host: $host"
+        }
+        if ($Vendor -in @('mariadb','postgresql')) {
+            $expectedPrefix = "cpf_verify_${VerifierRunId}_"
+            if (-not ([string]$target.databaseName).ToLowerInvariant().StartsWith($expectedPrefix)) {
+                throw "Verifier-owned disposable database name must start with $expectedPrefix"
+            }
+        } elseif ($Vendor -eq 'oracle') {
+            $schema = ([string]$target.schemaName).ToLowerInvariant()
+            $expectedPrefix = "cpfv_${VerifierRunId}_"
+            if (-not $schema.StartsWith($expectedPrefix)) {
+                throw "Verifier-owned Oracle schema must start with $expectedPrefix"
+            }
+        }
+    }
+    return $true
+}
+
 function Protect-CpfOutput {
     param([string] $Text, [string[]] $Secrets)
     $safe = if ($null -eq $Text) { "" } else { $Text }
@@ -985,7 +1028,13 @@ try {
             $ExpectedPlanSha256.ToLowerInvariant() -ne $planSha256) {
             throw "Dry-run에서 검토한 -ExpectedPlanSha256와 현재 plan이 일치해야 합니다. current=$planSha256"
         }
-        Test-CpfBackupCoverage $vendor @($operations) $BackupManifestPath
+        $disposableVerified = Assert-CpfVerifierOwnedDisposableTarget -Profile $profile -Vendor $vendor -Operations @($operations)
+        if (-not $disposableVerified) {
+            Test-CpfBackupCoverage $vendor @($operations) $BackupManifestPath
+        } else {
+            $result.verifierOwnedDisposable = $true
+            $result.backupWaiverReason = 'VERIFIER_OWNED_DISPOSABLE_DATABASE_ONLY'
+        }
 
         $runtimeProfiles = @{}
         foreach ($moduleKey in $platformKeys) {

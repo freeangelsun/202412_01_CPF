@@ -30,6 +30,15 @@ final class CpfJdbcDataSourceRegistry implements CpfDataSourceRegistry {
             }
             return beanFactory.getBean(beanName, DataSource.class);
         }
+        String conventional = switch (role) {
+            case CPF_PLATFORM_DB -> "cpfPlatformDataSource";
+            case BZA_DB -> "cpfBzaRoleDataSource";
+            case CUSTOMER_BUSINESS_DB -> "cpfCustomerBusinessDataSource";
+            case REFERENCE_FIXTURE -> "cpfReferenceFixtureDataSource";
+        };
+        if (beanFactory.containsBean(conventional) && beanFactory.isTypeMatch(conventional, DataSource.class)) {
+            return beanFactory.getBean(conventional, DataSource.class);
+        }
         Map<String, DataSource> candidates = beanFactory.getBeansOfType(DataSource.class, false, false);
         if (candidates.size() == 1) return candidates.values().iterator().next();
         if (candidates.isEmpty()) throw new IllegalStateException("CPF DataSource is required for role: " + role);

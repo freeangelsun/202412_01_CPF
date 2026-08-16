@@ -19,6 +19,12 @@ public final class CpfOidcContextFilter extends OncePerRequestFilter {
         var principal=current.currentPrincipal();
         if(parent==null||principal.isEmpty()){chain.doFilter(request,response);return;}
         var updated=bridge.apply(parent.context(),principal.get(),clock.instant());
-        try(var ignored=CpfContexts.bind(CpfContextSnapshot.capture(updated,parent.capturedAt()))){chain.doFilter(request,response);}
+        try(var ignored=CpfContexts.bind(CpfContextSnapshot.capture(updated,parent.capturedAt()))){
+            chain.doFilter(request,response);
+        } catch (ServletException | IOException | RuntimeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ServletException("CPF OIDC context scope close failed", ex);
+        }
     }
 }

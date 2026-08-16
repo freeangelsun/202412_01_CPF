@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -99,7 +100,7 @@ public final class RabbitCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, 
         if (body.length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("RabbitMQ bridge payload exceeds maximum size");
         }
-        MessageBuilder builder = MessageBuilder.withBody(body)
+        var builder = MessageBuilder.withBody(body)
                 .setMessageId(resolvedKey)
                 .setContentType("application/json")
                 .setHeader("cpf-bridge-destination", routingKey)

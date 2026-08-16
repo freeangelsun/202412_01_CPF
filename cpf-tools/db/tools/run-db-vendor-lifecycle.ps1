@@ -30,7 +30,9 @@ param(
     [string[]] $BackupManifestPath = @(),
     [string] $Operator = '',
     [string] $Reason = '',
-    [string] $ApprovalReference = ''
+    [string] $ApprovalReference = '',
+    [switch] $VerifierOwnedDisposable,
+    [string] $VerifierRunId = ''
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -312,6 +314,8 @@ function Invoke-CpfMigrationHost {
         Operator = $Operator
         Reason = $Reason
         ApprovalReference = $ApprovalReference
+        VerifierOwnedDisposable = [bool]$VerifierOwnedDisposable
+        VerifierRunId = $VerifierRunId
     }
     & $migrationTool @arguments
 }
@@ -394,6 +398,8 @@ function Invoke-CpfDockerLifecycle {
         operator = $Operator
         reason = $Reason
         approvalReference = $ApprovalReference
+        verifierOwnedDisposable = [bool]$VerifierOwnedDisposable
+        verifierRunId = $VerifierRunId
     }
     Write-CpfJsonAtomic $request (Join-Path $ExecutionRoot 'request.json')
     foreach ($argument in @(
@@ -425,6 +431,8 @@ $result = [ordered]@{
     approvalReference = ''
     error = ''
     sanitized = $true
+    verifierOwnedDisposable = [bool]$VerifierOwnedDisposable
+    verifierRunId = if($VerifierOwnedDisposable){$VerifierRunId}else{''}
 }
 $executionStarted = $false
 
@@ -505,6 +513,23 @@ try {
     }
     if ($selectedModuleKeys.Count -eq 0) { throw 'No enabled platform-pack modules were selected.' }
     $selectedTargets = @($selectedModuleKeys | ForEach-Object { $staticProfiles[$_] })
+    if($VerifierOwnedDisposable){
+        $profileEnvironment=([string]$profileRaw.environment).Trim().ToLowerInvariant()
+        if($profileEnvironment -notin @('development','dev','local','test')){throw "Verifier-owned disposable lifecycle is forbidden for environment=$profileEnvironment"}
+        if($VerifierRunId -notmatch '^[a-f0-9]{8,24}$'){throw 'Verifier-owned disposable lifecycle requires a lowercase hex -VerifierRunId (8..24 chars).'}
+        $allowedHosts=@('mariadb','cpf-mariadb','postgresql','cpf-postgresql','oracle','cpf-oracle')
+        foreach($target in $selectedTargets){
+            $targetHost=([string]$target.host).Trim().ToLowerInvariant()
+            if($targetHost -notin $allowedHosts){throw "Verifier-owned disposable lifecycle forbids host=$targetHost"}
+            if($Vendor -in @('mariadb','postgresql')){
+                $expectedPrefix="cpf_verify_${VerifierRunId}_"
+                if(-not ([string]$target.databaseName).ToLowerInvariant().StartsWith($expectedPrefix)){throw "Verifier-owned database must start with $expectedPrefix"}
+            }elseif($Vendor -eq 'oracle'){
+                $expectedPrefix="cpfv_${VerifierRunId}_"
+                if(-not ([string]$target.schemaName).ToLowerInvariant().StartsWith($expectedPrefix)){throw "Verifier-owned Oracle schema must start with $expectedPrefix"}
+            }
+        }
+    }
     $selectedVendors = @($selectedTargets.vendor | Sort-Object -Unique)
     if ($selectedVendors.Count -ne 1 -or $selectedVendors[0] -cne $Vendor) {
         throw "DB profile vendor does not match the requested lifecycle vendor: requested=$Vendor profile=$($selectedVendors -join ',')"
@@ -682,7 +707,13 @@ try {
             throw 'RollbackReapply requires -ConfirmCurrentMigrationApplied.'
         }
         if ($Mode -ne 'FreshInstall') {
-            if ($BackupManifestPath.Count -eq 0) { throw 'Migration execution requires checksum-verified -BackupManifestPath values.' }
+            if (-not $VerifierOwnedDisposable -and $BackupManifestPath.Count -eq 0) { throw 'Migration execution requires checksum-verified -BackupManifestPath values.' }
+            if ($VerifierOwnedDisposable) {
+                if ($VerifierRunId -notmatch '^[a-f0-9]{8,24}$') { throw 'Verifier-owned disposable lifecycle requires -VerifierRunId.' }
+                if ($Operator -cne 'CPF_FULLLOCAL' -or $Reason -cne 'cpf-full-local-isolated-db-lifecycle' -or $ApprovalReference -cne ("CPF-VERIFY-" + $VerifierRunId)) {
+                    throw 'Verifier-owned disposable lifecycle requires canonical FullLocal operator/reason/approval.'
+                }
+            }
             if ($ExpectedPlanSha256 -notmatch '^[0-9a-fA-F]{64}$' -or
                     $ExpectedPlanSha256.ToLowerInvariant() -ne [string]$upgradePlan.planSha256) {
                 throw "Execution requires the reviewed -ExpectedPlanSha256. current=$($upgradePlan.planSha256)"

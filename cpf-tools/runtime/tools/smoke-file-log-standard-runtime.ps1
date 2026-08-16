@@ -17,6 +17,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$SmokeStartedUtc = [DateTime]::UtcNow
 
 function New-UnicodeText { param([int[]] $CodePoints) return -join ($CodePoints | ForEach-Object { [char] $_ }) }
 $StatusDone = New-UnicodeText @(0xC644, 0xB8CC)
@@ -103,6 +104,7 @@ function Test-LogFile {
     )
     $moduleLower = $Module.ToLowerInvariant()
     $candidates = @(Get-ChildItem -LiteralPath $LogBasePath -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+        if ($_.LastWriteTimeUtc -lt $SmokeStartedUtc.AddSeconds(-2)) { return $false }
         $relative = $_.FullName.Substring($LogBasePath.Length).TrimStart('\', '/').Replace('\', '/')
         if ($LogType -eq 'transaction') {
             return $relative -match "^[^/]+/$moduleLower/[^/]+/transactions/[0-9]{8}/.+\.log$"
@@ -153,6 +155,12 @@ function Test-LogFile {
         } else {
             $item.missingFields += $field
         }
+    }
+    if ($item.containsTransactionId -and -not [string]::IsNullOrWhiteSpace($lastLine)) {
+        $evidenceName = "file-log-$($Module.ToLowerInvariant())-$LogType-transaction.ndjson"
+        $evidencePath = Join-Path $ResultDir $evidenceName
+        [IO.File]::WriteAllText($evidencePath, $lastLine + [Environment]::NewLine, $Utf8NoBom)
+        $item.transactionEvidence = $evidenceName
     }
     if (($item.containsTransactionId -or -not $Required) -and $item.missingFields.Count -eq 0) {
         $item.status = $StatusDone

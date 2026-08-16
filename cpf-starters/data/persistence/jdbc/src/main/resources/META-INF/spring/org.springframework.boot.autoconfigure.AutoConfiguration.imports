@@ -5,4 +5,5 @@ com.cpf.data.persistence.jdbc.CpfVendorSqlCatalogAutoConfiguration
 com.cpf.data.persistence.jdbc.runtimecontrol.CpfPersistenceRuntimeControlAutoConfiguration
 com.cpf.data.persistence.jdbc.quality.CpfDataQualityJdbcAutoConfiguration
 com.cpf.data.persistence.jdbc.locking.CpfJdbcLockAutoConfiguration
+com.cpf.data.persistence.jdbc.CpfJdbcRoleDataSourceAutoConfiguration
 com.cpf.data.persistence.jdbc.CpfJdbcDataSourceRoleAutoConfiguration

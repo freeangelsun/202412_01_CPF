@@ -3,11 +3,10 @@ package com.cpf.file.objectstorage.api;
 import java.time.Instant;
 
 /**
- * Object delete/retention lifecycle hook. Implementations must fail closed when retention or legal-hold
- * policy forbids deletion. The hook is provider-neutral and receives metadata only, never credentials.
+ * Object Storage 삭제 전에 보존기간과 Legal Hold 정책을 검사하는 Provider 중립 Lifecycle Hook입니다.
+ * 정책상 삭제할 수 없으면 fail-closed로 거부하며 구현에는 자격증명이 아니라 메타데이터만 전달합니다.
  */
 @FunctionalInterface
-/** CpfObjectStorageLifecycleHook 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
 public interface CpfObjectStorageLifecycleHook {
     void beforeDelete(CpfObjectStorageMetadata metadata, Instant now);
 

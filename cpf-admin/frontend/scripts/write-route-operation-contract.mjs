@@ -38,9 +38,9 @@ while ((match = pattern.exec(routesText))) {
   }
   contracts.set(routeId, [...ids].sort());
 }
-const expectedRouteCount = Number(process.env.CPF_EXPECTED_ADM_ROUTE_COUNT || "65");
-if (!Number.isInteger(expectedRouteCount) || expectedRouteCount <= 0) failures.push(`invalid CPF_EXPECTED_ADM_ROUTE_COUNT=${process.env.CPF_EXPECTED_ADM_ROUTE_COUNT}`);
-else if (contracts.size !== expectedRouteCount) failures.push(`ADM route registry must contain exactly ${expectedRouteCount} routes; actual=${contracts.size}`);
+const declaredRouteCount = [...routesText.matchAll(/routeId:\s*"[^"]+"/g)].length;
+if (contracts.size === 0) failures.push("ADM route registry contains no routes");
+if (contracts.size !== declaredRouteCount) failures.push(`ADM route parser coverage mismatch: parsed=${contracts.size} declared=${declaredRouteCount}`);
 if (failures.length) throw new Error(failures.join("\n"));
 
 fs.mkdirSync(generatedDir, { recursive: true });

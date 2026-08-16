@@ -56,13 +56,19 @@ if (isolationVerification) {
 sourceSets {
     main {
         java {
-            if (!batchEnabled) exclude 'com/cpf/education/batch/**'
+            if (!batchEnabled) {
+                exclude 'com/cpf/education/batch/**'
+                exclude 'com/cpf/education/operations/centercut/**'
+            }
             if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
             if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
             if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
         }
         resources {
-            if (!batchEnabled) exclude 'batch/**'
+            if (!batchEnabled) {
+                exclude 'batch/**'
+                exclude 'operations/centercut/**'
+            }
             if (!operationsEnabled) exclude 'operations/**'
             if (!backofficeEnabled) exclude 'operations/backoffice/**'
             if (!gatewayEnabled) exclude 'operations/gateway/**'
@@ -70,13 +76,19 @@ sourceSets {
     }
     test {
         java {
-            if (!batchEnabled) exclude 'com/cpf/education/batch/**'
+            if (!batchEnabled) {
+                exclude 'com/cpf/education/batch/**'
+                exclude 'com/cpf/education/operations/centercut/**'
+            }
             if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
             if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
             if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
         }
         resources {
-            if (!batchEnabled) exclude 'batch/**'
+            if (!batchEnabled) {
+                exclude 'batch/**'
+                exclude 'operations/centercut/**'
+            }
             if (!operationsEnabled) exclude 'operations/**'
             if (!backofficeEnabled) exclude 'operations/backoffice/**'
             if (!gatewayEnabled) exclude 'operations/gateway/**'
@@ -96,6 +108,7 @@ dependencies {
     implementation project(':internal:integration:ai')
     implementation project(':framework:security')
     implementation project(':framework:messaging')
+    implementation project(':internal:messaging:schema')
     implementation project(':starters:messaging:kafka')
     implementation project(':framework:operations')
     implementation project(':framework:operations:observability')
@@ -105,6 +118,7 @@ dependencies {
     implementation project(':starters:data:mybatis')
     implementation project(':starters:data:jpa')
     implementation project(':framework:file')
+    implementation project(':internal:file:attachment')
     implementation project(':starters:cache:redis')
     implementation project(':starters:cache:valkey')
     implementation project(':starters:data:lock:valkey')

@@ -14,6 +14,30 @@ import org.springframework.stereotype.Component;
 public class EducationCenterCutHandler implements CenterCutHandler {
 
     @Override
+    public String handlerKey() {
+        return "refCenterCutHandler";
+    }
+
+    @Override
+    public CenterCutHandler.Result handle(CenterCutHandler.Context context) {
+        boolean forceFail = context.payload() != null && context.payload().contains("\"forceFail\":true");
+        if (forceFail) {
+            return new CenterCutHandler.Result(
+                    "FAILED",
+                    "{\"businessKey\":\"" + context.businessKey() + "\",\"processed\":false}",
+                    "EDU center-cut 샘플에서 의도된 실패가 발생했습니다.",
+                    false,
+                    false);
+        }
+        return new CenterCutHandler.Result(
+                "COMPLETED",
+                "{\"businessKey\":\"" + context.businessKey() + "\",\"processed\":true}",
+                "EDU center-cut 업무 대상 처리 완료",
+                false,
+                false);
+    }
+
+    /** Legacy education fixture가 사용하는 값 객체 adapter입니다. Runtime SPI는 {@link #handle(CenterCutHandler.Context)}를 사용합니다. */
     public CpfCenterCutResult handle(CpfCenterCutTarget target) {
         if (target.payload() != null && target.payload().contains("\"forceFail\":true")) {
             return CpfCenterCutResult.failed(

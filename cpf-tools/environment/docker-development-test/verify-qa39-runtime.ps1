@@ -2,6 +2,8 @@ param(
     [string]$DockerRoot = "C:\dev\Docker",
     [string]$RepoRoot = "C:\dev\projects\jck\202412_01_CPF",
     [string]$SourceIdentity = "",
+    [string]$RuntimeDefinitionRoot = "",
+    [string]$EvidenceDirectory = "",
     [switch]$IncludeIbmMq,
     [switch]$RequireStopped,
     [switch]$RequireRunning
@@ -46,7 +48,8 @@ $cpfRoot = Join-Path $DockerRoot "CPF"
 $secretRoot = Join-Path $DockerRoot "Secrets"
 $runtimeEnvPath = Join-Path $secretRoot "cpf-runtime.env"
 $providerEnvPath = Join-Path $cpfRoot "qa39-provider-images.env"
-$evidenceRoot = Join-Path $cpfRoot "output\qa39-runtime"
+$runtimeDefinitionRoot = if ([string]::IsNullOrWhiteSpace($RuntimeDefinitionRoot)) { $PSScriptRoot } else { [IO.Path]::GetFullPath($RuntimeDefinitionRoot) }
+$evidenceRoot = if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) { Join-Path $cpfRoot "output\qa39-runtime" } else { [IO.Path]::GetFullPath($EvidenceDirectory) }
 New-Item -ItemType Directory -Path $evidenceRoot -Force | Out-Null
 foreach ($path in @($runtimeEnvPath, $providerEnvPath)) { if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "환경파일 누락: $path" } }
 
@@ -102,7 +105,7 @@ $requiredFiles = @(
     "stop-qa39-runtime.ps1", "cleanup-qa39-runtime.ps1", "repair-qa39-runtime-r3.ps1", "CPF_QA39_DOCKER_RUNTIME_MANIFEST.json",
     "fixtures\tcp\qa39-tcp-simulator.py", "fixtures\wiremock\mappings\qa39-sms-submit.json", "fixtures\wiremock\mappings\qa39-sms-status.json"
 )
-$missingFiles = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $cpfRoot $_) -PathType Leaf) })
+$missingFiles = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $runtimeDefinitionRoot $_) -PathType Leaf) })
 if ($missingFiles.Count -gt 0) { throw "Runtime 파일 누락: $($missingFiles -join ', ')" }
 
 $smoke = [ordered]@{}

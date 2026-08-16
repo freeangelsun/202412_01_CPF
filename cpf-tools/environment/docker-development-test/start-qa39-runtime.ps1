@@ -2,6 +2,7 @@ param(
     [string]$DockerRoot = "C:\dev\Docker",
     [string]$RepoRoot = "C:\dev\projects\jck\202412_01_CPF",
     [string]$SourceIdentity = "",
+    [string]$EvidenceDirectory = "",
     [switch]$IncludeIbmMq
 )
 
@@ -36,6 +37,25 @@ function Wait-ContainerRunning {
     } while ((Get-Date) -lt $deadline)
     docker logs --tail 120 $Name | Out-Host
     throw "Container 실행 Timeout: $Name"
+}
+
+
+function Wait-ContainerHealthy {
+    param([Parameter(Mandatory)][string]$Name, [int]$TimeoutSeconds = 240)
+    Write-Host "[health wait] $Name" -ForegroundColor Cyan
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $state = Get-ContainerState -Name $Name
+        $health = if ($state.State.PSObject.Properties.Name -contains "Health") { [string]$state.State.Health.Status } else { "none" }
+        if ($health -eq "healthy") { Write-Host "[health ready] $Name" -ForegroundColor Green; return }
+        if (-not [bool]$state.State.Running -or $health -eq "unhealthy") {
+            docker logs --tail 120 $Name | Out-Host
+            throw "Container health failed: $Name running=$($state.State.Running) health=$health"
+        }
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $deadline)
+    docker logs --tail 120 $Name | Out-Host
+    throw "Container health timeout: $Name"
 }
 
 function Test-TcpOnce {
@@ -86,6 +106,7 @@ function Wait-DockerProbe {
 }
 
 $cpfRoot = Join-Path $DockerRoot "CPF"
+$composeRoot = $PSScriptRoot
 $secretRoot = Join-Path $DockerRoot "Secrets"
 $runtimeEnv = Join-Path $secretRoot "cpf-runtime.env"
 $toolEnv = Join-Path $cpfRoot "tool-images.env"
@@ -95,12 +116,12 @@ $compose = @(
     "--env-file", $runtimeEnv,
     "--env-file", $toolEnv,
     "--env-file", $providerEnv,
-    "-f", (Join-Path $cpfRoot "compose.yml"),
-    "-f", (Join-Path $cpfRoot "compose.redis.yml"),
-    "-f", (Join-Path $cpfRoot "compose.kafka.yml"),
-    "-f", (Join-Path $cpfRoot "compose.integration.yml"),
-    "-f", (Join-Path $cpfRoot "compose.tooling.yml"),
-    "-f", (Join-Path $cpfRoot "compose.qa39-runtime.yml")
+    "-f", (Join-Path $composeRoot "compose.yml"),
+    "-f", (Join-Path $composeRoot "compose.redis.yml"),
+    "-f", (Join-Path $composeRoot "compose.kafka.yml"),
+    "-f", (Join-Path $composeRoot "compose.integration.yml"),
+    "-f", (Join-Path $composeRoot "compose.tooling.yml"),
+    "-f", (Join-Path $composeRoot "compose.qa39-runtime.yml")
 )
 $profile = if ($IncludeIbmMq) { @("--profile", "ibm-mq") } else { @() }
 $services = @("rabbitmq", "artemis", "tcp-simulator", "mailpit", "wiremock", "toxiproxy", "otel-collector")
@@ -120,13 +141,15 @@ Wait-Tcp -Name "Artemis JMS" -HostName "127.0.0.1" -Port 61616 -TimeoutSeconds 1
 Wait-DockerProbe -Name "TCP Simulator" -Probe { docker exec cpf-tcp-simulator python /app/qa39-tcp-simulator.py --self-test } -TimeoutSeconds 120
 Wait-Http -Name "Mailpit" -Uri "http://127.0.0.1:18025/" -TimeoutSeconds 120
 Wait-Http -Name "WireMock" -Uri "http://127.0.0.1:18080/__admin/health" -TimeoutSeconds 120
+Wait-ContainerHealthy -Name "cpf-toxiproxy" -TimeoutSeconds 180
+Wait-Tcp -Name "Toxiproxy API" -HostName "127.0.0.1" -Port 8474 -TimeoutSeconds 120
 Wait-Http -Name "Toxiproxy" -Uri "http://127.0.0.1:8474/proxies" -TimeoutSeconds 120
 Wait-Http -Name "OpenTelemetry Collector" -Uri "http://127.0.0.1:8888/metrics" -TimeoutSeconds 120
 if ($IncludeIbmMq) {
     Wait-DockerProbe -Name "IBM MQ" -Probe { docker exec cpf-ibm-mq sh -lc "dspmq | grep -q 'STATUS(Running)'" } -TimeoutSeconds 420
 }
 
-$verify = @("-NoProfile", "-File", (Join-Path $PSScriptRoot "verify-qa39-runtime.ps1"), "-DockerRoot", $DockerRoot, "-RepoRoot", $RepoRoot, "-SourceIdentity", $SourceIdentity, "-RequireRunning")
+$verify = @("-NoProfile", "-File", (Join-Path $PSScriptRoot "verify-qa39-runtime.ps1"), "-DockerRoot", $DockerRoot, "-RepoRoot", $RepoRoot, "-SourceIdentity", $SourceIdentity, "-RuntimeDefinitionRoot", $composeRoot, "-EvidenceDirectory", $EvidenceDirectory, "-RequireRunning")
 if ($IncludeIbmMq) { $verify += "-IncludeIbmMq" }
 & pwsh @verify
 if ($LASTEXITCODE -ne 0) { throw "QA39 Runtime 실행 검증 실패(exit=$LASTEXITCODE)" }

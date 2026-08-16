@@ -55,8 +55,6 @@ public class EducationExceptionEducationController extends com.cpf.education.bas
         throw new CpfBusinessException(
                 CpfDynamicErrorCode.duplicate("EDU090001", externalMessage, internalMessage),
                 externalMessage,
-                internalMessage,
-                "중복 값 검증",
                 messageArguments);
     }
 

@@ -45,7 +45,9 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("$IncludeDbRuntime=$true", self.text)
         self.assertIn("$IncludeRuntimeClosure=$true", self.text)
         self.assertIn("$IncludeBrowserE2E=$true", self.text)
-        self.assertIn("if($AllowDestructiveDbRollback){$args+='-AllowDestructiveRollback'}", self.text)
+        self.assertIn("'-VerifierOwnedIsolation'", self.text)
+        self.assertIn("FullLocal 1-WAS requires verifier-owned MariaDB", self.text)
+        self.assertIn("cleanup-cpf-local-runtime-db.ps1", self.text)
 
     def test_gradle_ux_quality_and_integration_are_all_in_full_local(self):
         for stage in (
@@ -86,11 +88,22 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
             "GENERATOR_FULL_CONTRACT", "CACHE_CORRECTNESS", "CACHE_DURABLE_LIFECYCLE",
             "CONTEXT_ARCH_RUNTIME", "CONTEXT_RUNTIME_LIFECYCLE", "INTEGRATION_CONTEXT_RUNTIME",
             "MESSAGE_CONTEXT_RUNTIME", "BATCH_CONTEXT_RUNTIME", "SECURITY_CONTEXT_RUNTIME",
-            "BATCH_UNKNOWN_RECONCILIATION", "ADM_CONTROLLER_SOURCE_OPENAPI_CURRENT",
-            "BZA_CONTROLLER_SOURCE_OPENAPI_CURRENT", "WINDOWS_PATH_COMPATIBILITY", "GATEWAY_STATIC_CLOSURE",
+            "BATCH_UNKNOWN_RECONCILIATION", "WINDOWS_PATH_COMPATIBILITY", "GATEWAY_STATIC_CLOSURE",
             "MESSAGING_KAFKA_RELIABILITY", "BATCH_TWO_WORKER_CRASH_UNKNOWN",
         ):
             self.assertIn(stage, self.text)
+
+    def test_full_local_browser_and_owned_db_lifecycle_are_fail_closed(self):
+        self.assertIn("CPF_ADM_FRONTEND_URL='http://127.0.0.1:8080/adm/'", self.text)
+        self.assertIn("CPF_BZA_FRONTEND_URL='http://127.0.0.1:8080/bza/'", self.text)
+        self.assertIn("$browserSecretPrevious=Import-CpfEnvFile $DockerSecretFile", self.text)
+        self.assertIn("'-BrowserClick','-RequireBrowserClick'", self.text)
+        self.assertIn("CPF_ADM_SMOKE_PASSWORD=$browserAdminPassword", self.text)
+        self.assertIn("FullLocal requires a real authenticated ADM browser flow", self.text)
+        self.assertIn("Restore-CpfEnvironment $browserSecretPrevious", self.text)
+        self.assertIn("'-VerifierOwnedIsolation'", self.text)
+        self.assertIn("FullLocal 1-WAS requires verifier-owned MariaDB", self.text)
+        self.assertIn("cleanup-cpf-local-runtime-db.ps1", self.text)
 
 
 if __name__ == "__main__":

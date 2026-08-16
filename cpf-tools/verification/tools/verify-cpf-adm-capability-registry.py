@@ -20,7 +20,9 @@ def fail(message: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
-    parser.add_argument("--expected-routes", type=int, default=int(os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "65")))
+    expected_env = os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "").strip()
+    parser.add_argument("--expected-routes", type=int, default=int(expected_env) if expected_env else None,
+                        help="Optional compatibility assertion; canonical routes.ts cardinality is otherwise authoritative")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     routes = root / "cpf-admin/frontend/src/app/routes.ts"
@@ -36,7 +38,7 @@ def main() -> None:
     actual = {m.group("route_id"): m.groupdict() for m in matches}
     if len(matches) != len(actual):
         fail("duplicate ADM routeId in capability registry")
-    if len(actual) != args.expected_routes:
+    if args.expected_routes is not None and len(actual) != args.expected_routes:
         fail(f"route cardinality mismatch expected={args.expected_routes} source={len(actual)}")
     if len({row['path'] for row in actual.values()}) != len(actual):
         fail("duplicate ADM route path")

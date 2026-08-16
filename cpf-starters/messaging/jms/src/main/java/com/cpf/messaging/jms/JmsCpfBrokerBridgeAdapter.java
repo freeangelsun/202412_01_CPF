@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.config.SimpleJmsListenerEndpoint;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
@@ -137,9 +138,11 @@ public final class JmsCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, Aut
     }
 
     private DefaultMessageListenerContainer startContainer(String destination) {
-        DefaultMessageListenerContainer container = listenerFactory.createListenerContainer();
-        container.setDestinationName(destination);
-        container.setMessageListener((jakarta.jms.MessageListener) this::consume);
+        SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();
+        endpoint.setId("cpf-jms-" + Integer.toUnsignedString(destination.hashCode()));
+        endpoint.setDestination(destination);
+        endpoint.setMessageListener((jakarta.jms.MessageListener) this::consume);
+        DefaultMessageListenerContainer container = listenerFactory.createListenerContainer(endpoint);
         container.afterPropertiesSet();
         container.start();
         return container;

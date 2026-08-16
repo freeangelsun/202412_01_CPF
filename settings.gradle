@@ -320,7 +320,20 @@ if (includeGeneratedDomains) {
         if (!canonical.toPath().startsWith(rootDir.canonicalFile.toPath())) {
             throw new GradleException("Generated Domain path escapes root: ${candidate}")
         }
-        includeBuild(canonical) { name = "cpf-generated-${candidate.name}" }
+        def domainName = candidate.name.substring('cpf-'.length())
+        def definition = new File(generatedDefinitionRoot, domainName + '/cpf-domain.yaml')
+        def definitionText = definition.getText('UTF-8')
+        def packageMatch = (definitionText =~ /(?m)^\s*packageName:\s*([A-Za-z0-9_.-]+)\s*$/)
+        def domainMatch = (definitionText =~ /(?m)^\s{2}name:\s*([A-Za-z0-9_-]+)\s*$/)
+        def packageName = packageMatch.find() ? packageMatch.group(1) : (domainMatch.find() ? "com.cpf.${domainMatch.group(1).replace('-', '_')}" : null)
+        if (packageName == null) throw new GradleException("Generated Domain name/packageName missing: ${definition}")
+        includeBuild(canonical) {
+            name = "cpf-generated-${candidate.name}"
+            dependencySubstitution {
+                if (new File(canonical, 'online/build.gradle').isFile()) substitute module("${packageName}:online") using project(':online')
+                if (new File(canonical, 'batch/build.gradle').isFile()) substitute module("${packageName}:batch") using project(':batch')
+            }
+        }
     }
 } else if (!generatedDomainRoots.isEmpty()) {
     logger.lifecycle("Generated Customer Domains are retained but not mounted: ${generatedDomainRoots*.name}; use -PcpfIncludeGeneratedDomains=true for regression build")

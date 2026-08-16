@@ -1,6 +1,7 @@
 package com.cpf.platform.operations.health;
 
 import com.cpf.platform.operations.api.health.*;
+import com.cpf.starter.runtime.CpfRuntimeCapabilityInventory;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -21,13 +22,31 @@ public final class CpfRuntimeHealthService implements CpfHealthSnapshotProvider,
     private final ExecutorService executor;
     private final Semaphore permits;
     private final AtomicReference<Cache> cache = new AtomicReference<>();
+    private final List<String> capabilities;
+    private final Map<String,String> publicDiagnostics;
     public CpfRuntimeHealthService(CpfHealthConfig config, CpfDrainControl drain, List<CpfDependencyHealthCheck> checks) {
-        this(config, drain, checks, Clock.systemUTC());
+        this(config, drain, checks, Clock.systemUTC(), List.of(), Map.of());
+    }
+    public CpfRuntimeHealthService(CpfHealthConfig config, CpfDrainControl drain, List<CpfDependencyHealthCheck> checks,
+            CpfRuntimeCapabilityInventory inventory, Map<String,String> runtimeIdentity) {
+        this(config, drain, checks, Clock.systemUTC(),
+                inventory == null ? List.of() : inventory.capabilityIds(),
+                mergeDiagnostics(inventory == null ? Map.of() : inventory.publicDiagnostics(), runtimeIdentity));
     }
     CpfRuntimeHealthService(CpfHealthConfig config, CpfDrainControl drain, List<CpfDependencyHealthCheck> checks, Clock clock) {
+        this(config, drain, checks, clock, List.of(), Map.of());
+    }
+    private CpfRuntimeHealthService(CpfHealthConfig config, CpfDrainControl drain, List<CpfDependencyHealthCheck> checks, Clock clock,
+            List<String> capabilities, Map<String,String> publicDiagnostics) {
         this.config = config; this.drain = drain; this.checks = List.copyOf(checks); this.clock = clock;
+        this.capabilities = List.copyOf(capabilities == null ? List.of() : capabilities);
+        this.publicDiagnostics = Map.copyOf(publicDiagnostics == null ? Map.of() : publicDiagnostics);
         this.startedAt = clock.instant(); this.executor = Executors.newCachedThreadPool();
         this.permits = new Semaphore(config.maxConcurrentChecks());
+    }
+    private static Map<String,String> mergeDiagnostics(Map<String,String> starter, Map<String,String> identity){
+        Map<String,String> merged=new java.util.LinkedHashMap<>(); if(starter!=null)merged.putAll(starter);
+        if(identity!=null)identity.forEach((k,v)->{if(k!=null&&v!=null&&!v.isBlank())merged.put(k,v);}); return Map.copyOf(merged);
     }
     @Override public CpfRuntimeHealth snapshot() {
         List<CpfDependencyHealth> dependencies = dependencyHealth();
@@ -36,7 +55,14 @@ public final class CpfRuntimeHealthService implements CpfHealthSnapshotProvider,
         Instant now = clock.instant();
         return new CpfRuntimeHealth(config.systemId(), config.instanceId(), CpfHealthStatus.UP, readiness, CpfHealthStatus.UP,
                 drain.state() != CpfDrainState.RUNNING, config.maintenance(), config.version(), config.buildSha(), startedAt, now,
-                Duration.between(startedAt, now).toMillis(), List.of(), List.of(), dependencies, Map.of("state", drain.state().name()));
+                Duration.between(startedAt, now).toMillis(), List.of(), capabilities, dependencies, runtimeDiagnostics());
+    }
+
+    private Map<String,String> runtimeDiagnostics(){
+        Map<String,String> out=new java.util.LinkedHashMap<>(publicDiagnostics);
+        out.put("state",drain.state().name());
+        out.put("capabilityCount",Integer.toString(capabilities.size()));
+        return Map.copyOf(out);
     }
     private List<CpfDependencyHealth> dependencyHealth() {
         Instant now = clock.instant(); Cache current = cache.get();

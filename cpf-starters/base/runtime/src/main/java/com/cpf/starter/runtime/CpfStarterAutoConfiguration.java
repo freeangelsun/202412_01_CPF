@@ -34,6 +34,16 @@ public class CpfStarterAutoConfiguration {
     @Bean @ConditionalOnMissingBean
     CpfCapabilityBindingRegistry cpfCapabilityBindingRegistry() { return new CpfCapabilityBindingRegistry(); }
 
+    @Bean @ConditionalOnMissingBean
+    CpfRuntimeCapabilityInventory cpfRuntimeCapabilityInventory() {
+        return CpfRuntimeCapabilityInventory.fromClasspath(Thread.currentThread().getContextClassLoader());
+    }
+
+    @Bean @ConditionalOnMissingBean
+    CpfCapabilityUsageAspect cpfCapabilityUsageAspect(CpfRuntimeCapabilityInventory inventory) {
+        return new CpfCapabilityUsageAspect(inventory);
+    }
+
     @Bean @ConditionalOnMissingBean(name = "cpfStarterClock")
     Clock cpfStarterClock() { return Clock.systemUTC(); }
 

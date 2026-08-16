@@ -63,6 +63,8 @@ public final class CpfEnvironmentResilienceRuntimePolicyResolverHarness {
         private MapEnvironment(Map<String, String> source) { values.putAll(source); }
         void put(String key, String value) { values.put(key, value); }
         @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
+        @SuppressWarnings("deprecation")
+        @Override public boolean acceptsProfiles(String... profiles) { return false; }
         @Override public String getProperty(String key) { return values.get(key); }
     }
 }

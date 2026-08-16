@@ -335,6 +335,18 @@ public class JdbcCpfBrokerReliabilityRepository
         }
     }
 
+    private static final String DEFAULT_CONSUMER_IDENTITY = "CPF_DEFAULT_CONSUMER";
+
+    @Override
+    public boolean markReceived(String messageId, String idempotencyKey) {
+        return markReceived(DEFAULT_CONSUMER_IDENTITY, messageId, idempotencyKey);
+    }
+
+    @Override
+    public void markConsumed(String messageId, CpfBrokerResult result) {
+        markConsumed(DEFAULT_CONSUMER_IDENTITY, messageId, result);
+    }
+
     @Override
     // 메시지 상태 전이를 단일 트랜잭션으로 묶어 부분 저장과 중복 처리를 방지합니다.
     @Transactional(transactionManager = "cpfTransactionManager")

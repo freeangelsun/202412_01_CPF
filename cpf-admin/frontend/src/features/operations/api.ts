@@ -8,6 +8,10 @@ import {
   admRuntimeControlCreateChange,
   admRuntimeControlPreviewChange,
   admRuntimeControlRollbackChange,
+  admRuntimeControlSaveGroup,
+  admRuntimeControlDeleteGroup,
+  admRuntimeControlChangeGroupMember,
+  admRuntimeControlPreviewTargets,
   requestAdmBrokerDlqReplay,
   resolveAdmUnknownResult,
   runAdmTransactionLogRecovery,
@@ -35,6 +39,20 @@ export const cancelRuntimeChange = async (changeId: string, operationId: string,
   generatedData<JsonMap>(await admRuntimeControlCancelChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlCancelChange>[1]));
 export const rollbackRuntimeChange = async (changeId: string, operationId: string, reason: string) =>
   generatedData<JsonMap>(await admRuntimeControlRollbackChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlRollbackChange>[1]));
+
+export const previewRuntimeTargets = async (changeType: string, payloadSchemaVersion: number, target: JsonMap) =>
+  generatedData<JsonMap>(await admRuntimeControlPreviewTargets({ changeType, payloadSchemaVersion, target } as Parameters<typeof admRuntimeControlPreviewTargets>[0]));
+
+export const saveRuntimeGroup = async (request: JsonMap) =>
+  generatedData<JsonMap>(await admRuntimeControlSaveGroup(request as Parameters<typeof admRuntimeControlSaveGroup>[0]));
+
+export const changeRuntimeGroupMember = async (groupId: string, request: JsonMap) =>
+  generatedData<JsonMap>(await admRuntimeControlChangeGroupMember(groupId, request as Parameters<typeof admRuntimeControlChangeGroupMember>[1]));
+
+export const deleteRuntimeGroup = async (groupId: string, operationId: string, expectedVersion: number, reason: string) => {
+  await admRuntimeControlDeleteGroup(groupId, { operationId, expectedVersion, reason });
+  return { groupId, deleted: true } as JsonMap;
+};
 
 export const requestRuntimeApproval = async (command: RuntimeChangeCommand, ownerCommand = "RUNTIME_CONTROL_CREATE", targetId?: string) => {
   const payload = ownerCommand === "RUNTIME_CONTROL_CREATE"

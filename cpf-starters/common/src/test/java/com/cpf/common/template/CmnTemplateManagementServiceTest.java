@@ -103,7 +103,7 @@ class CmnTemplateManagementServiceTest {
         }
 
         @Override
-        public java.util.List<CmnTemplateAuditEvent> auditHistory(String templateCode, String channel, long version, int limit) {
+        public java.util.List<CmnTemplateAuditEntry> auditHistory(String templateCode, String channel, long version, int limit) {
             return java.util.List.of();
         }
 

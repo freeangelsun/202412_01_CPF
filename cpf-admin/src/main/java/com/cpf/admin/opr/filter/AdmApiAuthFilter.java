@@ -40,6 +40,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
 
     static {
         MENU_BY_PATH_PREFIX.put("/adm/api/v1/system", "DASHBOARD");
+        MENU_BY_PATH_PREFIX.put("/adm/api/capability-management", "CAPABILITY_FLEET");
         MENU_BY_PATH_PREFIX.put("/adm/api/logs", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/transaction-groups", "LOG_LIST");
         MENU_BY_PATH_PREFIX.put("/adm/api/observability", "LOG_LIST");
@@ -78,6 +79,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/operators", "OPERATOR");
 
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/audit-logs/deliveries", "AUDIT_LOG_RETRY");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/capability-management", "CAPABILITY_FLEET_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/logs", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transaction-groups", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/observability", "LOG_LIST_READ");

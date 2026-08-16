@@ -1,7 +1,7 @@
 package com.cpf.education.scenarios.online.foundation;
 import com.cpf.foundation.api.page.CpfPage;
 import com.cpf.foundation.api.page.CpfPageRequest;
-import com.cpf.file.api.util.CpfFiles;
+import com.cpf.file.util.CpfFiles;
 import com.cpf.web.api.CpfHeaders;
 import com.cpf.foundation.id.CpfIds;
 import com.cpf.foundation.api.page.CpfPages;

@@ -12,8 +12,18 @@ public final class CpfBusinessException extends CpfException {
         super(fallback, detail);
     }
 
+    /** 동적 업무 오류 정의도 enum 추가 없이 동일한 Business Exception 경로로 전달합니다. */
+    public CpfBusinessException(CpfErrorDefinition fallback, String detail) {
+        super(fallback, detail);
+    }
+
     /** CpfBusinessException 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfBusinessException(CpfErrorCode fallback, String detail, Map<String, Object> arguments) {
+        super(fallback, detail, arguments);
+    }
+
+    /** 동적/확장 업무 오류 정의와 메시지 인자를 함께 보존합니다. */
+    public CpfBusinessException(CpfErrorDefinition fallback, String detail, Map<String, Object> arguments) {
         super(fallback, detail, arguments);
     }
 

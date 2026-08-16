@@ -16,6 +16,8 @@ import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.annotation.CpfService;
 import org.springframework.util.AntPathMatcher;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -138,7 +140,8 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
             String operatorId) {
         String actor = required(operatorId, "operatorId");
         CpfStoredAttachment stored = attachmentStoragePort.store(
-                safeGroupId(groupId), originalFileName, contentType, content);
+                safeGroupId(groupId), originalFileName, contentType,
+                new ByteArrayInputStream(content), content.length);
         try {
             Map<String, Object> values = new LinkedHashMap<>();
             values.put("attachmentGroupId", groupId);
@@ -174,8 +177,11 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         }
         String storageKey = text(metadata, "storageKey");
         String fileName = text(metadata, "originalFileName");
-        try {
-            CpfAttachmentContent content = attachmentStoragePort.read(storageKey);
+        try (com.cpf.file.attachment.api.CpfAttachmentStream content = attachmentStoragePort.open(storageKey)) {
+            byte[] bytes = content.inputStream().readAllBytes();
+            if (bytes.length != content.size()) {
+                throw new CpfValidationException("첨부파일 크기가 메타 정보와 일치하지 않습니다.");
+            }
             if (!content.checksumSha256().equalsIgnoreCase(text(metadata, "checksumSha256"))) {
                 recordDownload(actor, "ATTACHMENT", resolvedReason, fileName, "CHECKSUM_MISMATCH", 0, false);
                 throw new CpfValidationException("첨부파일 checksum이 메타 정보와 일치하지 않습니다.");
@@ -186,8 +192,11 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
             return new AttachmentDownload(
                     fileName,
                     text(metadata, "contentType"),
-                    content.bytes(),
+                    bytes,
                     content.checksumSha256());
+        } catch (IOException ex) {
+            recordDownload(actor, "ATTACHMENT", resolvedReason, fileName, "FAILED", 0, false);
+            throw new IllegalStateException("첨부파일 스트림 읽기/종료에 실패했습니다.", ex);
         } catch (RuntimeException ex) {
             if (!(ex instanceof CpfValidationException
                     && ex.getMessage() != null

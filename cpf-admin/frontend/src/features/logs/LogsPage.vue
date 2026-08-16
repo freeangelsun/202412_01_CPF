@@ -3,6 +3,9 @@
     <div class="panel-title"><div><h2>거래 로그</h2><p class="hint">IN → Gateway → Attempt → OUT → RESULT 구간을 transactionId·traceId로 연계합니다. 민감정보는 서버 마스킹 결과만 표시합니다.</p></div><div class="actions"><button type="button" @click="searchLogs">조회</button><button type="button" :disabled="!logDetail?.item" @click="copyLogDetail">마스킹 상세 복사</button><button type="button" :disabled="!logDetail?.item" @click="downloadLogDetail">감사 상세 저장</button></div></div>
     <div class="filters">
       <label>transactionId <input v-model="logSearch.transactionId"></label><label>traceId <input v-model="logSearch.traceId"></label><label>업무 거래 ID <input v-model="logSearch.businessTransactionId"></label>
+      <label>시스템 <input v-model="logSearch.systemCode" placeholder="MBR"></label><label>도메인 <input v-model="logSearch.domainCode" placeholder="MEMBER"></label><label>Application <input v-model="logSearch.application"></label>
+      <label>Module <input v-model="logSearch.moduleId"></label><label>WAS <input v-model="logSearch.wasId"></label><label>Instance <input v-model="logSearch.serverInstanceId"></label><label>Host <input v-model="logSearch.hostName"></label>
+      <label>Starter <input v-model="logSearch.starterId" placeholder="cpf-starter-cache-redis"></label><label>Capability <input v-model="logSearch.capabilityId" placeholder="CACHE"></label><label>Provider <input v-model="logSearch.provider" placeholder="REDIS"></label><label>Operation <input v-model="logSearch.operation"></label>
       <label>URI <input v-model="logSearch.uri"></label><label>응답 코드 <input v-model="logSearch.responseCode"></label><label>HTTP 상태 <input v-model="logSearch.httpStatus" type="number"></label>
       <label>회원번호 보호검색 <input v-model="logSearch.memberNo"></label><label>고객번호 보호검색 <input v-model="logSearch.customerNo"></label><label>채널 <input v-model="logSearch.channelCode"></label><label>로그 유형 <input v-model="logSearch.logType"></label>
     </div>

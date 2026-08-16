@@ -99,7 +99,7 @@ export default defineComponent({
     activeFeatureGroup(): AdmFeatureGroup {
       return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.group
         ?? featureGroupForMenu(this.activeMenu)
-        ?? "overview";
+        ?? "operations";
     },
     currentMenuLabel(): string {
       return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.label

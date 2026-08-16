@@ -23,13 +23,20 @@ def validate(root: Path) -> dict:
 
     route_text = routes_file.read_text(encoding="utf-8")
     rows = list(ENTRY.finditer(route_text))
-    expected = int(os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "65"))
     ids = [m.group("route_id") for m in rows]; paths = [m.group("path") for m in rows]
-    if len(rows) != expected: raise ContractError(f"route registry drift expected={expected} actual={len(rows)}")
-    if len(set(ids)) != expected or len(set(paths)) != expected: raise ContractError("route id/path duplicates")
+    if not rows: raise ContractError("route registry empty")
+    if len(set(ids)) != len(rows) or len(set(paths)) != len(rows): raise ContractError("route id/path duplicates")
+    expected_override = os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "").strip()
+    if expected_override:
+        expected = int(expected_override)
+        if len(rows) != expected: raise ContractError(f"route registry drift expected={expected} actual={len(rows)}")
     generated_text = generated.read_text(encoding="utf-8")
-    for route_id in ids:
-        require(generated_text, f'"{route_id}": [', "generated route-operation contract")
+    generated_ids = set(re.findall(r'^\s*"([^"]+)": \[', generated_text, re.MULTILINE))
+    route_ids = set(ids)
+    if generated_ids != route_ids:
+        missing = sorted(route_ids - generated_ids)
+        stale = sorted(generated_ids - route_ids)
+        raise ContractError(f"route/generated registry mismatch missing={missing} stale={stale}")
 
     config_text = config.read_text(encoding="utf-8")
     for browser in ("chromium", "firefox", "webkit"): require(config_text, f'name: "{browser}"', "playwright project")

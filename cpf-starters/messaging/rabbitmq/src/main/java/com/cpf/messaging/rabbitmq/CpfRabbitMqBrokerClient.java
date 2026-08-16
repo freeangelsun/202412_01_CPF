@@ -61,7 +61,7 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
             throw new IllegalArgumentException("RabbitMQ payload exceeds CPF maximum size");
         }
         Map<String, String> userHeaders = validateUserHeaders(request.headers());
-        MessageBuilder builder = MessageBuilder.withBody(request.payload())
+        var builder = MessageBuilder.withBody(request.payload())
                 .setMessageId(request.messageId())
                 .setContentType(request.contentType())
                 .setHeader("cpf-transaction-id", request.transactionId())

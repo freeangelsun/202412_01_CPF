@@ -1,9 +1,10 @@
 package com.cpf.education.common.utility.controller;
-import com.cpf.foundation.util.CpfTimes;
+import com.cpf.foundation.time.CpfTimes;
 import com.cpf.foundation.id.CpfIds;
 import com.cpf.security.api.CpfMasking;
 import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.core.api.context.CpfContexts;
+import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
 import com.cpf.foundation.workflow.api.CpfWorkflow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,9 +49,9 @@ public class EducationUtilityEducationController extends com.cpf.education.base.
     public ResponseEntity<Map<String, Object>> getCurrentHeaders() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("transactionId", CpfContexts.transactionId());
-        response.put("traceId", CpfContexts.traceId());
-        response.put("spanId", CpfContexts.spanId());
-                response.put("propagationHeaders", CpfContexts.propagationHeaders());
+        response.put("traceId", CpfContexts.requireCurrent().traceId());
+        response.put("spanId", CpfTransactionContext.spanId());
+                response.put("propagationHeaders", CpfTransactionContext.propagationHeaders());
         response.put("workflowPropagationHeaders", CpfWorkflow.propagationHeaders());
         return ResponseEntity.ok(response);
     }

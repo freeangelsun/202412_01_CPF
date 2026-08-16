@@ -9,12 +9,13 @@ param(
     [ValidateSet('Static','Auto','Host','Docker')]
     [string]$ClientAdapter='Auto',
     [switch]$RequireRuntime,
-    [switch]$AllowDestructiveRollback
+    [switch]$AllowDestructiveRollback,
+    [switch]$VerifierOwnedIsolation
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $rootPath=(Resolve-Path -LiteralPath $Root).Path
-$evidence=Join-Path $rootPath $EvidenceRoot
+$evidence=if([IO.Path]::IsPathRooted($EvidenceRoot)){[IO.Path]::GetFullPath($EvidenceRoot)}else{[IO.Path]::GetFullPath((Join-Path $rootPath $EvidenceRoot))}
 New-Item -ItemType Directory -Force -Path $evidence | Out-Null
 if([string]::IsNullOrWhiteSpace($SourceSha)){
     $candidate=(git -C $rootPath rev-parse HEAD 2>$null)
@@ -64,6 +65,22 @@ $result=[ordered]@{schemaVersion=1;sourceSha=$SourceSha;startedAt=([DateTimeOffs
 foreach($vendor in $vendors){
     $previousEnvironment=@{}
     try{
+        if($VerifierOwnedIsolation){
+            $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
+            if([string]::IsNullOrWhiteSpace($adminPassword)){
+                $result.vendors += [ordered]@{vendor=$vendor;status='UNVERIFIED_EXTERNAL_RUNTIME';missingEnvironment=@('CPF_ADMIN_PASSWORD');verifierOwnedIsolation=$true}
+                continue
+            }
+            $isolatedRoot=Join-Path $evidence "isolated-$vendor"
+            & pwsh -NoProfile -File (Join-Path $rootPath 'cpf-tools/db/verification/invoke-cpf-db-verifier-owned-lifecycle.ps1') -Vendor $vendor -Root $rootPath -SourceSha $SourceSha -EvidenceRoot $isolatedRoot
+            $rc=$LASTEXITCODE
+            $isolatedResultPath=Join-Path $isolatedRoot 'verifier-owned-lifecycle.json'
+            $isolatedStatus='MISSING_RESULT'
+            if(Test-Path -LiteralPath $isolatedResultPath -PathType Leaf){try{$isolatedStatus=[string](Get-Content -LiteralPath $isolatedResultPath -Raw -Encoding UTF8|ConvertFrom-Json -Depth 50).status}catch{$isolatedStatus='INVALID_RESULT'}}
+            $status=if($rc-eq0 -and $isolatedStatus-eq'PASS'){'PASS'}else{'FAIL'}
+            $result.vendors += [ordered]@{vendor=$vendor;status=$status;verifierOwnedIsolation=$true;resultPath=$isolatedResultPath}
+            continue
+        }
         if($null-ne$runtimeManifest){
             $environment=$runtimeManifest.vendors.$vendor.environment
             foreach($name in $requiredEnv[$vendor]){
@@ -86,8 +103,9 @@ foreach($vendor in $vendors){
             $stageStem="$vendor-$($stage.ToLowerInvariant())"
             $stagePlan=Join-Path $evidence "$stageStem.lifecycle-plan.json"
             $stageResult=Join-Path $evidence "$stageStem.lifecycle-result.json"
+            $stageLogDir=Join-Path $evidence "$stageStem.logs"
             & pwsh -NoProfile -File (Join-Path $rootPath 'cpf-tools/db/tools/run-db-vendor-lifecycle.ps1') `
-                -Vendor $vendor -Mode $stage -Root $rootPath -ClientAdapter $ClientAdapter -LogDir $EvidenceRoot `
+                -Vendor $vendor -Mode $stage -Root $rootPath -ClientAdapter $ClientAdapter -LogDir $stageLogDir `
                 -LifecyclePlanPath $stagePlan -ResultPath $stageResult
             $rc=$LASTEXITCODE
             $lifecycleStatus='MISSING_RESULT'

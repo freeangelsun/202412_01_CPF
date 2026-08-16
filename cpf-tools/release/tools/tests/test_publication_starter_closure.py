@@ -16,8 +16,8 @@ SPEC.loader.exec_module(MODULE)
 def fixture(root: Path) -> tuple[Path, Path, Path]:
     canonical = {
         "modules": [
-            {"artifactId": "cpf-starter-profile-a", "ownerPath": "cpf-starters/profiles/a"},
-            {"artifactId": "cpf-starter-data-b", "ownerPath": "cpf-starters/data/b"},
+            {"artifactId": "cpf-starter-profile-a", "ownerPath": "cpf-starters/profiles/a", "kind": "starter-profile", "visibility": "public", "publicationRequired": True},
+            {"artifactId": "cpf-starter-data-b", "ownerPath": "cpf-starters/data/b", "kind": "internal-starter", "visibility": "internal", "publicationRequired": True},
         ]
     }
     final = {
@@ -40,7 +40,7 @@ def fixture(root: Path) -> tuple[Path, Path, Path]:
     canonical_path.write_text(json.dumps(canonical), encoding="utf-8")
     final_path.write_text(json.dumps(final), encoding="utf-8")
     script_path.write_text("\n".join([
-        "$starterKinds = @('starter-profile', 'internal-starter')",
+        "$starterKinds = @('starter-base', 'starter-common', 'starter-profile', 'starter-provider', 'internal-starter')",
         "$artifactCatalog.canonicalStarterCatalog",
         "$canonicalByArtifact",
         "Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Recurse -File",

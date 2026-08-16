@@ -14,5 +14,12 @@ export interface AdmLogFindLogsParams {
   wasId?: string;
   serverInstanceId?: string;
   hostName?: string;
+  systemCode?: string;
+  domainCode?: string;
+  application?: string;
+  starterId?: string;
+  capabilityId?: string;
+  provider?: string;
+  operation?: string;
   limit?: number;
 }

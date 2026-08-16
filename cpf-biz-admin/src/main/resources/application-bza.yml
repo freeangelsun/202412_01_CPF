@@ -9,10 +9,14 @@ cpf:
     registry-mode: ${BZA_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}
   bza:
     bootstrap:
-      enabled: ${CPF_BZA_BOOTSTRAP_ENABLED:false}
+      # Bootstrap is opt-in by presence of a one-time approval token file. Plaintext enable/password properties are forbidden.
+      approval-token-file: ${CPF_BZA_BOOTSTRAP_APPROVAL_TOKEN_FILE:}
+      password-file: ${CPF_BZA_BOOTSTRAP_PASSWORD_FILE:}
+      approval-scope: ${CPF_BZA_BOOTSTRAP_APPROVAL_SCOPE:}
+      operation-id: ${CPF_BZA_BOOTSTRAP_OPERATION_ID:}
+      claim-lease-seconds: ${CPF_BZA_BOOTSTRAP_CLAIM_LEASE_SECONDS:300}
       login-id: ${CPF_BZA_BOOTSTRAP_LOGIN_ID:}
       operator-name: ${CPF_BZA_BOOTSTRAP_OPERATOR_NAME:}
-      password: ${CPF_BZA_BOOTSTRAP_PASSWORD:}
       role-code: ${CPF_BZA_BOOTSTRAP_ROLE_CODE:BZA_MANAGER}
 
 logging:

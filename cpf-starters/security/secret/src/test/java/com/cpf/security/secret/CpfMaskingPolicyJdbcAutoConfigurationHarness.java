@@ -85,6 +85,8 @@ public final class CpfMaskingPolicyJdbcAutoConfigurationHarness {
         private final Map<String, Object> values = new HashMap<>();
         private MapEnvironment(Map<String, Object> values) { this.values.putAll(values); }
         @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
+        @SuppressWarnings("deprecation")
+        @Override public boolean acceptsProfiles(String... profiles) { return false; }
         @Override public <T> T getProperty(String key, Class<T> type, T defaultValue) {
             Object value = values.get(key);
             return value == null ? defaultValue : type.cast(value);

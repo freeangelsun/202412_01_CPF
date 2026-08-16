@@ -38,7 +38,7 @@ public final class BatRuntimeIdentityRestClientCustomizer
                 || registration.moduleId().isBlank()
                 ? "BAT"
                 : registration.moduleId().trim();
-        headers.set(CpfHeaders.callerService(), callerService);
-        headers.set(CpfHeaders.callerInstanceId(), registration.instanceId());
+        String instanceId = registration.instanceId() == null ? "" : registration.instanceId().trim();
+        headers.set(CpfHeaders.caller(), instanceId.isBlank() ? callerService : callerService + "@" + instanceId);
     }
 }

@@ -1,7 +1,7 @@
 package com.cpf.education.common.utility.controller;
 import com.cpf.foundation.api.page.CpfPage;
 import com.cpf.foundation.api.page.CpfPageRequest;
-import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
+import com.cpf.core.api.transaction.CpfTransactionIdGenerator;
 import com.cpf.foundation.time.CpfDates;
 import com.cpf.foundation.api.page.CpfPages;
 import com.cpf.foundation.util.CpfStrings;

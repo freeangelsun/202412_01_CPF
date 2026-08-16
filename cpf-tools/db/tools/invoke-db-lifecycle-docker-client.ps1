@@ -42,6 +42,8 @@ function Invoke-CpfAdapterMigration {
         Operator = $operator
         Reason = $reason
         ApprovalReference = $approvalReference
+        VerifierOwnedDisposable = [bool]$verifierOwnedDisposable
+        VerifierRunId = $verifierRunId
     }
     & $migrationTool @arguments
 }
@@ -69,6 +71,12 @@ $backupManifestPaths = @($request.backupManifestPaths | ForEach-Object { [string
 $operator = [string]$request.operator
 $reason = [string]$request.reason
 $approvalReference = [string]$request.approvalReference
+$verifierOwnedDisposable = $false
+$verifierProperty = $request.PSObject.Properties['verifierOwnedDisposable']
+if($null -ne $verifierProperty){$verifierOwnedDisposable=[bool]$verifierProperty.Value}
+$verifierRunId = ''
+$runProperty = $request.PSObject.Properties['verifierRunId']
+if($null -ne $runProperty){$verifierRunId=[string]$runProperty.Value}
 [void](Assert-CpfAdapterScalar $operator 'Operator')
 [void](Assert-CpfAdapterScalar $reason 'Reason')
 [void](Assert-CpfAdapterScalar $approvalReference 'ApprovalReference')

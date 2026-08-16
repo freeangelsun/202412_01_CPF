@@ -476,6 +476,15 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         event.put("appVersion", environment.getProperty("cpf.app.version", "local"));
         event.put("buildVersion", environment.getProperty("cpf.build.version", "local"));
         event.put("jvmName", ManagementFactory.getRuntimeMXBean().getName());
+        // Runtime/System/Capability metadata is produced automatically by the CPF runtime usage/context bridge.
+        event.put("systemCode", detail(details, "runtime.systemCode"));
+        event.put("domainCode", detail(details, "runtime.domainCode"));
+        event.put("application", detail(details, "runtime.application"));
+        event.put("module", detail(details, "runtime.module"));
+        event.put("starterIds", detail(details, "capability.starters"));
+        event.put("capabilityIds", detail(details, "capability.ids"));
+        event.put("providers", detail(details, "capability.providers"));
+        event.put("operations", detail(details, "capability.operations"));
         return event;
     }
 

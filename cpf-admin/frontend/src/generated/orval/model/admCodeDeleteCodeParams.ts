@@ -1,2 +1,4 @@
-/** Audited code disable query. */
-export interface AdmCodeDeleteCodeParams { reason: string; }
+/** Generated from OpenAPI query/header parameters. */
+export interface AdmCodeDeleteCodeParams {
+  reason: string;
+}

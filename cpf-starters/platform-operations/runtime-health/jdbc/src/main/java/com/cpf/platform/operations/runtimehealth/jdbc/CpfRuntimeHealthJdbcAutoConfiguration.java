@@ -1,5 +1,5 @@
 package com.cpf.platform.operations.runtimehealth.jdbc;
-import com.cpf.platform.operations.health.api.CpfRuntimeHealthRegistry;
+import com.cpf.platform.operations.api.health.CpfRuntimeHealthRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

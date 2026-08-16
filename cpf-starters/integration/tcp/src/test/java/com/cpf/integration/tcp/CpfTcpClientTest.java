@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -169,22 +170,23 @@ class CpfTcpClientTest {
         RuntimeException failure = CpfTcpClient.classifyTransportFailure(
                 true, "corr-partial", payload, new IOException("partial write"), store);
 
-        assertThat(failure).isInstanceOf(CpfTcpClient.UnknownResultException.class);
-        assertThat(store.find("corr-partial")).isPresent();
+        assertTrue(failure instanceof CpfTcpClient.UnknownResultException);
+        assertTrue(store.find("corr-partial").isPresent());
     }
 
     @Test
     void deterministicFrameValidationHappensBeforeCapacityAndProviderIo() {
-        CpfTcpProperties properties = properties();
+        CpfTcpProperties properties = properties(65535, 1);
         properties.setFrame(CpfTcpProperties.Frame.FIXED);
         properties.setFixedLength(8);
         CpfTcpUnknownResultStore store = new CpfTcpUnknownResultStore(10);
         CpfTcpClient client = new CpfTcpClient(properties, store, null);
 
-        assertThatThrownBy(() -> client.request("corr-invalid", new byte[] {1, 2, 3}))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("before write");
-        assertThat(store.find("corr-invalid")).isEmpty();
+        IllegalArgumentException invalid = assertThrows(
+                IllegalArgumentException.class,
+                () -> client.request("corr-invalid", new byte[] {1, 2, 3}));
+        assertTrue(invalid.getMessage().contains("before write"));
+        assertTrue(store.find("corr-invalid").isEmpty());
     }
 
     @Test
@@ -197,7 +199,7 @@ class CpfTcpClientTest {
                 true, "clocked-timeout", new byte[] {3},
                 new SocketTimeoutException("read timed out"), unknown, clock);
 
-        assertInstanceOf(CpfTcpClient.UnknownResultException.class, failure);
+        assertTrue(failure instanceof CpfTcpClient.UnknownResultException);
         assertEquals(
                 java.time.Instant.parse("2026-08-05T12:00:00Z"),
                 unknown.find("clocked-timeout").orElseThrow().writtenAt());

@@ -342,7 +342,7 @@ public class LocalCpfArchiveService implements CpfArchiveService {
         }
     }
 
-    private static void validateEntry(CpfArchiveEntry entry, CpfArchivePolicy policy, long total) {
+    private static void validateEntry(CpfArchiveEntry entry, CpfArchivePolicy policy, long total) throws IOException {
         CpfZipSlipGuard.safeResolve(policy.allowedBaseDirectory(), entry.name());
         if (entry.size() > policy.maxEntrySizeBytes() || total + entry.size() > policy.maxTotalSizeBytes()) {
             throw new IllegalArgumentException("ARCHIVE_BUDGET_EXCEEDED:" + entry.name());

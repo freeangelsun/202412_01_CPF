@@ -76,7 +76,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "cpf.starter",
+        "capabilityId": "BASE_RUNTIME",
+        "provider": "cpf-starter",
+        "category": "RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:cache:caffeine",
@@ -98,7 +127,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "cache.caffeine",
+        "capabilityId": "CACHE",
+        "provider": "cache-caffeine",
+        "category": "CACHE",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:data:cache:spring-data-redis",
@@ -120,7 +178,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.cache.spring.data.redis",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":starters:cache:redis",
@@ -142,7 +225,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "cache.redis",
+        "capabilityId": "CACHE",
+        "provider": "cache-redis",
+        "category": "CACHE",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:cache:valkey",
@@ -164,7 +276,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "cache.valkey",
+        "capabilityId": "CACHE",
+        "provider": "cache-valkey",
+        "category": "CACHE",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:data:jdbc",
@@ -186,7 +327,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "data.jdbc",
+        "capabilityId": "PERSISTENCE",
+        "provider": "data-jdbc",
+        "category": "DB_RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:data:mybatis",
@@ -208,7 +378,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "data.mybatis",
+        "capabilityId": "PERSISTENCE",
+        "provider": "data-mybatis",
+        "category": "DB_RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:data:jpa",
@@ -230,7 +429,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "data.jpa",
+        "capabilityId": "PERSISTENCE",
+        "provider": "data-jpa",
+        "category": "DB_RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:file:archive",
@@ -251,7 +479,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "file.archive",
+        "capabilityId": "FILE",
+        "provider": "archive",
+        "category": "FILE",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:file:attachment",
@@ -272,7 +529,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "file.attachment",
+        "capabilityId": "FILE",
+        "provider": "attachment",
+        "category": "FILE",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:file:sftp",
@@ -293,7 +579,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "file.sftp",
+        "capabilityId": "FILE",
+        "provider": "sftp",
+        "category": "FILE",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:file:tabular:poi",
@@ -314,7 +629,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "file.tabular.poi",
+        "capabilityId": "FILE",
+        "provider": "tabular-poi",
+        "category": "FILE",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:ai",
@@ -335,7 +679,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.ai",
+        "capabilityId": "INTEGRATION",
+        "provider": "ai",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:fixed-length",
@@ -356,7 +729,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.fixed.length",
+        "capabilityId": "INTEGRATION",
+        "provider": "fixed-length",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:http",
@@ -377,7 +779,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.http",
+        "capabilityId": "INTEGRATION",
+        "provider": "http",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:iso8583",
@@ -398,7 +829,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.iso8583",
+        "capabilityId": "INTEGRATION",
+        "provider": "iso8583",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:resilience",
@@ -419,7 +879,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.resilience",
+        "capabilityId": "RESILIENCE",
+        "provider": "integration-resilience",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:soap",
@@ -440,7 +929,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.soap",
+        "capabilityId": "INTEGRATION",
+        "provider": "soap",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:tcp",
@@ -461,7 +979,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.tcp",
+        "capabilityId": "INTEGRATION",
+        "provider": "tcp",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:integration:webhook",
@@ -482,7 +1029,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "integration.webhook",
+        "capabilityId": "INTEGRATION",
+        "provider": "webhook",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":starters:messaging:ibm-mq",
@@ -503,7 +1079,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.ibm.mq",
+        "capabilityId": "MESSAGING",
+        "provider": "messaging-ibm-mq",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:messaging:jms",
@@ -524,7 +1129,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.jms",
+        "capabilityId": "MESSAGING",
+        "provider": "messaging-jms",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:messaging:kafka",
@@ -545,7 +1179,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.kafka",
+        "capabilityId": "MESSAGING",
+        "provider": "messaging-kafka",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:messaging:rabbitmq",
@@ -566,7 +1229,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.rabbitmq",
+        "capabilityId": "MESSAGING",
+        "provider": "messaging-rabbitmq",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:messaging:reliability:jdbc",
@@ -587,7 +1279,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.reliability.jdbc",
+        "capabilityId": "MESSAGING_RELIABILITY",
+        "provider": "jdbc",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:notification:dispatch",
@@ -608,7 +1329,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "notification.dispatch",
+        "capabilityId": "NOTIFICATION",
+        "provider": "dispatch",
+        "category": "NOTIFICATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:notification:email",
@@ -629,7 +1379,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "notification.email",
+        "capabilityId": "NOTIFICATION",
+        "provider": "email",
+        "category": "NOTIFICATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:notification:sms",
@@ -650,7 +1429,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "notification.sms",
+        "capabilityId": "NOTIFICATION",
+        "provider": "sms",
+        "category": "NOTIFICATION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:platform-operations:channel-registry:jdbc",
@@ -671,7 +1479,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.channel.registry.jdbc",
+        "capabilityId": "SERVICE_REGISTRY",
+        "provider": "jdbc",
+        "category": "OPERATIONS",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:platform-operations:feature-flag:openfeature",
@@ -692,7 +1529,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.feature.flag.openfeature",
+        "capabilityId": "FEATURE_FLAG",
+        "provider": "openfeature",
+        "category": "OPERATIONS",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:platform-operations:observability:otlp",
@@ -713,7 +1579,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.observability.otlp",
+        "capabilityId": "OBSERVABILITY",
+        "provider": "otlp",
+        "category": "OBSERVABILITY",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:platform-operations:runtime-control",
@@ -734,7 +1629,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.runtime.control",
+        "capabilityId": "RUNTIME_CONTROL",
+        "provider": "cpf",
+        "category": "OPERATIONS",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":starters:profiles:batch",
@@ -758,7 +1682,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "batch",
+        "capabilityId": "BATCH_RUNTIME",
+        "provider": "batch",
+        "category": "BATCH",
+        "dedicatedWorkflow": true,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:profiles:bff",
@@ -782,7 +1735,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "bff",
+        "capabilityId": "APPLICATION_PROFILE",
+        "provider": "bff",
+        "category": "RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:profiles:event",
@@ -806,7 +1788,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "event",
+        "capabilityId": "MESSAGING",
+        "provider": "event",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:profiles:secure-api",
@@ -830,7 +1841,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "secure.api",
+        "capabilityId": "APPLICATION_PROFILE",
+        "provider": "secure-api",
+        "category": "RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:profiles:web-api",
@@ -857,7 +1897,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "web.api",
+        "capabilityId": "APPLICATION_PROFILE",
+        "provider": "web-api",
+        "category": "RUNTIME",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:security:audit:jdbc",
@@ -878,7 +1947,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "security.audit.jdbc",
+        "capabilityId": "AUDIT",
+        "provider": "jdbc",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":starters:security:oidc",
@@ -900,7 +1998,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "oidc",
+        "capabilityId": "SECURITY",
+        "provider": "oidc",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": false,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:security:resource-server",
@@ -921,7 +2048,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "security.resource.server",
+        "capabilityId": "SECURITY",
+        "provider": "resource-server",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:security:secret",
@@ -942,7 +2098,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "security.secret",
+        "capabilityId": "SECRET",
+        "provider": "secret",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:security:service-identity",
@@ -963,7 +2148,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "security.service.identity",
+        "capabilityId": "SECURITY",
+        "provider": "service-identity",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":starters:security:session:jdbc",
@@ -985,7 +2199,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "session.jdbc",
+        "capabilityId": "SESSION",
+        "provider": "session-jdbc",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:data:lock:valkey",
@@ -1007,7 +2250,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "lock.valkey",
+        "capabilityId": "DISTRIBUTED_LOCK",
+        "provider": "lock-valkey",
+        "category": "DATA",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:messaging:schema",
@@ -1028,7 +2300,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "messaging.schema",
+        "capabilityId": "MESSAGING_SCHEMA",
+        "provider": "schema",
+        "category": "MESSAGING",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":starters:integration:graphql",
@@ -1050,7 +2351,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "graphql",
+        "capabilityId": "INTEGRATION",
+        "provider": "graphql",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:integration:realtime",
@@ -1072,7 +2402,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "realtime",
+        "capabilityId": "INTEGRATION",
+        "provider": "realtime",
+        "category": "INTEGRATION",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:file:object-storage:s3",
@@ -1094,7 +2453,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "object.storage.s3",
+        "capabilityId": "FILE_STORAGE",
+        "provider": "object-storage-s3",
+        "category": "FILE",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":starters:security:session:valkey",
@@ -1116,7 +2504,36 @@
       "userSelectable": true,
       "runtimeRequired": true,
       "usageLevel": "capability",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "session.valkey",
+        "capabilityId": "SESSION",
+        "provider": "session-valkey",
+        "category": "SECURITY",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":internal:platform-operations:health",
@@ -1137,7 +2554,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.health",
+        "capabilityId": "RUNTIME_HEALTH",
+        "provider": "cpf",
+        "category": "OPERATIONS",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":internal:platform-operations:runtime-health:jdbc",
@@ -1158,7 +2604,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "platform.operations.runtime.health.jdbc",
+        "capabilityId": "RUNTIME_HEALTH",
+        "provider": "jdbc",
+        "category": "OPERATIONS",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": true
+        }
+      }
     },
     {
       "projectPath": ":framework:base-runtime",
@@ -1179,7 +2654,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.base.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":starters:common",
@@ -1200,7 +2700,36 @@
       "userSelectable": true,
       "runtimeRequired": false,
       "usageLevel": "golden",
-      "recommended": true
+      "recommended": true,
+      "management": {
+        "id": "common",
+        "capabilityId": "COMMON_FUNCTION",
+        "provider": "common",
+        "category": "REFERENCE",
+        "dedicatedWorkflow": false,
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        },
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability"
+      }
     },
     {
       "projectPath": ":framework:web",
@@ -1221,7 +2750,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "cpf.web.runtime",
+        "capabilityId": "WEB",
+        "provider": "runtime",
+        "category": "WEB",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": true,
+          "runtimeControl": true,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:data",
@@ -1242,7 +2800,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.data.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:data:persistence",
@@ -1263,7 +2846,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.data.persistence.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:messaging",
@@ -1284,7 +2892,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.messaging.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:integration",
@@ -1305,7 +2938,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.integration.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:file",
@@ -1326,7 +2984,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.file.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:notification",
@@ -1347,7 +3030,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.notification.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:security",
@@ -1368,7 +3076,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.security.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:operations",
@@ -1389,7 +3122,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.platform.operations.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":framework:operations:observability",
@@ -1410,7 +3168,32 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "component.platform.operations.observability.runtime",
+        "capabilityId": "COMPONENT",
+        "provider": "cpf",
+        "category": "COMPONENT",
+        "dedicatedWorkflow": false,
+        "operatorVisible": false,
+        "automaticRegistration": true,
+        "scope": "component",
+        "commonAreas": [
+          "OPERATIONS"
+        ],
+        "supports": {
+          "health": false,
+          "metrics": false,
+          "logs": false,
+          "trace": false,
+          "effectiveConfig": false,
+          "failure": false,
+          "audit": false,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": false
+        }
+      }
     },
     {
       "projectPath": ":internal:data:transaction:jta",
@@ -1431,7 +3214,36 @@
       "userSelectable": false,
       "runtimeRequired": true,
       "usageLevel": "internal",
-      "recommended": false
+      "recommended": false,
+      "management": {
+        "id": "cpf.data.transaction.jta",
+        "capabilityId": "TRANSACTION",
+        "provider": "jta",
+        "category": "TRANSACTION",
+        "dedicatedWorkflow": false,
+        "operatorVisible": true,
+        "automaticRegistration": true,
+        "scope": "capability",
+        "commonAreas": [
+          "OPERATIONS",
+          "LOG_TRACE",
+          "FAILURE_RECOVERY",
+          "CONFIG_POLICY",
+          "AUDIT_CHANGE"
+        ],
+        "supports": {
+          "health": true,
+          "metrics": true,
+          "logs": true,
+          "trace": true,
+          "effectiveConfig": true,
+          "failure": true,
+          "audit": true,
+          "dynamicConfig": false,
+          "runtimeControl": false,
+          "recovery": true
+        }
+      }
     }
   ],
   "providerSlots": {

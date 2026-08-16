@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.health;
 import static org.assertj.core.api.Assertions.assertThat;
-import com.cpf.platform.operations.health.api.*;
+import com.cpf.platform.operations.api.health.*;
 import java.time.*; import java.util.*;
 import org.junit.jupiter.api.Test;
 class AdmHealthInstanceRegistryTest {

@@ -2,6 +2,7 @@
 // Actual callsite coverage is verified separately; registry-only presence is never consumer evidence.
 export const admRouteOperationContract = {
   "dashboard": ["admBatchFindExecutionPage","admPlatformVersion","admRuntimeControlFindHealth","admRuntimeControlFindStatus","findAdmBrokerDlq","findAdmBrokerOutbox","findAdmUnknownResults","getAdmLiveness","getAdmReadiness","getAdmSystemVersion"],
+  "capabilities": ["admCapabilityManagementIssues","admCapabilityManagementOverview"],
   "topology": ["admServiceRegistryFindEndpoints","admServiceRegistryFindHealth","admServiceRegistryFindInstances","admServiceRegistryFindServices"],
   "health-instances": ["admHealthInstanceDetail","admHealthInstanceList"],
   "capacity": ["admRuntimeControlFindHealth","admRuntimeControlFindStatus","findAdmBrokerInbox","findAdmBrokerOutbox","findAdmFileTransferHistory","findAdmIdempotencyRecords"],
@@ -17,7 +18,7 @@ export const admRouteOperationContract = {
   "channelPolicy": ["admChannelExportPackage","admChannelFindSnapshot","admChannelImportPackage","admChannelRefreshSnapshot","admChannelSave","admChannelSaveExecutionPolicy"],
   "serviceRegistry": ["admServiceRegistryCapabilities","admServiceRegistryFindCallHistory","admServiceRegistryFindCircuitStates","admServiceRegistryFindEndpoints","admServiceRegistryFindHealth","admServiceRegistryFindInstances","admServiceRegistryFindRoutingPolicies","admServiceRegistryFindServices","admServiceRegistrySaveEndpoint","admServiceRegistrySaveInstance","admServiceRegistrySaveService"],
   "runtimeControl": ["admRuntimeControlCancelChange","admRuntimeControlChangeGroupMember","admRuntimeControlCreateChange","admRuntimeControlDeleteGroup","admRuntimeControlFindByOperation","admRuntimeControlFindCapabilities","admRuntimeControlFindChange","admRuntimeControlFindGroup","admRuntimeControlFindHealth","admRuntimeControlFindStateCatalog","admRuntimeControlFindStatus","admRuntimeControlPreviewChange","admRuntimeControlPreviewTargets","admRuntimeControlRollbackChange","admRuntimeControlSaveGroup","admRuntimeControlVerifyAudit"],
-  "maintenance": ["admMaintenanceExecuteAction","admMaintenanceFindActions"],
+  "maintenance": ["admApprovalRequest","admMaintenanceFindActions","admServiceRegistryFindInstances"],
   "cache": ["admApprovalRequest","admCacheSummary"],
   "configs": ["admConfigCreateConfig","admConfigDeleteConfig","admConfigFindConfig","admConfigFindConfigs","admConfigUpdateConfig","admParameterReferenceSearch"],
   "responseCodes": ["admResponseCodeCreate","admResponseCodeDelete","admResponseCodeFindAll","admResponseCodeFindOne","admResponseCodeUpdate"],

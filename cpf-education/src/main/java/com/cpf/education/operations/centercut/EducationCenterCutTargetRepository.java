@@ -46,6 +46,42 @@ public class EducationCenterCutTargetRepository implements CenterCutTargetProvid
     }
 
     @Override
+    public String providerKey() {
+        return "refCenterCutTargetProvider";
+    }
+
+    @Override
+    public List<CenterCutTargetProvider.Target> next(
+            String jobId, String snapshotId, String cursor, int limit, Map<String, Object> parameters) {
+        if (limit < 1) {
+            throw new IllegalArgumentException("limit must be positive");
+        }
+        int fetchLimit = Math.min(1000, Math.max(limit, limit * 4));
+        List<CpfCenterCutTarget> candidates = findReadyTargets(jobId, fetchLimit);
+        java.util.ArrayList<CenterCutTargetProvider.Target> page = new java.util.ArrayList<>();
+        boolean afterCursor = cursor == null || cursor.isBlank();
+        for (CpfCenterCutTarget target : candidates) {
+            if (!afterCursor) {
+                if (target.targetId().equals(cursor)) {
+                    afterCursor = true;
+                }
+                continue;
+            }
+            if (page.size() >= limit) {
+                break;
+            }
+            page.add(new CenterCutTargetProvider.Target(
+                    target.businessKey(), target.targetId(), target.payload(), false));
+        }
+        if (!page.isEmpty() && page.size() < limit) {
+            var last = page.get(page.size() - 1);
+            page.set(page.size() - 1, new CenterCutTargetProvider.Target(
+                    last.businessKey(), last.cursor(), last.payload(), true));
+        }
+        return List.copyOf(page);
+    }
+
+    /** 준비 상태의 업무 대상을 조회하며 CPF가 직접 업무 테이블 구조를 알 필요가 없게 한다. */
     public List<CpfCenterCutTarget> findReadyTargets(String centerCutJobId, int limit) {
         return jdbcTemplate.query(
                 statements.findReadyTargets(),
@@ -54,7 +90,7 @@ public class EducationCenterCutTargetRepository implements CenterCutTargetProvid
                 Math.max(1, limit));
     }
 
-    @Override
+    /** 실행권을 확보한 대상만 RUNNING으로 전이하여 중복 처리 경계를 명확히 한다. */
     public void markRunning(CpfCenterCutTarget target) {
         int updated = jdbcTemplate.update(
                 statements.markRunning(),
@@ -68,7 +104,7 @@ public class EducationCenterCutTargetRepository implements CenterCutTargetProvid
         }
     }
 
-    @Override
+    /** CPF 실행 결과와 업무 결과 원장을 함께 갱신해 최종 대사와 복구 추적을 가능하게 한다. */
     public void markResult(CpfCenterCutTarget target, CpfCenterCutResult result) {
         String statusCode = result.status().name();
         String errorMessage = result.status() == CpfCenterCutStatus.FAILED ? result.message() : null;

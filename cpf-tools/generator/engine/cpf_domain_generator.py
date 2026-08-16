@@ -552,6 +552,8 @@ plugins {{
     id 'io.spring.dependency-management' version '{dm}'
 }}
 
+group = '{d.package_name}'
+
 dependencies {{
 {shared}    implementation platform("com.cpf:cpf-platform-bom:${{cpfPlatformVersion}}")
 {lines}

@@ -71,6 +71,13 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String wasId,
             String serverInstanceId,
             String hostName,
+            String systemCode,
+            String domainCode,
+            String application,
+            String starterId,
+            String capabilityId,
+            String provider,
+            String operation,
             int limit) {
 
         StringBuilder sql = new StringBuilder("""
@@ -101,7 +108,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     START_TIME,
                     END_TIME,
                     DURATION_MS
-                FROM cpf_transaction_log
+                FROM cpf_transaction_log l
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -122,6 +129,13 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         appendEquals(sql, args, "WAS_ID", wasId);
         appendEquals(sql, args, "SERVER_INSTANCE_ID", serverInstanceId);
         appendEquals(sql, args, "HOST_NAME", hostName);
+        appendDetailLike(sql, args, "runtime.systemCode", systemCode);
+        appendDetailLike(sql, args, "runtime.domainCode", domainCode);
+        appendDetailLike(sql, args, "runtime.application", application);
+        appendDetailLike(sql, args, "capability.starters", starterId);
+        appendDetailLike(sql, args, "capability.ids", capabilityId);
+        appendDetailLike(sql, args, "capability.providers", provider);
+        appendDetailLike(sql, args, "capability.operations", operation);
         sql.append(" ORDER BY LOG_IDX DESC");
 
         return AdmJdbcQueries.queryForList(
@@ -164,6 +178,14 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         response.put("request", formatValue("request", value(summary.get("REQUEST_BODY")), details));
         response.put("response", formatValue("response", value(summary.get("RESPONSE")), details));
         response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE")), details));
+        Map<String, Object> managementContext = new LinkedHashMap<>();
+        for (String key : List.of("runtime.systemCode", "runtime.domainCode", "runtime.application", "runtime.module",
+                "runtime.instanceId", "runtime.wasId", "capability.starters", "capability.ids",
+                "capability.providers", "capability.operations")) {
+            String found = value(findDetail(details, key));
+            if (CpfStrings.hasText(found)) managementContext.put(key, found);
+        }
+        response.put("managementContext", managementContext);
         response.put("formattedDetails", details.stream()
                 .map(row -> formatValue(value(row.get("DETAIL_KEY")), value(row.get("DETAIL_VALUE")), details))
                 .toList());
@@ -241,6 +263,14 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     private boolean isFixedLengthKey(String key) {
         String normalized = key == null ? "" : key.toLowerCase();
         return normalized.contains("fixed") || normalized.contains("telegram") || normalized.contains("전문");
+    }
+
+    private void appendDetailLike(StringBuilder sql, List<Object> args, String detailKey, String value) {
+        if (CpfStrings.hasText(value)) {
+            sql.append(" AND EXISTS (SELECT 1 FROM cpf_transaction_log_detail d WHERE d.LOG_IDX = l.LOG_IDX AND d.DETAIL_KEY = ? AND d.DETAIL_VALUE LIKE ?)");
+            args.add(detailKey);
+            args.add("%" + value.trim() + "%");
+        }
     }
 
     private void appendLike(StringBuilder sql, List<Object> args, String column, String value) {

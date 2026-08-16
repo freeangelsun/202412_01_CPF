@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -22,6 +23,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class CpfJdbcStarterAutoConfiguration {
     @Bean
     @ConditionalOnBean({DataSource.class, PlatformTransactionManager.class})
+    @ConditionalOnSingleCandidate(DataSource.class)
+    @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
     @ConditionalOnMissingBean(CpfJdbcOperations.class)
     CpfJdbcOperations cpfJdbcOperations(
             DataSource dataSource,
@@ -36,12 +39,12 @@ public class CpfJdbcStarterAutoConfiguration {
         return () -> {
             properties.validate();
             if (!properties.isEnabled()) return;
-            DataSource dataSource = dataSources.getIfAvailable();
-            if (dataSource == null) {
+            java.util.List<DataSource> candidates = dataSources.orderedStream().toList();
+            if (candidates.isEmpty()) {
                 if (properties.isRequired()) throw new IllegalStateException("CPF JDBC starter is enabled but no DataSource exists");
                 return;
             }
-            validate(dataSource, properties);
+            for (DataSource dataSource : candidates) validate(dataSource, properties);
         };
     }
 
@@ -49,10 +52,14 @@ public class CpfJdbcStarterAutoConfiguration {
     HealthIndicator cpfJdbcHealthIndicator(CpfJdbcStarterProperties properties, ObjectProvider<DataSource> dataSources) {
         return () -> {
             if (!properties.isEnabled()) return Health.unknown().withDetail("enabled", false).build();
-            DataSource dataSource = dataSources.getIfAvailable();
-            if (dataSource == null) return Health.down().withDetail("error", "missing DataSource").build();
-            try { validate(dataSource, properties); return Health.up().build(); }
-            catch (RuntimeException ex) { return Health.down(ex).build(); }
+            java.util.List<DataSource> candidates = dataSources.orderedStream().toList();
+            if (candidates.isEmpty()) return Health.down().withDetail("error", "missing DataSource").build();
+            try {
+                for (DataSource dataSource : candidates) validate(dataSource, properties);
+                return Health.up().withDetail("dataSourceCount", candidates.size()).build();
+            } catch (RuntimeException ex) {
+                return Health.down(ex).withDetail("dataSourceCount", candidates.size()).build();
+            }
         };
     }
 

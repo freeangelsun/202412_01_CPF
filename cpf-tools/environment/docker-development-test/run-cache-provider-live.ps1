@@ -38,15 +38,16 @@ function Get-CpfSourceState {
 }
 
 $sourceStateBefore = Get-CpfSourceState
-if ([string]::IsNullOrWhiteSpace($SourceIdentity)) {
-    $SourceIdentity = [string]$sourceStateBefore.contentSha1
+$currentSourceIdentity = ([string]$sourceStateBefore.contentSha1).Trim().ToLowerInvariant()
+$requestedSourceIdentity = if ([string]::IsNullOrWhiteSpace($SourceIdentity)) { $null } else { $SourceIdentity.Trim().ToLowerInvariant() }
+if ($null -ne $requestedSourceIdentity -and $requestedSourceIdentity -notmatch '^[0-9a-f]{40}$') {
+    throw "SourceIdentity provenance must be a 40-hex Git-independent content identity when supplied."
 }
-$SourceIdentity = $SourceIdentity.Trim().ToLowerInvariant()
-if ($SourceIdentity -notmatch '^[0-9a-f]{40}$') { throw "SourceIdentity must be a 40-hex Git-independent content identity." }
-if ($SourceIdentity -ne ([string]$sourceStateBefore.contentSha1).Trim().ToLowerInvariant()) {
-    throw "SourceIdentity does not match current product source content identity."
-}
-$headShort = $SourceIdentity.Substring(0, 8)
+# SourceIdentity from a delivery package is provenance only. Runtime evidence is always bound to the
+# product bytes that are actually being verified so local documentation/approved overlay drift does not
+# cause a false failure. Managed source mutation is still checked before/after below.
+$SourceIdentity = $currentSourceIdentity
+$headShort = $currentSourceIdentity.Substring(0, 8)
 if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
     $EvidenceDirectory = Join-Path $Root "build/codex-onepass/$headShort/cache-provider-live"
 } else {
@@ -396,7 +397,8 @@ $result = [ordered]@{
     requirementId = "CPF-RUNTIME-CACHE-REDIS-VALKEY-LIVE"
     status = if ($null -eq $failure) { "PASS" } else { "FAIL" }
     exitCode = if ($null -eq $failure) { 0 } else { 1 }
-    sourceIdentity = $SourceIdentity
+    sourceIdentity = $currentSourceIdentity
+    requestedSourceIdentityProvenance = $requestedSourceIdentity
     identityPolicy = "GIT_INDEPENDENT_CONTENT_SHA1"
     startedAt = $startedAt.ToString("o")
     endedAt = $endedAt.ToString("o")

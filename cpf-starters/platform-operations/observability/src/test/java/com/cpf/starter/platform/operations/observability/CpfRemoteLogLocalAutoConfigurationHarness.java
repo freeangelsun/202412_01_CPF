@@ -78,6 +78,8 @@ public final class CpfRemoteLogLocalAutoConfigurationHarness {
 
     private record MapEnvironment(Map<String, Object> values) implements Environment {
         @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
+        @SuppressWarnings("deprecation")
+        @Override public boolean acceptsProfiles(String... profiles) { return false; }
         @Override public String getProperty(String key) {
             Object value = values.get(key);
             return value == null ? null : String.valueOf(value);

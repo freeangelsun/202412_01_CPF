@@ -44,3 +44,10 @@ NXT3는 Windows에서 aggregate 22/22도 다시 확인한다. Docker가 정상�
 ## 종료 조건
 
 FAIL 0 + 필수 Runtime PASS + 영향도 재검수 PASS + Fresh Apply/Evidence fail-closed + QA 최종 통과 전에는 전체 완료가 아니다.
+
+## 다음 세션 강제 작업 루틴 — 로컬 검증과 병행
+
+사용자가 `로컬 적용`, `로컬 전달`, `FullLocal 실행 중`이라고 알리면 다음 세션은 대기하지 않는다. 현재 적용 Source를 내부 기준으로 즉시 재구성하여 다음 개발 사이클의 정적·기능·보안·계약·오케스트레이터·Evidence 검수와 다음 로컬 Stage 준비를 병행한다. 로컬 결과가 도착하면 그 결과만 기존 선행검수에 병합해 Root Cause 단위 재개발을 이어간다.
+
+선행 작업은 별도 ZIP으로 중간 전달하지 않는다. 다음 로컬 결과까지 합친 뒤 한 번의 Overlay에 최대 범위를 묶는다. Runtime 전용 항목만 로컬 Evidence로 닫고, 현재 환경에서 확인 가능한 결함은 미리 수정·재검수한다.
+

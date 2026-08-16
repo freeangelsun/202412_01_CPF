@@ -86,7 +86,7 @@ public final class CpfNotificationWorker {
                     outbox.retry(request.notificationId(), safe(result.detail()), now.plus(properties.retryDelay()));
                     retried++;
                 }
-            } catch (RuntimeException exception) {
+            } catch (Exception exception) {
                 // The transport may have accepted the request before failing locally.
                 // Preserve UNKNOWN and reconcile before any re-send to avoid duplicates.
                 outbox.markUnknown(
@@ -135,7 +135,7 @@ public final class CpfNotificationWorker {
                     outbox.retry(request.notificationId(), safe(result.detail()), now.plus(properties.retryDelay()));
                     retried++;
                 }
-            } catch (RuntimeException exception) {
+            } catch (Exception exception) {
                 outbox.markUnknown(
                         CpfNotificationResult.unknown(request.notificationId(), provider.channel(), safe(exception)),
                         now.plus(properties.unknownReconcileDelay()));

@@ -35,7 +35,6 @@ public class EducationNeutralExternalSimulatorController extends EducationBaseCo
     @GetMapping("/response")
     @CpfOnlineTransaction(
             id = "OEDUEX0001", name = "EDU 외부연계 시뮬레이터", ownerDomain = "EDU",
-            description = "로컬 교육 환경에서 정상·지연·오류 응답을 재현합니다.",
             visibility = "INTERNAL", gatewayAllowed = false)
     @Operation(operationId = "simulateNeutralExternalResponse", summary = "중립 외부 시스템 응답 시뮬레이션")
     /** response 작업을 CPF 표준 계약에 따라 수행한다. */
@@ -56,7 +55,6 @@ public class EducationNeutralExternalSimulatorController extends EducationBaseCo
     @PostMapping("/executions")
     @CpfOnlineTransaction(
             id = "OEDUEX0002", name = "EDU 대외요청실행", ownerDomain = "EDU",
-            description = "EDU 로컬 교육용 대외 요청을 멱등 키와 기관 요청 ID로 접수합니다.",
             visibility = "INTERNAL", gatewayAllowed = false)
     @Operation(operationId = "executeNeutralExternalRequest", summary = "중립 외부 시스템 요청 실행")
     /** execute 작업을 CPF 표준 계약에 따라 수행한다. */
@@ -82,7 +80,6 @@ public class EducationNeutralExternalSimulatorController extends EducationBaseCo
     @GetMapping("/results/{externalRequestId}")
     @CpfOnlineTransaction(
             id = "OEDUEX0003", name = "EDU 대외결과조회", ownerDomain = "EDU",
-            description = "기관 요청 ID로 앞서 처리한 결과를 재조회합니다.",
             visibility = "INTERNAL", gatewayAllowed = false)
     @Operation(operationId = "findNeutralExternalResult", summary = "중립 외부 시스템 결과 조회")
     /** result 작업을 CPF 표준 계약에 따라 수행한다. */

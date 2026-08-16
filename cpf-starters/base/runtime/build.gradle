@@ -19,6 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.slf4j:slf4j-api'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     // XA/JTA is an opt-in feature. These dependencies MUST NOT leak into Base main runtime.

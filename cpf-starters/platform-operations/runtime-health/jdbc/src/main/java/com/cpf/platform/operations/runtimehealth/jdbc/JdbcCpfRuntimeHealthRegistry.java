@@ -1,17 +1,40 @@
 package com.cpf.platform.operations.runtimehealth.jdbc;
-import com.cpf.platform.operations.health.api.*;
+
+import com.cpf.platform.operations.api.health.CpfRuntimeHealth;
+import com.cpf.platform.operations.api.health.CpfRuntimeHealthRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+/** DB-backed canonical Runtime Health registry. observedAt 기준으로 stale overwrite를 방지합니다. */
 public final class JdbcCpfRuntimeHealthRegistry implements CpfRuntimeHealthRegistry {
- private final JdbcTemplate jdbc; private final ObjectMapper json;
- public JdbcCpfRuntimeHealthRegistry(JdbcTemplate jdbc,ObjectMapper json){this.jdbc=Objects.requireNonNull(jdbc);this.json=Objects.requireNonNull(json);}
- @Override public void report(CpfRuntimeHealth h,Instant at){Objects.requireNonNull(h);Objects.requireNonNull(at);String payload=encode(h);int n=jdbc.update("update CPF_RUNTIME_INSTANCE_HEALTH set VERSION=?,BUILD_SHA=?,STARTED_AT=?,UPTIME_MS=?,LAST_SEEN_AT=?,LIVENESS=?,READINESS=?,STARTUP=?,DRAINING=?,MAINTENANCE=?,PAYLOAD_JSON=? where SYSTEM_ID=? and INSTANCE_ID=?",h.version(),h.buildSha(),h.startedAt(),h.uptimeMillis(),at,h.liveness().name(),h.readiness().name(),h.startup().name(),h.draining()?1:0,h.maintenance()?1:0,payload,h.systemId(),h.instanceId());if(n==0)jdbc.update("insert into CPF_RUNTIME_INSTANCE_HEALTH(SYSTEM_ID,INSTANCE_ID,VERSION,BUILD_SHA,STARTED_AT,UPTIME_MS,LAST_SEEN_AT,LIVENESS,READINESS,STARTUP,DRAINING,MAINTENANCE,PAYLOAD_JSON) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",h.systemId(),h.instanceId(),h.version(),h.buildSha(),h.startedAt(),h.uptimeMillis(),at,h.liveness().name(),h.readiness().name(),h.startup().name(),h.draining()?1:0,h.maintenance()?1:0,payload);}
- @Override public Optional<Report> find(String s,String i){var v=jdbc.query("select PAYLOAD_JSON,LAST_SEEN_AT from CPF_RUNTIME_INSTANCE_HEALTH where SYSTEM_ID=? and INSTANCE_ID=?",(rs,n)->new Report(decode(rs.getString(1)),rs.getTimestamp(2).toInstant()),s,i);return v.stream().findFirst();}
- @Override public List<Report> search(String s,String readiness,int off,int lim){StringBuilder q=new StringBuilder("select PAYLOAD_JSON,LAST_SEEN_AT from CPF_RUNTIME_INSTANCE_HEALTH where 1=1");List<Object> p=new ArrayList<>();if(s!=null&&!s.isBlank()){q.append(" and SYSTEM_ID=?");p.add(s);}if(readiness!=null&&!readiness.isBlank()){q.append(" and READINESS=?");p.add(readiness.trim().toUpperCase(Locale.ROOT));}q.append(" order by LAST_SEEN_AT desc");var all=jdbc.query(q.toString(),(rs,n)->new Report(decode(rs.getString(1)),rs.getTimestamp(2).toInstant()),p.toArray());return all.stream().skip(Math.max(0,off)).limit(Math.min(500,Math.max(1,lim))).toList();}
- @Override public long count(String s,String readiness){StringBuilder q=new StringBuilder("select count(*) from CPF_RUNTIME_INSTANCE_HEALTH where 1=1");List<Object> p=new ArrayList<>();if(s!=null&&!s.isBlank()){q.append(" and SYSTEM_ID=?");p.add(s);}if(readiness!=null&&!readiness.isBlank()){q.append(" and READINESS=?");p.add(readiness.trim().toUpperCase(Locale.ROOT));}Long n=jdbc.queryForObject(q.toString(),Long.class,p.toArray());return n==null?0:n;}
- @Override public int purgeBefore(Instant cutoff){return jdbc.update("delete from CPF_RUNTIME_INSTANCE_HEALTH where LAST_SEEN_AT < ?",java.sql.Timestamp.from(cutoff));}
- private String encode(CpfRuntimeHealth h){try{return json.writeValueAsString(h);}catch(Exception e){throw new IllegalStateException("health JSON serialization failed",e);}}
- private CpfRuntimeHealth decode(String p){try{return json.readValue(p,CpfRuntimeHealth.class);}catch(Exception e){throw new IllegalStateException("health JSON decode failed",e);}}
+    private final JdbcTemplate jdbc;
+    private final ObjectMapper json;
+    public JdbcCpfRuntimeHealthRegistry(JdbcTemplate jdbc,ObjectMapper json){this.jdbc=Objects.requireNonNull(jdbc);this.json=Objects.requireNonNull(json);}
+
+    @Override public void upsert(CpfRuntimeHealth h){
+        Objects.requireNonNull(h,"health");
+        Optional<CpfRuntimeHealth> current=find(h.systemId(),h.instanceId());
+        if(current.isPresent() && current.get().observedAt().isAfter(h.observedAt())) return;
+        String payload=encode(h);
+        int n=jdbc.update("update CPF_RUNTIME_INSTANCE_HEALTH set VERSION=?,BUILD_SHA=?,STARTED_AT=?,UPTIME_MS=?,LAST_SEEN_AT=?,LIVENESS=?,READINESS=?,STARTUP=?,DRAINING=?,MAINTENANCE=?,PAYLOAD_JSON=? where SYSTEM_ID=? and INSTANCE_ID=?",
+                h.version(),h.buildSha(),h.startedAt(),h.uptimeMillis(),h.observedAt(),h.liveness().name(),h.readiness().name(),h.startup().name(),h.draining()?1:0,h.maintenance()?1:0,payload,h.systemId(),h.instanceId());
+        if(n==0) jdbc.update("insert into CPF_RUNTIME_INSTANCE_HEALTH(SYSTEM_ID,INSTANCE_ID,VERSION,BUILD_SHA,STARTED_AT,UPTIME_MS,LAST_SEEN_AT,LIVENESS,READINESS,STARTUP,DRAINING,MAINTENANCE,PAYLOAD_JSON) values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                h.systemId(),h.instanceId(),h.version(),h.buildSha(),h.startedAt(),h.uptimeMillis(),h.observedAt(),h.liveness().name(),h.readiness().name(),h.startup().name(),h.draining()?1:0,h.maintenance()?1:0,payload);
+    }
+
+    @Override public Optional<CpfRuntimeHealth> find(String systemId,String instanceId){
+        return jdbc.query("select PAYLOAD_JSON from CPF_RUNTIME_INSTANCE_HEALTH where SYSTEM_ID=? and INSTANCE_ID=?",
+                (rs,n)->decode(rs.getString(1)),systemId,instanceId).stream().findFirst();
+    }
+
+    @Override public List<CpfRuntimeHealth> list(){
+        return List.copyOf(jdbc.query("select PAYLOAD_JSON from CPF_RUNTIME_INSTANCE_HEALTH order by SYSTEM_ID,INSTANCE_ID",
+                (rs,n)->decode(rs.getString(1))));
+    }
+
+    private String encode(CpfRuntimeHealth h){try{return json.writeValueAsString(h);}catch(Exception e){throw new IllegalStateException("health JSON serialization failed",e);}}
+    private CpfRuntimeHealth decode(String p){try{return json.readValue(p,CpfRuntimeHealth.class);}catch(Exception e){throw new IllegalStateException("health JSON decode failed",e);}}
 }

@@ -1,7 +1,8 @@
 param(
     [string]$DockerRoot = "C:\dev\Docker",
     [string]$RepoRoot = "C:\dev\projects\jck\202412_01_CPF",
-    [string]$SourceIdentity = $env:CPF_SOURCE_SHA
+    [string]$SourceIdentity = $env:CPF_SOURCE_SHA,
+    [string]$EvidenceDirectory = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,7 +29,7 @@ function Invoke-CrlfPing {
 }
 
 $cpfRoot = Join-Path $DockerRoot "CPF"
-$evidenceRoot = Join-Path $cpfRoot "output\qa39-runtime"
+$evidenceRoot = if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) { Join-Path $cpfRoot "output\qa39-runtime" } else { [IO.Path]::GetFullPath($EvidenceDirectory) }
 New-Item -ItemType Directory -Path $evidenceRoot -Force | Out-Null
 $proxyUri = "http://127.0.0.1:8474/proxies/cpf_tcp_crlf"
 $toxicUri = "$proxyUri/toxics"

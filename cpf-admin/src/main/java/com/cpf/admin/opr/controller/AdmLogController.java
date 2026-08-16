@@ -38,7 +38,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
     @CpfOnlineTransaction(id = "OADMOP0001", name = "ADMTransactionLogList", ownerDomain="ADM")
     @Operation(operationId = "admLogFindLogs",
             summary = "거래 로그 목록 조회",
-            description = "transactionId, traceId, Module/System 영역, wasId, serverInstanceId, hostName, URI, 응답코드 기준으로 모든 Domain의 CPF DB 로그를 통합 검색합니다.")
+            description = "transactionId/traceId와 자동 수집된 system/domain/application/instance/starter/capability/provider/operation 메타데이터를 기준으로 모든 Domain의 CPF DB 로그를 통합 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
 
@@ -55,6 +55,13 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             @RequestParam(required = false) String wasId,
             @RequestParam(required = false) String serverInstanceId,
             @RequestParam(required = false) String hostName,
+            @RequestParam(required = false) String systemCode,
+            @RequestParam(required = false) String domainCode,
+            @RequestParam(required = false) String application,
+            @RequestParam(required = false) String starterId,
+            @RequestParam(required = false) String capabilityId,
+            @RequestParam(required = false) String provider,
+            @RequestParam(required = false) String operation,
             @RequestParam(defaultValue = "50") int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
@@ -62,7 +69,8 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             response.put("items", logQueryService.findLogs(
                     transactionId, traceId, businessTransactionId, memberNo, customerNo,
                     uri, responseCode, httpStatus, channelCode, logType,
-                    moduleId, wasId, serverInstanceId, hostName, limit));
+                    moduleId, wasId, serverInstanceId, hostName,
+                    systemCode, domainCode, application, starterId, capabilityId, provider, operation, limit));
         } catch (DataAccessException ex) {
             log.error("ADM transaction log query failed.", ex);
             response.put("available", false);

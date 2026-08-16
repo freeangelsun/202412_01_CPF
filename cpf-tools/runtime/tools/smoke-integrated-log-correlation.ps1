@@ -22,6 +22,8 @@ if ([string]::IsNullOrWhiteSpace($LogBasePath)) { $LogBasePath = Join-Path $Root
 if ([string]::IsNullOrWhiteSpace($RuntimeLogRoot)) { $RuntimeLogRoot = Join-Path $Root 'build\cpf-local-runtime\logs' }
 if ([string]::IsNullOrWhiteSpace($ResultPath)) { $ResultPath = Join-Path $Root 'build\runtime-smoke\integrated-log-correlation-result.json' }
 [IO.Directory]::CreateDirectory((Split-Path -Parent $ResultPath)) | Out-Null
+$ValidationStartedUtc = [DateTime]::UtcNow
+$EvidenceRoot = Split-Path -Parent $ResultPath
 
 function Get-SafeProperty([object]$Object,[string]$Name,[object]$Default=$null) {
     if ($null -eq $Object) { return $Default }
@@ -47,7 +49,7 @@ function Find-TextFiles([string[]]$Roots) {
         if ([string]::IsNullOrWhiteSpace($candidate) -or -not (Test-Path -LiteralPath $candidate)) { continue }
         if (Test-Path -LiteralPath $candidate -PathType Leaf) { [void]$files.Add((Get-Item -LiteralPath $candidate)); continue }
         Get-ChildItem -LiteralPath $candidate -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
-            if ($_.Length -le 50MB) { [void]$files.Add($_) }
+            if ($_.Length -le 10MB -and $_.LastWriteTimeUtc -ge $ValidationStartedUtc.AddSeconds(-5)) { [void]$files.Add($_) }
         }
     }
     return @($files)
@@ -58,7 +60,9 @@ function Find-CorrelationInFiles([IO.FileInfo[]]$Files,[string]$TransactionId,[s
         try {
             $content = [IO.File]::ReadAllText($file.FullName,[Text.Encoding]::UTF8)
             if ($content.Contains($TransactionId) -and $content.Contains($TraceId)) {
-                [void]$matches.Add([ordered]@{ path=$file.FullName.Substring($Root.Length).TrimStart('\\','/'); sizeBytes=$file.Length })
+                $matchedLines=@([IO.File]::ReadLines($file.FullName,[Text.Encoding]::UTF8) | Where-Object { $_.Contains($TransactionId) -and $_.Contains($TraceId) } | Select-Object -First 50)
+                $relativePath=if($file.FullName.StartsWith($Root,[StringComparison]::OrdinalIgnoreCase)){$file.FullName.Substring($Root.Length).TrimStart('\','/')}else{$file.Name}
+                [void]$matches.Add([ordered]@{ path=$file.FullName; relativePath=$relativePath; sizeBytes=$file.Length; lines=$matchedLines })
             }
         } catch { }
     }
@@ -79,6 +83,27 @@ function Test-RawSecretLeak([IO.FileInfo[]]$Files,[string[]]$Secrets) {
     }
     return @($findings)
 }
+function Test-ContainsSecret([string]$Text,[string[]]$Secrets) {
+    foreach($secret in $Secrets){
+        if(-not [string]::IsNullOrWhiteSpace($secret) -and $secret.Length -ge 6 -and $Text.Contains($secret)){ return $true }
+    }
+    return $false
+}
+function Write-SafeJsonEvidence([string]$Name,[object]$Value,[string[]]$Secrets) {
+    $path=Join-Path $EvidenceRoot $Name
+    $text=($Value | ConvertTo-Json -Depth 40) + "`n"
+    if(Test-ContainsSecret $text $Secrets){ return [ordered]@{name=$Name;written=$false;reason='RAW_SECRET_DETECTED'} }
+    [IO.File]::WriteAllText($path,$text,$Utf8NoBom)
+    return [ordered]@{name=$Name;written=$true;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant();sizeBytes=(Get-Item -LiteralPath $path).Length}
+}
+function Write-SafeTextEvidence([string]$Name,[string[]]$Lines,[string[]]$Secrets) {
+    $path=Join-Path $EvidenceRoot $Name
+    $text=(@($Lines) -join [Environment]::NewLine) + [Environment]::NewLine
+    if(Test-ContainsSecret $text $Secrets){ return [ordered]@{name=$Name;written=$false;reason='RAW_SECRET_DETECTED'} }
+    [IO.File]::WriteAllText($path,$text,$Utf8NoBom)
+    return [ordered]@{name=$Name;written=$true;sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant();sizeBytes=(Get-Item -LiteralPath $path).Length}
+}
+
 function Save-Result([hashtable]$Result) {
     $Result.finishedAt = (Get-Date).ToString('o')
     [IO.File]::WriteAllText($ResultPath,($Result | ConvertTo-Json -Depth 40)+"`n",$Utf8NoBom)
@@ -96,6 +121,7 @@ $result = [ordered]@{
     recovery=[ordered]@{ status='NOT_EXECUTED'; pending=$null; quarantined=$null; terminalLoss=$null; alertState=$null }
     security=[ordered]@{ status='NOT_EXECUTED'; rawSecretLeakCount=0; fatalRuntimeMarkerCount=0 }
     upstreamEvidence=[ordered]@{}
+    evidenceFiles=@()
 }
 
 $admPassword=[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')
@@ -143,8 +169,11 @@ try {
     $logFiles=Find-TextFiles @($LogBasePath)
     $fileMatches=Find-CorrelationInFiles $logFiles $transactionId $traceId
     $result.fileLog.matchCount=$fileMatches.Count
-    $result.fileLog.files=$fileMatches
-    $result.fileLog.status=if($fileMatches.Count -gt 0){'PASS'}else{'FAIL'}
+    $fileEvidenceLines=@($fileMatches | ForEach-Object { @($_.lines) } | Select-Object -First 100)
+    $fileEvidence=Write-SafeTextEvidence 'file-log-transaction.ndjson' $fileEvidenceLines @($admPassword,$accessToken)
+    $result.evidenceFiles+=,$fileEvidence
+    $result.fileLog.files=@($fileMatches | ForEach-Object { [ordered]@{relativePath=$_.relativePath;sizeBytes=$_.sizeBytes;matchingLineCount=@($_.lines).Count} })
+    $result.fileLog.status=if($fileMatches.Count -gt 0 -and [bool]$fileEvidence.written){'PASS'}else{'FAIL'}
 
     $dbItems=@(Get-SafeProperty $dbResponse 'items' @())
     $result.dbLog.itemCount=$dbItems.Count
@@ -161,6 +190,10 @@ try {
     $timelineText=if($null -ne $timeline){$timeline|ConvertTo-Json -Depth 30 -Compress}else{''}
     $result.admTimeline.traceLinked=($obsText.Contains($traceId) -or $timelineText.Contains($traceId))
     $result.admTimeline.status=if($result.admTimeline.transactionLogCount -gt 0 -and $result.admTimeline.traceLinked){'PASS'}else{'FAIL'}
+
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'db-log-transaction.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;items=$dbCorrelated}) @($admPassword,$accessToken))
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'adm-observability-transaction.json' $obs @($admPassword,$accessToken))
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'adm-timeline-transaction.json' $timeline @($admPassword,$accessToken))
 
     $recoveryObj=Get-SafeProperty $recovery 'recovery' $null
     $result.recovery.pending=Get-SafeProperty $recoveryObj 'pending' $null
@@ -196,7 +229,12 @@ try {
     $result.security.fatalRuntimeFiles=@($fatalFiles)
     $result.security.status=if($leaks.Count -eq 0 -and $fatalFiles.Count -eq 0){'PASS'}else{'FAIL'}
 
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'masking-scan.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;rawSecretLeakCount=$leaks.Count;fatalRuntimeMarkerCount=$fatalFiles.Count;status=$result.security.status}) @())
+    $result.evidenceFiles+=,(Write-SafeJsonEvidence 'correlation-matrix.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;fileLogMatches=$result.fileLog.matchCount;dbLogMatches=$result.dbLog.correlatedCount;admTransactionLogs=$result.admTimeline.transactionLogCount;admTimelineSegments=$result.admTimeline.timelineSegmentCount;recoveryStatus=$result.recovery.status;securityStatus=$result.security.status}) @())
+
+    $requiredEvidenceMissing=@($result.evidenceFiles | Where-Object { -not [bool]$_.written }).Count
     $checks=@($result.transactionProbe.status,$result.fileLog.status,$result.dbLog.status,$result.admTimeline.status,$result.recovery.status,$result.security.status,$result.upstreamEvidence.status)
+    if($requiredEvidenceMissing -gt 0){$checks+='FAIL'}
     $result.status=if(@($checks|Where-Object {$_ -ne 'PASS'}).Count -eq 0){'PASS'}else{'FAIL'}
     Save-Result $result
     if($result.status -ne 'PASS'){throw "integrated log correlation failed. result=$ResultPath"}

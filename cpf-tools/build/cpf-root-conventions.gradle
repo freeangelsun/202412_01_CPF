@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.artifacts.ExternalModuleDependency
+import groovy.json.JsonSlurper
 
 /*
  * CPF Root Build Convention.
@@ -15,6 +16,44 @@ def stackInt = { String key -> Integer.parseInt(stack.getProperty(key)) }
 def stackText = { String key -> stack.getProperty(key) }
 
 def cpfPython = providers.environmentVariable('CPF_PYTHON').orElse('python').get()
+
+
+// All canonical Starter/runtime modules publish Runtime/ADM management metadata from one catalog.
+// Public Starters and operator-visible internal providers fail closed when the management contract is missing;
+// foundations are registered as hidden components so CPF still knows what is on the runtime classpath.
+def cpfStarterCatalogFile = file('cpf-tools/generator/contracts/cpf-starter-catalog.json')
+def cpfStarterCatalog = new JsonSlurper().parse(cpfStarterCatalogFile)
+def cpfStarterManagementByProject = (cpfStarterCatalog.modules ?: [])
+        .collectEntries { module -> [(module.projectPath.toString()): module] }
+
+def capabilityPropertiesText = { Map module ->
+    def management = module.management instanceof Map ? module.management : [:]
+    def supports = management.supports instanceof Map ? management.supports : [:]
+    def lines = [
+            "id=${management.id ?: ''}",
+            "starterArtifactId=${module.artifactId ?: ''}",
+            "capability=${management.capabilityId ?: ''}",
+            "provider=${management.provider ?: ''}",
+            "configPrefix=${module.configPrefix ?: ''}",
+            "ownerGroup=${module.ownerGroup ?: ''}",
+            "runtimeRequired=${module.runtimeRequired == true}",
+            "usageLevel=${module.usageLevel ?: ''}",
+            "managementCategory=${management.category ?: 'RUNTIME'}",
+            "dedicatedWorkflow=${management.dedicatedWorkflow == true}",
+            "operatorVisible=${management.operatorVisible == true}",
+            "automaticRegistration=${management.automaticRegistration == true}",
+            "managementScope=${management.scope ?: 'component'}",
+            "commonAreas=${(management.commonAreas ?: []).join(',')}",
+    ]
+    ['health','metrics','logs','trace','effectiveConfig','failure','audit','dynamicConfig','runtimeControl','recovery'].each { key ->
+        lines << "supports.${key}=${supports[key] == true}"
+    }
+    lines << "meta.displayNameKo=${module.displayNameKo ?: module.artifactId ?: ''}"
+    lines << "meta.packageBase=${module.packageBase ?: ''}"
+    lines << "meta.visibility=${module.visibility ?: 'internal'}"
+    lines << "meta.selectionGroup=${module.selectionGroup ?: ''}"
+    return lines.join(System.lineSeparator()) + System.lineSeparator()
+}
 
 // CPF 프로젝트 자원 정책은 gradle/cpf-runtime/{common,profile}.properties 한 곳에서 관리합니다.
 // 모듈별 예외는 해당 모듈의 cpf-resource.properties가 있을 때만 적용합니다.
@@ -92,6 +131,29 @@ allprojects {
 }
 
 subprojects {
+    def cpfManagementModule = cpfStarterManagementByProject[project.path]
+    if (cpfManagementModule != null) {
+        def generatedCapabilityDir = layout.buildDirectory.dir('generated/cpf-runtime-capability')
+        tasks.register('generateCpfRuntimeCapabilityMetadata') {
+            group = 'CPF 50 | 설정'
+            description = 'Canonical Starter Catalog에서 Runtime/ADM Capability metadata를 자동 생성합니다.'
+            inputs.file(rootProject.file('cpf-tools/generator/contracts/cpf-starter-catalog.json'))
+            outputs.file(generatedCapabilityDir.map { it.file('META-INF/cpf/runtime-capability.properties') })
+            doLast {
+                def target = generatedCapabilityDir.get().file('META-INF/cpf/runtime-capability.properties').asFile
+                target.parentFile.mkdirs()
+                target.setText(capabilityPropertiesText(cpfManagementModule as Map), 'UTF-8')
+            }
+        }
+        plugins.withId('java') {
+            sourceSets.main.resources.srcDir(generatedCapabilityDir)
+            tasks.named('processResources') {
+                dependsOn 'generateCpfRuntimeCapabilityMetadata'
+                // Existing source descriptor is a compatibility fixture; canonical generated metadata wins.
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+    }
     plugins.withId('java') {
         // cpf-core를 제외한 Root Build Java Module은 동일한 기술 Stack BOM을 사용합니다.
         // cpf-core는 JDK-only public contract이므로 POM에 dependencyManagement를 노출하지 않습니다.
@@ -278,6 +340,7 @@ registerPythonGate('nxt3RedisValkeyGate', 'cpf-tools/verification/nxt3/verify_re
 registerPythonGate('nxt3RedisValkeyProviderGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_provider_currentization.py')
 registerPythonGate('starterCatalogGate', 'cpf-tools/verification/verify_starter_catalog.py')
 registerPythonGate('developerAdoptionGate', 'cpf-tools/verification/verify_cpf_developer_adoption_contract.py')
+registerPythonGate('capabilityManagementGate', 'cpf-tools/verification/verify_cpf_capability_management_contract.py')
 registerPythonGate('batchDeveloperTop50Gate', 'cpf-tools/verification/verify_cpf_batch_developer_top50.py')
 registerPythonGate('gradleProjectDependencyClosureGate', 'cpf-tools/verification/verify_gradle_project_dependency_closure.py')
 registerPythonGate('gradleLogicalTreeGate', 'cpf-tools/verification/verify-cpf-gradle-logical-tree.py')
@@ -295,7 +358,7 @@ tasks.register('gradleProjectDependencyClosureTest', Exec) {
 // 빠른 정적 품질 Gate. 한 실패가 다른 독립 Gate 실행을 막지 않도록 CI에서는 --continue와 함께 사용합니다.
 tasks.register('qualityGate') {
     group = 'verification'
-    dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'developerAdoptionGate', 'batchDeveloperTop50Gate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
+    dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'developerAdoptionGate', 'capabilityManagementGate', 'batchDeveloperTop50Gate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
             'nxt3GeneratorGate', 'nxt3GeneratedBoundaryGate', 'nxt3AnnotationGate',
             'nxt3AdmBzaGate', 'nxt3FrontendGatewayGate', 'nxt3CommonPropagationGate',
             'nxt3RedisValkeyGate', 'nxt3RedisValkeyProviderGate'

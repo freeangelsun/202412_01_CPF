@@ -36,6 +36,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.ObjectProvider;
@@ -478,6 +479,7 @@ public class LoggingAspect {
             LogPolicyDecision logPolicy,
             boolean traceSampled) {
         Map<String, String> details = new LinkedHashMap<>();
+        addAutomaticManagementMetadata(details, record);
         putDetail(details, "trace.sampled", traceSampled);
         if (!traceSampled) {
             putDetail(details, "transaction.id", record.getTransactionId());
@@ -815,6 +817,41 @@ public class LoggingAspect {
 
     private String compensationYn(CpfWorkflowMetadata metadata) {
         return metadata != null && metadata.isCompensation() ? "Y" : "N";
+    }
+
+
+    /**
+     * CPF가 이미 알고 있는 Runtime/System/Capability metadata를 개발자 입력 없이 모든 거래 로그에 자동 부착합니다.
+     * Header/Body 원문은 기존 LogPolicy/Masking 경계가 소유하며 이 메서드는 식별/운영 metadata만 취급합니다.
+     */
+    private void addAutomaticManagementMetadata(Map<String, String> details, TransactionLogRecord record) {
+        String application = firstConfigured("spring.application.name", "cpf.application", "cpf.app.name");
+        String systemCode = firstConfigured("cpf.system-code", "cpf.system.id", "cpf.generated-domain.system-code");
+        if (!hasText(systemCode)) systemCode = firstText(application, record != null ? record.getModuleId() : null, "CPF");
+        String domainCode = firstConfigured("cpf.domain-code", "cpf.domain.code", "cpf.generated-domain.domain-code");
+        if (!hasText(domainCode)) domainCode = firstConfigured("cpf.generated-domain.system-code");
+        String module = firstConfigured("cpf.framework.module-id", "cpf.module", "cpf.runtime.role");
+        if (!hasText(module) && record != null) module = record.getModuleId();
+
+        putDetail(details, "runtime.systemCode", systemCode);
+        putDetail(details, "runtime.domainCode", domainCode);
+        putDetail(details, "runtime.application", application);
+        putDetail(details, "runtime.module", module);
+        putDetail(details, "runtime.instanceId", record != null ? record.getServerInstanceId() : null);
+        putDetail(details, "runtime.wasId", record != null ? record.getWasId() : null);
+        putDetail(details, "capability.starters", MDC.get("cpf.used.starters"));
+        putDetail(details, "capability.ids", MDC.get("cpf.used.capabilities"));
+        putDetail(details, "capability.providers", MDC.get("cpf.used.providers"));
+        putDetail(details, "capability.operations", MDC.get("cpf.used.operations"));
+    }
+
+    private String firstConfigured(String... keys) {
+        if (keys == null) return null;
+        for (String key : keys) {
+            String value = environment.getProperty(key);
+            if (hasText(value)) return value.trim();
+        }
+        return null;
     }
 
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {

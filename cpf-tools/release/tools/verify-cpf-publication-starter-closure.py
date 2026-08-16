@@ -122,8 +122,15 @@ def verify(root: Path, require_physical: bool = False) -> dict:
     if not publication_script.is_file():
         raise GateError("publication verifier script missing")
     material = publication_script.read_text(encoding="utf-8-sig")
+    starter_kinds_match = re.search(r"\$starterKinds\s*=\s*@\(([^)]*)\)", material, re.MULTILINE)
+    if starter_kinds_match is None:
+        raise GateError("publication verifier Starter kind declaration missing")
+    declared_starter_kinds = set(re.findall(r"['\"]([^'\"]+)['\"]", starter_kinds_match.group(1)))
+    missing_starter_kinds = sorted(STARTER_KINDS - declared_starter_kinds)
+    if missing_starter_kinds:
+        raise GateError(f"publication verifier Starter kinds incomplete: {missing_starter_kinds}")
+
     required_tokens = [
-        "$starterKinds = @('starter-base', 'starter-common', 'starter-profile', 'starter-provider', 'internal-starter')",
         "$artifactCatalog.canonicalStarterCatalog",
         "$canonicalByArtifact",
         "Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Recurse -File",

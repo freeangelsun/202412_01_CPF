@@ -9,6 +9,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('test') { useJUnitPlatform() }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-messaging-kafka' } } }

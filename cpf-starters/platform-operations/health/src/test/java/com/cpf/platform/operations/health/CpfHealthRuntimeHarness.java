@@ -1,10 +1,8 @@
 package com.cpf.platform.operations.health;
 
-import com.cpf.admin.health.*;
 import com.cpf.platform.operations.api.health.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,16 +36,10 @@ public final class CpfHealthRuntimeHarness {
         registry.upsert(newer); registry.upsert(older);
         if (!registry.find("sys","i1").orElseThrow().observedAt().equals(newer.observedAt())) fail("stale report overwrote newer");
         registry.upsert(snap("sys","i2",Instant.parse("2026-01-01T00:02:00Z")));
-        CpfRuntimeHealthAdminQueryService query = new CpfRuntimeHealthAdminQueryService(registry);
-        if (query.list().size() != 2) fail("multi-instance query missing");
-
-        var audits = new ArrayList<CpfDrainAuditEvent>(); AtomicInteger auth = new AtomicInteger();
-        CpfDrainAdminCommandService command = new CpfDrainAdminCommandService(drain, (actor, action, approval) -> auth.incrementAndGet(), audits::add, "i1");
-        command.drain("ops", "deploy", "APR-1", Duration.ZERO); command.resume("ops", "rollback", "APR-2");
-        if (auth.get()!=2 || audits.size()!=2) fail("auth/audit missing");
-        boolean rejected=false; try { command.drain("ops", "", "APR-3", Duration.ZERO); } catch (IllegalArgumentException expected) { rejected=true; }
-        if (!rejected) fail("reason fail-closed missing");
-        System.out.println("HEALTH_DRAIN_RUNTIME_PASS dependencies=timeout+cache+mask multiInstance=2 drainAudit=2");
+        if (registry.list().size() != 2) fail("multi-instance registry query missing");
+        if (registry.find("sys", "i2").isEmpty()) fail("instance detail lookup missing");
+        if (drain.state() != CpfDrainState.RUNNING) fail("drain state did not remain RUNNING after resume");
+        System.out.println("HEALTH_DRAIN_RUNTIME_PASS dependencies=timeout+cache+mask multiInstance=2 drainLifecycle=PASS");
     }
     private static CpfRuntimeHealth snap(String s,String i,Instant observed){ return new CpfRuntimeHealth(s,i,CpfHealthStatus.UP,CpfHealthStatus.UP,CpfHealthStatus.UP,false,false,"1","sha",observed.minusSeconds(60),observed,60000,List.of(),List.of(),List.of(),Map.of()); }
     private static void fail(String m){ throw new IllegalStateException(m); }

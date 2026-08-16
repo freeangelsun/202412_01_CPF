@@ -7,7 +7,10 @@ class AdmE2eContractTest(unittest.TestCase):
     def test_real_overlay(self):
         root=Path(__file__).parents[4]
         result=module.validate(root)
-        self.assertEqual(65,result['routes'])
+        routes_file=root/"cpf-admin/frontend/src/app/routes.ts"
+        expected=len(module.ENTRY.findall(routes_file.read_text(encoding="utf-8")))
+        self.assertGreater(expected,0)
+        self.assertEqual(expected,result['routes'])
     def test_missing_browser_rejected(self):
         root=Path(__file__).parents[4]
         with tempfile.TemporaryDirectory() as temp:

@@ -395,12 +395,16 @@ def validate_global_route_workbench(frontend: Path) -> list[str]:
         if not re.search(pattern, app_text, re.S):
             errors.append(f"global route workbench {label} missing")
 
+    # The shared workbench is deliberately READ ONLY.  Common operational
+    # queries may be projected from the route registry, but owner commands must
+    # remain in typed capability screens so reason/approval/CAS/audit controls
+    # cannot be bypassed by a generic JSON executor.
     workbench_contracts = {
         "typed operation ids": r'defineProps<\{[^}]*operationIds\s*:\s*readonly\s+CpfOperationId\[\]',
-        "descriptor projection": r'props\.operationIds\.map\([^)]*cpfOperationDescriptors\.find\([^)]*operationId\s*===\s*id',
-        "generated invocation": r'admInvokeOperation\((?:descriptor\.operationId|operationId)\s*,\s*\{[^}]*path[^}]*query[^}]*body',
-        "danger dialog": r"<dialog[^>]*:open=[\"']mutationDialogOpen[\"']",
-        "danger explicit confirmation": r"v-model=[\"']mutationConfirmed[\"']",
+        "descriptor projection": r'props\.operationIds[\s\S]*?cpfOperationDescriptors\.find\([^)]*operationId\s*===\s*id',
+        "GET-only descriptor filter": r'filter\([^)]*item\.method\s*===\s*[\"\']GET[\"\']\)',
+        "generated query invocation": r'admInvokeOperation\((?:descriptor\.operationId|operationId)\s*,\s*\{[\s\S]*?path[\s\S]*?query[\s\S]*?\}\)',
+        "mutation rejection": r'descriptor\.method\s*!==\s*[\"\']GET[\"\']',
         "error rendering": r"role=[\"']alert[\"']",
         "result rendering": r"CpfStructuredData[^>]+:value=[\"']result[\"']",
     }
@@ -486,11 +490,13 @@ def validate(
         )
         consumed.update(action_operations)
         direct_clients.update(action_direct_clients)
-        # A verified global workbench is a concrete route consumer: App projects
-        # the current route's expectedOperationIds into a generated descriptor
-        # executor.  Without the verified bridge no operation is credited here.
+        # A verified global workbench is a concrete READ consumer only. App
+        # projects the current route's expectedOperationIds into a generated
+        # GET-only descriptor executor. Mutating commands must still have a
+        # route-specific typed consumer with its owner safety controls.
         if bridge_available:
-            consumed.update(expected)
+            methods = {item.operation_id: item.method for item in descriptors}
+            consumed.update(op for op in expected if methods.get(op) == "GET")
         result = RouteConsumerResult(route_id, component, expected, consumed, set(texts), missing_imports, direct_clients)
         results.append(result)
         if missing_imports and not allow_missing_components:

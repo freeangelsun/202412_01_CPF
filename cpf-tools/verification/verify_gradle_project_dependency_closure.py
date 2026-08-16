@@ -15,6 +15,7 @@ PROJECT_REFERENCE = re.compile(
 PROJECT_DIR_ASSIGNMENT = re.compile(
     r"project\s*\(\s*['\"](:[^'\"]+)['\"]\s*\)\s*\.projectDir\s*=\s*file\s*\(\s*['\"]([^'\"]+)['\"]\s*\)"
 )
+GROUP_ASSIGNMENT = re.compile(r"(?m)^\s*group\s*=\s*[\'\"]([^\'\"]+)[\'\"]")
 
 
 def production_project_targets(text: str) -> list[str]:
@@ -33,6 +34,27 @@ def production_project_targets(text: str) -> list[str]:
 def normalized_project_path(value: str) -> str:
     value = value.strip()
     return value if value.startswith(":") else f":{value}"
+
+
+def project_group(text: str) -> str | None:
+    match = GROUP_ASSIGNMENT.search(text)
+    return match.group(1).strip() if match else None
+
+
+def same_component_identity_violation(source_project: str, source_group: str | None, target_project: str, target_group: str | None) -> str | None:
+    """Detect Gradle project dependencies that collapse to the same group+leaf component identity.
+
+    Gradle/Spring dependency-management can resolve a project dependency as a self component when two
+    distinct logical projects share the same Maven group and leaf project name (for example jdbc -> jdbc).
+    Published artifactId may be unique, but the project dependency component identity is still ambiguous.
+    """
+    if not source_group or source_group != target_group or source_project == target_project:
+        return None
+    source_leaf = source_project.rsplit(":", 1)[-1]
+    target_leaf = target_project.rsplit(":", 1)[-1]
+    if source_leaf == target_leaf:
+        return f"{source_project} -> {target_project} shares Gradle component identity {source_group}:{source_leaf}"
+    return None
 
 
 def include_declarations(text: str) -> list[str]:
@@ -191,10 +213,21 @@ def main() -> int:
             build_root, projects, catalog_project_directories if build_root == root else None
         )
         graph = {project: set() for project in projects}
+        groups_by_project = {
+            project: project_group(script.read_text(encoding="utf-8"))
+            for project, script in scripts_by_project.items()
+        }
         for project, script in scripts_by_project.items():
             text = script.read_text(encoding="utf-8")
             targets = PROJECT_REFERENCE.findall(text)
-            graph[project].update(production_project_targets(text))
+            production_targets = production_project_targets(text)
+            graph[project].update(production_targets)
+            for target in production_targets:
+                violation = same_component_identity_violation(
+                    project, groups_by_project.get(project), target, groups_by_project.get(target)
+                )
+                if violation:
+                    findings.append(f"{script.relative_to(root).as_posix()}: {violation}")
             if build_root == root:
                 source_kind = str(catalog_modules_by_project.get(project, {}).get("kind", ""))
                 relative = script.relative_to(root).as_posix()

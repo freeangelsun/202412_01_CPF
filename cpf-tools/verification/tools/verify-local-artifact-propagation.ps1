@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 CPF Maven Artifact Set의 좌표, Version, POM, BOM, Plugin Marker, Hash와 Source Identity를 검증합니다.
 .DESCRIPTION
@@ -123,12 +123,12 @@ if (-not (Test-Path -LiteralPath $artifactCatalogPath -PathType Leaf)) {
 }
 $artifactCatalog = Get-Content -LiteralPath $artifactCatalogPath -Raw -Encoding UTF8 |
     ConvertFrom-Json -Depth 30
-$starterKinds = @('starter-profile', 'internal-starter')
+$starterKinds = @('starter-base', 'starter-common', 'starter-profile', 'starter-provider', 'internal-starter')
 $starterCatalogRows = @($artifactCatalog.artifacts |
     Where-Object { [string]$_.kind -in $starterKinds } |
     Sort-Object { [string]$_.ownerPath })
 if ($starterCatalogRows.Count -eq 0) {
-    throw 'CPF final artifact catalog has no Starter profile/internal artifacts.'
+    throw 'CPF final artifact catalog has no publication Starter artifacts.'
 }
 
 $canonicalStarterCatalogRelative = [string]$artifactCatalog.canonicalStarterCatalog
@@ -141,7 +141,7 @@ if (-not (Test-Path -LiteralPath $canonicalStarterCatalogPath -PathType Leaf)) {
 }
 $canonicalStarterCatalog = Get-Content -LiteralPath $canonicalStarterCatalogPath -Raw -Encoding UTF8 |
     ConvertFrom-Json -Depth 30
-$canonicalStarterRows = @($canonicalStarterCatalog.modules | Sort-Object { [string]$_.ownerPath })
+$canonicalStarterRows = @($canonicalStarterCatalog.modules | Where-Object { $_.publicationRequired -eq $true } | Sort-Object { [string]$_.ownerPath })
 if ($canonicalStarterRows.Count -eq 0) {
     throw 'Canonical Starter catalog has no modules.'
 }
@@ -150,13 +150,25 @@ $canonicalByArtifact = @{}
 foreach ($row in $canonicalStarterRows) {
     $artifactId = [string]$row.artifactId
     $ownerPath = ([string]$row.ownerPath).Replace('\', '/').TrimEnd('/')
-    if ([string]::IsNullOrWhiteSpace($artifactId) -or [string]::IsNullOrWhiteSpace($ownerPath)) {
-        throw 'Canonical Starter catalog contains a missing artifactId/ownerPath.'
+    $groupId = [string]$row.groupId
+    $visibility = [string]$row.visibility
+    $kind = [string]$row.kind
+    if ([string]::IsNullOrWhiteSpace($artifactId) -or [string]::IsNullOrWhiteSpace($ownerPath) -or [string]::IsNullOrWhiteSpace($groupId)) {
+        throw 'Canonical Starter catalog contains a missing groupId/artifactId/ownerPath.'
     }
+    if ($kind -notin $starterKinds) {
+        throw "Canonical publication Starter kind is invalid: $kind artifact=$artifactId"
+    }
+    $validArtifact = if ($visibility -eq 'public') {
+        $artifactId -match '^cpf-starter(?:-[A-Za-z0-9._-]+)?$'
+    } else {
+        $artifactId -match '^cpf-[A-Za-z0-9._-]+$'
+    }
+    if (-not $validArtifact) { throw "Canonical Starter artifactId is invalid: $artifactId" }
     if ($canonicalByArtifact.ContainsKey($artifactId)) {
         throw "Canonical Starter catalog contains duplicate artifactId: $artifactId"
     }
-    $canonicalByArtifact[$artifactId] = $ownerPath
+    $canonicalByArtifact[$artifactId] = [ordered]@{ ownerPath=$ownerPath; groupId=$groupId; visibility=$visibility; kind=$kind }
 }
 
 $starterCatalogOwnerPaths = [System.Collections.Generic.List[string]]::new()
@@ -167,21 +179,25 @@ $starterCoordinates = @($starterCatalogRows | ForEach-Object {
             $ownerPath.Contains('/../') -or $ownerPath.EndsWith('/..')) {
         throw "Starter artifact ownerPath is invalid: $ownerPath"
     }
-    if ($artifactId -notmatch '^cpf-starter-[A-Za-z0-9._-]+$') {
-        throw "Starter artifactId is invalid: $artifactId"
-    }
     if (-not $canonicalByArtifact.ContainsKey($artifactId)) {
         throw "Final artifact catalog Starter is absent from canonical catalog: $artifactId"
     }
-    if ([string]$canonicalByArtifact[$artifactId] -ne $ownerPath) {
-        throw "Starter catalog owner mismatch: artifact=$artifactId final=$ownerPath canonical=$($canonicalByArtifact[$artifactId])"
+    $canonical = $canonicalByArtifact[$artifactId]
+    $validArtifact = if ([string]$canonical.visibility -eq 'public') {
+        $artifactId -match '^cpf-starter(?:-[A-Za-z0-9._-]+)?$'
+    } else {
+        $artifactId -match '^cpf-[A-Za-z0-9._-]+$'
+    }
+    if (-not $validArtifact) { throw "Starter artifactId is invalid: $artifactId" }
+    if ([string]$canonical.ownerPath -ne $ownerPath) {
+        throw "Starter catalog owner mismatch: artifact=$artifactId final=$ownerPath canonical=$($canonical.ownerPath)"
     }
     if (-not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle") -PathType Leaf) -and
             -not (Test-Path -LiteralPath (Join-Path $Root "$ownerPath/build.gradle.kts") -PathType Leaf)) {
         throw "Starter catalog owner has no Gradle project: $ownerPath"
     }
     $starterCatalogOwnerPaths.Add($ownerPath) | Out-Null
-    @{ group='com.cpf.starter'; artifact=$artifactId; packaging='jar' }
+    @{ group=[string]$canonical.groupId; artifact=$artifactId; packaging='jar' }
 })
 if (@($starterCatalogOwnerPaths | Sort-Object -Unique).Count -ne $starterCatalogOwnerPaths.Count) {
     throw "Starter artifact catalog contains duplicate owner paths: $($starterCatalogOwnerPaths -join ', ')"
@@ -292,10 +308,10 @@ $publicBomPomPath = Join-Path $LocalRepository (("com/cpf/cpf-platform-bom/$vers
 [xml]$publicBomXml = Get-Content -LiteralPath $publicBomPomPath -Raw -Encoding UTF8
 $publicBomDependencies = @($publicBomXml.project.dependencyManagement.dependencies.dependency)
 $publicStarterArtifacts = @($starterCatalogRows |
-    Where-Object { [string]$_.kind -eq 'starter-profile' } |
+    Where-Object { $canonicalByArtifact.ContainsKey([string]$_.artifactId) -and [string]$canonicalByArtifact[[string]$_.artifactId].visibility -eq 'public' } |
     ForEach-Object { [string]$_.artifactId } | Sort-Object)
 $internalStarterArtifacts = @($starterCatalogRows |
-    Where-Object { [string]$_.kind -eq 'internal-starter' } |
+    Where-Object { $canonicalByArtifact.ContainsKey([string]$_.artifactId) -and [string]$canonicalByArtifact[[string]$_.artifactId].visibility -eq 'internal' } |
     ForEach-Object { [string]$_.artifactId } | Sort-Object)
 $requiredPublicBomArtifacts = @(
     'cpf-core','cpf-common','cpf-batch-api','cpf-batch-testkit'

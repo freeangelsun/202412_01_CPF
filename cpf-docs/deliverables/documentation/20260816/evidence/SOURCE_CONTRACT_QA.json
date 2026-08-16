@@ -1,142 +1,57 @@
 {
-  "CpfDomainClient": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainClient.java:9:public interface CpfDomainClient<I extends CpfRequest, O extends CpfResponse> {"
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "checks": {
+    "@CpfController": {
+      "path": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfService": {
+      "path": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfService.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfRepository": {
+      "path": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/CpfRepository.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfTx": {
+      "path": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTx.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfClient": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfTimeout": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfRetry": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "CpfDomainClient.execute": {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "Generated Domain Client example": {
+      "path": "cpf-member/online/src/main/java/member/online/domaincall/ExternalDomainClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "cpf-dev.ps1": {
+      "path": "cpf-tools/build/tools/cpf-dev.ps1",
+      "exists": true,
+      "contract_found": true
+    }
   },
-  "CpfServiceCaller": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/servicecall/CpfServiceCallerAdapter.java:12:public final class CpfServiceCallerAdapter implements CpfServiceCaller {"
-  },
-  "@CpfTx": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTx.java:14:public @interface CpfTx {"
-  },
-  "@CpfController": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-tools/verification/nxt3/verify_generated_javac.py:23:'com/cpf/web/api/CpfController.java':'''package com.cpf.web.api; import java.lang.annotation.*; @Target(ElementType.TYPE) @Retention(RetentionPolicy.RUNTIME) public @interface CpfController {}''',"
-  },
-  "@CpfService": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfService.java:22:public @interface CpfService {"
-  },
-  "@CpfRepository": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-tools/verification/nxt3/verify_generated_javac.py:21:'com/cpf/data/persistence/api/CpfRepository.java':'''package com.cpf.data.persistence.api; import java.lang.annotation.*; @Target(ElementType.TYPE) @Retention(RetentionPolicy.RUNTIME) public @interface CpfRepository {}''',"
-  },
-  "@CpfClient": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfClient.java:16:public @interface CpfClient {"
-  },
-  "@CpfTimeout": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java:13:public @interface CpfTimeout {"
-  },
-  "@CpfRetry": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java:13:public @interface CpfRetry {"
-  },
-  "@CpfLogging": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfLogging.java:5:public @interface CpfLogging {"
-  },
-  "@CpfPerformance": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfPerformance.java:5:public @interface CpfPerformance {"
-  },
-  "@CpfIdempotent": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotent.java:16:public @interface CpfIdempotent {"
-  },
-  "@CpfPermission": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfPermission.java:5:public @interface CpfPermission {"
-  },
-  "@CpfApprovalRequired": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfApprovalRequired.java:5:public @interface CpfApprovalRequired {"
-  },
-  "@CpfBatchJob": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchJob.java:18:public @interface CpfBatchJob {"
-  },
-  "@CpfBatchStep": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchStep.java:5:public @interface CpfBatchStep {"
-  },
-  "Batch scheduledRun": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java:51:    public static CpfBatchExecutionRequest scheduledRun("
-  },
-  "Batch rerun": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java:98:    public static CpfBatchExecutionRequest rerun("
-  },
-  "Batch onDemand": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java:124:    public static CpfBatchExecutionRequest onDemand("
-  },
-  "Batch abandon": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/center-cut/src/main/java/com/cpf/batch/centercut/runner/CenterCutControlController.java:47:    ResponseEntity<Void> abandon(@PathVariable long jobExecutionId, @Valid @RequestBody ReasonCommand command, Principal principal) {"
-  },
-  "Batch reconcile": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-starters/integration/tcp/src/main/java/com/cpf/integration/tcp/CpfTcpOperations.java:26:    public boolean reconcile(String correlationId, String operator, String reason) {"
-  },
-  "REMOTE_PARTITION": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionTopology.java:8:    REMOTE_PARTITION,"
-  },
-  "REMOTE_CHUNK": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionTopology.java:9:    REMOTE_CHUNK,"
-  },
-  "REMOTE_STEP": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionTopology.java:10:    REMOTE_STEP"
-  },
-  "cpfRunAdm": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpfRunBza": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpfRunGateway": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpfRunBatch": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpfRunEducation": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpfVerifyFast": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/HANDOVER.md:20:2. Java 25 + pwsh 환경에서 필요 시 `cpfVerifyFast`/전체 로컬 Gate 실행."
-  },
-  "cpfVerifyFullLocal": {
-    "pass": true,
-    "sample": "/mnt/data/cpf_docs_rework_workspace/cpf-docs/deliverables/documentation/20260816/PUBLIC_API_USAGE_MAP.md:59:Root Gradle 공개 Task는 `cpf-tools/build/cpf-root-conventions.gradle`에서 확인했습니다: `cpfBuild`, `cpfTest`, `cpfVerifyFast`, `cpfVerifyFullLocal`, `cpfRunLocal`, `cpfRunAdm`, `cpfRunBza`, `cpfRunGateway`, `cpfRunBatch`, `cpfRunEducation`, `cpfModules`, `cpfModulesAll`."
-  },
-  "cpf.batch.execution.default-chunk-size": {
-    "pass": true,
-    "sample": "defaultChunkSize"
-  },
-  "cpf.batch.execution.max-partition-count": {
-    "pass": true,
-    "sample": "maxPartitionCount"
-  },
-  "cpf.batch.execution.remote-timeout-ms": {
-    "pass": true,
-    "sample": "remoteTimeoutMs"
-  },
-  "cpf.batch.execution.executor-core-size": {
-    "pass": true,
-    "sample": "executorCoreSize"
-  }
+  "all_pass": true
 }

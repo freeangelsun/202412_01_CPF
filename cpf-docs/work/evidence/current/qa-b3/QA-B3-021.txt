@@ -1,9 +1,4 @@
-finding_id=QA-B3-021
-status=PASS
-exit_code=0
-elapsed_seconds=3.083
-command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
 {
   "status": "PASS",
   "pass": 87,
@@ -190,37 +185,7 @@ command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
       "detail": ""
     },
     {
-      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BIZ-ADMIN.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BATCH.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_STG-CPF-EDUCATION.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_STG-CPF-ADMIN.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_STG-CPF-GATEWAY.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_INVENTORY_ENV_STG-SERVICES.JSON",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-ADMIN.ENV",
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-BIZ-ADMIN.ENV",
       "status": "PASS",
       "detail": ""
     },
@@ -235,17 +200,52 @@ command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
       "detail": ""
     },
     {
+      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
       "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-EDUCATION.ENV",
       "status": "PASS",
       "detail": ""
     },
     {
-      "name": "DEPLOY_SERVICE_ENV_LOCAL-CPF-BIZ-ADMIN.ENV",
+      "name": "DEPLOY_INVENTORY_ENV_LOCAL-SERVICES.JSON",
       "status": "PASS",
       "detail": ""
     },
     {
-      "name": "DEPLOY_INVENTORY_ENV_LOCAL-SERVICES.JSON",
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-EDUCATION.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_STG-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_INVENTORY_ENV_STG-SERVICES.JSON",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-ADMIN.ENV",
       "status": "PASS",
       "detail": ""
     },
@@ -260,37 +260,17 @@ command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
       "detail": ""
     },
     {
-      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-GATEWAY.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
       "name": "DEPLOY_SERVICE_ENV_DEV-CPF-BATCH.ENV",
       "status": "PASS",
       "detail": ""
     },
     {
-      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-ADMIN.ENV",
+      "name": "DEPLOY_SERVICE_ENV_DEV-CPF-GATEWAY.ENV",
       "status": "PASS",
       "detail": ""
     },
     {
       "name": "DEPLOY_INVENTORY_ENV_DEV-SERVICES.JSON",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BATCH.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-ADMIN.ENV",
-      "status": "PASS",
-      "detail": ""
-    },
-    {
-      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BIZ-ADMIN.ENV",
       "status": "PASS",
       "detail": ""
     },
@@ -301,6 +281,21 @@ command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
     },
     {
       "name": "DEPLOY_SERVICE_ENV_PROD-CPF-GATEWAY.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BATCH.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-BIZ-ADMIN.ENV",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "DEPLOY_SERVICE_ENV_PROD-CPF-ADMIN.ENV",
       "status": "PASS",
       "detail": ""
     },
@@ -446,6 +441,4 @@ command=python cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py --root .
     }
   ]
 }
-
---- stderr ---
-
+EXIT_CODE=0

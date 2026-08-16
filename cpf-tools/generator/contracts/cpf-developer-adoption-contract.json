@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "contractId": "cpf-developer-adoption-v1",
+  "knowledgeLevels": [
+    {
+      "level": 1,
+      "id": "golden",
+      "audience": "business-developer",
+      "rule": "대표 Online/Batch 거래는 이 Level만으로 시작 가능"
+    },
+    {
+      "level": 2,
+      "id": "capability",
+      "audience": "capability-user",
+      "rule": "Cache/Messaging/Security 등 선택 기능 사용 시 학습"
+    },
+    {
+      "level": 3,
+      "id": "advanced",
+      "audience": "adapter-framework-developer",
+      "rule": "Router/Executor/SPI/Native escape는 일반 업무 Golden Path에서 숨김"
+    }
+  ],
+  "callTaxonomy": [
+    {
+      "id": "application",
+      "labelKo": "Application 내부 호출",
+      "ownership": "same-application",
+      "goldenPath": "service.method(...)"
+    },
+    {
+      "id": "cpf-domain",
+      "labelKo": "CPF Domain 호출",
+      "ownership": "cpf-managed-domain-contract",
+      "goldenPath": "CpfDomainClient.execute(request)"
+    },
+    {
+      "id": "external-integration",
+      "labelKo": "외부 연계 호출",
+      "ownership": "outside-cpf-domain-contract",
+      "goldenPath": "@CpfClient typed client + @CpfTimeout/@CpfRetry"
+    }
+  ],
+  "cpfVsNative": {
+    "required": [
+      "transaction",
+      "cpf-domain-call",
+      "external-integration",
+      "cpf-context",
+      "business-operation-logging",
+      "audit",
+      "permission-approval",
+      "idempotency",
+      "reliable-messaging",
+      "unknown-reconcile"
+    ],
+    "nativeAllowed": [
+      "java-collections",
+      "string-date-utility",
+      "simple-converter",
+      "simple-bean-wiring",
+      "technology-independent-pure-function"
+    ],
+    "directUseForbidden": [
+      "WebClient.builder in business/generated source",
+      "new RestTemplate in business/generated source",
+      "RedisTemplate in business/generated source",
+      "KafkaTemplate in business/generated source",
+      "self-managed transaction/trace ThreadLocal",
+      "custom retry loop for managed remote side effect",
+      "internal Starter direct dependency"
+    ]
+  },
+  "validationTiers": {
+    "fast": {
+      "entry": "cpfVerifyFast",
+      "purpose": "compile/configuration/unit/architecture/catalog/contract/static-hygiene"
+    },
+    "targeted": {
+      "entry": "cpfVerifyTargeted",
+      "purpose": "changed capability + cross-cutting closure",
+      "selector": "-PcpfTargetCapabilities=<capability,...>"
+    },
+    "fullLocal": {
+      "entry": "cpfVerifyFullLocal",
+      "purpose": "Java25/DB3/Redis-Valkey/Kafka/Batch-fault/Browser/Gateway/Performance/Evidence"
+    }
+  },
+  "generatorSafety": {
+    "workflow": [
+      "validate",
+      "dry-run",
+      "diff",
+      "generate",
+      "compile/test"
+    ],
+    "lifecycle": [
+      "regenerate",
+      "upgrade",
+      "remove",
+      "restore"
+    ],
+    "customSourceMutationAllowed": false,
+    "source": "cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py"
+  },
+  "adoptionProfiles": {
+    "minimal": {
+      "intent": "small-start",
+      "capabilities": [
+        "web",
+        "context",
+        "validation",
+        "logging",
+        "transaction"
+      ]
+    },
+    "standard": {
+      "intent": "general-business",
+      "capabilities": [
+        "minimal",
+        "security",
+        "domain-call",
+        "common-function",
+        "cache",
+        "observability"
+      ]
+    },
+    "full-platform": {
+      "intent": "full-operation",
+      "capabilities": [
+        "standard",
+        "messaging",
+        "batch",
+        "admin",
+        "biz-admin",
+        "gateway",
+        "advanced-recovery"
+      ]
+    },
+    "rule": "기존 Canonical Public Profile/Capability 조합으로 표현하며 새 Starter를 만들지 않는다.",
+    "canonicalSource": "cpf-tools/generator/contracts/capability-profiles.json#adoptionEntryProfiles"
+  },
+  "stagedAdoption": [
+    [
+      "context",
+      "logging"
+    ],
+    [
+      "validation",
+      "transaction"
+    ],
+    [
+      "code",
+      "message",
+      "parameter",
+      "calendar"
+    ],
+    [
+      "domain-call",
+      "external-integration"
+    ],
+    [
+      "cache",
+      "messaging",
+      "security"
+    ],
+    [
+      "generator",
+      "adm",
+      "bza",
+      "full-platform"
+    ]
+  ],
+  "extensionPoints": [
+    {
+      "need": "context/header/identity/tenant adaptation",
+      "type": "CpfContextRuntimeProvider",
+      "source": "cpf-core/src/main/java/com/cpf/core/spi/context/CpfContextRuntimeProvider.java"
+    },
+    {
+      "need": "message/error localization",
+      "type": "CpfMessageResolver",
+      "source": "cpf-core/src/main/java/com/cpf/core/api/error/CpfMessageResolver.java"
+    },
+    {
+      "need": "response-code mapping",
+      "type": "CpfResponseCodeResolver",
+      "source": "cpf-core/src/main/java/com/cpf/core/api/error/CpfResponseCodeResolver.java"
+    },
+    {
+      "need": "audit sink",
+      "type": "CpfAuditSink",
+      "source": "cpf-starters/platform-operations/src/main/java/com/cpf/platform/operations/api/audit/CpfAuditSink.java"
+    }
+  ],
+  "advancedApis": [
+    {
+      "type": "CpfServiceCaller",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/servicecall/CpfServiceCaller.java"
+    },
+    {
+      "type": "CpfServiceCallExecutor",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/servicecall/CpfServiceCallExecutor.java"
+    },
+    {
+      "type": "CpfDomainClientRouter",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/domaincall/CpfDomainClientRouter.java"
+    }
+  ],
+  "top20GoldenPath": [
+    {
+      "name": "@CpfController",
+      "source": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java",
+      "when": "HTTP Controller 표준 경계"
+    },
+    {
+      "name": "@CpfService",
+      "source": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfService.java",
+      "when": "업무 Service 표준 경계"
+    },
+    {
+      "name": "@CpfRepository",
+      "source": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/CpfRepository.java",
+      "when": "Repository/DAO 표준 경계"
+    },
+    {
+      "name": "@CpfTx",
+      "source": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTx.java",
+      "when": "Local DB transaction"
+    },
+    {
+      "name": "CpfDomainClient.execute",
+      "source": "cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainClient.java",
+      "when": "CPF Domain 간 호출"
+    },
+    {
+      "name": "@CpfClient",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfClient.java",
+      "when": "외부기관/외부시스템 typed client"
+    },
+    {
+      "name": "@CpfTimeout",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java",
+      "when": "외부 연계 deadline/timeout"
+    },
+    {
+      "name": "@CpfRetry",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java",
+      "when": "정책 기반 bounded retry"
+    },
+    {
+      "name": "CpfContexts.transactionId",
+      "source": "cpf-core/src/main/java/com/cpf/core/api/context/CpfContexts.java",
+      "when": "현재 CPF 거래 Context 조회"
+    },
+    {
+      "name": "CpfCodeService.required",
+      "source": "cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java",
+      "when": "공통 코드 필수 조회"
+    },
+    {
+      "name": "CpfMessageService.resolve",
+      "source": "cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageService.java",
+      "when": "표준 메시지 조회"
+    },
+    {
+      "name": "CpfParameterService.requiredValue",
+      "source": "cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java",
+      "when": "운영 파라미터 조회"
+    },
+    {
+      "name": "CpfCalendarService.nextBusinessDay",
+      "source": "cpf-starters/common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java",
+      "when": "영업일 계산"
+    },
+    {
+      "name": "@CpfIdempotent",
+      "source": "cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotent.java",
+      "when": "중복 side effect 방지"
+    },
+    {
+      "name": "@CpfLogging",
+      "source": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfLogging.java",
+      "when": "업무/운영 로그 표준화"
+    },
+    {
+      "name": "@CpfPermission",
+      "source": "cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfPermission.java",
+      "when": "권한 검증"
+    },
+    {
+      "name": "@CpfApprovalRequired",
+      "source": "cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfApprovalRequired.java",
+      "when": "위험 조치 승인"
+    },
+    {
+      "name": "@CpfAudit",
+      "source": "cpf-starters/platform-operations/src/main/java/com/cpf/platform/operations/api/annotation/CpfAudit.java",
+      "when": "감사 이벤트"
+    },
+    {
+      "name": "@CpfMessageListener",
+      "source": "cpf-starters/messaging/src/main/java/com/cpf/messaging/api/CpfMessageListener.java",
+      "when": "표준 메시지 Consumer"
+    },
+    {
+      "name": "@CpfBatchJob / @CpfBatchStep",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchJob.java",
+      "secondarySource": "cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchStep.java",
+      "when": "Batch Job/Step 개발"
+    }
+  ],
+  "compatibility": {
+    "semver": {
+      "major": "breaking",
+      "minor": "backward-compatible-capability",
+      "patch": "compatible-fix"
+    },
+    "deprecation": "deprecated-before-removal",
+    "inspectionTool": "cpf-tools/verification/tools/report-cpf-upgrade-impact.py"
+  }
+}

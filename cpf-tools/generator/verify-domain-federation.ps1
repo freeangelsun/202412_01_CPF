@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string] $RepoRoot = (Resolve-Path "$PSScriptRoot\..\..").Path,
     [string] $FrameworkRoot = (Resolve-Path "$PSScriptRoot\..\..").Path,
@@ -17,8 +17,9 @@ $root = (Resolve-Path -LiteralPath $RepoRoot).Path
 $frameworkRootResolved = (Resolve-Path -LiteralPath $FrameworkRoot).Path
 . (Join-Path $frameworkRootResolved 'cpf-tools/generator/tools/generated-domain-common.ps1')
 . (Join-Path $frameworkRootResolved 'cpf-tools/db/tools/database-profile-common.ps1')
-if ([string]::IsNullOrWhiteSpace($DatabaseVendor)) { throw 'DatabaseVendor가 필요합니다. -DatabaseVendor 또는 CPF_DOMAIN_DB_VENDOR를 설정하세요.' }
-$DatabaseVendor = Assert-CpfSupportedDatabaseVendor $DatabaseVendor
+if (-not [string]::IsNullOrWhiteSpace($DatabaseVendor)) {
+    $DatabaseVendor = Assert-CpfSupportedDatabaseVendor $DatabaseVendor
+}
 
 $failures = [System.Collections.Generic.List[string]]::new()
 $checked = [System.Collections.Generic.List[object]]::new()
@@ -103,6 +104,9 @@ function Test-CanonicalGeneratedProject {
 
 function Test-StandaloneRepository {
     param([Parameter(Mandatory = $true)][object] $Definition)
+    if ([bool]$Definition.databaseEnabled -and [string]::IsNullOrWhiteSpace($DatabaseVendor)) {
+        throw 'DatabaseVendor가 필요합니다. -DatabaseVendor 또는 CPF_DOMAIN_DB_VENDOR를 설정하세요.'
+    }
     $expectedRootName = [string]$Definition.projectName
     if ((Split-Path -Leaf $root) -cne $expectedRootName) {
         Add-Failure "Standalone root 이름은 canonical cpf-<domain>이어야 합니다: expected=$expectedRootName actual=$(Split-Path -Leaf $root)"

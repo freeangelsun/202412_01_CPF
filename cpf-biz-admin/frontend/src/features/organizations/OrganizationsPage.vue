@@ -114,15 +114,15 @@ async function saveOrganization() {
     const raw = selected.value.raw;
     await bzaBackofficeSaveOrganization({
       organizationCode: String(raw.organizationCode),
-      parentOrganizationCode: edit.value.parentOrganizationCode.trim() || null,
+      parentOrganizationCode: edit.value.parentOrganizationCode.trim() || undefined,
       organizationName: edit.value.organizationName.trim(),
       organizationType: edit.value.organizationType.trim() || "DEPARTMENT",
       sortOrder: Number(edit.value.sortOrder || 0),
-      effectiveFrom: raw.effectiveFrom ?? null,
-      effectiveTo: raw.effectiveTo ?? null,
+      effectiveFrom: raw.effectiveFrom == null || raw.effectiveFrom === "" ? undefined : String(raw.effectiveFrom),
+      effectiveTo: raw.effectiveTo == null || raw.effectiveTo === "" ? undefined : String(raw.effectiveTo),
       useYn: edit.value.useYn,
-      expectedVersion: raw.version ?? raw.expectedVersion ?? null,
-      requestUser: null,
+      expectedVersion: raw.version == null && raw.expectedVersion == null ? undefined : Number(raw.version ?? raw.expectedVersion),
+      requestUser: undefined,
       reason: edit.value.reason.trim(),
     });
     await load();

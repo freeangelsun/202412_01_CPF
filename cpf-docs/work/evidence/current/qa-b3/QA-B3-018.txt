@@ -1,10 +1,3 @@
-finding_id=QA-B3-018
-status=PASS
-exit_code=0
-elapsed_seconds=3.203
-command=python cpf-tools/verification/verify_cache_correctness.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/verify_cache_correctness.py --root .
 CPF_CACHE_CORRECTNESS=PASS duplicate=true outOfOrder=true concurrentReconcile=8 multiInstance=2 durableRestartFence=true
-
---- stderr ---
-
+EXIT_CODE=0

@@ -8,6 +8,12 @@ from __future__ import annotations
 import argparse, json, os, shutil, subprocess, sys, tempfile, time
 from pathlib import Path
 
+# The runner itself is Python; setting the environment only for child processes is too late
+# to prevent this interpreter from emitting __pycache__ while importing helpers. Keep the
+# repository validation read-only without weakening the garbage gate.
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
 # 개별 Gate 실패와 무관하게 전체 검증을 계속 수행하고 최종 결과에서 실패를 일괄 집계한다.
 
 def run_one(name: str, cmd: list[str], root: Path, timeout: int) -> dict:
@@ -42,27 +48,27 @@ def main() -> int:
     child_evidence_tmp=tempfile.TemporaryDirectory(prefix='cpf-nxt3-child-evidence-')
     child_evidence=Path(child_evidence_tmp.name)
     entries=[
-      ('root-generated-domain-prefix',[py,str(gate/'verify_root_generated_domain_prefix.py'),'--root',str(root)]),
-      ('generated-domain-minimal-ia',[py,str(gate/'verify_generated_customer_domain_minimal_ia.py'),'--root',str(root)]),
-      ('generator-public-boundary',[py,str(gate/'verify_generated_public_boundary.py'),'--root',str(root)]),
-      ('generator-presets',[py,str(gate/'verify_generator_presets.py'),'--root',str(root)]),
-      ('starter-provider-catalog',[py,str(gate/'verify_starter_provider_slot_catalog.py'),'--root',str(root)]),
-      ('redis-valkey-current',[py,str(gate/'verify_redis_valkey_current.py'),'--root',str(root)]),
-      ('redis-valkey-provider',[py,str(gate/'verify_redis_valkey_provider_currentization.py'),'--root',str(root),'--evidence',str(child_evidence/'REDIS_VALKEY_PROVIDER.json')]),
-      ('annotation-runtime-consumer',[py,str(gate/'verify_annotation_runtime_consumer.py'),'--root',str(root),'--evidence',str(child_evidence/'ANNOTATION_RUNTIME_CONSUMER.json')]),
-      ('adm-bza-framework',[py,str(gate/'verify_nxt3_adm_bza_framework.py'),'--root',str(root)]),
-      ('adm-bza-frontend-gateway',[py,str(gate/'verify_nxt3_adm_bza_frontend_gateway.py'),'--root',str(root)]),
-      ('common-management-propagation',[py,str(gate/'verify_nxt3_common_management_propagation.py'),'--root',str(root)]),
-      ('config-contract',[py,str(gate/'verify_nxt3_config_contract.py'),'--root',str(root)]),
-      ('query-db3-self-test',[py,str(gate/'verify_nxt3_query_db3.py'),'--root',str(root),'--self-test']),
-      ('query-db3',[py,str(gate/'verify_nxt3_query_db3.py'),'--root',str(root)]),
-      ('korean-comment-self-test',[py,str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root),'--self-test']),
-      ('korean-comment',[py,str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root)]),
-      ('adm-incident-canonical-db',[py,str(gate/'verify_adm_incident_canonical_db.py'),'--root',str(root)]),
-      ('db-source-plan-derivation',[py,str(gate/'verify_db_source_plan_derivation.py'),'--root',str(root)]),
-      ('layout',[py,str(gate/'cpf_nxt3_layout_gate.py'),'--root',str(root)]),
-      ('garbage-sweep',[py,str(gate/'verify_nxt3_repository_garbage.py'),'--root',str(root)]),
-      ('hygiene',[py,str(gate/'verify_nxt3_hygiene.py'),'--root',str(root)]),
+      ('root-generated-domain-prefix',[py,'-B',str(gate/'verify_root_generated_domain_prefix.py'),'--root',str(root)]),
+      ('generated-domain-minimal-ia',[py,'-B',str(gate/'verify_generated_customer_domain_minimal_ia.py'),'--root',str(root)]),
+      ('generator-public-boundary',[py,'-B',str(gate/'verify_generated_public_boundary.py'),'--root',str(root)]),
+      ('generator-presets',[py,'-B',str(gate/'verify_generator_presets.py'),'--root',str(root)]),
+      ('starter-provider-catalog',[py,'-B',str(gate/'verify_starter_provider_slot_catalog.py'),'--root',str(root)]),
+      ('redis-valkey-current',[py,'-B',str(gate/'verify_redis_valkey_current.py'),'--root',str(root)]),
+      ('redis-valkey-provider',[py,'-B',str(gate/'verify_redis_valkey_provider_currentization.py'),'--root',str(root),'--evidence',str(child_evidence/'REDIS_VALKEY_PROVIDER.json')]),
+      ('annotation-runtime-consumer',[py,'-B',str(gate/'verify_annotation_runtime_consumer.py'),'--root',str(root),'--evidence',str(child_evidence/'ANNOTATION_RUNTIME_CONSUMER.json')]),
+      ('adm-bza-framework',[py,'-B',str(gate/'verify_nxt3_adm_bza_framework.py'),'--root',str(root)]),
+      ('adm-bza-frontend-gateway',[py,'-B',str(gate/'verify_nxt3_adm_bza_frontend_gateway.py'),'--root',str(root)]),
+      ('common-management-propagation',[py,'-B',str(gate/'verify_nxt3_common_management_propagation.py'),'--root',str(root)]),
+      ('config-contract',[py,'-B',str(gate/'verify_nxt3_config_contract.py'),'--root',str(root)]),
+      ('query-db3-self-test',[py,'-B',str(gate/'verify_nxt3_query_db3.py'),'--root',str(root),'--self-test']),
+      ('query-db3',[py,'-B',str(gate/'verify_nxt3_query_db3.py'),'--root',str(root)]),
+      ('korean-comment-self-test',[py,'-B',str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root),'--self-test']),
+      ('korean-comment',[py,'-B',str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root)]),
+      ('adm-incident-canonical-db',[py,'-B',str(gate/'verify_adm_incident_canonical_db.py'),'--root',str(root)]),
+      ('db-source-plan-derivation',[py,'-B',str(gate/'verify_db_source_plan_derivation.py'),'--root',str(root)]),
+      ('layout',[py,'-B',str(gate/'cpf_nxt3_layout_gate.py'),'--root',str(root)]),
+      ('garbage-sweep',[py,'-B',str(gate/'verify_nxt3_repository_garbage.py'),'--root',str(root)]),
+      ('hygiene',[py,'-B',str(gate/'verify_nxt3_hygiene.py'),'--root',str(root)]),
       ('cpf-verify-all',([str(root/'cpf-tools/runtime/cli/cpf.bat')] if os.name=='nt' else ['sh',str(root/'cpf-tools/runtime/cli/cpf')])+['--root',str(root),'verify','all']),
     ]
     results=[]
@@ -70,7 +76,8 @@ def main() -> int:
         # Python gate는 script 실물을, shell/native command는 PATH 실행 가능 여부와 script 인수를 분리해 검증한다.
         # 'sh' 같은 PATH command를 Repository 상대경로로 오인하면 Linux에서 False FAIL이 발생한다.
         if cmd[0] == py:
-            runnable = len(cmd) > 1 and Path(cmd[1]).is_file()
+            script_index = 2 if len(cmd) > 2 and cmd[1] == '-B' else 1
+            runnable = len(cmd) > script_index and Path(cmd[script_index]).is_file()
         else:
             runnable = bool(shutil.which(cmd[0]) or Path(cmd[0]).is_file())
             if runnable and len(cmd) > 1 and cmd[0] in {'sh', 'bash'}:

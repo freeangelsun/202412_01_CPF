@@ -1,4 +1,5 @@
-finding_id=QA-B3-010
-status=NOT_EXECUTED_ENV
-command=pwsh -NoProfile -ExecutionPolicy Bypass -File .\cpf-tools\verification\tools\run-cpf-local-full-validation.ps1 -ResourceProfile local -OutputRoot "$HOME\Downloads" -FullLocal
-reason=pwsh unavailable in assistant validation environment; Windows Java25/PowerShell7/Docker/Browser FullLocal remains required.
+QA-B3-010=INCOMPLETE
+TITLE=Windows FullLocal runtime closure
+SOURCE_CONTENT_SHA1=6ce96c49fbfca3b26ab172187ac06fe279e09040
+SOURCE_CONTENT_SHA256=91a58a0a50abbba56f75c5ba5f4aa5cf84965353a54cbb586bca38177ba09eea
+REASON=Java25 + PowerShell7 + Docker DB3/Redis/Valkey/Kafka + 2-worker Process Kill + Browser + Deployment/Performance는 Assistant 환경에서 실행할 수 없어 다음 Windows FullLocal 필수 대상이다.

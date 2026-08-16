@@ -1,9 +1,4 @@
-finding_id=QA-B3-009
-status=PASS
-exit_code=0
-elapsed_seconds=3.249
-command=python cpf-tools/verification/nxt3/verify_nxt3_repository_garbage.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/nxt3/verify_nxt3_repository_garbage.py --root .
 {
   "gate": "NXT3_REPOSITORY_GARBAGE",
   "status": "PASS",
@@ -12,5 +7,4 @@ command=python cpf-tools/verification/nxt3/verify_nxt3_repository_garbage.py --r
   "failures": []
 }
 
---- stderr ---
-
+EXIT_CODE=0

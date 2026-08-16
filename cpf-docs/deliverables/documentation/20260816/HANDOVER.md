@@ -1,11 +1,15 @@
-# CPF Documentation Handover
+# HANDOVER - Documentation Quality Rework
 
-- 입력 ZIP SHA-256: `7334ce55d1529cd5910f7b67ed97375ebcce63c0324b9668eb7bab38ccd0756e`
-- 공식 사용자 문서: README + 02~07
-- 최신 페이지: 02 28p / 03 18p / 04 7p / 05 7p / 06 6p / 07 10p (총 76p)
-- 02: Golden Path + TOP100 (Golden/Capability/Advanced)
-- 03: Batch TOP50 + 실행 요청/Control Plane/6 Topology/Property
-- 02~07 전체 목차 전용 페이지와 내부 링크 유지
-- 접근성 6종 high/medium/low 0
-- README: CPF 정의/해결 문제/Spring Boot 관계/Golden Path/적합 범위/5분 실행 + Quick Overview + 상세 Architecture + Gateway 3케이스 + Batch 확장 + Starter 장점 + License
-- QA 최종 판정은 미수행
+- Input: `CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip` / SHA-256 `60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064`
+- Remote master reference: `52e1d58cb1076efecb3c81e7fac125cf9f276d32`
+- Official docs: README + 02~07
+- Layout result: 76p → 53p, blank page 0
+- Hard Page Break: each document 2 only (cover→TOC, TOC→body)
+- Margin: left/right 1.15cm
+- Transaction diagram collision fixed
+- README: canonical 6 facts retained, Quick Overview duplication removed, Public/Internal boundary explicit
+- Accessibility: all 6 documents 0/0/0
+- Internal link errors: DOCX 0 / PDF 0
+- Runtime: NOT_EXECUTED
+
+다음 설명 재작업에서는 이번 레이아웃/페이지/표 규칙을 유지하고 설명 내용만 별도 개선한다.

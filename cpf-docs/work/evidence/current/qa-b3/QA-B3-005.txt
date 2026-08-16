@@ -1,10 +1,4 @@
-finding_id=QA-B3-005
-status=PASS
-exit_code=0
-elapsed_seconds=1.430
-command=python cpf-tools/verification/nxt3/verify_db_source_plan_derivation.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/nxt3/verify_db_source_plan_derivation.py --root .
 CPF_DB_SOURCE_PLAN_DERIVATION=PASS canonicalTables=219 vendors=3 errors=0
 
---- stderr ---
-
+EXIT_CODE=0

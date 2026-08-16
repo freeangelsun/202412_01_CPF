@@ -1,10 +1,3 @@
-finding_id=QA-B3-023
-status=PASS
-exit_code=0
-elapsed_seconds=2.984
-command=python cpf-tools/verification/verify_no_partial_implementation.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/verify_no_partial_implementation.py --root .
 CPF_NO_PARTIAL_IMPLEMENTATION=PASS activeJavaFqcn=2433 todo=0 unsupportedStub=0 duplicateFqcn=0 malformedResourceTree=0
-
---- stderr ---
-
+EXIT_CODE=0

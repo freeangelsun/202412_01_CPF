@@ -47,3 +47,20 @@ def test_generated_build_outputs_are_excluded_but_cpf_tools_build_is_product_sou
     paths = {row["path"] for row in result["files"]}
     assert "cpf-core/build/generated.bin" not in paths
     assert "cpf-tools/build/cpf-root-conventions.gradle" in paths
+
+
+def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
+    product = tmp_path / "cpf-core" / "src"
+    product.mkdir(parents=True)
+    (product / "Core.java").write_text("class Core {}", encoding="utf-8")
+    module_bin = tmp_path / "cpf-core" / "bin"
+    module_bin.mkdir(parents=True)
+    (module_bin / "Core.class").write_bytes(b"generated")
+    vscode = tmp_path / ".vscode"
+    vscode.mkdir()
+    (vscode / "settings.json").write_text("{}", encoding="utf-8")
+    result = module.snapshot(tmp_path, "source")
+    paths = {row["path"] for row in result["files"]}
+    assert "cpf-core/src/Core.java" in paths
+    assert "cpf-core/bin/Core.class" not in paths
+    assert ".vscode/settings.json" not in paths

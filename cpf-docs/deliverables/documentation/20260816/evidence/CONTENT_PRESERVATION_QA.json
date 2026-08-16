@@ -1,0 +1,48 @@
+{
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "result": "PASS",
+  "documents": {
+    "02_프레임워크_개발자_가이드": {
+      "original_items": 377,
+      "final_items": 377,
+      "intentional_text_changes": 7,
+      "note": "short wording cleanup only"
+    },
+    "03_배치_개발자_가이드": {
+      "original_items": 296,
+      "final_items": 296,
+      "intentional_text_changes": 0
+    },
+    "04_운영자_매뉴얼": {
+      "original_items": 102,
+      "final_items": 102,
+      "intentional_text_changes": 0
+    },
+    "05_배치_운영_가이드": {
+      "original_items": 113,
+      "final_items": 113,
+      "intentional_text_changes": 0
+    },
+    "06_Gateway_개발_사용_가이드": {
+      "original_items": 90,
+      "final_items": 90,
+      "intentional_text_changes": 0
+    },
+    "07_Specification_기술_명세": {
+      "original_items": 148,
+      "final_items": 148,
+      "intentional_text_changes": 0
+    }
+  },
+  "intentional_02_changes": [
+    "CPF 관리 HTTP Controller -> CPF 표준 HTTP Controller",
+    "일반 업무는 기본값 -> 일반 업무 기본값",
+    "Context 없으면 실패 -> Context 없으면 오류",
+    "간단한 경계 검증 -> 간단 경계 검증",
+    "객체 필수값 -> 필수 객체값",
+    "실패 시 표준 Validation -> 실패 시 표준 검증",
+    "로그/감사 보조 -> 로그·감사 보조"
+  ],
+  "layout_only_changes": "margins, page breaks, keep settings, table grid widths, cell margins, transaction diagram replacement"
+}

@@ -160,9 +160,9 @@ class VendorLifecyclePlanTest(unittest.TestCase):
                     plan, result, _ = self.run_plan(vendor, mode)
                     discovery = plan["discovery"]
                     self.assertEqual(118, discovery["currentVersion"])
-                    self.assertEqual([116], discovery["selectedVersions"])
-                    self.assertTrue(any("V116__batch_runtime_role_currentization.sql" in x["path"] for x in discovery["selectedMigrations"]))
-                    self.assertTrue(all("116" in x["rollbackPath"] for x in discovery["selectedMigrations"]))
+                    self.assertEqual([118], discovery["selectedVersions"])
+                    self.assertTrue(any("V118__adm_incident_lifecycle_currentization.sql" in x["path"] for x in discovery["selectedMigrations"]))
+                    self.assertTrue(all("118" in x["rollbackPath"] for x in discovery["selectedMigrations"]))
                     self.assertEqual(stages, [x["stage"] for x in plan["stages"]])
                     self.assertTrue(all(re.fullmatch(r"[0-9a-f]{64}", x["planSha256"]) for x in plan["stages"]))
                     self.assertFalse(plan["discovery"]["fullHistoricalLifecycleEvidence"])

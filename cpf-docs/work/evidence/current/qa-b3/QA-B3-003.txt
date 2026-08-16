@@ -1,10 +1,4 @@
-finding_id=QA-B3-003
-status=PASS
-exit_code=0
-elapsed_seconds=1.515
-command=python cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py --root . --static-only
---- stdout ---
+COMMAND=python cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py --root . --static-only
 [PASS] CPF generator lifecycle schema=3 vendors=3 operations=9 runtime=False
 
---- stderr ---
-
+EXIT_CODE=0

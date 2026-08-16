@@ -8,7 +8,7 @@ import { spawnSync } from "node:child_process";
 const root = process.cwd();
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), "cpf-bza-mutator-runtime-"));
 const source = path.join(root, "src/shared/orval-mutator.ts");
-const compile = spawnSync(process.execPath, [path.join(root,"node_modules","typescript","bin","tsc"),source,"--target","ES2022","--module","ES2022","--moduleResolution","Bundler","--strict","--lib","ES2022,DOM,DOM.Iterable","--skipLibCheck","--outDir",temp], {cwd:root,encoding:"utf8"});
+const compile = spawnSync(process.execPath, [path.join(root,"node_modules","typescript","bin","tsc"),source,"--ignoreConfig","--target","ES2022","--module","ES2022","--moduleResolution","Bundler","--strict","--lib","ES2022,DOM,DOM.Iterable","--skipLibCheck","--outDir",temp], {cwd:root,encoding:"utf8"});
 if(compile.status!==0)throw new Error(`mutator compile failed:\n${compile.stdout}\n${compile.stderr}`);
 const js=path.join(temp,"orval-mutator.js");
 const mjs=path.join(temp,"orval-mutator.mjs");

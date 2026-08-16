@@ -11,13 +11,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 GENERATED_PARTS = {
     ".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules",
-    "dist", ".vite", "playwright-report", "test-results", "target", "out", "coverage",
+    "dist", ".vite", "playwright-report", "test-results", "target", "out", "bin", "coverage",
 }
 GENERATED_FILES = {".coverage"}
+GENERATED_ROOT_PREFIXES = {".vscode/"}
 
 
 def _relative(path: Path, root: Path) -> str:
@@ -29,6 +31,8 @@ def _is_generated(rel: str) -> bool:
     if not parts:
         return True
     if any(part in GENERATED_PARTS for part in parts):
+        return True
+    if any(rel.startswith(prefix) for prefix in GENERATED_ROOT_PREFIXES):
         return True
     if parts[-1] in GENERATED_FILES:
         return True
@@ -57,10 +61,30 @@ def snapshot(root: Path, scope: str) -> dict:
     sha1 = hashlib.sha1(usedforsecurity=False)
     sha256 = hashlib.sha256()
     total_bytes = 0
-    for path in sorted((p for p in root.rglob("*") if p.is_file()), key=lambda p: p.as_posix()):
+    candidates: list[Path] = []
+    for current, dirs, files in os.walk(root):
+        current_path = Path(current)
+        rel_dir = current_path.relative_to(root).as_posix() if current_path != root else ""
+        kept = []
+        for name in dirs:
+            child_rel = f"{rel_dir}/{name}".lstrip("/")
+            # Do not descend into generated/cache trees. cpf-tools/build is canonical source.
+            if name in GENERATED_PARTS:
+                continue
+            if name == "build" and child_rel != "cpf-tools/build":
+                continue
+            if any(child_rel.startswith(prefix.rstrip("/")) for prefix in GENERATED_ROOT_PREFIXES):
+                continue
+            kept.append(name)
+        dirs[:] = kept
+        for name in files:
+            path = current_path / name
+            rel = _relative(path, root)
+            if _include(rel, scope):
+                candidates.append(path)
+
+    for path in sorted(candidates, key=lambda p: p.as_posix()):
         rel = _relative(path, root)
-        if not _include(rel, scope):
-            continue
         data_hash = hashlib.sha256()
         with path.open("rb") as handle:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):

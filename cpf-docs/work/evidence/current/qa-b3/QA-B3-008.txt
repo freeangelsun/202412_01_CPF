@@ -1,10 +1,5 @@
-finding_id=QA-B3-008
-status=PASS
-exit_code=0
-elapsed_seconds=3.048
-command=python cpf-tools/verification/tools/cpf-source-state.py --root . --scope source
---- stdout ---
-{"schemaVersion": 1, "scope": "source", "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES", "contentSha1": "470ce244d05cdd2674385eb743630e2537f2963c", "contentSha256": "f049bf01a59cf57bc823ef59656516c867db9cab2aed6262abc26c4d840d2618", "fileCount": 9198, "totalBytes": 110215141}
-
---- stderr ---
-
+QA-B3-008=INCOMPLETE
+TITLE=post-commit exact Git SHA
+SOURCE_CONTENT_SHA1=6ce96c49fbfca3b26ab172187ac06fe279e09040
+SOURCE_CONTENT_SHA256=91a58a0a50abbba56f75c5ba5f4aa5cf84965353a54cbb586bca38177ba09eea
+REASON=Overlay는 아직 commit되지 않았다. 현재 실행 바이트는 Git-independent Content SHA로 식별하며 exact Git SHA는 사용자 적용·commit 이후 재검수한다.

@@ -5,7 +5,6 @@ dependencies {
     api project(':framework:security')
     implementation project(':internal:platform-operations:runtime-control')
     implementation project(':framework:core')
-    api project(':starters:data:jdbc')
     api 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.security:spring-security-web'
     implementation 'org.springframework:spring-webmvc'

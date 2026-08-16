@@ -9,8 +9,9 @@ import sys
 from collections import Counter
 from pathlib import Path, PurePosixPath
 
-STARTER_KINDS = {"starter-profile", "internal-starter"}
-ARTIFACT_RE = re.compile(r"^cpf-starter-[A-Za-z0-9._-]+$")
+STARTER_KINDS = {"starter-base", "starter-common", "starter-profile", "starter-provider", "internal-starter"}
+PUBLIC_ARTIFACT_RE = re.compile(r"^cpf-starter(?:-[A-Za-z0-9._-]+)?$")
+INTERNAL_ARTIFACT_RE = re.compile(r"^cpf-[A-Za-z0-9._-]+$")
 
 
 class GateError(RuntimeError):
@@ -36,7 +37,7 @@ def normalized_owner(value: object) -> str:
     path = PurePosixPath(raw)
     if path.is_absolute() or ".." in path.parts or path.as_posix() != raw:
         raise GateError(f"Starter ownerPath invalid: {raw}")
-    if len(path.parts) < 3 or path.parts[0] != "cpf-starters":
+    if len(path.parts) < 2 or path.parts[0] != "cpf-starters":
         raise GateError(f"Starter ownerPath must be grouped under cpf-starters: {raw}")
     return raw
 
@@ -65,16 +66,26 @@ def verify(root: Path, require_physical: bool = False) -> dict:
         raise GateError("final artifact catalog artifacts empty")
 
     canonical_rows: dict[str, str] = {}
+    canonical_public: set[str] = set()
     for row in modules:
         if not isinstance(row, dict):
             raise GateError("canonical Starter module row invalid")
+        if row.get("publicationRequired") is not True:
+            continue
+        kind = row.get("kind")
+        if kind not in STARTER_KINDS:
+            raise GateError(f"publicationRequired Starter kind invalid: {kind}")
         artifact = row.get("artifactId")
-        if not isinstance(artifact, str) or not ARTIFACT_RE.fullmatch(artifact):
+        visibility = row.get("visibility")
+        artifact_re = PUBLIC_ARTIFACT_RE if visibility == "public" else INTERNAL_ARTIFACT_RE
+        if not isinstance(artifact, str) or not artifact_re.fullmatch(artifact):
             raise GateError(f"canonical Starter artifactId invalid: {artifact}")
         owner = normalized_owner(row.get("ownerPath"))
         if artifact in canonical_rows:
             raise GateError(f"duplicate canonical Starter artifactId: {artifact}")
         canonical_rows[artifact] = owner
+        if visibility == "public":
+            canonical_public.add(artifact)
 
     final_rows: dict[str, str] = {}
     starter_artifacts = [row for row in artifacts if isinstance(row, dict) and row.get("kind") in STARTER_KINDS]
@@ -83,7 +94,8 @@ def verify(root: Path, require_physical: bool = False) -> dict:
         raise GateError("legacy final artifact kind=starter is forbidden")
     for row in starter_artifacts:
         artifact = row.get("artifactId")
-        if not isinstance(artifact, str) or not ARTIFACT_RE.fullmatch(artifact):
+        artifact_re = PUBLIC_ARTIFACT_RE if artifact in canonical_public else INTERNAL_ARTIFACT_RE
+        if not isinstance(artifact, str) or not artifact_re.fullmatch(artifact):
             raise GateError(f"final Starter artifactId invalid: {artifact}")
         owner = normalized_owner(row.get("ownerPath"))
         if artifact in final_rows:
@@ -111,7 +123,7 @@ def verify(root: Path, require_physical: bool = False) -> dict:
         raise GateError("publication verifier script missing")
     material = publication_script.read_text(encoding="utf-8-sig")
     required_tokens = [
-        "$starterKinds = @('starter-profile', 'internal-starter')",
+        "$starterKinds = @('starter-base', 'starter-common', 'starter-profile', 'starter-provider', 'internal-starter')",
         "$artifactCatalog.canonicalStarterCatalog",
         "$canonicalByArtifact",
         "Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-starters') -Recurse -File",
@@ -155,16 +167,17 @@ def verify(root: Path, require_physical: bool = False) -> dict:
             for path in (root / "cpf-starters").rglob("build.gradle*")
             if path.is_file()
         )
-        expected = sorted(canonical_rows.values())
-        if actual != expected:
+        all_canonical_owners = sorted(normalized_owner(row.get("ownerPath")) for row in modules if isinstance(row, dict))
+        if actual != all_canonical_owners:
             raise GateError(
-                f"physical Starter closure mismatch expected={expected} actual={actual}"
+                f"physical Starter closure mismatch expected={all_canonical_owners} actual={actual}"
             )
 
     return {
         "status": "PASS",
         "starterCount": len(canonical_rows),
         "publicProfiles": sum(1 for row in starter_artifacts if row.get("kind") == "starter-profile"),
+        "publicStarters": sum(1 for row in starter_artifacts if row.get("artifactId") in canonical_public),
         "internalStarters": sum(1 for row in starter_artifacts if row.get("kind") == "internal-starter"),
         "physicalChecked": physical_checked,
     }

@@ -1,0 +1,124 @@
+{
+  "total_pages": 53,
+  "blank_pages": 0,
+  "by_document": {
+    "02_프레임워크_개발자_가이드": {
+      "pages": 17,
+      "blank_pages": 0
+    },
+    "03_배치_개발자_가이드": {
+      "pages": 12,
+      "blank_pages": 0
+    },
+    "04_운영자_매뉴얼": {
+      "pages": 6,
+      "blank_pages": 0
+    },
+    "05_배치_운영_가이드": {
+      "pages": 6,
+      "blank_pages": 0
+    },
+    "06_Gateway_개발_사용_가이드": {
+      "pages": 5,
+      "blank_pages": 0
+    },
+    "07_Specification_기술_명세": {
+      "pages": 7,
+      "blank_pages": 0
+    }
+  },
+  "largest_bottom_blank_non_cover_toc": [
+    {
+      "doc": "05_배치_운영_가이드",
+      "page": 6,
+      "content_fraction": 0.035453148088387655,
+      "bottom_blank_fraction": 0.7131868131868132
+    },
+    {
+      "doc": "04_운영자_매뉴얼",
+      "page": 6,
+      "content_fraction": 0.05268186218727177,
+      "bottom_blank_fraction": 0.6593406593406593
+    },
+    {
+      "doc": "03_배치_개발자_가이드",
+      "page": 12,
+      "content_fraction": 0.08478140869949216,
+      "bottom_blank_fraction": 0.42967032967032964
+    },
+    {
+      "doc": "07_Specification_기술_명세",
+      "page": 7,
+      "content_fraction": 0.06972417072880752,
+      "bottom_blank_fraction": 0.42032967032967034
+    },
+    {
+      "doc": "02_프레임워크_개발자_가이드",
+      "page": 17,
+      "content_fraction": 0.07731287259880769,
+      "bottom_blank_fraction": 0.3027472527472527
+    },
+    {
+      "doc": "06_Gateway_개발_사용_가이드",
+      "page": 5,
+      "content_fraction": 0.08929632963636054,
+      "bottom_blank_fraction": 0.25769230769230766
+    },
+    {
+      "doc": "02_프레임워크_개발자_가이드",
+      "page": 8,
+      "content_fraction": 0.10808040491193505,
+      "bottom_blank_fraction": 0.13351648351648351
+    },
+    {
+      "doc": "02_프레임워크_개발자_가이드",
+      "page": 9,
+      "content_fraction": 0.17465903493724205,
+      "bottom_blank_fraction": 0.07637362637362638
+    },
+    {
+      "doc": "02_프레임워크_개발자_가이드",
+      "page": 16,
+      "content_fraction": 0.11030580702141753,
+      "bottom_blank_fraction": 0.07527472527472527
+    },
+    {
+      "doc": "02_프레임워크_개발자_가이드",
+      "page": 5,
+      "content_fraction": 0.11012831835861202,
+      "bottom_blank_fraction": 0.04450549450549451
+    }
+  ],
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "old_total_pages": 76,
+  "new_total_pages": 53,
+  "page_count_change": -23,
+  "old_page_counts": {
+    "02_프레임워크_개발자_가이드": 28,
+    "03_배치_개발자_가이드": 18,
+    "04_운영자_매뉴얼": 7,
+    "05_배치_운영_가이드": 7,
+    "06_Gateway_개발_사용_가이드": 6,
+    "07_Specification_기술_명세": 10
+  },
+  "new_page_counts": {
+    "02_프레임워크_개발자_가이드": 17,
+    "03_배치_개발자_가이드": 12,
+    "04_운영자_매뉴얼": 6,
+    "05_배치_운영_가이드": 6,
+    "06_Gateway_개발_사용_가이드": 5,
+    "07_Specification_기술_명세": 7
+  },
+  "left_right_margin_cm": 1.15,
+  "hard_page_break_policy": "cover->TOC and TOC->body only",
+  "transaction_diagram_review": "PASS - A/B chains contained inside cards; D separates Local DB and Remote/External branches; no object/text overlap in rendered page 6",
+  "visual_gate": {
+    "blank_page": 0,
+    "known_collision": 0,
+    "known_clipping": 0,
+    "broken_glyph": 0,
+    "avoidable_wrap_review": "PASS on representative API/TOP100/TOP50 tables; exact API names retained where long"
+  },
+  "note": "Final-page whitespace is natural document termination; non-cover/TOC forced section page breaks were removed."
+}

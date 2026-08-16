@@ -26,13 +26,13 @@ def main():
  with tempfile.TemporaryDirectory(prefix='cpf-object-') as td:
   t=Path(td);c=t/'c';c.mkdir()
   src=[str(api/x) for x in ['CpfObjectStorageMetadata.java','CpfObjectStorageLifecycleHook.java']]
-  cp=subprocess.run([javac,'-Xlint:all','-Werror','-d',str(c),*src],text=True,capture_output=True)
-  if cp.returncode:return fail('compile='+(cp.stdout+cp.stderr).replace('\n',' | '))
+  cp=subprocess.run([javac,'-Xlint:all','-Werror','-d',str(c),*src],text=True,capture_output=True,encoding='utf-8',errors='replace')
+  if cp.returncode:return fail('compile='+((cp.stdout or '')+(cp.stderr or '')).replace('\n',' | '))
   h=t/'H.java';h.write_text('''import java.time.*;import java.util.*;import com.cpf.file.objectstorage.api.*; public class H{public static void main(String[]a){ var m=new CpfObjectStorageMetadata("t","b","k",1,"x",null,null,null,Instant.now(),Map.of("cpf-retain-until",Instant.now().plusSeconds(60).toString())); try{CpfObjectStorageLifecycleHook.METADATA_RETENTION.beforeDelete(m,Instant.now());throw new AssertionError();}catch(IllegalStateException ok){} var h=new CpfObjectStorageMetadata("t","b","k",1,"x",null,null,null,Instant.now(),Map.of("cpf-legal-hold","true")); try{CpfObjectStorageLifecycleHook.METADATA_RETENTION.beforeDelete(h,Instant.now());throw new AssertionError();}catch(IllegalStateException ok){} }}''')
-  cp=subprocess.run([javac,'-Xlint:all','-Werror','-cp',str(c),'-d',str(c),str(h)],text=True,capture_output=True)
-  if cp.returncode:return fail('harnessCompile='+(cp.stdout+cp.stderr).replace('\n',' | '))
-  cp=subprocess.run([java,'-cp',str(c),'H'],text=True,capture_output=True)
-  if cp.returncode:return fail('harnessRuntime='+(cp.stdout+cp.stderr).replace('\n',' | '))
+  cp=subprocess.run([javac,'-Xlint:all','-Werror','-cp',str(c),'-d',str(c),str(h)],text=True,capture_output=True,encoding='utf-8',errors='replace')
+  if cp.returncode:return fail('harnessCompile='+((cp.stdout or '')+(cp.stderr or '')).replace('\n',' | '))
+  cp=subprocess.run([java,'-cp',str(c),'H'],text=True,capture_output=True,encoding='utf-8',errors='replace')
+  if cp.returncode:return fail('harnessRuntime='+((cp.stdout or '')+(cp.stderr or '')).replace('\n',' | '))
  print('CPF_OBJECT_STORAGE=PASS streaming=true multipart=true checksum=true range=true presign=true kms=true tenant=true retry=true timeout=true reconcile=true retention=true malwareHook=true')
  return 0
 if __name__=='__main__':raise SystemExit(main())

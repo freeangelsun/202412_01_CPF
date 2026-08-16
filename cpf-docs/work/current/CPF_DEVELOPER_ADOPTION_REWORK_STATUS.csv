@@ -1,0 +1,11 @@
+﻿id,scope,development_status,verification_status,evidence
+REWORK-01,학습곡선 축소,완료,검증 완료,Knowledge Tier + Golden Path + TOP20/TOP100
+REWORK-02,Public Surface Tiering,완료,검증 완료,Starter usageLevel golden/capability/internal + Advanced 분리
+REWORK-03,CPF vs Spring Native 경계,완료,검증 완료,REQUIRED/ALLOWED/FORBIDDEN + static gate
+REWORK-04,호출 3분류,완료,검증 완료,Application / CPF Domain / External Integration 표준
+REWORK-05,Generator 재생성 안전,완료,재검수 중,dry-run/diff/regenerate/idempotency 기존 기능을 Golden Path/Gate 연결; Java compile lifecycle 필요
+REWORK-06,Fast/Targeted/FullLocal,완료,재검수 중,cpfVerifyFast/cpfVerifyTargeted/cpfVerifyFullLocal 구현; Windows FullLocal 재검수
+REWORK-07,단계 도입,완료,검증 완료,기존 capability/adapters 기반 staged adoption 명문화/검증
+REWORK-08,기존 표준 Adapter/Extension,완료,검증 완료,"기존 SPI inventory 활용, core fork 요구 없음"
+REWORK-09,Upgrade Compatibility,완료,검증 완료,upgrade snapshot/compare/breaking gate 구현
+REWORK-10,Adoption Profile,완료,검증 완료,Minimal/Standard/Full Platform을 기존 canonical profile 조합으로 정의

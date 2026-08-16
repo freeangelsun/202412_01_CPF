@@ -8,3 +8,5 @@ DOC-RW-006,완료,완료,06 Gateway 사용 케이스/정책/운영 재구성,CPF
 DOC-RW-007,완료,완료,07 Specification 공개 계약 Reference 재구성,CPF_DOCUMENTATION_REVIEW_20260816.md
 DOC-RW-008,완료,완료,6종 전체 목차/링크/가변폭 표/시각검수/접근성,evidence/DOCUMENT_STRUCTURE_QA.json
 DOC-RW-009,완료,완료,문서 작성 지침 최신 사용자 요구/Golden Path 방향 반영,evidence/STANDARD_SHA_QA.json
+DOC-RW-010,완료,완료,02~07 빈 페이지/강제 공백/표 가변폭/여백/그림 겹침 품질 보정,evidence/LAYOUT_QUALITY_QA.json
+DOC-RW-011,완료,완료,README AI·사람 동시 해석용 핵심 6개와 Quick Overview 역할 분리,evidence/README_QA.json

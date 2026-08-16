@@ -1,10 +1,4 @@
-finding_id=QA-B3-012
-status=PASS
-exit_code=0
-elapsed_seconds=3.316
-command=python cpf-tools/verification/nxt3/verify_nxt3_korean_comment.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/nxt3/verify_nxt3_korean_comment.py --root .
 CPF_NXT3_KOREAN_COMMENT=PASS scanned=1062 failures=0 warnings=0
 
---- stderr ---
-
+EXIT_CODE=0

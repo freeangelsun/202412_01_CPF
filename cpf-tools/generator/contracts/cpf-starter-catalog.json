@@ -74,7 +74,9 @@
       "selectionGroup": "기본",
       "usageHintKo": "모든 CPF 애플리케이션의 공통 시작점",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":starters:cache:caffeine",
@@ -94,7 +96,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "단일 인스턴스 로컬 Cache",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:data:cache:spring-data-redis",
@@ -114,7 +118,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:cache:redis",
@@ -134,7 +140,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "Redis 기반 다중 인스턴스 Cache",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:cache:valkey",
@@ -154,7 +162,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "Valkey 기반 다중 인스턴스 Cache",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:data:jdbc",
@@ -174,7 +184,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "Spring JDBC 기반 데이터 접근",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:data:mybatis",
@@ -194,7 +206,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "MyBatis 기반 SQL 업무 개발",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:data:jpa",
@@ -214,7 +228,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "JPA 기반 영속성",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:file:archive",
@@ -233,7 +249,9 @@
       "selectionGroup": "File",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:file:attachment",
@@ -252,7 +270,9 @@
       "selectionGroup": "File",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:file:sftp",
@@ -271,7 +291,9 @@
       "selectionGroup": "File",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:file:tabular:poi",
@@ -290,7 +312,9 @@
       "selectionGroup": "File",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:ai",
@@ -309,7 +333,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:fixed-length",
@@ -328,7 +354,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:http",
@@ -347,7 +375,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:iso8583",
@@ -366,7 +396,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:resilience",
@@ -385,7 +417,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:soap",
@@ -404,7 +438,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:tcp",
@@ -423,7 +459,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:integration:webhook",
@@ -442,7 +480,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:messaging:ibm-mq",
@@ -461,7 +501,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "IBM MQ 연계",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:messaging:jms",
@@ -480,7 +522,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "표준 JMS Broker 사용",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:messaging:kafka",
@@ -499,7 +543,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "Kafka Producer/Consumer 사용",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:messaging:rabbitmq",
@@ -518,7 +564,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "RabbitMQ Producer/Consumer 사용",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:messaging:reliability:jdbc",
@@ -537,7 +585,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:notification:dispatch",
@@ -556,7 +606,9 @@
       "selectionGroup": "Notification",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:notification:email",
@@ -575,7 +627,9 @@
       "selectionGroup": "Notification",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:notification:sms",
@@ -594,7 +648,9 @@
       "selectionGroup": "Notification",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:channel-registry:jdbc",
@@ -613,7 +669,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:feature-flag:openfeature",
@@ -632,7 +690,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:observability:otlp",
@@ -651,7 +711,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:runtime-control",
@@ -670,7 +732,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:profiles:batch",
@@ -692,7 +756,9 @@
       "selectionGroup": "Profile",
       "usageHintKo": "Batch Runtime을 사용하는 프로젝트 구성",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":starters:profiles:bff",
@@ -714,7 +780,9 @@
       "selectionGroup": "Profile",
       "usageHintKo": "브라우저 전용 Backend-for-Frontend",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":starters:profiles:event",
@@ -736,7 +804,9 @@
       "selectionGroup": "Profile",
       "usageHintKo": "이벤트/메시징 중심 서비스",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":starters:profiles:secure-api",
@@ -758,7 +828,9 @@
       "selectionGroup": "Profile",
       "usageHintKo": "인증·인가가 필요한 API 서비스",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":starters:profiles:web-api",
@@ -783,7 +855,9 @@
       "selectionGroup": "Profile",
       "usageHintKo": "일반 REST/Web API 서비스",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":internal:security:audit:jdbc",
@@ -802,7 +876,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:security:oidc",
@@ -822,7 +898,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "OIDC 기반 사용자 로그인",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:security:resource-server",
@@ -841,7 +919,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:security:secret",
@@ -860,7 +940,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:security:service-identity",
@@ -879,7 +961,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:security:session:jdbc",
@@ -899,7 +983,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "DB 기반 공유 Session",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:data:lock:valkey",
@@ -919,7 +1005,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "Valkey 기반 분산 Lock",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:messaging:schema",
@@ -938,7 +1026,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:integration:graphql",
@@ -958,7 +1048,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "GraphQL Endpoint/Client 사용",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:integration:realtime",
@@ -978,7 +1070,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "실시간 SSE 통신",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:file:object-storage:s3",
@@ -998,7 +1092,9 @@
       "selectionGroup": "File",
       "usageHintKo": "S3 호환 Object Storage 사용",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":starters:security:session:valkey",
@@ -1018,7 +1114,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "Valkey 기반 공유 Session",
       "userSelectable": true,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "capability",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:health",
@@ -1037,7 +1135,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:platform-operations:runtime-health:jdbc",
@@ -1056,7 +1156,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:base-runtime",
@@ -1075,7 +1177,9 @@
       "selectionGroup": "Base",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":starters:common",
@@ -1094,7 +1198,9 @@
       "selectionGroup": "공통",
       "usageHintKo": "공통코드·파라미터·메시지·영업일 등 업무 공통 기능",
       "userSelectable": true,
-      "runtimeRequired": false
+      "runtimeRequired": false,
+      "usageLevel": "golden",
+      "recommended": true
     },
     {
       "projectPath": ":framework:web",
@@ -1113,7 +1219,9 @@
       "selectionGroup": "Web",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:data",
@@ -1132,7 +1240,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:data:persistence",
@@ -1151,7 +1261,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:messaging",
@@ -1170,7 +1282,9 @@
       "selectionGroup": "Messaging",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:integration",
@@ -1189,7 +1303,9 @@
       "selectionGroup": "Integration",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:file",
@@ -1208,7 +1324,9 @@
       "selectionGroup": "File",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:notification",
@@ -1227,7 +1345,9 @@
       "selectionGroup": "Notification",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:security",
@@ -1246,7 +1366,9 @@
       "selectionGroup": "Security",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:operations",
@@ -1265,7 +1387,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":framework:operations:observability",
@@ -1284,7 +1408,9 @@
       "selectionGroup": "Platform",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     },
     {
       "projectPath": ":internal:data:transaction:jta",
@@ -1303,7 +1429,9 @@
       "selectionGroup": "Data",
       "usageHintKo": "CPF 내부 조립용 모듈이며 개발자가 직접 선택하지 않습니다.",
       "userSelectable": false,
-      "runtimeRequired": true
+      "runtimeRequired": true,
+      "usageLevel": "internal",
+      "recommended": false
     }
   ],
   "providerSlots": {

@@ -1,7 +1,7 @@
-# OPEN ISSUES
+# OPEN ISSUES - Documentation Quality Rework
 
-문서 자체검수 기준 잔여 실패는 없습니다.
+1. 입력 ZIP에 `.git`이 없어 로컬 입력의 exact Git SHA는 확인하지 못함.
+2. Application Build/Test/Runtime은 이번 문서 전용 변경에서 실행하지 않았으며 PASS로 기록하지 않음.
+3. QA 최종 판정은 QA 역할에서 별도로 수행해야 함.
 
-- exact Git SHA/Working Tree: 입력 ZIP에 `.git`이 없어 확인 불가.
-- Application Build/Test/Runtime: 이번 Overlay는 문서/이미지/작성 지침만 변경하므로 실행하지 않았습니다. 적용 후 사용자 로컬의 `cpfVerifyFast` 등 기존 Gate로 확인할 수 있습니다.
-- QA 최종 상태: QA 역할 판정 전이므로 개발 GPT가 최종 QA 완료로 변경하지 않습니다.
+문서 자체 시각/구조 Gate에서 확인된 잔여 실패는 0건이다.

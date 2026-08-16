@@ -1,0 +1,23 @@
+CPF QA12 PACKAGE INTEGRITY EVIDENCE
+
+FRESH_APPLY=PASS
+- Overlay files: 219 before final evidence refresh; final package count is recorded in PACKAGE_MANIFEST.json.
+- Fresh Apply source identity matched result Content SHA-1/SHA-256.
+- Protected paths unchanged by hash:
+  cpf-docs/deliverables/**
+  cpf-docs/guides/**
+  cpf-docs/environment/docker/**
+  cpf-tools/environment/docker-development-test/**
+
+POSITIVE_INTEGRITY=PASS
+- verify-cpf-development-evidence-integrity.py
+- findings total 25 / complete 22 / incomplete 3
+- requirements 31
+
+CORRUPTION_NEGATIVE=PASS
+- Fresh Apply copy of cpf-tools/verification/verify_starter_catalog.py was intentionally modified.
+- Integrity verifier exit code was non-zero.
+- Detected reason: manifest size mismatch.
+- File was restored from the verified final source and positive integrity returned PASS.
+
+DELETE_TARGETS=0

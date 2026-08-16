@@ -1,164 +1,111 @@
 {
-  "02_프레임워크_개발자_가이드": {
-    "previous": {
-      "pages": 16,
-      "tables": 29,
-      "paragraphs": 145,
-      "docx_bytes": 146478,
-      "pdf_bytes": 660892
-    },
-    "current": {
-      "pages": 28,
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "documents": {
+    "02_프레임워크_개발자_가이드": {
+      "docx_internal_links": 32,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
       "tables": 52,
-      "paragraphs": 154,
-      "docx_bytes": 495654,
-      "pdf_bytes": 1349040,
-      "toc": true,
-      "bookmarks": 17,
-      "internal_links": 32,
-      "broken_docx_links": [],
-      "pdf_internal_links": 32,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "785f2efd9fe65a17bd5437dde0e997c91e6f5c4dcb74e589cc77f02b5f816dae",
-      "pdf_sha256": "441049e04164496d18b17ce27ddfe0acad858acafd020b2f8996bbabdb26486d"
-    }
-  },
-  "03_배치_개발자_가이드": {
-    "previous": {
-      "pages": 12,
-      "tables": 21,
-      "paragraphs": 124,
-      "docx_bytes": 351275,
-      "pdf_bytes": 698988
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 17,
+      "pdf_links": 35,
+      "pdf_bad_internal_links": []
     },
-    "current": {
-      "pages": 18,
+    "03_배치_개발자_가이드": {
+      "docx_internal_links": 34,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
       "tables": 38,
-      "paragraphs": 117,
-      "docx_bytes": 265927,
-      "pdf_bytes": 854749,
-      "toc": true,
-      "bookmarks": 18,
-      "internal_links": 34,
-      "broken_docx_links": [],
-      "pdf_internal_links": 39,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "ba352adc3bed4f8d82aaf50ec98d959a06c9c91a0b38001036aac3cb20a28f70",
-      "pdf_sha256": "bd7794a11c81e1e9ba6257f14b27e9f4ba0f4c7b29fc6e82d1e749e21b4f6b08"
-    }
-  },
-  "04_운영자_매뉴얼": {
-    "previous": {
-      "pages": 9,
-      "tables": 12,
-      "paragraphs": 84,
-      "docx_bytes": 439564,
-      "pdf_bytes": 668505
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 12,
+      "pdf_links": 44,
+      "pdf_bad_internal_links": []
     },
-    "current": {
-      "pages": 7,
+    "04_운영자_매뉴얼": {
+      "docx_internal_links": 22,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
       "tables": 13,
-      "paragraphs": 45,
-      "docx_bytes": 263979,
-      "pdf_bytes": 413097,
-      "toc": true,
-      "bookmarks": 12,
-      "internal_links": 22,
-      "broken_docx_links": [],
-      "pdf_internal_links": 22,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "c5c14fa6b4f7ae4e0f14b1c997c3db3d5eeeecf317b386a01f6bc412e5cece58",
-      "pdf_sha256": "70931361407f820c50a3cec3f90440417f602c64c036f7b53ccdbdcf68e3a739"
-    }
-  },
-  "05_배치_운영_가이드": {
-    "previous": {
-      "pages": 8,
-      "tables": 12,
-      "paragraphs": 89,
-      "docx_bytes": 267082,
-      "pdf_bytes": 472383
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 6,
+      "pdf_links": 22,
+      "pdf_bad_internal_links": []
     },
-    "current": {
-      "pages": 7,
+    "05_배치_운영_가이드": {
+      "docx_internal_links": 22,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
       "tables": 14,
-      "paragraphs": 47,
-      "docx_bytes": 177312,
-      "pdf_bytes": 348671,
-      "toc": true,
-      "bookmarks": 12,
-      "internal_links": 22,
-      "broken_docx_links": [],
-      "pdf_internal_links": 22,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "d6657e4873d11e46888d20ec085039d39b03ea8f8119e3c73b8b4afd0d8fd2da",
-      "pdf_sha256": "5bc0a7d9798b0be52117af6ab35e953720707f831c11c5b12b1111d5e13fdf27"
-    }
-  },
-  "06_Gateway_개발_사용_가이드": {
-    "previous": {
-      "pages": 8,
-      "tables": 9,
-      "paragraphs": 79,
-      "docx_bytes": 262394,
-      "pdf_bytes": 461011
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 6,
+      "pdf_links": 24,
+      "pdf_bad_internal_links": []
     },
-    "current": {
-      "pages": 6,
+    "06_Gateway_개발_사용_가이드": {
+      "docx_internal_links": 18,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
       "tables": 11,
-      "paragraphs": 38,
-      "docx_bytes": 197964,
-      "pdf_bytes": 342394,
-      "toc": true,
-      "bookmarks": 10,
-      "internal_links": 18,
-      "broken_docx_links": [],
-      "pdf_internal_links": 19,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "7df15c0e03dfc3abdd9d9c284de0aaada9326e28a3db530b72307e4ef09374d6",
-      "pdf_sha256": "df07aedb630f2b509dab31c5bb8832697b8db9b579f0054c78ba0b9d32232e4c"
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 5,
+      "pdf_links": 21,
+      "pdf_bad_internal_links": []
+    },
+    "07_Specification_기술_명세": {
+      "docx_internal_links": 30,
+      "docx_broken_internal_links": [],
+      "page_breaks": 2,
+      "tables": 18,
+      "tables_missing_header_flag": 0,
+      "pdf_pages": 7,
+      "pdf_links": 34,
+      "pdf_bad_internal_links": []
     }
   },
-  "07_Specification_기술_명세": {
-    "previous": {
-      "pages": 12,
-      "tables": 20,
-      "paragraphs": 88,
-      "docx_bytes": 128322,
-      "pdf_bytes": 449527
+  "accessibility": {
+    "02_프레임워크_개발자_가이드": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
     },
-    "current": {
-      "pages": 10,
-      "tables": 18,
-      "paragraphs": 59,
-      "docx_bytes": 267520,
-      "pdf_bytes": 438548,
-      "toc": true,
-      "bookmarks": 16,
-      "internal_links": 30,
-      "broken_docx_links": [],
-      "pdf_internal_links": 30,
-      "broken_pdf_links": [],
-      "equal_3plus_tables": [],
-      "long_multi_cells": [],
-      "tables_without_header": [],
-      "docx_sha256": "32d72f4eb1642f12768c467833f5b328279392f4ced57e28e3db326949d9bd32",
-      "pdf_sha256": "9610660dbfcf7fe6394e44d6001a6a46eea327aafc16077ad227543c75af0804"
+    "03_배치_개발자_가이드": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "04_운영자_매뉴얼": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "05_배치_운영_가이드": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "06_Gateway_개발_사용_가이드": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "07_Specification_기술_명세": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
     }
+  },
+  "summary": {
+    "docx_broken_internal_links": 0,
+    "pdf_bad_internal_links": 0,
+    "tables_missing_header_flag": 0,
+    "page_breaks_each": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ]
   }
 }

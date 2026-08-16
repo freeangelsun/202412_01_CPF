@@ -277,6 +277,8 @@ registerPythonGate('nxt3CommonPropagationGate', 'cpf-tools/verification/nxt3/ver
 registerPythonGate('nxt3RedisValkeyGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_current.py')
 registerPythonGate('nxt3RedisValkeyProviderGate', 'cpf-tools/verification/nxt3/verify_redis_valkey_provider_currentization.py')
 registerPythonGate('starterCatalogGate', 'cpf-tools/verification/verify_starter_catalog.py')
+registerPythonGate('developerAdoptionGate', 'cpf-tools/verification/verify_cpf_developer_adoption_contract.py')
+registerPythonGate('batchDeveloperTop50Gate', 'cpf-tools/verification/verify_cpf_batch_developer_top50.py')
 registerPythonGate('gradleProjectDependencyClosureGate', 'cpf-tools/verification/verify_gradle_project_dependency_closure.py')
 registerPythonGate('gradleLogicalTreeGate', 'cpf-tools/verification/verify-cpf-gradle-logical-tree.py')
 registerPythonGate('batRuntimeRoleContractGate', 'cpf-tools/runtime/tools/sync_bat_runtime_roles.py')
@@ -293,7 +295,7 @@ tasks.register('gradleProjectDependencyClosureTest', Exec) {
 // 빠른 정적 품질 Gate. 한 실패가 다른 독립 Gate 실행을 막지 않도록 CI에서는 --continue와 함께 사용합니다.
 tasks.register('qualityGate') {
     group = 'verification'
-    dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
+    dependsOn 'cpfResourcePolicyGate', 'cpfResourcePolicyStaticGate', 'starterCatalogGate', 'developerAdoptionGate', 'batchDeveloperTop50Gate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'batRuntimeRoleContractGate', 'managedDependencyGate', 'corePomPurityGate', 'nxt3ConfigGate', 'nxt3HygieneGate', 'nxt3LayoutGate', 'nxt3Db3Gate',
             'nxt3GeneratorGate', 'nxt3GeneratedBoundaryGate', 'nxt3AnnotationGate',
             'nxt3AdmBzaGate', 'nxt3FrontendGatewayGate', 'nxt3CommonPropagationGate',
             'nxt3RedisValkeyGate', 'nxt3RedisValkeyProviderGate'
@@ -354,6 +356,17 @@ tasks.register('cpfVerifyFast') {
     dependsOn 'qualityGate'
 }
 
+tasks.register('cpfVerifyTargeted', Exec) {
+    group = 'CPF 20 | 검증'
+    description = '[권장/변경영향] Capability 단위 Gate를 실행합니다. 예: -PcpfTargetCapabilities=cache,messaging'
+    workingDir rootDir
+    def selected = providers.gradleProperty('cpfTargetCapabilities').orElse('core').get()
+            .split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    def args = [cpfPython, file('cpf-tools/verification/tools/run-cpf-targeted-verification.py').absolutePath, '--root', rootDir.absolutePath]
+    selected.each { capability -> args.addAll(['--capability', capability]) }
+    commandLine args
+}
+
 tasks.register('cpfVerifyFullLocal', Exec) {
     group = 'CPF 20 | 검증'
     description = '[실환경] Java25/Frontend/DB/Runtime/Browser를 가능한 범위까지 한 번에 검증하고 결과 ZIP을 생성합니다.'
@@ -412,9 +425,10 @@ tasks.register('cpfHelp') {
         println '[1. 전체 빌드] ./gradlew cpfBuild'
         println '[2. 전체 테스트] ./gradlew cpfTest'
         println '[3. 빠른 검증] ./gradlew cpfVerifyFast'
-        println '[4. 로컬 실행] ./gradlew cpfRunLocal      - 권장: 1 JVM / 1 Port'
-        println '[5. Batch 실행] ./gradlew cpfRunBatch      - Batch 사용 시에만'
-        println '[6. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
+        println '[4. 변경영향 검증] ./gradlew cpfVerifyTargeted -PcpfTargetCapabilities=cache,messaging'
+        println '[5. 로컬 실행] ./gradlew cpfRunLocal      - 권장: 1 JVM / 1 Port'
+        println '[6. Batch 실행] ./gradlew cpfRunBatch      - Batch 사용 시에만'
+        println '[7. 모듈 찾기] ./gradlew cpfModules        - Public 선택 대상만'
         println ''
         println '[개발 메뉴] pwsh ./cpf-tools/build/tools/cpf-dev.ps1   - 인자 없이 실행하면 번호 메뉴'
         println '[전체 로컬 검증] ./gradlew cpfVerifyFullLocal  또는  pwsh ./cpf-tools/build/tools/cpf-dev.ps1 verify-full'

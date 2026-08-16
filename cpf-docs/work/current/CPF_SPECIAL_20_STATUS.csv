@@ -1,0 +1,21 @@
+﻿id,priority,development_status,verification_status,scope,next_closure
+SPECIAL-01,P0,재검수 중,미검증,FullLocal E2E,다음 Windows FullLocal 전체 135+ 단계 FAIL 0 / 필수 SKIP 0
+SPECIAL-02,P0,개발 완료,재검수 중,FullLocal Orchestrator,stage durability/NOT_EXECUTED/StrictExit/source-state 보정; Windows aggregate 재검수
+SPECIAL-03,P1,개발 완료,미검증,Java25 Gradle/Publication,Java25 build/test/publication/SBOM
+SPECIAL-04,P0,개발 완료,미검증,DB3 Live,Oracle/PostgreSQL/MariaDB lifecycle
+SPECIAL-05,P0,개발 완료,미검증,Redis/Valkey Live,reconnect/invalidation/multi-instance
+SPECIAL-06,P0,개발 완료,미검증,Kafka/Messaging Live,restart/DLQ/outbox/inbox/duplicate
+SPECIAL-07,P0,개발 완료,미검증,Batch fault runtime,2-worker/process kill/UNKNOWN/reconcile/fencing
+SPECIAL-08,P0,개발 완료,미검증,Local 1-WAS,start/transaction/restart/shutdown
+SPECIAL-09,P0,개발 완료,미검증,Integrated Logging,FileLog↔DB↔ADM same transactionId/traceId
+SPECIAL-10,P0,개발 완료,재검수 중,Secret Masking,static contracts PASS; live File/DB/stdout/browser scan required
+SPECIAL-11,P0,개발 완료,미검증,ADM Browser,npm ci/verify/E2E/A11y/error states
+SPECIAL-12,P0,개발 완료,미검증,BZA Browser,npm ci/verify/E2E/A11y/error states
+SPECIAL-13,P1,개발 완료,재검수 중,Controller/OpenAPI/Client/UI,ADM321/BZA96 static pass; live UI consumer required
+SPECIAL-14,P1,개발 완료,재검수 중,Domain/External/Tx boundary,Golden Path/contract gate implemented; remote runtime required
+SPECIAL-15,P0,개발 완료,재검수 중,UNKNOWN/Retry/Idempotency/Reconcile,Batch targeted PASS; live messaging/batch/domain required
+SPECIAL-16,P1,개발 완료,재검수 중,Generator Golden Path,static lifecycle + DB3 output tests pass; Java compile/runtime required
+SPECIAL-17,P1,개발 완료,검증 완료,Starter/Public API/DX,"Usage Level, TOP100, Quick Select, Batch TOP50 gates PASS"
+SPECIAL-18,P1,개발 완료,미검증,Gateway/Topology,Gateway OFF/ON/multi-instance live
+SPECIAL-19,P1,개발 완료,재검수 중,Performance/Backpressure,dry-run/self-tests PASS; canonical live workload required
+SPECIAL-20,P0,개발 완료,재검수 중,Evidence false-green,current-source dedicated evidence rebuilt; final package corruption negative/Fresh Apply pending package step

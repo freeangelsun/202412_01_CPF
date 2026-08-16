@@ -1,10 +1,4 @@
-finding_id=QA-B3-004
-status=PASS
-exit_code=0
-elapsed_seconds=1.423
-command=python cpf-tools/verification/nxt3/verify_adm_incident_canonical_db.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/nxt3/verify_adm_incident_canonical_db.py --root .
 CPF_ADM_INCIDENT_CANONICAL_DB=PASS canonicalTables=6 vendors=3 errors=0
 
---- stderr ---
-
+EXIT_CODE=0

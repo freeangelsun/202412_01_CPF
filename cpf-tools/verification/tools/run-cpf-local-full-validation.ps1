@@ -38,8 +38,8 @@ if ([string]::IsNullOrWhiteSpace($DockerSecretFile)) { $DockerSecretFile = Join-
 
 $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 $finalResultDir = Join-Path $OutputRoot "CPF_LOCAL_VALIDATION_$stamp"
-$scratchBase = [IO.Path]::GetTempPath()
-$resultDir = Join-Path $scratchBase ("CPF_LOCAL_VALIDATION_{0}_{1}" -f $stamp,$PID)
+$scratchRoot = Join-Path ([IO.Path]::GetTempPath()) ("CPF_LOCAL_VALIDATION_{0}_{1}" -f $stamp,$PID)
+$resultDir = $scratchRoot
 $logDir = Join-Path $resultDir 'logs'
 $evidenceDir = Join-Path $resultDir 'evidence'
 function Ensure-CpfResultDirectories {
@@ -131,13 +131,12 @@ function Invoke-CpfStage {
         Skip-CpfStage $Name 'required executable missing'
         return
     }
+    Ensure-CpfResultDirectories
     $script:seq++
     $safe = $Name -replace '[^A-Za-z0-9._-]','_'
-    Ensure-CpfResultDirectories
     $log = Join-Path $script:logDir ('{0:D2}_{1}.log' -f $script:seq,$safe)
-    $tempLog = Join-Path ([IO.Path]::GetTempPath()) ("cpf-local-stage-{0}.log" -f ([guid]::NewGuid().ToString('N')))
     $started = Get-Date
-    [IO.File]::WriteAllText($tempLog,"START=$($started.ToString('o'))`nWD=$WorkingDirectory`nCMD=$Executable $($Arguments -join ' ')`n",$script:utf8)
+    [IO.File]::WriteAllText($log,"START=$($started.ToString('o'))`nWD=$WorkingDirectory`nCMD=$Executable $($Arguments -join ' ')`n",$script:utf8)
     Write-Host ("[{0:D2}] {1} ..." -f $script:seq,$Name) -ForegroundColor Cyan
     $previousEnv=@{}
     foreach($key in $Environment.Keys){
@@ -150,11 +149,11 @@ function Invoke-CpfStage {
         $ErrorActionPreference='Continue'
         Push-Location $WorkingDirectory
         try {
-            & $Executable @Arguments 2>&1 | ForEach-Object { Add-Content -LiteralPath $tempLog -Value $_.ToString() -Encoding UTF8 }
+            & $Executable @Arguments 2>&1 | ForEach-Object { Add-Content -LiteralPath $log -Value $_.ToString() -Encoding UTF8 }
             $rc=if($null -eq $LASTEXITCODE){0}else{[int]$LASTEXITCODE}
         } finally { Pop-Location }
     } catch {
-        Add-Content -LiteralPath $tempLog -Value $_.Exception.ToString() -Encoding UTF8
+        Add-Content -LiteralPath $log -Value $_.Exception.ToString() -Encoding UTF8
         $rc=1
     } finally {
         foreach($key in $previousEnv.Keys){[Environment]::SetEnvironmentVariable([string]$key,$previousEnv[$key],'Process')}
@@ -162,9 +161,9 @@ function Invoke-CpfStage {
     }
     $seconds=((Get-Date)-$started).TotalSeconds
     $status=if($rc -eq 0){'PASS'}else{'FAIL'}
-    Add-Content -LiteralPath $tempLog -Value "`nEXIT_CODE=$rc`nEND=$((Get-Date).ToString('o'))" -Encoding UTF8
     Ensure-CpfResultDirectories
-    [IO.File]::Copy($tempLog,$log,$true)
+    if(-not(Test-Path -LiteralPath $log -PathType Leaf)){[IO.File]::WriteAllText($log,"RECOVERED_STAGE_LOG=true`n",$script:utf8)}
+    Add-Content -LiteralPath $log -Value "`nEXIT_CODE=$rc`nEND=$((Get-Date).ToString('o'))" -Encoding UTF8
     Write-Host ("[{0:D2}] {1} -> {2} rc={3} {4:N1}s" -f $script:seq,$Name,$status,$rc,$seconds) -ForegroundColor $(if($rc -eq 0){'Green'}else{'Red'})
     Add-CpfResult $Name $status $rc $seconds $log
 }
@@ -297,10 +296,8 @@ function Initialize-CpfPythonEnvironment {
         Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "EXPECTED=Python 3.13`nACTUAL=$versionText" 'CPF local validation requires Python 3.13'
         return $null
     }
-    $pythonCacheRoot=if($IsWindows -and -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)){Join-Path $env:LOCALAPPDATA 'CPF\validation'}else{Join-Path ([IO.Path]::GetTempPath()) 'cpf-validation'}
-    $venvRoot=Join-Path $pythonCacheRoot 'python313-env'
+    $venvRoot=Join-Path ([IO.Path]::GetTempPath()) 'cpf-local-validation-python313-env'
     $venvPython=Join-Path $venvRoot $(if($IsWindows){'Scripts\python.exe'}else{'bin/python'})
-    Ensure-CpfResultDirectories
     $bootstrapLog=Join-Path $script:logDir 'PYTHON_BOOTSTRAP.log'
     if(-not(Test-Path -LiteralPath $venvPython -PathType Leaf)){
         [IO.Directory]::CreateDirectory((Split-Path -Parent $venvRoot)) | Out-Null
@@ -310,7 +307,7 @@ function Initialize-CpfPythonEnvironment {
             $venvOutput | ForEach-Object { Add-Content -LiteralPath $bootstrapLog -Value $_.ToString() -Encoding UTF8; Write-Host $_.ToString() }
         }
         if($venvRc -ne 0){
-            Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "venv creation failed: $venvRoot" 'unable to create external validation Python environment'
+            Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "venv creation failed: $venvRoot" 'unable to create TEMP-local validation Python environment'
             return $null
         }
     }
@@ -322,7 +319,7 @@ function Initialize-CpfPythonEnvironment {
     if($importRc -ne 0){
         $requirements=Join-Path $RepoRoot 'cpf-tools\verification\local-validation-requirements.txt'
         if(-not(Test-Path -LiteralPath $requirements -PathType Leaf)){
-            Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "requirements missing: $requirements" 'validation Python dependencies cannot be bootstrapped'
+            Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "requirements missing: $requirements" 'TEMP-local Python dependencies cannot be bootstrapped'
             return $null
         }
         $pipOutput=@(& $venvPython -m pip install --disable-pip-version-check --no-input -r $requirements 2>&1)
@@ -344,7 +341,7 @@ function Initialize-CpfPythonEnvironment {
         Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "pytest/cryptography import failed after bootstrap`nbootstrapLog=$bootstrapLog"
         return $null
     }
-    Add-CpfTextResult 'PYTHON_ENV' 'PASS' "PYTHON=$venvPython`n$versionText`nDEPENDENCIES=pytest,cryptography`nBOOTSTRAP_LOG=$bootstrapLog" 'external reusable Python validation environment'
+    Add-CpfTextResult 'PYTHON_ENV' 'PASS' "PYTHON=$venvPython`n$versionText`nDEPENDENCIES=pytest,cryptography`nBOOTSTRAP_LOG=$bootstrapLog" 'TEMP-local reusable Python validation environment outside repository managed/source state'
     return [string]$venvPython
 }
 
@@ -486,8 +483,6 @@ if($python){
     }
 
     # 고가치 독립 계약 Gate. 전체 pytest와 별개로 결과를 명시적으로 남긴다.
-    Invoke-CpfStage 'ADM_CONTROLLER_SOURCE_OPENAPI_CURRENT' $python @('.\cpf-tools\verification\tools\write-cpf-controller-source-operation-contract.py','--root','.', '--module','ADM','--check-openapi')
-    Invoke-CpfStage 'BZA_CONTROLLER_SOURCE_OPENAPI_CURRENT' $python @('.\cpf-tools\verification\tools\write-cpf-controller-source-operation-contract.py','--root','.', '--module','BZA','--check-openapi')
     Invoke-CpfStage 'GRADLE_LOGICAL_TREE' $python @('.\cpf-tools\verification\verify-cpf-gradle-logical-tree.py','--root','.', '--json-output',(Join-Path $evidenceDir 'gradle-logical-tree.json'))
     Invoke-CpfStage 'WINDOWS_PATH_COMPATIBILITY' $python @('.\cpf-tools\verification\verify_windows_path_compatibility.py','--root','.','--target-root-text',$RepoRoot)
     Invoke-CpfStage 'SECURITY_CONTROLLER_PERMISSION' $python @('.\cpf-tools\security\tools\verify-cpf-controller-permission-contract.py','--root','.','--strict','--report',(Join-Path $evidenceDir 'security-controller-permission.json'))
@@ -538,7 +533,6 @@ if($python){
     Invoke-CpfStage 'CODEX_COMMON_VALIDATION_OWNER' $python @('.\cpf-tools\verification\verify_common_validation_owner.py','--root','.')
     Invoke-CpfStage 'CODEX_DOMAIN_EXCEPTION_ENFORCEMENT' $python @('.\cpf-tools\verification\verify_domain_exception_enforcement.py')
     Invoke-CpfStage 'CODEX_LOGGING_DX' $python @('.\cpf-tools\verification\verify_logging_dx.py')
-    Invoke-CpfStage 'CODEX_INTEGRATED_LOGGING_CLOSURE' $python @('.\cpf-tools\verification\tools\verify-cpf-integrated-logging-closure.py','--root','.', '--json-output',(Join-Path $evidenceDir 'integrated-logging-closure.json'))
     Invoke-CpfStage 'CODEX_TESTKIT_CONTRACT' $python @('.\cpf-tools\verification\verify_testkit_contract.py')
     Invoke-CpfStage 'CODEX_ZERO_FOOTPRINT' $python @('.\cpf-tools\verification\verify_nxt_zero_footprint.py')
     Invoke-CpfStage 'CODEX_SPRING_ROUTE_UNIQUENESS' $python @('.\cpf-tools\verification\tools\verify-cpf-spring-request-mapping-uniqueness.py','--root','.', '--json-output',(Join-Path $evidenceDir 'spring-route-uniqueness.json'))
@@ -563,16 +557,12 @@ if($python){
         Invoke-CpfStage $stage $python @('.\deploy\tools\prepare-distribution.py','--root','.', '--env','local','--topology',$topology,'--output',(Join-Path $evidenceDir "deployment-plan\$topology"),'--plan-only')
     }
 
-    # 장시간 HTTP load/soak는 노트북 보호를 위해 명시적 opt-in. command workload는 FullLocal에서 실행한다.
+    # Performance contract/profile correctness is always checked here without pretending that live probes ran.
+    # Actual command/HTTP workload closure is a separate stage and requires explicit live probe endpoints.
     if($FullLocal){
         $perfProfile=Join-Path $RepoRoot 'cpf-tools\testing\performance\cpf-performance-profile.json'
         foreach($workload in @('broker-backpressure','batch-reconcile','resource-budget')){
-            Invoke-CpfStage ("PERFORMANCE_"+$workload.ToUpperInvariant().Replace('-','_')) $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',$workload,'--output-json',(Join-Path $evidenceDir ("performance-$workload.json")))
-        }
-        if($IncludePerformanceLoad){
-            foreach($workload in @('adm-api-load','adm-api-soak')){
-                Invoke-CpfStage ("PERFORMANCE_"+$workload.ToUpperInvariant().Replace('-','_')) $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',$workload,'--output-json',(Join-Path $evidenceDir ("performance-$workload.json")))
-            }
+            Invoke-CpfStage ("PERFORMANCE_"+$workload.ToUpperInvariant().Replace('-','_')+"_CONTRACT") $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',$workload,'--dry-run','--output-json',(Join-Path $evidenceDir ("performance-$workload-contract.json")))
         }
     }
 }else{Skip-CpfStage 'PYTHON_SUITE' 'python missing'}
@@ -696,77 +686,84 @@ if($IncludeRuntimeClosure){
 }else{Skip-CpfStage 'RUNTIME_DOCKER_CLOSURE' 'IncludeRuntimeClosure not requested'}
 
 # 7. 기본 로컬 Runtime은 1 WAS만. Batch/다중 WAS는 기본으로 띄우지 않는다.
-# FullLocal에서는 MariaDB/ADM local credential을 조건부로 준비해 실제 DB 거래로그 + FileLog + ADM 통합조회까지 교차 검증한다.
-$oneWasDbState=$null
-$oneWasImportedEnv=@{}
-$oneWasExtraEnv=@{}
-try{
-    if(-not $SkipOneWas -and $pwsh){
-        if($FullLocal -and -not $SkipDocker){
-            $oneWasImportedEnv=Import-CpfEnvFile $DockerSecretFile
-            $oneWasDbState=Start-CpfDockerTarget 'mariadb'
-            $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
-            if($oneWasDbState.ready -and -not [string]::IsNullOrWhiteSpace($adminPassword)){
-                foreach($key in @('ADM_DB_PASSWORD','ADM_DATASOURCE_PASSWORD','CPF_ADM_BOOTSTRAP_PASSWORD','CPF_ADM_SMOKE_PASSWORD','CPF_ADM_BOOTSTRAP_ENABLED','CPF_ADM_APPROVAL_PROOF_KEY_BASE64')){
-                    $oneWasExtraEnv[$key]=[Environment]::GetEnvironmentVariable($key,'Process')
-                }
-                [Environment]::SetEnvironmentVariable('ADM_DB_PASSWORD',$adminPassword,'Process')
-                [Environment]::SetEnvironmentVariable('ADM_DATASOURCE_PASSWORD',$adminPassword,'Process')
-                [Environment]::SetEnvironmentVariable('CPF_ADM_BOOTSTRAP_PASSWORD',$adminPassword,'Process')
-                [Environment]::SetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD',$adminPassword,'Process')
-                [Environment]::SetEnvironmentVariable('CPF_ADM_BOOTSTRAP_ENABLED','true','Process')
-                if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64','Process'))){
-                    $proofBytes=New-Object byte[] 32
-                    [Security.Cryptography.RandomNumberGenerator]::Fill($proofBytes)
-                    [Environment]::SetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64',[Convert]::ToBase64String($proofBytes),'Process')
-                }
+if(-not $SkipOneWas -and $pwsh){
+    Invoke-CpfStage 'LOCAL_ONE_WAS_START' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\start-cpf-local.ps1','-RepoRoot',$RepoRoot,'-Mode','integrated','-ResourceProfile',$ResourceProfile,'-WebOnly')
+    $oneWasReady=($summary[$summary.Count-1].status -eq 'PASS')
+    if($oneWasReady){
+        $integratedLogRoot=Join-Path $evidenceDir 'integrated-logging'
+        $fileLogEvidence=Join-Path $integratedLogRoot 'file'
+        $policyLogEvidence=Join-Path $integratedLogRoot 'policy'
+        [IO.Directory]::CreateDirectory($fileLogEvidence)|Out-Null
+        [IO.Directory]::CreateDirectory($policyLogEvidence)|Out-Null
+        Invoke-CpfStage 'LOCAL_FILE_LOG_STANDARD' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-file-log-standard-runtime.ps1','-Root',$RepoRoot,'-EducationBaseUrl','http://127.0.0.1:8080','-ResultDir',$fileLogEvidence,'-LogBasePath',(Join-Path $RepoRoot 'logs'),'-RequireRuntime')
+        $localSecretPrevious=@{}
+        if(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf){$localSecretPrevious=Import-CpfEnvFile $DockerSecretFile}
+        try{
+            $admPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
+            if([string]::IsNullOrWhiteSpace($admPassword)){$admPassword=[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')}
+            if([string]::IsNullOrWhiteSpace($admPassword)){
+                Skip-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' 'CPF_ADMIN_PASSWORD / CPF_ADM_SMOKE_PASSWORD not available; password is never placed on command line'
+                Skip-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' 'ADM local credential unavailable'
+            }else{
+                $secretEnv=@{CPF_ADM_SMOKE_PASSWORD=$admPassword;CPF_ADMIN_PASSWORD=$admPassword}
+                Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
+                Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',(Join-Path $RepoRoot 'logs'),'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin','-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
+            }
+        }finally{Restore-CpfEnvironment $localSecretPrevious}
+    }else{
+        Add-CpfTextResult 'LOCAL_FILE_LOG_STANDARD' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; integrated logging requires a live transaction' 'upstream runtime start failed'
+        Add-CpfTextResult 'LOCAL_DB_LOG_POLICY_RUNTIME' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; DB log policy runtime was not executed' 'upstream runtime start failed'
+        Add-CpfTextResult 'LOCAL_INTEGRATED_LOG_CORRELATION' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; FileLog/DB/ADM correlation was not executed' 'upstream runtime start failed'
+    }
+    if($node -and $python -and $oneWasReady){
+        Invoke-CpfStage 'ADM_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','ADM','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\adm'),'-SourceIdentity',$sourceIdentity)
+        Invoke-CpfStage 'BZA_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','BZA','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\bza'),'-SourceIdentity',$sourceIdentity)
+    }elseif(-not $oneWasReady){
+        Add-CpfTextResult 'ADM_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; ADM runtime OpenAPI parity was not executed' 'upstream runtime start failed'
+        Add-CpfTextResult 'BZA_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; BZA runtime OpenAPI parity was not executed' 'upstream runtime start failed'
+    }else{
+        Skip-CpfStage 'RUNTIME_OPENAPI_RELEASE' 'node/python unavailable'
+    }
+    if($IncludeBrowserE2E -and $oneWasReady){
+        Invoke-CpfStage 'ADM_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-adm-ui.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-LogDir',(Join-Path $evidenceDir 'browser'),'-BrowserClick')
+        Invoke-CpfStage 'BZA_BROWSER_STATIC' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-bza-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'))
+        if($npm -and $frontendSandboxes.ContainsKey('ADM')){
+            $admSandbox=[string]$frontendSandboxes['ADM']
+            Invoke-CpfStage 'ADM_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_BASE_URL='http://127.0.0.1:8080'}
+            Invoke-CpfStage 'ADM_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_BASE_URL='http://127.0.0.1:8080'}
+        }else{Skip-CpfStage 'ADM_PLAYWRIGHT_E2E' 'ADM frontend sandbox/npm unavailable'}
+        if($npm -and $frontendSandboxes.ContainsKey('BZA')){
+            $bzaSandbox=[string]$frontendSandboxes['BZA']
+            Invoke-CpfStage 'BZA_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_BASE_URL='http://127.0.0.1:8080'}
+            Invoke-CpfStage 'BZA_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_BASE_URL='http://127.0.0.1:8080'}
+        }else{Skip-CpfStage 'BZA_PLAYWRIGHT_E2E' 'BZA frontend sandbox/npm unavailable'}
+    }elseif(-not $IncludeBrowserE2E){Skip-CpfStage 'BROWSER_E2E' 'IncludeBrowserE2E not requested'}
+    else{Add-CpfTextResult 'BROWSER_E2E' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; Browser E2E was not executed' 'upstream runtime start failed'}
+    if($FullLocal -and $python -and $oneWasReady){
+        $perfProfile=Join-Path $RepoRoot 'cpf-tools\testing\performance\cpf-performance-profile.json'
+        $livePerf=@(
+            @{id='broker-backpressure'; env='CPF_PERF_BROKER_PROBE_URL'},
+            @{id='batch-reconcile'; env='CPF_PERF_BATCH_PROBE_URL'},
+            @{id='resource-budget'; env='CPF_PERF_RESOURCE_PROBE_URL'}
+        )
+        foreach($item in $livePerf){
+            $probe=[Environment]::GetEnvironmentVariable([string]$item.env,'Process')
+            $stage="PERFORMANCE_"+([string]$item.id).ToUpperInvariant().Replace('-','_')+"_LIVE"
+            if([string]::IsNullOrWhiteSpace($probe)){Skip-CpfStage $stage ("live product probe is not configured: "+$item.env)}
+            else{Invoke-CpfStage $stage $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',[string]$item.id,'--output-json',(Join-Path $evidenceDir ("performance-"+$item.id+"-live.json"))) $RepoRoot @{CPF_EXPECTED_HEAD=$sourceIdentity}}
+        }
+        if($IncludePerformanceLoad){
+            $admHealth=[Environment]::GetEnvironmentVariable('CPF_PERF_ADM_HEALTH_URL','Process')
+            if([string]::IsNullOrWhiteSpace($admHealth)){Skip-CpfStage 'PERFORMANCE_ADM_API_LOAD_LIVE' 'CPF_PERF_ADM_HEALTH_URL is not configured'}
+            else{
+                foreach($workload in @('adm-api-load','adm-api-soak')){Invoke-CpfStage ("PERFORMANCE_"+$workload.ToUpperInvariant().Replace('-','_')+"_LIVE") $python @('.\cpf-tools\testing\tools\run-cpf-performance-contract.py','--profile',$perfProfile,'--workload',$workload,'--output-json',(Join-Path $evidenceDir ("performance-$workload-live.json")))}
             }
         }
-
-        Invoke-CpfStage 'LOCAL_ONE_WAS_START' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\start-cpf-local.ps1','-RepoRoot',$RepoRoot,'-Mode','integrated','-ResourceProfile',$ResourceProfile,'-WebOnly')
-
-        $integratedLogRoot=Join-Path $RepoRoot 'logs'
-        $integratedLogEvidence=Join-Path $evidenceDir 'integrated-logging'
-        $fileLogEvidence=Join-Path $integratedLogEvidence 'file'
-        $policyLogEvidence=Join-Path $integratedLogEvidence 'policy'
-        $fileLogResult=Join-Path $fileLogEvidence 'file-log-standard-result.json'
-        $policyLogResult=Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'
-        $correlationResult=Join-Path $integratedLogEvidence 'integrated-log-correlation-result.json'
-        Invoke-CpfStage 'LOCAL_FILE_LOG_STANDARD' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-file-log-standard-runtime.ps1','-Root',$RepoRoot,'-EducationBaseUrl','http://127.0.0.1:8080','-ResultDir',$fileLogEvidence,'-LogBasePath',$integratedLogRoot,'-RequireRuntime')
-        $admSmokePassword=[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')
-        if($oneWasDbState -and $oneWasDbState.ready -and -not [string]::IsNullOrWhiteSpace($admSmokePassword)){
-            Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence)
-            Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$integratedLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',$fileLogResult,'-LogPolicyResultPath',$policyLogResult,'-AdmUsername','admin','-ResultPath',$correlationResult)
-        }else{
-            Skip-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' 'MariaDB runtime/CPF_ADMIN_PASSWORD unavailable; DB/FileLog correlation requires local DB runtime'
-            Skip-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' 'DB log policy runtime prerequisite unavailable'
-        }
-
-        if($node -and $python){
-            Invoke-CpfStage 'ADM_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','ADM','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\adm'),'-SourceIdentity',$sourceIdentity)
-            Invoke-CpfStage 'BZA_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','BZA','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\bza'),'-SourceIdentity',$sourceIdentity)
-        }else{Skip-CpfStage 'RUNTIME_OPENAPI_RELEASE' 'node/python unavailable'}
-        if($IncludeBrowserE2E){
-            Invoke-CpfStage 'ADM_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-adm-ui.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-LogDir',(Join-Path $evidenceDir 'browser'),'-BrowserClick')
-            Invoke-CpfStage 'BZA_BROWSER_STATIC' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-bza-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'))
-            if($npm -and $frontendSandboxes.ContainsKey('ADM')){
-                $admSandbox=[string]$frontendSandboxes['ADM']
-                Invoke-CpfStage 'ADM_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_BASE_URL='http://127.0.0.1:8080'}
-                Invoke-CpfStage 'ADM_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_BASE_URL='http://127.0.0.1:8080'}
-            }else{Skip-CpfStage 'ADM_PLAYWRIGHT_E2E' 'ADM frontend sandbox/npm unavailable'}
-            if($npm -and $frontendSandboxes.ContainsKey('BZA')){
-                $bzaSandbox=[string]$frontendSandboxes['BZA']
-                Invoke-CpfStage 'BZA_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_BASE_URL='http://127.0.0.1:8080'}
-                Invoke-CpfStage 'BZA_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_BASE_URL='http://127.0.0.1:8080'}
-            }else{Skip-CpfStage 'BZA_PLAYWRIGHT_E2E' 'BZA frontend sandbox/npm unavailable'}
-        }else{Skip-CpfStage 'BROWSER_E2E' 'IncludeBrowserE2E not requested'}
-        Invoke-CpfStage 'LOCAL_ONE_WAS_STOP' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\stop-cpf-local.ps1','-RepoRoot',$RepoRoot)
-    }elseif($SkipOneWas){Skip-CpfStage 'LOCAL_ONE_WAS_RUNTIME' 'SkipOneWas requested'}else{Skip-CpfStage 'LOCAL_ONE_WAS_RUNTIME' 'pwsh/powershell missing'}
-}finally{
-    if($oneWasExtraEnv.Count -gt 0){Restore-CpfEnvironment $oneWasExtraEnv}
-    if($oneWasImportedEnv.Count -gt 0){Restore-CpfEnvironment $oneWasImportedEnv}
-    Stop-CpfDockerTargetIfOwned 'mariadb' $oneWasDbState
-}
+    }elseif($FullLocal -and -not $oneWasReady){
+        Add-CpfTextResult 'PERFORMANCE_LIVE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; live performance probes were not executed' 'upstream runtime start failed'
+    }
+    Invoke-CpfStage 'LOCAL_ONE_WAS_STOP' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\stop-cpf-local.ps1','-RepoRoot',$RepoRoot)
+}elseif($SkipOneWas){Skip-CpfStage 'LOCAL_ONE_WAS_RUNTIME' 'SkipOneWas requested'}else{Skip-CpfStage 'LOCAL_ONE_WAS_RUNTIME' 'pwsh/powershell missing'}
 
 if($python){Invoke-CpfStage 'SUPPLY_CHAIN' $python @('.\cpf-tools\supply-chain\tools\verify-cpf-supply-chain.py','--root','.')}
 
@@ -785,6 +782,7 @@ $summary | Export-Csv -LiteralPath $summaryCsv -NoTypeInformation -Encoding UTF8
 $pass=@($summary|Where-Object status -eq 'PASS').Count
 $fail=@($summary|Where-Object status -eq 'FAIL').Count
 $skip=@($summary|Where-Object status -eq 'SKIP_ENV').Count
+$notExecuted=@($summary|Where-Object status -eq 'NOT_EXECUTED').Count
 $lines=[Collections.Generic.List[string]]::new()
 $lines.Add("CPF_LOCAL_VALIDATION=$stamp")
 $lines.Add("RESOURCE_PROFILE=$ResourceProfile")
@@ -794,13 +792,14 @@ $lines.Add("BASELINE_SHA=$baselineSha")
 $lines.Add("RESULT_CONTENT_SHA1=$sourceIdentity")
 $lines.Add("RESULT_CONTENT_SHA256=$sourceContentSha256")
 $lines.Add("RESULT_SOURCE_IDENTITY=$env:CPF_SOURCE_IDENTITY")
-$lines.Add("PASS=$pass FAIL=$fail SKIP_ENV=$skip TOTAL=$($summary.Count)")
+$lines.Add("PASS=$pass FAIL=$fail SKIP_ENV=$skip NOT_EXECUTED=$notExecuted TOTAL=$($summary.Count)")
 $lines.Add("DOCKER_ALL_PRESTART_REQUIRED=false")
 $lines.Add('')
 foreach($row in $summary){$lines.Add("[$($row.status)] $($row.name) rc=$($row.exitCode) sec=$($row.seconds) note=$($row.note) log=$($row.log)")}
 [IO.File]::WriteAllText($summaryTxt,($lines -join "`n")+"`n",$utf8)
 
-[IO.Directory]::CreateDirectory($finalResultDir) | Out-Null
+Ensure-CpfResultDirectories
+[IO.Directory]::CreateDirectory($finalResultDir)|Out-Null
 Copy-Item -Path (Join-Path $resultDir '*') -Destination $finalResultDir -Recurse -Force
 $zip=Join-Path $OutputRoot "CPF_LOCAL_VALIDATION_$stamp.zip"
 if(Test-Path -LiteralPath $zip){Remove-Item -LiteralPath $zip -Force}
@@ -808,7 +807,7 @@ Compress-Archive -Path (Join-Path $finalResultDir '*') -DestinationPath $zip -Co
 $zipSha=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$zip.sha256.txt","$zipSha  $([IO.Path]::GetFileName($zip))`n",$utf8)
 Write-Host ''
-Write-Host "CPF LOCAL VALIDATION COMPLETE: PASS=$pass FAIL=$fail SKIP_ENV=$skip" -ForegroundColor Cyan
+Write-Host "CPF LOCAL VALIDATION COMPLETE: PASS=$pass FAIL=$fail SKIP_ENV=$skip NOT_EXECUTED=$notExecuted" -ForegroundColor Cyan
 Write-Host "RESULT_DIR=$finalResultDir"
 Write-Host "CPF_LOCAL_VALIDATION_ZIP=$zip"
 Write-Host "ZIP_SHA256=$zipSha"

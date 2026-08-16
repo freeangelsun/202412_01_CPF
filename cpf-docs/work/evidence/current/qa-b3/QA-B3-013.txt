@@ -1,9 +1,4 @@
-finding_id=QA-B3-013
-status=PASS
-exit_code=0
-elapsed_seconds=1.524
-command=python cpf-tools/verification/tools/verify-cpf-batch-approval-trust-boundary.py --root .
---- stdout ---
+COMMAND=python cpf-tools/verification/tools/verify-cpf-batch-approval-trust-boundary.py --root .
 {
   "status": "PASS",
   "files": [
@@ -26,5 +21,4 @@ command=python cpf-tools/verification/tools/verify-cpf-batch-approval-trust-boun
   "risk": "browser-supplied approver/approval id can authorize BAT runtime command"
 }
 
---- stderr ---
-
+EXIT_CODE=0

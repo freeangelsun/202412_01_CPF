@@ -78,8 +78,20 @@ if (sha256(files.map(item => `${item.path}:${item.sha256}`).join("\n")) !== mark
 function currentSourceSha() {
   const explicit = process.env.CPF_SOURCE_SHA?.trim();
   if (explicit) return explicit;
-  try { return execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(); }
-  catch { throw new Error("CPF_SOURCE_SHA 또는 Git HEAD가 필요합니다. Source identity 비교를 생략할 수 없습니다."); }
+  const repoRoot = path.resolve(root, "../..");
+  const stateTool = path.join(repoRoot, "cpf-tools/verification/tools/cpf-source-state.py");
+  if (!fs.existsSync(stateTool)) {
+    throw new Error("CPF_SOURCE_SHA 또는 cpf-source-state.py가 필요합니다. Git 조회로 대체하지 않습니다.");
+  }
+  const python = process.env.CPF_PYTHON?.trim() || "python";
+  try {
+    const text = execFileSync(python, ["-B", stateTool, "--root", repoRoot, "--scope", "source"], {
+      cwd: repoRoot, encoding: "utf8", env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" }
+    });
+    return JSON.parse(text).contentSha1;
+  } catch (error) {
+    throw new Error(`Git-independent Source identity 계산 실패: ${error?.message || error}`);
+  }
 }
 const sourceSha = currentSourceSha();
 if (!/^[0-9a-f]{40}$/i.test(sourceSha)) throw new Error("Source SHA는 exact 40자리여야 합니다.");

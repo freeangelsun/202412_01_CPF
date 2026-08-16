@@ -2259,3 +2259,11 @@ Shell/Gradle은 `명령`, Java 호출은 `API/메소드`, 선언은 `Annotation`
 문서 앞부분에는 Golden Path가 먼저 보여야 한다. `CpfDomainClientRouter`, `CpfServiceCaller`, Provider Bridge 등 Advanced API를 Controller/Service/@CpfTx 같은 Golden Path와 동급으로 앞에 나열하지 않는다.
 
 비즈니스 개발 공통 메소드는 `service.method()`, `domainClient.execute()`, Typed External Client, `CpfResult`, Base helper, Cache/Messaging/Common Function처럼 **업무 코드에서 반복해서 쓰는 Surface**를 우선 정리한다. Source 예제만 나열하지 말고 `선행 Starter → 적용 위치 → API/메소드 → 주요 옵션 → 선택 기준 → 최소 예제`를 연결한다.
+
+---
+
+## 개발자 가이드 표·페이지 밀도 기준 (2026-08-16)
+
+Developer Guide의 표는 정보량뿐 아니라 실제 읽히는 밀도를 검수한다. `상세`처럼 값이 짧은 컬럼 때문에 API·용도·옵션 컬럼이 불필요하게 줄바꿈되지 않게 하며, TOP 100의 각 기능군을 무조건 새 페이지에서 시작하지 않는다. 기능군 제목은 다음 표와 함께 유지하되 앞 페이지에 충분한 공간이 있으면 자연스럽게 이어서 배치한다.
+
+페이지 단위로 보았을 때 한 개 작은 표만 상단에 놓이고 나머지 대부분이 공백인 페이지가 반복되면 Page Break/Keep 설정과 표 폭을 재조정한다. 문서 분량을 늘리는 것보다 같은 내용을 더 빠르고 안정적으로 찾게 만드는 것을 우선한다.

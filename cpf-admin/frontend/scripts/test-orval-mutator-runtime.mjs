@@ -11,7 +11,7 @@ if (!fs.existsSync(source)) throw new Error(`Mutator source missing: ${source}`)
 const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "cpf-orval-mutator-"));
 const tsc = path.join(root, "node_modules", "typescript", "bin", "tsc");
 if (!fs.existsSync(tsc)) throw new Error(`Local TypeScript compiler missing: ${tsc}`);
-const compile = spawnSync(process.execPath, [tsc, source, "--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler", "--strict", "--lib", "ES2022,DOM,DOM.Iterable", "--skipLibCheck", "--outDir", outDir], {
+const compile = spawnSync(process.execPath, [tsc, source, "--ignoreConfig","--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler", "--strict", "--lib", "ES2022,DOM,DOM.Iterable", "--skipLibCheck", "--outDir", outDir], {
   cwd: root,
   encoding: "utf8",
   maxBuffer: 16 * 1024 * 1024,

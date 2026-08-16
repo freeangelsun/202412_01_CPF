@@ -3,7 +3,7 @@
 from __future__ import annotations
 import sys
 from pathlib import Path as _TrustPath
-sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[1]/'verification'))
+sys.path.insert(0,str(_TrustPath(__file__).resolve().parents[2]/'verification'))
 from release_target_trust import verify_release_target, self_test as trust_self_test
 import argparse,json,math,os,urllib.request,uuid
 from urllib.parse import urlparse

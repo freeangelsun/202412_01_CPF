@@ -1,9 +1,4 @@
-finding_id=QA-B3-024
-status=PASS
-exit_code=0
-elapsed_seconds=1.421
-command=python cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py .
---- stdout ---
+COMMAND=python cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py .
 {
   "vendors": [
     "oracle",
@@ -27,6 +22,4 @@ command=python cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliat
   "semanticParity": true,
   "pass": true
 }
-
---- stderr ---
-
+EXIT_CODE=0

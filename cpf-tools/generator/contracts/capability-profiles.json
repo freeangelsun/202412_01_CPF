@@ -880,5 +880,68 @@
   ],
   "profileInternalOwners": [
     "web"
-  ]
+  ],
+  "adoptionEntryProfiles": {
+    "minimal": {
+      "intent": "small-start",
+      "basePublicProfile": "web-api",
+      "addPublicArtifacts": [],
+      "capabilityIntent": [
+        "web",
+        "context",
+        "validation",
+        "logging",
+        "transaction"
+      ],
+      "note": "새 Starter가 아니라 기존 web-api Profile로 시작하는 도입 가이드"
+    },
+    "standard": {
+      "intent": "general-business",
+      "basePublicProfile": "secure-api",
+      "addPublicArtifacts": [
+        "cpf-starter-common"
+      ],
+      "optionalProviderSlots": [
+        "cache"
+      ],
+      "capabilityIntent": [
+        "web",
+        "context",
+        "validation",
+        "logging",
+        "transaction",
+        "security",
+        "domain-call",
+        "common-function",
+        "cache",
+        "observability"
+      ],
+      "note": "secure-api + common + 필요한 Public Provider 조합"
+    },
+    "full-platform": {
+      "intent": "full-operation",
+      "basePublicProfile": "secure-api",
+      "additionalPublicProfiles": [
+        "event",
+        "batch"
+      ],
+      "addPublicArtifacts": [
+        "cpf-starter-common"
+      ],
+      "optionalProviderSlots": [
+        "cache",
+        "messaging"
+      ],
+      "capabilityIntent": [
+        "standard",
+        "messaging",
+        "batch",
+        "adm",
+        "bza",
+        "gateway",
+        "advanced-recovery"
+      ],
+      "note": "단일 거대 Starter가 아니라 기존 Profile/Capability를 Runtime 역할에 맞게 조합"
+    }
+  }
 }

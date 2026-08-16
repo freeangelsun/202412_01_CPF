@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import json
+import os
 import re
 import tempfile
 from dataclasses import dataclass, asdict
@@ -12,15 +13,10 @@ from pathlib import Path
 from typing import Iterable
 
 def source_identity(root: Path) -> str:
-    import os, subprocess
+    import os
     env = os.environ.get("CPF_SOURCE_SHA", "").strip()
     if re.fullmatch(r"[0-9a-fA-F]{40}", env):
         return env.lower()
-    if (root / ".git").exists():
-        cp = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, text=True, capture_output=True)
-        value = (cp.stdout or "").strip()
-        if cp.returncode == 0 and re.fullmatch(r"[0-9a-fA-F]{40}", value):
-            return value.lower()
     base = root / "cpf-docs/work/BASE_SHA.txt"
     if base.is_file():
         value = base.read_text(encoding="utf-8", errors="ignore").strip()
@@ -118,22 +114,44 @@ def _sql_surface(path: Path, semantic: str) -> str:
 
 
 def _iter_files(root: Path) -> Iterable[Path]:
-    for p in root.rglob("*"):
-        if not p.is_file() or p.suffix.lower() not in TEXT_EXT:
+    """Walk only product source trees.
+
+    pathlib.rglob() descends into node_modules/.gradle/build before a file-level
+    filter can reject them.  A FullLocal checkout can therefore turn this
+    static gate into a multi-minute scan of generated artifacts.  Prune
+    transient directories before descent while keeping cpf-tools/build/**,
+    which is canonical Gradle plugin/BOM source.
+    """
+    for current, dirs, files in os.walk(root):
+        current_path = Path(current)
+        rel_dir = current_path.relative_to(root).as_posix() if current_path != root else ""
+
+        kept_dirs = []
+        for name in dirs:
+            child_rel = f"{rel_dir}/{name}".lstrip("/")
+            if name in SKIP_PARTS:
+                continue
+            if name == "build" and child_rel != "cpf-tools/build":
+                continue
+            if child_rel.startswith(SKIP_PREFIXES):
+                continue
+            kept_dirs.append(name)
+        dirs[:] = kept_dirs
+
+        if rel_dir.startswith(SKIP_PREFIXES):
+            dirs[:] = []
             continue
-        rel = p.relative_to(root).as_posix()
-        parts = p.relative_to(root).parts
-        if any(part in SKIP_PARTS for part in parts):
-            continue
-        if rel.startswith(SKIP_PREFIXES):
-            continue
-        # 일반 module의 build/** 는 transient 산출물이라 제외한다. 단 cpf-tools/build/** 는
-        # Gradle Plugin/BOM 등 실제 제품 Source이므로 반드시 검사 대상으로 유지한다.
-        if "build" in parts and not rel.startswith("cpf-tools/build/"):
-            continue
-        if "/verification/" in "/" + rel and p.suffix.lower() in {".json", ".yaml", ".yml"}:
-            continue
-        yield p
+
+        for name in files:
+            p = current_path / name
+            if p.suffix.lower() not in TEXT_EXT:
+                continue
+            rel = p.relative_to(root).as_posix()
+            if rel.startswith(SKIP_PREFIXES):
+                continue
+            if "/verification/" in "/" + rel and p.suffix.lower() in {".json", ".yaml", ".yml"}:
+                continue
+            yield p
 
 
 def _owner_matches(rel: str, policy: dict) -> list[dict]:

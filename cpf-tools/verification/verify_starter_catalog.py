@@ -159,7 +159,16 @@ def main() -> int:
             errors.append(f"starter UX metadata userSelectable must be boolean: {artifact_id}")
         if not isinstance(module.get("runtimeRequired"), bool):
             errors.append(f"starter UX metadata runtimeRequired must be boolean: {artifact_id}")
+        usage_level = module.get("usageLevel")
+        if usage_level not in {"golden", "capability", "advanced", "internal"}:
+            errors.append(f"starter UX metadata invalid usageLevel: {artifact_id}={usage_level}")
+        if not isinstance(module.get("recommended"), bool):
+            errors.append(f"starter UX metadata recommended must be boolean: {artifact_id}")
         visibility = module.get("visibility")
+        if visibility == "internal" and usage_level != "internal":
+            errors.append(f"internal Starter must be usageLevel=internal: {artifact_id}")
+        if visibility == "public" and usage_level == "internal":
+            errors.append(f"public Starter cannot be usageLevel=internal: {artifact_id}")
         if visibility == "public" and module.get("userSelectable") is not True:
             errors.append(f"public Starter must be userSelectable=true: {artifact_id}")
         if visibility == "internal" and module.get("userSelectable") is not False:

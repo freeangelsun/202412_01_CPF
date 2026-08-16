@@ -1,12 +1,14 @@
 ﻿param(
     [Parameter(Position=0)]
-    [ValidateSet('help','build','test','verify-fast','verify-full','run-local','run-batch','status','stop','modules','resource')]
+    [ValidateSet('help','build','test','verify-fast','verify-targeted','verify-full','run-local','run-batch','status','stop','modules','resource')]
     [string] $Action,
 
     [ValidateSet('local','dev','test','stg','prod')]
     [string] $ResourceProfile = 'local',
 
-    [string] $OutputRoot = (Join-Path $HOME 'Downloads')
+    [string] $OutputRoot = (Join-Path $HOME 'Downloads'),
+
+    [string] $TargetCapabilities = 'core'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -55,11 +57,12 @@ function Read-CpfDevAction {
         '2' = @{ Action='build';       Label='전체 빌드';       Hint='Java25 + 저메모리 + 품질 Gate' }
         '3' = @{ Action='test';        Label='전체 테스트';     Hint='Java Test만 실행' }
         '4' = @{ Action='verify-fast'; Label='빠른 검증';       Hint='NXT3 / 계약 / 정적 Gate' }
-        '5' = @{ Action='verify-full'; Label='전체 로컬 검증';  Hint='Java/Frontend/DB/Runtime 최대 범위' }
-        '6' = @{ Action='run-batch';   Label='Batch 실행';      Hint='Batch 사용할 때만' }
-        '7' = @{ Action='modules';     Label='모듈 보기';       Hint='Public Starter 중심' }
-        '8' = @{ Action='resource';    Label='자원 설정';       Hint='local/dev/test/stg/prod' }
-        '9' = @{ Action='status';      Label='실행 상태';       Hint='Local Runtime 상태 확인' }
+        '5' = @{ Action='verify-targeted'; Label='변경영향 검증'; Hint='Capability 선택 · cache,messaging 등' }
+        '6' = @{ Action='verify-full'; Label='전체 로컬 검증';  Hint='Java/Frontend/DB/Runtime 최대 범위' }
+        '7' = @{ Action='run-batch';   Label='Batch 실행';      Hint='Batch 사용할 때만' }
+        '8' = @{ Action='modules';     Label='모듈 보기';       Hint='Public Starter 중심' }
+        '9' = @{ Action='resource';    Label='자원 설정';       Hint='local/dev/test/stg/prod' }
+        'S' = @{ Action='status';      Label='실행 상태';       Hint='Local Runtime 상태 확인' }
         '0' = @{ Action='stop';        Label='실행 종료';       Hint='Local Runtime 종료' }
     }
 
@@ -92,6 +95,7 @@ function Show-CpfDevHelp {
     Write-Host ' build         전체 Build + 정적 품질 Gate'
     Write-Host ' test          전체 Java Test'
     Write-Host ' verify-fast   빠른 정적 검증'
+    Write-Host ' verify-targeted 변경 Capability 정밀 검증 (-TargetCapabilities cache,messaging)'
     Write-Host ' verify-full   Java25/Frontend/DB/Runtime 최대 로컬 검증'
     Write-Host ' run-local     권장 Local 통합 Runtime (1 JVM / 1 Port)'
     Write-Host ' run-batch     Batch 사용 시에만 별도 Runtime'
@@ -110,6 +114,7 @@ function Show-CpfDevHelp {
     Write-Host ''
     Write-Host '예시'
     Write-Host '  pwsh .\cpf-tools\build\tools\cpf-dev.ps1 build'
+    Write-Host '  pwsh .\cpf-tools\build\tools\cpf-dev.ps1 verify-targeted -TargetCapabilities cache,messaging'
     Write-Host '  pwsh .\cpf-tools\build\tools\cpf-dev.ps1 verify-full'
     Write-Host '  pwsh .\cpf-tools\build\tools\cpf-dev.ps1 run-local'
     Write-Host ''
@@ -149,6 +154,9 @@ switch ($Action) {
     }
     'verify-fast' {
         Invoke-CpfCommand 'CPF VERIFY FAST' { & $Gradle @GradleCommon '--continue' 'cpfVerifyFast' }
+    }
+    'verify-targeted' {
+        Invoke-CpfCommand 'CPF VERIFY TARGETED' { & $Gradle @GradleCommon "-PcpfTargetCapabilities=$TargetCapabilities" 'cpfVerifyTargeted' }
     }
     'verify-full' {
         Invoke-CpfCommand 'CPF VERIFY FULL LOCAL' {

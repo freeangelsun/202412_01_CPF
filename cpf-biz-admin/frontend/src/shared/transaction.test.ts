@@ -5,7 +5,7 @@ describe("BZA transaction contract", () => {
   it("generates the canonical 34-character BZA transaction id", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-03T14:15:16.789Z"));
-    const random = vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation((array: ArrayBufferView | null) => {
+    const random = vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation((array) => {
       (array as Uint32Array)[0] = 41;
       return array;
     });

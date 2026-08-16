@@ -1107,4 +1107,3 @@ export async function bzaSupportUploadAttachment<T = BzaSupportUploadAttachmentR
   const response = await orvalBzaSupportUploadAttachment(options.data, contractParams as Parameters<typeof orvalBzaSupportUploadAttachment>[1], { signal: options.signal, headers: options.headers });
   return response.data as T;
 }
-

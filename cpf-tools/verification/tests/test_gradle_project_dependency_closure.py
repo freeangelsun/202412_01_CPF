@@ -38,6 +38,17 @@ class GradleProjectDependencyClosureTest(unittest.TestCase):
         text = "implementation project(':main')\ntestImplementation project(':fixture')\nintegrationTestImplementation project(':it')\n"
         self.assertEqual([":main"], MODULE.production_project_targets(text))
 
+    def test_same_group_and_leaf_dependency_is_rejected(self):
+        self.assertIsNotNone(MODULE.same_component_identity_violation(
+            ":internal:messaging:jdbc", "com.cpf.starter", ":starters:data:jdbc", "com.cpf.starter"
+        ))
+        self.assertIsNone(MODULE.same_component_identity_violation(
+            ":starters:data:mybatis", "com.cpf.starter", ":starters:data:jdbc", "com.cpf.starter"
+        ))
+        self.assertIsNone(MODULE.same_component_identity_violation(
+            ":internal:messaging:jdbc", "com.cpf.internal", ":starters:data:jdbc", "com.cpf.starter"
+        ))
+
     def test_aggregate_and_profile_boundaries(self):
         self.assertIsNotNone(MODULE.aggregate_boundary_violation(
             ":provider", "starter-internal", ":starters:base", "starter-base", True

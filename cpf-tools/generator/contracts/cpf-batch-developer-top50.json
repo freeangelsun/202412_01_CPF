@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "title": "CPF Batch Developer TOP 50",
+  "policy": "SOURCE_BACKED_PUBLIC_BATCH_CONTRACTS_ONLY",
+  "entries": [
+    {
+      "no": 1,
+      "group": "배치 선언",
+      "function": "@CpfBatchJob",
+      "usageLevel": "golden",
+      "whenToUse": "배치 Job 클래스를 CPF Job으로 선언",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchJob.java"
+    },
+    {
+      "no": 2,
+      "group": "배치 선언",
+      "function": "@CpfBatchStep",
+      "usageLevel": "golden",
+      "whenToUse": "배치 Step 클래스를 CPF Step으로 선언",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/annotation/CpfBatchStep.java"
+    },
+    {
+      "no": 3,
+      "group": "Job 정의",
+      "function": "BatchJobDefinition",
+      "usageLevel": "golden",
+      "whenToUse": "Job 정의와 실행 정책을 표현",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchJobDefinition.java"
+    },
+    {
+      "no": 4,
+      "group": "Job 정의",
+      "function": "BatchStepDefinition",
+      "usageLevel": "golden",
+      "whenToUse": "Job의 Step 정의를 표현",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchStepDefinition.java"
+    },
+    {
+      "no": 5,
+      "group": "파라미터",
+      "function": "BatchParameterDefinition",
+      "usageLevel": "golden",
+      "whenToUse": "배치 입력 파라미터 계약을 정의",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchParameterDefinition.java"
+    },
+    {
+      "no": 6,
+      "group": "파라미터",
+      "function": "BatchParameterDefinition.validate(...)",
+      "usageLevel": "golden",
+      "whenToUse": "입력값을 정의된 형식·범위로 검증",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchParameterDefinition.java"
+    },
+    {
+      "no": 7,
+      "group": "파라미터",
+      "function": "BatchParameterDefinition.effectiveValue(...)",
+      "usageLevel": "capability",
+      "whenToUse": "입력값과 기본값을 기준으로 실제 적용값 계산",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchParameterDefinition.java"
+    },
+    {
+      "no": 8,
+      "group": "파라미터",
+      "function": "BatchJobDefinition.requireParameter(...)",
+      "usageLevel": "golden",
+      "whenToUse": "필수 Job 파라미터를 조회하고 누락을 즉시 실패",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchJobDefinition.java"
+    },
+    {
+      "no": 9,
+      "group": "실행 정책",
+      "function": "BatchExecutionPolicy.defaults()",
+      "usageLevel": "capability",
+      "whenToUse": "기본 배치 실행 정책 사용",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionPolicy.java"
+    },
+    {
+      "no": 10,
+      "group": "실행 정책",
+      "function": "BatchExecutionTopology",
+      "usageLevel": "capability",
+      "whenToUse": "실행 Topology 계약을 선택·표현",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionTopology.java"
+    },
+    {
+      "no": 11,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.run(...)",
+      "usageLevel": "golden",
+      "whenToUse": "일반 수동/온라인 Job 실행 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 12,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.scheduledRun(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Scheduler 기반 실행 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 13,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.retry(...)",
+      "usageLevel": "golden",
+      "whenToUse": "실패 실행의 멱등 Retry 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 14,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.restart(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Checkpoint/상태를 고려한 Restart 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 15,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.stop(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 중지 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 16,
+      "group": "실행 요청",
+      "function": "CpfBatchExecutionRequest.onDemand(...)",
+      "usageLevel": "capability",
+      "whenToUse": "On-demand 실행 요청 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionRequest.java"
+    },
+    {
+      "no": 17,
+      "group": "실행 결과",
+      "function": "CpfBatchExecutionResult",
+      "usageLevel": "golden",
+      "whenToUse": "배치 실행 결과 표준 계약",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchExecutionResult.java"
+    },
+    {
+      "no": 18,
+      "group": "실행 결과",
+      "function": "CpfBatchOutcome",
+      "usageLevel": "golden",
+      "whenToUse": "성공/실패/UNKNOWN 결과 의미를 표준화",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/error/CpfBatchOutcome.java"
+    },
+    {
+      "no": 19,
+      "group": "Context",
+      "function": "CpfBatchContext",
+      "usageLevel": "golden",
+      "whenToUse": "Job/Step 실행 Context 전달",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/context/CpfBatchContext.java"
+    },
+    {
+      "no": 20,
+      "group": "Context",
+      "function": "CpfBatchContext.withJobExecution(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Job execution 정보를 포함한 새 Context 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/context/CpfBatchContext.java"
+    },
+    {
+      "no": 21,
+      "group": "Context",
+      "function": "CpfBatchContextBundle",
+      "usageLevel": "capability",
+      "whenToUse": "Batch/Center-Cut Context를 함께 전달",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/context/CpfBatchContextBundle.java"
+    },
+    {
+      "no": 22,
+      "group": "Context",
+      "function": "CpfBatchContextBundle.withCenterCut(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Center-Cut Context를 bundle에 결합",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/context/CpfBatchContextBundle.java"
+    },
+    {
+      "no": 23,
+      "group": "Context",
+      "function": "CpfCenterCutContext",
+      "usageLevel": "capability",
+      "whenToUse": "Center-Cut 실행 단위 Context",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/context/CpfCenterCutContext.java"
+    },
+    {
+      "no": 24,
+      "group": "Step 구현",
+      "function": "BatchStepHandler",
+      "usageLevel": "golden",
+      "whenToUse": "업무 Step 처리 SPI",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchStepHandler.java"
+    },
+    {
+      "no": 25,
+      "group": "Step 구현",
+      "function": "BatchStepHandler.execute(...)",
+      "usageLevel": "golden",
+      "whenToUse": "업무 Step 실행 구현",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchStepHandler.java"
+    },
+    {
+      "no": 26,
+      "group": "File 처리",
+      "function": "FileProcessHandler",
+      "usageLevel": "capability",
+      "whenToUse": "File 기반 배치 처리 SPI",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/FileProcessHandler.java"
+    },
+    {
+      "no": 27,
+      "group": "File 처리",
+      "function": "FileProcessHandler.process(...)",
+      "usageLevel": "capability",
+      "whenToUse": "File process 실행 구현",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/FileProcessHandler.java"
+    },
+    {
+      "no": 28,
+      "group": "Job 제공",
+      "function": "BusinessJobProvider",
+      "usageLevel": "capability",
+      "whenToUse": "업무 Job 정의를 Runtime에 제공",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BusinessJobProvider.java"
+    },
+    {
+      "no": 29,
+      "group": "Event",
+      "function": "CpfBatchEventPublisher.publish(...)",
+      "usageLevel": "capability",
+      "whenToUse": "배치 상태 Event 발행",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchEventPublisher.java"
+    },
+    {
+      "no": 30,
+      "group": "Event",
+      "function": "CpfBatchEvent.now(...)",
+      "usageLevel": "capability",
+      "whenToUse": "현재 시점의 표준 배치 Event 생성",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchEvent.java"
+    },
+    {
+      "no": 31,
+      "group": "실행 제어",
+      "function": "BatchExecutionControlPort.start(...)",
+      "usageLevel": "golden",
+      "whenToUse": "승인된 실행 시작",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java"
+    },
+    {
+      "no": 32,
+      "group": "실행 제어",
+      "function": "BatchExecutionControlPort.stop(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 중지",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java"
+    },
+    {
+      "no": 33,
+      "group": "실행 제어",
+      "function": "BatchExecutionControlPort.restart(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 재시작",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java"
+    },
+    {
+      "no": 34,
+      "group": "실행 제어",
+      "function": "BatchExecutionControlPort.abandon(...)",
+      "usageLevel": "advanced",
+      "whenToUse": "운영 판단에 따라 실행 abandon",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java"
+    },
+    {
+      "no": 35,
+      "group": "실행 제어",
+      "function": "BatchExecutionControlPort.reconcile(...)",
+      "usageLevel": "golden",
+      "whenToUse": "UNKNOWN/부분 실패 실행을 reconcile",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchExecutionControlPort.java"
+    },
+    {
+      "no": 36,
+      "group": "신뢰성",
+      "function": "BatchExecutionLedgerPort.reserve(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 예약을 멱등 Ledger에 기록",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchExecutionLedgerPort.java"
+    },
+    {
+      "no": 37,
+      "group": "신뢰성",
+      "function": "BatchExecutionLedgerPort.transition(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 상태를 유효한 전이로 갱신",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchExecutionLedgerPort.java"
+    },
+    {
+      "no": 38,
+      "group": "신뢰성",
+      "function": "BatchExecutionLedgerPort.recordUnknown(...)",
+      "usageLevel": "golden",
+      "whenToUse": "UNKNOWN_RESULT를 실패로 덮지 않고 별도 기록",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchExecutionLedgerPort.java"
+    },
+    {
+      "no": 39,
+      "group": "신뢰성",
+      "function": "BatchExecutionLedgerPort.findReservation(...)",
+      "usageLevel": "capability",
+      "whenToUse": "기존 reservation/idempotency 상태 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchExecutionLedgerPort.java"
+    },
+    {
+      "no": 40,
+      "group": "신뢰성",
+      "function": "BatchFencingPort.assertCurrent(...)",
+      "usageLevel": "golden",
+      "whenToUse": "stale worker/lease의 중복 효과를 fencing",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/spi/BatchFencingPort.java"
+    },
+    {
+      "no": 41,
+      "group": "신뢰성",
+      "function": "CpfBatchOwnerUnknownResultException",
+      "usageLevel": "golden",
+      "whenToUse": "Owner 결과 미확정 상태를 명시적으로 전달",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOwnerUnknownResultException.java"
+    },
+    {
+      "no": 42,
+      "group": "운영 조회",
+      "function": "CpfBatchOperationsPort.findJobs(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Job 목록 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 43,
+      "group": "운영 조회",
+      "function": "CpfBatchOperationsPort.findExecutions(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 이력 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 44,
+      "group": "운영 조회",
+      "function": "CpfBatchOperationsPort.findExecutionDetail(...)",
+      "usageLevel": "capability",
+      "whenToUse": "실행 상세/추적 정보 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 45,
+      "group": "운영 조회",
+      "function": "CpfBatchOperationsPort.findRecoverySnapshot(...)",
+      "usageLevel": "capability",
+      "whenToUse": "복구·UNKNOWN 현황 snapshot 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 46,
+      "group": "운영 실행",
+      "function": "CpfBatchOperationsPort.requestRun(...)",
+      "usageLevel": "capability",
+      "whenToUse": "운영/API 경로에서 Job 실행 요청",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 47,
+      "group": "운영 실행",
+      "function": "CpfBatchOperationsPort.requestRetry(...)",
+      "usageLevel": "capability",
+      "whenToUse": "운영/API 경로에서 Retry 요청",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchOperationsPort.java"
+    },
+    {
+      "no": 48,
+      "group": "Center-Cut",
+      "function": "CpfCenterCutOperationsPort.findTargets(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Center-Cut 대상 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfCenterCutOperationsPort.java"
+    },
+    {
+      "no": 49,
+      "group": "Center-Cut",
+      "function": "CpfCenterCutOperationsPort.findResults(...)",
+      "usageLevel": "capability",
+      "whenToUse": "Center-Cut 결과 조회",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/CpfCenterCutOperationsPort.java"
+    },
+    {
+      "no": 50,
+      "group": "Center-Cut",
+      "function": "CpfCenterCutResult.unknown(...)",
+      "usageLevel": "golden",
+      "whenToUse": "대상 처리 결과가 확정되지 않았음을 보존",
+      "source": "cpf-batch/api/src/main/java/com/cpf/batch/api/centercut/CpfCenterCutResult.java"
+    }
+  ]
+}

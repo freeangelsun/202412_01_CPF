@@ -41,7 +41,7 @@ fs.writeFileSync(path.join(temp, "mock-transaction.ts"), `
 export const defaultHeaders:HeadersInit={}; export function createTransactionId(){return "01ARZ3NDEKTSV4RRFFQ69G5FAV";} export function isValidTransactionId(value:unknown){return typeof value==="string"&&value.length>10;}
 `);
 const inputs = ["cpfApi.ts","mock-orval-mutator.ts","mock-vue-query.ts","mock-operation-contract.ts","mock-query-client.ts","mock-transaction.ts"].map(v=>path.join(temp,v));
-const compile = spawnSync(process.execPath, [path.join(root,"node_modules","typescript","bin","tsc"),...inputs,"--target","ES2022","--module","ES2022","--moduleResolution","Bundler","--strict","--lib","ES2022,DOM,DOM.Iterable","--skipLibCheck","--outDir",temp], {cwd:root,encoding:"utf8"});
+const compile = spawnSync(process.execPath, [path.join(root,"node_modules","typescript","bin","tsc"),...inputs,"--ignoreConfig","--target","ES2022","--module","ES2022","--moduleResolution","Bundler","--strict","--lib","ES2022,DOM,DOM.Iterable","--skipLibCheck","--outDir",temp], {cwd:root,encoding:"utf8"});
 if(compile.status!==0)throw new Error(`cpfApi compile failed:\n${compile.stdout}\n${compile.stderr}`);
 for(const name of ["cpfApi","mock-orval-mutator","mock-vue-query","mock-operation-contract","mock-query-client","mock-transaction"]){const js=path.join(temp,`${name}.js`);fs.renameSync(js,path.join(temp,`${name}.mjs`));}
 let compiled=fs.readFileSync(path.join(temp,"cpfApi.mjs"),"utf8");

@@ -16,6 +16,7 @@
 8. `CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md` — AI 역할·Source 검수·5분 진행률 표준
 9. `../architecture/ARCHITECTURE_GUIDE.md` — 구현 Architecture 설명
 10. `../development/DEVELOPER_GUIDE.md`, `../development/GENERATOR_GUIDE.md`, `../development/EDU_GUIDE.md`
+   - 개발 선택 Reference: `../development/CPF_DEVELOPER_GOLDEN_PATH.md`, `../development/CPF_STARTER_QUICK_SELECT.md`, `../development/CPF_PUBLIC_FUNCTION_TOP_100.md`, `../development/CPF_BATCH_DEVELOPER_TOP_50.md`
 11. `../work/CPF_CURRENT_WORK_REQUEST.md` — 현재 단일 개발 요청
 12. `../work/current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md` — 다음 Developer GPT 강제 실행 지침
 13. `../work/current/CPF_REQUIREMENT_CONTROL_REGISTER.xlsx` — Requirement Control Dashboard/Current Architecture Sheet

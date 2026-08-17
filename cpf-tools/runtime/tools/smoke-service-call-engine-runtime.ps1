@@ -43,9 +43,7 @@ function New-RuntimeHeaders {
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
         "X-Cpf-Standard-Execution-Id" = "OACCQY0001"
-        "X-Original-Channel-Code" = "ADM"
-        "X-Channel-Code" = "ADM"
-        "X-Client-App-Id" = "cpf-service-call-smoke"
+        "X-Client-Id" = "cpf-service-call-smoke"
         "X-Client-Version" = "1.0.0"
         "X-User-Id" = "runtime-smoke"
         "X-Operator-Id" = "runtime-smoke"

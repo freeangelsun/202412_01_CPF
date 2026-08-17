@@ -571,11 +571,11 @@
     {
       "artifactId": "cpf-starter-integration-fixed-length",
       "ownerPath": "cpf-starters/integration/fixed-length",
-      "kind": "internal-starter",
-      "visibility": "internal",
-      "role": "internal-codec",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
       "ownerGroup": "integration",
-      "internalRole": "internal-codec",
+      "internalRole": "public-provider",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-starters/integration/fixed-length/build/libs/*.jar",
       "requiredAttestations": [
@@ -583,7 +583,7 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "application-starter-consumer"
     },
     {
       "artifactId": "cpf-starter-integration-http",
@@ -1468,7 +1468,8 @@
       ],
       "apiProjects": [
         ":starters:profiles:web-api",
-        ":framework:integration"
+        ":framework:integration",
+        ":framework:security"
       ],
       "requiredCapabilities": [
         "web",
@@ -1593,7 +1594,7 @@
     },
     "integration-codec": {
       "fixed-length": {
-        "projectPath": ":internal:integration:fixed-length",
+        "projectPath": ":starters:integration:fixed-length",
         "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
       },
       "iso8583": {

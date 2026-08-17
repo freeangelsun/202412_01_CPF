@@ -1,23 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { admMutation, admRawResponse, createAdmHeaders } from "./cpfApi";
-import { createTransactionId, isValidTransactionId } from "./transaction";
 
 describe("ADM BFF 공통 API client", () => {
   beforeEach(() => { document.cookie = "XSRF-TOKEN=; Max-Age=0; Path=/"; });
   afterEach(() => { vi.unstubAllGlobals(); document.cookie = "XSRF-TOKEN=; Max-Age=0; Path=/"; });
 
-  it("Options API와 Composition API가 동일한 표준 Header 계약을 사용한다", () => {
-    const headers = createAdmHeaders({ "Content-Type": "application/json", "X-Transaction-Id": "legacy-invalid-id" });
+  it("Browser는 Client metadata만 보내고 CPF 보호 Header를 생성하지 않는다", () => {
+    const headers = createAdmHeaders({ "Content-Type": "application/json" });
     expect(headers.has("Authorization")).toBe(false);
-    expect(headers.get("X-Caller-Service")).toBe("adm-ui");
-    expect(headers.get("X-Original-Channel-Code")).toBe("ADM");
-    expect(isValidTransactionId(headers.get("X-Transaction-Id"))).toBe(true);
+    expect(headers.get("X-Client-Id")).toBe("cpf-adm-ui");
+    expect(headers.get("X-Client-Version")).toBe("1.0.0");
+    expect(headers.has("X-Transaction-Id")).toBe(false);
+    expect(headers.has("X-Original-System-Code")).toBe(false);
+    expect(headers.has("X-Caller-System-Code")).toBe(false);
   });
 
-  it("유효한 상위 transactionId는 새 값으로 바꾸지 않는다", () => {
-    const inheritedTransactionId = createTransactionId();
-    const headers = createAdmHeaders({ "X-Transaction-Id": inheritedTransactionId });
-    expect(headers.get("X-Transaction-Id")).toBe(inheritedTransactionId);
+  it("Browser caller가 CPF 보호 Header를 주입하면 fail-closed 한다", () => {
+    expect(() => createAdmHeaders({ "X-Transaction-Id": "forged" })).toThrow("X-Transaction-Id");
+    expect(() => createAdmHeaders({ "X-Target-Operation-Id": "forged" })).toThrow("X-Target-Operation-Id");
   });
 
   it("Browser Bearer Token과 cross-origin 호출을 fail-closed로 거부한다", async () => {

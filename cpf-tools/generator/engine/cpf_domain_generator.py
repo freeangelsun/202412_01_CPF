@@ -126,6 +126,7 @@ class DomainDefinition:
     table_prefix: str
     preset: str
     online: bool
+    batch: bool
     persistence: str
     http_client: bool
     resilience: bool
@@ -150,7 +151,7 @@ class DomainDefinition:
     def online_project(self) -> str: return "online"
     @property
     def shared_domain(self) -> bool:
-        # Generated Domain은 Online 단일 Consumer만 생성하므로 별도 공유 domain/ module이 필요하지 않다.
+        # online/batch가 실제 공유 업무모델을 함께 사용할 때만 향후 별도 domain module을 승격한다. 기본 생성은 중복 Surface를 피한다.
         return False
     @property
     def api(self) -> bool:
@@ -202,7 +203,7 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     if not isinstance(domain_dependencies_raw, dict): raise DomainError("$.domainDependencies는 object여야 합니다.")
     if not isinstance(external_clients_raw, dict): raise DomainError("$.externalClients는 object여야 합니다.")
     _require_exact_keys(domain, {"name","systemCode","packageName"}, {"name","systemCode"}, "$.domain")
-    _require_exact_keys(modules, {"online"}, {"online"}, "$.modules")
+    _require_exact_keys(modules, {"online","batch"}, {"online"}, "$.modules")
     _require_exact_keys(database, {"role","tablePrefix"}, {"role","tablePrefix"}, "$.database")
     _require_exact_keys(features, {"persistence","httpClient","resilience","cache","messaging","objectStorage","securityProfile"}, set(), "$.features")
     _require_exact_keys(generation, {"sampleTransaction"}, {"sampleTransaction"}, "$.generation")
@@ -218,7 +219,8 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     if preset not in {"minimal","standard-enterprise","full-enterprise","custom"}: raise DomainError(f"지원하지 않는 preset: {preset}")
     if not isinstance(modules["online"], bool): raise DomainError("modules.online은 boolean이어야 합니다.")
     if not modules["online"]: raise DomainError("Generated Domain은 online 업무 Runtime을 생성하므로 modules.online=true여야 합니다.")
-    # Batch는 Generated Domain 산출물이 아니다. 프로젝트 초기 구성에서 cpf-starter-batch Capability를 별도 선택한다.
+    batch = modules.get("batch", False)
+    if not isinstance(batch, bool): raise DomainError("modules.batch는 boolean이어야 합니다.")
 
     preset_defaults = {
       "minimal": {"persistence":"none","httpClient":False,"resilience":False,"cache":"none","messaging":"none","objectStorage":"none","securityProfile":"resource-server"},
@@ -288,7 +290,7 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     default_online_port = _stable_local_online_port(system)
     local_online_port = int(runtime.get("localOnlinePort", default_online_port))
     if not 18080 <= local_online_port <= 18999: raise DomainError(f"runtime.localOnlinePort는 18080~18999 범위여야 합니다: {local_online_port}")
-    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,True,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,local_online_port,tuple(domain_dependencies),tuple(external_clients))
+    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,True,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,local_online_port,tuple(domain_dependencies),tuple(external_clients))
 
 def validate_repository_uniqueness(root: Path, d: DomainDefinition, output: Path) -> None:
     """영구 Project metadata 없이 Framework canonical definitions 사이의 식별자 충돌을 생성 전에 차단한다."""
@@ -350,8 +352,9 @@ def public_module_map(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def direct_dependencies(d: DomainDefinition, kind: str, catalog: dict[str, Any]) -> list[str]:
     public = public_module_map(catalog)
     deps = ["cpf-starter"]
-    if kind == "api": deps.append("cpf-starter-secure-api")
-    else: raise DomainError(f"Generated Domain은 online deployable만 지원합니다: {kind}")
+    if kind in {"api","online"}: deps.append("cpf-starter-secure-api")
+    elif kind == "batch": deps.append("cpf-starter-batch")
+    else: raise DomainError(f"지원하지 않는 Generated Domain module: {kind}")
     persistence_map = {"jdbc":"cpf-starter-data-jdbc","mybatis":"cpf-starter-data-mybatis","jpa":"cpf-starter-data-jpa"}
     if d.persistence != "none": deps.append(persistence_map[d.persistence])
     cache_map = {"caffeine":"cpf-starter-cache-caffeine","redis":"cpf-starter-cache-redis","valkey":"cpf-starter-cache-valkey"}
@@ -405,10 +408,10 @@ def _developer_selection_summary(d: DomainDefinition, catalog: dict[str, Any]) -
         "externalHttp": d.http_client,
         "resilience": d.resilience,
         "securityProfile": d.security_profile,
-        "batch": False,
+        "batch": d.batch,
       },
-      "runtime": ["online"],
-      "batchCapability": {"selected": False, "selectionOwner": "PROJECT_SETUP", "generatedByDomainGenerator": False},
+      "runtime": ["online"] + (["batch"] if d.batch else []),
+      "batchCapability": {"selected": d.batch, "selectionOwner": "DOMAIN_DEFINITION", "generatedByDomainGenerator": True},
       "generatedSamples": {"sampleTransaction": d.sample_transaction},
       "publicArtifacts": selected,
       "internalArtifactsDirectlyExposed": [],
@@ -416,7 +419,7 @@ def _developer_selection_summary(d: DomainDefinition, catalog: dict[str, Any]) -
 
 
 def render_root_settings(d: DomainDefinition) -> str:
-    includes=["online"]
+    includes=["online"] + (["batch"] if d.batch else [])
     lines=["// Generated Customer Domain 최소 IA settings입니다.", f"rootProject.name = 'cpf-{d.name}'"]
     for name in includes: lines.append(f"include '{name}'")
     lines += [
@@ -537,10 +540,10 @@ dependencies {{
 
 
 def render_app_build(d: DomainDefinition, kind: str, deps: list[str], stack: dict[str,str]) -> str:
-    if kind != "online": raise DomainError(f"Generated Domain은 online module만 생성합니다: {kind}")
+    if kind not in {"online","batch"}: raise DomainError(f"지원하지 않는 Generated Domain module: {kind}")
     boot=stack.get("springBootVersion","4.1.0")
     dm=stack.get("springDependencyManagementVersion","1.1.7")
-    project="online"
+    project=kind
     lines=_gradle_dependency_lines(deps)
     shared=""
     owner_overlay = d.sample_transaction and d.persistence == "mybatis"
@@ -962,7 +965,7 @@ import {d.package_name}.common.model.*;
 import {d.package_name}.common.policy.SampleTransactionPolicy;
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.foundation.annotation.CpfService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -984,7 +987,7 @@ public class SampleTransactionService extends {c}BaseService {{
         this.repository=repository; this.policy=policy; this.audit=audit; this.clock=clock;
     }}
 
-    @CpfTx(id="{d.system_code}_CREATE_SAMPLE", name="{d.sample_tx_id}_CREATE", ownerDomain="{d.system_code}")
+    @CpfTransactional
     public SampleItem create(CreateSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         String idem=policy.requireIdempotencyKey(request.idempotencyKey());
@@ -1009,19 +1012,19 @@ public class SampleTransactionService extends {c}BaseService {{
         return item;
     }}
 
-    @CpfTx(readOnly=true, id="{d.system_code}_DETAIL_SAMPLE", name="{d.sample_tx_id}_DETAIL", ownerDomain="{d.system_code}")
+    @CpfTransactional(readOnly=true)
     public SampleItem detail(long id) {{
         return repository.findById(id).orElseThrow(() -> new CpfBusinessException(CpfErrorCode.NOT_FOUND, "Sample을 찾을 수 없습니다."));
     }}
 
-    @CpfTx(readOnly=true, id="{d.system_code}_SEARCH_SAMPLE", name="{d.sample_tx_id}_SEARCH", ownerDomain="{d.system_code}")
+    @CpfTransactional(readOnly=true)
     public SamplePage search(SampleSearchRequest request) {{
         int page=request.safePage(), size=request.safeSize();
         return new SamplePage(repository.search(request.keyword(),request.statusCode(),page,size,
                 "sample_item_id","ASC"),repository.count(request.keyword(),request.statusCode()),page,size);
     }}
 
-    @CpfTx(readOnly=true, id="{d.system_code}_SLICE_SAMPLE", name="{d.sample_tx_id}_SLICE", ownerDomain="{d.system_code}")
+    @CpfTransactional(readOnly=true)
     public SampleSlice slice(SampleSearchRequest request) {{
         int size=request.safeSize();
         List<SampleItem> rows=repository.cursorSlice(request.keyword(),request.statusCode(),request.safeCursor(),size+1);
@@ -1031,7 +1034,7 @@ public class SampleTransactionService extends {c}BaseService {{
         return new SampleSlice(items,hasNext,nextCursor);
     }}
 
-    @CpfTx(id="{d.system_code}_UPDATE_SAMPLE", name="{d.sample_tx_id}_UPDATE", ownerDomain="{d.system_code}")
+    @CpfTransactional
     public SampleItem update(long id, UpdateSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         policy.requireExpectedVersion(request.expectedVersion());
@@ -1054,7 +1057,7 @@ public class SampleTransactionService extends {c}BaseService {{
         audit.success("UPDATE",tx,Long.toString(id)); return updated;
     }}
 
-    @CpfTx(id="{d.system_code}_DELETE_SAMPLE", name="{d.sample_tx_id}_DELETE", ownerDomain="{d.system_code}")
+    @CpfTransactional
     public SampleItem delete(long id, DeleteSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         policy.requireExpectedVersion(request.expectedVersion());
@@ -1077,7 +1080,7 @@ public class SampleTransactionService extends {c}BaseService {{
     }}
 
     /** Failure-injection Test가 실제 Transaction rollback을 증명할 수 있는 명시적 Probe입니다. */
-    @CpfTx(id="{d.system_code}_ROLLBACK_SAMPLE", name="{d.sample_tx_id}_ROLLBACK", ownerDomain="{d.system_code}")
+    @CpfTransactional
     public void rollbackProbe(CreateSampleRequest request) {{
         create(request);
         throw new CpfBusinessException(CpfErrorCode.BUSINESS_RULE_VIOLATION,
@@ -1132,7 +1135,8 @@ def render_controller(d: DomainDefinition) -> str:
 import {d.package_name}.api.base.{c}BaseController;
 import {d.package_name}.api.service.SampleTransactionService;
 import {d.package_name}.common.model.*;
-import com.cpf.web.api.CpfController;
+import com.cpf.web.api.CpfRestController;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -1140,39 +1144,45 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /** CRUD/Search(Page·Slice·Cursor)를 제공하는 실제 Generated Business Controller입니다. */
-@CpfController
+@CpfRestController
 @RequestMapping("/api/v1/{d.name}/samples")
 public class SampleTransactionController extends {c}BaseController {{
     private final SampleTransactionService service;
     public SampleTransactionController(SampleTransactionService service) {{ this.service=service; }}
 
     @PostMapping
-    @Operation(operationId="create{c}Sample", summary="{d.name} sample 생성")
+    @Operation(operationId="{d.sample_tx_id}_CREATE", summary="{d.name} sample 생성")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_CREATE", name="{d.name} sample 생성", description="{d.name} Sample을 생성한다.")
     public ResponseEntity<SampleItem> create(@Valid @RequestBody CreateSampleRequest request) {{
         SampleItem item=service.create(request); return created(URI.create("/api/v1/{d.name}/samples/"+item.getSampleItemId()),item);
     }}
     @GetMapping("/{{id}}")
-    @Operation(operationId="get{c}Sample", summary="{d.name} sample 상세")
+    @Operation(operationId="{d.sample_tx_id}_DETAIL", summary="{d.name} sample 상세")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_DETAIL", name="{d.name} sample 상세", description="{d.name} Sample 상세를 조회한다.")
     public ResponseEntity<SampleItem> detail(@PathVariable long id) {{ return ok(service.detail(id)); }}
     @GetMapping
-    @Operation(operationId="search{c}Samples", summary="{d.name} sample 검색")
+    @Operation(operationId="{d.sample_tx_id}_SEARCH", summary="{d.name} sample 검색")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_SEARCH", name="{d.name} sample 검색", description="{d.name} Sample을 조건·Paging으로 조회한다.")
     public ResponseEntity<SamplePage> search(@RequestParam(required=false) String keyword,
         @RequestParam(required=false) String statusCode, @RequestParam(defaultValue="0") Integer page,
         @RequestParam(defaultValue="20") Integer size) {{
         return ok(service.search(new SampleSearchRequest(keyword,statusCode,page,normalizePageSize(size),null)));
     }}
     @GetMapping("/slice")
-    @Operation(operationId="slice{c}Samples", summary="{d.name} sample cursor slice")
+    @Operation(operationId="{d.sample_tx_id}_SLICE", summary="{d.name} sample cursor slice")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_SLICE", name="{d.name} sample cursor slice", description="{d.name} Sample을 Cursor Slice로 조회한다.")
     public ResponseEntity<SampleSlice> slice(@RequestParam(required=false) String keyword,
         @RequestParam(required=false) String statusCode, @RequestParam(defaultValue="0") Long cursor,
         @RequestParam(defaultValue="20") Integer size) {{
         return ok(service.slice(new SampleSearchRequest(keyword,statusCode,null,normalizePageSize(size),cursor)));
     }}
     @PutMapping("/{{id}}")
-    @Operation(operationId="update{c}Sample", summary="{d.name} sample 수정")
+    @Operation(operationId="{d.sample_tx_id}_UPDATE", summary="{d.name} sample 수정")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_UPDATE", name="{d.name} sample 수정", description="{d.name} Sample을 낙관적 Version으로 수정한다.")
     public ResponseEntity<SampleItem> update(@PathVariable long id, @Valid @RequestBody UpdateSampleRequest request) {{ return ok(service.update(id,request)); }}
     @DeleteMapping("/{{id}}")
-    @Operation(operationId="delete{c}Sample", summary="{d.name} sample 논리 삭제")
+    @Operation(operationId="{d.sample_tx_id}_DELETE", summary="{d.name} sample 논리 삭제")
+    @CpfOnlineTransaction(operationId="{d.sample_tx_id}_DELETE", name="{d.name} sample 논리 삭제", description="{d.name} Sample을 논리 삭제한다.")
     public ResponseEntity<SampleItem> delete(@PathVariable long id, @Valid @RequestBody DeleteSampleRequest request) {{
         return ok(service.delete(id,request));
     }}
@@ -1223,7 +1233,8 @@ def render_api_contract_test(d: DomainDefinition) -> str:
     return f'''package {d.package_name}.api.controller;
 
 import {d.package_name}.api.base.{c}BaseController;
-import com.cpf.web.api.CpfController;
+import com.cpf.web.api.CpfRestController;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
@@ -1232,7 +1243,7 @@ class SampleTransactionControllerContractTest {{
     @Test void keepsThreeLayerControllerAndCpfAnnotation() {{
         assertThat({c}BaseController.class.getSuperclass().getSimpleName()).isEqualTo("CpfBaseController");
         assertThat(SampleTransactionController.class.getSuperclass()).isEqualTo({c}BaseController.class);
-        assertThat(SampleTransactionController.class.getAnnotation(CpfController.class)).isNotNull();
+        assertThat(SampleTransactionController.class.getAnnotation(CpfRestController.class)).isNotNull();
     }}
 }}
 '''
@@ -1348,7 +1359,7 @@ def render_domain_binding_profile(d: DomainDefinition, profile: str) -> str:
 
 
 def render_application_yml(d: DomainDefinition, kind: str) -> str:
-    """공통 설정은 환경 독립적으로 유지하고, 실제 Port는 Profile에서 fail-safe하게 결정합니다."""
+    """Generated runtime 공통설정. batch는 web server를 띄우지 않는 기본 Golden Path입니다."""
     prefix=d.system_code
     datasource = ""
     mybatis = ""
@@ -1361,9 +1372,11 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
                       f"    driver-class-name: ${{{prefix}_DATASOURCE_DRIVER}}\n")
         if d.persistence == "mybatis":
             mybatis = "mybatis:\n  # Oracle/PostgreSQL/MariaDB 공통 Mapper만 로드하며 Vendor별 Business SQL 복제를 금지합니다.\n  mapper-locations: classpath*:db/mapper/*.xml\n"
+    web_mode = "  main:\n    web-application-type: none\n" if kind == "batch" else ""
     return ("spring:\n"
             "  application:\n"
             f"    name: {d.name}-{kind}\n"
+            + web_mode
             + datasource +
             "cpf:\n"
             "  generated-domain:\n"
@@ -1376,7 +1389,10 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
 def render_profile_yml(d: DomainDefinition, kind: str, profile: str) -> str:
     """local/test는 안전한 기본을 제공하고 dev/stg/prod는 누락 Binding을 fail-fast하게 유지합니다."""
     prefix=d.system_code
-    if kind != "api": raise DomainError(f"Generated Domain profile은 online만 지원합니다: {kind}")
+    if kind == "batch":
+        note = "# Batch Generated Domain은 non-web Runtime이며 Domain Call binding은 Online과 같은 Canonical profile 계약을 사용합니다.\n"
+        return note + render_domain_binding_profile(d, profile)
+    if kind not in {"api","online"}: raise DomainError(f"지원하지 않는 Generated Domain profile module: {kind}")
     env_key=f"{prefix}_ONLINE_PORT"
     local_port=d.local_online_port
     if profile == "local":
@@ -1462,7 +1478,7 @@ def render_readme(d: DomainDefinition, deps: dict[str,list[str]]) -> str:
 - domainDependencies: `{', '.join(x.system_code for x in d.domain_dependencies) or 'none'}`
 - externalClients: `{', '.join(x.client_id for x in d.external_clients) or 'none'}`
 - API direct CPF dependencies: `{', '.join(deps.get('api',[]))}`
-- Batch Capability: Generated Domain과 분리되며 프로젝트 초기 구성에서 `cpf-starter-batch`를 선택할 때만 포함
+- Batch Module: `modules.batch=true`일 때만 `batch/`를 생성하고 Public `cpf-starter-batch`를 소비
 
 Generated Source를 수동 복제하여 다른 Domain을 만들지 않습니다. 새 Domain은 새로운 `cpf-domain.yaml`을 같은 `cpf domain generate` 명령에 전달합니다.
 '''
@@ -1488,7 +1504,8 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
     """개발자가 실제 수정/사용할 최소 Source Surface만 생성한다."""
     stack=read_stack(root)
     online_deps=direct_dependencies(d,"api",catalog)
-    deps={"online":online_deps}
+    batch_deps=direct_dependencies(d,"batch",catalog) if d.batch else []
+    deps={"online":online_deps, **({"batch":batch_deps} if d.batch else {})}
     p=d.package_path.as_posix()
     files: dict[str,str]={
       "settings.gradle":render_root_settings(d),
@@ -1530,6 +1547,20 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
             files[f"online/src/main/java/{p}/online/service/SampleTransactionService.java"]=_minimal_java(render_service(d),d)
             files[f"online/src/main/java/{p}/online/controller/SampleTransactionController.java"]=_minimal_java(render_controller(d),d)
             files[f"online/src/test/java/{p}/online/controller/SampleTransactionControllerContractTest.java"]=_minimal_java(render_api_contract_test(d),d)
+    if d.batch:
+        files["batch/build.gradle"]=render_app_build(d,"batch",batch_deps,stack)
+        files["batch/src/main/resources/application.yml"]=render_application_yml(d,"batch")
+        for profile in ("local","test","dev","stg","prod"):
+            files[f"batch/src/main/resources/application-{profile}.yml"]=render_profile_yml(d,"batch",profile)
+        files["batch/src/main/resources/META-INF/cpf/generated-domain.properties"]=(
+            f"# CPF 생성 Domain Batch Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=batch\nscanPackage={d.package_name}\n")
+        app_pkg=d.package_name
+        app_path=d.package_path.as_posix()
+        files[f"batch/src/main/java/{app_path}/batch/{d.class_name}BatchApplication.java"]=(
+            f"package {app_pkg}.batch;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n/** {d.name} Generated Domain의 선택형 Batch Runtime 진입점입니다. */\n@SpringBootApplication(scanBasePackages=\"{app_pkg}\")\npublic class {d.class_name}BatchApplication {{ public static void main(String[] args) {{ SpringApplication.run({d.class_name}BatchApplication.class,args); }} }}\n")
+        files[f"batch/src/main/java/{app_path}/batch/job/SampleBatchJob.java"]=(
+            f"package {app_pkg}.batch.job;\n\nimport com.cpf.batch.api.annotation.CpfBatchJob;\nimport com.cpf.batch.api.annotation.CpfBatchStep;\n\n/** Generator가 생성하는 최소 Batch Golden Path. 실제 업무 Job은 이 구조를 확장합니다. */\n@CpfBatchJob(value=\"{d.system_code}_SAMPLE_BATCH\", restartable=true)\npublic class SampleBatchJob {{ @CpfBatchStep(value=\"sampleStep\",order=1,idempotent=true) public void execute() {{ }} }}\n")
+
     # Generated Java/Kotlin은 한글 계약 주석을 생성 단계에서 보강한다.
     for rel in list(files):
         if rel.endswith((".java",".kt")):
@@ -1605,14 +1636,14 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     forbidden_roots=['.cpf','README.md','verification','db','canonical','vendors',d.name+'-api',d.name+'-common',d.name+'-online',d.name+'-batch']
     bad=[x for x in forbidden_roots if (output/x).exists()]
     if bad: raise DomainError(f"Generated Customer Domain 최소 IA 위반: {bad}")
-    allowed_dirs={'online'}
+    allowed_dirs={'online'} | ({'batch'} if d.batch else set())
     actual_dirs={p.name for p in output.iterdir() if p.is_dir() and p.name not in {'build','.gradle'} and any(x.is_file() for x in p.rglob('*'))}
     extra=sorted(actual_dirs-allowed_dirs)
     if extra: raise DomainError(f"선택하지 않은/비표준 Generated Directory 발견: {extra}")
     for name in sorted(allowed_dirs):
         cap=output/name
         if not cap.is_dir() or not any(x.is_file() for x in cap.rglob('*')): raise DomainError(f"빈 capability directory 금지: {name}")
-    for forbidden in ('batch','domain','jobpack'):
+    for forbidden in ('domain','jobpack'):
         if (output/forbidden).is_dir() and any(x.is_file() for x in (output/forbidden).rglob('*')): raise DomainError(f'Generated Domain에 금지된 module 발견: {forbidden}')
     for required in ('settings.gradle','build.gradle','gradle.properties'):
         if not (output/required).is_file(): raise DomainError(f"Generated Root Gradle 파일 누락: {required}")
@@ -1628,7 +1659,7 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     java='\n'.join(p.read_text(encoding='utf-8-sig',errors='ignore') for p in output.rglob('*.java'))
     required=[]
     if d.online: required += ['extends CpfBaseController']
-    if d.online and d.sample_transaction: required += ['@CpfController','@Operation']
+    if d.online and d.sample_transaction: required += ['@CpfRestController','@CpfOnlineTransaction','@Operation']
     for token in required:
         if token not in java: raise DomainError(f"Generated Runtime Consumer 누락: {token}")
     if d.sample_transaction:
@@ -1657,12 +1688,12 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
             for token in (f"interface {dependency.class_name}DomainClient", f"class Default{dependency.class_name}DomainClient", f"probe{dependency.class_name}"):
                 if token not in java: raise DomainError(f"Generated Typed Domain Client/Consumer 누락: {token}")
         for profile in ("local","test","dev","stg","prod"):
-            for runtime in ["online"]:
+            for runtime in (["online"] + (["batch"] if d.batch else [])):
                 profile_text=(output/runtime/'src/main/resources'/f'application-{profile}.yml').read_text(encoding='utf-8-sig')
                 for dependency in d.domain_dependencies:
                     if dependency.system_code not in profile_text or 'domain-call:' not in profile_text:
                         raise DomainError(f"Generated Domain Binding profile 누락: {runtime}/{profile}/{dependency.system_code}")
-    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batchCapabilitySelection':'PROJECT_SETUP'},'customerMetadata':'NONE','publicBoundary':'PASS','db3Renderer':'PASS' if d.sample_transaction else 'NOT_APPLICABLE','runtimeConsumers':'PASS','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
+    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batch':d.batch,'batchCapabilitySelection':'DOMAIN_DEFINITION'},'customerMetadata':'NONE','publicBoundary':'PASS','db3Renderer':'PASS' if d.sample_transaction else 'NOT_APPLICABLE','runtimeConsumers':'PASS','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
     if persist_evidence:
         _write_transient_verification(root,d,result)
     return result

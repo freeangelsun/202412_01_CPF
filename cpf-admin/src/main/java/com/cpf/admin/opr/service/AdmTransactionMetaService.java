@@ -3,7 +3,7 @@ package com.cpf.admin.opr.service;
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.foundation.annotation.CpfService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.lang.reflect.Method;
@@ -51,9 +51,9 @@ public class AdmTransactionMetaService extends com.cpf.admin.common.base.AdmBase
 
     /** 현재 Application의 거래 메타 재스캔 결과입니다. */
     public record TransactionMetaScanResult(
-            boolean available, int detectedCount, int upsertedCount, int inactivatedCount,
-            List<String> transactionIds, String message) {
-        public TransactionMetaScanResult { transactionIds = transactionIds == null ? List.of() : List.copyOf(transactionIds); }
+            boolean available, int detectedCount, int upsertedCount, int notDiscoveredCount,
+            List<String> operationIds, String message) {
+        public TransactionMetaScanResult { operationIds = operationIds == null ? List.of() : List.copyOf(operationIds); }
     }
 
     public boolean tableAvailable() {
@@ -97,25 +97,19 @@ public class AdmTransactionMetaService extends com.cpf.admin.common.base.AdmBase
         return rows.stream().findFirst();
     }
 
-    /** 현재 MVC Handler를 스캔해 선언된 거래를 upsert하고 사라진 거래를 inactive 처리합니다. */
+    /** 현재 MVC Handler의 Operation Catalog metadata만 현행화합니다. 운영 enabled/권한 Policy는 변경하지 않습니다. */
     public TransactionMetaScanResult scan(String operatorId) {
         if (!tableAvailable()) return new TransactionMetaScanResult(false, 0, 0, 0, List.of(), "cpf_transaction_meta unavailable");
         List<DetectedTransaction> detected = detectTransactions();
         int upserted = 0;
         for (DetectedTransaction tx : detected) {
             upserted += jdbc.update(sql.required("transaction-meta-upsert.sql"),
-                    tx.id(), tx.name(), tx.moduleCode(), tx.domainCode(), tx.httpMethod(), tx.apiPath(),
+                    tx.operationId(), tx.name(), tx.moduleCode(), tx.domainCode(), tx.httpMethod(), tx.apiPath(),
                     tx.controllerClass(), tx.handlerMethod(), tx.operationId(), null, "N", null, operatorId, operatorId);
         }
-        int inactivated = 0;
-        if (!detected.isEmpty()) {
-            String marks = String.join(",", java.util.Collections.nCopies(detected.size(), "?"));
-            String statement = sql.required("transaction-meta-mark-missing-inactive.sql").formatted(marks);
-            List<Object> args = new ArrayList<>(); args.add(operatorId); args.addAll(detected.stream().map(DetectedTransaction::id).toList());
-            inactivated = jdbc.update(statement, args.toArray());
-        }
-        List<String> ids = detected.stream().map(DetectedTransaction::id).sorted().toList();
-        return new TransactionMetaScanResult(true, detected.size(), upserted, inactivated, ids, "scan completed");
+        // Source 미발견은 자동 비활성/삭제하지 않는다. Discovery status 갱신은 별도 Catalog 전용 경로가 소유한다.
+        List<String> ids = detected.stream().map(DetectedTransaction::operationId).sorted().toList();
+        return new TransactionMetaScanResult(true, detected.size(), upserted, 0, ids, "catalog metadata scan completed; policy preserved");
     }
 
     public CpfDataRow inactivate(String transactionId, String operatorId) {
@@ -131,16 +125,20 @@ public class AdmTransactionMetaService extends com.cpf.admin.common.base.AdmBase
             HandlerMethod handler = entry.getValue(); Method method = handler.getMethod();
             CpfOnlineTransaction tx = AnnotatedElementUtils.findMergedAnnotation(method, CpfOnlineTransaction.class);
             if (tx == null) tx = AnnotatedElementUtils.findMergedAnnotation(handler.getBeanType(), CpfOnlineTransaction.class);
-            if (tx == null || tx.id().isBlank()) continue;
+            if (tx == null || tx.operationId().isBlank()) continue;
             Operation operation = AnnotatedElementUtils.findMergedAnnotation(method, Operation.class);
-            String operationId = operation == null || operation.operationId().isBlank() ? null : operation.operationId();
+            String openApiOperationId = operation == null || operation.operationId().isBlank() ? null : operation.operationId().trim();
+            String operationId = tx.operationId().trim();
+            if (openApiOperationId != null && !operationId.equals(openApiOperationId)) {
+                throw new IllegalStateException("CPF_OPERATION_ID_OPENAPI_MISMATCH:" + operationId + ":" + openApiOperationId);
+            }
             String httpMethod = entry.getKey().getMethodsCondition().getMethods().stream().map(Enum::name).sorted().findFirst().orElse("ANY");
             String path = entry.getKey().getPatternValues().stream().sorted().findFirst().orElse("/");
-            String owner = tx.ownerDomain().isBlank() ? module(handler.getBeanType()) : tx.ownerDomain();
-            result.add(new DetectedTransaction(tx.id(), tx.name(), module(handler.getBeanType()), owner, httpMethod, path,
-                    handler.getBeanType().getName(), method.getName(), operationId));
+            String owner = module(handler.getBeanType());
+            result.add(new DetectedTransaction(operationId, tx.name(), module(handler.getBeanType()), owner, httpMethod, path,
+                    handler.getBeanType().getName(), method.getName()));
         }
-        result.sort(Comparator.comparing(DetectedTransaction::id)); return result;
+        result.sort(Comparator.comparing(DetectedTransaction::operationId)); return result;
     }
 
     private static String module(Class<?> type) {
@@ -152,5 +150,5 @@ public class AdmTransactionMetaService extends com.cpf.admin.common.base.AdmBase
     private static List<CpfDataRow> rows(List<Map<String,Object>> source) { return source.stream().map(CpfDataRow::new).toList(); }
     private static String blankToNull(String v) { return v == null || v.isBlank() ? null : v.trim(); }
     private static String like(String v) { String n=blankToNull(v); return n == null ? null : "%"+n+"%"; }
-    private record DetectedTransaction(String id,String name,String moduleCode,String domainCode,String httpMethod,String apiPath,String controllerClass,String handlerMethod,String operationId) {}
+    private record DetectedTransaction(String operationId,String name,String moduleCode,String domainCode,String httpMethod,String apiPath,String controllerClass,String handlerMethod) {}
 }

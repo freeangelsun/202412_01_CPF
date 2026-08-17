@@ -29,7 +29,7 @@ public final class CpfGatewayConnectionTestWorker {
 
     @Scheduled(fixedDelayString = "${cpf.gateway.connection-test.worker-millis:2000}")
     public void run() {
-        String gatewayInstanceId = CpfInstanceIdentity.current().serverInstanceId();
+        String gatewayInstanceId = CpfInstanceIdentity.current().instanceId();
         for (CpfGatewayRegistryPort.ConnectionTestOperation operation
                 : registry.claimConnectionTests(gatewayInstanceId, 20)) {
             execute(operation, gatewayInstanceId);
@@ -102,7 +102,7 @@ public final class CpfGatewayConnectionTestWorker {
             String testType) {
         CpfGatewayRegistryPort.HealthProbeTarget target = registry.claimHealthProbe(
                 binding.serverGroupId(), member.instanceId(),
-                CpfInstanceIdentity.current().serverInstanceId(), 30);
+                CpfInstanceIdentity.current().instanceId(), 30);
         if (target == null) return new Probe(false, "LEASE", 0L);
         CpfGatewayProbeExecutor.ProbeResult result = probes.execute(target, binding, testType);
         if (affectsRoutingHealth(testType)) {

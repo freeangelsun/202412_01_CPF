@@ -642,6 +642,7 @@ ON CONFLICT (ROLE_ID) DO UPDATE SET ROLE_NAME=EXCLUDED.ROLE_NAME, ROLE_TYPE=EXCL
 
 INSERT INTO ADM_MENU (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CAPABILITY_FLEET', NULL, 'CPF Capability', '/adm#capabilities', 15, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -667,7 +668,8 @@ VALUES ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
 ON CONFLICT (MENU_ID) DO UPDATE SET PARENT_MENU_ID=EXCLUDED.PARENT_MENU_ID, MENU_NAME=EXCLUDED.MENU_NAME, MENU_PATH=EXCLUDED.MENU_PATH, SORT_ORDER=EXCLUDED.SORT_ORDER, USE_YN=EXCLUDED.USE_YN, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_BUTTON (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+VALUES ('CAPABILITY_FLEET_READ', 'CAPABILITY_FLEET', 'READ', 'CPF Capability 조회', 'GET', '/adm/api/capability-management/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('LOG_LIST_READ', 'LOG_LIST', 'READ', '조회', 'GET', '/adm/api/logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DETAIL', 'LOG_LIST', 'DETAIL', '상세 조회', 'GET', '/adm/api/logs/**', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('LOG_LIST_DOWNLOAD', 'LOG_LIST', 'DOWNLOAD', '다운로드', 'GET', '/adm/api/logs/**', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('STANDARD_EXECUTION_READ', 'STANDARD_EXECUTION', 'READ', '표준 실행 조회', 'GET', '/adm/api/standard-executions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -794,7 +796,7 @@ ON CONFLICT (ROLE_ID, MENU_ID) DO UPDATE SET READ_YN=EXCLUDED.READ_YN, WRITE_YN=
 INSERT INTO ADM_ROLE_MENU (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
 SELECT 'ADM_VIEWER', MENU_ID, 'Y', 'N', 'N', 'SYSTEM', 'SYSTEM'
 FROM ADM_MENU
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
+WHERE MENU_ID IN ('DASHBOARD', 'CAPABILITY_FLEET', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')
 ON CONFLICT (ROLE_ID, MENU_ID) DO UPDATE SET READ_YN=EXCLUDED.READ_YN, WRITE_YN=EXCLUDED.WRITE_YN, DELETE_YN=EXCLUDED.DELETE_YN, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_ROLE_MENU (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by)
@@ -1027,7 +1029,7 @@ VALUES (
 )
 ON CONFLICT (instance_id) DO UPDATE SET instance_name=EXCLUDED.instance_name, host_name=EXCLUDED.host_name, server_port=EXCLUDED.server_port, active_yn=EXCLUDED.active_yn, last_heartbeat_at=EXCLUDED.last_heartbeat_at, description=EXCLUDED.description, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BAT_WORKER (worker_id, server_instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by)
+INSERT INTO BAT_WORKER (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by)
 VALUES (
     'local-batch-01',
     'local-batch-01',
@@ -1043,7 +1045,7 @@ VALUES (
     'SYSTEM',
     'SYSTEM'
 )
-ON CONFLICT (worker_id) DO UPDATE SET server_instance_id=EXCLUDED.server_instance_id, host_name=EXCLUDED.host_name, process_id=EXCLUDED.process_id, thread_name=EXCLUDED.thread_name, worker_status=EXCLUDED.worker_status, active_yn=EXCLUDED.active_yn, last_heartbeat_at=EXCLUDED.last_heartbeat_at, current_job_id=EXCLUDED.current_job_id, current_execution_id=EXCLUDED.current_execution_id, description=EXCLUDED.description, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
+ON CONFLICT (worker_id) DO UPDATE SET instance_id=EXCLUDED.instance_id, host_name=EXCLUDED.host_name, process_id=EXCLUDED.process_id, thread_name=EXCLUDED.thread_name, worker_status=EXCLUDED.worker_status, active_yn=EXCLUDED.active_yn, last_heartbeat_at=EXCLUDED.last_heartbeat_at, current_job_id=EXCLUDED.current_job_id, current_execution_id=EXCLUDED.current_execution_id, description=EXCLUDED.description, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO BAT_JOB (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by)
 VALUES ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -1061,7 +1063,7 @@ VALUES ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 
     ('CPF_EDU_TASKLET_JOB', 'CPF_EDU_CHUNK_JOB', 'TRIGGER', 'COMPLETED', 'COMPLETED', 20, 'Y', 'SYSTEM', 'SYSTEM')
 ON CONFLICT (job_id, related_job_id, relation_type) DO UPDATE SET trigger_condition=EXCLUDED.trigger_condition, required_status=EXCLUDED.required_status, sort_order=EXCLUDED.sort_order, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by)
+INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by)
 SELECT
     'CPF_EDU_TASKLET_JOB',
     'CPF_EDU_TASKLET_DAILY',
@@ -1332,7 +1334,7 @@ WHERE NOT EXISTS (
 
 -- CPF_SEED_INLINE_VARIABLE sample_end_time
 
-INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
+INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
 SELECT
     DATE(('2026-06-15 12:00:00.000')),
     ('20260615120000000MBRlocal010000001'),
@@ -1346,15 +1348,17 @@ SELECT
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'edu-education',
+    'EDU',
+    'EDU',
+    'educationCrudList',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
     'ko-KR',
     'Asia/Seoul',
     'NORMAL',
-    'WEB',
-    'WEB',
+    'EDU',
+    'EDU',
     'M000000001',
     'C000000001',
     'EDU_SAMPLE_LIST',
@@ -1401,7 +1405,7 @@ SELECT (
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
     ORDER BY LOG_IDX
     FETCH FIRST 1 ROW ONLY
-), 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
+), 'headers', '{"X-System-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
 WHERE (
     SELECT LOG_IDX
     FROM CPF_TRANSACTION_LOG

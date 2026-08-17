@@ -28,7 +28,7 @@
       "name": "cpf.starter.performance-annotation-enabled",
       "type": "java.lang.Boolean",
       "defaultValue": true,
-      "description": "@CpfPerformance Micrometer 계측 Runtime 활성화 여부"
+      "description": "@CpfTimed Micrometer 계측 Runtime 활성화 여부"
     },
     {
       "name": "cpf.service-policy.enabled",

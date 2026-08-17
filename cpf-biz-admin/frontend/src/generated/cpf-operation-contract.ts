@@ -1,5 +1,6 @@
-// Generated from canonical Backend OpenAPI. Do not edit manually.
-export type CpfOperationId = "bzaCommonMessageDisable" | "bzaCommonResponseCodeDisable" | "bzaCommonDelete" | "bzaOperationDeleteMenu" | "bzaOperationFindAdminUsers" | "bzaOperationFindAdminUsersPage" | "bzaApprovalDelegations" | "bzaApprovalInbox" | "bzaApprovalPolicies" | "bzaApprovalPolicyDetail" | "bzaApprovalSubmissions" | "bzaApprovalSubmissionDetail" | "bzaSupportFindAttachments" | "bzaSupportDownloadAttachment" | "bzaBusinessAuditVerify" | "bzaAuthLoginHistories" | "bzaAuthMe" | "bzaAuthSessions" | "bzaBackofficeFindBusinessAudits" | "bzaBackofficeFindEmployees" | "bzaBackofficeFindEmployeesPage" | "bzaBackofficeFindOrganizations" | "bzaBackofficeFindOrganizationsPage" | "bzaBackofficeFindEffectivePermissions" | "bzaCommonMessageSearch" | "bzaCommonMessageDetail" | "bzaCommonResponseCodeSearch" | "bzaCommonResponseCodeDetail" | "bzaCommonSearch" | "bzaSupportDashboard" | "bzaDirectoryFindAssignments" | "bzaDirectoryFindAssignmentsPage" | "bzaDirectoryFindJobTitles" | "bzaDirectoryFindJobTitlesPage" | "bzaDirectoryFindPositions" | "bzaDirectoryFindPositionsPage" | "bzaDirectoryFindResponsibilities" | "bzaDirectoryFindResponsibilitiesPage" | "bzaDirectoryFindUserRoles" | "bzaDirectoryFindUserRolesPage" | "bzaSupportFindDownloadAudits" | "bzaOperationFindDownloadPolicies" | "bzaOperationFindMenus" | "bzaOperationFindMenuImpact" | "bzaOperationFindMenusPage" | "bzaSupportFindNotifications" | "bzaOperationFindPermissions" | "bzaSupportCompareRolePermissions" | "bzaOperationFindPermissionsPage" | "bzaOperationFindRoles" | "bzaOperationFindRolesPage" | "bzaSupportFindSavedSearches" | "bzaOperationFindSettings" | "bzaOperationSaveAdminUser" | "bzaApprovalParticipantDecision" | "bzaApprovalDelegationSave" | "bzaApprovalPolicySave" | "bzaApprovalPolicySimulate" | "bzaApprovalPolicySubmit" | "bzaApprovalCancel" | "bzaApprovalResubmit" | "bzaApprovalWithdraw" | "bzaApprovalExpireDue" | "bzaSupportUploadAttachment" | "bzaSupportRecheckAttachment" | "bzaSupportUpdateAttachmentSecurity" | "bzaAuthLogin" | "bzaAuthLogout" | "bzaAuthChangePassword" | "bzaAuthRefresh" | "bzaAuthRevokeSession" | "bzaBackofficeSaveEmployee" | "bzaBackofficeEmployeeRawContact" | "bzaBackofficeSaveOrganization" | "bzaCommonCatalogRefresh" | "bzaCommonMessageCreate" | "bzaCommonResponseCodeCreate" | "bzaCommonCreate" | "bzaCommonDetail" | "bzaDirectorySaveAssignment" | "bzaDirectorySaveJobTitle" | "bzaDirectorySavePosition" | "bzaDirectorySaveResponsibility" | "bzaDirectorySaveUserRole" | "bzaOperationSaveMenu" | "bzaSupportCreateNotification" | "bzaSupportReadNotification" | "bzaSupportReadAllNotifications" | "bzaOperationSavePermission" | "bzaSupportSimulatePermission" | "bzaOperationSaveRole" | "bzaSupportSaveSavedSearch" | "bzaSupportDisableSavedSearch" | "bzaCommonMessageUpdate" | "bzaCommonResponseCodeUpdate" | "bzaCommonUpdate";
+// Generated from explicit Java controller annotations for pre-runtime compilation.
+// Release verification requires replacement from canonical BACKEND_RUNTIME OpenAPI.
+export type CpfOperationId = "bzaCommonMessageDisable" | "bzaCommonResponseCodeDisable" | "bzaCommonDelete" | "bzaOperationDeleteMenu" | "bzaOperationFindAdminUsers" | "bzaOperationFindAdminUsersPage" | "bzaApprovalDelegations" | "bzaApprovalInbox" | "bzaApprovalPolicies" | "bzaApprovalPolicyDetail" | "bzaApprovalSubmissions" | "bzaApprovalSubmissionDetail" | "bzaSupportFindAttachments" | "bzaSupportDownloadAttachment" | "bzaBusinessAuditVerify" | "bzaAuthLoginHistories" | "bzaAuthMe" | "bzaAuthSessions" | "bzaBackofficeFindBusinessAudits" | "bzaBackofficeFindEmployees" | "bzaBackofficeFindEmployeesPage" | "bzaBackofficeFindOrganizations" | "bzaBackofficeFindOrganizationsPage" | "bzaBackofficeFindEffectivePermissions" | "bzaCommonMessageSearch" | "bzaCommonMessageDetail" | "bzaCommonResponseCodeSearch" | "bzaCommonResponseCodeDetail" | "bzaCommonSearch" | "bzaSupportDashboard" | "bzaDirectoryFindAssignments" | "bzaDirectoryFindAssignmentsPage" | "bzaDirectoryFindJobTitles" | "bzaDirectoryFindJobTitlesPage" | "bzaDirectoryFindPositions" | "bzaDirectoryFindPositionsPage" | "bzaDirectoryFindResponsibilities" | "bzaDirectoryFindResponsibilitiesPage" | "bzaDirectoryFindUserRoles" | "bzaDirectoryFindUserRolesPage" | "bzaSupportFindDownloadAudits" | "bzaOperationFindDownloadPolicies" | "bzaOperationFindMenus" | "bzaOperationFindMenusPage" | "bzaOperationFindMenuImpact" | "bzaSupportFindNotifications" | "bzaOperationFindPermissions" | "bzaSupportCompareRolePermissions" | "bzaOperationFindPermissionsPage" | "bzaOperationFindRoles" | "bzaOperationFindRolesPage" | "bzaSupportFindSavedSearches" | "bzaOperationFindSettings" | "bzaOperationSaveAdminUser" | "bzaApprovalDelegationSave" | "bzaApprovalPolicySave" | "bzaApprovalPolicySimulate" | "bzaApprovalPolicySubmit" | "bzaApprovalExpireDue" | "bzaApprovalCancel" | "bzaApprovalResubmit" | "bzaApprovalWithdraw" | "bzaApprovalParticipantDecision" | "bzaSupportUploadAttachment" | "bzaSupportRecheckAttachment" | "bzaSupportUpdateAttachmentSecurity" | "bzaAuthLogin" | "bzaAuthLogout" | "bzaAuthChangePassword" | "bzaAuthRefresh" | "bzaAuthRevokeSession" | "bzaBackofficeSaveEmployee" | "bzaBackofficeEmployeeRawContact" | "bzaBackofficeSaveOrganization" | "bzaCommonCatalogRefresh" | "bzaCommonMessageCreate" | "bzaCommonResponseCodeCreate" | "bzaCommonCreate" | "bzaCommonDetail" | "bzaDirectorySaveAssignment" | "bzaDirectorySaveJobTitle" | "bzaDirectorySavePosition" | "bzaDirectorySaveResponsibility" | "bzaDirectorySaveUserRole" | "bzaOperationSaveMenu" | "bzaSupportCreateNotification" | "bzaSupportReadAllNotifications" | "bzaSupportReadNotification" | "bzaOperationSavePermission" | "bzaSupportSimulatePermission" | "bzaOperationSaveRole" | "bzaSupportSaveSavedSearch" | "bzaSupportDisableSavedSearch" | "bzaCommonMessageUpdate" | "bzaCommonResponseCodeUpdate" | "bzaCommonUpdate";
 export interface CpfOperationDescriptor { method: string; template: string; operationId: CpfOperationId; }
 export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
   { method: "DELETE", template: "/api/bza/common-catalog/messages/{id}", operationId: "bzaCommonMessageDisable" },
@@ -45,8 +46,8 @@ export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
   { method: "GET", template: "/api/bza/download-audits", operationId: "bzaSupportFindDownloadAudits" },
   { method: "GET", template: "/api/bza/downloads", operationId: "bzaOperationFindDownloadPolicies" },
   { method: "GET", template: "/api/bza/menus", operationId: "bzaOperationFindMenus" },
-  { method: "GET", template: "/api/bza/menus/{menuCode}/impact", operationId: "bzaOperationFindMenuImpact" },
   { method: "GET", template: "/api/bza/menus/page", operationId: "bzaOperationFindMenusPage" },
+  { method: "GET", template: "/api/bza/menus/{menuCode}/impact", operationId: "bzaOperationFindMenuImpact" },
   { method: "GET", template: "/api/bza/notifications", operationId: "bzaSupportFindNotifications" },
   { method: "GET", template: "/api/bza/permissions", operationId: "bzaOperationFindPermissions" },
   { method: "GET", template: "/api/bza/permissions/compare", operationId: "bzaSupportCompareRolePermissions" },
@@ -56,15 +57,15 @@ export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
   { method: "GET", template: "/api/bza/saved-searches", operationId: "bzaSupportFindSavedSearches" },
   { method: "GET", template: "/api/bza/settings", operationId: "bzaOperationFindSettings" },
   { method: "POST", template: "/api/bza/admin-users", operationId: "bzaOperationSaveAdminUser" },
-  { method: "POST", template: "/api/bza/approvals/{approvalId}/decisions", operationId: "bzaApprovalParticipantDecision" },
   { method: "POST", template: "/api/bza/approvals/delegations", operationId: "bzaApprovalDelegationSave" },
   { method: "POST", template: "/api/bza/approvals/policies", operationId: "bzaApprovalPolicySave" },
   { method: "POST", template: "/api/bza/approvals/simulate", operationId: "bzaApprovalPolicySimulate" },
   { method: "POST", template: "/api/bza/approvals/submissions", operationId: "bzaApprovalPolicySubmit" },
+  { method: "POST", template: "/api/bza/approvals/submissions/expire-due", operationId: "bzaApprovalExpireDue" },
   { method: "POST", template: "/api/bza/approvals/submissions/{approvalId}/cancel", operationId: "bzaApprovalCancel" },
   { method: "POST", template: "/api/bza/approvals/submissions/{approvalId}/resubmit", operationId: "bzaApprovalResubmit" },
   { method: "POST", template: "/api/bza/approvals/submissions/{approvalId}/withdraw", operationId: "bzaApprovalWithdraw" },
-  { method: "POST", template: "/api/bza/approvals/submissions/expire-due", operationId: "bzaApprovalExpireDue" },
+  { method: "POST", template: "/api/bza/approvals/{approvalId}/decisions", operationId: "bzaApprovalParticipantDecision" },
   { method: "POST", template: "/api/bza/attachments", operationId: "bzaSupportUploadAttachment" },
   { method: "POST", template: "/api/bza/attachments/{attachmentId}/recheck", operationId: "bzaSupportRecheckAttachment" },
   { method: "POST", template: "/api/bza/attachments/{attachmentId}/security", operationId: "bzaSupportUpdateAttachmentSecurity" },
@@ -88,8 +89,8 @@ export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
   { method: "POST", template: "/api/bza/directory/user-roles", operationId: "bzaDirectorySaveUserRole" },
   { method: "POST", template: "/api/bza/menus", operationId: "bzaOperationSaveMenu" },
   { method: "POST", template: "/api/bza/notifications", operationId: "bzaSupportCreateNotification" },
-  { method: "POST", template: "/api/bza/notifications/{notificationId}/read", operationId: "bzaSupportReadNotification" },
   { method: "POST", template: "/api/bza/notifications/read-all", operationId: "bzaSupportReadAllNotifications" },
+  { method: "POST", template: "/api/bza/notifications/{notificationId}/read", operationId: "bzaSupportReadNotification" },
   { method: "POST", template: "/api/bza/permissions", operationId: "bzaOperationSavePermission" },
   { method: "POST", template: "/api/bza/permissions/simulate", operationId: "bzaSupportSimulatePermission" },
   { method: "POST", template: "/api/bza/roles", operationId: "bzaOperationSaveRole" },
@@ -99,19 +100,15 @@ export const cpfOperationDescriptors: readonly CpfOperationDescriptor[] = [
   { method: "PUT", template: "/api/bza/common-catalog/response-codes/{code}", operationId: "bzaCommonResponseCodeUpdate" },
   { method: "PUT", template: "/api/bza/common/{resource}", operationId: "bzaCommonUpdate" }
 ] as const;
-
 function matchesTemplate(template: string, pathname: string): boolean {
-  const expected = template.split("/");
-  const actual = pathname.split("/");
-  if (expected.length !== actual.length) return false;
-  return expected.every((segment, index) =>
-    (segment.startsWith("{") && segment.endsWith("}")) || segment === actual[index]
-  );
+  const expected=template.split("/"); const actual=pathname.split("/");
+  if(expected.length!==actual.length)return false;
+  return expected.every((segment,index)=>(segment.startsWith("{")&&segment.endsWith("}"))||segment===actual[index]);
 }
 export function resolveCpfOperation(method: string, rawUrl: string): CpfOperationDescriptor {
-  const pathname = new URL(rawUrl, window.location.origin).pathname;
-  const normalizedMethod = method.trim().toUpperCase();
-  const found = cpfOperationDescriptors.find(value => value.method === normalizedMethod && matchesTemplate(value.template, pathname));
-  if (!found) throw new Error(`CPF OpenAPI operation is not registered: ${normalizedMethod} ${pathname}`);
+  const pathname=new URL(rawUrl,window.location.origin).pathname;
+  const normalizedMethod=method.trim().toUpperCase();
+  const found=cpfOperationDescriptors.find(value=>value.method===normalizedMethod&&matchesTemplate(value.template,pathname));
+  if(!found)throw new Error(`CPF controller operation is not registered: ${normalizedMethod} ${pathname}`);
   return found;
 }

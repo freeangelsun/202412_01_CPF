@@ -220,7 +220,7 @@ public class BzaAuthRepository {
                 .addValue("transactionId", row.transactionId())
                 .addValue("moduleId", row.moduleId())
                 .addValue("wasId", row.wasId())
-                .addValue("serverInstanceId", row.serverInstanceId()));
+                .addValue("instanceId", row.instanceId()));
     }
 
     /**
@@ -488,7 +488,7 @@ public class BzaAuthRepository {
             String transactionId,
             String moduleId,
             String wasId,
-            String serverInstanceId) {
+            String instanceId) {
     }
 
     public record RefreshTokenWrite(

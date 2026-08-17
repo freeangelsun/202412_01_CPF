@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.backoffice.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.backoffice.dto.BzaEmployeeRawContactResponse;
 import com.cpf.bizadmin.backoffice.repository.BzaBackofficeRepository;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
@@ -41,7 +41,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
         return repository.organizationPage(CpfPageRequest.of(page,size));
     }
 
-    @CpfTx(id="BZA_BZABACKOFFICESERVICE_SAVEORGANIZATION", name="BZA_BZABACKOFFICESERVICE_SAVEORGANIZATION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> saveOrganization(OrganizationRequest request, String operatorId) {
         String code = required(request.organizationCode(), "organizationCode").toUpperCase(Locale.ROOT);
         String user = required(operatorId, "operatorId");
@@ -82,7 +82,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
                 result.totalElements(), result.page(), result.size());
     }
 
-    @CpfTx(id="BZA_BZABACKOFFICESERVICE_FINDEMPLOYEERAW", name="BZA_BZABACKOFFICESERVICE_FINDEMPLOYEERAW", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public BzaEmployeeRawContactResponse findEmployeeRaw(String employeeNo, String operatorId, String reason) {
         String id = required(employeeNo, "employeeNo").toUpperCase(Locale.ROOT);
         String actor = required(operatorId, "operatorId");
@@ -97,7 +97,7 @@ public class BzaBackofficeService extends com.cpf.bizadmin.common.base.BzaBaseSe
                 stringValue(raw.get("officePhoneNo")), true, CpfContexts.transactionId());
     }
 
-    @CpfTx(id="BZA_BZABACKOFFICESERVICE_SAVEEMPLOYEE", name="BZA_BZABACKOFFICESERVICE_SAVEEMPLOYEE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> saveEmployee(EmployeeRequest request, String operatorId) {
         String employeeNo=required(request.employeeNo(),"employeeNo").toUpperCase(Locale.ROOT);
         String user=required(operatorId,"operatorId");

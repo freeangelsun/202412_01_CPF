@@ -56,7 +56,7 @@
             <label>Transaction ID <input v-model="executionTraceForm.transactionId" type="text"></label>
             <label>Spring Job Instance <input v-model.number="executionTraceForm.springBatchJobInstanceId" type="number"></label>
             <label>Worker ID <input v-model="executionTraceForm.workerId" type="text"></label>
-            <label>Server Instance <input v-model="executionTraceForm.serverInstanceId" type="text"></label>
+            <label>Server Instance <input v-model="executionTraceForm.instanceId" type="text"></label>
             <label>조회 건수 <input v-model.number="executionTraceForm.limit" type="number" min="1" max="500"></label>
           </div>
           <div class="table-wrap">
@@ -68,7 +68,7 @@
                   <td>{{ traceValue(row,'job_id','JOB_ID') }}</td>
                   <td>{{ traceValue(row,'spring_batch_job_instance_id','SPRING_BATCH_JOB_INSTANCE_ID') }}</td>
                   <td>{{ traceValue(row,'worker_id','WORKER_ID') }}</td>
-                  <td>{{ traceValue(row,'server_instance_id','SERVER_INSTANCE_ID') }}</td>
+                  <td>{{ traceValue(row,'instance_id','INSTANCE_ID') }}</td>
                   <td>{{ traceValue(row,'transaction_id','TRANSACTION_ID') }}</td>
                   <td>{{ traceValue(row,'status_code','STATUS_CODE','status','STATUS') }}</td>
                   <td>{{ traceValue(row,'start_time','START_TIME') }}</td>
@@ -192,7 +192,7 @@ export default defineComponent({setup(){return useAdmConsolePage()},
         transactionId: "",
         springBatchJobInstanceId: null as number | null,
         workerId: "",
-        serverInstanceId: "",
+        instanceId: "",
         limit: 100
       },
       executionTraceRows: [] as Array<Record<string, any>>

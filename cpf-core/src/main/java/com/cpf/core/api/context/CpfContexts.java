@@ -61,6 +61,20 @@ public final class CpfContexts {
 
     public static String transactionId() { return requireCurrent().transactionId(); }
     public static String currentTransactionId() { var c = current(); return c == null ? null : c.transactionId(); }
+    /** 현재 논리 거래가 실행 중인 Canonical operationId를 반환합니다. */
+    public static String operationId() { var c = current(); return c == null ? null : c.operationId(); }
+    /** 현재 분산 Trace 식별자를 반환합니다. */
+    public static String traceId() { var c = current(); return c == null ? null : c.traceId(); }
+    /** transactionId를 최초 생성한 원본 System Code를 반환합니다. */
+    public static String originalSystemCode() { var c = current(); return c == null ? null : c.originalSystemCode(); }
+    /** 현재 요청을 실제 처리하는 System Code를 반환합니다. */
+    public static String systemCode() { var c = current(); return c == null ? null : c.systemCode(); }
+    /** 바로 직전 호출자의 System Code를 반환합니다. */
+    public static String callerSystemCode() { var c = current(); return c == null ? null : c.callerSystemCode(); }
+    /** 현재 호출 대상 System Code를 반환합니다. */
+    public static String targetSystemCode() { var c = current(); return c == null ? null : c.targetSystemCode(); }
+    /** 현재 호출 대상의 Canonical operationId를 반환합니다. */
+    public static String targetOperationId() { var c = current(); return c == null ? null : c.targetOperationId(); }
     /** currentExecutionId 작업을 CPF 표준 계약에 따라 수행한다. */
     public static String currentExecutionId() { var c = current(); return c == null ? null : c.executionId(); }
     public static String currentSegmentId() { var c = current(); return c == null ? null : c.segmentId(); }

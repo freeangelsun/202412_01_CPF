@@ -2,7 +2,7 @@ package com.cpf.integration.http.internal.servicecall;
 
 import com.cpf.integration.api.servicecall.CpfServiceRegistryControlPort;
 
-import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
+import com.cpf.core.api.context.CpfContexts;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -317,8 +317,8 @@ public class CpfServiceRegistryRepository {
                     timeout_ms, retry_count, failure_code, failure_message, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
                 """,
-                CpfTransactionContext.currentTransactionId(),
-                CpfTransactionContext.currentTraceId(),
+                CpfContexts.currentTransactionId(),
+                CpfContexts.current() == null ? null : CpfContexts.current().traceId(),
                 normalize(request.serviceId()),
                 firstText(request.endpointCode(), value(target.endpoint(), "endpointCode")),
                 firstText(request.instanceId(), value(target.instance(), "instanceId")),

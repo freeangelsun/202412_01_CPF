@@ -1,7 +1,7 @@
 
 package com.cpf.data.persistence.jdbc;
 
-import com.cpf.data.persistence.api.database.CpfJdbcOperations;
+import com.cpf.data.persistence.api.database.CpfNamedParameterJdbcOperations;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -19,8 +19,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ConditionalOnBean(name = {"cpfDomainDataSource", "cpfDomainTransactionManager"})
 public class CpfDomainJdbcOperationsAutoConfiguration {
     @Bean
-    @ConditionalOnMissingBean(CpfJdbcOperations.class)
-    CpfJdbcOperations cpfJdbcOperations(
+    @ConditionalOnMissingBean(CpfNamedParameterJdbcOperations.class)
+    CpfNamedParameterJdbcOperations cpfJdbcOperations(
             @Qualifier("cpfDomainDataSource") DataSource dataSource,
             @Qualifier("cpfDomainTransactionManager") PlatformTransactionManager transactionManager) {
         return new CpfSpringJdbcOperations(

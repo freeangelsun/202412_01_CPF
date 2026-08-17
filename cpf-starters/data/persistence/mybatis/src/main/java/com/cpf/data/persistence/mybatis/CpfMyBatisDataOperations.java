@@ -1,6 +1,6 @@
 package com.cpf.data.persistence.mybatis;
 
-import com.cpf.data.persistence.api.database.CpfDataOperations;
+import com.cpf.data.persistence.api.database.CpfSqlSession;
 import com.cpf.core.api.error.CpfSystemException;
 import java.util.List;
 import java.util.Objects;
@@ -9,7 +9,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** MyBatis internal adapter for the provider-neutral CPF named data operation contract. */
-final class CpfMyBatisDataOperations implements CpfDataOperations {
+final class CpfMyBatisDataOperations implements CpfSqlSession {
     private final SqlSessionTemplate sessions;
     private final TransactionTemplate transactions;
 
@@ -71,7 +71,7 @@ final class CpfMyBatisDataOperations implements CpfDataOperations {
     }
 
     @Override
-    public <T> T inRollbackOnlyTransaction(Function<CpfDataOperations, T> callback) {
+    public <T> T inRollbackOnlyTransaction(Function<CpfSqlSession, T> callback) {
         Objects.requireNonNull(callback, "callback");
         return transactions.execute(status -> {
             T result = callback.apply(this);

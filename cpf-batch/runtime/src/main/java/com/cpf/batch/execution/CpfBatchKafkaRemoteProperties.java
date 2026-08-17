@@ -85,5 +85,5 @@ public record CpfBatchKafkaRemoteProperties(
     }
     private static Duration positive(Duration value,Duration fallback){return value==null||value.isZero()||value.isNegative()?fallback:value;}
     private static boolean blank(String value){return value==null||value.isBlank();}
-    private static String instanceId(){String value=System.getenv("CPF_INSTANCE_ID");if(blank(value))value=System.getenv("HOSTNAME");if(blank(value))throw new IllegalArgumentException("cpf.batch.remote.kafka.manager-instance-id or CPF_INSTANCE_ID is required");return value;}
+    private static String instanceId(){return com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();}
 }

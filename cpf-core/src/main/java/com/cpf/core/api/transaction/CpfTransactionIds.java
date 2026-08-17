@@ -14,7 +14,7 @@ public final class CpfTransactionIds {
     /** requireCanonical 작업을 CPF 표준 계약에 따라 수행한다. */
     public static String requireCanonical(String value) {
         if (!isCanonical(value)) {
-            throw new IllegalArgumentException("transactionId는 yyyyMMddHHmmssSSS(17)+SystemCode(3)+wasId(7)+sequence(7)의 34자리여야 합니다.");
+            throw new IllegalArgumentException("transactionId는 yyyyMMddHHmmssSSS(17)+SystemCode(3)+instanceToken(7)+sequence(7)의 34자리여야 합니다.");
         }
         return value;
     }

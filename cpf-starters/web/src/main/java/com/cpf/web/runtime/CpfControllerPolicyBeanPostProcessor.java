@@ -1,7 +1,7 @@
 package com.cpf.web.runtime;
 
 import com.cpf.web.api.CpfBaseController;
-import com.cpf.web.api.CpfController;
+import com.cpf.web.api.CpfRestController;
 import com.cpf.foundation.api.CpfThreeTierStructurePolicy;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -20,8 +20,8 @@ public final class CpfControllerPolicyBeanPostProcessor implements BeanPostProce
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (!properties.isEnabled() || !properties.isRequireBaseClass()) return bean;
         Class<?> type = AopUtils.getTargetClass(bean);
-        if (AnnotatedElementUtils.hasAnnotation(type, CpfController.class)) {
-            CpfThreeTierStructurePolicy.verifyBusinessType(type, CpfBaseController.class, "@CpfController");
+        if (AnnotatedElementUtils.hasAnnotation(type, CpfRestController.class)) {
+            CpfThreeTierStructurePolicy.verifyBusinessType(type, CpfBaseController.class, "@CpfRestController");
         }
         return bean;
     }

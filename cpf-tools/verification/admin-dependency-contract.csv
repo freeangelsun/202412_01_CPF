@@ -4,7 +4,7 @@ cpf-admin,:framework:integration,capability-parent,cpf-admin/src/main/java/com/c
 cpf-admin,:framework:operations,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,Reliability/approval/runtime policy public operation consumers
 cpf-admin,:internal:platform-operations:runtime-control,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java,Approved runtime control owner command execution
 cpf-admin,:internal:messaging:reliability:jdbc,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,JDBC reliability runtime provider for ADM reliability operations
-cpf-admin,:internal:integration:fixed-length,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java,Fixed-length layout registry/log decoder/parser consumer
+cpf-admin,:starters:integration:fixed-length,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java,Fixed-length layout registry/log decoder/parser consumer
 cpf-admin,:framework:file,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,File attachment/tabular operation contracts
 cpf-admin,:runtime:gateway,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/gateway/AdmGatewayRegistryController.java,Gateway registry/control direct consumer
 cpf-admin,:framework:operations:observability,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmTransactionGroupService.java,Transaction timeline/logging/remote-log runtime consumers

@@ -3,10 +3,9 @@ global.window={location:{origin:'https://cpf.local'}};
 let cookie=''; global.document={get cookie(){return cookie},set cookie(v){cookie=v}};
 let calls=[]; global.fetch=async (url,options)=>{calls.push([url,options]);return new Response('{}',{status:200,headers:{'Content-Type':'application/json'}})};
 async function rejects(fn,part){let e;try{await fn()}catch(x){e=x}assert(e,`expected reject ${part}`);assert(String(e.message).includes(part),`message ${e.message} missing ${part}`)}
-function assertCanonicalTransaction(value,surface){assert(/^\d{17}[A-Z0-9]{3}[A-Za-z0-9]{7}\d{7}$/.test(value),`invalid transaction ${value}`);assert.equal(value.slice(17,20),surface);}
 async function test(modPath,surface){
   const api=require(modPath); const create=api[`create${surface==='ADM'?'Adm':'Bza'}Headers`]; const raw=api[`${surface.toLowerCase()}RawResponse`];
-  let h=create({'X-Transaction-Id':'bad'}); assert.equal(h.get('X-Caller-Service'),surface==='ADM'?'adm-ui':'bza-ui'); assert.equal(h.get('X-Original-Channel-Code'),surface); assert(!h.has('Authorization')); assertCanonicalTransaction(h.get('X-Transaction-Id'),surface);
+  let h=create({}); assert.equal(h.get('X-Client-Id'),surface==='ADM'?'cpf-adm-ui':'cpf-bza-ui'); assert.equal(h.get('X-Client-Version'),'1.0.0'); assert(!h.has('Authorization')); for(const name of ['X-Transaction-Id','X-Original-System-Code','X-System-Code','X-Caller-System-Code','X-Target-System-Code','X-Target-Operation-Id']){ assert(!h.has(name),`browser must not author ${name}`); assert.throws(()=>create({[name]:'forged'}),new RegExp(name)); }
   assert.throws(()=>create({Authorization:'Bearer x'}),/Browser Bearer Token/);
   await rejects(()=>raw(`https://evil.example/${surface.toLowerCase()}/api/runtime-control/status`),'same-origin');
   await rejects(()=>raw(`/${surface.toLowerCase()}/api/runtime-control/status`,'POST',{nested:{operatorId:'evil'}}),'operatorId');

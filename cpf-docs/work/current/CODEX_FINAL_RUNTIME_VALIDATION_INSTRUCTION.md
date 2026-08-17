@@ -7,7 +7,7 @@
 ## 2. 절대 규칙
 
 - 시작 시 `master` exact SHA와 clean Working Tree를 확인한다.
-- Overlay 적용 후 `CPF_DELETE_MANIFEST.csv`만 Root-relative로 삭제한다.
+- Overlay 적용 후 `current/DELETE_MANIFEST.txt`만 Root-relative로 삭제한다.
 - 미실행/READY/PLANNED를 PASS로 기록하지 않는다.
 - FAIL 발견 시 Requirement를 낮추거나 Test를 삭제하지 않는다.
 - 같은 Root Cause의 잠복 결함을 먼저 전역 검색하고 Source/Test/Config/SQL/Frontend를 묶어 보정한다.

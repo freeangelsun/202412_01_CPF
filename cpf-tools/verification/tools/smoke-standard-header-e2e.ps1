@@ -71,8 +71,8 @@ $result = [ordered]@{
     plannedFlow = @(
         "actual API call",
         "standard header receive",
-        "required header validation",
-        "X-Cpf-Ext-* extension header receive",
+        "external ingress protected-header rejection / framework context generation",
+        "custom extension header receive",
         "TransactionContext creation",
         "transaction log and header snapshot save",
         "outbound call",
@@ -81,16 +81,18 @@ $result = [ordered]@{
         "sensitive raw header suppression check"
     )
     headerScenario = [ordered]@{
-        required = @(
-            "X-Transaction-Id",
+        externalIngress = @(
             "X-Request-Type",
-            "X-Original-Channel-Code",
-            "X-Channel-Code",
-            "X-Trace-Id",
-            "X-Client-App-Id",
-            "X-User-Id",
-            "X-Customer-No",
-            "X-Member-No"
+            "X-Client-Id",
+            "X-Client-Version"
+        )
+        protectedInternal = @(
+            "X-Transaction-Id",
+            "X-Original-System-Code",
+            "X-System-Code",
+            "X-Caller-System-Code",
+            "X-Target-System-Code",
+            "X-Target-Operation-Id"
         )
         allowedExtension = @("X-Cpf-Ext-1", "X-Cpf-Ext-Campaign-Id", "X-Cpf-Ext-Partner-Code")
         blockedExtension = @("X-Cpf-Ext-Token", "X-Cpf-Ext-Api-Key", "X-Cpf-Ext-Authorization")
@@ -239,15 +241,10 @@ function New-StandardHeaders {
     param([switch] $IncludeBlockedExtension)
 
     $headers = [ordered]@{
-        "X-Transaction-Id" = $TransactionId
         "X-Request-Type" = "ONLINE"
-        "X-Original-Channel-Code" = "MOBILE"
-        "X-Channel-Code" = "REF"
-        "X-Trace-Id" = $TraceId
-        "X-Parent-Span-Id" = "SPAN-PARENT-E2E"
-        "X-Client-App-Id" = "cpf-smoke-client"
+        "X-Client-Id" = "cpf-smoke-client"
         "X-Client-Version" = "1.0.0"
-        "X-Caller-Service" = "cpf-standard-header-smoke"
+        "X-Country-Code" = "KR"
         "X-User-Id" = "smoke-user"
         "X-Customer-No" = "CUST-SMOKE"
         "X-Member-No" = "MBR-SMOKE"
@@ -403,10 +400,6 @@ function Test-MockDownstreamCapture {
     $result.mockDownstream.capture = $capture
     $missing = @()
     foreach ($name in @(
-            "X-Transaction-Id",
-            "X-Trace-Id",
-            "X-Original-Channel-Code",
-            "X-Channel-Code",
             "X-Cpf-Ext-1",
             "X-Cpf-Ext-Campaign-Id",
             "X-Cpf-Ext-Partner-Code")) {
@@ -416,7 +409,10 @@ function Test-MockDownstreamCapture {
     }
 
     $forbidden = @()
-    foreach ($name in @("Authorization", "X-Api-Key", "X-Cpf-Ext-Token")) {
+    foreach ($name in @(
+            "Authorization", "X-Api-Key", "X-Cpf-Ext-Token",
+            "X-Transaction-Id", "X-Original-System-Code", "X-System-Code",
+            "X-Caller-System-Code", "X-Target-System-Code", "X-Target-Operation-Id")) {
         if (Get-HeaderValue $capture.headers $name) {
             $forbidden += $name
         }

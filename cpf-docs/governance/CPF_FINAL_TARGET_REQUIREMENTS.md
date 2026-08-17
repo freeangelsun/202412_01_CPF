@@ -49,7 +49,7 @@ old/new duplicate, stale reference, moved-source residue, empty migrated directo
 
 - Generated Customer Project에는 `cpf-domain.yaml`, lock, ownership/manifest 같은 Generator lifecycle metadata를 **영구 저장하지 않는다**.
 - Fresh/Regenerate/Upgrade/Restore의 입력은 Framework `cpf-tools/generator/definitions/<domain>/cpf-domain.yaml` 또는 명시적인 외부 `--file`이다.
-- Generated Customer Project에는 실제 Online 업무 Build/Source(`online/`)만 남긴다. Batch는 Generated Domain 산출물이 아니라 초기 프로젝트 구성에서 `cpf-starter-batch`를 선택할 때 포함하는 별도 Framework Capability다.
+- Generated Customer Project에는 `online/`을 필수로 두고, Domain 정의의 `modules.batch=true`일 때 `batch/`를 선택적으로 생성한다. Batch Runtime 구현과 실행 계약의 Owner는 `cpf-batch`이며 Generated Domain은 Public `cpf-starter-batch`를 소비한다.
 - `README.md`, `verification/`, `db/canonical/`, `db/vendors/`, Vendor별 SQL 3벌과 Generator metadata directory를 Customer Project에 만들지 않는다.
 - lifecycle은 expected generated seed를 입력/Template에서 결정적으로 계산해 `diff/regenerate/remove`를 fail-closed로 수행하고, 사용자 변경을 자동 덮어쓰지 않는다.
 - Repository-local CLI는 `cpf-tools/runtime/cli/cpf` / `cpf-tools/runtime/cli/cpf.bat`이며 Root `bin/`을 새로 만들지 않는다. 설치 시 논리 명령은 `cpf ...`다.
@@ -237,8 +237,8 @@ Local 구현이 Remote보다 기능이 적거나, Remote 전환을 위해 업무
 | 고객 업무 관리자 | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | 고객 업무 관리, 조직·업무 결재, 선택형 Customization Sample |
 | Batch 실행 기반 | `cpf-batch` | `com.cpf.batch` | BAT | Spring Batch, Scheduler, Center-Cut, Agent, Runner, Worker |
 | Gateway Runtime | `cpf-gateway` | `com.cpf.gateway` | GWY | 외부 진입, trust boundary, route/load balance/resilience와 attempt ledger |
-| Generated Customer Domain Verification — Member | `cpf-member` | `member` | MBR | Root-level 실제 Generator Output. `online/` 업무 Source만 생성하고 MBR_* Sample Transaction을 검증. Batch는 초기 프로젝트 구성에서 별도 선택하는 `cpf-starter-batch` Capability이며 Generated Domain 산출물이 아님. CPF Product/Public Artifact 아님 |
-| Generated Customer Domain Verification — External | `cpf-external` | `external` | EXS | Root-level 실제 Generator Output. `online/` 업무 Source만 생성하고 EXS_* Sample Transaction을 검증. Batch는 초기 프로젝트 구성에서 별도 선택하는 `cpf-starter-batch` Capability이며 Generated Domain 산출물이 아님. CPF Product/Public Artifact 아님 |
+| Generated Customer Domain Verification — Member | `cpf-member` | `member` | MBR | Root-level 실제 Generator Output. `online/`을 필수 생성하고 `modules.batch=true` 회귀로 `batch/`도 선택 생성한다. MBR_* Sample Transaction과 Public `cpf-starter-batch` 소비를 검증한다. CPF Product/Public Artifact 아님 |
+| Generated Customer Domain Verification — External | `cpf-external` | `external` | EXS | Root-level 실제 Generator Output. `online/`을 필수 생성하고 `modules.batch=false` 회귀로 online-only 조합을 검증한다. EXS_* Sample Transaction과 불필요한 batch 미생성을 검증한다. CPF Product/Public Artifact 아님 |
 | Transient Generated Genericity Verification | `build/domain-generator/verification/<scenario>` | `<generated package>` | `<scenario systemCode>` | 제3 임의 Domain genericity 검증용 Git 비추적 Output. member/external과 동일 Engine/Template으로 생성 후 cleanup |
 | 교육 | `cpf-education` | `com.cpf.education` | EDU | 제품 Public API의 실제 EDU·복구·운영 예제 |
 
@@ -369,7 +369,9 @@ Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 �
 ## 8. 거래·신뢰·오류 표준
 
 - 거래 실행 인스턴스 ID는 `transactionId` 하나다.
-- 기본 생성 규격은 `yyyyMMddHHmmssSSS(17)+SystemCode(3)+wasId(7)+sequence(7)`의 34자리다.
+- 기본 생성 규격은 `yyyyMMddHHmmssSSS(17)+SystemCode(3)+instanceToken(7)+sequence(7)`의 34자리다.
+- `instanceId`는 WAS Runtime 인스턴스 식별자이며 `CPF_RUNTIME_INSTANCE_ID` 명시값을 우선 사용하고, 미지정 시 WAS가 실행되는 PC/서버/Container의 Runtime hostname을 기동 시 1회 확정해 사용한다. Domain명, `local`, `*-local-01` 같은 임의 fallback을 Framework 기본값으로 사용하지 않는다.
+- 34자리 transactionId의 `instanceToken(7)`은 위 `instanceId`에서 결정적으로 파생하는 포맷용 token이며 별도 운영 식별자나 개발자 설정값이 아니다.
 - **정식 거래 기동 Channel 또는 최초 기동 System은 CPF 규격의 transactionId를 최초 1회 생성할 수 있다.**
 - 이후 Local/Remote/REST/SOAP/Gateway/Message/Async/Retry/Batch/File/UNKNOWN/Reconcile 등 동일 거래의 모든 참여 구간은 **동일 transactionId를 End-to-End로 승계·보존**하며, System hop이나 재시도마다 새 transactionId를 만들지 않는다.
 - 하위 호출·병렬 호출·재시도는 `segmentId`, `parentSegmentId`, `attempt`, `traceId`, `spanId` 등 세부 실행 식별자로 구분한다.
@@ -399,7 +401,7 @@ Dependency나 파일만 추가하고 실제 Consumer가 Legacy를 사용하면 �
 
 로그 종류에 따라 적용 가능한 범위에서 최소 다음을 구조화한다.
 
-`timestamp`, `level`, `systemCode`, `environment`, `instanceId/wasId`, `transactionId`, `traceId`, `spanId`,
+`timestamp`, `level`, `systemCode`, `environment`, `instanceId`, `transactionId`, `traceId`, `spanId`,
 `segmentId`, `parentSegmentId`, `attempt`, `requestId/idempotencyKey`, `actor/tenant/channel`,
 `jobId/jobInstanceId/jobExecutionId/stepExecutionId/partitionId/itemId/agentId/workerId`,
 `operation/endpoint/remoteSystem`, `result/status`, `errorCode`, `failureStage`, `retryable`,
@@ -675,7 +677,7 @@ cpf-<domain>/
 ├─ settings.gradle       # multi-module에 필요할 때
 └─ online/               # Generated Domain의 Online 업무 Source
 
-Batch를 사용하는 프로젝트는 Generated Domain 밖의 초기 프로젝트 구성에서 `cpf-starter-batch`를 선택해 `cpf-batch` Runtime/API/Config를 포함한다. Domain Generator는 `batch/`, `jobpack/`, 불필요한 공유 `domain/`을 생성하지 않는다.
+Domain Generator는 `online/`을 필수 생성하고 `modules.batch=true`일 때 `batch/`를 선택 생성한다. `jobpack/`은 생성하지 않으며, 공유 `domain/`은 online/batch 등 둘 이상의 실제 Consumer가 공유할 코드가 있을 때만 생성한다. Batch 구현은 `cpf-batch` Owner와 Public `cpf-starter-batch` 계약을 사용한다.
 ```
 
 강제 원칙:
@@ -683,13 +685,13 @@ Batch를 사용하는 프로젝트는 Generated Domain 밖의 초기 프로젝�
 1. `member`와 `external`은 같은 Canonical Schema, Naming Strategy, Generator Engine, Template Set으로 생성한다.
 2. Generator/Template/Script/Build에 `member/MBR/external/EXS` 업무별 특수분기를 두지 않는다.
 3. Runtime 구현 Module명으로 `api`를 사용하지 않는다. Online Runtime은 `online/`, 실제 독립 Public Contract는 `contract/`로 구분한다.
-4. Root가 이미 Domain Identity를 가지므로 하위 물리 Directory에 Domain명을 반복하지 않는다. `member-online`, `member-batch`, `cpf-member-api` 같은 물리 폴더를 만들지 않는다. Generated Domain의 업무 Runtime Module은 `online/` 하나다.
+4. Root가 이미 Domain Identity를 가지므로 하위 물리 Directory에 Domain명을 반복하지 않는다. `member-online`, `member-batch`, `cpf-member-api` 같은 물리 폴더를 만들지 않는다. Generated Domain의 업무 Runtime Module은 필수 `online/`과 선택 `batch/`다.
 5. 현재 Generated Domain Generator는 Online 단일 Consumer만 생성하므로 별도 `domain/` 공유 Module을 만들지 않는다. 향후 실제 복수 Generated Consumer Requirement가 승인되기 전에는 `common/shared/domain` 추상화를 재도입하지 않는다.
 6. 선택하지 않은 capability와 빈 Directory를 생성하지 않는다.
 7. Generated Project 내부에 `README.md`, `verification/`, `db/canonical/`, `db/vendors/`, Vendor별 SQL 3벌을 기본 생성하지 않는다.
 8. 검증/Generation Manifest/hash/DB3 render 결과는 `build/domain-generator/verification/**` 및 CPF Tooling/Evidence owner가 관리한다.
 9. DB Canonical Model과 Oracle/PostgreSQL/MariaDB Renderer는 CPF Tooling 내부가 소유한다. 고객이 직접 관리할 DB Extension Surface가 실제 요구될 때만 최소 인터페이스를 별도 제공한다.
-10. `standard-enterprise` Generated Domain 회귀는 Online + Sample Transaction을 실제 생성·검증한다. Batch 회귀는 별도 `cpf-starter-batch` 초기 구성 선택과 `cpf-batch` Runtime 검증으로 수행하며 Domain Generator와 결합하지 않는다.
+10. `standard-enterprise` Generated Domain 회귀는 Online + Sample Transaction을 실제 생성·검증하고, `modules.batch=true/false` 두 경우를 모두 생성·재생성하여 선택형 Batch IA와 Public `cpf-starter-batch` 소비를 검증한다.
 11. 이후 `account/product/loan/...`도 설정값만 변경하여 동일 구조/품질로 생성 가능해야 한다.
 12. 생성 결과는 날림 Skeleton이 아니라 개발자가 즉시 Run/API/DB/Test 가능한 업무 Base Project다.
 13. `dry-run/diff/regenerate/idempotent rerun/upgrade/remove/restore`와 user-owned modification 보호를 구현한다. Generated Project에는 `cpf-domain.yaml`, lock, ownership 같은 lifecycle metadata를 영구 저장하지 않고 Framework definition 또는 명시 `--file` 입력과 실제 Project 구조를 기준으로 stateless/fail-closed하게 동작한다.
@@ -1670,7 +1672,7 @@ MBR DB Tx, EXS DB Tx, 외부기관 호출은 하나의 transactionId 아래 별�
 모든 거래/Domain Call/External/Messaging/Async/Batch는 8.1 로그 정책을 사용한다.
 
 최소 구조화 필드는 적용 가능한 범위에서:
-`timestamp, level, systemCode, environment, instanceId/wasId, transactionId, executionId,
+`timestamp, level, systemCode, environment, instanceId, transactionId, executionId,
 traceId, spanId, segmentId, parentSegmentId, attempt, requestId/idempotencyKey,
 actor/tenant/channel, jobId/jobInstanceId/jobExecutionId/stepExecutionId/partitionId/itemId/agentId/workerId,
 operation/endpoint/remoteSystem, result/status, errorCode, failureStage, retryable,
@@ -2181,7 +2183,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | `DEVEX-TESTKIT` | cpf-tools/testing/cpf-testkit + capability owners | Context/Security/Tenant/Transaction/BusinessDate/DB/REST/Message/Batch/Logging/Audit/Idempotency/Retry fixture와 assertion을 제공하여 제품 Golden Path를 쉽게 검증하고 실제 Provider runtime test로 연결한다. | Testkit actual consumers, provider runtime bridge, leak/failure/retry/restart assertions, Generated Domain Evidence |
 | `ONBOARD-DOMAIN` | cpf-tools + public artifacts | DomainName+SystemCode로 신규 업무 Domain을 충돌 검증 후 생성·DB bootstrap·build/runtime·remove/regenerate할 수 있게 한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `SAMPLE-ACC` | cpf-education / generated reference | 범용 계정/업무 흐름을 과도한 제품 원장 없이 Local/Remote·validation·transaction·error 사용법을 보여주는 선택형 Sample로 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
-| `SAMPLE-MBR` | Generator verification + root generated domains | `member`(MBR)와 `external`(EXS)을 동일 Generator/Template으로 각각 `cpf-member/`, `cpf-external/` Root에 실제 생성·유지한다. 둘 다 Online 회귀, 기본 Public Starter, CUSTOMER_BUSINESS_DB, `<PREFIX>_SAMPLE_TX` 실제 거래, 3단 Base, CPF Runtime Consumer를 갖고 최종 결과물에 포함하되 최소 Surface만 생성한다. Batch는 Generated Domain과 분리된 초기 프로젝트 Capability(`cpf-starter-batch`)로 별도 검증한다. 이후 모든 Domain은 설정만 바꿔 같은 품질로 생성 가능해야 한다. | fresh generation→member/external normalized parity→sample DB transaction→Online compile/test/runtime→DB3→Batch capability include/exclude 독립 회귀→hardcoding scan→dry-run/diff/regenerate/idempotency/upgrade/remove/restore→user-owned 보호→최종 Root 보존 Evidence |
+| `SAMPLE-MBR` | Generator verification + root generated domains | `member`(MBR)와 `external`(EXS)을 동일 Generator/Template으로 각각 `cpf-member/`, `cpf-external/` Root에 실제 생성·유지한다. 둘 다 필수 Online 회귀, 기본 Public Starter, CUSTOMER_BUSINESS_DB, `<PREFIX>_SAMPLE_TX` 실제 거래, 3단 Base, CPF Runtime Consumer를 갖는다. member는 `modules.batch=true`로 선택형 `batch/` 생성과 Public `cpf-starter-batch` 소비를 검증하고 external은 `modules.batch=false`로 batch 미생성 조합을 검증한다. 이후 모든 Domain은 설정만 바꿔 같은 품질로 생성 가능해야 한다. | fresh generation→member/external normalized parity→sample DB transaction→Online compile/test/runtime→DB3→Batch capability include/exclude 독립 회귀→hardcoding scan→dry-run/diff/regenerate/idempotency/upgrade/remove/restore→user-owned 보호→최종 Root 보존 Evidence |
 | `SAMPLE-REF` | cpf-education / generated reference | cpf-education에서 제품 Public API의 정상·오류·경계·복구·권한·운영 사용법을 실제 Runtime으로 교육한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `SAMPLE-BIZADM` | cpf-education / generated reference | BZA 선택형 업무관리/채번/결재 Customization Sample을 기본 활성화 없이 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `SAMPLE-EDU` | cpf-education / generated reference | 교육 시나리오가 장난감 계약을 만들지 않고 실제 Header/API/DB/Event/Batch/Security 표준을 사용한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
@@ -2241,7 +2243,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | Requirement | Owner | 최소 제품 목표 | 필수 완료 증명 |
 |---|---|---|---|
 | `FOUNDATION-UTILITY` | pure foundation + foundation convenience starter | Core를 Utility 창고로 사용하지 않는다. `CpfClock/Dates/Decimals/Ids/Json/Lists/Maps/Numbers/Strings/Times/Validation/Values/Files/Hashes/Headers/Pages/Attributes` 등 현재 Core Utility를 전수 분류하여 JDK/Spring 단순 Wrapper는 제거 후보로 전환하고, CPF 고유 정책 가치가 있는 순수 기능만 topology-independent Foundation으로 이동한다. Header/Crypto/File/Paging/TransactionId처럼 Owner가 분명한 기능은 해당 Capability로 이동한다. 업무 개발자는 Application Convenience Starter/Profile을 통해 쉽게 사용하되 Core는 Starter를 참조하지 않는다. | Core Utility class-by-class ownership matrix, Core→Starter 0, simple-wrapper 0, actual consumer, deterministic test, native JDK/OSS escape, relocation duplicate 0 |
-| `CACHE-REDIS-PROVIDER` | data/cache provider | 기존 `cache-valkey`를 유지하면서 `cache-redis`를 공식 Optional Provider Starter로 추가한다. Redis/Valkey는 `CpfCachePort`/invalidation/health/metrics/recovery 의미와 Spring Data Redis protocol runtime을 내부 공통 leaf로 공유하고, `cache=redis` 또는 `cache=valkey`를 Catalog/Profile/Generator에서 명시적으로 선택한다. Redis 연결 정상·장애·재연결, durable invalidation, multi-instance, duplicate/out-of-order/version fence, process-kill/reconcile을 검증하며 미선택 Provider는 0-footprint를 지킨다. | `cache-redis`/`cache-valkey` provider parity, shared-runtime duplicate 0, Catalog/BOM/Metadata/Generator/Profile/Sample/EDU, Redis actual runtime outage/reconnect, Valkey regression, multi-instance/process-kill/reconcile Evidence |
+| `CACHE-REDIS-PROVIDER` | data/cache provider | 기존 `cache-valkey`를 유지하면서 `cache-redis`를 공식 Optional Provider Starter로 추가한다. Redis/Valkey는 `CpfCache`/invalidation/health/metrics/recovery 의미와 Spring Data Redis protocol runtime을 내부 공통 leaf로 공유하고, `cache=redis` 또는 `cache=valkey`를 Catalog/Profile/Generator에서 명시적으로 선택한다. Redis 연결 정상·장애·재연결, durable invalidation, multi-instance, duplicate/out-of-order/version fence, process-kill/reconcile을 검증하며 미선택 Provider는 0-footprint를 지킨다. | `cache-redis`/`cache-valkey` provider parity, shared-runtime duplicate 0, Catalog/BOM/Metadata/Generator/Profile/Sample/EDU, Redis actual runtime outage/reconnect, Valkey regression, multi-instance/process-kill/reconcile Evidence |
 | `SEC-SESSION-DIST` | security/session provider | 기존 JDBC Session을 유지하면서 Multi-instance용 Valkey Distributed Session Provider를 Optional로 제공한다. expiration/renewal/rotation, fixation 방어, concurrent-session control, forced logout/logout propagation, user·tenant index, audit/metrics, provider failure와 0-footprint를 제공한다. | JDBC/Valkey provider parity, 2+ instance login/logout/revoke, provider outage/expiry/rotation test, security negative corpus, optional removal boot evidence |
 | `FILE-OBJECT-STORAGE` | file/attachment + object-storage provider | Attachment/Archive/SFTP와 중복 Public API를 만들지 않고 S3-compatible Object Storage를 Provider-neutral하게 제공한다. streaming, multipart, checksum, range, metadata, presigned access, encryption/KMS, tenant isolation, timeout/retry, partial failure, orphan reconcile, retention/lifecycle와 malware-scan hook을 지원한다. | Attachment/Object Storage ownership trace, AWS S3 또는 MinIO reference provider, stream/multipart/failure/reconcile test, security/audit, 0-footprint, actual consumer |
 | `EVENT-SCHEMA` | messaging contract governance + generator | Kafka/RabbitMQ/JMS/IBM MQ의 Broker 선택과 독립적인 Event Contract Governance를 제공한다. JSON Schema/Avro/Protobuf version, backward/forward compatibility, breaking-change gate, producer/consumer validation, generated model, schema id/content type와 provider-neutral registry boundary를 제공한다. | compatibility corpus, producer/consumer contract test, breaking-change CI gate, generated model, broker-independent reference, EDU |
@@ -2462,7 +2464,7 @@ cpf-external/ = logical domain external / EXS
 
 두 Root는 CPF Product Module/Public Artifact가 아니다. `cpf-` Prefix는 Generated Project naming convention이다.
 
-Generated Project 내부는 개발자가 실제 사용하는 Online 최소 Surface만 허용한다. 현재 Domain Generator는 `online/`만 생성하며 `batch/`, `jobpack/`, 별도 공유 `domain/`을 생성하지 않는다. Batch는 초기 프로젝트 구성에서 `cpf-starter-batch`를 선택하여 별도 Framework Capability로 포함한다. Generated Project 내부 `README.md`, `verification/`, `db/canonical/`, `db/vendors/`, Vendor별 3벌 Source, 빈 Directory는 금지한다.
+Generated Project 내부는 개발자가 실제 사용하는 최소 Surface만 허용한다. `online/`은 필수, `batch/`는 `modules.batch=true`일 때만 생성한다. `jobpack/`은 생성하지 않고 공유 `domain/`은 둘 이상의 실제 Runtime Consumer가 공유할 코드가 있을 때만 생성한다. Generated Project 내부 `README.md`, `verification/`, `db/canonical/`, `db/vendors/`, Vendor별 3벌 Source, 빈 Directory는 금지한다.
 
 CPF Repository Root에는 위 두 회귀 Root 외 신규 파일·폴더·Generated Domain Root를 사용자 승인 없이 만들지 않는다. 제3 임의 Domain genericity 검증은 `build/domain-generator/verification/<scenario>/`에서 수행한다.
 
@@ -2583,7 +2585,7 @@ Shell script 자체가 OS 고유 기능을 수행해야 하는 예외가 있으�
 CPF의 배치 위치는 업무 Source의 의미가 아니며 환경별 선택이다. Requirement를 실행환경 편의에 맞춰 약화하지 않고 동일 Public API/Context/Result/보안/로그 의미를 모든 topology에서 유지한다.
 
 - 개발자 기본 Local은 `local-integrated`: **하나의 JVM / 하나의 HTTP Port**, Gateway 기본 OFF다.
-- Generated Domain의 Online Component는 Generator가 생성한 `META-INF/cpf/generated-domain.properties`를 통해 Local Runtime classpath에서 자동 발견한다. Batch는 초기 프로젝트 구성에서 선택한 `cpf-starter-batch`/`cpf-batch` Runtime wiring으로 조립하며 Domain Generator metadata에 의존하지 않는다.
+- Generated Domain의 `online/`과 선택형 `batch/` Component는 각각 Generator가 생성한 `META-INF/cpf/generated-domain.properties`로 Runtime identity를 제공한다. Batch 실행 의미와 운영 Runtime은 `cpf-batch` Owner/Public Starter 계약을 따른다.
 - Local 통합모드의 Batch 실행 API는 같은 JVM에 조립하되 Spring Batch Job은 자동 실행하지 않는다. Scheduler/Worker/Center-Cut/Agent 운영 프로세스 분리는 topology 검증이 필요할 때만 선택한다.
 - `local-distributed` 또는 독립 Generated Domain 실행에서는 Generator의 stable port를 사용하며, Definition/기존 Generated Domain과 충돌하면 생성·preflight 단계에서 fail-fast한다.
 - dev/stg/prod는 `single-node`, `split-online`, `split-batch`, `full-distributed`, `custom` 중 설치환경 니즈에 따라 선택한다. 한 서버에 전부 설치하는 것도 정식 지원 경로이며 Batch 분리를 강제하지 않는다.
@@ -2612,17 +2614,21 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 
 `CpfResult.fold(...)`를 표준 분기 API로 제공하여 개발자가 상태 문자열 비교나 중첩 if/exception으로 동일 패턴을 반복 구현하지 않게 한다.
 
-### 16.3.16G CPF HTTP 표준 Header Developer Contract
+### 16.3.16G CPF HTTP Header / Transaction Context Developer Contract
 
-표준 Header는 거래 경계 규약이며 단순 선택 메타데이터가 아니다.
+온라인 CPF 거래 Header는 Web Runtime이 소유하는 단일 Canonical 계약이며, 업무 개발자가 직접 조립하지 않는다.
 
-- 표준 Header wire name은 기존 Frontend/Gateway/외부 연계/운영 Script 영향이 크므로 호환 계약을 임의 변경하지 않는다. 개발자는 긴 literal 대신 `CpfHeaders.txId()/execId()/caller()/target()` 등 짧은 Public API를 사용한다. 신규 내부 호출자/대상은 `X-Cpf-Caller`, `X-Cpf-Target`으로 표준화한다. 내부 거래 필수 Header는 Tx/Exec/Caller/Target이며 누락·불일치 시 경계에서 fail-fast한다.
-- 기존 wire name은 canonical 호환 계약으로 유지한다. 신규 Source/Generator/Education은 wire literal을 직접 쓰지 않고 Header Catalog/Public API를 사용한다.
-- 외부 최초 ingress는 신뢰정책에 따라 transaction/execution identity를 Framework가 생성할 수 있다.
-- **신뢰된 내부 HTTP hop은 Tx/Exec/Caller/Target이 필수**이며 누락/형식오류/인증 Caller 불일치 시 표준 오류로 fail-fast한다. 내부 lineage 누락을 조용히 새 ID로 덮지 않는다.
-- 업무 개발자는 Header literal 대신 `CpfHeaders.builder()/from()/get()/require()/buildInternal()`을 사용해 생성·조회·허용된 수정·삭제를 수행한다.
-- Authorization/API-Key/Forwarded 같은 Secret/Edge header는 일반 Header Builder/내부 propagation 대상이 아니다.
-- Header Catalog, Validator, Context adapter, Call/Gateway, Logging/ADM, Generator/Education/Test의 이름·필수정책·마스킹이 함께 currentize되어야 한다.
+- 신뢰된 내부 CPF Domain HTTP hop의 Canonical 6개는 `X-Transaction-Id`, `X-Original-System-Code`, `X-System-Code`, `X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`다.
+- `X-Transaction-Id`와 `X-Original-System-Code`는 최초 거래에서 확정 후 유지하고, current/caller/target system과 target operation은 hop의 실제 Runtime/계약에 따라 Framework가 자동 구성한다.
+- `X-Channel-Code`, `X-Original-Channel-Code`, `X-Cpf-Execution-Id`, `X-Cpf-Caller`, `X-Cpf-Target`은 온라인 Canonical 거래 Header로 사용하지 않는다. Batch/Message/Recovery의 execution metadata와 알림·채널 레지스트리 같은 진짜 Channel 업무 개념은 각 Owner의 내부 Context/전용 계약으로 분리한다.
+- 외부 최초 ingress는 내부 Canonical 6개를 Client에게 요구하지 않는다. 외부가 System/Caller/Target/Operation 보호 Header를 주장하면 신뢰하지 않고 경계에서 차단하며, transaction/system/operation은 Framework가 신뢰 가능한 Runtime/Handler 정보로 확정한다.
+- 내부 수신은 Controller 실행 전에 Canonical 6개 누락·형식·현재 Runtime System·Target System·인증된 Caller·실제 Canonical operationId를 검증한다. 누락/형식은 400, 신뢰 경계 위조는 403, System/Target/Operation protocol mismatch는 409로 처리하고 실패도 transaction/log/ADM correlation에 남긴다.
+- 업무 개발자 Public Surface는 `CpfHttpHeaders` 하나로 통일한다. 미등록 Custom Header도 `current()/requireCurrent()/get()/getRequired()/getAll()/containsKey()/names()/asMap()`으로 읽고 안전한 타입 변환을 사용할 수 있으며, 추가 Header는 `set()/add()`로 다룬다. Canonical 6개, Authorization/Proxy/Trace 등 Framework 보호값은 일반 Custom mutation API로 변경할 수 없다.
+- 내부 Domain Client는 대상 System/Operation 계약을 기준으로 Canonical 6개와 허용된 Context를 자동 serialize한다. 동일 JVM 호출은 self-HTTP를 만들지 않고 논리 Context를 전달한다.
+- 외부기관 outbound에는 CPF 내부 Canonical Header를 기본 전파하지 않고 기관별 Allowlist 계약만 적용한다. Generic `RestClient/WebClient` interceptor가 요청 Header 전체를 복사해서는 안 된다.
+- `CpfContexts`는 transactionId/traceId/operationId/originalSystemCode/systemCode/callerSystemCode/targetSystemCode/targetOperationId와 Context capture/restore를 Public API로 제공한다. Web 전용 client/locale 정보는 `CpfWebContexts`, 인증/권한은 `CpfSecurityContext`, Runtime instance/hostname은 `CpfInstanceIdentity`가 각 Owner의 read-only Public Surface로 제공한다. Core Context가 Web/Security/Operations 구현에 역의존하도록 합치지 않는다. Framework가 이미 아는 Runtime/거래 값을 업무 개발자가 UUID, ThreadLocal, MDC, raw Servlet API로 재구성하지 않는다.
+- Operation ID는 Annotation/OpenAPI/Generated Client/Domain Client/Header/ADM/Log에서 하나의 Canonical ID를 사용한다. 실행 인스턴스를 매번 식별하는 `executionId`는 별도 의미이며 Canonical API `operationId` 대신 UUID 실행 식별자를 넣지 않는다. Java/API/DB에서 실행 식별자는 `executionId`/`EXECUTION_ID`로 동일하게 표현한다.
+- Header Catalog, Policy, Context adapter, Domain call, Gateway, Logging/DB/ADM, Generator/EDU/Test/문서는 동일 계약과 동일 이름을 사용한다. 같은 의미를 `clientAppId/clientId`, `channelCode/systemCode`, `callerService/callerSystemCode`처럼 병존시키지 않는다.
 
 ### 16.3.16H Fixed-Length 전문 Starter 실제 사용 계약
 
@@ -2634,3 +2640,17 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 - Domain은 Layout Registry/Config로 기관별 전문을 등록하며 Parser 내부 구현을 복제하지 않는다.
 - 로그/ADM에는 원문 민감필드를 표시하지 않고 등록된 Layout ID/version으로 파싱한 masked fields/groups를 표시한다.
 - Layout이 없거나 version이 맞지 않을 때 offset을 임의 추론해 잘못 파싱하지 않는다.
+
+
+## 최신 통합 Steering — 2026-08-17 Current-State 경계
+
+이 절은 과거 중간 구현 문구와 충돌할 때 우선하는 현재 요구다.
+
+1. **Operation ID 단일 정본**: `@CpfOnlineTransaction.operationId`, OpenAPI `operationId`, `X-Target-Operation-Id`, Domain Client target operation, ADM 거래관리, Log/Trace의 Operation ID는 하나의 안정 ID를 공유한다. 업무 개발자가 Annotation에 입력하는 필수 Metadata는 `operationId + name + description` 중심이며 운영 허용정책은 Source Annotation이 소유하지 않는다.
+2. **Catalog와 Policy Ownership 분리**: Source/Framework는 Operation 사실·Handler/OpenAPI·발견상태·배포 Metadata를 소유한다. YML은 신규 Operation의 최초 Policy Seed만 제공하고, 최초 등록 뒤 enabled/Caller/System·Domain/Operation/Channel/ALL/override/version은 ADM Policy가 최종 정본이다. Source 미발견은 자동 삭제·자동 비활성화가 아니라 발견상태 변경으로 표현한다.
+3. **호출 통제와 장애 기본값**: 등록·활성 Caller 확인 후 System/Domain 1차, Operation 2차, 필요한 거래만 Channel 3차 통제를 Controller invocation 전에 적용한다. Policy Store 장애는 유효 LKG와 maxStale 범위에서만 허용하고 LKG 부재·만료 시 fail-close한다. wildcard local fallback으로 호출을 허용하지 않는다.
+4. **Runtime Identity**: `instanceId`는 명시 `cpf.runtime.instance-id`, 환경변수 `CPF_RUNTIME_INSTANCE_ID`, 실제 Runtime Hostname 순으로 기동 시 한 번 확정한다. `local/dev/test/prod`, localhost, Domain명 등을 합성 fallback으로 사용하지 않는다.
+5. **관리 Application 경계**: ADM/BZA/Gateway는 업무 Domain Online Transaction Runtime이 아니다. 자체 관리 API에는 `@CpfOnlineTransaction`이나 거래 Header 6개를 강제하지 않는다. 각 Owner Module/Public Starter/API를 사용하고 `cpf-core` internal 구현에 직접 결합하지 않는다. 실제 업무 Domain Operation을 호출하는 outbound 경계부터 CPF Domain Client가 거래 Context를 생성·전파한다.
+6. **Generated Domain IA**: `cpf-<domain>/online/`은 필수, `modules.batch=true`이면 `cpf-<domain>/batch/`를 선택 생성한다. Batch 실행 계약 Owner는 `cpf-batch`이며 Public Starter를 소비한다. 공유 `domain/`은 둘 이상의 Runtime에서 실제 공유 Consumer가 있을 때만 생성한다.
+7. **EDU Canonical**: `cpf-education/src/main/java/com/cpf/education/online` 20개와 `.../batch` 15개, 총 35개만 Canonical 업무 예제로 유지한다. ADM/BZA/Gateway/OPS/Legacy/Compatibility/Micro Sample 체계는 병행 유지하지 않는다. EDU는 최신 Public API/Golden Path를 사용하고 Internal/raw API 우회를 두지 않는다.
+8. **OSS/Spring Naming**: Spring/공식 OSS를 감싸거나 확장하는 CPF 공개 타입은 `Cpf + 공식 타입명`을 사용하고 메서드명은 공식 API 이름을 따른다. 동일 역할 Alias를 병행하지 않으며 Spring/OSS의 의미·기본값·예외 규칙을 CPF가 임의 변경하지 않는다.

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 public class CpfKafkaBindingAutoConfiguration {
     @Bean
     CpfNamedBrokerClient cpfKafkaNamedBrokerClient(
-            KafkaCpfBrokerClient client,
+            KafkaCpfMessagingTemplate client,
             CpfKafkaProperties properties,
             CpfCapabilityBindingRegistry registry) {
         String bindingName = properties.bindingName();

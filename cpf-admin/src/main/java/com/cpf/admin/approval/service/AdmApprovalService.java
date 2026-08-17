@@ -1,7 +1,7 @@
 package com.cpf.admin.approval.service;
 
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.foundation.annotation.CpfService;
 import com.cpf.admin.approval.api.*;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
@@ -78,7 +78,7 @@ public class AdmApprovalService extends AdmBaseService {
     }
 
     // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-    @CpfTx(id="ADM_ADMAPPROVALSERVICE_SAVEPOLICY", name="ADM_ADMAPPROVALSERVICE_SAVEPOLICY", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String,Object> savePolicy(PolicyRequest request,String operatorId) {
         int version=request.policyVersion()==null?1:request.policyVersion();
         if(version<1) throw new CpfValidationException("policyVersion은 1 이상이어야 합니다.");
@@ -135,14 +135,14 @@ public class AdmApprovalService extends AdmBaseService {
     }
 
     // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-    @CpfTx(id="ADM_ADMAPPROVALSERVICE_REQUESTAPPROVALRESULT", name="ADM_ADMAPPROVALSERVICE_REQUESTAPPROVALRESULT", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public ApprovalMutationResult requestApprovalResult(CreateRequest request,String operatorId) {
         AtomicBoolean replay = new AtomicBoolean(false);
         Map<String,Object> body=requestApprovalInternal(request,operatorId,replay);
         return new ApprovalMutationResult(!replay.get(),replay.get(),body);
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALSERVICE_REQUESTAPPROVAL", name="ADM_ADMAPPROVALSERVICE_REQUESTAPPROVAL", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     /** requestApproval 작업을 CPF 표준 계약에 따라 수행한다. */
     public Map<String,Object> requestApproval(CreateRequest request,String operatorId) {
         return requestApprovalInternal(request, operatorId, new AtomicBoolean(false));
@@ -260,7 +260,7 @@ public class AdmApprovalService extends AdmBaseService {
     }
 
     // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-    @CpfTx(id="ADM_ADMAPPROVALSERVICE_DECIDE", name="ADM_ADMAPPROVALSERVICE_DECIDE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String,Object> decide(long id,DecisionRequest request,String operatorId) {
         String key=required(request.idempotencyKey(),"idempotencyKey");
         String operator=required(operatorId,"operatorId");

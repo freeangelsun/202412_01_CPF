@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class CpfCacheAsideServiceTest {
     @Test
     void cacheFailureCanFailOpenButOriginFailureNeverBecomesMiss() {
-        CpfCachePort failingCache = new FailingCache();
+        CpfCache failingCache = new FailingCache();
         CpfDistributedLockPort failingLock = new FailingLock();
         CpfCacheAsideService service = new CpfCacheAsideService(failingCache, failingLock);
         CpfCacheOptions failOpen = new CpfCacheOptions(Duration.ofMinutes(1), Duration.ofSeconds(5),
@@ -29,7 +29,7 @@ class CpfCacheAsideServiceTest {
                 .hasMessageContaining("origin-down");
     }
 
-    private static final class FailingCache implements CpfCachePort {
+    private static final class FailingCache implements CpfCache {
         public CpfCacheValue get(CpfCacheKey key){throw new IllegalStateException("cache-down");}
         public void put(CpfCacheKey key,CpfCacheValue value,Duration ttl){throw new IllegalStateException("cache-down");}
         public boolean evict(CpfCacheKey key){return false;}

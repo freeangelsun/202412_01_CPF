@@ -120,13 +120,19 @@ $result = [ordered]@{
     admTimeline=[ordered]@{ status='NOT_EXECUTED'; transactionLogCount=0; timelineSegmentCount=0 }
     recovery=[ordered]@{ status='NOT_EXECUTED'; pending=$null; quarantined=$null; terminalLoss=$null; alertState=$null }
     security=[ordered]@{ status='NOT_EXECUTED'; rawSecretLeakCount=0; fatalRuntimeMarkerCount=0 }
+    fileLogDbCorrelation=[ordered]@{ status='NOT_EXECUTED'; fileLogMatches=0; dbLogMatches=0 }
+    fileLogRecovery=[ordered]@{ status='NOT_EXECUTED'; pending=$null; quarantined=$null; terminalLoss=$null; writeFailureCount=$null }
+    processRuntimeLog=[ordered]@{ status='NOT_EXECUTED'; fatalRuntimeMarkerCount=0 }
+    secretLeakScan=[ordered]@{ status='NOT_EXECUTED'; rawSecretLeakCount=0 }
     upstreamEvidence=[ordered]@{}
     evidenceFiles=@()
 }
 
+# AdmPassword is process-environment only; it is never accepted as a command-line parameter.
 $admPassword=[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')
 if ([string]::IsNullOrWhiteSpace($admPassword)) { $admPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process') }
 if ([string]::IsNullOrWhiteSpace($admPassword)) { throw 'CPF_ADM_SMOKE_PASSWORD / CPF_ADMIN_PASSWORD is required in process environment.' }
+$approvalProofKey=[Environment]::GetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64','Process')
 
 try {
     $stamp=Get-Date -Format 'yyyyMMddHHmmssfff'
@@ -136,7 +142,6 @@ try {
     $result.traceId=$traceId
     $requestHeaders=@{
         'X-Transaction-Id'=$transactionId; 'X-Trace-Id'=$traceId; 'X-Request-Type'='SMOKE';
-        'X-Original-Channel-Code'='EDU'; 'X-Channel-Code'='EDU'; 'X-Client-App-Id'='cpf-integrated-log-smoke';
         'X-Client-Version'='1.0.0'; 'X-User-Id'='runtime-smoke'
     }
     $probe=Invoke-CpfJsonGet "$BaseUrl/api/education/query/headers" $requestHeaders
@@ -183,6 +188,9 @@ try {
     })
     $result.dbLog.correlatedCount=$dbCorrelated.Count
     $result.dbLog.status=if($dbCorrelated.Count -gt 0){'PASS'}else{'FAIL'}
+    $result.fileLogDbCorrelation.fileLogMatches=$result.fileLog.matchCount
+    $result.fileLogDbCorrelation.dbLogMatches=$result.dbLog.correlatedCount
+    $result.fileLogDbCorrelation.status=if($result.fileLog.status -eq 'PASS' -and $result.dbLog.status -eq 'PASS'){'PASS'}else{'FAIL'}
 
     $result.admTimeline.transactionLogCount=Get-ArrayCount $obs 'transactionLogs'
     $result.admTimeline.timelineSegmentCount=Get-ArrayCount $timeline 'items'
@@ -200,11 +208,18 @@ try {
     $result.recovery.quarantined=Get-SafeProperty $recoveryObj 'quarantined' $null
     $result.recovery.terminalLoss=Get-SafeProperty $recoveryObj 'terminalLoss' $null
     $result.recovery.alertState=Get-SafeProperty $recovery 'alertState' $null
+    $writeObj=Get-SafeProperty $recovery 'write' $null
+    $writeFailureCount=Get-SafeProperty $writeObj 'writeFailureCount' $null
+    $result.fileLogRecovery.pending=$result.recovery.pending
+    $result.fileLogRecovery.quarantined=$result.recovery.quarantined
+    $result.fileLogRecovery.terminalLoss=$result.recovery.terminalLoss
+    $result.fileLogRecovery.writeFailureCount=$writeFailureCount
     [long]$terminal=0
     [long]$quarantine=0
     if($null -ne $result.recovery.terminalLoss){$terminal=[long]$result.recovery.terminalLoss}
     if($null -ne $result.recovery.quarantined){$quarantine=[long]$result.recovery.quarantined}
     $result.recovery.status=if($null -eq $recovery){'FAIL'}elseif($terminal -eq 0 -and $quarantine -eq 0){'PASS'}else{'FAIL'}
+    $result.fileLogRecovery.status=$result.recovery.status
 
     $fileEvidence=Read-JsonIfPresent $FileLogResultPath
     $policyEvidence=Read-JsonIfPresent $LogPolicyResultPath
@@ -214,10 +229,10 @@ try {
     $result.upstreamEvidence.status=if($null -ne $fileEvidence -and $null -ne $policyEvidence -and -not $upstreamError){'PASS'}else{'FAIL'}
 
     $securityFiles=Find-TextFiles @($LogBasePath,$RuntimeLogRoot,$FileLogResultPath,$LogPolicyResultPath)
-    $leaks=Test-RawSecretLeak $securityFiles @($admPassword,$accessToken)
+    $leaks=Test-RawSecretLeak $securityFiles @($admPassword,$accessToken,$approvalProofKey)
     $result.security.rawSecretLeakCount=$leaks.Count
     $result.security.rawSecretLeakFiles=$leaks
-    $fatalPatterns=@('OutOfMemoryError','StackOverflowError','FATAL EXCEPTION','Unhandled exception','TERMINAL_LOSS')
+    $fatalPatterns=@('APPLICATION FAILED TO START','OutOfMemoryError','BeanCreationException','StackOverflowError','FATAL EXCEPTION','Unhandled exception','TERMINAL_LOSS')
     $fatalFiles=New-Object Collections.Generic.List[string]
     foreach($file in (Find-TextFiles @($RuntimeLogRoot))){
         try {
@@ -228,12 +243,17 @@ try {
     $result.security.fatalRuntimeMarkerCount=$fatalFiles.Count
     $result.security.fatalRuntimeFiles=@($fatalFiles)
     $result.security.status=if($leaks.Count -eq 0 -and $fatalFiles.Count -eq 0){'PASS'}else{'FAIL'}
+    $result.secretLeakScan.rawSecretLeakCount=$leaks.Count
+    $result.secretLeakScan.status=if($leaks.Count -eq 0){'PASS'}else{'FAIL'}
+    $result.processRuntimeLog.fatalRuntimeMarkerCount=$fatalFiles.Count
+    $result.processRuntimeLog.status=if($fatalFiles.Count -eq 0){'PASS'}else{'FAIL'}
+    if($leaks.Count -gt 0){$result.secretLeakScan.message='Raw credential/token found'}
 
     $result.evidenceFiles+=,(Write-SafeJsonEvidence 'masking-scan.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;rawSecretLeakCount=$leaks.Count;fatalRuntimeMarkerCount=$fatalFiles.Count;status=$result.security.status}) @())
     $result.evidenceFiles+=,(Write-SafeJsonEvidence 'correlation-matrix.json' ([ordered]@{transactionId=$transactionId;traceId=$traceId;fileLogMatches=$result.fileLog.matchCount;dbLogMatches=$result.dbLog.correlatedCount;admTransactionLogs=$result.admTimeline.transactionLogCount;admTimelineSegments=$result.admTimeline.timelineSegmentCount;recoveryStatus=$result.recovery.status;securityStatus=$result.security.status}) @())
 
     $requiredEvidenceMissing=@($result.evidenceFiles | Where-Object { -not [bool]$_.written }).Count
-    $checks=@($result.transactionProbe.status,$result.fileLog.status,$result.dbLog.status,$result.admTimeline.status,$result.recovery.status,$result.security.status,$result.upstreamEvidence.status)
+    $checks=@($result.transactionProbe.status,$result.fileLog.status,$result.dbLog.status,$result.admTimeline.status,$result.recovery.status,$result.security.status,$result.fileLogDbCorrelation.status,$result.fileLogRecovery.status,$result.processRuntimeLog.status,$result.secretLeakScan.status,$result.upstreamEvidence.status)
     if($requiredEvidenceMissing -gt 0){$checks+='FAIL'}
     $result.status=if(@($checks|Where-Object {$_ -ne 'PASS'}).Count -eq 0){'PASS'}else{'FAIL'}
     Save-Result $result

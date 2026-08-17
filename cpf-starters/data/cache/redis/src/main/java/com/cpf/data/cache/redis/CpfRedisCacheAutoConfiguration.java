@@ -1,7 +1,7 @@
 package com.cpf.data.cache.redis;
 
 import com.cpf.data.cache.api.CpfCacheInvalidationPort;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import com.cpf.data.cache.rediscommon.CpfCacheInvalidationCoordinator;
 import com.cpf.data.cache.rediscommon.CpfCacheInvalidationProperties;
 import com.cpf.data.cache.rediscommon.JdbcCpfCacheInvalidationStore;
@@ -43,16 +43,16 @@ public class CpfRedisCacheAutoConfiguration {
         return properties;
     }
 
-    @Bean @ConditionalOnMissingBean(CpfCachePort.class)
-    RedisCpfCachePort cpfRedisCachePort(StringRedisTemplate cpfRedisCacheTemplate, CpfRedisCacheProperties properties, Environment environment) {
+    @Bean @ConditionalOnMissingBean(CpfCache.class)
+    RedisCpfCache cpfRedisCachePort(StringRedisTemplate cpfRedisCacheTemplate, CpfRedisCacheProperties properties, Environment environment) {
         properties.validate();
         CpfRedisProtocolProviderSelection.requireExclusive(properties.isEnabled(),
                 environment.getProperty("cpf.data.cache.valkey.enabled", Boolean.class, false));
-        return new RedisCpfCachePort(cpfRedisCacheTemplate, properties, true);
+        return new RedisCpfCache(cpfRedisCacheTemplate, properties, true);
     }
 
     @Bean @ConditionalOnMissingBean
-    CpfCacheInvalidationCoordinator cpfRedisInvalidationCoordinator(CpfCachePort cache, CpfCacheInvalidationPort durable,
+    CpfCacheInvalidationCoordinator cpfRedisInvalidationCoordinator(CpfCache cache, CpfCacheInvalidationPort durable,
             StringRedisTemplate cpfRedisCacheTemplate, CpfCacheInvalidationProperties properties) {
         return new CpfCacheInvalidationCoordinator(cache, durable,
                 eventKey -> cpfRedisCacheTemplate.convertAndSend(properties.getInvalidationChannel(), eventKey), properties);
@@ -68,12 +68,12 @@ public class CpfRedisCacheAutoConfiguration {
     }
 
     @Bean("cpfRedisStartupValidator")
-    CpfRedisLikeStartupValidator cpfRedisStartupValidator(CpfCachePort cache, CpfRedisCacheProperties properties) {
+    CpfRedisLikeStartupValidator cpfRedisStartupValidator(CpfCache cache, CpfRedisCacheProperties properties) {
         return new CpfRedisLikeStartupValidator("REDIS", cache, properties);
     }
 
     @Bean("cpfRedisHealthIndicator")
-    HealthIndicator health(RedisCpfCachePort cache, CpfCacheInvalidationPort durable, CpfCacheInvalidationCoordinator coordinator) {
+    HealthIndicator health(RedisCpfCache cache, CpfCacheInvalidationPort durable, CpfCacheInvalidationCoordinator coordinator) {
         return () -> cache.health().ready() ? Health.up().withDetail("provider","REDIS")
                 .withDetail("consumerId",coordinator.consumerId()).withDetail("backlog",durable.backlog(coordinator.consumerId())).build()
                 : Health.down().withDetail("reasonCodes",cache.health().reasonCodes()).build();

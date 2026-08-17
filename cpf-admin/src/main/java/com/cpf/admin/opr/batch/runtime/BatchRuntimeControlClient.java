@@ -1,14 +1,16 @@
 package com.cpf.admin.opr.batch.runtime;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,12 +30,11 @@ public class BatchRuntimeControlClient {
     public BatchRuntimeControlClient(
             CpfServiceCaller caller,
             WebClient.Builder builder,
-            AdmAuthenticatedOperatorContext operatorContext,
-            @Value("${cpf.framework.instance-id:adm-local-01}") String callerInstanceId) {
+            AdmAuthenticatedOperatorContext operatorContext) {
         this.caller = caller;
         this.webClient = builder.build();
         this.operatorContext = operatorContext;
-        this.callerInstanceId = required(callerInstanceId, "callerInstanceId");
+        this.callerInstanceId = CpfInstanceIdentity.current().instanceId();
     }
 
     public List<CpfDataRow> instances(long staleAfterSeconds) {
@@ -141,14 +142,14 @@ public class BatchRuntimeControlClient {
                 .endpointCode(ENDPOINT_CODE)
                 .httpMethod(method.name())
                 .requestPath(path)
-                .header(CpfHeaders.callerService(), "ADM")
-                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), actor)
+                .header(BatControlHeaders.CALLER_SERVICE, "ADM")
+                .header(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId)
+                .header(BatControlHeaders.OPERATOR_ID, actor)
                 .attribute("ownerDomain", "BAT")
                 .attribute("callerDomain", "ADM");
         if (approval != null) {
-            requestBuilder.header(CpfHeaders.approvalRequestId(), approval.approvalRequestId());
-            requestBuilder.header(CpfHeaders.approvalRequesterId(), approval.approvalRequesterId());
+            requestBuilder.header(BatControlHeaders.APPROVAL_REQUEST_ID, approval.approvalRequestId());
+            requestBuilder.header(BatControlHeaders.APPROVAL_REQUESTER_ID, approval.approvalRequesterId());
         }
         CpfServiceRequest request = requestBuilder.build();
 
@@ -157,12 +158,12 @@ public class BatchRuntimeControlClient {
                 WebClient.RequestBodySpec call = webClient.method(method)
                         .uri(join(target.baseUrl(), path))
                         .headers(headers -> {
-                            headers.set(CpfHeaders.callerService(), "ADM");
-                            headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                            headers.set(CpfHeaders.operatorId(), actor);
+                            headers.set(BatControlHeaders.CALLER_SERVICE, "ADM");
+                            headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                            headers.set(BatControlHeaders.OPERATOR_ID, actor);
                             if (approval != null) {
-                                headers.set(CpfHeaders.approvalRequestId(), approval.approvalRequestId());
-                                headers.set(CpfHeaders.approvalRequesterId(), approval.approvalRequesterId());
+                                headers.set(BatControlHeaders.APPROVAL_REQUEST_ID, approval.approvalRequestId());
+                                headers.set(BatControlHeaders.APPROVAL_REQUESTER_ID, approval.approvalRequesterId());
                             }
                         });
                 return (payload == null ? call : call.bodyValue(payload))

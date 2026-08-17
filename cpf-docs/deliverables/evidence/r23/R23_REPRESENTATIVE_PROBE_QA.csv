@@ -35,8 +35,8 @@ ADM 개발자,조회 화면과 변경 화면의 계약을 어떻게 구분하나
 운영자,A→B→C 중 C 응답 유실을 어떻게 추적하나?,05_플랫폼운영매뉴얼.docx,12.2 A→B→C 장애 실제 추적 예 - C 응답 유실,AVAILABLE | MISSING | STALE,문서 정본 + Source Trace,True,,PASS
 운영자,Source가 NOT_APPLICABLE인지 MISSING인지 어떻게 구분하나?,05_플랫폼운영매뉴얼.docx,4.2 Source Freshness - NOT_APPLICABLE과 MISSING을 혼동하지 않는다,NOT_APPLICABLE | MISSING | STALE,문서 정본 + Source Trace,True,,PASS
 아키텍트,분산 transaction을 왜 하나의 DB transaction처럼 다루지 않나?,아키텍처설계서.docx,7. Transaction / Consistency Architecture,Owner | Local TX | Compensation,문서 정본 + Source Trace,True,,PASS
-연계 개발자,외부 REST 연동용 프레임워크 API는?,01_개발자매뉴얼.docx,4. 서비스 간 HTTP Public API - CpfHttpClient,CpfHttpClient | get | post,CpfHttpClient.java,True,,PASS
-연계 개발자,CpfHttpClient 실제 코드는 어디에 예제가 있나?,01_개발자매뉴얼.docx,20. CpfHttpClient 실제 사용 예,import | CpfHttpClient | post,문서 정본 + Source Trace,True,,PASS
+연계 개발자,외부 REST 연동용 프레임워크 API는?,01_개발자매뉴얼.docx,4. 서비스 간 HTTP Public API - CpfRestClient,CpfRestClient | get | post,CpfRestClient.java,True,,PASS
+연계 개발자,CpfRestClient 실제 코드는 어디에 예제가 있나?,01_개발자매뉴얼.docx,20. CpfRestClient 실제 사용 예,import | CpfRestClient | post,문서 정본 + Source Trace,True,,PASS
 연계 개발자,TCP/Fixed-length/ISO8583/SFTP 중 무엇을 선택하나?,01_개발자매뉴얼.docx,19. 외부연계 선택표와 Public 진입점,TCP | ISO8583 | SFTP,문서 정본 + Source Trace,True,,PASS
 연계 개발자,외부 호출 timeout 후 재시도해도 되는지?,01_개발자매뉴얼.docx,25. 외부연계 Fault Decision Matrix,Timeout | UNKNOWN_RESULT | Retry,문서 정본 + Source Trace,True,,PASS
 아키텍트,외부연계 전체 Architecture는?,아키텍처설계서.docx,8. Integration Architecture,HTTP | Message | File,문서 정본 + Source Trace,True,,PASS

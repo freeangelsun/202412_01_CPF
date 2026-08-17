@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.AdmLoginRequest;
 import com.cpf.admin.opr.dto.AdmMenu;
 import com.cpf.admin.opr.dto.AdmOperator;
@@ -21,7 +21,7 @@ import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.error.CpfNotFoundException;
 import com.cpf.core.api.error.CpfValidationException;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.security.api.password.CpfPasswordVerification;
 import com.cpf.security.api.CpfSensitiveData;
 import com.cpf.core.api.context.CpfContexts;
@@ -60,7 +60,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
             "SUSPENDED", Set.of("ACTIVE", "DISABLED"),
             "DISABLED", Set.of());
     private final AdmPasswordPolicyService passwordPolicyService;
-    private final CpfPasswordService passwordHashingPort;
+    private final CpfPasswordEncoder passwordHashingPort;
     private final JdbcTemplate admJdbcTemplate;
     private final AdmPersistencePolicy persistencePolicy;
     private final AdmSessionService sessionService;
@@ -71,7 +71,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     private final List<AdmMenu> fallbackMenus = new ArrayList<>();
 
     public AdmOperatorService(AdmPasswordPolicyService passwordPolicyService,
-                              CpfPasswordService passwordHashingPort,
+                              CpfPasswordEncoder passwordHashingPort,
                               @Qualifier("admJdbcTemplate") JdbcTemplate admJdbcTemplate,
                               AdmPersistencePolicy persistencePolicy,
                               AdmSessionService sessionService) {
@@ -119,7 +119,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_CREATEOPERATOR", name="ADM_ADMOPERATORSERVICE_CREATEOPERATOR", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator createOperator(AdmOperatorCreateRequest request) {
         String operatorId = CpfStrings.requireText(request.operatorId(), "operatorId");
         String operatorName = CpfStrings.requireText(request.operatorName(), "operatorName");
@@ -213,7 +213,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
      *
      * @return 새 계정을 생성했으면 {@code true}, 이미 존재하면 {@code false}
      */
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_BOOTSTRAPOPERATOR", name="ADM_ADMOPERATORSERVICE_BOOTSTRAPOPERATOR", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public boolean bootstrapOperator(String operatorIdValue, String operatorNameValue, String password) {
         String operatorId = CpfStrings.requireText(operatorIdValue, "operatorId");
         String operatorName = CpfStrings.requireText(operatorNameValue, "operatorName");
@@ -301,7 +301,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_CHANGEPASSWORD", name="ADM_ADMOPERATORSERVICE_CHANGEPASSWORD", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator changePassword(String operatorId, AdmPasswordChangeRequest request) {
         String newPassword = CpfStrings.requireText(request.newPassword(), "newPassword");
         String currentPassword = CpfStrings.requireText(request.currentPassword(), "currentPassword");
@@ -362,7 +362,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_RESETPASSWORD", name="ADM_ADMOPERATORSERVICE_RESETPASSWORD", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator resetPassword(String operatorId, AdmOperatorPasswordResetRequest request) {
         passwordPolicyService.requireValid(operatorId, request.newPassword());
         String hash = hashPassword(request.newPassword());
@@ -415,7 +415,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_UNLOCKOPERATOR", name="ADM_ADMOPERATORSERVICE_UNLOCKOPERATOR", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator unlockOperator(String operatorId, String requestUser) {
         String user = CpfStrings.defaultIfBlank(requestUser, "ADM");
         try {
@@ -461,7 +461,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_UPDATEROLES", name="ADM_ADMOPERATORSERVICE_UPDATEROLES", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator updateRoles(String operatorId, AdmOperatorRoleUpdateRequest request) {
         List<String> roleIds = request.roleIds() == null ? List.of() : request.roleIds().stream()
                 .filter(roleId -> roleId != null && !roleId.isBlank()).distinct().sorted().toList();
@@ -519,7 +519,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         }
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_UPDATECONTACT", name="ADM_ADMOPERATORSERVICE_UPDATECONTACT", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator updateContact(String operatorId, AdmOperatorContactUpdateRequest request) {
         if (request.expectedVersion() == null) {
             throw new CpfValidationException("연락처 수정에는 expectedVersion이 필요합니다.");
@@ -560,7 +560,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
         return findOperator(operatorId);
     }
 
-    @CpfTx(id="ADM_ADMOPERATORSERVICE_UPDATEACCOUNTSTATUS", name="ADM_ADMOPERATORSERVICE_UPDATEACCOUNTSTATUS", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public AdmOperator updateAccountStatus(String operatorId, AdmOperatorStatusUpdateRequest request) {
         if (request.expectedVersion() == null) {
             throw new CpfValidationException("상태 변경에는 expectedVersion이 필요합니다.");
@@ -968,7 +968,7 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     private String hashPassword(String password) {
         char[] rawPassword = password.toCharArray();
         try {
-            return passwordHashingPort.hash(rawPassword);
+            return passwordHashingPort.encode(rawPassword);
         } finally {
             java.util.Arrays.fill(rawPassword, '\0');
         }
@@ -981,7 +981,8 @@ public class AdmOperatorService extends com.cpf.admin.common.base.AdmBaseService
     private CpfPasswordVerification verifyPassword(String rawPassword, String storedHash) {
         char[] passwordChars = rawPassword.toCharArray();
         try {
-            return passwordHashingPort.verify(passwordChars, storedHash);
+            boolean matched=passwordHashingPort.matches(passwordChars, storedHash);
+            return new CpfPasswordVerification(matched, matched && passwordHashingPort.upgradeEncoding(storedHash));
         } finally {
             java.util.Arrays.fill(passwordChars, '\0');
         }

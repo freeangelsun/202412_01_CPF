@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "cpf-domain.schema.json",
   "title": "CPF Generated Customer Domain Definition",
-  "description": "Generated Customer Domain의 OS-neutral 선언형 정본. Domain Generator는 Online 업무 Source만 생성하며 Batch는 프로젝트 초기 구성에서 cpf-starter-batch Capability로 별도 선택한다. DB Vendor는 중앙 DB Lifecycle/환경에서 선택한다.",
+  "description": "Generated Customer Domain의 OS-neutral 선언형 정본. online은 필수이고 modules.batch=true일 때 같은 cpf-<domain>/ 아래 batch Runtime을 선택적으로 생성한다. DB Vendor는 중앙 DB Lifecycle/환경에서 선택한다.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -159,7 +159,12 @@
         "online": {
           "type": "boolean",
           "const": true,
-          "description": "Generated Domain은 Online 업무 Runtime만 생성한다. Batch는 이 입력의 대상이 아니다."
+          "description": "Generated Domain의 필수 Online 업무 Runtime입니다."
+        },
+        "batch": {
+          "type": "boolean",
+          "default": false,
+          "description": "선택형 업무 Batch Runtime. true일 때 cpf-<domain>/batch를 생성합니다."
         }
       }
     },

@@ -24,7 +24,7 @@ foreach ($source in @(
 }
 foreach ($required in @(
     'com.cpf.core.api.error.CpfValidationException',
-    'com.cpf.core.api.logging.CpfTransactionContext',
+    'com.cpf.core.api.context.CpfContexts',
     'GeneratedKeyHolder','new String[] {"rule_id"}',
     'setMaxRows','DuplicateKeyException','redactSensitiveText(rs.getString("delivery_message"))',
     'notificationOutboxService.findStatus(deliveryId)','String.valueOf(before)')) {

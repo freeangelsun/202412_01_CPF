@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** cpfDB를 정본으로 사용하고 DB 미구성 시 안전한 로컬 기본 정책을 제공하는 어댑터입니다. */
+/** cpfDB를 Channel Policy 정본으로 사용하며 저장소 장애를 허용 정책으로 변환하지 않습니다. */
 public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPort {
     private static final Logger log = LoggerFactory.getLogger(JdbcCpfChannelRegistryAdapter.class);
 
@@ -45,7 +45,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
     public CpfChannelPolicySnapshot loadSnapshot() {
         JdbcTemplate jdbcTemplate = jdbcTemplateProvider.getIfAvailable();
         if (jdbcTemplate == null) {
-            return CpfChannelPolicySnapshot.localDefault();
+            throw new CpfChannelPolicyStoreUnavailableException("cpfJdbcTemplate is required for channel policy runtime");
         }
         try {
             Map<String, CpfChannelDefinition> channels = new LinkedHashMap<>();
@@ -72,12 +72,13 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
             Long version = jdbcTemplate.queryForObject(
                     sql.required("channel-policy-version-current"), Long.class);
             if (channels.isEmpty()) {
-                return CpfChannelPolicySnapshot.localDefault();
+                throw new CpfChannelPolicyStoreUnavailableException("channel policy store returned no registered channels");
             }
-            return new CpfChannelPolicySnapshot(version == null ? 0 : version, Instant.now(), channels, policies);
+            return new CpfChannelPolicySnapshot(version == null ? 0 : version, Instant.now(), Instant.MAX,
+                    CpfChannelPolicySnapshot.Status.CURRENT, channels, policies);
         } catch (DataAccessException ex) {
-            log.warn("CPF 채널 정책 DB 조회에 실패해 로컬 기본 스냅샷을 사용합니다.", ex);
-            return CpfChannelPolicySnapshot.localDefault();
+            log.error("CPF 채널 정책 DB 조회 실패; fail-open fallback을 사용하지 않습니다.", ex);
+            throw new CpfChannelPolicyStoreUnavailableException("channel policy store read failed", ex);
         }
     }
 

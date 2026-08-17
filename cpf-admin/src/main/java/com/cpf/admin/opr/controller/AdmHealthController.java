@@ -2,7 +2,7 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.core.api.context.CpfContexts;
-import com.cpf.platform.operations.observability.api.logging.CpfServerIdentity;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,14 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** ADM Liveness/Readiness API. 필수 Dependency 장애를 HTTP 200으로 숨기지 않습니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/health")
 @Tag(name = "ADM-Health", description = "ADM liveness/readiness API")
 public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseController {
@@ -69,12 +69,12 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
 
     private Map<String, Object> base(String status, Map<String, Object> checks) {
         Map<String, Object> response = new LinkedHashMap<>();
-        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
+        CpfInstanceIdentity.Identity identity = CpfInstanceIdentity.current();
         response.put("status", status);
         response.put("service", "ADM");
         response.put("moduleId", environment.getProperty("cpf.framework.module-id", "ADM"));
         response.put("wasId", environment.getProperty("cpf.framework.was-id", "admAP01"));
-        response.put("serverInstanceId", identity.serverInstanceId());
+        response.put("instanceId", identity.instanceId());
         response.put("host", identity.hostName());
         response.put("hostName", identity.hostName());
         response.put("processId", identity.processId());

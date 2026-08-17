@@ -38,7 +38,7 @@ public final class CpfGatewayRouteSynchronizer {
 
     @Scheduled(fixedDelayString = "${cpf.gateway.route-event.worker-millis:1000}")
     public void applyEvents() {
-        String instanceId = CpfInstanceIdentity.current().serverInstanceId();
+        String instanceId = CpfInstanceIdentity.current().instanceId();
         for (CpfRuntimePolicyDistributionPort.DistributionEvent event
                 : distribution.claimPending(instanceId, List.of("GATEWAY_ROUTE"), 50, 60)) {
             applyOne(instanceId, event);
@@ -47,7 +47,7 @@ public final class CpfGatewayRouteSynchronizer {
 
     @Scheduled(fixedDelayString = "${cpf.gateway.route-reconcile-millis:30000}")
     public void reconcile() {
-        String instanceId = CpfInstanceIdentity.current().serverInstanceId();
+        String instanceId = CpfInstanceIdentity.current().instanceId();
         try {
             CpfGatewayRouteSnapshot.Snapshot candidate = snapshot.prepareCandidate();
             validateCandidate(candidate);

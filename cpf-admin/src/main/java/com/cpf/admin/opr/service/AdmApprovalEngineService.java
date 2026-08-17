@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.batch.api.CpfBatchRiskCommand;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -92,7 +92,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         return result;
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALENGINESERVICE_SAVEPOLICY", name="ADM_ADMAPPROVALENGINESERVICE_SAVEPOLICY", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String, Object> savePolicy(PolicyCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");
@@ -139,7 +139,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         return policy(command.policyCode(), command.policyVersion());
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALENGINESERVICE_CREATEREQUEST", name="ADM_ADMAPPROVALENGINESERVICE_CREATEREQUEST", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String, Object> createRequest(RequestCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");
@@ -259,7 +259,7 @@ public class AdmApprovalEngineService extends com.cpf.admin.common.base.AdmBaseS
         return result;
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALENGINESERVICE_DECIDE", name="ADM_ADMAPPROVALENGINESERVICE_DECIDE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String, Object> decide(long id, DecisionCommand command, String operator) {
         Objects.requireNonNull(command, "command");
         String actor = required(operator, "operatorId");

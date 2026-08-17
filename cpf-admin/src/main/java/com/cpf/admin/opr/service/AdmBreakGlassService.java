@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -62,7 +62,7 @@ public class AdmBreakGlassService extends com.cpf.admin.common.base.AdmBaseServi
                 bounded);
     }
 
-    @CpfTx(id="ADM_ADMBREAKGLASSSERVICE_OPEN", name="ADM_ADMBREAKGLASSSERVICE_OPEN", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String,Object> open(String operatorId, String scopeType, String scopeValue, String reason, int ttlMinutes) {
         String operator = required(operatorId, "operatorId");
         String type = required(scopeType, "scopeType").toUpperCase(Locale.ROOT);
@@ -78,7 +78,7 @@ public class AdmBreakGlassService extends com.cpf.admin.common.base.AdmBaseServi
         return get(id);
     }
 
-    @CpfTx(id="ADM_ADMBREAKGLASSSERVICE_CLOSE", name="ADM_ADMBREAKGLASSSERVICE_CLOSE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String,Object> close(String sessionId, String operatorId, String reason) {
         String id = required(sessionId, "sessionId");
         String operator = required(operatorId, "operatorId");
@@ -87,7 +87,7 @@ public class AdmBreakGlassService extends com.cpf.admin.common.base.AdmBaseServi
         return get(id);
     }
 
-    @CpfTx(id="ADM_ADMBREAKGLASSSERVICE_REVIEW", name="ADM_ADMBREAKGLASSSERVICE_REVIEW", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Map<String,Object> review(String sessionId, String reviewerId, String reviewStatus, String reason) {
         String status = required(reviewStatus, "reviewStatus").toUpperCase(Locale.ROOT);
         if (!status.equals("APPROVED") && !status.equals("REJECTED")) throw new IllegalArgumentException("사후검토 상태는 APPROVED/REJECTED만 허용합니다.");

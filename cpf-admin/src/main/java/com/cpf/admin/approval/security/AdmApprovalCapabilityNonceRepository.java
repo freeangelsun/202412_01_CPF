@@ -1,6 +1,6 @@
 package com.cpf.admin.approval.security;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,7 +32,7 @@ public final class AdmApprovalCapabilityNonceRepository {
         }
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALCAPABILITYNONCEREPOSITORY_CONSUME", name="ADM_ADMAPPROVALCAPABILITYNONCEREPOSITORY_CONSUME", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public boolean consume(String nonce,String approvalReference,Instant now,String consumerId) {
         int changed=jdbc.update("""
             UPDATE adm_approval_capability_nonce

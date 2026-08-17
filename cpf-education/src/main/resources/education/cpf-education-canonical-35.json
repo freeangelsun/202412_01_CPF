@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "onlineCount": 20,
+  "batchCount": 15,
+  "totalCount": 35,
+  "examples": [
+    {
+      "id": "EDU-ONLINE-01",
+      "category": "online",
+      "title": "기본 CRUD",
+      "class": "com.cpf.education.online.Online01BasicCrudExample"
+    },
+    {
+      "id": "EDU-ONLINE-02",
+      "category": "online",
+      "title": "조회·검색·Paging",
+      "class": "com.cpf.education.online.Online02SearchPagingExample"
+    },
+    {
+      "id": "EDU-ONLINE-03",
+      "category": "online",
+      "title": "코드·메시지·파라미터·영업일",
+      "class": "com.cpf.education.online.Online03CommonCatalogExample"
+    },
+    {
+      "id": "EDU-ONLINE-04",
+      "category": "online",
+      "title": "Validation·표준 오류",
+      "class": "com.cpf.education.online.Online04ValidationErrorExample"
+    },
+    {
+      "id": "EDU-ONLINE-05",
+      "category": "online",
+      "title": "동일 Application 내부 Service 호출",
+      "class": "com.cpf.education.online.Online05LocalServiceCallExample"
+    },
+    {
+      "id": "EDU-ONLINE-06",
+      "category": "online",
+      "title": "CPF Domain 간 호출",
+      "class": "com.cpf.education.online.Online06DomainCallExample"
+    },
+    {
+      "id": "EDU-ONLINE-07",
+      "category": "online",
+      "title": "외부 REST API 호출",
+      "class": "com.cpf.education.online.Online07ExternalRestCallExample"
+    },
+    {
+      "id": "EDU-ONLINE-08",
+      "category": "online",
+      "title": "고정길이 전문(Fixed Length) 외부 호출",
+      "class": "com.cpf.education.online.Online08FixedLengthExternalCallExample"
+    },
+    {
+      "id": "EDU-ONLINE-09",
+      "category": "online",
+      "title": "Transaction REQUIRED",
+      "class": "com.cpf.education.online.Online09RequiredTransactionExample"
+    },
+    {
+      "id": "EDU-ONLINE-10",
+      "category": "online",
+      "title": "Transaction REQUIRES_NEW",
+      "class": "com.cpf.education.online.Online10RequiresNewTransactionExample"
+    },
+    {
+      "id": "EDU-ONLINE-11",
+      "category": "online",
+      "title": "Transaction 경계 + 외부 Side Effect",
+      "class": "com.cpf.education.online.Online11ExternalSideEffectTransactionExample"
+    },
+    {
+      "id": "EDU-ONLINE-12",
+      "category": "online",
+      "title": "On-Demand Batch 호출",
+      "class": "com.cpf.education.online.Online12OnDemandBatchExample"
+    },
+    {
+      "id": "EDU-ONLINE-13",
+      "category": "online",
+      "title": "Center-Cut 대응 온라인 거래",
+      "class": "com.cpf.education.online.Online13CenterCutExample"
+    },
+    {
+      "id": "EDU-ONLINE-14",
+      "category": "online",
+      "title": "Cache",
+      "class": "com.cpf.education.online.Online14CacheExample"
+    },
+    {
+      "id": "EDU-ONLINE-15",
+      "category": "online",
+      "title": "Messaging·비동기",
+      "class": "com.cpf.education.online.Online15MessagingExample"
+    },
+    {
+      "id": "EDU-ONLINE-16",
+      "category": "online",
+      "title": "File Upload/Download·Bulk",
+      "class": "com.cpf.education.online.Online16FileBulkExample"
+    },
+    {
+      "id": "EDU-ONLINE-17",
+      "category": "online",
+      "title": "Security·Permission·Audit",
+      "class": "com.cpf.education.online.Online17SecurityAuditExample"
+    },
+    {
+      "id": "EDU-ONLINE-18",
+      "category": "online",
+      "title": "Idempotency·UNKNOWN·Recovery",
+      "class": "com.cpf.education.online.Online18IdempotencyRecoveryExample"
+    },
+    {
+      "id": "EDU-ONLINE-19",
+      "category": "online",
+      "title": "동시성·Optimistic Lock",
+      "class": "com.cpf.education.online.Online19OptimisticLockExample"
+    },
+    {
+      "id": "EDU-ONLINE-20",
+      "category": "online",
+      "title": "Callback·Webhook 비동기 결과",
+      "class": "com.cpf.education.online.Online20WebhookCallbackExample"
+    },
+    {
+      "id": "EDU-BATCH-01",
+      "category": "batch",
+      "title": "일반 Tasklet",
+      "class": "com.cpf.education.batch.Batch01TaskletExample"
+    },
+    {
+      "id": "EDU-BATCH-02",
+      "category": "batch",
+      "title": "DB Chunk",
+      "class": "com.cpf.education.batch.Batch02DbChunkExample"
+    },
+    {
+      "id": "EDU-BATCH-03",
+      "category": "batch",
+      "title": "CSV·고정길이 File",
+      "class": "com.cpf.education.batch.Batch03FixedLengthFileExample"
+    },
+    {
+      "id": "EDU-BATCH-04",
+      "category": "batch",
+      "title": "대용량 Partition·Parallel",
+      "class": "com.cpf.education.batch.Batch04PartitionParallelExample"
+    },
+    {
+      "id": "EDU-BATCH-05",
+      "category": "batch",
+      "title": "Center-Cut Job",
+      "class": "com.cpf.education.batch.Batch05CenterCutExample"
+    },
+    {
+      "id": "EDU-BATCH-06",
+      "category": "batch",
+      "title": "Scheduler·영업일",
+      "class": "com.cpf.education.batch.Batch06SchedulerBusinessDayExample"
+    },
+    {
+      "id": "EDU-BATCH-07",
+      "category": "batch",
+      "title": "Retry·Skip·Restart",
+      "class": "com.cpf.education.batch.Batch07RetrySkipRestartExample"
+    },
+    {
+      "id": "EDU-BATCH-08",
+      "category": "batch",
+      "title": "분산 Worker·재할당",
+      "class": "com.cpf.education.batch.Batch08DistributedWorkerExample"
+    },
+    {
+      "id": "EDU-BATCH-09",
+      "category": "batch",
+      "title": "Shell·Command",
+      "class": "com.cpf.education.batch.Batch09ApprovedShellExample"
+    },
+    {
+      "id": "EDU-BATCH-10",
+      "category": "batch",
+      "title": "Multi-Step·조건 Flow",
+      "class": "com.cpf.education.batch.Batch10ConditionalFlowExample"
+    },
+    {
+      "id": "EDU-BATCH-11",
+      "category": "batch",
+      "title": "Chunk Transaction 경계",
+      "class": "com.cpf.education.batch.Batch11ChunkTransactionExample"
+    },
+    {
+      "id": "EDU-BATCH-12",
+      "category": "batch",
+      "title": "REQUIRES_NEW 독립 Transaction",
+      "class": "com.cpf.education.batch.Batch12RequiresNewTransactionExample"
+    },
+    {
+      "id": "EDU-BATCH-13",
+      "category": "batch",
+      "title": "Step별 Transaction 분리",
+      "class": "com.cpf.education.batch.Batch13StepTransactionExample"
+    },
+    {
+      "id": "EDU-BATCH-14",
+      "category": "batch",
+      "title": "외부 시스템 호출 + Transaction·UNKNOWN",
+      "class": "com.cpf.education.batch.Batch14ExternalUnknownExample"
+    },
+    {
+      "id": "EDU-BATCH-15",
+      "category": "batch",
+      "title": "On-Demand Batch Job·중복실행 방지",
+      "class": "com.cpf.education.batch.Batch15OnDemandExample"
+    }
+  ]
+}

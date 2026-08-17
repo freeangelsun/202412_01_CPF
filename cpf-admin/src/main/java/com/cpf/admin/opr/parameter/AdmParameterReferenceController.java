@@ -8,10 +8,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 /** 권한과 설치 Capability를 반영한 Parameter Reference 검색 API입니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/parameter-references")
 @Tag(name="ADM-ParameterReference",description="Secret/Path/Service/Endpoint/Group/File/Code Reference 검색 API")
 public class AdmParameterReferenceController {

@@ -3,7 +3,7 @@ import { CpfOrvalError, cpfOrvalRequest } from "./orval-mutator";
 import type { CpfOrvalResponse } from "./orval-mutator";
 import { cpfOperationDescriptors, resolveCpfOperation, type CpfOperationId } from "../generated/cpf-operation-contract";
 import { cpfQueryClient } from "./queryClient";
-import { createTransactionId, defaultHeaders, isValidTransactionId } from "./transaction";
+import { assertNoProtectedCpfHeaders, defaultHeaders } from "./clientHeaders";
 
 export class CpfApiError extends Error {
   constructor(public readonly status: number, message: string, public readonly payload: unknown) {
@@ -19,9 +19,7 @@ function csrfToken(): string {
 export function createAdmHeaders(extraHeaders: HeadersInit = {}): Headers {
   const headers = new Headers(defaultHeaders);
   new Headers(extraHeaders).forEach((value, key) => headers.set(key, value));
-  headers.set("X-Caller-Service", "adm-ui");
-  headers.set("X-Original-Channel-Code", "ADM");
-  if (!isValidTransactionId(headers.get("X-Transaction-Id"))) headers.set("X-Transaction-Id", createTransactionId());
+  assertNoProtectedCpfHeaders(headers);
   const csrf = csrfToken(); if (csrf && !headers.has("X-XSRF-TOKEN")) headers.set("X-XSRF-TOKEN", csrf);
   if (headers.has("Authorization")) throw new Error("ADM BFF는 Browser Bearer Token을 허용하지 않습니다.");
   return headers;
@@ -118,7 +116,7 @@ export async function admQuery<T = unknown>(url: string, params?: Record<string,
   try {
     return await cpfQueryClient.fetchQuery<T>({
       queryKey: ["cpf", operation.operationId, target.pathname, target.search],
-      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createAdmHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
+      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createAdmHeaders({}) })
     });
   } catch (error) { return convert(error); }
 }
@@ -130,7 +128,7 @@ export async function admMutation<T = unknown>(url: string, method: "POST" | "PU
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
     mutationKey: ["cpf", operation.operationId],
-    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
+    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createAdmHeaders({ "Content-Type": "application/json" }), data: body })
   });
   try {
     const result = await observer.mutate(undefined);
@@ -151,7 +149,7 @@ export async function admRawResponse(
   assertNoClientActorQuery(target);
   assertSameOrigin(target);
   const operation = resolveCpfOperation(method, target.pathname + target.search);
-  const headers = createAdmHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()), "X-CPF-Operation-Id": operation.operationId });
+  const headers = createAdmHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()) });
   let requestBody: BodyInit | undefined;
   if (body !== undefined && body !== null) {
     if (typeof body === "string" || body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams) requestBody = body;

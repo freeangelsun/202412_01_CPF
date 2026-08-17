@@ -3284,6 +3284,12 @@ WHEN MATCHED THEN UPDATE SET tgt.PARENT_MENU_ID=src.PARENT_MENU_ID, tgt.MENU_NAM
 WHEN NOT MATCHED THEN INSERT (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.MENU_ID, src.PARENT_MENU_ID, src.MENU_NAME, src.MENU_PATH, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_MENU tgt
+USING (SELECT 'CAPABILITY_FLEET' AS MENU_ID, NULL AS PARENT_MENU_ID, 'CPF Capability' AS MENU_NAME, '/adm#capabilities' AS MENU_PATH, 15 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.MENU_ID=src.MENU_ID)
+WHEN MATCHED THEN UPDATE SET tgt.PARENT_MENU_ID=src.PARENT_MENU_ID, tgt.MENU_NAME=src.MENU_NAME, tgt.MENU_PATH=src.MENU_PATH, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.MENU_ID, src.PARENT_MENU_ID, src.MENU_NAME, src.MENU_PATH, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
+
+MERGE INTO ADM_MENU tgt
 USING (SELECT 'LOG_LIST' AS MENU_ID, NULL AS PARENT_MENU_ID, '온라인 거래 로그' AS MENU_NAME, '/adm#logs' AS MENU_PATH, 20 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.MENU_ID=src.MENU_ID)
 WHEN MATCHED THEN UPDATE SET tgt.PARENT_MENU_ID=src.PARENT_MENU_ID, tgt.MENU_NAME=src.MENU_NAME, tgt.MENU_PATH=src.MENU_PATH, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
@@ -3414,6 +3420,12 @@ USING (SELECT 'OPERATOR' AS MENU_ID, NULL AS PARENT_MENU_ID, '운영자 관리' 
 ON (tgt.MENU_ID=src.MENU_ID)
 WHEN MATCHED THEN UPDATE SET tgt.PARENT_MENU_ID=src.PARENT_MENU_ID, tgt.MENU_NAME=src.MENU_NAME, tgt.MENU_PATH=src.MENU_PATH, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.MENU_ID, src.PARENT_MENU_ID, src.MENU_NAME, src.MENU_PATH, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
+
+MERGE INTO ADM_BUTTON tgt
+USING (SELECT 'CAPABILITY_FLEET_READ' AS BUTTON_ID, 'CAPABILITY_FLEET' AS MENU_ID, 'READ' AS ACTION_CODE, 'CPF Capability 조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/capability-management/**' AS API_PATTERN, 10 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.BUTTON_ID=src.BUTTON_ID)
+WHEN MATCHED THEN UPDATE SET tgt.MENU_ID=src.MENU_ID, tgt.ACTION_CODE=src.ACTION_CODE, tgt.BUTTON_NAME=src.BUTTON_NAME, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATTERN=src.API_PATTERN, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.BUTTON_ID, src.MENU_ID, src.ACTION_CODE, src.BUTTON_NAME, src.HTTP_METHOD, src.API_PATTERN, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_BUTTON tgt
 USING (SELECT 'LOG_LIST_READ' AS BUTTON_ID, 'LOG_LIST' AS MENU_ID, 'READ' AS ACTION_CODE, '조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/logs/**' AS API_PATTERN, 10 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
@@ -4001,7 +4013,7 @@ WHEN NOT MATCHED THEN INSERT (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, cr
 
 MERGE INTO ADM_ROLE_MENU tgt
 USING (SELECT 'ADM_VIEWER' AS ROLE_ID, MENU_ID AS MENU_ID, 'Y' AS READ_YN, 'N' AS WRITE_YN, 'N' AS DELETE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_MENU
-WHERE MENU_ID IN ('DASHBOARD', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')) src
+WHERE MENU_ID IN ('DASHBOARD', 'CAPABILITY_FLEET', 'LOG_LIST', 'STANDARD_EXECUTION', 'CHANNEL_POLICY', 'REMOTE_LOG', 'TRANSACTION_META', 'AUDIT_LOG', 'BATCH', 'RELIABILITY', 'NOTIFICATION', 'DOWNLOAD', 'CACHE', 'FILE_JOB', 'MESSAGE', 'CODE', 'RESPONSE_CODE', 'CONFIG', 'LOG_POLICY')) src
 ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.MENU_ID=src.MENU_ID)
 WHEN MATCHED THEN UPDATE SET tgt.READ_YN=src.READ_YN, tgt.WRITE_YN=src.WRITE_YN, tgt.DELETE_YN=src.DELETE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, MENU_ID, READ_YN, WRITE_YN, DELETE_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.MENU_ID, src.READ_YN, src.WRITE_YN, src.DELETE_YN, src.created_by, src.updated_by);
@@ -4457,10 +4469,10 @@ WHEN MATCHED THEN UPDATE SET tgt.instance_name=src.instance_name, tgt.host_name=
 WHEN NOT MATCHED THEN INSERT (instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by) VALUES (src.instance_id, src.instance_name, src.host_name, src.server_port, src.active_yn, src.last_heartbeat_at, src.description, src.created_by, src.updated_by);
 
 MERGE INTO BAT_WORKER tgt
-USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS server_instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.worker_id=src.worker_id)
-WHEN MATCHED THEN UPDATE SET tgt.server_instance_id=src.server_instance_id, tgt.host_name=src.host_name, tgt.process_id=src.process_id, tgt.thread_name=src.thread_name, tgt.worker_status=src.worker_status, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.current_job_id=src.current_job_id, tgt.current_execution_id=src.current_execution_id, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (worker_id, server_instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (src.worker_id, src.server_instance_id, src.host_name, src.process_id, src.thread_name, src.worker_status, src.active_yn, src.last_heartbeat_at, src.current_job_id, src.current_execution_id, src.description, src.created_by, src.updated_by);
+WHEN MATCHED THEN UPDATE SET tgt.instance_id=src.instance_id, tgt.host_name=src.host_name, tgt.process_id=src.process_id, tgt.thread_name=src.thread_name, tgt.worker_status=src.worker_status, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.current_job_id=src.current_job_id, tgt.current_execution_id=src.current_execution_id, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (src.worker_id, src.instance_id, src.host_name, src.process_id, src.thread_name, src.worker_status, src.active_yn, src.last_heartbeat_at, src.current_job_id, src.current_execution_id, src.description, src.created_by, src.updated_by);
 
 MERGE INTO BAT_JOB tgt
 USING (SELECT 'CPF_EDU_TASKLET_JOB' AS job_id, 'CPF 교육 Tasklet Job' AS job_name, 'TASKLET' AS job_type, '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.' AS description, 'Y' AS restartable_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
@@ -4504,7 +4516,7 @@ ON (tgt.job_id=src.job_id AND tgt.related_job_id=src.related_job_id AND tgt.rela
 WHEN MATCHED THEN UPDATE SET tgt.trigger_condition=src.trigger_condition, tgt.required_status=src.required_status, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by) VALUES (src.job_id, src.related_job_id, src.relation_type, src.trigger_condition, src.required_status, src.sort_order, src.use_yn, src.created_by, src.updated_by);
 
-INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by)
+INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by)
 SELECT
     'CPF_EDU_TASKLET_JOB',
     'CPF_EDU_TASKLET_DAILY',
@@ -4859,7 +4871,7 @@ WHERE NOT EXISTS (
 
 -- CPF_SEED_INLINE_VARIABLE sample_end_time
 
-INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
+INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
 SELECT
     DATE(('2026-06-15 12:00:00.000')),
     ('20260615120000000MBRlocal010000001'),
@@ -4873,15 +4885,17 @@ SELECT
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'edu-education',
+    'EDU',
+    'EDU',
+    'educationCrudList',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
     'ko-KR',
     'Asia/Seoul',
     'NORMAL',
-    'WEB',
-    'WEB',
+    'EDU',
+    'EDU',
     'M000000001',
     'C000000001',
     'EDU_SAMPLE_LIST',
@@ -4928,7 +4942,7 @@ SELECT (
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
     ORDER BY LOG_IDX
     FETCH FIRST 1 ROW ONLY
-), 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
+), 'headers', '{"X-System-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
 WHERE (
     SELECT LOG_IDX
     FROM CPF_TRANSACTION_LOG

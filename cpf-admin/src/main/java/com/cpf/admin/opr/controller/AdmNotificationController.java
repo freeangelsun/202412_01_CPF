@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
@@ -9,7 +9,6 @@ import com.cpf.admin.opr.dto.AdmNotificationDeliveryStatusResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendResponse;
 import com.cpf.admin.opr.dto.AdmNotificationTestSendRequest;
 import com.cpf.admin.opr.service.AdmNotificationService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +26,7 @@ import java.util.Map;
  * <p>모든 운영 변경과 테스트 발송은 검증된 ADM Session의 operator만 수행할 수 있으며,
  * 요청 Body나 Query parameter의 사용자 값으로 인증 주체를 대체하지 않습니다.</p>
  */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/notifications")
 @Tag(name = "ADM-Notification", description = "운영 알림 규칙과 발송 이력 조회·제어 API")
 public class AdmNotificationController extends com.cpf.admin.common.base.AdmBaseController {
@@ -37,9 +36,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         this.notificationService = notificationService;
     }
 
-    @GetMapping("/rules")
-    @CpfOnlineTransaction(id = "OADMNT0010", name = "ADMNotificationRuleList", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회")
+    @GetMapping("/rules")    @Operation(operationId = "admNotificationFindRules", summary = "운영 알림 규칙 조회")
     public ResponseEntity<List<AdmNotificationRuleResponse>> findRules(
             @RequestParam(defaultValue = "100") int limit,
             HttpServletRequest servletRequest) {
@@ -47,9 +44,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         return ResponseEntity.ok(notificationService.findRules(limit));
     }
 
-    @GetMapping("/rules/{ruleId}")
-    @CpfOnlineTransaction(id = "OADMNT0014", name = "ADMNotificationRuleDetail", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationFindRule", summary = "운영 알림 규칙 상세 조회")
+    @GetMapping("/rules/{ruleId}")    @Operation(operationId = "admNotificationFindRule", summary = "운영 알림 규칙 상세 조회")
     public ResponseEntity<AdmNotificationRuleResponse> findRule(
             @PathVariable long ruleId,
             HttpServletRequest servletRequest) {
@@ -57,9 +52,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         return ResponseEntity.ok(notificationService.findRule(ruleId));
     }
 
-    @PostMapping("/rules")
-    @CpfOnlineTransaction(id = "OADMNT0012", name = "ADMNotificationRuleSave", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationSaveRule", summary = "운영 알림 규칙 등록")
+    @PostMapping("/rules")    @Operation(operationId = "admNotificationSaveRule", summary = "운영 알림 규칙 등록")
     public ResponseEntity<AdmNotificationRuleResponse> saveRule(
             @RequestBody AdmNotificationRuleRequest request,
             HttpServletRequest servletRequest) {
@@ -68,9 +61,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
                 null, request, operatorId, servletRequest.getRemoteAddr()));
     }
 
-    @PutMapping("/rules/{ruleId}")
-    @CpfOnlineTransaction(id = "OADMNT0015", name = "ADMNotificationRuleUpdate", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationUpdateRule", summary = "운영 알림 규칙 수정")
+    @PutMapping("/rules/{ruleId}")    @Operation(operationId = "admNotificationUpdateRule", summary = "운영 알림 규칙 수정")
     public ResponseEntity<AdmNotificationRuleResponse> updateRule(
             @PathVariable long ruleId,
             @RequestBody AdmNotificationRuleRequest request,
@@ -80,9 +71,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
                 ruleId, request, operatorId, servletRequest.getRemoteAddr()));
     }
 
-    @PutMapping("/rules/{ruleId}/disable")
-    @CpfOnlineTransaction(id = "OADMNT0013", name = "ADMNotificationRuleDisable", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationDisableRule", summary = "운영 알림 규칙 비활성")
+    @PutMapping("/rules/{ruleId}/disable")    @Operation(operationId = "admNotificationDisableRule", summary = "운영 알림 규칙 비활성")
     public ResponseEntity<AdmNotificationRuleResponse> disableRule(
             @PathVariable long ruleId,
             @RequestParam String reason,
@@ -92,9 +81,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
                 ruleId, reason, operatorId, servletRequest.getRemoteAddr()));
     }
 
-    @GetMapping("/delivery-logs")
-    @CpfOnlineTransaction(id = "OADMNT0011", name = "ADMNotificationDeliveryLogList", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회")
+    @GetMapping("/delivery-logs")    @Operation(operationId = "admNotificationFindDeliveryLogs", summary = "운영 알림 발송 이력 조회")
     public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDeliveryLogs(
             @RequestParam(defaultValue = "100") int limit,
             HttpServletRequest servletRequest) {
@@ -103,9 +90,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
     }
 
 
-    @GetMapping("/delivery-logs/dlq")
-    @CpfOnlineTransaction(id = "OADMNT0020", name = "ADMNotificationDlqList", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationFindDlq", summary = "운영 알림 DLQ 조회",
+    @GetMapping("/delivery-logs/dlq")    @Operation(operationId = "admNotificationFindDlq", summary = "운영 알림 DLQ 조회",
             description = "최대 재시도를 소진해 운영자 확인·재처리가 필요한 발송 건만 조회합니다.")
     public ResponseEntity<List<AdmNotificationDeliveryLogResponse>> findDlq(
             @RequestParam(defaultValue = "100") int limit,
@@ -114,9 +99,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         return ResponseEntity.ok(notificationService.findDlq(limit));
     }
 
-    @GetMapping("/delivery-logs/{deliveryId}/attempts")
-    @CpfOnlineTransaction(id = "OADMNT0019", name = "ADMNotificationDeliveryAttemptList", ownerDomain="ADM")
-    @Operation(
+    @GetMapping("/delivery-logs/{deliveryId}/attempts")    @Operation(
             operationId = "admNotificationFindDeliveryAttempts",
             summary = "운영 알림 Provider Attempt 이력 조회",
             description = "재시도 전후 모든 Provider 호출 Attempt와 결과 불명 원인을 immutable 이력으로 조회합니다.")
@@ -128,9 +111,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
         return ResponseEntity.ok(notificationService.findDeliveryAttempts(deliveryId, limit));
     }
 
-    @PostMapping("/rules/{ruleId}/test-send")
-    @CpfOnlineTransaction(id = "OADMNT0016", name = "ADMNotificationTestSend", ownerDomain="ADM")
-    @Operation(
+    @PostMapping("/rules/{ruleId}/test-send")    @Operation(
             operationId = "admNotificationSendTest",
             summary = "운영 알림 테스트 발송",
             description = "Provider 중립 Sender로 테스트 발송하며 Simulator 결과는 실제 외부 수신 완료로 판정하지 않습니다.")
@@ -143,9 +124,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
                 ruleId, request, operatorId, servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/delivery-logs/{deliveryId}/retry")
-    @CpfOnlineTransaction(id = "OADMNT0017", name = "ADMNotificationDeliveryRetry", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationRetryDelivery", summary = "운영 알림 발송 재시도")
+    @PostMapping("/delivery-logs/{deliveryId}/retry")    @Operation(operationId = "admNotificationRetryDelivery", summary = "운영 알림 발송 재시도")
     public ResponseEntity<AdmNotificationDeliveryStatusResponse> retryDelivery(
             @PathVariable long deliveryId,
             @RequestParam long expectedVersion,
@@ -156,9 +135,7 @@ public class AdmNotificationController extends com.cpf.admin.common.base.AdmBase
                 deliveryId, expectedVersion, reason, operatorId, servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/delivery-logs/{deliveryId}/cancel")
-    @CpfOnlineTransaction(id = "OADMNT0018", name = "ADMNotificationDeliveryCancel", ownerDomain="ADM")
-    @Operation(operationId = "admNotificationCancelDelivery", summary = "운영 알림 발송 취소")
+    @PostMapping("/delivery-logs/{deliveryId}/cancel")    @Operation(operationId = "admNotificationCancelDelivery", summary = "운영 알림 발송 취소")
     public ResponseEntity<AdmNotificationDeliveryStatusResponse> cancelDelivery(
             @PathVariable long deliveryId,
             @RequestParam long expectedVersion,

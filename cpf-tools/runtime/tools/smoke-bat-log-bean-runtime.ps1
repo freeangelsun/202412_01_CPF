@@ -55,7 +55,7 @@ try {
         return
     }
 
-    $batHeaders = New-CpfRuntimeTransactionHeaders -Module "BAT" -WasId "batbean" -ClientAppId "cpf-bat-log-smoke"
+    $batHeaders = New-CpfRuntimeClientHeaders -ClientId "cpf-bat-log-smoke"
 
     $diagnosticUri = "$BatBaseUrl/bat/api/diagnostics/logging"
     $diagnostic = Invoke-RestMethod -Uri $diagnosticUri -Method Get -Headers $batHeaders -TimeoutSec 8
@@ -65,7 +65,7 @@ try {
     }
 
     $runUri = "$BatBaseUrl/bat/api/smoke/jobs/CPF_BAT_SMOKE_JOB/run"
-    $runResult = Invoke-RestMethod -Uri $runUri -Method Post -Headers (New-CpfRuntimeTransactionHeaders -Module "BAT" -WasId "batrun0" -ClientAppId "cpf-bat-log-smoke") -TimeoutSec 30
+    $runResult = Invoke-RestMethod -Uri $runUri -Method Post -Headers (New-CpfRuntimeClientHeaders -ClientId "cpf-bat-log-smoke") -TimeoutSec 30
     $result.smokeJobRun = [ordered]@{
         executed = [bool] $runResult.executed
         jobId = [string] $runResult.jobId

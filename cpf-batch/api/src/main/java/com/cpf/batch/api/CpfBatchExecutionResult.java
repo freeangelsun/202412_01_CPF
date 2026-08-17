@@ -16,6 +16,7 @@ import java.util.Map;
  * @param detail                 상세 데이터
  */
 public record CpfBatchExecutionResult(
+        String executionRequestId,
         boolean executed,
         String jobId,
         Long cpfExecutionId,
@@ -29,6 +30,7 @@ public record CpfBatchExecutionResult(
     }
 
     public static CpfBatchExecutionResult of(
+            String executionRequestId,
             boolean executed,
             String jobId,
             Long cpfExecutionId,
@@ -37,6 +39,7 @@ public record CpfBatchExecutionResult(
             String message,
             Map<String, Object> detail) {
         return new CpfBatchExecutionResult(
+                executionRequestId,
                 executed,
                 jobId,
                 cpfExecutionId,

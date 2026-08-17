@@ -33,15 +33,15 @@ public class AdmBatchOperationService extends com.cpf.admin.common.base.AdmBaseS
     public List<CpfDataRow> findSchedules(){return operations.findSchedules();}
     public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
-            String workerId,String serverInstanceId,int limit){
-        return operations.findExecutions(jobId,transactionId,springBatchJobInstanceId,workerId,serverInstanceId,limit);
+            String workerId,String instanceId,int limit){
+        return operations.findExecutions(jobId,transactionId,springBatchJobInstanceId,workerId,instanceId,limit);
     }
     public CpfDataRow findExecutionPage(
             String jobId,String transactionId,Long springBatchJobInstanceId,
-            String workerId,String serverInstanceId,String status,
+            String workerId,String instanceId,String status,
             String fromDate,String toDate,int page,int size){
         return operations.findExecutionPage(
-                jobId,transactionId,springBatchJobInstanceId,workerId,serverInstanceId,
+                jobId,transactionId,springBatchJobInstanceId,workerId,instanceId,
                 status,fromDate,toDate,page,size);
     }
     public CpfDataRow findJobPage(String query,int page,int size,String sort,String direction){

@@ -1,1 +1,0 @@
-package com.cpf.core.api.error; import java.util.*; public class DefaultCpfResponseCodeResolver implements CpfResponseCodeResolver {public CpfResolvedResponse resolve(Object c,Locale l,Map<String,?>a,String d){return new CpfResolvedResponse(400,String.valueOf(c),String.valueOf(c),"CPF-400",d);}}

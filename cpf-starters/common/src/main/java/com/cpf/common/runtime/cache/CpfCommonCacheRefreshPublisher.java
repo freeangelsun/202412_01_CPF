@@ -1,7 +1,7 @@
 package com.cpf.common.runtime.cache;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import com.cpf.common.runtime.CpfCommonJdbcAutoConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 public class CpfCommonCacheRefreshPublisher {
     private final CpfCommonCacheRefreshEventRepository repository;
     private final CpfCommonCacheRefresher refresher;
-    @Value("${cpf.runtime.instance-id:${cpf.framework.was-id:local}}") private String instanceId;
 
     /** durable event Repository와 local cache refresher를 결합합니다. */
     public CpfCommonCacheRefreshPublisher(CpfCommonCacheRefreshEventRepository repository, CpfCommonCacheRefresher refresher) {
@@ -46,6 +45,6 @@ public class CpfCommonCacheRefreshPublisher {
         return id;
     }
 
-    private String normalizedInstance() { return instanceId == null || instanceId.isBlank() ? "local" : instanceId.trim(); }
+    private String normalizedInstance() { return CpfInstanceIdentity.instanceId(); }
     private String normalizeActor(String actor) { return actor == null || actor.isBlank() ? "SYSTEM" : actor.trim(); }
 }

@@ -1,0 +1,9 @@
+# Batch Generated Domain은 non-web Runtime이며 Domain Call binding은 Online과 같은 Canonical profile 계약을 사용합니다.
+cpf:
+  integration:
+    domain-call:
+      bindings:
+        EXS:
+          # 동일 JVM operation이 있으면 LOCAL, 없으면 Registry 기반 REMOTE를 선택합니다.
+          mode: AUTO
+          service-id: EXS

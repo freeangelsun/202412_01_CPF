@@ -7,20 +7,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 온라인/공유 API의 표준 실행 ID와 운영 메타데이터를 선언하는 공개 Annotation입니다.
- * Generator와 고객 Domain은 internal/common 실행 Annotation 대신 이 계약만 사용합니다.
+ * 온라인 거래의 안정적인 Canonical Operation Metadata입니다.
+ * 개발자가 입력하는 값은 operationId, name, description이며 System/Domain/권한/호출정책은 Runtime/ADM이 소유합니다.
  */
 @Documented
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CpfOnlineTransaction {
-    String id();
+    String operationId();
     String name();
-    String ownerDomain() default "";
-    String description() default "";
-    String requiredPermission() default "";
-    boolean auditReasonRequired() default false;
-    String visibility() default "PUBLIC";
-    boolean directAllowed() default true;
-    boolean gatewayAllowed() default true;
+    String description();
 }

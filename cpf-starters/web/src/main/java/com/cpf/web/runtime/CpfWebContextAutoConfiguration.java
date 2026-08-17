@@ -1,23 +1,72 @@
 package com.cpf.web.runtime;
 
-import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
+import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
+import com.cpf.web.context.CpfConfiguredIngressTrustResolver;
+import com.cpf.web.context.CpfDefaultHeaderFailureRecorder;
+import com.cpf.web.context.CpfHeaderFailureRecorder;
+import com.cpf.web.context.CpfHeaderPolicyProperties;
+import com.cpf.web.context.CpfHeaderPolicyRegistry;
 import com.cpf.web.context.CpfHttpInboundContextAdapter;
+import com.cpf.web.context.CpfHttpIngressTrustResolver;
 import com.cpf.web.context.CpfHttpOutboundContextAdapter;
+import com.cpf.web.context.CpfRuntimeIdentity;
+import com.cpf.web.context.CpfTrustedProxyClientIpResolver;
 import jakarta.servlet.Filter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 
-/** HTTP root Context 경계를 설치하는 Web Profile AutoConfiguration입니다. */
-@AutoConfiguration @ConditionalOnClass(Filter.class)
+/** Installs the canonical HTTP context/trust boundary for the Web Profile. */
+@AutoConfiguration
+@ConditionalOnClass(Filter.class)
+@EnableConfigurationProperties(CpfHeaderPolicyProperties.class)
 public class CpfWebContextAutoConfiguration {
-    @Bean @ConditionalOnMissingBean CpfHttpInboundContextAdapter cpfHttpInboundContextAdapter(CpfTransactionIdGenerator tx,CpfExecutionIdGenerator ex){return new CpfHttpInboundContextAdapter(tx,ex);}
-    @Bean @ConditionalOnMissingBean CpfHttpOutboundContextAdapter cpfHttpOutboundContextAdapter(){return new CpfHttpOutboundContextAdapter();}
-    @Bean @ConditionalOnMissingBean CpfWebContextFilter cpfWebContextFilter(CpfHttpInboundContextAdapter inbound,CpfBusinessDateProvider dates){return new CpfWebContextFilter(inbound,dates);}
-    @Bean FilterRegistrationBean<CpfWebContextFilter> cpfWebContextFilterRegistration(CpfWebContextFilter filter){var r=new FilterRegistrationBean<>(filter);r.setOrder(Ordered.HIGHEST_PRECEDENCE+20);r.setName("cpfWebContextFilter");return r;}
+    @Bean @ConditionalOnMissingBean
+    CpfRuntimeIdentity cpfRuntimeIdentity(Environment environment) { return CpfRuntimeIdentity.from(environment); }
+
+    @Bean @ConditionalOnMissingBean
+    CpfHeaderPolicyRegistry cpfHeaderPolicyRegistry(CpfHeaderPolicyProperties properties) { return new CpfHeaderPolicyRegistry(properties); }
+
+    @Bean @ConditionalOnMissingBean
+    CpfHttpIngressTrustResolver cpfHttpIngressTrustResolver(Environment environment) { return new CpfConfiguredIngressTrustResolver(environment); }
+
+    @Bean @ConditionalOnMissingBean
+    CpfTrustedProxyClientIpResolver cpfTrustedProxyClientIpResolver(Environment environment) { return new CpfTrustedProxyClientIpResolver(environment); }
+
+    @Bean @ConditionalOnMissingBean
+    CpfHeaderFailureRecorder cpfHeaderFailureRecorder(ApplicationEventPublisher publisher) { return new CpfDefaultHeaderFailureRecorder(publisher); }
+
+    @Bean @ConditionalOnMissingBean
+    CpfHttpInboundContextAdapter cpfHttpInboundContextAdapter(CpfTransactionIdGenerator tx, CpfExecutionIdGenerator ex) {
+        return new CpfHttpInboundContextAdapter(tx, ex);
+    }
+
+    @Bean @ConditionalOnMissingBean
+    CpfHttpOutboundContextAdapter cpfHttpOutboundContextAdapter(CpfRuntimeIdentity runtime, CpfHeaderPolicyRegistry policies) {
+        return new CpfHttpOutboundContextAdapter(runtime, policies);
+    }
+
+    @Bean @ConditionalOnMissingBean
+    CpfWebContextFilter cpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider dates,
+            CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
+            CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry policies,
+            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime) {
+        return new CpfWebContextFilter(inbound, dates, transactionIds, trustResolver, clientIpResolver, policies, failures, runtime);
+    }
+
+    @Bean
+    FilterRegistrationBean<CpfWebContextFilter> cpfWebContextFilterRegistration(CpfWebContextFilter filter) {
+        var registration = new FilterRegistrationBean<>(filter);
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 20);
+        registration.setName("cpfWebContextFilter");
+        return registration;
+    }
 }

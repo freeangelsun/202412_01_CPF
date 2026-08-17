@@ -95,12 +95,12 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     private static final String EXECUTE_PATH = "/cpf/execute";
     private static final String LEGACY_PUBLIC_PREFIX = "/gateway/public";
     private static final Set<String> EXTERNAL_CPF_HEADERS = Set.of(
-            CpfHttpHeaderNames.STANDARD_EXECUTION_ID.toLowerCase(Locale.ROOT),
+            CpfGatewayHeaderNames.EXECUTION_ROUTE_ID.toLowerCase(Locale.ROOT),
             CpfHttpHeaderNames.AUDIT_REASON.toLowerCase(Locale.ROOT),
             CpfHttpHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT));
     private static final Set<String> STANDARD_CONTEXT_HEADERS = Set.of(
-            CpfHttpHeaderNames.ORIGINAL_CHANNEL_CODE.toLowerCase(Locale.ROOT),
-            CpfHttpHeaderNames.CHANNEL_CODE.toLowerCase(Locale.ROOT),
+            CpfGatewayHeaderNames.ORIGINAL_CLIENT_CHANNEL_CODE.toLowerCase(Locale.ROOT),
+            CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE.toLowerCase(Locale.ROOT),
             CpfHttpHeaderNames.REQUEST_TYPE.toLowerCase(Locale.ROOT),
             CpfHttpHeaderNames.IDEMPOTENCY_KEY.toLowerCase(Locale.ROOT));
 
@@ -256,10 +256,10 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 tx,
                 transactionId,
                 validatedTrace(request.headers().firstHeader("traceparent")),
-                value(request.headers().firstHeader(CpfHttpHeaderNames.CHANNEL_CODE), ""),
+                value(request.headers().firstHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE), ""),
                 sourceIp(request),
                 sourcePort(request),
-                safety.getInstanceId(),
+                com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),
                 route.routeId(),
                 route.routeId(),
                 route.routeVersion(),
@@ -290,7 +290,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     CpfGatewayPrincipal.anonymous());
             Map<String, String> trusted = trustedHeaders(request);
             String channelId = value(
-                    request.headers().firstHeader(CpfHttpHeaderNames.CHANNEL_CODE), "");
+                    request.headers().firstHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE), "");
             String tenantId = principal.authenticated()
                     ? value(principal.attributes().get("tenantId"), "")
                     : "";
@@ -337,8 +337,8 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
 
             CpfChannelPolicyDecision channelDecision = channelPolicies.evaluate(
                     route.standardExecutionId(),
-                    request.headers().firstHeader(CpfHttpHeaderNames.ORIGINAL_CHANNEL_CODE),
-                    request.headers().firstHeader(CpfHttpHeaderNames.CHANNEL_CODE),
+                    request.headers().firstHeader(CpfGatewayHeaderNames.ORIGINAL_CLIENT_CHANNEL_CODE),
+                    request.headers().firstHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE),
                     request.headers().firstHeader(CpfHttpHeaderNames.REQUEST_TYPE),
                     principal.authenticated(),
                     requestSignatureVerified(principal));
@@ -351,7 +351,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     principal.authenticated(), principal.authenticated() ? principal.principalId() : null,
                     principal.attributes().get("actorId"), principal.attributes().get("authenticationContextId"),
                     contextTenantId.isBlank() ? null : contextTenantId, route.standardExecutionId(), route.routeId(), route.routeVersion(),
-                    route.serverGroupId(), safety.getInstanceId(), CpfContexts.requireCurrent().execution().deadline());
+                    route.serverGroupId(), com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(), CpfContexts.requireCurrent().execution().deadline());
             try (AutoCloseable ignoredGatewayContext = CpfContexts.bind(gatewayContext.snapshot())) {
 
             trusted.put("cpf.principal.id", principal.principalId());
@@ -524,7 +524,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
 
     private ResolvedRoute resolveRoute(ServerRequest request) {
         String path = request.uri().getRawPath();
-        String executionHeader = request.headers().firstHeader(CpfHttpHeaderNames.STANDARD_EXECUTION_ID);
+        String executionHeader = request.headers().firstHeader(CpfGatewayHeaderNames.EXECUTION_ROUTE_ID);
         if (EXECUTE_PATH.equals(path)) {
             String executionId = requireExecutionId(executionHeader);
             CpfGatewayRoute route = snapshot.resolve(executionId);
@@ -601,7 +601,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     null,
                     "ENTRY",
                     "DENIED",
-                    safety.getInstanceId(),
+                    com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),
                     decision.httpStatus(),
                     clock.instant(),
                     Map.of(
@@ -793,20 +793,17 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     headers.remove(HttpHeaders.COOKIE);
                     headers.remove(HttpHeaders.CONTENT_LENGTH);
                     CpfWebContext interaction = new CpfWebContext(
-                            null,
-                            null,
-                            null,
-                            null,
+                            null, null, null, null, null, null, null, null, null, null, null,
                             trusted.get(CpfHttpHeaderNames.TRACEPARENT.toLowerCase(Locale.ROOT)),
-                            trusted.get(CpfHttpHeaderNames.TRACESTATE.toLowerCase(Locale.ROOT)));
+                            trusted.get(CpfHttpHeaderNames.TRACESTATE.toLowerCase(Locale.ROOT)),
+                            com.cpf.web.context.CpfHttpIngressTrust.INTERNAL_TRUSTED);
                     httpContextOutbound.headers(CpfContexts.requireCurrent(), interaction,
-                            new CpfHttpOutboundRequest(target.instanceId(), route.standardExecutionId(), route.routeVersion(), true))
+                            new CpfHttpOutboundRequest(route.serviceId(), route.operationId(), route.routeVersion(), true))
                             .forEach(headers::set);
-                    headers.set(CpfHttpHeaderNames.STANDARD_EXECUTION_ID, route.standardExecutionId());
                     headers.set(CpfGatewayHeaderNames.GATEWAY_TRANSACTION_ID, gatewayTransactionId);
                     headers.set(CpfGatewayHeaderNames.GATEWAY_ROUTE_ID, route.routeId());
                     headers.set(CpfGatewayHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
-                    headers.set(CpfGatewayHeaderNames.GATEWAY_INSTANCE_ID, safety.getInstanceId());
+                    headers.set(CpfGatewayHeaderNames.GATEWAY_INSTANCE_ID, com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId());
                     headers.set(CpfGatewayHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");
                 })
                 .cookies(cookies -> cookies.clear())
@@ -820,7 +817,8 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
         int bytes = 0;
         for (var entry : request.headers().asHttpHeaders().headerSet()) {
             String lower = entry.getKey().toLowerCase(Locale.ROOT);
-            if (lower.startsWith("x-forwarded-")
+            if (CpfHttpHeaderCatalog.isCanonicalTransaction(entry.getKey())
+                    || lower.startsWith("x-forwarded-")
                     || (lower.startsWith("x-cpf-") && !EXTERNAL_CPF_HEADERS.contains(lower))) {
                 throw new SecurityException("Untrusted internal/proxy header: " + entry.getKey());
             }
@@ -830,7 +828,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
             if (HttpHeaders.AUTHORIZATION.equalsIgnoreCase(entry.getKey())
                     || CpfHttpHeaderNames.API_KEY.equalsIgnoreCase(entry.getKey())
                     || CpfGatewayHeaderNames.REQUEST_SIGNATURE.equalsIgnoreCase(entry.getKey())
-                    || CpfHttpHeaderNames.STANDARD_EXECUTION_ID.equalsIgnoreCase(entry.getKey())
+                    || CpfGatewayHeaderNames.EXECUTION_ROUTE_ID.equalsIgnoreCase(entry.getKey())
                     || CpfHttpHeaderNames.AUDIT_REASON.equalsIgnoreCase(entry.getKey())) {
                 continue;
             }
@@ -1201,7 +1199,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
     }
 
     private static CpfTransactionIdGenerator fallbackTransactionIdGenerator() {
-        return new DefaultCpfTransactionIdGenerator("GWY", "local01", Clock.systemUTC());
+        return new DefaultCpfTransactionIdGenerator("GWY", Clock.systemUTC());
     }
 
     private static CpfExecutionIdGenerator fallbackExecutionIdGenerator() {

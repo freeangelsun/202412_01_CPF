@@ -8,7 +8,7 @@
 
 1. `cpf-domain.yaml`을 작성하고 Schema Validation을 통과합니다.  
 2. `dry-run`과 `diff`로 변경 범위와 충돌을 확인합니다.  
-3. Online 업무 Source를 생성하고 Generated Project에는 lifecycle metadata를 영구 저장하지 않습니다. Batch는 Generator가 만들지 않고 초기 프로젝트 구성에서 `cpf-starter-batch`를 별도 선택합니다.  
+3. `online/` 업무 Source를 필수 생성하고 `modules.batch=true`이면 같은 Generated Root에 `batch/`를 선택 생성합니다. Generated Project에는 lifecycle metadata를 영구 저장하지 않으며 Batch 구현은 Public `cpf-starter-batch` 계약을 소비합니다.  
 4. Sample Transaction과 DB3/Test를 실행합니다.  
 5. regenerate/upgrade/remove에서도 User-owned Source와 DB 안전성을 보존합니다.
 
@@ -86,7 +86,7 @@ cpf domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yam
 cpf-member/
 └─ online/
 
-Batch를 사용하는 프로젝트는 초기 구성에서 `cpf-starter-batch`를 별도 선택합니다.
+Batch를 사용하는 Domain은 `cpf-domain.yaml`에서 `modules.batch=true`를 선택합니다. Generator는 `batch/`를 생성하고 그 Runtime은 Public `cpf-starter-batch` 계약을 사용합니다.
 ```
 
 ### 1.5 개발 시작
@@ -230,7 +230,7 @@ modules:
   online: true
 ```
 
-Generated Domain은 Online 업무 Source만 생성합니다. Batch가 필요한 프로젝트는 생성 YAML이 아니라 초기 프로젝트 구성에서 **`cpf-starter-batch` Capability를 별도로 선택**합니다. Batch 미사용 프로젝트에는 해당 Batch Runtime/Starter/Config를 추가하지 않습니다.
+Generated Domain은 `online/`을 필수로 생성하고, `cpf-domain.yaml`의 `modules.batch=true`일 때 같은 `cpf-<domain>/batch/`를 선택적으로 생성합니다. Batch Runtime은 Public `cpf-starter-batch` 계약을 사용하며, `modules.batch=false`인 Domain에는 Batch Source/Runtime/Config를 생성하지 않습니다.
 
 ### 4.5 Features
 
@@ -667,20 +667,20 @@ cpf-member/
 cpf-external/
 └─ online/
 
-Batch는 두 Generated Root의 산출물이 아니며 프로젝트 초기 구성에서 `cpf-starter-batch`로 별도 선택합니다.
+Batch는 선택형 Generated Runtime입니다. 회귀 기준인 member는 `modules.batch=true`로 `cpf-member/batch/`를 생성하고, external은 `modules.batch=false`로 online-only 조합을 검증합니다.
 ```
 
 Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, lock, ownership/manifest, README, verification, DB Vendor tree를 영구 저장하지 않습니다. Fresh input은 `cpf-tools/generator/definitions/<domain>/cpf-domain.yaml` 또는 explicit `--file`, transient state/DB3 Evidence는 `build/domain-generator/verification/**`가 소유합니다.
 
 ### `cpf-member/` - MBR 회귀 Domain
 
-- `online` 업무 Source만 생성합니다. Batch는 초기 프로젝트 구성의 별도 Capability입니다.
+- `online/`은 필수이며 `modules.batch=true`이면 `batch/`를 선택적으로 생성합니다. Batch 구현은 `cpf-batch` Owner/Public Starter 계약을 사용합니다.
 - `MBR_SAMPLE_TX` 거래가 `MBR_sample_item` + `MBR_sample_item_idem` 2-table 계약으로 Create → Read → Search/Page/Slice/Cursor → Update/Delete → Idempotency/DB 확인을 검증합니다.
 - `CUSTOMER_BUSINESS_DB`, `MBR_*` table prefix, Public Starter, 3단 Base Class를 사용합니다.
 
 ### `cpf-external/` - EXS 회귀 Domain
 
-- `online` 업무 Source만 생성합니다. Batch는 초기 프로젝트 구성의 별도 Capability입니다.
+- `online/`은 필수이며 `modules.batch=true`이면 `batch/`를 선택적으로 생성합니다. Batch 구현은 `cpf-batch` Owner/Public Starter 계약을 사용합니다.
 - `EXS_SAMPLE_TX` 거래가 동일한 `EXS_sample_item` + `EXS_sample_item_idem` 2-table lifecycle을 독립 SystemCode/Prefix로 검증합니다.
 - `member`와 다른 설정값만으로 동일 Generator Engine/Template가 동작함을 확인합니다.
 
@@ -894,7 +894,7 @@ Generator 변경을 리뷰할 때 파일 생성 여부보다 다음을 봅니다
 
 - Canonical Engine: `cpf-tools/generator/engine/cpf_domain_generator.py`
 - PS/Bash entry는 Core Engine을 호출하는 thin adapter 방향으로 정리되었다.
-- 회귀 결과 Root는 `cpf-member/`, `cpf-external/`; Generated Runtime은 `online/` 하나다. Batch는 초기 프로젝트 구성에서 `cpf-starter-batch`를 별도 선택한다.
+- 회귀 결과 Root는 `cpf-member/`, `cpf-external/`이다. `online/`은 필수이고 `modules.batch=true`인 member에는 `batch/`가 생성되며 external은 online-only 조합을 검증한다.
 - CURRENT retained Root에는 `.cpf/**`, root yaml/lock/ownership을 영구 저장하지 않는다. Fresh input은 Framework definition 또는 explicit `--file`이다.
 - 고객 Runtime 구현 폴더에 `member-api`, `external-api`, `<domain>-api`를 쓰지 않는다.
 

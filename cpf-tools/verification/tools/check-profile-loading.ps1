@@ -274,7 +274,6 @@ if (Test-File "cpf-gateway/src/main/resources/application.yml" "APPLICATION_YML_
     $gatewayText = Read-Text $gatewayPath
     foreach ($marker in @(
         '${GWY_MODULE_ID:GWY}',
-        '${GWY_INSTANCE_ID:',
         '${GWY_WAS_ID:',
         '${GWY_SERVER_PORT:8070}',
         '${GWY_DATASOURCE_URL:',

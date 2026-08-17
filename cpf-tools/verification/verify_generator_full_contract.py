@@ -28,7 +28,7 @@ def main():
     if 'SUPPORTED_VENDORS = ("oracle", "postgresql", "mariadb")' not in eng:
         return fail('engineDb3ContractMissing')
     # Current Generator Golden Path and logical binding surface.
-    required_engine=['CpfBaseController','CpfBaseService','CpfBaseRepository','CpfTx','domainDependencies','externalClients']
+    required_engine=['CpfBaseController','CpfBaseService','CpfBaseRepository','CpfTransactional','domainDependencies','externalClients']
     for token in required_engine:
         if token not in eng: return fail('generatorEngineMissing='+token)
     catalog=json.loads(cat.read_text(encoding='utf-8')); profiles=json.loads(prof.read_text(encoding='utf-8'))

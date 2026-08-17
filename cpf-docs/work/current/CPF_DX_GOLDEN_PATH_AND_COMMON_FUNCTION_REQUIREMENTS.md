@@ -353,7 +353,7 @@ public VerifyResponse verify(VerifyRequest request) {
 ```
 
 `EXS`가 같은 JVM이면 Local Adapter, 별도 WAS/IP이면 Remote Adapter가 선택되며 Business Source는 동일하다.
-`CpfHttpClient(serviceId, ...)` 같은 raw serviceId API가 필요하면 Advanced/Native Escape로 유지할 수 있지만 Golden Path가 아니다.
+`CpfRestClient(serviceId, ...)` 같은 raw serviceId API가 필요하면 Advanced/Native Escape로 유지할 수 있지만 Golden Path가 아니다.
 
 Domain Binding은 최소:
 `domain/systemCode → topology/local-or-remote → service registry/static endpoint → instances → health → routing → transport`
@@ -706,18 +706,18 @@ return result.fold(
 
 ### 표준 Header
 
-업무 코드는 wire literal을 반복하지 않는다.
+업무 코드는 Canonical 거래 Header를 직접 조립하지 않는다.
 
 ```java
-Map<String,String> headers = CpfHeaders.builder()
-    .txId(txId)
-    .execId(execId)
-    .caller("MBR")
-    .target("EXS")
-    .buildInternal();
+CpfContext context = CpfContexts.requireCurrent();
+String transactionId = context.transactionId();
+String campaignCode = CpfHttpHeaders.requireCurrent().get("X-Campaign-Code");
 ```
 
-신뢰된 내부 HTTP 경계는 Tx/Exec/Caller/Target이 없거나 인증 Caller가 불일치하면 즉시 실패한다. 외부 ingress는 검증 후 Framework가 identity를 생성할 수 있다.
+내부 Domain 호출에서는 CPF Runtime이 `X-Transaction-Id`, `X-Original-System-Code`, `X-System-Code`,
+`X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`를 대상 계약과 Runtime Context로
+자동 구성한다. 일반 Custom Header만 `CpfHttpHeaders.Builder#set/add`로 다루며 Canonical/보호 Header는
+업무 코드가 변경할 수 없다. 외부 ingress의 보호값은 Framework가 신뢰 경계에서 확정한다.
 
 ### Fixed-Length
 

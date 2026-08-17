@@ -1,11 +1,10 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
 import com.cpf.data.api.quality.CpfDataQualityDecision;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.foundation.time.CpfTimeSnapshot;
-import com.cpf.integration.webhook.api.CpfWebhookDelivery;
+import com.cpf.integration.api.webhook.CpfWebhookDelivery;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@CpfController
+@RestController
 @ConditionalOnBean(AdmIntegrationClosureService.class)
 @RequestMapping("/adm/api/integration-closure")
 @Tag(name = "ADM-Integration-Closure", description = "시간·데이터 품질·Webhook 운영 조회 및 서버 승인 조치")
@@ -40,34 +39,26 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     }
 
 
-    @GetMapping("/crypto/status")
-    @CpfOnlineTransaction(id = "OADMIC0108", name = "AdmCryptoStatus", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationCryptoStatus", summary = "암호화 Provider 및 활성 Key Version 상태")
+    @GetMapping("/crypto/status")    @Operation(operationId = "admIntegrationCryptoStatus", summary = "암호화 Provider 및 활성 Key Version 상태")
     public ResponseEntity<Map<String, Object>> cryptoStatus() {
         return ResponseEntity.ok(service.cryptoStatus());
     }
 
-    @GetMapping("/time/health")
-    @CpfOnlineTransaction(id = "OADMIC0101", name = "AdmTimeHealth", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationTimeHealth", summary = "UTC/업무시간/NTP skew 상태")
+    @GetMapping("/time/health")    @Operation(operationId = "admIntegrationTimeHealth", summary = "UTC/업무시간/NTP skew 상태")
     public ResponseEntity<CpfTimeSnapshot> time(
             @RequestParam(defaultValue = "Asia/Seoul") String zone,
             @RequestParam(defaultValue = "1000") long maxSkewMillis) {
         return ResponseEntity.ok(service.timeHealth(zone, maxSkewMillis));
     }
 
-    @PostMapping("/data-quality/validate/{recordId}")
-    @CpfOnlineTransaction(id = "OADMIC0102", name = "AdmDataQualityValidate", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationDataQualityValidate", summary = "데이터 품질 검증")
+    @PostMapping("/data-quality/validate/{recordId}")    @Operation(operationId = "admIntegrationDataQualityValidate", summary = "데이터 품질 검증")
     public ResponseEntity<CpfDataQualityDecision> validate(
             @PathVariable String recordId,
             @RequestBody Map<String, Object> record) {
         return ResponseEntity.ok(service.validate(recordId, record));
     }
 
-    @PostMapping("/data-quality/quarantine/{id}/correction-approvals")
-    @CpfOnlineTransaction(id = "OADMIC0103", name = "AdmDataQualityCorrectionApprovalRequest", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationDataQualityCorrectionApprovalRequest", summary = "격리 데이터 정정 승인 요청")
+    @PostMapping("/data-quality/quarantine/{id}/correction-approvals")    @Operation(operationId = "admIntegrationDataQualityCorrectionApprovalRequest", summary = "격리 데이터 정정 승인 요청")
     public ResponseEntity<Map<String, Object>> requestCorrection(
             @PathVariable String id,
             @RequestAttribute("adm.operatorId") String operator,
@@ -81,9 +72,7 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
                 request.reason()));
     }
 
-    @PostMapping("/data-quality/correction-approvals/{approvalRequestId}/execute")
-    @CpfOnlineTransaction(id = "OADMIC0107", name = "AdmDataQualityCorrectionExecute", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationDataQualityCorrectionExecute", summary = "승인 완료 격리 데이터 정정 단회 실행")
+    @PostMapping("/data-quality/correction-approvals/{approvalRequestId}/execute")    @Operation(operationId = "admIntegrationDataQualityCorrectionExecute", summary = "승인 완료 격리 데이터 정정 단회 실행")
     public ResponseEntity<Map<String, Object>> executeCorrection(
             @PathVariable long approvalRequestId,
             @RequestAttribute("adm.operatorId") String operator,
@@ -94,9 +83,7 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
                 : ResponseEntity.ok(result);
     }
 
-    @PostMapping("/data-quality/quarantine/{id}/replay")
-    @CpfOnlineTransaction(id = "OADMIC0104", name = "AdmDataQualityReplay", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationDataQualityReplay", summary = "격리 데이터 재검증")
+    @PostMapping("/data-quality/quarantine/{id}/replay")    @Operation(operationId = "admIntegrationDataQualityReplay", summary = "격리 데이터 재검증")
     public ResponseEntity<CpfDataQualityDecision> replayQuality(
             @PathVariable String id,
             @RequestAttribute("adm.operatorId") String operator,
@@ -105,16 +92,12 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
                 id, request.expectedVersion(), request.idempotencyKey(), operator, request.reason()));
     }
 
-    @GetMapping("/webhooks/dlq")
-    @CpfOnlineTransaction(id = "OADMIC0105", name = "AdmWebhookDlq", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationWebhookDlq", summary = "Webhook DLQ 조회")
+    @GetMapping("/webhooks/dlq")    @Operation(operationId = "admIntegrationWebhookDlq", summary = "Webhook DLQ 조회")
     public ResponseEntity<List<CpfWebhookDelivery>> dlq(@RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(service.webhookDlq(limit));
     }
 
-    @PostMapping("/webhooks/{id}/replay")
-    @CpfOnlineTransaction(id = "OADMIC0106", name = "AdmWebhookReplay", ownerDomain="ADM")
-    @Operation(operationId = "admIntegrationWebhookReplay", summary = "Webhook DLQ/UNKNOWN 재처리")
+    @PostMapping("/webhooks/{id}/replay")    @Operation(operationId = "admIntegrationWebhookReplay", summary = "Webhook DLQ/UNKNOWN 재처리")
     public ResponseEntity<CpfWebhookDelivery> replayWebhook(
             @PathVariable String id,
             @RequestParam @Min(1) long expectedVersion,

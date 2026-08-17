@@ -65,19 +65,23 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String uri,
             String responseCode,
             Integer httpStatus,
-            String channelCode,
+            String clientId,
+            String originalSystemCode,
+            String systemCode,
+            String callerSystemCode,
+            String targetSystemCode,
+            String targetOperationId,
             String logType,
             String moduleId,
             String wasId,
-            String serverInstanceId,
+            String instanceId,
             String hostName,
-            String systemCode,
             String domainCode,
             String application,
             String starterId,
             String capabilityId,
             String provider,
-            String operation,
+            String capabilityOperation,
             int limit) {
 
         StringBuilder sql = new StringBuilder("""
@@ -87,7 +91,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     TRACE_ID,
                     MODULE_ID,
                     WAS_ID,
-                    SERVER_INSTANCE_ID,
+                    INSTANCE_ID,
                     HOST_NAME,
                     PROCESS_ID,
                     THREAD_NAME,
@@ -95,8 +99,14 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     BUSINESS_TRANSACTION_NAME,
                     LOG_TYPE,
                     REQUEST_TYPE,
-                    ORIGINAL_CHANNEL_CODE,
-                    CHANNEL_CODE,
+                    CLIENT_ID,
+                    CLIENT_VERSION,
+                    CALLER_INSTANCE_ID,
+                    ORIGINAL_SYSTEM_CODE,
+                    SYSTEM_CODE,
+                    CALLER_SYSTEM_CODE,
+                    TARGET_SYSTEM_CODE,
+                    TARGET_OPERATION_ID,
                     MEMBER_NO,
                     CUSTOMER_NO,
                     HTTP_METHOD,
@@ -105,6 +115,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     RESPONSE_CODE,
                     ERROR_CODE,
                     EXEC_USER,
+                    DEVICE_ID,
+                    CLIENT_IP,
+                    USER_AGENT,
+                    LOCALE,
                     START_TIME,
                     END_TIME,
                     DURATION_MS
@@ -123,19 +137,23 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             sql.append(" AND HTTP_STATUS = ?");
             args.add(httpStatus);
         }
-        appendEquals(sql, args, "CHANNEL_CODE", channelCode);
+        appendLike(sql, args, "CLIENT_ID", clientId);
+        appendEquals(sql, args, "ORIGINAL_SYSTEM_CODE", originalSystemCode);
+        appendEquals(sql, args, "SYSTEM_CODE", systemCode);
+        appendEquals(sql, args, "CALLER_SYSTEM_CODE", callerSystemCode);
+        appendEquals(sql, args, "TARGET_SYSTEM_CODE", targetSystemCode);
+        appendLike(sql, args, "TARGET_OPERATION_ID", targetOperationId);
         appendEquals(sql, args, "LOG_TYPE", logType);
         appendEquals(sql, args, "MODULE_ID", moduleId);
         appendEquals(sql, args, "WAS_ID", wasId);
-        appendEquals(sql, args, "SERVER_INSTANCE_ID", serverInstanceId);
+        appendEquals(sql, args, "INSTANCE_ID", instanceId);
         appendEquals(sql, args, "HOST_NAME", hostName);
-        appendDetailLike(sql, args, "runtime.systemCode", systemCode);
         appendDetailLike(sql, args, "runtime.domainCode", domainCode);
         appendDetailLike(sql, args, "runtime.application", application);
         appendDetailLike(sql, args, "capability.starters", starterId);
         appendDetailLike(sql, args, "capability.ids", capabilityId);
         appendDetailLike(sql, args, "capability.providers", provider);
-        appendDetailLike(sql, args, "capability.operations", operation);
+        appendDetailLike(sql, args, "capability.operations", capabilityOperation);
         sql.append(" ORDER BY LOG_IDX DESC");
 
         return AdmJdbcQueries.queryForList(
@@ -153,9 +171,11 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     public Map<String, Object> getLogDetail(Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
         Map<String, Object> summary = cpfJdbcTemplate.queryForMap("""
-                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME,
+                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID, HOST_NAME,
                        PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME,
-                       LOG_TYPE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO,
+                       LOG_TYPE, REQUEST_TYPE, CLIENT_ID, CLIENT_VERSION, CALLER_INSTANCE_ID,
+                       ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID,
+                       MEMBER_NO, CUSTOMER_NO, DEVICE_ID, CLIENT_IP, USER_AGENT, LOCALE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, EXEC_USER,
                        START_TIME, END_TIME, DURATION_MS, REQUEST_BODY, RESPONSE, ERROR_MESSAGE
                   FROM cpf_transaction_log
@@ -180,7 +200,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         response.put("error", formatValue("error", value(summary.get("ERROR_MESSAGE")), details));
         Map<String, Object> managementContext = new LinkedHashMap<>();
         for (String key : List.of("runtime.systemCode", "runtime.domainCode", "runtime.application", "runtime.module",
-                "runtime.instanceId", "runtime.wasId", "capability.starters", "capability.ids",
+                "runtime.instanceId", "runtime.instanceToken", "capability.starters", "capability.ids",
                 "capability.providers", "capability.operations")) {
             String found = value(findDetail(details, key));
             if (CpfStrings.hasText(found)) managementContext.put(key, found);

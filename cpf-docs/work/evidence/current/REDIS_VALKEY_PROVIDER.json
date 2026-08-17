@@ -1,6 +1,6 @@
 {
   "requirementId": "NXT2-REDIS-001",
-  "executionSourceSha": "87937d5d2ec6ae8b6fd5d31bdb281b4a43e0f8cd",
+  "executionSourceSha": "e78a93a139aa63229f25c9509353e75b3d1389fd",
   "status": "PASS",
   "failedCount": 0,
   "checks": [

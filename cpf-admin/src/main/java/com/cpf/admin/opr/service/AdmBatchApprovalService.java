@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.batch.api.CpfBatchRiskCommand;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -31,7 +31,7 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
         this.jdbc = jdbc;
     }
 
-    @CpfTx(id="ADM_ADMBATCHAPPROVALSERVICE_RESERVE", name="ADM_ADMBATCHAPPROVALSERVICE_RESERVE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public Reservation reserve(CpfBatchRiskCommand command) {
         Objects.requireNonNull(command, "command");
         long approvalId = parseApprovalId(command.approvalRequestId());
@@ -71,17 +71,17 @@ public class AdmBatchApprovalService extends com.cpf.admin.common.base.AdmBaseSe
         return new Reservation(approvalId, command.idempotencyKey(), "RUNNING", false, text(row, "requested_by"));
     }
 
-    @CpfTx(id="ADM_ADMBATCHAPPROVALSERVICE_COMPLETE", name="ADM_ADMBATCHAPPROVALSERVICE_COMPLETE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void complete(Reservation reservation, String operatorId) {
         finish(reservation, operatorId, "SUCCEEDED", "COMPLETED", "N", null, null);
     }
 
-    @CpfTx(id="ADM_ADMBATCHAPPROVALSERVICE_FAIL", name="ADM_ADMBATCHAPPROVALSERVICE_FAIL", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void fail(Reservation reservation, String operatorId, String code, String message) {
         finish(reservation, operatorId, "FAILED", "FAILED", "N", code, message);
     }
 
-    @CpfTx(id="ADM_ADMBATCHAPPROVALSERVICE_UNKNOWN", name="ADM_ADMBATCHAPPROVALSERVICE_UNKNOWN", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void unknown(Reservation reservation, String operatorId, String code, String message) {
         finish(reservation, operatorId, "UNKNOWN", "UNKNOWN", "Y", code, message);
     }

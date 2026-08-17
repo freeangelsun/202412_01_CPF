@@ -245,7 +245,7 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
                 Object jobInstanceId = firstValue(execution, "springBatchJobInstanceId", "spring_batch_job_instance_id", "jobInstanceId", "job_instance_id");
                 Object jobId = firstValue(execution, "jobId", "job_id", "jobName", "job_name");
                 Object workerId = firstValue(execution, "workerId", "worker_id");
-                Object instanceId = firstValue(execution, "serverInstanceId", "server_instance_id", "instanceId", "instance_id");
+                Object instanceId = firstValue(execution, "instanceId", "instance_id", "instanceId", "instance_id");
                 Object startedAt = firstValue(execution, "startedAt", "startTime", "start_time", "createdAt", "created_at");
                 Object endedAt = firstValue(execution, "endedAt", "endTime", "end_time", "updatedAt", "updated_at");
                 Object status = firstValue(execution, "status", "batchStatus", "batch_status", "executionStatus", "execution_status");

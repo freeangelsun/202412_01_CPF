@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed when unverified inbound caller identity can cross the HTTP trust boundary."""
+"""Verify CPF internal caller trust and canonical Domain-header ownership."""
 from __future__ import annotations
 import argparse,json
 from pathlib import Path
@@ -15,28 +15,38 @@ def verify(root:Path)->dict:
  root=root.resolve()
  filter_rel='cpf-starters/web/src/main/java/com/cpf/web/runtime/CpfWebContextFilter.java'
  adapter_rel='cpf-starters/web/src/main/java/com/cpf/web/context/CpfHttpInboundContextAdapter.java'
+ resolver_rel='cpf-starters/web/src/main/java/com/cpf/web/context/CpfConfiguredIngressTrustResolver.java'
  rest_rel='cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/CpfRestClientInterceptor.java'
  webclient_rel='cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/CpfWebClientConfig.java'
+ domain_rel='cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/domaincall/CpfHttpDomainRemoteTransport.java'
+ outbound_rel='cpf-starters/web/src/main/java/com/cpf/web/context/CpfHttpOutboundContextAdapter.java'
  local_rel='cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/CpfLocalServiceIdentity.java'
- sources={r:read(root,r) for r in (filter_rel,adapter_rel,rest_rel,webclient_rel,local_rel)}
+ sources={r:read(root,r) for r in (filter_rel,adapter_rel,resolver_rel,rest_rel,webclient_rel,domain_rel,outbound_rel,local_rel)}
  checks={
-  'external_ingress_is_fail_closed':'CpfHttpIngressTrust.UNTRUSTED_EXTERNAL' in sources[filter_rel],
+  'ingress_uses_trust_resolver':'trustResolver.resolve(request)' in sources[filter_rel],
+  'unverified_ingress_defaults_external':'return new Decision(CpfHttpIngressTrust.UNTRUSTED_EXTERNAL, null)' in sources[resolver_rel],
+  'verified_caller_not_sourced_from_header':'VERIFIED_INTERNAL_CALLER_ATTRIBUTE' in sources[resolver_rel]
+      and 'request.getHeader(' not in sources[resolver_rel],
   'adapter_defaults_to_untrusted':'trust == null ? CpfHttpIngressTrust.UNTRUSTED_EXTERNAL : trust' in sources[adapter_rel],
-  'adapter_does_not_promote_raw_caller_headers':'CALLER_SERVICE' not in sources[adapter_rel] and 'CALLER_INSTANCE_ID' not in sources[adapter_rel],
-  'rest_client_overwrites_local_service':'headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId())' in sources[rest_rel],
-  'rest_client_overwrites_local_instance':'headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId())' in sources[rest_rel],
-  'webclient_overwrites_local_service':'headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId())' in sources[webclient_rel],
-  'webclient_overwrites_local_instance':'headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId())' in sources[webclient_rel],
-  'local_identity_is_configuration_bound':'cpf.framework.module-id' in sources[local_rel] and 'cpf.framework.instance-id' in sources[local_rel],
+  'generic_rest_client_does_not_inject_internal_headers':'Intentionally no-op' in sources[rest_rel]
+      and 'CALLER_SYSTEM_CODE' not in sources[rest_rel],
+  'generic_webclient_does_not_inject_internal_headers':'CpfHttpOutboundContextAdapter' not in sources[webclient_rel]
+      and 'CALLER_SYSTEM_CODE' not in sources[webclient_rel],
+  'typed_domain_transport_owns_internal_propagation':'CpfHttpOutboundContextAdapter' in sources[domain_rel]
+      and 'trustedInternal' in sources[outbound_rel],
+  'outbound_adapter_emits_canonical_system_headers':all(token in sources[outbound_rel] for token in (
+      'TRANSACTION_ID','ORIGINAL_SYSTEM_CODE','SYSTEM_CODE','CALLER_SYSTEM_CODE','TARGET_SYSTEM_CODE','TARGET_OPERATION_ID')),
+  'external_outbound_has_separate_allowlist_path':'putAllowedCustom(headers, target.customHeaders(), false)' in sources[outbound_rel],
+  'local_identity_uses_canonical_runtime_instance':'CpfInstanceIdentity.current().instanceId()' in sources[local_rel],
  }
  findings=[k for k,v in checks.items() if not v]
  result={'status':'PASS' if not findings else 'FAIL','checks':checks,'findings':findings,
-         'policy':'Raw inbound caller headers are never identity proof; outbound caller identity is regenerated from the current CPF service.'}
+         'policy':'Inbound caller identity comes from verified security/peer mapping; generic HTTP clients never inject CPF internal protocol headers; typed Domain transport owns canonical six.'}
  if findings: raise IdentityGateError(json.dumps(result,ensure_ascii=False,indent=2))
  return result
 
 def main()->int:
- p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--json-output');a=p.parse_args(); root=Path(a.root).resolve()
+ p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--json-output');a=p.parse_args();root=Path(a.root).resolve()
  try:r=verify(root);c=0
  except Exception as e:
   try:r=json.loads(str(e))

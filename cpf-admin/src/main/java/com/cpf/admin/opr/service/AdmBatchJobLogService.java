@@ -48,7 +48,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
             String businessDate,
             String jobName,
             Long jobInstanceId,
-            String serverInstanceId,
+            String instanceId,
             int limit) {
         if (!Files.isDirectory(jobsRoot, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
@@ -64,7 +64,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
                     .filter(row -> matches(row, "jobName", jobName))
                     .filter(row -> jobInstanceId == null
                             || jobInstanceId.equals(((Number) row.get("jobInstanceId")).longValue()))
-                    .filter(row -> matches(row, "serverInstanceId", serverInstanceId))
+                    .filter(row -> matches(row, "instanceId", instanceId))
                     .sorted(Comparator.comparing(
                             row -> (Instant) row.get("lastModifiedAt"),
                             Comparator.reverseOrder()))
@@ -79,7 +79,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
             String businessDate,
             String jobName,
             long jobInstanceId,
-            String serverInstanceId,
+            String instanceId,
             int maxRecords) {
         LocalDate parsedDate = parseBusinessDate(businessDate);
         Path relativePath;
@@ -88,7 +88,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
                     jobName,
                     jobInstanceId,
                     parsedDate,
-                    serverInstanceId);
+                    instanceId);
         } catch (IllegalArgumentException ex) {
             throw new CpfValidationException(ex.getMessage());
         }
@@ -124,18 +124,18 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
         }
         String businessDate = jobsRelativePath.getName(0).toString();
         String jobName = jobsRelativePath.getName(1).toString();
-        String serverInstanceId = jobsRelativePath.getName(2).toString();
+        String instanceId = jobsRelativePath.getName(2).toString();
         String fileName = jobsRelativePath.getFileName().toString();
         try {
             LocalDate parsedDate = LocalDate.parse(businessDate, DateTimeFormatter.BASIC_ISO_DATE);
-            if (!isCanonicalPathToken(jobName) || !isCanonicalPathToken(serverInstanceId)) {
+            if (!isCanonicalPathToken(jobName) || !isCanonicalPathToken(instanceId)) {
                 return null;
             }
             Pattern filePattern = Pattern.compile(
                     "^cpf-bat-"
                             + Pattern.quote(jobName)
                             + "-(\\d+)-"
-                            + Pattern.quote(serverInstanceId)
+                            + Pattern.quote(instanceId)
                             + "-"
                             + Pattern.quote(businessDate)
                             + "\\.log$");
@@ -148,7 +148,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
                     jobName,
                     jobInstanceId,
                     parsedDate,
-                    serverInstanceId);
+                    instanceId);
             Path canonicalJobsRelativePath = canonicalRelativePath.subpath(
                     2,
                     canonicalRelativePath.getNameCount());
@@ -159,7 +159,7 @@ public class AdmBatchJobLogService extends com.cpf.admin.common.base.AdmBaseServ
             metadata.put("businessDate", businessDate);
             metadata.put("jobName", jobName);
             metadata.put("jobInstanceId", jobInstanceId);
-            metadata.put("serverInstanceId", serverInstanceId);
+            metadata.put("instanceId", instanceId);
             metadata.put("relativePath", logRoot.relativize(normalizedPath).toString().replace('\\', '/'));
             metadata.put("sizeBytes", Files.size(path));
             metadata.put("lastModifiedAt", Files.getLastModifiedTime(path).toInstant());

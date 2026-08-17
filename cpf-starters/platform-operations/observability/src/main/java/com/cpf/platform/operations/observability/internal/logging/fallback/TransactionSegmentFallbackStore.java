@@ -1,5 +1,7 @@
 package com.cpf.platform.operations.observability.internal.logging.fallback;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.security.api.CpfMaskingRuntime;
 import com.cpf.platform.operations.observability.internal.logging.file.CpfFileLogWriter;
@@ -72,7 +74,7 @@ public class TransactionSegmentFallbackStore {
         this.processingDirectory = root.resolve("processing");
         this.poisonDirectory = root.resolve("poison");
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root).toString().replace('\\', '/');
-        this.workerId = environment.getProperty("cpf.framework.instance-id", "cpf-local");
+        this.workerId = CpfInstanceIdentity.current().instanceId();
         this.maxSpoolBytes = environment.getProperty(
                 "cpf.logging.segment-fallback.max-spool-bytes",
                 Long.class,

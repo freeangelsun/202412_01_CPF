@@ -2,7 +2,7 @@ package com.cpf.integration.resilience.runtime;
 
 import com.cpf.integration.api.annotation.CpfClient;
 import com.cpf.integration.api.annotation.CpfRetry;
-import com.cpf.integration.api.annotation.CpfTimeout;
+import com.cpf.integration.api.annotation.CpfTimeLimiter;
 import com.cpf.integration.resilience.api.CpfResiliencePolicy;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -13,10 +13,10 @@ import java.time.Duration;
 public final class CpfIntegrationAnnotationPolicyFactory {
     private final CpfIntegrationAnnotationProperties properties;
     public CpfIntegrationAnnotationPolicyFactory(CpfIntegrationAnnotationProperties properties){this.properties=properties;}
-    public CpfResiliencePolicy create(Method method,CpfClient client,CpfRetry retry,CpfTimeout timeout){
+    public CpfResiliencePolicy create(Method method,CpfClient client,CpfRetry retry,CpfTimeLimiter timeout){
         if(client==null)throw new IllegalArgumentException("CpfClient is required");
         String operation=operationId(method,client);
-        long timeoutMs=timeout==null?properties.getDefaultTimeoutMillis():positive(timeout.millis(),"timeout.millis");
+        long timeoutMs=timeout==null?properties.getDefaultTimeoutMillis():positive(0L,"timeout.millis");
         int attempts=retry==null?1:positive(retry.maxAttempts(),"retry.maxAttempts");
         long delay=retry==null?0:nonNegative(retry.delayMillis(),"retry.delayMillis");
         long revision=revision(operation,timeoutMs,attempts,delay,retry!=null&&retry.reconcileUnknownOutcome());

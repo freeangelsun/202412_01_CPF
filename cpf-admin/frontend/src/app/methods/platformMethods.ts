@@ -100,7 +100,7 @@ export const platformMethods = {
           this.getJson(`/adm/api/reliability/broker/dlq?${this.buildParams({ status: search.status, transactionId: search.transactionId, topic: search.topic, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/file-transfers?${this.buildParams({ status: search.status, transactionId: search.transactionId, endpointCode: search.endpointCode, limit: search.limit }).toString()}`),
           this.getJson(`/adm/api/reliability/unknown-results?${this.buildParams({ type: search.type, status: search.status, transactionId: search.transactionId, limit: search.limit }).toString()}`),
-          this.getJson(`/adm/api/reliability/batch-job-logs?${this.buildParams({ businessDate: search.businessDate, jobName: search.jobName, jobInstanceId: search.jobInstanceId, serverInstanceId: search.serverInstanceId, limit: search.limit }).toString()}`)
+          this.getJson(`/adm/api/reliability/batch-job-logs?${this.buildParams({ businessDate: search.businessDate, jobName: search.jobName, jobInstanceId: search.jobInstanceId, instanceId: search.instanceId, limit: search.limit }).toString()}`)
         ]);
         this.reliabilityResult = {
           idempotency: this.settledValue(idempotency),

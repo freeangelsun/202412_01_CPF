@@ -14,6 +14,6 @@ public record BzaLoginHistoryResponse(
         String transactionId,
         String moduleId,
         String wasId,
-        String serverInstanceId,
+        String instanceId,
         Instant createdAt) {
 }

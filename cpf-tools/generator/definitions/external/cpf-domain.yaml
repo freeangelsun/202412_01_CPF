@@ -8,6 +8,7 @@ database:
 preset: standard-enterprise
 modules:
   online: true
+  batch: false
 features:
   persistence: mybatis
   httpClient: true

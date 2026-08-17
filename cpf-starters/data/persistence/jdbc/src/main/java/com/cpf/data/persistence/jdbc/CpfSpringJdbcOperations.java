@@ -1,6 +1,6 @@
 package com.cpf.data.persistence.jdbc;
 
-import com.cpf.data.persistence.api.database.CpfJdbcOperations;
+import com.cpf.data.persistence.api.database.CpfNamedParameterJdbcOperations;
 import com.cpf.core.api.error.CpfSystemException;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Internal Spring JDBC adapter for the provider-neutral CPF data operation contract. */
-final class CpfSpringJdbcOperations implements CpfJdbcOperations {
+final class CpfSpringJdbcOperations implements CpfNamedParameterJdbcOperations {
     private final NamedParameterJdbcTemplate jdbc;
     private final TransactionTemplate transactions;
 
@@ -26,7 +26,7 @@ final class CpfSpringJdbcOperations implements CpfJdbcOperations {
     }
 
     @Override
-    public <T> List<T> queryList(
+    public <T> List<T> query(
             String sql,
             Map<String, ?> parameters,
             Class<T> resultType) {
@@ -41,11 +41,11 @@ final class CpfSpringJdbcOperations implements CpfJdbcOperations {
     }
 
     @Override
-    public <T> T queryOne(
+    public <T> T queryForObject(
             String sql,
             Map<String, ?> parameters,
             Class<T> resultType) {
-        List<T> rows = queryList(sql, parameters, resultType);
+        List<T> rows = query(sql, parameters, resultType);
         if (rows.size() > 1) {
             throw failure(
                     "queryOne",
@@ -65,7 +65,7 @@ final class CpfSpringJdbcOperations implements CpfJdbcOperations {
     }
 
     @Override
-    public <T> T inRollbackOnlyTransaction(Function<CpfJdbcOperations, T> callback) {
+    public <T> T inRollbackOnlyTransaction(Function<CpfNamedParameterJdbcOperations, T> callback) {
         Objects.requireNonNull(callback, "callback");
         return transactions.execute(status -> {
             T result = callback.apply(this);

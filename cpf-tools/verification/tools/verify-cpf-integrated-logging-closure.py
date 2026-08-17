@@ -115,7 +115,7 @@ def main() -> int:
         '/adm/api/logs',
         'transactionId',
         'traceId',
-        'serverInstanceId',
+        'instanceId',
     ), failures)
 
     file_smoke = require_file(root, file_smoke_path, failures)

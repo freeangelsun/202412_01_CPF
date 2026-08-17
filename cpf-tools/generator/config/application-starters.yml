@@ -247,7 +247,7 @@
       "configPrefix": "cpf.integration.ai"
     },
     {
-      "projectPath": ":internal:integration:fixed-length",
+      "projectPath": ":starters:integration:fixed-length",
       "ownerPath": "cpf-starters/integration/fixed-length",
       "groupId": "com.cpf.starter",
       "artifactId": "cpf-starter-integration-fixed-length",
@@ -640,7 +640,7 @@
       "role": "provider",
       "ownerGroup": "security",
       "internalRole": "provider",
-      "packageBase": "com.cpf.security.resourceserver",
+      "packageBase": "com.cpf.security.resource",
       "configPrefix": "cpf.security.resource-server"
     },
     {
@@ -1427,7 +1427,8 @@
       ],
       "apiProjects": [
         ":starters:profiles:web-api",
-        ":framework:integration"
+        ":framework:integration",
+        ":framework:security"
       ],
       "requiredCapabilities": [
         "web",
@@ -1552,7 +1553,7 @@
     },
     "integration-codec": {
       "fixed-length": {
-        "projectPath": ":internal:integration:fixed-length",
+        "projectPath": ":starters:integration:fixed-length",
         "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
       },
       "iso8583": {
@@ -1629,6 +1630,96 @@
         "projectPath": ":internal:platform-operations:runtime-health:jdbc",
         "coordinate": "com.cpf.starter:cpf-starter-platform-operations-runtime-health-jdbc"
       }
+    }
+  },
+  "profileDefinitions": {
+    "web-api": {
+      "artifactId": "cpf-starter-web-api",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "requiredCapabilities": [
+        "web"
+      ],
+      "providerSlots": []
+    },
+    "secure-api": {
+      "artifactId": "cpf-starter-secure-api",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security",
+        ":internal:security:resource-server",
+        ":framework:integration",
+        ":internal:integration:http",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api",
+        ":framework:integration"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": []
+    },
+    "bff": {
+      "artifactId": "cpf-starter-bff",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": [
+        "security-mode"
+      ]
+    },
+    "event": {
+      "artifactId": "cpf-starter-event",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:messaging",
+        ":framework:integration",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:base"
+      ],
+      "requiredCapabilities": [
+        "messaging"
+      ],
+      "providerSlots": [
+        "messaging"
+      ]
+    },
+    "batch": {
+      "artifactId": "cpf-starter-batch",
+      "runtimeProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":runtime:batch:runtime",
+        ":framework:integration",
+        ":internal:integration:resilience",
+        ":internal:integration:http"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":framework:integration"
+      ],
+      "requiredCapabilities": [],
+      "providerSlots": []
     }
   }
 }

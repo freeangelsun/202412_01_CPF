@@ -24,8 +24,8 @@ public class CpfKafkaAutoConfiguration {
     CpfMessageBridgeContextSupport cpfMessageBridgeContextSupport(CpfExecutionIdGenerator executionIds) { return new CpfMessageBridgeContextSupport(executionIds); }
 
     @Bean
-    @ConditionalOnMissingBean(KafkaCpfBrokerClient.class)
-    KafkaCpfBrokerClient cpfKafkaBrokerClient(KafkaTemplate<String,byte[]> kafkaTemplate,CpfKafkaProperties properties){return new KafkaCpfBrokerClient(kafkaTemplate,properties);}
+    @ConditionalOnMissingBean(KafkaCpfMessagingTemplate.class)
+    KafkaCpfMessagingTemplate cpfKafkaBrokerClient(KafkaTemplate<String,byte[]> kafkaTemplate,CpfKafkaProperties properties){return new KafkaCpfMessagingTemplate(kafkaTemplate,properties);}
 
     @Bean(destroyMethod = "close")
     @ConditionalOnMissingBean(CpfBrokerBridgePort.class)

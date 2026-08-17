@@ -1,7 +1,6 @@
 package com.cpf.batch.control.security;
 
 import com.cpf.batch.api.BatControlHeaders;
-import com.cpf.web.api.CpfHeaders;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -73,8 +72,8 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        String callerService = normalized(request.getHeader(CpfHeaders.callerService()));
-        String callerInstance = normalized(request.getHeader(CpfHeaders.callerInstanceId()));
+        String callerService = normalized(request.getHeader(BatControlHeaders.CALLER_SERVICE));
+        String callerInstance = normalized(request.getHeader(BatControlHeaders.CALLER_INSTANCE_ID));
         String certificateSubject = certificateSubject(request);
 
         if (isProduct()) {
@@ -110,7 +109,7 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String operatorId = normalized(request.getHeader(CpfHeaders.operatorId()));
+        String operatorId = normalized(request.getHeader(BatControlHeaders.OPERATOR_ID));
         if ("ADM".equalsIgnoreCase(callerService) && operatorId == null) {
             unauthorized(response, "BAT ADM caller requires a verified operator identity");
             return;
@@ -123,12 +122,8 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
                 callerService,
                 callerInstance,
                 certificateSubject,
-                firstNonBlank(
-                        request.getHeader(CpfHeaders.approvalRequestId()),
-                        request.getHeader(BatControlHeaders.APPROVAL_REQUEST_ID)),
-                firstNonBlank(
-                        request.getHeader(CpfHeaders.approvalRequesterId()),
-                        request.getHeader(BatControlHeaders.APPROVAL_REQUESTER_ID)));
+                normalized(request.getHeader(BatControlHeaders.APPROVAL_REQUEST_ID)),
+                normalized(request.getHeader(BatControlHeaders.APPROVAL_REQUESTER_ID)));
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("BAT_AUTHENTICATED"));
@@ -151,10 +146,6 @@ public final class BatControlAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private static String firstNonBlank(String canonical, String legacyAlias) {
-        String value = normalized(canonical);
-        return value != null ? value : normalized(legacyAlias);
-    }
 
     private boolean isProduct() {
         return activeProfiles.stream().anyMatch(PRODUCT_PROFILES::contains);

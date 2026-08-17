@@ -1,7 +1,6 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.platform.operations.observability.api.remotelog.CpfRemoteLogArtifact;
 import com.cpf.platform.operations.observability.api.remotelog.CpfRemoteLogBundle;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -36,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 /** ADM에서 CPF 로그 아티팩트 port를 통해 안전한 로그 조회와 다운로드를 제공합니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/remote-logs")
 @Tag(name = "ADM-OPR Remote Log", description = "실행 인스턴스 로그 아티팩트 조회, 미리보기, 다운로드")
 public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseController {
@@ -54,9 +53,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping
-    @CpfOnlineTransaction(id = "OADMRL0006", name = "ADM원격로그목록조회", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogSearch", summary = "로그 아티팩트 목록 조회",
+    @GetMapping    @Operation(operationId = "admRemoteLogSearch", summary = "로그 아티팩트 목록 조회",
             description = "절대경로를 노출하지 않고 허용된 로그 root 아래의 파일 메타데이터만 조회합니다.")
     public ResponseEntity<List<CpfRemoteLogArtifact>> search(
             @RequestParam(required = false) String environment,
@@ -88,9 +85,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
                 modifiedFrom, modifiedTo, minSize, maxSize, compressed, active, limit)));
     }
 
-    @GetMapping("/{artifactId}/preview")
-    @CpfOnlineTransaction(id = "OADMRL0007", name = "ADM원격로그미리보기", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogPreview", summary = "로그 아티팩트 미리보기",
+    @GetMapping("/{artifactId}/preview")    @Operation(operationId = "admRemoteLogPreview", summary = "로그 아티팩트 미리보기",
             description = "마스킹을 다시 적용한 마지막 N개 로그 행과 검색 결과를 반환합니다.")
     public ResponseEntity<CpfRemoteLogPreview> preview(
             @PathVariable String artifactId,
@@ -99,9 +94,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(remoteLogArtifactPort.preview(artifactId, lastLines, keyword));
     }
 
-    @GetMapping("/{artifactId}/download")
-    @CpfOnlineTransaction(id = "OADMRL0002", name = "ADM원격로그다운로드", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogDownload", summary = "로그 아티팩트 다운로드",
+    @GetMapping("/{artifactId}/download")    @Operation(operationId = "admRemoteLogDownload", summary = "로그 아티팩트 다운로드",
             description = "권한이 확인된 단일 로그 아티팩트를 안전한 파일명으로 다운로드합니다.")
     public ResponseEntity<FileSystemResource> download(
             @PathVariable String artifactId,
@@ -124,9 +117,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
                 .body(resource);
     }
 
-    @PostMapping("/bundles")
-    @CpfOnlineTransaction(id = "OADMRL0003", name = "ADM원격로그묶음다운로드", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogBundleDownload", summary = "선택 로그 ZIP 다운로드",
+    @PostMapping("/bundles")    @Operation(operationId = "admRemoteLogBundleDownload", summary = "선택 로그 ZIP 다운로드",
             description = "여러 인스턴스의 선택 로그를 checksum manifest가 포함된 ZIP으로 만들고 부분 실패 건수를 헤더로 반환합니다.")
     public ResponseEntity<FileSystemResource> bundle(
             @RequestBody BundleRequest bundleRequest,
@@ -150,9 +141,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
                 .body(resource);
     }
 
-    @PostMapping("/bundle-jobs")
-    @CpfOnlineTransaction(id = "OADMRL0001", name = "ADM원격로그비동기묶음요청", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogBundleJobCreate", summary = "비동기 로그 ZIP 작업 등록",
+    @PostMapping("/bundle-jobs")    @Operation(operationId = "admRemoteLogBundleJobCreate", summary = "비동기 로그 ZIP 작업 등록",
             description = "선택 로그 ZIP 생성을 queue에 등록하고 소유 운영자에게만 노출되는 작업 ID를 반환합니다.")
     public ResponseEntity<CpfRemoteLogBundleJob> createBundleJob(
             @RequestBody BundleRequest bundleRequest,
@@ -166,9 +155,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(job);
     }
 
-    @GetMapping("/bundle-jobs/{jobId}")
-    @CpfOnlineTransaction(id = "OADMRL0009", name = "ADM원격로그비동기묶음상태조회", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogBundleJobFind", summary = "비동기 로그 ZIP 작업 상태 조회",
+    @GetMapping("/bundle-jobs/{jobId}")    @Operation(operationId = "admRemoteLogBundleJobFind", summary = "비동기 로그 ZIP 작업 상태 조회",
             description = "현재 운영자가 등록한 작업의 queue, 실행, 완료, 실패 상태와 부분 실패 정보를 조회합니다.")
     public ResponseEntity<CpfRemoteLogBundleJob> findBundleJob(
             @PathVariable String jobId,
@@ -176,9 +163,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(remoteLogBundleJobPort.find(jobId, operatorId(request)));
     }
 
-    @PostMapping("/bundle-jobs/{jobId}/download-tokens")
-    @CpfOnlineTransaction(id = "OADMRL0005", name = "ADM원격로그다운로드토큰발급", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogBundleDownloadTokenIssue", summary = "1회성 다운로드 token 발급",
+    @PostMapping("/bundle-jobs/{jobId}/download-tokens")    @Operation(operationId = "admRemoteLogBundleDownloadTokenIssue", summary = "1회성 다운로드 token 발급",
             description = "완료된 비동기 ZIP 작업에 대해 짧은 유효기간의 1회성 token을 발급합니다. 재다운로드는 새 token을 발급해야 합니다.")
     public ResponseEntity<CpfRemoteLogDownloadGrant> issueDownloadToken(
             @PathVariable String jobId,
@@ -193,9 +178,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(grant);
     }
 
-    @GetMapping("/bundle-jobs/{jobId}/download")
-    @CpfOnlineTransaction(id = "OADMRL0004", name = "ADM원격로그비동기묶음다운로드", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogBundleJobDownload", summary = "비동기 로그 ZIP 다운로드",
+    @GetMapping("/bundle-jobs/{jobId}/download")    @Operation(operationId = "admRemoteLogBundleJobDownload", summary = "비동기 로그 ZIP 다운로드",
             description = "현재 운영자에게 발급된 유효한 1회성 token을 소비해 ZIP 파일을 다운로드합니다.")
     public ResponseEntity<FileSystemResource> downloadBundleJob(
             @PathVariable String jobId,
@@ -221,9 +204,7 @@ public class AdmRemoteLogController extends com.cpf.admin.common.base.AdmBaseCon
                 .body(resource);
     }
 
-    @GetMapping("/diagnostics")
-    @CpfOnlineTransaction(id = "OADMRL0008", name = "ADM원격로그진단조회", ownerDomain="ADM")
-    @Operation(operationId = "admRemoteLogDiagnostics", summary = "원격 로그 adapter 진단",
+    @GetMapping("/diagnostics")    @Operation(operationId = "admRemoteLogDiagnostics", summary = "원격 로그 adapter 진단",
             description = "adapter 종류, timeout과 마지막 instance별 부분 실패를 확인합니다. service token 원문은 노출하지 않습니다.")
     public ResponseEntity<Map<String, Object>> diagnostics() {
         Map<String, Object> diagnostics = new LinkedHashMap<>();

@@ -1,9 +1,9 @@
 package com.cpf.common.runtime.cache;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,6 @@ public class CpfCommonCacheRefreshListener {
     private final CpfCommonCacheRefreshEventRepository repository;
     private final CpfCommonCacheRefresher refresher;
     private final Clock clock;
-    @Value("${cpf.runtime.instance-id:${cpf.framework.was-id:local}}") private String instanceId;
     @Value("${cpf.common.cache.event-poll-enabled:true}") private boolean enabled;
     @Value("${cpf.common.cache.event-poll-limit:256}") private int pollLimit;
     private volatile long lastEventId;
@@ -86,7 +85,7 @@ public class CpfCommonCacheRefreshListener {
     /** 운영 조회용으로 현재 consumer checkpoint와 최근 성공/실패 상태를 노출합니다. */
     public Status status() { return new Status(enabled, consumerId(), lastEventId, lastSuccess, lastFailureType); }
     private void success() { lastSuccess = clock.instant(); lastFailureType = null; }
-    private String consumerId() { return "CMN_CACHE:" + (instanceId == null || instanceId.isBlank() ? "local" : instanceId.trim()); }
+    private String consumerId() { return "CMN_CACHE:" + CpfInstanceIdentity.instanceId(); }
     private static long asLong(Object first, Object second) { Object v=first!=null?first:second; return v instanceof Number n?n.longValue():Long.parseLong(String.valueOf(v)); }
     private static String asString(Object first, Object second) { Object v=first!=null?first:second; return v==null?"":String.valueOf(v); }
     /** Cache replay consumer의 운영 상태를 불변 값으로 전달합니다. */

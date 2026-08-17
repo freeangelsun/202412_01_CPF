@@ -2,7 +2,7 @@ package com.cpf.data.persistence.jdbc;
 
 import java.sql.Connection;
 import java.sql.Statement;
-import com.cpf.data.persistence.api.database.CpfJdbcOperations;
+import com.cpf.data.persistence.api.database.CpfNamedParameterJdbcOperations;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -25,8 +25,8 @@ public class CpfJdbcStarterAutoConfiguration {
     @ConditionalOnBean({DataSource.class, PlatformTransactionManager.class})
     @ConditionalOnSingleCandidate(DataSource.class)
     @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
-    @ConditionalOnMissingBean(CpfJdbcOperations.class)
-    CpfJdbcOperations cpfJdbcOperations(
+    @ConditionalOnMissingBean(CpfNamedParameterJdbcOperations.class)
+    CpfNamedParameterJdbcOperations cpfJdbcOperations(
             DataSource dataSource,
             PlatformTransactionManager transactionManager) {
         return new CpfSpringJdbcOperations(

@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.auth.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.BzaOperatorRow;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository.LoginHistoryWrite;
@@ -26,7 +26,7 @@ public class BzaLoginTransactionService {
         this.repository = repository;
     }
 
-    @CpfTx(id="BZA_BZALOGINTRANSACTIONSERVICE_RECORDFAILURE", name="BZA_BZALOGINTRANSACTIONSERVICE_RECORDFAILURE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public void recordFailure(LoginFailureCommand command) {
         if (command.increaseFailCount() && command.adminUserId() != null) {
             repository.increaseLoginFailCount(command.adminUserId());
@@ -34,10 +34,10 @@ public class BzaLoginTransactionService {
         repository.insertLoginHistory(new LoginHistoryWrite(
                 command.adminUserId(), LOGIN_DOMAIN, command.loginId(), "FAIL", command.reason(),
                 command.clientIp(), command.userAgent(), command.transactionId(), command.moduleId(),
-                command.wasId(), command.serverInstanceId()));
+                command.wasId(), command.instanceId()));
     }
 
-    @CpfTx(id="BZA_BZALOGINTRANSACTIONSERVICE_COMMITSUCCESS", name="BZA_BZALOGINTRANSACTIONSERVICE_COMMITSUCCESS", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public LoginCommitResult commitSuccess(LoginSuccessCommand command) {
         boolean created = repository.insertLoginOperation(
                 command.operationId(), command.operator().adminUserId(), command.operator().loginId(), command.requestHash());
@@ -81,7 +81,7 @@ public class BzaLoginTransactionService {
         repository.insertLoginHistory(new LoginHistoryWrite(
                 command.operator().adminUserId(), LOGIN_DOMAIN, command.operator().loginId(), "SUCCESS", null,
                 command.clientIp(), command.userAgent(), command.transactionId(), command.moduleId(),
-                command.wasId(), command.serverInstanceId()));
+                command.wasId(), command.instanceId()));
         repository.insertRefreshToken(new RefreshTokenWrite(
                 command.operator().adminUserId(), LOGIN_DOMAIN, command.refreshTokenHash(), command.transactionId(),
                 command.operationId(), command.refreshExpireAt()));
@@ -103,7 +103,7 @@ public class BzaLoginTransactionService {
             String transactionId,
             String moduleId,
             String wasId,
-            String serverInstanceId) {
+            String instanceId) {
     }
 
     public record LoginSuccessCommand(
@@ -122,7 +122,7 @@ public class BzaLoginTransactionService {
             String transactionId,
             String moduleId,
             String wasId,
-            String serverInstanceId) {
+            String instanceId) {
     }
 
     public record LoginCommitResult(

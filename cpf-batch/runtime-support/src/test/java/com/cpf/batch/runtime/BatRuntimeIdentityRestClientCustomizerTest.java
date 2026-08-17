@@ -1,8 +1,9 @@
 package com.cpf.batch.runtime;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.batch.api.RuntimeRegistration;
 import com.cpf.batch.api.RuntimeRole;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
@@ -37,12 +38,12 @@ class BatRuntimeIdentityRestClientCustomizerTest {
         BatRuntimeIdentityRestClientCustomizer customizer =
                 new BatRuntimeIdentityRestClientCustomizer(registration);
         HttpHeaders headers = new HttpHeaders();
-        headers.set(CpfHeaders.callerService(), "SPOOFED");
-        headers.set(CpfHeaders.callerInstanceId(), "spoofed-instance");
+        headers.set(BatControlHeaders.CALLER_SERVICE, "SPOOFED");
+        headers.set(BatControlHeaders.CALLER_INSTANCE_ID, "spoofed-instance");
 
         customizer.applyIdentity(headers);
 
-        assertThat(headers.getFirst(CpfHeaders.callerService())).isEqualTo("BAT");
-        assertThat(headers.getFirst(CpfHeaders.callerInstanceId())).isEqualTo("worker-a");
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_SERVICE)).isEqualTo("BAT");
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_INSTANCE_ID)).isEqualTo("worker-a");
     }
 }

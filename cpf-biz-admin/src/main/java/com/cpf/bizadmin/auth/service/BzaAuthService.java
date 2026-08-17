@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.auth.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.common.model.BzaAdminAccountStatus;
 import com.cpf.bizadmin.auth.dto.*;
 
@@ -14,9 +14,9 @@ import com.cpf.security.common.token.CmnJwtCreateRequest;
 import com.cpf.security.common.token.CmnJwtService;
 import com.cpf.security.common.token.CmnJwtValidationResult;
 import com.cpf.foundation.util.CpfStrings;
-import com.cpf.platform.operations.observability.api.logging.CpfServerIdentity;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import com.cpf.core.api.context.CpfContexts;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.security.api.password.CpfPasswordVerification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
 
     private final CmnJwtService jwtService;
     private final CmnCryptoService cryptoService;
-    private final CpfPasswordService passwordHashingPort;
+    private final CpfPasswordEncoder passwordHashingPort;
     private final BzaAuthRepository authRepository;
     private final BzaBusinessAuditService auditService;
     private final BzaLoginTransactionService loginTransactionService;
@@ -56,7 +56,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     public BzaAuthService(
             CmnJwtService jwtService,
             CmnCryptoService cryptoService,
-            CpfPasswordService passwordHashingPort,
+            CpfPasswordEncoder passwordHashingPort,
             BzaAuthRepository authRepository,
             BzaBusinessAuditService auditService,
             BzaLoginTransactionService loginTransactionService,
@@ -121,7 +121,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
         String accessTokenEnc = cryptoService.aesGcmEncrypt(accessToken, resultSecret);
         String refreshTokenEnc = cryptoService.aesGcmEncrypt(refreshToken, resultSecret);
         String upgradedHash = verification.rehashRequired() ? hashPassword(password) : null;
-        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
+        CpfInstanceIdentity.Identity identity = CpfInstanceIdentity.current();
         BzaLoginTransactionService.LoginCommitResult commit = loginTransactionService.commitSuccess(
                 new BzaLoginTransactionService.LoginSuccessCommand(
                         operationId,
@@ -139,7 +139,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
                         CpfContexts.transactionId(),
                         moduleId,
                         wasId,
-                        identity.serverInstanceId()));
+                        identity.instanceId()));
 
         // response-loss 재시도는 최초 성공 결과 암호문을 그대로 복호화하여 새 refresh session을 만들지 않습니다.
         String committedAccessToken = cryptoService.aesGcmDecrypt(commit.resultAccessTokenEnc(), resultSecret);
@@ -155,7 +155,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     /**
      * refresh token hash를 DB에서 검증한 뒤 access token을 재발급합니다.
      */
-    @CpfTx(id="BZA_BZAAUTHSERVICE_REFRESH", name="BZA_BZAAUTHSERVICE_REFRESH", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public LoginResult refresh(RefreshRequest request) {
         String refreshToken = CpfStrings.requireText(request.refreshToken(), "refreshToken");
         String refreshHash = cryptoService.sha256Base64Url(refreshToken);
@@ -240,7 +240,7 @@ public class BzaAuthService extends com.cpf.bizadmin.common.base.BzaBaseService 
     }
 
     /** 현재 사용자 소유의 refresh session을 사유와 함께 폐기합니다. */
-    @CpfTx(id="BZA_BZAAUTHSERVICE_REVOKESESSION", name="BZA_BZAAUTHSERVICE_REVOKESESSION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public BzaSessionRevokeResponse revokeSession(
             String authorizationHeader,
             long sessionId,
@@ -256,7 +256,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
     }
 
     /** 현재 비밀번호를 확인한 뒤 CPF 공통 형식으로 비밀번호를 교체합니다. */
-    @CpfTx(id="BZA_BZAAUTHSERVICE_CHANGEPASSWORD", name="BZA_BZAAUTHSERVICE_CHANGEPASSWORD", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public BzaPasswordChangeResponse changePassword(String authorizationHeader, PasswordChangeRequest request) {
         CmnJwtValidationResult token = validateAccessToken(authorizationHeader);
         String loginId = String.valueOf(token.claims().get("loginId"));
@@ -293,7 +293,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
         claims.put("roleCode", operator.roleCode());
         claims.put("moduleId", moduleId);
         claims.put("wasId", wasId);
-        claims.put("serverInstanceId", CpfServerIdentity.current().serverInstanceId());
+        claims.put("instanceId", CpfInstanceIdentity.current().instanceId());
         claims.put("menus", operator.menus());
         claims.put("buttons", operator.buttons());
         return jwtService.createHs256Token(new CmnJwtCreateRequest(
@@ -396,10 +396,10 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
 
     private BzaLoginTransactionService.LoginFailureCommand failureCommand(
             Long adminUserId, String loginId, String reason, String clientIp, String userAgent, boolean increaseFailCount) {
-        CpfServerIdentity.Identity identity = CpfServerIdentity.current();
+        CpfInstanceIdentity.Identity identity = CpfInstanceIdentity.current();
         return new BzaLoginTransactionService.LoginFailureCommand(
                 adminUserId, loginId, reason, clientIp, userAgent, increaseFailCount,
-                CpfContexts.transactionId(), moduleId, wasId, identity.serverInstanceId());
+                CpfContexts.transactionId(), moduleId, wasId, identity.instanceId());
     }
 
     private BzaOperatorResponse toOperatorResponse(BzaOperatorRow operator) {
@@ -422,7 +422,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "bza_refresh_token", S
                 text(row, "transactionId", "transaction_id", "TRANSACTION_ID"),
                 text(row, "moduleId", "module_id", "MODULE_ID"),
                 text(row, "wasId", "was_id", "WAS_ID"),
-                text(row, "serverInstanceId", "server_instance_id", "SERVER_INSTANCE_ID"),
+                text(row, "instanceId", "instance_id", "INSTANCE_ID"),
                 instant(row, "createdAt", "created_at", "CREATED_AT"));
     }
 

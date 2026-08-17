@@ -8,6 +8,7 @@ import com.cpf.platform.operations.channelregistry.model.CpfChannelPolicyPackage
 import com.cpf.platform.operations.channelregistry.model.CpfChannelPolicySnapshot;
 
 import java.time.Instant;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,9 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class CpfChannelPolicyService {
     private final CpfChannelRegistryPort registryPort;
     private final AtomicReference<CpfChannelPolicySnapshot> snapshotReference;
+    private final Duration maxStale;
 
     public CpfChannelPolicyService(CpfChannelRegistryPort registryPort) {
-        this(registryPort, true);
+        this(registryPort, true, Duration.ofMinutes(5));
     }
 
     /**
@@ -33,9 +35,14 @@ public class CpfChannelPolicyService {
      * 여전히 저장소 오류를 그대로 전파합니다.</p>
      */
     public CpfChannelPolicyService(CpfChannelRegistryPort registryPort, boolean loadOnStartup) {
-        this.registryPort = registryPort;
-        this.snapshotReference = new AtomicReference<>(
-                loadOnStartup ? registryPort.loadSnapshot() : CpfChannelPolicySnapshot.denyAll());
+        this(registryPort, loadOnStartup, Duration.ofMinutes(5));
+    }
+
+    public CpfChannelPolicyService(CpfChannelRegistryPort registryPort, boolean loadOnStartup, Duration maxStale) {
+        this.registryPort = java.util.Objects.requireNonNull(registryPort, "registryPort");
+        if (maxStale == null || maxStale.isZero() || maxStale.isNegative()) throw new IllegalArgumentException("maxStale must be positive");
+        this.maxStale = maxStale;
+        this.snapshotReference = new AtomicReference<>(loadOnStartup ? loadFresh() : CpfChannelPolicySnapshot.denyAll(maxStale));
     }
 
     public CpfChannelPolicySnapshot snapshot() {
@@ -43,9 +50,17 @@ public class CpfChannelPolicyService {
     }
 
     public synchronized CpfChannelPolicySnapshot refresh() {
-        CpfChannelPolicySnapshot loaded = registryPort.loadSnapshot();
-        snapshotReference.set(loaded);
-        return loaded;
+        try {
+            CpfChannelPolicySnapshot loaded = loadFresh(); snapshotReference.set(loaded); return loaded;
+        } catch (RuntimeException ex) {
+            CpfChannelPolicySnapshot current=snapshotReference.get(); Instant now=Instant.now();
+            if (current != null && !current.expiredAt(now)) {
+                CpfChannelPolicySnapshot lkg=current.withStatus(CpfChannelPolicySnapshot.Status.REFRESH_FAILED);
+                snapshotReference.set(lkg); return lkg;
+            }
+            if(current!=null)snapshotReference.set(current.withStatus(CpfChannelPolicySnapshot.Status.EXPIRED));
+            throw ex;
+        }
     }
 
     public CpfChannelPolicyDecision evaluate(
@@ -56,6 +71,11 @@ public class CpfChannelPolicyService {
             boolean authenticated,
             boolean signed) {
         CpfChannelPolicySnapshot snapshot = snapshotReference.get();
+        Instant now=Instant.now();
+        if (snapshot == null || snapshot.expiredAt(now) || snapshot.status() == CpfChannelPolicySnapshot.Status.EXPIRED) {
+            return new CpfChannelPolicyDecision(false, "채널 정책 LKG가 없거나 maxStale을 초과했습니다.",
+                    snapshot == null ? -1 : snapshot.version(), "", false, false, 0);
+        }
         String original = normalize(originalChannelCode);
         String caller = normalize(callerChannelCode);
         String type = normalize(requestType);
@@ -165,6 +185,13 @@ public class CpfChannelPolicyService {
                 authenticationRequired, signatureRequired, policy.maxTps());
     }
 
+
+    private CpfChannelPolicySnapshot loadFresh() {
+        CpfChannelPolicySnapshot raw=registryPort.loadSnapshot();
+        Instant now=Instant.now();
+        return new CpfChannelPolicySnapshot(raw.version(), now, now.plus(maxStale),
+                CpfChannelPolicySnapshot.Status.CURRENT, raw.channels(), raw.policies());
+    }
     private CpfChannelPolicyDecision denied(CpfChannelPolicySnapshot snapshot, String reason) {
         return new CpfChannelPolicyDecision(false, reason, snapshot.version(), "", false, false, 0);
     }

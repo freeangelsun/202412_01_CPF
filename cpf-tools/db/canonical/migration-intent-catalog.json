@@ -68,6 +68,18 @@
         "oracle"
       ],
       "lifecycleScenarioId": "CPF-DB3-QAB3-ADM-INCIDENT-001"
+    },
+    {
+      "id": "D-011-TRANSACTION-CONTEXT-HEADER-CURRENTIZATION",
+      "owner": "cpf-starters/platform-operations/observability",
+      "description": "Rename transaction logging client/system/target fields to the canonical Header/Context contract and add target operation correlation while preserving existing data by in-place migration.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-D011-TRANSACTION-CONTEXT-001"
     }
   ]
 }

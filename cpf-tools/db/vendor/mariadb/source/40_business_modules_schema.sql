@@ -441,7 +441,7 @@ CREATE TABLE IF NOT EXISTS BZA_LOGIN_HISTORY (
     transaction_id CHAR(34) NULL COMMENT 'CPF 전역 transactionId',
     module_id VARCHAR(3) NULL COMMENT '모듈 ID',
     was_id VARCHAR(7) NULL COMMENT 'WAS ID',
-    server_instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
+    instance_id VARCHAR(200) NULL COMMENT '서버 인스턴스 ID',
     created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
     updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',

@@ -159,9 +159,10 @@ def start(ns) -> int:
     env = load_env_file(cfg.get("envFile", ""))
     java = env.get("CPF_JAVA", "java")
     java_opts = shlex.split(env.get("CPF_JAVA_OPTS", "-Xms256m -Xmx768m"), posix=os.name != "nt")
+    env["CPF_RUNTIME_INSTANCE_ID"] = instance_id
     cmd = [java, *java_opts, "-Dfile.encoding=UTF-8", "-jar", str(jar),
            f"--spring.profiles.active={cfg['profile']}", f"--server.port={cfg['port']}",
-           f"--cpf.environment={cfg.get('environment') or cfg['profile']}", f"--cpf.instance-id={instance_id}"]
+           f"--cpf.environment={cfg.get('environment') or cfg['profile']}"]
     stdout = (inst / "logs" / "app.out.log").open("ab")
     stderr = (inst / "logs" / "app.err.log").open("ab")
     kwargs = {"cwd": str(inst / "work"), "env": env, "stdin": subprocess.DEVNULL, "stdout": stdout, "stderr": stderr}

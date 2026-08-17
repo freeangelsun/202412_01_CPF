@@ -120,7 +120,7 @@ VALUES (
 )
 ON CONFLICT (admin_login_id) DO UPDATE SET admin_name=EXCLUDED.admin_name, role_code=EXCLUDED.role_code, use_yn=EXCLUDED.use_yn, lock_yn=EXCLUDED.lock_yn, login_fail_count=EXCLUDED.login_fail_count, password_change_required_yn=EXCLUDED.password_change_required_yn, password_expire_at=EXCLUDED.password_expire_at, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, server_instance_id, created_by, updated_by)
+INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by)
 SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
        '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER

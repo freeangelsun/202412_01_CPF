@@ -3,6 +3,6 @@ export interface FindAdmBatchJobInstanceLogsParams {
   businessDate?: string;
   jobName?: string;
   jobInstanceId?: number;
-  serverInstanceId?: string;
+  instanceId?: string;
   limit?: number;
 }

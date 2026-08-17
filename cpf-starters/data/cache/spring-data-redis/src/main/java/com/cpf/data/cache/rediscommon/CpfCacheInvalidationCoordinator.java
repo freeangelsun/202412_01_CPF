@@ -3,7 +3,7 @@ package com.cpf.data.cache.rediscommon;
 import com.cpf.data.cache.api.CpfCacheInvalidationEvent;
 import com.cpf.data.cache.api.CpfCacheInvalidationPort;
 import com.cpf.data.cache.api.CpfCacheKey;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -23,14 +23,14 @@ public final class CpfCacheInvalidationCoordinator {
         void publish(String eventKey);
     }
 
-    private final CpfCachePort cache;
+    private final CpfCache cache;
     private final CpfCacheInvalidationPort durable;
     private final FastSignalPublisher fastSignals;
     private final CpfCacheInvalidationProperties properties;
     private final ConcurrentHashMap<String, ReentrantLock> subjectLocks = new ConcurrentHashMap<>();
 
     public CpfCacheInvalidationCoordinator(
-            CpfCachePort cache,
+            CpfCache cache,
             CpfCacheInvalidationPort durable,
             FastSignalPublisher fastSignals,
             CpfCacheInvalidationProperties properties) {

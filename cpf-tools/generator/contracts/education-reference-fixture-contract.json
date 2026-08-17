@@ -57,7 +57,7 @@
       "migrationVersion": 93,
       "dependencies": [],
       "runtimeBindings": [
-        "operation_id",
+        "execution_id",
         "requirement_id",
         "data_scope",
         "business_key",
@@ -80,8 +80,17 @@
         "rollback": "rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
         "runtimeQuery": "runtime/ref/manual_edu_135_operation_queries.sql",
         "verify": "verify/93_verify_manual_edu_135_operation_ledger.sql",
-        "checksum": "migration/flyway/refDB/checksums.sha256"
-      }
+        "checksum": "migration/flyway/refDB/checksums.sha256",
+        "currentizationMigration": "migration/flyway/refDB/V95__edu_execution_id_currentization.sql",
+        "currentizationRollback": "rollback/refDB/U95__edu_execution_id_currentization.sql"
+      },
+      "currentizationVersion": 95,
+      "currentizationTables": [
+        "CPF_EDU_OPERATION",
+        "CPF_EDU_OPERATION_TARGET",
+        "CPF_EDU_OPERATION_AUDIT",
+        "CPF_EDU_OUTBOX"
+      ]
     },
     "batch": {
       "vendorPackKey": "referenceBatchPack",
@@ -123,12 +132,22 @@
         "after-u93"
       ]
     },
-    "core": {
+    "coreLegacy": {
       "enabledPacks": [
         "core"
       ],
       "aliases": [
         "after-v93",
+        "before-v95",
+        "after-u95"
+      ]
+    },
+    "core": {
+      "enabledPacks": [
+        "core"
+      ],
+      "aliases": [
+        "after-v95",
         "batch-off",
         "after-u94"
       ]
@@ -148,6 +167,11 @@
     {
       "from": "baseline",
       "operation": "V93",
+      "to": "coreLegacy"
+    },
+    {
+      "from": "coreLegacy",
+      "operation": "V95",
       "to": "core"
     },
     {
@@ -162,6 +186,11 @@
     },
     {
       "from": "core",
+      "operation": "U95",
+      "to": "coreLegacy"
+    },
+    {
+      "from": "coreLegacy",
       "operation": "U93",
       "to": "baseline"
     }

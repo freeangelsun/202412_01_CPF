@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.batch.runtime;
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.admin.approval.service.AdmApprovalService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * ADM Batch Control Plane facade. 조회 실패를 정상 빈 목록으로 위장하지 않고 stale/partial로 반환합니다.
  */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/batch-runtime")
 @Tag(name = "ADM-Batch-Runtime", description = "BAT Control Server 기반 Runtime 운영 API")
 public class BatchRuntimeControlController extends AdmBaseController {

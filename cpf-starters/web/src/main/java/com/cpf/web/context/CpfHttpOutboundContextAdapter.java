@@ -2,64 +2,107 @@ package com.cpf.web.context;
 
 import com.cpf.core.api.context.CpfContext;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Core Context를 bounded HTTP Header carrier로 변환하는 Web Owner adapter입니다.
- * 내부 호출은 Tx/Exec lineage를 반드시 전파하고 외부 호출에는 필요한 end-to-end 값만 노출합니다.
- */
+/** Builds outbound HTTP headers at the exact internal/external trust boundary. */
 public final class CpfHttpOutboundContextAdapter {
+    private final CpfRuntimeIdentity runtime;
+    private final CpfHeaderPolicyRegistry policies;
+
+    /** Compatibility constructor for tests/legacy consumers; runtime identity is inferred from context when possible. */
+    public CpfHttpOutboundContextAdapter() { this(null, new CpfHeaderPolicyRegistry(null)); }
+    public CpfHttpOutboundContextAdapter(CpfRuntimeIdentity runtime, CpfHeaderPolicyRegistry policies) {
+        this.runtime = runtime;
+        this.policies = policies == null ? new CpfHeaderPolicyRegistry(null) : policies;
+    }
+
     public Map<String,String> headers(CpfContext context, CpfWebContext interaction, CpfHttpOutboundRequest request) {
         Objects.requireNonNull(context, "context");
         CpfHttpOutboundRequest target = request == null
-                ? new CpfHttpOutboundRequest(null, null, null, false)
-                : request;
-        Map<String,String> headers = new LinkedHashMap<>();
-        put(headers, CpfHttpHeaderNames.CORRELATION_ID, context.transaction().correlationId());
-        if (context.operation() != null) {
-            put(headers, CpfHttpHeaderNames.IDEMPOTENCY_KEY, context.operation().idempotencyKey());
-        }
-        if (interaction != null) {
-            put(headers, CpfHttpHeaderNames.TRACEPARENT, interaction.traceparent());
-            put(headers, CpfHttpHeaderNames.TRACESTATE, interaction.tracestate());
-        }
-        if (!target.trustedInternal()) return Map.copyOf(headers);
+                ? new CpfHttpOutboundRequest(null, null, null, false, Map.of()) : request;
+        LinkedHashMap<String,String> headers = new LinkedHashMap<>();
 
-        // 신뢰된 내부 hop은 추적 lineage가 끊기지 않도록 필수 거래 Header를 항상 생성합니다.
-        putRequired(headers, CpfHttpHeaderNames.TRANSACTION_ID, context.transaction().transactionId());
-        putRequired(headers, CpfHttpHeaderNames.EXECUTION_ID, context.execution().executionId());
-        put(headers, CpfHttpHeaderNames.ROOT_TRANSACTION_ID, context.transaction().rootTransactionId());
-        if (context.transaction().businessDate() != null) {
-            put(headers, CpfHttpHeaderNames.BUSINESS_DATE, context.transaction().businessDate().toString());
+        if (target.trustedInternal()) {
+            String localSystem = localSystem(context);
+            String targetSystem = requiredSystem(target.targetSystem(), CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+            String operation = required(target.targetOperation(), CpfHttpHeaderNames.TARGET_OPERATION_ID);
+            String original = first(context.originalSystemCode(), localSystem);
+
+            putRequired(headers, CpfHttpHeaderNames.TRANSACTION_ID, context.transaction().transactionId());
+            putRequired(headers, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, original);
+            // On the wire these identify the receiving/current runtime for this hop.
+            putRequired(headers, CpfHttpHeaderNames.SYSTEM_CODE, targetSystem);
+            putRequired(headers, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, localSystem);
+            putRequired(headers, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, targetSystem);
+            putRequired(headers, CpfHttpHeaderNames.TARGET_OPERATION_ID, operation);
+
+            if (interaction != null) {
+                put(headers, CpfHttpHeaderNames.COUNTRY_CODE, interaction.countryCode());
+                put(headers, CpfHttpHeaderNames.CLIENT_ID, interaction.clientId());
+                put(headers, CpfHttpHeaderNames.CLIENT_INSTANCE_ID, interaction.clientInstanceId());
+                put(headers, CpfHttpHeaderNames.CLIENT_VERSION, interaction.clientVersion());
+                put(headers, CpfHttpHeaderNames.DEVICE_ID, interaction.deviceId());
+                put(headers, CpfHttpHeaderNames.USER_AGENT, interaction.userAgent());
+                put(headers, CpfHttpHeaderNames.ACCEPT_LANGUAGE, interaction.locale());
+                // trace propagation is standards-based and still scoped to trusted internal calls here.
+                put(headers, CpfHttpHeaderNames.TRACEPARENT, interaction.traceparent());
+                put(headers, CpfHttpHeaderNames.TRACESTATE, interaction.tracestate());
+            }
+            put(headers, CpfHttpHeaderNames.CORRELATION_ID, context.transaction().correlationId());
+            if (context.operation() != null) put(headers, CpfHttpHeaderNames.IDEMPOTENCY_KEY, context.operation().idempotencyKey());
+            putAllowedCustom(headers, target.customHeaders(), true);
+            return Map.copyOf(headers);
         }
-        put(headers, CpfHttpHeaderNames.ROOT_EXECUTION_ID, context.execution().rootExecutionId());
-        put(headers, CpfHttpHeaderNames.PARENT_EXECUTION_ID, context.execution().parentExecutionId());
-        put(headers, CpfHttpHeaderNames.SEGMENT_ID, context.execution().segmentId());
-        put(headers, CpfHttpHeaderNames.PARENT_SEGMENT_ID, context.execution().parentSegmentId());
-        put(headers, CpfHttpHeaderNames.STANDARD_EXECUTION_ID, context.execution().standardExecutionId());
-        putRequired(headers, CpfHttpHeaderNames.CALLER, context.transaction().callerSystemCode());
-        putRequired(headers, CpfHttpHeaderNames.TARGET, target.targetSystem());
-        if (context.identity() != null) {
-            put(headers, CpfHttpHeaderNames.USER_ID, context.identity().subjectId());
-            put(headers, CpfHttpHeaderNames.OPERATOR_ID, context.identity().actorId());
-        }
-        if (context.tenant() != null) put(headers, CpfHttpHeaderNames.TENANT_ID, context.tenant().tenantId());
-        put(headers, CpfHttpHeaderNames.API_VERSION, target.apiVersion());
+
+        // External institutions receive no CPF internal transaction/system headers by default.
+        putAllowedCustom(headers, target.customHeaders(), false);
         return Map.copyOf(headers);
     }
 
-    private static void put(Map<String,String> headers, String name, String value) {
-        if (value != null && !value.isBlank()) headers.put(name, value);
+    private void putAllowedCustom(Map<String,String> destination, Map<String,String> custom, boolean internal) {
+        custom.forEach((name, value) -> {
+            if (name == null || name.isBlank() || value == null || value.isBlank()) return;
+            if (CpfHttpHeaderCatalog.isProtected(name)) {
+                throw new CpfHeaderValidationException(
+                        com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                        name, "Protected CPF headers cannot be overridden through custom outbound headers.",
+                        403, "PROTECTED_HEADER_MUTATION");
+            }
+            boolean allowed = internal ? policies.internalPropagationAllowed(name) : policies.externalOutboundAllowed(name);
+            if (allowed) put(destination, name, value);
+        });
     }
 
-    private static void putRequired(Map<String,String> headers, String name, String value) {
+    private String localSystem(CpfContext context) {
+        if (runtime != null) return runtime.systemCode();
+        String inferred = first(context.systemCode(), context.originalSystemCode());
+        return requiredSystem(inferred, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+    }
+
+    private static String requiredSystem(String value, String header) {
+        String normalized = required(value, header).toUpperCase(Locale.ROOT);
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{1,31}")) {
+            throw new CpfHeaderValidationException(
+                    com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    header, "Invalid CPF system code.", 400, "SYSTEM_CODE_INVALID");
+        }
+        return normalized;
+    }
+
+    private static String required(String value, String header) {
         if (value == null || value.isBlank()) {
             throw new CpfHeaderValidationException(
                     com.cpf.core.api.error.CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER,
-                    name,
-                    "내부 거래 필수 Header를 생성할 Context 값이 없습니다: " + name);
+                    header, "Missing outbound CPF protocol value: " + header, 400, "HEADER_REQUIRED");
         }
-        headers.put(name, value);
+        return value.trim();
     }
+
+    private static String first(String a, String b) { return a != null && !a.isBlank() ? a : b; }
+    private static void put(Map<String,String> headers, String name, String value) {
+        if (value != null && !value.isBlank()) headers.put(name, value.trim());
+    }
+    private static void putRequired(Map<String,String> headers, String name, String value) { headers.put(name, required(value, name)); }
 }

@@ -1,12 +1,12 @@
 {
   "schemaVersion": "1.0",
-  "baselineSha": "92169d9918dd176e8322ac2f9dfc29ebe1d2ea12",
-  "overall": "PARTIAL",
+  "baselineSha": "4b6f96796c3bf26b1c3324cc4d9b701bd9415acd",
+  "overall": "PASS",
   "axisStatus": {
     "COMMON_PRODUCT_SERVICE": "PASS",
     "DOCUMENT_GOVERNANCE": "PASS",
     "EXECUTION_LIFECYCLE": "PASS",
-    "GENERATOR_FIRST_DX": "PARTIAL",
+    "GENERATOR_FIRST_DX": "PASS",
     "GOLDEN_PATH": "PASS",
     "OPEN_EXTENSION": "PASS",
     "OPERATIONAL_JOURNEY": "PASS"
@@ -115,35 +115,28 @@
       "checkId": "COMMON-CONSUMER-CPFCODESERVICE",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Education actual consumer uses CpfCodeService"
+      "detail": "Canonical EDU actual consumer uses CpfCodeService"
     },
     {
       "axis": "COMMON_PRODUCT_SERVICE",
-      "checkId": "COMMON-CONSUMER-CPFMESSAGESERVICE",
+      "checkId": "COMMON-CONSUMER-CPFMESSAGESOURCE",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Education actual consumer uses CpfMessageService"
+      "detail": "Canonical EDU actual consumer uses CpfMessageSource"
     },
     {
       "axis": "COMMON_PRODUCT_SERVICE",
       "checkId": "COMMON-CONSUMER-CPFPARAMETERSERVICE",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Education actual consumer uses CpfParameterService"
+      "detail": "Canonical EDU actual consumer uses CpfParameterService"
     },
     {
       "axis": "COMMON_PRODUCT_SERVICE",
       "checkId": "COMMON-CONSUMER-CPFCALENDARSERVICE",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Education actual consumer uses CpfCalendarService"
-    },
-    {
-      "axis": "COMMON_PRODUCT_SERVICE",
-      "checkId": "COMMON-CONSUMER-CPFTEMPLATESERVICE",
-      "status": "PASS",
-      "severity": "P0",
-      "detail": "Education actual consumer uses CpfTemplateService"
+      "detail": "Canonical EDU actual consumer uses CpfCalendarService"
     },
     {
       "axis": "COMMON_PRODUCT_SERVICE",
@@ -154,10 +147,10 @@
     },
     {
       "axis": "COMMON_PRODUCT_SERVICE",
-      "checkId": "COMMON-STRUCTURED-LOGGER-CONSUMER",
+      "checkId": "COMMON-AUTO-LOGGING-CONTEXT",
       "status": "PASS",
       "severity": "P0",
-      "detail": "Education actual consumer uses structured logger"
+      "detail": "Canonical EDU relies on CPF automatic logging/trace context and does not rebuild MDC"
     },
     {
       "axis": "OPERATIONAL_JOURNEY",
@@ -210,41 +203,6 @@
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-BATCH-LOCAL",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-member/batch local profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-BATCH-TEST",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-member/batch test profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-BATCH-DEV",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-member/batch dev profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-BATCH-STG",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-member/batch stg profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-MEMBER-BATCH-PROD",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-member/batch prod profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
       "checkId": "GEN-CPF-EXTERNAL-ONLINE-LOCAL",
       "status": "PASS",
       "severity": "P0",
@@ -280,38 +238,24 @@
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-EXTERNAL-BATCH-LOCAL",
-      "status": "FAIL",
+      "checkId": "GEN-MEMBER-OPTIONAL-BATCH-ENABLED",
+      "status": "PASS",
       "severity": "P0",
-      "detail": "cpf-external/batch local profile"
+      "detail": "member fixture modules.batch=true materializes batch"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-EXTERNAL-BATCH-TEST",
-      "status": "FAIL",
+      "checkId": "GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED",
+      "status": "PASS",
       "severity": "P0",
-      "detail": "cpf-external/batch test profile"
+      "detail": "external fixture modules.batch=false leaves batch absent"
     },
     {
       "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-EXTERNAL-BATCH-DEV",
-      "status": "FAIL",
+      "checkId": "GEN-BATCH-CAPABILITY-SEPARATE",
+      "status": "PASS",
       "severity": "P0",
-      "detail": "cpf-external/batch dev profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-EXTERNAL-BATCH-STG",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-external/batch stg profile"
-    },
-    {
-      "axis": "GENERATOR_FIRST_DX",
-      "checkId": "GEN-CPF-EXTERNAL-BATCH-PROD",
-      "status": "FAIL",
-      "severity": "P0",
-      "detail": "cpf-external/batch prod profile"
+      "detail": "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when modules.batch=true"
     },
     {
       "axis": "GENERATOR_FIRST_DX",

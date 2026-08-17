@@ -245,38 +245,17 @@ function Write-CpfRuntimeJson {
     [System.IO.File]::WriteAllText($Path, ($Value | ConvertTo-Json -Depth 80), $script:CpfRuntimeUtf8NoBom)
 }
 
-function New-CpfRuntimeTransactionHeaders {
+function New-CpfRuntimeClientHeaders {
     param(
-        [string] $Module = "CPF",
-        [string] $WasId = "smoke01",
-        [string] $RequestType = "SMOKE",
-        [string] $ClientAppId = "cpf-runtime-smoke",
+        [string] $ClientId = "cpf-runtime-smoke",
         [string] $ClientVersion = "1.0.0",
-        [string] $UserId = "runtime-smoke",
-        [string] $ChannelCode = ""
+        [string] $RequestType = "SMOKE"
     )
 
-    $normalizedModule = if ([string]::IsNullOrWhiteSpace($Module)) { "CPF" } else { $Module.Trim().ToUpperInvariant() }
-    $normalizedWasId = if ([string]::IsNullOrWhiteSpace($WasId)) { "smoke01" } else { $WasId.Trim() }
-    if ($normalizedWasId.Length -lt 7) {
-        $normalizedWasId = $normalizedWasId.PadRight(7, "0")
-    } elseif ($normalizedWasId.Length -gt 7) {
-        $normalizedWasId = $normalizedWasId.Substring(0, 7)
-    }
-
-    $timestamp = Get-Date -Format "yyyyMMddHHmmssfff"
-    $transactionId = "$timestamp$normalizedModule$normalizedWasId" + "0000001"
-    $resolvedChannel = if ([string]::IsNullOrWhiteSpace($ChannelCode)) { $normalizedModule } else { $ChannelCode.Trim().ToUpperInvariant() }
-
     return @{
-        "X-Transaction-Id" = $transactionId
-        "X-Trace-Id" = [guid]::NewGuid().ToString("N")
-        "X-Request-Type" = $RequestType
-        "X-Original-Channel-Code" = $resolvedChannel
-        "X-Channel-Code" = $resolvedChannel
-        "X-Client-App-Id" = $ClientAppId
+        "X-Client-Id" = $ClientId
         "X-Client-Version" = $ClientVersion
-        "X-User-Id" = $UserId
+        "X-Request-Type" = $RequestType
     }
 }
 
@@ -440,10 +419,14 @@ function Get-CpfRuntimeLogFiles {
     )
 
     $environmentCode = if ([string]::IsNullOrWhiteSpace($env:CPF_ENV)) { "local" } else { $env:CPF_ENV.Trim().ToLowerInvariant() }
-    $instanceId = if ([string]::IsNullOrWhiteSpace($env:CPF_INSTANCE_ID)) {
-        $Module.moduleLower + "-" + $environmentCode + "-01"
+    $instanceId = if (-not [string]::IsNullOrWhiteSpace($env:CPF_RUNTIME_INSTANCE_ID)) {
+        $env:CPF_RUNTIME_INSTANCE_ID.Trim()
     } else {
-        $env:CPF_INSTANCE_ID.Trim()
+        $hostIdentity = [System.Net.Dns]::GetHostName()
+        if ([string]::IsNullOrWhiteSpace($hostIdentity) -or $hostIdentity.Trim().ToLowerInvariant() -in @('local','localhost','unknown','127.0.0.1','::1')) {
+            throw 'CPF Runtime instanceId를 확정할 수 없습니다. CPF_RUNTIME_INSTANCE_ID 또는 실제 Runtime hostname이 필요합니다.'
+        }
+        $hostIdentity.Trim()
     }
     $logDir = Join-Path $Root ("logs/{0}/{1}/{2}" -f $environmentCode, $Module.moduleLower, $instanceId)
     if (-not (Test-Path -LiteralPath $logDir)) {

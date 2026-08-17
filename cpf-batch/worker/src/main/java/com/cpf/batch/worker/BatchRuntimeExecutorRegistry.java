@@ -1,7 +1,7 @@
 package com.cpf.batch.worker;
 
 import com.cpf.batch.api.BatchApprovedExecutorSnapshot;
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
@@ -34,7 +34,7 @@ import java.util.*;
 @Component
 public class BatchRuntimeExecutorRegistry {
     private final ObjectProvider<CpfServiceCaller> serviceCaller;
-    private final ObjectProvider<CpfBrokerClient> brokerClient;
+    private final ObjectProvider<CpfMessagingTemplate> brokerClient;
     private final HttpClient httpClient;
     private final ObjectMapper canonicalJson;
     private final WorkerOperationalProperties operationalProperties;
@@ -44,7 +44,7 @@ public class BatchRuntimeExecutorRegistry {
     @Autowired
     public BatchRuntimeExecutorRegistry(
             ObjectProvider<CpfServiceCaller> serviceCaller,
-            ObjectProvider<CpfBrokerClient> brokerClient,
+            ObjectProvider<CpfMessagingTemplate> brokerClient,
             ObjectMapper objectMapper,
             WorkerOperationalProperties operationalProperties) {
         this.serviceCaller = serviceCaller;
@@ -67,7 +67,7 @@ public class BatchRuntimeExecutorRegistry {
     /** Test/standalone Source compatibility. Production Spring wiring injects the managed mapper. */
     public BatchRuntimeExecutorRegistry(
             ObjectProvider<CpfServiceCaller> serviceCaller,
-            ObjectProvider<CpfBrokerClient> brokerClient) {
+            ObjectProvider<CpfMessagingTemplate> brokerClient) {
         this(serviceCaller, brokerClient, new ObjectMapper(), new WorkerOperationalProperties());
     }
 
@@ -154,10 +154,10 @@ public class BatchRuntimeExecutorRegistry {
             long executionId,
             String transactionId,
             String segmentId) {
-        CpfBrokerClient client = brokerClient.getIfAvailable();
+        CpfMessagingTemplate client = brokerClient.getIfAvailable();
         if (client == null) {
             return ExecutionResult.failed("CAPABILITY_UNAVAILABLE",
-                    "CpfBrokerClient capability is not installed", false);
+                    "CpfMessagingTemplate capability is not installed", false);
         }
         String topic = definition.executorReference().startsWith("MESSAGE:")
                 ? definition.executorReference().substring("MESSAGE:".length())
@@ -168,7 +168,7 @@ public class BatchRuntimeExecutorRegistry {
         String messageId = definition.jobId() + "-" + executionId;
         byte[] payload = jsonBody(parameters.getOrDefault("payload", parameters))
                 .getBytes(StandardCharsets.UTF_8);
-        CpfBrokerPublishResult result = client.enqueue(new CpfBrokerPublishRequest(
+        CpfBrokerPublishResult result = client.send(new CpfBrokerPublishRequest(
                 messageId, topic, text(parameters.get("key"), messageId), payload,
                 "application/json", transactionId, segmentId, "cpf-batch",
                 text(parameters.get("consumerModule"), ""), messageId, Map.of(),

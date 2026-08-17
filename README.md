@@ -22,7 +22,7 @@
 
 - **3. Spring Boot와 어떤 관계인가** — CPF는 Spring Boot를 대체하거나 다시 구현하지 않습니다. **Spring Boot가 애플리케이션 실행 기반이라면 CPF는 그 위에 업무 개발 표준, Starter 조합, Public API, Generator, Runtime·운영 계약을 추가하는 계층**입니다. Spring Transaction, Spring Security, Spring Batch, Spring Cloud Gateway, Spring Data, Spring Messaging 계열의 검증된 기반을 활용합니다.
 
-- **4. 개발자가 실제 쓰는 Golden Path** — 일반 업무는 `@CpfController → @CpfService + @CpfTx → @CpfRepository`를 기본으로 합니다. 같은 Application 내부는 `service.method()`, CPF Domain 간 호출은 `domainClient.execute()`, CPF 밖 외부 연계는 `@CpfClient + @CpfTimeout + @CpfRetry`가 적용된 Typed Client를 사용합니다.
+- **4. 개발자가 실제 쓰는 Golden Path** — 일반 업무는 `@CpfController → @CpfService + @CpfTx → @CpfRepository`를 기본으로 합니다. 같은 Application 내부는 `service.method()`, CPF Domain 간 호출은 `domainClient.execute()`, CPF 밖 외부 연계는 `@CpfClient + @CpfTimeLimiter + @CpfRetry`가 적용된 Typed Client를 사용합니다.
 
 - **5. 어떤 규모의 시스템에 적합한가** — 단일 Runtime의 일반 Web/API부터 여러 업무 Domain·다중 인스턴스·Gateway·Messaging·분산 Batch가 필요한 구성까지 단계적으로 확장할 수 있습니다. 작은 구성에 모든 Runtime을 강제하지 않고 필요한 Capability만 추가합니다.
 

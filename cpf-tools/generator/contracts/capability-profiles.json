@@ -119,7 +119,7 @@
     },
     "integration-codec": {
       "fixed-length": {
-        "projectPath": ":internal:integration:fixed-length",
+        "projectPath": ":starters:integration:fixed-length",
         "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
       },
       "iso8583": {

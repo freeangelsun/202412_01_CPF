@@ -93,7 +93,7 @@ export interface BatchExecutionSearch {
   transactionId?: string
   springBatchJobInstanceId?: number
   workerId?: string
-  serverInstanceId?: string
+  instanceId?: string
   status?: string
   fromDate?: string
   toDate?: string

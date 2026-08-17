@@ -2,9 +2,9 @@ package com.cpf.gateway.runtime;
 
 import com.cpf.platform.operations.observability.api.logging.policy.CpfLogPolicyResolver;
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +17,12 @@ public final class CpfGatewayLogPolicySynchronizer {
     private final CpfRuntimePolicyDistributionPort distribution;
     private final ObjectProvider<CpfLogPolicyResolver> resolvers;
     private final String instanceId;
-    public CpfGatewayLogPolicySynchronizer(@Qualifier("gatewayRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort distribution,ObjectProvider<CpfLogPolicyResolver> resolvers,
-            @Value("${cpf.framework.instance-id:gateway-unknown}") String instanceId){this.distribution=distribution;this.resolvers=resolvers;this.instanceId=instanceId;}
+    public CpfGatewayLogPolicySynchronizer(@Qualifier("gatewayRuntimePolicyDistributionPort") CpfRuntimePolicyDistributionPort distribution,
+            ObjectProvider<CpfLogPolicyResolver> resolvers) {
+        this.distribution = distribution;
+        this.resolvers = resolvers;
+        this.instanceId = CpfInstanceIdentity.current().instanceId();
+    }
 
     @Scheduled(fixedDelayString="${cpf.gateway.policy-refresh:15s}")
     public void synchronize(){

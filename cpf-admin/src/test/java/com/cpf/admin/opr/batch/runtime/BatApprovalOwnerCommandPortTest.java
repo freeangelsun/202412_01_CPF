@@ -4,7 +4,7 @@ import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.api.AdmApprovedOperationResult;
 import com.cpf.batch.api.BatControlHeaders;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -34,10 +34,10 @@ class BatApprovalOwnerCommandPortTest {
 
         server.expect(requestTo(BASE_URL + "/api/v1/batch/runtime/commands"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(CpfHeaders.callerService(), "ADM"))
-                .andExpect(header(CpfHeaders.callerInstanceId(), "adm-instance-01"))
-                .andExpect(header(CpfHeaders.operatorId(), "approver-b"))
-                .andExpect(header(CpfHeaders.transactionId(), TRANSACTION_ID))
+                .andExpect(header(BatControlHeaders.CALLER_SERVICE, "ADM"))
+                .andExpect(header(BatControlHeaders.CALLER_INSTANCE_ID, "adm-instance-01"))
+                .andExpect(header(BatControlHeaders.OPERATOR_ID, "approver-b"))
+                .andExpect(header(CpfHttpHeaders.transactionId(), TRANSACTION_ID))
                 .andExpect(header(BatControlHeaders.APPROVAL_REQUEST_ID, "42"))
                 .andExpect(header(BatControlHeaders.APPROVAL_REQUESTER_ID, "requester-a"))
                 .andExpect(jsonPath("$.requestedBy").value("requester-a"))
@@ -65,7 +65,7 @@ class BatApprovalOwnerCommandPortTest {
         server.expect(requestTo(
                         BASE_URL + "/api/v1/batch/deployment-plans/plan-01/execute-approved"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(header(CpfHeaders.operatorId(), "approver-b"))
+                .andExpect(header(BatControlHeaders.OPERATOR_ID, "approver-b"))
                 .andExpect(header(BatControlHeaders.APPROVAL_REQUEST_ID, "42"))
                 .andExpect(header(BatControlHeaders.APPROVAL_REQUESTER_ID, "requester-a"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

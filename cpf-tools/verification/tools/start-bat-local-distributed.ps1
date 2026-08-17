@@ -27,7 +27,7 @@ try{
   if(-not$jar){throw "Jar not found: $($s.Artifact)"}
   $psi=[Diagnostics.ProcessStartInfo]::new();$psi.FileName=if($env:JAVA_HOME){Join-Path $env:JAVA_HOME 'bin\java.exe'}else{'java'};$psi.UseShellExecute=$false
   [void]$psi.ArgumentList.Add('-jar');[void]$psi.ArgumentList.Add($jar.FullName)
-  $psi.Environment['CPF_INSTANCE_ID']=$id;$psi.Environment['CPF_PORT']="$port";$psi.Environment['CPF_WAS_ID']="BAT-$($s.Role)-$i";$psi.Environment['CPF_GIT_SHA']=$sha;$psi.Environment['SPRING_PROFILES_ACTIVE']='local';$psi.Environment['CPF_LOG_ROOT']=(Join-Path $runRoot 'logs');$psi.Environment['CPF_BATCH_CONTROL_BASE_URL']='http://127.0.0.1:8180'
+  $psi.Environment['CPF_RUNTIME_INSTANCE_ID']=$id;$psi.Environment['CPF_PORT']="$port";$psi.Environment['CPF_WAS_ID']="BAT-$($s.Role)-$i";$psi.Environment['CPF_GIT_SHA']=$sha;$psi.Environment['SPRING_PROFILES_ACTIVE']='local';$psi.Environment['CPF_LOG_ROOT']=(Join-Path $runRoot 'logs');$psi.Environment['CPF_BATCH_CONTROL_BASE_URL']='http://127.0.0.1:8180'
   $psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true;$p=[Diagnostics.Process]::new();$p.StartInfo=$psi;[void]$p.Start()
   $registry+=[pscustomobject]@{instanceId=$id;role=$s.Role;pid=$p.Id;port=$port;health="http://127.0.0.1:$port/actuator/health/readiness";jar=$jar.FullName}
  }}

@@ -1,8 +1,9 @@
 package com.cpf.batch.control.compat;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.batch.api.CpfBatchOperationsPort;
 import com.cpf.batch.api.CpfBatchRiskCommand;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import com.cpf.foundation.execution.api.CpfSharedApi;
 import com.cpf.batch.control.security.BatVerifiedActorResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,7 +47,7 @@ public class BatInternalOperationsController {
                     textOrNull(a,"transactionId"),
                     nullableLong(a,"springBatchJobInstanceId"),
                     textOrNull(a,"workerId"),
-                    textOrNull(a,"serverInstanceId"),
+                    textOrNull(a,"instanceId"),
                     textOrNull(a,"fromDate"),
                     textOrNull(a,"toDate"),
                     integer(a,"limit",100));
@@ -55,7 +56,7 @@ public class BatInternalOperationsController {
                     textOrNull(a,"transactionId"),
                     nullableLong(a,"springBatchJobInstanceId"),
                     textOrNull(a,"workerId"),
-                    textOrNull(a,"serverInstanceId"),
+                    textOrNull(a,"instanceId"),
                     textOrNull(a,"status"),
                     textOrNull(a,"fromDate"),
                     textOrNull(a,"toDate"),
@@ -111,9 +112,9 @@ public class BatInternalOperationsController {
         if (!command.fingerprint().equalsIgnoreCase(suppliedHash)) {
             throw new IllegalArgumentException("BAT risk command hash mismatch");
         }
-        requireHeader(request, CpfHeaders.idempotencyKey(), command.idempotencyKey());
-        requireHeader(request, CpfHeaders.approvalRequestId(), command.approvalRequestId());
-        requireHeader(request, CpfHeaders.approvalRequesterId(), command.requestUser());
+        requireHeader(request, CpfHttpHeaders.idempotencyKey(), command.idempotencyKey());
+        requireHeader(request, BatControlHeaders.APPROVAL_REQUEST_ID, command.approvalRequestId());
+        requireHeader(request, BatControlHeaders.APPROVAL_REQUESTER_ID, command.requestUser());
         return command;
     }
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse,csv,re
+import argparse,re
 from pathlib import Path
 
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');a=ap.parse_args();r=Path(a.root).resolve();fails=[]
- manifest=r/'cpf-docs/work/CPF_DELETE_MANIFEST.csv'; deleted=set()
- if manifest.is_file():deleted={x['path'].replace('\\','/') for x in csv.DictReader(manifest.open(encoding='utf-8-sig'))}
+ manifest=r/'cpf-docs/work/current/DELETE_MANIFEST.txt'; deleted=set()
+ if manifest.is_file(): deleted={line.strip().replace('\\','/').strip('/') for line in manifest.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')}
  seen={}
  allowed_unsupported={
   'cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/KafkaCpfBrokerBridgeAdapter.java',

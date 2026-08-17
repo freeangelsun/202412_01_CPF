@@ -55,7 +55,7 @@ INSERT INTO BAT_INSTANCE (instance_id, instance_name, host_name, server_port, ac
     'SYSTEM',
     'SYSTEM'
 ) ON DUPLICATE KEY UPDATE instance_name = VALUES(instance_name), host_name = VALUES(host_name), server_port = VALUES(server_port), active_yn = VALUES(active_yn), last_heartbeat_at = VALUES(last_heartbeat_at), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BAT_WORKER (worker_id, server_instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (
+INSERT INTO BAT_WORKER (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (
     'local-batch-01',
     'local-batch-01',
     'localhost',
@@ -69,7 +69,7 @@ INSERT INTO BAT_WORKER (worker_id, server_instance_id, host_name, process_id, th
     '로컬 smoke 검증용 배치 worker heartbeat',
     'SYSTEM',
     'SYSTEM'
-) ON DUPLICATE KEY UPDATE server_instance_id = VALUES(server_instance_id), host_name = VALUES(host_name), process_id = VALUES(process_id), thread_name = VALUES(thread_name), worker_status = VALUES(worker_status), active_yn = VALUES(active_yn), last_heartbeat_at = VALUES(last_heartbeat_at), current_job_id = VALUES(current_job_id), current_execution_id = VALUES(current_execution_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+) ON DUPLICATE KEY UPDATE instance_id = VALUES(instance_id), host_name = VALUES(host_name), process_id = VALUES(process_id), thread_name = VALUES(thread_name), worker_status = VALUES(worker_status), active_yn = VALUES(active_yn), last_heartbeat_at = VALUES(last_heartbeat_at), current_job_id = VALUES(current_job_id), current_execution_id = VALUES(current_execution_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 INSERT INTO BAT_JOB (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_CHUNK_JOB', 'CPF 교육 Chunk Job', 'CHUNK', '대용량 읽기/처리/쓰기 샘플을 위한 Chunk Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_RETRY_JOB', 'CPF 교육 재처리 Job', 'RETRY', '실패 재처리와 checkpoint/restart 교육을 위한 Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE job_name = VALUES(job_name), job_type = VALUES(job_type), description = VALUES(description), restartable_yn = VALUES(restartable_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
@@ -77,7 +77,7 @@ INSERT INTO BAT_SCHEDULE (schedule_id, job_id, cron_expression, calendar_id, bus
     ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:30:00', '05:30:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE job_id = VALUES(job_id), cron_expression = VALUES(cron_expression), calendar_id = VALUES(calendar_id), business_day_only_yn = VALUES(business_day_only_yn), holiday_policy = VALUES(holiday_policy), available_start_time = VALUES(available_start_time), available_end_time = VALUES(available_end_time), run_date_pattern = VALUES(run_date_pattern), timezone = VALUES(timezone), enabled_yn = VALUES(enabled_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
 INSERT INTO BAT_JOB_RELATION (job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by) VALUES ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_TASKLET_JOB', 'CPF_EDU_CHUNK_JOB', 'TRIGGER', 'COMPLETED', 'COMPLETED', 20, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE trigger_condition = VALUES(trigger_condition), required_status = VALUES(required_status), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by) SELECT
+INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by) SELECT
     'CPF_EDU_TASKLET_JOB',
     'CPF_EDU_TASKLET_DAILY',
     '{"edu":true}',

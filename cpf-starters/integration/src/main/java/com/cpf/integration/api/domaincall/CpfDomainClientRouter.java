@@ -2,6 +2,8 @@ package com.cpf.integration.api.domaincall;
 
 import com.cpf.core.api.base.CpfRequest;
 import com.cpf.core.api.base.CpfResponse;
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.domain.CpfDomainBinding;
 import com.cpf.core.api.domain.CpfDomainBindingMode;
 import com.cpf.core.api.domain.CpfDomainBindingResolver;
@@ -29,18 +31,36 @@ public final class CpfDomainClientRouter {
     /** Runtime Binding을 해석해 동일 typed contract로 Local 또는 Remote Operation을 실행합니다. */
     public <I extends CpfRequest, O extends CpfResponse> CpfResult<O> invoke(
             String systemCode, String operationId, I request, Class<O> responseType) {
+        return invoke(systemCode, operationId, request, responseType, CpfDomainCallOptions.none());
+    }
+
+    /** 상대 Domain과 합의된 선택 Header를 Framework Source 변경 없이 전달합니다. */
+    public <I extends CpfRequest, O extends CpfResponse> CpfResult<O> invoke(
+            String systemCode, String operationId, I request, Class<O> responseType, CpfDomainCallOptions options) {
         Objects.requireNonNull(request, "request");
+        CpfDomainCallOptions effectiveOptions = options == null ? CpfDomainCallOptions.none() : options;
         CpfDomainBinding binding = Objects.requireNonNull(bindings.resolve(systemCode), "Domain Binding");
         boolean localAvailable = localOperations.has(systemCode, operationId);
         if (binding.mode() == CpfDomainBindingMode.LOCAL || (binding.mode() == CpfDomainBindingMode.AUTO && localAvailable)) {
             if (!localAvailable) {
                 return CpfResult.technicalFailure("CPF-DOMAIN-LOCAL-NOT-FOUND", systemCode + "/" + operationId + " local operation이 없습니다.");
             }
-            return localOperations.invoke(systemCode, operationId, request, responseType);
+            var current = CpfContexts.current();
+            if (current == null) return localOperations.invoke(systemCode, operationId, request, responseType);
+            var localHop = current.localDomainHop(systemCode, operationId);
+            try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(localHop))) {
+                return localOperations.invoke(systemCode, operationId, request, responseType);
+            // 원격 Domain 호출 실패의 원래 의미를 보존해 표준 CPF 호출 오류·UNKNOWN 판정 경계로 전달합니다.
+            } catch (RuntimeException e) {
+                throw e;
+            // 원격 Domain 호출 실패의 원래 의미를 보존해 표준 CPF 호출 오류·UNKNOWN 판정 경계로 전달합니다.
+            } catch (Exception e) {
+                throw new IllegalStateException("CPF local Domain context restore failed", e);
+            }
         }
         if (binding.mode() == CpfDomainBindingMode.AUTO && (binding.serviceId() == null || binding.serviceId().isBlank())) {
             return CpfResult.technicalFailure("CPF-DOMAIN-BINDING-MISSING", systemCode + " remote serviceId가 없습니다.");
         }
-        return remoteTransport.invoke(systemCode, operationId, binding, request, responseType);
+        return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
     }
 }

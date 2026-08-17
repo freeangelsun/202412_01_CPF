@@ -4,7 +4,7 @@ import com.cpf.messaging.spi.CpfNamedBrokerClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import com.cpf.messaging.spi.broker.CpfBrokerEnvelope;
@@ -23,7 +23,7 @@ class CpfProviderBrokerPublisherTest {
     @Test
     void workerPublisherMapsCompleteEnvelopeToProviderRequest() {
         RecordingClient provider = new RecordingClient();
-        CpfBrokerClientRouter router = new CpfBrokerClientRouter(List.of(
+        CpfMessagingTemplateRouter router = new CpfMessagingTemplateRouter(List.of(
                 new CpfNamedBrokerClient("default", "rabbitmq", true, provider)));
         CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
                 router, Clock.fixed(NOW, ZoneOffset.UTC));
@@ -41,10 +41,10 @@ class CpfProviderBrokerPublisherTest {
 
     @Test
     void mismatchedProviderCorrelationBecomesUnknown() {
-        CpfBrokerClient provider = request -> new CpfBrokerPublishResult(
+        CpfMessagingTemplate provider = request -> new CpfBrokerPublishResult(
                 "PUBLISHED", "another-message", "rabbitmq", "p0", NOW, null);
         CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
-                new CpfBrokerClientRouter(List.of(
+                new CpfMessagingTemplateRouter(List.of(
                         new CpfNamedBrokerClient("default", "rabbitmq", true, provider))),
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -57,11 +57,11 @@ class CpfProviderBrokerPublisherTest {
 
     @Test
     void providerFailureDetailIsMaskedBeforePersistence() {
-        CpfBrokerClient provider = request -> new CpfBrokerPublishResult(
+        CpfMessagingTemplate provider = request -> new CpfBrokerPublishResult(
                 "FAILED", request.messageId(), "rabbitmq", null, NOW,
                 "Authorization=Bearer abc.def password=hunter2 token=tok-1");
         CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
-                new CpfBrokerClientRouter(List.of(
+                new CpfMessagingTemplateRouter(List.of(
                         new CpfNamedBrokerClient("default", "rabbitmq", true, provider))),
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -74,11 +74,11 @@ class CpfProviderBrokerPublisherTest {
 
     @Test
     void providerExceptionAfterInvocationBecomesSanitizedUnknown() {
-        CpfBrokerClient provider = request -> {
+        CpfMessagingTemplate provider = request -> {
             throw new IllegalStateException("Authorization=Bearer abc.def password=hunter2");
         };
         CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
-                new CpfBrokerClientRouter(List.of(
+                new CpfMessagingTemplateRouter(List.of(
                         new CpfNamedBrokerClient("default", "kafka", true, provider))),
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -91,10 +91,10 @@ class CpfProviderBrokerPublisherTest {
 
     @Test
     void unsupportedProviderStatusFailsClosedAsUnknown() {
-        CpfBrokerClient provider = request -> new CpfBrokerPublishResult(
+        CpfMessagingTemplate provider = request -> new CpfBrokerPublishResult(
                 "QUEUED_SOMEWHERE", request.messageId(), "custom", null, NOW, null);
         CpfProviderBrokerPublisher publisher = new CpfProviderBrokerPublisher(
-                new CpfBrokerClientRouter(List.of(
+                new CpfMessagingTemplateRouter(List.of(
                         new CpfNamedBrokerClient("default", "custom", true, provider))),
                 Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -114,11 +114,11 @@ class CpfProviderBrokerPublisherTest {
                 Map.of("tenant", "T1"));
     }
 
-    private static final class RecordingClient implements CpfBrokerClient {
+    private static final class RecordingClient implements CpfMessagingTemplate {
         private CpfBrokerPublishRequest request;
 
         @Override
-        public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+        public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
             this.request = request;
             return new CpfBrokerPublishResult(
                     "PUBLISHED", request.messageId(), "rabbitmq", "p0", NOW, null);

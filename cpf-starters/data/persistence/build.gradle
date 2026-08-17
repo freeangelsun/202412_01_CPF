@@ -8,7 +8,7 @@ dependencies {
     implementation 'org.springframework:spring-aop'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    compileOnly 'org.springframework:spring-tx'
+    api 'org.springframework:spring-tx'
 }
 
 tasks.named('test') { useJUnitPlatform() }

@@ -23,7 +23,7 @@ public final class CpfGatewayHealthWorker {
     @Scheduled(fixedDelayString = "${cpf.gateway.health.worker-millis:10000}")
     /** run 작업을 CPF 표준 계약에 따라 수행한다. */
     public void run() {
-        String gatewayInstanceId = CpfInstanceIdentity.current().serverInstanceId();
+        String gatewayInstanceId = CpfInstanceIdentity.current().instanceId();
         for (CpfGatewayRegistryPort.HealthProbeTarget target
                 : registry.claimHealthProbes(gatewayInstanceId, 200, 30)) {
             registry.reportHealth(probe(target));

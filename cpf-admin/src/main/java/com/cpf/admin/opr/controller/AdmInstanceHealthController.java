@@ -2,7 +2,6 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.health.AdmHealthInstanceRegistry;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.platform.operations.api.health.CpfRuntimeHealth;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,10 +18,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-@CpfController
+@RestController
 @Tag(name="ADM-Health-Instances", description="Multi-instance health aggregation")
 public class AdmInstanceHealthController extends com.cpf.admin.common.base.AdmBaseController {
     private static final String TOKEN_HEADER = "X-Cpf-Runtime-Agent-Token";
@@ -40,9 +39,7 @@ public class AdmInstanceHealthController extends com.cpf.admin.common.base.AdmBa
         authenticateAgent(token); registry.report(health); return ResponseEntity.accepted().build();
     }
 
-    @GetMapping("/adm/api/health/instances")
-    @CpfOnlineTransaction(id="OADMHL0010", name="ADMHealthInstanceList", ownerDomain="ADM")
-    @Operation(operationId="admHealthInstanceList", summary="Instance health list")
+    @GetMapping("/adm/api/health/instances")    @Operation(operationId="admHealthInstanceList", summary="Instance health list")
     public ResponseEntity<Map<String,Object>> list(@RequestParam(required=false) String systemId,
             @RequestParam(required=false) String readiness,
             @RequestParam(defaultValue="false") boolean includeStale,
@@ -52,9 +49,7 @@ public class AdmInstanceHealthController extends com.cpf.admin.common.base.AdmBa
                 "total", registry.count(systemId,readiness,includeStale)));
     }
 
-    @GetMapping("/adm/api/health/instances/{systemId}/{instanceId}")
-    @CpfOnlineTransaction(id="OADMHL0020", name="ADMHealthInstanceDetail", ownerDomain="ADM")
-    @Operation(operationId="admHealthInstanceDetail", summary="Instance health detail")
+    @GetMapping("/adm/api/health/instances/{systemId}/{instanceId}")    @Operation(operationId="admHealthInstanceDetail", summary="Instance health detail")
     public ResponseEntity<AdmHealthInstanceRegistry.Entry> detail(@PathVariable String systemId, @PathVariable String instanceId) {
         return registry.find(systemId,instanceId).map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "health instance not found"));

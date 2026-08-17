@@ -24,7 +24,7 @@ management:
 cpf:
   framework:
     module-id: BAT
-    was-id: ${CPF_WAS_ID:cpf-batch-control-plane-local-01}
+    was-id: ${CPF_WAS_ID:}
   batch:
     security:
       trusted-peer-addresses: ${CPF_BATCH_TRUSTED_PEER_ADDRESSES:}
@@ -33,5 +33,4 @@ cpf:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:
       role: CONTROL_PLANE
-      instance-id: ${CPF_INSTANCE_ID:cpf-batch-control-plane-local-01}
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}

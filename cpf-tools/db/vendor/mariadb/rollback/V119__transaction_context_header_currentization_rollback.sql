@@ -1,0 +1,28 @@
+DROP INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG;
+DROP INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG;
+DROP INDEX ix_cpf_transaction_log_client ON CPF_TRANSACTION_LOG;
+ALTER TABLE CPF_TRANSACTION_LOG
+    DROP COLUMN TARGET_OPERATION_ID,
+    DROP COLUMN TARGET_SYSTEM_CODE,
+    CHANGE COLUMN CLIENT_ID CLIENT_APP_ID VARCHAR(80) NULL,
+    CHANGE COLUMN CALLER_SYSTEM_CODE CALLER_SERVICE VARCHAR(120) NULL,
+    CHANGE COLUMN ORIGINAL_SYSTEM_CODE ORIGINAL_CHANNEL_CODE VARCHAR(20) NULL,
+    CHANGE COLUMN SYSTEM_CODE CHANNEL_CODE VARCHAR(20) NULL;
+CREATE INDEX ix_cpf_transaction_log_client_app ON CPF_TRANSACTION_LOG (CLIENT_APP_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_channel_time ON CPF_TRANSACTION_LOG (CHANNEL_CODE, START_TIME);
+
+DROP INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT;
+DROP INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT;
+ALTER TABLE CPF_TRANSACTION_SEGMENT
+    DROP COLUMN target_operation_id,
+    DROP COLUMN target_system_code,
+    CHANGE COLUMN client_id client_app_id VARCHAR(100) NULL,
+    CHANGE COLUMN caller_system_code caller_service VARCHAR(100) NULL,
+    CHANGE COLUMN original_system_code original_channel_code VARCHAR(30) NULL,
+    CHANGE COLUMN system_code channel_code VARCHAR(30) NULL;
+CREATE INDEX ix_cpf_transaction_segment_client ON CPF_TRANSACTION_SEGMENT (client_app_id, caller_service, started_at);
+
+ALTER TABLE CPF_TRANSACTION_LINEAGE
+    CHANGE COLUMN system_code channel_code VARCHAR(64) NULL;
+ALTER TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE
+    CHANGE COLUMN system_code channel_code VARCHAR(64) NULL;

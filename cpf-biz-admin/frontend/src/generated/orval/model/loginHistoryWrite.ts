@@ -7,7 +7,7 @@ export interface LoginHistoryWrite {
   loginDomain?: string;
   loginResult?: string;
   moduleId?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   transactionId?: string;
   userAgent?: string;
   wasId?: string;

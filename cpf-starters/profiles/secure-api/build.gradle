@@ -6,7 +6,7 @@ dependencies {
     // Consumer-facing Domain Call contracts are part of the secure-api compile surface.
     api project(':framework:integration')
     // Security and provider implementations remain inside the profile runtime composition.
-    implementation project(':framework:security')
+    api project(':framework:security')
     implementation project(':internal:security:resource-server')
     implementation project(':internal:integration:http')
     implementation project(':internal:integration:resilience')

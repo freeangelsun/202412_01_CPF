@@ -1,1 +1,2 @@
 com.cpf.platform.operations.runtimecontrol.CpfRuntimeControlAutoConfiguration
+com.cpf.platform.operations.runtimecontrol.CpfOperationPolicyAutoConfiguration

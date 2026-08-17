@@ -1,7 +1,7 @@
 package com.cpf.data.cache.valkey;
 
 import com.cpf.data.cache.api.CpfCacheInvalidationPort;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import com.cpf.data.cache.rediscommon.CpfCacheInvalidationCoordinator;
 import com.cpf.data.cache.rediscommon.CpfCacheInvalidationProperties;
 import com.cpf.data.cache.rediscommon.JdbcCpfCacheInvalidationStore;
@@ -43,21 +43,21 @@ public class CpfValkeyAutoConfiguration {
         return properties;
     }
 
-    @Bean @ConditionalOnMissingBean(CpfCachePort.class)
-    ValkeyCpfCachePort cpfValkeyCachePort(StringRedisTemplate cpfValkeyTemplate, CpfValkeyProperties properties, Environment environment) {
+    @Bean @ConditionalOnMissingBean(CpfCache.class)
+    ValkeyCpfCache cpfValkeyCachePort(StringRedisTemplate cpfValkeyTemplate, CpfValkeyProperties properties, Environment environment) {
         properties.validate();
         CpfRedisProtocolProviderSelection.requireExclusive(
                 environment.getProperty("cpf.data.cache.redis.enabled", Boolean.class, false), properties.isEnabled());
-        return new ValkeyCpfCachePort(cpfValkeyTemplate, properties, true);
+        return new ValkeyCpfCache(cpfValkeyTemplate, properties, true);
     }
 
     @Bean @ConditionalOnMissingBean
-    CpfValkeyCache cpfValkeyCache(CpfCachePort cache, CpfValkeyProperties properties) {
+    CpfValkeyCache cpfValkeyCache(CpfCache cache, CpfValkeyProperties properties) {
         properties.validate(); return new CpfValkeyCache(cache, properties);
     }
 
     @Bean @ConditionalOnMissingBean
-    CpfCacheInvalidationCoordinator cpfValkeyInvalidationCoordinator(CpfCachePort cache, CpfCacheInvalidationPort durable,
+    CpfCacheInvalidationCoordinator cpfValkeyInvalidationCoordinator(CpfCache cache, CpfCacheInvalidationPort durable,
             StringRedisTemplate cpfValkeyTemplate, CpfCacheInvalidationProperties properties) {
         return new CpfCacheInvalidationCoordinator(cache, durable,
                 eventKey -> cpfValkeyTemplate.convertAndSend(properties.getInvalidationChannel(), eventKey), properties);
@@ -73,12 +73,12 @@ public class CpfValkeyAutoConfiguration {
     }
 
     @Bean("cpfValkeyStartupValidator")
-    CpfRedisLikeStartupValidator cpfValkeyStartupValidator(CpfCachePort cache, CpfValkeyProperties properties) {
+    CpfRedisLikeStartupValidator cpfValkeyStartupValidator(CpfCache cache, CpfValkeyProperties properties) {
         return new CpfRedisLikeStartupValidator("VALKEY", cache, properties);
     }
 
     @Bean("cpfValkeyHealthIndicator")
-    HealthIndicator health(ValkeyCpfCachePort cache, CpfCacheInvalidationPort durable, CpfCacheInvalidationCoordinator coordinator) {
+    HealthIndicator health(ValkeyCpfCache cache, CpfCacheInvalidationPort durable, CpfCacheInvalidationCoordinator coordinator) {
         return () -> cache.health().ready() ? Health.up().withDetail("provider","VALKEY")
                 .withDetail("consumerId",coordinator.consumerId()).withDetail("backlog",durable.backlog(coordinator.consumerId())).build()
                 : Health.down().withDetail("reasonCodes",cache.health().reasonCodes()).build();

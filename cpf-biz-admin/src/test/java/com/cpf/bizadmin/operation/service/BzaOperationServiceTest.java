@@ -4,7 +4,7 @@ import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
 import com.cpf.core.api.error.CpfValidationException;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class BzaOperationServiceTest {
 
     private final BzaOperationRepository repository = mock(BzaOperationRepository.class);
-    private final CpfPasswordService passwordHashingPort = mock(CpfPasswordService.class);
+    private final CpfPasswordEncoder passwordHashingPort = mock(CpfPasswordEncoder.class);
     private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
     private final BzaAuthRepository authRepository = mock(BzaAuthRepository.class);
     private final BzaOperationService service =

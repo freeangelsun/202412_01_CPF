@@ -1,12 +1,13 @@
 package com.cpf.platform.operations.health;
 import java.time.Duration;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
 /** cpf.platform.health 설정입니다. */
 @ConfigurationProperties("cpf.platform-operations.health")
 public class CpfHealthProperties {
     private boolean enabled=true; private Duration dependencyTimeout=Duration.ofSeconds(2); private Duration cacheTtl=Duration.ofSeconds(3);
-    private int maxConcurrentChecks=8; private String systemId="cpf"; private String instanceId="local"; private String version="unknown"; private String buildSha="unknown"; private boolean maintenance;
+    private int maxConcurrentChecks=8; private String systemId="cpf"; private String instanceId; private String version="unknown"; private String buildSha="unknown"; private boolean maintenance;
     private String reportUrl; private String reportToken; private Duration reportInterval=Duration.ofSeconds(20);
     public boolean isEnabled(){return enabled;} public void setEnabled(boolean v){enabled=v;}
     public Duration getDependencyTimeout(){return dependencyTimeout;} public void setDependencyTimeout(Duration v){dependencyTimeout=positive(v,"dependencyTimeout");}
@@ -27,9 +28,8 @@ public class CpfHealthProperties {
             String resolved=first(environment.getProperty("cpf.system-code"),environment.getProperty("cpf.system.id"),environment.getProperty("spring.application.name"));
             if(resolved!=null) systemId=resolved;
         }
-        if("local".equals(instanceId)){
-            String resolved=first(environment.getProperty("cpf.instance-id"),environment.getProperty("cpf.runtime.instance-id"),environment.getProperty("HOSTNAME"));
-            if(resolved!=null) instanceId=resolved;
+        if(instanceId==null||instanceId.isBlank()){
+            instanceId=CpfInstanceIdentity.current().instanceId();
         }
     }
     private static String first(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return null;}

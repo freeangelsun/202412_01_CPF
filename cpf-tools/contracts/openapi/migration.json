@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "from": "3.1.*",
+  "to": "3.2.*",
+  "status": "PLANNED",
+  "releaseRule": "OpenAPI 3.2 artifacts remain non-release until runtime, generator and consumer parity gates all pass.",
+  "owners": ["cpf-starters/web", "cpf-admin", "cpf-biz-admin", "cpf-tools/contracts/openapi"],
+  "requiredGates": [
+    "verify-cpf-openapi-profile-lifecycle.py",
+    "verify-cpf-openapi-controller-coverage.py",
+    "runtime/source OpenAPI parity",
+    "generated client verification"
+  ]
+}

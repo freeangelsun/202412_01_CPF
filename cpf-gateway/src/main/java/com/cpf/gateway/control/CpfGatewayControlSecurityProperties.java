@@ -60,7 +60,7 @@ public class CpfGatewayControlSecurityProperties {
 
     public String resolvedAudience() {
         return audience == null || audience.isBlank()
-                ? CpfInstanceIdentity.current().serverInstanceId()
+                ? CpfInstanceIdentity.current().instanceId()
                 : audience.trim();
     }
 

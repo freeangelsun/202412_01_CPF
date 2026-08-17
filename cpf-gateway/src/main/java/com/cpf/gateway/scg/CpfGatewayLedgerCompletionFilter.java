@@ -67,7 +67,7 @@ public final class CpfGatewayLedgerCompletionFilter extends OncePerRequestFilter
         this.captureService = captureService;
         this.runtimePolicy = runtimePolicy;
         this.responseBodyBytesCap = safety.getResponseBodyBytesCap();
-        this.gatewayInstanceId = safety.getInstanceId();
+        this.gatewayInstanceId = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();
     }
 
     @Override

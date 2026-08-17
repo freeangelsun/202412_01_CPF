@@ -1,6 +1,6 @@
 package com.cpf.testkit.fault;
 
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.integration.resilience.api.CpfFaultInjector;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

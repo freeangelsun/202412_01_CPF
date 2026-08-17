@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.audit.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.common.base.BzaBaseService;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
@@ -46,7 +46,7 @@ public class BzaBusinessAuditService extends BzaBaseService {
     this.sql = sqlCatalogProvider.forModule("bza");
   }
 
-  @CpfTx(id="BZA_BZABUSINESSAUDITSERVICE_RECORD", name="BZA_BZABUSINESSAUDITSERVICE_RECORD", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> record(
       String actor,
       String action,

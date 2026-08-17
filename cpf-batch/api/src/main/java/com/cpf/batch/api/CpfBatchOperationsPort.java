@@ -32,7 +32,7 @@ public interface CpfBatchOperationsPort {
      * @param transactionId CPF 표준 거래 식별자입니다. null/blank 허용 여부는 해당 조회 설명을 따릅니다.
      * @param springBatchJobInstanceId Spring Batch Job Instance 식별자입니다. null이면 해당 축을 필터링하지 않습니다.
      * @param workerId 배치 Worker 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
-     * @param serverInstanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
+     * @param instanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
      * @param limit 최대 조회 건수입니다. 구현체는 문서화된 상한으로 제한해야 합니다.
      * @return Owner 경계에서 조회한 결과입니다. 조회 불가/부분 실패는 구현 계약에 따라 명시적으로 표현해야 합니다.
      */
@@ -41,7 +41,7 @@ public interface CpfBatchOperationsPort {
             String transactionId,
             Long springBatchJobInstanceId,
             String workerId,
-            String serverInstanceId,
+            String instanceId,
             int limit);
 
         /**
@@ -50,7 +50,7 @@ public interface CpfBatchOperationsPort {
      * @param transactionId CPF 표준 거래 식별자입니다. null/blank 허용 여부는 해당 조회 설명을 따릅니다.
      * @param springBatchJobInstanceId Spring Batch Job Instance 식별자입니다. null이면 해당 축을 필터링하지 않습니다.
      * @param workerId 배치 Worker 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
-     * @param serverInstanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
+     * @param instanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
      * @param fromDate 조회 시작 일시/일자 문자열입니다. null/blank이면 시작 경계를 적용하지 않습니다.
      * @param toDate 조회 종료 일시/일자 문자열입니다. null/blank이면 종료 경계를 적용하지 않습니다.
      * @param limit 최대 조회 건수입니다. 구현체는 문서화된 상한으로 제한해야 합니다.
@@ -61,11 +61,11 @@ public interface CpfBatchOperationsPort {
             String transactionId,
             Long springBatchJobInstanceId,
             String workerId,
-            String serverInstanceId,
+            String instanceId,
             String fromDate,
             String toDate,
             int limit) {
-        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, limit);
+        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, instanceId, limit);
     }
 
     /**
@@ -85,7 +85,7 @@ public interface CpfBatchOperationsPort {
      * @param transactionId CPF 표준 거래 식별자입니다. null/blank 허용 여부는 해당 조회 설명을 따릅니다.
      * @param springBatchJobInstanceId Spring Batch Job Instance 식별자입니다. null이면 해당 축을 필터링하지 않습니다.
      * @param workerId 배치 Worker 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
-     * @param serverInstanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
+     * @param instanceId 서버 Instance 식별자입니다. null/blank이면 해당 축을 필터링하지 않습니다.
      * @param status 상태 필터입니다. null/blank이면 상태를 제한하지 않습니다.
      * @param fromDate 조회 시작 일시/일자 문자열입니다. null/blank이면 시작 경계를 적용하지 않습니다.
      * @param toDate 조회 종료 일시/일자 문자열입니다. null/blank이면 종료 경계를 적용하지 않습니다.
@@ -98,7 +98,7 @@ public interface CpfBatchOperationsPort {
             String transactionId,
             Long springBatchJobInstanceId,
             String workerId,
-            String serverInstanceId,
+            String instanceId,
             String status,
             String fromDate,
             String toDate,
@@ -108,7 +108,7 @@ public interface CpfBatchOperationsPort {
         int safeSize = Math.max(10, Math.min(size, 200));
         int required = Math.min(5000, Math.addExact(Math.multiplyExact(safePage + 1, safeSize), 1));
         List<CpfDataRow> source = findExecutions(
-                jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId,
+                jobId, transactionId, springBatchJobInstanceId, workerId, instanceId,
                 fromDate, toDate, required);
         java.util.function.Predicate<CpfDataRow> statusFilter = row -> {
             if (status == null || status.isBlank()) return true;

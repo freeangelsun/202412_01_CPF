@@ -1,7 +1,8 @@
 package com.cpf.bizadmin.auth.service;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -42,13 +43,13 @@ public final class BzaBootstrapRunner implements ApplicationRunner {
             AclEntryPermission.DELETE);
 
     private final Environment environment;
-    private final CpfPasswordService passwordService;
+    private final CpfPasswordEncoder passwordService;
     private final BzaAuthRepository authRepository;
     private final BzaBootstrapApprovalRepository approvals;
 
     public BzaBootstrapRunner(
             Environment environment,
-            CpfPasswordService passwordService,
+            CpfPasswordEncoder passwordService,
             BzaAuthRepository authRepository,
             BzaBootstrapApprovalRepository approvals) {
         this.environment = environment;
@@ -178,13 +179,9 @@ public final class BzaBootstrapRunner implements ApplicationRunner {
     }
 
     private String claimOwnerId() {
-        String value = firstNonBlank(
-                environment.getProperty("cpf.instance.id"),
-                System.getenv("CPF_INSTANCE_ID"),
-                System.getenv("HOSTNAME"),
-                System.getenv("COMPUTERNAME"));
-        if (value == null || value.length() > 100 || !value.matches("[A-Za-z0-9._:-]+")) {
-            throw new IllegalStateException("BZA_BOOTSTRAP_INSTANCE_ID_REQUIRED");
+        String value = CpfInstanceIdentity.instanceId();
+        if (value.length() > 100 || !value.matches("[A-Za-z0-9._:-]+")) {
+            throw new IllegalStateException("BZA_BOOTSTRAP_INSTANCE_ID_INVALID");
         }
         return value;
     }

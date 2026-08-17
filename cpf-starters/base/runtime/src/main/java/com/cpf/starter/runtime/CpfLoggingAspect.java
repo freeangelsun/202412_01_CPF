@@ -18,7 +18,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 
 /**
  * @CpfLogging 전용 Runtime입니다. Payload는 명시적 allowlist + scalar + CPF masking을 모두 통과해야 기록됩니다.
- * 성능 계측과 감사 증적은 각각 @CpfPerformance/@CpfAudit가 소유합니다.
+ * 성능 계측과 감사 증적은 각각 @CpfTimed/@CpfAudit가 소유합니다.
  */
 @Aspect
 public final class CpfLoggingAspect {

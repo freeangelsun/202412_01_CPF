@@ -3,7 +3,6 @@
 cpf:
   framework:
     module-id: ${EDU_MODULE_ID:EDU}
-    instance-id: ${EDU_INSTANCE_ID:${CPF_INSTANCE_ID:${SERVER_INSTANCE_ID:edu-local-01}}}
     was-id: ${EDU_WAS_ID:${WAS_ID:eduAP01}}
   service-call:
     registry-mode: ${EDU_SERVICE_REGISTRY_MODE:${CPF_SERVICE_REGISTRY_MODE:LOCAL}}

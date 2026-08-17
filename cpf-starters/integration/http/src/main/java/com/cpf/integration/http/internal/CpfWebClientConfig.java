@@ -1,9 +1,9 @@
 package com.cpf.integration.http.internal;
 
-import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
 import com.cpf.platform.operations.observability.api.logging.CpfIntegrationLogPort;
 import com.cpf.integration.http.internal.servicecall.CpfServiceCallEngine;
-import com.cpf.foundation.workflow.CpfWorkflowContext;
+import com.cpf.web.context.CpfHeaderPolicyRegistry;
+import com.cpf.web.context.CpfHttpHeaderLogSanitizer;
 import io.netty.channel.ChannelOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,7 +18,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,13 +26,13 @@ import reactor.netty.http.client.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
- * CPF 서비스 간 호출에 사용하는 WebClient 설정입니다.
+ * CPF HTTP Client 공통 설정입니다.
  *
- * <p>현재 거래 컨텍스트와 워크플로 컨텍스트를 하위 서비스로 자동 전파합니다.</p>
+ * <p>Generic RestClient/WebClient는 외부기관 호출에도 사용되므로 CPF 내부 거래 Header를 자동 복사하지 않습니다.
+ * 내부 Domain-to-Domain 호출의 Canonical Header는 typed Domain transport가 신뢰 경계에서 명시적으로 구성합니다.</p>
  */
 @AutoConfiguration
 @EnableConfigurationProperties({
@@ -66,6 +65,7 @@ public class CpfWebClientConfig {
             CpfPinnedHttpConnectorFactory pinnedConnectorFactory,
             ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider,
             ObjectProvider<CpfServiceCallEngine> serviceCallEngineProvider,
+            ObjectProvider<CpfHeaderPolicyRegistry> headerPolicyProvider,
             Environment environment) {
 
         HttpClient httpClient = HttpClient.create()
@@ -80,8 +80,8 @@ public class CpfWebClientConfig {
         WebClient.Builder builder = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(exchangeStrategies)
-                .filter(transactionHeaderPropagationFilter(CpfLocalServiceIdentity.from(environment)))
-                .filter(integrationFileLogFilter(fileLogWriterProvider));
+                .filter(integrationFileLogFilter(fileLogWriterProvider,
+                        new CpfHttpHeaderLogSanitizer(headerPolicyProvider.getIfAvailable())));
 
         return new CpfWebClient(
                 builder, endpointRegistry, serviceCallEngineProvider, runtimePolicy, pinnedConnectorFactory);
@@ -91,10 +91,12 @@ public class CpfWebClientConfig {
     @ConditionalOnMissingBean
     public CpfRestClientInterceptor cpfRestClientInterceptor(
             ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider,
+            ObjectProvider<CpfHeaderPolicyRegistry> headerPolicyProvider,
             Environment environment) {
         return new CpfRestClientInterceptor(
                 fileLogWriterProvider.getIfAvailable(),
-                CpfLocalServiceIdentity.from(environment));
+                CpfLocalServiceIdentity.from(environment),
+                new CpfHttpHeaderLogSanitizer(headerPolicyProvider.getIfAvailable()));
     }
 
     @Bean
@@ -118,36 +120,11 @@ public class CpfWebClientConfig {
     }
 
     /**
-     * 하위 서비스 호출 전에 CPF 표준 거래 헤더와 워크플로 헤더를 추가합니다.
-     */
-    private ExchangeFilterFunction transactionHeaderPropagationFilter(CpfLocalServiceIdentity localServiceIdentity) {
-        return (request, next) -> {
-            ClientRequest.Builder requestBuilder = ClientRequest.from(request);
-
-            for (Map.Entry<String, String> header : CpfTransactionContext.outboundHeaders().entrySet()) {
-                if (hasText(header.getValue()) && !request.headers().containsHeader(header.getKey())) {
-                    requestBuilder.header(header.getKey(), header.getValue());
-                }
-            }
-            for (Map.Entry<String, String> header : CpfWorkflowContext.propagationHeaders().entrySet()) {
-                if (hasText(header.getValue()) && !request.headers().containsHeader(header.getKey())) {
-                    requestBuilder.header(header.getKey(), header.getValue());
-                }
-            }
-            // 외부 입력의 호출자 값을 다음 hop으로 넘기지 않고 실제 현재 서비스 신원으로 재생성합니다.
-            requestBuilder.headers(headers -> {
-                headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
-                headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
-            });
-
-            return next.exchange(requestBuilder.build());
-        };
-    }
-
-    /**
      * WebClient 기반 하위 서비스 호출을 CPF integration 파일 로그로 기록합니다.
      */
-    private ExchangeFilterFunction integrationFileLogFilter(ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider) {
+    private ExchangeFilterFunction integrationFileLogFilter(
+            ObjectProvider<CpfIntegrationLogPort> fileLogWriterProvider,
+            CpfHttpHeaderLogSanitizer headerSanitizer) {
         return (request, next) -> {
             long started = System.nanoTime();
             writeOutboundEvent(
@@ -159,6 +136,7 @@ public class CpfWebClientConfig {
                     null,
                     null,
                     null,
+                    headerSanitizer,
                     started);
             return next.exchange(request)
                     .doOnSuccess(response -> {
@@ -172,6 +150,7 @@ public class CpfWebClientConfig {
                                     response.statusCode().isError() ? "HTTP_" + response.statusCode().value() : null,
                                     response.statusCode().isError() ? "하위 서비스 HTTP 오류" : null,
                                     null,
+                                    headerSanitizer,
                                     started);
                         }
                     })
@@ -186,6 +165,7 @@ public class CpfWebClientConfig {
                                 error.getClass().getSimpleName(),
                                 error.getMessage(),
                                 error instanceof TimeoutException ? "Y" : "N",
+                                headerSanitizer,
                                 started);
                     });
         };
@@ -200,6 +180,7 @@ public class CpfWebClientConfig {
             String failureCode,
             String failureMessage,
             String timeoutYn,
+            CpfHttpHeaderLogSanitizer headerSanitizer,
             long started) {
 
         CpfIntegrationLogPort writer = fileLogWriterProvider.getIfAvailable();
@@ -208,7 +189,7 @@ public class CpfWebClientConfig {
         }
         writer.writeIntegration(
                 null,
-                CpfTargetServiceResolver.resolve(request.headers(), request.url()),
+                CpfTargetSystemResolver.resolve(request.headers(), request.url()),
                 "OUTBOUND",
                 request.method().name(),
                 request.url().getPath(),

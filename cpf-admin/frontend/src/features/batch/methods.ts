@@ -87,14 +87,14 @@ export const batchMethods = {
       },
   async loadBatchJobLogDetail() {
         const search = this.reliabilitySearch;
-        if (!search.businessDate || !search.jobName || !search.jobInstanceId || !search.serverInstanceId) {
+        if (!search.businessDate || !search.jobName || !search.jobInstanceId || !search.instanceId) {
           this.setMessage("업무일자, Job 이름, JobInstance ID, Server Instance를 입력하세요.");
           return;
         }
         const businessDate = encodeURIComponent(search.businessDate);
         const jobName = encodeURIComponent(search.jobName);
         const jobInstanceId = encodeURIComponent(search.jobInstanceId);
-        const params = this.buildParams({ serverInstanceId: search.serverInstanceId, maxRecords: 200 });
+        const params = this.buildParams({ instanceId: search.instanceId, maxRecords: 200 });
         this.reliabilityResult = {
           ...this.reliabilityResult,
           batchJobLogDetail: await this.getJson(

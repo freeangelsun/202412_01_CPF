@@ -7,27 +7,44 @@ PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/doc
 APPROVED_TOOLS={'build','contracts','db','environment','generator','governance','release','runtime','security','supply-chain','testing','verification'}
 LEGACY_TOOLS={'config','performance','product-governance','promotion','runtime-alternatives','scripts','analysis'}
 
+def is_generated_cache_path(path: str) -> bool:
+    """True only for disposable runtime/build caches; cpf-tools/build product source stays managed."""
+    normalized=path.replace('\\','/').strip('/')
+    parts=normalized.split('/') if normalized else []
+    if not parts:
+        return False
+    if '__pycache__' in parts or normalized.endswith('.pyc'):
+        return True
+    if parts[0]=='build' or any(part in {'.gradle','.pytest_cache','node_modules','dist','out','target'} for part in parts):
+        return True
+    for index,part in enumerate(parts):
+        if part!='build':
+            continue
+        # cpf-tools/build is tracked product source; only nested build directories below it are generated.
+        if index==1 and parts[0]=='cpf-tools':
+            continue
+        return True
+    return False
+
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); a=ap.parse_args(); r=Path(a.root).resolve(); fail=[]
- mf=r/'cpf-docs/work/CPF_DELETE_MANIFEST.csv'; gf=r/'cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'
+ mf=r/'cpf-docs/work/current/DELETE_MANIFEST.txt'; gf=r/'cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'
  rows=[]; grows=[]
  if not mf.exists(): fail.append('delete_manifest_missing')
  else:
-  with mf.open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
+  rows=[line.strip().replace('\\','/').strip('/') for line in mf.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')]
  if not gf.exists(): fail.append('garbage_decisions_missing')
  else:
   with gf.open(encoding='utf-8-sig',newline='') as f: grows=list(csv.DictReader(f))
  seen=set(); decided={}
  for x in grows: decided.setdefault((x.get('path') or '').replace('\\','/').strip('/'),set()).add(x.get('decision') or x.get('action'))
- for row in rows:
-  path=(row.get('path') or '').replace('\\','/').strip('/')
+ for path in rows:
   if not path: fail.append('delete_manifest_empty'); continue
   if path in seen: fail.append('delete_manifest_duplicate='+path)
   seen.add(path)
   if Path(path).is_absolute() or '..' in Path(path).parts: fail.append('unsafe_delete='+path)
   if any(path==x.rstrip('/') or path.startswith(x) for x in PROTECTED): fail.append('protected_delete='+path)
   if (r/path).exists() and (r/path).is_dir(): fail.append('directory_delete_forbidden='+path)
-  if row.get('status')!='READY_TO_DELETE': fail.append('delete_manifest_status='+path)
   if 'DELETE' not in decided.get(path,set()): fail.append('delete_without_garbage_decision='+path)
  tools=r/'cpf-tools'
  if tools.exists():

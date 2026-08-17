@@ -2,7 +2,7 @@ import { MutationObserver } from "@tanstack/vue-query";
 import { CpfOrvalError, cpfOrvalRequest, type CpfOrvalResponse } from "./orval-mutator";
 import { cpfOperationDescriptors, resolveCpfOperation, type CpfOperationId } from "../generated/cpf-operation-contract";
 import { cpfQueryClient } from "./queryClient";
-import { createTransactionId, defaultHeaders, isValidTransactionId } from "./transaction";
+import { assertNoProtectedCpfHeaders, defaultHeaders } from "./clientHeaders";
 
 export class CpfApiError extends Error {
   constructor(public readonly status: number, message: string, public readonly payload: unknown) {
@@ -18,9 +18,7 @@ function csrfToken(): string {
 export function createBzaHeaders(extraHeaders: HeadersInit = {}): Headers {
   const headers = new Headers(defaultHeaders);
   new Headers(extraHeaders).forEach((value, key) => headers.set(key, value));
-  headers.set("X-Caller-Service", "bza-ui");
-  headers.set("X-Original-Channel-Code", "BZA");
-  if (!isValidTransactionId(headers.get("X-Transaction-Id"))) headers.set("X-Transaction-Id", createTransactionId());
+  assertNoProtectedCpfHeaders(headers);
   const csrf = csrfToken(); if (csrf && !headers.has("X-XSRF-TOKEN")) headers.set("X-XSRF-TOKEN", csrf);
   if (headers.has("Authorization")) throw new Error("BZA BFF는 Browser Bearer Token을 허용하지 않습니다.");
   return headers;
@@ -108,7 +106,7 @@ export async function bzaQuery<T = unknown>(url: string, params?: Record<string,
   try {
     return await cpfQueryClient.fetchQuery<T>({
       queryKey: ["cpf", operation.operationId, target.pathname, target.search],
-      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createBzaHeaders({ "X-CPF-Operation-Id": operation.operationId }) })
+      queryFn: () => cpfOrvalPayload<T>({ url: relative, method: "GET", headers: createBzaHeaders({}) })
     });
   } catch (error) { return convert(error); }
 }
@@ -142,7 +140,7 @@ async function executeNativeMutation<T>(
 ): Promise<T> {
   const relative = target.pathname + target.search;
   const operation = resolveCpfOperation(method, relative);
-  const headers = createBzaHeaders({ "X-CPF-Operation-Id": operation.operationId });
+  const headers = createBzaHeaders({});
   if (body instanceof URLSearchParams) headers.set("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
   const response = await fetch(relative, {
     method,
@@ -170,7 +168,7 @@ export async function bzaMutation<T = unknown>(url: string, method: "POST" | "PU
   const operation = resolveCpfOperation(method, relative);
   const observer = new MutationObserver<T, unknown, unknown, unknown>(cpfQueryClient, {
     mutationKey: ["cpf", operation.operationId],
-    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createBzaHeaders({ "Content-Type": "application/json", "X-CPF-Operation-Id": operation.operationId }), data: body })
+    mutationFn: () => cpfOrvalPayload<T>({ url: relative, method, headers: createBzaHeaders({ "Content-Type": "application/json" }), data: body })
   });
   try {
     const result = await observer.mutate(undefined);
@@ -191,7 +189,7 @@ export async function bzaRawResponse(
   assertNoClientActorQuery(target);
   assertSameOrigin(target);
   const operation = resolveCpfOperation(method, target.pathname + target.search);
-  const headers = createBzaHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()), "X-CPF-Operation-Id": operation.operationId });
+  const headers = createBzaHeaders({ ...Object.fromEntries(new Headers(extraHeaders).entries()) });
   let requestBody: BodyInit | undefined;
   if (body !== undefined && body !== null) {
     if (typeof body === "string" || body instanceof FormData || body instanceof Blob || body instanceof URLSearchParams) requestBody = body;

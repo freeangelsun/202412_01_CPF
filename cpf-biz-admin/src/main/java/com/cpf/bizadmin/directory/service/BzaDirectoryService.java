@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.directory.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.bizadmin.directory.repository.BzaDirectoryRepository;
 import com.cpf.core.api.error.CpfValidationException;
@@ -34,7 +34,7 @@ public class BzaDirectoryService {
     return r.positionPage(CpfPageRequest.of(p, s));
   }
 
-  @CpfTx(id="BZA_BZADIRECTORYSERVICE_SAVEPOSITION", name="BZA_BZADIRECTORYSERVICE_SAVEPOSITION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> savePosition(PositionRequest q, String op) {
     String code = req(q.positionCode(), "positionCode");
     Map<String, Object> v = new LinkedHashMap<>();
@@ -60,7 +60,7 @@ public class BzaDirectoryService {
     return r.jobTitlePage(CpfPageRequest.of(p, s));
   }
 
-  @CpfTx(id="BZA_BZADIRECTORYSERVICE_SAVEJOBTITLE", name="BZA_BZADIRECTORYSERVICE_SAVEJOBTITLE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveJobTitle(JobTitleRequest q, String op) {
     String code = req(q.jobTitleCode(), "jobTitleCode");
     Map<String, Object> v = new LinkedHashMap<>();
@@ -87,7 +87,7 @@ public class BzaDirectoryService {
     return r.assignmentPage(e, o, at == null ? Instant.now() : at, CpfPageRequest.of(p, s));
   }
 
-  @CpfTx(id="BZA_BZADIRECTORYSERVICE_SAVEASSIGNMENT", name="BZA_BZADIRECTORYSERVICE_SAVEASSIGNMENT", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveAssignment(AssignmentRequest q, String op) {
     String e = req(q.employeeNo(), "employeeNo");
     Instant f = req(q.effectiveFrom(), "effectiveFrom"), t = q.effectiveTo();
@@ -127,7 +127,7 @@ public class BzaDirectoryService {
     return r.responsibilityPage(o, at == null ? Instant.now() : at, CpfPageRequest.of(p, s));
   }
 
-  @CpfTx(id="BZA_BZADIRECTORYSERVICE_SAVERESPONSIBILITY", name="BZA_BZADIRECTORYSERVICE_SAVERESPONSIBILITY", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveResponsibility(ResponsibilityRequest q, String op) {
     Instant f = req(q.effectiveFrom(), "effectiveFrom"), t = q.effectiveTo();
     if (t != null && !t.isAfter(f))
@@ -160,7 +160,7 @@ public class BzaDirectoryService {
     return r.userRolePage(l, at == null ? Instant.now() : at, CpfPageRequest.of(p, s));
   }
 
-  @CpfTx(id="BZA_BZADIRECTORYSERVICE_SAVEUSERROLE", name="BZA_BZADIRECTORYSERVICE_SAVEUSERROLE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveUserRole(UserRoleRequest q, String op) {
     String actor = req(op, "operatorId"),
         login = req(q.loginId(), "loginId"),

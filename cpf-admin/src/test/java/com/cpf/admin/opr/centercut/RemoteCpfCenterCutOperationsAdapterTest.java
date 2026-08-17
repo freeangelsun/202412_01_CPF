@@ -1,12 +1,13 @@
 package com.cpf.admin.opr.centercut;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
 import com.cpf.integration.api.servicecall.CpfServiceTarget;
 import com.cpf.integration.api.servicecall.CpfServiceTransport;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,13 +44,13 @@ class RemoteCpfCenterCutOperationsAdapterTest {
                 .satisfies(row -> assertThat(row).containsEntry("centerCutJobId", "CC-1"));
 
         HttpHeaders headers = httpRequest.get().headers();
-        assertThat(headers.getFirst(CpfHeaders.callerService())).isEqualTo("ADM");
-        assertThat(headers.getFirst(CpfHeaders.callerInstanceId())).isEqualTo("adm-instance-02");
-        assertThat(headers.getFirst(CpfHeaders.operatorId())).isEqualTo("operator-center-cut");
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_SERVICE)).isEqualTo("ADM");
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_INSTANCE_ID)).isEqualTo("adm-instance-02");
+        assertThat(headers.getFirst(BatControlHeaders.OPERATOR_ID)).isEqualTo("operator-center-cut");
         assertThat(serviceRequest.get().headers())
-                .containsEntry(CpfHeaders.callerService(), "ADM")
-                .containsEntry(CpfHeaders.callerInstanceId(), "adm-instance-02")
-                .containsEntry(CpfHeaders.operatorId(), "operator-center-cut");
+                .containsEntry(BatControlHeaders.CALLER_SERVICE, "ADM")
+                .containsEntry(BatControlHeaders.CALLER_INSTANCE_ID, "adm-instance-02")
+                .containsEntry(BatControlHeaders.OPERATOR_ID, "operator-center-cut");
         verify(operatorContext).currentOperatorId();
     }
 

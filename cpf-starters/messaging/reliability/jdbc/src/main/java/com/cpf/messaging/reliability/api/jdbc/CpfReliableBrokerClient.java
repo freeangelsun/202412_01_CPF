@@ -1,6 +1,6 @@
 package com.cpf.messaging.reliability.api.jdbc;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import com.cpf.messaging.spi.broker.CpfBrokerEnvelope;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Provider I/O is deliberately deferred to {@code CpfBrokerPublisherWorker}.
  */
 /** CpfReliableBrokerClient는 메시징 신뢰성 경계에서 중복 방지·재시도·결과불명 복구 책임을 명확히 수행합니다. */
-public class CpfReliableBrokerClient implements CpfBrokerClient {
+public class CpfReliableBrokerClient implements CpfMessagingTemplate {
     private final CpfBrokerOutboxPort outbox;
     private final Clock clock;
     private final CpfMessageBridgeContextSupport contextSupport;
@@ -35,7 +35,7 @@ public class CpfReliableBrokerClient implements CpfBrokerClient {
     @Override
     // 메시지 상태 전이를 단일 트랜잭션으로 묶어 부분 저장과 중복 처리를 방지합니다.
     @Transactional(transactionManager = "cpfTransactionManager")
-    public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+    public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         CpfBrokerPublishRequest validated = CpfBrokerHeaderPolicy.validatedRequest(request);
         requireTracking(validated.transactionId(), "transactionId");
         requireTracking(validated.idempotencyKey(), "idempotencyKey");

@@ -1,51 +1,44 @@
 #!/usr/bin/env python3
-# CPF 개발/검증 Source이며 최신 Requirement와 실패 누적 검증 계약을 따릅니다.
+# CPF ADM/BZA/Gateway management-boundary verifier.
 from __future__ import annotations
 import argparse,json,re
 from pathlib import Path
+
 MODULES={
- 'ADM':('cpf-admin/src/main/java','AdmBaseController','AdmBaseService','AdmBaseRepository'),
- 'BZA':('cpf-biz-admin/src/main/java','BzaBaseController','BzaBaseService','BzaBaseRepository'),
+ 'ADM':'cpf-admin/src/main/java',
+ 'BZA':'cpf-biz-admin/src/main/java',
+ 'GATEWAY':'cpf-gateway/src/main/java',
 }
+
+def java_files(root:Path,rel:str):
+ p=root/rel
+ return [] if not p.exists() else [(f,f.read_text(encoding='utf-8',errors='ignore')) for f in p.rglob('*.java')]
 
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');ap.add_argument('--json-out');a=ap.parse_args();root=Path(a.root).resolve();fail=[];metrics={}
- for label,(rel,bc,bs,bd) in MODULES.items():
-  src=root/rel
-  texts=[]
-  if not src.exists():fail.append(f'{label} source missing');continue
-  for p in src.rglob('*.java'):
-   try:texts.append((p,p.read_text(encoding='utf-8')))
-   except UnicodeDecodeError:pass
-  alltext='\n'.join(t for _,t in texts)
-  base={
-   'controller': f'abstract class {bc} extends CpfBaseController' in alltext,
-   'service': f'abstract class {bs} extends CpfBaseService' in alltext and 'operationCode(' in alltext,
-   'repository': f'abstract class {bd} extends CpfBaseRepository' in alltext and 'operationPageSize(' in alltext,
+ for label,rel in MODULES.items():
+  rows=java_files(root,rel)
+  if not rows: fail.append(f'{label} source missing'); continue
+  controllers=[(p,t) for p,t in rows if p.stem.endswith('Controller')]
+  wrong_tx=[str(p.relative_to(root)) for p,t in controllers if re.search(r'(?m)^\s*@CpfOnlineTransaction(?:\s*\(|\s*$)',t)]
+  wrong_tx_headers=[str(p.relative_to(root)) for p,t in controllers if all(x in t for x in ['X-Transaction-Id','X-Caller-System-Code','X-Target-Operation-Id'])]
+  direct_internal=[str(p.relative_to(root)) for p,t in rows if re.search(r'import\s+com\.cpf\.core\.(?:internal|impl)\.',t)]
+  cross_internal=[str(p.relative_to(root)) for p,t in rows if label=='BZA' and re.search(r'import\s+com\.cpf\.(?:member|external)\..*\.internal\.',t)]
+  web_controllers=[str(p.relative_to(root)) for p,t in controllers if '@RestController' in t or '@Controller' in t]
+  metrics[label]={
+   'controllerCount':len(controllers),'springWebControllerCount':len(web_controllers),
+   'businessTransactionAnnotationOnManagementController':len(wrong_tx),
+   'businessSixHeaderContractOnManagementController':len(wrong_tx_headers),
+   'directCpfCoreInternalImports':len(direct_internal),'businessDomainInternalImports':len(cross_internal),
   }
-  for k,v in base.items():
-   if not v:fail.append(f'{label} Domain Base missing/non-functional: {k}')
-  consumers={'CpfController':0,'CpfService':0,'CpfRepository':0,'CpfOnlineTransaction':alltext.count('@CpfOnlineTransaction')}
-  bypass=[]
-  for p,t in texts:
-   n=p.stem
-   if n.endswith('Controller') and n!=bc and '@RestController' in t:bypass.append(str(p.relative_to(root)))
-   if n.endswith('Service') and n!=bs and re.search(r'@Service\b',t):bypass.append(str(p.relative_to(root)))
-   if n.endswith('Repository') and n!=bd and re.search(r'@Repository\b',t):bypass.append(str(p.relative_to(root)))
-   consumers['CpfController']+=t.count('@CpfController');consumers['CpfService']+=t.count('@CpfService');consumers['CpfRepository']+=t.count('@CpfRepository')
-  metrics[label]={'base':base,'consumers':consumers,'springStereotypeBypass':len(bypass)}
-  if bypass:fail.append(f'{label} concrete Spring stereotype bypass count={len(bypass)} examples={bypass[:8]}')
-  for k in ('CpfController','CpfService','CpfRepository'):
-   if consumers[k]<=0:fail.append(f'{label} actual @{k} consumer missing')
-  if consumers['CpfOnlineTransaction']<=0:fail.append(f'{label} @CpfOnlineTransaction consumer missing')
- # control-plane separation evidence must be visible in ADM source/config by management semantics.
- adm='\n'.join(p.read_text(encoding='utf-8') for p in (root/'cpf-admin/src/main/java').rglob('*.java')) if (root/'cpf-admin/src/main/java').exists() else ''
- cp={k:(k in adm) for k in ['AdmControlPlane','maintenance','audit','transactionId']}
- metrics['controlPlaneSemantics']=cp
- for k,v in cp.items():
-  if not v:fail.append('ADM control-plane semantic missing: '+k)
- result={'status':'PASS' if not fail else 'FAIL','failures':fail,'metrics':metrics,'runtimeFailureDomainVerification':'UNVERIFIED_EXTERNAL_RUNTIME'}
+  if wrong_tx: fail.append(f'{label} management controller must not be @CpfOnlineTransaction: {wrong_tx[:12]}')
+  if wrong_tx_headers: fail.append(f'{label} management controller forces business 6-header contract: {wrong_tx_headers[:12]}')
+  if direct_internal: fail.append(f'{label} direct cpf-core internal coupling: {direct_internal[:12]}')
+  if cross_internal: fail.append(f'{label} direct business-domain internal coupling: {cross_internal[:12]}')
+  if controllers and not web_controllers: fail.append(f'{label} management controllers are not ordinary Spring Web controllers')
+ result={'status':'PASS' if not fail else 'FAIL','failures':fail,'metrics':metrics,
+         'boundary':'ADM/BZA/Gateway management API is not business Domain Online Transaction; outbound Domain Client boundary owns business transaction context.'}
  print('CPF_NXT3_ADM_BZA_FRAMEWORK_GATE='+result['status']);print(json.dumps(result,ensure_ascii=False,indent=2))
- if a.json_out:Path(a.json_out).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+ if a.json_out: Path(a.json_out).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  raise SystemExit(0 if not fail else 1)
 if __name__=='__main__':main()

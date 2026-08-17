@@ -2,7 +2,6 @@ package com.cpf.bizadmin.auth.controller;
 
 import com.cpf.bizadmin.auth.service.BzaAuthService;
 import com.cpf.bizadmin.auth.dto.*;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.security.session.jdbc.CpfBffSessionBridgeFilter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -27,7 +26,7 @@ import java.util.List;
  * <p>이 API는 sample 패키지가 아닌 BZA 인증 기능 그룹에 속합니다. 로그인 이력과 refresh token은
  * bzaDB에 저장되며, datasource가 비활성화된 환경에서는 명확한 서비스 사용 불가 오류를 반환합니다.</p>
  */
-@CpfController
+@RestController
 @RequestMapping("/api/bza/auth")
 @Tag(name = "BZA-Auth", description = "업무 관리자 로그인, refresh token, 현재 사용자, 로그인 이력 API")
 public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseController {
@@ -37,9 +36,7 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
         this.authService = authService;
     }
 
-    @PostMapping("/login")
-    @CpfOnlineTransaction(id = "OBZAAU0001", name = "BzaLogin", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthLogin", summary = "업무 관리자 로그인",
+    @PostMapping("/login")    @Operation(operationId = "bzaAuthLogin", summary = "업무 관리자 로그인",
             description = "operationId가 필수입니다. 성공 흐름은 계정 갱신·성공 이력·Refresh Session을 "
                     + "하나의 bzaDB Transaction으로 commit합니다. 응답 유실 시 동일 operationId를 재사용하면 "
                     + "기존 Refresh Session을 폐기하고 하나의 활성 Session으로 회전합니다. 인증 실패 횟수와 "
@@ -60,9 +57,7 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
                 servletRequest.getHeader(HttpHeaders.USER_AGENT)));
     }
 
-    @PostMapping("/refresh")
-    @CpfOnlineTransaction(id = "OBZAAU0002", name = "BzaTokenRefresh", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthRefresh", summary = "업무 관리자 token 재발급", description = "원문 refresh token을 hash 비교한 뒤 BZA access token을 재발급합니다.")
+    @PostMapping("/refresh")    @Operation(operationId = "bzaAuthRefresh", summary = "업무 관리자 token 재발급", description = "원문 refresh token을 hash 비교한 뒤 BZA access token을 재발급합니다.")
     public ResponseEntity<BzaAuthService.LoginResult> refresh(HttpServletRequest servletRequest) {
         String refreshToken = CpfBffSessionBridgeFilter.internalRefreshToken(servletRequest);
         if (refreshToken == null) {
@@ -73,34 +68,26 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
         return ResponseEntity.ok(authService.refresh(new BzaAuthService.RefreshRequest(refreshToken)));
     }
 
-    @PostMapping("/logout")
-    @CpfOnlineTransaction(id = "OBZAAU0003", name = "BzaLogout", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthLogout", summary = "업무 관리자 로그아웃", description = "DB에 저장된 refresh token hash 상태를 폐기 처리합니다.")
+    @PostMapping("/logout")    @Operation(operationId = "bzaAuthLogout", summary = "업무 관리자 로그아웃", description = "DB에 저장된 refresh token hash 상태를 폐기 처리합니다.")
     public ResponseEntity<BzaLogoutResponse> logout(HttpServletRequest servletRequest) {
         String refreshToken = CpfBffSessionBridgeFilter.internalRefreshToken(servletRequest);
         return ResponseEntity.ok(authService.logout(
                 refreshToken == null ? null : new BzaAuthService.RefreshRequest(refreshToken)));
     }
 
-    @GetMapping("/me")
-    @CpfOnlineTransaction(id = "OBZAAU0004", name = "BzaCurrentOperator", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthMe", summary = "현재 업무 관리자", description = "BZA access token의 loginDomain을 검증한 뒤 현재 업무 관리자 정보를 반환합니다.")
+    @GetMapping("/me")    @Operation(operationId = "bzaAuthMe", summary = "현재 업무 관리자", description = "BZA access token의 loginDomain을 검증한 뒤 현재 업무 관리자 정보를 반환합니다.")
     public ResponseEntity<BzaCurrentOperatorResponse> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         return ResponseEntity.ok(authService.currentOperator(authorization));
     }
 
-    @GetMapping("/login-history")
-    @CpfOnlineTransaction(id = "OBZAAU0005", name = "BzaLoginHistory", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthLoginHistories", summary = "업무 관리자 로그인 이력", description = "성공/실패, 실패 사유, transactionId, moduleId, wasId, serverInstanceId를 포함해 조회합니다.")
+    @GetMapping("/login-history")    @Operation(operationId = "bzaAuthLoginHistories", summary = "업무 관리자 로그인 이력", description = "성공/실패, 실패 사유, transactionId, moduleId, wasId, instanceId를 포함해 조회합니다.")
     public ResponseEntity<List<BzaLoginHistoryResponse>> loginHistories(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
             @RequestParam(defaultValue = "100") int limit) {
         return ResponseEntity.ok(authService.loginHistories(authorization, limit));
     }
 
-    @GetMapping("/sessions")
-    @CpfOnlineTransaction(id = "OBZAAU0007", name = "BzaSessionList", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthSessions", summary = "현재 사용자 세션 조회",
+    @GetMapping("/sessions")    @Operation(operationId = "bzaAuthSessions", summary = "현재 사용자 세션 조회",
             description = "refresh token 원문과 hash를 제외한 발급 거래·만료·폐기 상태를 조회합니다.")
     public ResponseEntity<List<BzaSessionResponse>> sessions(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
@@ -108,9 +95,7 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
         return ResponseEntity.ok(authService.sessions(authorization, limit));
     }
 
-    @PostMapping("/sessions/{sessionId}/revoke")
-    @CpfOnlineTransaction(id = "OBZAAU0008", name = "BzaSessionRevoke", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthRevokeSession", summary = "현재 사용자 세션 폐기",
+    @PostMapping("/sessions/{sessionId}/revoke")    @Operation(operationId = "bzaAuthRevokeSession", summary = "현재 사용자 세션 폐기",
             description = "현재 access token 사용자 소유의 활성 refresh session만 감사 사유와 함께 폐기합니다.")
     public ResponseEntity<BzaSessionRevokeResponse> revokeSession(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
@@ -119,9 +104,7 @@ public class BzaAuthController extends com.cpf.bizadmin.common.base.BzaBaseContr
         return ResponseEntity.ok(authService.revokeSession(authorization, sessionId, reason));
     }
 
-    @PostMapping("/password/change")
-    @CpfOnlineTransaction(id = "OBZAAU0006", name = "BzaPasswordChange", ownerDomain="BZA")
-    @Operation(operationId = "bzaAuthChangePassword", summary = "업무 관리자 본인 비밀번호 변경",
+    @PostMapping("/password/change")    @Operation(operationId = "bzaAuthChangePassword", summary = "업무 관리자 본인 비밀번호 변경",
             description = "현재 비밀번호를 검증하고 CPF 공통 hash 형식으로 변경한 뒤 기존 refresh token을 모두 폐기합니다.")
     public ResponseEntity<BzaPasswordChangeResponse> changePassword(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,

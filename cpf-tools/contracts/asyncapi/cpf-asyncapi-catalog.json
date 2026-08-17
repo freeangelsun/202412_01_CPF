@@ -4,7 +4,7 @@
   "supported_asyncapi_versions": ["3.1.0"],
   "source_inventory": [
     {"path": "cpf-core/src/main/java/com/cpf/core/api/broker/CpfBrokerPublishRequest.java", "type": "blob", "sha": "a62d811d2e6378d66168166ec848a21ab1c15b2b"},
-    {"path": "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfBrokerClientAdapter.java", "type": "blob", "sha": "033b0b9bfc82887a8cbcb2156f254f13be7c30df"},
+    {"path": "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfMessagingTemplateAdapter.java", "type": "blob", "sha": "033b0b9bfc82887a8cbcb2156f254f13be7c30df"},
     {"path": "cpf-starters/messaging/kafka", "type": "tree", "sha": "33b2ce450989ff6c710d81313b7df94d3e92cf98"},
     {"path": "cpf-starters/messaging/jms", "type": "tree", "sha": "01542e761bf5cd67f6fbbd77332f352c623f3ccd"},
     {"path": "cpf-starters/messaging/rabbitmq", "type": "tree", "sha": "8c531abfb77f7d0d62c372865fa036c3cc7d9bf7"},
@@ -20,7 +20,7 @@
         "cpf-core/src/main/java/com/cpf/core/api/broker/CpfBrokerPublishRequest.java"
       ],
       "consumers": [
-        "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfBrokerClientAdapter.java",
+        "cpf-core/src/main/java/com/cpf/core/internal/broker/CpfMessagingTemplateAdapter.java",
         "cpf-starters/messaging/kafka",
         "cpf-starters/messaging/jms",
         "cpf-starters/messaging/rabbitmq",

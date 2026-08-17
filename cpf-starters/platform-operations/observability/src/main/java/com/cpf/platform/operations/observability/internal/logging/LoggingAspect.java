@@ -382,7 +382,7 @@ public class LoggingAspect {
             LocalDateTime endTime,
             long durationMs) {
 
-        ServerInstanceIdentity.Identity serverIdentity = ServerInstanceIdentity.current();
+        com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.Identity runtimeIdentity = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current();
         return TransactionLogRecord.builder()
                 .transactionId(transactionId)
                 .traceId(traceId)
@@ -395,27 +395,29 @@ public class LoggingAspect {
                 .businessTransactionName(businessTransactionName)
                 .logType(logType)
                 .apiVersion(headerValue(transactionHeader, TransactionHeader::getApiVersion))
-                .clientAppId(headerValue(transactionHeader, TransactionHeader::getClientAppId))
+                .clientId(headerValue(transactionHeader, TransactionHeader::getClientId))
                 .clientVersion(headerValue(transactionHeader, TransactionHeader::getClientVersion))
-                .callerService(headerValue(transactionHeader, TransactionHeader::getCallerService))
+                .callerSystemCode(TransactionContext.callerSystemCode())
+                .targetSystemCode(TransactionContext.targetSystemCode())
+                .targetOperationId(TransactionContext.targetOperationId())
                 .callerInstanceId(headerValue(transactionHeader, TransactionHeader::getCallerInstanceId))
                 .correlationId(headerValue(transactionHeader, TransactionHeader::getCorrelationId))
                 .idempotencyKey(headerValue(transactionHeader, TransactionHeader::getIdempotencyKey))
                 .locale(headerValue(transactionHeader, TransactionHeader::getLocale))
                 .timezone(headerValue(transactionHeader, TransactionHeader::getTimezone))
                 .requestType(headerValue(transactionHeader, TransactionHeader::getRequestType))
-                .originalChannelCode(headerValue(transactionHeader, TransactionHeader::getOriginalChannelCode))
-                .channelCode(headerValue(transactionHeader, TransactionHeader::getChannelCode))
+                .originalSystemCode(TransactionContext.originalSystemCode())
+                .systemCode(TransactionContext.systemCode())
                 .memberNo(headerValue(transactionHeader, TransactionHeader::getMemberNo))
                 .customerNo(headerValue(transactionHeader, TransactionHeader::getCustomerNo))
                 .screenId(headerValue(transactionHeader, TransactionHeader::getScreenId))
                 .deviceId(headerValue(transactionHeader, TransactionHeader::getDeviceId))
                 .clientRequestTime(headerValue(transactionHeader, TransactionHeader::getClientRequestTime))
                 .wasId(headerValue(transactionHeader, TransactionHeader::getWasId))
-                .serverInstanceId(serverIdentity.serverInstanceId())
-                .hostName(serverIdentity.hostName())
-                .processId(serverIdentity.processId())
-                .threadName(serverIdentity.threadName())
+                .instanceId(runtimeIdentity.instanceId())
+                .hostName(runtimeIdentity.hostName())
+                .processId(runtimeIdentity.processId())
+                .threadName(runtimeIdentity.threadName())
                 .reservedField1(headerValue(transactionHeader, TransactionHeader::getReservedField1))
                 .reservedField2(headerValue(transactionHeader, TransactionHeader::getReservedField2))
                 .reservedField3(headerValue(transactionHeader, TransactionHeader::getReservedField3))
@@ -501,7 +503,6 @@ public class LoggingAspect {
         putDetail(details, "parentSpan.id", record.getParentSpanId());
         putDetail(details, "sequence.no", record.getSequenceNo());
         putDetail(details, "module.id", record.getModuleId());
-        putDetail(details, "server.instance.id", record.getServerInstanceId());
         putDetail(details, "server.host.name", record.getHostName());
         putDetail(details, "server.process.id", record.getProcessId());
         putDetail(details, "server.thread.name", record.getThreadName());
@@ -837,8 +838,8 @@ public class LoggingAspect {
         putDetail(details, "runtime.domainCode", domainCode);
         putDetail(details, "runtime.application", application);
         putDetail(details, "runtime.module", module);
-        putDetail(details, "runtime.instanceId", record != null ? record.getServerInstanceId() : null);
-        putDetail(details, "runtime.wasId", record != null ? record.getWasId() : null);
+        putDetail(details, "runtime.instanceId", record != null ? record.getInstanceId() : null);
+        putDetail(details, "runtime.instanceToken", record != null ? record.getInstanceToken() : null);
         putDetail(details, "capability.starters", MDC.get("cpf.used.starters"));
         putDetail(details, "capability.ids", MDC.get("cpf.used.capabilities"));
         putDetail(details, "capability.providers", MDC.get("cpf.used.providers"));

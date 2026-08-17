@@ -50,9 +50,7 @@ function Invoke-CpfAttachmentJson {
             "X-Transaction-Id" = $TransactionId
             "X-Cpf-Standard-Execution-Id" = $ExecutionId
             "X-Request-Type" = "INQUIRY"
-            "X-Original-Channel-Code" = "EDU"
-            "X-Channel-Code" = "EDU"
-            "X-Client-App-Id" = "cpf-attachment-runtime-smoke"
+            "X-Client-Id" = "cpf-attachment-runtime-smoke"
             "X-Client-Version" = "1.0.0"
         }
         foreach ($header in $headers.GetEnumerator()) {

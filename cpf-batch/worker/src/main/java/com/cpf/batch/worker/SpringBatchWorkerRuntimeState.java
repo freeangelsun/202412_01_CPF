@@ -1,5 +1,6 @@
 package com.cpf.batch.worker;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.runtime.RuntimeStateProvider;
@@ -40,7 +41,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
             List<CpfBrokerConsumerControlPort> controlPorts,
             BatchRuntimePolicy runtimePolicy,
             WorkerExecutionTracker executions,
-            @Value("${cpf.batch.worker.worker-id:${CPF_BAT_WORKER_ID:${CPF_INSTANCE_ID:worker-local-01}}}")
+            @Value("${cpf.batch.worker.worker-id:${CPF_BAT_WORKER_ID:}}")
             String workerId,
             @Value("${cpf.batch.worker.version:${CPF_BAT_WORKER_VERSION:${CPF_ARTIFACT_VERSION:dev}}}")
             String workerVersion,
@@ -53,7 +54,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         this.controlPorts = List.copyOf(controlPorts);
         this.runtimePolicy = runtimePolicy;
         this.executions = executions;
-        this.workerId = requireText(workerId, "workerId");
+        this.workerId = requireText(workerId == null || workerId.isBlank() ? CpfInstanceIdentity.instanceId() : workerId, "workerId");
         this.workerVersion = requireText(workerVersion, "workerVersion");
         this.capabilities = capabilities(capabilityText);
         if (maxConcurrency < 1 || maxConcurrency > BatchRuntimePolicy.MAX_CONCURRENCY) {

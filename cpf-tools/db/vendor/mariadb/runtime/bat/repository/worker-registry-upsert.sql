@@ -1,6 +1,6 @@
 INSERT INTO bat_worker (
     worker_id,
-    server_instance_id,
+    instance_id,
     host_name,
     process_id,
     worker_version,
@@ -18,7 +18,7 @@ INSERT INTO bat_worker (
     ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'Y', CURRENT_TIMESTAMP(3), ?, 'BAT', 'BAT'
 )
 ON DUPLICATE KEY UPDATE
-    server_instance_id = VALUES(server_instance_id),
+    instance_id = VALUES(instance_id),
     host_name = VALUES(host_name),
     process_id = VALUES(process_id),
     worker_version = VALUES(worker_version),

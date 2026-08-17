@@ -1,7 +1,7 @@
 MERGE INTO bat_worker target
 USING (
     SELECT ? AS worker_id,
-           ? AS server_instance_id,
+           ? AS instance_id,
            ? AS host_name,
            ? AS process_id,
            ? AS worker_version,
@@ -14,7 +14,7 @@ USING (
 ) source
 ON (target.worker_id = source.worker_id)
 WHEN MATCHED THEN UPDATE
-   SET target.server_instance_id = source.server_instance_id,
+   SET target.instance_id = source.instance_id,
        target.host_name = source.host_name,
        target.process_id = source.process_id,
        target.worker_version = source.worker_version,
@@ -29,7 +29,7 @@ WHEN MATCHED THEN UPDATE
        target.updated_at = @NOW@
 WHEN NOT MATCHED THEN INSERT (
     worker_id,
-    server_instance_id,
+    instance_id,
     host_name,
     process_id,
     worker_version,
@@ -45,7 +45,7 @@ WHEN NOT MATCHED THEN INSERT (
     updated_by
 ) VALUES (
     source.worker_id,
-    source.server_instance_id,
+    source.instance_id,
     source.host_name,
     source.process_id,
     source.worker_version,

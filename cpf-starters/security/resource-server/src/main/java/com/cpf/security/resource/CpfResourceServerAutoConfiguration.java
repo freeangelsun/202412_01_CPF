@@ -74,27 +74,12 @@ public class CpfResourceServerAutoConfiguration {
     CpfAuthorizationAuditSink cpfAuthorizationAuditSink() { return new CpfSafeAuthorizationAuditSink(); }
 
     @Bean
-    CpfPermissionEvaluator cpfPermissionEvaluator(CpfSecurityAnnotationProperties properties,
-            CpfAuthorizationAuditSink auditSink, ObjectProvider<Clock> clocks) {
-        return new CpfPermissionEvaluator(properties, auditSink, clocks.getIfAvailable(Clock::systemUTC));
-    }
-
-    @Bean
-    CpfOnlineTransactionSecurityPolicyEvaluator cpfOnlineTransactionSecurityPolicyEvaluator(
-            CpfAuthorizationAuditSink auditSink, ObjectProvider<Clock> clocks) {
-        return new CpfOnlineTransactionSecurityPolicyEvaluator(auditSink, clocks.getIfAvailable(Clock::systemUTC));
-    }
-
-    @Bean
     CpfApprovalCoordinator cpfApprovalCoordinator(CpfSecurityAnnotationProperties properties,
             ObjectProvider<CpfApprovalVerifier> verifier, CpfAuthorizationAuditSink auditSink,
             ObjectProvider<Clock> clocks) {
         return new CpfApprovalCoordinator(properties, verifier.getIfAvailable(), auditSink,
                 clocks.getIfAvailable(Clock::systemUTC));
     }
-
-    @Bean
-    CpfPermissionAspect cpfPermissionAspect(CpfPermissionEvaluator evaluator) { return new CpfPermissionAspect(evaluator); }
 
     @Bean
     CpfApprovalRequiredAspect cpfApprovalRequiredAspect(CpfApprovalCoordinator coordinator) {

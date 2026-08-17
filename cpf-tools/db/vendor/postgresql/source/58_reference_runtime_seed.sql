@@ -14,7 +14,7 @@ INSERT INTO BAT_INSTANCE (instance_id, instance_name, host_name, server_port, ac
     'SYSTEM',
     'SYSTEM'
 ) ON CONFLICT (instance_id) DO UPDATE SET instance_name = EXCLUDED.instance_name, host_name = EXCLUDED.host_name, server_port = EXCLUDED.server_port, active_yn = EXCLUDED.active_yn, last_heartbeat_at = EXCLUDED.last_heartbeat_at, description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BAT_WORKER (worker_id, server_instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (
+INSERT INTO BAT_WORKER (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (
     'local-batch-01',
     'local-batch-01',
     'localhost',
@@ -28,7 +28,7 @@ INSERT INTO BAT_WORKER (worker_id, server_instance_id, host_name, process_id, th
     '로컬 smoke 검증용 배치 worker heartbeat',
     'SYSTEM',
     'SYSTEM'
-) ON CONFLICT (worker_id) DO UPDATE SET server_instance_id = EXCLUDED.server_instance_id, host_name = EXCLUDED.host_name, process_id = EXCLUDED.process_id, thread_name = EXCLUDED.thread_name, worker_status = EXCLUDED.worker_status, active_yn = EXCLUDED.active_yn, last_heartbeat_at = EXCLUDED.last_heartbeat_at, current_job_id = EXCLUDED.current_job_id, current_execution_id = EXCLUDED.current_execution_id, description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
+) ON CONFLICT (worker_id) DO UPDATE SET instance_id = EXCLUDED.instance_id, host_name = EXCLUDED.host_name, process_id = EXCLUDED.process_id, thread_name = EXCLUDED.thread_name, worker_status = EXCLUDED.worker_status, active_yn = EXCLUDED.active_yn, last_heartbeat_at = EXCLUDED.last_heartbeat_at, current_job_id = EXCLUDED.current_job_id, current_execution_id = EXCLUDED.current_execution_id, description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
 INSERT INTO BAT_JOB (job_id, job_name, job_type, description, restartable_yn, use_yn, created_by, updated_by) VALUES ('CPF_EDU_TASKLET_JOB', 'CPF 교육 Tasklet Job', 'TASKLET', '배치 관제 수동 실행 샘플을 위한 Tasklet Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_CHUNK_JOB', 'CPF 교육 Chunk Job', 'CHUNK', '대용량 읽기/처리/쓰기 샘플을 위한 Chunk Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_RETRY_JOB', 'CPF 교육 재처리 Job', 'RETRY', '실패 재처리와 checkpoint/restart 교육을 위한 Job입니다.', 'Y', 'Y', 'SYSTEM', 'SYSTEM') ON CONFLICT (job_id) DO UPDATE SET job_name = EXCLUDED.job_name, job_type = EXCLUDED.job_type, description = EXCLUDED.description, restartable_yn = EXCLUDED.restartable_yn, use_yn = EXCLUDED.use_yn, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
@@ -36,7 +36,7 @@ INSERT INTO BAT_SCHEDULE (schedule_id, job_id, cron_expression, calendar_id, bus
     ('CPF_EDU_CHUNK_DAILY', 'CPF_EDU_CHUNK_JOB', '0 30 2 * * *', 'DEFAULT', 'Y', 'SKIP', '02:30:00', '05:30:00', 'D+0', 'Asia/Seoul', 'N', 'SYSTEM', 'SYSTEM') ON CONFLICT (schedule_id) DO UPDATE SET job_id = EXCLUDED.job_id, cron_expression = EXCLUDED.cron_expression, calendar_id = EXCLUDED.calendar_id, business_day_only_yn = EXCLUDED.business_day_only_yn, holiday_policy = EXCLUDED.holiday_policy, available_start_time = EXCLUDED.available_start_time, available_end_time = EXCLUDED.available_end_time, run_date_pattern = EXCLUDED.run_date_pattern, timezone = EXCLUDED.timezone, enabled_yn = EXCLUDED.enabled_yn, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
 INSERT INTO BAT_JOB_RELATION (job_id, related_job_id, relation_type, trigger_condition, required_status, sort_order, use_yn, created_by, updated_by) VALUES ('CPF_EDU_CHUNK_JOB', 'CPF_EDU_TASKLET_JOB', 'PREDECESSOR', 'COMPLETED', 'COMPLETED', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('CPF_EDU_TASKLET_JOB', 'CPF_EDU_CHUNK_JOB', 'TRIGGER', 'COMPLETED', 'COMPLETED', 20, 'Y', 'SYSTEM', 'SYSTEM') ON CONFLICT (job_id, related_job_id, relation_type) DO UPDATE SET trigger_condition = EXCLUDED.trigger_condition, required_status = EXCLUDED.required_status, sort_order = EXCLUDED.sort_order, use_yn = EXCLUDED.use_yn, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, server_instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by) SELECT
+INSERT INTO BAT_EXECUTION (job_id, schedule_id, job_parameters, execution_status, batch_instance_id, instance_id, worker_id, transaction_id, start_time, end_time, read_count, write_count, skip_count, requested_by, created_by, updated_by) SELECT
     'CPF_EDU_TASKLET_JOB',
     'CPF_EDU_TASKLET_DAILY',
     '{"edu":true}',

@@ -1,10 +1,11 @@
 package com.cpf.admin.opr.batch;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.batch.api.BatchJobDefinitionControlPort;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,7 @@ public class AdmBatchJobDefinitionClientConfiguration {
     @ConditionalOnMissingBean(BatchJobDefinitionControlPort.class)
     public BatchJobDefinitionControlPort remoteBatchJobDefinitionControlPort(
             CpfServiceCaller caller,WebClient.Builder builder,AdmAuthenticatedOperatorContext actorContext,
-            ObjectMapper mapper,@Value("${cpf.framework.instance-id:adm-local-01}")String callerInstanceId) {
-        return new RemoteBatchJobDefinitionControlAdapter(caller,builder,actorContext,mapper,callerInstanceId);
+            ObjectMapper mapper) {
+        return new RemoteBatchJobDefinitionControlAdapter(caller,builder,actorContext,mapper,CpfInstanceIdentity.current().instanceId());
     }
 }

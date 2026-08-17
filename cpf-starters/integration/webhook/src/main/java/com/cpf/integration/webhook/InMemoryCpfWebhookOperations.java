@@ -1,5 +1,5 @@
 package com.cpf.integration.webhook;
-import com.cpf.integration.webhook.api.*;
+import com.cpf.integration.api.webhook.*;
 import com.cpf.foundation.execution.CpfContextExecutionFactory;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import javax.crypto.Mac; import javax.crypto.spec.SecretKeySpec; import java.nio.charset.StandardCharsets; import java.security.*; import java.time.*; import java.util.*; import java.util.concurrent.*; import java.util.concurrent.atomic.AtomicLong;

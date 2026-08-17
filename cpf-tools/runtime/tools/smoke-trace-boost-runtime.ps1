@@ -83,8 +83,6 @@ function New-Headers {
         "X-Transaction-Id" = "$(Get-Date -Format yyyyMMddHHmmssfff)" + "ADM" + "trb0001" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "ADM"
-        "X-Channel-Code" = "ADM"
         "X-Client-Version" = "1.0.0"
     }
 }

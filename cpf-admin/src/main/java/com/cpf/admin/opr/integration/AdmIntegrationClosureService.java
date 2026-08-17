@@ -7,8 +7,8 @@ import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.security.api.crypto.CpfCryptoOperations;
 import com.cpf.foundation.time.CpfTimeOperations;
 import com.cpf.foundation.time.CpfTimeSnapshot;
-import com.cpf.integration.webhook.api.CpfWebhookDelivery;
-import com.cpf.integration.webhook.api.CpfWebhookOperations;
+import com.cpf.integration.api.webhook.CpfWebhookDelivery;
+import com.cpf.integration.api.webhook.CpfWebhookOperations;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

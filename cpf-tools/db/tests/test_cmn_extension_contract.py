@@ -7,7 +7,8 @@ from pathlib import Path
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
 BASE = ROOT / "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/CpfBaseService.java"
 COMMON = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
-REFERENCE_SAMPLE = ROOT / "cpf-education/src/main/java/com/cpf/education/common/sample/CmnSampleItemService.java"
+MEMBER_DOMAIN_BASE = ROOT / "cpf-member/online/src/main/java/member/domain/base/MemberBaseService.java"
+MEMBER_SERVICE = ROOT / "cpf-member/online/src/main/java/member/online/service/SampleTransactionService.java"
 
 
 class CmnExtensionContractTest(unittest.TestCase):
@@ -26,11 +27,13 @@ class CmnExtensionContractTest(unittest.TestCase):
             self.assertIn("extends CpfBaseService", source, relative)
             self.assertNotIn("CmnBaseService", source, relative)
 
-    def test_reference_sample_consumes_base_directly(self):
-        source = REFERENCE_SAMPLE.read_text(encoding="utf-8")
-        self.assertIn("import com.cpf.foundation.api.CpfBaseService;", source)
-        self.assertIn("extends CpfBaseService", source)
-        self.assertNotIn("com.cpf.common.common.base", source)
+    def test_generated_domain_keeps_three_tier_service_base_contract(self):
+        domain_base = MEMBER_DOMAIN_BASE.read_text(encoding="utf-8")
+        service = MEMBER_SERVICE.read_text(encoding="utf-8")
+        self.assertIn("import com.cpf.foundation.api.CpfBaseService;", domain_base)
+        self.assertIn("extends CpfBaseService", domain_base)
+        self.assertIn("extends MemberBaseService", service)
+        self.assertNotIn("com.cpf.common.common.base", domain_base + service)
 
     def test_no_active_java_consumer_references_retired_cmn_base_service(self):
         offenders = []

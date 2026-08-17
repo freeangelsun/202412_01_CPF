@@ -768,3 +768,10 @@ Generator Template/Generated build.gradle의 Internal Artifact 직접 참조는 
 - `verified_sha`: Build/Test/Runtime/Evidence를 실제 실행한 exact SHA다.
 
 `currentization_source_sha`를 이후 세션의 영구적인 "현재 master"로 해석하지 않는다. 완료 판정과 Evidence는 `verified_sha`를 기준으로 한다.
+
+## Current-State Generated Domain Runtime 선택 규칙
+
+`cpf-<domain>/online/`은 필수 Runtime이다. `cpf-domain.yaml`에서 `modules.batch=true`를 선택하면 같은 Root에 `batch/`를 생성한다. Batch 실행 의미와 Runtime 구현의 Owner는 `cpf-batch`이고 Generated Domain은 Public `cpf-starter-batch` 계약을 소비한다. `modules.batch=false`이면 batch Source/Config/Runtime을 생성하지 않는다.
+
+업무 개발 계약은 Public API/Starter에 두고 Provider/Runtime 구현은 Internal/Owner 영역에 둔다. Generator/Generated Domain/EDU가 Internal Starter 또는 internal package를 직접 참조하면 실패다.
+

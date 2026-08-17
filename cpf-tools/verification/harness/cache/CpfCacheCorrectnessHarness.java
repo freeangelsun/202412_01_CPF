@@ -9,7 +9,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class CpfCacheCorrectnessHarness {
-    static final class FakeCache implements CpfCachePort {
+    static final class FakeCache implements CpfCache {
         final ConcurrentMap<String, AtomicLong> evictions = new ConcurrentHashMap<>();
         private void hit(String subject) { evictions.computeIfAbsent(subject, x -> new AtomicLong()).incrementAndGet(); }
         long count(String subject) { var v=evictions.get(subject); return v==null?0:v.get(); }

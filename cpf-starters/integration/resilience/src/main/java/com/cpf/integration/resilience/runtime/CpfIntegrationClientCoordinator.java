@@ -20,7 +20,7 @@ public final class CpfIntegrationClientCoordinator {
             CpfAnnotationResiliencePolicyRegistry annotationPolicies,CpfResilienceExecutor executor,Clock clock){
         this.properties=properties;this.policyFactory=policyFactory;this.annotationPolicies=annotationPolicies;this.executor=executor;this.clock=clock;
     }
-    public Object execute(Method method,Object[] args,CpfClient client,CpfRetry retry,CpfTimeout timeout,Callable<Object> action) throws Exception{
+    public Object execute(Method method,Object[] args,CpfClient client,CpfRetry retry,CpfTimeLimiter timeout,Callable<Object> action) throws Exception{
         if(!properties.isEnabled())return action.call();
         CpfContext current=client.contextRequired()?CpfContexts.requireCurrent():CpfContexts.current();
         if(current==null)return action.call();

@@ -32,7 +32,6 @@ public class CpfGatewaySafetyProperties {
     private String logSpoolDirectory = "./data/gateway-log-spool";
     private String bootstrapMode = "FAIL_CLOSED";
     private String environmentCode = "local";
-    private String instanceId = "gateway";
     private String zoneCode = "";
     private boolean allowPrivateTargets = true;
     private boolean allowPublicTargets;
@@ -53,8 +52,9 @@ public class CpfGatewaySafetyProperties {
     private Duration maintenanceRetryAfterCap = Duration.ofMinutes(15);
     private Set<String> trustedContextHeaders = new LinkedHashSet<>(Set.of(
             "accept", "content-type", "idempotency-key", "traceparent", "tracestate",
-            "x-api-version", "x-channel-id", "x-client-id", "x-operation-reason", "x-transaction-id",
-            "x-original-channel-code", "x-channel-code", "x-request-type", "x-cpf-idempotency-key"));
+            "x-api-version", "x-channel-id", "x-country-code", "x-client-id", "x-client-instance-id",
+            "x-client-version", "x-device-id", "x-operation-reason", "x-transaction-id",
+            "x-request-type", "x-cpf-idempotency-key"));
 
     public void validate() {
         positive(routeRefresh,"routeRefresh"); positive(policyRefresh,"policyRefresh");
@@ -66,7 +66,6 @@ public class CpfGatewaySafetyProperties {
         if (logSpoolDirectory == null || logSpoolDirectory.isBlank()) throw new IllegalStateException("Gateway logSpoolDirectory is required");
         if (!"FAIL_CLOSED".equalsIgnoreCase(bootstrapMode) && !"LAST_KNOWN_GOOD".equalsIgnoreCase(bootstrapMode)) throw new IllegalStateException("Unsupported bootstrapMode");
         if (environmentCode == null || environmentCode.isBlank()) throw new IllegalStateException("Gateway environmentCode is required");
-        if (instanceId == null || instanceId.isBlank()) throw new IllegalStateException("Gateway instanceId is required");
         if (zoneCode == null) zoneCode = "";
         if (!allowPrivateTargets && !allowPublicTargets) throw new IllegalStateException("Gateway private/public target가 모두 금지됐습니다.");
         if (allowedTargetPorts == null || allowedTargetPorts.isEmpty() || allowedTargetPorts.stream().anyMatch(v -> v == null || v < 1 || v > 65_535)) throw new
@@ -123,7 +122,6 @@ public class CpfGatewaySafetyProperties {
     public String getLogSpoolDirectory(){return logSpoolDirectory;} public void setLogSpoolDirectory(String v){logSpoolDirectory=v;}
     public String getBootstrapMode(){return bootstrapMode;} public void setBootstrapMode(String v){bootstrapMode=v;}
     public String getEnvironmentCode(){return environmentCode;} public void setEnvironmentCode(String v){environmentCode=v;}
-    public String getInstanceId(){return instanceId;} public void setInstanceId(String v){instanceId=v;}
     public String getZoneCode(){return zoneCode;} public void setZoneCode(String v){zoneCode=v==null?"":v.trim();}
     public boolean isAllowPrivateTargets(){return allowPrivateTargets;} public void setAllowPrivateTargets(boolean v){allowPrivateTargets=v;}
     public boolean isAllowPublicTargets(){return allowPublicTargets;} public void setAllowPublicTargets(boolean v){allowPublicTargets=v;}

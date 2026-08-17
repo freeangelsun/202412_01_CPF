@@ -1,6 +1,6 @@
 package com.cpf.integration.http.internal;
 
-import com.cpf.platform.operations.observability.api.logging.CpfServerIdentity;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.util.Locale;
@@ -19,13 +19,9 @@ public record CpfLocalServiceIdentity(String serviceId, String instanceId) {
                 environment.getProperty("cpf.framework.module-id"),
                 environment.getProperty("spring.application.name"),
                 "UNKNOWN");
-        String configuredInstanceId = firstText(
-                environment.getProperty("cpf.framework.instance-id"),
-                environment.getProperty("cpf.instance-id"),
-                CpfServerIdentity.current().serverInstanceId());
         return new CpfLocalServiceIdentity(
                 normalizeServiceId(configuredServiceId),
-                configuredInstanceId.trim());
+                CpfInstanceIdentity.current().instanceId());
     }
 
     private static String normalizeServiceId(String value) {

@@ -101,16 +101,17 @@ public final class CpfHeaderPropagator {
 
     private static void appendBusinessHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {
         putIfHasText(headers, CpfHeaderNames.API_VERSION, headerValue(transactionHeader, TransactionHeader::getApiVersion));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_APP_ID, headerValue(transactionHeader, TransactionHeader::getClientAppId));
+        putIfHasText(headers, CpfHeaderNames.CLIENT_ID, headerValue(transactionHeader, TransactionHeader::getClientId));
         putIfHasText(headers, CpfHeaderNames.CLIENT_VERSION, headerValue(transactionHeader, TransactionHeader::getClientVersion));
-        putIfHasText(headers, CpfHeaderNames.CALLER_SERVICE, headerValue(transactionHeader, TransactionHeader::getCallerService));
+        putIfHasText(headers, CpfHeaderNames.CALLER_SYSTEM_CODE, TransactionContext.callerSystemCode());
         putIfHasText(headers, CpfHeaderNames.CALLER_INSTANCE_ID, headerValue(transactionHeader, TransactionHeader::getCallerInstanceId));
+        putIfHasText(headers, CpfHeaderNames.ORIGINAL_SYSTEM_CODE, TransactionContext.originalSystemCode());
+        putIfHasText(headers, CpfHeaderNames.SYSTEM_CODE, TransactionContext.systemCode());
+        putIfHasText(headers, CpfHeaderNames.TARGET_SYSTEM_CODE, TransactionContext.targetSystemCode());
+        putIfHasText(headers, CpfHeaderNames.TARGET_OPERATION_ID, TransactionContext.targetOperationId());
         putIfHasText(headers, CpfHeaderNames.LOCALE, headerValue(transactionHeader, TransactionHeader::getLocale));
         putIfHasText(headers, CpfHeaderNames.TIMEZONE, headerValue(transactionHeader, TransactionHeader::getTimezone));
         putIfHasText(headers, CpfHeaderNames.REQUEST_TYPE, headerValue(transactionHeader, TransactionHeader::getRequestType));
-        putIfHasText(headers, CpfHeaderNames.ORIGINAL_CHANNEL_CODE, headerValue(transactionHeader, TransactionHeader::getOriginalChannelCode));
-        putIfHasText(headers, CpfHeaderNames.CHANNEL_CODE, headerValue(transactionHeader, TransactionHeader::getChannelCode));
-        putIfHasText(headers, CpfHeaderNames.CHANNEL_DETAIL_CODE, headerValue(transactionHeader, TransactionHeader::getChannelDetailCode));
         putIfHasText(headers, CpfHeaderNames.MEMBER_NO, headerValue(transactionHeader, TransactionHeader::getMemberNo));
         putIfHasText(headers, CpfHeaderNames.CUSTOMER_NO, headerValue(transactionHeader, TransactionHeader::getCustomerNo));
         putIfHasText(headers, CpfHeaderNames.USER_ID, headerValue(transactionHeader, TransactionHeader::getUserId));
@@ -130,7 +131,7 @@ public final class CpfHeaderPropagator {
         putIfHasText(headers, CpfHeaderNames.REAL_IP, headerValue(transactionHeader, TransactionHeader::getRealIp));
         putIfHasText(headers, CpfHeaderNames.FORWARDED_FOR, headerValue(transactionHeader, TransactionHeader::getForwardedFor));
         putIfHasText(headers, CpfHeaderNames.FORWARDED, headerValue(transactionHeader, TransactionHeader::getForwarded));
-        putIfHasText(headers, CpfHeaderNames.CLIENT_COUNTRY_CODE, headerValue(transactionHeader, TransactionHeader::getClientCountryCode));
+        putIfHasText(headers, CpfHeaderNames.COUNTRY_CODE, headerValue(transactionHeader, TransactionHeader::getClientCountryCode));
         putIfHasText(headers, CpfHeaderNames.CLIENT_REGION_CODE, headerValue(transactionHeader, TransactionHeader::getClientRegionCode));
         putIfHasText(headers, CpfHeaderNames.USER_AGENT, headerValue(transactionHeader, TransactionHeader::getUserAgent));
         putIfHasText(headers, "CPF-Was-Id", headerValue(transactionHeader, TransactionHeader::getWasId));

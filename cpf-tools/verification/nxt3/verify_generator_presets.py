@@ -8,11 +8,11 @@ def run(cmd,cwd):
     cp=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True)
     return {'cmd':cmd,'rc':cp.returncode,'stdout':cp.stdout[-5000:],'stderr':cp.stderr[-5000:]}
 
-def definition(name,code,prefix,preset,features,sample):
+def definition(name,code,prefix,preset,features,sample,batch=False):
     lines=[
       'domain:',f'  name: {name}',f'  systemCode: {code}',f'  packageName: {name}',
       'database:','  role: CUSTOMER_BUSINESS_DB',f'  tablePrefix: {prefix}',
-      f'preset: {preset}','modules:','  online: true',
+      f'preset: {preset}','modules:','  online: true',f'  batch: {str(batch).lower()}',
     ]
     if features is not None:
       lines += ['features:']+[f'  {k}: {str(v).lower() if isinstance(v,bool) else v}' for k,v in features.items()]
@@ -22,17 +22,17 @@ def definition(name,code,prefix,preset,features,sample):
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path); ns=ap.parse_args(); root=ns.root.resolve(); cli_py=root/'cpf-tools/runtime/cli/cpf.py'; cli=[sys.executable,str(cli_py),'--root',str(root)]
     cases=[
-      ('mini','MIN','MI','minimal',{},False),
-      ('stdapi','STA','ST','standard-enterprise',{'persistence':'mybatis','httpClient':True,'resilience':True},True),
-      ('fullx','FUL','FU','full-enterprise',None,True),
-      ('customx','CUS','CU','custom',{'persistence':'none','httpClient':False,'resilience':False,'cache':'none','messaging':'none'},False),
+      ('mini','MIN','MI','minimal',{},False,False),
+      ('stdapi','STA','ST','standard-enterprise',{'persistence':'mybatis','httpClient':True,'resilience':True},True,True),
+      ('fullx','FUL','FU','full-enterprise',None,True,False),
+      ('customx','CUS','CU','custom',{'persistence':'none','httpClient':False,'resilience':False,'cache':'none','messaging':'none'},False,False),
     ]
     checks=[]
     verify_root=root/'build/domain-generator/verification'; verify_root.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='preset-matrix-',dir=str(verify_root)) as td:
       t=Path(td)
-      for name,code,prefix,preset,features,sample in cases:
-        f=t/f'{name}.yaml'; out=t/f'cpf-{name}'; f.write_text(definition(name,code,prefix,preset,features,sample),encoding='utf-8',newline='\n')
+      for name,code,prefix,preset,features,sample,batch in cases:
+        f=t/f'{name}.yaml'; out=t/f'cpf-{name}'; f.write_text(definition(name,code,prefix,preset,features,sample,batch),encoding='utf-8',newline='\n')
         r=run(cli+['domain','generate','--file',str(f),'--output',str(out)],root)
         ok=r['rc']==0
         if ok:
@@ -42,7 +42,9 @@ def main():
           if sample and not sample_files: ok=False
           if not sample and sample_files: ok=False
           if not (out/'online').is_dir(): ok=False
-          if any((out/x).exists() for x in ('batch','domain','jobpack')): ok=False
+          batch_exists=(out/'batch').is_dir() and any(p.is_file() for p in (out/'batch').rglob('*'))
+          if batch_exists != batch: ok=False
+          if any((out/x).exists() for x in ('domain','jobpack')): ok=False
           if any((out/x).exists() for x in ['README.md','verification','db',f'{name}-api',f'{name}-common',f'{name}-batch']): ok=False
           if preset in {'minimal','custom'} and not sample:
             app=(out/'online/src/main/resources/application.yml').read_text(encoding='utf-8')
@@ -53,7 +55,8 @@ def main():
           else:
             payload=json.loads(dr['stdout'])
             summary=payload.get('selectionSummary',{})
-            if summary.get('batchCapability',{}).get('generatedByDomainGenerator') is not False: ok=False
+            bc=summary.get('batchCapability',{})
+            if bc.get('generatedByDomainGenerator') is not True or bool(bc.get('selected')) != batch: ok=False
             if summary.get('internalArtifactsDirectlyExposed')!=[]: ok=False
             if not summary.get('publicArtifacts'): ok=False
         checks.append({'preset':preset,'name':name,'status':'PASS' if ok else 'FAIL','detail':r})

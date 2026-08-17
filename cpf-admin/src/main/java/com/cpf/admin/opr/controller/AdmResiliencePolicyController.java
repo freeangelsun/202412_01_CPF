@@ -1,7 +1,6 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.web.api.CpfController;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.integration.resilience.api.CpfResiliencePolicy;
 import com.cpf.integration.resilience.api.CpfResiliencePolicyOperations;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /** ADM resilience policy query, request and two-person approval API. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/platform/resilience-policies")
 @Tag(name = "ADM-ResiliencePolicy", description = "Resilience 정책 조회·승인 운영 API")
 public final class AdmResiliencePolicyController {
@@ -27,9 +26,7 @@ public final class AdmResiliencePolicyController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADM_RESILIENCE_READ')")
-    @CpfOnlineTransaction(id = "OADMRS0010", name = "ADMResiliencePolicySearch", ownerDomain="ADM")
-    @Operation(operationId = "admResiliencePolicySearch", summary = "Resilience 정책 검색")
+    @PreAuthorize("hasAuthority('ADM_RESILIENCE_READ')")    @Operation(operationId = "admResiliencePolicySearch", summary = "Resilience 정책 검색")
     public List<CpfResiliencePolicy> search(@RequestParam(defaultValue = "") String query,
                                              @RequestParam(defaultValue = "0") int page,
                                              @RequestParam(defaultValue = "50") int size,
@@ -39,27 +36,21 @@ public final class AdmResiliencePolicyController {
     }
 
     @GetMapping("/{operationId}")
-    @PreAuthorize("hasAuthority('ADM_RESILIENCE_READ')")
-    @CpfOnlineTransaction(id = "OADMRS0011", name = "ADMResiliencePolicyDetail", ownerDomain="ADM")
-    @Operation(operationId = "admResiliencePolicyFind", summary = "Resilience 정책 상세")
+    @PreAuthorize("hasAuthority('ADM_RESILIENCE_READ')")    @Operation(operationId = "admResiliencePolicyFind", summary = "Resilience 정책 상세")
     public CpfResiliencePolicy find(@PathVariable String operationId, HttpServletRequest request) {
         operator(request);
         return operations.find(operationId);
     }
 
     @PostMapping("/requests")
-    @PreAuthorize("hasAuthority('ADM_RESILIENCE_WRITE')")
-    @CpfOnlineTransaction(id = "OADMRS0020", name = "ADMResiliencePolicyRequest", ownerDomain="ADM")
-    @Operation(operationId = "admResiliencePolicyRequest", summary = "Resilience 정책 승인 요청")
+    @PreAuthorize("hasAuthority('ADM_RESILIENCE_WRITE')")    @Operation(operationId = "admResiliencePolicyRequest", summary = "Resilience 정책 승인 요청")
     public Map<String, String> request(@RequestBody PolicyRequest body, HttpServletRequest request) {
         String id = operations.requestChange(body.toPolicy(), operator(request), required(body.reason(), "reason"));
         return Map.of("requestId", id);
     }
 
     @PostMapping("/requests/{requestId}/approve")
-    @PreAuthorize("hasAuthority('ADM_RESILIENCE_APPROVE')")
-    @CpfOnlineTransaction(id = "OADMRS0021", name = "ADMResiliencePolicyApprove", ownerDomain="ADM")
-    @Operation(operationId = "admResiliencePolicyApprove", summary = "Resilience 정책 승인")
+    @PreAuthorize("hasAuthority('ADM_RESILIENCE_APPROVE')")    @Operation(operationId = "admResiliencePolicyApprove", summary = "Resilience 정책 승인")
     public CpfResiliencePolicy approve(@PathVariable String requestId,
                                         @RequestHeader("X-CPF-Risk-Confirmed") String riskConfirmed,
                                         @RequestBody DecisionRequest body,
@@ -69,9 +60,7 @@ public final class AdmResiliencePolicyController {
     }
 
     @PostMapping("/requests/{requestId}/reject")
-    @PreAuthorize("hasAuthority('ADM_RESILIENCE_APPROVE')")
-    @CpfOnlineTransaction(id = "OADMRS0022", name = "ADMResiliencePolicyReject", ownerDomain="ADM")
-    @Operation(operationId = "admResiliencePolicyReject", summary = "Resilience 정책 반려")
+    @PreAuthorize("hasAuthority('ADM_RESILIENCE_APPROVE')")    @Operation(operationId = "admResiliencePolicyReject", summary = "Resilience 정책 반려")
     public void reject(@PathVariable String requestId,
                        @RequestHeader("X-CPF-Risk-Confirmed") String riskConfirmed,
                        @RequestBody DecisionRequest body,

@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.approval.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.bizadmin.approval.api.BzaApprovalDecisionEvaluator;
 import com.cpf.bizadmin.approval.api.BzaApprovalDecisionRule;
 import com.cpf.bizadmin.approval.api.BzaApprovalStepStatus;
@@ -56,7 +56,7 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         return policy;
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_SAVEPOLICY", name="BZA_BZAAPPROVALPOLICYSERVICE_SAVEPOLICY", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> savePolicy(PolicyRequest request, String operatorId) {
         String policyCode = required(request.policyCode(), "policyCode");
         int version = request.policyVersion() == null ? 1 : request.policyVersion();
@@ -143,7 +143,7 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         return repository.findInbox(employeeNo(operatorId), upperOrNull(decisionStatus), boundedLimit(limit));
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_SAVEDELEGATION", name="BZA_BZAAPPROVALPOLICYSERVICE_SAVEDELEGATION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> saveDelegation(DelegationRequest request, String operatorId) {
         Instant from = required(request.validFrom(), "validFrom");
         Instant to = required(request.validTo(), "validTo");
@@ -166,14 +166,14 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         return Map.of("saved", true);
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_SUBMIT", name="BZA_BZAAPPROVALPOLICYSERVICE_SUBMIT", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> submit(SubmitRequest request, String operatorId) {
         try (var ignored = approvalContexts.bind(request.requestIdempotencyKey(), request.policyCode(), operatorId, null, "SUBMIT", "IN_REVIEW", "BZA_APPROVAL")) {
             return submitInternal(request, operatorId, null);
         }
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_RESUBMIT", name="BZA_BZAAPPROVALPOLICYSERVICE_RESUBMIT", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> resubmit(long previousApprovalId, SubmitRequest request, String operatorId) {
         try (var ignored = approvalContexts.bind(Long.toString(previousApprovalId), request.policyCode(), operatorId, null, "RESUBMIT", "IN_REVIEW", "BZA_APPROVAL")) {
 
@@ -297,7 +297,7 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         return detail(approvalId);
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_DECIDE", name="BZA_BZAAPPROVALPOLICYSERVICE_DECIDE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> decide(long approvalId, DecisionRequest request, String operatorId) {
         try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, null, operatorId, request.action(), "IN_REVIEW", "BZA_APPROVAL")) {
 
@@ -381,21 +381,21 @@ public class BzaApprovalPolicyService extends BzaBaseService {
         }
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_WITHDRAW", name="BZA_BZAAPPROVALPOLICYSERVICE_WITHDRAW", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> withdraw(long approvalId, LifecycleRequest request, String operatorId) {
         try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "WITHDRAW", "WITHDRAWN", "BZA_APPROVAL")) {
             return requesterLifecycle(approvalId, request, operatorId, "WITHDRAW", "WITHDRAWN");
         }
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_CANCEL", name="BZA_BZAAPPROVALPOLICYSERVICE_CANCEL", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> cancel(long approvalId, LifecycleRequest request, String operatorId) {
         try (var ignored = approvalContexts.bind(Long.toString(approvalId), null, operatorId, null, "CANCEL", "CANCELED", "BZA_APPROVAL")) {
             return requesterLifecycle(approvalId, request, operatorId, "CANCEL", "CANCELED");
         }
     }
 
-    @CpfTx(id="BZA_BZAAPPROVALPOLICYSERVICE_EXPIREDUE", name="BZA_BZAAPPROVALPOLICYSERVICE_EXPIREDUE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public List<Long> expireDue(Instant now, int limit, String operatorId) {
         Instant effectiveNow = now == null ? Instant.now() : now;
         int bounded = Math.max(1, Math.min(limit <= 0 ? 100 : limit, 1000));

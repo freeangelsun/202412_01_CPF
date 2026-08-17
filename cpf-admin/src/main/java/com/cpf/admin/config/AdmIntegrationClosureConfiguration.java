@@ -17,7 +17,7 @@ import com.cpf.security.spi.CpfSecretProvider;
 import com.cpf.security.api.crypto.CpfCryptoOperations;
 import com.cpf.security.api.crypto.CpfCryptoPolicy;
 import com.cpf.foundation.time.CpfTimeOperations;
-import com.cpf.integration.webhook.api.CpfWebhookOperations;
+import com.cpf.integration.api.webhook.CpfWebhookOperations;
 import com.cpf.integration.webhook.CpfWebhookEndpointValidator;
 import com.cpf.integration.webhook.InMemoryCpfWebhookOperations;
 import com.fasterxml.jackson.databind.ObjectMapper;

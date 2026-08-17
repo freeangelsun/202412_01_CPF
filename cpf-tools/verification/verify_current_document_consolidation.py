@@ -10,7 +10,7 @@ ap.add_argument('--baseline')
 a=ap.parse_args()
 root=Path(a.root).resolve(); work=root/'cpf-docs/work'
 fail=[]
-required=['REVIEW_INDEX.md','HANDOVER.md','OPEN_ISSUES.md','TEST_AND_EVIDENCE.md','CPF_CURRENT_WORK_REQUEST.md','REQUIREMENT_STATUS.csv','CPF_DELETE_MANIFEST.csv','current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md']
+required=['REVIEW_INDEX.md','HANDOVER.md','OPEN_ISSUES.md','TEST_AND_EVIDENCE.md','CPF_CURRENT_WORK_REQUEST.md','REQUIREMENT_STATUS.csv','current/DELETE_MANIFEST.txt','current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md']
 for name in required:
     if not (work/name).is_file(): fail.append('CURRENT_DOC_MISSING:'+name)
 for p in work.rglob('*'):

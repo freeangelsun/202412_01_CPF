@@ -1,6 +1,7 @@
 // Generated Customer Domain 최소 IA settings입니다.
 rootProject.name = 'cpf-member'
 include 'online'
+include 'batch'
 
 // CPF Product Source와 함께 하는 회귀검증에서만 명시적으로 Composite Build를 연결합니다.
 // 고객 Release Build는 이 속성을 지정하지 않고 배포된 CPF Artifact를 소비합니다.

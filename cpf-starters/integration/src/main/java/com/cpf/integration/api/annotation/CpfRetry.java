@@ -6,12 +6,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Integration Resilience Engine의 retry policy를 선언합니다. UNKNOWN은 자동 재실행하지 않습니다. */
+/** Resilience4j Retry의 name/fallbackMethod 계약을 따르는 CPF Retry Annotation입니다. 세부 retry 횟수/간격은 canonical config가 소유합니다. */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface CpfRetry {
-    int maxAttempts() default 3;
-    long delayMillis() default 100;
-    boolean reconcileUnknownOutcome() default false;
+    String name();
+    String fallbackMethod() default "";
 }

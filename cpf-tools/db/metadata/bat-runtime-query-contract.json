@@ -327,7 +327,7 @@
       "consumer": "WorkerRegistryReporter.heartbeat",
       "parameters": [
         "workerId",
-        "serverInstanceId",
+        "instanceId",
         "hostName",
         "processId",
         "workerVersion",
@@ -944,8 +944,8 @@
         "springInstanceId",
         "workerIdNull",
         "workerId",
-        "serverInstanceIdNull",
-        "serverInstanceId",
+        "instanceIdNull",
+        "instanceId",
         "fromDateNull",
         "fromDate",
         "toDateNull",
@@ -2187,6 +2187,56 @@
         "timeoutSeconds",
         "requiredYn",
         "sortOrder"
+      ]
+    },
+    {
+      "key": "on-demand-insert",
+      "consumer": "BatchOperationsCompatibilityService.launch",
+      "parameters": [
+        "executionRequestId",
+        "standardBatchId",
+        "idempotencyKey",
+        "transactionId",
+        "businessDate",
+        "parametersJson",
+        "reason",
+        "requestUser",
+        "createdBy",
+        "updatedBy"
+      ]
+    },
+    {
+      "key": "on-demand-find-by-idempotency",
+      "consumer": "BatchOperationsCompatibilityService.findOnDemandByIdempotency",
+      "parameters": [
+        "standardBatchId",
+        "idempotencyKey"
+      ]
+    },
+    {
+      "key": "on-demand-find-by-request",
+      "consumer": "BatchOperationsCompatibilityService.status",
+      "parameters": [
+        "executionRequestId"
+      ]
+    },
+    {
+      "key": "on-demand-link-execution",
+      "consumer": "BatchOperationsCompatibilityService.launch",
+      "parameters": [
+        "cpfExecutionId",
+        "updatedBy",
+        "executionRequestId"
+      ]
+    },
+    {
+      "key": "on-demand-mark-failed",
+      "consumer": "BatchOperationsCompatibilityService.launch",
+      "parameters": [
+        "failureCode",
+        "failureMessage",
+        "updatedBy",
+        "executionRequestId"
       ]
     }
   ],

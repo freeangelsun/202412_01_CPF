@@ -1,6 +1,7 @@
 package com.cpf.batch.control.security;
 
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.batch.api.BatControlHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -22,9 +23,9 @@ class BatControlAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest(
                 "POST", "/bat/internal/operations/requestRun");
         request.setRemoteAddr("127.0.0.1");
-        request.addHeader(CpfHeaders.callerService(), "ADM");
-        request.addHeader(CpfHeaders.callerInstanceId(), "adm-local-01");
-        request.addHeader(CpfHeaders.operatorId(), "operator-a");
+        request.addHeader(BatControlHeaders.CALLER_SERVICE, "ADM");
+        request.addHeader(BatControlHeaders.CALLER_INSTANCE_ID, "adm-local-01");
+        request.addHeader(BatControlHeaders.OPERATOR_ID, "operator-a");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicReference<Authentication> captured = new AtomicReference<>();
 
@@ -50,8 +51,8 @@ class BatControlAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest(
                 "POST", "/bat/internal/operations/findJobs");
         request.setRemoteAddr("127.0.0.1");
-        request.addHeader(CpfHeaders.callerService(), "REF");
-        request.addHeader(CpfHeaders.callerInstanceId(), "ref-test-01");
+        request.addHeader(BatControlHeaders.CALLER_SERVICE, "REF");
+        request.addHeader(BatControlHeaders.CALLER_INSTANCE_ID, "ref-test-01");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilter(request, response, (ignoredRequest, ignoredResponse) -> {
@@ -69,8 +70,8 @@ class BatControlAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest(
                 "POST", "/bat/internal/center-cut/findJobs");
         request.setRemoteAddr("127.0.0.1");
-        request.addHeader(CpfHeaders.callerService(), "ADM");
-        request.addHeader(CpfHeaders.callerInstanceId(), "adm-local-01");
+        request.addHeader(BatControlHeaders.CALLER_SERVICE, "ADM");
+        request.addHeader(BatControlHeaders.CALLER_INSTANCE_ID, "adm-local-01");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilter(request, response, (ignoredRequest, ignoredResponse) -> {

@@ -19,8 +19,7 @@ WHEN MATCHED THEN UPDATE SET
     target.log_policy_key = COALESCE(source.log_policy_key, target.log_policy_key),
     target.sensitive_yn = source.sensitive_yn,
     target.masking_policy_key = COALESCE(source.masking_policy_key, target.masking_policy_key),
-    target.active_yn = 'Y',
-    target.last_detected_at = CURRENT_TIMESTAMP,
+        target.last_detected_at = CURRENT_TIMESTAMP,
     target.last_scanned_at = CURRENT_TIMESTAMP,
     target.updated_by = source.updated_by,
     target.updated_at = CURRENT_TIMESTAMP

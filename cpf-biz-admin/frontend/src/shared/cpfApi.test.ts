@@ -71,7 +71,7 @@ describe("BZA public API compatibility and trust boundary", () => {
       expect(captured?.body).toBe(form);
       const headers = new Headers(captured?.headers);
       expect(headers.has("Content-Type")).toBe(false);
-      expect(headers.get("X-CPF-Operation-Id")).toBe("bzaSupportUploadAttachment");
+      expect(headers.has("X-Target-Operation-Id")).toBe(false);
       expect(captured?.credentials).toBe("include");
     } finally {
       globalThis.fetch = originalFetch;

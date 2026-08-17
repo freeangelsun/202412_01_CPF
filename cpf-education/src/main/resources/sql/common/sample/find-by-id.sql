@@ -1,1 +1,0 @@
-SELECT sample_item_id,sample_key,item_name,category_code,status_code,searchable_text,owner_reference,sort_order,version_no,created_at,updated_at FROM REF_CMN_SAMPLE_ITEM WHERE sample_item_id=? AND deleted_yn='N'

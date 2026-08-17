@@ -21,14 +21,14 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
-class KafkaCpfBrokerClientTest {
+class KafkaCpfMessagingTemplateTest {
     @AfterEach void clearInterruptFlag(){Thread.interrupted();}
 
     @Test void returnsPublishedOnlyAfterBrokerAckAndPropagatesCompleteCpfMetadata(){
         KafkaTemplate<String,byte[]> template=template();SendResult<String,byte[]> sendResult=mock(SendResult.class);RecordMetadata metadata=mock(RecordMetadata.class);
         when(metadata.partition()).thenReturn(2);when(metadata.offset()).thenReturn(9L);when(sendResult.getRecordMetadata()).thenReturn(metadata);
         when(template.send(any(ProducerRecord.class))).thenReturn(CompletableFuture.completedFuture(sendResult));
-        var result=client(template,Duration.ofMillis(50)).enqueue(request(Map.of("X-A","v")));
+        var result=client(template,Duration.ofMillis(50)).send(request(Map.of("X-A","v")));
         assertThat(result.status()).isEqualTo("PUBLISHED");
         ArgumentCaptor<ProducerRecord<String,byte[]>> captor=ArgumentCaptor.forClass(ProducerRecord.class);verify(template).send(captor.capture());
         ProducerRecord<String,byte[]> sent=captor.getValue();
@@ -44,16 +44,16 @@ class KafkaCpfBrokerClientTest {
 
     @Test void reservedOrInvalidHeaderFailsBeforeProviderCall(){
         KafkaTemplate<String,byte[]> template=template();
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of("CPF-TRANSACTION-ID","evil"))))
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of("CPF-TRANSACTION-ID","evil"))))
                 .isInstanceOf(SecurityException.class);
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of("bad header","v"))))
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of("bad header","v"))))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test void missingTrackingFailsBeforeProviderCall(){
         KafkaTemplate<String,byte[]> template=template();
         CpfBrokerPublishRequest invalid=new CpfBrokerPublishRequest("m","t","k",new byte[0],"x",null,"s","p","c","i",Map.of(),Map.of());
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("transactionId");
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("transactionId");
     }
 
     @Test void synchronousProviderFailureAfterInvocationIsUnknown(){
@@ -61,7 +61,7 @@ class KafkaCpfBrokerClientTest {
         when(template.send(any(ProducerRecord.class)))
                 .thenThrow(new IllegalStateException("producer state unavailable"));
 
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of())))
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of())))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("UNKNOWN")
                 .hasMessageContaining("reconciled");
@@ -72,18 +72,18 @@ class KafkaCpfBrokerClientTest {
         when(template.send(any(ProducerRecord.class)))
                 .thenThrow(new SerializationException("serializer rejected payload"));
 
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).enqueue(request(Map.of())))
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(request(Map.of())))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("before provider write")
                 .hasMessageContaining("FAILED")
                 .hasMessageNotContaining("UNKNOWN");
     }
 
-    @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).enqueue(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}
-    @Test void interruptedWaitRestoresInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());Thread.currentThread().interrupt();assertThatThrownBy(()->client(t,Duration.ofSeconds(1)).enqueue(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isTrue();}
+    @Test void timeoutIsUnknownWithoutPollutingInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());assertThatThrownBy(()->client(t,Duration.ofMillis(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isFalse();}
+    @Test void interruptedWaitRestoresInterruptFlag(){KafkaTemplate<String,byte[]> t=template();when(t.send(any(ProducerRecord.class))).thenReturn(new CompletableFuture<>());Thread.currentThread().interrupt();assertThatThrownBy(()->client(t,Duration.ofSeconds(1)).send(request(Map.of()))).isInstanceOf(IllegalStateException.class).hasMessageContaining("UNKNOWN");assertThat(Thread.currentThread().isInterrupted()).isTrue();}
 
     @SuppressWarnings("unchecked") private static KafkaTemplate<String,byte[]> template(){return mock(KafkaTemplate.class);}
-    private static KafkaCpfBrokerClient client(KafkaTemplate<String,byte[]> t,Duration d){return new KafkaCpfBrokerClient(t,new CpfKafkaProperties(d,1024,true));}
+    private static KafkaCpfMessagingTemplate client(KafkaTemplate<String,byte[]> t,Duration d){return new KafkaCpfMessagingTemplate(t,new CpfKafkaProperties(d,1024,true));}
     private static CpfBrokerPublishRequest request(Map<String,String> headers){return new CpfBrokerPublishRequest("message-1","cpf.events","partition-key",new byte[]{1},"application/octet-stream","transaction-1","segment-1","producer","consumer","idempotency-1",headers,Map.of());}
     private static String value(ProducerRecord<String,byte[]> r,String n){var h=r.headers().lastHeader(n);return h==null?null:new String(h.value(),StandardCharsets.UTF_8);}
 }

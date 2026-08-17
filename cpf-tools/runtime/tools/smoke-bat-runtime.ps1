@@ -83,8 +83,6 @@ function New-SmokeHeaders {
         "X-Transaction-Id" = "$timestamp" + "BAT" + "smoke01" + $sequence
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "BAT"
-        "X-Channel-Code" = "BAT"
         "X-Client-Version" = "runtime-smoke"
         "X-Caller-Service" = "cpf-bat-smoke"
     }
@@ -210,7 +208,7 @@ function Assert-CenterCutBatchResult {
 }
 
 $startedProcess = $null
-$previousServerInstanceId = $env:SERVER_INSTANCE_ID
+$previousInstanceId = $env:CPF_RUNTIME_INSTANCE_ID
 
 try {
     $bootJar = Resolve-BatBootJar
@@ -221,7 +219,7 @@ try {
     if (Test-Path -LiteralPath $stdoutLog) { Remove-Item -LiteralPath $stdoutLog -Force }
     if (Test-Path -LiteralPath $stderrLog) { Remove-Item -LiteralPath $stderrLog -Force }
 
-    $env:SERVER_INSTANCE_ID = "bat-smoke-01"
+    $env:CPF_RUNTIME_INSTANCE_ID = "bat-smoke-01"
     $startedProcess = Start-Process `
         -FilePath "java.exe" `
         -ArgumentList @(
@@ -302,9 +300,9 @@ try {
         }
     }
     if ($null -eq $previousServerInstanceId) {
-        Remove-Item Env:SERVER_INSTANCE_ID -ErrorAction SilentlyContinue
+        Remove-Item Env:CPF_RUNTIME_INSTANCE_ID -ErrorAction SilentlyContinue
     } else {
-        $env:SERVER_INSTANCE_ID = $previousServerInstanceId
+        $env:CPF_RUNTIME_INSTANCE_ID = $previousInstanceId
     }
     Save-SmokeResult
 }

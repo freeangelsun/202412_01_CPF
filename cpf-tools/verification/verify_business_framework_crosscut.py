@@ -87,17 +87,18 @@ check("EXECUTION_LIFECYCLE", "EXEC-RECOVERY", "recoveryId" in outcome and "recov
 check("EXECUTION_LIFECYCLE", "EXEC-AUTOCONFIG", exists("cpf-starters/integration/http/src/main/java/com/cpf/integration/http/internal/servicecall/CpfServiceCallAutoConfiguration.java") and "CpfServiceCallAutoConfiguration" in text("cpf-starters/integration/http/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports"), "engine/public ports materialized by auto-configuration")
 
 # 3) Common Product Service
-for family, symbol in [("CODE", "CpfCodeService"),("MESSAGE", "CpfMessageService"),("PARAMETER", "CpfParameterService"),("CALENDAR", "CpfCalendarService"),("TEMPLATE", "CpfTemplateService")]:
+for family, symbol in [("CODE", "CpfCodeService"),("MESSAGE", "CpfMessageSource"),("PARAMETER", "CpfParameterService"),("CALENDAR", "CpfCalendarService"),("TEMPLATE", "CpfTemplateService")]:
     check("COMMON_PRODUCT_SERVICE", f"COMMON-{family}", any_text(files_under("cpf-starters/common", ".java"), rf"\b{re.escape(symbol)}\b"), f"{family} product service/source exists")
 common_main = [p for p in files_under("cpf-starters/common", ".java") if "/src/main/" in p.as_posix()]
 direct_time = count_text(common_main, r"(?:Instant|LocalDate|LocalDateTime|OffsetDateTime|ZonedDateTime)\.now\(\)|System\.currentTimeMillis\(\)")
 check("COMMON_PRODUCT_SERVICE", "COMMON-DETERMINISTIC-TIME", direct_time == 0, f"common production direct system-time calls={direct_time}", "P1")
-edu_common = text("cpf-education/src/main/java/com/cpf/education/common/cmn/controller/EducationCmnEducationController.java")
-for symbol in ["CpfCodeService","CpfMessageService","CpfParameterService","CpfCalendarService","CpfTemplateService"]:
-    check("COMMON_PRODUCT_SERVICE", f"COMMON-CONSUMER-{symbol.upper()}", symbol in edu_common, f"Education actual consumer uses {symbol}")
+edu_files = files_under("cpf-education/src/main/java/com/cpf/education/online", ".java") + files_under("cpf-education/src/main/java/com/cpf/education/batch", ".java")
+edu_common = "\n".join(p.read_text(encoding="utf-8-sig", errors="ignore") for p in edu_files)
+for symbol in ["CpfCodeService","CpfMessageSource","CpfParameterService","CpfCalendarService"]:
+    check("COMMON_PRODUCT_SERVICE", f"COMMON-CONSUMER-{symbol.upper()}", symbol in edu_common, f"Canonical EDU actual consumer uses {symbol}")
 logger_api = text("cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/api/logging/CpfStructuredLogger.java")
 check("COMMON_PRODUCT_SERVICE", "COMMON-STRUCTURED-LOGGER", all(x in logger_api for x in ["business(","operation(","security(","error("]), "single structured logging public API; audit remains durable separate contract")
-check("COMMON_PRODUCT_SERVICE", "COMMON-STRUCTURED-LOGGER-CONSUMER", "CpfStructuredLogger" in edu_common and "structuredLogger.business" in edu_common, "Education actual consumer uses structured logger")
+check("COMMON_PRODUCT_SERVICE", "COMMON-AUTO-LOGGING-CONTEXT", "MDC.put" not in edu_common and "@CpfOnlineTransaction" in edu_common, "Canonical EDU relies on CPF automatic logging/trace context and does not rebuild MDC")
 
 # 4) Operational Journey
 adm_files = files_under("cpf-admin", ".java")
@@ -105,17 +106,14 @@ check("OPERATIONAL_JOURNEY", "OPS-TIMELINE-CONSUMER", any_text(adm_files, r"CpfT
 check("OPERATIONAL_JOURNEY", "OPS-UNKNOWN-RECONCILE", any_text(adm_files, r"UNKNOWN|Unknown") and any_text(files_under("cpf-starters/platform-operations", ".java"), r"CpfReconciliationPort"), "UNKNOWN + reconciliation operational path")
 
 # 5) Generator-first DX
-# Generated Customer Domain은 Online 업무 Source만 생성한다. Batch는 Domain Generator 산출물이 아니라
-# 초기 프로젝트 구성에서 cpf-starter-batch/cpf-batch를 선택하는 별도 Framework Capability다.
+# Generated Customer Domain은 online을 기본 생성하고 modules.batch=true일 때 batch를 함께 생성한다.
 for domain in ["cpf-member", "cpf-external"]:
     for profile in ["local", "test", "dev", "stg", "prod"]:
         check("GENERATOR_FIRST_DX", f"GEN-{domain}-online-{profile}".upper(), exists(f"{domain}/online/src/main/resources/application-{profile}.yml"), f"{domain}/online {profile} profile")
-    forbidden = []
-    for module in ["batch", "domain", "jobpack"]:
-        base = ROOT / domain / module
-        if base.is_dir() and any(x.is_file() for x in base.rglob("*")):
-            forbidden.append(module)
-    check("GENERATOR_FIRST_DX", f"GEN-{domain}-NO-GENERATED-BATCH".upper(), not forbidden, f"generated forbidden modules={forbidden}")
+member_batch = ROOT / "cpf-member" / "batch"
+external_batch = ROOT / "cpf-external" / "batch"
+check("GENERATOR_FIRST_DX", "GEN-MEMBER-OPTIONAL-BATCH-ENABLED", member_batch.is_dir() and any(x.is_file() for x in member_batch.rglob("*")), "member fixture modules.batch=true materializes batch")
+check("GENERATOR_FIRST_DX", "GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED", not external_batch.exists() or not any(x.is_file() for x in external_batch.rglob("*")), "external fixture modules.batch=false leaves batch absent")
 catalog = json.loads(text("cpf-tools/generator/contracts/cpf-starter-catalog.json") or "{}")
 batch_profile = (catalog.get("profileDefinitions") or {}).get("batch") or {}
 batch_modules = [m for m in (catalog.get("modules") or []) if m.get("profileId") == "batch" and m.get("visibility") == "public"]
@@ -124,7 +122,7 @@ check("GENERATOR_FIRST_DX", "GEN-BATCH-CAPABILITY-SEPARATE",
       and exists("cpf-batch/build.gradle") and exists("cpf-batch/runtime/build.gradle")
       and batch_profile.get("artifactId") == "cpf-starter-batch"
       and len(batch_modules) == 1 and batch_modules[0].get("ownerPath") == "cpf-starters/profiles/batch-service",
-      "Batch is selected through public batch profile + cpf-batch runtime, never Generated Domain output")
+      "Public batch profile/runtime remains canonical; Generated Domain may include a batch consumer module when modules.batch=true")
 member_java = [p for p in files_under("cpf-member", ".java") if "/src/main/" in p.as_posix()]
 external_java = [p for p in files_under("cpf-external", ".java") if "/src/main/" in p.as_posix()]
 check("GENERATOR_FIRST_DX", "GEN-NO-DIRECT-SYSTEM-TIME", not any_text(member_java + external_java, r"Instant\.now\(\)"), "generated retained domains use injected Clock")
@@ -145,7 +143,7 @@ check("OPEN_EXTENSION", "EXT-PUBLIC-OBSERVABILITY-PORT", exists("cpf-starters/pl
 # 특정 비교 제품명 목록은 Repository Source에 보관하지 않는다. 외부명 검사는 Release sweep에서 입력값으로 수행한다.
 stale_current = [p for p in files_under("cpf-docs/work/current") if re.search(r"(?:SESSION\d+|CHECKPOINT|12_0[234]|NEXT31|_REV\d|FINAL_FINAL)", p.name, re.I)]
 check("DOCUMENT_GOVERNANCE", "DOC-NO-VERSIONED-CURRENT", not stale_current, f"version/session/checkpoint files in current={len(stale_current)}")
-canonical_required = ["cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md", "cpf-docs/work/REQUIREMENT_STATUS.csv", "cpf-docs/work/OPEN_ISSUES.md", "cpf-docs/work/CPF_DELETE_MANIFEST.csv"]
+canonical_required = ["cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md", "cpf-docs/work/REQUIREMENT_STATUS.csv", "cpf-docs/work/OPEN_ISSUES.md", "cpf-docs/work/current/DELETE_MANIFEST.txt"]
 check("DOCUMENT_GOVERNANCE", "DOC-CANONICAL-ENTRYPOINTS", all(exists(x) for x in canonical_required), "canonical current work/status/issues/delete manifest")
 
 axis_status = {}

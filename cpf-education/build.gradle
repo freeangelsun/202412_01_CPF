@@ -5,189 +5,118 @@ plugins {
 }
 
 group = 'com.cpf.education'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion)
-    }
-}
-
+java { toolchain { languageVersion = JavaLanguageVersion.of(rootProject.ext.cpfJavaVersion) } }
 repositories { mavenCentral() }
 
-// Education은 단일 모듈을 유지하되 기능군을 Canonical 14개 Package Root로 물리 분리합니다.
-def featureEnabled = { String name ->
-    providers.gradleProperty("cpf.education.features.${name}.enabled")
-            .map { it.toBoolean() }
-            .orElse(true)
-            .get()
-}
-def batchEnabled = featureEnabled('batch')
-def operationsEnabled = featureEnabled('operations')
-def backofficeEnabled = featureEnabled('backoffice')
-def gatewayEnabled = featureEnabled('gateway')
-def isolationVerification = providers.gradleProperty('cpf.education.featureIsolationVerification')
-        .map { it.toBoolean() }.orElse(false).get()
-def featureVariant = [
-        batchEnabled ? 'batch' : 'no-batch',
-        operationsEnabled ? 'operations' : 'no-operations',
-        backofficeEnabled ? 'backoffice' : 'no-backoffice',
-        gatewayEnabled ? 'gateway' : 'no-gateway'
-].join('-')
-
-def educationDbVendor = (findProperty('cpfDbVendor')
-        ?: System.getenv('EDU_DATABASE_VENDOR')
-        ?: 'mariadb')
-        .toString()
-        .toLowerCase(Locale.ROOT)
-def educationSupportedDbVendors = ['mariadb', 'oracle', 'postgresql'] as Set
+def educationDbVendor = (findProperty('cpfDbVendor') ?: System.getenv('EDU_DATABASE_VENDOR') ?: 'mariadb').toString().toLowerCase(Locale.ROOT)
+def educationSupportedDbVendors = ['mariadb','oracle','postgresql'] as Set
 if (!educationSupportedDbVendors.contains(educationDbVendor)) {
     throw new GradleException("Unsupported cpfDbVendor for cpf-education: ${educationDbVendor}")
 }
-def educationDbResourceRoot = rootProject.file("cpf-tools/db/vendor/${educationDbVendor}")
 def educationJdbcDriverByVendor = [
-        'mariadb': 'org.mariadb.jdbc:mariadb-java-client',
-        'oracle': 'com.oracle.database.jdbc:ojdbc11',
-        'postgresql': 'org.postgresql:postgresql'
+        mariadb:'org.mariadb.jdbc:mariadb-java-client', oracle:'com.oracle.database.jdbc:ojdbc11', postgresql:'org.postgresql:postgresql'
 ]
-if (isolationVerification) {
-    layout.buildDirectory = rootProject.layout.buildDirectory.dir("education-feature-variants/${featureVariant}")
-}
-
-sourceSets {
-    main {
-        java {
-            if (!batchEnabled) {
-                exclude 'com/cpf/education/batch/**'
-                exclude 'com/cpf/education/operations/centercut/**'
-            }
-            if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
-            if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
-            if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
-        }
-        resources {
-            if (!batchEnabled) {
-                exclude 'batch/**'
-                exclude 'operations/centercut/**'
-            }
-            if (!operationsEnabled) exclude 'operations/**'
-            if (!backofficeEnabled) exclude 'operations/backoffice/**'
-            if (!gatewayEnabled) exclude 'operations/gateway/**'
-        }
-    }
-    test {
-        java {
-            if (!batchEnabled) {
-                exclude 'com/cpf/education/batch/**'
-                exclude 'com/cpf/education/operations/centercut/**'
-            }
-            if (!operationsEnabled) exclude 'com/cpf/education/operations/**'
-            if (!backofficeEnabled) exclude 'com/cpf/education/operations/backoffice/**'
-            if (!gatewayEnabled) exclude 'com/cpf/education/operations/gateway/**'
-        }
-        resources {
-            if (!batchEnabled) {
-                exclude 'batch/**'
-                exclude 'operations/centercut/**'
-            }
-            if (!operationsEnabled) exclude 'operations/**'
-            if (!backofficeEnabled) exclude 'operations/backoffice/**'
-            if (!gatewayEnabled) exclude 'operations/gateway/**'
-        }
-    }
-}
 
 dependencies {
-    // 고객 Golden Path는 최소 하나의 Public Profile을 직접 사용합니다.
+    // 업무 개발자는 Public Profile/Starter/API만 직접 소비합니다.
     implementation project(':starters:profiles:secure-api')
-
-    // Education이 실제로 시연하는 Owner API/Provider를 명시합니다.
-    implementation project(':framework:integration')
-    implementation project(':internal:integration:http')
-    implementation project(':internal:integration:fixed-length')
-    implementation project(':internal:integration:soap')
-    implementation project(':internal:integration:ai')
-    implementation project(':framework:security')
-    implementation project(':framework:messaging')
-    implementation project(':internal:messaging:schema')
-    implementation project(':starters:messaging:kafka')
-    implementation project(':framework:operations')
-    implementation project(':framework:operations:observability')
-    implementation project(':runtime:gateway')
-    implementation project(':framework:data')
+    implementation project(':starters:profiles:batch')
     implementation project(':starters:data:jdbc')
-    implementation project(':starters:data:mybatis')
-    implementation project(':starters:data:jpa')
-    implementation project(':framework:file')
-    implementation project(':internal:file:attachment')
+    implementation project(':starters:integration:fixed-length')
+    implementation project(':starters:messaging:kafka')
     implementation project(':starters:cache:redis')
-    implementation project(':starters:cache:valkey')
-    implementation project(':starters:data:lock:valkey')
-    implementation project(':starters:security:session:valkey')
     implementation project(':starters:file:object-storage:s3')
-    implementation project(':starters:integration:graphql')
-    implementation project(':starters:integration:realtime')
 
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework:spring-tx'
-    implementation 'org.springframework:spring-jdbc'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-
-    if (batchEnabled) {
-        // Spring Batch Primary Runtime은 Public Batch Profile을 통해 소비합니다.
-        implementation project(':starters:profiles:batch')
-        implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
-    }
 
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly educationJdbcDriverByVendor[educationDbVendor]
 }
 
-tasks.register('verifyEducationStarterGoldenPath') {
+def canonicalRoot = file('src/main/java/com/cpf/education')
+def onlineRoot = file('src/main/java/com/cpf/education/online')
+def batchRoot = file('src/main/java/com/cpf/education/batch')
+
+tasks.register('verifyEducationCanonical35') {
     group = 'verification'
-    description = 'Education이 Public Starter Golden Path와 새 Batch IA를 사용하는지 검증합니다.'
+    description = 'Canonical EDU가 online 20 + batch 15 = 35개인지 검증합니다.'
     doLast {
-        def direct = configurations.implementation.dependencies
-                .findAll { it instanceof org.gradle.api.artifacts.ProjectDependency }
-                .collect { it.path }
-                .toSet()
-        if (!direct.contains(':starters:profiles:secure-api')) {
-            throw new GradleException('EDU must exercise the public secure-api profile')
+        def online = fileTree(onlineRoot) { include 'Online??*Example.java' }.files
+        def batch = fileTree(batchRoot) { include 'Batch??*Example.java' }.files
+        if (online.size() != 20 || batch.size() != 15 || online.size() + batch.size() != 35) {
+            throw new GradleException("EDU canonical count mismatch: online=${online.size()}, batch=${batch.size()}, total=${online.size()+batch.size()}")
         }
-        def forbidden = [
-                ':cpf-common', ':framework:base-runtime', ':cpf-starter-profile-minimal-domain',
-                ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime',
-                ':runtime:batch:control-plane', ':runtime:batch:center-cut', ':runtime:batch:agent'
-        ] as Set
-        def leaked = direct.intersect(forbidden)
-        if (!leaked.isEmpty()) throw new GradleException("EDU contains retired/internal dependency: ${leaked.sort()}")
+        def roots = canonicalRoot.listFiles()?.findAll { it.isDirectory() }*.name?.toSet() ?: [] as Set
+        if (roots != (['online','batch'] as Set)) {
+            throw new GradleException("EDU package roots must be exactly online/batch after Delete Manifest apply: ${roots.sort()}")
+        }
     }
 }
 
-tasks.register('verifyEducationCanonicalPackageRoots') {
+tasks.register('verifyEducationPublicGoldenPath') {
     group = 'verification'
-    description = 'Education Main Source의 최상위 Package Root가 Canonical 14개와 정확히 일치하는지 검증합니다.'
+    description = 'EDU 35가 Public API를 사용하고 구형/Raw 우회 구현을 포함하지 않는지 검증합니다.'
     doLast {
-        def expected = [
-                'base','batch','common','data','file','generator','integration','messaging',
-                'operations','scenarios','security','transaction','verification','web'
-        ] as Set
-        def root = file('src/main/java/com/cpf/education')
-        def actual = root.listFiles()?.findAll { it.isDirectory() }*.name as Set
-        if (actual != expected) {
-            throw new GradleException("Education package roots mismatch. expected=${expected.sort()}, actual=${actual.sort()}")
+        def direct = configurations.implementation.dependencies
+                .findAll { it instanceof org.gradle.api.artifacts.ProjectDependency }
+                .collect { it.path }.toSet()
+        def internal = direct.findAll { it.startsWith(':internal:') || it == ':framework:core' }
+        if (!internal.isEmpty()) throw new GradleException("EDU direct internal/core dependency is forbidden: ${internal.sort()}")
+
+        def sources = (fileTree(onlineRoot) { include '**/*.java' }.files + fileTree(batchRoot) { include '**/*.java' }.files)
+        def forbidden = [
+                /\bRestClient\b(?!\s*;)/, /\bWebClient\b/, /\bKafkaTemplate\b/, /\bRabbitTemplate\b/, /\bJmsTemplate\b/,
+                /\bRedisTemplate\b/, /\bJdbcTemplate\b/, /\bNamedParameterJdbcTemplate\b/, /@Transactional\b/,
+                /MDC\.put\s*\(/, /UUID\.randomUUID\s*\(/, /new\s+Thread\s*\(/, /Executors\./, /Thread\.sleep\s*\(/,
+                /X-Transaction-Id/, /X-Original-System-Code/, /X-System-Code/, /X-Caller-System-Code/, /X-Target-System-Code/, /X-Target-Operation-Id/,
+                /com\.cpf\.[A-Za-z0-9_.]*\.internal\./
+        ]
+        def violations=[]
+        sources.each { f ->
+            def text=f.getText('UTF-8')
+            forbidden.each { p -> if (text =~ p) violations << "${project.relativePath(f)} :: ${p}" }
         }
+        if (!violations.isEmpty()) throw new GradleException("EDU forbidden/raw pattern detected:\n" + violations.join('\n'))
+    }
+}
+
+tasks.register('verifyEducationOperationIds') {
+    group='verification'
+    description='온라인 20개에서 CpfOnlineTransaction operationId와 OpenAPI operationId가 동일한지 검증합니다.'
+    doLast {
+        def failures=[]; def ids=[]
+        fileTree(onlineRoot) { include 'Online??*Example.java' }.files.sort().each { f ->
+            def text=f.getText('UTF-8')
+            def cpf=(text =~ /@CpfOnlineTransaction\s*\(\s*operationId\s*=\s*"([^"]+)"/)
+            def api=(text =~ /@Operation\s*\(\s*operationId\s*=\s*"([^"]+)"/)
+            if (!cpf.find() || !api.find()) failures << "missing operation annotation: ${project.relativePath(f)}"
+            else { ids << cpf.group(1); if (cpf.group(1) != api.group(1)) failures << "operationId mismatch: ${project.relativePath(f)}" }
+        }
+        def expected=(1..20).collect { String.format('EDU-ONLINE-%02d',it) }.toSet()
+        if (ids.toSet()!=expected) failures << "online operationId set mismatch: ${ids.toSet().sort()}"
+        if (!failures.isEmpty()) throw new GradleException(failures.join('\n'))
+    }
+}
+
+tasks.register('verifyEducationLegacyZero') {
+    group='verification'
+    description='구 EDU ID/package/count가 Current EDU에 남지 않았는지 검증합니다.'
+    doLast {
+        def patterns=[/EDU-DEV-[0-9]+/,/EDU-BAT-[0-9]+/,/EDU-ADM-[0-9]+/,/EDU-BZA-[0-9]+/,/EDU-GW-[0-9]+/,/EDU-OPS-[0-9]+/,/\bLegacy\b/,/\bCompatibility\b/]
+        def violations=[]
+        fileTree('src') { include '**/*'; exclude '**/build/**' }.files.findAll { it.isFile() }.each { f ->
+            def text=f.getText('UTF-8')
+            patterns.each { pattern -> if (text =~ pattern) violations << "${project.relativePath(f)} :: ${pattern}" }
+        }
+        if (!violations.isEmpty()) throw new GradleException("stale EDU reference remains:\n"+violations.take(200).join('\n'))
     }
 }
 
 tasks.named('test') {
-    dependsOn 'verifyEducationStarterGoldenPath', 'verifyEducationCanonicalPackageRoots'
+    dependsOn 'verifyEducationCanonical35','verifyEducationPublicGoldenPath','verifyEducationOperationIds','verifyEducationLegacyZero'
     useJUnitPlatform()
     systemProperty 'cpf.db.vendor', educationDbVendor
-    systemProperty 'cpf.db.resource-root', educationDbResourceRoot.absolutePath
-    systemProperty 'cpf.education.features.batch.enabled', batchEnabled
-    systemProperty 'cpf.education.features.operations.enabled', operationsEnabled
-    systemProperty 'cpf.education.features.backoffice.enabled', backofficeEnabled
-    systemProperty 'cpf.education.features.gateway.enabled', gatewayEnabled
 }
-
-check.dependsOn tasks.named('verifyEducationStarterGoldenPath'), tasks.named('verifyEducationCanonicalPackageRoots')
+check.dependsOn 'verifyEducationCanonical35','verifyEducationPublicGoldenPath','verifyEducationOperationIds','verifyEducationLegacyZero'

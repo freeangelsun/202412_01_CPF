@@ -49,10 +49,15 @@ public final class CpfTypedHttpClient {
 
     /** Managed CPF call path. Transaction/operation identity is derived only from the bound Context. */
     public Result execute(String method, URI uri, byte[] body, String contentType, Duration deadline) {
+        CpfContext parent = CpfContexts.requireCurrent();
+        return execute(method, uri, body, contentType, parent.idempotencyKey(), deadline);
+    }
+
+    /** Managed CPF call path with an explicit business idempotency key; transaction identity remains Framework-owned. */
+    public Result execute(String method, URI uri, byte[] body, String contentType, String idempotencyKey, Duration deadline) {
         String normalizedMethod = normalizeMethod(method);
         validateUri(uri);
         CpfContext parent = CpfContexts.requireCurrent();
-        String idempotencyKey = parent.idempotencyKey();
         Instant absoluteDeadline = parent.execution().deadline();
         if (deadline != null) {
             Instant requested = Instant.now().plus(deadline);
@@ -70,7 +75,7 @@ public final class CpfTypedHttpClient {
         }
     }
 
-    public Result execute(
+    Result execute(
             String method,
             URI uri,
             byte[] body,
@@ -96,10 +101,11 @@ public final class CpfTypedHttpClient {
             throw new IllegalArgumentException("HTTP request exceeds configured limit");
         }
         Duration timeout = boundedTimeout(deadline, properties.getRequestTimeout());
+        String mediaType = normalizeContentType(contentType);
         HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
                 .timeout(timeout)
-                .header("X-Transaction-Id", safeTransactionId)
-                .header("Content-Type", normalizeContentType(contentType));
+                .header("Content-Type", mediaType)
+                .header("Accept", mediaType);
         if (safeIdempotencyKey != null) {
             builder.header("Idempotency-Key", safeIdempotencyKey);
         }

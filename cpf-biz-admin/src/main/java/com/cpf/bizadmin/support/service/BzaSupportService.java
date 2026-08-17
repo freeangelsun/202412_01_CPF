@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.support.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,7 +63,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
                 boundedLimit(limit));
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_CREATENOTIFICATION", name="BZA_BZASUPPORTSERVICE_CREATENOTIFICATION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> createNotification(NotificationRequest request, String operatorId) {
         String actor = required(operatorId, "operatorId");
         String recipient = required(request.recipientLoginId(), "recipientLoginId");
@@ -82,7 +82,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return values;
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_MARKNOTIFICATIONREAD", name="BZA_BZASUPPORTSERVICE_MARKNOTIFICATIONREAD", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> markNotificationRead(long notificationId, String reason, String operatorId) {
         String actor = required(operatorId, "operatorId");
         int updated = repository.markNotificationRead(notificationId, actor, actor);
@@ -95,7 +95,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return after;
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_MARKALLNOTIFICATIONSREAD", name="BZA_BZASUPPORTSERVICE_MARKALLNOTIFICATIONSREAD", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> markAllNotificationsRead(String reason,String operatorId) {
         String actor=required(operatorId,"operatorId");
         int updated=repository.markAllNotificationsRead(actor,actor);
@@ -107,7 +107,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return repository.findAttachments(safeGroupId(groupId));
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_UPDATEATTACHMENTSECURITY", name="BZA_BZASUPPORTSERVICE_UPDATEATTACHMENTSECURITY", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> updateAttachmentSecurity(long attachmentId, AttachmentSecurityRequest request,String operatorId) {
         String actor=required(operatorId,"operatorId");
         String scan=code(defaultText(request.scanStatus(),"PENDING"),"scanStatus");
@@ -124,13 +124,13 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return publicAttachment(after,attachmentId);
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_REQUESTATTACHMENTRECHECK", name="BZA_BZASUPPORTSERVICE_REQUESTATTACHMENTRECHECK", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String,Object> requestAttachmentRecheck(long attachmentId,String reason,String operatorId) {
         return updateAttachmentSecurity(attachmentId,new AttachmentSecurityRequest("PENDING",null,null,"N","Y",reason),operatorId);
     }
 
     /** 파일 저장 성공 후 DB 적재가 실패하면 저장 파일을 보상 삭제합니다. */
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_STOREATTACHMENT", name="BZA_BZASUPPORTSERVICE_STOREATTACHMENT", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> storeAttachment(
             String groupId,
             String originalFileName,
@@ -213,7 +213,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
                 blankToNull(screenCode) == null ? null : code(screenCode, "screenCode"));
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_SAVESAVEDSEARCH", name="BZA_BZASUPPORTSERVICE_SAVESAVEDSEARCH", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> saveSavedSearch(SavedSearchRequest request, String operatorId) {
         String actor = required(operatorId, "operatorId");
         String screenCode = code(request.screenCode(), "screenCode");
@@ -232,7 +232,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return values;
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_DISABLESAVEDSEARCH", name="BZA_BZASUPPORTSERVICE_DISABLESAVEDSEARCH", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> disableSavedSearch(long savedSearchId, String reason, String operatorId) {
         String actor = required(operatorId, "operatorId");
         int updated = repository.disableSavedSearch(savedSearchId, actor, actor);
@@ -274,7 +274,7 @@ public class BzaSupportService extends com.cpf.bizadmin.common.base.BzaBaseServi
         return result;
     }
 
-    @CpfTx(id="BZA_BZASUPPORTSERVICE_SIMULATEPERMISSION", name="BZA_BZASUPPORTSERVICE_SIMULATEPERMISSION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+    @CpfTransactional(transactionManager="bzaTransactionManager")
     public Map<String, Object> simulatePermission(PermissionSimulationRequest request, String operatorId) {
         String actor = required(operatorId, "operatorId");
         String role = code(request.roleCode(), "roleCode");

@@ -1,9 +1,8 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmServiceRegistryService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.integration.api.servicecall.CpfServiceRegistryControlPort;
@@ -23,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Service/Endpoint/Instance를 Typed API로 운영하는 ADM Controller입니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/service-registry")
 @Tag(name = "ADM-ServiceRegistry", description = "공통 Service Registry 조회·등록·상태 제어 API")
 public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmBaseController {
@@ -47,58 +46,50 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
                 "environments",CpfServiceRegistryCatalog.ENVIRONMENTS);
     }
 
-    @GetMapping("/services") @CpfOnlineTransaction(id="OADMSV0010",name="ADMServiceRegistryServices", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindServices",summary="서비스 목록 조회")
+    @GetMapping("/services")    @Operation(operationId="admServiceRegistryFindServices",summary="서비스 목록 조회")
     public ResponseEntity<List<CpfServiceRegistryView.Service>> findServices(
             @Parameter(description="서비스 ID",example="MBR") @RequestParam(required=false) String serviceId,
             @RequestParam(required=false) String useYn,@RequestParam(defaultValue="100") int limit) {
         return ResponseEntity.ok(service.findServices(serviceId,useYn,limit));
     }
 
-    @GetMapping("/endpoints") @CpfOnlineTransaction(id="OADMSV0020",name="ADMServiceRegistryEndpoints", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindEndpoints",summary="Endpoint 목록 조회")
+    @GetMapping("/endpoints")    @Operation(operationId="admServiceRegistryFindEndpoints",summary="Endpoint 목록 조회")
     public ResponseEntity<List<CpfServiceRegistryView.Endpoint>> findEndpoints(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String endpointCode,
             @RequestParam(required=false) String useYn,@RequestParam(defaultValue="100") int limit) {
         return ResponseEntity.ok(service.findEndpoints(serviceId,endpointCode,useYn,limit));
     }
 
-    @GetMapping("/instances") @CpfOnlineTransaction(id="OADMSV0030",name="ADMServiceRegistryInstances", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindInstances",summary="Instance 목록 조회")
+    @GetMapping("/instances")    @Operation(operationId="admServiceRegistryFindInstances",summary="Instance 목록 조회")
     public ResponseEntity<List<CpfServiceRegistryView.Instance>> findInstances(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String endpointCode,
             @RequestParam(required=false) String status,@RequestParam(defaultValue="100") int limit) {
         return ResponseEntity.ok(service.findInstances(serviceId,endpointCode,status,limit));
     }
 
-    @GetMapping("/health") @CpfOnlineTransaction(id="OADMSV0040",name="ADMServiceRegistryHealth", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindHealth",summary="Instance Health 조회")
+    @GetMapping("/health")    @Operation(operationId="admServiceRegistryFindHealth",summary="Instance Health 조회")
     public ResponseEntity<List<CpfServiceRegistryView.Health>> findHealth(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String endpointCode,
             @RequestParam(defaultValue="100") int limit) { return ResponseEntity.ok(service.findHealth(serviceId,endpointCode,limit)); }
 
-    @GetMapping("/routing-policies") @CpfOnlineTransaction(id="OADMSV0050",name="ADMServiceRegistryRoutingPolicies", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindRoutingPolicies",summary="라우팅 정책 조회")
+    @GetMapping("/routing-policies")    @Operation(operationId="admServiceRegistryFindRoutingPolicies",summary="라우팅 정책 조회")
     public ResponseEntity<List<CpfServiceRegistryView.RoutingPolicy>> findRoutingPolicies(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String endpointCode,
             @RequestParam(required=false) String activeYn,@RequestParam(defaultValue="100") int limit) {
         return ResponseEntity.ok(service.findRoutingPolicies(serviceId,endpointCode,activeYn,limit));
     }
 
-    @GetMapping("/circuit-states") @CpfOnlineTransaction(id="OADMSV0060",name="ADMServiceRegistryCircuitStates", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindCircuitStates",summary="Circuit 상태 조회")
+    @GetMapping("/circuit-states")    @Operation(operationId="admServiceRegistryFindCircuitStates",summary="Circuit 상태 조회")
     public ResponseEntity<List<CpfServiceRegistryView.CircuitState>> findCircuitStates(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String endpointCode,
             @RequestParam(defaultValue="100") int limit) { return ResponseEntity.ok(service.findCircuitStates(serviceId,endpointCode,limit)); }
 
-    @GetMapping("/call-history") @CpfOnlineTransaction(id="OADMSV0070",name="ADMServiceRegistryCallHistory", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistryFindCallHistory",summary="서비스 호출 이력 조회")
+    @GetMapping("/call-history")    @Operation(operationId="admServiceRegistryFindCallHistory",summary="서비스 호출 이력 조회")
     public ResponseEntity<List<CpfServiceRegistryView.CallHistory>> findCallHistory(
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String transactionId,
             @RequestParam(defaultValue="100") int limit) { return ResponseEntity.ok(service.findCallHistory(serviceId,transactionId,limit)); }
 
-    @PostMapping("/services") @CpfOnlineTransaction(id="OADMSV0080",name="ADMServiceRegistryServiceSave", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistrySaveService",summary="서비스 생성·수정")
+    @PostMapping("/services")    @Operation(operationId="admServiceRegistrySaveService",summary="서비스 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveService(
             @RequestBody CpfServiceRegistryControlPort.ServiceDefinition command,HttpServletRequest request) {
         String operator=operator(request);
@@ -108,8 +99,7 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/endpoints") @CpfOnlineTransaction(id="OADMSV0090",name="ADMServiceRegistryEndpointSave", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistrySaveEndpoint",summary="Endpoint 생성·수정")
+    @PostMapping("/endpoints")    @Operation(operationId="admServiceRegistrySaveEndpoint",summary="Endpoint 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveEndpoint(
             @RequestBody CpfServiceRegistryControlPort.EndpointDefinition command,HttpServletRequest request) {
         String operator=operator(request);
@@ -119,8 +109,7 @@ public class AdmServiceRegistryController extends com.cpf.admin.common.base.AdmB
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/instances") @CpfOnlineTransaction(id="OADMSV0100",name="ADMServiceRegistryInstanceSave", ownerDomain="ADM")
-    @Operation(operationId="admServiceRegistrySaveInstance",summary="Instance 생성·수정")
+    @PostMapping("/instances")    @Operation(operationId="admServiceRegistrySaveInstance",summary="Instance 생성·수정")
     public ResponseEntity<CpfServiceRegistryView.MutationResult> saveInstance(
             @RequestBody CpfServiceRegistryControlPort.InstanceDefinition command,HttpServletRequest request) {
         String operator=operator(request);

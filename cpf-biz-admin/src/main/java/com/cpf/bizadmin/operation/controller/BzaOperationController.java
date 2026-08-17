@@ -1,9 +1,8 @@
 package com.cpf.bizadmin.operation.controller;
 
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.bizadmin.operation.service.BzaOperationService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.foundation.api.page.CpfPage;
 import java.util.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /** BZA 운영 API. 목록은 기존 호환 API와 서버 Paging API를 함께 제공합니다. */
-@CpfController
+@RestController
 @RequestMapping("/api/bza")
 public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBaseController {
   private final BzaOperationService s;
@@ -27,9 +26,7 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findAdminUsers());
   }
 
-  @GetMapping("/admin-users/page")
-  @CpfOnlineTransaction(id = "OBZAAD1101", name = "BzaAdminUserPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationFindAdminUsersPage", summary = "업무 관리자 서버 Paging 조회")
+  @GetMapping("/admin-users/page")  @Operation(operationId = "bzaOperationFindAdminUsersPage", summary = "업무 관리자 서버 Paging 조회")
   /** usersPage 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<CpfPage<Map<String, Object>>> usersPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
@@ -52,9 +49,7 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findMenus());
   }
 
-  @GetMapping("/menus/page")
-  @CpfOnlineTransaction(id = "OBZAMN1101", name = "BzaMenuPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationFindMenusPage", summary = "메뉴 서버 Paging 조회")
+  @GetMapping("/menus/page")  @Operation(operationId = "bzaOperationFindMenusPage", summary = "메뉴 서버 Paging 조회")
   /** menusPage 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<CpfPage<Map<String, Object>>> menusPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
@@ -70,18 +65,14 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.saveMenu(r, op));
   }
 
-  @GetMapping("/menus/{menuCode}/impact")
-  @CpfOnlineTransaction(id = "OBZAMN1102", name = "BzaMenuImpact", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationFindMenuImpact", summary = "메뉴 영향도 조회")
+  @GetMapping("/menus/{menuCode}/impact")  @Operation(operationId = "bzaOperationFindMenuImpact", summary = "메뉴 영향도 조회")
   /** menuImpact 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<BzaOperationService.MenuImpact> menuImpact(
       @PathVariable String menuCode) {
     return ResponseEntity.ok(s.findMenuImpact(menuCode));
   }
 
-  @DeleteMapping("/menus/{menuCode}")
-  @CpfOnlineTransaction(id = "OBZAMN1201", name = "BzaMenuDelete", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationDeleteMenu", summary = "메뉴 삭제")
+  @DeleteMapping("/menus/{menuCode}")  @Operation(operationId = "bzaOperationDeleteMenu", summary = "메뉴 삭제")
   /** deleteMenu 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<BzaOperationService.MenuDeleteResult> deleteMenu(
       @PathVariable String menuCode,
@@ -97,9 +88,7 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findRoles());
   }
 
-  @GetMapping("/roles/page")
-  @CpfOnlineTransaction(id = "OBZARO1101", name = "BzaRolePage", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationFindRolesPage", summary = "역할 서버 Paging 조회")
+  @GetMapping("/roles/page")  @Operation(operationId = "bzaOperationFindRolesPage", summary = "역할 서버 Paging 조회")
   /** rolesPage 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<CpfPage<Map<String, Object>>> rolesPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
@@ -122,9 +111,7 @@ public class BzaOperationController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findPermissions());
   }
 
-  @GetMapping("/permissions/page")
-  @CpfOnlineTransaction(id = "OBZAPE1101", name = "BzaPermissionPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaOperationFindPermissionsPage", summary = "권한 서버 Paging 조회")
+  @GetMapping("/permissions/page")  @Operation(operationId = "bzaOperationFindPermissionsPage", summary = "권한 서버 Paging 조회")
   /** permsPage 작업을 CPF 표준 계약에 따라 수행한다. */
   public ResponseEntity<CpfPage<Map<String, Object>>> permsPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {

@@ -27,9 +27,6 @@ public final class CpfHeaderNames {
 
     public static final String API_VERSION = "X-Api-Version";
     public static final String REQUEST_TYPE = "X-Request-Type";
-    public static final String ORIGINAL_CHANNEL_CODE = "X-Original-Channel-Code";
-    public static final String CHANNEL_CODE = "X-Channel-Code";
-    public static final String CHANNEL_DETAIL_CODE = "X-Channel-Detail-Code";
 
     public static final String USER_ID = "X-User-Id";
     public static final String OPERATOR_ID = "X-Operator-Id";
@@ -43,17 +40,21 @@ public final class CpfHeaderNames {
     public static final String FORWARDED_FOR = "X-Forwarded-For";
     public static final String FORWARDED = "Forwarded";
     public static final String REAL_IP = "X-Real-IP";
-    public static final String CLIENT_COUNTRY_CODE = "X-Client-Country-Code";
+    public static final String COUNTRY_CODE = "X-Country-Code";
     public static final String CLIENT_REGION_CODE = "X-Client-Region-Code";
     public static final String TIMEZONE = "X-Timezone";
     public static final String CLIENT_TIMEZONE = "X-Client-Timezone";
 
-    public static final String CLIENT_APP_ID = "X-Client-App-Id";
+    public static final String CLIENT_ID = "X-Client-Id";
+    public static final String CLIENT_INSTANCE_ID = "X-Client-Instance-Id";
     public static final String CLIENT_VERSION = "X-Client-Version";
-    public static final String CALLER_SERVICE = "X-Caller-Service";
+    public static final String CALLER_SYSTEM_CODE = "X-Caller-System-Code";
     public static final String CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
-    /** CPF 내부 outbound 관측에서 등록된 호출 대상 serviceId를 전달합니다. */
-    public static final String TARGET_SERVICE = "X-Cpf-Target-Service";
+    // Canonical online system lineage names. Web owns validation/mutation policy; base only uses these for masked observation.
+    public static final String ORIGINAL_SYSTEM_CODE = "X-Original-System-Code";
+    public static final String SYSTEM_CODE = "X-System-Code";
+    public static final String TARGET_SYSTEM_CODE = "X-Target-System-Code";
+    public static final String TARGET_OPERATION_ID = "X-Target-Operation-Id";
     public static final String GATEWAY_INSTANCE_ID = "X-Cpf-Gateway-Instance-Id";
     public static final String GATEWAY_ROUTE_ID = "X-Cpf-Gateway-Route-Id";
     public static final String GATEWAY_ROUTE_VERSION = "X-Cpf-Gateway-Route-Version";

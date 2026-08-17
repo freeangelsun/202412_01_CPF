@@ -11,7 +11,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class CmnCpfMessageServiceTest {
+class CmnCpfMessageSourceTest {
     @Test
     void resolvesLocaleAndArguments() {
         CmnErrorCatalogStore store = new CmnErrorCatalogStore() {
@@ -21,8 +21,8 @@ class CmnCpfMessageServiceTest {
                 return row("안녕하세요 {name}", "Y");
             }
         };
-        var service = new CmnCpfMessageService(store, new CmnMessageArgumentPolicy(new ObjectMapper()));
-        assertThat(service.resolve("HELLO", Locale.ENGLISH, Map.of("name", "CPF"))).isEqualTo("안녕하세요 CPF");
+        var service = new CmnCpfMessageSource(store, new CmnMessageArgumentPolicy(new ObjectMapper()));
+        assertThat(service.getMessage("HELLO", Locale.ENGLISH, Map.of("name", "CPF"))).isEqualTo("안녕하세요 CPF");
     }
 
     @Test
@@ -31,8 +31,8 @@ class CmnCpfMessageServiceTest {
             public com.cpf.common.message.api.CpfResponseCodeRecord response(String code) { return null; }
             public CpfMessageRecord message(String code, Locale locale) { return row("x", "N"); }
         };
-        var service = new CmnCpfMessageService(store, new CmnMessageArgumentPolicy(new ObjectMapper()));
-        assertThatThrownBy(() -> service.resolve("X", Locale.KOREAN, Map.of())).isInstanceOf(IllegalArgumentException.class);
+        var service = new CmnCpfMessageSource(store, new CmnMessageArgumentPolicy(new ObjectMapper()));
+        assertThatThrownBy(() -> service.getMessage("X", Locale.KOREAN, Map.of())).isInstanceOf(IllegalArgumentException.class);
     }
 
     private static CpfMessageRecord row(String text, String useYn) {

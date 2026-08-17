@@ -11,7 +11,7 @@ import com.cpf.security.common.crypto.CmnCryptoService;
 import com.cpf.security.common.token.CmnJwtCreateRequest;
 import com.cpf.security.common.token.CmnJwtService;
 import com.cpf.security.common.token.CmnJwtValidationResult;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.security.api.password.CpfPasswordVerification;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ class BzaAuthServiceTest {
 
     private final CmnJwtService jwtService = mock(CmnJwtService.class);
     private final CmnCryptoService cryptoService = mock(CmnCryptoService.class);
-    private final CpfPasswordService passwordHashingPort = mock(CpfPasswordService.class);
+    private final CpfPasswordEncoder passwordHashingPort = mock(CpfPasswordEncoder.class);
     private final BzaAuthRepository authRepository = mock(BzaAuthRepository.class);
     private final BzaBusinessAuditService auditService = mock(BzaBusinessAuditService.class);
     private final BzaLoginTransactionService loginTransactionService = mock(BzaLoginTransactionService.class);

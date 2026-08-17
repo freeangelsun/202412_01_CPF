@@ -4,7 +4,6 @@ import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
 import com.cpf.admin.opr.service.AdmLogPolicyService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,12 +16,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 /** 동적 로그 정책의 버전·승인·적용·롤백·감사 계약을 제공하는 ADM API입니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/log-policies")
 @Tag(name = "ADM-OPR Log Policy", description = "CPF 로그 정책과 임시 override 관리 API")
 public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseController {
@@ -32,9 +31,7 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         this.logPolicyService = logPolicyService;
     }
 
-    @GetMapping
-    @CpfOnlineTransaction(id = "OADMLG0010", name = "ADMLogPolicyList", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyFindPolicies", summary = "로그 정책 목록 조회", description = "대상 유형, 대상 ID, 활성 여부 기준으로 CPF 로그 정책을 조회합니다.")
+    @GetMapping    @Operation(operationId = "admLogPolicyFindPolicies", summary = "로그 정책 목록 조회", description = "대상 유형, 대상 ID, 활성 여부 기준으로 CPF 로그 정책을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findPolicies(
             @RequestParam(required = false) String targetType,
             @RequestParam(required = false) String targetId,
@@ -43,25 +40,19 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.findPolicies(targetType, targetId, activeYn, limit));
     }
 
-    @GetMapping("/{policyId}")
-    @CpfOnlineTransaction(id = "OADMLG0011", name = "ADMLogPolicyDetail", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyFindPolicy", summary = "로그 정책 상세 조회", description = "로그 정책과 해당 정책의 override 이력을 조회합니다.")
+    @GetMapping("/{policyId}")    @Operation(operationId = "admLogPolicyFindPolicy", summary = "로그 정책 상세 조회", description = "로그 정책과 해당 정책의 override 이력을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findPolicy(@PathVariable long policyId) {
         return ResponseEntity.ok(logPolicyService.findPolicy(policyId));
     }
 
-    @PostMapping
-    @CpfOnlineTransaction(id = "OADMLG0012", name = "ADMLogPolicyCreate", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyCreatePolicy", summary = "로그 정책 등록", description = "기본 로그 정책을 등록하거나 같은 policyKey 정책을 갱신합니다.")
+    @PostMapping    @Operation(operationId = "admLogPolicyCreatePolicy", summary = "로그 정책 등록", description = "기본 로그 정책을 등록하거나 같은 policyKey 정책을 갱신합니다.")
     public ResponseEntity<Map<String, Object>> createPolicy(
             @RequestBody AdmLogPolicyRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(logPolicyService.createPolicy(request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
     }
 
-    @PutMapping("/{policyId}")
-    @CpfOnlineTransaction(id = "OADMLG0013", name = "ADMLogPolicyUpdate", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyUpdatePolicy", summary = "로그 정책 수정", description = "기본 로그 정책을 수정하고 cpf_log_policy_audit에 변경 이력을 남깁니다.")
+    @PutMapping("/{policyId}")    @Operation(operationId = "admLogPolicyUpdatePolicy", summary = "로그 정책 수정", description = "기본 로그 정책을 수정하고 cpf_log_policy_audit에 변경 이력을 남깁니다.")
     public ResponseEntity<Map<String, Object>> updatePolicy(
             @PathVariable long policyId,
             @RequestBody AdmLogPolicyRequest request,
@@ -69,27 +60,21 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.updatePolicy(policyId, request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/overrides")
-    @CpfOnlineTransaction(id = "OADMLG0014", name = "ADMLogPolicyOverrideCreate", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyCreateOverride", summary = "로그 정책 override 등록", description = "기간과 사유가 있는 임시 로그 정책 override를 등록합니다.")
+    @PostMapping("/overrides")    @Operation(operationId = "admLogPolicyCreateOverride", summary = "로그 정책 override 등록", description = "기간과 사유가 있는 임시 로그 정책 override를 등록합니다.")
     public ResponseEntity<Map<String, Object>> createOverride(
             @RequestBody AdmLogPolicyOverrideRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(logPolicyService.createOverride(request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/trace-boost")
-    @CpfOnlineTransaction(id = "OADMLG0019", name = "ADMTraceBoostCreate", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyCreateTraceBoost", summary = "거래 단위 Trace Boost 등록", description = "root logger를 올리지 않고 특정 온라인 거래 조건에 임시 로그 레벨 override를 적용합니다.")
+    @PostMapping("/trace-boost")    @Operation(operationId = "admLogPolicyCreateTraceBoost", summary = "거래 단위 Trace Boost 등록", description = "root logger를 올리지 않고 특정 온라인 거래 조건에 임시 로그 레벨 override를 적용합니다.")
     public ResponseEntity<Map<String, Object>> createTraceBoost(
             @RequestBody AdmTraceBoostRequest request,
             HttpServletRequest servletRequest) {
         return ResponseEntity.ok(logPolicyService.createTraceBoost(request, requestUser(servletRequest, request.requestUser()), servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/{policyId}/disable")
-    @CpfOnlineTransaction(id = "OADMLG0022", name = "ADMTraceBoostPolicyDisable", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyDisablePolicy", summary = "로그 정책 비활성화", description = "Trace Boost 또는 로그 정책을 비활성화하고 감사 로그를 남깁니다.")
+    @PostMapping("/{policyId}/disable")    @Operation(operationId = "admLogPolicyDisablePolicy", summary = "로그 정책 비활성화", description = "Trace Boost 또는 로그 정책을 비활성화하고 감사 로그를 남깁니다.")
     public ResponseEntity<Map<String, Object>> disablePolicy(
             @PathVariable long policyId,
             @RequestParam String reason,
@@ -97,23 +82,17 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.disablePolicy(policyId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
     }
 
-    @GetMapping("/runtime-state")
-    @CpfOnlineTransaction(id = "OADMLG0020", name = "ADMTraceBoostRuntimeState", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyFindTraceBoostRuntimeState", summary = "Trace Boost 적용 상태 조회", description = "현재 유효한 로그 정책 override와 TTL 상태를 조회합니다.")
+    @GetMapping("/runtime-state")    @Operation(operationId = "admLogPolicyFindTraceBoostRuntimeState", summary = "Trace Boost 적용 상태 조회", description = "현재 유효한 로그 정책 override와 TTL 상태를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTraceBoostRuntimeState(@RequestParam(defaultValue = "200") int limit) {
         return ResponseEntity.ok(logPolicyService.findTraceBoostRuntimeState(limit));
     }
 
-    @GetMapping("/history")
-    @CpfOnlineTransaction(id = "OADMLG0021", name = "ADMTraceBoostHistory", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyFindTraceBoostHistory", summary = "Trace Boost 변경 이력 조회", description = "Trace Boost 생성, 중지, 정책 비활성화 감사 이력을 조회합니다.")
+    @GetMapping("/history")    @Operation(operationId = "admLogPolicyFindTraceBoostHistory", summary = "Trace Boost 변경 이력 조회", description = "Trace Boost 생성, 중지, 정책 비활성화 감사 이력을 조회합니다.")
     public ResponseEntity<Map<String, Object>> findTraceBoostHistory(@RequestParam(defaultValue = "200") int limit) {
         return ResponseEntity.ok(logPolicyService.findTraceBoostHistory(limit));
     }
 
-    @PatchMapping("/overrides/{overrideId}/disable")
-    @CpfOnlineTransaction(id = "OADMLG0015", name = "ADMLogPolicyOverrideDisable", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyDisableOverride", summary = "로그 정책 override 중지", description = "임시 override를 비활성화하고 감사 이력을 남깁니다.")
+    @PatchMapping("/overrides/{overrideId}/disable")    @Operation(operationId = "admLogPolicyDisableOverride", summary = "로그 정책 override 중지", description = "임시 override를 비활성화하고 감사 이력을 남깁니다.")
     public ResponseEntity<Map<String, Object>> disableOverride(
             @PathVariable long overrideId,
             @RequestParam String reason,
@@ -121,9 +100,7 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.disableOverride(overrideId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
     }
 
-    @GetMapping("/distribution")
-    @CpfOnlineTransaction(id = "OADMLG0023", name = "ADMLogPolicyDistributionStatus", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyDistributionStatus", summary = "로그 정책 다중 인스턴스 적용 상태", description = "정책 변경 Event의 Gateway 인스턴스별 ACK, 실패, 재시도 상태를 조회합니다.")
+    @GetMapping("/distribution")    @Operation(operationId = "admLogPolicyDistributionStatus", summary = "로그 정책 다중 인스턴스 적용 상태", description = "정책 변경 Event의 Gateway 인스턴스별 ACK, 실패, 재시도 상태를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findDistributionStatus(
             @RequestParam(required = false) String targetType,
             @RequestParam(required = false) String targetId,
@@ -131,9 +108,7 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.findDistributionStatus(targetType, targetId, limit));
     }
 
-    @PostMapping("/cache/refresh")
-    @CpfOnlineTransaction(id = "OADMLG0016", name = "ADMLogPolicyCacheRefresh", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyRefreshCache", summary = "로그 정책 cache refresh", description = "지정 대상의 로그 정책을 즉시 재평가하고 현재 인스턴스 cache에 반영합니다.")
+    @PostMapping("/cache/refresh")    @Operation(operationId = "admLogPolicyRefreshCache", summary = "로그 정책 cache refresh", description = "지정 대상의 로그 정책을 즉시 재평가하고 현재 인스턴스 cache에 반영합니다.")
     public ResponseEntity<Map<String, Object>> refreshCache(
             @RequestParam String targetType,
             @RequestParam String targetId,
@@ -142,9 +117,7 @@ public class AdmLogPolicyController extends com.cpf.admin.common.base.AdmBaseCon
         return ResponseEntity.ok(logPolicyService.refreshCache(targetType, targetId, reason, requestUser(servletRequest, "ADM"), servletRequest.getRemoteAddr()));
     }
 
-    @PostMapping("/cache/clear")
-    @CpfOnlineTransaction(id = "OADMLG0017", name = "ADMLogPolicyCacheClear", ownerDomain="ADM")
-    @Operation(operationId = "admLogPolicyClearCache", summary = "로그 정책 cache clear", description = "현재 인스턴스의 로그 정책 cache를 전체 비웁니다.")
+    @PostMapping("/cache/clear")    @Operation(operationId = "admLogPolicyClearCache", summary = "로그 정책 cache clear", description = "현재 인스턴스의 로그 정책 cache를 전체 비웁니다.")
     public ResponseEntity<Map<String, Object>> clearCache(
             @RequestParam String reason,
             HttpServletRequest servletRequest) {

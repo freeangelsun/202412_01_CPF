@@ -38,12 +38,10 @@ function New-SmokeHeaders {
     $transactionId = "{0:yyyyMMddHHmmssfff}ADMsmoke01{1:0000000}" -f (Get-Date), $sequence
     return @{
         "X-Request-Type" = "INQUIRY"
-        "X-Original-Channel-Code" = "ADM"
-        "X-Channel-Code" = "ADM"
         "X-Transaction-Id" = $transactionId
         "X-Trace-Id" = $transactionId
         "X-User-Id" = "runtime-smoke"
-        "X-Client-App-Id" = "cpf-smoke"
+        "X-Client-Id" = "cpf-smoke"
         "X-Client-Version" = "1.0.0"
         "X-Caller-Service" = "smoke-adm-center-cut-runtime"
     }

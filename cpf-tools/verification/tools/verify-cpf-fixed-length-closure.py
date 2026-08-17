@@ -20,7 +20,7 @@ def main() -> int:
     catalog=text('cpf-tools/generator/contracts/cpf-starter-catalog.json')
     check('CATALOG_OWNER', all(t in catalog for t in (
         '"artifactId": "cpf-starter-integration-fixed-length"',
-        '"projectPath": ":internal:integration:fixed-length"',
+        '"projectPath": ":starters:integration:fixed-length"',
         '"ownerPath": "cpf-starters/integration/fixed-length"')),
         'canonical fixed-length module/owner missing')
 
@@ -67,8 +67,8 @@ def main() -> int:
           and '@CpfFixedLengthField' in edu_dto, 'EDU parse/write DTO consumer missing')
 
     build_admin=text('cpf-admin/build.gradle'); build_edu=text('cpf-education/build.gradle')
-    check('ACTUAL_MODULE_CONSUMERS', "project(':internal:integration:fixed-length')" in build_admin and
-          "project(':internal:integration:fixed-length')" in build_edu,
+    check('ACTUAL_MODULE_CONSUMERS', "project(':starters:integration:fixed-length')" in build_admin and
+          "project(':starters:integration:fixed-length')" in build_edu,
           'ADM/EDU dependency consumer missing')
 
     result={'status':'PASS' if not findings else 'FAIL','checks':checks,'failureCount':len(findings),'findings':findings}

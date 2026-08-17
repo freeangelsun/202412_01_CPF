@@ -1,9 +1,8 @@
 package com.cpf.admin.opr.gateway;
 
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.service.AdmAuditLogService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.gateway.api.CpfGatewayRegistryPort;
 import com.cpf.gateway.api.CpfGatewayProtocol;
@@ -25,7 +24,7 @@ import java.security.MessageDigest;
 import java.time.OffsetDateTime;
 
 /** Gateway Registry/Binding의 단일 ADM 편집 Owner API입니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/gateway-registry")
 @Tag(name="ADM-GatewayRegistry",description="Server Group·Route Binding·Apply ACK·Connection Test 운영 API")
 public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmBaseController {
@@ -62,52 +61,42 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         }
     }
 
-    @GetMapping("/operations/snapshot")
-    @CpfOnlineTransaction(id="OADMGW0001",name="ADMGatewayOperationsSnapshot", ownerDomain="ADM")
-    @Operation(operationId="admGatewayOperationsSnapshot",summary="Gateway 운영 KPI·Drift·Spool 상태")
+    @GetMapping("/operations/snapshot")    @Operation(operationId="admGatewayOperationsSnapshot",summary="Gateway 운영 KPI·Drift·Spool 상태")
     /** operationsSnapshot 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.OperationsSnapshot operationsSnapshot() { return port().operationsSnapshot(); }
 
-    @GetMapping("/operations/events")
-    @CpfOnlineTransaction(id="OADMGW0002",name="ADMGatewayOperationsEvents", ownerDomain="ADM")
-    @Operation(operationId="admGatewayOperationsEvents",summary="Gateway 운영 Event 증분 조회")
+    @GetMapping("/operations/events")    @Operation(operationId="admGatewayOperationsEvents",summary="Gateway 운영 Event 증분 조회")
     public List<CpfGatewayRegistryPort.OperationsEvent> operationsEvents(
             @RequestParam(required=false) String afterEventId,
             @RequestParam(defaultValue="100") int limit) {
         return port().operationsEvents(afterEventId,limit);
     }
 
-    @GetMapping("/server-groups") @CpfOnlineTransaction(id="OADMGW0010",name="ADMGatewayServerGroups", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindServerGroups",summary="Server Group 조회")
+    @GetMapping("/server-groups")    @Operation(operationId="admGatewayFindServerGroups",summary="Server Group 조회")
     /** groups 작업을 CPF 표준 계약에 따라 수행한다. */
     public List<CpfGatewayRegistryPort.ServerGroup> groups(@RequestParam(required=false) String environmentCode,
             @RequestParam(required=false) String serviceId,@RequestParam(required=false) String status,
             @RequestParam(defaultValue="100") int limit) { return port().findServerGroups(environmentCode,serviceId,status,limit); }
 
-    @GetMapping("/server-groups/{id}/members") @CpfOnlineTransaction(id="OADMGW0020",name="ADMGatewayGroupMembers", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindGroupMembers",summary="Server Group Member 조회")
+    @GetMapping("/server-groups/{id}/members")    @Operation(operationId="admGatewayFindGroupMembers",summary="Server Group Member 조회")
     public List<CpfGatewayRegistryPort.GroupMember> members(@PathVariable String id) { return port().findMembers(id); }
 
-    @GetMapping("/bindings") @CpfOnlineTransaction(id="OADMGW0030",name="ADMGatewayBindings", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindBindings",summary="Gateway Binding 조회")
+    @GetMapping("/bindings")    @Operation(operationId="admGatewayFindBindings",summary="Gateway Binding 조회")
     /** bindings 작업을 CPF 표준 계약에 따라 수행한다. */
     public List<CpfGatewayRegistryPort.GatewayBinding> bindings(@RequestParam(required=false) String environmentCode,
             @RequestParam(required=false) String routeId,@RequestParam(required=false) String status,
             @RequestParam(defaultValue="100") int limit) { return port().findBindings(environmentCode,routeId,status,limit); }
 
-    @GetMapping("/bindings/{id}/apply-status") @CpfOnlineTransaction(id="OADMGW0040",name="ADMGatewayApplyStatus", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindApplyStatus",summary="Gateway Instance별 적용 상태 조회")
+    @GetMapping("/bindings/{id}/apply-status")    @Operation(operationId="admGatewayFindApplyStatus",summary="Gateway Instance별 적용 상태 조회")
     public List<CpfGatewayRegistryPort.ApplyStatus> applyStatus(@PathVariable String id,
             @RequestParam(defaultValue="100") int limit) { return port().findApplyStatuses(id,limit); }
 
-    @GetMapping("/bindings/{id}/connection-tests") @CpfOnlineTransaction(id="OADMGW0050",name="ADMGatewayConnectionTests", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindConnectionTests",summary="연결시험 결과 조회")
+    @GetMapping("/bindings/{id}/connection-tests")    @Operation(operationId="admGatewayFindConnectionTests",summary="연결시험 결과 조회")
     /** tests 작업을 CPF 표준 계약에 따라 수행한다. */
     public List<CpfGatewayRegistryPort.ConnectionTestResult> tests(@PathVariable String id,
             @RequestParam(defaultValue="100") int limit) { return port().findConnectionTests(id,limit); }
 
-    @PostMapping("/server-groups") @CpfOnlineTransaction(id="OADMGW0060",name="ADMGatewaySaveServerGroup", ownerDomain="ADM")
-    @Operation(operationId="admGatewaySaveServerGroup",summary="Server Group 생성·수정")
+    @PostMapping("/server-groups")    @Operation(operationId="admGatewaySaveServerGroup",summary="Server Group 생성·수정")
     public CpfGatewayRegistryPort.MutationResult saveGroup(@RequestBody CpfGatewayRegistryPort.ServerGroupCommand c,
             HttpServletRequest request) {
         String operator=operator(request); reason(c.reason());
@@ -120,8 +109,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         record(request,operator,"GATEWAY_SERVER_GROUP_SAVE",c.serverGroupId(),c.reason(),result); return result;
     }
 
-    @PostMapping("/bindings") @CpfOnlineTransaction(id="OADMGW0070",name="ADMGatewaySaveBinding", ownerDomain="ADM")
-    @Operation(operationId="admGatewaySaveBinding",summary="Gateway Binding Draft 생성·수정")
+    @PostMapping("/bindings")    @Operation(operationId="admGatewaySaveBinding",summary="Gateway Binding Draft 생성·수정")
     /** saveBinding 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.MutationResult saveBinding(@RequestBody CpfGatewayRegistryPort.GatewayBindingCommand c,
             HttpServletRequest request) {
@@ -134,8 +122,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         record(request,operator,"GATEWAY_BINDING_SAVE",c.bindingId(),c.reason(),result); return result;
     }
 
-    @PostMapping("/bindings/{id}/state") @CpfOnlineTransaction(id="OADMGW0080",name="ADMGatewayBindingState", ownerDomain="ADM")
-    @Operation(operationId="admGatewayChangeBindingState",summary="Binding 승인·활성·차단·폐기")
+    @PostMapping("/bindings/{id}/state")    @Operation(operationId="admGatewayChangeBindingState",summary="Binding 승인·활성·차단·폐기")
     /** changeState 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.MutationResult changeState(@PathVariable String id,
             @RequestBody CpfGatewayRegistryPort.BindingStateCommand c,HttpServletRequest request) {
@@ -152,8 +139,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         record(request,operator,"GATEWAY_BINDING_"+c.targetState(),id,c.reason(),result); return result;
     }
 
-    @DeleteMapping("/server-groups/{id}") @CpfOnlineTransaction(id="OADMGW0090",name="ADMGatewayDeleteServerGroup", ownerDomain="ADM")
-    @Operation(operationId="admGatewayDeleteServerGroup",summary="미사용 Server Group 폐기")
+    @DeleteMapping("/server-groups/{id}")    @Operation(operationId="admGatewayDeleteServerGroup",summary="미사용 Server Group 폐기")
     /** deleteGroup 작업을 CPF 표준 계약에 따라 수행한다. */
     public ResponseEntity<Void> deleteGroup(@PathVariable String id,@RequestBody CpfGatewayRegistryPort.DeleteCommand c,HttpServletRequest request) {
         reason(c.reason());
@@ -161,8 +147,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
                 "Server Group 폐기는 ADM Approval Owner 실행 API를 사용해야 합니다.");
     }
 
-    @DeleteMapping("/bindings/{id}") @CpfOnlineTransaction(id="OADMGW0100",name="ADMGatewayDeleteBinding", ownerDomain="ADM")
-    @Operation(operationId="admGatewayDeleteBinding",summary="Binding 폐기")
+    @DeleteMapping("/bindings/{id}")    @Operation(operationId="admGatewayDeleteBinding",summary="Binding 폐기")
     /** deleteBinding 작업을 CPF 표준 계약에 따라 수행한다. */
     public ResponseEntity<Void> deleteBinding(@PathVariable String id,@RequestBody CpfGatewayRegistryPort.DeleteCommand c,HttpServletRequest request) {
         reason(c.reason());
@@ -171,8 +156,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
     }
 
 
-    @PostMapping("/bindings/{id}/connection-tests") @CpfOnlineTransaction(id="OADMGW0110",name="ADMGatewayRequestConnectionTest", ownerDomain="ADM")
-    @Operation(operationId="admGatewayRequestConnectionTest",summary="Gateway 비동기 연결시험 요청")
+    @PostMapping("/bindings/{id}/connection-tests")    @Operation(operationId="admGatewayRequestConnectionTest",summary="Gateway 비동기 연결시험 요청")
     /** requestTest 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.ConnectionTestOperation requestTest(
             @PathVariable String id, @RequestBody CpfGatewayRegistryPort.ConnectionTestRequest c,
@@ -188,17 +172,13 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         return result;
     }
 
-    @GetMapping("/connection-test-operations/{operationId}")
-    @CpfOnlineTransaction(id="OADMGW0120",name="ADMGatewayConnectionTestOperation", ownerDomain="ADM")
-    @Operation(operationId="admGatewayFindConnectionTestOperation",summary="연결시험 Operation 상태 조회")
+    @GetMapping("/connection-test-operations/{operationId}")    @Operation(operationId="admGatewayFindConnectionTestOperation",summary="연결시험 Operation 상태 조회")
     /** connectionTestOperation 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.ConnectionTestOperation connectionTestOperation(@PathVariable String operationId) {
         return port().findConnectionTestOperation(operationId);
     }
 
-    @PostMapping("/connection-test-operations/{operationId}/cancel")
-    @CpfOnlineTransaction(id="OADMGW0130",name="ADMGatewayCancelConnectionTest", ownerDomain="ADM")
-    @Operation(operationId="admGatewayCancelConnectionTest",summary="대기·실행 중 연결시험 취소")
+    @PostMapping("/connection-test-operations/{operationId}/cancel")    @Operation(operationId="admGatewayCancelConnectionTest",summary="대기·실행 중 연결시험 취소")
     /** cancelConnectionTest 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.ConnectionTestOperation cancelConnectionTest(
             @PathVariable String operationId,
@@ -212,9 +192,7 @@ public class AdmGatewayRegistryController extends com.cpf.admin.common.base.AdmB
         return result;
     }
 
-    @PostMapping("/connection-test-operations/{operationId}/revalidate")
-    @CpfOnlineTransaction(id="OADMGW0140",name="ADMGatewayRevalidateConnectionTest", ownerDomain="ADM")
-    @Operation(operationId="admGatewayRevalidateConnectionTest",summary="완료·만료 연결시험 재검증 요청")
+    @PostMapping("/connection-test-operations/{operationId}/revalidate")    @Operation(operationId="admGatewayRevalidateConnectionTest",summary="완료·만료 연결시험 재검증 요청")
     /** revalidateConnectionTest 작업을 CPF 표준 계약에 따라 수행한다. */
     public CpfGatewayRegistryPort.ConnectionTestOperation revalidateConnectionTest(
             @PathVariable String operationId,

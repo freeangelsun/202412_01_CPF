@@ -1,17 +1,19 @@
 package com.cpf.data.persistence.api;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Repository;
 
-/**
- * CPF Persistence의 단일 Repository 표준 Annotation입니다.
- * Interface Port와 JDBC/MyBatis/JPA concrete Repository 모두 같은 이름으로 등록합니다.
- */
+/** Spring {@link Repository}의 stereotype/bean-name semantics를 그대로 유지하는 CPF Repository Annotation입니다. */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Repository
 public @interface CpfRepository {
-    /** 현재 CPF Context가 반드시 필요한 Repository인지 지정합니다. */
-    boolean contextRequired() default true;
+    @AliasFor(annotation = Repository.class, attribute = "value")
+    String value() default "";
 }

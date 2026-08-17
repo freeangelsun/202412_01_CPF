@@ -1,7 +1,7 @@
 package com.cpf.batch.runtime;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.batch.api.RuntimeRegistration;
-import com.cpf.web.api.CpfHeaders;
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +39,8 @@ public final class BatRuntimeIdentityRestClientCustomizer
                 ? "BAT"
                 : registration.moduleId().trim();
         String instanceId = registration.instanceId() == null ? "" : registration.instanceId().trim();
-        headers.set(CpfHeaders.caller(), instanceId.isBlank() ? callerService : callerService + "@" + instanceId);
+        headers.set(BatControlHeaders.CALLER_SERVICE, callerService);
+        if (instanceId.isBlank()) headers.remove(BatControlHeaders.CALLER_INSTANCE_ID);
+        else headers.set(BatControlHeaders.CALLER_INSTANCE_ID, instanceId);
     }
 }

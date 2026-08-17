@@ -9,10 +9,11 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * CPF 표준 헤더 사전입니다.
+ * CPF base-runtime 관측/마스킹용 Header metadata입니다.
  *
- * <p>이 사전은 문서, 검증, 로그 마스킹, ADM 로그 상세 표시, WebClient/RestClient 자동 전파가 같은
- * 기준을 보도록 유지하는 단일 기준점입니다.</p>
+ * <p>온라인 CPF transaction protocol의 정본과 필수/신뢰/전파 판단은 web의
+ * {@code CpfHttpHeaderCatalog}가 소유합니다. 이 클래스는 base/observability가 Web에 역의존하지
+ * 않고 로그 마스킹과 비보안 부가 metadata를 설명하기 위한 내부 사전이며, 수신 protocol validator가 아닙니다.</p>
  */
 public final class CpfHeaderSpecs {
     private static final List<CpfHeaderSpec> ALL = List.of(
@@ -35,10 +36,7 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.TRACESTATE, CpfHeaderCategory.OPTIONAL, "W3C tracestate", "Gateway 또는 APM", "CPF 헤더 추출기", true, false, "TRACESTATE", 512, true, true, "추적"),
 
             spec(CpfHeaderNames.API_VERSION, CpfHeaderCategory.RECOMMENDED, "호출 API 버전", "클라이언트", "CPF 헤더 추출기", true, false, "API_VERSION", 20, true, false, "호출"),
-            spec(CpfHeaderNames.REQUEST_TYPE, CpfHeaderCategory.REQUIRED, "요청 유형", "클라이언트", "수신 인터셉터", true, false, "REQUEST_TYPE", 30, true, false, "채널"),
-            spec(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, CpfHeaderCategory.REQUIRED, "최초 유입 채널", "클라이언트 또는 Gateway", "수신 인터셉터", true, false, "ORIGINAL_CHANNEL_CODE", 30, true, false, "채널"),
-            spec(CpfHeaderNames.CHANNEL_CODE, CpfHeaderCategory.REQUIRED, "현재 처리 채널", "클라이언트 또는 Gateway", "수신 인터셉터", true, false, "CHANNEL_CODE", 30, true, false, "채널"),
-            spec(CpfHeaderNames.CHANNEL_DETAIL_CODE, CpfHeaderCategory.OPTIONAL, "세부 채널", "클라이언트 또는 Gateway", "CPF 헤더 추출기", true, false, "CHANNEL_DETAIL_CODE", 50, true, false, "채널"),
+            spec(CpfHeaderNames.REQUEST_TYPE, CpfHeaderCategory.OPTIONAL, "요청 유형", "클라이언트", "수신 인터셉터", true, false, "REQUEST_TYPE", 30, true, false, "채널"),
 
             spec(CpfHeaderNames.USER_ID, CpfHeaderCategory.RECOMMENDED, "사용자 계정 ID", "인증 시스템", "인증/감사 계층", true, false, "EXEC_USER", 100, true, true, "주체"),
             spec(CpfHeaderNames.OPERATOR_ID, CpfHeaderCategory.RECOMMENDED, "ADM 운영자 ID", "ADM 인증", "인증/감사 계층", true, false, "OPERATOR_ID", 100, true, true, "주체"),
@@ -52,15 +50,19 @@ public final class CpfHeaderSpecs {
             spec(CpfHeaderNames.FORWARDED_FOR, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "프록시 경유 IP 목록", "Proxy/LB/WAF", "CPF 필터", false, false, "FORWARDED_FOR", 512, false, true, "접속"),
             spec(CpfHeaderNames.FORWARDED, CpfHeaderCategory.FORBIDDEN_TO_LOG_RAW, "표준 Forwarded 헤더", "Proxy/LB/WAF", "CPF 필터", false, false, "FORWARDED", 512, false, true, "접속"),
             spec(CpfHeaderNames.REAL_IP, CpfHeaderCategory.RECOMMENDED, "실제 클라이언트 IP 후보", "Proxy/LB/WAF", "CPF 필터", false, false, "REAL_IP", 64, true, true, "접속"),
-            spec(CpfHeaderNames.CLIENT_COUNTRY_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 국가 ISO 3166-1 alpha-2 코드", "Gateway 또는 WAF", "CPF 헤더 추출기", true, false, "CLIENT_COUNTRY_CODE", 2, true, false, "접속"),
+            spec(CpfHeaderNames.COUNTRY_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 국가 ISO 3166-1 alpha-2 코드", "Gateway 또는 WAF", "CPF 헤더 추출기", true, false, "COUNTRY_CODE", 2, true, false, "접속"),
             spec(CpfHeaderNames.CLIENT_REGION_CODE, CpfHeaderCategory.OPTIONAL, "클라이언트 지역 코드", "Gateway 또는 WAF", "CPF 헤더 추출기", true, false, "CLIENT_REGION_CODE", 30, true, false, "접속"),
             spec(CpfHeaderNames.TIMEZONE, CpfHeaderCategory.RECOMMENDED, "서버 처리 기준 시간대", "클라이언트 또는 Gateway", "CPF 헤더 추출기", true, false, "TIMEZONE", 60, true, false, "접속"),
             spec(CpfHeaderNames.CLIENT_TIMEZONE, CpfHeaderCategory.OPTIONAL, "클라이언트 표시 기준 시간대", "클라이언트", "CPF 헤더 추출기", true, false, "CLIENT_TIMEZONE", 60, true, false, "접속"),
 
-            spec(CpfHeaderNames.CLIENT_APP_ID, CpfHeaderCategory.RECOMMENDED, "클라이언트 앱 ID", "클라이언트", "CPF 헤더 추출기", true, false, "CLIENT_APP_ID", 80, true, false, "호출"),
+            spec(CpfHeaderNames.CLIENT_ID, CpfHeaderCategory.RECOMMENDED, "클라이언트 ID", "클라이언트", "CPF 헤더 추출기", true, false, "CLIENT_ID", 80, true, false, "호출"),
             spec(CpfHeaderNames.CLIENT_VERSION, CpfHeaderCategory.RECOMMENDED, "클라이언트 버전", "클라이언트", "CPF 헤더 추출기", true, false, "CLIENT_VERSION", 40, true, false, "호출"),
-            spec(CpfHeaderNames.CALLER_SERVICE, CpfHeaderCategory.RECOMMENDED, "호출 서비스 ID", "상위 서비스", "CPF 헤더 추출기", true, false, "CALLER_SERVICE", 80, true, false, "호출"),
+            spec(CpfHeaderNames.CALLER_SYSTEM_CODE, CpfHeaderCategory.RECOMMENDED, "호출 시스템 코드", "상위 서비스", "CPF 헤더 추출기", true, false, "CALLER_SYSTEM_CODE", 80, true, false, "호출"),
             spec(CpfHeaderNames.CALLER_INSTANCE_ID, CpfHeaderCategory.OPTIONAL, "호출 인스턴스 ID", "상위 서비스", "CPF 헤더 추출기", true, false, "CALLER_INSTANCE_ID", 120, true, false, "호출"),
+            spec(CpfHeaderNames.ORIGINAL_SYSTEM_CODE, CpfHeaderCategory.INTERNAL_ONLY, "최초 발생 시스템 코드", "CPF Web Runtime", "관측/마스킹", false, false, "ORIGINAL_SYSTEM_CODE", 32, true, false, "호출"),
+            spec(CpfHeaderNames.SYSTEM_CODE, CpfHeaderCategory.INTERNAL_ONLY, "현재 처리 시스템 코드", "CPF Web Runtime", "관측/마스킹", false, false, "SYSTEM_CODE", 32, true, false, "호출"),
+            spec(CpfHeaderNames.TARGET_SYSTEM_CODE, CpfHeaderCategory.INTERNAL_ONLY, "대상 시스템 코드", "CPF Domain Runtime", "관측/마스킹", false, false, "TARGET_SYSTEM_CODE", 32, true, false, "호출"),
+            spec(CpfHeaderNames.TARGET_OPERATION_ID, CpfHeaderCategory.INTERNAL_ONLY, "대상 operationId", "CPF Domain Runtime", "관측/마스킹", false, false, "TARGET_OPERATION_ID", 160, true, false, "호출"),
             spec(CpfHeaderNames.GATEWAY_INSTANCE_ID, CpfHeaderCategory.INTERNAL_ONLY, "요청을 처리한 CPF Gateway 인스턴스 ID", "CPF Gateway", "대상 서비스 ingress", true, true, null, 120, true, false, "호출"),
             spec(CpfHeaderNames.GATEWAY_ROUTE_ID, CpfHeaderCategory.INTERNAL_ONLY, "Gateway가 선택한 표준 실행 route ID", "CPF Gateway", "대상 서비스 ingress", true, true, null, 10, true, false, "호출"),
             spec(CpfHeaderNames.GATEWAY_ROUTE_VERSION, CpfHeaderCategory.INTERNAL_ONLY, "적용된 Gateway route snapshot 버전", "CPF Gateway", "대상 서비스 ingress", true, false, null, 100, true, false, "호출"),
@@ -91,12 +93,7 @@ public final class CpfHeaderSpecs {
     );
 
     private static final Map<String, CpfHeaderSpec> BY_LOWER_NAME = toMap(ALL);
-    private static final Set<String> REQUIRED_NAMES = Set.of(
-            lower(CpfHeaderNames.TRANSACTION_ID),
-            lower(CpfHeaderNames.REQUEST_TYPE),
-            lower(CpfHeaderNames.ORIGINAL_CHANNEL_CODE),
-            lower(CpfHeaderNames.CHANNEL_CODE)
-    );
+    private static final Set<String> REQUIRED_NAMES = Set.of();
 
     private CpfHeaderSpecs() {
     }

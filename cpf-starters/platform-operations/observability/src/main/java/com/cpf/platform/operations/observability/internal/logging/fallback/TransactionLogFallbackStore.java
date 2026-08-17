@@ -1,5 +1,7 @@
 package com.cpf.platform.operations.observability.internal.logging.fallback;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.platform.operations.observability.internal.logging.CpfTransactionLogIdentity;
 import com.cpf.security.api.CpfMaskingRuntime;
@@ -88,7 +90,7 @@ public final class TransactionLogFallbackStore implements CpfTransactionLogFallb
         this.spoolRelativeDirectory = fileLogWriter.relativeToLogRoot(root)
                 .toString()
                 .replace('\\', '/');
-        this.workerId = environment.getProperty("cpf.framework.instance-id", "cpf-local");
+        this.workerId = CpfInstanceIdentity.current().instanceId();
         long configuredMaxSpoolBytes = environment.getProperty(
                 "cpf.logging.db-fallback.max-spool-bytes",
                 Long.class,

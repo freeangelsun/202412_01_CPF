@@ -1,8 +1,7 @@
 package com.cpf.bizadmin.directory.controller;
 
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.bizadmin.directory.service.BzaDirectoryService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.foundation.api.page.CpfPage;
 import java.time.Instant;
 import java.util.*;
@@ -11,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /** 업무 관리자용 조직·직원·직급·직책 Directory 조회·변경 API를 제공합니다. */
-@CpfController
+@RestController
 @RequestMapping("/api/bza/directory")
 public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBaseController {
   private final BzaDirectoryService s;
@@ -26,9 +25,7 @@ public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findPositions());
   }
 
-  @GetMapping("/positions/page")
-  @CpfOnlineTransaction(id = "OBZADR1101", name = "BzaPositionPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaDirectoryFindPositionsPage", summary = "직위 서버 Paging 조회")
+  @GetMapping("/positions/page")  @Operation(operationId = "bzaDirectoryFindPositionsPage", summary = "직위 서버 Paging 조회")
   public ResponseEntity<CpfPage<Map<String, Object>>> positionsPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
     return ResponseEntity.ok(s.positionsPage(page, size));
@@ -48,9 +45,7 @@ public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findJobTitles());
   }
 
-  @GetMapping("/job-titles/page")
-  @CpfOnlineTransaction(id = "OBZADR1102", name = "BzaJobTitlePage", ownerDomain="BZA")
-  @Operation(operationId = "bzaDirectoryFindJobTitlesPage", summary = "직책 서버 Paging 조회")
+  @GetMapping("/job-titles/page")  @Operation(operationId = "bzaDirectoryFindJobTitlesPage", summary = "직책 서버 Paging 조회")
   public ResponseEntity<CpfPage<Map<String, Object>>> jobsPage(
       @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
     return ResponseEntity.ok(s.jobTitlesPage(page, size));
@@ -73,9 +68,7 @@ public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findAssignments(employeeNo, organizationCode, effectiveAt));
   }
 
-  @GetMapping("/assignments/page")
-  @CpfOnlineTransaction(id = "OBZADR1103", name = "BzaAssignmentPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaDirectoryFindAssignmentsPage", summary = "직원 배치 서버 Paging 조회")
+  @GetMapping("/assignments/page")  @Operation(operationId = "bzaDirectoryFindAssignmentsPage", summary = "직원 배치 서버 Paging 조회")
   public ResponseEntity<CpfPage<Map<String, Object>>> assignPage(
       @RequestParam(required = false) String employeeNo,
       @RequestParam(required = false) String organizationCode,
@@ -102,9 +95,7 @@ public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findResponsibilities(organizationCode, effectiveAt));
   }
 
-  @GetMapping("/responsibilities/page")
-  @CpfOnlineTransaction(id = "OBZADR1104", name = "BzaResponsibilityPage", ownerDomain="BZA")
-  @Operation(operationId = "bzaDirectoryFindResponsibilitiesPage", summary = "책임 서버 Paging 조회")
+  @GetMapping("/responsibilities/page")  @Operation(operationId = "bzaDirectoryFindResponsibilitiesPage", summary = "책임 서버 Paging 조회")
   public ResponseEntity<CpfPage<Map<String, Object>>> respPage(
       @RequestParam(required = false) String organizationCode,
       @RequestParam(required = false) Instant effectiveAt,
@@ -129,9 +120,7 @@ public class BzaDirectoryController extends com.cpf.bizadmin.common.base.BzaBase
     return ResponseEntity.ok(s.findUserRoles(loginId, effectiveAt));
   }
 
-  @GetMapping("/user-roles/page")
-  @CpfOnlineTransaction(id = "OBZADR1105", name = "BzaUserRolePage", ownerDomain="BZA")
-  @Operation(operationId = "bzaDirectoryFindUserRolesPage", summary = "사용자 역할 서버 Paging 조회")
+  @GetMapping("/user-roles/page")  @Operation(operationId = "bzaDirectoryFindUserRolesPage", summary = "사용자 역할 서버 Paging 조회")
   public ResponseEntity<CpfPage<Map<String, Object>>> rolesPage(
       @RequestParam(required = false) String loginId,
       @RequestParam(required = false) Instant effectiveAt,

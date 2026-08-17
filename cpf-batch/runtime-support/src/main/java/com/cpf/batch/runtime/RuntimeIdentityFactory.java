@@ -2,6 +2,7 @@ package com.cpf.batch.runtime;
 
 import com.cpf.batch.api.RuntimeRegistration;
 import com.cpf.batch.api.RuntimeRole;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.time.Instant;
@@ -17,8 +18,7 @@ public final class RuntimeIdentityFactory {
             RuntimeRole role,
             String serviceId,
             int defaultPort) {
-        String instanceId = property(
-                environment, "cpf.batch.runtime.instance-id", "CPF_INSTANCE_ID", serviceId + "-local-01");
+        String instanceId = CpfInstanceIdentity.current().instanceId();
         int port = Integer.parseInt(property(
                 environment, "server.port", "CPF_PORT", Integer.toString(defaultPort)));
         List<String> capabilities = Arrays.stream(property(

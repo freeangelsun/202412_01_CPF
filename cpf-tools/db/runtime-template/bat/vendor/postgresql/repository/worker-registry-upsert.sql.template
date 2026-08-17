@@ -1,6 +1,6 @@
 INSERT INTO bat_worker (
     worker_id,
-    server_instance_id,
+    instance_id,
     host_name,
     process_id,
     worker_version,
@@ -18,7 +18,7 @@ INSERT INTO bat_worker (
     ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'Y', @NOW3@, ?, 'BAT', 'BAT'
 )
 ON CONFLICT (worker_id) DO UPDATE
-   SET server_instance_id = EXCLUDED.server_instance_id,
+   SET instance_id = EXCLUDED.instance_id,
        host_name = EXCLUDED.host_name,
        process_id = EXCLUDED.process_id,
        worker_version = EXCLUDED.worker_version,

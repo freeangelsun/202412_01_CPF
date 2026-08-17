@@ -9,9 +9,9 @@ with tempfile.TemporaryDirectory(prefix='cpf-frontend-runtime-') as td:
   actual=root/('cpf-admin' if surface=='adm' else 'cpf-biz-admin')/'frontend/src/shared/cpfApi.ts'
   if not actual.is_file():raise SystemExit(f'missing actual source: {actual}')
   (src/'shared').mkdir(parents=True,exist_ok=True);shutil.copy2(actual,src/'shared/cpfApi.ts')
-  transaction=root/('cpf-admin' if surface=='adm' else 'cpf-biz-admin')/'frontend/src/shared/transaction.ts'
-  if not transaction.is_file():raise SystemExit(f'missing actual transaction source: {transaction}')
-  shutil.copy2(transaction,src/'shared/transaction.ts')
+  client_headers=root/('cpf-admin' if surface=='adm' else 'cpf-biz-admin')/'frontend/src/shared/clientHeaders.ts'
+  if not client_headers.is_file():raise SystemExit(f'missing actual client header source: {client_headers}')
+  shutil.copy2(client_headers,src/'shared/clientHeaders.ts')
   mutator=root/('cpf-admin' if surface=='adm' else 'cpf-biz-admin')/'frontend/src/shared/orval-mutator.ts'
   if not mutator.is_file():raise SystemExit(f'missing actual mutator source: {mutator}')
   shutil.copy2(mutator,src/'shared/orval-mutator.ts')

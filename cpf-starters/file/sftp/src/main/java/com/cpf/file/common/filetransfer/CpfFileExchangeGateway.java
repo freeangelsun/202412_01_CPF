@@ -67,7 +67,7 @@ public class CpfFileExchangeGateway implements CpfFileExchangeOperations {
     @Deprecated(forRemoval = false)
     public CpfFileExchangeGateway(Environment environment, ObjectProvider<CpfSftpClient> sftpClientProvider) {
         this(environment, sftpClientProvider,
-                new DefaultCpfTransactionIdGenerator("FLE", "local01", Clock.systemUTC()));
+                new DefaultCpfTransactionIdGenerator("FLE", Clock.systemUTC()));
     }
 
     public Path writeText(String relativePath, String contents, String requestUser) {

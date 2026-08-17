@@ -1,46 +1,61 @@
-# CPF Current Development / QA Handover
+# CPF 개발/QA 세션 인수인계 — 2026-08-17 Session Close
 
-## 기준
+## 1. 기준
+- 사용자 제공 최종 입력: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260817_163246.zip`
+- Baseline marker: `4b6f96796c3bf26b1c3324cc4d9b701bd9415acd`
+- 최신 통합 개발요청/Steering을 과거 중간 정본보다 우선 적용
+- Java 공식 기준: **Java 25**. GPT 환경에서만 Java 21 대체 검증
+- 사용자 승인 없는 commit/push/branch/reset/restore/clean/history 변경: 없음
 
-- 입력 Source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-061343).zip`
-- 입력 FullLocal ZIP: `CPF_LOCAL_VALIDATION_20260816_132902.zip`
-- 결과 Content SHA-1: `6ce96c49fbfca3b26ab172187ac06fe279e09040`
-- 결과 Content SHA-256: `91a58a0a50abbba56f75c5ba5f4aa5cf84965353a54cbb586bca38177ba09eea`
-- 제품 Source 삭제: 0
-- Git write/delete/history 작업: 없음
+## 2. 이번 세션에서 반영한 핵심
+- `CpfOnlineTransaction` Canonical 정의 하나로 통합하고 `operationId + name + description` 중심으로 정리
+- `operationId = OpenAPI operationId = X-Target-Operation-Id = Domain Client/ADM/Log` 단일 정본 방향 반영
+- `CpfRestController`, `CpfTransactional`, `CpfPreAuthorize`, `CpfTimed`, `CpfTimeLimiter`, `CpfRestClient` 등 OSS/Spring naming currentization 및 구 Alias/중복 제거
+- ADM/BZA/Gateway 관리 Controller는 업무 Domain Online Transaction이 아니라는 경계 반영; 업무 Domain outbound부터 거래 Context 적용
+- Runtime transaction catalog 자동 bootstrap, Catalog/Policy ownership 분리, Source scan이 ADM enabled/Policy를 덮지 않도록 보정
+- 신규 Operation YML default caller Seed 최초 1회, ALL semantics 및 Caller→Operation Runtime enforcement 보강
+- Channel Policy Store 장애 wildcard ALLOW fallback 제거, LKG/maxStale/fail-close 경로 보강
+- instanceId canonical key를 `cpf.runtime.instance-id` / `CPF_RUNTIME_INSTANCE_ID`로 통일
+- Generator: online 필수 + batch 선택. member=online+batch, external=online-only 케이스 반영
+- Fixed Length/Webhook/RestClient: 업무 Public Contract → Internal/Provider 구현 의존 방향 정리
+- EDU: 기존 135 체계를 제거 대상으로 전환하고 `cpf-education/.../online` 20 + `.../batch` 15 = 35로 재구성; 핵심 Transaction/Recovery/Batch Acceptance 보강
+- ADM/BZA OpenAPI/Generated Client 소비 경로 및 DLQ typed client drift 보정
+- DB3 currentization 및 stale EDU 의존 DB Test를 Owner/Generated Domain 검증으로 이전
+- 개발 정본/Architecture/Generator/EDU/Ownership/Visibility 관련 stale 내용을 최신 Steering 기준으로 currentization
+- Delete Manifest 단일 정본: `cpf-docs/work/current/DELETE_MANIFEST.txt`
 
-## 현재 판정
+## 3. 이번 세션에서 확인한 검증
+- Java source syntax: PASS (`2627` files, 마지막 기록)
+- EDU static acceptance: PASS (`online=20`, `batch=15`, `total=35`, errors=0)
+- NXT3 final gates: PASS (`22/22`)
+- Korean source comment quality: PASS (`781`, failures=0)
+- DB basic Python tests: PASS (`82/82`)
+- DB verification: 세션 중 `75/75 PASS` 확인
+- Generator Python suite: `21 PASS / 10 environment skip / FAIL 0`
+- Generated Domain Java21 대체 compile: member 26 source / external 24 source PASS
+- ADM/BZA OpenAPI/consumer targeted gates: PASS 후 DLQ/typed-client drift 보정
 
-입력 FullLocal 135단계는 PASS 102 / FAIL 30 / SKIP_ENV 3이었다. 7개 공통 Root Cause를 Source/Verifier/Generator/Frontend/Test/Evidence에 재개발했다. 현재 Fresh Apply에서 QA-B3 완료 대상 22개는 다시 PASS했으며 008/010/011은 미완료다. 전체 완료는 아니다.
+주의: 위 결과는 **Java25 FullLocal/실 Runtime 최종 PASS를 의미하지 않는다.**
 
-## 현재 Clean Fresh Apply 재검수
+## 4. 다음 세션에서 바로 할 일 — 우선순위
+1. Overlay 적용 후 Delete Manifest 한 줄 실행
+2. 사용자 Java25 환경에서 `run-cpf-final-local-validation.ps1` 한 줄 실행
+3. 실패가 있으면 `SUMMARY.csv` 기준 공통 원인별로 일괄 보정
+4. 특히 `OPEN_ISSUES.md`의 8개 Runtime/재확인 항목을 닫는다
+5. Java25 Build/Test + Runtime/Multi-WAS/DB3/Browser Evidence가 모두 PASS일 때만 전체 QA 완료 판정
 
-- Verification: 45/45 PASS
-- Testing Tools: 80/80 test files PASS / FAIL 0
-- Runtime Tools: 65 PASS / 2 SKIP / 7 subtests PASS
-- Generator: 27 PASS / 10 SKIP / 6 subtests PASS
-- DB Verification: 75/75 PASS
-- NXT3: 22/22 individual gates PASS; Windows aggregate 재확인 필요
-- Starter Catalog: 64 modules / public 24 / internal 40 PASS
-- Public Function TOP100: 100 / Golden 20 PASS
-- Batch Developer TOP50: 50/50 PASS
-- ADM/BZA static: 321 / 96 OpenAPI operations PASS
-- Source identity: SHA-1 `6ce96c49fbfca3b26ab172187ac06fe279e09040`, SHA-256 `91a58a0a50abbba56f75c5ba5f4aa5cf84965353a54cbb586bca38177ba09eea`
+## 5. EDU 다음 세션 체크
+- Canonical Source 개수 35 유지
+- online 20 / batch 15 물리 package 유지
+- 구 EDU-DEV/BAT/ADM/BZA/GW/OPS/Legacy/Reference/Compatibility/Micro Sample 0
+- Java25 compile/test 및 대표 Runtime 실행
+- 신규 EDU가 실제 CPF Public API를 사용하고 internal/raw 우회가 없는지 최종 재확인
 
-Java25/Docker/PowerShell7/Browser Live 항목은 성공 처리하지 않았으며 다음 FullLocal에서 닫는다. Fresh Apply / corruption negative / 보호경로 Hash 검증은 PASS했다.
+## 6. 절대 승계 금지
+- 과거 100% / PASS 문구
+- 과거 삭제 75개 Manifest
+- 과거 EDU 135 Catalog
+- Java21 대체 검증을 Java25 PASS로 해석
+- 전체 Verification suite 미재실행 상태를 PASS로 간주
 
-## 개발자·도입사 REWORK
-
-REWORK-01~10 Source/Contract/Guide/Gate 구현은 완료했다. REWORK-05 Generator runtime과 REWORK-06 FullLocal은 Windows Runtime 재검수가 남아 있다. Public Function TOP100(Golden20), Starter Quick Select, Batch TOP50, Fast/Targeted/FullLocal, Upgrade impact, Adoption Profile이 현재 Source에 포함된다.
-
-## SPECIAL 20
-
-`cpf-docs/work/current/CPF_SPECIAL_20_STATUS.csv`를 current backlog로 사용한다. SPECIAL-17은 현재 정적 검증 완료, 나머지 Runtime 연관 P0/P1은 FullLocal 결과로 닫는다.
-
-## 다음 순서
-
-1. Overlay 적용 후 `cpf-docs/work/current/CPF_NEXT_LOCAL_DEVELOPMENT_REQUIREMENTS.md`의 FullLocal 한 줄 실행.
-2. 결과 ZIP의 PASS/FAIL/SKIP_ENV/NOT_EXECUTED 전부 집계.
-3. FAIL을 Root Cause로 묶고 영향 SPECIAL/REWORK를 다시 연다.
-4. Java25/Docker/Browser에서 재현 가능한 FAIL은 같은 Requirement ID로 PASS까지 재개발.
-5. QA 최종 통과 전 전체 완료로 표현하지 않는다.
+정확한 미완료는 `cpf-docs/work/OPEN_ISSUES.md`, 실행 결과는 `cpf-docs/work/TEST_AND_EVIDENCE.md`를 따른다.

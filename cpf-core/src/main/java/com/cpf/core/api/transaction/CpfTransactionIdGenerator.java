@@ -12,5 +12,5 @@ public interface CpfTransactionIdGenerator {
     String generateOrUse(String incomingTransactionId);
     boolean isValid(String transactionId);
     String getModuleId();
-    String getWasId();
+    String getInstanceToken();
 }

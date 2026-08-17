@@ -1,8 +1,0 @@
-impact_id,surface,changed_path_pattern,edu_feature_ids,coverage_artifacts,test_artifacts,owner,status
-EDU-IMPACT-PUBLIC,PUBLIC_CONTRACT,cpf-core/src/main/java/**|cpf-batch/api/src/main/java/**,EDU-DEV-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-education/src/test/java/**,cpf-core|cpf-batch,완료
-EDU-IMPACT-STARTER,STARTER,cpf-starters/**,EDU-DEV-02,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-education/src/test/java/**,cpf-starters,완료
-EDU-IMPACT-GENERATOR,GENERATOR,cpf-tools/generator/**|cpf-member/**|cpf-external/**,EDU-DEV-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-tools/generator/verification/**,cpf-tools/generator,완료
-EDU-IMPACT-ADM,ADM_OPERATION,cpf-admin/src/main/java/**|cpf-admin/frontend/src/**,EDU-OPS-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-admin/src/test/**|cpf-admin/frontend/e2e/**,cpf-admin,완료
-EDU-IMPACT-OPENAPI,OPENAPI_CONTRACT,cpf-admin/frontend/openapi/**|cpf-biz-admin/frontend/openapi/**|cpf-admin/frontend/src/generated/**|cpf-biz-admin/frontend/src/generated/**,EDU-OPS-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-admin/frontend/scripts/test-*.mjs|cpf-biz-admin/frontend/scripts/test-*.mjs,cpf-admin|cpf-biz-admin,완료
-EDU-IMPACT-DB,DB_CONTRACT,cpf-tools/db/**,EDU-DB-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-tools/db/verification/tests/**,cpf-tools/db,완료
-EDU-IMPACT-RUNTIME,RUNTIME_CONTRACT,cpf-gateway/src/main/java/**|cpf-batch/**/src/main/java/**,EDU-RUN-01,cpf-tools/governance/cpf-edu-executable-catalog.json,cpf-batch/**/src/test/**|cpf-gateway/src/test/**,cpf-gateway|cpf-batch,완료

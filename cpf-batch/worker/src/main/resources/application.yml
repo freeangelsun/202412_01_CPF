@@ -24,13 +24,12 @@ management:
 cpf:
   framework:
     module-id: BAT
-    was-id: ${CPF_WAS_ID:cpf-batch-worker-local-01}
+    was-id: ${CPF_WAS_ID:}
   batch:
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:
       role: WORKER
-      instance-id: ${CPF_INSTANCE_ID:cpf-batch-worker-local-01}
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
     # 승인 Script/Path Alias는 고객 설치 환경에서 명시적으로 설정합니다. 빈 Catalog는 fail-closed입니다.
     worker:

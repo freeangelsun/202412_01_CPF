@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.cpf.data.cache.api.CpfCacheHealth;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class CpfRedisLikeStartupValidatorTest {
     @Test
     void requiredProviderFailsStartupWhenUnavailable() {
-        CpfCachePort cache = mock(CpfCachePort.class);
+        CpfCache cache = mock(CpfCache.class);
         when(cache.health()).thenReturn(new CpfCacheHealth(
                 false, "REDIS", "DISTRIBUTED_L2", false, true, 0L,
                 List.of("REDIS_UNAVAILABLE"), Instant.now()));
@@ -27,7 +27,7 @@ class CpfRedisLikeStartupValidatorTest {
 
     @Test
     void optionalProviderMayStartUnavailable() {
-        CpfCachePort cache = mock(CpfCachePort.class);
+        CpfCache cache = mock(CpfCache.class);
         CpfRedisLikeProviderProperties properties = new CpfRedisLikeProviderProperties();
         properties.setEnabled(true);
         properties.setRequired(false);

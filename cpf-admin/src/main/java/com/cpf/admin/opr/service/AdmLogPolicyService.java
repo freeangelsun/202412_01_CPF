@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.admin.opr.dto.AdmTraceBoostRequest;
@@ -44,7 +44,7 @@ import java.util.Optional;
  * Claim한 뒤 ACK를 남기므로 부분 적용, 실패 재시도, Drift를 운영에서 추적할 수 있습니다.</p>
  */
 @CpfService
-@CpfTx(id="ADM_ADMLOGPOLICYSERVICE_ADMLOGPOLICYSERVICE", name="ADM_ADMLOGPOLICYSERVICE_ADMLOGPOLICYSERVICE", ownerDomain="ADM")
+@CpfTransactional
 public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseService {
     private final JdbcTemplate cpfJdbcTemplate;
     private final ObjectProvider<CpfLogPolicyResolver> logPolicyResolverProvider;
@@ -642,7 +642,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
     }
 
     /** 정책 변경 Event의 Gateway별 ACK, 실패, 재시도 상태를 조회합니다. */
-    @CpfTx(id="ADM_ADMLOGPOLICYSERVICE_FINDDISTRIBUTIONSTATUS", name="ADM_ADMLOGPOLICYSERVICE_FINDDISTRIBUTIONSTATUS", ownerDomain="ADM", readOnly=true)
+    @CpfTransactional(readOnly=true)
     public Map<String, Object> findDistributionStatus(String targetType, String targetId, int limit) {
         String normalizedType = defaultIfBlank(targetType, null, "LOG_POLICY");
         String normalizedId = defaultIfBlank(targetId, null, "*");

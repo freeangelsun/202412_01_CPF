@@ -9,10 +9,10 @@ import java.util.Objects;
  * Cache 장애의 fail-open과 원본 Loader 실패를 구분하여 조회 실패를 Cache miss로 위장하지 않습니다.
  */
 public final class CpfCacheAsideService {
-    private final CpfCachePort cache;
+    private final CpfCache cache;
     private final CpfDistributedLockPort locks;
 
-    public CpfCacheAsideService(CpfCachePort cache, CpfDistributedLockPort locks) {
+    public CpfCacheAsideService(CpfCache cache, CpfDistributedLockPort locks) {
         this.cache = Objects.requireNonNull(cache, "cache");
         this.locks = Objects.requireNonNull(locks, "locks");
     }

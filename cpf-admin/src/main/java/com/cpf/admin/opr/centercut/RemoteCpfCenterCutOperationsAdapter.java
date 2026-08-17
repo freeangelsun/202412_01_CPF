@@ -1,12 +1,13 @@
 package com.cpf.admin.opr.centercut;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.batch.api.CpfBatchOwnerUnknownResultException;
 import com.cpf.batch.api.CpfCenterCutOperationsPort;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.LinkedHashMap;
@@ -42,9 +43,9 @@ public class RemoteCpfCenterCutOperationsAdapter implements CpfCenterCutOperatio
                 .endpointCode(ENDPOINT_CODE)
                 .httpMethod("POST")
                 .requestPath(path)
-                .header(CpfHeaders.callerService(), CALLER_SERVICE)
-                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), operatorId)
+                .header(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE)
+                .header(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId)
+                .header(BatControlHeaders.OPERATOR_ID, operatorId)
                 .attribute("ownerDomain", "BAT")
                 .attribute("callerDomain", "ADM")
                 .build();
@@ -53,9 +54,9 @@ public class RemoteCpfCenterCutOperationsAdapter implements CpfCenterCutOperatio
                 target -> webClient.post()
                         .uri(join(target.baseUrl(), path))
                         .headers(headers -> {
-                            headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-                            headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                            headers.set(CpfHeaders.operatorId(), operatorId);
+                            headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+                            headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                            headers.set(BatControlHeaders.OPERATOR_ID, operatorId);
                         })
                         .bodyValue(payload == null ? Map.of() : payload)
                         .retrieve()

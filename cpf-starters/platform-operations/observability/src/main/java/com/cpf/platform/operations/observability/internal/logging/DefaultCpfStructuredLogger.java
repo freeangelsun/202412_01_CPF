@@ -3,7 +3,7 @@ package com.cpf.platform.operations.observability.internal.logging;
 import com.cpf.security.api.CpfMaskingRuntime;
 
 import com.cpf.platform.operations.observability.api.logging.CpfStructuredLogger;
-import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
+import com.cpf.core.api.context.CpfContexts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +25,12 @@ public final class DefaultCpfStructuredLogger implements CpfStructuredLogger {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("category", category);
         payload.put("event", normalizedEvent);
-        payload.put("transactionId", safe(CpfTransactionContext.currentTransactionId()));
-        payload.put("executionId", safe(CpfTransactionContext.executionId()));
-        payload.put("segmentId", safe(CpfTransactionContext.currentSegmentId()));
-        payload.put("traceId", safe(CpfTransactionContext.currentTraceId()));
-        payload.put("attempt", CpfTransactionContext.attempt());
+        var context = CpfContexts.current();
+        payload.put("transactionId", safe(context == null ? null : context.transactionId()));
+        payload.put("executionId", safe(context == null ? null : context.executionId()));
+        payload.put("segmentId", safe(context == null ? null : context.segmentId()));
+        payload.put("traceId", safe(context == null ? null : context.traceId()));
+        payload.put("attempt", context == null || context.execution() == null ? 0 : context.execution().attempt());
         if (error != null) {
             payload.put("errorType", error.getClass().getName());
             payload.put("errorMessage", safe(error.getMessage()));

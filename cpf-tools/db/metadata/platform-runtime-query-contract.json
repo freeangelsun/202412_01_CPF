@@ -898,7 +898,7 @@
             "loginDomain",
             "loginResult",
             "moduleId",
-            "serverInstanceId",
+            "instanceId",
             "transactionId",
             "userAgent",
             "wasId"

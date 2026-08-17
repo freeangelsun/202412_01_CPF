@@ -13,7 +13,7 @@ import com.cpf.data.cache.api.CpfCacheHealth;
 import com.cpf.data.cache.api.CpfCacheInvalidationEvent;
 import com.cpf.data.cache.api.CpfCacheInvalidationPort;
 import com.cpf.data.cache.api.CpfCacheMetricsSnapshot;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import com.cpf.data.cache.api.CpfCacheKey;
 import com.cpf.foundation.util.CpfStrings;
 import java.time.Instant;
@@ -31,7 +31,7 @@ public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseS
     private final ConfigCacheService config;
     private final CpfCommonCacheRefreshPublisher refreshPublisher;
     private final CacheRefreshEventListener refreshListener;
-    private final CpfCachePort provider;
+    private final CpfCache provider;
     private final CpfCacheInvalidationPort invalidations;
     private final CpfCacheInvalidationCoordinator coordinator;
 
@@ -42,7 +42,7 @@ public class AdmCacheOperationService extends com.cpf.admin.common.base.AdmBaseS
             ConfigCacheService config,
             CpfCommonCacheRefreshPublisher refreshPublisher,
             CacheRefreshEventListener refreshListener,
-            ObjectProvider<CpfCachePort> provider,
+            ObjectProvider<CpfCache> provider,
             ObjectProvider<CpfCacheInvalidationPort> invalidations,
             ObjectProvider<CpfCacheInvalidationCoordinator> coordinator) {
         this.code = code;

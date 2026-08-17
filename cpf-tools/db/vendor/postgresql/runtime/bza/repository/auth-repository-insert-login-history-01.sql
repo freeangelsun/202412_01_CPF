@@ -9,7 +9,7 @@ INSERT INTO bza_login_history (
     transaction_id,
     module_id,
     was_id,
-    server_instance_id,
+    instance_id,
     created_by,
     updated_by
 )
@@ -24,7 +24,7 @@ VALUES (
     :transactionId,
     :moduleId,
     :wasId,
-    :serverInstanceId,
+    :instanceId,
     'BZA_AUTH',
     'BZA_AUTH'
 )

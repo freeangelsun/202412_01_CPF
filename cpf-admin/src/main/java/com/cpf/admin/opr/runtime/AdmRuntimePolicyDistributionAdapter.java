@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.runtime;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
@@ -36,7 +36,7 @@ public class AdmRuntimePolicyDistributionAdapter implements CpfRuntimePolicyDist
     }
 
     @Override
-    @CpfTx(id="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_PUBLISH", name="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_PUBLISH", ownerDomain="ADM")
+    @CpfTransactional
     public DistributionEvent publish(PublishCommand command) {
         validate(command);
         String eventId = blank(command.eventId()) ? UUID.randomUUID().toString() : command.eventId().trim();
@@ -66,7 +66,7 @@ public class AdmRuntimePolicyDistributionAdapter implements CpfRuntimePolicyDist
     }
 
     @Override
-    @CpfTx(id="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_CLAIMPENDING", name="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_CLAIMPENDING", ownerDomain="ADM")
+    @CpfTransactional
     public List<DistributionEvent> claimPending(String consumerId, List<String> eventTypes, int limit, int leaseSeconds) {
         String normalizedConsumerId = required(consumerId, "consumerId");
         int max = limit <= 0 ? 100 : Math.min(limit, 500);
@@ -114,7 +114,7 @@ public class AdmRuntimePolicyDistributionAdapter implements CpfRuntimePolicyDist
     }
 
     @Override
-    @CpfTx(id="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_ACKNOWLEDGE", name="ADM_ADMRUNTIMEPOLICYDISTRIBUTIONADAPTER_ACKNOWLEDGE", ownerDomain="ADM")
+    @CpfTransactional
     public DeliveryStatus acknowledge(AcknowledgeCommand command) {
         String eventId = required(command.eventId(), "eventId");
         String consumerId = required(command.consumerId(), "consumerId");

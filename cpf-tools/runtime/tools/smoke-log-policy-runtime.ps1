@@ -80,8 +80,6 @@ function New-SmokeHeaders {
         "X-Transaction-Id" = "$timestamp" + "ADM" + "lgpol01" + $script:sequence.ToString("0000000")
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "ADM"
-        "X-Channel-Code" = "ADM"
         "X-Client-Version" = "runtime-smoke"
         "X-Caller-Service" = "cpf-smoke"
     }

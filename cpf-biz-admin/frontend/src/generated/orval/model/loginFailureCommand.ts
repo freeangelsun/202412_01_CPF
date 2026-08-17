@@ -6,7 +6,7 @@ export interface LoginFailureCommand {
   loginId?: string;
   moduleId?: string;
   reason?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   transactionId?: string;
   userAgent?: string;
   wasId?: string;

@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryAttemptResponse;
 import com.cpf.admin.opr.dto.AdmNotificationDeliveryLogResponse;
 import com.cpf.admin.opr.dto.AdmNotificationRuleRequest;
@@ -70,7 +70,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 ruleId);
     }
 
-    @CpfTx(id="ADM_ADMNOTIFICATIONSERVICE_SAVERULE", name="ADM_ADMNOTIFICATIONSERVICE_SAVERULE", ownerDomain="ADM")
+    @CpfTransactional
     public AdmNotificationRuleResponse saveRule(
             Long ruleId,
             AdmNotificationRuleRequest request,
@@ -125,7 +125,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
         return findRule(targetRuleId);
     }
 
-    @CpfTx(id="ADM_ADMNOTIFICATIONSERVICE_DISABLERULE", name="ADM_ADMNOTIFICATIONSERVICE_DISABLERULE", ownerDomain="ADM")
+    @CpfTransactional
     public AdmNotificationRuleResponse disableRule(long ruleId, String reason, String operatorId, String clientIp) {
         String auditReason = auditLogService.requireReason(reason);
         String requestUser = required(operatorId, "operatorId");
@@ -205,7 +205,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 toLocalDateTime(rs.getTimestamp("updated_at"))));
     }
 
-    @CpfTx(id="ADM_ADMNOTIFICATIONSERVICE_SENDTEST", name="ADM_ADMNOTIFICATIONSERVICE_SENDTEST", ownerDomain="ADM")
+    @CpfTransactional
     public AdmNotificationTestSendResponse sendTest(
             long ruleId,
             AdmNotificationTestSendRequest request,
@@ -264,7 +264,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
                 toLocalDateTime(rs.getTimestamp("created_at"))));
     }
 
-    @CpfTx(id="ADM_ADMNOTIFICATIONSERVICE_RETRYDELIVERY", name="ADM_ADMNOTIFICATIONSERVICE_RETRYDELIVERY", ownerDomain="ADM")
+    @CpfTransactional
     public AdmNotificationDeliveryStatusResponse retryDelivery(
             long deliveryId,
             long expectedVersion,
@@ -289,7 +289,7 @@ public class AdmNotificationService extends com.cpf.admin.common.base.AdmBaseSer
         return result;
     }
 
-    @CpfTx(id="ADM_ADMNOTIFICATIONSERVICE_CANCELDELIVERY", name="ADM_ADMNOTIFICATIONSERVICE_CANCELDELIVERY", ownerDomain="ADM")
+    @CpfTransactional
     public AdmNotificationDeliveryStatusResponse cancelDelivery(
             long deliveryId,
             long expectedVersion,

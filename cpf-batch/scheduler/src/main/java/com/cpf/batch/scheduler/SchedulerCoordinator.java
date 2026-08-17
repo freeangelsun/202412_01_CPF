@@ -3,6 +3,7 @@ package com.cpf.batch.scheduler;
 import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.RuntimeStateProvider;
 import com.cpf.batch.scheduler.internal.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,10 +23,17 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
     private final AtomicBoolean electionAttempted = new AtomicBoolean();
     private final AtomicBoolean electionInProgress = new AtomicBoolean();
 
+    @Autowired
     public SchedulerCoordinator(
             JdbcSchedulerLeaderRepository repository,
-            @Value("${cpf.batch.runtime.instance-id:${CPF_INSTANCE_ID:scheduler-local-01}}") String instanceId,
             @Value("${cpf.batch.scheduler.lease-seconds:15}") long leaseSeconds) {
+        this(repository, com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(), leaseSeconds);
+    }
+
+    SchedulerCoordinator(
+            JdbcSchedulerLeaderRepository repository,
+            String instanceId,
+            long leaseSeconds) {
         this.repository = repository;
         this.instanceId = instanceId;
         this.duration = Duration.ofSeconds(Math.max(5, leaseSeconds));

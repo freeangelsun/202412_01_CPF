@@ -3,6 +3,12 @@ package com.cpf.batch.control.compat;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.batch.api.CpfBatchOperationsPort;
+import com.cpf.batch.api.CpfBatchOperations;
+import com.cpf.batch.api.CpfBatchExecutionRequest;
+import com.cpf.batch.api.CpfBatchExecutionResult;
+import com.cpf.core.api.context.CpfContexts;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.util.UUID;
 import com.cpf.batch.api.CpfBatchRiskCommand;
 import com.cpf.batch.api.CpfBatchOptimisticVersion;
 import com.cpf.data.api.CpfDataRow;
@@ -30,7 +36,7 @@ import java.util.LinkedHashMap;
 
 /** Existing ADM/BAT owner contract implemented by the new Control Server. */
 @Service
-public class BatchOperationsCompatibilityService implements CpfBatchOperationsPort {
+public class BatchOperationsCompatibilityService implements CpfBatchOperationsPort, CpfBatchOperations {
     private static final int GHOST_ACTION_HEARTBEAT_TIMEOUT_SECONDS = 120;
     private static final Set<String> GHOST_ACTIVE_STATUSES = Set.of("RUNNING", "CLAIMED", "CLAIMING");
     private final JdbcTemplate jdbc;
@@ -62,6 +68,78 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
     }
 
     @Override
+    public CpfBatchExecutionResult launch(CpfBatchExecutionRequest request) {
+        Objects.requireNonNull(request, "request");
+        String standardBatchId = requireText(request.standardBatchId(), "standardBatchId");
+        String jobId = request.requiredJobId();
+        String businessDate = requireText(request.businessDate(), "businessDate");
+        if (!businessDate.matches("\\d{8}")) throw new IllegalArgumentException("businessDate must be yyyyMMdd");
+        String idempotencyKey = requireText(request.idempotencyKey(), "idempotencyKey");
+        String user = request.normalizedRequestUser("SYSTEM");
+        String reason = request.normalizedReason("On-demand batch request");
+        String transactionId = CpfContexts.requireCurrent().transactionId();
+
+        CpfBatchExecutionResult replay = findOnDemandByIdempotency(standardBatchId, idempotencyKey);
+        if (replay != null) return replay;
+
+        String requestId = UUID.randomUUID().toString();
+        try {
+            jdbc.update(sql.required("on-demand-insert"), requestId, standardBatchId, idempotencyKey,
+                    transactionId, businessDate, request.normalizedJobParameters(), reason, user, user, user);
+        } catch (DataIntegrityViolationException duplicate) {
+            CpfBatchExecutionResult existing = findOnDemandByIdempotency(standardBatchId, idempotencyKey);
+            if (existing != null) return existing;
+            throw duplicate;
+        }
+
+        try {
+            CpfDataRow execution = createExecution(null, jobId, request.normalizedJobParameters(), user, reason);
+            long executionId = ((Number) execution.get("execution_id")).longValue();
+            jdbc.update(sql.required("on-demand-link-execution"), executionId, user, requestId);
+            return status(requestId);
+        } catch (RuntimeException failure) {
+            jdbc.update(sql.required("on-demand-mark-failed"), "BATCH_LAUNCH_FAILED",
+                    SensitiveTextSanitizer.sanitize(failure.getMessage()), user, requestId);
+            throw failure;
+        }
+    }
+
+    @Override
+    public CpfBatchExecutionResult status(String executionRequestId) {
+        String id = requireText(executionRequestId, "executionRequestId");
+        List<Map<String,Object>> rows = jdbc.queryForList(sql.required("on-demand-find-by-request"), id);
+        if (rows.isEmpty()) throw new IllegalArgumentException("On-demand batch request not found: " + id);
+        return toBatchExecutionResult(rows.getFirst());
+    }
+
+    private CpfBatchExecutionResult findOnDemandByIdempotency(String standardBatchId, String idempotencyKey) {
+        List<Map<String,Object>> rows = jdbc.queryForList(
+                sql.required("on-demand-find-by-idempotency"), standardBatchId, idempotencyKey);
+        return rows.isEmpty() ? null : toBatchExecutionResult(rows.getFirst());
+    }
+
+    private static CpfBatchExecutionResult toBatchExecutionResult(Map<String,Object> row) {
+        Long cpfExecutionId = number(row.get("cpf_execution_id"));
+        Long springExecutionId = number(row.get("spring_batch_execution_id"));
+        String status = Objects.toString(row.get("request_status"), "UNKNOWN");
+        boolean executed = !"REQUESTED".equalsIgnoreCase(status);
+        return CpfBatchExecutionResult.of(
+                Objects.toString(row.get("execution_request_id"), null),
+                executed,
+                Objects.toString(row.get("job_id"), Objects.toString(row.get("standard_batch_id"), null)),
+                cpfExecutionId, springExecutionId, status,
+                Objects.toString(row.get("failure_message"), status),
+                Map.of(
+                        "standardBatchId", Objects.toString(row.get("standard_batch_id"), ""),
+                        "businessDate", Objects.toString(row.get("business_date"), ""),
+                        "transactionId", Objects.toString(row.get("transaction_id"), "")));
+    }
+
+    private static Long number(Object value) {
+        return value instanceof Number number ? number.longValue() : null;
+    }
+
+    @Override
     public List<CpfDataRow> findJobs() {
         return rows(jdbc.queryForList(sql.required("compat-jobs")));
     }
@@ -82,14 +160,14 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
             String transactionId,
             Long springInstanceId,
             String workerId,
-            String serverInstanceId,
+            String instanceId,
             int limit) {
         return findExecutions(
                 jobId,
                 transactionId,
                 springInstanceId,
                 workerId,
-                serverInstanceId,
+                instanceId,
                 null,
                 null,
                 limit);
@@ -101,7 +179,7 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
             String transactionId,
             Long springInstanceId,
             String workerId,
-            String serverInstanceId,
+            String instanceId,
             String fromDate,
             String toDate,
             int limit) {
@@ -115,7 +193,7 @@ public class BatchOperationsCompatibilityService implements CpfBatchOperationsPo
                 transactionId, transactionId,
                 springInstanceId, springInstanceId,
                 workerId, workerId,
-                serverInstanceId, serverInstanceId,
+                instanceId, instanceId,
                 from, from,
                 to, to,
                 clamp(limit)));

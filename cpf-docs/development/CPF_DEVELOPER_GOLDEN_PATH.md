@@ -8,7 +8,7 @@
 |---|---|---|
 | Application 내부 호출 | 같은 Application 안의 Service | `service.method(...)` |
 | CPF Domain 호출 | IP/WAS가 달라도 CPF가 소유·관리하는 Domain Contract | `CpfDomainClient.execute(request)` |
-| 외부 연계 호출 | CPF Domain 계약 밖의 기관/시스템 | `@CpfClient` 기반 typed client + `@CpfTimeout` / `@CpfRetry` |
+| 외부 연계 호출 | CPF Domain 계약 밖의 기관/시스템 | `@CpfClient` 기반 typed client + `@CpfTimeLimiter` / `@CpfRetry` |
 
 네트워크 위치가 아니라 **Ownership과 Contract**로 판단합니다. `cpf-member(MBR) → cpf-external(EXS)`가 별도 WAS여도 둘 다 CPF Domain이면 CPF Domain 호출입니다. EXS가 은행/외부기관으로 나갈 때가 외부 연계 호출입니다.
 
@@ -19,9 +19,9 @@
 - Web/Service/Repository: `@CpfController` → `@CpfService` → `@CpfRepository`
 - Local DB 거래: `@CpfTx`
 - CPF Domain: `CpfDomainClient.execute(...)`
-- 외부 연계: `@CpfClient`, `@CpfTimeout`, `@CpfRetry`
+- 외부 연계: `@CpfClient`, `@CpfTimeLimiter`, `@CpfRetry`
 - Context: `CpfContexts.transactionId()` 등
-- 공통 기능: `CpfCodeService`, `CpfMessageService`, `CpfParameterService`, `CpfCalendarService`
+- 공통 기능: `CpfCodeService`, `CpfMessageSource`, `CpfParameterService`, `CpfCalendarService`
 - 신뢰성/운영: `@CpfIdempotent`, `@CpfLogging`, `@CpfPermission`, `@CpfApprovalRequired`, `@CpfAudit`
 - Messaging/Batch: `@CpfMessageListener`, `@CpfBatchJob`, `@CpfBatchStep`
 
@@ -143,3 +143,11 @@ CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Ext
 2. `CPF_PUBLIC_FUNCTION_TOP_100.md` — 어떤 Public 기능/Annotation이 있는지
 3. 기존 `DEVELOPER_GUIDE.md` / `GENERATOR_GUIDE.md` — 상세 사용법
 4. Advanced Adapter/SPI — 일반 Golden Path로 해결되지 않을 때만
+
+## 관리 API와 업무 거래 API를 구분하는 기준
+
+- ADM/BZA/Gateway 자체 Controller는 업무 Domain Online Transaction이 아니므로 `@CpfOnlineTransaction`과 거래 Header 6개를 붙이지 않습니다.
+- 관리 기능은 Spring Web/Security/Validation/OpenAPI와 해당 Owner의 CPF Public API를 사용합니다. `cpf-core` internal package나 업무 Domain internal package를 직접 참조하지 않습니다.
+- 관리 화면에서 MBR/EXS 같은 실제 업무 Operation을 호출하는 경우에는 Controller가 아니라 **Domain Client outbound 경계**부터 거래 Context를 적용합니다. 개발자가 Header 6개를 직접 만들지 않습니다.
+- Generated Domain은 `online/` 필수, `modules.batch=true`일 때 `batch/` 선택 구조입니다. 업무 예제는 EDU `online` 20개와 `batch` 15개를 Canonical로 사용합니다.
+

@@ -61,9 +61,7 @@ function New-SmokeHeaders {
         "X-Transaction-Id" = "$timestamp" + "EDU" + "flog001" + "0000001"
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "SMOKE"
-        "X-Original-Channel-Code" = "EDU"
-        "X-Channel-Code" = "EDU"
-        "X-Client-App-Id" = "cpf-file-log-smoke"
+        "X-Client-Id" = "cpf-file-log-smoke"
         "X-Client-Version" = "1.0.0"
         "X-User-Id" = "runtime-smoke"
     }

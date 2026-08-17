@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """CPF Repository Root 및 Generated Customer Domain 최소 IA 검증."""
-# Root Project만 cpf-<domain> 접두사를 사용하고 Generated Domain 하위에는 online 업무 Source만 허용한다.
+# Root Project만 cpf-<domain> 접두사를 사용하며 Generated Domain은 online 필수 + definition에서 선택한 batch만 허용한다.
 from __future__ import annotations
 import argparse,json,re
 from pathlib import Path
@@ -20,9 +20,9 @@ def main()->int:
     allowed=BASE_ROOT_FILES|BASE_ROOT_DIRS|set(EXPECTED_GENERATED)|{'build'}; extras=sorted(names-allowed); add('unexpected-root-entry-zero',not extras,extras)
     for physical,logical in EXPECTED_GENERATED.items():
         p=root/physical; definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'; add(f'{physical}-physical-root',p.is_dir(),str(p)); add(f'{physical}-logical-domain-name',domain_name(definition)==logical,str(definition)); add(f'{physical}-customer-metadata-zero',not (p/'.cpf').exists(),str(p/'.cpf'))
-        expected={'online'}; dirs={x.name for x in p.iterdir() if x.is_dir() and x.name not in EPHEMERAL_DIRS and any(y.is_file() for y in x.rglob('*'))} if p.is_dir() else set(); add(f'{physical}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})
+        batch_selected='batch: true' in definition.read_text(encoding='utf-8',errors='replace').lower(); expected={'online'}|({'batch'} if batch_selected else set()); dirs={x.name for x in p.iterdir() if x.is_dir() and x.name not in EPHEMERAL_DIRS and any(y.is_file() for y in x.rglob('*'))} if p.is_dir() else set(); add(f'{physical}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})
         forbidden=[x for x in ['README.md','verification','db',f'{logical}-api',f'{logical}-common',f'{logical}-online',f'{logical}-batch'] if (p/x).exists()]; add(f'{physical}-legacy-surface-zero',not forbidden,forbidden)
-        add(f'{physical}-online-non-empty',(p/'online').is_dir() and any(x.is_file() for x in (p/'online').rglob('*')),'online'); add(f'{physical}-batch-domain-jobpack-absent',not any((p/x).is_dir() and any(y.is_file() for y in (p/x).rglob('*')) for x in ('batch','domain','jobpack')),['batch','domain','jobpack'])
+        add(f'{physical}-online-non-empty',(p/'online').is_dir() and any(x.is_file() for x in (p/'online').rglob('*')),'online'); unexpected=[x for x in ('domain','jobpack') if (p/x).is_dir() and any(y.is_file() for y in (p/x).rglob('*'))]; add(f'{physical}-unexpected-domain-jobpack-zero',not unexpected,unexpected); add(f'{physical}-batch-selection-match',((p/'batch').is_dir() and any(y.is_file() for y in (p/'batch').rglob('*')))==batch_selected,{'selected':batch_selected})
     failed=[x for x in checks if x['status']=='FAIL']; result={'gate':'CPF_ROOT_GENERATED_DOMAIN_MINIMAL_IA','status':'PASS' if not failed else 'FAIL','failedCount':len(failed),'checks':checks}
     if ns.evidence:
         ev=ns.evidence if ns.evidence.is_absolute() else root/ns.evidence; ev.parent.mkdir(parents=True,exist_ok=True); ev.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

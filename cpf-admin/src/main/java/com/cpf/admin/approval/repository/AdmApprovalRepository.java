@@ -1,6 +1,6 @@
 package com.cpf.admin.approval.repository;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.approval.api.AdmApprovalTargetType;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryEntry;
 import com.cpf.admin.approval.spi.AdmApprovalDirectoryPort;
@@ -311,7 +311,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
      * Persists a fail-closed integrity incident independently from the caller transaction so that
      * the audit survives the service exception and the compromised approval cannot be retried.
      */
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_RECORDINTEGRITYFAILURE", name="ADM_ADMAPPROVALREPOSITORY_RECORDINTEGRITYFAILURE", ownerDomain="ADM", transactionManager="admTransactionManager", propagation=Propagation.REQUIRES_NEW)
+    @CpfTransactional(transactionManager="admTransactionManager", propagation=Propagation.REQUIRES_NEW)
     public void recordIntegrityFailure(long id,String operatorId,String beforeStatus,
                                        String reason,String eventData,String transactionId){
         int changed=jdbc.update("""
@@ -369,7 +369,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
             """,id,commandRequestId).stream().findFirst();
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_RESERVEEXECUTION", name="ADM_ADMAPPROVALREPOSITORY_RESERVEEXECUTION", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public boolean reserveExecution(long id,long expectedVersion,String commandRequestId,String operatorId){
         int requestChanged=jdbc.update("""
             UPDATE adm_approval_request SET APPROVAL_STATUS='EXECUTING',VERSION_NO=VERSION_NO+1,updated_by=?
@@ -387,7 +387,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     }
 
     /** Atomically reserves UNKNOWN -> EXECUTING for observation-only reconciliation. */
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_RESERVERECONCILE", name="ADM_ADMAPPROVALREPOSITORY_RESERVERECONCILE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public boolean reserveReconcile(long id,long expectedVersion,String operatorId){
         int executionChanged=jdbc.update("""
             UPDATE adm_approval_execution SET EXECUTION_STATUS='RUNNING',STARTED_AT=CURRENT_TIMESTAMP,
@@ -422,7 +422,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
         if(changed!=1)throw new IllegalStateException("approval execution finalization rejected by fence");
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_FINISHEXECUTIONANDREQUEST", name="ADM_ADMAPPROVALREPOSITORY_FINISHEXECUTIONANDREQUEST", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void finishExecutionAndRequest(long id,long expectedRequestVersion,String commandRequestId,
             String leaseOwner,long fenceToken,String executionStatus,
             String requestStatus,String code,String message,boolean recovery,String operatorId,
@@ -438,7 +438,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
 
 
     /** Atomically preserves a post-reservation integrity failure as UNKNOWN with an audit event. */
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_RECORDEXECUTIONINTEGRITYFAILURE", name="ADM_ADMAPPROVALREPOSITORY_RECORDEXECUTIONINTEGRITYFAILURE", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void recordExecutionIntegrityFailure(long id,String commandRequestId,String leaseOwner,long fenceToken,
                                                 String code,String message,String operatorId,
                                                 String reason,String eventData,String transactionId){
@@ -457,7 +457,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
         history(id,"SNAPSHOT_HASH_MISMATCH",operatorId,"EXECUTING","UNKNOWN",reason,eventData,transactionId);
     }
 
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_MARKEXECUTIONUNKNOWN", name="ADM_ADMAPPROVALREPOSITORY_MARKEXECUTIONUNKNOWN", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public void markExecutionUnknown(long id,String commandRequestId,String leaseOwner,long fenceToken,
                                      String code,String message,String operatorId){
         int executionChanged=jdbc.update("""
@@ -483,7 +483,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
      * The transition is cluster-safe because the execution UPDATE is conditional on the current RUNNING
      * state and expired lease. A later operator/system reconcile only observes Owner state.
      */
-    @CpfTx(id="ADM_ADMAPPROVALREPOSITORY_SWEEPEXPIREDEXECUTIONS", name="ADM_ADMAPPROVALREPOSITORY_SWEEPEXPIREDEXECUTIONS", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public int sweepExpiredExecutions(Instant now,int maxRows,String operatorId){
         Objects.requireNonNull(now,"now");
         if(maxRows<1) return 0;
@@ -535,10 +535,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     }
 
     private static String executionLeaseOwner(){
-        String configured=System.getenv("CPF_INSTANCE_ID");
-        if(configured!=null&&!configured.isBlank()) return configured.trim();
-        String runtime=ManagementFactory.getRuntimeMXBean().getName();
-        return runtime==null||runtime.isBlank()?"cpf-adm-unknown":runtime;
+        return com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();
     }
 
     public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){

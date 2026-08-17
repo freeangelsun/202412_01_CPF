@@ -62,7 +62,9 @@
     "rollback": "rollback/refDB/U93__manual_edu_135_operation_ledger.sql",
     "runtimeQueries": "runtime/ref/manual_edu_135_operation_queries.sql",
     "verify": "verify/93_verify_manual_edu_135_operation_ledger.sql",
-    "checksumManifest": "migration/flyway/refDB/checksums.sha256"
+    "checksumManifest": "migration/flyway/refDB/checksums.sha256",
+    "currentizationMigration": "migration/flyway/refDB/V95__edu_execution_id_currentization.sql",
+    "currentizationRollback": "rollback/refDB/U95__edu_execution_id_currentization.sql"
   },
   "referenceBatchPack": {
     "tables": [

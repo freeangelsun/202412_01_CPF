@@ -4,6 +4,6 @@ export interface AdmBatchFindExecutionsParams {
   transactionId?: string;
   springBatchJobInstanceId?: number;
   workerId?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   limit?: number;
 }

@@ -6,7 +6,7 @@ import com.cpf.batch.api.BatchJobDefinitionControlPort;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -64,8 +64,8 @@ public final class RemoteBatchJobDefinitionControlAdapter implements BatchJobDef
             String approvalRequestId,String approvalRequesterId) {
         String actor=required(actorContext.currentOperatorId(),"authenticated actor");
         CpfServiceRequest.Builder requestBuilder=CpfServiceRequest.builder(SERVICE_ID).endpointCode(ENDPOINT_CODE)
-                .httpMethod(method).requestPath(path).header(CpfHeaders.callerService(),"ADM")
-                .header(CpfHeaders.callerInstanceId(),callerInstanceId).header(CpfHeaders.operatorId(),actor)
+                .httpMethod(method).requestPath(path).header(BatControlHeaders.CALLER_SERVICE,"ADM")
+                .header(BatControlHeaders.CALLER_INSTANCE_ID,callerInstanceId).header(BatControlHeaders.OPERATOR_ID,actor)
                 .attribute("ownerDomain","BAT").attribute("callerDomain","ADM");
         if(approvalRequestId!=null){
             requestBuilder.header(BatControlHeaders.APPROVAL_REQUEST_ID,approvalRequestId);
@@ -76,9 +76,9 @@ public final class RemoteBatchJobDefinitionControlAdapter implements BatchJobDef
         CpfServiceResult<Object> result=caller.invoke(request,target->{
             WebClient.RequestBodySpec call=webClient.method(org.springframework.http.HttpMethod.valueOf(method))
                     .uri(join(target.baseUrl(),path)).headers(h->{
-                        h.set(CpfHeaders.callerService(),"ADM");
-                        h.set(CpfHeaders.callerInstanceId(),callerInstanceId);
-                        h.set(CpfHeaders.operatorId(),actor);
+                        h.set(BatControlHeaders.CALLER_SERVICE,"ADM");
+                        h.set(BatControlHeaders.CALLER_INSTANCE_ID,callerInstanceId);
+                        h.set(BatControlHeaders.OPERATOR_ID,actor);
                         if(approvalRequestId!=null){
                             h.set(BatControlHeaders.APPROVAL_REQUEST_ID,approvalRequestId);
                             h.set(BatControlHeaders.APPROVAL_REQUESTER_ID,approvalRequesterId);

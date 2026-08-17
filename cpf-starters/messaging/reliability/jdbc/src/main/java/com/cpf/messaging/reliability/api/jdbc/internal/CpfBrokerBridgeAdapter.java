@@ -5,9 +5,9 @@ import com.cpf.messaging.api.CpfBrokerBridgeHandler;
 import com.cpf.messaging.api.CpfBrokerBridgeMessage;
 import com.cpf.messaging.api.CpfBrokerBridgePort;
 import com.cpf.messaging.api.CpfBrokerBridgeResult;
-import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.messaging.context.CpfMessageBridgeContextSupport;
 import com.cpf.foundation.context.header.CpfHeaderNames;
-import com.cpf.foundation.workflow.CpfWorkflowContext;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 /**
  * 동일 JVM Local Bridge만 제공하는 topology-independent 기본 Adapter입니다.
  *
- * <p>Kafka·AMQP 같은 원격 Broker는 해당 Starter의 {@code CpfBrokerClient}가 소유합니다.
+ * <p>Kafka·AMQP 같은 원격 Broker는 해당 Starter의 {@code CpfMessagingTemplate}가 소유합니다.
  * Core에서 원격 Broker를 선택하면 로컬 fallback하지 않고 즉시 실패합니다.</p>
  */
 @Component
@@ -35,14 +35,16 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
     private static final int DEFAULT_RECENT_LIMIT = 200;
 
     private final Environment environment;
+    private final CpfMessageBridgeContextSupport contextSupport;
     private final ConcurrentMap<String, CopyOnWriteArrayList<CpfBrokerBridgeHandler>> handlers =
             new ConcurrentHashMap<>();
     private final ConcurrentLinkedDeque<CpfBrokerBridgeMessage> recentMessages =
             new ConcurrentLinkedDeque<>();
 
     /** CpfBrokerBridgeAdapter 작업을 CPF 메시징 신뢰성 정책과 상태 전이 규칙에 따라 수행합니다. */
-    public CpfBrokerBridgeAdapter(Environment environment) {
+    public CpfBrokerBridgeAdapter(Environment environment, CpfMessageBridgeContextSupport contextSupport) {
         this.environment = environment;
+        this.contextSupport = contextSupport;
     }
 
     @Override
@@ -52,9 +54,9 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
             Object payload,
             Map<String, String> additionalHeaders) {
         String resolvedDestination = requiredText(destination, "destination");
-        String resolvedKey = hasText(key) ? key : CpfTransactionContext.transactionId();
+        String resolvedKey = hasText(key) ? key : CpfContexts.transactionId();
         requireLocalTopology();
-        Map<String, String> headers = propagationHeaders(additionalHeaders);
+        Map<String, String> headers = contextSupport.prepareOutbound("IN_MEMORY", resolvedDestination, resolvedKey, additionalHeaders).headers();
         CpfBrokerBridgeMessage message = new CpfBrokerBridgeMessage(
                 "IN_MEMORY",
                 resolvedDestination,
@@ -69,7 +71,7 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
                     "IN_MEMORY",
                     resolvedDestination,
                     resolvedKey,
-                    CpfTransactionContext.transactionId(),
+                    CpfContexts.transactionId(),
                     "broker bridge가 설정으로 비활성화되어 있습니다.");
         }
 
@@ -104,20 +106,6 @@ public class CpfBrokerBridgeAdapter implements CpfBrokerBridgePort {
                 .sorted(Comparator.comparing(CpfBrokerBridgeMessage::createdAt).reversed())
                 .limit(resolvedLimit)
                 .toList();
-    }
-
-    private Map<String, String> propagationHeaders(Map<String, String> additionalHeaders) {
-        Map<String, String> headers = new LinkedHashMap<>();
-        headers.putAll(CpfTransactionContext.propagationHeaders());
-        headers.putAll(CpfWorkflowContext.propagationHeaders());
-        if (additionalHeaders != null) {
-            additionalHeaders.forEach((name, value) -> {
-                if (hasText(name) && value != null) {
-                    headers.put(name, value);
-                }
-            });
-        }
-        return Map.copyOf(headers);
     }
 
     private void dispatchLocal(CpfBrokerBridgeMessage message) {

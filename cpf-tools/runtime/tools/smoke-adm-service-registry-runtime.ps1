@@ -64,9 +64,7 @@ function New-CpfSmokeHeaders {
         "X-Transaction-Id" = ((Get-Date).ToString("yyyyMMddHHmmssfff") + "ADMadmsvc0000001")
         "X-Trace-Id" = [guid]::NewGuid().ToString("N")
         "X-Request-Type" = "ONLINE"
-        "X-Original-Channel-Code" = "SMOKE"
-        "X-Channel-Code" = "ADM"
-        "X-Client-App-Id" = "cpf-adm-service-registry-smoke"
+        "X-Client-Id" = "cpf-adm-service-registry-smoke"
         "X-User-Id" = "runtime-smoke"
     }
 }

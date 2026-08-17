@@ -1,8 +1,7 @@
 package com.cpf.integration.http.internal;
 
-import com.cpf.platform.operations.observability.api.logging.CpfTransactionContext;
 import com.cpf.platform.operations.observability.api.logging.CpfIntegrationLogPort;
-import com.cpf.foundation.workflow.CpfWorkflowContext;
+import com.cpf.web.context.CpfHttpHeaderLogSanitizer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -13,25 +12,30 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * RestClient 또는 RestTemplate 기반 외부 호출에 CPF 거래/워크플로 헤더를 자동 전파합니다.
+ * RestClient 또는 RestTemplate 기반 호출을 기록합니다. CPF 내부 거래 Header는 generic client에서 자동 전파하지 않습니다.
  */
 public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
     private final CpfIntegrationLogPort fileLogWriter;
     private final CpfLocalServiceIdentity localServiceIdentity;
+    private final CpfHttpHeaderLogSanitizer headerSanitizer;
 
-    public CpfRestClientInterceptor() {
-        this(null, null);
-    }
+    public CpfRestClientInterceptor() { this(null, null, null); }
 
-    public CpfRestClientInterceptor(CpfIntegrationLogPort fileLogWriter) {
-        this(fileLogWriter, null);
-    }
+    public CpfRestClientInterceptor(CpfIntegrationLogPort fileLogWriter) { this(fileLogWriter, null, null); }
 
     public CpfRestClientInterceptor(
             CpfIntegrationLogPort fileLogWriter,
             CpfLocalServiceIdentity localServiceIdentity) {
+        this(fileLogWriter, localServiceIdentity, null);
+    }
+
+    public CpfRestClientInterceptor(
+            CpfIntegrationLogPort fileLogWriter,
+            CpfLocalServiceIdentity localServiceIdentity,
+            CpfHttpHeaderLogSanitizer headerSanitizer) {
         this.fileLogWriter = fileLogWriter;
         this.localServiceIdentity = localServiceIdentity;
+        this.headerSanitizer = headerSanitizer == null ? new CpfHttpHeaderLogSanitizer(null) : headerSanitizer;
     }
 
     @Override
@@ -60,31 +64,18 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
         }
     }
 
+    /**
+     * Generic RestClient/RestTemplate은 외부기관 호출에도 사용되므로 CPF 내부 거래 Header를 자동 복사하지 않습니다.
+     * 내부 Domain-to-Domain 호출은 CpfHttpOutboundContextAdapter가 명시적으로 구성한 Header만 사용합니다.
+     */
+    public static void applyHeaders(HttpHeaders headers, CpfLocalServiceIdentity localServiceIdentity) {
+        // Intentionally no-op: trust-boundary aware propagation belongs to the typed internal Domain adapter.
+    }
+
     public static void applyHeaders(HttpHeaders headers) {
         applyHeaders(headers, null);
     }
 
-    /** 거래 헤더를 전파하고, 설정된 경우 직전 호출 서비스 신원을 현재 서비스 기준으로 재생성합니다. */
-    public static void applyHeaders(HttpHeaders headers, CpfLocalServiceIdentity localServiceIdentity) {
-        for (Map.Entry<String, String> header : CpfTransactionContext.outboundHeaders().entrySet()) {
-            if (hasText(header.getValue()) && !headers.containsHeader(header.getKey())) {
-                headers.add(header.getKey(), header.getValue());
-            }
-        }
-        for (Map.Entry<String, String> header : CpfWorkflowContext.propagationHeaders().entrySet()) {
-            if (hasText(header.getValue()) && !headers.containsHeader(header.getKey())) {
-                headers.add(header.getKey(), header.getValue());
-            }
-        }
-        if (localServiceIdentity != null) {
-            headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_SERVICE, localServiceIdentity.serviceId());
-            headers.set(com.cpf.foundation.context.header.CpfHeaderNames.CALLER_INSTANCE_ID, localServiceIdentity.instanceId());
-        }
-    }
-
-    private static boolean hasText(String value) {
-        return value != null && !value.isBlank();
-    }
 
     private void writeEvent(
             HttpRequest request,
@@ -100,7 +91,7 @@ public class CpfRestClientInterceptor implements ClientHttpRequestInterceptor {
         }
         fileLogWriter.writeIntegration(
                 null,
-                CpfTargetServiceResolver.resolve(request.getHeaders(), request.getURI()),
+                CpfTargetSystemResolver.resolve(request.getHeaders(), request.getURI()),
                 "OUTBOUND",
                 request.getMethod().name(),
                 request.getURI().getPath(),

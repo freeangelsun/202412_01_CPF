@@ -37,7 +37,7 @@ INSERT INTO REF_CENTER_CUT_SAMPLE_TARGET (target_id, center_cut_job_id, business
 \\set sample_transaction_id '20260615120000000MBRlocal010000001'
 \\set sample_start_time '2026-06-15 12:00:00.000'
 \\set sample_end_time '2026-06-15 12:00:00.012'
-INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by) SELECT
+INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by) SELECT
     DATE(:sample_start_time),
     :sample_transaction_id,
     'trace-sample-001',
@@ -50,15 +50,17 @@ INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SE
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'edu-education',
+    'EDU',
+    'EDU',
+    'educationCrudList',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
     'ko-KR',
     'Asia/Seoul',
     'NORMAL',
-    'WEB',
-    'WEB',
+    'EDU',
+    'EDU',
     'M000000001',
     'C000000001',
     'EDU_SAMPLE_LIST',
@@ -102,7 +104,7 @@ SELECT (
     ORDER BY LOG_IDX
     LIMIT 1
 ) AS sample_log_idx \\gset
-INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT :sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
+INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT :sample_log_idx, 'headers', '{"X-Client-Id":"cpf-seed-client","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
 WHERE :sample_log_idx IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
@@ -144,7 +146,7 @@ INSERT INTO BZA_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code
     'bza-admin', '업무 관리자 샘플', NULL, 'BZA_MANAGER', 'Y', 'N',
     0, 'Y', NULL, NULL, 'SYSTEM', 'SYSTEM'
 ) ON CONFLICT (admin_login_id) DO UPDATE SET admin_name = EXCLUDED.admin_name, role_code = EXCLUDED.role_code, use_yn = EXCLUDED.use_yn, lock_yn = EXCLUDED.lock_yn, login_fail_count = EXCLUDED.login_fail_count, password_change_required_yn = EXCLUDED.password_change_required_yn, password_expire_at = EXCLUDED.password_expire_at, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, server_instance_id, created_by, updated_by) SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by) SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
        '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER
 WHERE admin_login_id = 'bza-admin'

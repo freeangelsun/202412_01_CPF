@@ -1591,7 +1591,7 @@ export const admBatchFindExecutions = async (params?: AdmBatchFindExecutionsPara
   return cpfOrvalRequest<admBatchFindExecutionsResponse>(getAdmBatchFindExecutionsUrl(), {
     ...options,
     method: 'GET',
-    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, workerId: params?.workerId, serverInstanceId: params?.serverInstanceId, limit: params?.limit },
+    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, workerId: params?.workerId, instanceId: params?.instanceId, limit: params?.limit },
   });
 };
 
@@ -1639,7 +1639,7 @@ export const admBatchFindExecutionPage = async (params?: AdmBatchFindExecutionPa
   return cpfOrvalRequest<admBatchFindExecutionPageResponse>(getAdmBatchFindExecutionPageUrl(), {
     ...options,
     method: 'GET',
-    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, workerId: params?.workerId, serverInstanceId: params?.serverInstanceId, status: params?.status, fromDate: params?.fromDate, toDate: params?.toDate, page: params?.page, size: params?.size },
+    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, workerId: params?.workerId, instanceId: params?.instanceId, status: params?.status, fromDate: params?.fromDate, toDate: params?.toDate, page: params?.page, size: params?.size },
   });
 };
 
@@ -2683,7 +2683,7 @@ export const admBatchWorkbenchExecutions = async (params?: AdmBatchWorkbenchExec
   return cpfOrvalRequest<admBatchWorkbenchExecutionsResponse>(getAdmBatchWorkbenchExecutionsUrl(), {
     ...options,
     method: 'GET',
-    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, status: params?.status, workerId: params?.workerId, serverInstanceId: params?.serverInstanceId, fromDate: params?.fromDate, toDate: params?.toDate, page: params?.page, size: params?.size },
+    params: { jobId: params?.jobId, transactionId: params?.transactionId, springBatchJobInstanceId: params?.springBatchJobInstanceId, status: params?.status, workerId: params?.workerId, instanceId: params?.instanceId, fromDate: params?.fromDate, toDate: params?.toDate, page: params?.page, size: params?.size },
   });
 };
 
@@ -8505,7 +8505,7 @@ export const admLogFindLogs = async (params?: AdmLogFindLogsParams, options?: Cp
   return cpfOrvalRequest<admLogFindLogsResponse>(getAdmLogFindLogsUrl(), {
     ...options,
     method: 'GET',
-    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, channelCode: params?.channelCode, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, serverInstanceId: params?.serverInstanceId, hostName: params?.hostName, systemCode: params?.systemCode, domainCode: params?.domainCode, application: params?.application, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, operation: params?.operation, limit: params?.limit },
+    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, clientId: params?.clientId, originalSystemCode: params?.originalSystemCode, systemCode: params?.systemCode, callerSystemCode: params?.callerSystemCode, targetSystemCode: params?.targetSystemCode, targetOperationId: params?.targetOperationId, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, instanceId: params?.instanceId, hostName: params?.hostName, domainCode: params?.domainCode, application: params?.application, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, capabilityOperation: params?.capabilityOperation, limit: params?.limit },
   });
 };
 
@@ -12657,7 +12657,7 @@ export const findAdmBatchJobInstanceLogs = async (params?: FindAdmBatchJobInstan
   return cpfOrvalRequest<findAdmBatchJobInstanceLogsResponse>(getFindAdmBatchJobInstanceLogsUrl(), {
     ...options,
     method: 'GET',
-    params: { businessDate: params?.businessDate, jobName: params?.jobName, jobInstanceId: params?.jobInstanceId, serverInstanceId: params?.serverInstanceId, limit: params?.limit },
+    params: { businessDate: params?.businessDate, jobName: params?.jobName, jobInstanceId: params?.jobInstanceId, instanceId: params?.instanceId, limit: params?.limit },
   });
 };
 
@@ -12705,7 +12705,7 @@ export const getAdmBatchJobInstanceLog = async (businessDate: string, jobName: s
   return cpfOrvalRequest<getAdmBatchJobInstanceLogResponse>(getGetAdmBatchJobInstanceLogUrl(businessDate, jobName, jobInstanceId), {
     ...options,
     method: 'GET',
-    params: { serverInstanceId: params.serverInstanceId, maxRecords: params.maxRecords },
+    params: { instanceId: params.instanceId, maxRecords: params.maxRecords },
   });
 };
 

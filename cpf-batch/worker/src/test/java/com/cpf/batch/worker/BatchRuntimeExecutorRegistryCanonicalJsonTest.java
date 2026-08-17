@@ -3,7 +3,7 @@ package com.cpf.batch.worker;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
@@ -30,7 +30,7 @@ class BatchRuntimeExecutorRegistryCanonicalJsonTest {
         DefaultListableBeanFactory beans = new DefaultListableBeanFactory();
         return new BatchRuntimeExecutorRegistry(
                 beans.getBeanProvider(CpfServiceCaller.class),
-                beans.getBeanProvider(CpfBrokerClient.class),
+                beans.getBeanProvider(CpfMessagingTemplate.class),
                 new ObjectMapper(),
                 new WorkerOperationalProperties());
     }

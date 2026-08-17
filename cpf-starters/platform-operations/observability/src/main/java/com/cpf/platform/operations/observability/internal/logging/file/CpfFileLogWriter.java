@@ -5,7 +5,6 @@ import com.cpf.platform.operations.observability.api.logging.CpfIntegrationLogPo
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.security.api.CpfMaskingRuntime;
-import com.cpf.platform.operations.observability.internal.logging.ServerInstanceIdentity;
 import com.cpf.platform.operations.observability.internal.logging.TransactionContext;
 import com.cpf.platform.operations.observability.spi.logging.TransactionLogRecord;
 import com.cpf.platform.operations.observability.internal.logging.CpfTransactionContextAnomalyMonitor;
@@ -447,7 +446,7 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
             LogPolicyDecision policy,
             Map<String, String> details) {
 
-        ServerInstanceIdentity.Identity identity = ServerInstanceIdentity.current();
+        com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.Identity identity = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current();
         Map<String, Object> event = new LinkedHashMap<>();
         OffsetDateTime now = OffsetDateTime.now(clock);
         event.put("timestamp", now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
@@ -464,7 +463,6 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         event.put("logLevelApplied", policy != null ? policy.fileLogLevel() : TransactionContext.currentDynamicLogLevel());
         event.put("serverId", environment.getProperty("cpf.framework.was-id", pathPolicy.instanceId()));
         event.put("instanceId", pathPolicy.instanceId());
-        event.put("serverInstanceId", pathPolicy.instanceId());
         event.put("hostName", identity.hostName());
         event.put("hostIp", hostIp());
         event.put("port", environment.getProperty("server.port", "N/A"));

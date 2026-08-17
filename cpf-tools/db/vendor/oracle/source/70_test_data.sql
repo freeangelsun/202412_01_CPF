@@ -62,9 +62,10 @@ WHEN NOT MATCHED THEN INSERT (target_id, center_cut_job_id, business_key, busine
 DEFINE sample_transaction_id = '20260615120000000MBRlocal010000001'
 DEFINE sample_start_time = '2026-06-15 12:00:00.000'
 DEFINE sample_end_time = '2026-06-15 12:00:00.012'
-INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_APP_ID, CLIENT_VERSION, CALLER_SERVICE, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_CHANNEL_CODE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, SERVER_INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by) SELECT
-    TRUNC(&&sample_start_time),
-    &&sample_transaction_id,
+INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
+SELECT
+    DATE(('2026-06-15 12:00:00.000')),
+    ('20260615120000000MBRlocal010000001'),
     'trace-sample-001',
     'span-sample-001',
     1,
@@ -75,15 +76,17 @@ INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SE
     'v1',
     'cpf-edu-web',
     '1.0.0',
-    'edu-education',
+    'EDU',
+    'EDU',
+    'educationCrudList',
     'local-dev',
     'corr-sample-001',
     'idem-sample-001',
     'ko-KR',
     'Asia/Seoul',
     'NORMAL',
-    'WEB',
-    'WEB',
+    'EDU',
+    'EDU',
     'M000000001',
     'C000000001',
     'EDU_SAMPLE_LIST',
@@ -108,15 +111,15 @@ INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SE
     'SYSTEM',
     '127.0.0.1',
     'SQL-SEED',
-    &&sample_start_time,
-    &&sample_end_time,
+    ('2026-06-15 12:00:00.000'),
+    ('2026-06-15 12:00:00.012'),
     12,
     'SYSTEM',
     'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM CPF_TRANSACTION_LOG
-    WHERE TRANSACTION_ID = &&sample_transaction_id
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
 );
 COLUMN sample_log_idx NEW_VALUE sample_log_idx NOPRINT
@@ -127,12 +130,34 @@ SELECT (
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
     ORDER BY LOG_IDX
     FETCH FIRST 1 ROWS ONLY) AS sample_log_idx FROM dual;
-INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT &&sample_log_idx, 'headers', '{"X-Channel-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
-WHERE &&sample_log_idx IS NOT NULL
+INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by)
+SELECT (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    FETCH FIRST 1 ROW ONLY
+), 'headers', '{"X-System-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
+WHERE (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    FETCH FIRST 1 ROW ONLY
+) IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
       FROM CPF_TRANSACTION_LOG_DETAIL
-      WHERE LOG_IDX = &&sample_log_idx
+      WHERE LOG_IDX = (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    FETCH FIRST 1 ROW ONLY
+)
         AND DETAIL_KEY = 'headers'
   );
 INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT &&sample_log_idx, 'fixedTelegram', 'S000000001샘플1              000000010000Y20260617', 'SYSTEM', 'SYSTEM'
@@ -163,7 +188,7 @@ SELECT 'bza-admin' admin_login_id, '업무 관리자 샘플' admin_name, NULL pa
 ) src ON (tgt.admin_login_id = src.admin_login_id)
 WHEN MATCHED THEN UPDATE SET tgt.admin_name = src.admin_name, tgt.role_code = src.role_code, tgt.use_yn = src.use_yn, tgt.lock_yn = src.lock_yn, tgt.login_fail_count = src.login_fail_count, tgt.password_change_required_yn = src.password_change_required_yn, tgt.password_expire_at = src.password_expire_at, tgt.updated_by = src.updated_by, tgt.updated_at = CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by) VALUES (src.admin_login_id, src.admin_name, src.password_hash, src.role_code, src.use_yn, src.lock_yn, src.login_fail_count, src.password_change_required_yn, src.password_expire_at, src.last_login_at, src.created_by, src.updated_by);
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, server_instance_id, created_by, updated_by) SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by) SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
        '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER
 WHERE admin_login_id = 'bza-admin'

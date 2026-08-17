@@ -1,5 +1,7 @@
 package com.cpf.admin.opr.batch.runtime;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
 import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.api.AdmApprovedOperationResult;
@@ -8,7 +10,7 @@ import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.batch.api.CommandState;
 import com.cpf.batch.api.DeploymentResult;
 import com.cpf.batch.api.RuntimeCommand;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -33,11 +35,10 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
 
     public BatApprovalOwnerCommandPort(
             RestClient.Builder builder,
-            @Value("${cpf.batch.control.base-url}") String baseUrl,
-            @Value("${cpf.framework.instance-id}") String callerInstanceId) {
+            @Value("${cpf.batch.control.base-url}") String baseUrl) {
         String explicitBaseUrl = requireRemoteBaseUrl(baseUrl);
         this.client = builder.baseUrl(explicitBaseUrl).build();
-        this.callerInstanceId = requireExplicitInstanceId(callerInstanceId);
+        this.callerInstanceId = CpfInstanceIdentity.current().instanceId();
     }
 
     @Override
@@ -92,10 +93,10 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
                     : client.get().uri("/api/v1/batch/runtime/commands/{key}", command.commandRequestId());
             Map<?, ?> state = observation
                     .headers(headers -> {
-                        headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-                        headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                        headers.set(CpfHeaders.operatorId(), command.approvedBy());
-                        headers.set(CpfHeaders.transactionId(), command.transactionId());
+                        headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+                        headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                        headers.set(BatControlHeaders.OPERATOR_ID, command.approvedBy());
+                        headers.set(CpfHttpHeaders.transactionId(), command.transactionId());
                         headers.set(BatControlHeaders.APPROVAL_REQUEST_ID, Long.toString(command.approvalRequestId()));
                         headers.set(BatControlHeaders.APPROVAL_REQUESTER_ID, command.requestedBy());
                     })
@@ -200,10 +201,10 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
             RestClient.RequestBodySpec request,
             AdmApprovedOperationCommand command) {
         return request.headers(headers -> {
-            headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-            headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-            headers.set(CpfHeaders.operatorId(), command.approvedBy());
-            headers.set(CpfHeaders.transactionId(), command.transactionId());
+            headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+            headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+            headers.set(BatControlHeaders.OPERATOR_ID, command.approvedBy());
+            headers.set(CpfHttpHeaders.transactionId(), command.transactionId());
             headers.set(
                     BatControlHeaders.APPROVAL_REQUEST_ID,
                     Long.toString(command.approvalRequestId()));
@@ -247,15 +248,6 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
             throw new IllegalArgumentException("cpf.batch.control.base-url must be an explicit non-loopback HTTP(S) endpoint");
         }
         return baseUrl;
-    }
-
-    private static String requireExplicitInstanceId(String value) {
-        String instanceId = requireText(value, "cpf.framework.instance-id");
-        String normalized = instanceId.toLowerCase(Locale.ROOT);
-        if (normalized.equals("adm-local-01") || normalized.equals("local") || normalized.equals("default") || normalized.equals("unknown")) {
-            throw new IllegalArgumentException("cpf.framework.instance-id must identify the real ADM instance");
-        }
-        return instanceId;
     }
 
     private static String requireText(String value, String field) {

@@ -58,11 +58,11 @@ class CanonicalGeneratorVerifierTest(unittest.TestCase):
         ):
             self.assertIn(token, self.generated_javac)
 
-    def test_generated_domain_is_online_only_and_batch_is_separate_capability(self) -> None:
-        self.assertNotIn("render_batch_job", self.engine)
-        self.assertNotIn("@CpfBatchJob", self.engine)
-        self.assertNotIn("localBatchPort", self.engine)
-        self.assertIn("Generated Domain은 online 업무 Runtime을 생성", self.engine)
+    def test_generated_domain_supports_online_and_optional_batch(self) -> None:
+        self.assertIn('modules["online"]', self.engine)
+        self.assertIn('modules.get("batch", False)', self.engine)
+        self.assertIn('cpf-starter-batch', self.engine)
+        self.assertIn('batch/src/main/java', self.engine)
         catalog = (self.root / "cpf-tools/generator/contracts/cpf-starter-catalog.json").read_text(encoding="utf-8")
         self.assertIn('"artifactId": "cpf-starter-batch"', catalog)
         self.assertIn('"profileId": "batch"', catalog)

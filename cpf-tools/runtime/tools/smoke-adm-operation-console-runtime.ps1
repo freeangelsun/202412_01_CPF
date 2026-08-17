@@ -96,14 +96,14 @@ try {
 
     $health = Invoke-AdmJson -Method Get -Path "/adm/api/health"
     $result.health = $health
-    $login = Invoke-AdmJson -Method Post -Path "/adm/api/auth/login" -Headers (New-CpfRuntimeTransactionHeaders -Module "ADM" -WasId "admop01" -ClientAppId "cpf-adm-operation-smoke") -Body @{
+    $login = Invoke-AdmJson -Method Post -Path "/adm/api/auth/login" -Headers (New-CpfRuntimeClientHeaders -ClientId "cpf-adm-operation-smoke") -Body @{
         operatorId = $AdmUsername
         password = $AdmPassword
     }
     if ([string]::IsNullOrWhiteSpace([string] $login.accessToken)) {
         throw "ADM login response does not contain accessToken."
     }
-    $headers = New-CpfRuntimeTransactionHeaders -Module "ADM" -WasId "admop02" -ClientAppId "cpf-adm-operation-smoke"
+    $headers = New-CpfRuntimeClientHeaders -ClientId "cpf-adm-operation-smoke"
     $headers.Authorization = "Bearer $($login.accessToken)"
 
     $endpoints = @(

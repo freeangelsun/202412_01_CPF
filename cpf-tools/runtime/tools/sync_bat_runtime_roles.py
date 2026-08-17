@@ -260,7 +260,7 @@ def render_runtime_artifacts(root: Path, contract: dict[str, Any], write: bool, 
             f"spring.application.name={center['artifactName']}\n"
             f"server.port={center['localPort']}\n"
             "cpf.batch.control.base-url=${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}\n"
-            f"cpf.batch.runtime.instance-id=${{CPF_INSTANCE_ID:{center['artifactName']}-01}}\n"
+
             "cpf.batch.runtime.heartbeat-ms=${CPF_RUNTIME_HEARTBEAT_MS:5000}\n"
             "logging.level.root=${CPF_LOG_LEVEL:INFO}\n"
         ),

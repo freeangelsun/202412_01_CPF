@@ -21,7 +21,7 @@ import java.util.Objects;
  * @param requestId 요청 식별자, 미적용 시 null 가능
  * @param idempotencyKey 멱등성 키, 미적용 시 null 가능
  * @param tenantId tenant 식별자, 단일 tenant면 null 가능
- * @param channelCode 인가된 Channel 코드
+ * @param systemCode 현재 처리 System 코드
  * @param actorIdMasked 마스킹된 actor 식별자
  * @param instanceId 처리 instance 식별자
  * @param wasId WAS 식별자
@@ -50,7 +50,7 @@ import java.util.Objects;
  */
 public record CpfTransactionLineageRecord(
         String lineageId, String transactionId, String segmentId, String parentSegmentId, int attemptNo,
-        String traceId, String spanId, String requestId, String idempotencyKey, String tenantId, String channelCode,
+        String traceId, String spanId, String requestId, String idempotencyKey, String tenantId, String systemCode,
         String actorIdMasked, String instanceId, String wasId, String agentId, String workerId, String remoteSystem,
         String operationId, String messageId, String consumerGroup, String dlqId, String batchJobInstanceId,
         String batchJobExecutionId, String batchStepExecutionId, String partitionId, String fileId, String sourceType,
@@ -73,9 +73,9 @@ public record CpfTransactionLineageRecord(
         String hash = sha256(payload);
         return new CpfTransactionLineageRecord(sha256("SEGMENT|" + seg + "|" + attempt + "|" + phase + "|" + occurred),
                 tx, seg, source.getParentSegmentId(), attempt, null, null, null, null, null,
-                firstNonBlank(source.getOriginalChannelCode(), source.getChannelCode()), source.getOperatorIdMasked(),
-                source.getSelectedInstanceId(), null, null, null, firstNonBlank(source.getTargetModuleCode(), source.getExternalInstitutionCode()),
-                firstNonBlank(source.getApiPath(), source.getTransactionName()), null, null, null, null, null, null, null, null,
+                firstNonBlank(source.getSystemCode(), source.getOriginalSystemCode()), source.getOperatorIdMasked(),
+                source.getSelectedInstanceId(), null, null, null, firstNonBlank(source.getTargetSystemCode(), firstNonBlank(source.getTargetModuleCode(), source.getExternalInstitutionCode())),
+                firstNonBlank(source.getTargetOperationId(), firstNonBlank(source.getApiPath(), source.getTransactionName())), null, null, null, null, null, null, null, null,
                 "SEGMENT", seg, state, source.getFailureCode(), source.getUnknownResultId() != null,
                 source.getUnknownResultId() == null ? null : blankTo(source.getResultState(), "UNKNOWN"), occurred, LocalDateTime.now(), hash, null);
     }

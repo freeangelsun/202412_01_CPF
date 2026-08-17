@@ -10,7 +10,6 @@ class RuntimeIdentityFactoryTest {
     @Test
     void springPropertiesDefineTheRuntimeIdentityAndEndpoints() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("cpf.batch.runtime.instance-id", "worker-home-02")
                 .withProperty("server.port", "19092")
                 .withProperty("cpf.framework.was-id", "BAT-WAS-02")
                 .withProperty("cpf.batch.runtime.host-alias", "home-notebook")
@@ -23,7 +22,7 @@ class RuntimeIdentityFactoryTest {
         var registration = RuntimeIdentityFactory.fromEnvironment(
                 environment, RuntimeRole.WORKER, "cpf-batch-worker", 18092);
 
-        assertThat(registration.instanceId()).isEqualTo("worker-home-02");
+        assertThat(registration.instanceId()).isEqualTo(com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId());
         assertThat(registration.wasId()).isEqualTo("BAT-WAS-02");
         assertThat(registration.hostAlias()).isEqualTo("home-notebook");
         assertThat(registration.zone()).isEqualTo("home");
@@ -39,7 +38,7 @@ class RuntimeIdentityFactoryTest {
     @Test
     void environmentStyleKeysRemainSupportedAsFallback() {
         MockEnvironment environment = new MockEnvironment()
-                .withProperty("CPF_INSTANCE_ID", "scheduler-env-01")
+                .withProperty("CPF_RUNTIME_INSTANCE_ID", "scheduler-env-01")
                 .withProperty("CPF_PORT", "18091")
                 .withProperty("SPRING_PROFILES_ACTIVE", "stg");
 

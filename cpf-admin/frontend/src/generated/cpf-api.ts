@@ -212,7 +212,7 @@ export async function admBatchFindExecutionDetail<T = AdmBatchFindExecutionDetai
 
 export type AdmBatchFindExecutionPageBody = never;
 export type AdmBatchFindExecutionPagePath = Record<string, never>;
-export type AdmBatchFindExecutionPageQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; workerId?: string; serverInstanceId?: string; status?: string; fromDate?: string; toDate?: string; page?: number; size?: number };
+export type AdmBatchFindExecutionPageQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; workerId?: string; instanceId?: string; status?: string; fromDate?: string; toDate?: string; page?: number; size?: number };
 export type AdmBatchFindExecutionPageHeaders = Record<string, never>;
 export type AdmBatchFindExecutionPageResponse = Record<string, unknown>;
 export type AdmBatchFindExecutionPageOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: AdmBatchFindExecutionPageQuery; headers?: CpfGeneratedHeaders; };
@@ -224,7 +224,7 @@ export async function admBatchFindExecutionPage<T = AdmBatchFindExecutionPageRes
 
 export type AdmBatchFindExecutionsBody = never;
 export type AdmBatchFindExecutionsPath = Record<string, never>;
-export type AdmBatchFindExecutionsQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; workerId?: string; serverInstanceId?: string; limit?: number };
+export type AdmBatchFindExecutionsQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; workerId?: string; instanceId?: string; limit?: number };
 export type AdmBatchFindExecutionsHeaders = Record<string, never>;
 export type AdmBatchFindExecutionsResponse = Record<string, unknown>;
 export type AdmBatchFindExecutionsOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: AdmBatchFindExecutionsQuery; headers?: CpfGeneratedHeaders; };
@@ -565,7 +565,7 @@ export async function admBatchWorkbenchExecutionDetail<T = AdmBatchWorkbenchExec
 
 export type AdmBatchWorkbenchExecutionsBody = never;
 export type AdmBatchWorkbenchExecutionsPath = Record<string, never>;
-export type AdmBatchWorkbenchExecutionsQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; status?: string; workerId?: string; serverInstanceId?: string; fromDate?: string; toDate?: string; page?: number; size?: number };
+export type AdmBatchWorkbenchExecutionsQuery = { jobId?: string; transactionId?: string; springBatchJobInstanceId?: number; status?: string; workerId?: string; instanceId?: string; fromDate?: string; toDate?: string; page?: number; size?: number };
 export type AdmBatchWorkbenchExecutionsHeaders = Record<string, never>;
 export type AdmBatchWorkbenchExecutionsResponse = Record<string, unknown>;
 export type AdmBatchWorkbenchExecutionsOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: AdmBatchWorkbenchExecutionsQuery; headers?: CpfGeneratedHeaders; };
@@ -1755,7 +1755,7 @@ export async function admLogExportDownload<T = AdmLogExportDownloadResponse>(opt
 
 export type AdmLogFindLogsBody = never;
 export type AdmLogFindLogsPath = Record<string, never>;
-export type AdmLogFindLogsQuery = { transactionId?: string; traceId?: string; businessTransactionId?: string; memberNo?: string; customerNo?: string; uri?: string; responseCode?: string; httpStatus?: number; channelCode?: string; logType?: string; moduleId?: string; wasId?: string; serverInstanceId?: string; hostName?: string; systemCode?: string; domainCode?: string; application?: string; starterId?: string; capabilityId?: string; provider?: string; operation?: string; limit?: number };
+export type AdmLogFindLogsQuery = { transactionId?: string; traceId?: string; businessTransactionId?: string; memberNo?: string; customerNo?: string; uri?: string; responseCode?: string; httpStatus?: number; clientId?: string; originalSystemCode?: string; systemCode?: string; callerSystemCode?: string; targetSystemCode?: string; targetOperationId?: string; logType?: string; moduleId?: string; wasId?: string; instanceId?: string; hostName?: string; domainCode?: string; application?: string; starterId?: string; capabilityId?: string; provider?: string; capabilityOperation?: string; limit?: number };
 export type AdmLogFindLogsHeaders = Record<string, never>;
 export type AdmLogFindLogsResponse = Record<string, unknown>;
 export type AdmLogFindLogsOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: AdmLogFindLogsQuery; headers?: CpfGeneratedHeaders; };
@@ -3445,7 +3445,7 @@ export async function admTransactionMetaScan<T = AdmTransactionMetaScanResponse>
 
 export type FindAdmBatchJobInstanceLogsBody = never;
 export type FindAdmBatchJobInstanceLogsPath = Record<string, never>;
-export type FindAdmBatchJobInstanceLogsQuery = { businessDate?: string; jobName?: string; jobInstanceId?: number; serverInstanceId?: string; limit?: number };
+export type FindAdmBatchJobInstanceLogsQuery = { businessDate?: string; jobName?: string; jobInstanceId?: number; instanceId?: string; limit?: number };
 export type FindAdmBatchJobInstanceLogsHeaders = Record<string, never>;
 export type FindAdmBatchJobInstanceLogsResponse = Record<string, unknown>;
 export type FindAdmBatchJobInstanceLogsOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: FindAdmBatchJobInstanceLogsQuery; headers?: CpfGeneratedHeaders; };
@@ -3529,7 +3529,7 @@ export async function findAdmUnknownResults<T = FindAdmUnknownResultsResponse>(o
 
 export type GetAdmBatchJobInstanceLogBody = never;
 export type GetAdmBatchJobInstanceLogPath = { businessDate: string; jobName: string; jobInstanceId: number };
-export type GetAdmBatchJobInstanceLogQuery = { serverInstanceId: string; maxRecords?: number };
+export type GetAdmBatchJobInstanceLogQuery = { instanceId: string; maxRecords?: number };
 export type GetAdmBatchJobInstanceLogHeaders = Record<string, never>;
 export type GetAdmBatchJobInstanceLogResponse = Record<string, unknown>;
 export type GetAdmBatchJobInstanceLogOptions = CpfGeneratedBaseOptions & { data?: never; path: GetAdmBatchJobInstanceLogPath; query?: GetAdmBatchJobInstanceLogQuery; headers?: CpfGeneratedHeaders; };

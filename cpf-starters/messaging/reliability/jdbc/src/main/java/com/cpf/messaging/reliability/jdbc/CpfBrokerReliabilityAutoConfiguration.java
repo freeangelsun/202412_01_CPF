@@ -2,12 +2,12 @@ package com.cpf.messaging.reliability.jdbc;
 import com.cpf.messaging.reliability.api.jdbc.CpfBrokerReliabilityOperations;
 import com.cpf.messaging.reliability.api.jdbc.CpfBrokerUnknownResultReconciler;
 import com.cpf.messaging.spi.CpfNamedBrokerClient;
-import com.cpf.messaging.reliability.api.jdbc.CpfBrokerClientRouter;
+import com.cpf.messaging.reliability.api.jdbc.CpfMessagingTemplateRouter;
 import com.cpf.messaging.reliability.api.jdbc.CpfMessagingReliabilityProperties;
 import com.cpf.messaging.reliability.api.jdbc.CpfProviderBrokerPublisher;
 import com.cpf.messaging.reliability.api.jdbc.CpfReliableBrokerClient;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.messaging.context.CpfMessageBridgeContextSupport;
 import com.cpf.messaging.reliability.api.jdbc.internal.CpfBrokerConsumerRuntimePolicy;
@@ -72,7 +72,7 @@ public class CpfBrokerReliabilityAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CpfBrokerPublisher.class)
     CpfBrokerPublisher cpfProviderBrokerPublisher(
-            CpfBrokerClientRouter router,
+            CpfMessagingTemplateRouter router,
             @Qualifier("cpfBrokerClock") Clock clock, CpfMessageBridgeContextSupport contextSupport) {
         return new CpfProviderBrokerPublisher(router, clock, contextSupport);
     }
@@ -80,7 +80,7 @@ public class CpfBrokerReliabilityAutoConfiguration {
     @Bean
     @Primary
     @ConditionalOnMissingBean(name = "cpfReliableBrokerClient")
-    CpfBrokerClient cpfReliableBrokerClient(
+    CpfMessagingTemplate cpfReliableBrokerClient(
             JdbcCpfBrokerReliabilityRepository repository,
             @Qualifier("cpfBrokerClock") Clock clock, CpfMessageBridgeContextSupport contextSupport) {
         return new CpfReliableBrokerClient(repository, clock, contextSupport);
@@ -118,9 +118,9 @@ public class CpfBrokerReliabilityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    CpfBrokerClientRouter cpfBrokerClientRouter(
+    CpfMessagingTemplateRouter cpfBrokerClientRouter(
             ObjectProvider<CpfNamedBrokerClient> clients) {
-        return new CpfBrokerClientRouter(clients.orderedStream().toList());
+        return new CpfMessagingTemplateRouter(clients.orderedStream().toList());
     }
 
     @Bean

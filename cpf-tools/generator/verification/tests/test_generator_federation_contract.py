@@ -81,15 +81,14 @@ class GeneratorFederationContractTest(unittest.TestCase):
         self.assertFalse((repository / "cpf-domain-manifest.json").exists())
         self.assertFalse((repository / "cpf-domain-ownership.json").exists())
 
-    def test_generated_domain_has_no_batch_or_jobpack_generator_surface(self) -> None:
+    def test_generated_domain_batch_is_optional_and_jobpack_surface_is_not_reintroduced(self) -> None:
+        engine = (ROOT / "cpf-tools/generator/engine/cpf_domain_generator.py").read_text(encoding="utf-8")
+        schema = (ROOT / "cpf-tools/generator/contracts/cpf-domain.schema.json").read_text(encoding="utf-8")
+        self.assertIn('modules.get("batch", False)', engine)
+        self.assertIn('cpf-starter-batch', engine)
+        self.assertIn('"batch"', schema)
         create_source = (GENERATOR / "create-domain-repository.ps1").read_text(encoding="utf-8")
-        export_source = (GENERATOR / "export-domain-repository.ps1").read_text(encoding="utf-8")
-        federation_source = (GENERATOR / "verify-domain-federation.ps1").read_text(encoding="utf-8")
-        self.assertNotIn("[switch] $Batch", create_source)
-        self.assertNotIn("IncludeJobPack", export_source)
-        delete_manifest = (ROOT / "cpf-docs" / "work" / "CPF_DELETE_MANIFEST.csv").read_text(encoding="utf-8-sig")
-        self.assertIn("cpf-tools/generator/create-domain-jobpack.ps1", delete_manifest)
-        self.assertIn("Batch는 초기 프로젝트 구성", federation_source)
+        self.assertNotIn("IncludeJobPack", create_source)
 
     def test_arbitrary_domain_dry_run_uses_canonical_schema_without_writes(self) -> None:
         output = self.work / "output"

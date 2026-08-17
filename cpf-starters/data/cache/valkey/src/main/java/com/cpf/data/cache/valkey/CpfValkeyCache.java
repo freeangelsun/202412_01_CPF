@@ -1,7 +1,7 @@
 package com.cpf.data.cache.valkey;
 
 import com.cpf.data.cache.api.CpfCacheKey;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import com.cpf.data.cache.api.CpfCacheValue;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -9,9 +9,9 @@ import java.util.Optional;
 
 /** Legacy string facade delegating to the canonical provider-neutral cache port. */
 public final class CpfValkeyCache {
-    private final CpfCachePort cache;
+    private final CpfCache cache;
     private final CpfValkeyProperties properties;
-    public CpfValkeyCache(CpfCachePort cache, CpfValkeyProperties properties) { this.cache=cache; this.properties=properties; }
+    public CpfValkeyCache(CpfCache cache, CpfValkeyProperties properties) { this.cache=cache; this.properties=properties; }
     public void put(String key, String value, Duration ttl) {
         requireKey(key); if (value == null) throw new IllegalArgumentException("cache value is required");
         cache.put(cacheKey(key), new CpfCacheValue(true,false,value.getBytes(StandardCharsets.UTF_8),"text/plain;charset=UTF-8",0,null), ttl==null?properties.getDefaultTtl():ttl);

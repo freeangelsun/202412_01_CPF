@@ -8,6 +8,7 @@ import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import java.time.Instant;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.batch.spi.BatchStepHandler;
@@ -52,7 +53,7 @@ public final class SpringBatchCenterCutStepHandler implements BatchStepHandler, 
             List<CenterCutHandler> handlers,
             SpringBatchCenterCutRuntimeState runtimeState,
             CpfExecutionIdGenerator executionIds,
-            @Value("${cpf.center-cut.runner-id:${CPF_INSTANCE_ID:center-cut-local-01}}") String runnerId,
+            @Value("${cpf.center-cut.runner-id:}") String runnerId,
             @Value("${cpf.center-cut.pool:center-cut}") String pool,
             @Value("${cpf.center-cut.lease-seconds:30}") long leaseSeconds,
             @Value("${cpf.center-cut.heartbeat-ms:5000}") long heartbeatMillis) {
@@ -98,7 +99,7 @@ public final class SpringBatchCenterCutStepHandler implements BatchStepHandler, 
             CpfExecutionIdGenerator executionIds) {
         this.repository = Objects.requireNonNull(repository, "repository");
         this.runtimeState = Objects.requireNonNull(runtimeState, "runtimeState");
-        this.runnerId = requiredText(runnerId, "runnerId");
+        this.runnerId = requiredText(runnerId == null || runnerId.isBlank() ? CpfInstanceIdentity.instanceId() : runnerId, "runnerId");
         this.pool = requiredText(pool, "pool");
         this.leaseDuration = Objects.requireNonNull(leaseDuration, "leaseDuration");
         if (leaseDuration.isZero() || leaseDuration.isNegative()) {

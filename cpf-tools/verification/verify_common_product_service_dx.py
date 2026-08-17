@@ -9,14 +9,14 @@ def txt(rel):
  return p.read_text(encoding='utf-8-sig',errors='replace')
 api={
  'CpfCodeService':'cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java',
- 'CpfMessageService':'cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageService.java',
+ 'CpfMessageSource':'cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java',
  'CpfParameterService':'cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java',
  'CpfCalendarService':'cpf-starters/common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java',
  'CpfTemplateService':'cpf-starters/common/src/main/java/com/cpf/common/template/api/CpfTemplateService.java',
 }
 required={
  'CpfCodeService':['values(','find(','required('],
- 'CpfMessageService':['resolve(String messageCode, Locale locale, Map','resolve(String messageCode, Locale locale)'],
+ 'CpfMessageSource':['getMessage(String messageCode, Locale locale, Map','getMessage(String messageCode, Locale locale)'],
  'CpfParameterService':['find(String key)','requiredValue(String key)','findValue(String key, Class<T> type)','requiredValue(String key, Class<T> type)'],
  'CpfCalendarService':['isBusinessDay(','shiftBusinessDay(','nextBusinessDay(','previousBusinessDay('],
  'CpfTemplateService':['render(String templateCode, String channel, Map'],
@@ -34,10 +34,12 @@ mgmt=txt('cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfCommon
 if 'refreshCaches(String actor, String reason)' not in mgmt: errors.append('Common management refresh contract missing')
 compat=txt('cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java')
 if 'extends CpfCalendarService' not in compat or '@Deprecated' not in compat: errors.append('Calendar compatibility alias must delegate/deprecate')
-edu=txt('cpf-education/src/main/java/com/cpf/education/common/cmn/controller/EducationCmnEducationController.java')
-for name in api:
- if name not in edu: errors.append(f'Education actual consumer missing {name}')
-if 'CpfStructuredLogger' not in edu: errors.append('Education Common sample missing structured business logging')
+edu_paths=list((ROOT/'cpf-education/src/main/java/com/cpf/education/online').glob('*.java'))+list((ROOT/'cpf-education/src/main/java/com/cpf/education/batch').glob('*.java'))
+edu='\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in edu_paths)
+for name in ('CpfCodeService','CpfMessageSource','CpfParameterService','CpfCalendarService'):
+ if name not in edu: errors.append(f'Canonical Education consumer missing {name}')
+# Template is a valid common public service but not one of the mandatory 35 EDU cases.
+if 'MDC.put' in edu: errors.append('Canonical Education must not rebuild logging MDC manually')
 for root_name in ('cpf-education','cpf-member','cpf-external'):
  rp=ROOT/root_name
  if not rp.exists(): continue

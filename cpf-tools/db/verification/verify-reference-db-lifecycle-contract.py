@@ -98,6 +98,7 @@ def validate_state_contract(contract: dict[str, Any], packs: dict[str, Any]) -> 
 
     required_states = {
         "baseline": (),
+        "coreLegacy": ("core",),
         "core": ("core",),
         "coreAndBatch": ("core", "batch"),
     }
@@ -120,10 +121,12 @@ def validate_state_contract(contract: dict[str, Any], packs: dict[str, Any]) -> 
             aliases.add(normalized)
 
     expected_transitions = [
-        ("baseline", "V93", "core"),
+        ("baseline", "V93", "coreLegacy"),
+        ("coreLegacy", "V95", "core"),
         ("core", "V94", "coreAndBatch"),
         ("coreAndBatch", "U94", "core"),
-        ("core", "U93", "baseline"),
+        ("core", "U95", "coreLegacy"),
+        ("coreLegacy", "U93", "baseline"),
     ]
     actual_transitions = [
         (item.get("from"), item.get("operation"), item.get("to"))
@@ -235,7 +238,7 @@ def main() -> None:
         if mentions:
             fail(f"Baseline schema에 optional REF overlay가 포함되었습니다: {baseline_file.relative_to(root)} {sorted(mentions)}")
 
-    artifact_roles = {"source", "install", "migration", "rollback", "runtimeQuery", "verify", "checksum"}
+    base_artifact_roles = {"source", "install", "migration", "rollback", "runtimeQuery", "verify", "checksum"}
     vendor_signatures: dict[str, dict[str, tuple[set[str], set[str], set[str]]]] = {}
     for vendor in official_vendors:
         vendor_base = root / f"cpf-tools/db/vendor/{vendor}"
@@ -248,7 +251,10 @@ def main() -> None:
         for pack_name, metadata in packs.items():
             expected_tables = {str(table).upper() for table in metadata["tables"]}
             artifacts = metadata.get("artifacts")
-            if not isinstance(artifacts, dict) or set(artifacts) != artifact_roles:
+            expected_artifact_roles = set(base_artifact_roles)
+            if pack_name == "core":
+                expected_artifact_roles.update({"currentizationMigration", "currentizationRollback"})
+            if not isinstance(artifacts, dict) or set(artifacts) != expected_artifact_roles:
                 fail(f"Feature pack lifecycle artifact 집합이 다릅니다: {pack_name}")
             resolved = {
                 role: resolve_artifact(vendor_base, str(relative), root)
@@ -263,6 +269,20 @@ def main() -> None:
                 fail(f"{vendor}/{pack_name} migration version/path가 다릅니다.")
             if not resolved["rollback"].name.startswith(f"U{migration_version}__"):
                 fail(f"{vendor}/{pack_name} rollback version/path가 다릅니다.")
+            if pack_name == "core":
+                currentization_version = int(metadata.get("currentizationVersion", 0))
+                if currentization_version != 95:
+                    fail("core currentizationVersion은 95여야 합니다.")
+                if not resolved["currentizationMigration"].name.startswith(f"V{currentization_version}__"):
+                    fail(f"{vendor}/core currentization migration version/path가 다릅니다.")
+                if not resolved["currentizationRollback"].name.startswith(f"U{currentization_version}__"):
+                    fail(f"{vendor}/core currentization rollback version/path가 다릅니다.")
+                expected_currentization_tables = {str(table).upper() for table in metadata.get("currentizationTables", ())}
+                for role in ("currentizationMigration", "currentizationRollback"):
+                    current_sql = resolved[role].read_text(encoding="utf-8")
+                    current_mentions = owned_table_mentions(current_sql, expected_tables)
+                    if current_mentions != expected_currentization_tables:
+                        fail(f"{vendor}/core/{role} table coverage가 다릅니다: {sorted(current_mentions)}")
 
             source_signature: tuple[set[str], set[str], set[str]] | None = None
             for role in ("source", "install", "migration"):
@@ -338,6 +358,11 @@ def main() -> None:
                 "verify": "verify",
                 "checksum": "checksumManifest",
             }
+            if pack_name == "core":
+                path_map.update({
+                    "currentizationMigration": "currentizationMigration",
+                    "currentizationRollback": "currentizationRollback",
+                })
             for contract_role, vendor_key in path_map.items():
                 if vendor_pack_metadata.get(vendor_key) != artifacts[contract_role]:
                     fail(f"{vendor}/{vendor_pack_key}/{vendor_key} path metadata가 canonical contract와 다릅니다.")
@@ -359,7 +384,7 @@ def main() -> None:
 
     print(
         "[CPF][REF-DB-LIFECYCLE][PASS] "
-        f"vendors={len(official_vendors)} states=3 transitions=4 coreTables=7 batchTables=3 baselineOverlayTables=0"
+        f"vendors={len(official_vendors)} states=4 transitions=6 coreTables=7 batchTables=3 baselineOverlayTables=0"
     )
 
 

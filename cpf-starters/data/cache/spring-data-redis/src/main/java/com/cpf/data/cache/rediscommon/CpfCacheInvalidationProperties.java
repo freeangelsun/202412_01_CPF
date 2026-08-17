@@ -1,6 +1,6 @@
 package com.cpf.data.cache.rediscommon;
 
-import java.net.InetAddress;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import java.util.Objects;
 
 /** Durable cache invalidation consumer contract shared by cache providers and ADM. */
@@ -43,10 +43,7 @@ public class CpfCacheInvalidationProperties {
     }
 
     private static String defaultConsumerId() {
-        String host = "unknown-host";
-        // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-        try { host = InetAddress.getLocalHost().getHostName(); } catch (Exception ignored) { }
-        String instance = System.getenv().getOrDefault("CPF_INSTANCE_ID", "default");
-        return ("cache-" + host + "-" + instance).replaceAll("[^A-Za-z0-9._:-]", "-");
+        CpfInstanceIdentity.Identity identity = CpfInstanceIdentity.current();
+        return ("cache-" + identity.hostName() + "-" + identity.instanceId()).replaceAll("[^A-Za-z0-9._:-]", "-");
     }
 }

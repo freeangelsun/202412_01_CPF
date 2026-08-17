@@ -2,7 +2,7 @@ package com.cpf.messaging.jms;
 
 import com.cpf.core.api.context.CpfContexts;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import java.time.Clock;
@@ -22,7 +22,7 @@ import org.springframework.jms.core.JmsTemplate;
  * content-type metadata. Different input names that normalize to the same JMS property are rejected
  * before any broker side effect.</p>
  */
-public final class CpfJmsBrokerClient implements CpfBrokerClient {
+public final class CpfJmsBrokerClient implements CpfMessagingTemplate {
     private static final Set<String> RESERVED_PROPERTY_NAMES = Set.of(
             "cpfmessageid", "cpftransactionid", "cpfidempotencykey", "cpfcontenttype",
             "cpfsegmentid", "cpfproducermodule", "cpfconsumermodule",
@@ -45,7 +45,7 @@ public final class CpfJmsBrokerClient implements CpfBrokerClient {
     }
 
     @Override
-    public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+    public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
         if (!current.transaction().transactionId().equals(request.transactionId())) {

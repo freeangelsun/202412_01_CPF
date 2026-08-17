@@ -13,7 +13,7 @@ export interface LoginSuccessCommand {
   resultAccessTokenEnc?: string;
   resultExpireAt?: string;
   resultRefreshTokenEnc?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   transactionId?: string;
   upgradedPasswordHash?: string;
   userAgent?: string;

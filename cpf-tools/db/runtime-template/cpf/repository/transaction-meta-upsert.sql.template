@@ -17,7 +17,6 @@ ON DUPLICATE KEY UPDATE
     log_policy_key = COALESCE(VALUES(log_policy_key), log_policy_key),
     sensitive_yn = VALUES(sensitive_yn),
     masking_policy_key = COALESCE(VALUES(masking_policy_key), masking_policy_key),
-    active_yn = 'Y',
     last_detected_at = @NOW@,
     last_scanned_at = @NOW@,
     updated_by = VALUES(updated_by),

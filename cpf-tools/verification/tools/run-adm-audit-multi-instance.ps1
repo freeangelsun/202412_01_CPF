@@ -11,8 +11,8 @@ $dbUrl=Need 'CPF_AUDIT_DB_URL';$dbUser=Need 'CPF_AUDIT_DB_USER';$dbPassword=Need
 $stamp=Get-Date -Format 'yyyyMMdd_HHmmss';$logA=Join-Path $logRoot "instanceA_$stamp.log";$logB=Join-Path $logRoot "instanceB_$stamp.log";$resultLog=Join-Path $logRoot "result_$stamp.json"
 function Start-Adm([string]$Instance,[int]$Port,[string]$Log){
  $gradle=Join-Path $rootPath 'gradlew.bat'
- $gradleArgs=":apps:admin:bootRun --no-daemon --args=--server.port=$Port --cpf.instance-id=$Instance --spring.datasource.url=$dbUrl --spring.datasource.username=$dbUser --spring.datasource.password=$dbPassword"
- $cmdArgs="/d /s /c `"`"$gradle`" $gradleArgs`""
+ $gradleArgs=":apps:admin:bootRun --no-daemon --args=--server.port=$Port --spring.datasource.url=$dbUrl --spring.datasource.username=$dbUser --spring.datasource.password=$dbPassword"
+ $cmdArgs="/d /s /c `"set CPF_RUNTIME_INSTANCE_ID=$Instance&& `"`"$gradle`" $gradleArgs`""
  Start-Process -FilePath 'cmd.exe' -ArgumentList $cmdArgs -WorkingDirectory $rootPath -RedirectStandardOutput $Log -RedirectStandardError "$Log.err" -PassThru
 }
 function Await([int]$Port){for($i=0;$i -lt 90;$i++){try{Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/actuator/health" -TimeoutSec 2|Out-Null;return}catch{Start-Sleep 1}};throw "ADM 기동 확인 실패 port=$Port"}

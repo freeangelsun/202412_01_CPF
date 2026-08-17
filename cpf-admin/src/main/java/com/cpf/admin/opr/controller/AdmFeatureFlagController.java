@@ -1,7 +1,6 @@
 package com.cpf.admin.opr.controller;
 
-import com.cpf.web.api.CpfController;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import org.springframework.web.bind.annotation.RestController;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagContext;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagOperations;
 import com.cpf.platform.operations.api.featureflag.CpfFeatureFlagResult;
@@ -19,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Commercial ADM feature flag query and two-person controlled command API. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/platform/feature-flags")
 @Tag(name = "ADM-FeatureFlag", description = "Feature Flag 평가·Override·Kill Switch 운영 API")
 public final class AdmFeatureFlagController {
@@ -30,9 +29,7 @@ public final class AdmFeatureFlagController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")
-    @CpfOnlineTransaction(id = "OADMFF0010", name = "ADMFeatureFlagSearch", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagSearch", summary = "Feature Flag 검색")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")    @Operation(operationId = "admFeatureFlagSearch", summary = "Feature Flag 검색")
     public List<CpfFeatureFlagResult<CpfFeatureFlagValue>> search(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "0") int page,
@@ -43,9 +40,7 @@ public final class AdmFeatureFlagController {
     }
 
     @GetMapping("/{flagKey}")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")
-    @CpfOnlineTransaction(id = "OADMFF0011", name = "ADMFeatureFlagDetail", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagFind", summary = "Feature Flag 상세")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")    @Operation(operationId = "admFeatureFlagFind", summary = "Feature Flag 상세")
     public CpfFeatureFlagResult<CpfFeatureFlagValue> find(
             @PathVariable String flagKey, HttpServletRequest request) {
         operator(request);
@@ -53,9 +48,7 @@ public final class AdmFeatureFlagController {
     }
 
     @PostMapping("/evaluate")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")
-    @CpfOnlineTransaction(id = "OADMFF0012", name = "ADMFeatureFlagEvaluate", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagEvaluate", summary = "Typed Feature Flag 평가")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_READ')")    @Operation(operationId = "admFeatureFlagEvaluate", summary = "Typed Feature Flag 평가")
     public CpfFeatureFlagResult<CpfFeatureFlagValue> evaluate(
             @RequestBody EvaluateRequest body, HttpServletRequest request) {
         operator(request);
@@ -64,9 +57,7 @@ public final class AdmFeatureFlagController {
     }
 
     @PostMapping("/override-requests")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_WRITE')")
-    @CpfOnlineTransaction(id = "OADMFF0020", name = "ADMFeatureFlagOverrideRequest", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagRequestOverride", summary = "Override 승인 요청")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_WRITE')")    @Operation(operationId = "admFeatureFlagRequestOverride", summary = "Override 승인 요청")
     public Map<String, String> requestOverride(
             @RequestBody OverrideRequest body, HttpServletRequest request) {
         String operator = operator(request);
@@ -76,9 +67,7 @@ public final class AdmFeatureFlagController {
     }
 
     @PostMapping("/override-requests/{requestId}/approve")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_APPROVE')")
-    @CpfOnlineTransaction(id = "OADMFF0021", name = "ADMFeatureFlagOverrideApprove", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagApproveOverride", summary = "Override 승인")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_APPROVE')")    @Operation(operationId = "admFeatureFlagApproveOverride", summary = "Override 승인")
     public CpfFeatureFlagResult<CpfFeatureFlagValue> approve(
             @PathVariable String requestId,
             @RequestHeader("X-CPF-Risk-Confirmed") String riskConfirmed,
@@ -89,9 +78,7 @@ public final class AdmFeatureFlagController {
     }
 
     @PostMapping("/override-requests/{requestId}/revoke")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_WRITE')")
-    @CpfOnlineTransaction(id = "OADMFF0022", name = "ADMFeatureFlagOverrideRevoke", ownerDomain="ADM")
-    @Operation(operationId = "admFeatureFlagRevokeOverride", summary = "Override 회수")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_WRITE')")    @Operation(operationId = "admFeatureFlagRevokeOverride", summary = "Override 회수")
     public void revoke(
             @PathVariable String requestId,
             @RequestHeader("X-CPF-Risk-Confirmed") String riskConfirmed,
@@ -104,8 +91,7 @@ public final class AdmFeatureFlagController {
     /** Kill Switch는 Approval Engine의 독립 승인/Owner Command로만 변경합니다. */
     @Hidden
     @PostMapping("/{flagKey}/kill-switch")
-    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_KILL_SWITCH')")
-    @CpfOnlineTransaction(id = "OADMFF0023", name = "ADMFeatureFlagKillSwitchDirectRejected", ownerDomain="ADM")
+    @PreAuthorize("hasAuthority('ADM_FEATURE_FLAG_KILL_SWITCH')")    @Operation(operationId = "admFeatureFlagKillSwitchDirectRejected", summary = "Kill Switch 직접 실행 거절")
     public void setKillSwitch(@PathVariable String flagKey,@RequestBody KillSwitchRequest body,HttpServletRequest request) {
         operator(request);
         throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED,

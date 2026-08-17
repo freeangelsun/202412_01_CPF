@@ -1,1 +1,0 @@
-package org.springframework.core.env; public interface Environment {default <T>T getProperty(String k,Class<T> t,T d){return d;} default String getProperty(String k,String d){return d;} default String[] getActiveProfiles(){return new String[0];}}

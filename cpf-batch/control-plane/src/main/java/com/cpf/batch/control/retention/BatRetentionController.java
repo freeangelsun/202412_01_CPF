@@ -1,6 +1,6 @@
 package com.cpf.batch.control.retention;
 
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.platform.operations.api.retention.CpfRetentionCommand;
 import com.cpf.platform.operations.api.retention.CpfRetentionPolicy;
 import com.cpf.platform.operations.api.retention.CpfRetentionResult;
@@ -25,7 +25,7 @@ public class BatRetentionController {
     public ResponseEntity<?> targets() { return ResponseEntity.ok(operations.targets()); }
 
     @PostMapping("/execute")
-    @CpfOnlineTransaction(id = "OBATRT0001", name = "BatRetentionExecute", ownerDomain="BATCH")
+    @CpfOnlineTransaction(operationId = "OBATRT0001", name = "BatRetentionExecute", description = "BatRetentionExecute 거래")
     public ResponseEntity<?> execute(@RequestBody Request request, HttpServletRequest http) {
         Principal principal = http.getUserPrincipal();
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) return ResponseEntity.status(401).body(Map.of("message","인증 사용자가 필요합니다."));

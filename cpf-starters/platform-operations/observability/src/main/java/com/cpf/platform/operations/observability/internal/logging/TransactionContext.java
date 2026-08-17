@@ -30,9 +30,9 @@ public final class TransactionContext {
     public static final String HEADER_TRACEPARENT = CpfHeaderNames.TRACEPARENT;
     public static final String HEADER_TRACESTATE = CpfHeaderNames.TRACESTATE;
     public static final String HEADER_API_VERSION = CpfHeaderNames.API_VERSION;
-    public static final String HEADER_CLIENT_APP_ID = CpfHeaderNames.CLIENT_APP_ID;
+    public static final String HEADER_CLIENT_ID = CpfHeaderNames.CLIENT_ID;
     public static final String HEADER_CLIENT_VERSION = CpfHeaderNames.CLIENT_VERSION;
-    public static final String HEADER_CALLER_SERVICE = CpfHeaderNames.CALLER_SERVICE;
+    public static final String HEADER_CALLER_SYSTEM_CODE = CpfHeaderNames.CALLER_SYSTEM_CODE;
     public static final String HEADER_CALLER_INSTANCE_ID = CpfHeaderNames.CALLER_INSTANCE_ID;
     public static final String HEADER_CORRELATION_ID = CpfHeaderNames.CORRELATION_ID;
     public static final String HEADER_IDEMPOTENCY_KEY = CpfHeaderNames.IDEMPOTENCY_KEY;
@@ -40,9 +40,6 @@ public final class TransactionContext {
     public static final String HEADER_LOCALE = CpfHeaderNames.LOCALE;
     public static final String HEADER_TIMEZONE = CpfHeaderNames.TIMEZONE;
     public static final String HEADER_REQUEST_TYPE = CpfHeaderNames.REQUEST_TYPE;
-    public static final String HEADER_ORIGINAL_CHANNEL_CODE = CpfHeaderNames.ORIGINAL_CHANNEL_CODE;
-    public static final String HEADER_CHANNEL_CODE = CpfHeaderNames.CHANNEL_CODE;
-    public static final String HEADER_CHANNEL_DETAIL_CODE = CpfHeaderNames.CHANNEL_DETAIL_CODE;
     public static final String HEADER_MEMBER_NO = CpfHeaderNames.MEMBER_NO;
     public static final String HEADER_CUSTOMER_NO = CpfHeaderNames.CUSTOMER_NO;
     public static final String HEADER_USER_ID = CpfHeaderNames.USER_ID;
@@ -57,7 +54,7 @@ public final class TransactionContext {
     public static final String HEADER_FORWARDED_FOR = CpfHeaderNames.FORWARDED_FOR;
     public static final String HEADER_FORWARDED = CpfHeaderNames.FORWARDED;
     public static final String HEADER_REAL_IP = CpfHeaderNames.REAL_IP;
-    public static final String HEADER_CLIENT_COUNTRY_CODE = CpfHeaderNames.CLIENT_COUNTRY_CODE;
+    public static final String HEADER_CLIENT_COUNTRY_CODE = CpfHeaderNames.COUNTRY_CODE;
     public static final String HEADER_CLIENT_REGION_CODE = CpfHeaderNames.CLIENT_REGION_CODE;
     public static final String HEADER_CLIENT_TIMEZONE = CpfHeaderNames.CLIENT_TIMEZONE;
     public static final String HEADER_USER_AGENT = CpfHeaderNames.USER_AGENT;
@@ -215,14 +212,39 @@ public final class TransactionContext {
         return header != null ? header.getCorrelationId() : null;
     }
 
-    public static String originalChannelCode() {
+    public static String originalSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.originalSystemCode();
+        if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getOriginalChannelCode() : null;
+        return header != null ? header.getOriginalSystemCode() : null;
     }
 
-    public static String channelCode() {
+    public static String systemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.systemCode();
+        if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getChannelCode() : null;
+        return header != null ? header.getSystemCode() : null;
+    }
+
+    public static String callerSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.callerSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCallerSystemCode() : null;
+    }
+
+    public static String targetSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.targetSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getTargetSystemCode() : null;
+    }
+
+    public static String targetOperationId() {
+        String value = com.cpf.core.api.context.CpfContexts.targetOperationId();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getTargetOperationId() : null;
     }
 
     public static String channelDetailCode() {
@@ -230,14 +252,9 @@ public final class TransactionContext {
         return header != null ? header.getChannelDetailCode() : null;
     }
 
-    public static String clientAppId() {
+    public static String clientId() {
         TransactionHeader header = currentHeader();
-        return header != null ? header.getClientAppId() : null;
-    }
-
-    public static String callerService() {
-        TransactionHeader header = currentHeader();
-        return header != null ? header.getCallerService() : null;
+        return header != null ? header.getClientId() : null;
     }
 
     public static String userId() {

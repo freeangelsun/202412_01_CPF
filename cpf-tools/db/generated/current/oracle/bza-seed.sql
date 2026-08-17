@@ -277,7 +277,7 @@ ON (tgt.admin_login_id=src.admin_login_id)
 WHEN MATCHED THEN UPDATE SET tgt.admin_name=src.admin_name, tgt.role_code=src.role_code, tgt.use_yn=src.use_yn, tgt.lock_yn=src.lock_yn, tgt.login_fail_count=src.login_fail_count, tgt.password_change_required_yn=src.password_change_required_yn, tgt.password_expire_at=src.password_expire_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by) VALUES (src.admin_login_id, src.admin_name, src.password_hash, src.role_code, src.use_yn, src.lock_yn, src.login_fail_count, src.password_change_required_yn, src.password_expire_at, src.last_login_at, src.created_by, src.updated_by);
 
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, server_instance_id, created_by, updated_by)
+INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by)
 SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
        '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER

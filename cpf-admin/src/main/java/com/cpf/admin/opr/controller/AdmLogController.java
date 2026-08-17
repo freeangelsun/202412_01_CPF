@@ -1,7 +1,6 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmLogQueryService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,7 +22,7 @@ import java.util.Map;
  * <p>거래/Domain/Instance 축을 한 화면에서 교차 조회하여 다중 WAS 및 Generated Domain 장애를
  * transactionId 기준으로 추적할 수 있게 합니다.</p>
  */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/logs")
 @Tag(name = "ADM-Logs", description = "CPF 거래 로그 조회와 상세 포맷팅 API")
 public class AdmLogController extends com.cpf.admin.common.base.AdmBaseController {
@@ -34,9 +33,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
         this.logQueryService = logQueryService;
     }
 
-    @GetMapping
-    @CpfOnlineTransaction(id = "OADMOP0001", name = "ADMTransactionLogList", ownerDomain="ADM")
-    @Operation(operationId = "admLogFindLogs",
+    @GetMapping    @Operation(operationId = "admLogFindLogs",
             summary = "거래 로그 목록 조회",
             description = "transactionId/traceId와 자동 수집된 system/domain/application/instance/starter/capability/provider/operation 메타데이터를 기준으로 모든 Domain의 CPF DB 로그를 통합 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
@@ -49,28 +46,33 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             @RequestParam(required = false) String uri,
             @RequestParam(required = false) String responseCode,
             @RequestParam(required = false) Integer httpStatus,
-            @RequestParam(required = false) String channelCode,
+            @RequestParam(required = false) String clientId,
+            @RequestParam(required = false) String originalSystemCode,
+            @RequestParam(required = false) String systemCode,
+            @RequestParam(required = false) String callerSystemCode,
+            @RequestParam(required = false) String targetSystemCode,
+            @RequestParam(required = false) String targetOperationId,
             @RequestParam(required = false) String logType,
             @RequestParam(required = false) String moduleId,
             @RequestParam(required = false) String wasId,
-            @RequestParam(required = false) String serverInstanceId,
+            @RequestParam(required = false) String instanceId,
             @RequestParam(required = false) String hostName,
-            @RequestParam(required = false) String systemCode,
             @RequestParam(required = false) String domainCode,
             @RequestParam(required = false) String application,
             @RequestParam(required = false) String starterId,
             @RequestParam(required = false) String capabilityId,
             @RequestParam(required = false) String provider,
-            @RequestParam(required = false) String operation,
+            @RequestParam(required = false) String capabilityOperation,
             @RequestParam(defaultValue = "50") int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
             response.put("available", true);
             response.put("items", logQueryService.findLogs(
                     transactionId, traceId, businessTransactionId, memberNo, customerNo,
-                    uri, responseCode, httpStatus, channelCode, logType,
-                    moduleId, wasId, serverInstanceId, hostName,
-                    systemCode, domainCode, application, starterId, capabilityId, provider, operation, limit));
+                    uri, responseCode, httpStatus,
+                    clientId, originalSystemCode, systemCode, callerSystemCode, targetSystemCode, targetOperationId, logType,
+                    moduleId, wasId, instanceId, hostName,
+                    domainCode, application, starterId, capabilityId, provider, capabilityOperation, limit));
         } catch (DataAccessException ex) {
             log.error("ADM transaction log query failed.", ex);
             response.put("available", false);
@@ -80,9 +82,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{logIdx}")
-    @CpfOnlineTransaction(id = "OADMOP0002", name = "ADMTransactionLogDetail", ownerDomain="ADM")
-    @Operation(operationId = "admLogGetLogDetail",
+    @GetMapping("/{logIdx}")    @Operation(operationId = "admLogGetLogDetail",
             summary = "거래 로그 상세 조회",
             description = "거래 요약, 상세 로그, JSON pretty 결과와 고정길이 전문 Raw/Masked 값을 조회합니다. Layout Metadata가 연결된 경우에만 별도 필드 해석을 제공합니다.")
     public ResponseEntity<Map<String, Object>> getLogDetail(@PathVariable Long logIdx) {

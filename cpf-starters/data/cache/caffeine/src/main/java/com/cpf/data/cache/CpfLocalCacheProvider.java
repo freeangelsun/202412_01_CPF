@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Local 개발과 장애 격리용 Provider입니다.
  * 운영 Profile에서는 AutoConfiguration이 명시적으로 차단합니다.
  */
-public final class CpfLocalCacheProvider implements CpfCachePort, CpfDistributedLockPort {
+public final class CpfLocalCacheProvider implements CpfCache, CpfDistributedLockPort {
     private static final Duration MAX_LOCK_WAIT = Duration.ofMinutes(5);
     private static final Duration MAX_LOCK_LEASE = Duration.ofHours(1);
     private final ConcurrentHashMap<String, Entry> values = new ConcurrentHashMap<>();

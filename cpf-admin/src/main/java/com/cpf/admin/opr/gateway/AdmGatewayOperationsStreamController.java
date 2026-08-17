@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /** Gateway 운영 Event를 Last-Event-ID 기반으로 재개 가능한 SSE로 전달합니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/gateway-registry/operations")
 public final class AdmGatewayOperationsStreamController {
     private final ObjectProvider<CpfGatewayRegistryPort> portProvider;

@@ -33,10 +33,12 @@ public class TransactionSegmentRecord {
     private String memberNoMasked;
     private String userIdMasked;
     private String operatorIdMasked;
-    private String channelCode;
-    private String originalChannelCode;
-    private String clientAppId;
-    private String callerService;
+    private String systemCode;
+    private String originalSystemCode;
+    private String clientId;
+    private String callerSystemCode;
+    private String targetSystemCode;
+    private String targetOperationId;
     private String externalInstitutionCode;
     private String externalTransactionId;
     private String selectedInstanceId;
@@ -268,36 +270,52 @@ public class TransactionSegmentRecord {
         this.operatorIdMasked = operatorIdMasked;
     }
 
-    public String getChannelCode() {
-        return channelCode;
+    public String getSystemCode() {
+        return systemCode;
     }
 
-    public void setChannelCode(String channelCode) {
-        this.channelCode = channelCode;
+    public void setSystemCode(String systemCode) {
+        this.systemCode = systemCode;
     }
 
-    public String getOriginalChannelCode() {
-        return originalChannelCode;
+    public String getOriginalSystemCode() {
+        return originalSystemCode;
     }
 
-    public void setOriginalChannelCode(String originalChannelCode) {
-        this.originalChannelCode = originalChannelCode;
+    public void setOriginalSystemCode(String originalSystemCode) {
+        this.originalSystemCode = originalSystemCode;
     }
 
-    public String getClientAppId() {
-        return clientAppId;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientAppId(String clientAppId) {
-        this.clientAppId = clientAppId;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
-    public String getCallerService() {
-        return callerService;
+    public String getCallerSystemCode() {
+        return callerSystemCode;
     }
 
-    public void setCallerService(String callerService) {
-        this.callerService = callerService;
+    public void setCallerSystemCode(String callerSystemCode) {
+        this.callerSystemCode = callerSystemCode;
+    }
+
+    public String getTargetSystemCode() {
+        return targetSystemCode;
+    }
+
+    public void setTargetSystemCode(String targetSystemCode) {
+        this.targetSystemCode = targetSystemCode;
+    }
+
+    public String getTargetOperationId() {
+        return targetOperationId;
+    }
+
+    public void setTargetOperationId(String targetOperationId) {
+        this.targetOperationId = targetOperationId;
     }
 
     public String getExternalInstitutionCode() {

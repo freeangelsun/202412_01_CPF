@@ -1,6 +1,6 @@
 package com.cpf.data.persistence.mybatis;
 
-import com.cpf.data.persistence.api.database.CpfDataOperations;
+import com.cpf.data.persistence.api.database.CpfSqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -15,8 +15,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class CpfMyBatisDataOperationsAutoConfiguration {
     @Bean
     @ConditionalOnBean(name = {"cpfSqlSessionTemplate", "cpfTransactionManager"})
-    @ConditionalOnMissingBean(CpfDataOperations.class)
-    CpfDataOperations cpfDataOperations(
+    @ConditionalOnMissingBean(CpfSqlSession.class)
+    CpfSqlSession cpfDataOperations(
             @Qualifier("cpfSqlSessionTemplate") SqlSessionTemplate sessions,
             @Qualifier("cpfTransactionManager") PlatformTransactionManager transactionManager) {
         return new CpfMyBatisDataOperations(sessions, new TransactionTemplate(transactionManager));

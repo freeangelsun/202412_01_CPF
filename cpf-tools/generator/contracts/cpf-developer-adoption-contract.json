@@ -38,7 +38,7 @@
       "id": "external-integration",
       "labelKo": "외부 연계 호출",
       "ownership": "outside-cpf-domain-contract",
-      "goldenPath": "@CpfClient typed client + @CpfTimeout/@CpfRetry"
+      "goldenPath": "@CpfClient typed client + @CpfTimeLimiter/@CpfRetry"
     }
   ],
   "cpfVsNative": {
@@ -209,8 +209,8 @@
   ],
   "top20GoldenPath": [
     {
-      "name": "@CpfController",
-      "source": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java",
+      "name": "@CpfRestController",
+      "source": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfRestController.java",
       "when": "HTTP Controller 표준 경계"
     },
     {
@@ -224,8 +224,8 @@
       "when": "Repository/DAO 표준 경계"
     },
     {
-      "name": "@CpfTx",
-      "source": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTx.java",
+      "name": "@CpfTransactional",
+      "source": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTransactional.java",
       "when": "Local DB transaction"
     },
     {
@@ -239,8 +239,8 @@
       "when": "외부기관/외부시스템 typed client"
     },
     {
-      "name": "@CpfTimeout",
-      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java",
+      "name": "@CpfTimeLimiter",
+      "source": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java",
       "when": "외부 연계 deadline/timeout"
     },
     {
@@ -259,8 +259,8 @@
       "when": "공통 코드 필수 조회"
     },
     {
-      "name": "CpfMessageService.resolve",
-      "source": "cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageService.java",
+      "name": "CpfMessageSource.resolve",
+      "source": "cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java",
       "when": "표준 메시지 조회"
     },
     {

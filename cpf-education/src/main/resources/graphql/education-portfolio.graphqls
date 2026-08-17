@@ -1,6 +1,0 @@
-type Query {
-  schemaVersion: String!
-  portfolio(id: ID!): Portfolio
-}
-type Mutation { renamePortfolio(id: ID!, name: String!): Portfolio }
-type Portfolio { id: ID!, name: String!, accountIds: [ID!]!, accounts: [String!]! }

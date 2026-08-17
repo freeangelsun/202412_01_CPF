@@ -1,7 +1,8 @@
 package member.online.controller;
 
 import member.online.base.MemberBaseController;
-import com.cpf.web.api.CpfController;
+import com.cpf.web.api.CpfRestController;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
@@ -10,6 +11,6 @@ class SampleTransactionControllerContractTest {
     @Test void keepsThreeLayerControllerAndCpfAnnotation() {
         assertThat(MemberBaseController.class.getSuperclass().getSimpleName()).isEqualTo("CpfBaseController");
         assertThat(SampleTransactionController.class.getSuperclass()).isEqualTo(MemberBaseController.class);
-        assertThat(SampleTransactionController.class.getAnnotation(CpfController.class)).isNotNull();
+        assertThat(SampleTransactionController.class.getAnnotation(CpfRestController.class)).isNotNull();
     }
 }

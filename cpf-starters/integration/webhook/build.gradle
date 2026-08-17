@@ -3,7 +3,7 @@ group='com.cpf.starter'
 dependencies {
     implementation project(':framework:base-runtime')
     api project(':framework:integration')
-    api project(':framework:core')
+    implementation project(':framework:core')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 }
 tasks.named('test'){useJUnitPlatform()}

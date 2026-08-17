@@ -1,6 +1,8 @@
 package com.cpf.integration.http;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -80,6 +82,32 @@ class CpfTypedHttpClientTest {
         assertThrows(IllegalArgumentException.class, () -> client.execute(
                 "GET", URI.create("http://localhost/test"), null,
                 "application/json\nInjected: 1", "tx", null, Duration.ofSeconds(1)));
+    }
+
+
+    @Test
+    void externalRequestDoesNotLeakCpfTransactionHeaderAndSetsJsonContract() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<com.sun.net.httpserver.Headers> received = new java.util.concurrent.atomic.AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/headers", exchange -> {
+            received.set(exchange.getRequestHeaders());
+            exchange.sendResponseHeaders(200, 0);
+            exchange.close();
+        });
+        server.start();
+        try {
+            CpfTypedHttpClient client = client(1024);
+            URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/headers");
+            client.execute("POST", uri, "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                    "application/json", "tx-internal-only", "idem-1", Duration.ofSeconds(2));
+            var headers = received.get();
+            assertFalse(headers.containsKey("X-Transaction-Id"));
+            assertEquals("application/json", headers.getFirst("Content-Type"));
+            assertEquals("application/json", headers.getFirst("Accept"));
+            assertEquals("idem-1", headers.getFirst("Idempotency-Key"));
+        } finally {
+            server.stop(0);
+        }
     }
 
     @Test

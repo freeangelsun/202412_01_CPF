@@ -19,8 +19,8 @@
 - TOP 100은 수량 채우기가 아니다. 실제 Source에서 확인되는 Public API/Annotation/메소드/명령만 포함하고 Internal Starter·구현 전용 Class는 제외한다.
 - 각 항목은 최소 `기능/API`, `용도`, `필요 Starter/실행 경로`, `주요 옵션·선택 기준`, `상세 장`을 연결한다. 사용 조건·주의사항이 길면 표 셀에 넣지 말고 해당 상세 장으로 이동시킨다.
 - `callService` 같은 관용 표현을 실제 API명처럼 쓰지 않는다. 실제 공개 계약이 `CpfDomainClient.execute()`, `CpfServiceCaller.invoke()`처럼 존재하면 정확한 이름을 사용한다.
-- 외부 연계는 일반 업무 Client/Adapter에서 `@CpfClient + @CpfTimeout + @CpfRetry`를 사용하는 정책 적용과, Registry/Health/Failover를 직접 조합하는 고급 `CpfServiceCaller.invoke()` 경로를 구분한다.
-- Messaging은 일반 업무 발행의 Provider-neutral Publisher를 먼저 설명하고, `CpfBrokerClient.enqueue()` 같은 저수준/신뢰성 발행 API는 목적이 필요한 경우에만 후순위로 배치한다.
+- 외부 연계는 일반 업무 Client/Adapter에서 `@CpfClient + @CpfTimeLimiter + @CpfRetry`를 사용하는 정책 적용과, Registry/Health/Failover를 직접 조합하는 고급 `CpfServiceCaller.invoke()` 경로를 구분한다.
+- Messaging은 일반 업무 발행의 Provider-neutral Publisher를 먼저 설명하고, `CpfMessagingTemplate.enqueue()` 같은 저수준/신뢰성 발행 API는 목적이 필요한 경우에만 후순위로 배치한다.
 
 ## 1. 문서 목적
 
@@ -2189,13 +2189,13 @@ CPF 개발자 매뉴얼은 다음 세 가지를 동시에 제공해야 한다.
 - `@CpfController`, `@CpfService`, `@CpfRepository` / `@CpfDao`, `@CpfTx`
 - 동일 Application 내부의 직접 Service method 호출
 - `CpfDomainClient.execute()`와 `CpfResult`
-- 외부 Typed Client의 `@CpfClient`, `@CpfTimeout`, `@CpfRetry`
+- 외부 Typed Client의 `@CpfClient`, `@CpfTimeLimiter`, `@CpfRetry`
 - 고급 Service Call의 `CpfServiceCaller.invoke()`
 - `CpfContexts`의 거래·실행 식별자
-- `CpfCodeService`, `CpfMessageService`, `CpfParameterService`, `CpfCalendarService`
-- `@CpfLogging`, `@CpfPerformance`, `@CpfIdempotent`
+- `CpfCodeService`, `CpfMessageSource`, `CpfParameterService`, `CpfCalendarService`
+- `@CpfLogging`, `@CpfTimed`, `@CpfIdempotent`
 - `@CpfPermission`, `@CpfApprovalRequired`, `@CpfAudit`
-- `CpfCachePort`, `CpfCacheAsideService.getOrLoad()`
+- `CpfCache`, `CpfCacheAsideService.getOrLoad()`
 - Provider-neutral Messaging 발행/수신 API
 
 기능 수를 20개, 100개처럼 **숫자를 채우는 것을 목표로 하지 않는다.** 실제 Source와 Consumer를 기준으로 업무 개발자가 반복해서 선택하는 Surface를 선별한다.

@@ -1,5 +1,8 @@
 package com.cpf.admin.opr.centercut;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.batch.api.CpfBatchOwnerUnknownResultException;
 import com.cpf.batch.api.CpfBatchRiskCommand;
@@ -7,11 +10,10 @@ import com.cpf.data.api.CpfDataRow;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -30,12 +32,11 @@ public final class RemoteAdmCenterCutCommandClient implements AdmCenterCutComman
     public RemoteAdmCenterCutCommandClient(
             CpfServiceCaller caller,
             WebClient.Builder webClientBuilder,
-            AdmAuthenticatedOperatorContext operatorContext,
-            @Value("${cpf.framework.instance-id:adm-local-01}") String callerInstanceId) {
+            AdmAuthenticatedOperatorContext operatorContext) {
         this.caller = Objects.requireNonNull(caller, "caller");
         this.webClient = Objects.requireNonNull(webClientBuilder, "webClientBuilder").build();
         this.operatorContext = Objects.requireNonNull(operatorContext, "operatorContext");
-        this.callerInstanceId = required(callerInstanceId, "callerInstanceId");
+        this.callerInstanceId = CpfInstanceIdentity.current().instanceId();
     }
 
     @Override
@@ -55,16 +56,16 @@ public final class RemoteAdmCenterCutCommandClient implements AdmCenterCutComman
         String path = "/api/v1/batch/center-cut/executions/" + safeExecutionId + "/reconciliation-status";
         CpfServiceRequest request = CpfServiceRequest.builder(SERVICE_ID)
                 .endpointCode(ENDPOINT_CODE).httpMethod("GET").requestPath(path)
-                .header(CpfHeaders.callerService(), CALLER_SERVICE)
-                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), actor)
+                .header(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE)
+                .header(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId)
+                .header(BatControlHeaders.OPERATOR_ID, actor)
                 .attribute("ownerDomain", "BAT").attribute("callerDomain", "ADM").build();
         CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.get()
                 .uri(join(target.baseUrl(), path))
                 .headers(headers -> {
-                    headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-                    headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                    headers.set(CpfHeaders.operatorId(), actor);
+                    headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+                    headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                    headers.set(BatControlHeaders.OPERATOR_ID, actor);
                 }).retrieve().bodyToMono(Object.class).block());
         if (result.unknown() || !result.success() || result.responseBody() == null) return Map.of();
         return new LinkedHashMap<>(CpfDataRow.copyOf(result.responseBody()));
@@ -85,12 +86,12 @@ public final class RemoteAdmCenterCutCommandClient implements AdmCenterCutComman
                 .endpointCode(ENDPOINT_CODE)
                 .httpMethod("POST")
                 .requestPath(path)
-                .header(CpfHeaders.callerService(), CALLER_SERVICE)
-                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), approvedBy)
-                .header(CpfHeaders.idempotencyKey(), command.idempotencyKey())
-                .header(CpfHeaders.approvalRequestId(), command.approvalRequestId())
-                .header(CpfHeaders.approvalRequesterId(), command.requestUser())
+                .header(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE)
+                .header(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId)
+                .header(BatControlHeaders.OPERATOR_ID, approvedBy)
+                .header(CpfHttpHeaders.idempotencyKey(), command.idempotencyKey())
+                .header(BatControlHeaders.APPROVAL_REQUEST_ID, command.approvalRequestId())
+                .header(BatControlHeaders.APPROVAL_REQUESTER_ID, command.requestUser())
                 .attribute("ownerDomain", "BAT")
                 .attribute("callerDomain", "ADM")
                 .build();
@@ -98,12 +99,12 @@ public final class RemoteAdmCenterCutCommandClient implements AdmCenterCutComman
         CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.post()
                 .uri(join(target.baseUrl(), path))
                 .headers(headers -> {
-                    headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-                    headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                    headers.set(CpfHeaders.operatorId(), approvedBy);
-                    headers.set(CpfHeaders.idempotencyKey(), command.idempotencyKey());
-                    headers.set(CpfHeaders.approvalRequestId(), command.approvalRequestId());
-                    headers.set(CpfHeaders.approvalRequesterId(), command.requestUser());
+                    headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+                    headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                    headers.set(BatControlHeaders.OPERATOR_ID, approvedBy);
+                    headers.set(CpfHttpHeaders.idempotencyKey(), command.idempotencyKey());
+                    headers.set(BatControlHeaders.APPROVAL_REQUEST_ID, command.approvalRequestId());
+                    headers.set(BatControlHeaders.APPROVAL_REQUESTER_ID, command.requestUser());
                 })
                 .bodyValue(body)
                 .retrieve()

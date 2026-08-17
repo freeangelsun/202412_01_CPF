@@ -27,8 +27,8 @@
       "exists": true,
       "contract_found": true
     },
-    "@CpfTimeout": {
-      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java",
+    "@CpfTimeLimiter": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java",
       "exists": true,
       "contract_found": true
     },

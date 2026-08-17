@@ -2,7 +2,7 @@ package com.cpf.messaging.ibmmq;
 
 import com.cpf.core.api.context.CpfContexts;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import java.time.Clock;
@@ -23,7 +23,7 @@ import org.springframework.jms.core.JmsTemplate;
  * normalized and validated before the provider call so they cannot overwrite CPF metadata or
  * collapse into the same IBM MQ/JMS property name.</p>
  */
-public final class CpfIbmMqBrokerClient implements CpfBrokerClient {
+public final class CpfIbmMqBrokerClient implements CpfMessagingTemplate {
     private static final Pattern REASON_CODE = Pattern.compile("\\b(2[0-9]{3})\\b");
     private static final Set<String> RESERVED_PROPERTY_NAMES = Set.of(
             "cpfmessageid", "cpftransactionid", "cpfidempotencykey", "cpfcontenttype",
@@ -47,7 +47,7 @@ public final class CpfIbmMqBrokerClient implements CpfBrokerClient {
     }
 
     @Override
-    public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+    public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
         if (!current.transaction().transactionId().equals(request.transactionId())) {

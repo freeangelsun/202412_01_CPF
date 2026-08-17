@@ -41,6 +41,13 @@ def source_contracts(root:Path,module:str)->list[dict]:
             path=normalize(base,annotation_path(mapping.group(2)))
             # Product API coverage excludes static page controllers and non-product paths.
             if not path.startswith(prefix):continue
+            # @Hidden is normally declared before the mapping annotation. Inspect only the current
+            # method annotation block (after the previous method/field terminator), not arbitrary
+            # preceding text, so a previous hidden method cannot suppress the next public one.
+            before=text[:mapping.start()]
+            boundary=max(before.rfind('}'),before.rfind(';'))
+            annotation_block=before[boundary+1:]
+            if re.search(r'@Hidden\b',annotation_block):continue
             scope,method=operation_scope(text,mapping.end())
             if re.search(r'@Hidden\b',scope):continue
             operation=OPERATION.search(scope);operation_id=''

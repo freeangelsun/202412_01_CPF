@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.DownloadAuditLog;
 import com.cpf.admin.opr.dto.DownloadPolicy;
 import com.cpf.admin.opr.dto.DownloadRequest;
@@ -54,7 +54,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         this.auditLogService = auditLogService;
     }
 
-    @CpfTx(id="ADM_ADMDOWNLOADSERVICE_DOWNLOADCSV", name="ADM_ADMDOWNLOADSERVICE_DOWNLOADCSV", ownerDomain="ADM", transactionManager="admTransactionManager")
+    @CpfTransactional(transactionManager="admTransactionManager")
     public DownloadResult downloadCsv(DownloadRequest request, String operatorId, String clientIp, String userAgent) {
         DownloadPolicy policy = resolvePolicy(request.downloadType());
         String reason = auditLogService.requireReason(request.reason());
@@ -204,7 +204,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
 
     private QuerySpec transactionLogQuery(DownloadRequest request, boolean errorOnly) {
         StringBuilder sql = new StringBuilder("""
-                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, SERVER_INSTANCE_ID,
+                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID,
                        HOST_NAME, PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID,
                        LOG_TYPE, REQUEST_TYPE, CHANNEL_CODE, MEMBER_NO, CUSTOMER_NO, HTTP_METHOD,
                        URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, START_TIME, END_TIME, DURATION_MS

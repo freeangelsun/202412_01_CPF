@@ -8,18 +8,22 @@ export interface AdmLogFindLogsParams {
   uri?: string;
   responseCode?: string;
   httpStatus?: number;
-  channelCode?: string;
+  clientId?: string;
+  originalSystemCode?: string;
+  systemCode?: string;
+  callerSystemCode?: string;
+  targetSystemCode?: string;
+  targetOperationId?: string;
   logType?: string;
   moduleId?: string;
   wasId?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   hostName?: string;
-  systemCode?: string;
   domainCode?: string;
   application?: string;
   starterId?: string;
   capabilityId?: string;
   provider?: string;
-  operation?: string;
+  capabilityOperation?: string;
   limit?: number;
 }

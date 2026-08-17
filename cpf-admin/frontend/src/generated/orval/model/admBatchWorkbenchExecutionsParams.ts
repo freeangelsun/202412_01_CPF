@@ -5,7 +5,7 @@ export interface AdmBatchWorkbenchExecutionsParams {
   springBatchJobInstanceId?: number;
   status?: string;
   workerId?: string;
-  serverInstanceId?: string;
+  instanceId?: string;
   fromDate?: string;
   toDate?: string;
   page?: number;

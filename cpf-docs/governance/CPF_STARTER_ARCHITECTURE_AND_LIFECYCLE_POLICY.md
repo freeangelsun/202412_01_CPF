@@ -172,3 +172,14 @@ Generator Template/Generated build.gradle의 Internal Artifact 직접 참조는 
 - `verified_sha`: Build/Test/Runtime/Evidence를 실제 실행한 exact SHA다.
 
 `currentization_source_sha`를 이후 세션의 영구적인 "현재 master"로 해석하지 않는다. 완료 판정과 Evidence는 `verified_sha`를 기준으로 한다.
+
+## Current-State 관리 Application과 업무 Domain Runtime 경계
+
+ADM(`cpf-admin`), BZA(`cpf-biz-admin`), Gateway는 생성형 업무 Domain의 Online Transaction Runtime이 아니다. 자체 관리 API에는 `@CpfOnlineTransaction`, CPF 표준 거래 Header 6개, 업무 Operation Caller/Target 통제를 강제하지 않는다. 이들 Application은 Spring Web/Security/Validation/OpenAPI와 각 Owner Module의 Public Starter/API를 사용한다.
+
+관리 Application Source가 `cpf-core` internal 구현이나 업무 Domain internal package를 직접 import하는 것은 금지한다. Public Starter가 내부적으로 topology-independent `cpf-core` 계약을 transitive하게 소비하거나, 정당한 `cpf-core` Public Contract를 직접 소비하는 것은 허용한다.
+
+관리 API가 실제 업무 Domain Operation을 호출할 때는 관리 Controller 자체를 업무 거래로 바꾸지 않는다. `관리 Controller -> Domain Client/Public API -> 업무 Domain Operation`의 outbound 경계부터 CPF Domain Client가 거래 Context를 생성·전파하며, 원격 호출은 Framework가 표준 거래 Header를 serialize하고 동일 JVM은 논리 Context로 전달한다.
+
+Fixed Length/Webhook/HTTP 등 업무 개발자가 사용하는 기능은 **Public Contract/API와 Internal/Provider 구현을 분리**한다. 업무 Domain과 EDU는 Public 계약만 의존하며 Internal Starter/package를 직접 import하지 않는다.
+

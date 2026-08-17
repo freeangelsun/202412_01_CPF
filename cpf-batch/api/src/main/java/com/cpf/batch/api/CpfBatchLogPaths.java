@@ -1,6 +1,6 @@
 package com.cpf.batch.api;
 
-import com.cpf.platform.operations.observability.api.logging.CpfServerIdentity;
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
  * BAT JobInstance 파일 로그의 표준 상대 경로를 계산하는 공개 API입니다.
  *
  * <p>다중 인스턴스 환경에서 동일 JobInstance가 다른 서버에서 재시작될 수 있으므로
- * serverInstanceId를 디렉터리와 파일명 축에 포함합니다. BAT/ADM/EDU는 Core 내부
+ * instanceId를 디렉터리와 파일명 축에 포함합니다. BAT/ADM/EDU는 Core 내부
  * Logging 구현을 직접 참조하지 않고 이 공개 규칙을 사용합니다.</p>
  */
 public final class CpfBatchLogPaths {
@@ -23,7 +23,7 @@ public final class CpfBatchLogPaths {
             String jobName,
             long jobInstanceId,
             LocalDate businessDate,
-            String serverInstanceId) {
+            String instanceId) {
         if (jobName == null || jobName.isBlank()) {
             throw new IllegalArgumentException("jobName은 필수입니다.");
         }
@@ -34,15 +34,15 @@ public final class CpfBatchLogPaths {
             throw new IllegalArgumentException("businessDate는 필수입니다.");
         }
         String safeJobName = sanitize(jobName);
-        String safeServerInstanceId = sanitize(serverInstanceId);
+        String safeInstanceId = sanitize(instanceId);
         String date = BUSINESS_DATE_FORMATTER.format(businessDate);
         return Path.of(
                 "bat",
                 "jobs",
                 date,
                 safeJobName,
-                safeServerInstanceId,
-                "cpf-bat-" + safeJobName + '-' + jobInstanceId + '-' + safeServerInstanceId + '-' + date + ".log");
+                safeInstanceId,
+                "cpf-bat-" + safeJobName + '-' + jobInstanceId + '-' + safeInstanceId + '-' + date + ".log");
     }
 
     public static Path relativePath(String jobName, long jobInstanceId, LocalDate businessDate) {
@@ -50,7 +50,7 @@ public final class CpfBatchLogPaths {
                 jobName,
                 jobInstanceId,
                 businessDate,
-                CpfServerIdentity.current().serverInstanceId());
+                CpfInstanceIdentity.current().instanceId());
     }
 
     public static String sanitize(String value) {

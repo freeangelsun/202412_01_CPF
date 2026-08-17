@@ -1,6 +1,7 @@
 package com.cpf.batch.control.centercut;
 
 import com.cpf.batch.api.CenterCutExecutionRequest;
+import com.cpf.batch.api.CpfCenterCutOperations;
 import com.cpf.batch.runtime.CenterCutParameterProtector;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
@@ -17,7 +18,7 @@ import java.util.*;
  * UNKNOWN_RESULT는 자동 Resume되지 않고 명시적 Reconciliation을 거쳐야 합니다.
  */
 @Service
-public class CenterCutExecutionService {
+public class CenterCutExecutionService implements CpfCenterCutOperations {
     private final JdbcTemplate jdbc;
     private final ObjectMapper mapper;
     private final CenterCutParameterProtector protector;
@@ -32,8 +33,9 @@ public class CenterCutExecutionService {
         this.sql = sqlCatalogProvider.forModule("bat");
     }
 
+    @Override
     @Transactional
-    public Map<String, Object> create(CenterCutExecutionRequest request) throws Exception {
+    public Map<String, Object> launch(CenterCutExecutionRequest request) throws Exception {
         List<Map<String, Object>> existing = jdbc.queryForList(
                 sql.required("centercut-execution-find-by-idempotency"), request.idempotencyKey());
         if (!existing.isEmpty()) return existing.getFirst();
@@ -56,9 +58,19 @@ public class CenterCutExecutionService {
         return detail(executionId);
     }
 
-    public Map<String, Object> detail(String id) {
+    @Override
+    public Map<String, Object> status(String id) {
         return jdbc.queryForMap(sql.required("centercut-execution-detail"), id);
     }
+
+
+    /** @deprecated 내부 호환 호출은 public launch API로 이관합니다. */
+    @Deprecated(forRemoval = true)
+    public Map<String, Object> create(CenterCutExecutionRequest request) throws Exception { return launch(request); }
+
+    /** @deprecated 내부 호환 호출은 public status API로 이관합니다. */
+    @Deprecated(forRemoval = true)
+    public Map<String, Object> detail(String id) { return status(id); }
 
     @Transactional
     public Map<String, Object> transition(String id, String action, String requestedBy,

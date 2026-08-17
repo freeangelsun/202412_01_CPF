@@ -18,7 +18,7 @@ dependencies {
     implementation project(':framework:operations')
     implementation project(':internal:platform-operations:runtime-control')
     implementation project(':internal:messaging:reliability:jdbc')
-    implementation project(':internal:integration:fixed-length')
+    implementation project(':starters:integration:fixed-length')
     implementation project(':framework:file')
     implementation project(':runtime:gateway')
     // ADM Dynamic Log/Trace 운영 화면이 실제 runtime bean을 제어하므로 선택 Observability 구현을 명시합니다.

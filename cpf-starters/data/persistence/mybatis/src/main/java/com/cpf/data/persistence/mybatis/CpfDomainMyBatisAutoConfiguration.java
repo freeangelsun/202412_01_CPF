@@ -1,6 +1,6 @@
 package com.cpf.data.persistence.mybatis;
 
-import com.cpf.data.persistence.api.database.CpfDataOperations;
+import com.cpf.data.persistence.api.database.CpfSqlSession;
 import com.cpf.data.persistence.mybatis.CpfSqlResources;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -37,8 +37,8 @@ public class CpfDomainMyBatisAutoConfiguration {
         return new SqlSessionTemplate(factory);
     }
     @Bean
-    @ConditionalOnMissingBean(CpfDataOperations.class)
-    CpfDataOperations cpfDataOperations(
+    @ConditionalOnMissingBean(CpfSqlSession.class)
+    CpfSqlSession cpfDataOperations(
             @Qualifier("cpfDomainSqlSessionTemplate") SqlSessionTemplate session,
             @Qualifier("cpfDomainTransactionManager") PlatformTransactionManager transactionManager) {
         return new CpfMyBatisDataOperations(session, new TransactionTemplate(transactionManager));

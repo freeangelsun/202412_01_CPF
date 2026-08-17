@@ -7,7 +7,7 @@ import com.cpf.data.cache.api.CpfCacheInvalidationEvent;
 import com.cpf.data.cache.api.CpfCacheInvalidationPort;
 import com.cpf.data.cache.api.CpfCacheKey;
 import com.cpf.data.cache.api.CpfCacheMetricsSnapshot;
-import com.cpf.data.cache.api.CpfCachePort;
+import com.cpf.data.cache.api.CpfCache;
 import com.cpf.data.cache.api.CpfCacheValue;
 import java.time.Duration;
 import java.time.Instant;
@@ -50,7 +50,7 @@ class CpfCacheInvalidationCoordinatorTest {
         assertEquals(1, ledger.checkpoint("cache-test-02"));
     }
 
-    private static final class FakeCache implements CpfCachePort {
+    private static final class FakeCache implements CpfCache {
         int evictions;
         @Override public CpfCacheValue get(CpfCacheKey key) { return CpfCacheValue.miss(); }
         @Override public void put(CpfCacheKey key, CpfCacheValue value, Duration ttl) { }

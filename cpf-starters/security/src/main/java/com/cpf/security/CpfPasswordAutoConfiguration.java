@@ -1,9 +1,9 @@
 package com.cpf.security;
 
 import com.cpf.security.api.CpfPasswordRuntimePolicy;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.security.internal.password.CpfPasswordHashingPort;
-import com.cpf.security.internal.password.CpfPasswordServiceAdapter;
+import com.cpf.security.internal.password.CpfPasswordEncoderAdapter;
 import com.cpf.security.internal.password.CpfPbkdf2PasswordHasher;
 import java.util.Arrays;
 import java.util.Set;
@@ -50,10 +50,10 @@ public class CpfPasswordAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(CpfPasswordService.class)
-    CpfPasswordService cpfPasswordService(
+    @ConditionalOnMissingBean(CpfPasswordEncoder.class)
+    CpfPasswordEncoder cpfPasswordEncoder(
             CpfPasswordHashingPort hashingPort,
             CpfPasswordRuntimePolicy runtimePolicy) {
-        return new CpfPasswordServiceAdapter(hashingPort, () -> runtimePolicy);
+        return new CpfPasswordEncoderAdapter(hashingPort, () -> runtimePolicy);
     }
 }

@@ -17,7 +17,6 @@ ON CONFLICT (transaction_id) DO UPDATE SET
     log_policy_key = COALESCE(EXCLUDED.log_policy_key, cpf_transaction_meta.log_policy_key),
     sensitive_yn = EXCLUDED.sensitive_yn,
     masking_policy_key = COALESCE(EXCLUDED.masking_policy_key, cpf_transaction_meta.masking_policy_key),
-    active_yn = 'Y',
     last_detected_at = CURRENT_TIMESTAMP,
     last_scanned_at = CURRENT_TIMESTAMP,
     updated_by = EXCLUDED.updated_by,

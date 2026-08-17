@@ -2,11 +2,10 @@ package com.cpf.admin.opr.capability;
 
 import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.admin.opr.health.AdmHealthInstanceRegistry;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.platform.operations.api.health.CpfDependencyHealth;
 import com.cpf.platform.operations.api.health.CpfHealthStatus;
 import com.cpf.platform.operations.api.health.CpfRuntimeHealth;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Public Starter/Capability의 자동 Runtime registration을 ADM 공통 운영 관점으로 집계합니다.
  * System/Domain/Application/Instance/Starter 정보는 Runtime이 자동 보고하며 운영자 수기 등록을 요구하지 않습니다.
  */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/capability-management")
 @Tag(name="ADM-CapabilityManagement", description="시스템/도메인/인스턴스별 CPF Capability 상태·이슈 통합 관제")
 public class AdmCapabilityManagementController extends AdmBaseController {
@@ -33,9 +32,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
     private final AdmHealthInstanceRegistry registry;
     public AdmCapabilityManagementController(AdmHealthInstanceRegistry registry){this.registry=registry;}
 
-    @GetMapping("/overview")
-    @CpfOnlineTransaction(id="OADMCP0010",name="ADMCapabilityOverview",ownerDomain="ADM")
-    @Operation(operationId="admCapabilityManagementOverview", summary="CPF Capability Fleet 통합 현황")
+    @GetMapping("/overview")    @Operation(operationId="admCapabilityManagementOverview", summary="CPF Capability Fleet 통합 현황")
     public ResponseEntity<Overview> overview(
             @RequestParam(required=false) String environment,
             @RequestParam(required=false) String systemCode,
@@ -79,9 +76,7 @@ public class AdmCapabilityManagementController extends AdmBaseController {
         return ResponseEntity.ok(new Overview(items,total,issueCount,downCount,unknownCount,safePage,safeSize));
     }
 
-    @GetMapping("/issues")
-    @CpfOnlineTransaction(id="OADMCP0020",name="ADMCapabilityIssues",ownerDomain="ADM")
-    @Operation(operationId="admCapabilityManagementIssues", summary="CPF Capability 장애·UNKNOWN 현황")
+    @GetMapping("/issues")    @Operation(operationId="admCapabilityManagementIssues", summary="CPF Capability 장애·UNKNOWN 현황")
     public ResponseEntity<List<IssueView>> issues(
             @RequestParam(required=false) String systemCode,
             @RequestParam(required=false) String systemId,

@@ -1,11 +1,12 @@
 package com.cpf.web.internal.openapi;
 
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
+import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.core.api.version.CpfPlatformVersion;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import com.cpf.web.context.CpfHttpHeaderNames;
-import com.cpf.web.api.openapi.CpfOpenApiOperations;
+import com.cpf.web.context.CpfOperationIdResolver;
+import com.cpf.web.api.openapi.CpfOpenAPIOperations;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -102,30 +103,30 @@ public class CpfOpenApiAutoConfiguration {
     @Bean
     public OperationCustomizer cpfTransactionHeaderOperationCustomizer() {
         return (operation, handlerMethod) -> {
-            OnlineTransactionMetadata standard = findOnlineTransaction(handlerMethod);
-            if (standard == null) {
-                addHeader(operation, CpfHttpHeaderNames.TRACEPARENT, false, "W3C 분산 추적 traceparent입니다.");
-                addHeader(operation, CpfHttpHeaderNames.CORRELATION_ID, false, "외부 시스템과 함께 보는 선택 상관관계 ID입니다.");
-                return operation;
+            OnlineTransactionMetadata online = findOnlineTransaction(handlerMethod);
+            if (online != null) {
+                // External ingress does not have to provide these values. CPF internal generated clients/runtime do.
+                addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, false,
+                        "CPF transaction ID. External ingress may omit it; CPF generates one. Internal CPF hops propagate it automatically.");
+                addHeader(operation, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, false,
+                        "CPF internal protocol value managed by the runtime. External clients must not assert it.");
+                addHeader(operation, CpfHttpHeaderNames.SYSTEM_CODE, false,
+                        "CPF internal current/receiving system code managed by the runtime.");
+                addHeader(operation, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, false,
+                        "CPF internal immediate caller system code managed by the runtime.");
+                addHeader(operation, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, false,
+                        "CPF internal target system code managed by the runtime.");
+                addHeader(operation, CpfHttpHeaderNames.TARGET_OPERATION_ID, false,
+                        "CPF internal canonical operationId. Runtime validates it against the resolved handler before Controller execution.");
             }
-            addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, true, "CPF 거래 상관관계 ID입니다.");
-            addHeader(operation, CpfHttpHeaderNames.STANDARD_EXECUTION_ID, false,
-                    "호출 대상 표준 실행 ID입니다. 대상 값 " + standard.id() + "와 일치해야 합니다.");
-            addHeader(operation, CpfHttpHeaderNames.PROTOCOL_VERSION, false, "CPF 호출 규격 버전입니다.");
-            addHeader(operation, CpfHttpHeaderNames.TRACEPARENT, false, "W3C 분산 추적 traceparent입니다.");
-            addHeader(operation, CpfHttpHeaderNames.CORRELATION_ID, false, "외부 시스템과 함께 보는 상관관계 ID입니다.");
-            addHeader(operation, CpfHttpHeaderNames.IDEMPOTENCY_KEY, false, "중복 처리 방지를 위한 멱등 키입니다.");
-            addHeader(operation, CpfHttpHeaderNames.API_VERSION, false, "호출 API 버전입니다.");
-            addHeader(operation, CpfHttpHeaderNames.ORIGINAL_CHANNEL_CODE, true, "최초 유입 채널 코드입니다.");
-            addHeader(operation, CpfHttpHeaderNames.CHANNEL_CODE, true, "현재 처리 채널 코드입니다.");
-            addHeader(operation, CpfHttpHeaderNames.REQUEST_TYPE, true, "요청 유형입니다.");
-            addHeader(operation, CpfHttpHeaderNames.USER_ID, false, "사용자 ID입니다.");
-            addHeader(operation, CpfHttpHeaderNames.OPERATOR_ID, false, "운영자 ID입니다.");
-            addHeader(operation, CpfHttpHeaderNames.SCREEN_ID, false, "화면 또는 메뉴 식별자입니다.");
-            addHeader(operation, CpfHttpHeaderNames.DEVICE_ID, false, "단말 또는 디바이스 식별자입니다.");
-            addHeader(operation, CpfHttpHeaderNames.LOCALE, false, "클라이언트 Locale입니다.");
-            addHeader(operation, CpfHttpHeaderNames.CLIENT_TIMEZONE, false, "클라이언트 시간대입니다.");
-            addHeader(operation, CpfHttpHeaderNames.CLIENT_IP, false, "클라이언트 IP입니다.");
+            addHeader(operation, CpfHttpHeaderNames.COUNTRY_CODE, false, "Client/service country code when supplied by contract.");
+            addHeader(operation, CpfHttpHeaderNames.CLIENT_ID, false, "Client/application identifier; not a security authority by itself.");
+            addHeader(operation, CpfHttpHeaderNames.CLIENT_INSTANCE_ID, false, "Client installation/runtime instance identifier.");
+            addHeader(operation, CpfHttpHeaderNames.CLIENT_VERSION, false, "Client/application version.");
+            addHeader(operation, CpfHttpHeaderNames.DEVICE_ID, false, "Device identifier subject to masking policy.");
+            addHeader(operation, CpfHttpHeaderNames.TRACEPARENT, false, "W3C distributed traceparent.");
+            addHeader(operation, CpfHttpHeaderNames.CORRELATION_ID, false, "Optional external correlation identifier.");
+            addHeader(operation, CpfHttpHeaderNames.IDEMPOTENCY_KEY, false, "Idempotency key when the operation contract uses one.");
             return operation;
         };
     }
@@ -138,9 +139,9 @@ public class CpfOpenApiAutoConfiguration {
 
 
     @Bean
-    @ConditionalOnMissingBean(CpfOpenApiOperations.class)
-    public CpfOpenApiOperations cpfOpenApiOperations(CpfOpenApiProperties properties, RequestMappingHandlerMapping mappings) {
-        return new DefaultCpfOpenApiOperations(properties, mappings, Clock.systemUTC());
+    @ConditionalOnMissingBean(CpfOpenAPIOperations.class)
+    public CpfOpenAPIOperations cpfOpenApiOperations(CpfOpenApiProperties properties, RequestMappingHandlerMapping mappings) {
+        return new DefaultCpfOpenAPIOperations(properties, mappings, Clock.systemUTC());
     }
 
     /**
@@ -150,10 +151,11 @@ public class CpfOpenApiAutoConfiguration {
      * Controller, 메서드, 파라미터 타입을 조합하므로 메서드 오버로드도 서로 다른 ID를 가집니다.</p>
      */
     @Bean
-    public OperationCustomizer cpfOperationIdCustomizer() {
+    public OperationCustomizer cpfOperationIdCustomizer(CpfOperationIdResolver resolver) {
         return (operation, handlerMethod) -> {
+            String canonical = resolver.resolve(handlerMethod);
             if (operation.getOperationId() == null || operation.getOperationId().isBlank()) {
-                operation.setOperationId(generatedOperationId(handlerMethod));
+                operation.setOperationId(canonical);
             }
             return operation;
         };

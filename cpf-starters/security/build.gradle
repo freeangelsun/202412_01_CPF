@@ -7,6 +7,7 @@ dependencies {
     api project(':framework:base-runtime')
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     implementation 'org.springframework:spring-context'
+    compileOnly 'org.springframework.security:spring-security-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }

@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.service;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.dto.AdmLogExportRequest;
 import com.cpf.admin.opr.dto.AdmLogExportResponse;
 import com.cpf.core.api.error.CpfValidationException;
@@ -66,7 +66,7 @@ public class AdmLogExportService {
         this.clock = clock;
     }
 
-    @CpfTx(id="ADM_ADMLOGEXPORTSERVICE_CREATE", name="ADM_ADMLOGEXPORTSERVICE_CREATE", ownerDomain="ADM")
+    @CpfTransactional
     public AdmLogExportResponse create(AdmLogExportRequest request, String actor, String clientIp) {
         String operator = required(actor, "인증 운영자 정보가 없습니다.");
         String reason = auditLogService.requireReason(request == null ? null : request.reason());
@@ -115,7 +115,7 @@ public class AdmLogExportService {
                 exportId, "READY", fileName, downloadUrl, clipboardContent, expiresAt, watermark);
     }
 
-    @CpfTx(id="ADM_ADMLOGEXPORTSERVICE_READ", name="ADM_ADMLOGEXPORTSERVICE_READ", ownerDomain="ADM")
+    @CpfTransactional
     public DownloadArtifact read(String exportId, String actor, String clientIp) {
         String operator = required(actor, "인증 운영자 정보가 없습니다.");
         String id = required(exportId, "Export ID가 필요합니다.");

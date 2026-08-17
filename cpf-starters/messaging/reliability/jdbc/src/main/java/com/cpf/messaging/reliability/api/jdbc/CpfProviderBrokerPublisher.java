@@ -13,12 +13,12 @@ import java.util.Objects;
 /** Internal worker adapter that performs the actual Provider publish after an outbox claim. */
 /** CpfProviderBrokerPublisher는 메시징 신뢰성 경계에서 중복 방지·재시도·결과불명 복구 책임을 명확히 수행합니다. */
 public final class CpfProviderBrokerPublisher implements CpfBrokerPublisher {
-    private final CpfBrokerClientRouter router;
+    private final CpfMessagingTemplateRouter router;
     private final Clock clock;
     private final CpfMessageBridgeContextSupport contextSupport;
 
     /** CpfProviderBrokerPublisher 작업을 CPF 메시징 신뢰성 정책과 상태 전이 규칙에 따라 수행합니다. */
-    public CpfProviderBrokerPublisher(CpfBrokerClientRouter router, Clock clock, CpfMessageBridgeContextSupport contextSupport) {
+    public CpfProviderBrokerPublisher(CpfMessagingTemplateRouter router, Clock clock, CpfMessageBridgeContextSupport contextSupport) {
         this.router = Objects.requireNonNull(router, "router");
         this.clock = Objects.requireNonNull(clock, "clock");
         this.contextSupport = Objects.requireNonNull(contextSupport, "contextSupport");
@@ -44,7 +44,7 @@ public final class CpfProviderBrokerPublisher implements CpfBrokerPublisher {
         try {
             var bundle = contextSupport.extractInbound("OUTBOX", envelope.message().messageId(), envelope.message().topic(), envelope.producerModule(), envelope.consumerModule(), null, null, 1, false, null, null, envelope.message().headers(), null);
             final CpfBrokerPublishResult[] holder = new CpfBrokerPublishResult[1];
-            contextSupport.consume(bundle, () -> holder[0] = router.enqueue(request));
+            contextSupport.consume(bundle, () -> holder[0] = router.send(request));
             providerResult = holder[0];
         // 실패를 성공으로 오인하지 않고 재시도 가능 여부와 결과불명 복구 경로를 보존합니다.
         } catch (IllegalArgumentException | SecurityException deterministicFailure) {

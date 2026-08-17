@@ -1,7 +1,7 @@
 package com.cpf.bizadmin.operation.service;
 
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.foundation.annotation.CpfService;
 import com.cpf.bizadmin.audit.service.BzaBusinessAuditService;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
@@ -10,7 +10,7 @@ import com.cpf.bizadmin.operation.repository.BzaOperationRepository;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.foundation.api.page.CpfPage;
 import com.cpf.foundation.api.page.CpfPageRequest;
-import com.cpf.security.api.password.CpfPasswordService;
+import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.foundation.util.CpfStrings;
 import java.util.*;
 
@@ -20,14 +20,14 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   private static final Set<String> HTTP_METHODS =
       Set.of("GET", "POST", "PUT", "PATCH", "DELETE", "ALL");
   private final BzaOperationRepository repository;
-  private final CpfPasswordService passwordHashingPort;
+  private final CpfPasswordEncoder passwordHashingPort;
   private final BzaBusinessAuditService auditService;
   private final BzaAuthRepository authRepository;
 
   /** BzaOperationService 작업을 CPF 표준 계약에 따라 수행한다. */
   public BzaOperationService(
       BzaOperationRepository repository,
-      CpfPasswordService passwordHashingPort,
+      CpfPasswordEncoder passwordHashingPort,
       BzaBusinessAuditService auditService,
       BzaAuthRepository authRepository) {
     this.repository = repository;
@@ -96,7 +96,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
     return repository.findDownloadPolicies();
   }
 
-  @CpfTx(id="BZA_BZAOPERATIONSERVICE_SAVEADMINUSER", name="BZA_BZAOPERATIONSERVICE_SAVEADMINUSER", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   /** saveAdminUser 작업을 CPF 표준 계약에 따라 수행한다. */
   public Map<String, Object> saveAdminUser(AdminUserRequest r, String operatorId) {
     String login = required(r.loginId(), "loginId"), actor = required(operatorId, "operatorId");
@@ -144,7 +144,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   }
 
   // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-  @CpfTx(id="BZA_BZAOPERATIONSERVICE_SAVEMENU", name="BZA_BZAOPERATIONSERVICE_SAVEMENU", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveMenu(MenuRequest r, String operatorId) {
     String key = code(r.menuCode(), "menuCode"), actor = required(operatorId, "operatorId");
     Map<String, Object> before = repository.findMenu(key).orElse(null);
@@ -173,7 +173,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   }
 
   // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-  @CpfTx(id="BZA_BZAOPERATIONSERVICE_DELETEMENU", name="BZA_BZAOPERATIONSERVICE_DELETEMENU", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public MenuDeleteResult deleteMenu(String menuCode, MenuDeleteRequest r, String operatorId) {
     String key = code(menuCode, "menuCode");
     String actor = required(operatorId, "operatorId");
@@ -259,7 +259,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   }
 
   // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-  @CpfTx(id="BZA_BZAOPERATIONSERVICE_SAVEROLE", name="BZA_BZAOPERATIONSERVICE_SAVEROLE", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> saveRole(RoleRequest r, String operatorId) {
     String key = code(r.roleCode(), "roleCode"), actor = required(operatorId, "operatorId");
     Map<String, Object> before = repository.findRole(key).orElse(null);
@@ -282,7 +282,7 @@ public class BzaOperationService extends com.cpf.bizadmin.common.base.BzaBaseSer
   }
 
   // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
-  @CpfTx(id="BZA_BZAOPERATIONSERVICE_SAVEPERMISSION", name="BZA_BZAOPERATIONSERVICE_SAVEPERMISSION", ownerDomain="BZA", transactionManager="bzaTransactionManager")
+  @CpfTransactional(transactionManager="bzaTransactionManager")
   public Map<String, Object> savePermission(PermissionRequest r, String operatorId) {
     String actor = required(operatorId, "operatorId"), method = blank(r.httpMethod());
     if (method != null) {

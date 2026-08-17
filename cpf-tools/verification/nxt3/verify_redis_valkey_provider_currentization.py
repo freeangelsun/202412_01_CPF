@@ -81,13 +81,13 @@ def main():
     check('collision-auto-config-registered','CpfRedisProtocolProviderCollisionAutoConfiguration' in imports)
     startup=text('cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/CpfRedisLikeStartupValidator.java')
     check('required-startup-fail-closed','isRequired' in startup and 'IllegalStateException' in startup and 'health' in startup.lower())
-    runtime=text('cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCachePort.java')
+    runtime=text('cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCache.java')
     for name,token in {
         'runtime-get':'public CpfCacheValue get(', 'runtime-put':'public void put(', 'runtime-evict':'public boolean evict(',
         'runtime-ttl':'validateTtl', 'runtime-serialization':'Base64', 'runtime-health':'PING_NOT_PONG',
         'runtime-reconnect-metric':'reconnects.increment()', 'runtime-fencing-lock':'fencingToken',
         'runtime-error-propagation':'errors.increment()'}.items(): check(name,token in runtime)
-    op_test=text('cpf-starters/data/cache/spring-data-redis/src/test/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCachePortOperationTest.java')
+    op_test=text('cpf-starters/data/cache/spring-data-redis/src/test/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCacheOperationTest.java')
     check('operation-test-put-get-evict',all(x in op_test for x in ['port.put(', 'port.get(', 'port.evict(']))
     check('operation-test-infra-failure-not-miss','redis unavailable' in op_test and 'assertThrows' in op_test)
     fail=[c for c in checks if c['status']=='FAIL']

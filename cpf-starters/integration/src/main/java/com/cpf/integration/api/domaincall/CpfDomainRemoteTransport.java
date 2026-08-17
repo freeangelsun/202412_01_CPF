@@ -9,4 +9,11 @@ import com.cpf.core.api.result.CpfResult;
 public interface CpfDomainRemoteTransport {
     <I extends CpfRequest, O extends CpfResponse> CpfResult<O> invoke(
             String systemCode, String operationId, CpfDomainBinding binding, I request, Class<O> responseType);
+
+    /** Optional custom Header를 포함한 호출. 기존 transport는 옵션을 무시해 호환성을 유지합니다. */
+    default <I extends CpfRequest, O extends CpfResponse> CpfResult<O> invoke(
+            String systemCode, String operationId, CpfDomainBinding binding, I request, Class<O> responseType,
+            CpfDomainCallOptions options) {
+        return invoke(systemCode, operationId, binding, request, responseType);
+    }
 }

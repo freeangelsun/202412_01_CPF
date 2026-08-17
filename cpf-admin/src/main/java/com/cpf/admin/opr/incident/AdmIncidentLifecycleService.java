@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.incident;
 
-import com.cpf.data.persistence.api.annotation.CpfTx;
+import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.core.api.context.CpfContexts;
@@ -65,7 +65,7 @@ public class AdmIncidentLifecycleService {
         return page(rows, p, s, total);
     }
 
-    @CpfTx(id="ADM_ADMINCIDENTLIFECYCLESERVICE_SAVEPOLICY", name="ADM_ADMINCIDENTLIFECYCLESERVICE_SAVEPOLICY", ownerDomain="ADM")
+    @CpfTransactional
     public PolicyResponse savePolicy(Long policyId, PolicySaveRequest request, String operatorId, String clientIp) {
         requireMutation(request.reason(), request.approvalRequestId(), request.idempotencyKey());
         String requestHash = hash(request.toString());
@@ -141,7 +141,7 @@ public class AdmIncidentLifecycleService {
                 rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),local(rs.getTimestamp(9))), incidentId);
     }
 
-    @CpfTx(id="ADM_ADMINCIDENTLIFECYCLESERVICE_INGESTSIGNAL", name="ADM_ADMINCIDENTLIFECYCLESERVICE_INGESTSIGNAL", ownerDomain="ADM")
+    @CpfTransactional
     public SignalResult ingestSignal(SignalRequest request, String operatorId) {
         String idempotency = required(request.idempotencyKey(), "idempotencyKey");
         CommandReservation reservation = reserve("SIGNAL", idempotency, hash(request.toString()), operatorId);
@@ -172,7 +172,7 @@ public class AdmIncidentLifecycleService {
         return new SignalResult(signalId, incidentId, "INCIDENT_OPEN", false, observed, policy.thresholdCount());
     }
 
-    @CpfTx(id="ADM_ADMINCIDENTLIFECYCLESERVICE_TRANSITION", name="ADM_ADMINCIDENTLIFECYCLESERVICE_TRANSITION", ownerDomain="ADM")
+    @CpfTransactional
     public IncidentResponse transition(long incidentId, String action, IncidentActionRequest request, String operatorId, String clientIp) {
         requireMutation(request.reason(), request.approvalRequestId(), request.idempotencyKey());
         CommandReservation reservation = reserve("INCIDENT_" + action, request.idempotencyKey(), hash(incidentId+":"+action+":"+request), operatorId);
@@ -210,7 +210,7 @@ public class AdmIncidentLifecycleService {
     }
 
     /** 해결된 Incident의 원인·조치·재발방지 내용을 immutable timeline과 Audit에 남깁니다. */
-    @CpfTx(id="ADM_INCIDENT_POSTMORTEM", name="ADMIncidentPostmortem", ownerDomain="ADM")
+    @CpfTransactional
     public IncidentResponse recordPostmortem(long incidentId, IncidentActionRequest request, String operatorId, String clientIp) {
         requireMutation(request.reason(), request.approvalRequestId(), request.idempotencyKey());
         CommandReservation reservation = reserve("INCIDENT_POSTMORTEM", request.idempotencyKey(), hash(incidentId+":POSTMORTEM:"+request), operatorId);
@@ -240,7 +240,7 @@ public class AdmIncidentLifecycleService {
         return page(rows,p,s,total);
     }
 
-    @CpfTx(id="ADM_ADMINCIDENTLIFECYCLESERVICE_SAVEMAINTENANCE", name="ADM_ADMINCIDENTLIFECYCLESERVICE_SAVEMAINTENANCE", ownerDomain="ADM")
+    @CpfTransactional
     public MaintenanceResponse saveMaintenance(Long id, MaintenanceSaveRequest request, String operatorId, String clientIp) {
         requireMutation(request.reason(),request.approvalRequestId(),request.idempotencyKey());
         if (request.startsAt()==null || request.endsAt()==null || !request.endsAt().isAfter(request.startsAt()))

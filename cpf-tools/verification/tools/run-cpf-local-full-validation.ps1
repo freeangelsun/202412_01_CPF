@@ -38,7 +38,7 @@ if ([string]::IsNullOrWhiteSpace($DockerSecretFile)) { $DockerSecretFile = Join-
 
 $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 $finalResultDir = Join-Path $OutputRoot "CPF_LOCAL_VALIDATION_$stamp"
-$scratchRoot = Join-Path ([IO.Path]::GetTempPath()) ("CPF_LOCAL_VALIDATION_{0}_{1}" -f $stamp,$PID)
+$scratchRoot = Join-Path ([IO.Path]::GetTempPath()) ("cpf-local-stage-{0}-{1}" -f $stamp,$PID)
 $resultDir = $scratchRoot
 $logDir = Join-Path $resultDir 'logs'
 $evidenceDir = Join-Path $resultDir 'evidence'
@@ -298,7 +298,8 @@ function Initialize-CpfPythonEnvironment {
         Add-CpfTextResult 'PYTHON_ENV' 'FAIL' "EXPECTED=Python 3.13`nACTUAL=$versionText" 'CPF local validation requires Python 3.13'
         return $null
     }
-    $venvRoot=Join-Path ([IO.Path]::GetTempPath()) 'cpf-local-validation-python313-env'
+    $localValidationHome=if($env:LOCALAPPDATA){Join-Path $env:LOCALAPPDATA 'CPF\validation'}else{Join-Path ([IO.Path]::GetTempPath()) 'CPF\validation'}
+    $venvRoot=Join-Path $localValidationHome 'python313-env'
     $venvPython=Join-Path $venvRoot $(if($IsWindows){'Scripts\python.exe'}else{'bin/python'})
     $bootstrapLog=Join-Path $script:logDir 'PYTHON_BOOTSTRAP.log'
     if(-not(Test-Path -LiteralPath $venvPython -PathType Leaf)){
@@ -392,7 +393,7 @@ function Get-CpfNodeOptions([string]$ModuleDir) {
 function New-CpfFrontendSandbox([string]$FrontendRelative,[string]$Name) {
     $source=Join-Path $RepoRoot $FrontendRelative
     if(-not(Test-Path -LiteralPath $source -PathType Container)){return $null}
-    $sandboxRepo=Join-Path ([IO.Path]::GetTempPath()) ("cpf-local-validation-$stamp\repo")
+    $sandboxRepo=Join-Path $scratchRoot ("frontend-{0}-repo" -f $Name.ToLowerInvariant())
     $moduleDir=if($Name -eq 'ADM'){'cpf-admin'}else{'cpf-biz-admin'}
     $sandboxModule=Join-Path $sandboxRepo $moduleDir
     $target=Join-Path $sandboxModule 'frontend'
@@ -535,6 +536,7 @@ if($python){
     Invoke-CpfStage 'CODEX_COMMON_VALIDATION_OWNER' $python @('.\cpf-tools\verification\verify_common_validation_owner.py','--root','.')
     Invoke-CpfStage 'CODEX_DOMAIN_EXCEPTION_ENFORCEMENT' $python @('.\cpf-tools\verification\verify_domain_exception_enforcement.py')
     Invoke-CpfStage 'CODEX_LOGGING_DX' $python @('.\cpf-tools\verification\verify_logging_dx.py')
+    Invoke-CpfStage 'CODEX_INTEGRATED_LOGGING_CLOSURE' $python @('.\cpf-tools\verification\tools\verify-cpf-integrated-logging-closure.py','--root','.', '--json-output',(Join-Path $evidenceDir 'integrated-logging-static-closure.json'))
     Invoke-CpfStage 'CODEX_TESTKIT_CONTRACT' $python @('.\cpf-tools\verification\verify_testkit_contract.py')
     Invoke-CpfStage 'CODEX_ZERO_FOOTPRINT' $python @('.\cpf-tools\verification\verify_nxt_zero_footprint.py')
     Invoke-CpfStage 'CODEX_SPRING_ROUTE_UNIQUENESS' $python @('.\cpf-tools\verification\tools\verify-cpf-spring-request-mapping-uniqueness.py','--root','.', '--json-output',(Join-Path $evidenceDir 'spring-route-uniqueness.json'))
@@ -700,6 +702,7 @@ if(-not $SkipOneWas -and $pwsh){
     $oneWasBzaBootstrapResult=$null
     $oneWasSecretDirectory=$null
     $admSmokePassword=$null
+    $admApprovalProofKey=$null
     $bzaSmokePassword=$null
     if($FullLocal){
         if($SkipDocker -or -not $dockerReady){
@@ -721,6 +724,7 @@ if(-not $SkipOneWas -and $pwsh){
                     $runtimeMigrationSecret="CpfMig!$([guid]::NewGuid().ToString('N').Substring(0,20))8b"
                     $runtimePepper="CpfPepper-$([guid]::NewGuid().ToString('N'))"
                     $admSmokePassword="Adm!$([guid]::NewGuid().ToString('N').Substring(0,20))7X"
+                    $admApprovalProofKey=[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
                     $bzaSmokePassword="Bza!$([guid]::NewGuid().ToString('N').Substring(0,20))6Y"
                     $runtimeDbEvidence=Join-Path $evidenceDir 'local-runtime-db'
                     $oneWasSecretDirectory=Join-Path $scratchRoot 'runtime-secrets'
@@ -749,11 +753,12 @@ if(-not $SkipOneWas -and $pwsh){
                                 CPF_LOG_ROOT=$runtimeFileLogRoot
                                 CPF_PASSWORD_PEPPER=$runtimePepper
                                 CPF_ENVIRONMENT_CODE='local'
-                                CPF_INSTANCE_ID=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.instanceId}else{"cpf-local-$runtimeRunId"}
+                                CPF_RUNTIME_INSTANCE_ID=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.instanceId}else{"cpf-local-$runtimeRunId"}
                                 CPF_ADM_BOOTSTRAP_ENABLED='true'
                                 CPF_ADM_BOOTSTRAP_PASSWORD=$admSmokePassword
                                 CPF_ADM_BOOTSTRAP_OPERATOR_ID='admin'
                                 CPF_ADM_BOOTSTRAP_OPERATOR_NAME='CPF FullLocal Admin'
+                                CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey
                                 CPF_BZA_DATASOURCE_ENABLED='true'
                                 CPF_BZA_BOOTSTRAP_APPROVAL_TOKEN_FILE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.tokenFile}else{''}
                                 CPF_BZA_BOOTSTRAP_PASSWORD_FILE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.passwordFile}else{''}
@@ -803,14 +808,23 @@ if(-not $SkipOneWas -and $pwsh){
         $localSecretPrevious=@{}
         if(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf){$localSecretPrevious=Import-CpfEnvFile $DockerSecretFile}
         try{
-            $admPassword=if(-not [string]::IsNullOrWhiteSpace($admSmokePassword)){$admSmokePassword}else{[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')}
-            if([string]::IsNullOrWhiteSpace($admPassword)){
+            $adminPassword=if(-not [string]::IsNullOrWhiteSpace($admSmokePassword)){$admSmokePassword}else{[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')}
+            if([string]::IsNullOrWhiteSpace($adminPassword)){
                 Add-CpfTextResult 'LOCAL_DB_LOG_POLICY_RUNTIME' 'FAIL' 'Verifier-owned ADM local credential was not prepared.' 'Password is never placed on command line'
                 Add-CpfTextResult 'LOCAL_INTEGRATED_LOG_CORRELATION' 'FAIL' 'Verifier-owned ADM local credential unavailable.'
             }else{
-                $secretEnv=@{CPF_ADM_SMOKE_PASSWORD=$admPassword}
-                Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
-                Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$runtimeFileLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin','-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
+                $previousAdmSmokePassword=[Environment]::GetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD','Process')
+                $previousApprovalProofKey=[Environment]::GetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64','Process')
+                [Environment]::SetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD',$adminPassword,'Process')
+                [Environment]::SetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64',$admApprovalProofKey,'Process')
+                try {
+                    $secretEnv=@{CPF_ADM_SMOKE_PASSWORD=$adminPassword;CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey}
+                    Invoke-CpfStage 'LOCAL_DB_LOG_POLICY_RUNTIME' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-log-policy-runtime.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-AdmUsername','admin','-LogDir',$policyLogEvidence) $RepoRoot $secretEnv
+                    Invoke-CpfStage 'LOCAL_INTEGRATED_LOG_CORRELATION' $pwsh @('-NoProfile','-File','.\cpf-tools\runtime\tools\smoke-integrated-log-correlation.ps1','-Root',$RepoRoot,'-BaseUrl','http://127.0.0.1:8080','-LogBasePath',$runtimeFileLogRoot,'-RuntimeLogRoot',(Join-Path $RepoRoot 'build\cpf-local-runtime\logs'),'-FileLogResultPath',(Join-Path $fileLogEvidence 'file-log-standard-result.json'),'-LogPolicyResultPath',(Join-Path $policyLogEvidence 'log-policy-runtime-smoke-result.json'),'-AdmUsername','admin','-ResultPath',(Join-Path $integratedLogRoot 'integrated-log-correlation-result.json')) $RepoRoot $secretEnv
+                } finally {
+                    [Environment]::SetEnvironmentVariable('CPF_ADM_SMOKE_PASSWORD',$previousAdmSmokePassword,'Process')
+                    [Environment]::SetEnvironmentVariable('CPF_ADM_APPROVAL_PROOF_KEY_BASE64',$previousApprovalProofKey,'Process')
+                }
             }
         }finally{Restore-CpfEnvironment $localSecretPrevious}
     }else{

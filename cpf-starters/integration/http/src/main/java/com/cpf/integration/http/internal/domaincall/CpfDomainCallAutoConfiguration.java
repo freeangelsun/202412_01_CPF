@@ -6,6 +6,7 @@ import com.cpf.integration.api.domaincall.CpfDomainOperation;
 import com.cpf.integration.api.domaincall.CpfDomainOperationRegistry;
 import com.cpf.integration.api.domaincall.CpfDomainRemoteTransport;
 import com.cpf.integration.http.internal.CpfWebClient;
+import com.cpf.web.context.CpfHttpOutboundContextAdapter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -26,8 +27,9 @@ public class CpfDomainCallAutoConfiguration {
         return new CpfDefaultDomainOperationRegistry(operations);
     }
     @Bean @ConditionalOnMissingBean(CpfDomainRemoteTransport.class)
-    CpfDomainRemoteTransport cpfDomainRemoteTransport(CpfWebClient webClient, ObjectMapper objectMapper) {
-        return new CpfHttpDomainRemoteTransport(webClient, objectMapper);
+    CpfDomainRemoteTransport cpfDomainRemoteTransport(CpfWebClient webClient, ObjectMapper objectMapper,
+                                                       CpfHttpOutboundContextAdapter outboundHeaders) {
+        return new CpfHttpDomainRemoteTransport(webClient, objectMapper, outboundHeaders);
     }
     @Bean @ConditionalOnMissingBean(CpfDomainClientRouter.class)
     CpfDomainClientRouter cpfDomainClientRouter(

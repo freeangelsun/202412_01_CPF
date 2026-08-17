@@ -7,7 +7,7 @@ export interface BzaLoginHistoryResponse {
   loginId?: string;
   moduleId?: string;
   operatorId?: number;
-  serverInstanceId?: string;
+  instanceId?: string;
   successYn?: string;
   transactionId?: string;
   userAgent?: string;

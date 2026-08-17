@@ -1,0 +1,15 @@
+CPF SESSION CLOSE COMMANDS
+
+1) Overlay 적용 한 줄
+$root=(git rev-parse --show-toplevel).Trim(); Set-Location $root; $name='CPF_SESSION_CLOSE_OVERLAY_RUNTIME_REVERIFY_REQUIRED_20260817.zip'; $zip=@((Join-Path $HOME "Downloads\$name"),"D:\11096\Downloads\$name") | Where-Object {Test-Path -LiteralPath $_} | Select-Object -First 1; if(!$zip){throw "ZIP missing: $name"}; Expand-Archive -LiteralPath $zip -DestinationPath $root -Force
+
+2) Delete Manifest 적용 + 빈 폴더 정리 한 줄
+$root=(git rev-parse --show-toplevel).Trim(); Set-Location $root; $manifest=Join-Path $root 'cpf-docs\work\current\DELETE_MANIFEST.txt'; Get-Content -LiteralPath $manifest | Where-Object {$_.Trim() -and -not $_.Trim().StartsWith('#')} | ForEach-Object {$p=Join-Path $root $_.Trim(); if(Test-Path -LiteralPath $p){Remove-Item -LiteralPath $p -Recurse -Force}}; Get-ChildItem -LiteralPath $root -Directory -Recurse | Sort-Object FullName -Descending | Where-Object {@(Get-ChildItem -LiteralPath $_.FullName -Force).Count -eq 0} | ForEach-Object {Remove-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue}
+
+3) Java25 로컬 최종 검증 한 줄
+$root=(git rev-parse --show-toplevel).Trim(); Set-Location $root; $java=(java -version 2>&1 | Out-String); if($java -notmatch 'version "25'){throw "Java 25 required. Current: $java"}; pwsh -NoProfile -ExecutionPolicy Bypass -File '.\cpf-tools\verification\tools\run-cpf-final-local-validation.ps1' -RepoRoot $root -OutputRoot (Join-Path $HOME 'Downloads')
+
+4) Git Status 한 줄
+git status --short
+
+주의: 3번은 2번 삭제 적용 후 실행한다. Java25/DB/Docker/Node/Browser 환경 차단은 SUMMARY.csv에서 SKIP_ENV/FAIL을 구분한다.

@@ -1,6 +1,6 @@
 package com.cpf.integration.http.internal;
 
-import com.cpf.integration.http.api.CpfHttpClient;
+import com.cpf.integration.api.http.CpfRestClient;
 
 import com.cpf.foundation.execution.api.CpfStandardExecutionId;
 import com.cpf.foundation.context.header.CpfHeaderNames;
@@ -27,7 +27,7 @@ import java.util.function.Function;
  * CPF Service Call Engine을 우선 경유합니다. 레지스트리 DB가 아직 준비되지 않은 개발 환경에서는
  * 기존 {@code cpf.services.*.base-url} 설정으로 fallback하여 로컬 기동성을 유지합니다.</p>
  */
-public class CpfWebClient implements CpfHttpClient {
+public class CpfWebClient implements CpfRestClient {
 
     private final WebClient.Builder webClientBuilder;
     private final CpfServiceEndpointRegistry endpointRegistry;
@@ -138,7 +138,6 @@ public class CpfWebClient implements CpfHttpClient {
                 .endpointCode(executionId.value())
                 .httpMethod("GET")
                 .requestPath(relativeUri.toString())
-                .header(CpfHeaderNames.STANDARD_EXECUTION_ID, executionId.value())
                 .build();
         return get(request, responseType);
     }
@@ -244,22 +243,27 @@ public class CpfWebClient implements CpfHttpClient {
                 .block();
     }
 
-    /** Domain Remote Adapter가 ServiceCall 4상태/Recovery를 보존한 채 POST 결과를 받습니다. */
+    /** Domain Remote Adapter가 ServiceCall 4상태/Recovery와 명시적 내부 protocol header를 보존한 채 POST 결과를 받습니다. */
     public <T> ServiceCallResult<T> postResult(String serviceId, String path, Object requestBody, Class<T> responseType) {
-        ServiceCallRequest request = requirePostRequest(request(serviceId, "POST", normalizePath(path)));
+        return postResult(request(serviceId, "POST", normalizePath(path)), requestBody, responseType);
+    }
+
+    public <T> ServiceCallResult<T> postResult(ServiceCallRequest request, Object requestBody, Class<T> responseType) {
+        ServiceCallRequest effective = requirePostRequest(request);
         CpfServiceCallEngine engine = serviceCallEngine();
         if (engine == null || !engine.isEnabled()) {
             try {
-                T body = service(serviceId).post().uri(request.requestPath()).headers(headers -> request.headers().forEach(headers::set))
+                T body = service(effective.serviceId()).post().uri(effective.requestPath())
+                        .headers(headers -> effective.headers().forEach(headers::set))
                         .bodyValue(requestBody).retrieve().bodyToMono(responseType).block();
                 return ServiceCallResult.success(null, body, 200, 0L, 1);
             } catch (RuntimeException ex) {
                 return ServiceCallResult.failure(null, null, 0L, 1, "CPF-DOMAIN-TRANSPORT", ex.getMessage());
             }
         }
-        return engine.invoke(request, target -> webClient(target).post().uri(request.requestPath())
-                .headers(headers -> request.headers().forEach(headers::set)).bodyValue(requestBody).retrieve()
-                .bodyToMono(responseType).block(timeout(request, target)));
+        return engine.invoke(effective, target -> webClient(target).post().uri(effective.requestPath())
+                .headers(headers -> effective.headers().forEach(headers::set)).bodyValue(requestBody).retrieve()
+                .bodyToMono(responseType).block(timeout(effective, target)));
     }
 
     /**
@@ -343,7 +347,6 @@ public class CpfWebClient implements CpfHttpClient {
         return webClientBuilder.clone()
                 .clientConnector(pinnedConnectorFactory.connector(endpoint))
                 .baseUrl(trimTrailingSlash(endpoint.baseUrl()))
-                .defaultHeader(CpfHeaderNames.TARGET_SERVICE, serviceId)
                 .defaultHeader("Host", endpoint.authority())
                 .build();
     }

@@ -4,7 +4,6 @@ import com.cpf.core.api.error.CpfNotFoundException;
 import com.cpf.foundation.execution.api.CpfExecutionCatalogPort;
 import com.cpf.foundation.execution.api.CpfExecutionDefinition;
 import com.cpf.foundation.execution.api.CpfExecutionType;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /** ADM에서 온라인·배치 표준 실행 카탈로그를 통합 조회합니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/standard-executions")
 @Tag(name = "ADM-OPR Standard Execution", description = "CPF 온라인·배치 표준 실행 ID 카탈로그")
 public class AdmStandardExecutionController extends com.cpf.admin.common.base.AdmBaseController {
@@ -30,9 +29,7 @@ public class AdmStandardExecutionController extends com.cpf.admin.common.base.Ad
         this.catalogPort = catalogPort;
     }
 
-    @GetMapping
-    @CpfOnlineTransaction(id = "OADMEX0001", name = "ADMStandardExecutionList", ownerDomain="ADM")
-    @Operation(operationId = "admStandardExecutionFindAll", summary = "표준 실행 목록 조회",
+    @GetMapping    @Operation(operationId = "admStandardExecutionFindAll", summary = "표준 실행 목록 조회",
             description = "기동 시 source annotation에서 발견한 온라인·배치 표준 실행 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findAll(
             @RequestParam(required = false) String type,
@@ -50,9 +47,7 @@ public class AdmStandardExecutionController extends com.cpf.admin.common.base.Ad
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{standardExecutionId}")
-    @CpfOnlineTransaction(id = "OADMEX0002", name = "ADMStandardExecutionDetail", ownerDomain="ADM")
-    @Operation(operationId = "admStandardExecutionFindOne", summary = "표준 실행 상세 조회",
+    @GetMapping("/{standardExecutionId}")    @Operation(operationId = "admStandardExecutionFindOne", summary = "표준 실행 상세 조회",
             description = "표준 실행 ID에 연결된 source, endpoint, OpenAPI operation 정보를 조회합니다.")
     public ResponseEntity<CpfExecutionDefinition> findOne(@PathVariable String standardExecutionId) {
         return ResponseEntity.ok(catalogPort.findById(standardExecutionId)

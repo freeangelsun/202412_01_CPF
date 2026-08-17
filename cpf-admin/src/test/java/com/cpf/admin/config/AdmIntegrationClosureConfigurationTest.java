@@ -9,7 +9,7 @@ import com.cpf.data.api.quality.CpfDataQualityOperations;
 import com.cpf.security.api.crypto.CpfCryptoOperations;
 import com.cpf.data.spi.quality.CpfDataQualityCorrectionPort;
 import com.cpf.foundation.time.CpfTimeOperations;
-import com.cpf.integration.webhook.api.CpfWebhookOperations;
+import com.cpf.integration.api.webhook.CpfWebhookOperations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;

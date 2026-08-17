@@ -23,15 +23,15 @@ class AdmBatchJobLogServiceTest {
                         + "cpf-bat-CPF_JOB-42-bat-host-01-20260713.log");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                {"businessDate":"20260713","jobName":"CPF_JOB","jobInstanceId":42,"serverInstanceId":"bat-host-01","status":"STARTED"}
-                {"businessDate":"20260713","jobName":"CPF_JOB","jobInstanceId":42,"serverInstanceId":"bat-host-01","status":"COMPLETED"}
+                {"businessDate":"20260713","jobName":"CPF_JOB","jobInstanceId":42,"instanceId":"bat-host-01","status":"STARTED"}
+                {"businessDate":"20260713","jobName":"CPF_JOB","jobInstanceId":42,"instanceId":"bat-host-01","status":"COMPLETED"}
                 """);
         AdmBatchJobLogService service = service();
 
         assertThat(service.findLogs("20260713", "CPF_JOB", 42L, "bat-host-01", 10))
                 .singleElement()
                 .satisfies(row -> {
-                    assertThat(row.get("serverInstanceId")).isEqualTo("bat-host-01");
+                    assertThat(row.get("instanceId")).isEqualTo("bat-host-01");
                     assertThat(row.get("relativePath")).isEqualTo(
                             "local/bat/jobs/20260713/CPF_JOB/bat-host-01/"
                                     + "cpf-bat-CPF_JOB-42-bat-host-01-20260713.log");
@@ -39,7 +39,7 @@ class AdmBatchJobLogServiceTest {
         assertThat(service.findDetail("20260713", "CPF_JOB", 42L, "bat-host-01", 10))
                 .containsEntry("totalRecordCount", 2)
                 .containsEntry("returnedRecordCount", 2)
-                .containsEntry("serverInstanceId", "bat-host-01");
+                .containsEntry("instanceId", "bat-host-01");
     }
 
     @Test
@@ -57,7 +57,7 @@ class AdmBatchJobLogServiceTest {
     }
 
     @Test
-    void rejectsDirectoryNavigationServerInstanceId() {
+    void rejectsDirectoryNavigationInstanceId() {
         assertThatThrownBy(() -> service().findDetail(
                 "20260713", "CPF_JOB", 42L, "..", 10))
                 .hasMessageContaining("영문 또는 숫자로 시작");
@@ -68,7 +68,7 @@ class AdmBatchJobLogServiceTest {
                 .withProperty("cpf.logging.file.base-path", tempDir.toString())
                 .withProperty("cpf.environment", "local")
                 .withProperty("cpf.framework.module-id", "ADM")
-                .withProperty("cpf.framework.instance-id", "adm-local-01");
+;
         return new AdmBatchJobLogService(environment, new ObjectMapper());
     }
 }

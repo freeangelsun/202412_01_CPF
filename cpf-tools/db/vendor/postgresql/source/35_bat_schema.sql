@@ -600,7 +600,7 @@ COMMENT ON COLUMN bat_version_compatibility.enabled_yn IS 'Rule enabled flag';
 
 CREATE TABLE bat_worker (
     worker_id VARCHAR(160) NOT NULL,
-    server_instance_id VARCHAR(160) NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
     host_name VARCHAR(150),
     process_id VARCHAR(80),
     thread_name VARCHAR(160),
@@ -621,13 +621,13 @@ CREATE TABLE bat_worker (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_bat_worker PRIMARY KEY (worker_id)
 );
-CREATE INDEX ix_bat_worker_server ON bat_worker (server_instance_id, active_yn);
+CREATE INDEX ix_bat_worker_instance ON bat_worker (instance_id, active_yn);
 CREATE INDEX ix_bat_worker_status ON bat_worker (worker_status, last_heartbeat_at);
 CREATE INDEX ix_bat_worker_control ON bat_worker (control_status, active_yn, last_heartbeat_at);
 CREATE INDEX ix_bat_worker_current_job ON bat_worker (current_job_id, current_execution_id);
 COMMENT ON TABLE bat_worker IS 'BAT 배치 worker heartbeat';
 COMMENT ON COLUMN bat_worker.worker_id IS '배치 worker ID';
-COMMENT ON COLUMN bat_worker.server_instance_id IS '서버 인스턴스 ID';
+COMMENT ON COLUMN bat_worker.instance_id IS '서버 인스턴스 ID';
 COMMENT ON COLUMN bat_worker.host_name IS '호스트명';
 COMMENT ON COLUMN bat_worker.process_id IS '프로세스 ID';
 COMMENT ON COLUMN bat_worker.thread_name IS '스레드명';
@@ -1260,7 +1260,7 @@ CREATE TABLE bat_execution (
     original_job_execution_id BIGINT,
     restart_attempt INTEGER NOT NULL DEFAULT 0,
     batch_instance_id VARCHAR(100),
-    server_instance_id VARCHAR(160),
+    instance_id VARCHAR(160),
     worker_id VARCHAR(160),
     required_worker_version VARCHAR(80),
     required_capability VARCHAR(120),
@@ -1305,7 +1305,7 @@ CREATE INDEX ix_bat_execution_status ON bat_execution (execution_status, start_t
 CREATE INDEX ix_bat_execution_spring ON bat_execution (spring_batch_execution_id);
 CREATE INDEX ix_bat_execution_job_instance ON bat_execution (spring_batch_job_instance_id, business_date);
 CREATE INDEX ix_bat_execution_worker ON bat_execution (worker_id, execution_status, start_time);
-CREATE INDEX ix_bat_execution_server ON bat_execution (server_instance_id, start_time);
+CREATE INDEX ix_bat_execution_instance ON bat_execution (instance_id, start_time);
 CREATE INDEX ix_bat_execution_claim ON bat_execution (execution_status, required_worker_version, required_capability, execution_id);
 CREATE INDEX ix_bat_execution_transaction ON bat_execution (transaction_id);
 CREATE INDEX ix_bat_execution_segment ON bat_execution (transaction_segment_id, parent_segment_id);
@@ -1324,7 +1324,7 @@ COMMENT ON COLUMN bat_execution.rerun_id IS '운영 재수행 ID';
 COMMENT ON COLUMN bat_execution.original_job_execution_id IS '재시작 기준 원 JobExecution ID';
 COMMENT ON COLUMN bat_execution.restart_attempt IS '동일 JobInstance 재시작 회차';
 COMMENT ON COLUMN bat_execution.batch_instance_id IS '배치 인스턴스 ID';
-COMMENT ON COLUMN bat_execution.server_instance_id IS '실행 서버 인스턴스 ID';
+COMMENT ON COLUMN bat_execution.instance_id IS '실행 서버 인스턴스 ID';
 COMMENT ON COLUMN bat_execution.worker_id IS '실행 worker ID';
 COMMENT ON COLUMN bat_execution.required_worker_version IS '실행에 필요한 worker 버전';
 COMMENT ON COLUMN bat_execution.required_capability IS '실행에 필요한 worker capability';
@@ -1794,7 +1794,7 @@ CREATE TABLE bat_ghost_event (
     execution_id BIGINT,
     spring_batch_execution_id BIGINT,
     job_id VARCHAR(100) NOT NULL,
-    server_instance_id VARCHAR(160),
+    instance_id VARCHAR(160),
     worker_id VARCHAR(160),
     ghost_status VARCHAR(30) NOT NULL DEFAULT 'DETECTED',
     detected_reason VARCHAR(1000) NOT NULL,
@@ -1824,7 +1824,7 @@ COMMENT ON COLUMN bat_ghost_event.ghost_event_id IS '배치 ghost 이벤트 순�
 COMMENT ON COLUMN bat_ghost_event.execution_id IS '배치 실행 순번';
 COMMENT ON COLUMN bat_ghost_event.spring_batch_execution_id IS 'Spring Batch JobExecution ID';
 COMMENT ON COLUMN bat_ghost_event.job_id IS '배치 Job ID';
-COMMENT ON COLUMN bat_ghost_event.server_instance_id IS '서버 인스턴스 ID';
+COMMENT ON COLUMN bat_ghost_event.instance_id IS '서버 인스턴스 ID';
 COMMENT ON COLUMN bat_ghost_event.worker_id IS 'worker ID';
 COMMENT ON COLUMN bat_ghost_event.ghost_status IS 'ghost 이벤트 상태';
 COMMENT ON COLUMN bat_ghost_event.detected_reason IS '감지 사유';

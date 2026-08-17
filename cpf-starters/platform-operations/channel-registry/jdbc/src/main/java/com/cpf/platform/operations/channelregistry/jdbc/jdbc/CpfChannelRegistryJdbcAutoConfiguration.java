@@ -9,8 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import java.time.Duration;
 @AutoConfiguration
 public class CpfChannelRegistryJdbcAutoConfiguration {
  @Bean @ConditionalOnMissingBean CpfChannelRegistryPort cpfChannelRegistryPort(@Qualifier("cpfJdbcTemplate") ObjectProvider<JdbcTemplate> jdbc, Environment env){return new JdbcCpfChannelRegistryAdapter(jdbc,env);}
- @Bean @ConditionalOnMissingBean CpfChannelPolicyService cpfChannelPolicyService(CpfChannelRegistryPort port,Environment env){return new CpfChannelPolicyService(port,env.getProperty("cpf.channel-policy.startup-load-enabled",Boolean.class,true));}
+ @Bean @ConditionalOnMissingBean CpfChannelPolicyService cpfChannelPolicyService(CpfChannelRegistryPort port,Environment env){return new CpfChannelPolicyService(port,env.getProperty("cpf.channel-policy.startup-load-enabled",Boolean.class,true),env.getProperty("cpf.channel-policy.max-stale",Duration.class,Duration.ofMinutes(5)));}
 }

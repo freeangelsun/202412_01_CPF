@@ -373,7 +373,7 @@ public class SchedulerDispatchService {
         return LocalDateTime.parse(value.toString().replace(' ', 'T')).atZone(zone);
     }
     private static CpfTransactionIdGenerator fallbackTransactionIds() {
-        return new DefaultCpfTransactionIdGenerator("BAT", "local01", java.time.Clock.systemUTC());
+        return new DefaultCpfTransactionIdGenerator("BAT", java.time.Clock.systemUTC());
     }
     private static CpfExecutionIdGenerator fallbackExecutionIds() {
         return new CpfExecutionIdGenerator() {

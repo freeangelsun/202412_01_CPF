@@ -1,7 +1,6 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmBatchOperationService;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -23,7 +22,7 @@ import java.util.Set;
  * <p>원본 Batch 제어 API를 대체하지 않고, ADM 화면이 여러 Owner Query를 임의로 조합하지
  * 않도록 조회 경계를 제공합니다. 위험 조치는 기존 명시적 Command API를 사용합니다.</p>
  */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/batch/workbench")
 @Tag(name = "ADM-Batch-Workbench", description = "Batch 상용 운영 화면 조회 API")
 public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBaseController {
@@ -33,28 +32,24 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         this.operations = operations;
     }
 
-    @GetMapping("/executions")
-    @CpfOnlineTransaction(id = "OADMBA0040", name = "ADMBatchExecutionWorkbench", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchExecutions", summary = "배치 실행 Workbench 목록", description = "BAT Owner의 Paging 계약으로 실행 이력을 조회합니다.")
+    @GetMapping("/executions")    @Operation(operationId = "admBatchWorkbenchExecutions", summary = "배치 실행 Workbench 목록", description = "BAT Owner의 Paging 계약으로 실행 이력을 조회합니다.")
     public ResponseEntity<Map<String, Object>> executions(
             @RequestParam(required = false) String jobId,
             @RequestParam(required = false) String transactionId,
             @RequestParam(required = false) Long springBatchJobInstanceId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String workerId,
-            @RequestParam(required = false) String serverInstanceId,
+            @RequestParam(required = false) String instanceId,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         return ResponseEntity.ok(operations.findExecutionPage(
-                jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId,
+                jobId, transactionId, springBatchJobInstanceId, workerId, instanceId,
                 status, fromDate, toDate, page, size));
     }
 
-    @GetMapping("/executions/{executionId}")
-    @CpfOnlineTransaction(id = "OADMBA0041", name = "ADMBatchExecutionWorkspace", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchExecutionDetail", summary = "배치 실행 상세 Workspace", description = "실행 상세, Step Timeline, 작업 이력을 하나의 응답으로 제공합니다.")
+    @GetMapping("/executions/{executionId}")    @Operation(operationId = "admBatchWorkbenchExecutionDetail", summary = "배치 실행 상세 Workspace", description = "실행 상세, Step Timeline, 작업 이력을 하나의 응답으로 제공합니다.")
     public ResponseEntity<Map<String, Object>> execution(@PathVariable long executionId) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("execution", operations.findExecutionDetail(executionId));
@@ -66,9 +61,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/jobs")
-    @CpfOnlineTransaction(id = "OADMBA0042", name = "ADMBatchJobWorkbench", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchJobs", summary = "배치 Job Workbench 목록", description = "BAT Owner의 Paging 계약으로 Job과 실행 통계를 조회합니다.")
+    @GetMapping("/jobs")    @Operation(operationId = "admBatchWorkbenchJobs", summary = "배치 Job Workbench 목록", description = "BAT Owner의 Paging 계약으로 Job과 실행 통계를 조회합니다.")
     public ResponseEntity<Map<String, Object>> jobs(
             @RequestParam(required = false) String query,
             @RequestParam(defaultValue = "0") int page,
@@ -78,9 +71,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(operations.findJobPage(query, page, size, sort, direction));
     }
 
-    @GetMapping("/jobs/{jobId}")
-    @CpfOnlineTransaction(id = "OADMBA0043", name = "ADMBatchJobWorkspace", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchJobDetail", summary = "배치 Job 상세 Workspace", description = "정의·스케줄·DAG 관계·실행·대상·Lock을 통합 조회합니다.")
+    @GetMapping("/jobs/{jobId}")    @Operation(operationId = "admBatchWorkbenchJobDetail", summary = "배치 Job 상세 Workspace", description = "정의·스케줄·DAG 관계·실행·대상·Lock을 통합 조회합니다.")
     public ResponseEntity<Map<String, Object>> job(@PathVariable String jobId) {
         Map<String, Object> detail = new LinkedHashMap<>(operations.findJobDetail(jobId));
         detail.putIfAbsent("relations", operations.findRelations(jobId));
@@ -90,9 +81,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(detail);
     }
 
-    @GetMapping("/schedules")
-    @CpfOnlineTransaction(id = "OADMBA0044", name = "ADMBatchScheduleWorkbench", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchSchedules", summary = "Scheduler HA Workbench 목록", description = "BAT Owner의 Paging 계약으로 스케줄과 실행 영향을 조회합니다.")
+    @GetMapping("/schedules")    @Operation(operationId = "admBatchWorkbenchSchedules", summary = "Scheduler HA Workbench 목록", description = "BAT Owner의 Paging 계약으로 스케줄과 실행 영향을 조회합니다.")
     public ResponseEntity<Map<String, Object>> schedules(
             @RequestParam(required = false) String query,
             @RequestParam(defaultValue = "0") int page,
@@ -102,9 +91,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(operations.findSchedulePage(query, page, size, sort, direction));
     }
 
-    @GetMapping("/infrastructure")
-    @CpfOnlineTransaction(id = "OADMBA0045", name = "ADMBatchInfrastructureWorkspace", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchInfrastructure", summary = "Batch 인프라 통합 조회", description = "Instance·Worker·실행 대상을 통합하고 heartbeat stale 상태를 보존합니다.")
+    @GetMapping("/infrastructure")    @Operation(operationId = "admBatchWorkbenchInfrastructure", summary = "Batch 인프라 통합 조회", description = "Instance·Worker·실행 대상을 통합하고 heartbeat stale 상태를 보존합니다.")
     public ResponseEntity<Map<String, Object>> infrastructure(
             @RequestParam(defaultValue = "120") int heartbeatTimeoutSeconds,
             @RequestParam(defaultValue = "500") int limit) {
@@ -113,9 +100,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/recovery")
-    @CpfOnlineTransaction(id = "OADMBA0046", name = "ADMBatchRecoveryWorkspace", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchRecovery", summary = "Recovery·Unknown Result 통합 조회", description = "Ghost 후보, Lease/Lock, 최근 운영 조치를 함께 조회합니다.")
+    @GetMapping("/recovery")    @Operation(operationId = "admBatchWorkbenchRecovery", summary = "Recovery·Unknown Result 통합 조회", description = "Ghost 후보, Lease/Lock, 최근 운영 조치를 함께 조회합니다.")
     public ResponseEntity<Map<String, Object>> recovery(
             @RequestParam(defaultValue = "120") int heartbeatTimeoutSeconds,
             @RequestParam(defaultValue = "500") int limit) {
@@ -124,9 +109,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/overview")
-    @CpfOnlineTransaction(id = "OADMBA0047", name = "ADMBatchOverviewWorkbench", ownerDomain="ADM")
-    @Operation(operationId = "admBatchWorkbenchOverview", summary = "Batch 운영 Dashboard", description = "Job·Schedule·Execution·Worker·Recovery 상태를 역할별 KPI로 제공합니다.")
+    @GetMapping("/overview")    @Operation(operationId = "admBatchWorkbenchOverview", summary = "Batch 운영 Dashboard", description = "Job·Schedule·Execution·Worker·Recovery 상태를 역할별 KPI로 제공합니다.")
     public ResponseEntity<Map<String, Object>> overview() {
         List<Map<String, Object>> jobs = operations.findJobs();
         List<Map<String, Object>> schedules = operations.findSchedules();

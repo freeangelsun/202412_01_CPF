@@ -9,7 +9,7 @@ BZA runtime,cpf-biz-admin/src/main/resources/application.yml,port/security/datas
 BZA route registry,cpf-biz-admin/frontend/src/app/routes.ts,26 business/admin routes and operationIds,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인
 Gateway runtime,cpf-gateway/src/main/resources/application.yml,port/TLS/timeout/retry/body/header/control-plane/probe safety properties,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인
 DB lifecycle,cpf-tools/scripts/initialize-cpf-database.ps1,vendor/profile/provision/run selector workflow,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인; Runtime DB3 미검증
-HTTP Public API,cpf-core/src/main/java/com/cpf/core/api/http/CpfHttpClient.java,GET/POST generated-domain public contract,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인
+HTTP Public API,cpf-core/src/main/java/com/cpf/core/api/http/CpfRestClient.java,GET/POST generated-domain public contract,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인
 Inbound transaction trust,cpf-core/src/main/java/com/cpf/core/common/transaction/CpfInboundTransactionIdPolicy.java,trusted start/propagation + replay guard,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인; Runtime ingress 미검증
 Transaction context,cpf-core/src/main/java/com/cpf/core/common/filter/TransactionContextFilter.java,transaction/trace/span response propagation,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인
 FileLog recovery,cpf-core/src/main/java/com/cpf/core/common/logging/file/CpfFileLogRecoverySpool.java,bounded spool/replay/dedup/quarantine/terminalLoss,f0aa49f29cba3cfd6ae12b0ddd4e118d05fff16c,정적 Source 확인; QA known limitation 반영

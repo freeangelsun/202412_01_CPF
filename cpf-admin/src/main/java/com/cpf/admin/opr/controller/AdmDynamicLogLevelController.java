@@ -4,7 +4,6 @@ import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRequ
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.platform.operations.observability.api.logging.CpfDynamicLogLevelOperations;
 import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.admin.opr.service.AdmDynamicLogLevelRuleStore;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmDynamicLogLevelBroadcastService;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Instance별 동적 로그 레벨 변경을 CAS·사유·감사와 함께 제어합니다. */
-@CpfController
+@RestController
 @RequestMapping("/adm/api/log-level")
 @Tag(name = "ADM-OPR Dynamic Log", description = "Temporary transaction log-level control APIs")
 public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmBaseController {
@@ -49,9 +48,7 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
         this.broadcastService = broadcastService;
     }
 
-    @GetMapping("/rules")
-    @CpfOnlineTransaction(id = "OADMOP0020", name = "ADMDynamicLogRuleList", ownerDomain="ADM")
-    @Operation(operationId = "admDynamicLogLevelFindRules", summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
+    @GetMapping("/rules")    @Operation(operationId = "admDynamicLogLevelFindRules", summary = "List dynamic log rules", description = "Returns active dynamic log-level rules for this WAS.")
     public ResponseEntity<Map<String, Object>> findRules() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("runtimeRules", dynamicLogLevelService.findActiveRules());
@@ -61,9 +58,7 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
     }
 
     @Hidden
-    @PutMapping("/rules")
-    @CpfOnlineTransaction(id = "OADMOP0021", name = "ADMDynamicLogRuleRegister", ownerDomain="ADM")
-    @Operation(operationId = "admDynamicLogLevelRegister", summary = "Register dynamic log rule", description = "Approval Engine Owner Command only.")
+    @PutMapping("/rules")    @Operation(operationId = "admDynamicLogLevelRegister", summary = "Register dynamic log rule", description = "Approval Engine Owner Command only.")
     public ResponseEntity<DynamicLogLevelRule> register(
             @RequestParam(required = false) String businessTransactionId,
             @RequestParam(required = false) String transactionId,
@@ -76,9 +71,7 @@ public class AdmDynamicLogLevelController extends com.cpf.admin.common.base.AdmB
     }
 
     @Hidden
-    @DeleteMapping("/rules/{ruleId}")
-    @CpfOnlineTransaction(id = "OADMOP0022", name = "ADMDynamicLogRuleRemove", ownerDomain="ADM")
-    @Operation(operationId = "admDynamicLogLevelRemove", summary = "Remove dynamic log rule", description = "Approval Engine Owner Command only.")
+    @DeleteMapping("/rules/{ruleId}")    @Operation(operationId = "admDynamicLogLevelRemove", summary = "Remove dynamic log rule", description = "Approval Engine Owner Command only.")
     public ResponseEntity<Map<String, Object>> remove(
             @PathVariable String ruleId,
             @RequestParam String reason,

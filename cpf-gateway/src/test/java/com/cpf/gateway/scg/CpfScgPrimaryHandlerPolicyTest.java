@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.cpf.gateway.api.CpfGatewayAuthenticationPort;
+import com.cpf.gateway.context.CpfGatewayHeaderNames;
 import com.cpf.gateway.api.CpfGatewayAuthorizationPort;
 import com.cpf.gateway.api.CpfGatewayPrincipal;
 import com.cpf.gateway.api.CpfGatewayRoute;
@@ -102,7 +103,7 @@ class CpfScgPrimaryHandlerPolicyTest {
                 CpfHeaderNames.API_KEY.toLowerCase(),
                 CpfHeaderNames.REQUEST_SIGNATURE.toLowerCase());
         assertThat(trusted).containsEntry(
-                CpfHeaderNames.CHANNEL_CODE.toLowerCase(), "WEB");
+                CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE.toLowerCase(), "WEB");
     }
 
 
@@ -148,9 +149,9 @@ class CpfScgPrimaryHandlerPolicyTest {
         MockHttpServletRequest servlet = new MockHttpServletRequest("POST", "/cpf/execute/OACCAC0001");
         servlet.setRemoteAddr("127.0.0.1");
         servlet.setContent(new byte[0]);
-        servlet.addHeader(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "WEB");
-        servlet.addHeader(CpfHeaderNames.CHANNEL_CODE, "WEB");
-        servlet.addHeader(CpfHeaderNames.CHANNEL_CODE, "MOBILE");
+        servlet.addHeader(CpfGatewayHeaderNames.ORIGINAL_CLIENT_CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE, "MOBILE");
         servlet.addHeader(CpfHeaderNames.REQUEST_TYPE, "INQUIRY");
         ServerRequest request = ServerRequest.create(
                 servlet, List.of(new ByteArrayHttpMessageConverter()));
@@ -159,7 +160,7 @@ class CpfScgPrimaryHandlerPolicyTest {
                 fixture.handler(), "trustedHeaders", request))
                 .hasRootCauseInstanceOf(SecurityException.class)
                 .hasRootCauseMessage("Gateway trusted header must have exactly one value: "
-                        + CpfHeaderNames.CHANNEL_CODE);
+                        + CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE);
     }
 
     @Test
@@ -213,8 +214,8 @@ class CpfScgPrimaryHandlerPolicyTest {
         MockHttpServletRequest servlet = new MockHttpServletRequest("POST", path);
         servlet.setRemoteAddr("127.0.0.1");
         servlet.setContent(new byte[0]);
-        servlet.addHeader(CpfHeaderNames.ORIGINAL_CHANNEL_CODE, "WEB");
-        servlet.addHeader(CpfHeaderNames.CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfGatewayHeaderNames.ORIGINAL_CLIENT_CHANNEL_CODE, "WEB");
+        servlet.addHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE, "WEB");
         servlet.addHeader(CpfHeaderNames.REQUEST_TYPE, "INQUIRY");
         servlet.addHeader(CpfHeaderNames.API_KEY, "masked-test-key");
         extraHeaders.forEach(servlet::addHeader);

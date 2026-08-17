@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "source_commit_sha": "4b6f96796c3bf26b1c3324cc4d9b701bd9415acd",
+  "versions": [
+    {
+      "version": "3.1.*",
+      "canonical_patch": "3.1.0",
+      "status": "SUPPORTED"
+    },
+    {
+      "version": "3.2.*",
+      "canonical_patch": "3.2.0",
+      "status": "MIGRATION_PREVIEW"
+    }
+  ],
+  "reference_policy": {
+    "cycle_policy": "ALLOW_EXPLICIT",
+    "allow_external_refs": false
+  },
+  "sanitization": {
+    "mode": "FAIL_CLOSED",
+    "reject_active_content": true
+  },
+  "generator_capabilities": [
+    {
+      "generator": "cpf-admin-orval",
+      "status": "SUPPORTED",
+      "openapi_profiles": ["3.1.*"],
+      "evidence_paths": [
+        "cpf-admin/frontend/orval.config.ts",
+        "cpf-admin/frontend/scripts/generate-checked-client.mjs"
+      ]
+    },
+    {
+      "generator": "cpf-biz-admin-orval",
+      "status": "SUPPORTED",
+      "openapi_profiles": ["3.1.*"],
+      "evidence_paths": [
+        "cpf-biz-admin/frontend/orval.config.ts",
+        "cpf-biz-admin/frontend/scripts/generate-checked-client.mjs"
+      ]
+    }
+  ],
+  "migration": {
+    "from": "3.1.*",
+    "to": "3.2.*",
+    "status": "PLANNED",
+    "evidence_paths": [
+      "cpf-tools/contracts/openapi/migration.json"
+    ]
+  },
+  "documents": [
+    {
+      "path": "cpf-admin/frontend/openapi/cpf-openapi.json",
+      "owner": "cpf-admin",
+      "consumers": [
+        "cpf-admin/frontend/orval.config.ts",
+        "cpf-admin/frontend/src/generated/cpf-api.ts"
+      ]
+    },
+    {
+      "path": "cpf-biz-admin/frontend/openapi/cpf-openapi.json",
+      "owner": "cpf-biz-admin",
+      "consumers": [
+        "cpf-biz-admin/frontend/orval.config.ts",
+        "cpf-biz-admin/frontend/src/generated/cpf-api.ts"
+      ]
+    }
+  ]
+}

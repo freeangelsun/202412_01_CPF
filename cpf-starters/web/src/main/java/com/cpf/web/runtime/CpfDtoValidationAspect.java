@@ -10,14 +10,14 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 
-/** @CpfController 경계의 @CpfDto argument를 자동 Bean Validation 합니다. */
+/** @CpfRestController 경계의 @CpfDto argument를 자동 Bean Validation 합니다. */
 @Aspect
 public final class CpfDtoValidationAspect {
     private final Validator validator;
     private final CpfDtoValidationProperties properties;
     public CpfDtoValidationAspect(Validator validator,CpfDtoValidationProperties properties){this.validator=validator;this.properties=properties;}
 
-    @Around("@within(com.cpf.web.api.CpfController)")
+    @Around("@within(com.cpf.web.api.CpfRestController)")
     public Object around(ProceedingJoinPoint jp) throws Throwable {
         if(properties.isEnabled()){
             Set<ConstraintViolation<Object>> violations=new LinkedHashSet<>();

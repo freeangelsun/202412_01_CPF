@@ -1,12 +1,13 @@
 package com.cpf.admin.opr.batch;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
 import com.cpf.integration.api.servicecall.CpfServiceTarget;
 import com.cpf.integration.api.servicecall.CpfServiceTransport;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,9 +45,9 @@ class RemoteCpfBatchOperationsAdapterTest {
 
         assertCallerHeaders(httpRequest.get().headers(), "operator-read");
         assertThat(serviceRequest.get().headers())
-                .containsEntry(CpfHeaders.callerService(), "ADM")
-                .containsEntry(CpfHeaders.callerInstanceId(), "adm-instance-01")
-                .containsEntry(CpfHeaders.operatorId(), "operator-read");
+                .containsEntry(BatControlHeaders.CALLER_SERVICE, "ADM")
+                .containsEntry(BatControlHeaders.CALLER_INSTANCE_ID, "adm-instance-01")
+                .containsEntry(BatControlHeaders.OPERATOR_ID, "operator-read");
         verify(operatorContext).currentOperatorId();
     }
 
@@ -71,14 +72,14 @@ class RemoteCpfBatchOperationsAdapterTest {
 
         assertCallerHeaders(httpRequest.get().headers(), "operator-mutation");
         assertThat(serviceRequest.get().headers())
-                .containsEntry(CpfHeaders.operatorId(), "operator-mutation");
+                .containsEntry(BatControlHeaders.OPERATOR_ID, "operator-mutation");
         verifyNoInteractions(operatorContext);
     }
 
     private void assertCallerHeaders(HttpHeaders headers, String operatorId) {
-        assertThat(headers.getFirst(CpfHeaders.callerService())).isEqualTo("ADM");
-        assertThat(headers.getFirst(CpfHeaders.callerInstanceId())).isEqualTo("adm-instance-01");
-        assertThat(headers.getFirst(CpfHeaders.operatorId())).isEqualTo(operatorId);
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_SERVICE)).isEqualTo("ADM");
+        assertThat(headers.getFirst(BatControlHeaders.CALLER_INSTANCE_ID)).isEqualTo("adm-instance-01");
+        assertThat(headers.getFirst(BatControlHeaders.OPERATOR_ID)).isEqualTo(operatorId);
     }
 
     private WebClient.Builder webClient(

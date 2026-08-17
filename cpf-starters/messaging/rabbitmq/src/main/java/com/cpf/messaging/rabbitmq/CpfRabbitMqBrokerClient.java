@@ -2,7 +2,7 @@ package com.cpf.messaging.rabbitmq;
 
 import com.cpf.core.api.context.CpfContexts;
 
-import com.cpf.messaging.api.CpfBrokerClient;
+import com.cpf.messaging.api.CpfMessagingTemplate;
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import com.cpf.messaging.api.CpfBrokerPublishResult;
 import com.cpf.messaging.spi.broker.CpfBrokerFailureSanitizer;
@@ -26,7 +26,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
  * <p>CPF transaction and idempotency headers are reserved and validated before publish. The
  * request content type is preserved instead of being replaced with a generic octet-stream value.</p>
  */
-public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
+public final class CpfRabbitMqBrokerClient implements CpfMessagingTemplate {
     private static final Set<String> RESERVED_HEADERS = Set.of(
             "cpf-message-id", "cpf-transaction-id", "cpf-idempotency-key",
             "cpf-content-type", "cpf-segment-id", "cpf-producer-module",
@@ -49,7 +49,7 @@ public final class CpfRabbitMqBrokerClient implements CpfBrokerClient {
     }
 
     @Override
-    public CpfBrokerPublishResult enqueue(CpfBrokerPublishRequest request) {
+    public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
         if (!current.transaction().transactionId().equals(request.transactionId())) {

@@ -1,5 +1,6 @@
 package com.cpf.platform.operations.observability.internal.logging.file;
 
+import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ import java.util.Set;
  *
  * <p>실행 디렉터리에 따라 로그 위치가 달라지지 않도록 상대경로를 허용하지 않습니다.
  * local에서는 저장소 root를 찾아 {@code <repository>/logs}를 사용하고, dev/stg/prod에서는
- * 외부에서 주입한 {@code CPF_LOG_ROOT}와 {@code CPF_INSTANCE_ID}를 필수로 사용합니다.</p>
+ * 로그 root 정책과 CPF Runtime instance identity를 사용합니다.</p>
  */
 public final class CpfLogPathPolicy {
     private static final Set<String> STRICT_ENVIRONMENTS = Set.of("dev", "stg", "prod");
@@ -211,20 +212,7 @@ public final class CpfLogPathPolicy {
             Environment environment,
             String environmentCode,
             String runtimeModuleCode) {
-        String externallyInjected = firstText(
-                environment.getProperty("CPF_INSTANCE_ID"),
-                environment.getProperty(runtimeModuleCode + "_INSTANCE_ID"),
-                environment.getProperty("SERVER_INSTANCE_ID"));
-        if (!hasText(externallyInjected) && STRICT_ENVIRONMENTS.contains(environmentCode)) {
-            throw new IllegalStateException(environmentCode + " 환경에서는 CPF_INSTANCE_ID가 필수입니다.");
-        }
-        String explicit = firstText(
-                externallyInjected,
-                environment.getProperty("cpf.framework.instance-id"));
-        String fallback = firstText(
-                environment.getProperty("cpf.framework.was-id"),
-                runtimeModuleCode.toLowerCase(Locale.ROOT) + '-' + environmentCode + "-01");
-        return sanitizeToken(firstText(explicit, fallback), null, 128);
+        return sanitizeToken(CpfInstanceIdentity.current().instanceId(), null, 128);
     }
 
     private static String normalizeModuleCode(String value, String fallback) {

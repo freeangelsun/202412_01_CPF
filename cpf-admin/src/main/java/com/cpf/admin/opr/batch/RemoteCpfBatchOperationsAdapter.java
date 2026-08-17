@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.batch;
 
+import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.batch.api.CpfBatchOperationsPort;
 import com.cpf.batch.api.CpfBatchRiskCommand;
@@ -8,7 +9,7 @@ import com.cpf.batch.api.CpfBatchOwnerUnknownResultException;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
 import com.cpf.integration.api.servicecall.CpfServiceResult;
-import com.cpf.web.api.CpfHeaders;
+import com.cpf.web.api.CpfHttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -72,26 +73,26 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
         String path = "/bat/internal/operations/" + operation;
         CpfServiceRequest.Builder requestBuilder = CpfServiceRequest.builder(SERVICE_ID)
                 .endpointCode(ENDPOINT_CODE).httpMethod("POST").requestPath(path)
-                .header(CpfHeaders.callerService(), CALLER_SERVICE)
-                .header(CpfHeaders.callerInstanceId(), callerInstanceId)
-                .header(CpfHeaders.operatorId(), verifiedOperator);
+                .header(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE)
+                .header(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId)
+                .header(BatControlHeaders.OPERATOR_ID, verifiedOperator);
         if (riskCommand != null) {
-            requestBuilder.header(CpfHeaders.idempotencyKey(), riskCommand.idempotencyKey())
-                    .header(CpfHeaders.approvalRequestId(), riskCommand.approvalRequestId())
-                    .header(CpfHeaders.approvalRequesterId(), riskCommand.requestUser());
+            requestBuilder.header(CpfHttpHeaders.idempotencyKey(), riskCommand.idempotencyKey())
+                    .header(BatControlHeaders.APPROVAL_REQUEST_ID, riskCommand.approvalRequestId())
+                    .header(BatControlHeaders.APPROVAL_REQUESTER_ID, riskCommand.requestUser());
         }
         CpfServiceRequest request = requestBuilder
                 .attribute("ownerDomain", "BAT").attribute("callerDomain", "ADM").build();
         CpfServiceResult<Object> result = caller.invoke(request, target -> webClient.post()
                 .uri(join(target.baseUrl(), path))
                 .headers(headers -> {
-                    headers.set(CpfHeaders.callerService(), CALLER_SERVICE);
-                    headers.set(CpfHeaders.callerInstanceId(), callerInstanceId);
-                    headers.set(CpfHeaders.operatorId(), verifiedOperator);
+                    headers.set(BatControlHeaders.CALLER_SERVICE, CALLER_SERVICE);
+                    headers.set(BatControlHeaders.CALLER_INSTANCE_ID, callerInstanceId);
+                    headers.set(BatControlHeaders.OPERATOR_ID, verifiedOperator);
                     if (riskCommand != null) {
-                        headers.set(CpfHeaders.idempotencyKey(), riskCommand.idempotencyKey());
-                        headers.set(CpfHeaders.approvalRequestId(), riskCommand.approvalRequestId());
-                        headers.set(CpfHeaders.approvalRequesterId(), riskCommand.requestUser());
+                        headers.set(CpfHttpHeaders.idempotencyKey(), riskCommand.idempotencyKey());
+                        headers.set(BatControlHeaders.APPROVAL_REQUEST_ID, riskCommand.approvalRequestId());
+                        headers.set(BatControlHeaders.APPROVAL_REQUESTER_ID, riskCommand.requestUser());
                     }
                 })
                 .bodyValue(payload == null ? Map.of() : payload)
@@ -140,32 +141,32 @@ public class RemoteCpfBatchOperationsAdapter implements CpfBatchOperationsPort {
     public List<CpfDataRow> findSchedules(){return list(invokeRead("findSchedules",Map.of()));}
     public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
-            String workerId,String serverInstanceId,int limit){
-        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, serverInstanceId, null, null, limit);
+            String workerId,String instanceId,int limit){
+        return findExecutions(jobId, transactionId, springBatchJobInstanceId, workerId, instanceId, null, null, limit);
     }
     public List<CpfDataRow> findExecutions(
             String jobId,String transactionId,Long springBatchJobInstanceId,
-            String workerId,String serverInstanceId,String fromDate,String toDate,int limit){
+            String workerId,String instanceId,String fromDate,String toDate,int limit){
         return list(invokeRead("findExecutions",p(
                 "jobId",jobId,
                 "transactionId",transactionId,
                 "springBatchJobInstanceId",springBatchJobInstanceId,
                 "workerId",workerId,
-                "serverInstanceId",serverInstanceId,
+                "instanceId",instanceId,
                 "fromDate",fromDate,
                 "toDate",toDate,
                 "limit",limit)));
     }
     public CpfDataRow findExecutionPage(
             String jobId,String transactionId,Long springBatchJobInstanceId,
-            String workerId,String serverInstanceId,String status,
+            String workerId,String instanceId,String status,
             String fromDate,String toDate,int page,int size){
         return map(invokeRead("findExecutionPage",p(
                 "jobId",jobId,
                 "transactionId",transactionId,
                 "springBatchJobInstanceId",springBatchJobInstanceId,
                 "workerId",workerId,
-                "serverInstanceId",serverInstanceId,
+                "instanceId",instanceId,
                 "status",status,
                 "fromDate",fromDate,
                 "toDate",toDate,

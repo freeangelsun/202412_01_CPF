@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 42,
+  "schemaVersion": 44,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -4107,7 +4107,7 @@
       "tableName": "BAT_WORKER",
       "columns": [
         "worker_id",
-        "server_instance_id",
+        "instance_id",
         "host_name",
         "process_id",
         "thread_name",
@@ -4128,8 +4128,8 @@
       ],
       "updates": [
         {
-          "column": "server_instance_id",
-          "expression": "VALUES(server_instance_id)"
+          "column": "instance_id",
+          "expression": "VALUES(instance_id)"
         },
         {
           "column": "host_name",
@@ -4396,7 +4396,7 @@
         "job_parameters",
         "execution_status",
         "batch_instance_id",
-        "server_instance_id",
+        "instance_id",
         "worker_id",
         "transaction_id",
         "start_time",
@@ -6231,23 +6231,25 @@
         "BUSINESS_TRANSACTION_NAME",
         "LOG_TYPE",
         "API_VERSION",
-        "CLIENT_APP_ID",
+        "CLIENT_ID",
         "CLIENT_VERSION",
-        "CALLER_SERVICE",
+        "CALLER_SYSTEM_CODE",
+        "TARGET_SYSTEM_CODE",
+        "TARGET_OPERATION_ID",
         "CALLER_INSTANCE_ID",
         "CORRELATION_ID",
         "IDEMPOTENCY_KEY",
         "LOCALE",
         "TIMEZONE",
         "REQUEST_TYPE",
-        "ORIGINAL_CHANNEL_CODE",
-        "CHANNEL_CODE",
+        "ORIGINAL_SYSTEM_CODE",
+        "SYSTEM_CODE",
         "MEMBER_NO",
         "CUSTOMER_NO",
         "SCREEN_ID",
         "DEVICE_ID",
         "WAS_ID",
-        "SERVER_INSTANCE_ID",
+        "INSTANCE_ID",
         "HOST_NAME",
         "PROCESS_ID",
         "THREAD_NAME",
@@ -6273,7 +6275,7 @@
         "updated_by"
       ],
       "sourceKind": "select",
-      "source": "SELECT\n    DATE(@sample_start_time),\n    @sample_transaction_id,\n    'trace-sample-001',\n    'span-sample-001',\n    1,\n    'EDU',\n    'OEDUAA0001',\n    'EDU 표준 거래 샘플',\n    'SUCCESS',\n    'v1',\n    'cpf-edu-web',\n    '1.0.0',\n    'edu-education',\n    'local-dev',\n    'corr-sample-001',\n    'idem-sample-001',\n    'ko-KR',\n    'Asia/Seoul',\n    'NORMAL',\n    'WEB',\n    'WEB',\n    'M000000001',\n    'C000000001',\n    'EDU_SAMPLE_LIST',\n    'LOCAL_BROWSER',\n    'local01',\n    'local-dev:sql-seed',\n    'local-dev',\n    'sql-seed',\n    'sql-smoke',\n    'GET',\n    '/edu/api/education/crud',\n    'com.cpf.education.web.crud.controller.EducationCrudEducationController',\n    'com.cpf.education.web.crud.controller',\n    'EducationCrudEducationController',\n    'list',\n    'EducationCrudEducationController.list()',\n    '{}',\n    '{\"sampleKey\":\"REF-SAMPLE-001\",\"secret\":\"masked\"}',\n    '{\"code\":\"SCPF000000\",\"message\":\"정상 처리되었습니다.\"}',\n    200,\n    'SCPF000000',\n    'SYSTEM',\n    '127.0.0.1',\n    'SQL-SEED',\n    @sample_start_time,\n    @sample_end_time,\n    12,\n    'SYSTEM',\n    'SYSTEM'\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM CPF_TRANSACTION_LOG\n    WHERE TRANSACTION_ID = @sample_transaction_id\n      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'\n)",
+      "source": "SELECT\n    DATE(@sample_start_time),\n    @sample_transaction_id,\n    'trace-sample-001',\n    'span-sample-001',\n    1,\n    'EDU',\n    'OEDUAA0001',\n    'EDU 표준 거래 샘플',\n    'SUCCESS',\n    'v1',\n    'cpf-edu-web',\n    '1.0.0',\n    'EDU',\n    'EDU',\n    'educationCrudList',\n    'local-dev',\n    'corr-sample-001',\n    'idem-sample-001',\n    'ko-KR',\n    'Asia/Seoul',\n    'NORMAL',\n    'EDU',\n    'EDU',\n    'M000000001',\n    'C000000001',\n    'EDU_SAMPLE_LIST',\n    'LOCAL_BROWSER',\n    'local01',\n    'local-dev:sql-seed',\n    'local-dev',\n    'sql-seed',\n    'sql-smoke',\n    'GET',\n    '/edu/api/education/crud',\n    'com.cpf.education.web.crud.controller.EducationCrudEducationController',\n    'com.cpf.education.web.crud.controller',\n    'EducationCrudEducationController',\n    'list',\n    'EducationCrudEducationController.list()',\n    '{}',\n    '{\"sampleKey\":\"REF-SAMPLE-001\",\"secret\":\"masked\"}',\n    '{\"code\":\"SCPF000000\",\"message\":\"정상 처리되었습니다.\"}',\n    200,\n    'SCPF000000',\n    'SYSTEM',\n    '127.0.0.1',\n    'SQL-SEED',\n    @sample_start_time,\n    @sample_end_time,\n    12,\n    'SYSTEM',\n    'SYSTEM'\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM CPF_TRANSACTION_LOG\n    WHERE TRANSACTION_ID = @sample_transaction_id\n      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'\n)",
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
@@ -6307,7 +6309,7 @@
         "updated_by"
       ],
       "sourceKind": "select",
-      "source": "SELECT @sample_log_idx, 'headers', '{\"X-Channel-Code\":\"WEB\",\"X-Request-Type\":\"NORMAL\",\"X-Client-Version\":\"1.0.0\"}', 'SYSTEM', 'SYSTEM'\nWHERE @sample_log_idx IS NOT NULL\n  AND NOT EXISTS (\n      SELECT 1\n      FROM CPF_TRANSACTION_LOG_DETAIL\n      WHERE LOG_IDX = @sample_log_idx\n        AND DETAIL_KEY = 'headers'\n  )",
+      "source": "SELECT @sample_log_idx, 'headers', '{\"X-System-Code\":\"WEB\",\"X-Request-Type\":\"NORMAL\",\"X-Client-Version\":\"1.0.0\"}', 'SYSTEM', 'SYSTEM'\nWHERE @sample_log_idx IS NOT NULL\n  AND NOT EXISTS (\n      SELECT 1\n      FROM CPF_TRANSACTION_LOG_DETAIL\n      WHERE LOG_IDX = @sample_log_idx\n        AND DETAIL_KEY = 'headers'\n  )",
       "conflictKey": null,
       "conflictColumns": [],
       "updates": [],
@@ -6535,7 +6537,7 @@
         "transaction_id",
         "module_id",
         "was_id",
-        "server_instance_id",
+        "instance_id",
         "created_by",
         "updated_by"
       ],

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 49,
+  "schemaVersion": 51,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -9518,7 +9518,7 @@
           "comment": "배치 인스턴스 ID"
         },
         {
-          "name": "server_instance_id",
+          "name": "instance_id",
           "type": "VARCHAR(160)",
           "nullable": true,
           "default": null,
@@ -9865,9 +9865,9 @@
           ]
         },
         {
-          "name": "ix_bat_execution_server",
+          "name": "ix_bat_execution_instance",
           "columns": [
-            "server_instance_id",
+            "instance_id",
             "start_time"
           ]
         },
@@ -11415,7 +11415,7 @@
           "comment": "배치 Job ID"
         },
         {
-          "name": "server_instance_id",
+          "name": "instance_id",
           "type": "VARCHAR(160)",
           "nullable": true,
           "default": null,
@@ -17198,7 +17198,7 @@
           "comment": "배치 worker ID"
         },
         {
-          "name": "server_instance_id",
+          "name": "instance_id",
           "type": "VARCHAR(160)",
           "nullable": false,
           "default": null,
@@ -17375,9 +17375,9 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bat_worker_server",
+          "name": "ix_bat_worker_instance",
           "columns": [
-            "server_instance_id",
+            "instance_id",
             "active_yn"
           ]
         },
@@ -20890,7 +20890,7 @@
           "comment": "WAS ID"
         },
         {
-          "name": "server_instance_id",
+          "name": "instance_id",
           "type": "VARCHAR(200)",
           "nullable": true,
           "default": null,
@@ -27767,13 +27767,13 @@
           "comment": "테넌트 ID"
         },
         {
-          "name": "channel_code",
+          "name": "system_code",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "기동/현재 채널 코드"
+          "comment": "현재 처리 System 코드"
         },
         {
           "name": "actor_id_masked",
@@ -28195,13 +28195,13 @@
           "comment": "테넌트 ID"
         },
         {
-          "name": "channel_code",
+          "name": "system_code",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "기동/현재 채널 코드"
+          "comment": "현재 처리 System 코드"
         },
         {
           "name": "actor_id_masked",
@@ -28613,13 +28613,13 @@
           "comment": "호출 API 버전"
         },
         {
-          "name": "CLIENT_APP_ID",
+          "name": "CLIENT_ID",
           "type": "VARCHAR(80)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "클라이언트 앱 또는 제휴 시스템 ID"
+          "comment": "클라이언트/Application 식별자"
         },
         {
           "name": "CLIENT_VERSION",
@@ -28631,13 +28631,31 @@
           "comment": "클라이언트 앱 또는 SDK 버전"
         },
         {
-          "name": "CALLER_SERVICE",
+          "name": "CALLER_SYSTEM_CODE",
           "type": "VARCHAR(120)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "호출 서비스명"
+          "comment": "직전 호출 시스템 코드"
+        },
+        {
+          "name": "TARGET_SYSTEM_CODE",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 호출 대상 시스템 코드"
+        },
+        {
+          "name": "TARGET_OPERATION_ID",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 대상 Canonical operationId"
         },
         {
           "name": "CALLER_INSTANCE_ID",
@@ -28694,22 +28712,22 @@
           "comment": "요청 유형"
         },
         {
-          "name": "ORIGINAL_CHANNEL_CODE",
+          "name": "ORIGINAL_SYSTEM_CODE",
           "type": "VARCHAR(20)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "최초 유입 채널 코드"
+          "comment": "최초 거래 발생 시스템 코드"
         },
         {
-          "name": "CHANNEL_CODE",
+          "name": "SYSTEM_CODE",
           "type": "VARCHAR(20)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 처리 채널 코드"
+          "comment": "현재 요청 처리 시스템 코드"
         },
         {
           "name": "MEMBER_NO",
@@ -28766,7 +28784,7 @@
           "comment": "처리 WAS ID"
         },
         {
-          "name": "SERVER_INSTANCE_ID",
+          "name": "INSTANCE_ID",
           "type": "VARCHAR(160)",
           "nullable": true,
           "default": null,
@@ -29238,9 +29256,9 @@
           ]
         },
         {
-          "name": "ix_cpf_transaction_log_client_app",
+          "name": "ix_cpf_transaction_log_client",
           "columns": [
-            "CLIENT_APP_ID",
+            "CLIENT_ID",
             "START_TIME"
           ]
         },
@@ -29272,9 +29290,9 @@
           ]
         },
         {
-          "name": "ix_cpf_transaction_log_channel_time",
+          "name": "ix_cpf_transaction_log_system_time",
           "columns": [
-            "CHANNEL_CODE",
+            "SYSTEM_CODE",
             "START_TIME"
           ]
         },
@@ -29286,9 +29304,9 @@
           ]
         },
         {
-          "name": "ix_cpf_transaction_log_server_time",
+          "name": "ix_cpf_transaction_log_instance_time",
           "columns": [
-            "SERVER_INSTANCE_ID",
+            "INSTANCE_ID",
             "START_TIME"
           ]
         },
@@ -29303,7 +29321,7 @@
           "name": "ix_cpf_transaction_log_module_instance_time",
           "columns": [
             "MODULE_ID",
-            "SERVER_INSTANCE_ID",
+            "INSTANCE_ID",
             "START_TIME"
           ]
         },
@@ -29319,6 +29337,14 @@
           "name": "ix_cpf_transaction_log_http_status_time",
           "columns": [
             "HTTP_STATUS",
+            "START_TIME"
+          ]
+        },
+        {
+          "name": "ix_cpf_transaction_log_target_operation",
+          "columns": [
+            "TARGET_SYSTEM_CODE",
+            "TARGET_OPERATION_ID",
             "START_TIME"
           ]
         }
@@ -29942,40 +29968,58 @@
           "comment": "마스킹된 운영자 ID"
         },
         {
-          "name": "channel_code",
+          "name": "system_code",
           "type": "VARCHAR(30)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 채널 코드"
+          "comment": "현재 요청 처리 시스템 코드"
         },
         {
-          "name": "original_channel_code",
+          "name": "original_system_code",
           "type": "VARCHAR(30)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "최초 유입 채널 코드"
+          "comment": "최초 거래 발생 시스템 코드"
         },
         {
-          "name": "client_app_id",
+          "name": "client_id",
           "type": "VARCHAR(100)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "클라이언트 애플리케이션 ID"
+          "comment": "클라이언트/Application 식별자"
         },
         {
-          "name": "caller_service",
+          "name": "caller_system_code",
           "type": "VARCHAR(100)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "호출 서비스 ID"
+          "comment": "직전 호출 시스템 코드"
+        },
+        {
+          "name": "target_system_code",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 호출 대상 시스템 코드"
+        },
+        {
+          "name": "target_operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 대상 Canonical operationId"
         },
         {
           "name": "external_institution_code",
@@ -30187,10 +30231,10 @@
           ]
         },
         {
-          "name": "ix_cpf_transaction_segment_client",
+          "name": "ix_cpf_transaction_segment_client_system",
           "columns": [
-            "client_app_id",
-            "caller_service",
+            "client_id",
+            "caller_system_code",
             "started_at"
           ]
         },
@@ -30219,6 +30263,14 @@
           "name": "ix_cpf_transaction_segment_unknown",
           "columns": [
             "unknown_result_id"
+          ]
+        },
+        {
+          "name": "ix_cpf_transaction_segment_target_operation",
+          "columns": [
+            "target_system_code",
+            "target_operation_id",
+            "started_at"
           ]
         }
       ],

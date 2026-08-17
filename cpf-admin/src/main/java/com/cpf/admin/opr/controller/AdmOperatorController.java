@@ -20,7 +20,6 @@ import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmSessionService;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.security.api.CpfSensitiveDataAccessRequest;
-import com.cpf.foundation.annotation.CpfOnlineTransaction;
 import com.cpf.core.api.error.CpfValidationException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,12 +35,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.cpf.web.api.CpfController;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
 
-@CpfController
+@RestController
 @RequestMapping("/adm/api/operators")
 @Tag(name = "ADM-OPR Operators", description = "Operator, role, and menu management APIs")
 public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseController {
@@ -58,16 +57,12 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping
-    @CpfOnlineTransaction(id = "OADMOP0030", name = "ADMOperatorList", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorFindOperators", summary = "List operators", description = "Returns ADM operators and account status.")
+    @GetMapping    @Operation(operationId = "admOperatorFindOperators", summary = "List operators", description = "Returns ADM operators and account status.")
     public ResponseEntity<List<AdmOperator>> findOperators() {
         return ResponseEntity.ok(operatorService.findOperators());
     }
 
-    @PostMapping
-    @CpfOnlineTransaction(id = "OADMOP0031", name = "ADMOperatorCreate", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorCreateOperator", summary = "운영자 생성",
+    @PostMapping    @Operation(operationId = "admOperatorCreateOperator", summary = "운영자 생성",
             description = "operationId는 필수이며 결과불명 재시도에서 동일 값을 재사용합니다. 일반 운영자 생성 요청은 Role 동시부여를 허용하지 않습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "생성 성공 또는 동일 operationId의 동일 생성 결과"),
@@ -92,17 +87,13 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
-    @GetMapping("/operations/{operationId}")
-    @CpfOnlineTransaction(id = "OADMOP0051", name = "ADMOperatorCreateResult", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorFindCreateResult", summary = "operationId로 운영자 생성 결과 조회",
+    @GetMapping("/operations/{operationId}")    @Operation(operationId = "admOperatorFindCreateResult", summary = "operationId로 운영자 생성 결과 조회",
             description = "생성 응답 유실이나 timeout 결과불명 시 최초 요청의 동일 operationId로 생성 결과를 조회합니다.")
     public ResponseEntity<AdmOperator> findCreateResult(@PathVariable String operationId) {
         return ResponseEntity.ok(operatorService.findOperatorByCreateOperationId(operationId));
     }
 
-    @PostMapping("/{operatorId}/contacts/raw")
-    @CpfOnlineTransaction(id = "OADMOP0048", name = "ADMOperatorRawContact", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorRawContact", summary = "운영자 연락처 원문 조회",
+    @PostMapping("/{operatorId}/contacts/raw")    @Operation(operationId = "admOperatorRawContact", summary = "운영자 연락처 원문 조회",
             description = "PII_RAW 권한과 사유를 검증하고 감사 DB 기록이 성공한 경우에만 mobileNo/officePhoneNo 최소 Projection을 no-store로 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "감사 완료된 최소 Raw Projection"),
@@ -125,9 +116,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(result);
     }
 
-    @PutMapping("/{operatorId}/contacts")
-    @CpfOnlineTransaction(id = "OADMOP0049", name = "ADMOperatorContactUpdate", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorUpdateContact", summary = "운영자 연락처 수정",
+    @PutMapping("/{operatorId}/contacts")    @Operation(operationId = "admOperatorUpdateContact", summary = "운영자 연락처 수정",
             description = "Directory/Profile 연락처를 낙관적 잠금으로 수정합니다. 빈 값은 보존하고 clear 플래그만 명시적 삭제로 처리합니다.")
     public ResponseEntity<AdmOperator> updateContact(
             @PathVariable String operatorId,
@@ -146,9 +135,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping("/{operatorId}/status")
-    @CpfOnlineTransaction(id = "OADMOP0050", name = "ADMOperatorStatusUpdate", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorUpdateStatus", summary = "운영자 계정 상태 변경",
+    @PutMapping("/{operatorId}/status")    @Operation(operationId = "admOperatorUpdateStatus", summary = "운영자 계정 상태 변경",
             description = "expectedVersion 기반 CAS와 상태 Transition Matrix를 적용하고 같은 운영 변경 책임에서 기존 Session을 무효화합니다. Role 없는 ACTIVE 전환은 거부합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "상태 변경과 Session 무효화 성공"),
@@ -174,9 +161,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{operatorId}/password")
-    @CpfOnlineTransaction(id = "OADMOP0032", name = "ADMOperatorPasswordChange", ownerDomain="ADM")
-    @Operation(
+    @PostMapping("/{operatorId}/password")    @Operation(
             operationId = "admOperatorChangePassword",
             summary = "본인 비밀번호 변경",
             description = "현재 비밀번호와 새 비밀번호 확인값, 비밀번호 정책과 최근 사용 이력을 검증한 뒤 본인 비밀번호를 변경합니다.")
@@ -201,16 +186,12 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
-    @GetMapping("/password-policy")
-    @CpfOnlineTransaction(id = "OADMOP0036", name = "ADMPasswordPolicy", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorPasswordPolicy", summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
+    @GetMapping("/password-policy")    @Operation(operationId = "admOperatorPasswordPolicy", summary = "비밀번호 정책 조회", description = "ADM 운영자 비밀번호 정책을 조회합니다.")
     public ResponseEntity<AdmPasswordPolicyResponse> passwordPolicy() {
         return ResponseEntity.ok(operatorService.passwordPolicy());
     }
 
-    @PostMapping("/{operatorId}/password/reset")
-    @CpfOnlineTransaction(id = "OADMOP0037", name = "ADMOperatorPasswordReset", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorResetPassword", summary = "비밀번호 초기화", description = "운영자 비밀번호를 초기화하고 필요 시 다음 로그인 강제 변경을 설정합니다.")
+    @PostMapping("/{operatorId}/password/reset")    @Operation(operationId = "admOperatorResetPassword", summary = "비밀번호 초기화", description = "운영자 비밀번호를 초기화하고 필요 시 다음 로그인 강제 변경을 설정합니다.")
     public ResponseEntity<AdmOperator> resetPassword(
             @PathVariable String operatorId,
             @RequestBody AdmOperatorPasswordResetRequest request,
@@ -235,9 +216,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
-    @PostMapping("/{operatorId}/unlock")
-    @CpfOnlineTransaction(id = "OADMOP0038", name = "ADMOperatorUnlock", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorUnlockOperator", summary = "운영자 잠금 해제", description = "운영자 계정 잠금과 로그인 실패 횟수를 초기화합니다.")
+    @PostMapping("/{operatorId}/unlock")    @Operation(operationId = "admOperatorUnlockOperator", summary = "운영자 잠금 해제", description = "운영자 계정 잠금과 로그인 실패 횟수를 초기화합니다.")
     public ResponseEntity<AdmOperator> unlockOperator(
             @PathVariable String operatorId,
             @RequestBody AdmSessionRevokeRequest request,
@@ -262,9 +241,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
-    @PutMapping("/{operatorId}/roles")
-    @CpfOnlineTransaction(id = "OADMOP0039", name = "ADMOperatorRoleUpdate", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorUpdateRoles", summary = "운영자 역할 변경", description = "운영자에게 부여된 ADM 역할을 변경합니다.")
+    @PutMapping("/{operatorId}/roles")    @Operation(operationId = "admOperatorUpdateRoles", summary = "운영자 역할 변경", description = "운영자에게 부여된 ADM 역할을 변경합니다.")
     public ResponseEntity<AdmOperator> updateRoles(
             @PathVariable String operatorId,
             @RequestBody AdmOperatorRoleUpdateRequest request,
@@ -289,23 +266,17 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(operator);
     }
 
-    @GetMapping("/password-policy/validate")
-    @CpfOnlineTransaction(id = "OADMOP0033", name = "ADMPasswordPolicyValidate", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorValidatePassword", summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
+    @GetMapping("/password-policy/validate")    @Operation(operationId = "admOperatorValidatePassword", summary = "Validate password policy", description = "Checks whether a password satisfies the ADM policy.")
     public ResponseEntity<AdmPasswordValidationResponse> validatePassword(@RequestParam String operatorId, @RequestParam String password) {
         return ResponseEntity.ok(operatorService.validatePassword(operatorId, password));
     }
 
-    @GetMapping("/sessions")
-    @CpfOnlineTransaction(id = "OADMOP0043", name = "ADMSessionList", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorFindSessions", summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
+    @GetMapping("/sessions")    @Operation(operationId = "admOperatorFindSessions", summary = "ADM 세션 조회", description = "ADM 운영자 세션을 조회합니다.")
     public ResponseEntity<List<AdmSessionSummaryResponse>> findSessions(@RequestParam(required = false) String operatorId) {
         return ResponseEntity.ok(sessionService.findSessions(operatorId));
     }
 
-    @PostMapping("/sessions/{sessionId}/revoke")
-    @CpfOnlineTransaction(id = "OADMOP0046", name = "ADMSessionRevoke", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorRevokeSession", summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
+    @PostMapping("/sessions/{sessionId}/revoke")    @Operation(operationId = "admOperatorRevokeSession", summary = "ADM 세션 강제 종료", description = "지정한 ADM 세션을 폐기합니다.")
     public ResponseEntity<AdmSessionMutationResponse> revokeSession(
             @PathVariable String sessionId,
             @RequestBody AdmSessionRevokeRequest request,
@@ -326,9 +297,7 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(new AdmSessionMutationResponse(revoked));
     }
 
-    @PostMapping("/sessions/cleanup-expired")
-    @CpfOnlineTransaction(id = "OADMOP0047", name = "ADMSessionCleanupExpired", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorCleanupExpiredSessions", summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
+    @PostMapping("/sessions/cleanup-expired")    @Operation(operationId = "admOperatorCleanupExpiredSessions", summary = "만료 세션 정리", description = "만료된 ADM 세션을 폐기 상태로 변경합니다.")
     public ResponseEntity<AdmSessionMutationResponse> cleanupExpiredSessions(
             @RequestBody AdmSessionRevokeRequest request,
             HttpServletRequest servletRequest) {
@@ -348,16 +317,12 @@ public class AdmOperatorController extends com.cpf.admin.common.base.AdmBaseCont
         return ResponseEntity.ok(new AdmSessionMutationResponse(revoked));
     }
 
-    @GetMapping("/roles")
-    @CpfOnlineTransaction(id = "OADMOP0034", name = "ADMRoleList", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorFindRoles", summary = "List roles", description = "Returns ADM roles.")
+    @GetMapping("/roles")    @Operation(operationId = "admOperatorFindRoles", summary = "List roles", description = "Returns ADM roles.")
     public ResponseEntity<List<AdmRole>> findRoles() {
         return ResponseEntity.ok(operatorService.findRoles());
     }
 
-    @GetMapping("/menus")
-    @CpfOnlineTransaction(id = "OADMOP0035", name = "ADMMenuList", ownerDomain="ADM")
-    @Operation(operationId = "admOperatorFindMenus", summary = "List menus", description = "Returns ADM menus.")
+    @GetMapping("/menus")    @Operation(operationId = "admOperatorFindMenus", summary = "List menus", description = "Returns ADM menus.")
     public ResponseEntity<List<AdmMenu>> findMenus() {
         return ResponseEntity.ok(operatorService.findMenus());
     }

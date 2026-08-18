@@ -33,9 +33,9 @@ public final class CpfDomainCallController {
             @PathVariable String systemCode, @PathVariable String operationId, @RequestBody JsonNode payload,
             HttpServletRequest servletRequest) {
         CpfDomainOperation operation = registry.requireOperation(systemCode, operationId);
-        invocationGuard.verify(servletRequest, operation);
+        var metadata = invocationGuard.verify(servletRequest, operation);
         CpfRequest request = (CpfRequest) objectMapper.convertValue(payload, operation.requestType());
-        CpfResult<?> result = operation.invoke(request);
+        CpfResult<?> result = registry.invoke(metadata, systemCode, operationId, request, operation.responseType());
         return CpfDomainRemoteEnvelope.from(result);
     }
 }

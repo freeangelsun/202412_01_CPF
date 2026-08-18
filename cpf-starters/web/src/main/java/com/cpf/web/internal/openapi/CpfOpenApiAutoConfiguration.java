@@ -105,19 +105,19 @@ public class CpfOpenApiAutoConfiguration {
         return (operation, handlerMethod) -> {
             OnlineTransactionMetadata online = findOnlineTransaction(handlerMethod);
             if (online != null) {
-                // External ingress does not have to provide these values. CPF internal generated clients/runtime do.
-                addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, false,
-                        "CPF transaction ID. External ingress may omit it; CPF generates one. Internal CPF hops propagate it automatically.");
-                addHeader(operation, CpfHttpHeaderNames.ORIGINAL_CHANNEL, false,
-                        "CPF internal protocol value managed by the runtime. External clients must not assert it.");
-                addHeader(operation, CpfHttpHeaderNames.CURRENT_CHANNEL, false,
-                        "CPF internal current/receiving system code managed by the runtime.");
-                addHeader(operation, CpfHttpHeaderNames.CALLER_CHANNEL, false,
-                        "CPF internal immediate caller channel code managed by the runtime.");
-                addHeader(operation, CpfHttpHeaderNames.TARGET_CHANNEL, false,
-                        "CPF internal target channel code managed by the runtime.");
-                addHeader(operation, CpfHttpHeaderNames.TARGET_OPERATION_ID, false,
-                        "CPF internal canonical operationId. Runtime validates it against the resolved handler before Controller execution.");
+                // External direct CPF callers provide exactly five transaction headers. Current Channel is receiver-owned.
+                addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, true,
+                        "Required end-to-end CPF transaction ID. Internal CPF hops propagate it automatically.");
+                addChannelHeader(operation, CpfHttpHeaderNames.ORIGINAL_CHANNEL, true,
+                        "Required original Channel that started the logical transaction.");
+                addChannelHeader(operation, CpfHttpHeaderNames.CURRENT_CHANNEL, false,
+                        "Receiver-owned current Channel. External callers do not provide it; CPF derives it from the receiver canonical systemCode.");
+                addChannelHeader(operation, CpfHttpHeaderNames.CALLER_CHANNEL, true,
+                        "Required immediate caller Channel for this hop.");
+                addChannelHeader(operation, CpfHttpHeaderNames.TARGET_CHANNEL, true,
+                        "Required target Channel for this hop. Runtime validates it against the receiver current Channel.");
+                addHeader(operation, CpfHttpHeaderNames.TARGET_OPERATION_ID, true,
+                        "Required canonical target operationId. Runtime validates it against the resolved handler before Controller execution.");
             }
             addHeader(operation, CpfHttpHeaderNames.COUNTRY_CODE, false, "Client/service country code when supplied by contract.");
             addHeader(operation, CpfHttpHeaderNames.CLIENT_ID, false, "Client/application identifier; not a security authority by itself.");
@@ -228,6 +228,25 @@ public class CpfOpenApiAutoConfiguration {
         String requestUri = request.getRequestURI();
         String path = requestUri.startsWith(contextPath) ? requestUri.substring(contextPath.length()) : requestUri;
         return "/swagger-ui.html".equals(path);
+    }
+
+    private void addChannelHeader(io.swagger.v3.oas.models.Operation operation, String name, boolean required, String description) {
+        List<Parameter> parameters = operation.getParameters();
+        if (parameters == null) {
+            parameters = new ArrayList<>();
+            operation.setParameters(parameters);
+        }
+        boolean exists = parameters.stream()
+                .anyMatch(parameter -> "header".equals(parameter.getIn()) && name.equals(parameter.getName()));
+        if (!exists) {
+            parameters.add(new Parameter()
+                    .in("header")
+                    .name(name)
+                    .required(required)
+                    .description(description)
+                    .schema(new StringSchema().minLength(1).maxLength(16)
+                            .pattern("^[A-Z0-9][A-Z0-9_-]{0,15}$")));
+        }
     }
 
     private void addHeader(io.swagger.v3.oas.models.Operation operation, String name, boolean required, String description) {

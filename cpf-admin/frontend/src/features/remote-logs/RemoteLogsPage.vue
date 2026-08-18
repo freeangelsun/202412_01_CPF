@@ -16,7 +16,7 @@
           <label>환경 <input v-model="remoteLogSearch.environment" type="text" placeholder="local"></label>
           <label>모듈 <input v-model="remoteLogSearch.module" type="text" placeholder="ADM"></label>
           <label>서비스 <input v-model="remoteLogSearch.service" type="text" placeholder="ADM"></label>
-          <label>인스턴스 <input v-model="remoteLogSearch.instance" type="text"></label>
+          <label>인스턴스 <RuntimeInventorySelector v-model="remoteLogSearch.instance" capability="FILE_LOGGING" /></label>
           <label>로그 유형 <input v-model="remoteLogSearch.logType" type="text" placeholder="transaction"></label>
           <label>파일명 <input v-model="remoteLogSearch.fileName" type="text"></label>
           <label>표준 온라인 ID <input v-model="remoteLogSearch.standardTransactionId" type="text"></label>
@@ -62,8 +62,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
+import RuntimeInventorySelector from "../../components/RuntimeInventorySelector.vue";
 
 export default defineComponent({setup(){return useAdmConsolePage()},
   name: "RemoteLogsPage",
+  components:{RuntimeInventorySelector},
   });
 </script>

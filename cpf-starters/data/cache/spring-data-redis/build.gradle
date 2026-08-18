@@ -1,6 +1,7 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group = 'com.cpf.internal'
 dependencies {
+    implementation project(':framework:base-runtime')
     api project(':framework:data')
     implementation project(':framework:operations')
     api 'org.springframework.data:spring-data-redis'

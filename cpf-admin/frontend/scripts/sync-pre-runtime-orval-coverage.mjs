@@ -7,7 +7,7 @@ const clientPath = path.resolve(root, process.env.CPF_GENERATED_CLIENT || "src/g
 const modelDir = path.resolve(root, "src/generated/orval/model");
 const spec = JSON.parse(fs.readFileSync(openApiPath, "utf8"));
 const preRuntime = spec["x-cpf-export-origin"] === "CONTROLLER_SOURCE_PRE_RUNTIME";
-let source = fs.readFileSync(clientPath, "utf8");
+let source = preRuntime ? "" : fs.readFileSync(clientPath, "utf8");
 source = source.replace(/\n*\/\/ CPF PRE-RUNTIME FALLBACK START [^\n]+\n[\s\S]*?\/\/ CPF PRE-RUNTIME FALLBACK END [^\n]+\n?/g, "\n");
 if (preRuntime) {
   fs.rmSync(modelDir, { recursive: true, force: true });

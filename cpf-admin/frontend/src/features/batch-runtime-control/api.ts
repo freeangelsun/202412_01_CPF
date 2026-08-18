@@ -8,6 +8,9 @@ import {
   resolveAdmUnknownResult,
   admCenterCutReconcileUnknownExecution, admCenterCutReprocessFailedExecution,
   admApprovalRequest, admApprovalRequestDetail,
+  admRetentionPolicies, admRetentionRuns, admRetentionPolicySave, admRetentionPreview,
+  admRetentionRunNow, admRetentionRunPause, admRetentionRunResume,
+  admRetentionPolicyPause, admRetentionPolicyResume,
   type AdmBatchRuntimeCommandBody, type AdmBatchRuntimeCreateDeploymentPlanBody,
   type AdmBatchEnableScheduleBody, type AdmBatchJobDefinitionValidateBody,
   type AdmBatchJobDefinitionSaveBody, type AdmBatchJobDefinitionTransitionBody,
@@ -519,4 +522,101 @@ export async function fetchBatchAuditWorkspace(limit = 200): Promise<BatchAuditW
     fetchAuditLogs(limit), fetchAuditDeliveries(limit), fetchBatchOperationLogs('', undefined, limit),
   ])
   return { auditLogs, deliveries, operations }
+}
+
+
+export interface RetentionPolicyRow extends Record<string, unknown> {
+  policyId?: string
+  policy_id?: string
+  target?: string
+  target_name?: string
+  action?: string
+  action_name?: string
+  retentionDays?: number
+  retention_days?: number
+  enabled?: boolean
+  enabled_yn?: string
+  legalHold?: boolean
+  legal_hold_yn?: string
+  policyVersion?: number
+  policy_version?: number
+  rowVersion?: number
+  row_version?: number
+}
+
+export interface RetentionRunRow extends Record<string, unknown> {
+  runId?: string
+  run_id?: string
+  policyId?: string
+  policy_id?: string
+  triggerType?: string
+  trigger_type?: string
+  status?: string
+  runtimeInstanceId?: string
+  runtime_instance_id?: string
+  processedCount?: number
+  processed_count?: number
+  deletedCount?: number
+  deleted_count?: number
+  archivedCount?: number
+  archived_count?: number
+  compressedCount?: number
+  compressed_count?: number
+  freedBytes?: number
+  freed_bytes?: number
+  startedAt?: string
+  started_at?: string
+  completedAt?: string
+  completed_at?: string
+  errorCode?: string
+  error_code?: string
+  errorSummary?: string
+  error_summary?: string
+}
+
+function envelopeItems<T extends Record<string, unknown>>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object') {
+    const items = (value as Record<string, unknown>).items
+    if (Array.isArray(items)) return items as T[]
+  }
+  return []
+}
+
+export async function fetchRetentionPolicies(): Promise<RetentionPolicyRow[]> {
+  return envelopeItems<RetentionPolicyRow>(await admRetentionPolicies<Record<string, unknown>>())
+}
+
+export async function fetchRetentionRuns(policyId = '', limit = 100): Promise<RetentionRunRow[]> {
+  const query: { policyId?: string; limit?: number } = { limit: Math.max(1, Math.min(limit, 500)) }
+  if (policyId.trim()) query.policyId = policyId.trim()
+  return envelopeItems<RetentionRunRow>(await admRetentionRuns<Record<string, unknown>>({ query }))
+}
+
+export async function saveRetentionPolicy(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  return admRetentionPolicySave<Record<string, unknown>>({ data })
+}
+
+export async function previewRetention(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  return admRetentionPreview<Record<string, unknown>>({ data })
+}
+
+export async function runRetentionPolicy(policyId: string, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionRunNow<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') }, data: { reason: requiredReason(reason) } })
+}
+
+export async function pauseRetentionRun(runId: string): Promise<Record<string, unknown>> {
+  return admRetentionRunPause<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') } })
+}
+
+export async function resumeRetentionRun(runId: string, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionRunResume<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') }, data: { reason: requiredReason(reason) } })
+}
+
+export async function pauseRetentionPolicy(policyId: string): Promise<Record<string, unknown>> {
+  return admRetentionPolicyPause<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') } })
+}
+
+export async function resumeRetentionPolicy(policyId: string): Promise<Record<string, unknown>> {
+  return admRetentionPolicyResume<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') } })
 }

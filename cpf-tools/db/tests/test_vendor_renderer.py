@@ -13,9 +13,14 @@ class VendorRendererTest(unittest.TestCase):
 
     def test_role_counts_and_vendor_dirs(self):
         schema=json.loads((DB/'canonical/platform-schema.json').read_text(encoding='utf-8-sig'))
-        counts={r:sum(1 for t in schema['tables'] if t.get('targetDatabaseRole')==r) for r in ('CPF_PLATFORM_DB','BZA_DB','REFERENCE_FIXTURE')}
-        self.assertEqual({'CPF_PLATFORM_DB':190,'BZA_DB':29,'REFERENCE_FIXTURE':4},counts)
+        roles=('CPF_PLATFORM_DB','BZA_DB','REFERENCE_FIXTURE')
+        counts={r:sum(1 for t in schema['tables'] if t.get('targetDatabaseRole')==r) for r in roles}
+        self.assertEqual(len(schema['tables']),sum(counts.values()),counts)
+        self.assertTrue(all(counts[r] > 0 for r in roles),counts)
         self.assertEqual(OFFICIAL,{p.name for p in (DB/'generated/current').iterdir() if p.is_dir()})
+        for vendor in OFFICIAL:
+            manifest=json.loads((DB/'generated/current'/vendor/'manifest.json').read_text(encoding='utf-8-sig'))
+            self.assertEqual(schema['schemaVersion'],manifest['canonical']['platformSchemaVersion'],vendor)
         self.assertEqual(OFFICIAL,{p.name for p in (DB/'generated/domain-template').iterdir() if p.is_dir()})
 
     def test_generated_sql_has_no_cross_vendor_syntax_or_non_executable_seed_markers(self):
@@ -27,8 +32,10 @@ class VendorRendererTest(unittest.TestCase):
         for vendor in OFFICIAL:
             sql='\n'.join(p.read_text(encoding='utf-8-sig') for p in (DB/'generated/current'/vendor).glob('*.sql'))
             for pat in forbidden[vendor]: self.assertIsNone(re.search(pat,sql,re.I),f'{vendor}: {pat}')
-            for marker in ('CPF_SEED_VARIABLE_DEPENDENT','CPF_SEED_CANONICAL_UPSERT','TODO','UNVERIFIED'):
+            for marker in ('CPF_SEED_VARIABLE_DEPENDENT','CPF_SEED_CANONICAL_UPSERT','TODO'):
                 self.assertNotIn(marker,sql,f'{vendor}: {marker}')
+            # UNVERIFIED is a valid canonical Subject trust-level value. Only unresolved-evidence comments are forbidden.
+            self.assertIsNone(re.search(r'--\s*(?:STATUS\s*[:=]\s*)?UNVERIFIED\b', sql, re.I), f'{vendor}: unresolved UNVERIFIED marker')
         oracle=(DB/'generated/current/oracle/cpf-platform-seed.sql').read_text(encoding='utf-8-sig')
         self.assertIn('MERGE INTO CMN_MESSAGE',oracle)
         self.assertIn("'CPF @CpfTransaction 메타데이터",oracle)

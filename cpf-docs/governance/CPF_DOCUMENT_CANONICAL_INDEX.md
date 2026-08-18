@@ -42,37 +42,34 @@ QA Requirement가 위 Target을 더 구체화하면 QA Requirement를 우선하�
 
 ## 2.1 공식 산출물 Publication Surface
 
-산출물 영역의 Current 정본은 다음 한 세트로 관리한다. 동일 목적의 날짜/회차/FINAL 복제본을 만들지 않는다.
+사용자 관점 공식 문서는 **README 포함 7종**으로 고정한다. 기능별 새 Guide를 계속 늘리지 않고 기존 Owner 문서에 흡수한다.
 
 ```text
 README.md
 cpf-docs/guides/
-  00, 01, 02, 03, 04, 05
-  06~16 실무 가이드
-  90 BZA, 91 Gateway
+  02_프레임워크_개발자_가이드.docx/.pdf
+  03_배치_개발자_가이드.docx/.pdf
+  04_운영자_매뉴얼.docx/.pdf
+  05_배치_운영_가이드.docx/.pdf
+  06_Gateway_개발_사용_가이드.docx/.pdf
+  07_Specification_기술_명세.docx/.pdf
+
 cpf-docs/deliverables/
-  산출물목록
-  아키텍처설계서
-  기술사양서
-  기술표준서
-  데이터베이스표준서
-cpf-docs/deliverables/evidence/documentation/
-  문서 QA·비교·Manifest·Hash·Handover
+  아키텍처설계서.docx/.pdf
+  기술사양서.docx/.pdf
+  기술표준서.docx/.pdf
+  데이터베이스표준서.docx/.pdf
+  산출물목록.docx/.pdf
 ```
 
-사용자 문서는 **19종 DOCX/PDF**, 설계 산출물은 **5종 DOCX/PDF**를 공식 세트로 한다. README는 별도 진입면이며 문서 지도를 통해 역할별 시작점을 연결한다. Architecture/Developer/Generator/EDU/Operations의 Markdown Guide는 상세 Reference로 유지하되 사용자 문서와 같은 목적의 복제본을 만들지 않는다.
+설계 산출물 5종은 공식 사용자 가이드 7종의 개수에 포함하지 않는다. QA·Requirement·Evidence·Governance는 내부 관리 자료이며 README 사용자 Navigation에 노출하지 않는다.
 
-### 산출물 영역 위임 원칙
+### 산출물 현행화 원칙
 
-사용자가 산출물 작업에 명시적으로 전권을 위임한 경우, 산출물 리드는 다음 문서 정본을 Source/실제 문서와 함께 현행화할 수 있다.
-
-- `CPF_DOCUMENT_CANONICAL_INDEX.md`
-- `CPF_DOCUMENT_CONTROL_POLICY.md`의 산출물 통제 절
-- `CPF_DOCUMENTATION_STANDARD.md`
-- `README.md` 및 공식 사용자/설계 문서
-- 문서 전용 Asset/Evidence/Manifest/Handover
-
-이 위임은 기능 Requirement, QA 판정, 개발 상태 원장, Architecture 기능 계약을 약화하거나 재판정할 권한으로 확대 해석하지 않는다. 문서 작성 중 기능 Source 결함을 수정할 때도 최상위 Requirement·Ownership·Public API·표준을 먼저 확인하고 영향 범위를 검증한다.
+- 개발 중 전달되는 최신 Steering/개발요건은 산출물 작업에서는 **최종 구현 완료 상태의 Target Contract**로 반영한다. 진행 상태 문구를 사용자 문서에 옮기지 않는다.
+- QA/Source 검토의 목적은 결함 보고서를 사용자 문서에 싣는 것이 아니라 **실제 Class/API/Annotation/Starter/Config/Consumer를 확인하여 장점·Golden Path·예제·운영 사용법을 정확히 갱신**하는 데 있다.
+- Public API 이름이 바뀌면 README, Owner Guide, Specification, 설계 산출물, 예제, 표/도식, Handover까지 같은 Cycle에서 대조한다.
+- 기존 문서를 축약하거나 상세 Reference를 잃지 않는다. 새 기능은 적정 Owner 장에 흡수한다.
 
 ## 3. Current Work 진입점
 
@@ -140,3 +137,17 @@ cpf-external/ = EXS
 둘은 CPF Product Module/Public Artifact가 아니며, 동일 Canonical Schema·Naming Strategy·Generator Engine·Template으로 생성한다. `CUSTOMER_BUSINESS_DB`, API+Batch, Sample Transaction, DB3, Build/Test를 함께 검증하고 최종 결과물에 포함한다.
 
 Legacy single-canary/transient-only 정책은 Current Target이 아니다. 단, 제3 임의 Domain은 genericity 추가 검증용 transient output으로 생성 후 cleanup할 수 있다.
+
+## 공식 사용자 Publication Surface
+
+공식 사용자 문서는 **README 포함 7종**을 기준으로 한다.
+
+1. README
+2. 02 프레임워크 개발자 가이드
+3. 03 배치 개발자 가이드
+4. 04 운영자 매뉴얼
+5. 05 배치 운영 가이드
+6. 06 Gateway 개발·사용 가이드
+7. 07 Specification / 기술 명세
+
+설계 산출물(아키텍처설계서·기술사양서·기술표준서·데이터베이스표준서·산출물목록)은 인수/설계 목적의 별도 산출물이며 사용자 가이드 개수에 포함하지 않는다. 과거 세분화 가이드는 Current Publication Surface가 아니며 유효 내용은 위 Owner 문서에 흡수한다.

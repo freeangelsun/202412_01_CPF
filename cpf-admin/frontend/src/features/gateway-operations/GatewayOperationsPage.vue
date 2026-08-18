@@ -18,7 +18,7 @@
     <div class="cpf-toolbar">
       <select v-model="filters.environmentCode"><option value="">전체 환경</option><option>DEV</option><option>TEST</option><option>PROD</option></select>
       <input v-model.trim="filters.serviceId" placeholder="Service ID">
-      <input v-model.trim="filters.routeId" placeholder="Route ID">
+      <input v-model.trim="filters.routeId" placeholder="Route ID"><RuntimeInventorySelector v-model="centralRuntimeId" capability="GATEWAY_RUNTIME" :environment="filters.environmentCode" />
       <button class="primary" @click="loadAll"><CpfIcon name="search"/> 조회</button>
     </div>
 
@@ -171,11 +171,12 @@ import {
   admGatewaySaveServerGroup
 } from "../../generated/cpf-api";
 import CpfIcon from "../../components/CpfIcon.vue";
+import RuntimeInventorySelector from "../../components/RuntimeInventorySelector.vue";
 
 type AnyRow=Record<string,any>;
 export default defineComponent({
   name:"GatewayOperationsPage",
-  components:{CpfIcon},
+  components:{CpfIcon,RuntimeInventorySelector},
   props:{
     initialMode:{
       type:String,
@@ -189,7 +190,7 @@ export default defineComponent({
       {id:"bindings",label:"경로·라우팅"},{id:"security",label:"보안·제한"},{id:"health",label:"Health·연결시험"},
       {id:"transactions",label:"거래 조회"},{id:"log-policies",label:"로그 정책"},{id:"apply",label:"적용 상태·이력"}
     ],
-    activeTab:String(this.initialMode||"dashboard"),filters:{environmentCode:"",serviceId:"",routeId:""},groups:[] as AnyRow[],bindings:[] as AnyRow[],
+    activeTab:String(this.initialMode||"dashboard"),centralRuntimeId:"",filters:{environmentCode:"",serviceId:"",routeId:""},groups:[] as AnyRow[],bindings:[] as AnyRow[],
     applyStatuses:[] as AnyRow[],tests:[] as AnyRow[],selectedBindingId:"",groupForm:null as AnyRow|null,bindingForm:null as AnyRow|null,
     groupMembers:[] as AnyRow[],originalGroupMembers:[] as AnyRow[],testType:"NETWORK",testReason:"Gateway 연결 상태 검증",testSubmitting:false,errorMessage:"",protocols:[] as string[],
     autoRefreshEnabled:true,autoRefreshTimer:null as ReturnType<typeof setInterval>|null,lastRefreshedAt:null as Date|null,refreshInFlight:false,

@@ -8,7 +8,7 @@
             <button type="button" v-if="canWrite('CONFIG')" @click="updateConfig">수정</button>
           </div>
         </div>
-        <div class="filters">
+        <div class="filters"><label>Runtime Target <RuntimeInventorySelector v-model="runtimeInstanceId" capability="RUNTIME_CONFIG" /></label>
           <label>Config ID <input v-model.number="configForm.configId" type="number"></label>
           <label>Config Key <input v-model="configForm.configKey" type="text"></label>
           <label>Config Value <input v-model="configForm.configValue" type="text"></label>
@@ -25,8 +25,11 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
+import RuntimeInventorySelector from "../../components/RuntimeInventorySelector.vue";
 
 export default defineComponent({setup(){return useAdmConsolePage()},
   name: "ConfigsPage",
+  components:{RuntimeInventorySelector},
+  data(){return{runtimeInstanceId:""}},
   });
 </script>

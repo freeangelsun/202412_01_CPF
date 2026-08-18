@@ -61,10 +61,10 @@ final class CpfSessionReadinessVerifier implements SmartInitializingSingleton {
             DatabaseMetaData metadata = connection.getMetaData();
             requireColumns(metadata, "SPRING_SESSION", SESSION_COLUMNS);
             requireColumns(metadata, "SPRING_SESSION_ATTRIBUTES", ATTRIBUTE_COLUMNS);
-            requireColumns(metadata, "CPF_BFF_CREDENTIAL_VAULT", VAULT_COLUMNS);
+            requireColumns(metadata, "SEC_BFF_CREDENTIAL_VAULT", VAULT_COLUMNS);
             requireIndex(metadata, "SPRING_SESSION", "SESSION_ID");
             requireIndex(metadata, "SPRING_SESSION", "EXPIRY_TIME");
-            requireIndex(metadata, "CPF_BFF_CREDENTIAL_VAULT", "REFRESH_EXPIRES_AT");
+            requireIndex(metadata, "SEC_BFF_CREDENTIAL_VAULT", "REFRESH_EXPIRES_AT");
         } catch (Exception failure) {
             throw new IllegalStateException("CPF JDBC session/vault readiness verification failed.", failure);
         }

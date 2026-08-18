@@ -1,8 +1,5 @@
--- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
--- vendor=postgresql
--- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
--- DO NOT EDIT generated DDL directly.
-
+-- AUTO-GENERATED DERIVED COMPATIBILITY SOURCE
+-- authority=cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql
 -- CPF_LOGICAL_DATABASE=cpfDB
 CREATE TABLE ADM_APPROVAL_CAPABILITY_NONCE (
     NONCE_HASH CHAR(64) NOT NULL,
@@ -917,8 +914,8 @@ CREATE TABLE BAT_EXECUTION_CONTROL (
     CONSTRAINT PK_BAT_EXECUTION_CONTROL PRIMARY KEY (cpf_execution_id),
     CONSTRAINT uk_cpf_bat_exec_idem_scope UNIQUE (idempotency_scope, idempotency_key),
     CONSTRAINT ck_cpf_bat_fencing_pos CHECK (fencing_token > 0),
-    CONSTRAINT ck_cpf_bat_request_hash CHECK (request_hash REGEXP '^[0-9a-f]{64}$'),
-    CONSTRAINT ck_cpf_bat_plan_hash CHECK (plan_checksum REGEXP '^[0-9a-f]{64}$'),
+    CONSTRAINT ck_cpf_bat_request_hash CHECK (request_hash ~ '^[0-9a-f]{64}$'),
+    CONSTRAINT ck_cpf_bat_plan_hash CHECK (plan_checksum ~ '^[0-9a-f]{64}$'),
     CONSTRAINT ck_cpf_bat_control_version CHECK (control_version > 0),
     CONSTRAINT ck_cpf_bat_reconcile_attempt CHECK (reconcile_attempts >= 0),
     CONSTRAINT ck_cpf_bat_control_status CHECK (control_status IN ('RESERVED', 'STARTING', 'STARTED', 'STOPPING', 'STOPPED', 'COMPLETED', 'FAILED', 'UNKNOWN_RESULT', 'ABANDONING', 'ABANDONED', 'REJECTED'))
@@ -1190,7 +1187,7 @@ CREATE TABLE BAT_ON_DEMAND_REQUEST (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT PK_BAT_ON_DEMAND_REQUEST PRIMARY KEY (execution_request_id),
     CONSTRAINT uk_bat_on_demand_idempotency UNIQUE (standard_batch_id, idempotency_key),
-    CONSTRAINT ck_bat_on_demand_id CHECK (standard_batch_id REGEXP '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_batch_id, 4) <> '0000'),
+    CONSTRAINT ck_bat_on_demand_id CHECK (standard_batch_id ~ '^B[A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_batch_id, 4) <> '0000'),
     CONSTRAINT ck_bat_on_demand_status CHECK (request_status IN ('REQUESTED', 'RUNNING', 'COMPLETED', 'FAILED', 'RESTARTED', 'RESTART_FAILED', 'RESTART_NOT_AVAILABLE', 'STOPPING', 'STOPPED', 'SKIPPED_LOCKED'))
 );
 COMMENT ON TABLE BAT_ON_DEMAND_REQUEST IS 'BAT 온디맨드 배치 온라인 접수';
@@ -2290,7 +2287,7 @@ CREATE TABLE CPF_STANDARD_EXECUTION (
     updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT PK_CPF_STANDARD_EXECUTION PRIMARY KEY (standard_execution_id),
-    CONSTRAINT ck_cpf_standard_execution_id CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_execution_id, 4) <> '0000'),
+    CONSTRAINT ck_cpf_standard_execution_id CHECK (standard_execution_id ~ '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$' AND RIGHT(standard_execution_id, 4) <> '0000'),
     CONSTRAINT ck_cpf_standard_execution_type CHECK (execution_type IN ('ONLINE', 'SHARED', 'BATCH'))
 );
 COMMENT ON TABLE CPF_STANDARD_EXECUTION IS 'CPF O·S·B 표준 실행 카탈로그';
@@ -2333,7 +2330,7 @@ CREATE TABLE CPF_STANDARD_EXECUTION_ALIAS (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT PK_CPF_STANDARD_EXECUTION_ALIAS PRIMARY KEY (legacy_execution_id),
     CONSTRAINT uk_cpf_standard_execution_alias_current UNIQUE (standard_execution_id, legacy_execution_id),
-    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$')
+    CONSTRAINT ck_cpf_standard_execution_alias_current CHECK (standard_execution_id ~ '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$')
 );
 COMMENT ON TABLE CPF_STANDARD_EXECUTION_ALIAS IS 'CPF 구형 실행 ID 조회 호환 이력';
 COMMENT ON COLUMN CPF_STANDARD_EXECUTION_ALIAS.legacy_execution_id IS '조회 호환용 구형 실행 ID';
@@ -3146,6 +3143,50 @@ CREATE INDEX ix_ops_async_operation_tx ON OPS_ASYNC_OPERATION (transaction_id, s
 CREATE INDEX ix_ops_async_operation_lease ON OPS_ASYNC_OPERATION (state, lease_until);
 CREATE INDEX ix_ops_async_operation_expiry ON OPS_ASYNC_OPERATION (expires_at, state);
 
+CREATE TABLE OPS_CHANNEL_EXECUTION_POLICY (
+    policy_key VARCHAR(100) NOT NULL,
+    operation_id VARCHAR(160) NOT NULL,
+    caller_channel VARCHAR(16) NOT NULL,
+    allowed_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    authentication_required_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    signature_required_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    max_tps INTEGER DEFAULT 0 NOT NULL,
+    effective_from TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    effective_to TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    active_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    policy_version BIGINT DEFAULT 0 NOT NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_CHANNEL_EXECUTION_POLICY PRIMARY KEY (policy_key),
+    CONSTRAINT uk_ops_channel_execution_policy_operation_caller UNIQUE (operation_id, caller_channel),
+    CONSTRAINT ck_ops_channel_execution_policy_operation CHECK (operation_id = '*' OR operation_id ~ '^[A-Za-z][A-Za-z0-9_.:-]{2,159}$'),
+    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
+    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to)
+);
+COMMENT ON TABLE OPS_CHANNEL_EXECUTION_POLICY IS 'CPF 업무 Operation + Caller Channel Canonical 허용 정책';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.policy_key IS '채널 실행 정책 불변 키';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.operation_id IS 'Canonical 업무 operationId 또는 전체 Operation *';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.caller_channel IS '직전 Hop의 Canonical Caller Channel 또는 * wildcard';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.allowed_yn IS '실행 허용 여부';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.authentication_required_yn IS '정책별 인증 필수 여부';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.signature_required_yn IS '정책별 요청 서명 필수 여부';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.max_tps IS '0이면 제한하지 않는 최대 초당 요청 수';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.effective_from IS '정책 적용 시작일시';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.effective_to IS '정책 적용 종료일시';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.active_yn IS '정책 사용 여부';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.policy_version IS '마지막 적용 정책 버전';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_by IS '등록자';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_by IS '수정자';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_at IS '수정일시';
+CREATE INDEX ix_ops_channel_execution_policy_lookup ON OPS_CHANNEL_EXECUTION_POLICY (operation_id, caller_channel, active_yn);
+CREATE INDEX ix_ops_channel_execution_policy_effective ON OPS_CHANNEL_EXECUTION_POLICY (active_yn, effective_from, effective_to);
+
 CREATE TABLE OPS_CHANNEL_POLICY_VERSION (
     version_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
     change_type VARCHAR(30) NOT NULL,
@@ -3435,6 +3476,56 @@ COMMENT ON COLUMN OPS_LOG_POLICY.updated_by IS '수정자';
 COMMENT ON COLUMN OPS_LOG_POLICY.updated_at IS '수정일시';
 CREATE INDEX ix_cpf_log_policy_active ON OPS_LOG_POLICY (active_yn, target_type, priority);
 
+CREATE TABLE OPS_MANAGED_SERVER (
+    managed_server_id VARCHAR(80) NOT NULL,
+    server_name VARCHAR(150) NOT NULL,
+    display_name VARCHAR(200) NOT NULL,
+    hostname VARCHAR(200) NULL,
+    management_identity VARCHAR(200) NULL,
+    environment_code VARCHAR(40) DEFAULT 'default' NOT NULL,
+    server_group VARCHAR(100) NULL,
+    zone_code VARCHAR(60) NULL,
+    location VARCHAR(200) NULL,
+    description VARCHAR(500) NULL,
+    enabled_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    status VARCHAR(30) DEFAULT 'REGISTERED' NOT NULL,
+    tags_json TEXT NULL,
+    registered_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    registered_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    row_version BIGINT DEFAULT 0 NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    CONSTRAINT PK_OPS_MANAGED_SERVER PRIMARY KEY (managed_server_id),
+    CONSTRAINT uk_ops_managed_server_management_identity UNIQUE (management_identity),
+    CONSTRAINT ck_ops_managed_server_enabled CHECK (enabled_yn IN ('Y','N')),
+    CONSTRAINT ck_ops_managed_server_status CHECK (status IN ('PENDING','REGISTERED','ACTIVE','DEGRADED','DISABLED','DECOMMISSIONED','UNKNOWN','MAINTENANCE'))
+);
+COMMENT ON TABLE OPS_MANAGED_SERVER IS 'Central managed server master; runtime instances reference this stable identity';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.managed_server_id IS 'Stable managed server identifier';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.server_name IS 'Canonical server name';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.display_name IS 'Operator display name';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.hostname IS 'Observed or registered hostname; not a primary identity';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.management_identity IS 'Stable authenticated management identity when available';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.environment_code IS 'Canonical environment';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.server_group IS 'Shared policy group';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.zone_code IS 'Availability zone';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.location IS 'Logical location or site';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.description IS 'Operator description';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.enabled_yn IS 'Management enabled flag';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.status IS 'Managed server lifecycle status';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.tags_json IS 'Operator tags JSON';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.registered_at IS 'Registration time';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.registered_by IS 'Registrar';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.row_version IS 'Optimistic locking version';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.created_at IS 'Creation time';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.updated_at IS 'Last update time';
+COMMENT ON COLUMN OPS_MANAGED_SERVER.updated_by IS 'Last updater';
+CREATE INDEX ix_ops_managed_server_name ON OPS_MANAGED_SERVER (server_name);
+CREATE INDEX ix_ops_managed_server_env_status ON OPS_MANAGED_SERVER (environment_code, status, enabled_yn);
+CREATE INDEX ix_ops_managed_server_group ON OPS_MANAGED_SERVER (server_group, environment_code);
+CREATE INDEX ix_ops_managed_server_hostname ON OPS_MANAGED_SERVER (hostname, environment_code);
+
 CREATE TABLE OPS_RESILIENCE_AUDIT (
     audit_id VARCHAR(64) NOT NULL,
     event_type VARCHAR(80) NOT NULL,
@@ -3530,6 +3621,72 @@ COMMENT ON COLUMN OPS_RESILIENCE_POLICY_REQUEST.active_operation_key IS 'active_
 COMMENT ON COLUMN OPS_RESILIENCE_POLICY_REQUEST.created_at IS '등록 일시';
 COMMENT ON COLUMN OPS_RESILIENCE_POLICY_REQUEST.updated_at IS 'updated_at';
 CREATE INDEX ix_cpf_rpreq_status ON OPS_RESILIENCE_POLICY_REQUEST (request_status, created_at);
+
+CREATE TABLE OPS_RETENTION_POLICY (
+    policy_id VARCHAR(80) NOT NULL,
+    target_name VARCHAR(80) NOT NULL,
+    action_name VARCHAR(16) DEFAULT 'KEEP' NOT NULL,
+    retention_days INTEGER DEFAULT 90 NOT NULL,
+    schedule_expression VARCHAR(100) NULL,
+    maintenance_start VARCHAR(8) NULL,
+    maintenance_end VARCHAR(8) NULL,
+    enabled_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    paused_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    legal_hold_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    chunk_size INTEGER DEFAULT 1000 NOT NULL,
+    throttle_millis BIGINT DEFAULT 0 NOT NULL,
+    max_rows_per_run BIGINT DEFAULT 100000 NOT NULL,
+    max_runtime_seconds BIGINT DEFAULT 300 NOT NULL,
+    lease_seconds INTEGER DEFAULT 60 NOT NULL,
+    policy_version BIGINT DEFAULT 1 NOT NULL,
+    next_run_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    last_run_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    lease_owner VARCHAR(128) NULL,
+    lease_until TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    fencing_token BIGINT DEFAULT 0 NOT NULL,
+    row_version BIGINT DEFAULT 0 NOT NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_RETENTION_POLICY PRIMARY KEY (policy_id),
+    CONSTRAINT ck_ops_retention_policy_enabled CHECK (enabled_yn IN ('Y','N')),
+    CONSTRAINT ck_ops_retention_policy_paused CHECK (paused_yn IN ('Y','N')),
+    CONSTRAINT ck_ops_retention_policy_hold CHECK (legal_hold_yn IN ('Y','N')),
+    CONSTRAINT ck_ops_retention_policy_action CHECK (action_name IN ('KEEP','ARCHIVE','PURGE')),
+    CONSTRAINT ck_ops_retention_policy_chunk CHECK (chunk_size >= 1 AND chunk_size <= 100000),
+    CONSTRAINT ck_ops_retention_policy_limits CHECK (max_rows_per_run >= 1 AND max_runtime_seconds >= 1 AND lease_seconds >= 5)
+);
+COMMENT ON TABLE OPS_RETENTION_POLICY IS 'Shared retention policy, schedule and single-executor lease state';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.policy_id IS 'Retention policy identity';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.target_name IS 'Data family/handler target';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.action_name IS 'KEEP/ARCHIVE/PURGE';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.retention_days IS 'Cutoff age in days';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.schedule_expression IS 'Spring cron expression in UTC';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.maintenance_start IS 'UTC HH:mm[:ss] window start';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.maintenance_end IS 'UTC HH:mm[:ss] window end';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.enabled_yn IS 'Scheduling/execution enabled';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.paused_yn IS 'Policy scheduling paused';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.legal_hold_yn IS 'Legal hold disables destructive work';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.chunk_size IS 'Rows per committed chunk';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.throttle_millis IS 'Sleep between committed chunks';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.max_rows_per_run IS 'Per-run row processing limit';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.max_runtime_seconds IS 'Per-run wall clock limit';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.lease_seconds IS 'Single executor lease duration';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.policy_version IS 'Operator policy version';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.next_run_at IS 'Next scheduler due time';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.last_run_at IS 'Last execution completion/release time';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.lease_owner IS 'Current executor runtime instance';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.lease_until IS 'Executor lease expiry';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.fencing_token IS 'Monotonic executor fencing token';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.row_version IS 'Optimistic metadata version';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.created_by IS 'Creator';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.created_at IS 'Created time';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.updated_by IS 'Last updater';
+COMMENT ON COLUMN OPS_RETENTION_POLICY.updated_at IS 'Last updated time';
+CREATE INDEX ix_ops_retention_policy_due ON OPS_RETENTION_POLICY (enabled_yn, paused_yn, next_run_at);
+CREATE INDEX ix_ops_retention_policy_lease ON OPS_RETENTION_POLICY (lease_until, lease_owner);
+CREATE INDEX ix_ops_retention_policy_target ON OPS_RETENTION_POLICY (target_name, action_name);
 
 CREATE TABLE OPS_RUNTIME_CONTROLLER_LEASE (
     lease_key VARCHAR(60) NOT NULL,
@@ -3784,6 +3941,41 @@ COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.updated_by IS '최종 수정자';
 COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.updated_at IS '최종 수정일시';
 CREATE INDEX ix_ops_system_registry_domain ON OPS_SYSTEM_REGISTRY (domain_code, enabled_yn);
 CREATE INDEX ix_ops_system_registry_seen ON OPS_SYSTEM_REGISTRY (last_seen_at, enabled_yn);
+
+CREATE TABLE OPS_TRANSACTION_SUBJECT (
+    transaction_id VARCHAR(128) NOT NULL,
+    subject_role VARCHAR(32) DEFAULT 'ACTOR' NOT NULL,
+    subject_type VARCHAR(32) NOT NULL,
+    subject_search_key VARCHAR(64) NOT NULL,
+    subject_masked_value VARCHAR(256) NOT NULL,
+    source_type VARCHAR(40) NOT NULL,
+    trust_level VARCHAR(20) DEFAULT 'CLAIMED' NOT NULL,
+    search_key_version VARCHAR(64) NOT NULL,
+    first_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    last_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_TRANSACTION_SUBJECT PRIMARY KEY (transaction_id, subject_role, subject_type, subject_search_key),
+    CONSTRAINT ck_ops_transaction_subject_role CHECK (subject_role IN ('ACTOR','RELATED','BENEFICIARY','OWNER','TARGET')),
+    CONSTRAINT ck_ops_transaction_subject_type CHECK (subject_type IN ('CUSTOMER_NO','CUSTOMER_ID','MEMBER_NO','LOGIN_ID')),
+    CONSTRAINT ck_ops_transaction_subject_trust CHECK (trust_level IN ('UNVERIFIED','CLAIMED','TRUSTED','VERIFIED'))
+);
+COMMENT ON TABLE OPS_TRANSACTION_SUBJECT IS 'Protected Subject identifier와 transactionId의 Canonical 검색 관계';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.transaction_id IS 'Subject와 연결되는 Canonical transactionId';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.subject_role IS 'ACTOR/RELATED/BENEFICIARY/OWNER/TARGET';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.subject_type IS 'CUSTOMER_NO/CUSTOMER_ID/MEMBER_NO/LOGIN_ID';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.subject_search_key IS 'CPF Crypto deterministic protected search token; raw identifier 저장 금지';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.subject_masked_value IS 'ADM 표시용 마스킹 식별값';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.source_type IS 'Subject identity source boundary';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.trust_level IS 'UNVERIFIED/CLAIMED/TRUSTED/VERIFIED';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.search_key_version IS '검색 Token key version';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.first_seen_at IS '이 transaction에서 Subject 최초 확인 시각';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.last_seen_at IS '마지막 동일 Subject 확인 시각';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.created_at IS '등록 일시';
+COMMENT ON COLUMN OPS_TRANSACTION_SUBJECT.updated_at IS '수정 일시';
+CREATE INDEX ix_ops_transaction_subject_search ON OPS_TRANSACTION_SUBJECT (subject_role, subject_type, subject_search_key, first_seen_at);
+CREATE INDEX ix_ops_transaction_subject_transaction ON OPS_TRANSACTION_SUBJECT (transaction_id, first_seen_at);
+CREATE INDEX ix_ops_transaction_subject_retention ON OPS_TRANSACTION_SUBJECT (last_seen_at, transaction_id);
 
 CREATE TABLE SEC_BFF_CREDENTIAL_VAULT (
     handle_id VARCHAR(64) NOT NULL,
@@ -4281,7 +4473,7 @@ CREATE TABLE BAT_DEPLOYMENT_EXECUTION (
     reconciled_at TIMESTAMP(6) WITHOUT TIME ZONE NULL,
     CONSTRAINT PK_BAT_DEPLOYMENT_EXECUTION PRIMARY KEY (deployment_id),
     CONSTRAINT uk_bat_deploy_exec_scope_idem UNIQUE (idempotency_scope, idempotency_key),
-    CONSTRAINT ck_bat_deploy_exec_request_hash CHECK (request_hash REGEXP '^[0-9a-f]{64}$'),
+    CONSTRAINT ck_bat_deploy_exec_request_hash CHECK (request_hash ~ '^[0-9a-f]{64}$'),
     CONSTRAINT fk_bat_deployment_execution_cell FOREIGN KEY (cell_id) REFERENCES BAT_DEPLOYMENT_CELL (cell_id)
 );
 COMMENT ON TABLE BAT_DEPLOYMENT_EXECUTION IS 'BAT approved deployment execution';
@@ -5053,55 +5245,6 @@ COMMENT ON COLUMN GW_SERVER_GROUP_MEMBER.ewma_latency_ms IS 'EWMA 지연시간';
 CREATE INDEX ix_cpf_gwy_member_status ON GW_SERVER_GROUP_MEMBER (server_group_id, enabled_yn, effective_status, priority_no);
 CREATE INDEX ix_cpf_gwy_member_probe_lease ON GW_SERVER_GROUP_MEMBER (enabled_yn, probe_lease_until, server_group_id, instance_id);
 
-CREATE TABLE OPS_CHANNEL_EXECUTION_POLICY (
-    policy_key VARCHAR(100) NOT NULL,
-    operation_id VARCHAR(160) NOT NULL,
-    original_channel_code VARCHAR(30) NOT NULL,
-    caller_channel_code VARCHAR(30) NOT NULL,
-    request_type VARCHAR(30) DEFAULT '*' NOT NULL,
-    allowed_yn CHAR(1) DEFAULT 'N' NOT NULL,
-    authentication_required_yn CHAR(1) DEFAULT 'Y' NOT NULL,
-    signature_required_yn CHAR(1) DEFAULT 'N' NOT NULL,
-    max_tps INTEGER DEFAULT 0 NOT NULL,
-    effective_from TIMESTAMP(3) WITHOUT TIME ZONE NULL,
-    effective_to TIMESTAMP(3) WITHOUT TIME ZONE NULL,
-    active_yn CHAR(1) DEFAULT 'Y' NOT NULL,
-    policy_version BIGINT DEFAULT 0 NOT NULL,
-    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT PK_OPS_CHANNEL_EXECUTION_POLICY PRIMARY KEY (policy_key),
-    CONSTRAINT ck_ops_channel_execution_policy_operation CHECK (operation_id = '*' OR operation_id REGEXP '^[A-Za-z][A-Za-z0-9_.:-]{2,159}$'),
-    CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_active CHECK (active_yn IN ('Y', 'N')),
-    CONSTRAINT ck_cpf_channel_execution_policy_period CHECK (effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to),
-    CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES OPS_CHANNEL_REGISTRY (channel_code),
-    CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES OPS_CHANNEL_REGISTRY (channel_code)
-);
-COMMENT ON TABLE OPS_CHANNEL_EXECUTION_POLICY IS 'CPF 업무 Operation별 최초·호출 채널 정책';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.policy_key IS '채널 실행 정책 불변 키';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.operation_id IS 'Canonical 업무 operationId 또는 전체 Operation *';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.original_channel_code IS '최초 채널 코드 또는 ANY';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.caller_channel_code IS '현재 호출 채널 코드 또는 ANY';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.request_type IS '요청 유형 또는 전체 유형 *';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.allowed_yn IS '실행 허용 여부';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.authentication_required_yn IS '정책별 인증 필수 여부';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.signature_required_yn IS '정책별 요청 서명 필수 여부';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.max_tps IS '0이면 제한하지 않는 최대 초당 요청 수';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.effective_from IS '정책 적용 시작일시';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.effective_to IS '정책 적용 종료일시';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.active_yn IS '정책 사용 여부';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.policy_version IS '마지막 적용 정책 버전';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_by IS '등록자';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_at IS '등록일시';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_by IS '수정자';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_at IS '수정일시';
-CREATE INDEX ix_cpf_channel_execution_policy_lookup ON OPS_CHANNEL_EXECUTION_POLICY (operation_id, original_channel_code, caller_channel_code, request_type, active_yn);
-CREATE INDEX ix_cpf_channel_execution_policy_effective ON OPS_CHANNEL_EXECUTION_POLICY (active_yn, effective_from, effective_to);
-
 CREATE TABLE OPS_RUNTIME_CHANGE (
     change_id VARCHAR(80) NOT NULL,
     operation_id VARCHAR(100) NOT NULL,
@@ -5241,6 +5384,62 @@ COMMENT ON COLUMN OPS_LOG_POLICY_OVERRIDE.updated_at IS '수정일시';
 CREATE INDEX ix_cpf_log_policy_override_target ON OPS_LOG_POLICY_OVERRIDE (target_type, target_id, active_yn);
 CREATE INDEX ix_cpf_log_policy_override_period ON OPS_LOG_POLICY_OVERRIDE (effective_start_at, effective_end_at, active_yn);
 CREATE INDEX ix_cpf_log_policy_override_policy ON OPS_LOG_POLICY_OVERRIDE (policy_id, active_yn);
+
+CREATE TABLE OPS_RETENTION_RUN (
+    run_id VARCHAR(64) NOT NULL,
+    policy_id VARCHAR(80) NOT NULL,
+    trigger_type VARCHAR(16) NOT NULL,
+    status VARCHAR(16) DEFAULT 'RUNNING' NOT NULL,
+    runtime_instance_id VARCHAR(128) NOT NULL,
+    actor_id VARCHAR(100) NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    policy_version BIGINT NOT NULL,
+    cutoff_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    started_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    completed_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    matched_count BIGINT DEFAULT 0 NOT NULL,
+    archived_count BIGINT DEFAULT 0 NOT NULL,
+    deleted_count BIGINT DEFAULT 0 NOT NULL,
+    processed_count BIGINT DEFAULT 0 NOT NULL,
+    compressed_count BIGINT DEFAULT 0 NOT NULL,
+    freed_bytes BIGINT DEFAULT 0 NOT NULL,
+    pause_requested_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    error_code VARCHAR(100) NULL,
+    error_summary VARCHAR(500) NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_RETENTION_RUN PRIMARY KEY (run_id),
+    CONSTRAINT ck_ops_retention_run_trigger CHECK (trigger_type IN ('SCHEDULED','MANUAL','RESUME')),
+    CONSTRAINT ck_ops_retention_run_status CHECK (status IN ('RUNNING','SUCCESS','PARTIAL','PAUSED','SKIPPED','FAILED')),
+    CONSTRAINT ck_ops_retention_run_pause CHECK (pause_requested_yn IN ('Y','N')),
+    CONSTRAINT fk_ops_retention_run_policy FOREIGN KEY (policy_id) REFERENCES OPS_RETENTION_POLICY (policy_id)
+);
+COMMENT ON TABLE OPS_RETENTION_RUN IS 'Retention run history and actual execution result';
+COMMENT ON COLUMN OPS_RETENTION_RUN.run_id IS 'Retention execution identity';
+COMMENT ON COLUMN OPS_RETENTION_RUN.policy_id IS 'Retention policy';
+COMMENT ON COLUMN OPS_RETENTION_RUN.trigger_type IS 'SCHEDULED/MANUAL/RESUME';
+COMMENT ON COLUMN OPS_RETENTION_RUN.status IS 'Run lifecycle';
+COMMENT ON COLUMN OPS_RETENTION_RUN.runtime_instance_id IS 'Central runtime instance executing the run';
+COMMENT ON COLUMN OPS_RETENTION_RUN.actor_id IS 'Operator/scheduler actor';
+COMMENT ON COLUMN OPS_RETENTION_RUN.reason IS 'Execution reason';
+COMMENT ON COLUMN OPS_RETENTION_RUN.policy_version IS 'Policy version captured at execution';
+COMMENT ON COLUMN OPS_RETENTION_RUN.cutoff_at IS 'Retention cutoff';
+COMMENT ON COLUMN OPS_RETENTION_RUN.started_at IS 'Run start';
+COMMENT ON COLUMN OPS_RETENTION_RUN.completed_at IS 'Run completion';
+COMMENT ON COLUMN OPS_RETENTION_RUN.matched_count IS 'Eligible rows observed';
+COMMENT ON COLUMN OPS_RETENTION_RUN.archived_count IS 'Archived rows';
+COMMENT ON COLUMN OPS_RETENTION_RUN.deleted_count IS 'Deleted rows';
+COMMENT ON COLUMN OPS_RETENTION_RUN.processed_count IS 'Committed processed rows';
+COMMENT ON COLUMN OPS_RETENTION_RUN.compressed_count IS 'Compressed artifacts if applicable';
+COMMENT ON COLUMN OPS_RETENTION_RUN.freed_bytes IS 'Freed bytes if measurable';
+COMMENT ON COLUMN OPS_RETENTION_RUN.pause_requested_yn IS 'Pause requested; honored at chunk boundary';
+COMMENT ON COLUMN OPS_RETENTION_RUN.error_code IS 'Sanitized failure code';
+COMMENT ON COLUMN OPS_RETENTION_RUN.error_summary IS 'Sanitized failure summary';
+COMMENT ON COLUMN OPS_RETENTION_RUN.created_at IS 'Created time';
+COMMENT ON COLUMN OPS_RETENTION_RUN.updated_at IS 'Last updated time';
+CREATE INDEX ix_ops_retention_run_policy_time ON OPS_RETENTION_RUN (policy_id, started_at);
+CREATE INDEX ix_ops_retention_run_status_time ON OPS_RETENTION_RUN (status, started_at);
+CREATE INDEX ix_ops_retention_run_runtime ON OPS_RETENTION_RUN (runtime_instance_id, started_at);
 
 CREATE TABLE OPS_RUNTIME_POLICY_DELIVERY (
     event_id VARCHAR(64) NOT NULL,
@@ -6223,6 +6422,7 @@ CREATE INDEX ix_cpf_log_policy_audit_policy ON OPS_LOG_POLICY_AUDIT (policy_id, 
 
 CREATE TABLE OPS_SERVICE_INSTANCE (
     instance_id VARCHAR(120) NOT NULL,
+    managed_server_id VARCHAR(80) NULL,
     service_id VARCHAR(40) NOT NULL,
     endpoint_code VARCHAR(80) NOT NULL,
     instance_name VARCHAR(150) NOT NULL,
@@ -6244,16 +6444,27 @@ CREATE TABLE OPS_SERVICE_INSTANCE (
     maintenance_yn CHAR(1) DEFAULT 'N' NOT NULL,
     drain_yn CHAR(1) DEFAULT 'N' NOT NULL,
     drain_deadline_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    system_code VARCHAR(16) NULL,
+    application_name VARCHAR(150) NULL,
+    application_role VARCHAR(80) NULL,
+    runtime_hostname VARCHAR(200) NULL,
+    process_id VARCHAR(80) NULL,
+    java_version VARCHAR(80) NULL,
+    cpf_version VARCHAR(80) NULL,
+    application_version VARCHAR(100) NULL,
+    started_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
     row_version BIGINT DEFAULT 0 NOT NULL,
     CONSTRAINT PK_OPS_SERVICE_INSTANCE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_service_instance_active CHECK (active_yn IN ('Y','N')),
     CONSTRAINT ck_cpf_service_instance_maintenance CHECK (maintenance_yn IN ('Y','N')),
     CONSTRAINT ck_cpf_service_instance_drain CHECK (drain_yn IN ('Y','N')),
     CONSTRAINT fk_cpf_service_instance_service FOREIGN KEY (service_id) REFERENCES OPS_SERVICE (service_id),
-    CONSTRAINT fk_cpf_service_instance_endpoint FOREIGN KEY (endpoint_code) REFERENCES OPS_SERVICE_ENDPOINT (endpoint_code)
+    CONSTRAINT fk_cpf_service_instance_endpoint FOREIGN KEY (endpoint_code) REFERENCES OPS_SERVICE_ENDPOINT (endpoint_code),
+    CONSTRAINT fk_cpf_service_instance_managed_server FOREIGN KEY (managed_server_id) REFERENCES OPS_MANAGED_SERVER (managed_server_id)
 );
 COMMENT ON TABLE OPS_SERVICE_INSTANCE IS 'CPF 서비스 인스턴스 레지스트리';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.instance_id IS '서비스 인스턴스 ID';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.managed_server_id IS 'Central managed server reference; nullable for unresolved legacy/discovery rows';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.service_id IS '서비스 ID';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.endpoint_code IS 'Endpoint 코드';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.instance_name IS '서비스 인스턴스명';
@@ -6275,11 +6486,21 @@ COMMENT ON COLUMN OPS_SERVICE_INSTANCE.priority_no IS '라우팅 우선순위(�
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.maintenance_yn IS '유지보수 제외 여부';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.drain_yn IS '신규 요청 Drain 여부';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.drain_deadline_at IS 'Drain 완료 목표 시각';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.system_code IS 'Generated domain/runtime systemCode; not server identity';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.application_name IS 'Runtime application name';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.application_role IS 'Runtime application role';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.runtime_hostname IS 'Runtime-reported hostname';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.process_id IS 'Runtime process identifier when available';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.java_version IS 'Runtime Java version';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.cpf_version IS 'CPF runtime version';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.application_version IS 'Application version';
+COMMENT ON COLUMN OPS_SERVICE_INSTANCE.started_at IS 'Runtime process start time';
 COMMENT ON COLUMN OPS_SERVICE_INSTANCE.row_version IS 'Optimistic lock 버전';
 CREATE INDEX ix_cpf_service_instance_endpoint ON OPS_SERVICE_INSTANCE (service_id, endpoint_code, active_yn, instance_status);
 CREATE INDEX ix_cpf_service_instance_weight ON OPS_SERVICE_INSTANCE (endpoint_code, weight);
 CREATE INDEX ix_cpf_service_instance_placement ON OPS_SERVICE_INSTANCE (environment_code, zone_code, cell_code, active_yn, instance_status);
 CREATE INDEX ix_cpf_service_instance_route ON OPS_SERVICE_INSTANCE (endpoint_code, priority_no, maintenance_yn, drain_yn, active_yn, instance_status);
+CREATE INDEX ix_cpf_service_instance_managed_server ON OPS_SERVICE_INSTANCE (managed_server_id, instance_status, last_heartbeat_at);
 
 CREATE TABLE OPS_SERVICE_ROUTING_POLICY (
     policy_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -7459,6 +7680,8 @@ CREATE TRIGGER TRG_GW_SERVER_GROUP_TOUCH BEFORE UPDATE ON GW_SERVER_GROUP FOR EA
 
 CREATE TRIGGER TRG_GW_SPOOL_CHECKPOINT_TOUCH BEFORE UPDATE ON GW_SPOOL_CHECKPOINT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
+CREATE TRIGGER TRG_OPS_CHANNEL_EXECUTION_POLICY_TOUCH BEFORE UPDATE ON OPS_CHANNEL_EXECUTION_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
 CREATE TRIGGER TRG_OPS_CHANNEL_POLICY_VERSION_TOUCH BEFORE UPDATE ON OPS_CHANNEL_POLICY_VERSION FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_CHANNEL_REGISTRY_TOUCH BEFORE UPDATE ON OPS_CHANNEL_REGISTRY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
@@ -7466,6 +7689,8 @@ CREATE TRIGGER TRG_OPS_CHANNEL_REGISTRY_TOUCH BEFORE UPDATE ON OPS_CHANNEL_REGIS
 CREATE TRIGGER TRG_OPS_CONTROL_OPERATION_TOUCH BEFORE UPDATE ON OPS_CONTROL_OPERATION FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_LOG_POLICY_TOUCH BEFORE UPDATE ON OPS_LOG_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_MANAGED_SERVER_TOUCH BEFORE UPDATE ON OPS_MANAGED_SERVER FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_RUNTIME_CONTROLLER_LEASE_TOUCH BEFORE UPDATE ON OPS_RUNTIME_CONTROLLER_LEASE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
@@ -7480,6 +7705,8 @@ CREATE TRIGGER TRG_OPS_SCHEMA_INSTALLATION_TOUCH BEFORE UPDATE ON OPS_SCHEMA_INS
 CREATE TRIGGER TRG_OPS_SERVICE_TOUCH BEFORE UPDATE ON OPS_SERVICE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_SYSTEM_REGISTRY_TOUCH BEFORE UPDATE ON OPS_SYSTEM_REGISTRY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_TRANSACTION_SUBJECT_TOUCH BEFORE UPDATE ON OPS_TRANSACTION_SUBJECT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_SEC_JWT_KEY_TOUCH BEFORE UPDATE ON SEC_JWT_KEY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
@@ -7514,8 +7741,6 @@ CREATE TRIGGER TRG_CPF_TRANSACTION_LOG_DETAIL_TOUCH BEFORE UPDATE ON CPF_TRANSAC
 CREATE TRIGGER TRG_GW_BINDING_TOUCH BEFORE UPDATE ON GW_BINDING FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_GW_SERVER_GROUP_MEMBER_TOUCH BEFORE UPDATE ON GW_SERVER_GROUP_MEMBER FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
-
-CREATE TRIGGER TRG_OPS_CHANNEL_EXECUTION_POLICY_TOUCH BEFORE UPDATE ON OPS_CHANNEL_EXECUTION_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_RUNTIME_CHANGE_TOUCH BEFORE UPDATE ON OPS_RUNTIME_CHANGE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 

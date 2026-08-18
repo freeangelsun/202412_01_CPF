@@ -63,16 +63,23 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             @RequestParam(required = false) String capabilityId,
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String capabilityOperation,
-            @RequestParam(defaultValue = "50") int limit) {
+            @RequestParam(required = false) Long beforeLogIdx,
+            @RequestParam(defaultValue = "20") int size) {
         Map<String, Object> response = new LinkedHashMap<>();
         try {
             response.put("available", true);
-            response.put("items", logQueryService.findLogs(
+            AdmLogQueryService.LogPage page = logQueryService.findLogPage(
                     transactionId, traceId, businessTransactionId, memberNo, customerNo,
                     uri, responseCode, httpStatus,
                     clientId, originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId, logType,
                     moduleId, wasId, instanceId, hostName,
-                    domainCode, application, starterId, capabilityId, provider, capabilityOperation, limit));
+                    domainCode, application, starterId, capabilityId, provider, capabilityOperation, beforeLogIdx, size);
+            response.put("items", page.items());
+            response.put("total", page.total());
+            response.put("pageSize", page.pageSize());
+            response.put("cursor", page.cursor());
+            response.put("nextCursor", page.nextCursor());
+            response.put("hasMore", page.hasMore());
         } catch (DataAccessException ex) {
             log.error("ADM transaction log query failed.", ex);
             response.put("available", false);

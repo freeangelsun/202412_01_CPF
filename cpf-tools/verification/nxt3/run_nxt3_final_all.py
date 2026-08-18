@@ -65,6 +65,7 @@ def main() -> int:
       ('korean-comment-self-test',[py,'-B',str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root),'--self-test']),
       ('korean-comment',[py,'-B',str(gate/'verify_nxt3_korean_comment.py'),'--root',str(root)]),
       ('adm-incident-canonical-db',[py,'-B',str(gate/'verify_adm_incident_canonical_db.py'),'--root',str(root)]),
+      ('central-registry-retention-closure',[py,'-B',str(gate/'verify-cpf-central-registry-retention-closure.py'),'--root',str(root)]),
       ('db-source-plan-derivation',[py,'-B',str(gate/'verify_db_source_plan_derivation.py'),'--root',str(root)]),
       ('layout',[py,'-B',str(gate/'cpf_nxt3_layout_gate.py'),'--root',str(root)]),
       ('garbage-sweep',[py,'-B',str(gate/'verify_nxt3_repository_garbage.py'),'--root',str(root)]),

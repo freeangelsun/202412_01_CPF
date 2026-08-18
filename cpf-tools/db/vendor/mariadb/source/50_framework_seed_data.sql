@@ -1,18 +1,24 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
 -- vendor=mariadb; source=50_framework_seed_data.sql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
-INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by) VALUES ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
-    ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
+USE cpfDB;
+INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by)
+VALUES ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('MOBILE', '모바일', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '모바일 애플리케이션 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('ADM', '관리자', 'OPERATOR', 'INTERNAL', 'Y', 'Y', 'Y', 'N', 'Y', 'ADM 운영 채널', 0, 'SYSTEM', 'SYSTEM'),
-    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE channel_name = VALUES(channel_name), channel_type = VALUES(channel_type), trust_level = VALUES(trust_level), client_channel_yn = VALUES(client_channel_yn), internal_channel_yn = VALUES(internal_channel_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO OPS_CHANNEL_EXECUTION_POLICY (policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by) VALUES (
-    'CPF.DEFAULT', '*', 'ANY', 'ANY', '*', 'Y', 'N', 'N', 0,
+    ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE channel_name=VALUES(channel_name), channel_type=VALUES(channel_type), trust_level=VALUES(trust_level), client_channel_yn=VALUES(client_channel_yn), internal_channel_yn=VALUES(internal_channel_yn), authentication_required_yn=VALUES(authentication_required_yn), signature_required_yn=VALUES(signature_required_yn), active_yn=VALUES(active_yn), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO OPS_CHANNEL_EXECUTION_POLICY (policy_key, operation_id, caller_channel, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by)
+VALUES (
+    'CPF.DEFAULT', '*', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE standard_execution_id = VALUES(standard_execution_id), original_channel_code = VALUES(original_channel_code), caller_channel_code = VALUES(caller_channel_code), request_type = VALUES(request_type), allowed_yn = VALUES(allowed_yn), authentication_required_yn = VALUES(authentication_required_yn), signature_required_yn = VALUES(signature_required_yn), max_tps = VALUES(max_tps), active_yn = VALUES(active_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
+)
+ON DUPLICATE KEY UPDATE operation_id=VALUES(operation_id), caller_channel=VALUES(caller_channel), allowed_yn=VALUES(allowed_yn), authentication_required_yn=VALUES(authentication_required_yn), signature_required_yn=VALUES(signature_required_yn), max_tps=VALUES(max_tps), active_yn=VALUES(active_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES (NULL, 'CODE_GROUP', 'MODULE', '서비스 모듈 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'REQUEST_TYPE', '요청 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CHANNEL_CODE', '채널 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RESULT_TYPE', '응답 결과 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -20,8 +26,10 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
     (NULL, 'CODE_GROUP', 'LOG_LEVEL', '동적 로그 레벨 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'CACHE_NAME', '캐시 이름 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'BATCH_JOB_TYPE', '배치 Job 유형 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'YN', '여부 코드 그룹', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
@@ -52,8 +60,10 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'CHUNK', 'Chunk 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'BATCH_JOB_TYPE') p), 'BATCH_JOB_TYPE', 'RETRY', '재처리 배치', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'Y', '예', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'YN') p), 'YN', 'N', '아니오', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by)
+VALUES ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공통 요청이 정상 처리되었습니다.', 0, NULL, 'CPF 공통 성공 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010001', 'ko', 'INDEXED', '요청 값이 올바르지 않습니다.', '요청 파라미터 검증에 실패했습니다. field={0}, value={1}', 2, '["field","invalid"]', 'CPF 파라미터 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010002', 'ko', 'INDEXED', '요청한 정보를 찾을 수 없습니다.', '조회 대상 데이터가 존재하지 않습니다. target={0}', 1, '["sample-item"]', 'CPF 미존재 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF010003', 'ko', 'INDEXED', '이미 등록된 정보입니다.', '중복 데이터가 감지되었습니다. key={0}', 1, '["sampleKey"]', 'CPF 중복 메시지', 'SYSTEM', 'SYSTEM'),
@@ -74,8 +84,10 @@ INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_mes
     ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MEDU010001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE', 2, '["샘플키","SAMPLE-0001"]', 'EDU 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
+    ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), parameter_count=VALUES(parameter_count), parameter_sample=VALUES(parameter_sample), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by)
+VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),
     ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),
@@ -94,8 +106,10 @@ INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_
     ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
     ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
     ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
-    ('EEDU010001', 'MEDU010001', 'E', 'EDU', '01', '0001', 409, 'EDU 샘플 중복 오류', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
+    ('EEDU010001', 'MEDU010001', 'E', 'EDU', '01', '0001', 409, 'EDU 샘플 중복 오류', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+VALUES ('CPF.CMN.CACHE.PRELOAD_ENABLED', 'Y', 'BOOLEAN', 'CMN 캐시 기동 시 선적재 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.FAIL_FAST_ON_STARTUP', 'N', 'BOOLEAN', '캐시 선적재 실패 시 기동 실패 여부', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.CACHE.REFRESH_POLL_MILLIS', '5000', 'NUMBER', '캐시 갱신 이벤트 polling 주기', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.CMN.MESSAGING.BROKER', 'IN_MEMORY', 'STRING', '기본 CMN 메시지 브로커 유형', 'N', 'SYSTEM', 'SYSTEM'),
@@ -106,8 +120,10 @@ INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, e
     ('CPF.ADM.PASSWORD_MIN_LENGTH', '10', 'NUMBER', 'ADM 비밀번호 최소 길이', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.ADM.PASSWORD_MAX_FAIL_COUNT', '5', 'NUMBER', 'ADM 로그인 실패 잠금 기준', 'N', 'SYSTEM', 'SYSTEM'),
     ('CPF.BATCH.DEFAULT_LOCK_SECONDS', '3600', 'NUMBER', '배치 기본 lock 만료 초', 'N', 'SYSTEM', 'SYSTEM'),
-    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
+    ('CPF.FEATURE.SAMPLE_ENABLED', 'Y', 'BOOLEAN', '샘플 API와 교육 flow 활성화 여부', 'N', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES (NULL, 'CODE_GROUP', 'HTTP_METHOD', 'HTTP Method 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'EXECUTION_STATUS', '실행 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ASYNC_STATUS', '비동기 처리 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'RETRY_STATUS', '재시도 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
@@ -118,8 +134,10 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
     (NULL, 'CODE_GROUP', 'DATA_CLASSIFICATION', '데이터 민감도 등급 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'APPROVAL_STATUS', '결재 상태 코드 그룹', 'SYSTEM', 'SYSTEM'),
     (NULL, 'CODE_GROUP', 'ERROR_CATEGORY', '오류 분류 코드 그룹', 'SYSTEM', 'SYSTEM'),
-    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
+    (NULL, 'CODE_GROUP', 'RETENTION_ACTION', '보존 정책 실행 유형 코드 그룹', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'GET', '조회', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'POST', '등록/명령', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PUT', '전체 수정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='HTTP_METHOD') x), 'HTTP_METHOD', 'PATCH', '부분 수정', 'SYSTEM', 'SYSTEM'),
@@ -171,31 +189,41 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='ERROR_CATEGORY') x), 'ERROR_CATEGORY', 'UNKNOWN_RESULT', '결과 미확정', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'ARCHIVE', '보관소 이관', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'PURGE', '정책 삭제', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='RETENTION_ACTION') x), 'RETENTION_ACTION', 'LEGAL_HOLD', '법적 보존', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by)
+VALUES ('MCPF030002','ko','FIXED','요청 시간이 초과되었습니다.','대상 호출 timeout이 발생했습니다.',0,NULL,'공통 Timeout 메시지','SYSTEM','SYSTEM'),
     ('MCPF030003','ko','FIXED','연결 대상이 일시적으로 사용할 수 없습니다.','대상 서비스가 DOWN/OPEN 상태입니다.',0,NULL,'Target down 메시지','SYSTEM','SYSTEM'),
     ('MCPF030004','ko','FIXED','처리 결과를 확인 중입니다.','요청 결과가 UNKNOWN_RESULT로 분류되어 대사가 필요합니다.',0,NULL,'결과 미확정 메시지','SYSTEM','SYSTEM'),
     ('MCPF020002','ko','FIXED','다른 사용자가 먼저 변경했습니다. 다시 조회해 주세요.','낙관적 잠금 Version 충돌이 발생했습니다.',0,NULL,'동시성 충돌 메시지','SYSTEM','SYSTEM'),
     ('MCPF020003','ko','FIXED','동일 요청이 이미 처리되었습니다.','Idempotency key가 이미 완료된 요청입니다.',0,NULL,'멱등 중복 메시지','SYSTEM','SYSTEM'),
     ('MCPF040001','ko','FIXED','첨부파일 검사가 완료되지 않았습니다.','첨부 다운로드는 CLEAN 상태에서만 허용됩니다.',0,NULL,'첨부 보안 메시지','SYSTEM','SYSTEM'),
-    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), parameter_count = VALUES(parameter_count), parameter_sample = VALUES(parameter_sample), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
+    ('MCPF040002','ko','FIXED','첨부파일이 보안 정책에 의해 격리되었습니다.','INFECTED/QUARANTINED 파일 접근이 차단되었습니다.',0,NULL,'첨부 격리 메시지','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), parameter_count=VALUES(parameter_count), parameter_sample=VALUES(parameter_sample), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by)
+VALUES ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','SYSTEM'),
     ('ECPF030003','MCPF030003','E','CPF','03','0003',503,'Target down','SYSTEM','SYSTEM'),
     ('ECPF030004','MCPF030004','E','CPF','03','0004',202,'UNKNOWN_RESULT','SYSTEM','SYSTEM'),
     ('ECPF020002','MCPF020002','E','CPF','02','0002',409,'Optimistic lock conflict','SYSTEM','SYSTEM'),
     ('ECPF020003','MCPF020003','E','CPF','02','0003',409,'Idempotency duplicate','SYSTEM','SYSTEM'),
     ('ECPF040001','MCPF040001','E','CPF','04','0001',423,'File scan pending','SYSTEM','SYSTEM'),
-    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
+    ('ECPF040002','MCPF040002','E','CPF','04','0002',403,'File quarantined','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+VALUES ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS','600','NUMBER','BZA Access Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS','7200','NUMBER','BZA Refresh Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.FILE.DOWNLOAD_REQUIRE_CLEAN','Y','BOOLEAN','첨부 다운로드 CLEAN 상태 강제','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO OPS_LOG_POLICY (policy_key, policy_name, target_type, target_id, log_level, db_log_enabled_yn, file_log_enabled_yn, policy_schema_version, query_capture_mode, request_header_capture_mode, response_header_capture_mode, request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode, header_allowlist, max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes, request_body_log_yn, response_body_log_yn, error_stack_log_yn, masking_policy_key, policy_checksum, retention_days, sampling_rate, priority, active_yn, description, created_by, updated_by) VALUES ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '04aec0a6adbf48c269e1538ca571819dc54400391e33d5b497ec05406bccd445', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO OPS_LOG_POLICY (policy_key, policy_name, target_type, target_id, log_level, db_log_enabled_yn, file_log_enabled_yn, policy_schema_version, query_capture_mode, request_header_capture_mode, response_header_capture_mode, request_body_capture_mode, response_body_capture_mode, error_stack_capture_mode, header_allowlist, max_query_bytes, max_header_bytes, max_request_body_bytes, max_response_body_bytes, max_stack_bytes, request_body_log_yn, response_body_log_yn, error_stack_log_yn, masking_policy_key, policy_checksum, retention_days, sampling_rate, priority, active_yn, description, created_by, updated_by)
+VALUES ('ONLINE_DEFAULT', '온라인 거래 기본 로그 정책', 'ONLINE_TRANSACTION', '*', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '04aec0a6adbf48c269e1538ca571819dc54400391e33d5b497ec05406bccd445', 90, 100.00, 100, 'Y', '온라인 Controller/API 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
     ('BATCH_DEFAULT', '배치 기본 로그 정책', 'BATCH_JOB', '*', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '0eca9ff2359e55290f01c2594d399c32e4af9decd34541a6f571a4345f36ca08', 180, 100.00, 100, 'Y', 'Spring Batch Job 기본 로그 정책', 'SYSTEM', 'SYSTEM'),
-    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '9ea15a6d3c662bcaf9295a2512cef8fc12da0e77eea6f07b3c5e55e5fb79e705', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE policy_name = VALUES(policy_name), target_type = VALUES(target_type), target_id = VALUES(target_id), log_level = VALUES(log_level), db_log_enabled_yn = VALUES(db_log_enabled_yn), file_log_enabled_yn = VALUES(file_log_enabled_yn), policy_schema_version = VALUES(policy_schema_version), query_capture_mode = VALUES(query_capture_mode), request_header_capture_mode = VALUES(request_header_capture_mode), response_header_capture_mode = VALUES(response_header_capture_mode), request_body_capture_mode = VALUES(request_body_capture_mode), response_body_capture_mode = VALUES(response_body_capture_mode), error_stack_capture_mode = VALUES(error_stack_capture_mode), header_allowlist = VALUES(header_allowlist), max_query_bytes = VALUES(max_query_bytes), max_header_bytes = VALUES(max_header_bytes), max_request_body_bytes = VALUES(max_request_body_bytes), max_response_body_bytes = VALUES(max_response_body_bytes), max_stack_bytes = VALUES(max_stack_bytes), request_body_log_yn = VALUES(request_body_log_yn), response_body_log_yn = VALUES(response_body_log_yn), error_stack_log_yn = VALUES(error_stack_log_yn), masking_policy_key = VALUES(masking_policy_key), policy_checksum = VALUES(policy_checksum), retention_days = VALUES(retention_days), sampling_rate = VALUES(sampling_rate), priority = VALUES(priority), active_yn = VALUES(active_yn), description = VALUES(description), updated_by = VALUES(updated_by);
-INSERT INTO SEC_JWT_KEY (KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by) VALUES (
+    ('ADM_OPERATION_DEFAULT', 'ADM 운영 기본 로그 정책', 'MODULE', 'ADM', 'INFO', 'Y', 'Y', 2, 'NONE', 'ALLOWLIST', 'ALLOWLIST', 'NONE', 'NONE', 'SUMMARY', 'content-type,x-cpf-trace-id,x-cpf-transaction-id', 4096, 8192, 65536, 65536, 32768, 'N', 'N', 'Y', 'DEFAULT', '9ea15a6d3c662bcaf9295a2512cef8fc12da0e77eea6f07b3c5e55e5fb79e705', 365, 100.00, 50, 'Y', 'ADM 운영 API 기본 로그 정책', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE policy_name=VALUES(policy_name), target_type=VALUES(target_type), target_id=VALUES(target_id), log_level=VALUES(log_level), db_log_enabled_yn=VALUES(db_log_enabled_yn), file_log_enabled_yn=VALUES(file_log_enabled_yn), policy_schema_version=VALUES(policy_schema_version), query_capture_mode=VALUES(query_capture_mode), request_header_capture_mode=VALUES(request_header_capture_mode), response_header_capture_mode=VALUES(response_header_capture_mode), request_body_capture_mode=VALUES(request_body_capture_mode), response_body_capture_mode=VALUES(response_body_capture_mode), error_stack_capture_mode=VALUES(error_stack_capture_mode), header_allowlist=VALUES(header_allowlist), max_query_bytes=VALUES(max_query_bytes), max_header_bytes=VALUES(max_header_bytes), max_request_body_bytes=VALUES(max_request_body_bytes), max_response_body_bytes=VALUES(max_response_body_bytes), max_stack_bytes=VALUES(max_stack_bytes), request_body_log_yn=VALUES(request_body_log_yn), response_body_log_yn=VALUES(response_body_log_yn), error_stack_log_yn=VALUES(error_stack_log_yn), masking_policy_key=VALUES(masking_policy_key), policy_checksum=VALUES(policy_checksum), retention_days=VALUES(retention_days), sampling_rate=VALUES(sampling_rate), priority=VALUES(priority), active_yn=VALUES(active_yn), description=VALUES(description), updated_by=VALUES(updated_by);
+INSERT INTO SEC_JWT_KEY (KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIRE_AT, created_by, updated_by)
+VALUES (
     'local-cpf-hs256-001',
     'CPF',
     'HS256',
@@ -204,8 +232,10 @@ INSERT INTO SEC_JWT_KEY (KEY_ID, ISSUER, ALGORITHM, SECRET_REF, ACTIVE_YN, EXPIR
     NULL,
     'SYSTEM',
     'SYSTEM'
-) ON DUPLICATE KEY UPDATE ISSUER = VALUES(ISSUER), ALGORITHM = VALUES(ALGORITHM), SECRET_REF = VALUES(SECRET_REF), ACTIVE_YN = VALUES(ACTIVE_YN), EXPIRE_AT = VALUES(EXPIRE_AT), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CACHE_REFRESH_EVENT (cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by) SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
+)
+ON DUPLICATE KEY UPDATE ISSUER=VALUES(ISSUER), ALGORITHM=VALUES(ALGORITHM), SECRET_REF=VALUES(SECRET_REF), ACTIVE_YN=VALUES(ACTIVE_YN), EXPIRE_AT=VALUES(EXPIRE_AT), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CACHE_REFRESH_EVENT (cache_name, event_type, event_key, source_was_id, published_by, created_by, updated_by)
+SELECT 'ALL', 'INITIAL_LOAD', 'INITIAL_FRAMEWORK_SEED', 'SQL', 'SYSTEM', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1
     FROM CMN_CACHE_REFRESH_EVENT
@@ -213,36 +243,48 @@ WHERE NOT EXISTS (
       AND event_type = 'INITIAL_LOAD'
       AND event_key = 'INITIAL_FRAMEWORK_SEED'
 );
-INSERT INTO CPF_NOTIFICATION_RULE (event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by) VALUES ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE template_code = VALUES(template_code), severity = VALUES(severity), receiver_group = VALUES(receiver_group), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
+INSERT INTO CPF_NOTIFICATION_RULE (event_type, event_sub_type, channel_code, template_code, severity, receiver_group, use_yn, created_by, updated_by)
+VALUES ('BATCH_EXECUTION', 'FAILED', 'ADM', 'BATCH_FAILED_DEFAULT', 'ERROR', 'ADM_BATCH_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SECURITY_EVENT', 'LOGIN_FAILURE', 'ADM', 'SECURITY_LOGIN_FAILURE', 'WARN', 'ADM_SECURITY_OPERATOR', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE template_code=VALUES(template_code), severity=VALUES(severity), receiver_group=VALUES(receiver_group), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+SELECT NULL, 'CODE_GROUP', 'SORT_DIRECTION', '표준 정렬 방향', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (SELECT 1 FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION');
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by) VALUES ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'ASC', '오름차순', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='SORT_DIRECTION') x), 'SORT_DIRECTION', 'DESC', '내림차순', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_MESSAGE (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by)
+VALUES ('MCPF020004','ko','FIXED','요청 사용자 정보가 인증 사용자와 일치하지 않습니다.','Body requester spoofing이 차단되었습니다.',0,NULL,'Requester spoof 차단','SYSTEM','SYSTEM'),
     ('MCPF020005','ko','FIXED','이미 사용된 정책 버전은 직접 수정할 수 없습니다.','사용된 Approval Policy version은 immutable입니다.',0,NULL,'정책 버전 불변성','SYSTEM','SYSTEM'),
     ('MCPF020006','ko','FIXED','동일 작업 식별자가 다른 요청에 사용되었습니다.','operationId payload 충돌입니다.',0,NULL,'멱등 작업 충돌','SYSTEM','SYSTEM'),
     ('MCPF020007','ko','FIXED','현재 데이터가 다른 요청에서 변경되었습니다.','expectedVersion CAS가 실패했습니다.',0,NULL,'낙관적 잠금 재조회','SYSTEM','SYSTEM'),
     ('MCPF040003','ko','FIXED','보존 정책에 의해 해당 데이터는 삭제할 수 없습니다.','LEGAL_HOLD가 적용되어 destructive retention을 차단했습니다.',0,NULL,'Legal hold','SYSTEM','SYSTEM'),
     ('MCPF040004','ko','FIXED','보존 작업 실행이 비활성화되어 있습니다.','CPF.RETENTION.EXECUTE_ENABLED kill switch가 OFF입니다.',0,NULL,'Retention kill switch','SYSTEM','SYSTEM'),
     ('MCPF050001','ko','FIXED','Secret 원문은 조회할 수 없습니다.','Secret API는 metadata/reference만 노출합니다.',0,NULL,'Secret 비노출','SYSTEM','SYSTEM'),
-    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_format_type = VALUES(message_format_type), external_message = VALUES(external_message), internal_message = VALUES(internal_message), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
+    ('MCPF050002','ko','FIXED','테넌트 식별정보가 필요합니다.','Tenant mode에서 resolver가 tenantId를 결정하지 못했습니다.',0,NULL,'Tenant 필수','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE message_format_type=VALUES(message_format_type), external_message=VALUES(external_message), internal_message=VALUES(internal_message), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by)
+VALUES ('ECPF020004','MCPF020004','E','CPF','02','0004',403,'Requester spoof blocked','SYSTEM','SYSTEM'),
     ('ECPF020005','MCPF020005','E','CPF','02','0005',409,'Policy version immutable','SYSTEM','SYSTEM'),
     ('ECPF020006','MCPF020006','E','CPF','02','0006',409,'Operation id conflict','SYSTEM','SYSTEM'),
     ('ECPF020007','MCPF020007','E','CPF','02','0007',409,'Optimistic lock retry','SYSTEM','SYSTEM'),
     ('ECPF040003','MCPF040003','E','CPF','04','0003',423,'Legal hold','SYSTEM','SYSTEM'),
     ('ECPF040004','MCPF040004','E','CPF','04','0004',403,'Retention disabled','SYSTEM','SYSTEM'),
     ('ECPF050001','MCPF050001','E','CPF','05','0001',403,'Secret value hidden','SYSTEM','SYSTEM'),
-    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by) VALUES ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
+    ('ECPF050002','MCPF050002','E','CPF','05','0002',400,'Tenant required','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
+VALUES ('CPF.PAGING.DEFAULT_SIZE','20','NUMBER','공통 Page 기본 크기','N','SYSTEM','SYSTEM'),
     ('CPF.PAGING.MAX_SIZE','200','NUMBER','공통 Page 최대 크기','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.DRY_RUN_DEFAULT','Y','BOOLEAN','Retention 기본 Dry-run','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.SECRET.CACHE_TTL_SECONDS','300','NUMBER','Secret metadata/cache 기본 TTL','N','SYSTEM','SYSTEM'),
     ('CPF.TENANT.ENABLED','N','BOOLEAN','Tenant context 기능 기본 OFF','N','SYSTEM','SYSTEM'),
-    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM') ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type), description = VALUES(description), encrypted_yn = VALUES(encrypted_yn), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by) VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
+    ('CPF.HEALTH.REMOTE_DEPENDENCY_GATES_READINESS','N','BOOLEAN','Remote owner 장애가 local readiness를 직접 차단하지 않음','N','SYSTEM','SYSTEM')
+ON DUPLICATE KEY UPDATE config_value=VALUES(config_value), config_type=VALUES(config_type), description=VALUES(description), encrypted_yn=VALUES(encrypted_yn), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, updated_by)
+VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'O', '온라인 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'S', '공유 내부 서비스 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='REQUEST_TYPE') x), 'REQUEST_TYPE', 'B', '배치 요청', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='CHANNEL_CODE') x), 'CHANNEL_CODE', 'APP', '모바일 앱 채널', 'SYSTEM', 'SYSTEM'),
@@ -253,4 +295,5 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SPRING_BATCH', 'Spring Batch Job', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'WORKER', '지속 Worker', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'SCHEDULER', 'Scheduler Job', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_id = VALUES(parent_id), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key='CODE_GROUP' AND code_value='BATCH_JOB_TYPE') x), 'BATCH_JOB_TYPE', 'CENTER_CUT', 'Center-Cut 대량 처리', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE parent_id=VALUES(parent_id), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;

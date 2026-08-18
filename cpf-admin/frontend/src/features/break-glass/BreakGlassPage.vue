@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CpfModal from '../../components/ui/CpfModal.vue'
 import { computed, onMounted, reactive, ref } from "vue";
 import CpfIcon from "../../components/CpfIcon.vue";
 import {
@@ -106,13 +107,13 @@ onMounted(load);
         <tr v-if="!rows.length"><td colspan="7" class="cpf-empty">Break-glass 이력이 없습니다.</td></tr>
       </tbody></table></div>
     </section>
-    <dialog :open="actionDialog.open" class="modal" aria-labelledby="break-glass-action-title">
+    <CpfModal :open="actionDialog.open" @cancel="closeAction" aria-labelledby="break-glass-action-title">
       <form class="modal-card" @submit.prevent="confirmAction">
         <div class="card-head"><h2 id="break-glass-action-title">{{ actionTitle() }}</h2><button type="button" class="icon-button" aria-label="닫기" @click="closeAction">×</button></div>
         <p>대상: <strong>{{ actionDialog.row?.scopeValue }}</strong></p>
         <label>감사 사유<textarea v-model.trim="actionDialog.reason" rows="4" minlength="5" required></textarea></label>
         <div class="dialog-actions"><button type="button" class="ghost" @click="closeAction">취소</button><button class="danger" :disabled="busy">확인</button></div>
       </form>
-    </dialog>
+    </CpfModal>
   </div>
 </template>

@@ -23,6 +23,7 @@ export interface CommonConfigRequest { configId?: number; configKey: string; con
 export interface CommonResponseCodeRequest { responseCode: string; messageCode: string; resultType: "S" | "E"; moduleId: string; responseGroup: string; sequenceNo: string; httpStatus: number; description?: string; useYn?: "Y" | "N"; }
 `);
 const operations = [
+  "admApprovalRequest",
   "admCacheEvictKey", "admCacheEvictNamespace", "admCacheReconcile", "admCacheRefresh", "admCacheSummary",
   "admCodeCreateCode", "admCodeDeleteCode", "admCodeFindCode", "admCodeFindCodes", "admCodeUpdateCode",
   "admConfigCreateConfig", "admConfigDeleteConfig", "admConfigFindConfig", "admConfigFindConfigs", "admConfigUpdateConfig",
@@ -41,7 +42,7 @@ function invoke(name:string,args:unknown[]):Promise<unknown>{ calls.push({name,a
 ${operations.map(name => `export const ${name} = (...args:unknown[]) => invoke(${JSON.stringify(name)}, args);`).join("\n")}
 `);
 const compile = spawnSync(process.execPath, [
-  path.join(root,"node_modules","typescript","bin","tsc"), path.join(temp, "referenceMethods.ts"), path.join(temp, "mock-generated.ts"), path.join(temp, "mock-model.ts"),
+  path.join(root,"node_modules","typescript","bin","tsc"), "--ignoreConfig", path.join(temp, "referenceMethods.ts"), path.join(temp, "mock-generated.ts"), path.join(temp, "mock-model.ts"),
   "--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler", "--lib", "ES2022,DOM,DOM.Iterable",
   "--skipLibCheck", "--noImplicitAny", "false", "--outDir", temp
 ], { cwd: root, encoding: "utf8" });

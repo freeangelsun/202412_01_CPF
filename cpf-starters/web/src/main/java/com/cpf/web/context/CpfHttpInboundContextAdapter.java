@@ -42,10 +42,10 @@ public final class CpfHttpInboundContextAdapter {
                 ? (edge == null ? null : edge.currentChannel()) : runtime.currentChannel());
 
         String rawTx = safe(values.get(lower(CpfHttpHeaderNames.TRANSACTION_ID)), 160);
-        String originalChannel = safe(values.get(lower(CpfHttpHeaderNames.ORIGINAL_CHANNEL)), 128);
-        String inboundCurrentChannel = safe(values.get(lower(CpfHttpHeaderNames.CURRENT_CHANNEL)), 128);
-        String callerChannel = safe(values.get(lower(CpfHttpHeaderNames.CALLER_CHANNEL)), 128);
-        String targetChannel = safe(values.get(lower(CpfHttpHeaderNames.TARGET_CHANNEL)), 128);
+        String originalChannel = safe(values.get(lower(CpfHttpHeaderNames.ORIGINAL_CHANNEL)), 16);
+        String inboundCurrentChannel = safe(values.get(lower(CpfHttpHeaderNames.CURRENT_CHANNEL)), 16);
+        String callerChannel = safe(values.get(lower(CpfHttpHeaderNames.CALLER_CHANNEL)), 16);
+        String targetChannel = safe(values.get(lower(CpfHttpHeaderNames.TARGET_CHANNEL)), 16);
         String targetOperation = safe(values.get(lower(CpfHttpHeaderNames.TARGET_OPERATION_ID)), 160);
 
         String inboundTransactionId;
@@ -213,8 +213,13 @@ public final class CpfHttpInboundContextAdapter {
     }
 
     private static String normalizeChannel(String value) {
-        String normalized = safe(value, 128);
-        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
+        String normalized = safe(value, 16);
+        if (normalized == null) return null;
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "*", "Channel must match [A-Z0-9][A-Z0-9_-]{0,15}.", 400, "CHANNEL_INVALID");
+        }
+        return normalized;
     }
 
     private static String normalizeSystem(String value) {

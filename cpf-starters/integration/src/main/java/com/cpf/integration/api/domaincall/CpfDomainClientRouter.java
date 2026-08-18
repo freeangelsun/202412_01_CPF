@@ -46,10 +46,15 @@ public final class CpfDomainClientRouter {
                 return CpfResult.technicalFailure("CPF-DOMAIN-LOCAL-NOT-FOUND", systemCode + "/" + operationId + " local operation이 없습니다.");
             }
             var current = CpfContexts.current();
-            if (current == null) return localOperations.invoke(systemCode, operationId, request, responseType);
+            if (current == null) {
+                return CpfResult.technicalFailure("CPF-DOMAIN-CONTEXT-MISSING",
+                        "Same-JVM Domain invocation requires the canonical CPF context.");
+            }
             var localHop = current.localDomainHop(systemCode, operationId);
             try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(localHop))) {
-                return localOperations.invoke(systemCode, operationId, request, responseType);
+                return localOperations.invoke(
+                        CpfDomainOperationRegistry.InvocationMetadata.trustedInternal(current.currentChannel()),
+                        systemCode, operationId, request, responseType);
             // 원격 Domain 호출 실패의 원래 의미를 보존해 표준 CPF 호출 오류·UNKNOWN 판정 경계로 전달합니다.
             } catch (RuntimeException e) {
                 throw e;

@@ -36,7 +36,7 @@ class JdbcCpfResiliencePolicyStoreContractTest {
                 "incident email=user@example.com token=raw-secret");
 
         assertThat(requestId).isNotBlank();
-        assertThat(sql.get()).contains("cpf_resilience_policy_request", "active_operation_key");
+        assertThat(sql.get()).contains("OPS_RESILIENCE_POLICY_REQUEST", "active_operation_key");
         assertThat(bound.get()).hasSize(7);
         assertThat(String.valueOf(bound.get()[5]))
                 .doesNotContain("user@example.com", "raw-secret")

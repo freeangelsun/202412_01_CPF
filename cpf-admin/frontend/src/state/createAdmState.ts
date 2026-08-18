@@ -7,6 +7,8 @@ export function createAdmState() {
     integrationTimeHealth: null as any,
     integrationDataQualityResult: null as any,
     integrationWebhookDlq: [] as any[],
+    shellHealth: { status: "UNKNOWN" } as Record<string, any>,
+    shellHealthFetchedAt: 0,
     healthInstanceSearch: { systemId: "", readiness: "", includeStale: false, page: 0, size: 50 },
     healthInstanceResult: null as any,
     healthInstanceDetail: null as any,
@@ -150,7 +152,7 @@ export function createAdmState() {
           reason: "운영 로그 확인"
         },
         logSort: { key: "LOG_IDX", direction: "desc" },
-        logPage: { page: 1, size: 10 },
+        logPage: { page: 1, size: 20, cursor: null as number | null, nextCursor: null as number | null, cursorHistory: [] as Array<number | null>, total: 0, hasMore: false },
         logDetailTab: "요약",
         logDetailTabs: ["요약", "수신 헤더", "해석 헤더", "전파 헤더", "응답 헤더", "요청", "응답", "오류", "상세", "전문"],
         transactionGroupSort: "startedAtDesc",
@@ -312,10 +314,10 @@ export function createAdmState() {
         passwordForm: { operatorId: "", newPassword: "", forceChange: true, sessionId: "", reason: "비밀번호 운영" },
         securityForm: { ipPattern: "127.0.0.1", description: "local development", operatorId: "admin", secretRef: "ENV:ADM_ADMIN_OTP_SECRET", otpCode: "", reason: "보안 운영" },
         approvalForm: {
-          operationId: "", changeType: "CACHE_REFRESH", payloadSchemaVersion: 1, expectedVersion: 0,
+          commandId: "", operationId: "", changeType: "CACHE_REFRESH", payloadSchemaVersion: 1, expectedVersion: 0,
           rolloutMode: "ALL_AT_ONCE", waveSize: 1, quorumPercent: 100, scheduledAt: "", expiresAt: "",
           approvalId: "", breakGlassId: "", targetJson: "{}", payloadJson: "{}",
-          reason: "Runtime 위험 변경", selectedRequestId: "", controlOperationId: "", decisionAction: "CANCEL"
+          reason: "Runtime 위험 변경", selectedRequestId: "", controlCommandId: "", controlOperationId: "", decisionAction: "CANCEL"
         },
         responseCodeForm: {
           responseCode: "EEDU010001",
@@ -353,6 +355,7 @@ export function createAdmState() {
           messageId: "",
           unknownId: "",
           targetStatus: "MANUAL_REVIEW",
+          expectedVersion: 0,
           reason: "신뢰성 운영 조치"
         },
         operationForm: {
@@ -375,6 +378,7 @@ export function createAdmState() {
           breakGlassSessionId: "",
           reviewStatus: "APPROVED",
           changeId: "",
+          commandId: "",
           operationId: "",
           approvalId: "",
           reason: "운영 조치"

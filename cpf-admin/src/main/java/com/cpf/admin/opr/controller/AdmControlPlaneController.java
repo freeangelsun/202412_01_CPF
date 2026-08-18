@@ -39,7 +39,7 @@ public class AdmControlPlaneController extends com.cpf.admin.common.base.AdmBase
     public ResponseEntity<Map<String,Object>> executeMaintenance(@RequestBody Map<String,Object> body,HttpServletRequest request){
         String user=operator(request);
         String reason=String.valueOf(body.getOrDefault("reason",""));
-        audit(request,user,"SERVICE_INSTANCE_CONTROL_APPROVAL_REQUIRED","cpf_service_instance",
+        audit(request,user,"SERVICE_INSTANCE_CONTROL_APPROVAL_REQUIRED","OPS_SERVICE_INSTANCE",
                 String.valueOf(body.get("instanceId")),reason,Map.of("status","APPROVAL_REQUIRED"));
         return ResponseEntity.status(409).body(Map.of(
                 "status","APPROVAL_REQUIRED",

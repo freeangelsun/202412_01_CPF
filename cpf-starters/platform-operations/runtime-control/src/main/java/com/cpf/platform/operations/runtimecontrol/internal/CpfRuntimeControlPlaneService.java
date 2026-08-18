@@ -252,6 +252,66 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         return repository.verifyAudit(require(changeId,"changeId"));
     }
 
+    @Override
+    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment,String status,String keyword,int limit){
+        return repository.findManagedServers(environment,status,keyword,limit);
+    }
+
+    @Override
+    public CpfManagedServerSnapshot getManagedServer(String managedServerId){
+        return repository.getManagedServer(require(managedServerId,"managedServerId"));
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public CpfManagedServerSnapshot saveManagedServer(CpfManagedServerCommand command){
+        if(command==null) throw new IllegalArgumentException("Managed Server command가 필요합니다.");
+        return repository.saveManagedServer(command);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void disableManagedServer(String managedServerId,long expectedVersion,String reason,String operatorId){
+        require(managedServerId,"managedServerId"); require(reason,"reason"); require(operatorId,"operatorId");
+        repository.disableManagedServer(managedServerId,expectedVersion,operatorId);
+    }
+
+    @Override
+    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit){
+        return repository.findRuntimeInventory(environment,capability,status,keyword,limit);
+    }
+
+    @Override
+    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment,String status,String keyword,int limit){
+        return repository.findManagedServers(environment,status,keyword,limit);
+    }
+
+    @Override
+    public CpfManagedServerSnapshot getManagedServer(String managedServerId){
+        return repository.getManagedServer(require(managedServerId,"managedServerId"));
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public CpfManagedServerSnapshot saveManagedServer(CpfManagedServerCommand command){
+        if(command==null) throw new IllegalArgumentException("Managed Server command가 필요합니다.");
+        repository.consumeRateLimit(require(command.operatorId(),"operatorId"),60);
+        return repository.saveManagedServer(command);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public void disableManagedServer(String managedServerId,long expectedVersion,String reason,String operatorId){
+        repository.consumeRateLimit(require(operatorId,"operatorId"),60);
+        repository.disableManagedServer(require(managedServerId,"managedServerId"),expectedVersion,require(reason,"reason"),operatorId);
+    }
+
+    @Override
+    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit){
+        return repository.findRuntimeInventory(environment,capability,status,keyword,limit);
+    }
+
+
     private CpfRuntimeChangeResult replay(String commandId,String requestHash,Map<String,Object> op){
         if(!requestHash.equals(String.valueOf(op.get("request_hash")))) throw new IllegalStateException("같은 commandId가 다른 Runtime 요청 payload에 사용되었습니다: "+commandId);
         Object entity=op.get("entity_id");

@@ -1,10 +1,12 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
 -- vendor=postgresql; source=52_standard_execution_alias_seed.sql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 DELETE FROM CPF_STANDARD_EXECUTION_ALIAS WHERE legacy_execution_id LIKE 'OADM-MBR-%' OR standard_execution_id LIKE 'OADMMB%';
-INSERT INTO CPF_STANDARD_EXECUTION_ALIAS (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
+INSERT INTO CPF_STANDARD_EXECUTION_ALIAS (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by)
+VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-CUT-CL-0001', 'BBATCU0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-FL-0001', 'BBATOP0001', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('BBAT-OPS-HB-0001', 'BBATOP0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
@@ -312,4 +314,5 @@ INSERT INTO CPF_STANDARD_EXECUTION_ALIAS (legacy_execution_id, standard_executio
     ('OREF-QRY-01-0002', 'OREFQR0002', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0003', 'OREFQR0003', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
     ('OREF-QRY-01-0004', 'OREFQR0004', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED'),
-    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED') ON CONFLICT (legacy_execution_id) DO UPDATE SET standard_execution_id = EXCLUDED.standard_execution_id, migration_reason = EXCLUDED.migration_reason, updated_by = EXCLUDED.updated_by, updated_at = CURRENT_TIMESTAMP;
+    ('OREF-QRY-01-0005', 'OREFQR0005', 'CPF O/S/B 10자리 표준 전환', 'CPF_SEED', 'CPF_SEED')
+ON CONFLICT (legacy_execution_id) DO UPDATE SET standard_execution_id=EXCLUDED.standard_execution_id, migration_reason=EXCLUDED.migration_reason, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;

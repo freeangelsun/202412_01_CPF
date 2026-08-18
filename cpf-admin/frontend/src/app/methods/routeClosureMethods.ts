@@ -107,7 +107,7 @@ export const routeClosureMethods = {
   async resolveUnknownResultFromRecoveryCenter() {
     const unknownId = String(this.reliabilityAction.unknownId || "").trim();
     if (!unknownId || !this.requireReason(this.reliabilityAction.reason)) return;
-    this.reliabilityResult = await resolveAdmUnknownResult({ path: { unknownId }, data: { targetStatus: this.reliabilityAction.targetStatus, reason: this.reliabilityAction.reason } });
+    this.reliabilityResult = await resolveAdmUnknownResult({ path: { unknownId }, data: { targetStatus: this.reliabilityAction.targetStatus, expectedVersion: Number(this.reliabilityAction.expectedVersion ?? 0), reason: this.reliabilityAction.reason } });
   },
 
   async retryTransactionLogRecoveryPoison() {
@@ -205,7 +205,9 @@ export const routeClosureMethods = {
   },
 
   async validateOperatorPassword() {
-    this.passwordResult = await admOperatorValidatePassword({ query: { password: this.passwordForm.newPassword } });
+    const operatorId = String(this.passwordForm.operatorId || this.operationForm.operatorId || "").trim();
+    if (!operatorId || !this.passwordForm.newPassword) return this.setMessage("Operator ID와 검증할 비밀번호를 입력하세요.");
+    this.passwordResult = await admOperatorValidatePassword({ query: { operatorId, password: this.passwordForm.newPassword } });
   },
 
   async changeOperatorPassword() {
@@ -240,7 +242,14 @@ export const routeClosureMethods = {
     if (!this.canButton("OPERATOR_CONTACT_UPDATE", "OPERATOR")) throw new Error("OPERATOR_CONTACT_UPDATE 권한이 없습니다.");
     const operatorId = String(this.operationForm.operatorId || this.operatorForm.operatorId || "").trim();
     if (!operatorId || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await admOperatorUpdateContact({ path: { operatorId }, data: { mobileNo: this.operatorForm.mobileNo || null, officePhoneNo: this.operatorForm.officePhoneNo || null, reason: this.operationForm.reason } });
+    this.operationResult = await admOperatorUpdateContact({ path: { operatorId }, data: {
+      mobileNo: this.operatorForm.mobileNo || undefined,
+      officePhoneNo: this.operatorForm.officePhoneNo || undefined,
+      clearMobileNo: !String(this.operatorForm.mobileNo || "").trim(),
+      clearOfficePhoneNo: !String(this.operatorForm.officePhoneNo || "").trim(),
+      expectedVersion: Number(this.operatorForm.version ?? this.operatorForm.versionNo ?? 0),
+      reason: this.operationForm.reason
+    } });
     await this.loadOperators();
   },
 
@@ -270,8 +279,8 @@ export const routeClosureMethods = {
   },
 
   async loadRuntimeOperation() {
-    const operationId = String(this.operationForm.operationId || "").trim();
-    if (!operationId) return this.setMessage("조회할 Runtime Operation ID를 입력하세요.");
-    this.approvalResult = { ...this.approvalResult, runtimeOperation: await admRuntimeControlFindByOperation({ path: { operationId } }) };
+    const commandId = String(this.operationForm.commandId || this.operationForm.operationId || "").trim();
+    if (!commandId) return this.setMessage("조회할 Runtime Command ID를 입력하세요.");
+    this.approvalResult = { ...this.approvalResult, runtimeOperation: await admRuntimeControlFindByOperation({ path: { commandId } }) };
   }
 } satisfies Record<string, any>;

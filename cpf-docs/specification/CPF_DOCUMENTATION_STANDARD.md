@@ -2,7 +2,7 @@
 
 > Canonical entry: `cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md`  
 > Canonical target: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`  
-> 적용 범위: Root README, 공식 사용자 문서 19종(핵심 매뉴얼 8종 + 실무 가이드 11종), 설계 산출물 5종, 공식 Architecture/Developer/Generator/EDU/DB Guide
+> 적용 범위: Root README, 공식 사용자 문서 7종(README + 02~07), 설계 산출물 5종, 공식 Architecture/Developer/Generator/EDU/DB Guide
 
 ## 1. 문서의 목적
 
@@ -112,7 +112,7 @@ CPF 문서에서 사용할 기본 메시지:
 
 ## 4.1 사용자 문서 체계 운영 원칙
 
-공식 사용자 문서 19종은 역할이 다르다. **핵심 매뉴얼 8종**은 역할별 전체 흐름과 충분한 배경·판단 기준을 제공하고, **실무 가이드 11종**은 개발·운영 중 반복해서 찾는 작업을 짧은 경로로 제공한다. 실무 가이드를 만들었다는 이유로 핵심 매뉴얼의 설명을 비우지 않으며, 핵심 매뉴얼이 길다는 이유로 실무 가이드에 같은 본문을 그대로 복제하지 않는다.
+공식 사용자 문서 7종은 역할이 다르다. README는 전체 진입점이고 02~06은 역할별 개발·운영 흐름, 07은 정확한 기술 계약을 담당한다. 새 기능을 이유로 공식 Guide를 계속 추가하지 않고 기존 Owner 문서에 흡수하며, 다른 문서가 있다는 이유로 Owner 문서의 핵심 설명을 비우지 않는다.
 
 ```text
 핵심 매뉴얼: 00~05, 90, 91
@@ -197,6 +197,23 @@ README·공식 매뉴얼·설계 산출물은 **완성된 CPF 사용 문서**로
 
 Internal-only Artifact는 사용자 예시의 직접 dependency로 제시하지 않는다.
 
+## 8.1 개발/QA 정보의 산출물 반영 원칙
+
+산출물 작업 중 전달되는 최신 개발요건은 사용자 문서에서 **최종 구현 완료 상태의 사용 계약**으로 정리한다. QA는 사용자 문서에 미완료 상태를 노출하기 위한 절차가 아니라, Source를 깊게 확인하여 실제 사용자가 필요한 정보를 찾는 Source Truth 수집 절차다.
+
+반드시 함께 대조한다.
+
+- Public Class / Annotation / Method / Property의 최신 이름
+- Generated Domain과 실제 Consumer가 사용하는 Golden Path
+- Starter/Profile/Provider 선택 기준과 Internal 경계
+- 정상·오류·UNKNOWN·Reconcile 흐름
+- Same JVM/Remote/Async/Batch의 Context/Correlation
+- ADM/BZA/Gateway에서 실제로 조회·제어하는 방식
+- 개인정보·권한·감사·Masking·Retention
+- 예제 코드와 표/도식의 API 명칭
+
+기능 변경을 반영할 때 기존 문서의 상세 설명을 임의 축약하지 않는다. 바뀐 API 이름 하나라도 README/가이드/Specification/설계 산출물/예제에서 서로 다르게 남지 않도록 전수 검색한다.
+
 ## 9. 시각 디자인과 다이어그램 기준
 
 시각 자료는 장식이 아니라 이해를 줄이는 도구다.
@@ -273,3 +290,14 @@ DOCX/PDF 현행화는 기존 완성도를 파괴하지 않는다. 기존 문단�
 
 Source와 Target이 다르면 반드시 `CURRENT / TARGET / REFERENCE`를 표시한다. 특히 Generated Domain metadata 위치, CLI launcher 같은 전환 중 Surface를 Target인데 현재처럼 안내하지 않는다.
 
+
+
+## 페이지 구성·여백·밀도 편집 표준
+
+- **빈 공간 최소화는 문단 간격 제거를 뜻하지 않는다.** 본문 문단 사이에는 읽기 흐름이 보이는 적정 간격을 유지하고, 중간 절은 이전 내용과 약 1~2줄 수준의 시각적 간격으로 구분한다.
+- **대메뉴/대장급 장은 새 페이지에서 시작**하는 것을 기본으로 한다. 다만 모든 Heading 1/2에 기계적으로 Page Break를 넣지 않는다. 동일 주제의 중간 절은 앞 장의 남은 공간과 정보 흐름을 고려해 자연스럽게 이어간다.
+- 표·그림·코드 때문에 페이지 하단에 과도한 공백이 생기면 표 크기, 행 분할, 그림 크기, 캡션 위치, 앞뒤 설명의 배치를 조정한다. **문단 간격을 0으로 만들거나 글자를 과도하게 축소하는 방식으로 해결하지 않는다.**
+- 제목만 한 페이지에 고립되거나, 표 한 행/불릿 한 줄만 다음 페이지에 남는 현상을 금지한다. Heading은 다음 본문과 함께 유지하고, 표 행은 가능한 한 페이지 중간에서 분리하지 않는다.
+- 표지와 목차를 제외한 본문은 한 페이지의 정보 밀도, 제목/본문/표/그림의 비율, 장 시작/종료 위치, widow/orphan, 반쪽 페이지를 종합해 균형 있게 편집한다.
+- 문서 전체에서 동일한 본문 행간·문단 후 간격·Heading 계층 간격을 사용하되, 표 내부는 본문보다 소폭 조밀하게 구성할 수 있다.
+- 최종 전달 전 DOCX를 전 페이지 PNG로 렌더하여 **잘림·겹침뿐 아니라 이유 없는 저밀도 페이지, 과도한 공백, 제목 고립, 표/그림 배치 균형**까지 육안 검수한다.

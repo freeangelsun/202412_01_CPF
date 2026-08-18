@@ -73,8 +73,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     public Map<String, Object> findPolicies(String targetType, String targetId, String activeYn, int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("available", tableAvailable("cpf_log_policy"));
-        response.put("items", tableAvailable("cpf_log_policy")
+        response.put("available", tableAvailable("OPS_LOG_POLICY"));
+        response.put("items", tableAvailable("OPS_LOG_POLICY")
                 ? queryPolicies(targetType, targetId, activeYn, limit)
                 : List.of());
         return response;
@@ -82,8 +82,8 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     public Map<String, Object> findPolicy(long policyId) {
         Map<String, Object> response = new LinkedHashMap<>();
-        boolean policyAvailable = tableAvailable("cpf_log_policy");
-        boolean overrideAvailable = tableAvailable("cpf_log_policy_override");
+        boolean policyAvailable = tableAvailable("OPS_LOG_POLICY");
+        boolean overrideAvailable = tableAvailable("OPS_LOG_POLICY_OVERRIDE");
         response.put("available", policyAvailable);
         response.put("item", policyAvailable ? findPolicyById(policyId).orElse(Map.of()) : Map.of());
         response.put("overrides", overrideAvailable
@@ -97,7 +97,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                                request_body_log_yn, response_body_log_yn, error_stack_log_yn,
                                masking_policy_key, policy_checksum, effective_start_at, effective_end_at,
                                requested_by, approved_by, active_yn, created_at, updated_at
-                        FROM cpf_log_policy_override
+                        FROM OPS_LOG_POLICY_OVERRIDE
                         WHERE policy_id = ?
                         ORDER BY override_id DESC
                         """, policyId)
@@ -171,7 +171,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private int updatePolicyByKey(PolicyValues v) {
         return cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy SET policy_name=?, target_type=?, target_id=?, log_level=?,
+                UPDATE OPS_LOG_POLICY SET policy_name=?, target_type=?, target_id=?, log_level=?,
                     db_log_enabled_yn=?, file_log_enabled_yn=?, policy_schema_version=2,
                     query_capture_mode=?, request_header_capture_mode=?, response_header_capture_mode=?,
                     request_body_capture_mode=?, response_body_capture_mode=?, error_stack_capture_mode=?,
@@ -190,7 +190,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     private void insertPolicy(PolicyValues v) {
         cpfJdbcTemplate.update("""
-                INSERT INTO cpf_log_policy (
+                INSERT INTO OPS_LOG_POLICY (
                     policy_key,policy_name,target_type,target_id,log_level,db_log_enabled_yn,file_log_enabled_yn,
                     policy_schema_version,query_capture_mode,request_header_capture_mode,response_header_capture_mode,
                     request_body_capture_mode,response_body_capture_mode,error_stack_capture_mode,
@@ -213,7 +213,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         Map<String,Object> before=findPolicyById(policyId).orElseThrow(() -> new CpfValidationException("로그 정책을 찾을 수 없습니다."));
         PolicyValues v=policyValues(request,user);
         int changed=cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy SET policy_key=?,policy_name=?,target_type=?,target_id=?,log_level=?,
+                UPDATE OPS_LOG_POLICY SET policy_key=?,policy_name=?,target_type=?,target_id=?,log_level=?,
                     db_log_enabled_yn=?,file_log_enabled_yn=?,policy_schema_version=2,
                     query_capture_mode=?,request_header_capture_mode=?,response_header_capture_mode=?,
                     request_body_capture_mode=?,response_body_capture_mode=?,error_stack_capture_mode=?,
@@ -265,7 +265,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         KeyHolder keyHolder=new GeneratedKeyHolder();
         int inserted=cpfJdbcTemplate.update(connection -> {
             PreparedStatement st=connection.prepareStatement("""
-                    INSERT INTO cpf_log_policy_override (
+                    INSERT INTO OPS_LOG_POLICY_OVERRIDE (
                         policy_id,target_type,target_id,override_reason,log_level,db_log_enabled_yn,file_log_enabled_yn,
                         policy_schema_version,query_capture_mode,request_header_capture_mode,response_header_capture_mode,
                         request_body_capture_mode,response_body_capture_mode,error_stack_capture_mode,
@@ -304,7 +304,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         String user = defaultIfBlank(operatorId, null, "ADM");
         Map<String, Object> before = findOverrideById(overrideId).orElseThrow(() -> new CpfValidationException("로그 정책 override를 찾을 수 없습니다."));
         cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy_override
+                UPDATE OPS_LOG_POLICY_OVERRIDE
                 SET active_yn = 'N',
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -399,7 +399,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
         Map<String, Object> before = findPolicyById(policyId)
                 .orElseThrow(() -> new CpfValidationException("로그 정책을 찾을 수 없습니다."));
         cpfJdbcTemplate.update("""
-                UPDATE cpf_log_policy
+                UPDATE OPS_LOG_POLICY
                 SET active_yn = 'N',
                     updated_by = ?,
                     updated_at = CURRENT_TIMESTAMP
@@ -416,15 +416,15 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     public Map<String, Object> findTraceBoostRuntimeState(int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("available", tableAvailable("cpf_log_policy_override"));
-        response.put("items", tableAvailable("cpf_log_policy_override")
+        response.put("available", tableAvailable("OPS_LOG_POLICY_OVERRIDE"));
+        response.put("items", tableAvailable("OPS_LOG_POLICY_OVERRIDE")
                 ? AdmJdbcQueries.queryForList(
                         cpfJdbcTemplate,
                         """
                         SELECT override_id AS traceBoostPolicyId, policy_id, target_type, target_id,
                                override_reason, log_level, effective_start_at, effective_end_at,
                                active_yn, requested_by, created_at, updated_at
-                        FROM cpf_log_policy_override
+                        FROM OPS_LOG_POLICY_OVERRIDE
                         WHERE active_yn = 'Y'
                           AND effective_start_at <= CURRENT_TIMESTAMP
                           AND effective_end_at >= CURRENT_TIMESTAMP
@@ -438,15 +438,15 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
 
     public Map<String, Object> findTraceBoostHistory(int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("available", tableAvailable("cpf_log_policy_audit"));
-        response.put("items", tableAvailable("cpf_log_policy_audit")
+        response.put("available", tableAvailable("OPS_LOG_POLICY_AUDIT"));
+        response.put("items", tableAvailable("OPS_LOG_POLICY_AUDIT")
                 ? AdmJdbcQueries.queryForList(
                         cpfJdbcTemplate,
                         """
                         SELECT audit_id, policy_id, override_id AS traceBoostPolicyId,
                                action_type, target_type, target_id, reason,
                                operator_id, client_ip, created_at
-                        FROM cpf_log_policy_audit
+                        FROM OPS_LOG_POLICY_AUDIT
                         WHERE action_type IN ('OVERRIDE_CREATE', 'OVERRIDE_DISABLE', 'POLICY_DISABLE')
                         ORDER BY audit_id DESC
                         """,
@@ -467,7 +467,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                        request_body_log_yn, response_body_log_yn, error_stack_log_yn,
                        masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
-                FROM cpf_log_policy
+                FROM OPS_LOG_POLICY
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -502,7 +502,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                        request_body_log_yn, response_body_log_yn, error_stack_log_yn,
                        masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
-                FROM cpf_log_policy
+                FROM OPS_LOG_POLICY
                 WHERE policy_id = ?
                 """, policyId);
         return rows.stream().findFirst();
@@ -519,7 +519,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                        request_body_log_yn, response_body_log_yn, error_stack_log_yn,
                        masking_policy_key, policy_checksum, retention_days, sampling_rate, priority,
                        active_yn, description, created_at, updated_at
-                FROM cpf_log_policy
+                FROM OPS_LOG_POLICY
                 WHERE policy_key = ?
                 """, required(policyKey, "정책 키"));
         return rows.stream().findFirst();
@@ -536,7 +536,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
                        request_body_log_yn, response_body_log_yn, error_stack_log_yn,
                        masking_policy_key, policy_checksum, effective_start_at, effective_end_at,
                        requested_by, approved_by, active_yn, created_at, updated_at
-                FROM cpf_log_policy_override
+                FROM OPS_LOG_POLICY_OVERRIDE
                 WHERE override_id = ?
                 """, overrideId);
         return rows.stream().findFirst();
@@ -555,7 +555,7 @@ public class AdmLogPolicyService extends com.cpf.admin.common.base.AdmBaseServic
             String operatorId,
             String clientIp) {
         cpfJdbcTemplate.update("""
-                INSERT INTO cpf_log_policy_audit (
+                INSERT INTO OPS_LOG_POLICY_AUDIT (
                     policy_id, override_id, action_type, target_type, target_id, reason,
                     before_data, after_data, diff_data, operator_id, client_ip, created_by, updated_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

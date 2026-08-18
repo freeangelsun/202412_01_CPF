@@ -5,6 +5,7 @@ import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
+import com.cpf.foundation.tracking.CpfSubjectCollector;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,16 +23,27 @@ public final class CpfContextExecutionFactory {
     private final CpfExecutionIdGenerator executionIds;
     private final CpfBusinessDateProvider businessDates;
     private final Clock clock;
+    private final CpfSubjectCollector subjectCollector;
 
     public CpfContextExecutionFactory(
             CpfTransactionIdGenerator transactionIds,
             CpfExecutionIdGenerator executionIds,
             CpfBusinessDateProvider businessDates,
             Clock clock) {
+        this(transactionIds, executionIds, businessDates, clock, null);
+    }
+
+    public CpfContextExecutionFactory(
+            CpfTransactionIdGenerator transactionIds,
+            CpfExecutionIdGenerator executionIds,
+            CpfBusinessDateProvider businessDates,
+            Clock clock,
+            CpfSubjectCollector subjectCollector) {
         this.transactionIds = Objects.requireNonNull(transactionIds, "transactionIds");
         this.executionIds = Objects.requireNonNull(executionIds, "executionIds");
         this.businessDates = Objects.requireNonNull(businessDates, "businessDates");
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.subjectCollector = subjectCollector;
     }
 
     /** 기존 Boundary/테스트에서 사용하던 3-provider 생성 패턴의 Foundation 호환 생성자입니다. */
@@ -131,7 +143,9 @@ public final class CpfContextExecutionFactory {
                 now,
                 spec.deadline(),
                 CpfContext.CpfCancellationMode.DEADLINE_ENFORCED);
-        return new CpfContext(transaction, execution, spec.operation(), spec.identity(), spec.tenant());
+        CpfContext context = new CpfContext(transaction, execution, spec.operation(), spec.identity(), spec.tenant());
+        if (subjectCollector != null) subjectCollector.collect(context);
+        return context;
     }
 
     /** 부모 transaction/rootTransaction/correlation 의미를 유지하고 execution/segment만 새로 발급합니다. */
@@ -211,7 +225,9 @@ public final class CpfContextExecutionFactory {
                 now,
                 deadline,
                 CpfContext.CpfCancellationMode.DEADLINE_ENFORCED);
-        return new CpfContext(transaction, execution, operation, identity, tenant);
+        CpfContext context = new CpfContext(transaction, execution, operation, identity, tenant);
+        if (subjectCollector != null) subjectCollector.collect(context);
+        return context;
     }
 
     private static String requiredId(String name, String value) {

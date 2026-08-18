@@ -1,4 +1,2 @@
-/** Generated from OpenAPI query/header parameters. */
-export interface AdmConfigDeleteConfigParams {
-  reason: string;
-}
+/** Audited configuration disable query. */
+export interface AdmConfigDeleteConfigParams { reason: string; }

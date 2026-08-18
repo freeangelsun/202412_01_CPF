@@ -31,7 +31,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
                 "select operation_id,revision,timeout_ms,max_attempts,retry_backoff_ms," +
                         "circuit_failure_threshold,circuit_open_ms,bulkhead_max_concurrent," +
                         "rate_limit_permits,rate_limit_window_ms,idempotent_flag,reconcile_flag " +
-                        "from cpf_resilience_policy where operation_id=? and policy_status='ACTIVE'",
+                        "from OPS_RESILIENCE_POLICY where operation_id=? and policy_status='ACTIVE'",
                 this::map,
                 operation);
         return rows.stream().findFirst();
@@ -53,7 +53,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
                 "from (select operation_id,revision,timeout_ms,max_attempts,retry_backoff_ms," +
                 "circuit_failure_threshold,circuit_open_ms,bulkhead_max_concurrent," +
                 "rate_limit_permits,rate_limit_window_ms,idempotent_flag,reconcile_flag," +
-                "row_number() over(order by operation_id) cpf_rn from cpf_resilience_policy " +
+                "row_number() over(order by operation_id) cpf_rn from OPS_RESILIENCE_POLICY " +
                 "where policy_status='ACTIVE' and operation_id like ?) cpf_page " +
                 "where cpf_rn>? and cpf_rn<=? order by cpf_rn";
         return jdbc.query(sql, this::map, value, offset, end);
@@ -67,7 +67,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
         String id = UUID.randomUUID().toString();
         try {
             jdbc.update(
-                    "insert into cpf_resilience_policy_request(" +
+                    "insert into OPS_RESILIENCE_POLICY_REQUEST(" +
                             "request_id,operation_id,requested_revision,policy_payload,requester_id," +
                             "request_reason,request_status,active_operation_key) " +
                             "values(?,?,?,?,?,?,'PENDING',?)",
@@ -93,7 +93,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
         CpfResiliencePolicy approved = tx.execute(status -> {
             var rows = jdbc.query(
                     "select operation_id,policy_payload,requester_id " +
-                            "from cpf_resilience_policy_request " +
+                            "from OPS_RESILIENCE_POLICY_REQUEST " +
                             "where request_id=? and request_status='PENDING' for update",
                     (rs, rowNumber) -> new RequestRow(
                             rs.getString(1), rs.getString(2), rs.getString(3)),
@@ -104,19 +104,19 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
                 throw new IllegalArgumentException("self approval is forbidden");
             }
             long revision = Optional.ofNullable(jdbc.queryForObject(
-                    "select max(revision) from cpf_resilience_policy where operation_id=?",
+                    "select max(revision) from OPS_RESILIENCE_POLICY where operation_id=?",
                     Long.class,
                     row.operationId())).orElse(0L) + 1L;
             CpfResiliencePolicy policy = decode(row.payload(), revision);
             jdbc.update(
-                    "update cpf_resilience_policy set policy_status='SUPERSEDED'," +
+                    "update OPS_RESILIENCE_POLICY set policy_status='SUPERSEDED'," +
                             "active_operation_key=null,updated_by=?,updated_at=CURRENT_TIMESTAMP " +
                             "where operation_id=? and policy_status='ACTIVE'",
                     approver,
                     row.operationId());
             insertActive(policy, approver);
             int updated = jdbc.update(
-                    "update cpf_resilience_policy_request set request_status='APPROVED'," +
+                    "update OPS_RESILIENCE_POLICY_REQUEST set request_status='APPROVED'," +
                             "approver_id=?,approval_reason=?,active_operation_key=null " +
                             "where request_id=? and request_status='PENDING'",
                     approver,
@@ -134,7 +134,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
         String approver = actor(approverId, "approverId");
         String sanitizedReason = CpfSensitiveData.sanitizeAuditReason(reason);
         int updated = jdbc.update(
-                "update cpf_resilience_policy_request set request_status='REJECTED'," +
+                "update OPS_RESILIENCE_POLICY_REQUEST set request_status='REJECTED'," +
                         "approver_id=?,approval_reason=?,active_operation_key=null " +
                         "where request_id=? and request_status='PENDING' and requester_id<>?",
                 approver,
@@ -148,7 +148,7 @@ public final class JdbcCpfResiliencePolicyStore implements CpfResiliencePolicySt
 
     private void insertActive(CpfResiliencePolicy policy, String operator) {
         jdbc.update(
-                "insert into cpf_resilience_policy(" +
+                "insert into OPS_RESILIENCE_POLICY(" +
                         "policy_id,operation_id,revision,timeout_ms,max_attempts,retry_backoff_ms," +
                         "circuit_failure_threshold,circuit_open_ms,bulkhead_max_concurrent," +
                         "rate_limit_permits,rate_limit_window_ms,idempotent_flag,reconcile_flag," +

@@ -10,10 +10,30 @@
           </div>
         </div>
         <div class="filters">
-          <label>Role ID <input v-model="permissionForm.roleId" type="text"></label>
-          <label>Menu ID <input v-model="permissionForm.menuId" type="text"></label>
-          <label>Button ID <input v-model="permissionForm.buttonId" type="text"></label>
-          <label>API Permission ID <input v-model="permissionForm.apiPermissionId" type="text"></label>
+          <label>Role
+            <select v-model="permissionForm.roleId" aria-label="권한을 변경할 역할 선택">
+              <option value="">역할 선택</option>
+              <option v-for="role in (permissionResult.roles || [])" :key="role.roleId" :value="role.roleId">{{ role.roleName || role.roleId }} · {{ role.roleId }}</option>
+            </select>
+          </label>
+          <label>Menu
+            <select v-model="permissionForm.menuId" aria-label="권한을 변경할 메뉴 선택">
+              <option value="">메뉴 선택</option>
+              <option v-for="menu in (permissionResult.menus || [])" :key="menu.menuId" :value="menu.menuId">{{ menu.menuName || menu.menuId }} · {{ menu.menuId }}</option>
+            </select>
+          </label>
+          <label>Button
+            <select v-model="permissionForm.buttonId" aria-label="권한을 변경할 버튼 선택">
+              <option value="">버튼 선택</option>
+              <option v-for="button in (permissionResult.buttons || [])" :key="button.buttonId" :value="button.buttonId">{{ button.buttonName || button.buttonId }} · {{ button.buttonId }}</option>
+            </select>
+          </label>
+          <label>API Permission
+            <select v-model="permissionForm.apiPermissionId" aria-label="권한을 변경할 API 권한 선택">
+              <option value="">API 권한 선택</option>
+              <option v-for="api in (permissionResult.apiPermissions || [])" :key="api.apiPermissionId" :value="api.apiPermissionId">{{ api.apiName || api.apiPermissionId }} · {{ api.apiPermissionId }}</option>
+            </select>
+          </label>
           <label>조회 <select v-model="permissionForm.readYn"><option>Y</option><option>N</option></select></label>
           <label>쓰기 <select v-model="permissionForm.writeYn"><option>Y</option><option>N</option></select></label>
           <label>삭제/허용 <select v-model="permissionForm.deleteYn"><option>Y</option><option>N</option></select></label>

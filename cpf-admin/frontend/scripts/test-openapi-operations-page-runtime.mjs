@@ -41,7 +41,7 @@ export function admOpenApiStatus<T=unknown>():Promise<T> { calls.push({name:"adm
 export function admOpenApiRefresh<T=unknown>(options:unknown):Promise<T> { calls.push({name:"admOpenApiRefresh",args:[options]}); return Promise.resolve(responses.get("admOpenApiRefresh") as T); }
 `);
 const tsc = spawnSync(process.execPath, [
-  path.join(root,"node_modules","typescript","bin","tsc"), "page.ts", "mock-generated.ts", "mock-session.ts", "vue.d.ts",
+  path.join(root,"node_modules","typescript","bin","tsc"), "--ignoreConfig", "page.ts", "mock-generated.ts", "mock-session.ts", "vue.d.ts",
   "--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler",
   "--strict", "--noImplicitThis", "false", "--skipLibCheck", "--outDir", temp
 ], { cwd: temp, encoding: "utf8" });

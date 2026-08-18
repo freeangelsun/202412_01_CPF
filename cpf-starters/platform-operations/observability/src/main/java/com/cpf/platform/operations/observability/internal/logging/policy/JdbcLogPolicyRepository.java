@@ -40,13 +40,13 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
 
     @Override
     public Optional<LogPolicyRow> findActiveOverride(LogPolicyTargetType targetType, String targetId, LocalDateTime now) {
-        if (!tableAvailable("cpf_log_policy_override")) return Optional.empty();
+        if (!tableAvailable("OPS_LOG_POLICY_OVERRIDE")) return Optional.empty();
         List<Object> args = new ArrayList<>();
         String targetTypePlaceholders = placeholders(targetType.databaseCodes(), args);
         args.add(LogPolicyDecision.normalizeTargetId(targetId));
         args.add(now);
         args.add(now);
-        List<Map<String, Object>> rows = queryForListLimited(selectColumns("cpf_log_policy_override", true) + """
+        List<Map<String, Object>> rows = queryForListLimited(selectColumns("OPS_LOG_POLICY_OVERRIDE", true) + """
                 WHERE active_yn = 'Y'
                   AND target_type IN (%s)
                   AND target_id IN (?, '*')
@@ -59,11 +59,11 @@ public class JdbcLogPolicyRepository implements LogPolicyRepository {
 
     @Override
     public Optional<LogPolicyRow> findActivePolicy(LogPolicyTargetType targetType, String targetId) {
-        if (!tableAvailable("cpf_log_policy")) return Optional.empty();
+        if (!tableAvailable("OPS_LOG_POLICY")) return Optional.empty();
         List<Object> args = new ArrayList<>();
         String targetTypePlaceholders = placeholders(targetType.databaseCodes(), args);
         args.add(LogPolicyDecision.normalizeTargetId(targetId));
-        List<Map<String, Object>> rows = queryForListLimited(selectColumns("cpf_log_policy", false) + """
+        List<Map<String, Object>> rows = queryForListLimited(selectColumns("OPS_LOG_POLICY", false) + """
                 WHERE active_yn = 'Y'
                   AND target_type IN (%s)
                   AND target_id IN (?, '*')

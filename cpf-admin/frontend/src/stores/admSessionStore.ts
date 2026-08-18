@@ -79,8 +79,8 @@ export const useAdmSessionStore = defineStore("adm-session", {
     },
     authorizationContext() {
       return {
-        tenantId: normalized(this.operator?.tenantId || this.causalContext.tenantId),
-        environment: normalized(this.operator?.environment || this.causalContext.environment),
+        tenantId: normalized(this.operator?.tenantId),
+        environment: normalized(this.operator?.environment),
         permissionVersion: normalized(this.operator?.permissionVersion),
         maskingPolicyVersion: normalized(this.operator?.maskingPolicyVersion)
       };

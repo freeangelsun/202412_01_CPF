@@ -40,7 +40,7 @@ assert operation['requestBody']['content']['application/json']['schema']['$ref']
 schema=spec['components']['schemas']['AdmReliabilityActionRequest']
 assert 'reason' in schema.get('required',[]) and schema['properties']['reason'].get('minLength',0) >= 1
 assert 'function requestAdmBrokerDlqReplay' in generated
-assert 'orvalRequestAdmBrokerDlqReplay(options.path["messageId"], options.data' in generated
+assert 'orvalRequestAdmBrokerDlqReplay(options.path["messageId"]' in generated and 'options.data as unknown as Parameters<typeof orvalRequestAdmBrokerDlqReplay>[1]' in generated
 assert 'export const requestAdmBrokerDlqReplay' in orval_generated
 orval_start=orval_generated.index('export const requestAdmBrokerDlqReplay')
 orval_end=orval_generated.find('// CPF PRE-RUNTIME FALLBACK END requestAdmBrokerDlqReplay', orval_start)

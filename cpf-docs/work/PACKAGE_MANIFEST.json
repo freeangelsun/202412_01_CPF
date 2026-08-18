@@ -1,64 +1,58 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "packageType": "ROOT_RELATIVE_OVERLAY_AND_FULL_SOURCE",
-  "generatedAt": "2026-08-18T11:46:00+09:00",
-  "baselineInput": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260817_205301.zip",
-  "baselineSourceZipSha256": "fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41",
+  "generatedAt": "2026-08-18T23:25:00+09:00",
+  "baselineInput": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260818_112401.zip",
+  "baselineSourceZipSha256": "a62e1abfa134d3124f2ab6743821610fa225ed5cc3e8c21e201e7a20785a25f4",
+  "baselineSourceFileCount": 8383,
   "gitExactSha": "UNVERIFIED_SOURCE_ZIP_HAS_NO_DOT_GIT",
-  "baselineSourceIdentity": {
-    "policy": "PATH_SIZE_SHA256_FILTERED",
-    "sha256": "4a7edd5522457ee68e372ab128519a00d03b93bb7a60e2e50c34fc5530f34832",
-    "fileCount": 8247,
-    "totalBytes": 336725937
-  },
-  "resultSourceIdentity": {
-    "policy": "PATH_SIZE_SHA256_FILTERED",
-    "sha256": "56d43270a0fbc918de9c41a362f4ac112a4927e9cf14b5f4ab58407ed63f3f64",
-    "fileCount": 8378,
-    "totalBytes": 336368580
+  "resultSourceIdentityExcludingPackageManifest": {
+    "fileCount": 8437,
+    "totalBytes": 336369413,
+    "sha256": "e3c678c69ff99d40dfa1d149e0c81df372fa587831076aa46720e6b2b00973d5"
   },
   "developmentStatus": "SOURCE_STATIC_DEVELOPMENT_COMPLETE",
   "verificationStatus": "RUNTIME_REVERIFY_REQUIRED",
-  "javaPolicy": {
-    "officialUserLocal": "25",
-    "assistantSubstitute": "21"
-  },
   "diffCounts": {
-    "added": 201,
-    "modified": 348,
-    "deleted": 70,
-    "total": 619
+    "added": 58,
+    "modified": 268,
+    "deleted": 3,
+    "total": 329
   },
-  "fullSourceFilteredFileCountBeforePackageMeta": 8378,
-  "hardExcluded": [
-    "root build/**",
-    "**/__pycache__/**",
-    "**/.pytest_cache/**",
-    "**/.gradle/**",
-    "**/node_modules/**",
-    "**/*.pyc"
-  ],
-  "deleteManifest": "cpf-docs/work/current/DELETE_MANIFEST.txt",
-  "garbageDecisionLedger": "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv",
+  "canonicalDeleteManifest": "cpf-docs/work/current/DELETE_MANIFEST.txt",
+  "deleteManifestCount": 1353,
   "protectedDeleteCount": 0,
+  "actualDeletedVsBaseline": [
+    "cpf-admin/frontend/src/generated/orval/model/admTransactionMetaScanParams.ts",
+    "cpf-admin/frontend/src/generated/orval/model/detectedTransaction.ts",
+    "cpf-admin/frontend/src/generated/orval/model/transactionMetaScanResult.ts"
+  ],
+  "finalEvidence": "cpf-docs/work/TEST_AND_EVIDENCE.md",
+  "handover": "cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md",
+  "codexRequest": "cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md",
+  "workResultReviewGenerated": false,
+  "workResultReviewPolicy": "Generate only when user explicitly requests it after final development/validation/packaging.",
   "executedSummary": {
-    "javaSyntax": "PASS 2733/2733",
-    "edu": "PASS 20+15 / flat0 / numeric0 / internal0",
-    "generatorGate": "PASS 28/28",
-    "generatedJavac": "PASS member26 external24",
-    "db3SemanticParity": "PASS 229 tables",
-    "testingTools": "378 PASS / 22 SKIP_ENV",
-    "runtimeTools": "65 PASS / 2 SKIP_ENV / 7 subtests PASS",
-    "generatorTests": "27 PASS / 10 SKIP_ENV / 6 subtests PASS",
-    "frontendGoldenPath": "PASS",
-    "nxt3ExecutableStaticGates": "PASS",
-    "finalStaticGateGitCheckout": "PASS online20 batch15 operationPairs32 / Git NUL path parsing hotfix"
+    "finalStatic": "PASS online=20 batch=15 operationPairs=27 unique=27 failures=0",
+    "subjectTrackingClosure": "PASS types=4 db3=3 rawPersistence=0 admConsumer=1",
+    "centralRegistryRetentionClosure": "PASS consumers=6 canonicalTables=233",
+    "db3SemanticParity": "PASS 233 tables / 3 vendors / findings=0",
+    "javaSyntax": "PASS 2745 errors=0",
+    "hygiene": "PASS delete=1353 protected=0 directory=0",
+    "frontendTypecheck": "PASS after final ADM UI patch",
+    "generatedClient": "PASS 337 operations",
+    "consumerClosure": "PASS 337/337",
+    "verificationTestFiles": "17/17 PASS",
+    "dbVerificationTestFiles": "15/15 PASS",
+    "runtimeToolTestFiles": "17/17 PASS",
+    "generatorVerificationTestFiles": "11/11 PASS",
+    "testingToolsTestFiles": "83/83 actual FAIL 0"
   },
-  "unverified": [
-    "Java25 Root Gradle build/test/publication/SBOM",
-    "live Oracle/PostgreSQL/MariaDB",
-    "Docker/Redis/Valkey",
+  "unverifiedRuntime": [
+    "Java25 root Gradle build/test/publication/SBOM",
+    "live Oracle/PostgreSQL/MariaDB lifecycle",
+    "Redis/Valkey live",
     "Multi-WAS/process-kill",
-    "Browser E2E"
+    "final real-browser E2E on latest source"
   ]
 }

@@ -31,7 +31,8 @@
   </main>
 
   <div v-else class="adm-shell" :class="{ 'sidebar-open': sidebarOpen }">
-    <aside class="adm-sidebar"><button class="adm-sidebar-close" type="button" aria-label="메뉴 닫기" @click="sidebarOpen=false"><CpfIcon name="close" /></button>
+    <button v-if="sidebarOpen && isMobileViewport" class="adm-sidebar-backdrop" type="button" tabindex="-1" aria-label="메뉴 닫기" @click="closeSidebar"></button>
+    <aside ref="sidebar" class="adm-sidebar" :aria-hidden="isMobileViewport && !sidebarOpen ? 'true' : undefined"><button class="adm-sidebar-close" type="button" aria-label="메뉴 닫기" @click="closeSidebar"><CpfIcon name="close" /></button>
       <div class="adm-brand sidebar-brand"><span>CPF</span><div><strong>ADM</strong><small>Platform Admin</small></div></div>
       <div class="adm-menu-search">
         <label class="sr-only" for="adm-global-menu-search">운영 메뉴 검색</label>
@@ -54,8 +55,8 @@
       <footer><div><strong>{{ currentOperator.operatorId }}</strong><small>Platform Operator</small></div><button class="text-button" @click="logout">로그아웃</button></footer>
     </aside>
 
-    <section class="adm-workspace">
-      <header class="adm-workspace-header"><button class="ghost adm-mobile-toggle" type="button" aria-label="메뉴 열기" @click="sidebarOpen=true"><CpfIcon name="menu" /></button><div><p class="eyebrow">ADM / {{ activeFeatureGroup.toUpperCase() }}</p><h1>{{ currentMenuLabel }}</h1><p>Core Platform Framework 운영 콘솔</p></div><div class="inline-actions"><span class="cpf-status success">ONLINE</span><button class="ghost" @click="loadInitialData"><CpfIcon name="refresh" /> 전체 새로고침</button></div></header>
+    <section class="adm-workspace" :inert="sidebarOpen && isMobileViewport ? true : undefined">
+      <header class="adm-workspace-header"><button ref="sidebarTrigger" class="ghost adm-mobile-toggle" type="button" aria-label="메뉴 열기" @click="openSidebar"><CpfIcon name="menu" /></button><div><p class="eyebrow">ADM / {{ activeFeatureGroup.toUpperCase() }}</p><h1>{{ currentMenuLabel }}</h1><p>Core Platform Framework 운영 콘솔</p></div><div class="inline-actions"><span class="cpf-status" :class="shellStatusClass" :title="shellStatusTitle">{{ shellStatus }}</span><button class="ghost" @click="refreshCurrentView"><CpfIcon name="refresh" /> 현재 화면 새로고침</button></div></header>
       <div class="adm-content">
         <p class="status" v-if="uiMessage">{{ uiMessage }}</p>
         <section class="summary-grid">
@@ -65,7 +66,7 @@
           <div class="metric"><span>운영자</span><strong>{{ currentOperator.operatorId }}</strong></div>
         </section>
         <RouterView v-slot="{ Component }">
-          <AdmCommercialPageBoundary @retry="loadInitialData">
+          <AdmCommercialPageBoundary @retry="refreshCurrentView">
             <Suspense>
               <component :is="Component" />
               <template #fallback><div class="route-loading" role="status" aria-live="polite">운영 화면을 준비하고 있습니다...</div></template>
@@ -87,6 +88,7 @@ import RouteOperationWorkbench from "./components/RouteOperationWorkbench.vue";
 import { useAdmConsolePage } from "./app/useAdmConsolePage";
 import { admGroupLabels, featureGroupForMenu, findCapabilityByRouteName, iconForMenu, type AdmFeatureGroup } from "./app/routes";
 import { admRouter } from "./app/router";
+import { normalizeRuntimeStatus, runtimeStatusClass } from "./shared/runtimeStatus";
 
 export default defineComponent({
   name: "AdmApp",
@@ -94,7 +96,7 @@ export default defineComponent({
   setup() {
     return { ...useAdmConsolePage(), admRouter };
   },
-  data() { return { sidebarOpen: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[], unregisterRouteHook: null as null | (() => void) }; },
+  data() { return { sidebarOpen: false, isMobileViewport: false, menuSearch: "", favoriteMenus: [] as string[], recentMenus: [] as string[], unregisterRouteHook: null as null | (() => void) }; },
   computed: {
     activeFeatureGroup(): AdmFeatureGroup {
       return findCapabilityByRouteName(this.admRouter.currentRoute.value.name)?.group
@@ -118,26 +120,63 @@ export default defineComponent({
         .filter(group => group.items.length > 0)
         .sort((a, b) => Number(b.items.some((menu: any) => this.isFavorite(menu.id))) - Number(a.items.some((menu: any) => this.isFavorite(menu.id))));
     },
-    recentMenuItems(): any[] { return this.recentMenus.map(id => this.visibleMenus.find((menu: any) => menu.id === id)).filter(Boolean).slice(0, 5); }
+    recentMenuItems(): any[] { return this.recentMenus.map(id => this.visibleMenus.find((menu: any) => menu.id === id)).filter(Boolean).slice(0, 5); },
+    shellStatus() {
+      const fetchedAt = Number(this.shellHealthFetchedAt || 0);
+      const stale = fetchedAt <= 0 || Date.now() - fetchedAt > 120_000;
+      const raw = this.shellHealth?.status ?? this.shellHealth?.readiness ?? this.shellHealth?.state;
+      return normalizeRuntimeStatus(raw, stale);
+    },
+    shellStatusClass() { return runtimeStatusClass(this.shellStatus); },
+    shellStatusTitle() { return this.shellHealthFetchedAt ? `Readiness 갱신 ${new Date(this.shellHealthFetchedAt).toLocaleString()}` : "Readiness 확인 전"; }
   },
   async mounted() {
     window.addEventListener("keydown", this.handleGlobalShortcut);
+    window.addEventListener("resize", this.syncViewport);
+    this.syncViewport();
     this.favoriteMenus = this.readStoredMenuIds("cpf.adm.favoriteMenus");
     this.recentMenus = this.readStoredMenuIds("cpf.adm.recentMenus");
     await this.restoreServerSession();
     this.syncMenuFromRoute();
-    this.unregisterRouteHook = this.admRouter.afterEach(() => this.syncMenuFromRoute());
-    if (this.authenticated) await this.loadInitialData();
+    this.unregisterRouteHook = this.admRouter.afterEach(async () => {
+      this.syncMenuFromRoute();
+      if (this.authenticated) await this.loadActiveRouteData();
+    });
+    if (this.authenticated) {
+      await this.loadInitialData();
+      await this.loadActiveRouteData();
+    }
   },
-  beforeUnmount() { window.removeEventListener("keydown", this.handleGlobalShortcut); this.unregisterRouteHook?.(); },
+  beforeUnmount() { window.removeEventListener("keydown", this.handleGlobalShortcut); window.removeEventListener("resize", this.syncViewport); this.unregisterRouteHook?.(); },
   methods: {
     iconForMenu,
+    async loadActiveRouteData() {
+      const routeId = String(this.admRouter.currentRoute.value.name || "");
+      if (routeId) await this.loadRouteData(routeId);
+    },
+    async refreshCurrentView() {
+      await this.loadInitialData();
+      await this.loadActiveRouteData();
+    },
+    syncViewport() {
+      this.isMobileViewport = window.matchMedia("(max-width: 860px)").matches;
+      if (!this.isMobileViewport) this.sidebarOpen = false;
+    },
+    openSidebar() {
+      this.sidebarOpen = true;
+      this.$nextTick(() => (this.$refs.globalMenuSearch as HTMLInputElement | undefined)?.focus());
+    },
+    closeSidebar() {
+      const shouldRestore = this.isMobileViewport;
+      this.sidebarOpen = false;
+      if (shouldRestore) this.$nextTick(() => (this.$refs.sidebarTrigger as HTMLButtonElement | undefined)?.focus());
+    },
     async selectMenu(menuId: string) {
       if (!this.visibleMenus.some((menu: any) => menu.id === menuId)) return;
       this.activeMenu = menuId;
       this.recentMenus = [menuId, ...this.recentMenus.filter(id => id !== menuId)].slice(0, 8);
       localStorage.setItem("cpf.adm.recentMenus", JSON.stringify(this.recentMenus));
-      this.sidebarOpen = false; this.menuSearch = "";
+      this.closeSidebar(); this.menuSearch = "";
       await this.admRouter.push({ name: menuId });
     },
     isFavorite(menuId: string): boolean { return this.favoriteMenus.includes(menuId); },
@@ -150,7 +189,8 @@ export default defineComponent({
       catch { return []; }
     },
     handleGlobalShortcut(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); this.sidebarOpen = true; this.$nextTick(() => (this.$refs.globalMenuSearch as HTMLInputElement | undefined)?.focus()); }
+      if (event.key === "Escape" && this.sidebarOpen && this.isMobileViewport) { event.preventDefault(); this.closeSidebar(); return; }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); this.openSidebar(); }
     },
     syncMenuFromRoute() {
       const capability = findCapabilityByRouteName(this.admRouter.currentRoute.value.name);

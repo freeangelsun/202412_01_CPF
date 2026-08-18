@@ -231,7 +231,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        detected_at AS occurredAt, updated_at AS freshnessAt
                   FROM cpf_unknown_result WHERE transaction_id = ? ORDER BY detected_at, unknown_seq
                 """, tx, max);
-        appendIfTable(rows, "cpf_service_call_history", """
+        appendIfTable(rows, "OPS_SERVICE_CALL_HISTORY", """
                 SELECT transaction_id AS transactionId, call_id AS segmentId,
                        NULL AS parentSegmentId, GREATEST(COALESCE(retry_count,0)+1,1) AS attempt,
                        trace_id AS traceId, NULL AS spanId, NULL AS requestId, NULL AS idempotencyKey,
@@ -243,9 +243,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        call_id AS sourceRefId, call_status AS lifecycleState,
                        failure_code AS failureStage, CASE WHEN call_status='UNKNOWN' THEN 'Y' ELSE 'N' END AS unknownYn,
                        call_status AS reconcileState, created_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_service_call_history WHERE transaction_id = ? ORDER BY created_at, call_id
+                  FROM OPS_SERVICE_CALL_HISTORY WHERE transaction_id = ? ORDER BY created_at, call_id
                 """, tx, max);
-        appendIfTable(rows, "cpf_security_token_audit_log", """
+        appendIfTable(rows, "SEC_TOKEN_AUDIT_LOG", """
                 SELECT transaction_id AS transactionId, TOKEN_AUDIT_ID AS segmentId,
                        NULL AS parentSegmentId, 1 AS attempt, TRACE_ID AS traceId, NULL AS spanId,
                        NULL AS requestId, NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel,
@@ -257,7 +257,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        TOKEN_AUDIT_ID AS sourceRefId, ACTIVE_YN AS lifecycleState,
                        FAILURE_REASON AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
                        CREATED_AT AS occurredAt, CREATED_AT AS freshnessAt
-                  FROM cpf_security_token_audit_log WHERE transaction_id = ? ORDER BY CREATED_AT, TOKEN_AUDIT_ID
+                  FROM SEC_TOKEN_AUDIT_LOG WHERE transaction_id = ? ORDER BY CREATED_AT, TOKEN_AUDIT_ID
                 """, tx, max);
 
         LinkedHashMap<String, Map<String,Object>> unique = new LinkedHashMap<>();
@@ -385,8 +385,8 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
             case "cpf_broker_dlq" -> "DLQ";
             case "cpf_file_transfer_history" -> "FILE";
             case "cpf_unknown_result" -> "UNKNOWN";
-            case "cpf_service_call_history" -> "REMOTE";
-            case "cpf_security_token_audit_log" -> "AUDIT";
+            case "OPS_SERVICE_CALL_HISTORY" -> "REMOTE";
+            case "SEC_TOKEN_AUDIT_LOG" -> "AUDIT";
             default -> "LOCAL";
         };
     }

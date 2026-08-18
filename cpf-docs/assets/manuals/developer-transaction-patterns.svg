@@ -2,13 +2,13 @@
 <rect width="1500" height="760" fill="white"/>
 <style>text{font-family:'NanumSquare','Noto Sans CJK KR','Malgun Gothic',sans-serif;} .title{font-size:34px;font-weight:800;fill:#18233D}.sub{font-size:19px;fill:#667085}.cardTitle{font-size:22px;font-weight:800}.label{font-size:17px;font-weight:700;fill:#18233D}.node{font-size:12px;font-weight:650;fill:#18233D}.note{font-size:16px;font-weight:650;fill:#18233D}</style>
 <text x="42" y="62" class="title">Transaction 표준 패턴</text>
-<text x="42" y="98" class="sub">Service method의 @CpfTx가 Local DB Transaction 경계를 만들고, Remote/외부 호출은 같은 원자성으로 가정하지 않습니다.</text>
+<text x="42" y="98" class="sub">Service method의 @CpfTransactional가 Local DB Transaction 경계를 만들고, Remote/외부 호출은 같은 원자성으로 가정하지 않습니다.</text>
 <line x1="42" y1="120" x2="1458" y2="120" stroke="#D7DFED" stroke-width="2"/>
 
 <!-- card A -->
 <rect x="45" y="180" width="330" height="390" rx="18" fill="#FCFDFF" stroke="#4F6EF7" stroke-width="2"/>
 <text x="65" y="225" class="cardTitle" fill="#4F6EF7">A. 일반 업무</text>
-<rect x="70" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="210" y="292" class="label" text-anchor="middle">@CpfTx 기본</text>
+<rect x="70" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="210" y="292" class="label" text-anchor="middle">@CpfTransactional 기본</text>
 <g stroke="#4F6EF7" stroke-width="2" fill="#fff">
 <rect x="64" y="350" width="61" height="52" rx="9"/><rect x="140" y="350" width="61" height="52" rx="9"/><rect x="216" y="350" width="78" height="52" rx="9"/><rect x="309" y="350" width="48" height="52" rx="9"/>
 </g>

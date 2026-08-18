@@ -73,7 +73,8 @@ def run() -> int:
     if not javac:
         print("CPF_CACHE_SOURCE_COMPILE=UNVERIFIED reason=javac_not_found")
         return 2
-    main = sorted((ROOT / "cpf-starters/data/src/main/java/com/cpf/data/cache/api").glob("*.java")) + java_files("main")
+    foundation_identity = ROOT / "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/runtime/CpfInstanceIdentity.java"
+    main = ([foundation_identity] if foundation_identity.exists() else []) + sorted((ROOT / "cpf-starters/data/src/main/java/com/cpf/data/cache/api").glob("*.java")) + java_files("main")
     test = java_files("test")
     if not main or not test:
         print(f"CPF_CACHE_SOURCE_COMPILE=FAIL reason=source_missing main={len(main)} test={len(test)}")

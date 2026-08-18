@@ -14,8 +14,11 @@ import java.util.Locale;
  */
 public record CpfRuntimeIdentity(String systemCode, String currentChannel, String application, String instance) {
     public CpfRuntimeIdentity {
-        systemCode = requiredCode(systemCode, "systemCode");
-        currentChannel = requiredCode(currentChannel, "currentChannel");
+        systemCode = requiredSystemCode(systemCode, "systemCode");
+        currentChannel = requiredChannel(currentChannel, "currentChannel");
+        if (!systemCode.equals(currentChannel)) {
+            throw new IllegalStateException("CPF runtime currentChannel must equal canonical systemCode");
+        }
         application = normalize(application, 128);
         instance = normalize(instance, 160);
     }
@@ -34,16 +37,25 @@ public record CpfRuntimeIdentity(String systemCode, String currentChannel, Strin
         return new CpfRuntimeIdentity(runtime.systemCode(), runtime.systemCode(), runtime.application(), runtime.instanceId());
     }
 
-    private static String requiredCode(String value, String name) {
-        String normalized = normalize(value, 128);
+    private static String requiredSystemCode(String value, String name) {
+        String normalized = normalize(value, 32);
         if (normalized == null) throw new IllegalStateException("CPF runtime " + name + " is required");
         normalized = normalized.toUpperCase(Locale.ROOT);
-        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,127}")) {
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,31}")) {
             throw new IllegalStateException("Invalid CPF runtime " + name + ": " + normalized);
         }
         return normalized;
     }
 
+
+    private static String requiredChannel(String value, String name) {
+        String normalized = normalize(value, 16);
+        if (normalized == null) throw new IllegalStateException("CPF runtime " + name + " is required");
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new IllegalStateException("Invalid CPF runtime " + name + ": " + normalized);
+        }
+        return normalized;
+    }
     private static String normalize(String value, int max) {
         if (value == null || value.isBlank()) return null;
         String normalized = value.trim();

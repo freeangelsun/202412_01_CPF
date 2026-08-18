@@ -3,6 +3,13 @@ package com.cpf.security.resource;
 import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
+import com.cpf.core.api.error.CpfException;
+import com.cpf.core.api.tracking.CpfSubjectCandidate;
+import com.cpf.core.api.tracking.CpfSubjectRole;
+import com.cpf.core.api.tracking.CpfSubjectSourceType;
+import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
+import com.cpf.core.api.tracking.CpfSubjectTrustLevel;
+import com.cpf.core.api.tracking.CpfSubjectType;
 import com.cpf.security.context.CpfSecurityRuntimeContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,9 +33,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public final class CpfAuthenticatedContextFilter extends OncePerRequestFilter {
     private final CpfResourceServerProperties properties;
+    private final CpfSubjectTrackingOperations subjectTracking;
 
     public CpfAuthenticatedContextFilter(CpfResourceServerProperties properties) {
+        this(properties, null);
+    }
+
+    public CpfAuthenticatedContextFilter(CpfResourceServerProperties properties, CpfSubjectTrackingOperations subjectTracking) {
         this.properties = Objects.requireNonNull(properties, "properties");
+        this.subjectTracking = subjectTracking;
     }
 
     @Override
@@ -58,6 +73,21 @@ public final class CpfAuthenticatedContextFilter extends OncePerRequestFilter {
 
         Object previousSecurityContext = request.getAttribute(CpfSecurityRuntimeContext.REQUEST_ATTRIBUTE);
         request.setAttribute(CpfSecurityRuntimeContext.REQUEST_ATTRIBUTE, securityContext);
+        try {
+            bindVerifiedSubjects(enriched, jwt);
+        } catch (CpfException conflict) {
+            if (conflict.fallbackError() == com.cpf.core.api.error.CpfErrorCode.CONFLICT) {
+                response.resetBuffer();
+                response.setStatus(409);
+                response.setCharacterEncoding("UTF-8");
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\":409,\"errorCode\":\"" + conflict.fallbackError().statusCode()
+                        + "\",\"message\":\"Subject identity conflict\"}");
+                response.flushBuffer();
+                return;
+            }
+            throw conflict;
+        }
         try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(enriched))) {
             chain.doFilter(request, response);
         } catch (IOException | ServletException e) {
@@ -68,6 +98,27 @@ public final class CpfAuthenticatedContextFilter extends OncePerRequestFilter {
             if (previousSecurityContext == null) request.removeAttribute(CpfSecurityRuntimeContext.REQUEST_ATTRIBUTE);
             else request.setAttribute(CpfSecurityRuntimeContext.REQUEST_ATTRIBUTE, previousSecurityContext);
         }
+    }
+
+
+    private void bindVerifiedSubjects(CpfContext context, Jwt jwt) {
+        if (subjectTracking == null || context == null || context.transactionId() == null
+                || properties.getSubjectTrackingClaims().isEmpty()) return;
+        ArrayList<CpfSubjectCandidate> candidates = new ArrayList<>();
+        properties.getSubjectTrackingClaims().forEach((typeName, claimName) -> {
+            Object raw = jwt.getClaims().get(claimName);
+            String value = text(raw);
+            if (value == null) return;
+            CpfSubjectType type;
+            try {
+                type = CpfSubjectType.valueOf(typeName.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalStateException("Unsupported subject tracking type: " + typeName, ex);
+            }
+            candidates.add(new CpfSubjectCandidate(type, CpfSubjectRole.ACTOR, value,
+                    CpfSubjectSourceType.AUTHENTICATED_PRINCIPAL, CpfSubjectTrustLevel.VERIFIED));
+        });
+        subjectTracking.collect(context.transactionId(), candidates);
     }
 
     /** 현재 Servlet request에 바인딩된 Security Owner Context를 반환합니다. */

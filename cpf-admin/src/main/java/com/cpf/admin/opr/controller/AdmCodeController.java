@@ -35,13 +35,13 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "cpf_code 기준 코드 그룹과 코드를 조회합니다.")
+    @GetMapping    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "CMN_CODE 기준 코드 그룹과 코드를 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findCodes(HttpServletRequest request) {
         requireOperator(request);
         return ResponseEntity.ok(codeCacheService.getAllCodes());
     }
 
-    @GetMapping("/{codeId}")    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 cpf_code 상세 정보를 조회합니다.")
+    @GetMapping("/{codeId}")    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 CMN_CODE 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId, HttpServletRequest request) {
         requireOperator(request);
         return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
@@ -59,7 +59,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
                 CpfContexts.transactionId(),
                 operator,
                 "CODE_CREATE",
-                "cpf_code",
+                "CMN_CODE",
                 String.valueOf(created.getOrDefault("codeId", request.getCodeKey())),
                 reason,
                 null,
@@ -83,7 +83,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
                 CpfContexts.transactionId(),
                 operator,
                 "CODE_UPDATE",
-                "cpf_code",
+                "CMN_CODE",
                 String.valueOf(codeId),
                 reason,
                 String.valueOf(before),
@@ -106,7 +106,7 @@ public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseControll
                 CpfContexts.transactionId(),
                 operator,
                 "CODE_DISABLE",
-                "cpf_code",
+                "CMN_CODE",
                 String.valueOf(codeId),
                 requiredReason,
                 String.valueOf(before),

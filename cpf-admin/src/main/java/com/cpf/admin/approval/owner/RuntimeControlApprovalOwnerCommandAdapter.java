@@ -19,7 +19,7 @@ import java.util.Set;
 public final class RuntimeControlApprovalOwnerCommandAdapter implements AdmApprovalOwnerCommandPort {
     public static final String OWNER_MODULE="cpf-starter-platform-operations-runtime-control";
     public static final String ACTION="RUNTIME_CONFIG_CHANGE";
-    public static final String TARGET_TYPE="CPF_RUNTIME_CHANGE";
+    public static final String TARGET_TYPE="OPS_RUNTIME_CHANGE";
     public static final String CREATE="RUNTIME_CONTROL_CREATE";
     public static final String CANCEL="RUNTIME_CONTROL_CANCEL";
     public static final String ROLLBACK="RUNTIME_CONTROL_ROLLBACK";

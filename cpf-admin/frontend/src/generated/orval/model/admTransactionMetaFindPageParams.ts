@@ -2,7 +2,7 @@
 export interface AdmTransactionMetaFindPageParams {
   moduleCode?: string;
   activeYn?: string;
-  transactionId?: string;
+  operationId?: string;
   page?: number;
   size?: number;
 }

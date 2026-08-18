@@ -54,9 +54,13 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     }
 
     /**
-     * 거래 로그 목록을 조건별로 검색합니다.
+     * 거래 로그 목록을 keyset cursor로 검색합니다.
+     *
+     * <p>LOG_IDX DESC 정렬과 beforeLogIdx cursor를 사용해 DB vendor별 OFFSET 문법에 의존하지 않으며,
+     * 다음 페이지 존재 여부를 확인하기 위해 pageSize + 1건만 읽습니다. 전체 건수는 같은 필터의 COUNT로
+     * 계산하므로 Frontend가 최초 limit 결과를 다시 slice하는 False Paging을 만들지 않습니다.</p>
      */
-    public List<Map<String, Object>> findLogs(
+    public LogPage findLogPage(
             String transactionId,
             String traceId,
             String businessTransactionId,
@@ -82,7 +86,16 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String capabilityId,
             String provider,
             String capabilityOperation,
-            int limit) {
+            Long beforeLogIdx,
+            int pageSize) {
+
+        int boundedPageSize = Math.max(1, Math.min(pageSize, 100));
+        QueryFilter filter = buildFilter(
+                transactionId, traceId, businessTransactionId, memberNo, customerNo,
+                uri, responseCode, httpStatus, clientId,
+                originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId,
+                logType, moduleId, wasId, instanceId, hostName,
+                domainCode, application, starterId, capabilityId, provider, capabilityOperation);
 
         StringBuilder sql = new StringBuilder("""
                 SELECT
@@ -126,44 +139,151 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                 FROM cpf_transaction_log l
                 WHERE 1 = 1
                 """);
-        List<Object> args = new ArrayList<>();
-        appendLike(sql, args, "TRANSACTION_ID", transactionId);
-        appendLike(sql, args, "TRACE_ID", traceId);
-        appendLike(sql, args, "BUSINESS_TRANSACTION_ID", businessTransactionId);
-        appendEquals(sql, args, "MEMBER_NO", memberNo);
-        appendEquals(sql, args, "CUSTOMER_NO", customerNo);
-        appendLike(sql, args, "URI", uri);
-        appendEquals(sql, args, "RESPONSE_CODE", responseCode);
-        if (httpStatus != null) {
-            sql.append(" AND HTTP_STATUS = ?");
-            args.add(httpStatus);
+        sql.append(filter.sql());
+        List<Object> args = new ArrayList<>(filter.args());
+        if (beforeLogIdx != null && beforeLogIdx > 0) {
+            sql.append(" AND LOG_IDX < ?");
+            args.add(beforeLogIdx);
         }
-        appendLike(sql, args, "CLIENT_ID", clientId);
-        appendEquals(sql, args, "ORIGINAL_CHANNEL", originalChannel);
-        appendEquals(sql, args, "CURRENT_CHANNEL", currentChannel);
-        appendEquals(sql, args, "CALLER_CHANNEL", callerChannel);
-        appendEquals(sql, args, "TARGET_CHANNEL", targetChannel);
-        appendLike(sql, args, "TARGET_OPERATION_ID", targetOperationId);
-        appendEquals(sql, args, "LOG_TYPE", logType);
-        appendEquals(sql, args, "MODULE_ID", moduleId);
-        appendEquals(sql, args, "WAS_ID", wasId);
-        appendEquals(sql, args, "INSTANCE_ID", instanceId);
-        appendEquals(sql, args, "HOST_NAME", hostName);
-        appendDetailLike(sql, args, "runtime.domainCode", domainCode);
-        appendDetailLike(sql, args, "runtime.application", application);
-        appendDetailLike(sql, args, "capability.starters", starterId);
-        appendDetailLike(sql, args, "capability.ids", capabilityId);
-        appendDetailLike(sql, args, "capability.providers", provider);
-        appendDetailLike(sql, args, "capability.operations", capabilityOperation);
         sql.append(" ORDER BY LOG_IDX DESC");
 
-        return AdmJdbcQueries.queryForList(
+        List<Map<String, Object>> fetched = AdmJdbcQueries.queryForList(
                         cpfJdbcTemplate,
                         sql.toString(),
                         args,
-                        Math.max(1, Math.min(limit, 500))).stream()
+                        boundedPageSize + 1).stream()
                 .map(AdmLogSanitizer::sanitizeMap)
                 .toList();
+        boolean hasMore = fetched.size() > boundedPageSize;
+        List<Map<String, Object>> items = hasMore ? fetched.subList(0, boundedPageSize) : fetched;
+        Long nextCursor = null;
+        if (hasMore && !items.isEmpty()) {
+            Object value = items.get(items.size() - 1).get("LOG_IDX");
+            if (value instanceof Number number) nextCursor = number.longValue();
+            else if (value != null) nextCursor = Long.valueOf(String.valueOf(value));
+        }
+
+        long total = queryTotal(filter);
+        return new LogPage(items, total, boundedPageSize, beforeLogIdx, nextCursor, hasMore);
+    }
+
+    /**
+     * 기존 내부 호출 호환용 목록 API입니다. 신규 ADM Consumer는 {@link #findLogPage}를 사용합니다.
+     */
+    public List<Map<String, Object>> findLogs(
+            String transactionId,
+            String traceId,
+            String businessTransactionId,
+            String memberNo,
+            String customerNo,
+            String uri,
+            String responseCode,
+            Integer httpStatus,
+            String clientId,
+            String originalChannel,
+            String currentChannel,
+            String callerChannel,
+            String targetChannel,
+            String targetOperationId,
+            String logType,
+            String moduleId,
+            String wasId,
+            String instanceId,
+            String hostName,
+            String domainCode,
+            String application,
+            String starterId,
+            String capabilityId,
+            String provider,
+            String capabilityOperation,
+            int limit) {
+        return findLogPage(
+                transactionId, traceId, businessTransactionId, memberNo, customerNo,
+                uri, responseCode, httpStatus, clientId,
+                originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId,
+                logType, moduleId, wasId, instanceId, hostName,
+                domainCode, application, starterId, capabilityId, provider, capabilityOperation,
+                null, limit).items();
+    }
+
+    private QueryFilter buildFilter(
+            String transactionId,
+            String traceId,
+            String businessTransactionId,
+            String memberNo,
+            String customerNo,
+            String uri,
+            String responseCode,
+            Integer httpStatus,
+            String clientId,
+            String originalChannel,
+            String currentChannel,
+            String callerChannel,
+            String targetChannel,
+            String targetOperationId,
+            String logType,
+            String moduleId,
+            String wasId,
+            String instanceId,
+            String hostName,
+            String domainCode,
+            String application,
+            String starterId,
+            String capabilityId,
+            String provider,
+            String capabilityOperation) {
+        StringBuilder where = new StringBuilder();
+        List<Object> args = new ArrayList<>();
+        appendLike(where, args, "TRANSACTION_ID", transactionId);
+        appendLike(where, args, "TRACE_ID", traceId);
+        appendLike(where, args, "BUSINESS_TRANSACTION_ID", businessTransactionId);
+        appendEquals(where, args, "MEMBER_NO", memberNo);
+        appendEquals(where, args, "CUSTOMER_NO", customerNo);
+        appendLike(where, args, "URI", uri);
+        appendEquals(where, args, "RESPONSE_CODE", responseCode);
+        if (httpStatus != null) {
+            where.append(" AND HTTP_STATUS = ?");
+            args.add(httpStatus);
+        }
+        appendLike(where, args, "CLIENT_ID", clientId);
+        appendEquals(where, args, "ORIGINAL_CHANNEL", originalChannel);
+        appendEquals(where, args, "CURRENT_CHANNEL", currentChannel);
+        appendEquals(where, args, "CALLER_CHANNEL", callerChannel);
+        appendEquals(where, args, "TARGET_CHANNEL", targetChannel);
+        appendLike(where, args, "TARGET_OPERATION_ID", targetOperationId);
+        appendEquals(where, args, "LOG_TYPE", logType);
+        appendEquals(where, args, "MODULE_ID", moduleId);
+        appendEquals(where, args, "WAS_ID", wasId);
+        appendEquals(where, args, "INSTANCE_ID", instanceId);
+        appendEquals(where, args, "HOST_NAME", hostName);
+        appendDetailLike(where, args, "runtime.domainCode", domainCode);
+        appendDetailLike(where, args, "runtime.application", application);
+        appendDetailLike(where, args, "capability.starters", starterId);
+        appendDetailLike(where, args, "capability.ids", capabilityId);
+        appendDetailLike(where, args, "capability.providers", provider);
+        appendDetailLike(where, args, "capability.operations", capabilityOperation);
+        return new QueryFilter(where.toString(), List.copyOf(args));
+    }
+
+    private long queryTotal(QueryFilter filter) {
+        String sql = "SELECT COUNT(*) FROM cpf_transaction_log l WHERE 1 = 1" + filter.sql();
+        Long total = cpfJdbcTemplate.queryForObject(sql, Long.class, filter.args().toArray());
+        return total == null ? 0L : total;
+    }
+
+    public record LogPage(
+            List<Map<String, Object>> items,
+            long total,
+            int pageSize,
+            Long cursor,
+            Long nextCursor,
+            boolean hasMore) {
+        public LogPage {
+            items = items == null ? List.of() : List.copyOf(items);
+        }
+    }
+
+    private record QueryFilter(String sql, List<Object> args) {
     }
 
     /**

@@ -132,6 +132,44 @@ public class BatchRuntimeControlClient {
         return row(invoke(HttpMethod.POST, path, request));
     }
 
+    public List<CpfDataRow> retentionPolicies() {
+        return rows(invoke(HttpMethod.GET, "/bat/api/retention/policies", null));
+    }
+
+    public List<CpfDataRow> retentionRuns(String policyId, int limit) {
+        String path = "/bat/api/retention/runs?limit=" + Math.max(1, Math.min(limit, 500));
+        if (text(policyId)) path += "&policyId=" + encode(policyId);
+        return rows(invoke(HttpMethod.GET, path, null));
+    }
+
+    public CpfDataRow saveRetentionPolicy(Map<String,Object> request) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies", request));
+    }
+
+    public CpfDataRow previewRetention(Map<String,Object> request) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/preview", request));
+    }
+
+    public CpfDataRow runRetentionPolicy(String policyId, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/run", Map.of("reason", required(reason,"reason"))));
+    }
+
+    public CpfDataRow pauseRetentionRun(String runId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/pause", Map.of()));
+    }
+
+    public CpfDataRow resumeRetentionRun(String runId, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/resume", Map.of("reason", required(reason,"reason"))));
+    }
+
+    public CpfDataRow pauseRetentionPolicy(String policyId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/pause", Map.of()));
+    }
+
+    public CpfDataRow resumeRetentionPolicy(String policyId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/resume", Map.of()));
+    }
+
     private Object invoke(HttpMethod method, String path, Object payload) {
         return invoke(method, path, payload, null);
     }

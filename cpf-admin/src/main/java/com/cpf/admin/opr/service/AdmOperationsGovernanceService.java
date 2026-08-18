@@ -82,7 +82,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("policy", configs("cpf.ops.slo."));
         result.put("actual", metrics());
-        result.put("policyOwner", "cpf_config");
+        result.put("policyOwner", "CMN_PARAMETER");
         result.put("changeRoute", "configs");
         return result;
     }
@@ -122,11 +122,11 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
         result.put("safety", List.of("explicit-allowlist", "rate-limit", "one-attempt-per-change", "circuit-stop",
                 "approval-boundary", "rollback-snapshot", "controller-lease-fencing", "immutable-audit"));
         result.put("policies", configs("cpf.ops.self-healing."));
-        if (table("cpf_runtime_change")) {
+        if (table("OPS_RUNTIME_CHANGE")) {
             result.put("candidates", query("""
                     SELECT change_id, operation_id, change_type, change_state, approval_id, break_glass_id,
                            requested_by, reason, created_at, updated_at
-                    FROM cpf_runtime_change
+                    FROM OPS_RUNTIME_CHANGE
                     WHERE change_state IN ('FAILED','EXPIRED')
                       AND rollback_payload_json IS NOT NULL
                       AND (approval_id IS NOT NULL OR break_glass_id IS NOT NULL)
@@ -134,7 +134,7 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
                     """, List.of(), MAX_ITEMS));
             result.put("recentChanges", query("""
                     SELECT change_id, operation_id, change_type, change_state, reason, requested_by, created_at, updated_at
-                    FROM cpf_runtime_change
+                    FROM OPS_RUNTIME_CHANGE
                     WHERE requested_by='CPF_CONTROLLER' OR reason LIKE 'CPF_SELF_HEALING:%'
                     ORDER BY created_at DESC
                     """, List.of(), 20));
@@ -160,12 +160,12 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
 
     private Map<String, Object> topology() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("services", count("cpf_service"));
-        result.put("instances", count("cpf_service_instance"));
-        result.put("endpoints", count("cpf_service_endpoint"));
-        result.put("health", table("cpf_service_health_status") ? query("""
+        result.put("services", count("OPS_SERVICE"));
+        result.put("instances", count("OPS_SERVICE_INSTANCE"));
+        result.put("endpoints", count("OPS_SERVICE_ENDPOINT"));
+        result.put("health", table("OPS_SERVICE_HEALTH_STATUS") ? query("""
                 SELECT service_id, instance_id, health_status, checked_at
-                FROM cpf_service_health_status
+                FROM OPS_SERVICE_HEALTH_STATUS
                 ORDER BY checked_at DESC
                 """, List.of(), MAX_ITEMS) : List.of());
         result.put("ownerRoute", "topology");
@@ -174,10 +174,10 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
 
     private Map<String, Object> drift() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("available", table("cpf_runtime_instance_feature_state"));
-        result.put("items", table("cpf_runtime_instance_feature_state") ? query("""
+        result.put("available", table("OPS_RUNTIME_INSTANCE_FEATURE_STATE"));
+        result.put("items", table("OPS_RUNTIME_INSTANCE_FEATURE_STATE") ? query("""
                 SELECT instance_id, change_type, desired_version, actual_version, desired_hash, actual_hash, drift_state, updated_at
-                FROM cpf_runtime_instance_feature_state
+                FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE
                 ORDER BY updated_at DESC
                 """, List.of(), MAX_ITEMS) : List.of());
         result.put("ownerRoute", "runtimeControl");
@@ -186,8 +186,8 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
 
     private Map<String, Object> capacity() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("instances", count("cpf_runtime_instance_state"));
-        result.put("serviceInstances", count("cpf_service_instance"));
+        result.put("instances", count("OPS_RUNTIME_INSTANCE_STATE"));
+        result.put("serviceInstances", count("OPS_SERVICE_INSTANCE"));
         result.put("transactionWindow", metrics());
         result.put("ownerRoute", "capacity");
         return result;
@@ -197,9 +197,9 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("policy", configs("cpf.ops.dr."));
         result.put("backupPolicy", configs("cpf.backup."));
-        result.put("runtimeChanges", table("cpf_runtime_change") ? query("""
+        result.put("runtimeChanges", table("OPS_RUNTIME_CHANGE") ? query("""
                 SELECT change_id, operation_id, change_type, change_state, reason, created_at, updated_at
-                FROM cpf_runtime_change
+                FROM OPS_RUNTIME_CHANGE
                 WHERE UPPER(change_type) LIKE '%DR%' OR UPPER(change_type) LIKE '%FAILOVER%' OR UPPER(change_type) LIKE '%RESTORE%'
                 ORDER BY created_at DESC
                 """, List.of(), 20) : List.of());
@@ -224,12 +224,12 @@ public class AdmOperationsGovernanceService extends com.cpf.admin.common.base.Ad
     }
 
     private Map<String, Object> configs(String prefix) {
-        if (!table("cpf_config")) return unavailable("cpf_config");
+        if (!table("CMN_PARAMETER")) return unavailable("CMN_PARAMETER");
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("available", true);
         result.put("items", query("""
                 SELECT config_id, config_key, config_type, description, use_yn, updated_by, updated_at
-                FROM cpf_config
+                FROM CMN_PARAMETER
                 WHERE UPPER(config_key) LIKE UPPER(?)
                 ORDER BY config_key
                 """, List.of(prefix + "%"), MAX_ITEMS));

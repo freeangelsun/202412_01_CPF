@@ -69,7 +69,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findServices(String serviceId, String useYn, int limit) {
-        if (!tableAvailable("cpf_service")) {
+        if (!tableAvailable("OPS_SERVICE")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -82,7 +82,7 @@ public class CpfServiceRegistryRepository {
                        row_version AS rowVersion,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service
+                FROM OPS_SERVICE
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -93,7 +93,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findEndpoints(String serviceId, String endpointCode, String useYn, int limit) {
-        if (!tableAvailable("cpf_service_endpoint")) {
+        if (!tableAvailable("OPS_SERVICE_ENDPOINT")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -109,7 +109,7 @@ public class CpfServiceRegistryRepository {
                        row_version AS rowVersion,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_endpoint
+                FROM OPS_SERVICE_ENDPOINT
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -121,7 +121,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findInstances(String serviceId, String endpointCode, String status, int limit) {
-        if (!tableAvailable("cpf_service_instance")) {
+        if (!tableAvailable("OPS_SERVICE_INSTANCE")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -146,7 +146,7 @@ public class CpfServiceRegistryRepository {
                        last_heartbeat_at AS lastHeartbeatAt,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_instance
+                FROM OPS_SERVICE_INSTANCE
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -158,7 +158,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findHealthStatuses(String serviceId, String endpointCode, int limit) {
-        if (!tableAvailable("cpf_service_health_status")) {
+        if (!tableAvailable("OPS_SERVICE_HEALTH_STATUS")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -173,7 +173,7 @@ public class CpfServiceRegistryRepository {
                        checked_at AS checkedAt,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_health_status
+                FROM OPS_SERVICE_HEALTH_STATUS
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -184,7 +184,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findRoutingPolicies(String serviceId, String endpointCode, String activeYn, int limit) {
-        if (!tableAvailable("cpf_service_routing_policy")) {
+        if (!tableAvailable("OPS_SERVICE_ROUTING_POLICY")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -199,7 +199,7 @@ public class CpfServiceRegistryRepository {
                        priority AS priority,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_routing_policy
+                FROM OPS_SERVICE_ROUTING_POLICY
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -211,7 +211,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findCircuitStates(String serviceId, String endpointCode, int limit) {
-        if (!tableAvailable("cpf_service_circuit_state")) {
+        if (!tableAvailable("OPS_SERVICE_CIRCUIT_STATE")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -228,7 +228,7 @@ public class CpfServiceRegistryRepository {
                        last_failure_message AS lastFailureMessage,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_circuit_state
+                FROM OPS_SERVICE_CIRCUIT_STATE
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -239,7 +239,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public Optional<Map<String, Object>> findCircuitState(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("OPS_SERVICE_CIRCUIT_STATE") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return Optional.empty();
         }
         try {
@@ -255,7 +255,7 @@ public class CpfServiceRegistryRepository {
                            half_opened_at AS halfOpenedAt,
                            closed_at AS closedAt,
                            last_failure_message AS lastFailureMessage
-                    FROM cpf_service_circuit_state
+                    FROM OPS_SERVICE_CIRCUIT_STATE
                     WHERE service_id = ?
                       AND endpoint_code = ?
                       AND (instance_id = ? OR (? IS NULL AND instance_id IS NULL))
@@ -268,7 +268,7 @@ public class CpfServiceRegistryRepository {
     }
 
     public List<Map<String, Object>> findCallHistory(String serviceId, String transactionId, int limit) {
-        if (!tableAvailable("cpf_service_call_history")) {
+        if (!tableAvailable("OPS_SERVICE_CALL_HISTORY")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
@@ -289,7 +289,7 @@ public class CpfServiceRegistryRepository {
                        failure_message AS failureMessage,
                        created_at AS createdAt,
                        updated_at AS updatedAt
-                FROM cpf_service_call_history
+                FROM OPS_SERVICE_CALL_HISTORY
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -307,11 +307,11 @@ public class CpfServiceRegistryRepository {
             long durationMillis,
             String failureCode,
             String failureMessage) {
-        if (!tableAvailable("cpf_service_call_history")) {
+        if (!tableAvailable("OPS_SERVICE_CALL_HISTORY")) {
             return;
         }
         jdbc().update("""
-                INSERT INTO cpf_service_call_history (
+                INSERT INTO OPS_SERVICE_CALL_HISTORY (
                     transaction_id, trace_id, service_id, endpoint_code, instance_id,
                     http_method, request_path, call_status, http_status, duration_ms,
                     timeout_ms, retry_count, failure_code, failure_message, created_by, updated_by
@@ -339,12 +339,12 @@ public class CpfServiceRegistryRepository {
             Integer httpStatus,
             long durationMillis,
             String failureMessage) {
-        if (!tableAvailable("cpf_service_health_status") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("OPS_SERVICE_HEALTH_STATUS") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         try {
             jdbc().update("""
-                    INSERT INTO cpf_service_health_status (
+                    INSERT INTO OPS_SERVICE_HEALTH_STATUS (
                         service_id, endpoint_code, instance_id, health_status, http_status,
                         response_time_ms, failure_message, checked_at, created_by, updated_by
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'CPF_SERVICE_CALL', 'CPF_SERVICE_CALL')
@@ -363,10 +363,10 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitSuccess(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) return;
+        if (!tableAvailable("OPS_SERVICE_CIRCUIT_STATE") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) return;
         try {
             int updated = jdbc().update("""
-                    UPDATE cpf_service_circuit_state
+                    UPDATE OPS_SERVICE_CIRCUIT_STATE
                        SET circuit_state='CLOSED', failure_count=0, success_count=success_count+1,
                            closed_at=CURRENT_TIMESTAMP, last_failure_message=NULL,
                            updated_by='CPF_SERVICE_CALL', updated_at=CURRENT_TIMESTAMP
@@ -376,7 +376,7 @@ public class CpfServiceRegistryRepository {
             if (updated == 0) {
                 try {
                     jdbc().update("""
-                            INSERT INTO cpf_service_circuit_state
+                            INSERT INTO OPS_SERVICE_CIRCUIT_STATE
                             (service_id,endpoint_code,instance_id,circuit_state,failure_count,success_count,closed_at,created_by,updated_by)
                             VALUES (?,?,?,'CLOSED',0,1,CURRENT_TIMESTAMP,'CPF_SERVICE_CALL','CPF_SERVICE_CALL')
                             """, target.serviceId(), target.endpointCode(), target.instanceId());
@@ -390,12 +390,12 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitHalfOpen(ServiceCallResolvedTarget target) {
-        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
+        if (!tableAvailable("OPS_SERVICE_CIRCUIT_STATE") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) {
             return;
         }
         try {
             jdbc().update("""
-                    UPDATE cpf_service_circuit_state
+                    UPDATE OPS_SERVICE_CIRCUIT_STATE
                     SET circuit_state = 'HALF_OPEN',
                         half_opened_at = CURRENT_TIMESTAMP,
                         updated_by = 'CPF_SERVICE_CALL',
@@ -411,11 +411,11 @@ public class CpfServiceRegistryRepository {
     }
 
     public void recordCircuitFailure(ServiceCallResolvedTarget target, String failureMessage, int threshold) {
-        if (!tableAvailable("cpf_service_circuit_state") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) return;
+        if (!tableAvailable("OPS_SERVICE_CIRCUIT_STATE") || !hasText(target.serviceId()) || !hasText(target.endpointCode())) return;
         int resolvedThreshold = Math.max(1, threshold);
         try {
             int updated = jdbc().update("""
-                    UPDATE cpf_service_circuit_state
+                    UPDATE OPS_SERVICE_CIRCUIT_STATE
                        SET failure_count=failure_count+1,
                            success_count=0,
                            circuit_state=CASE WHEN failure_count+1 >= ? THEN 'OPEN' ELSE 'CLOSED' END,
@@ -429,7 +429,7 @@ public class CpfServiceRegistryRepository {
                 String state = resolvedThreshold <= 1 ? "OPEN" : "CLOSED";
                 try {
                     jdbc().update("""
-                            INSERT INTO cpf_service_circuit_state
+                            INSERT INTO OPS_SERVICE_CIRCUIT_STATE
                             (service_id,endpoint_code,instance_id,circuit_state,failure_count,success_count,opened_at,last_failure_message,created_by,updated_by)
                             VALUES (?,?,?, ?,1,0,CASE WHEN ?='OPEN' THEN CURRENT_TIMESTAMP ELSE NULL END,?,'CPF_SERVICE_CALL','CPF_SERVICE_CALL')
                             """, target.serviceId(), target.endpointCode(), target.instanceId(), state, state, truncate(failureMessage,900));
@@ -443,12 +443,12 @@ public class CpfServiceRegistryRepository {
     }
 
     private void updateInstanceHealth(ServiceCallResolvedTarget target, String healthStatus) {
-        if (!tableAvailable("cpf_service_instance") || !hasText(target.instanceId())) {
+        if (!tableAvailable("OPS_SERVICE_INSTANCE") || !hasText(target.instanceId())) {
             return;
         }
         String instanceStatus = "UP".equalsIgnoreCase(healthStatus) ? "UP" : "DOWN";
         jdbc().update("""
-                UPDATE cpf_service_instance
+                UPDATE OPS_SERVICE_INSTANCE
                 SET instance_status = ?,
                     last_heartbeat_at = CURRENT_TIMESTAMP,
                     updated_by = 'CPF_SERVICE_CALL',
@@ -462,48 +462,48 @@ public class CpfServiceRegistryRepository {
     public Map<String,Object> saveService(CpfServiceRegistryControlPort.ServiceDefinition c) {
         requireRegistryCommand(c.operationId(),c.reason(),c.requestedBy()); require(c.serviceId(),"serviceId"); require(c.serviceName(),"serviceName"); require(c.ownerModuleCode(),"ownerModuleCode");
         Map<String,Object> fp=new LinkedHashMap<>();fp.put("serviceId",c.serviceId());fp.put("serviceName",c.serviceName());fp.put("serviceType",textOr(c.serviceType(),"INTERNAL"));fp.put("ownerModuleCode",c.ownerModuleCode());fp.put("description",textOr(c.description(),""));fp.put("useYn",yn(c.useYn(),"useYn"));fp.put("expectedVersion",c.expectedVersion());fp.put("reason",c.reason());
-        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_SERVICE",canonicalHash(fp))) return findEntity("cpf_service","service_id",c.serviceId());
-        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM cpf_service WHERE service_id=? FOR UPDATE",c.serviceId());
-        if(rows.isEmpty()) { if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0); jdbc().update("INSERT INTO cpf_service(service_id,service_name,service_type,owner_module_code,description,use_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,0,?,?)",c.serviceId(),c.serviceName(),textOr(c.serviceType(),"INTERNAL"),c.ownerModuleCode(),emptyToNull(c.description()),yn(c.useYn(),"useYn"),c.requestedBy(),c.requestedBy()); }
-        else { long v=number(rows.getFirst().get("row_version")); requireVersion(c.expectedVersion(),v); if(jdbc().update("UPDATE cpf_service SET service_name=?,service_type=?,owner_module_code=?,description=?,use_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE service_id=? AND row_version=?",c.serviceName(),textOr(c.serviceType(),"INTERNAL"),c.ownerModuleCode(),emptyToNull(c.description()),yn(c.useYn(),"useYn"),c.requestedBy(),c.serviceId(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v); }
-        completeOperation(c.operationId(),c.serviceId()); return findEntity("cpf_service","service_id",c.serviceId());
+        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_SERVICE",canonicalHash(fp))) return findEntity("OPS_SERVICE","service_id",c.serviceId());
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM OPS_SERVICE WHERE service_id=? FOR UPDATE",c.serviceId());
+        if(rows.isEmpty()) { if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0); jdbc().update("INSERT INTO OPS_SERVICE(service_id,service_name,service_type,owner_module_code,description,use_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,0,?,?)",c.serviceId(),c.serviceName(),textOr(c.serviceType(),"INTERNAL"),c.ownerModuleCode(),emptyToNull(c.description()),yn(c.useYn(),"useYn"),c.requestedBy(),c.requestedBy()); }
+        else { long v=number(rows.getFirst().get("row_version")); requireVersion(c.expectedVersion(),v); if(jdbc().update("UPDATE OPS_SERVICE SET service_name=?,service_type=?,owner_module_code=?,description=?,use_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE service_id=? AND row_version=?",c.serviceName(),textOr(c.serviceType(),"INTERNAL"),c.ownerModuleCode(),emptyToNull(c.description()),yn(c.useYn(),"useYn"),c.requestedBy(),c.serviceId(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v); }
+        completeOperation(c.operationId(),c.serviceId()); return findEntity("OPS_SERVICE","service_id",c.serviceId());
     }
 
     @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
     public Map<String,Object> saveEndpoint(CpfServiceRegistryControlPort.EndpointDefinition c) {
         requireRegistryCommand(c.operationId(),c.reason(),c.requestedBy());require(c.endpointCode(),"endpointCode");require(c.serviceId(),"serviceId");require(c.endpointName(),"endpointName");require(c.baseUrl(),"baseUrl");
-        if(jdbc().queryForObject("SELECT COUNT(*) FROM cpf_service WHERE service_id=? AND use_yn='Y'",Integer.class,c.serviceId())!=1)throw new IllegalArgumentException("활성 service가 없습니다: "+c.serviceId());
+        if(jdbc().queryForObject("SELECT COUNT(*) FROM OPS_SERVICE WHERE service_id=? AND use_yn='Y'",Integer.class,c.serviceId())!=1)throw new IllegalArgumentException("활성 service가 없습니다: "+c.serviceId());
         Map<String,Object> fp=new LinkedHashMap<>();fp.put("endpointCode",c.endpointCode());fp.put("serviceId",c.serviceId());fp.put("endpointName",c.endpointName());fp.put("endpointType",textOr(c.endpointType(),"HTTP"));fp.put("baseUrl",c.baseUrl());fp.put("contextPath",textOr(c.contextPath(),""));fp.put("timeout",positive(c.defaultTimeoutMs(),3000));fp.put("retry",nonNegative(c.defaultRetryCount(),0));fp.put("useYn",yn(c.useYn(),"useYn"));fp.put("expectedVersion",c.expectedVersion());fp.put("reason",c.reason());
-        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_ENDPOINT",canonicalHash(fp)))return findEntity("cpf_service_endpoint","endpoint_code",c.endpointCode());
-        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM cpf_service_endpoint WHERE endpoint_code=? FOR UPDATE",c.endpointCode());
-        if(rows.isEmpty()){if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0);jdbc().update("INSERT INTO cpf_service_endpoint(endpoint_code,service_id,endpoint_name,endpoint_type,base_url,context_path,default_timeout_ms,default_retry_count,use_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,?,?,?,0,?,?)",c.endpointCode(),c.serviceId(),c.endpointName(),textOr(c.endpointType(),"HTTP"),c.baseUrl(),emptyToNull(c.contextPath()),positive(c.defaultTimeoutMs(),3000),nonNegative(c.defaultRetryCount(),0),yn(c.useYn(),"useYn"),c.requestedBy(),c.requestedBy());}
-        else {long v=number(rows.getFirst().get("row_version"));requireVersion(c.expectedVersion(),v);if(jdbc().update("UPDATE cpf_service_endpoint SET service_id=?,endpoint_name=?,endpoint_type=?,base_url=?,context_path=?,default_timeout_ms=?,default_retry_count=?,use_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE endpoint_code=? AND row_version=?",c.serviceId(),c.endpointName(),textOr(c.endpointType(),"HTTP"),c.baseUrl(),emptyToNull(c.contextPath()),positive(c.defaultTimeoutMs(),3000),nonNegative(c.defaultRetryCount(),0),yn(c.useYn(),"useYn"),c.requestedBy(),c.endpointCode(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v);}
-        completeOperation(c.operationId(),c.endpointCode());return findEntity("cpf_service_endpoint","endpoint_code",c.endpointCode());
+        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_ENDPOINT",canonicalHash(fp)))return findEntity("OPS_SERVICE_ENDPOINT","endpoint_code",c.endpointCode());
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM OPS_SERVICE_ENDPOINT WHERE endpoint_code=? FOR UPDATE",c.endpointCode());
+        if(rows.isEmpty()){if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0);jdbc().update("INSERT INTO OPS_SERVICE_ENDPOINT(endpoint_code,service_id,endpoint_name,endpoint_type,base_url,context_path,default_timeout_ms,default_retry_count,use_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,?,?,?,0,?,?)",c.endpointCode(),c.serviceId(),c.endpointName(),textOr(c.endpointType(),"HTTP"),c.baseUrl(),emptyToNull(c.contextPath()),positive(c.defaultTimeoutMs(),3000),nonNegative(c.defaultRetryCount(),0),yn(c.useYn(),"useYn"),c.requestedBy(),c.requestedBy());}
+        else {long v=number(rows.getFirst().get("row_version"));requireVersion(c.expectedVersion(),v);if(jdbc().update("UPDATE OPS_SERVICE_ENDPOINT SET service_id=?,endpoint_name=?,endpoint_type=?,base_url=?,context_path=?,default_timeout_ms=?,default_retry_count=?,use_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE endpoint_code=? AND row_version=?",c.serviceId(),c.endpointName(),textOr(c.endpointType(),"HTTP"),c.baseUrl(),emptyToNull(c.contextPath()),positive(c.defaultTimeoutMs(),3000),nonNegative(c.defaultRetryCount(),0),yn(c.useYn(),"useYn"),c.requestedBy(),c.endpointCode(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v);}
+        completeOperation(c.operationId(),c.endpointCode());return findEntity("OPS_SERVICE_ENDPOINT","endpoint_code",c.endpointCode());
     }
 
     @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
     public Map<String,Object> saveInstance(CpfServiceRegistryControlPort.InstanceDefinition c) {
         requireRegistryCommand(c.operationId(),c.reason(),c.requestedBy());require(c.instanceId(),"instanceId");require(c.serviceId(),"serviceId");require(c.endpointCode(),"endpointCode");require(c.instanceName(),"instanceName");require(c.baseUrl(),"baseUrl");
-        if(jdbc().queryForObject("SELECT COUNT(*) FROM cpf_service_endpoint WHERE endpoint_code=? AND service_id=? AND use_yn='Y'",Integer.class,c.endpointCode(),c.serviceId())!=1)throw new IllegalArgumentException("활성 endpoint가 없습니다: "+c.serviceId()+"/"+c.endpointCode());
+        if(jdbc().queryForObject("SELECT COUNT(*) FROM OPS_SERVICE_ENDPOINT WHERE endpoint_code=? AND service_id=? AND use_yn='Y'",Integer.class,c.endpointCode(),c.serviceId())!=1)throw new IllegalArgumentException("활성 endpoint가 없습니다: "+c.serviceId()+"/"+c.endpointCode());
         Map<String,Object> fp=new LinkedHashMap<>();fp.put("instanceId",c.instanceId());fp.put("serviceId",c.serviceId());fp.put("endpointCode",c.endpointCode());fp.put("baseUrl",c.baseUrl());fp.put("weight",positive(c.weight(),100));fp.put("priority",positive(c.priorityNo(),100));fp.put("environment",textOr(c.environmentCode(),"default"));fp.put("active",yn(c.activeYn(),"activeYn"));fp.put("maintenance",ynDefault(c.maintenanceYn(),"N","maintenanceYn"));fp.put("drain",ynDefault(c.drainYn(),"N","drainYn"));fp.put("expectedVersion",c.expectedVersion());fp.put("reason",c.reason());
-        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_INSTANCE",canonicalHash(fp)))return findEntity("cpf_service_instance","instance_id",c.instanceId());
-        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM cpf_service_instance WHERE instance_id=? FOR UPDATE",c.instanceId());
-        if(rows.isEmpty()){if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0);jdbc().update("INSERT INTO cpf_service_instance(instance_id,service_id,endpoint_code,instance_name,base_url,host_name,port_no,instance_status,weight,active_yn,environment_code,zone_code,cell_code,priority_no,maintenance_yn,drain_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,?,'UP',?,?,?,?,?,?,?, ?,0,?,?)",c.instanceId(),c.serviceId(),c.endpointCode(),c.instanceName(),c.baseUrl(),emptyToNull(c.hostName()),c.portNo(),positive(c.weight(),100),yn(c.activeYn(),"activeYn"),textOr(c.environmentCode(),"default"),emptyToNull(c.zoneCode()),emptyToNull(c.cellCode()),positive(c.priorityNo(),100),ynDefault(c.maintenanceYn(),"N","maintenanceYn"),ynDefault(c.drainYn(),"N","drainYn"),c.requestedBy(),c.requestedBy());}
-        else {long v=number(rows.getFirst().get("row_version"));requireVersion(c.expectedVersion(),v);if(jdbc().update("UPDATE cpf_service_instance SET service_id=?,endpoint_code=?,instance_name=?,base_url=?,host_name=?,port_no=?,weight=?,active_yn=?,environment_code=?,zone_code=?,cell_code=?,priority_no=?,maintenance_yn=?,drain_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND row_version=?",c.serviceId(),c.endpointCode(),c.instanceName(),c.baseUrl(),emptyToNull(c.hostName()),c.portNo(),positive(c.weight(),100),yn(c.activeYn(),"activeYn"),textOr(c.environmentCode(),"default"),emptyToNull(c.zoneCode()),emptyToNull(c.cellCode()),positive(c.priorityNo(),100),ynDefault(c.maintenanceYn(),"N","maintenanceYn"),ynDefault(c.drainYn(),"N","drainYn"),c.requestedBy(),c.instanceId(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v);}
-        completeOperation(c.operationId(),c.instanceId());return findEntity("cpf_service_instance","instance_id",c.instanceId());
+        if(replayOperation(c.operationId(),"SERVICE_REGISTRY_INSTANCE",canonicalHash(fp)))return findEntity("OPS_SERVICE_INSTANCE","instance_id",c.instanceId());
+        List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM OPS_SERVICE_INSTANCE WHERE instance_id=? FOR UPDATE",c.instanceId());
+        if(rows.isEmpty()){if(c.expectedVersion()!=null&&c.expectedVersion()!=0)throw new CpfServiceRegistryVersionConflictException(c.expectedVersion(),0);jdbc().update("INSERT INTO OPS_SERVICE_INSTANCE(instance_id,service_id,endpoint_code,instance_name,base_url,host_name,port_no,instance_status,weight,active_yn,environment_code,zone_code,cell_code,priority_no,maintenance_yn,drain_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,?,'UP',?,?,?,?,?,?,?, ?,0,?,?)",c.instanceId(),c.serviceId(),c.endpointCode(),c.instanceName(),c.baseUrl(),emptyToNull(c.hostName()),c.portNo(),positive(c.weight(),100),yn(c.activeYn(),"activeYn"),textOr(c.environmentCode(),"default"),emptyToNull(c.zoneCode()),emptyToNull(c.cellCode()),positive(c.priorityNo(),100),ynDefault(c.maintenanceYn(),"N","maintenanceYn"),ynDefault(c.drainYn(),"N","drainYn"),c.requestedBy(),c.requestedBy());}
+        else {long v=number(rows.getFirst().get("row_version"));requireVersion(c.expectedVersion(),v);if(jdbc().update("UPDATE OPS_SERVICE_INSTANCE SET service_id=?,endpoint_code=?,instance_name=?,base_url=?,host_name=?,port_no=?,weight=?,active_yn=?,environment_code=?,zone_code=?,cell_code=?,priority_no=?,maintenance_yn=?,drain_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND row_version=?",c.serviceId(),c.endpointCode(),c.instanceName(),c.baseUrl(),emptyToNull(c.hostName()),c.portNo(),positive(c.weight(),100),yn(c.activeYn(),"activeYn"),textOr(c.environmentCode(),"default"),emptyToNull(c.zoneCode()),emptyToNull(c.cellCode()),positive(c.priorityNo(),100),ynDefault(c.maintenanceYn(),"N","maintenanceYn"),ynDefault(c.drainYn(),"N","drainYn"),c.requestedBy(),c.instanceId(),v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v);}
+        completeOperation(c.operationId(),c.instanceId());return findEntity("OPS_SERVICE_INSTANCE","instance_id",c.instanceId());
     }
 
     @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
-    public void deleteService(String serviceId,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("cpf_service","service_id",serviceId,c,"SERVICE_REGISTRY_SERVICE_DELETE",List.of("cpf_service_endpoint","service_id"));}
+    public void deleteService(String serviceId,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("OPS_SERVICE","service_id",serviceId,c,"SERVICE_REGISTRY_SERVICE_DELETE",List.of("OPS_SERVICE_ENDPOINT","service_id"));}
     @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
-    public void deleteEndpoint(String endpointCode,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("cpf_service_endpoint","endpoint_code",endpointCode,c,"SERVICE_REGISTRY_ENDPOINT_DELETE",List.of("cpf_service_instance","endpoint_code"));}
+    public void deleteEndpoint(String endpointCode,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("OPS_SERVICE_ENDPOINT","endpoint_code",endpointCode,c,"SERVICE_REGISTRY_ENDPOINT_DELETE",List.of("OPS_SERVICE_INSTANCE","endpoint_code"));}
     @org.springframework.transaction.annotation.Transactional(transactionManager = "cpfTransactionManager")
-    public void deleteInstance(String instanceId,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("cpf_service_instance","instance_id",instanceId,c,"SERVICE_REGISTRY_INSTANCE_DELETE",List.of());}
+    public void deleteInstance(String instanceId,CpfServiceRegistryControlPort.DeleteCommand c){deleteEntity("OPS_SERVICE_INSTANCE","instance_id",instanceId,c,"SERVICE_REGISTRY_INSTANCE_DELETE",List.of());}
 
     private void deleteEntity(String table,String key,String id,CpfServiceRegistryControlPort.DeleteCommand c,String type,List<String> child){requireRegistryCommand(c.operationId(),c.reason(),c.requestedBy());require(id,key);String hash=canonicalHash(Map.of("id",id,"expectedVersion",c.expectedVersion()==null?-1:c.expectedVersion(),"reason",c.reason()));if(replayOperation(c.operationId(),type,hash))return;List<Map<String,Object>> rows=jdbc().queryForList("SELECT row_version FROM "+table+" WHERE "+key+"=? FOR UPDATE",id);if(rows.isEmpty()){completeOperation(c.operationId(),id);return;}long v=number(rows.getFirst().get("row_version"));requireVersion(c.expectedVersion(),v);if(!child.isEmpty()){Integer cnt=jdbc().queryForObject("SELECT COUNT(*) FROM "+child.get(0)+" WHERE "+child.get(1)+"=?",Integer.class,id);if(cnt!=null&&cnt>0)throw new IllegalStateException("하위 Registry 항목이 있어 삭제할 수 없습니다: "+id);}if(jdbc().update("DELETE FROM "+table+" WHERE "+key+"=? AND row_version=?",id,v)!=1)throw new CpfServiceRegistryVersionConflictException(v,v);completeOperation(c.operationId(),id);}
 
-    private boolean replayOperation(String operationId,String type,String hash){if(!tableAvailable("cpf_control_operation"))throw new IllegalStateException("cpf_control_operation table이 필요합니다. V64 migration을 적용하십시오.");List<Map<String,Object>> rows=jdbc().queryForList("SELECT request_hash,result_state FROM cpf_control_operation WHERE operation_id=? FOR UPDATE",operationId);if(!rows.isEmpty()){Map<String,Object> row=rows.getFirst();if(!hash.equals(String.valueOf(row.get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+operationId);String state=String.valueOf(row.get("result_state"));if("SUCCESS".equals(state))return true;throw new IllegalStateException("operationId 처리 상태가 완료되지 않았습니다: "+operationId+", state="+state);}try{jdbc().update("INSERT INTO cpf_control_operation(operation_id,command_type,request_hash,result_state,expires_at,created_by,updated_by) VALUES (?,?,?,'PROCESSING',?, ?,?)",operationId,type,hash,Timestamp.from(Instant.now().plusSeconds(604800)),"CPF_REGISTRY","CPF_REGISTRY");return false;}catch(DuplicateKeyException raced){return replayOperation(operationId,type,hash);}}
-    private void completeOperation(String operationId,String entityId){if(jdbc().update("UPDATE cpf_control_operation SET entity_id=?,result_state='SUCCESS',updated_at=CURRENT_TIMESTAMP WHERE operation_id=? AND result_state='PROCESSING'",entityId,operationId)!=1)throw new IllegalStateException("Registry operation 결과 저장 실패: "+operationId);}
+    private boolean replayOperation(String operationId,String type,String hash){if(!tableAvailable("OPS_CONTROL_OPERATION"))throw new IllegalStateException("OPS_CONTROL_OPERATION table이 필요합니다. V64 migration을 적용하십시오.");List<Map<String,Object>> rows=jdbc().queryForList("SELECT request_hash,result_state FROM OPS_CONTROL_OPERATION WHERE operation_id=? FOR UPDATE",operationId);if(!rows.isEmpty()){Map<String,Object> row=rows.getFirst();if(!hash.equals(String.valueOf(row.get("request_hash"))))throw new IllegalStateException("operationId payload fingerprint 충돌: "+operationId);String state=String.valueOf(row.get("result_state"));if("SUCCESS".equals(state))return true;throw new IllegalStateException("operationId 처리 상태가 완료되지 않았습니다: "+operationId+", state="+state);}try{jdbc().update("INSERT INTO OPS_CONTROL_OPERATION(operation_id,command_type,request_hash,result_state,expires_at,created_by,updated_by) VALUES (?,?,?,'PROCESSING',?, ?,?)",operationId,type,hash,Timestamp.from(Instant.now().plusSeconds(604800)),"CPF_REGISTRY","CPF_REGISTRY");return false;}catch(DuplicateKeyException raced){return replayOperation(operationId,type,hash);}}
+    private void completeOperation(String operationId,String entityId){if(jdbc().update("UPDATE OPS_CONTROL_OPERATION SET entity_id=?,result_state='SUCCESS',updated_at=CURRENT_TIMESTAMP WHERE operation_id=? AND result_state='PROCESSING'",entityId,operationId)!=1)throw new IllegalStateException("Registry operation 결과 저장 실패: "+operationId);}
     private Map<String,Object> findEntity(String table,String key,String id){List<Map<String,Object>> rows=jdbc().queryForList("SELECT * FROM "+table+" WHERE "+key+"=?",id);if(rows.isEmpty())throw new IllegalStateException("Registry 결과를 찾을 수 없습니다: "+id);return rows.getFirst();}
     private void requireRegistryCommand(String operationId,String reason,String requestedBy){require(operationId,"operationId");require(reason,"reason");require(requestedBy,"requestedBy");}
     private void requireVersion(Long expected,long current){if(expected==null||expected.longValue()!=current)throw new CpfServiceRegistryVersionConflictException(expected==null?-1:expected,current);}
@@ -524,8 +524,8 @@ public class CpfServiceRegistryRepository {
     public Map<String,Object> changeInstanceState(
             String serviceId, String endpointCode, String instanceId,
             CpfServiceRegistryControlPort.InstanceStateCommand command) {
-        if (!tableAvailable("cpf_service_instance")) {
-            throw new IllegalStateException("cpf_service_instance table is unavailable");
+        if (!tableAvailable("OPS_SERVICE_INSTANCE")) {
+            throw new IllegalStateException("OPS_SERVICE_INSTANCE table is unavailable");
         }
         requireRegistryCommand(command.operationId(), command.reason(), command.requestedBy());
         require(serviceId, "serviceId"); require(endpointCode, "endpointCode"); require(instanceId, "instanceId");
@@ -538,11 +538,11 @@ public class CpfServiceRegistryRepository {
         fingerprint.put("reason", command.reason());
         String hash = canonicalHash(fingerprint);
         if (replayOperation(command.operationId(), "SERVICE_REGISTRY_INSTANCE_STATE", hash)) {
-            return findEntity("cpf_service_instance", "instance_id", instanceId);
+            return findEntity("OPS_SERVICE_INSTANCE", "instance_id", instanceId);
         }
 
         List<Map<String,Object>> current = jdbc().queryForList("""
-                SELECT row_version FROM cpf_service_instance
+                SELECT row_version FROM OPS_SERVICE_INSTANCE
                  WHERE service_id=? AND endpoint_code=? AND instance_id=? FOR UPDATE
                 """, serviceId, endpointCode, instanceId);
         if (current.isEmpty()) {
@@ -562,7 +562,7 @@ public class CpfServiceRegistryRepository {
             default -> throw new IllegalArgumentException("Unsupported instance command: " + command.command());
         }
         int updated = jdbc().update("""
-                UPDATE cpf_service_instance
+                UPDATE OPS_SERVICE_INSTANCE
                    SET instance_status=?,active_yn=?,drain_yn=?,row_version=row_version+1,
                        updated_by=?,updated_at=CURRENT_TIMESTAMP
                  WHERE service_id=? AND endpoint_code=? AND instance_id=? AND row_version=?
@@ -572,7 +572,7 @@ public class CpfServiceRegistryRepository {
             throw new CpfServiceRegistryVersionConflictException(rowVersion, rowVersion);
         }
         completeOperation(command.operationId(), instanceId);
-        return findEntity("cpf_service_instance", "instance_id", instanceId);
+        return findEntity("OPS_SERVICE_INSTANCE", "instance_id", instanceId);
     }
 
     /** Registry 멱등성 fingerprint를 Owner 내부에서 결정적으로 계산해 타 Module internal 구현 의존을 제거합니다. */

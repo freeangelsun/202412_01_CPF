@@ -67,7 +67,7 @@ public record CpfContext(
      * 새 실행 ID 생성은 Foundation owner가 담당하므로 이 메서드는 기존 execution을 변경하지 않습니다.
      */
     public CpfContext localDomainHop(String targetChannel, String targetOperationId) {
-        String target = required("targetChannel", targetChannel, 128);
+        String target = requiredChannel("targetChannel", targetChannel);
         String operationId = required("targetOperationId", targetOperationId, 160);
         String caller = firstNonBlank(transaction.currentChannel(), transaction.originalChannel());
         CpfTransactionContext nextTransaction = new CpfTransactionContext(
@@ -155,10 +155,10 @@ public record CpfContext(
             parentTransactionId = optional(parentTransactionId, 160);
             correlationId = optional(correlationId, 160);
             traceId = optional(traceId, 64);
-            originalChannel = optional(originalChannel, 128);
-            currentChannel = optional(currentChannel, 128);
-            callerChannel = optional(callerChannel, 128);
-            targetChannel = optional(targetChannel, 128);
+            originalChannel = optionalChannel("originalChannel", originalChannel);
+            currentChannel = optionalChannel("currentChannel", currentChannel);
+            callerChannel = optionalChannel("callerChannel", callerChannel);
+            targetChannel = optionalChannel("targetChannel", targetChannel);
             Objects.requireNonNull(businessDate, "businessDate");
             Objects.requireNonNull(startedAt, "startedAt");
             if (originKind == null) originKind = CpfTransactionOriginKind.INTERNAL;
@@ -292,6 +292,21 @@ public record CpfContext(
     private static String required(String name, String value, int max) {
         String normalized = optional(value, max);
         if (normalized == null) throw new IllegalArgumentException(name);
+        return normalized;
+    }
+
+    private static String requiredChannel(String name, String value) {
+        String normalized = optionalChannel(name, value);
+        if (normalized == null) throw new IllegalArgumentException(name);
+        return normalized;
+    }
+
+    private static String optionalChannel(String name, String value) {
+        String normalized = optional(value, 16);
+        if (normalized == null) return null;
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new IllegalArgumentException(name + " must match [A-Z0-9][A-Z0-9_-]{0,15}");
+        }
         return normalized;
     }
 

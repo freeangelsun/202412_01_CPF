@@ -81,11 +81,8 @@ export const useAdmConsoleStore = defineStore("adm-console", {
         return a === b ? 0 : (a > b ? 1 : -1) * (direction === "asc" ? 1 : -1);
       });
     },
-    pagedLogs(): any[] {
-      const start = (this.logPage.page - 1) * this.logPage.size;
-      return this.sortedLogs.slice(start, start + this.logPage.size);
-    },
-    logTotalPages(): number { return Math.max(1, Math.ceil(this.sortedLogs.length / this.logPage.size)); },
+    pagedLogs(): any[] { return this.sortedLogs; },
+    logTotalPages(): number { return Math.max(1, Math.ceil(Number(this.logPage.total || 0) / this.logPage.size)); },
     transactionGroups: state => state.transactionGroupResult?.items || [],
     pagedTransactionGroups(): any[] {
       const start = (this.transactionGroupPage.page - 1) * this.transactionGroupPage.size;

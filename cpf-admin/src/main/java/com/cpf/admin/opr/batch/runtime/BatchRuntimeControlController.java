@@ -197,6 +197,84 @@ public class BatchRuntimeControlController extends AdmBaseController {
     }
 
 
+    @GetMapping("/retention/policies")
+    @Operation(operationId = "admRetentionPolicies", summary = "DB Retention 정책 조회")
+    ResponseEntity<Map<String,Object>> retentionPolicies() {
+        try { return ResponseEntity.ok(Map.of("items", client.retentionPolicies(), "fetchedAt", Instant.now())); }
+        catch (BatchControlClientException failure) { return error(failure); }
+    }
+
+    @GetMapping("/retention/runs")
+    @Operation(operationId = "admRetentionRuns", summary = "DB Retention 실제 실행 이력 조회")
+    ResponseEntity<Map<String,Object>> retentionRuns(@RequestParam(required=false) String policyId,
+                                                     @RequestParam(defaultValue="100") int limit) {
+        try { return ResponseEntity.ok(Map.of("items", client.retentionRuns(policyId, limit), "fetchedAt", Instant.now())); }
+        catch (BatchControlClientException failure) { return error(failure); }
+    }
+
+    @PostMapping("/retention/policies")
+    @Operation(operationId = "admRetentionPolicySave", summary = "DB Retention 정책 저장")
+    ResponseEntity<Map<String,Object>> retentionPolicySave(@RequestAttribute("adm.operatorId") String operatorId,
+                                                            @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"policyId"); requireCommandField(request,"target"); requireCommandField(request,"reason");
+            return ResponseEntity.ok(client.saveRetentionPolicy(withServerActor(request,operatorId)));
+        } catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_INVALID",failure); }
+    }
+
+    @PostMapping("/retention/preview")
+    @Operation(operationId = "admRetentionPreview", summary = "DB Retention 실행 미리보기",
+            description = "파괴 실행 전에 BAT Owner의 실제 Retention handler를 dry-run으로 호출하여 대상 건수와 legal hold 상태를 확인합니다.")
+    ResponseEntity<Map<String,Object>> retentionPreview(@RequestAttribute("adm.operatorId") String operatorId,
+                                                        @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"target"); requireCommandField(request,"cutoff"); requireCommandField(request,"reason");
+            return ResponseEntity.ok(client.previewRetention(withServerActor(request,operatorId)));
+        } catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_PREVIEW_INVALID",failure); }
+    }
+
+    @PostMapping("/retention/policies/{policyId}/run")
+    @Operation(operationId = "admRetentionRunNow", summary = "DB Retention 실제 수동 실행",
+            description = "Preview/정책 확인 후 BAT Owner의 Scheduled Run과 동일 Execution Engine을 실행합니다.")
+    ResponseEntity<Map<String,Object>> retentionRunNow(@PathVariable String policyId,
+                                                        @RequestAttribute("adm.operatorId") String operatorId,
+                                                        @RequestBody Map<String,Object> request) {
+        try { requireCommandField(request,"reason"); return ResponseEntity.ok(client.runRetentionPolicy(policyId,String.valueOf(request.get("reason")))); }
+        catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_RUN_INVALID",failure); }
+    }
+
+    @PostMapping("/retention/runs/{runId}/pause")
+    @Operation(operationId = "admRetentionRunPause", summary = "실행 중 Retention 안전 일시정지 요청")
+    ResponseEntity<Map<String,Object>> retentionRunPause(@PathVariable String runId) {
+        try { return ResponseEntity.ok(client.pauseRetentionRun(runId)); }
+        catch (BatchControlClientException failure) { return error(failure); }
+    }
+
+    @PostMapping("/retention/runs/{runId}/resume")
+    @Operation(operationId = "admRetentionRunResume", summary = "Retention Run 재개")
+    ResponseEntity<Map<String,Object>> retentionRunResume(@PathVariable String runId,@RequestBody Map<String,Object> request) {
+        try { requireCommandField(request,"reason"); return ResponseEntity.ok(client.resumeRetentionRun(runId,String.valueOf(request.get("reason")))); }
+        catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_RESUME_INVALID",failure); }
+    }
+
+    @PostMapping("/retention/policies/{policyId}/pause")
+    @Operation(operationId = "admRetentionPolicyPause", summary = "Retention Schedule 일시정지")
+    ResponseEntity<Map<String,Object>> retentionPolicyPause(@PathVariable String policyId) {
+        try { return ResponseEntity.ok(client.pauseRetentionPolicy(policyId)); }
+        catch (BatchControlClientException failure) { return error(failure); }
+    }
+
+    @PostMapping("/retention/policies/{policyId}/resume")
+    @Operation(operationId = "admRetentionPolicyResume", summary = "Retention Schedule 재개")
+    ResponseEntity<Map<String,Object>> retentionPolicyResume(@PathVariable String policyId) {
+        try { return ResponseEntity.ok(client.resumeRetentionPolicy(policyId)); }
+        catch (BatchControlClientException failure) { return error(failure); }
+    }
+
     private static Map<String, Object> withServerActor(Map<String, Object> request, String operatorId) {
         if (operatorId == null || operatorId.isBlank()) {
             throw new IllegalArgumentException("authenticated operator is required");

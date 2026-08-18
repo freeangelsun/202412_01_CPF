@@ -5,6 +5,9 @@ const root = process.cwd();
 const openApiPath = path.resolve(root, process.env.CPF_OPENAPI_FILE || 'openapi/cpf-openapi.json');
 const outPath = path.resolve(root, process.env.CPF_COMPAT_CLIENT || 'src/generated/cpf-api.ts');
 const spec = JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
+const orvalClientPath = path.resolve(root, 'src/generated/orval/cpf-api.ts');
+if (!fs.existsSync(orvalClientPath)) throw new Error(`Verified Orval client missing: ${orvalClientPath}`);
+const orvalSource = fs.readFileSync(orvalClientPath, 'utf8');
 const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
 
 function quote(v) { return JSON.stringify(v); }
@@ -83,6 +86,18 @@ function renderPath(route) {
   return `renderPath(${quote(route)}, options.path as Record<string, string | number> | undefined)`;
 }
 
+function finalOrvalParameterOrder(operationId) {
+  const escaped = operationId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = orvalSource.match(new RegExp(`export const ${escaped} = async \\(([^)]*)\\)`));
+  if (!match) throw new Error(`Final Orval operation signature missing: ${operationId}`);
+  return match[1]
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+    .map(value => value.replace(/\?.*$/, '').split(':')[0].trim())
+    .filter(name => name && name !== 'options');
+}
+
 const operations = [];
 for (const [route, pathItem] of Object.entries(spec.paths || {})) {
   for (const [method, operation] of Object.entries(pathItem || {})) {
@@ -146,11 +161,25 @@ for (const op of operations) {
     else if (op.hasQuery) lines.push('  const contractParams = options.query || {};');
     else lines.push(`  const contractParams = { ${headerFields} };`);
   }
+  const finalOrder = finalOrvalParameterOrder(op.id);
   const args = [];
-  for (const parameter of pathParameters) args.push(`options.path[${quote(parameter.name)}]`);
-  if (op.hasBody) args.push('options.data');
-  if (hasContractParams) { const paramsIndex = pathParameters.length + (op.hasBody ? 1 : 0); args.push(`contractParams as Parameters<typeof orval${symbol}>[${paramsIndex}]`); }
-  args.push('{ signal: options.signal, headers: options.headers }');
+  for (let index = 0; index < finalOrder.length; index += 1) {
+    const name = finalOrder[index];
+    if (name === 'data') {
+      if (!op.hasBody) throw new Error(`${op.id}: final Orval signature requires unexpected data argument`);
+      args.push(`options.data as unknown as Parameters<typeof orval${symbol}>[${index}]`);
+      continue;
+    }
+    if (name === 'params') {
+      if (!hasContractParams) throw new Error(`${op.id}: final Orval signature requires unexpected params argument`);
+      args.push(`contractParams as Parameters<typeof orval${symbol}>[${index}]`);
+      continue;
+    }
+    const pathParameter = pathParameters.find(parameter => parameter.name === name);
+    if (!pathParameter) throw new Error(`${op.id}: unsupported final Orval argument ${name}`);
+    args.push(`options.path[${quote(name)}] as Parameters<typeof orval${symbol}>[${index}]`);
+  }
+  args.push(`{ signal: options.signal, headers: options.headers } as Parameters<typeof orval${symbol}>[${finalOrder.length}]`);
   lines.push(`  const response = await orval${symbol}(${args.join(', ')});`);
   lines.push('  return response.data as T;');
   lines.push('}');

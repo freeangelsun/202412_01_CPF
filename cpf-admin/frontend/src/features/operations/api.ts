@@ -22,7 +22,7 @@ const generatedData = <T>(response: { data: unknown }): T => response.data as T;
 
 export type JsonMap = Record<string, unknown>;
 export interface RuntimeChangeCommand {
-  operationId: string; changeType: string; reason: string;
+  commandId: string; changeType: string; reason: string;
   expectedVersion: number; approvalId?: string; breakGlassId?: string;
   payloadSchemaVersion: number; target: JsonMap; payload: JsonMap;
 }
@@ -30,41 +30,41 @@ export const findRuntimeStatus = (environment?: string, serviceId?: string) => a
 export const findRuntimeHealth = () => admQuery<JsonMap>("/adm/api/runtime-control/health");
 export const findRuntimeCapabilities = () => admQuery<JsonMap[]>("/adm/api/runtime-control/capabilities");
 export const findRuntimeChange = (changeId: string) => admQuery<JsonMap>(`/adm/api/runtime-control/changes/${encodeURIComponent(changeId)}`);
-export const findRuntimeOperation = (operationId: string) => admQuery<JsonMap>(`/adm/api/runtime-control/operations/${encodeURIComponent(operationId)}`);
+export const findRuntimeOperation = (commandId: string) => admQuery<JsonMap>(`/adm/api/runtime-control/commands/${encodeURIComponent(commandId)}`);
 export const previewRuntimeChange = async (command: RuntimeChangeCommand) =>
-  generatedData<JsonMap>(await admRuntimeControlPreviewChange(command as Parameters<typeof admRuntimeControlPreviewChange>[0]));
+  generatedData<JsonMap>(await admRuntimeControlPreviewChange(command as unknown as Parameters<typeof admRuntimeControlPreviewChange>[0]));
 export const createRuntimeChange = async (command: RuntimeChangeCommand) =>
-  generatedData<JsonMap>(await admRuntimeControlCreateChange(command as Parameters<typeof admRuntimeControlCreateChange>[0]));
-export const cancelRuntimeChange = async (changeId: string, operationId: string, reason: string) =>
-  generatedData<JsonMap>(await admRuntimeControlCancelChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlCancelChange>[1]));
-export const rollbackRuntimeChange = async (changeId: string, operationId: string, reason: string) =>
-  generatedData<JsonMap>(await admRuntimeControlRollbackChange(changeId, { operationId, reason } as Parameters<typeof admRuntimeControlRollbackChange>[1]));
+  generatedData<JsonMap>(await admRuntimeControlCreateChange(command as unknown as Parameters<typeof admRuntimeControlCreateChange>[0]));
+export const cancelRuntimeChange = async (changeId: string, commandId: string, reason: string) =>
+  generatedData<JsonMap>(await admRuntimeControlCancelChange(changeId, { commandId, reason } as Parameters<typeof admRuntimeControlCancelChange>[1]));
+export const rollbackRuntimeChange = async (changeId: string, commandId: string, reason: string) =>
+  generatedData<JsonMap>(await admRuntimeControlRollbackChange(changeId, { commandId, reason } as Parameters<typeof admRuntimeControlRollbackChange>[1]));
 
 export const previewRuntimeTargets = async (changeType: string, payloadSchemaVersion: number, target: JsonMap) =>
   generatedData<JsonMap>(await admRuntimeControlPreviewTargets({ changeType, payloadSchemaVersion, target } as Parameters<typeof admRuntimeControlPreviewTargets>[0]));
 
 export const saveRuntimeGroup = async (request: JsonMap) =>
-  generatedData<JsonMap>(await admRuntimeControlSaveGroup(request as Parameters<typeof admRuntimeControlSaveGroup>[0]));
+  generatedData<JsonMap>(await admRuntimeControlSaveGroup(request as unknown as Parameters<typeof admRuntimeControlSaveGroup>[0]));
 
 export const changeRuntimeGroupMember = async (groupId: string, request: JsonMap) =>
-  generatedData<JsonMap>(await admRuntimeControlChangeGroupMember(groupId, request as Parameters<typeof admRuntimeControlChangeGroupMember>[1]));
+  generatedData<JsonMap>(await admRuntimeControlChangeGroupMember(groupId, request as unknown as Parameters<typeof admRuntimeControlChangeGroupMember>[1]));
 
-export const deleteRuntimeGroup = async (groupId: string, operationId: string, expectedVersion: number, reason: string) => {
-  await admRuntimeControlDeleteGroup(groupId, { operationId, expectedVersion, reason });
+export const deleteRuntimeGroup = async (groupId: string, commandId: string, expectedVersion: number, reason: string) => {
+  await admRuntimeControlDeleteGroup(groupId, { commandId, expectedVersion, reason });
   return { groupId, deleted: true } as JsonMap;
 };
 
 export const requestRuntimeApproval = async (command: RuntimeChangeCommand, ownerCommand = "RUNTIME_CONTROL_CREATE", targetId?: string) => {
   const payload = ownerCommand === "RUNTIME_CONTROL_CREATE"
     ? command
-    : { changeId: targetId ?? "", operationId: command.operationId, reason: command.reason };
+    : { changeId: targetId ?? "", commandId: command.commandId, reason: command.reason };
   return generatedData<JsonMap>(await admApprovalRequest({
     requestKey: globalThis.crypto?.randomUUID?.() ?? `approval-${Date.now()}`,
     actionType: "RUNTIME_CONFIG_CHANGE",
     ownerModule: "cpf-starter-platform-operations-runtime-control",
     ownerCommand,
     targetType: "CPF_RUNTIME_CHANGE",
-    targetId: targetId ?? command.operationId,
+    targetId: targetId ?? command.commandId,
     payloadSnapshot: JSON.stringify(payload),
     reason: command.reason
   }));

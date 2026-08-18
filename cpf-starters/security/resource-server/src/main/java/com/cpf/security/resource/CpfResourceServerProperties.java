@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -23,6 +25,8 @@ public class CpfResourceServerProperties {
     private String userIdClaim = "sub";
     private String tenantIdClaim = "tenant_id";
     private Set<String> safeClaimNames = new LinkedHashSet<>(Set.of("sub", "tenant_id", "scope"));
+    /** Explicit SubjectType -> JWT claim mapping used by Subject Tracking. Empty means no automatic Subject binding. */
+    private Map<String, String> subjectTrackingClaims = new LinkedHashMap<>();
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -38,6 +42,18 @@ public class CpfResourceServerProperties {
     public void setUserIdClaim(String userIdClaim) { this.userIdClaim = requireClaim(userIdClaim, "user-id-claim"); }
     public String getTenantIdClaim() { return tenantIdClaim; }
     public void setTenantIdClaim(String tenantIdClaim) { this.tenantIdClaim = requireClaim(tenantIdClaim, "tenant-id-claim"); }
+    public Map<String, String> getSubjectTrackingClaims() { return Map.copyOf(subjectTrackingClaims); }
+    public void setSubjectTrackingClaims(Map<String, String> values) {
+        var normalized = new LinkedHashMap<String, String>();
+        if (values != null) {
+            values.forEach((type, claim) -> {
+                if (type == null || type.isBlank()) throw new IllegalArgumentException("subject-tracking-claims type must not be blank");
+                normalized.put(type.trim(), requireClaim(claim, "subject-tracking-claims"));
+            });
+        }
+        subjectTrackingClaims = normalized;
+    }
+
     public Set<String> getSafeClaimNames() { return Set.copyOf(safeClaimNames); }
     public void setSafeClaimNames(Set<String> values) {
         if (values == null) throw new IllegalArgumentException("safe-claim-names must not be null");

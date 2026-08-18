@@ -17,7 +17,7 @@ public record CpfChannelDefinition(
         long version) {
 
     public CpfChannelDefinition {
-        channelCode = normalizeCode(channelCode, "채널 코드");
+        channelCode = normalizeChannelCode(channelCode);
         if (channelName == null || channelName.isBlank()) {
             throw new IllegalArgumentException("채널명은 필수입니다.");
         }
@@ -30,6 +30,14 @@ public record CpfChannelDefinition(
         }
     }
 
+
+    private static String normalizeChannelCode(String value) {
+        String normalized = value == null ? "" : value.trim();
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new IllegalArgumentException("채널 코드 형식이 올바르지 않습니다. value=" + value);
+        }
+        return normalized;
+    }
     private static String normalizeCode(String value, String fieldName) {
         String normalized = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
         if (!normalized.matches("[A-Z][A-Z0-9_]{1,29}")) {

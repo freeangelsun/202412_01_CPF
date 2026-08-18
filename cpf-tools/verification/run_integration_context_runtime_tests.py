@@ -46,7 +46,7 @@ def main():
       public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest r,HttpResponse.BodyHandler<T> h,HttpResponse.PushPromiseHandler<T> p){throw new UnsupportedOperationException();}
     }
     static CpfContext root(){Instant n=Instant.now();return new CpfContext(
-      new CpfContext.CpfTransactionContext("20260809000000000EDUlocal010000002","20260809000000000EDUlocal010000002",null,"CORR-I","TRACE-I","WEB","SYS-I",LocalDate.of(2026,8,9),n,CpfContext.CpfTransactionOriginKind.HTTP,"SYS-I",null),
+      new CpfContext.CpfTransactionContext("20260809000000000EDUlocal010000002","20260809000000000EDUlocal010000002",null,"CORR-I","TRACE-I","WEB","EDU","WEB","EDU",LocalDate.of(2026,8,9),n,CpfContext.CpfTransactionOriginKind.HTTP,"EDU",null),
       new CpfContext.CpfExecutionContext("OEDU030001","EX-I-ROOT","EX-I-ROOT",null,"SG-I-ROOT",null,CpfContext.CpfExecutionType.API,1,0,n,n.plusSeconds(60),CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
       new CpfContext.CpfOperationContext("OP-I","pay","CMD-I","IDEM-I",CpfContext.CpfIdempotencyScope.TRANSACTION,CpfContext.CpfIdempotencyMode.REQUIRED,null,null),null,null);}
     public static void main(String[] a)throws Exception{

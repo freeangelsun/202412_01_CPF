@@ -9,7 +9,6 @@ import com.cpf.platform.operations.channelregistry.model.CpfChannelPolicySnapsho
 
 import java.time.Instant;
 import java.time.Duration;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -141,7 +140,7 @@ public class CpfChannelPolicyService {
                         policyPackage.channels().stream().map(CpfChannelDefinition::channelCode))
                 .collect(Collectors.toUnmodifiableSet());
         for (CpfChannelExecutionPolicy policy : policyPackage.policies()) {
-            if (!"ANY".equals(policy.callerChannel()) && !channelCodes.contains(policy.callerChannel())) {
+            if (!"*".equals(policy.callerChannel()) && !channelCodes.contains(policy.callerChannel())) {
                 throw new IllegalArgumentException(
                         "채널 정책 패키지의 Caller Channel 참조가 없습니다. policyKey=" + policy.policyKey());
             }
@@ -186,7 +185,9 @@ public class CpfChannelPolicyService {
     }
 
     private String normalize(String value) {
-        return value == null || value.isBlank() ? "" : value.trim().toUpperCase(Locale.ROOT);
+        if (value == null || value.isBlank()) return "";
+        String normalized = value.trim();
+        return normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}") ? normalized : "";
     }
 
     private void requireOperation(String actor, String reason) {

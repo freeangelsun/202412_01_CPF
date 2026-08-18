@@ -35,12 +35,12 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "cpf_message 기준 메시지를 locale별로 조회합니다.")
+    @GetMapping    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "CMN_MESSAGE 기준 메시지를 locale별로 조회합니다.")
     public ResponseEntity<List<Map<String, Object>>> findMessages() {
         return ResponseEntity.ok(messageCacheService.getAllMessages());
     }
 
-    @GetMapping("/{messageId}")    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 cpf_message 상세 정보를 조회합니다.")
+    @GetMapping("/{messageId}")    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 CMN_MESSAGE 상세 정보를 조회합니다.")
     public ResponseEntity<Map<String, Object>> findMessage(@PathVariable Long messageId) {
         return ResponseEntity.ok(messageCacheService.getMessageById(messageId));
     }
@@ -55,7 +55,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
                 CpfContexts.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_CREATE",
-                "cpf_message",
+                "CMN_MESSAGE",
                 String.valueOf(created.getOrDefault("messageId", request.getEffectiveMessageCode())),
                 reason,
                 null,
@@ -77,7 +77,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
                 CpfContexts.transactionId(),
                 requestUser(servletRequest, request.getRequestUser()),
                 "MESSAGE_UPDATE",
-                "cpf_message",
+                "CMN_MESSAGE",
                 String.valueOf(messageId),
                 reason,
                 String.valueOf(before),
@@ -99,7 +99,7 @@ public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseContr
                 CpfContexts.transactionId(),
                 requireOperator(servletRequest),
                 "MESSAGE_DISABLE",
-                "cpf_message",
+                "CMN_MESSAGE",
                 String.valueOf(messageId),
                 requiredReason,
                 String.valueOf(before),

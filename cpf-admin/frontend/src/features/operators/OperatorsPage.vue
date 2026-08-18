@@ -36,10 +36,10 @@
     </div>
     <CpfStructuredData v-else class="detail" :value="operatorResult" />
 
-    <dialog :open="operatorRawOpen" class="modal">
+    <CpfModal :open="operatorRawOpen" @cancel="closeOperatorRaw" aria-labelledby="operator-raw-title">
       <form class="modal-card" @submit.prevent="viewOperatorRaw">
         <div class="card-head">
-          <div><p class="eyebrow">PII RAW</p><h2>운영자 연락처 원문 조회</h2></div>
+          <div><p class="eyebrow">PII RAW</p><h2 id="operator-raw-title">운영자 연락처 원문 조회</h2></div>
           <button type="button" class="icon-button" aria-label="닫기" @click="closeOperatorRaw">×</button>
         </div>
         <p class="hint">원문 조회는 별도 권한과 구체적인 사유가 필요하며, 조회 시도와 결과는 감사 로그에 기록됩니다.</p>
@@ -58,17 +58,18 @@
           <button type="submit" class="primary" :disabled="operatorRawLoading">원문 조회</button>
         </div>
       </form>
-    </dialog>
+    </CpfModal>
   </section>
 
   <section class="panel route-operation-panel"><h3>역할·세션·연락처 운영</h3><div class="filters"><label>대상 운영자 ID <input v-model="operationForm.operatorId"></label><label>Role IDs <input v-model="operationForm.roleIds" placeholder="ADM_VIEWER,ADM_OPERATOR"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" @click="loadOperatorRoles">역할 조회</button><button type="button" @click="loadOperatorSessions">세션 조회</button><button v-if="canUnlock" type="button" @click="unlockManagedOperator">잠금 해제</button><button v-if="canUpdateContact" type="button" @click="updateOperatorContact">연락처 수정</button><button v-if="canUpdateRoles" type="button" @click="updateOperatorRoles">역할 수정</button></div><CpfStructuredData class="detail" :value="operationResult" /></section>
 </template>
 
 <script lang="ts">
+import CpfModal from '../../components/ui/CpfModal.vue';
 import { defineComponent } from "vue";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 
-export default defineComponent({setup(){return useAdmConsolePage()},
+export default defineComponent({components:{CpfModal},setup(){return useAdmConsolePage()},
   name: "OperatorsPage",
 
   computed: {

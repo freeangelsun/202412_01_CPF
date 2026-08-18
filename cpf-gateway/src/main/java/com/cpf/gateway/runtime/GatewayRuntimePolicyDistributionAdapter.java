@@ -44,7 +44,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         String eventId = blank(command.eventId()) ? UUID.randomUUID().toString() : command.eventId().trim();
         try {
             jdbc.update("""
-                    INSERT INTO cpf_runtime_policy_event
+                    INSERT INTO OPS_RUNTIME_POLICY_EVENT
                     (event_id,event_type,aggregate_type,aggregate_id,aggregate_version,action_code,payload_checksum,
                      metadata_text,reason,requested_by,occurred_at,event_status,created_at)
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,'PENDING',CURRENT_TIMESTAMP)
@@ -81,7 +81,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
             long token = Math.max(1, event.fencingToken() + 1);
             int attempt = event.deliveryAttempt() + 1;
             int updated = jdbc.update("""
-                    UPDATE cpf_runtime_policy_delivery
+                    UPDATE OPS_RUNTIME_POLICY_DELIVERY
                        SET delivery_status='CLAIMED',attempt_count=?,fencing_token=?,leased_until=?,
                            error_code=NULL,error_message=NULL,acknowledged_at=NULL,updated_at=CURRENT_TIMESTAMP
                      WHERE event_id=? AND consumer_id=? AND fencing_token=?
@@ -93,7 +93,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
             if (updated == 0 && event.fencingToken() == 0) {
                 try {
                     jdbc.update("""
-                            INSERT INTO cpf_runtime_policy_delivery
+                            INSERT INTO OPS_RUNTIME_POLICY_DELIVERY
                             (event_id,consumer_id,delivery_status,attempt_count,fencing_token,leased_until,
                              created_at,updated_at)
                             VALUES (?,?,'CLAIMED',1,1,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
@@ -131,7 +131,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         String errorMessage = truncate(clean(command.errorMessage()), 1000);
 
         int updated = jdbc.update("""
-                UPDATE cpf_runtime_policy_delivery
+                UPDATE OPS_RUNTIME_POLICY_DELIVERY
                    SET delivery_status=?,error_code=?,error_message=?,acknowledged_at=?,
                        leased_until=NULL,updated_at=CURRENT_TIMESTAMP
                  WHERE event_id=? AND consumer_id=? AND fencing_token=? AND delivery_status='CLAIMED'
@@ -144,8 +144,8 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
 
         List<DeliveryStatus> rows = jdbc.query("""
                 SELECT e.aggregate_type,e.aggregate_id,e.aggregate_version,d.attempt_count,d.updated_at
-                  FROM cpf_runtime_policy_delivery d
-                  JOIN cpf_runtime_policy_event e ON e.event_id=d.event_id
+                  FROM OPS_RUNTIME_POLICY_DELIVERY d
+                  JOIN OPS_RUNTIME_POLICY_EVENT e ON e.event_id=d.event_id
                  WHERE d.event_id=? AND d.consumer_id=?
                 """, (rs, rowNum) -> new DeliveryStatus(
                 eventId,
@@ -175,8 +175,8 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                 SELECT d.event_id,d.consumer_id,e.aggregate_type,e.aggregate_id,e.aggregate_version,d.delivery_status,
                        d.attempt_count,d.fencing_token,d.error_code,d.error_message,d.leased_until,
                        d.acknowledged_at,d.updated_at
-                  FROM cpf_runtime_policy_delivery d
-                  JOIN cpf_runtime_policy_event e ON e.event_id=d.event_id
+                  FROM OPS_RUNTIME_POLICY_DELIVERY d
+                  JOIN OPS_RUNTIME_POLICY_EVENT e ON e.event_id=d.event_id
                  WHERE 1=1
                 """);
         List<Object> args = new ArrayList<>();
@@ -197,8 +197,8 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
                 SELECT e.event_id,e.event_type,e.aggregate_type,e.aggregate_id,e.aggregate_version,e.action_code,
                        e.payload_checksum,e.metadata_text,e.reason,e.requested_by,e.occurred_at,
                        COALESCE(d.fencing_token,0) fencing_token,COALESCE(d.attempt_count,0) attempt_count
-                  FROM cpf_runtime_policy_event e
-                  LEFT JOIN cpf_runtime_policy_delivery d
+                  FROM OPS_RUNTIME_POLICY_EVENT e
+                  LEFT JOIN OPS_RUNTIME_POLICY_DELIVERY d
                     ON d.event_id=e.event_id AND d.consumer_id=?
                  WHERE e.event_status='PENDING'
                    AND (d.delivery_status IS NULL OR d.delivery_status IN ('PENDING','FAILED')
@@ -237,7 +237,7 @@ public class GatewayRuntimePolicyDistributionAdapter implements CpfRuntimePolicy
         return jdbc.query("""
                 SELECT event_id,event_type,aggregate_type,aggregate_id,aggregate_version,action_code,
                        payload_checksum,metadata_text,reason,requested_by,occurred_at
-                  FROM cpf_runtime_policy_event
+                  FROM OPS_RUNTIME_POLICY_EVENT
                  WHERE event_id=?
                 """, (rs, rowNum) -> new DistributionEvent(rs.getString("event_id"), rs.getString("event_type"),
                 rs.getString("aggregate_type"), rs.getString("aggregate_id"), rs.getLong("aggregate_version"),

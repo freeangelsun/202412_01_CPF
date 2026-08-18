@@ -41,7 +41,7 @@ public class CpfRuntimeControlPlaneRepository {
     Optional<Map<String, Object>> findCommand(String commandId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT operation_id, command_type, request_hash, entity_id, result_state, result_json, expires_at " +
-                        "FROM cpf_control_operation WHERE operation_id=?", commandId);
+                        "FROM OPS_CONTROL_OPERATION WHERE operation_id=?", commandId);
         return rows.stream().findFirst();
     }
 
@@ -52,15 +52,15 @@ public class CpfRuntimeControlPlaneRepository {
         String minute = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmm")
                 .withZone(java.time.ZoneOffset.UTC).format(now);
         String bucket = subjectId + ":" + minute;
-        int updated = jdbc.update("UPDATE cpf_runtime_rate_bucket SET request_count=request_count+1," +
+        int updated = jdbc.update("UPDATE OPS_RUNTIME_RATE_BUCKET SET request_count=request_count+1," +
                         "updated_at=CURRENT_TIMESTAMP WHERE bucket_key=? AND request_count<?",
                 bucket, limit);
         if (updated == 1) return;
         Integer existing = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM cpf_runtime_rate_bucket WHERE bucket_key=?", Integer.class, bucket);
+                "SELECT COUNT(*) FROM OPS_RUNTIME_RATE_BUCKET WHERE bucket_key=?", Integer.class, bucket);
         if (existing != null && existing > 0) throw new CpfRuntimeRateLimitException(limit);
         try {
-            jdbc.update("INSERT INTO cpf_runtime_rate_bucket " +
+            jdbc.update("INSERT INTO OPS_RUNTIME_RATE_BUCKET " +
                             "(bucket_key,subject_id,window_start,request_count,created_by,updated_by) " +
                             "VALUES (?,?,?,1,'CPF','CPF')",
                     bucket, subjectId, ts(now.truncatedTo(java.time.temporal.ChronoUnit.MINUTES)));
@@ -71,7 +71,7 @@ public class CpfRuntimeControlPlaneRepository {
 
     public boolean insertCommand(String commandId, String commandType, String requestHash, Instant expiresAt) {
         try {
-            return jdbc.update("INSERT INTO cpf_control_operation " +
+            return jdbc.update("INSERT INTO OPS_CONTROL_OPERATION " +
                             "(operation_id, command_type, request_hash, result_state, expires_at, created_by, updated_by) " +
                             "VALUES (?,?,?,?,?,?,?)",
                     commandId, commandType, requestHash, "PROCESSING", ts(expiresAt), "CPF", "CPF") == 1;
@@ -81,7 +81,7 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     public void completeCommand(String commandId, String entityId, String state, String resultJson) {
-        int updated = jdbc.update("UPDATE cpf_control_operation SET entity_id=?, result_state=?, result_json=?, updated_at=CURRENT_TIMESTAMP " +
+        int updated = jdbc.update("UPDATE OPS_CONTROL_OPERATION SET entity_id=?, result_state=?, result_json=?, updated_at=CURRENT_TIMESTAMP " +
                         "WHERE operation_id=? AND request_hash IS NOT NULL",
                 entityId, state, resultJson, commandId);
         if (updated != 1) throw new IllegalStateException("operation 완료 상태 갱신 실패: " + commandId);
@@ -89,21 +89,21 @@ public class CpfRuntimeControlPlaneRepository {
 
     public long lockAndNextVersion(Long expectedVersion) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT version_no FROM cpf_runtime_version WHERE version_key='GLOBAL' FOR UPDATE");
+                "SELECT version_no FROM OPS_RUNTIME_VERSION WHERE version_key='GLOBAL' FOR UPDATE");
         if (rows.isEmpty()) {
             try {
-                jdbc.update("INSERT INTO cpf_runtime_version (version_key, version_no, created_by, updated_by) VALUES ('GLOBAL',0,'CPF','CPF')");
+                jdbc.update("INSERT INTO OPS_RUNTIME_VERSION (version_key, version_no, created_by, updated_by) VALUES ('GLOBAL',0,'CPF','CPF')");
             } catch (DuplicateKeyException ignored) {
                 // 동시 insert는 재조회합니다.
             }
-            rows = jdbc.queryForList("SELECT version_no FROM cpf_runtime_version WHERE version_key='GLOBAL' FOR UPDATE");
+            rows = jdbc.queryForList("SELECT version_no FROM OPS_RUNTIME_VERSION WHERE version_key='GLOBAL' FOR UPDATE");
         }
         long current = ((Number) rows.getFirst().get("version_no")).longValue();
         if (expectedVersion != null && expectedVersion.longValue() != current) {
             throw new CpfRuntimeVersionConflictException(expectedVersion, current);
         }
         long next = current + 1L;
-        if (jdbc.update("UPDATE cpf_runtime_version SET version_no=?, updated_at=CURRENT_TIMESTAMP, updated_by='CPF' " +
+        if (jdbc.update("UPDATE OPS_RUNTIME_VERSION SET version_no=?, updated_at=CURRENT_TIMESTAMP, updated_by='CPF' " +
                 "WHERE version_key='GLOBAL' AND version_no=?", next, current) != 1) {
             throw new CpfRuntimeVersionConflictException(current, current);
         }
@@ -136,8 +136,8 @@ public class CpfRuntimeControlPlaneRepository {
         if (selector.groupId() != null && !selector.groupId().isBlank()) result.addAll(resolveGroup(selector.groupId()));
 
         if (result.isEmpty()) {
-            StringBuilder sql = new StringBuilder("SELECT i.instance_id FROM cpf_service_instance i " +
-                    "LEFT JOIN cpf_runtime_instance_state s ON s.instance_id=i.instance_id WHERE i.active_yn='Y'");
+            StringBuilder sql = new StringBuilder("SELECT i.instance_id FROM OPS_SERVICE_INSTANCE i " +
+                    "LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id WHERE i.active_yn='Y'");
             List<Object> args = new ArrayList<>();
             if (selector.serviceId() != null && !selector.serviceId().isBlank()) { sql.append(" AND i.service_id=?"); args.add(selector.serviceId()); }
             if (selector.environment() != null && !selector.environment().isBlank()) { sql.append(" AND i.environment_code=?"); args.add(selector.environment()); }
@@ -159,7 +159,7 @@ public class CpfRuntimeControlPlaneRepository {
                 "SELECT i.instance_id,i.service_id,COALESCE(i.environment_code,'') environment_code," +
                         "COALESCE(i.zone_code,'') zone_code,COALESCE(i.cell_code,'') cell_code," +
                         "COALESCE(i.drain_yn,'N') drain_yn,COALESCE(i.maintenance_yn,'N') maintenance_yn,s.labels_json " +
-                        "FROM cpf_service_instance i JOIN cpf_runtime_instance_state s ON s.instance_id=i.instance_id " +
+                        "FROM OPS_SERVICE_INSTANCE i JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id " +
                         "WHERE i.instance_id=? AND i.active_yn='Y'", instanceId);
         if (rows.isEmpty()) return false;
         Map<String,Object> row=rows.getFirst();
@@ -180,7 +180,7 @@ public class CpfRuntimeControlPlaneRepository {
 
     private boolean supportsCapability(String instanceId, String changeType, int payloadSchemaVersion) {
         List<Map<String,Object>> rows = jdbc.queryForList(
-                "SELECT capabilities_json FROM cpf_runtime_instance_state WHERE instance_id=?", instanceId);
+                "SELECT capabilities_json FROM OPS_RUNTIME_INSTANCE_STATE WHERE instance_id=?", instanceId);
         if (rows.isEmpty()) return false;
         Map<String,Object> capabilities = readMapOrEmpty(nullable(rows.getFirst().get("capabilities_json")));
         Object encoded = capabilities.get(baseChangeType(changeType));
@@ -203,9 +203,9 @@ public class CpfRuntimeControlPlaneRepository {
             String groupId=queue.get(index);
             if (!visited.add(groupId)) continue;
             if (visited.size()>1000) throw new IllegalStateException("Runtime group 중첩이 허용 한도를 초과했습니다.");
-            jdbc.queryForList("SELECT instance_id FROM cpf_runtime_group_member WHERE group_id=? AND active_yn='Y' ORDER BY instance_id", groupId)
+            jdbc.queryForList("SELECT instance_id FROM OPS_RUNTIME_GROUP_MEMBER WHERE group_id=? AND active_yn='Y' ORDER BY instance_id", groupId)
                     .forEach(row -> instances.add(String.valueOf(row.get("instance_id"))));
-            jdbc.queryForList("SELECT group_id FROM cpf_runtime_instance_group WHERE parent_group_id=? AND active_yn='Y' ORDER BY group_id", groupId)
+            jdbc.queryForList("SELECT group_id FROM OPS_RUNTIME_INSTANCE_GROUP WHERE parent_group_id=? AND active_yn='Y' ORDER BY group_id", groupId)
                     .forEach(row -> queue.add(String.valueOf(row.get("group_id"))));
         }
         return instances;
@@ -217,7 +217,7 @@ public class CpfRuntimeControlPlaneRepository {
                              int waveSize, int quorumPercent, Instant scheduledAt, Instant expiresAt,
                              String reason, String approvalId, String breakGlassId, String requestedBy, List<String> targets) {
         String state = scheduledAt != null && scheduledAt.isAfter(Instant.now()) ? "SCHEDULED" : "APPLYING";
-        jdbc.update("INSERT INTO cpf_runtime_change " +
+        jdbc.update("INSERT INTO OPS_RUNTIME_CHANGE " +
                         "(change_id,operation_id,change_type,payload_schema_version,request_hash,payload_hash,payload_json,rollback_payload_json,target_snapshot_json,desired_version," +
                         "rollout_mode,wave_size,quorum_percent,change_state,scheduled_at,expires_at,reason,approval_id,break_glass_id,requested_by,created_by,updated_by) " +
                         "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -228,24 +228,24 @@ public class CpfRuntimeControlPlaneRepository {
         int sequence = 0;
         for (String instanceId : targets) {
             String deliveryId = UUID.randomUUID().toString();
-            int inserted = jdbc.update("INSERT INTO cpf_runtime_delivery " +
+            int inserted = jdbc.update("INSERT INTO OPS_RUNTIME_DELIVERY " +
                             "(delivery_id,change_id,instance_id,sequence_no,desired_version,delivery_state,attempt_no,next_attempt_at,created_by,updated_by) " +
                             "VALUES (?,?,?,?,?,'PENDING',0,CURRENT_TIMESTAMP,?,?)",
                     deliveryId, changeId, instanceId, ++sequence, version, requestedBy, requestedBy);
             if (inserted != 1) throw new IllegalStateException("Runtime delivery 생성 실패: " + instanceId);
-            jdbc.update("UPDATE cpf_runtime_instance_state SET desired_version=?, desired_hash=?, drift_state='PENDING', updated_at=CURRENT_TIMESTAMP, updated_by=? WHERE instance_id=?",
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET desired_version=?, desired_hash=?, drift_state='PENDING', updated_at=CURRENT_TIMESTAMP, updated_by=? WHERE instance_id=?",
                     version, payloadHash, requestedBy, instanceId);
-            int featureUpdated = jdbc.update("UPDATE cpf_runtime_instance_feature_state SET desired_version=?,desired_hash=?,drift_state='PENDING'," +
+            int featureUpdated = jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET desired_version=?,desired_hash=?,drift_state='PENDING'," +
                             "updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND change_type=?",
                     version, payloadHash, requestedBy, instanceId, baseChangeType(type));
             if (featureUpdated == 0) {
                 try {
-                    jdbc.update("INSERT INTO cpf_runtime_instance_feature_state " +
+                    jdbc.update("INSERT INTO OPS_RUNTIME_INSTANCE_FEATURE_STATE " +
                                     "(instance_id,change_type,desired_version,actual_version,desired_hash,actual_hash,drift_state,created_by,updated_by) " +
                                     "VALUES (?,?,?,0,?,NULL,'PENDING',?,?)",
                             instanceId, baseChangeType(type), version, payloadHash, requestedBy, requestedBy);
                 } catch (DuplicateKeyException duplicate) {
-                    jdbc.update("UPDATE cpf_runtime_instance_feature_state SET desired_version=?,desired_hash=?,drift_state='PENDING'," +
+                    jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET desired_version=?,desired_hash=?,drift_state='PENDING'," +
                                     "updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND change_type=?",
                             version, payloadHash, requestedBy, instanceId, baseChangeType(type));
                 }
@@ -256,7 +256,7 @@ public class CpfRuntimeControlPlaneRepository {
 
     Optional<Map<String,Object>> findChange(String column, String value) {
         if (!"change_id".equals(column) && !"operation_id".equals(column)) throw new IllegalArgumentException("unsupported column");
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM cpf_runtime_change WHERE "+column+"=?", value);
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT * FROM OPS_RUNTIME_CHANGE WHERE "+column+"=?", value);
         return rows.stream().findFirst();
     }
 
@@ -268,13 +268,13 @@ public class CpfRuntimeControlPlaneRepository {
                 "SELECT d.delivery_id,d.change_id,d.instance_id,d.sequence_no,d.desired_version,d.attempt_no," +
                         "c.change_type,c.payload_schema_version,c.request_hash,c.payload_hash,c.payload_json,c.expires_at," +
                         "c.rollout_mode,c.wave_size,c.quorum_percent " +
-                        "FROM cpf_runtime_delivery d JOIN cpf_runtime_change c ON c.change_id=d.change_id " +
+                        "FROM OPS_RUNTIME_DELIVERY d JOIN OPS_RUNTIME_CHANGE c ON c.change_id=d.change_id " +
                         "WHERE d.instance_id=? AND d.delivery_state IN ('PENDING','FAILED') AND d.next_attempt_at<=CURRENT_TIMESTAMP " +
                         "AND c.change_state IN ('APPLYING','PARTIAL') " +
                         "AND (c.scheduled_at IS NULL OR c.scheduled_at<=CURRENT_TIMESTAMP) " +
                         "AND (c.expires_at IS NULL OR c.expires_at>CURRENT_TIMESTAMP) " +
                         "AND NOT EXISTS (" +
-                        "  SELECT 1 FROM cpf_runtime_delivery older JOIN cpf_runtime_change older_change ON older_change.change_id=older.change_id " +
+                        "  SELECT 1 FROM OPS_RUNTIME_DELIVERY older JOIN OPS_RUNTIME_CHANGE older_change ON older_change.change_id=older.change_id " +
                         "  WHERE older.instance_id=d.instance_id AND older_change.change_type=c.change_type " +
                         "  AND older.desired_version<d.desired_version " +
                         "  AND older.delivery_state NOT IN ('ACKED','CANCELLED','SUPERSEDED')" +
@@ -285,7 +285,7 @@ public class CpfRuntimeControlPlaneRepository {
             if (!isWaveOpen(row)) continue;
             String deliveryId = String.valueOf(row.get("delivery_id"));
             int updated = jdbc.update(
-                    "UPDATE cpf_runtime_delivery SET delivery_state='CLAIMED',attempt_no=attempt_no+1," +
+                    "UPDATE OPS_RUNTIME_DELIVERY SET delivery_state='CLAIMED',attempt_no=attempt_no+1," +
                             "fencing_token=?,claimed_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE delivery_id=? AND instance_id=? AND delivery_state IN ('PENDING','FAILED')",
                     fencingToken, deliveryId, instanceId);
@@ -310,7 +310,7 @@ public class CpfRuntimeControlPlaneRepository {
         if (rollout.isBlank() || "ALL_AT_ONCE".equals(rollout)) return true;
         String changeId = String.valueOf(candidate.get("change_id"));
         Integer blocked = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM cpf_runtime_delivery WHERE change_id=? " +
+                "SELECT COUNT(*) FROM OPS_RUNTIME_DELIVERY WHERE change_id=? " +
                         "AND delivery_state IN ('POISONED','UNKNOWN_RESULT','RESTART_REQUIRED')",
                 Integer.class, changeId);
         if (blocked != null && blocked > 0) return false;
@@ -324,7 +324,7 @@ public class CpfRuntimeControlPlaneRepository {
 
         List<Map<String,Object>> prior = jdbc.queryForList(
                 "SELECT d.instance_id,d.delivery_state,c.change_type " +
-                        "FROM cpf_runtime_delivery d JOIN cpf_runtime_change c ON c.change_id=d.change_id " +
+                        "FROM OPS_RUNTIME_DELIVERY d JOIN OPS_RUNTIME_CHANGE c ON c.change_id=d.change_id " +
                         "WHERE d.change_id=? AND d.sequence_no<? ORDER BY d.sequence_no",
                 changeId, waveStart);
         if (prior.isEmpty()) return true;
@@ -332,8 +332,8 @@ public class CpfRuntimeControlPlaneRepository {
         for (Map<String,Object> row : prior) {
             if (!"ACKED".equals(String.valueOf(row.get("delivery_state")))) return false;
             List<Map<String,Object>> health = jdbc.queryForList(
-                    "SELECT f.drift_state,s.lease_until FROM cpf_runtime_instance_feature_state f " +
-                            "JOIN cpf_runtime_instance_state s ON s.instance_id=f.instance_id " +
+                    "SELECT f.drift_state,s.lease_until FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE f " +
+                            "JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=f.instance_id " +
                             "WHERE f.instance_id=? AND f.change_type=?",
                     String.valueOf(row.get("instance_id")), String.valueOf(row.get("change_type")));
             if (!health.isEmpty()) {
@@ -346,14 +346,14 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     private void reconcileTemporalChanges() {
-        jdbc.update("UPDATE cpf_runtime_change SET change_state='APPLYING',updated_at=CURRENT_TIMESTAMP " +
+        jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state='APPLYING',updated_at=CURRENT_TIMESTAMP " +
                 "WHERE change_state='SCHEDULED' AND scheduled_at<=CURRENT_TIMESTAMP " +
                 "AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)");
-        jdbc.update("UPDATE cpf_runtime_change SET change_state='EXPIRED',updated_at=CURRENT_TIMESTAMP " +
+        jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state='EXPIRED',updated_at=CURRENT_TIMESTAMP " +
                 "WHERE change_state IN ('SCHEDULED','APPLYING','PARTIAL') AND expires_at<=CURRENT_TIMESTAMP");
-        jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state='EXPIRED',updated_at=CURRENT_TIMESTAMP " +
+        jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET delivery_state='EXPIRED',updated_at=CURRENT_TIMESTAMP " +
                 "WHERE delivery_state IN ('PENDING','FAILED','CLAIMED','RESTART_REQUIRED') " +
-                "AND change_id IN (SELECT change_id FROM cpf_runtime_change WHERE change_state='EXPIRED')");
+                "AND change_id IN (SELECT change_id FROM OPS_RUNTIME_CHANGE WHERE change_state='EXPIRED')");
     }
 
     public void acknowledge(String deliveryId, String changeId, String instanceId, long fencingToken,
@@ -366,7 +366,7 @@ public class CpfRuntimeControlPlaneRepository {
         }
 
         List<Map<String,Object>> currentRows = jdbc.queryForList(
-                "SELECT delivery_state,actual_hash,error_code FROM cpf_runtime_delivery " +
+                "SELECT delivery_state,actual_hash,error_code FROM OPS_RUNTIME_DELIVERY " +
                         "WHERE delivery_id=? AND change_id=? AND instance_id=?", deliveryId, changeId, instanceId);
         if (currentRows.isEmpty()) throw new CpfRuntimeFenceException("Runtime delivery를 찾을 수 없습니다: " + deliveryId);
         Map<String,Object> current = currentRows.getFirst();
@@ -398,13 +398,13 @@ public class CpfRuntimeControlPlaneRepository {
             deliveryState = "RESTART_REQUIRED";
         } else {
             Integer attemptValue = jdbc.queryForObject(
-                    "SELECT attempt_no FROM cpf_runtime_delivery WHERE delivery_id=?", Integer.class, deliveryId);
+                    "SELECT attempt_no FROM OPS_RUNTIME_DELIVERY WHERE delivery_id=?", Integer.class, deliveryId);
             int attempt = attemptValue == null ? 1 : attemptValue;
             deliveryState = isPermanentFailure(errorCode) || attempt >= 8 ? "POISONED" : "FAILED";
         }
 
         int updated = jdbc.update(
-                "UPDATE cpf_runtime_delivery SET delivery_state=?,actual_hash=?,error_code=?,error_message=?," +
+                "UPDATE OPS_RUNTIME_DELIVERY SET delivery_state=?,actual_hash=?,error_code=?,error_message=?," +
                         "acknowledged_at=?,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE delivery_id=? AND change_id=? AND instance_id=? AND fencing_token=? AND delivery_state='CLAIMED'",
                 deliveryState, actualHash, errorCode, truncate(message, 900), ts(at),
@@ -414,42 +414,42 @@ public class CpfRuntimeControlPlaneRepository {
         }
 
         if ("ACKED".equals(deliveryState)) {
-            jdbc.update("UPDATE cpf_runtime_instance_state SET actual_version=?,actual_hash=?," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET actual_version=?,actual_hash=?," +
                             "drift_state=CASE WHEN desired_version=? AND desired_hash=? THEN 'IN_SYNC' ELSE 'DRIFT' END," +
                             "last_ack_change_id=?,last_ack_at=?,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE instance_id=? AND fencing_token=?",
                     appliedVersion, actualHash, appliedVersion, actualHash, changeId, ts(at), instanceId, fencingToken);
-            jdbc.update("UPDATE cpf_runtime_instance_feature_state SET actual_version=?,actual_hash=?," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET actual_version=?,actual_hash=?," +
                             "drift_state=CASE WHEN desired_version=? AND desired_hash=? THEN 'IN_SYNC' ELSE 'DRIFT' END," +
                             "source_delivery_id=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? " +
-                            "AND change_type=(SELECT change_type FROM cpf_runtime_change WHERE change_id=?)",
+                            "AND change_type=(SELECT change_type FROM OPS_RUNTIME_CHANGE WHERE change_id=?)",
                     appliedVersion, actualHash, appliedVersion, actualHash, deliveryId, instanceId, changeId);
         } else if ("RESTART_REQUIRED".equals(deliveryState)) {
-            jdbc.update("UPDATE cpf_runtime_instance_state SET drift_state='PENDING_RESTART'," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET drift_state='PENDING_RESTART'," +
                     "last_ack_change_id=?,last_ack_at=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND fencing_token=?",
                     changeId, ts(at), instanceId, fencingToken);
-            jdbc.update("UPDATE cpf_runtime_instance_feature_state SET drift_state='PENDING_RESTART'," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET drift_state='PENDING_RESTART'," +
                             "source_delivery_id=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? " +
-                            "AND change_type=(SELECT change_type FROM cpf_runtime_change WHERE change_id=?)",
+                            "AND change_type=(SELECT change_type FROM OPS_RUNTIME_CHANGE WHERE change_id=?)",
                     deliveryId, instanceId, changeId);
-            jdbc.update("UPDATE cpf_service_instance SET drain_yn='Y',instance_status='DRAINING'," +
+            jdbc.update("UPDATE OPS_SERVICE_INSTANCE SET drain_yn='Y',instance_status='DRAINING'," +
                     "drain_deadline_at=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=?",
                     ts(Instant.now().plusSeconds(600)), instanceId);
         } else if ("UNKNOWN_RESULT".equals(deliveryState)) {
-            jdbc.update("UPDATE cpf_runtime_instance_state SET drift_state='UNKNOWN_RESULT'," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET drift_state='UNKNOWN_RESULT'," +
                     "last_ack_change_id=?,last_ack_at=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND fencing_token=?",
                     changeId, ts(at), instanceId, fencingToken);
-            jdbc.update("UPDATE cpf_runtime_instance_feature_state SET drift_state='UNKNOWN_RESULT'," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET drift_state='UNKNOWN_RESULT'," +
                             "source_delivery_id=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=? " +
-                            "AND change_type=(SELECT change_type FROM cpf_runtime_change WHERE change_id=?)",
+                            "AND change_type=(SELECT change_type FROM OPS_RUNTIME_CHANGE WHERE change_id=?)",
                     deliveryId, instanceId, changeId);
         } else if ("FAILED".equals(deliveryState)) {
             Integer attemptValue = jdbc.queryForObject(
-                    "SELECT attempt_no FROM cpf_runtime_delivery WHERE delivery_id=?", Integer.class, deliveryId);
+                    "SELECT attempt_no FROM OPS_RUNTIME_DELIVERY WHERE delivery_id=?", Integer.class, deliveryId);
             int attempt = attemptValue == null ? 1 : attemptValue;
             long base = Math.min(300L, Math.max(1L, 1L << Math.min(8, Math.max(0, attempt - 1))));
             long jitter = Math.floorMod(deliveryId.hashCode(), Math.max(1, (int) Math.min(30L, base)));
-            jdbc.update("UPDATE cpf_runtime_delivery SET next_attempt_at=?,updated_at=CURRENT_TIMESTAMP WHERE delivery_id=?",
+            jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET next_attempt_at=?,updated_at=CURRENT_TIMESTAMP WHERE delivery_id=?",
                     ts(Instant.now().plusSeconds(base + jitter)), deliveryId);
         }
 
@@ -465,15 +465,15 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     public void cancel(String changeId, String operatorId, String reason) {
-        int updated=jdbc.update("UPDATE cpf_runtime_change SET change_state='CANCELLED',updated_at=CURRENT_TIMESTAMP,updated_by=? " +
+        int updated=jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state='CANCELLED',updated_at=CURRENT_TIMESTAMP,updated_by=? " +
                 "WHERE change_id=? AND change_state IN ('SCHEDULED','APPLYING','PARTIAL')",operatorId,changeId);
         if (updated!=1) throw new IllegalStateException("취소할 수 없는 Runtime Change입니다. changeId="+changeId);
-        jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state='CANCELLED',updated_at=CURRENT_TIMESTAMP WHERE change_id=? AND delivery_state IN ('PENDING','FAILED')",changeId);
+        jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET delivery_state='CANCELLED',updated_at=CURRENT_TIMESTAMP WHERE change_id=? AND delivery_state IN ('PENDING','FAILED')",changeId);
         appendAudit(changeId,"CHANGE_CANCELLED",operatorId,reason,null);
     }
 
     public void markRollbackPending(String changeId, String operatorId, String reason) {
-        int updated=jdbc.update("UPDATE cpf_runtime_change SET change_state='ROLLBACK_PENDING',updated_at=CURRENT_TIMESTAMP,updated_by=? " +
+        int updated=jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state='ROLLBACK_PENDING',updated_at=CURRENT_TIMESTAMP,updated_by=? " +
                 "WHERE change_id=? AND change_state IN ('SUCCESS','PARTIAL','FAILED','EXPIRED')",operatorId,changeId);
         if (updated!=1) throw new IllegalStateException("Rollback할 수 없는 Runtime Change입니다. changeId="+changeId);
         appendAudit(changeId,"ROLLBACK_REQUESTED",operatorId,reason,null);
@@ -491,7 +491,7 @@ public class CpfRuntimeControlPlaneRepository {
         ensureServiceAndEndpoint(r);
 
         List<Map<String,Object>> existing = jdbc.queryForList(
-                "SELECT fencing_token,lease_until,registration_source FROM cpf_runtime_instance_state " +
+                "SELECT fencing_token,lease_until,registration_source FROM OPS_RUNTIME_INSTANCE_STATE " +
                         "WHERE instance_id=? FOR UPDATE", r.instanceId());
         long fence = existing.isEmpty() ? 1L : ((Number) existing.getFirst().get("fencing_token")).longValue() + 1L;
         if (!existing.isEmpty()) {
@@ -514,7 +514,7 @@ public class CpfRuntimeControlPlaneRepository {
 
         if (existing.isEmpty()) {
             try {
-                jdbc.update("INSERT INTO cpf_runtime_instance_state " +
+                jdbc.update("INSERT INTO OPS_RUNTIME_INSTANCE_STATE " +
                                 "(instance_id,fencing_token,lease_until,desired_version,actual_version,drift_state," +
                                 "capabilities_json,labels_json,artifact_version,artifact_commit,runtime_role,registration_source," +
                                 "schema_version,config_hash,clock_skew_ms,heartbeat_at,created_by,updated_by) " +
@@ -526,7 +526,7 @@ public class CpfRuntimeControlPlaneRepository {
                 return register(r);
             }
         } else {
-            int updated = jdbc.update("UPDATE cpf_runtime_instance_state SET fencing_token=?,lease_until=?," +
+            int updated = jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET fencing_token=?,lease_until=?," +
                             "capabilities_json=?,labels_json=?,artifact_version=?,artifact_commit=?,runtime_role=?," +
                             "registration_source=?,schema_version=?,config_hash=?,clock_skew_ms=?,heartbeat_at=CURRENT_TIMESTAMP," +
                             "updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND fencing_token=?",
@@ -534,7 +534,7 @@ public class CpfRuntimeControlPlaneRepository {
                     blank(r.runtimeRole()), blank(r.registrationSource()), blank(r.schemaVersion()), blank(r.configHash()),
                     skewMs, r.instanceId(), fence - 1);
             if (updated != 1) throw new CpfRuntimeFenceException("Runtime instance 재등록 fencing 충돌: " + r.instanceId());
-            jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state='PENDING',fencing_token=NULL," +
+            jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET delivery_state='PENDING',fencing_token=NULL," +
                             "next_attempt_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE instance_id=? AND delivery_state='RESTART_REQUIRED'",
                     r.instanceId());
@@ -551,14 +551,14 @@ public class CpfRuntimeControlPlaneRepository {
                     + ", skewMs=" + skewMs);
         }
         Instant until = Instant.now().plusSeconds(Math.max(10, Math.min(3600, leaseSeconds)));
-        int updated = jdbc.update("UPDATE cpf_runtime_instance_state SET lease_until=?,heartbeat_at=CURRENT_TIMESTAMP," +
+        int updated = jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET lease_until=?,heartbeat_at=CURRENT_TIMESTAMP," +
                         "actual_hash=?,actual_version=?,clock_skew_ms=?," +
                         "drift_state=CASE WHEN desired_version=? AND COALESCE(desired_hash,'')=COALESCE(?,'') " +
                         "THEN 'IN_SYNC' ELSE drift_state END,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE instance_id=? AND fencing_token=?",
                 ts(until), actualHash, actualVersion, skewMs, actualVersion, actualHash, instanceId, fencingToken);
         if (updated != 1) throw new CpfRuntimeFenceException("Runtime heartbeat fencing 충돌: " + instanceId);
-        jdbc.update("UPDATE cpf_service_instance SET instance_status=CASE WHEN COALESCE(drain_yn,'N')='Y' " +
+        jdbc.update("UPDATE OPS_SERVICE_INSTANCE SET instance_status=CASE WHEN COALESCE(drain_yn,'N')='Y' " +
                         "THEN 'DRAINING' ELSE 'UP' END,last_heartbeat_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE instance_id=?", instanceId);
         return lease(instanceId);
@@ -572,10 +572,10 @@ public class CpfRuntimeControlPlaneRepository {
 
     public void deregister(String instanceId, long fencingToken, String reason) {
         assertFence(instanceId, fencingToken);
-        jdbc.update("UPDATE cpf_runtime_instance_state SET lease_until=CURRENT_TIMESTAMP," +
+        jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET lease_until=CURRENT_TIMESTAMP," +
                         "heartbeat_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE instance_id=? AND fencing_token=?", instanceId, fencingToken);
-        jdbc.update("UPDATE cpf_service_instance SET instance_status='DOWN',active_yn='N'," +
+        jdbc.update("UPDATE OPS_SERVICE_INSTANCE SET instance_status='DOWN',active_yn='N'," +
                 "updated_at=CURRENT_TIMESTAMP WHERE instance_id=?", instanceId);
     }
 
@@ -586,7 +586,7 @@ public class CpfRuntimeControlPlaneRepository {
         for (CpfRuntimeActualState state : states == null ? List.<CpfRuntimeActualState>of() : states) {
             if (state == null || state.changeType() == null || state.changeType().isBlank()
                     || state.actualHash() == null || state.actualHash().isBlank()) continue;
-            int updated = jdbc.update("UPDATE cpf_runtime_instance_feature_state SET actual_version=?,actual_hash=?," +
+            int updated = jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_FEATURE_STATE SET actual_version=?,actual_hash=?," +
                             "drift_state=CASE WHEN desired_version=? AND desired_hash=? THEN 'IN_SYNC' ELSE 'DRIFT' END," +
                             "source_delivery_id=?,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE instance_id=? AND change_type=?",
@@ -594,7 +594,7 @@ public class CpfRuntimeControlPlaneRepository {
                     state.sourceDeliveryId(), instanceId, state.changeType().trim().toUpperCase());
             if (updated == 0) {
                 try {
-                    jdbc.update("INSERT INTO cpf_runtime_instance_feature_state " +
+                    jdbc.update("INSERT INTO OPS_RUNTIME_INSTANCE_FEATURE_STATE " +
                                     "(instance_id,change_type,desired_version,actual_version,desired_hash,actual_hash," +
                                     "drift_state,source_delivery_id,created_by,updated_by) " +
                                     "VALUES (?,?,0,?,?,?,'DRIFT',?,'CPF','CPF')",
@@ -610,7 +610,7 @@ public class CpfRuntimeControlPlaneRepository {
             }
         }
         if (maxVersion > 0L) {
-            jdbc.update("UPDATE cpf_runtime_instance_state SET actual_version=?,actual_hash=?," +
+            jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET actual_version=?,actual_hash=?," +
                             "updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND fencing_token=?",
                     maxVersion, maxHash, instanceId, fencingToken);
         }
@@ -622,11 +622,11 @@ public class CpfRuntimeControlPlaneRepository {
         Instant now = Instant.now();
         Instant until = now.plusSeconds(seconds);
         List<Map<String,Object>> rows = jdbc.queryForList(
-                "SELECT holder_id,fencing_token,lease_until FROM cpf_runtime_controller_lease " +
+                "SELECT holder_id,fencing_token,lease_until FROM OPS_RUNTIME_CONTROLLER_LEASE " +
                         "WHERE lease_key='RUNTIME_CONTROL' FOR UPDATE");
         if (rows.isEmpty()) {
             try {
-                jdbc.update("INSERT INTO cpf_runtime_controller_lease " +
+                jdbc.update("INSERT INTO OPS_RUNTIME_CONTROLLER_LEASE " +
                                 "(lease_key,holder_id,fencing_token,lease_until,created_by,updated_by) " +
                                 "VALUES ('RUNTIME_CONTROL',?,1,?,'CPF','CPF')",
                         holderId, ts(until));
@@ -640,7 +640,7 @@ public class CpfRuntimeControlPlaneRepository {
         long currentFence = ((Number) row.get("fencing_token")).longValue();
         Instant currentUntil = toInstant(row.get("lease_until"));
         if (holderId.equals(currentHolder) && currentUntil != null && currentUntil.isAfter(now)) {
-            int updated = jdbc.update("UPDATE cpf_runtime_controller_lease SET lease_until=?," +
+            int updated = jdbc.update("UPDATE OPS_RUNTIME_CONTROLLER_LEASE SET lease_until=?," +
                             "last_reconciled_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE lease_key='RUNTIME_CONTROL' AND holder_id=? AND fencing_token=?",
                     ts(until), holderId, currentFence);
@@ -648,7 +648,7 @@ public class CpfRuntimeControlPlaneRepository {
         }
         if (currentUntil == null || !currentUntil.isAfter(now)) {
             long nextFence = currentFence + 1L;
-            int updated = jdbc.update("UPDATE cpf_runtime_controller_lease SET holder_id=?,fencing_token=?," +
+            int updated = jdbc.update("UPDATE OPS_RUNTIME_CONTROLLER_LEASE SET holder_id=?,fencing_token=?," +
                             "lease_until=?,last_reconciled_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP " +
                             "WHERE lease_key='RUNTIME_CONTROL' AND fencing_token=?",
                     holderId, nextFence, ts(until), currentFence);
@@ -662,25 +662,25 @@ public class CpfRuntimeControlPlaneRepository {
         reconcileTemporalChanges();
         Instant timeout = Instant.now().minusSeconds(Math.max(10, ackTimeoutSeconds));
         List<Map<String,Object>> timedOut = jdbc.queryForList(
-                "SELECT delivery_id,attempt_no FROM cpf_runtime_delivery " +
+                "SELECT delivery_id,attempt_no FROM OPS_RUNTIME_DELIVERY " +
                         "WHERE delivery_state='CLAIMED' AND claimed_at<?", ts(timeout));
         for (Map<String,Object> row : timedOut) {
             String deliveryId = String.valueOf(row.get("delivery_id"));
             int attempt = ((Number) row.get("attempt_no")).intValue();
             String nextState = attempt >= 8 ? "POISONED" : "FAILED";
-            jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state=?,error_code='ACK_TIMEOUT'," +
+            jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET delivery_state=?,error_code='ACK_TIMEOUT'," +
                             "error_message='Runtime Agent ACK timeout',next_attempt_at=CURRENT_TIMESTAMP," +
                             "updated_at=CURRENT_TIMESTAMP WHERE delivery_id=? AND delivery_state='CLAIMED'",
                     nextState, deliveryId);
         }
 
-        jdbc.update("UPDATE cpf_service_instance SET instance_status='DOWN',updated_at=CURRENT_TIMESTAMP " +
-                "WHERE instance_id IN (SELECT instance_id FROM cpf_runtime_instance_state " +
+        jdbc.update("UPDATE OPS_SERVICE_INSTANCE SET instance_status='DOWN',updated_at=CURRENT_TIMESTAMP " +
+                "WHERE instance_id IN (SELECT instance_id FROM OPS_RUNTIME_INSTANCE_STATE " +
                 "WHERE lease_until<CURRENT_TIMESTAMP)");
 
         List<Map<String,Object>> blocked = jdbc.queryForList(
                 "SELECT DISTINCT c.change_id,c.rollout_mode,d.delivery_state " +
-                        "FROM cpf_runtime_change c JOIN cpf_runtime_delivery d ON d.change_id=c.change_id " +
+                        "FROM OPS_RUNTIME_CHANGE c JOIN OPS_RUNTIME_DELIVERY d ON d.change_id=c.change_id " +
                         "WHERE c.change_state IN ('APPLYING','PARTIAL') " +
                         "AND c.rollout_mode IN ('CANARY','WAVE') " +
                         "AND d.delivery_state IN ('POISONED','UNKNOWN_RESULT')");
@@ -688,16 +688,16 @@ public class CpfRuntimeControlPlaneRepository {
             String changeId = String.valueOf(row.get("change_id"));
             String deliveryState = String.valueOf(row.get("delivery_state"));
             String state = "UNKNOWN_RESULT".equals(deliveryState) ? "UNKNOWN_RESULT" : "FAILED";
-            jdbc.update("UPDATE cpf_runtime_change SET change_state=?,updated_at=CURRENT_TIMESTAMP " +
+            jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state=?,updated_at=CURRENT_TIMESTAMP " +
                     "WHERE change_id=? AND change_state IN ('APPLYING','PARTIAL')", state, changeId);
-            jdbc.update("UPDATE cpf_runtime_delivery SET delivery_state='CANCELLED',updated_at=CURRENT_TIMESTAMP " +
+            jdbc.update("UPDATE OPS_RUNTIME_DELIVERY SET delivery_state='CANCELLED',updated_at=CURRENT_TIMESTAMP " +
                     "WHERE change_id=? AND delivery_state IN ('PENDING','FAILED')", changeId);
             appendAudit(changeId, "ROLLOUT_AUTO_STOP", holderId,
                     "Canary/Wave health gate stopped rollout: " + deliveryState, null);
         }
-        jdbc.update("DELETE FROM cpf_runtime_rate_bucket WHERE window_start<?",
+        jdbc.update("DELETE FROM OPS_RUNTIME_RATE_BUCKET WHERE window_start<?",
                 ts(Instant.now().minusSeconds(172800)));
-        jdbc.update("UPDATE cpf_runtime_controller_lease SET last_reconciled_at=CURRENT_TIMESTAMP," +
+        jdbc.update("UPDATE OPS_RUNTIME_CONTROLLER_LEASE SET last_reconciled_at=CURRENT_TIMESTAMP," +
                         "updated_at=CURRENT_TIMESTAMP WHERE lease_key='RUNTIME_CONTROL' " +
                         "AND holder_id=? AND fencing_token=?",
                 holderId, fencingToken);
@@ -705,13 +705,13 @@ public class CpfRuntimeControlPlaneRepository {
 
     public List<String> acknowledgedTargets(String changeId) {
         return jdbc.queryForList(
-                "SELECT instance_id FROM cpf_runtime_delivery WHERE change_id=? AND delivery_state='ACKED' ORDER BY sequence_no",
+                "SELECT instance_id FROM OPS_RUNTIME_DELIVERY WHERE change_id=? AND delivery_state='ACKED' ORDER BY sequence_no",
                 String.class, changeId);
     }
 
     List<Map<String,Object>> autoRollbackCandidates() {
         return jdbc.queryForList(
-                "SELECT change_id,change_type,change_state,approval_id,break_glass_id FROM cpf_runtime_change " +
+                "SELECT change_id,change_type,change_state,approval_id,break_glass_id FROM OPS_RUNTIME_CHANGE " +
                         "WHERE change_state IN ('FAILED','EXPIRED') " +
                         "AND rollback_payload_json IS NOT NULL " +
                         "AND (approval_id IS NOT NULL OR break_glass_id IS NOT NULL) " +
@@ -721,7 +721,7 @@ public class CpfRuntimeControlPlaneRepository {
     boolean selfHealingCircuitOpen(int failureThreshold, Instant since) {
         int threshold = Math.max(1, failureThreshold);
         Integer failures = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM cpf_runtime_change WHERE requested_by='CPF_CONTROLLER' " +
+                "SELECT COUNT(*) FROM OPS_RUNTIME_CHANGE WHERE requested_by='CPF_CONTROLLER' " +
                         "AND change_type LIKE 'ROLLBACK:%' AND change_state IN ('FAILED','UNKNOWN_RESULT') " +
                         "AND created_at>=?",
                 Integer.class, ts(since));
@@ -730,7 +730,7 @@ public class CpfRuntimeControlPlaneRepository {
 
     private void assertControllerFence(String holderId, long fencingToken) {
         List<Map<String,Object>> rows = jdbc.queryForList(
-                "SELECT holder_id,fencing_token,lease_until FROM cpf_runtime_controller_lease " +
+                "SELECT holder_id,fencing_token,lease_until FROM OPS_RUNTIME_CONTROLLER_LEASE " +
                         "WHERE lease_key='RUNTIME_CONTROL'");
         if (rows.isEmpty()) throw new CpfRuntimeFenceException("Runtime Controller lease가 없습니다.");
         Map<String,Object> row = rows.getFirst();
@@ -743,7 +743,7 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     public CpfRuntimeInstanceLease lease(String instanceId) {
-        Map<String,Object> row=jdbc.queryForMap("SELECT instance_id,fencing_token,desired_version,actual_version,desired_hash,actual_hash,drift_state,lease_until FROM cpf_runtime_instance_state WHERE instance_id=?",
+        Map<String,Object> row=jdbc.queryForMap("SELECT instance_id,fencing_token,desired_version,actual_version,desired_hash,actual_hash,drift_state,lease_until FROM OPS_RUNTIME_INSTANCE_STATE WHERE instance_id=?",
                 instanceId);
         return new CpfRuntimeInstanceLease(instanceId,number(row.get("fencing_token")),number(row.get("desired_version")),number(row.get("actual_version")),
                 nullable(row.get("desired_hash")),nullable(row.get("actual_hash")),String.valueOf(row.get("drift_state")),toInstant(row.get("lease_until")));
@@ -754,7 +754,7 @@ public class CpfRuntimeControlPlaneRepository {
                 "s.fencing_token,s.lease_until,s.desired_version,s.actual_version,s.desired_hash,s.actual_hash,s.drift_state," +
                 "i.maintenance_yn,i.drain_yn,i.drain_deadline_at,s.heartbeat_at,s.artifact_version,s.artifact_commit," +
                 "s.runtime_role,s.registration_source,s.clock_skew_ms " +
-                "FROM cpf_runtime_instance_state s JOIN cpf_service_instance i ON i.instance_id=s.instance_id WHERE 1=1");
+                "FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id WHERE 1=1");
         ArrayList<Object> args=new ArrayList<>();
         if(environment!=null&&!environment.isBlank()){sql.append(" AND i.environment_code=?");args.add(environment);}
         if(serviceId!=null&&!serviceId.isBlank()){sql.append(" AND i.service_id=?");args.add(serviceId);}
@@ -771,7 +771,7 @@ public class CpfRuntimeControlPlaneRepository {
 
         StringBuilder featureSql=new StringBuilder("SELECT f.instance_id,i.service_id,f.change_type,f.desired_version," +
                 "f.actual_version,f.desired_hash,f.actual_hash,f.drift_state,f.source_delivery_id,f.updated_at " +
-                "FROM cpf_runtime_instance_feature_state f JOIN cpf_service_instance i ON i.instance_id=f.instance_id WHERE 1=1");
+                "FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE f JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=f.instance_id WHERE 1=1");
         ArrayList<Object> featureArgs=new ArrayList<>();
         if(environment!=null&&!environment.isBlank()){featureSql.append(" AND i.environment_code=?");featureArgs.add(environment);}
         if(serviceId!=null&&!serviceId.isBlank()){featureSql.append(" AND i.service_id=?");featureArgs.add(serviceId);}
@@ -785,11 +785,11 @@ public class CpfRuntimeControlPlaneRepository {
         long drift=featureStates.stream().filter(r->Set.of("DRIFT","UNKNOWN_RESULT","PENDING_RESTART").contains(r.driftState())).count();
         long expired=instances.stream().filter(r->r.leaseUntil()!=null&&r.leaseUntil().isBefore(Instant.now())).count();
         List<CpfRuntimeControllerStatus> controllerRows=jdbc.query(
-                "SELECT holder_id,fencing_token,lease_until,last_reconciled_at FROM cpf_runtime_controller_lease WHERE lease_key='RUNTIME_CONTROL'",
+                "SELECT holder_id,fencing_token,lease_until,last_reconciled_at FROM OPS_RUNTIME_CONTROLLER_LEASE WHERE lease_key='RUNTIME_CONTROL'",
                 (rs,rowNum)->new CpfRuntimeControllerStatus(rs.getString("holder_id"),rs.getLong("fencing_token"),
                         toInstant(rs.getTimestamp("lease_until")),toInstant(rs.getTimestamp("last_reconciled_at"))));
         List<CpfRuntimeDeliveryCount> deliveries=jdbc.query(
-                "SELECT delivery_state,COUNT(*) count_value FROM cpf_runtime_delivery GROUP BY delivery_state",
+                "SELECT delivery_state,COUNT(*) count_value FROM OPS_RUNTIME_DELIVERY GROUP BY delivery_state",
                 (rs,rowNum)->new CpfRuntimeDeliveryCount(rs.getString("delivery_state"),rs.getLong("count_value")));
         return new CpfRuntimeStatus(instances,featureStates,controllerRows.isEmpty()?null:controllerRows.getFirst(),
                 deliveries,instances.size(),drift,expired);
@@ -797,23 +797,23 @@ public class CpfRuntimeControlPlaneRepository {
 
     public com.cpf.platform.operations.runtimecontrol.CpfRuntimeControlHealth health(long lagSloSeconds) {
         Instant now=Instant.now();
-        int instanceCount=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_instance_state",Long.class));
-        int backlog=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_delivery " +
+        int instanceCount=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_INSTANCE_STATE",Long.class));
+        int backlog=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_DELIVERY " +
                 "WHERE delivery_state IN ('PENDING','FAILED','CLAIMED','RESTART_REQUIRED')",Long.class));
-        int poison=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_delivery WHERE delivery_state='POISONED'",Long.class));
-        int unknown=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_delivery WHERE delivery_state='UNKNOWN_RESULT'",Long.class));
-        int drift=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_instance_feature_state " +
+        int poison=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_DELIVERY WHERE delivery_state='POISONED'",Long.class));
+        int unknown=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_DELIVERY WHERE delivery_state='UNKNOWN_RESULT'",Long.class));
+        int drift=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE " +
                 "WHERE drift_state IN ('DRIFT','UNKNOWN_RESULT','PENDING_RESTART')",Long.class));
-        int expired=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_instance_state WHERE lease_until<CURRENT_TIMESTAMP",Long.class));
+        int expired=(int)number(jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_INSTANCE_STATE WHERE lease_until<CURRENT_TIMESTAMP",Long.class));
         List<Map<String,Object>> oldestRows=jdbc.queryForList(
-                "SELECT created_at FROM cpf_runtime_delivery WHERE delivery_state IN ('PENDING','FAILED','CLAIMED','RESTART_REQUIRED') ORDER BY created_at");
+                "SELECT created_at FROM OPS_RUNTIME_DELIVERY WHERE delivery_state IN ('PENDING','FAILED','CLAIMED','RESTART_REQUIRED') ORDER BY created_at");
         long lag=0L;
         if(!oldestRows.isEmpty()){
             Instant oldest=toInstant(oldestRows.getFirst().get("created_at"));
             if(oldest!=null)lag=Math.max(0L,java.time.Duration.between(oldest,now).getSeconds());
         }
         List<Map<String,Object>> controllerRows=jdbc.queryForList(
-                "SELECT holder_id,fencing_token,lease_until FROM cpf_runtime_controller_lease WHERE lease_key='RUNTIME_CONTROL'");
+                "SELECT holder_id,fencing_token,lease_until FROM OPS_RUNTIME_CONTROLLER_LEASE WHERE lease_key='RUNTIME_CONTROL'");
         String controllerId=null;long controllerFence=0L;boolean leaderHealthy=false;
         if(!controllerRows.isEmpty()){
             Map<String,Object> c=controllerRows.getFirst();controllerId=nullable(c.get("holder_id"));
@@ -842,7 +842,7 @@ public class CpfRuntimeControlPlaneRepository {
             List<Map<String,Object>> meta=jdbc.queryForList(
                     "SELECT i.service_id,i.environment_code,i.zone_code,i.cell_code,i.maintenance_yn,i.drain_yn," +
                             "s.capabilities_json,s.artifact_version,s.artifact_commit,s.runtime_role,s.lease_until " +
-                            "FROM cpf_service_instance i JOIN cpf_runtime_instance_state s ON s.instance_id=i.instance_id " +
+                            "FROM OPS_SERVICE_INSTANCE i JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id " +
                             "WHERE i.instance_id=?",instanceId);
             if(meta.isEmpty())continue;
             Map<String,Object> row=meta.getFirst();
@@ -871,7 +871,7 @@ public class CpfRuntimeControlPlaneRepository {
         for(String instanceId:instanceIds){
             List<CpfRuntimeFeatureStatus> rows=jdbc.query(
                     "SELECT instance_id,change_type,desired_version,actual_version,desired_hash,actual_hash," +
-                            "drift_state,source_delivery_id,updated_at FROM cpf_runtime_instance_feature_state " +
+                            "drift_state,source_delivery_id,updated_at FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE " +
                             "WHERE instance_id=? AND change_type=?",
                     (rs,rowNum)->new CpfRuntimeFeatureStatus(rs.getString("instance_id"),null,rs.getString("change_type"),
                             rs.getLong("desired_version"),rs.getLong("actual_version"),rs.getString("desired_hash"),
@@ -884,15 +884,15 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     Map<String,Number> deliveryCounts(String changeId) {
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT delivery_state,COUNT(*) cnt FROM cpf_runtime_delivery WHERE change_id=? GROUP BY delivery_state",changeId);
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT delivery_state,COUNT(*) cnt FROM OPS_RUNTIME_DELIVERY WHERE change_id=? GROUP BY delivery_state",changeId);
         LinkedHashMap<String,Number> result=new LinkedHashMap<>(); rows.forEach(r->result.put(String.valueOf(r.get("delivery_state")),(Number)r.get("cnt"))); return result;
     }
 
     /** 해당 변경에서 실제 desired/actual 불일치가 남은 instance 수를 계산합니다. */
     public int driftCount(String changeId) {
         Integer value = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM cpf_runtime_instance_feature_state f " +
-                        "JOIN cpf_runtime_delivery d ON d.delivery_id=f.source_delivery_id " +
+                "SELECT COUNT(*) FROM OPS_RUNTIME_INSTANCE_FEATURE_STATE f " +
+                        "JOIN OPS_RUNTIME_DELIVERY d ON d.delivery_id=f.source_delivery_id " +
                         "WHERE d.change_id=? AND f.drift_state IN ('DRIFT','UNKNOWN_RESULT','PENDING_RESTART')",
                 Integer.class,
                 changeId);
@@ -912,13 +912,13 @@ public class CpfRuntimeControlPlaneRepository {
         else if (ack == total && total > 0) state = "SUCCESS";
         else if (poison > 0 || failed > 0 || restart > 0) state = "PARTIAL";
         else state = "APPLYING";
-        jdbc.update("UPDATE cpf_runtime_change SET change_state=?,updated_at=CURRENT_TIMESTAMP " +
+        jdbc.update("UPDATE OPS_RUNTIME_CHANGE SET change_state=?,updated_at=CURRENT_TIMESTAMP " +
                         "WHERE change_id=? AND change_state NOT IN ('CANCELLED','ROLLBACK_PENDING','ROLLED_BACK','EXPIRED','SUPERSEDED')",
                 state, changeId);
     }
 
     private void assertFence(String instanceId,long fencingToken) {
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT fencing_token,lease_until FROM cpf_runtime_instance_state WHERE instance_id=?",instanceId);
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT fencing_token,lease_until FROM OPS_RUNTIME_INSTANCE_STATE WHERE instance_id=?",instanceId);
         if(rows.isEmpty()) throw new CpfRuntimeFenceException("등록되지 않은 Runtime instance입니다: "+instanceId);
         Map<String,Object> row=rows.getFirst(); Instant until=toInstant(row.get("lease_until"));
         if(((Number)row.get("fencing_token")).longValue()!=fencingToken || until==null || until.isBefore(Instant.now()))
@@ -931,16 +931,16 @@ public class CpfRuntimeControlPlaneRepository {
         requireText(groupId,"groupId"); requireText(groupName,"groupName");
         if (groupId.equals(parentGroupId)) throw new IllegalArgumentException("Runtime Group은 자기 자신을 parent로 지정할 수 없습니다.");
         if (parentGroupId!=null && !parentGroupId.isBlank()) assertNoGroupCycle(groupId,parentGroupId);
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM cpf_runtime_instance_group WHERE group_id=? FOR UPDATE",groupId);
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM OPS_RUNTIME_INSTANCE_GROUP WHERE group_id=? FOR UPDATE",groupId);
         if(rows.isEmpty()) {
             if(expectedVersion!=null && expectedVersion!=0L) throw new CpfRuntimeVersionConflictException(expectedVersion,0L);
-            jdbc.update("INSERT INTO cpf_runtime_instance_group(group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,0,?,?)",
+            jdbc.update("INSERT INTO OPS_RUNTIME_INSTANCE_GROUP(group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_by,updated_by) VALUES (?,?,?,?,?,?,0,?,?)",
                     groupId,groupName,emptyToNull(parentGroupId),emptyToNull(environment),emptyToNull(description),active?"Y":"N",operatorId,operatorId);
         } else {
             long current=((Number)rows.getFirst().get("row_version")).longValue();
             if(expectedVersion==null || expectedVersion.longValue()!=current) throw new CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
             int updated = jdbc.update(
-                    "UPDATE cpf_runtime_instance_group "
+                    "UPDATE OPS_RUNTIME_INSTANCE_GROUP "
                             + "SET group_name=?, parent_group_id=?, environment_code=?, description=?, "
                             + "active_yn=?, row_version=row_version+1, updated_by=?, "
                             + "updated_at=CURRENT_TIMESTAMP WHERE group_id=? AND row_version=?",
@@ -959,10 +959,10 @@ public class CpfRuntimeControlPlaneRepository {
 
     Optional<Map<String,Object>> findGroup(String groupId) {
         List<Map<String,Object>> rows=jdbc
-                .queryForList("SELECT group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_at,updated_at FROM cpf_runtime_instance_group WHERE group_id=?",groupId);
+                .queryForList("SELECT group_id,group_name,parent_group_id,environment_code,description,active_yn,row_version,created_at,updated_at FROM OPS_RUNTIME_INSTANCE_GROUP WHERE group_id=?",groupId);
         if(rows.isEmpty()) return Optional.empty();
         Map<String,Object> result=new LinkedHashMap<>(rows.getFirst());
-        List<String> members=jdbc.queryForList("SELECT instance_id FROM cpf_runtime_group_member WHERE group_id=? AND active_yn='Y' ORDER BY instance_id",String.class,groupId);
+        List<String> members=jdbc.queryForList("SELECT instance_id FROM OPS_RUNTIME_GROUP_MEMBER WHERE group_id=? AND active_yn='Y' ORDER BY instance_id",String.class,groupId);
         result.put("instance_ids",members);
         return Optional.of(result);
     }
@@ -970,25 +970,25 @@ public class CpfRuntimeControlPlaneRepository {
     Map<String,Object> changeGroupMember(String groupId,String instanceId,boolean active,String operatorId) {
         requireText(groupId,"groupId"); requireText(instanceId,"instanceId");
         if(findGroup(groupId).isEmpty()) throw new IllegalArgumentException("Runtime Group을 찾을 수 없습니다: "+groupId);
-        Integer instanceCount=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_service_instance WHERE instance_id=?",Integer.class,instanceId);
+        Integer instanceCount=jdbc.queryForObject("SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE WHERE instance_id=?",Integer.class,instanceId);
         if(instanceCount==null || instanceCount==0) throw new IllegalArgumentException("Runtime Instance를 찾을 수 없습니다: "+instanceId);
-        int updated=jdbc.update("UPDATE cpf_runtime_group_member SET active_yn=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE group_id=? AND instance_id=?",active?"Y":"N",operatorId,groupId,instanceId);
+        int updated=jdbc.update("UPDATE OPS_RUNTIME_GROUP_MEMBER SET active_yn=?,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE group_id=? AND instance_id=?",active?"Y":"N",operatorId,groupId,instanceId);
         if(updated==0) {
-            try { jdbc.update("INSERT INTO cpf_runtime_group_member(group_id,instance_id,active_yn,created_by,updated_by) VALUES (?,?,?,?,?)",groupId,instanceId,active?"Y":"N",operatorId,operatorId); }
+            try { jdbc.update("INSERT INTO OPS_RUNTIME_GROUP_MEMBER(group_id,instance_id,active_yn,created_by,updated_by) VALUES (?,?,?,?,?)",groupId,instanceId,active?"Y":"N",operatorId,operatorId); }
             catch(DuplicateKeyException duplicate){ return changeGroupMember(groupId,instanceId,active,operatorId); }
         }
         return findGroup(groupId).orElseThrow();
     }
 
     public void deleteGroup(String groupId,Long expectedVersion,String operatorId) {
-        List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM cpf_runtime_instance_group WHERE group_id=? FOR UPDATE",groupId);
+        List<Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM OPS_RUNTIME_INSTANCE_GROUP WHERE group_id=? FOR UPDATE",groupId);
         if(rows.isEmpty()) return;
         long current=((Number)rows.getFirst().get("row_version")).longValue();
         if(expectedVersion==null || expectedVersion.longValue()!=current) throw new CpfRuntimeVersionConflictException(expectedVersion==null?-1L:expectedVersion,current);
-        Integer children=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_runtime_instance_group WHERE parent_group_id=? AND active_yn='Y'",Integer.class,groupId);
+        Integer children=jdbc.queryForObject("SELECT COUNT(*) FROM OPS_RUNTIME_INSTANCE_GROUP WHERE parent_group_id=? AND active_yn='Y'",Integer.class,groupId);
         if(children!=null && children>0) throw new IllegalStateException("활성 child Runtime Group이 있어 삭제할 수 없습니다: "+groupId);
-        jdbc.update("DELETE FROM cpf_runtime_group_member WHERE group_id=?",groupId);
-        if(jdbc.update("DELETE FROM cpf_runtime_instance_group WHERE group_id=? AND row_version=?",groupId,current)!=1) throw new CpfRuntimeVersionConflictException(current,current);
+        jdbc.update("DELETE FROM OPS_RUNTIME_GROUP_MEMBER WHERE group_id=?",groupId);
+        if(jdbc.update("DELETE FROM OPS_RUNTIME_INSTANCE_GROUP WHERE group_id=? AND row_version=?",groupId,current)!=1) throw new CpfRuntimeVersionConflictException(current,current);
     }
 
     private void assertNoGroupCycle(String groupId,String parentGroupId) {
@@ -996,62 +996,175 @@ public class CpfRuntimeControlPlaneRepository {
         while(current!=null && !current.isBlank()) {
             if(groupId.equals(current)) throw new IllegalArgumentException("Runtime Group parent cycle이 탐지되었습니다: "+groupId);
             if(!seen.add(current) || seen.size()>1000) throw new IllegalArgumentException("Runtime Group parent cycle/깊이 오류가 탐지되었습니다.");
-            List<Map<String,Object>> rows=jdbc.queryForList("SELECT parent_group_id FROM cpf_runtime_instance_group WHERE group_id=?",current);
+            List<Map<String,Object>> rows=jdbc.queryForList("SELECT parent_group_id FROM OPS_RUNTIME_INSTANCE_GROUP WHERE group_id=?",current);
             current=rows.isEmpty()?null:nullable(rows.getFirst().get("parent_group_id"));
         }
     }
 
     private void ensureServiceAndEndpoint(CpfRuntimeInstanceRegistration r) {
-        Integer serviceCount=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_service WHERE service_id=? AND use_yn='Y'",Integer.class,r.serviceId());
+        Integer serviceCount=jdbc.queryForObject("SELECT COUNT(*) FROM OPS_SERVICE WHERE service_id=? AND use_yn='Y'",Integer.class,r.serviceId());
         if(serviceCount==null || serviceCount!=1) throw new IllegalStateException("Runtime Agent service가 중앙 Registry에 등록되어 있지 않습니다: "+r.serviceId());
-        Integer endpointCount=jdbc.queryForObject("SELECT COUNT(*) FROM cpf_service_endpoint WHERE endpoint_code=? AND service_id=? AND use_yn='Y'",Integer.class,r.endpointCode(),r.serviceId());
+        Integer endpointCount=jdbc.queryForObject("SELECT COUNT(*) FROM OPS_SERVICE_ENDPOINT WHERE endpoint_code=? AND service_id=? AND use_yn='Y'",Integer.class,r.endpointCode(),r.serviceId());
         if(endpointCount==null || endpointCount!=1) throw new IllegalStateException("Runtime Agent endpoint가 중앙 Registry에 등록되어 있지 않습니다: "+r.serviceId()+"/"+r.endpointCode());
     }
 
     private void upsertServiceInstance(CpfRuntimeInstanceRegistration r) {
+        String managedServerId = resolveManagedServer(r);
         int updated = jdbc.update(
-                "UPDATE cpf_service_instance "
-                        + "SET service_id=?, endpoint_code=?, instance_name=?, base_url=?, "
-                        + "environment_code=?, zone_code=?, cell_code=?, instance_status='UP', "
-                        + "active_yn='Y', last_heartbeat_at=CURRENT_TIMESTAMP, "
-                        + "updated_at=CURRENT_TIMESTAMP WHERE instance_id=?",
-                r.serviceId(),
-                r.endpointCode(),
-                r.instanceId(),
-                r.baseUrl(),
-                blank(r.environment()),
-                blank(r.zone()),
-                blank(r.cell()),
-                r.instanceId());
+                "UPDATE OPS_SERVICE_INSTANCE SET managed_server_id=?,service_id=?,endpoint_code=?,instance_name=?,base_url=?,host_name=?," +
+                        "environment_code=?,zone_code=?,cell_code=?,instance_status='UP',active_yn='Y',last_heartbeat_at=CURRENT_TIMESTAMP," +
+                        "system_code=?,application_name=?,application_role=?,runtime_hostname=?,process_id=?,java_version=?,cpf_version=?," +
+                        "application_version=?,started_at=?,updated_at=CURRENT_TIMESTAMP WHERE instance_id=?",
+                managedServerId,r.serviceId(),r.endpointCode(),r.instanceId(),r.baseUrl(),emptyToNull(r.runtimeHostname()),
+                blank(r.environment()),blank(r.zone()),blank(r.cell()),emptyToNull(r.systemCode()),emptyToNull(r.applicationName()),
+                emptyToNull(r.applicationRole()),emptyToNull(r.runtimeHostname()),r.processId()==null?null:String.valueOf(r.processId()),
+                emptyToNull(r.javaVersion()),emptyToNull(r.cpfVersion()),emptyToNull(r.applicationVersion()),ts(r.startedAt()),r.instanceId());
         if(updated==0) {
             try {
                 jdbc.update(
-                        "INSERT INTO cpf_service_instance("
-                                + "instance_id, service_id, endpoint_code, instance_name, base_url, "
-                                + "environment_code, zone_code, cell_code, instance_status, weight, "
-                                + "priority_no, active_yn, maintenance_yn, drain_yn, "
-                                + "last_heartbeat_at, created_by, updated_by) "
-                                + "VALUES (?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',"
-                                + "CURRENT_TIMESTAMP,'CPF','CPF')",
-                        r.instanceId(),
-                        r.serviceId(),
-                        r.endpointCode(),
-                        r.instanceId(),
-                        r.baseUrl(),
-                        blank(r.environment()),
-                        blank(r.zone()),
-                        blank(r.cell()));
-            } catch (DuplicateKeyException duplicate) {
-                upsertServiceInstance(r);
-            }
+                        "INSERT INTO OPS_SERVICE_INSTANCE(instance_id,managed_server_id,service_id,endpoint_code,instance_name,base_url,host_name," +
+                                "environment_code,zone_code,cell_code,instance_status,weight,priority_no,active_yn,maintenance_yn,drain_yn," +
+                                "last_heartbeat_at,system_code,application_name,application_role,runtime_hostname,process_id,java_version,cpf_version," +
+                                "application_version,started_at,created_by,updated_by) " +
+                                "VALUES (?,?,?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
+                        r.instanceId(),managedServerId,r.serviceId(),r.endpointCode(),r.instanceId(),r.baseUrl(),emptyToNull(r.runtimeHostname()),
+                        blank(r.environment()),blank(r.zone()),blank(r.cell()),emptyToNull(r.systemCode()),emptyToNull(r.applicationName()),
+                        emptyToNull(r.applicationRole()),emptyToNull(r.runtimeHostname()),r.processId()==null?null:String.valueOf(r.processId()),
+                        emptyToNull(r.javaVersion()),emptyToNull(r.cpfVersion()),emptyToNull(r.applicationVersion()),ts(r.startedAt()));
+            } catch (DuplicateKeyException duplicate) { upsertServiceInstance(r); }
         }
+    }
+
+    private String resolveManagedServer(CpfRuntimeInstanceRegistration r) {
+        String explicit=emptyToNull(r.managedServerId());
+        String identity=emptyToNull(r.managementIdentity());
+        if(explicit!=null){
+            java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
+                    "SELECT management_identity,enabled_yn FROM ops_managed_server WHERE managed_server_id=?",explicit);
+            if(rows.isEmpty()) throw new IllegalStateException("등록된 Managed Server가 아닙니다: "+explicit);
+            String currentIdentity=nullable(rows.getFirst().get("management_identity"));
+            if(identity!=null && currentIdentity!=null && !currentIdentity.isBlank() && !identity.equals(currentIdentity))
+                throw new CpfRuntimeFenceException("Managed Server management identity 불일치: "+explicit);
+            if(!"Y".equalsIgnoreCase(nullable(rows.getFirst().get("enabled_yn"))))
+                throw new CpfRuntimeFenceException("Disabled Managed Server에는 Runtime을 연결할 수 없습니다: "+explicit);
+            return explicit;
+        }
+        if(identity==null) return null; // hostname만으로 자동 merge하지 않습니다.
+        java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
+                "SELECT managed_server_id FROM ops_managed_server WHERE management_identity=? AND enabled_yn='Y' ORDER BY managed_server_id",identity);
+        if(rows.size()>1) throw new IllegalStateException("managementIdentity가 둘 이상의 Managed Server에 연결되어 있습니다.");
+        if(rows.size()==1) return nullable(rows.getFirst().get("managed_server_id"));
+        // 인증된 Runtime discovery는 승인 전 PENDING inventory만 생성합니다. Production ACTIVE로 자동 승격하지 않습니다.
+        String discovered="DISC-"+java.util.UUID.nameUUIDFromBytes((identity+"|"+blank(r.environment())).getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString().substring(0,20).toUpperCase(java.util.Locale.ROOT);
+        try{
+            jdbc.update("INSERT INTO ops_managed_server(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
+                            "VALUES (?,?,?,?,?,?,NULL,?,'Authenticated runtime discovery','Y','PENDING','{}',CURRENT_TIMESTAMP,'RUNTIME_DISCOVERY',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'RUNTIME_DISCOVERY')",
+                    discovered,discovered,discovered,emptyToNull(r.runtimeHostname()),identity,blank(r.environment()),emptyToNull(r.zone()));
+        }catch(DuplicateKeyException ignored){ }
+        return discovered;
+    }
+
+    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment, String status, String keyword, int limit) {
+        StringBuilder sql = new StringBuilder("SELECT s.*, " +
+                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
+                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
+                "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count " +
+                "FROM ops_managed_server s WHERE 1=1");
+        java.util.List<Object> args = new java.util.ArrayList<>();
+        if (environment != null && !environment.isBlank()) { sql.append(" AND s.environment_code=?"); args.add(environment.trim()); }
+        if (status != null && !status.isBlank()) { sql.append(" AND s.status=?"); args.add(status.trim().toUpperCase(java.util.Locale.ROOT)); }
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND (LOWER(s.server_name) LIKE ? OR LOWER(s.display_name) LIKE ? OR LOWER(COALESCE(s.hostname,'')) LIKE ? OR LOWER(s.managed_server_id) LIKE ?)");
+            String q = "%" + keyword.trim().toLowerCase(java.util.Locale.ROOT) + "%";
+            args.add(q); args.add(q); args.add(q); args.add(q);
+        }
+        sql.append(" ORDER BY s.environment_code,s.server_name,s.managed_server_id");
+        int safeLimit=Math.max(1,Math.min(2000,limit<=0?200:limit));
+        java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(sql.toString(),args.toArray());
+        return rows.stream().limit(safeLimit).map(this::managedServer).toList();
+    }
+
+    public CpfManagedServerSnapshot getManagedServer(String managedServerId) {
+        requireText(managedServerId,"managedServerId");
+        java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
+                "SELECT s.*, (SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
+                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
+                "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count " +
+                "FROM ops_managed_server s WHERE s.managed_server_id=?", managedServerId);
+        if(rows.isEmpty()) throw new IllegalArgumentException("Managed Server를 찾을 수 없습니다: "+managedServerId);
+        return managedServer(rows.getFirst());
+    }
+
+    public CpfManagedServerSnapshot saveManagedServer(CpfManagedServerCommand c) {
+        if(c==null) throw new IllegalArgumentException("Managed Server command가 필요합니다.");
+        requireText(c.managedServerId(),"managedServerId"); requireText(c.serverName(),"serverName");
+        requireText(c.displayName(),"displayName"); requireText(c.environment(),"environment");
+        requireText(c.reason(),"reason"); requireText(c.operatorId(),"operatorId");
+        java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(
+                "SELECT row_version FROM ops_managed_server WHERE managed_server_id=? FOR UPDATE",c.managedServerId());
+        String tags=(c.tagsJson()==null||c.tagsJson().isBlank())?"{}":c.tagsJson();
+        // Validate JSON eagerly so malformed tags cannot be persisted and break dashboard projection.
+        readMap(tags);
+        if(rows.isEmpty()) {
+            if(c.expectedVersion()!=null && c.expectedVersion()!=0L) throw new CpfRuntimeVersionConflictException(c.expectedVersion(),0L);
+            try {
+                jdbc.update("INSERT INTO ops_managed_server(managed_server_id,server_name,display_name,hostname,management_identity,environment_code,server_group,zone_code,location,description,enabled_yn,status,tags_json,registered_at,registered_by,row_version,created_at,updated_at,updated_by) " +
+                                "VALUES (?,?,?,?,?,?,?,?,?,?,'Y','REGISTERED',?,CURRENT_TIMESTAMP,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?)",
+                        c.managedServerId(),c.serverName().trim(),c.displayName().trim(),emptyToNull(c.hostname()),emptyToNull(c.managementIdentity()),
+                        c.environment().trim(),emptyToNull(c.serverGroup()),emptyToNull(c.zone()),emptyToNull(c.location()),emptyToNull(c.description()),
+                        tags,c.operatorId(),c.operatorId());
+            } catch (DuplicateKeyException duplicate) { return saveManagedServer(c); }
+        } else {
+            long current=((Number)rows.getFirst().get("row_version")).longValue();
+            if(c.expectedVersion()==null || c.expectedVersion()!=current) throw new CpfRuntimeVersionConflictException(c.expectedVersion()==null?-1L:c.expectedVersion(),current);
+            int updated=jdbc.update("UPDATE ops_managed_server SET server_name=?,display_name=?,hostname=?,management_identity=?,environment_code=?,server_group=?,zone_code=?,location=?,description=?,tags_json=?,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
+                    c.serverName().trim(),c.displayName().trim(),emptyToNull(c.hostname()),emptyToNull(c.managementIdentity()),c.environment().trim(),emptyToNull(c.serverGroup()),emptyToNull(c.zone()),emptyToNull(c.location()),emptyToNull(c.description()),tags,c.operatorId(),c.managedServerId(),current);
+            if(updated!=1) throw new CpfRuntimeVersionConflictException(current,current);
+        }
+        return getManagedServer(c.managedServerId());
+    }
+
+    public void disableManagedServer(String managedServerId,long expectedVersion,String reason,String operatorId) {
+        requireText(managedServerId,"managedServerId"); requireText(reason,"reason"); requireText(operatorId,"operatorId");
+        int updated=jdbc.update("UPDATE ops_managed_server SET enabled_yn='N',status='DISABLED',row_version=row_version+1,updated_at=CURRENT_TIMESTAMP,updated_by=? WHERE managed_server_id=? AND row_version=?",
+                operatorId,managedServerId,expectedVersion);
+        if(updated!=1) {
+            java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList("SELECT row_version FROM ops_managed_server WHERE managed_server_id=?",managedServerId);
+            if(rows.isEmpty()) throw new IllegalArgumentException("Managed Server를 찾을 수 없습니다: "+managedServerId);
+            long current=((Number)rows.getFirst().get("row_version")).longValue();
+            throw new CpfRuntimeVersionConflictException(expectedVersion,current);
+        }
+    }
+
+    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit) {
+        StringBuilder sql=new StringBuilder("SELECT i.instance_id,i.managed_server_id,ms.server_name,i.service_id,i.system_code,i.application_name,i.application_role,i.runtime_hostname,i.environment_code,i.zone_code,i.instance_status,i.started_at,i.last_heartbeat_at," +
+                "s.artifact_version,s.capabilities_json,i.cpf_version,i.java_version FROM OPS_SERVICE_INSTANCE i LEFT JOIN ops_managed_server ms ON ms.managed_server_id=i.managed_server_id LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id WHERE 1=1");
+        java.util.List<Object> args=new java.util.ArrayList<>();
+        if(environment!=null&&!environment.isBlank()){sql.append(" AND i.environment_code=?");args.add(environment.trim());}
+        if(status!=null&&!status.isBlank()){sql.append(" AND i.instance_status=?");args.add(status.trim().toUpperCase(java.util.Locale.ROOT));}
+        if(keyword!=null&&!keyword.isBlank()){sql.append(" AND (LOWER(i.instance_id) LIKE ? OR LOWER(COALESCE(ms.server_name,'')) LIKE ? OR LOWER(COALESCE(i.runtime_hostname,'')) LIKE ? OR LOWER(COALESCE(i.system_code,'')) LIKE ?)");String q="%"+keyword.trim().toLowerCase(java.util.Locale.ROOT)+"%";args.add(q);args.add(q);args.add(q);args.add(q);}
+        sql.append(" ORDER BY i.environment_code,COALESCE(ms.server_name,''),i.instance_id");
+        int safeLimit=Math.max(1,Math.min(5000,limit<=0?500:limit));
+        java.util.List<CpfRuntimeInventorySnapshot> out=new java.util.ArrayList<>();
+        for(java.util.Map<String,Object> row:jdbc.queryForList(sql.toString(),args.toArray())){
+            java.util.Map<String,Object> raw=readMapOrEmpty(nullable(row.get("capabilities_json")));
+            java.util.LinkedHashMap<String,String> caps=new java.util.LinkedHashMap<>(); raw.forEach((k,v)->caps.put(k,String.valueOf(v)));
+            if(capability!=null&&!capability.isBlank()&&!caps.containsKey(capability.trim())) continue;
+            out.add(new CpfRuntimeInventorySnapshot(nullable(row.get("instance_id")),nullable(row.get("managed_server_id")),nullable(row.get("server_name")),nullable(row.get("service_id")),nullable(row.get("system_code")),nullable(row.get("application_name")),nullable(row.get("application_role")),nullable(row.get("runtime_hostname")),nullable(row.get("environment_code")),nullable(row.get("zone_code")),nullable(row.get("instance_status")),nullable(row.get("artifact_version")),nullable(row.get("cpf_version")),nullable(row.get("java_version")),caps,toInstant(row.get("started_at")),toInstant(row.get("last_heartbeat_at"))));
+            if(out.size()>=safeLimit) break;
+        }
+        return java.util.List.copyOf(out);
+    }
+
+    private CpfManagedServerSnapshot managedServer(java.util.Map<String,Object> row){
+        return new CpfManagedServerSnapshot(nullable(row.get("managed_server_id")),nullable(row.get("server_name")),nullable(row.get("display_name")),nullable(row.get("hostname")),nullable(row.get("management_identity")),nullable(row.get("environment_code")),nullable(row.get("server_group")),nullable(row.get("zone_code")),nullable(row.get("location")),nullable(row.get("description")),nullable(row.get("status")),"Y".equalsIgnoreCase(nullable(row.get("enabled_yn"))),nullable(row.get("tags_json")),number(row.get("row_version")),number(row.get("runtime_count")),number(row.get("active_runtime_count")),toInstant(row.get("registered_at")),toInstant(row.get("updated_at")));
     }
 
     public com.cpf.platform.operations.runtimecontrol.CpfRuntimeAuditVerification verifyAudit(String changeId) {
         requireText(changeId, "changeId");
         List<Map<String,Object>> rows = jdbc.queryForList(
                 "SELECT audit_id,event_type,actor_id,reason,evidence_hash,previous_hash,chain_hash,created_at " +
-                        "FROM cpf_runtime_change_audit WHERE change_id=? ORDER BY audit_id", changeId);
+                        "FROM OPS_RUNTIME_CHANGE_AUDIT WHERE change_id=? ORDER BY audit_id", changeId);
         String previous = "GENESIS";
         long count = 0L;
         for (Map<String,Object> row : rows) {
@@ -1080,16 +1193,16 @@ public class CpfRuntimeControlPlaneRepository {
 
     private void appendAudit(String changeId,String eventType,String actor,String reason,String evidenceHash) {
         // 같은 Change의 audit append를 직렬화해 hash-chain fork를 방지합니다.
-        jdbc.queryForList("SELECT change_id FROM cpf_runtime_change WHERE change_id=? FOR UPDATE", changeId);
+        jdbc.queryForList("SELECT change_id FROM OPS_RUNTIME_CHANGE WHERE change_id=? FOR UPDATE", changeId);
         List<Map<String,Object>> rows=jdbc.queryForList(
-                "SELECT chain_hash FROM cpf_runtime_change_audit WHERE change_id=? ORDER BY audit_id",changeId);
+                "SELECT chain_hash FROM OPS_RUNTIME_CHANGE_AUDIT WHERE change_id=? ORDER BY audit_id",changeId);
         String previous=rows.isEmpty()?"GENESIS":String.valueOf(rows.getLast().get("chain_hash"));
         Instant eventAt=Instant.now();
         String current=CpfRuntimeCanonicalHash.sha256(Map.of(
                 "previous",previous,"changeId",changeId,"eventType",blank(eventType),
                 "actor",blank(actor),"reason",blank(reason),"evidenceHash",blank(evidenceHash),
                 "at",eventAt.toString()));
-        jdbc.update("INSERT INTO cpf_runtime_change_audit(change_id,event_type,actor_id,reason,evidence_hash," +
+        jdbc.update("INSERT INTO OPS_RUNTIME_CHANGE_AUDIT(change_id,event_type,actor_id,reason,evidence_hash," +
                         "previous_hash,chain_hash,created_by,created_at) VALUES (?,?,?,?,?,?,?,'CPF',?)",
                 changeId,blank(eventType),blank(actor),blank(reason),blank(evidenceHash),previous,current,ts(eventAt));
     }

@@ -1,7 +1,6 @@
 package com.cpf.platform.operations.channelregistry.model;
 
 import java.time.Instant;
-import java.util.Locale;
 
 /** 업무 Operation과 직전 호출 Channel 조합에 적용하는 Canonical Channel Policy입니다. */
 public record CpfChannelExecutionPolicy(
@@ -48,11 +47,15 @@ public record CpfChannelExecutionPolicy(
     }
 
     private static String normalizeChannel(String value) {
-        return normalize(value, "호출 Channel", "(?:ANY|[A-Z][A-Z0-9_]{1,29})");
+        String normalized = value == null ? "" : value.trim();
+        if (!"*".equals(normalized) && !normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new IllegalArgumentException("호출 Channel 형식이 올바르지 않습니다. value=" + value);
+        }
+        return normalized;
     }
 
     private static String normalize(String value, String fieldName, String pattern) {
-        String normalized = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
+        String normalized = value == null ? "" : value.trim();
         if (!normalized.matches(pattern)) {
             throw new IllegalArgumentException(fieldName + " 형식이 올바르지 않습니다. value=" + value);
         }

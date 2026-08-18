@@ -4,8 +4,7 @@
 -- Role: CPF_PLATFORM_DB
 
 INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by)
-VALUES ('ANY', '전체 채널', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '정책 와일드카드 전용 채널', 0, 'SYSTEM', 'SYSTEM'),
-    ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
+VALUES ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('MOBILE', '모바일', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '모바일 애플리케이션 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('ADM', '관리자', 'OPERATOR', 'INTERNAL', 'Y', 'Y', 'Y', 'N', 'Y', 'ADM 운영 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('BATCH', '배치', 'SYSTEM', 'INTERNAL', 'N', 'Y', 'N', 'N', 'Y', '배치 실행 채널', 0, 'SYSTEM', 'SYSTEM')
@@ -13,7 +12,7 @@ ON CONFLICT (channel_code) DO UPDATE SET channel_name=EXCLUDED.channel_name, cha
 
 INSERT INTO OPS_CHANNEL_EXECUTION_POLICY (policy_key, operation_id, caller_channel, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by)
 VALUES (
-    'CPF.DEFAULT', '*', 'ANY', 'Y', 'N', 'N', 0,
+    'CPF.DEFAULT', '*', '*', 'Y', 'N', 'N', 0,
     NULL, NULL, 'Y', 0, 'SYSTEM', 'SYSTEM'
 )
 ON CONFLICT (policy_key) DO UPDATE SET operation_id=EXCLUDED.operation_id, caller_channel=EXCLUDED.caller_channel, allowed_yn=EXCLUDED.allowed_yn, authentication_required_yn=EXCLUDED.authentication_required_yn, signature_required_yn=EXCLUDED.signature_required_yn, max_tps=EXCLUDED.max_tps, active_yn=EXCLUDED.active_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;

@@ -16,4 +16,9 @@ public interface CpfRuntimeControlPlane extends CpfRuntimeAgentPort {
     CpfRuntimeTargetPreview previewTargets(String changeType, int payloadSchemaVersion, CpfRuntimeTargetSelector target);
     CpfRuntimeChangePreview previewChange(CpfRuntimeChangeCommand command);
     CpfRuntimeAuditVerification verifyAudit(String changeId);
+    java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment, String status, String keyword, int limit);
+    CpfManagedServerSnapshot getManagedServer(String managedServerId);
+    CpfManagedServerSnapshot saveManagedServer(CpfManagedServerCommand command);
+    void disableManagedServer(String managedServerId, long expectedVersion, String reason, String operatorId);
+    java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment, String capability, String status, String keyword, int limit);
 }

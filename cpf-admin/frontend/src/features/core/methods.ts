@@ -7,7 +7,7 @@ import {
   admPermissionCreateButton, admPermissionUpdateButton
 } from "../../generated/cpf-api";
 import { admMutation, admQuery, admRawResponse, createAdmHeaders } from "../../shared/cpfApi";
-import { admAuthMe } from "../../generated/cpf-api";
+import { admAuthMe, getAdmReadiness } from "../../generated/cpf-api";
 import { useAdmInitializationStore } from "../../stores/admInitializationStore";
 
 export const coreMethods = {
@@ -61,10 +61,10 @@ export const coreMethods = {
           return;
         }
 
+        // Shell bootstrap is intentionally small. Feature data is loaded when its route is entered.
         const required = [
           { name: "permissions", run: () => this.loadPermissions() },
-          { name: "security", run: () => this.loadSecurity() },
-          { name: "service-registry", run: () => this.loadServiceRegistry() }
+          { name: "service-registry-summary", run: () => this.loadServiceRegistry() }
         ];
         for (const item of required) {
           try {
@@ -77,39 +77,50 @@ export const coreMethods = {
             throw error;
           }
         }
-
-        const optional = [
-          { name: "logs", run: () => this.searchLogs() },
-          { name: "transaction-groups", run: () => this.loadTransactionGroups() },
-          { name: "transactions", run: () => this.loadTransactions() },
-          { name: "standard-executions", run: () => this.loadStandardExecutions() },
-          { name: "channel-policy", run: () => this.loadChannelPolicy() },
-          { name: "remote-logs", run: () => this.loadRemoteLogs() },
-          { name: "audit-logs", run: () => this.loadAuditLogs() },
-          { name: "batch", run: () => this.loadBatch() },
-          { name: "center-cut", run: () => this.loadCenterCut() },
-          { name: "notifications", run: () => this.loadNotifications() },
-          { name: "downloads", run: () => this.loadDownloadPolicies() },
-          { name: "operators", run: () => this.loadOperators() },
-          { name: "response-codes", run: () => this.loadResponseCodes() },
-          { name: "log-level", run: () => this.loadLogLevelRules() },
-          { name: "log-policies", run: () => this.loadLogPolicies() },
-          { name: "messages", run: () => this.loadMessages() },
-          { name: "codes", run: () => this.loadCodes() },
-          { name: "configs", run: () => this.loadConfigs() },
-          { name: "cache", run: () => this.loadCacheSummary() }
-        ];
-        const settled = await Promise.allSettled(optional.map(item => item.run()));
-        settled.forEach((result, index) => {
-          if (result.status === "rejected") {
-            initialization.record(optional[index].name, result.reason, false);
-          }
-        });
+        try {
+          const health = await getAdmReadiness<any>();
+          this.shellHealth = health || { status: "UNKNOWN" };
+          this.shellHealthFetchedAt = Date.now();
+        } catch {
+          this.shellHealth = { status: "UNKNOWN" };
+          this.shellHealthFetchedAt = 0;
+        }
         initialization.complete();
         this.initializationFailures = initialization.failures;
         this.initializationStatus = initialization.status;
-        if (this.initializationFailures.length) {
-          this.setMessage(`선택 운영 API ${this.initializationFailures.length}건을 불러오지 못했습니다. 화면별 재시도를 사용하세요.`);
+      },
+  async loadRouteData(routeId: string) {
+        const loaders: Record<string, () => Promise<unknown>> = {
+          logs: () => this.searchLogs(true),
+          transactionGroups: () => this.loadTransactionGroups(),
+          transactions: () => this.loadTransactions(),
+          remoteLogs: () => this.loadRemoteLogs(),
+          auditLogs: () => this.loadAuditLogs(),
+          logLevel: () => this.loadLogLevelRules(),
+          logPolicies: () => this.loadLogPolicies(),
+          standardExecutions: () => this.loadStandardExecutions(),
+          channelPolicy: () => this.loadChannelPolicy(),
+          serviceRegistry: () => this.loadServiceRegistry(),
+          operators: () => this.loadOperators(),
+          security: () => this.loadSecurity(),
+          responseCodes: () => this.loadResponseCodes(),
+          messages: () => this.loadMessages(),
+          codes: () => this.loadCodes(),
+          configs: () => this.loadConfigs(),
+          cache: () => this.loadCacheSummary(),
+          batch: () => this.loadBatch(),
+          centerCut: () => this.loadCenterCut(),
+          notifications: () => this.loadNotifications(),
+          downloads: () => this.loadDownloadPolicies()
+        };
+        const loader = loaders[routeId];
+        if (!loader) return;
+        try {
+          await loader();
+        } catch (error) {
+          // Route failures belong to the route boundary; they must not poison the entire ADM shell.
+          this.setMessage(`${routeId} 화면 데이터를 불러오지 못했습니다. 화면에서 재시도하십시오.`);
+          throw error;
         }
       },
   async loadMe() {

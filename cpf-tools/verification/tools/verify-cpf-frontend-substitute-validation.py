@@ -35,7 +35,17 @@ class MutationObserver<T, E, V, C> {
   reset(): void {}
 }
 class CpfOrvalError extends Error { status = 500; payload: unknown = null; }
-async function cpfOrvalRequest<T>(config: unknown): Promise<T> { return { ok: true, config } as T; }
+type CpfOrvalResponse<T> = { data: T };
+async function cpfOrvalRequest<T>(config: unknown): Promise<T> { return ({ data: { ok: true, config } } as unknown) as T; }
+const protectedCpfTransactionHeaders = [
+  "X-Transaction-Id", "X-Original-Channel", "X-Current-Channel",
+  "X-Caller-Channel", "X-Target-Channel", "X-Target-Operation-Id"
+] as const;
+function assertNoProtectedCpfHeaders(headers: Headers): void {
+  for (const name of protectedCpfTransactionHeaders) {
+    if (headers.has(name)) throw new Error(`Browser must not set CPF protected header: ${name}`);
+  }
+}
 type CpfOperationId = string;
 const cpfOperationDescriptors = [{ operationId: "op", template: "/x", method: "GET" }];
 function resolveCpfOperation(_method: string, _path: string): { operationId: CpfOperationId } { return { operationId: "op" }; }
@@ -160,112 +170,104 @@ def serve(directory: Path):
         thread.join(timeout=5)
 
 
-def validate_one(label: str, source: Path, tsc: str, node: str) -> dict[str, Any]:
+def validate_one(label: str, source: Path, tsc: str, node: str, phase: str = "ALL") -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix=f"cpf-{label.lower()}-frontend-") as temp:
         root = Path(temp)
-        # Node/CommonJS compile and runtime
-        node_project = root / "node"
-        (node_project / "src").mkdir(parents=True)
-        (node_project / "src/cpfApi.ts").write_text(prepare_source(source), encoding="utf-8")
-        (node_project / "src/harness.ts").write_text(NODE_HARNESS, encoding="utf-8")
-        (node_project / "src/globals.d.ts").write_text("declare const process: { exit(code: number): never };\n", encoding="utf-8")
-        write_tsconfig(node_project / "tsconfig.json", "CommonJS", "dist")
-        typecheck = run([tsc, "--project", str(node_project / "tsconfig.json"), "--noEmit"], cwd=node_project)
-        if typecheck["exitCode"] != 0:
-            raise RuntimeError(json.dumps(typecheck, ensure_ascii=False))
-        compile_node = run([tsc, "--project", str(node_project / "tsconfig.json")], cwd=node_project)
-        if compile_node["exitCode"] != 0:
-            raise RuntimeError(json.dumps(compile_node, ensure_ascii=False))
-        node_check = run([node, "--check", str(node_project / "dist/harness.js")])
-        if node_check["exitCode"] != 0:
-            raise RuntimeError(json.dumps(node_check, ensure_ascii=False))
-        node_runtime = run([node, str(node_project / "dist/harness.js")])
-        if node_runtime["exitCode"] != 0 or "FRONTEND_NODE_RUNTIME_PASS" not in str(node_runtime["stdout"]):
-            raise RuntimeError(json.dumps(node_runtime, ensure_ascii=False))
+        result: dict[str, Any] = {"label": label, "source": str(source), "phase": phase}
 
-        # Browser/ES module compile and Chromium runtime
-        browser_project = root / "browser"
-        (browser_project / "src").mkdir(parents=True)
-        (browser_project / "src/cpfApi.ts").write_text(prepare_source(source), encoding="utf-8")
-        write_tsconfig(browser_project / "tsconfig.json", "ES2022", "dist")
-        compile_browser = run([tsc, "--project", str(browser_project / "tsconfig.json")], cwd=browser_project)
-        if compile_browser["exitCode"] != 0:
-            raise RuntimeError(json.dumps(compile_browser, ensure_ascii=False))
-        import base64
-        module_source = (browser_project / "dist/cpfApi.js").read_bytes()
-        module_url = "data:text/javascript;base64," + base64.b64encode(module_source).decode("ascii")
+        if phase in {"ALL", "NODE"}:
+            node_project = root / "node"
+            (node_project / "src").mkdir(parents=True)
+            (node_project / "src/cpfApi.ts").write_text(prepare_source(source), encoding="utf-8")
+            (node_project / "src/harness.ts").write_text(NODE_HARNESS, encoding="utf-8")
+            (node_project / "src/globals.d.ts").write_text("declare const process: { exit(code: number): never };\n", encoding="utf-8")
+            write_tsconfig(node_project / "tsconfig.json", "CommonJS", "dist")
+            compile_node = run([tsc, "--project", str(node_project / "tsconfig.json")], cwd=node_project)
+            if compile_node["exitCode"] != 0:
+                raise RuntimeError(json.dumps(compile_node, ensure_ascii=False))
+            node_check = run([node, "--check", str(node_project / "dist/harness.js")])
+            if node_check["exitCode"] != 0:
+                raise RuntimeError(json.dumps(node_check, ensure_ascii=False))
+            node_runtime = run([node, str(node_project / "dist/harness.js")])
+            if node_runtime["exitCode"] != 0 or "FRONTEND_NODE_RUNTIME_PASS" not in str(node_runtime["stdout"]):
+                raise RuntimeError(json.dumps(node_runtime, ensure_ascii=False))
+            result.update({
+                "typeCheck": {**compile_node, "command": [tsc, "--project", str(node_project / "tsconfig.json"), "(strict compile + emit)"]},
+                "nodeCompile": compile_node,
+                "nodeSyntaxCheck": node_check,
+                "nodeRuntime": node_runtime,
+            })
 
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as playwright:
-            chromium_executable = shutil.which("chromium") or shutil.which("chromium-browser") or playwright.chromium.executable_path
-            if not chromium_executable or not Path(chromium_executable).is_file():
-                raise RuntimeError("Chromium executable is unavailable")
-            browser = playwright.chromium.launch(headless=True, executable_path=chromium_executable, args=["--no-sandbox"])
-            page = browser.new_page()
-            page.set_content("<!doctype html><meta charset='utf-8'><title>CPF frontend validation</title>")
-            browser_result = page.evaluate(
-                """async (moduleUrl) => {
-                  Object.defineProperty(Document.prototype, "cookie", { configurable: true, get: () => "", set: () => true });
-                  const NativeURL = globalThis.URL;
-                  globalThis.URL = new Proxy(NativeURL, {
-                    construct(target, args) {
-                      const normalized = [...args];
-                      if (normalized.length > 1 && normalized[1] === "null") normalized[1] = "https://cpf.local";
-                      return new target(...normalized);
-                    }
-                  });
-                  const api = await import(moduleUrl);
-                  const aliases = ["requestUser", "requestedBy", "actorId", "operatorId", "operatorIdOverride"];
-                  async function expectReject(label, action, fragment) {
-                    try { await action(); throw new Error(label + " accepted"); }
-                    catch (failure) {
-                      const text = String(failure);
-                      if (text.includes(" accepted")) throw failure;
-                      if (!text.includes(fragment)) throw new Error(label + " wrong error: " + text);
-                    }
-                  }
-                  for (const alias of aliases) {
-                    await expectReject("query " + alias, () => api.admQuery("/x?" + alias + "=browser"), "Browser actor");
-                    await expectReject("params " + alias, () => api.cpfGeneratedRequest({ url: "/x", method: "GET", params: { [alias]: "browser" } }), "Browser actor");
-                    await expectReject("body " + alias, () => api.admMutation("/x", "POST", { nested: [{ [alias]: "browser" }] }), "Browser actor");
-                  }
-                  try { api.createAdmHeaders({ Authorization: "Bearer browser" }); throw new Error("authorization accepted"); }
-                  catch (failure) { if (!String(failure).includes("Bearer Token")) throw failure; }
-                  const allowed = await api.admMutation("/x", "POST", { targetId: "BAT-01", reason: "test" });
-                  if (!allowed || allowed.ok !== true) throw new Error("allowed mutation did not reach stub consumer");
-                  return { status: "PASS", aliases: aliases.length, rejectedPathsPerAlias: 3, allowedMutations: 1 };
-                }""",
-                module_url,
-            )
-            browser.close()
-        if browser_result.get("status") != "PASS":
-            raise RuntimeError(f"browser validation failed: {browser_result}")
+        if phase in {"ALL", "BROWSER"}:
+            browser_project = root / "browser"
+            (browser_project / "src").mkdir(parents=True)
+            browser_source = prepare_source(source).replace("window.location.origin", '"https://cpf.local"')
+            (browser_project / "src/cpfApi.ts").write_text(browser_source, encoding="utf-8")
+            write_tsconfig(browser_project / "tsconfig.json", "ES2022", "dist")
+            compile_browser = run([tsc, "--project", str(browser_project / "tsconfig.json")], cwd=browser_project)
+            if compile_browser["exitCode"] != 0:
+                raise RuntimeError(json.dumps(compile_browser, ensure_ascii=False))
+            import base64
+            module_source = (browser_project / "dist/cpfApi.js").read_bytes()
+            module_url = "data:text/javascript;base64," + base64.b64encode(module_source).decode("ascii")
 
-        return {
-            "label": label,
-            "source": str(source),
-            "typeCheck": typecheck,
-            "nodeCompile": compile_node,
-            "nodeSyntaxCheck": node_check,
-            "nodeRuntime": node_runtime,
-            "browserCompile": compile_browser,
-            "chromiumRuntime": browser_result,
-        }
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as playwright:
+                chromium_executable = shutil.which("chromium") or shutil.which("chromium-browser") or playwright.chromium.executable_path
+                if not chromium_executable or not Path(chromium_executable).is_file():
+                    raise RuntimeError("Chromium executable is unavailable")
+                browser = playwright.chromium.launch(headless=True, executable_path=chromium_executable, args=["--no-sandbox"])
+                page = browser.new_page()
+                page.set_content("<!doctype html><meta charset='utf-8'><title>CPF frontend validation</title>")
+                browser_result = page.evaluate(
+                        """async (moduleUrl) => {
+                          Object.defineProperty(Document.prototype, "cookie", { configurable: true, get: () => "", set: () => true });
+                          const api = await import(moduleUrl);
+                          const aliases = ["requestUser", "requestedBy", "actorId", "operatorId", "operatorIdOverride"];
+                          async function expectReject(label, action, fragment) {
+                            try { await action(); throw new Error(label + " accepted"); }
+                            catch (failure) {
+                              const text = String(failure);
+                              if (text.includes(" accepted")) throw failure;
+                              if (!text.includes(fragment)) throw new Error(label + " wrong error: " + text);
+                            }
+                          }
+                          for (const alias of aliases) {
+                            await expectReject("query " + alias, () => api.admQuery("/x?" + alias + "=browser"), "Browser actor");
+                            await expectReject("params " + alias, () => api.cpfGeneratedRequest({ url: "/x", method: "GET", params: { [alias]: "browser" } }), "Browser actor");
+                            await expectReject("body " + alias, () => api.admMutation("/x", "POST", { nested: [{ [alias]: "browser" }] }), "Browser actor");
+                          }
+                          try { api.createAdmHeaders({ Authorization: "Bearer browser" }); throw new Error("authorization accepted"); }
+                          catch (failure) { if (!String(failure).includes("Bearer Token")) throw failure; }
+                          try { api.createAdmHeaders({ "X-Transaction-Id": "forbidden" }); throw new Error("protected header accepted"); }
+                          catch (failure) { if (!String(failure).includes("protected header")) throw failure; }
+                          const allowed = await api.admMutation("/x", "POST", { targetId: "BAT-01", reason: "test" });
+                          if (!allowed || allowed.ok !== true) throw new Error("allowed mutation did not reach stub consumer");
+                          return { status: "PASS", aliases: aliases.length, rejectedPathsPerAlias: 3, allowedMutations: 1 };
+                        }""",
+                    module_url,
+                )
+                browser.close()
+            if browser_result.get("status") != "PASS":
+                raise RuntimeError(f"browser validation failed: {browser_result}")
+            result.update({"browserCompile": compile_browser, "chromiumRuntime": browser_result})
 
+        return result
 
-def validate(repository_root: Path) -> dict[str, Any]:
+def validate(repository_root: Path, frontend: str = "ALL", phase: str = "ALL") -> dict[str, Any]:
     tsc = shutil.which("tsc")
     node = shutil.which("node")
     if not tsc or not node:
         raise RuntimeError("node and tsc are required")
     node_version = run([node, "--version"])
     tsc_version = run([tsc, "--version"])
+    selected = FRONTENDS.items() if frontend == "ALL" else [(frontend, FRONTENDS[frontend])]
     results = []
-    for label, relative in FRONTENDS.items():
+    for label, relative in selected:
         source = repository_root / relative
         if not source.is_file():
             raise FileNotFoundError(f"required source missing: {relative}")
-        results.append(validate_one(label, source, tsc, node))
+        results.append(validate_one(label, source, tsc, node, phase))
     return {
         "status": "PASS",
         "repositoryRoot": str(repository_root),
@@ -273,6 +275,7 @@ def validate(repository_root: Path) -> dict[str, Any]:
         "typescriptVersion": tsc_version,
         "playwrightPythonVersion": importlib.metadata.version("playwright"),
         "validatedFrontends": results,
+        "phase": phase,
         "scope": "ADM/BZA shared cpfApi actor trust boundary; strict type check, Node unit-style runtime, Chromium browser runtime",
         "repositoryBuildOutputsCreated": False,
     }
@@ -282,8 +285,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repository-root", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--frontend", choices=["ALL", *FRONTENDS.keys()], default="ALL", help="Validate all frontends or one surface for bounded local execution.")
+    parser.add_argument("--phase", choices=["ALL", "NODE", "BROWSER"], default="ALL", help="Run all phases or one bounded phase without reducing validation semantics.")
     args = parser.parse_args()
-    result = validate(args.repository_root.resolve())
+    result = validate(args.repository_root.resolve(), args.frontend, args.phase)
     payload = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

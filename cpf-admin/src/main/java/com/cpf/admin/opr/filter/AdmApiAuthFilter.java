@@ -56,6 +56,8 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         MENU_BY_PATH_PREFIX.put("/adm/api/batch", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/center-cut", "BATCH");
         MENU_BY_PATH_PREFIX.put("/adm/api/integration-closure", "INTEGRATION");
+        MENU_BY_PATH_PREFIX.put("/adm/api/servers", "RUNTIME_CONTROL");
+        MENU_BY_PATH_PREFIX.put("/adm/api/runtime-inventory", "RUNTIME_CONTROL");
         MENU_BY_PATH_PREFIX.put("/adm/api/runtime-control", "RUNTIME_CONTROL");
         MENU_BY_PATH_PREFIX.put("/adm/api/maintenance", "MAINTENANCE");
         MENU_BY_PATH_PREFIX.put("/adm/api/incidents", "INCIDENT");
@@ -82,6 +84,7 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/capability-management", "CAPABILITY_FLEET_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/logs", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/transaction-groups", "LOG_LIST_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transaction-groups/subject-search", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/observability", "LOG_LIST_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/service-registry", "SERVICE_REGISTRY_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/service-registry", "SERVICE_REGISTRY_WRITE");
@@ -183,6 +186,9 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/secrets/rotate", "SECRET_ROTATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/break-glass", "BREAK_GLASS_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/break-glass", "BREAK_GLASS_OPEN");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/servers", "RUNTIME_CONTROL_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/runtime-inventory", "RUNTIME_CONTROL_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/servers", "RUNTIME_CONTROL_GROUP_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/runtime-control", "RUNTIME_CONTROL_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/preview-targets", "RUNTIME_CONTROL_PREVIEW");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/runtime-control/preview-change", "RUNTIME_CONTROL_PREVIEW");

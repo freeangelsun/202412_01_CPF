@@ -1,35 +1,43 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
 -- vendor=mariadb; source=70_test_data.sql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
-
+USE cpfDB;
 -- CPF_LOGICAL_DATABASE=referenceFixture
-INSERT INTO REF_CMN_SAMPLE_ITEM (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by) VALUES (101, 'CMN-TEST-101', '표준 헤더 단건 조회', 'HEADER', 'ACTIVE', 'header single query', 'CPF-TEST-101', 101, 0, 'CMN_TEST', 'CMN_TEST'),
+USE referenceFixture;
+INSERT INTO REF_CMN_SAMPLE_ITEM (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, created_by, updated_by)
+VALUES (101, 'CMN-TEST-101', '표준 헤더 단건 조회', 'HEADER', 'ACTIVE', 'header single query', 'CPF-TEST-101', 101, 0, 'CMN_TEST', 'CMN_TEST'),
     (102, 'CMN-TEST-102', '거래 로그 목록 조회', 'LOG', 'ACTIVE', 'transaction log list', 'CPF-TEST-102', 102, 0, 'CMN_TEST', 'CMN_TEST'),
     (103, 'CMN-TEST-103', 'offset 페이징 조회', 'QUERY', 'ACTIVE', 'offset page', 'CPF-TEST-103', 103, 0, 'CMN_TEST', 'CMN_TEST'),
     (104, 'CMN-TEST-104', 'keyset 페이징 조회', 'QUERY', 'ACTIVE', 'keyset cursor', 'CPF-TEST-104', 104, 0, 'CMN_TEST', 'CMN_TEST'),
     (105, 'CMN-TEST-105', '검색 조건 정규화', 'QUERY', 'INACTIVE', 'search validation', 'CPF-TEST-105', 105, 0, 'CMN_TEST', 'CMN_TEST'),
     (106, 'CMN-TEST-106', '정렬 allowlist', 'QUERY', 'ACTIVE', 'stable sort allowlist', 'CPF-TEST-106', 106, 0, 'CMN_TEST', 'CMN_TEST'),
     (107, 'CMN-TEST-107', '낙관적 잠금 충돌', 'LOCK', 'ACTIVE', 'optimistic lock version', 'CPF-TEST-107', 107, 0, 'CMN_TEST', 'CMN_TEST'),
-    (108, 'CMN-TEST-108', 'Transaction rollback', 'TRANSACTION', 'ACTIVE', 'transaction rollback', 'CPF-TEST-108', 108, 0, 'CMN_TEST', 'CMN_TEST') ON DUPLICATE KEY UPDATE sample_key = VALUES(sample_key), item_name = VALUES(item_name), category_code = VALUES(category_code), status_code = VALUES(status_code), searchable_text = VALUES(searchable_text), owner_reference = VALUES(owner_reference), sort_order = VALUES(sort_order), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
+    (108, 'CMN-TEST-108', 'Transaction rollback', 'TRANSACTION', 'ACTIVE', 'transaction rollback', 'CPF-TEST-108', 108, 0, 'CMN_TEST', 'CMN_TEST')
+ON DUPLICATE KEY UPDATE sample_key=VALUES(sample_key), item_name=VALUES(item_name), category_code=VALUES(category_code), status_code=VALUES(status_code), searchable_text=VALUES(searchable_text), owner_reference=VALUES(owner_reference), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 DELETE FROM REF_SAMPLE_ITEM WHERE sample_item_id BETWEEN 90001 AND 90008;
 DELETE FROM REF_SAMPLE_ITEM WHERE sample_item_id BETWEEN 91000 AND 91999;
-INSERT INTO REF_SAMPLE_ITEM (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, deleted_yn, created_by, created_at, updated_by, updated_at) VALUES (90001, 'REF-MAPPER-90001', '단건 조회 샘플', 'SINGLE', 'ACTIVE', 'single', 'REF-90001', 90001, 0, 'N', 'MAPPER_TEST', '2026-06-01 09:00:00.000', 'MAPPER_TEST', '2026-06-01 09:00:00.000'),
+INSERT INTO REF_SAMPLE_ITEM (sample_item_id, sample_key, item_name, category_code, status_code, searchable_text, owner_reference, sort_order, version_no, deleted_yn, created_by, created_at, updated_by, updated_at)
+VALUES (90001, 'REF-MAPPER-90001', '단건 조회 샘플', 'SINGLE', 'ACTIVE', 'single', 'REF-90001', 90001, 0, 'N', 'MAPPER_TEST', '2026-06-01 09:00:00.000', 'MAPPER_TEST', '2026-06-01 09:00:00.000'),
     (90002, 'REF-MAPPER-90002', '목록 조회 샘플', 'LIST', 'ACTIVE', 'list', 'REF-90002', 90002, 0, 'N', 'MAPPER_TEST', '2026-06-02 09:00:00.000', 'MAPPER_TEST', '2026-06-02 09:00:00.000'),
     (90003, 'REF-MAPPER-90003', '검색 조회 샘플', 'SEARCH', 'ACTIVE', 'search', 'REF-90003', 90003, 0, 'N', 'MAPPER_TEST', '2026-06-03 09:00:00.000', 'MAPPER_TEST', '2026-06-03 09:00:00.000'),
     (90004, 'REF-MAPPER-90004', '정렬 조회 샘플', 'SORT', 'ACTIVE', 'sort', 'REF-90004', 90004, 0, 'N', 'MAPPER_TEST', '2026-06-04 09:00:00.000', 'MAPPER_TEST', '2026-06-04 09:00:00.000'),
     (90005, 'REF-MAPPER-90005', '페이지 조회 샘플', 'PAGE', 'ACTIVE', 'page', 'REF-90005', 90005, 0, 'N', 'MAPPER_TEST', '2026-06-05 09:00:00.000', 'MAPPER_TEST', '2026-06-05 09:00:00.000'),
     (90006, 'REF-MAPPER-90006', '비활성 조회 샘플', 'LIST', 'INACTIVE', 'inactive', 'REF-90006', 90006, 0, 'N', 'MAPPER_TEST', '2026-06-06 09:00:00.000', 'MAPPER_TEST', '2026-06-06 09:00:00.000'),
     (90007, 'REF-MAPPER-90007', 'Validation 조회 샘플', 'VALIDATION', 'INACTIVE', 'validation', 'REF-90007', 90007, 0, 'N', 'MAPPER_TEST', '2026-06-07 09:00:00.000', 'MAPPER_TEST', '2026-06-07 09:00:00.000'),
-    (90008, 'REF-MAPPER-90008', 'Keyset 조회 샘플', 'KEYSET', 'ACTIVE', 'keyset', 'REF-90008', 90008, 0, 'N', 'MAPPER_TEST', '2026-06-08 09:00:00.000', 'MAPPER_TEST', '2026-06-08 09:00:00.000') ON DUPLICATE KEY UPDATE sample_key = VALUES(sample_key), item_name = VALUES(item_name), category_code = VALUES(category_code), status_code = VALUES(status_code), searchable_text = VALUES(searchable_text), owner_reference = VALUES(owner_reference), sort_order = VALUES(sort_order), updated_by = VALUES(updated_by), updated_at = VALUES(updated_at);
+    (90008, 'REF-MAPPER-90008', 'Keyset 조회 샘플', 'KEYSET', 'ACTIVE', 'keyset', 'REF-90008', 90008, 0, 'N', 'MAPPER_TEST', '2026-06-08 09:00:00.000', 'MAPPER_TEST', '2026-06-08 09:00:00.000')
+ON DUPLICATE KEY UPDATE sample_key=VALUES(sample_key), item_name=VALUES(item_name), category_code=VALUES(category_code), status_code=VALUES(status_code), searchable_text=VALUES(searchable_text), owner_reference=VALUES(owner_reference), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
 DELETE FROM REF_CENTER_CUT_SAMPLE_RESULT WHERE center_cut_job_id = 'CPF_REF_CENTER_CUT_SAMPLE_JOB';
-INSERT INTO REF_CENTER_CUT_SAMPLE_TARGET (target_id, center_cut_job_id, business_key, business_date, target_payload, status_code, retry_count, transaction_id, parent_segment_id, transaction_segment_id, started_at, completed_at, last_error_message, use_yn, created_by, updated_by) VALUES ('REF-CENTER-CUT-001', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+INSERT INTO REF_CENTER_CUT_SAMPLE_TARGET (target_id, center_cut_job_id, business_key, business_date, target_payload, status_code, retry_count, transaction_id, parent_segment_id, transaction_segment_id, started_at, completed_at, last_error_message, use_yn, created_by, updated_by)
+VALUES ('REF-CENTER-CUT-001', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-001', '2026-07-02', '{"amount":1000,"forceFail":false}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REF-CENTER-CUT-002', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-002', '2026-07-02', '{"amount":2000,"forceFail":false}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REF-CENTER-CUT-003', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-003', '2026-07-02', '{"amount":3000,"forceFail":true}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('REF-CENTER-CUT-004', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE target_payload = VALUES(target_payload), status_code = VALUES(status_code), retry_count = VALUES(retry_count), transaction_id = VALUES(transaction_id), parent_segment_id = VALUES(parent_segment_id), transaction_segment_id = VALUES(transaction_segment_id), started_at = VALUES(started_at), completed_at = VALUES(completed_at), last_error_message = VALUES(last_error_message), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-
+    ('REF-CENTER-CUT-004', 'CPF_REF_CENTER_CUT_SAMPLE_JOB', 'REF-ORDER-20260702-004', '2026-07-02', '{"amount":4000,"forceFail":false}', 'READY', 0, '20260702110000000REFlocal010000001', 'SEG-REF-CENTER-ROOT', NULL, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE target_payload=VALUES(target_payload), status_code=VALUES(status_code), retry_count=VALUES(retry_count), transaction_id=VALUES(transaction_id), parent_segment_id=VALUES(parent_segment_id), transaction_segment_id=VALUES(transaction_segment_id), started_at=VALUES(started_at), completed_at=VALUES(completed_at), last_error_message=VALUES(last_error_message), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- CPF_LOGICAL_DATABASE=cpfDB
+USE cpfDB;
 SET @sample_transaction_id = '20260615120000000MBRlocal010000001';
 SET @sample_start_time = '2026-06-15 12:00:00.000';
 SET @sample_end_time = '2026-06-15 12:00:00.012';
@@ -97,7 +105,7 @@ WHERE NOT EXISTS (
 SET @sample_log_idx = (
     SELECT LOG_IDX
     FROM CPF_TRANSACTION_LOG
-    WHERE TRANSACTION_ID = @sample_transaction_id
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
     ORDER BY LOG_IDX
     LIMIT 1
@@ -132,23 +140,68 @@ WHERE (
 )
         AND DETAIL_KEY = 'headers'
   );
-INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT @sample_log_idx, 'fixedTelegram', 'S000000001샘플1              000000010000Y20260617', 'SYSTEM', 'SYSTEM'
-WHERE @sample_log_idx IS NOT NULL
+INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by)
+SELECT (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+), 'fixedTelegram', 'S000000001샘플1              000000010000Y20260617', 'SYSTEM', 'SYSTEM'
+WHERE (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+) IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
       FROM CPF_TRANSACTION_LOG_DETAIL
-      WHERE LOG_IDX = @sample_log_idx
+      WHERE LOG_IDX = (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+)
         AND DETAIL_KEY = 'fixedTelegram'
   );
-INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by) SELECT @sample_log_idx, 'memo', 'ADM 로그 화면 smoke 검증용 거래 로그입니다.', 'SYSTEM', 'SYSTEM'
-WHERE @sample_log_idx IS NOT NULL
+INSERT INTO CPF_TRANSACTION_LOG_DETAIL (LOG_IDX, DETAIL_KEY, DETAIL_VALUE, created_by, updated_by)
+SELECT (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+), 'memo', 'ADM 로그 화면 smoke 검증용 거래 로그입니다.', 'SYSTEM', 'SYSTEM'
+WHERE (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+) IS NOT NULL
   AND NOT EXISTS (
       SELECT 1
       FROM CPF_TRANSACTION_LOG_DETAIL
-      WHERE LOG_IDX = @sample_log_idx
+      WHERE LOG_IDX = (
+    SELECT LOG_IDX
+    FROM CPF_TRANSACTION_LOG
+    WHERE TRANSACTION_ID = ('20260615120000000MBRlocal010000001')
+      AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
+    ORDER BY LOG_IDX
+    LIMIT 1
+)
         AND DETAIL_KEY = 'memo'
   );
-INSERT INTO ADM_DYNAMIC_LOG_LEVEL_RULE (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL, EXPIRE_AT, REASON, USE_YN, created_by, updated_by) VALUES (
+INSERT INTO ADM_DYNAMIC_LOG_LEVEL_RULE (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL, EXPIRE_AT, REASON, USE_YN, created_by, updated_by)
+VALUES (
     'sample-rule-001',
     NULL,
     'OEDUAA0001',
@@ -159,14 +212,18 @@ INSERT INTO ADM_DYNAMIC_LOG_LEVEL_RULE (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSA
     'Y',
     'SYSTEM',
     'SYSTEM'
-) ON DUPLICATE KEY UPDATE BUSINESS_TRANSACTION_ID = VALUES(BUSINESS_TRANSACTION_ID), MODULE_ID = VALUES(MODULE_ID), LOG_LEVEL = VALUES(LOG_LEVEL), EXPIRE_AT = VALUES(EXPIRE_AT), REASON = VALUES(REASON), USE_YN = VALUES(USE_YN), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-
+)
+ON DUPLICATE KEY UPDATE BUSINESS_TRANSACTION_ID=VALUES(BUSINESS_TRANSACTION_ID), MODULE_ID=VALUES(MODULE_ID), LOG_LEVEL=VALUES(LOG_LEVEL), EXPIRE_AT=VALUES(EXPIRE_AT), REASON=VALUES(REASON), USE_YN=VALUES(USE_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- CPF_LOGICAL_DATABASE=bzaDB
-INSERT INTO BZA_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by) VALUES (
+USE bzaDB;
+INSERT INTO BZA_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by)
+VALUES (
     'bza-admin', '업무 관리자 샘플', NULL, 'BZA_MANAGER', 'Y', 'N',
     0, 'Y', NULL, NULL, 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE admin_name = VALUES(admin_name), role_code = VALUES(role_code), use_yn = VALUES(use_yn), lock_yn = VALUES(lock_yn), login_fail_count = VALUES(login_fail_count), password_change_required_yn = VALUES(password_change_required_yn), password_expire_at = VALUES(password_expire_at), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by) SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+)
+ON DUPLICATE KEY UPDATE admin_name=VALUES(admin_name), role_code=VALUES(role_code), use_yn=VALUES(use_yn), lock_yn=VALUES(lock_yn), login_fail_count=VALUES(login_fail_count), password_change_required_yn=VALUES(password_change_required_yn), password_expire_at=VALUES(password_expire_at), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by)
+SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
        '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER
 WHERE admin_login_id = 'bza-admin'
@@ -176,7 +233,8 @@ WHERE admin_login_id = 'bza-admin'
       WHERE admin_login_id = 'bza-admin'
         AND transaction_id = '20260715120000000BZAbzaAP010000001'
   );
-INSERT INTO BZA_MENU (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES ('DASHBOARD', '업무 대시보드', 'BZA', '/bza', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+INSERT INTO BZA_MENU (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by)
+VALUES ('DASHBOARD', '업무 대시보드', 'BZA', '/bza', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('USER', '백오피스 사용자', 'BZA', '/bza#users', '/api/bza/admin-users', 20, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ORGANIZATION', '조직 관리', 'BZA', '/bza#organizations', '/api/bza/backoffice/organizations', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('EMPLOYEE', '직원 관리', 'BZA', '/bza#employees', '/api/bza/backoffice/employees', 40, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -189,15 +247,21 @@ INSERT INTO BZA_MENU (menu_code, menu_name, module_code, route_path, api_path, s
     ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
     ('NOTIFICATION', '업무 알림', 'BZA', '/bza#notifications', '/api/bza/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ATTACHMENT', '첨부파일', 'BZA', '/bza#attachments', '/api/bza/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE menu_name = VALUES(menu_name), api_path = VALUES(api_path), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (
+    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE menu_name=VALUES(menu_name), api_path=VALUES(api_path), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by)
+VALUES (
     'BZA_MANAGER', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE role_name = VALUES(role_name), write_allowed_yn = VALUES(write_allowed_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_USER_ROLE (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by) SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y',
+)
+ON DUPLICATE KEY UPDATE role_name=VALUES(role_name), write_allowed_yn=VALUES(write_allowed_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_USER_ROLE (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by)
+SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y',
        'CPF_TEST_SEED', 'CPF-TEST-BZA-ROLE-MANAGER-0001', 'SYSTEM', 'SYSTEM'
 FROM BZA_ADMIN_USER
-WHERE admin_login_id = 'bza-admin' ON DUPLICATE KEY UPDATE valid_to = NULL, primary_yn = 'Y', grant_reason = VALUES(grant_reason), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
-INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES ('BZA_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+WHERE admin_login_id = 'bza-admin'
+ON DUPLICATE KEY UPDATE valid_to=NULL, primary_yn='Y', grant_reason=VALUES(grant_reason), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by)
+VALUES ('BZA_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'USER', 'READ', 'API', 'GET', '/api/bza/admin-users/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'USER', 'WRITE', 'API', 'POST', '/api/bza/admin-users', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/backoffice/organizations/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
@@ -221,21 +285,35 @@ INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, 
     ('BZA_MANAGER', 'ATTACHMENT', 'WRITE', 'API', 'POST', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'ATTACHMENT', 'DOWNLOAD', 'API', 'GET', '/api/bza/attachments/*/download', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BZA_MANAGER', 'SAVED_SEARCH', 'READ', 'API', 'GET', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE allow_yn = VALUES(allow_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (
+    ('BZA_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
+VALUES (
     'DOWNLOAD.MASKING.ENABLED', 'Y', '업무 다운로드 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), description = VALUES(description), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES ('HQ', NULL, '본사', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE parent_organization_code = VALUES(parent_organization_code), organization_name = VALUES(organization_name), organization_type = VALUES(organization_type), sort_order = VALUES(sort_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by) VALUES ('P3', '책임', 30, 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE position_name = VALUES(position_name), rank_order = VALUES(rank_order), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
-INSERT INTO BZA_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE job_title_name = VALUES(job_title_name), manager_yn = VALUES(manager_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
-INSERT INTO BZA_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by) SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
+)
+ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
+VALUES ('HQ', NULL, '본사', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE parent_organization_code=VALUES(parent_organization_code), organization_name=VALUES(organization_name), organization_type=VALUES(organization_type), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by)
+VALUES ('P3', '책임', 30, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE position_name=VALUES(position_name), rank_order=VALUES(rank_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+INSERT INTO BZA_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by)
+VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE job_title_name=VALUES(job_title_name), manager_yn=VALUES(manager_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+INSERT INTO BZA_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by)
+SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
-FROM BZA_ADMIN_USER WHERE admin_login_id = 'bza-admin' ON DUPLICATE KEY UPDATE admin_user_id = VALUES(admin_user_id), organization_code = VALUES(organization_code), employee_name = VALUES(employee_name), position_code = VALUES(position_code), job_title_code = VALUES(job_title_code), employment_status = VALUES(employment_status), email = VALUES(email), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
-INSERT INTO BZA_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by) VALUES (
+FROM BZA_ADMIN_USER WHERE admin_login_id = 'bza-admin'
+ON DUPLICATE KEY UPDATE admin_user_id=VALUES(admin_user_id), organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO BZA_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
+VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE organization_code = VALUES(organization_code), position_code = VALUES(position_code), job_title_code = VALUES(job_title_code), primary_yn = VALUES(primary_yn), effective_to = NULL, updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP(3);
-INSERT INTO BZA_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by) SELECT 'bza-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
+)
+ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), primary_yn=VALUES(primary_yn), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
+INSERT INTO BZA_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
+SELECT 'bza-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
        'APPROVAL', 'BZA-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM BZA_NOTIFICATION
@@ -243,7 +321,9 @@ WHERE NOT EXISTS (
        AND reference_type = 'APPROVAL'
        AND reference_id = 'BZA-SAMPLE-001'
 );
-INSERT INTO BZA_SAVED_SEARCH (owner_login_id, screen_code, search_name, criteria_json, shared_yn, use_yn, created_by, updated_by) VALUES (
+INSERT INTO BZA_SAVED_SEARCH (owner_login_id, screen_code, search_name, criteria_json, shared_yn, use_yn, created_by, updated_by)
+VALUES (
     'bza-admin', 'APPROVAL', '진행 중 결재', '{"approvalStatus":"IN_REVIEW"}',
     'N', 'Y', 'SYSTEM', 'SYSTEM'
-) ON DUPLICATE KEY UPDATE criteria_json = VALUES(criteria_json), shared_yn = VALUES(shared_yn), use_yn = VALUES(use_yn), updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP;
+)
+ON DUPLICATE KEY UPDATE criteria_json=VALUES(criteria_json), shared_yn=VALUES(shared_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;

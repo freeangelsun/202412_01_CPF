@@ -74,7 +74,7 @@ describe("cpfOrvalRequest generated response contract", () => {
     await expect(cpfOrvalRequest({
       url: "/adm/api/notifications/delivery-logs/1/retry",
       method: "POST"
-    })).rejects.toEqual(expect.objectContaining<CpfOrvalError>({
+    })).rejects.toEqual(expect.objectContaining({
       name: "CpfOrvalError",
       status: 409,
       message: "version conflict"

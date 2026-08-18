@@ -1,3 +1,6 @@
+cpf-admin/frontend/src/generated/orval/model/admTransactionMetaScanParams.ts
+cpf-admin/frontend/src/generated/orval/model/detectedTransaction.ts
+cpf-admin/frontend/src/generated/orval/model/transactionMetaScanResult.ts
 cpf-batch/api/src/main/java/com/cpf/batch/api/CpfBatchJob.java
 cpf-docs/work/CPF_DELETE_MANIFEST.csv
 cpf-docs/work/current/CPF_CUSTOMER_MANUAL_EDU_IMPLEMENTATION_REQUIREMENTS.md

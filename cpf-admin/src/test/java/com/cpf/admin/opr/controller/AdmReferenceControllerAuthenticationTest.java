@@ -50,7 +50,7 @@ class AdmReferenceControllerAuthenticationTest {
         new AdmCodeController(service, audit).createCode(body, authenticated("operator-a"));
 
         assertThat(body.getRequestUser()).isEqualTo("operator-a");
-        verify(audit).record(any(), eq("operator-a"), eq("CODE_CREATE"), eq("cpf_code"), eq("10"),
+        verify(audit).record(any(), eq("operator-a"), eq("CODE_CREATE"), eq("CMN_CODE"), eq("10"),
                 eq("code create"), eq(null), any(), any(), eq("127.0.0.1"));
     }
 

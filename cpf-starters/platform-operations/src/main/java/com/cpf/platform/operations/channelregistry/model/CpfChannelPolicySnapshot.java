@@ -56,9 +56,9 @@ public record CpfChannelPolicySnapshot(
         return new CpfChannelPolicySnapshot(0,now,now.plus(ttl),Status.CURRENT,Map.of(),List.of());
     }
 
-    private boolean matches(String configured,String actual){return configured!=null&&actual!=null&&("*".equals(configured)||"ANY".equals(configured)||configured.equalsIgnoreCase(actual));}
+    private boolean matches(String configured,String actual){return configured!=null&&actual!=null&&("*".equals(configured)||configured.equals(actual));}
     private int specificity(CpfChannelExecutionPolicy policy,String operationId,String callerChannel){
         int score=0; score+=equals(policy.operationId(),operationId)?2:0; score+=equals(policy.callerChannel(),callerChannel)?1:0; return score;
     }
-    private boolean equals(String a,String b){return a!=null&&b!=null&&a.equalsIgnoreCase(b);}
+    private boolean equals(String a,String b){return a!=null&&b!=null&&a.equals(b);}
 }

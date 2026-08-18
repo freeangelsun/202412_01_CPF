@@ -29,7 +29,7 @@ export const platformMethods = {
       },
   async refreshChannelPolicy() {
         if (!this.requireReason(this.channelPolicyForm.reason)) return;
-        this.channelSnapshot = generatedData<any>(await admChannelRefreshSnapshot({ reason: this.channelPolicyForm.reason }));
+        this.channelSnapshot = generatedData<any>(await admChannelRefreshSnapshot());
         this.setMessage(`채널 정책 스냅샷을 갱신했습니다. version=${this.channelSnapshot.version}`);
       },
   async exportChannelPolicyPackage() {

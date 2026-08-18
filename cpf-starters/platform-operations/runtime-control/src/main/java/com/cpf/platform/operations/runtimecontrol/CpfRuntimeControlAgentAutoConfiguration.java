@@ -61,7 +61,18 @@ public class CpfRuntimeControlAgentAutoConfiguration {
                 "AUTO_CONFIGURATION",
                 environment.getProperty("cpf.runtime.control.agent.schema-version", "1"),
                 environment.getProperty("cpf.runtime.control.agent.config-hash", "UNSPECIFIED"),
-                capabilities, labels, Instant.now(),
+                capabilities, labels,
+                environment.getProperty("cpf.runtime.managed-server-id"),
+                environment.getProperty("cpf.runtime.management-identity"),
+                runtime.hostName(),
+                runtime.systemCode(),
+                runtime.application(),
+                environment.getProperty("cpf.runtime.role", "APPLICATION"),
+                ProcessHandle.current().pid(),
+                System.getProperty("java.version"),
+                environment.getProperty("cpf.framework.version", environment.getProperty("cpf.runtime.artifact-version", "unknown")),
+                environment.getProperty("cpf.runtime.application-version", environment.getProperty("cpf.runtime.artifact-version", "unknown")),
+                Instant.now(), Instant.now(),
                 environment.getProperty("cpf.runtime.control.agent.lease-seconds", Integer.class, 60));
     }
 

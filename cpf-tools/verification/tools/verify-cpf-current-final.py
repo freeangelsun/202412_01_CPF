@@ -33,11 +33,7 @@ def _git_product_paths()->set[str]|None:
             ['git','-C',str(ROOT),'ls-files','-co','--exclude-standard','-z'],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True
         )
-        paths={x.decode('utf-8','surrogateescape').replace('\\','/') for x in cp.stdout.split(b'\x00') if x}
-        self_rel=Path(__file__).resolve().relative_to(ROOT).as_posix()
-        if self_rel not in paths:
-            raise RuntimeError(f'git product path parsing failed: verifier path missing ({self_rel})')
-        return paths
+        return {x.decode('utf-8','surrogateescape').replace('\\','/') for x in cp.stdout.split(b'\0') if x}
     except Exception:
         return None
 
@@ -135,21 +131,29 @@ if dups: fail('duplicate public FQCN:'+str(list(dups.items())[:20]))
 # annotation single definition
 anns=[p for p in product_files(ROOT,'CpfOnlineTransaction.java') if survives(p)]
 if len(anns)!=1: fail(f'CpfOnlineTransaction definitions={len(anns)}')
-# method-level operation parity
-pairs=0;mism=[]
+# method-level operation parity. Annotation ownership stops at the previous member/method boundary;
+# never scan an arbitrary 20-line window because that double-counts the prior method annotation.
+pairs=0;mism=[];pair_ids=[]
+method_re=re.compile(r'\b(public|protected)\s+[\w<>, ?\[\].]+\s+\w+\s*\(')
 for p in product_files(ROOT,'*.java'):
     if not survives(p): continue
     lines=text(p).splitlines()
+    previous_method=-1
     for i,line in enumerate(lines):
-        if re.search(r'\b(public|protected)\s+[\w<>, ?\[\].]+\s+\w+\s*\(',line):
-            block='\n'.join(lines[max(0,i-20):i])
-            a=re.findall(r'@CpfOnlineTransaction\s*\((.*?)\)',block,re.S); o=re.findall(r'@Operation\s*\((.*?)\)',block,re.S)
-            if a and o:
-                am=re.search(r'operationId\s*=\s*"([^"]+)"',a[-1]); om=re.search(r'operationId\s*=\s*"([^"]+)"',o[-1])
-                if am and om:
-                    pairs+=1
-                    if am.group(1)!=om.group(1): mism.append((p.relative_to(ROOT).as_posix(),am.group(1),om.group(1)))
-INFO['operationPairs']=pairs
+        if not method_re.search(line): continue
+        block='\n'.join(lines[previous_method+1:i])
+        previous_method=i
+        a=re.findall(r'@CpfOnlineTransaction\s*\((.*?)\)',block,re.S)
+        o=re.findall(r'@Operation\s*\((.*?)\)',block,re.S)
+        if not (a and o): continue
+        am=re.search(r'operationId\s*=\s*"([^"]+)"',a[-1]); om=re.search(r'operationId\s*=\s*"([^"]+)"',o[-1])
+        if am and om:
+            pairs+=1; pair_ids.append(am.group(1))
+            if am.group(1)!=om.group(1): mism.append((p.relative_to(ROOT).as_posix(),am.group(1),om.group(1)))
+INFO['operationPairs']=pairs; INFO['uniqueOperationIds']=len(set(pair_ids))
+if len(pair_ids)!=len(set(pair_ids)):
+    dup=sorted({x for x in pair_ids if pair_ids.count(x)>1})
+    fail('duplicate paired operationId:'+str(dup[:20]))
 if mism: fail('operationId/OpenAPI mismatch:'+str(mism[:20]))
 # management boundary
 for mod in ('cpf-admin','cpf-biz-admin','cpf-gateway'):

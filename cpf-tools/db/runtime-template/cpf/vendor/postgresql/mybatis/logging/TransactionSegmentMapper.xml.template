@@ -6,10 +6,11 @@
 <mapper namespace="com.cpf.core.mapper.common.logging.TransactionSegmentMapper">
 
     <!-- 복합 거래의 구간 시작 시점에 RUNNING 상태를 저장합니다. -->
-    <insert id="insertSegment" parameterType="com.cpf.core.common.logging.segment.TransactionSegmentRecord">
+    <insert id="insertSegment" parameterType="com.cpf.platform.operations.observability.spi.logging.segment.TransactionSegmentRecord">
         INSERT INTO cpf_transaction_segment (
             transaction_segment_id,
             transaction_id,
+            execution_id,
             parent_segment_id,
             transaction_role,
             module_code,
@@ -52,6 +53,7 @@
         ) VALUES (
             #{transactionSegmentId},
             #{transactionId},
+            #{executionId},
             #{parentSegmentId},
             #{transactionRole},
             #{moduleCode},
@@ -71,11 +73,11 @@
             #{memberNoMasked},
             #{userIdMasked},
             #{operatorIdMasked},
-            #{systemCode},
-            #{originalSystemCode},
+            #{currentChannel},
+            #{originalChannel},
             #{clientId},
-            #{callerSystemCode},
-            #{targetSystemCode},
+            #{callerChannel},
+            #{targetChannel},
             #{targetOperationId},
             #{externalInstitutionCode},
             #{externalTransactionId},
@@ -96,7 +98,7 @@
     </insert>
 
     <!-- 구간 종료 시 성공/실패 상태와 수행시간을 확정합니다. -->
-    <update id="updateSegmentEnd" parameterType="com.cpf.core.common.logging.segment.TransactionSegmentRecord">
+    <update id="updateSegmentEnd" parameterType="com.cpf.platform.operations.observability.spi.logging.segment.TransactionSegmentRecord">
         UPDATE cpf_transaction_segment
            SET ended_at = #{endedAt},
                duration_ms = #{durationMs},

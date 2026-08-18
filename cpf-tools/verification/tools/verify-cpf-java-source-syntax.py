@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -8,7 +9,37 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else '.').resolve()
-JAVA_FILES = sorted(ROOT.rglob('*.java'))
+
+def _skip_dir(root: Path, candidate: Path) -> bool:
+    try:
+        rel = candidate.relative_to(root).as_posix()
+    except ValueError:
+        return True
+    parts = candidate.relative_to(root).parts
+    if not parts:
+        return False
+    if parts[0] == "build":
+        return True
+    if any(part in {".git", ".gradle", "node_modules", "__pycache__", ".pytest_cache"} for part in parts):
+        return True
+    # Module Gradle output directories are generated, except cpf-tools/build which is product source.
+    if "build" in parts and not rel.startswith("cpf-tools/build/"):
+        return True
+    return False
+
+def java_files(root: Path) -> list[Path]:
+    result: list[Path] = []
+    for current, dirs, files in os.walk(root, topdown=True, onerror=lambda _error: None):
+        current_path = Path(current)
+        dirs[:] = [name for name in dirs if not _skip_dir(root, current_path / name)]
+        if _skip_dir(root, current_path):
+            continue
+        for name in files:
+            if name.endswith(".java"):
+                result.append(current_path / name)
+    return sorted(result)
+
+JAVA_FILES = java_files(ROOT)
 
 HELPER = r'''
 import java.nio.charset.StandardCharsets;
@@ -19,12 +50,10 @@ import com.sun.source.util.JavacTask;
 
 public final class CpfJavaSyntaxGate {
     public static void main(String[] args) throws Exception {
-        Path root = Paths.get(args[0]).toAbsolutePath().normalize();
+        Path listFile = Paths.get(args[0]).toAbsolutePath().normalize();
         List<Path> paths = new ArrayList<>();
-        try (var stream = Files.walk(root)) {
-            stream.filter(path -> Files.isRegularFile(path) && path.toString().endsWith(".java"))
-                    .sorted()
-                    .forEach(paths::add);
+        for (String line : Files.readAllLines(listFile, StandardCharsets.UTF_8)) {
+            if (!line.isBlank()) paths.add(Paths.get(line));
         }
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
@@ -79,8 +108,10 @@ with tempfile.TemporaryDirectory(prefix='cpf-java-syntax-') as temp:
     source = temp_path / 'CpfJavaSyntaxGate.java'
     source.write_text(HELPER, encoding='utf-8')
     subprocess.run([command('javac'), str(source)], check=True)
+    source_list = temp_path / 'java-sources.txt'
+    source_list.write_text('\n'.join(str(path) for path in JAVA_FILES) + '\n', encoding='utf-8')
     completed = subprocess.run(
-        [command('java'), '-cp', str(temp_path), 'CpfJavaSyntaxGate', str(ROOT)],
+        [command('java'), '-cp', str(temp_path), 'CpfJavaSyntaxGate', str(source_list)],
         check=False,
         text=True,
         capture_output=True,

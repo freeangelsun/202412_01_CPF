@@ -49,7 +49,7 @@ class AdmMessageControllerAuthenticationTest {
         controller.createMessage(request, servletRequest);
 
         verify(auditService).record(
-                any(), eq("operator-a"), eq("MESSAGE_CREATE"), eq("cpf_message"), eq("10"),
+                any(), eq("operator-a"), eq("MESSAGE_CREATE"), eq("CMN_MESSAGE"), eq("10"),
                 eq("message create"), eq(null), any(), any(), eq("127.0.0.1"));
     }
 
@@ -66,7 +66,7 @@ class AdmMessageControllerAuthenticationTest {
         assertThat(controller.deleteMessage(10L, "disable message", servletRequest).getBody()).isEmpty();
 
         verify(auditService).record(
-                any(), eq("operator-a"), eq("MESSAGE_DISABLE"), eq("cpf_message"), eq("10"),
+                any(), eq("operator-a"), eq("MESSAGE_DISABLE"), eq("CMN_MESSAGE"), eq("10"),
                 eq("disable message"), any(), eq(null), eq("메시지 비활성"), eq("127.0.0.1"));
     }
 

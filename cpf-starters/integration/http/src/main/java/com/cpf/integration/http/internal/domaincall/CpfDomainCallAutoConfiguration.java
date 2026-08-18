@@ -25,8 +25,9 @@ public class CpfDomainCallAutoConfiguration {
         return new CpfConfiguredDomainBindingResolver(properties);
     }
     @Bean @ConditionalOnMissingBean(CpfDomainOperationRegistry.class)
-    CpfDefaultDomainOperationRegistry cpfDomainOperationRegistry(List<CpfDomainOperation<?, ?>> operations) {
-        return new CpfDefaultDomainOperationRegistry(operations);
+    CpfDefaultDomainOperationRegistry cpfDomainOperationRegistry(
+            List<CpfDomainOperation<?, ?>> operations, List<CpfOperationAccessPolicy> policies) {
+        return new CpfDefaultDomainOperationRegistry(operations, policies);
     }
     @Bean @ConditionalOnMissingBean(CpfDomainRemoteTransport.class)
     CpfDomainRemoteTransport cpfDomainRemoteTransport(CpfWebClient webClient, ObjectMapper objectMapper,
@@ -39,8 +40,8 @@ public class CpfDomainCallAutoConfiguration {
         return new CpfDomainClientRouter(resolver, registry, remoteTransport);
     }
     @Bean @ConditionalOnMissingBean
-    CpfDomainInvocationGuard cpfDomainInvocationGuard(List<CpfOperationAccessPolicy> policies, CpfRuntimeIdentity runtime) {
-        return new CpfDomainInvocationGuard(policies, runtime);
+    CpfDomainInvocationGuard cpfDomainInvocationGuard(CpfRuntimeIdentity runtime) {
+        return new CpfDomainInvocationGuard(runtime);
     }
     @Bean @ConditionalOnMissingBean(CpfDomainCallController.class)
     CpfDomainCallController cpfDomainCallController(CpfDefaultDomainOperationRegistry registry, ObjectMapper objectMapper,

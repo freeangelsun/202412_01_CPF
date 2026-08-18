@@ -2,11 +2,13 @@
 import { defineComponent } from "vue";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import CpfIcon from "../../components/CpfIcon.vue";
+import RuntimeInventorySelector from "../../components/RuntimeInventorySelector.vue";
 
 export default defineComponent({
   name: "InstanceHealthPage",
-  components: { CpfIcon },
+  components: { CpfIcon, RuntimeInventorySelector },
   setup() { return useAdmConsolePage(); },
+  data() { return { centralRuntimeId: "" }; },
   computed: {
     instances(): any[] { return this.healthInstanceResult?.items || []; },
   },
@@ -30,7 +32,7 @@ export default defineComponent({
         <label>System ID<input v-model="healthInstanceSearch.systemId" @keyup.enter="loadHealthInstances" /></label>
         <label>Readiness<select v-model="healthInstanceSearch.readiness"><option value="">ALL</option><option>UP</option><option>DEGRADED</option><option>DOWN</option><option>UNKNOWN</option></select></label>
         <label><input v-model="healthInstanceSearch.includeStale" type="checkbox" /> stale 포함</label>
-        <button class="primary" @click="loadHealthInstances">조회</button>
+        <RuntimeInventorySelector v-model="centralRuntimeId" capability="HEALTH" /><button class="primary" @click="loadHealthInstances">조회</button>
       </div>
     </section>
 

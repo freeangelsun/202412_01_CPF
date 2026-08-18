@@ -14,14 +14,17 @@ VENDORS=("mariadb","postgresql","oracle")
 LIFECYCLE=("source","install","migration","rollback","verify")
 FORBIDDEN={
  "mariadb":(r"\bBYTEA\b",r"\bVARCHAR2\b",r"\bNUMBER\s*\(",r"\bCLOB\b",r"\bGENERATED\s+BY\s+DEFAULT\s+AS\s+IDENTITY\b"),
- "postgresql":(r"\bLONGBLOB\b",r"\bMEDIUMTEXT\b",r"\bVARCHAR2\b",r"\bNUMBER\s*\(",r"\bAUTO_INCREMENT\b",r"\bENGINE\s*="),
- "oracle":(r"\bLONGBLOB\b",r"\bMEDIUMTEXT\b",r"\bBYTEA\b",r"\bAUTO_INCREMENT\b",r"\bENGINE\s*=",r"\bLIMIT\s+\d+",r"\bSERIAL\b"),
+ "postgresql":(r"\bLONGBLOB\b",r"\bMEDIUMTEXT\b",r"\bVARCHAR2\b",r"\bNUMBER\s*\(",r"\bAUTO_INCREMENT\b",r"\bENGINE\s*=",r"\bREGEXP\b"),
+ "oracle":(r"\bLONGBLOB\b",r"\bMEDIUMTEXT\b",r"\bBYTEA\b",r"\bAUTO_INCREMENT\b",r"\bENGINE\s*=",r"\bLIMIT\s+\d+",r"\bSERIAL\b",r"\bREGEXP\b",r"\bRIGHT\s*\("),
 }
 EXECUTABLE=re.compile(r"(?i)\b(CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|SELECT|BEGIN|DECLARE|COMMENT|GRANT|REVOKE|SET|MERGE|CALL)\b")
 CREATE_TABLE_START=re.compile(r"(?is)\bCREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?((?:[\w\"`$#]+\.)?[\w\"`$#]+)\s*\(")
 CREATE_INDEX=re.compile(r"(?is)\bCREATE\s+(UNIQUE\s+)?INDEX\s+([\w\"`$#]+)\s+ON\s+((?:[\w\"`$#]+\.)?[\w\"`$#]+)\s*\((.*?)\)\s*;")
 ALTER_CONSTRAINT=re.compile(r"(?is)\bALTER\s+TABLE\s+((?:[\w\"`$#]+\.)?[\w\"`$#]+)\s+ADD\s+(CONSTRAINT\s+[\w\"`$#]+\s+.*?)\s*;")
-SCHEMA_SOURCE_NAMES={"10_cpf_schema.sql","15_qa39_resilience_feature_flag.sql","20_cmn_schema.sql","30_adm_schema.sql","35_bat_schema.sql","40_business_modules_schema.sql"}
+# Current source schema is derived from canonical platform-schema.json. QA39 was
+# absorbed into that canonical schema; including its legacy compatibility DDL here
+# double-counts the same tables and creates a false duplicate.
+SCHEMA_SOURCE_NAMES={"10_cpf_schema.sql","40_business_modules_schema.sql"}
 
 class GateError(RuntimeError): pass
 
@@ -151,11 +154,13 @@ def parse_schema_text(text:str)->dict[str,dict]:
   if table_name in tables:add_constraint(tables[table_name],m.group(2))
  return tables
 
-def canonical_inventory(path:Path)->dict[str,dict]:
+def canonical_inventory(path:Path, production_only:bool=False)->dict[str,dict]:
  raw=json.loads(path.read_text(encoding='utf-8-sig'))
  if raw.get('tableCount')!=len(raw.get('tables',[])):raise GateError('canonical tableCount mismatch')
  result={}
  for t in raw['tables']:
+  if production_only and not bool(t.get('productionDefault', True)):
+   continue
   name=ident(t['name'])
   if name in result:raise GateError(f"duplicate canonical table: {name}")
   result[name]={
@@ -299,6 +304,8 @@ def verify(root:Path)->dict:
    expected=canonical_inventory(canonical)
   except (GateError,json.JSONDecodeError) as ex:findings.append(str(ex));expected={};canonical_raw={}
 
+ production_expected=canonical_inventory(canonical, production_only=True) if expected else {}
+
  # Canonical DB v5 current-state contract: generated/current is the authoritative
  # cross-vendor schema snapshot. Historical source/install trees are migration
  # history and are validated by verify_migration_lifecycle.py instead of being
@@ -324,6 +331,30 @@ def verify(root:Path)->dict:
       actual=parse_schema_text('\n'.join(f.read_text(encoding='utf-8-sig') for f in schema_files))
       findings.extend(compare_inventory(expected,actual,vendor,'generated-current'))
      except GateError as ex: findings.append(f'{vendor}/generated-current parse: {ex}')
+   # Fresh/source/install are executable current lifecycle surfaces, not immutable history.
+   # Validate them against the same canonical inventory and reject stale Channel policy seed contracts.
+   for vendor in VENDORS:
+    base=root/'cpf-tools/db/vendor'/vendor
+    source_files=[base/'source'/name for name in SCHEMA_SOURCE_NAMES if (base/'source'/name).is_file()]
+    if source_files:
+     try:
+      actual=parse_schema_text('\n'.join(f.read_text(encoding='utf-8-sig') for f in source_files))
+      findings.extend(compare_inventory(production_expected,actual,vendor,'source-current'))
+     except GateError as ex: findings.append(f'{vendor}/source-current parse: {ex}')
+    install_file=base/'install/00_empty_install.sql'
+    if install_file.is_file():
+     text=install_file.read_text(encoding='utf-8-sig')
+     for pattern in FORBIDDEN[vendor]:
+      if re.search(pattern,text,re.I): findings.append(f'{install_file.relative_to(root)}: forbidden vendor token {pattern}')
+     try:
+      installed=parse_schema_text(text)
+      findings.extend(compare_inventory(production_expected,installed,vendor,'install-current'))
+     except GateError as ex: findings.append(f'{vendor}/install-current parse: {ex}')
+    stale_policy=re.compile(r'(?is)OPS_CHANNEL_EXECUTION_POLICY\s*\([^;]{0,1200}?(standard_execution_id|original_channel_code|caller_channel_code|request_type)')
+    for seed in (base/'source/50_framework_seed_data.sql',base/'source/00_product_seed.sql',base/'seed/00_product_seed.sql'):
+     if seed.is_file() and stale_policy.search(seed.read_text(encoding='utf-8-sig')):
+      findings.append(f'{seed.relative_to(root)}: stale Channel policy seed contract')
+
    renderer=root/'cpf-tools/db/render_vendor_pack.py'
    if not renderer.is_file(): findings.append('canonical renderer missing')
    else:

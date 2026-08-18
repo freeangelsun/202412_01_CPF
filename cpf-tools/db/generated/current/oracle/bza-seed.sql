@@ -4,73 +4,33 @@
 -- Role: BZA_DB
 
 MERGE INTO BZA_ROLE tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, '업무 관리자' AS role_name, 'Y' AS write_allowed_yn, 'ALL' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code)
-WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.data_scope=src.data_scope, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_ROLE tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, '업무 운영자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code)
-WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.data_scope=src.data_scope, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_ROLE tgt
-USING (SELECT 'BZA_APPROVER' AS role_code, '업무 결재자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code)
-WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.data_scope=src.data_scope, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_ROLE tgt
-USING (SELECT 'BZA_VIEWER' AS role_code, '업무 조회자' AS role_name, 'N' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA_ADMIN' AS role_code, '업무 관리자' AS role_name, 'Y' AS write_allowed_yn, 'ALL' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_OPERATOR' AS role_code, '업무 운영자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVER' AS role_code, '업무 결재자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_VIEWER' AS role_code, '업무 조회자' AS role_name, 'N' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code)
 WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.data_scope=src.data_scope, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_DASHBOARD' AS menu_code, '업무 관리자 대시보드' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza' AS route_path, 'dashboard' AS icon_code, 'ALL' AS environment_code, '/api/bza/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/organizations' AS route_path, 'organization' AS icon_code, 'ALL' AS environment_code, '/api/bza/organizations' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_EMPLOYEE' AS menu_code, '직원·소속 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/employees' AS route_path, 'employee' AS icon_code, 'ALL' AS environment_code, '/api/bza/employees' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_AUTHORIZATION' AS menu_code, '업무 권한 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/authorization' AS route_path, 'shield' AS icon_code, 'ALL' AS environment_code, '/api/bza/authorization' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_APPROVAL' AS menu_code, '업무 결재 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/approvals' AS route_path, 'approval' AS icon_code, 'ALL' AS environment_code, '/api/bza/approvals' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_AUDIT' AS menu_code, '업무 감사 조회' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/audits' AS route_path, 'audit' AS icon_code, 'ALL' AS environment_code, '/api/bza/audits' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_ATTACHMENT' AS menu_code, '첨부 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/attachments' AS route_path, 'attachment' AS icon_code, 'ALL' AS environment_code, '/api/bza/attachments' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_SETTING' AS menu_code, '업무 관리자 설정' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/settings' AS route_path, 'setting' AS icon_code, 'ALL' AS environment_code, '/api/bza/settings' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA_DASHBOARD' AS menu_code, '업무 관리자 대시보드' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza' AS route_path, 'dashboard' AS icon_code, 'ALL' AS environment_code, '/api/bza/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/organizations' AS route_path, 'organization' AS icon_code, 'ALL' AS environment_code, '/api/bza/organizations' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_EMPLOYEE' AS menu_code, '직원·소속 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/employees' AS route_path, 'employee' AS icon_code, 'ALL' AS environment_code, '/api/bza/employees' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_AUTHORIZATION' AS menu_code, '업무 권한 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/authorization' AS route_path, 'shield' AS icon_code, 'ALL' AS environment_code, '/api/bza/authorization' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVAL' AS menu_code, '업무 결재 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/approvals' AS route_path, 'approval' AS icon_code, 'ALL' AS environment_code, '/api/bza/approvals' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_AUDIT' AS menu_code, '업무 감사 조회' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/audits' AS route_path, 'audit' AS icon_code, 'ALL' AS environment_code, '/api/bza/audits' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_ATTACHMENT' AS menu_code, '첨부 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/attachments' AS route_path, 'attachment' AS icon_code, 'ALL' AS environment_code, '/api/bza/attachments' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_SETTING' AS menu_code, '업무 관리자 설정' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/settings' AS route_path, 'setting' AS icon_code, 'ALL' AS environment_code, '/api/bza/settings' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.menu_code=src.menu_code)
 WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
@@ -83,157 +43,81 @@ WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_m
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/organizations/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/employees/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/approvals/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_VIEWER' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_VIEWER' AS role_code, 'BZA_AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/audits/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_OPERATOR' AS role_code, 'BZA_ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/organizations/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_OPERATOR' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/employees/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/approvals/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_VIEWER' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_VIEWER' AS role_code, 'BZA_AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/audits/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.APPROVAL.SELF_APPROVAL_ALLOWED' AS setting_key, 'N' AS setting_value, '기본 자기승인 차단 정책' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.setting_key=src.setting_key)
-WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.APPROVAL.DEFAULT_DUE_HOURS' AS setting_key, '24' AS setting_value, '기본 결재 SLA 시간' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.setting_key=src.setting_key)
-WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.APPROVAL.REQUIRE_PAYLOAD_HASH' AS setting_key, 'Y' AS setting_value, '결재 대상 Payload 변조 검증용 SHA-256 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.setting_key=src.setting_key)
-WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.AUDIT.HASH_CHAIN_ENABLED' AS setting_key, 'Y' AS setting_value, '업무 감사 로그 hash-chain 검증 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.setting_key=src.setting_key)
-WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED' AS setting_key, 'Y' AS setting_value, '첨부 보안검사 완료 후 사용 허용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.setting_key=src.setting_key)
-WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS' AS setting_key, '365' AS setting_value, '첨부 기본 보존일수' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA.APPROVAL.SELF_APPROVAL_ALLOWED' AS setting_key, 'N' AS setting_value, '기본 자기승인 차단 정책' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA.APPROVAL.DEFAULT_DUE_HOURS' AS setting_key, '24' AS setting_value, '기본 결재 SLA 시간' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA.APPROVAL.REQUIRE_PAYLOAD_HASH' AS setting_key, 'Y' AS setting_value, '결재 대상 Payload 변조 검증용 SHA-256 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA.AUDIT.HASH_CHAIN_ENABLED' AS setting_key, 'Y' AS setting_value, '업무 감사 로그 hash-chain 검증 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED' AS setting_key, 'Y' AS setting_value, '첨부 보안검사 완료 후 사용 허용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS' AS setting_key, '365' AS setting_value, '첨부 기본 보존일수' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.setting_key=src.setting_key)
 WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'PII_RAW' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/employees/*/contacts/raw' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/approvals/*/actions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA_ADMIN' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_ADMIN' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'PII_RAW' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/employees/*/contacts/raw' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_OPERATOR' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/approvals/*/actions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_ORGANIZATION tgt
-USING (SELECT 'SAMPLE_ROOT' AS organization_code, NULL AS parent_organization_code, '샘플 본부' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.organization_code=src.organization_code)
-WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_ORGANIZATION tgt
-USING (SELECT 'SAMPLE_DEV' AS organization_code, 'SAMPLE_ROOT' AS parent_organization_code, '샘플 개발부' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE_ROOT' AS organization_code, NULL AS parent_organization_code, '샘플 본부' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SAMPLE_DEV' AS organization_code, 'SAMPLE_ROOT' AS parent_organization_code, '샘플 개발부' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.organization_code=src.organization_code)
 WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_POSITION tgt
-USING (SELECT 'SAMPLE_P1' AS position_code, '샘플 일반' AS position_name, 10 AS rank_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.position_code=src.position_code)
-WHEN MATCHED THEN UPDATE SET tgt.position_name=src.position_name, tgt.rank_order=src.rank_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (position_code, position_name, rank_order, use_yn, created_by, updated_by) VALUES (src.position_code, src.position_name, src.rank_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_POSITION tgt
-USING (SELECT 'SAMPLE_P2' AS position_code, '샘플 책임' AS position_name, 20 AS rank_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE_P1' AS position_code, '샘플 일반' AS position_name, 10 AS rank_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SAMPLE_P2' AS position_code, '샘플 책임' AS position_name, 20 AS rank_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.position_code=src.position_code)
 WHEN MATCHED THEN UPDATE SET tgt.position_name=src.position_name, tgt.rank_order=src.rank_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (position_code, position_name, rank_order, use_yn, created_by, updated_by) VALUES (src.position_code, src.position_name, src.rank_order, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_JOB_TITLE tgt
-USING (SELECT 'SAMPLE_MEMBER' AS job_title_code, '샘플 구성원' AS job_title_name, 'N' AS manager_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.job_title_code=src.job_title_code)
-WHEN MATCHED THEN UPDATE SET tgt.job_title_name=src.job_title_name, tgt.manager_yn=src.manager_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES (src.job_title_code, src.job_title_name, src.manager_yn, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_JOB_TITLE tgt
-USING (SELECT 'SAMPLE_MANAGER' AS job_title_code, '샘플 부서장' AS job_title_name, 'Y' AS manager_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE_MEMBER' AS job_title_code, '샘플 구성원' AS job_title_name, 'N' AS manager_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SAMPLE_MANAGER' AS job_title_code, '샘플 부서장' AS job_title_name, 'Y' AS manager_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.job_title_code=src.job_title_code)
 WHEN MATCHED THEN UPDATE SET tgt.job_title_name=src.job_title_name, tgt.manager_yn=src.manager_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES (src.job_title_code, src.job_title_name, src.manager_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_EMPLOYEE tgt
-USING (SELECT 'SAMPLE0001' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 결재자' AS employee_name, 'SAMPLE_P2' AS position_code, 'SAMPLE_MANAGER' AS job_title_code, NULL AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.admin_user_id=src.admin_user_id)
-WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.manager_employee_no=src.manager_employee_no, tgt.employment_status=src.employment_status, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
-WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.manager_employee_no, src.employment_status, src.join_date, src.leave_date, src.email, src.mobile_no, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_EMPLOYEE tgt
-USING (SELECT 'SAMPLE0002' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 요청자' AS employee_name, 'SAMPLE_P1' AS position_code, 'SAMPLE_MEMBER' AS job_title_code, 'SAMPLE0001' AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE0001' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 결재자' AS employee_name, 'SAMPLE_P2' AS position_code, 'SAMPLE_MANAGER' AS job_title_code, NULL AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SAMPLE0002' AS employee_no, NULL AS admin_user_id, 'SAMPLE_DEV' AS organization_code, '샘플 요청자' AS employee_name, 'SAMPLE_P1' AS position_code, 'SAMPLE_MEMBER' AS job_title_code, 'SAMPLE0001' AS manager_employee_no, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, NULL AS leave_date, NULL AS email, NULL AS mobile_no, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.manager_employee_no=src.manager_employee_no, tgt.employment_status=src.employment_status, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.manager_employee_no, src.employment_status, src.join_date, src.leave_date, src.email, src.mobile_no, src.use_yn, src.created_by, src.updated_by);
@@ -290,85 +174,33 @@ WHERE admin_login_id = 'bza-admin'
   );
 
 MERGE INTO BZA_MENU tgt
-USING (SELECT 'DASHBOARD' AS menu_code, '업무 대시보드' AS menu_name, 'BZA' AS module_code, '/bza' AS route_path, '/api/bza/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'USER' AS menu_code, '백오피스 사용자' AS menu_name, 'BZA' AS module_code, '/bza#users' AS route_path, '/api/bza/admin-users' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, 'BZA' AS module_code, '/bza#organizations' AS route_path, '/api/bza/backoffice/organizations' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'EMPLOYEE' AS menu_code, '직원 관리' AS menu_name, 'BZA' AS module_code, '/bza#employees' AS route_path, '/api/bza/backoffice/employees' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'ROLE' AS menu_code, '역할 관리' AS menu_name, 'BZA' AS module_code, '/bza#roles' AS route_path, '/api/bza/roles' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'MENU' AS menu_code, '메뉴 관리' AS menu_name, 'BZA' AS module_code, '/bza#menus' AS route_path, '/api/bza/menus' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'PERMISSION' AS menu_code, '권한 관리' AS menu_name, 'BZA' AS module_code, '/bza#permissions' AS route_path, '/api/bza/permissions' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'APPROVAL' AS menu_code, '결재 관리' AS menu_name, 'BZA' AS module_code, '/bza#approvals' AS route_path, '/api/bza/backoffice/approvals' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'SETTING' AS menu_code, '업무 설정' AS menu_name, 'BZA' AS module_code, '/bza#settings' AS route_path, '/api/bza/settings' AS api_path, 120 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'DOWNLOAD' AS menu_code, '다운로드 감사' AS menu_name, 'BZA' AS module_code, '/bza#downloads' AS route_path, '/api/bza/downloads' AS api_path, 130 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'AUDIT' AS menu_code, '업무 감사' AS menu_name, 'BZA' AS module_code, '/bza#audits' AS route_path, '/api/bza/backoffice/audits' AS api_path, 140 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'NOTIFICATION' AS menu_code, '업무 알림' AS menu_name, 'BZA' AS module_code, '/bza#notifications' AS route_path, '/api/bza/notifications' AS api_path, 150 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'ATTACHMENT' AS menu_code, '첨부파일' AS menu_name, 'BZA' AS module_code, '/bza#attachments' AS route_path, '/api/bza/attachments' AS api_path, 160 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_code=src.menu_code)
-WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'SAVED_SEARCH' AS menu_code, '저장 검색' AS menu_name, 'BZA' AS module_code, '/bza#savedSearches' AS route_path, '/api/bza/saved-searches' AS api_path, 170 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'DASHBOARD' AS menu_code, '업무 대시보드' AS menu_name, 'BZA' AS module_code, '/bza' AS route_path, '/api/bza/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'USER' AS menu_code, '백오피스 사용자' AS menu_name, 'BZA' AS module_code, '/bza#users' AS route_path, '/api/bza/admin-users' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, 'BZA' AS module_code, '/bza#organizations' AS route_path, '/api/bza/backoffice/organizations' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EMPLOYEE' AS menu_code, '직원 관리' AS menu_name, 'BZA' AS module_code, '/bza#employees' AS route_path, '/api/bza/backoffice/employees' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ROLE' AS menu_code, '역할 관리' AS menu_name, 'BZA' AS module_code, '/bza#roles' AS route_path, '/api/bza/roles' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'MENU' AS menu_code, '메뉴 관리' AS menu_name, 'BZA' AS module_code, '/bza#menus' AS route_path, '/api/bza/menus' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'PERMISSION' AS menu_code, '권한 관리' AS menu_name, 'BZA' AS module_code, '/bza#permissions' AS route_path, '/api/bza/permissions' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'APPROVAL' AS menu_code, '결재 관리' AS menu_name, 'BZA' AS module_code, '/bza#approvals' AS route_path, '/api/bza/backoffice/approvals' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SETTING' AS menu_code, '업무 설정' AS menu_name, 'BZA' AS module_code, '/bza#settings' AS route_path, '/api/bza/settings' AS api_path, 120 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'DOWNLOAD' AS menu_code, '다운로드 감사' AS menu_name, 'BZA' AS module_code, '/bza#downloads' AS route_path, '/api/bza/downloads' AS api_path, 130 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'AUDIT' AS menu_code, '업무 감사' AS menu_name, 'BZA' AS module_code, '/bza#audits' AS route_path, '/api/bza/backoffice/audits' AS api_path, 140 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'NOTIFICATION' AS menu_code, '업무 알림' AS menu_name, 'BZA' AS module_code, '/bza#notifications' AS route_path, '/api/bza/notifications' AS api_path, 150 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ATTACHMENT' AS menu_code, '첨부파일' AS menu_name, 'BZA' AS module_code, '/bza#attachments' AS route_path, '/api/bza/attachments' AS api_path, 160 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'SAVED_SEARCH' AS menu_code, '저장 검색' AS menu_name, 'BZA' AS module_code, '/bza#savedSearches' AS route_path, '/api/bza/saved-searches' AS api_path, 170 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.menu_code=src.menu_code)
 WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.module_code, src.route_path, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
@@ -387,151 +219,55 @@ WHEN MATCHED THEN UPDATE SET tgt.valid_to=NULL, tgt.primary_yn='Y', tgt.grant_re
 WHEN NOT MATCHED THEN INSERT (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by) VALUES (src.admin_user_id, src.role_code, src.valid_from, src.valid_to, src.primary_yn, src.grant_reason, src.operation_id, src.created_by, src.updated_by);
 
 MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'USER' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/admin-users/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'USER' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/admin-users' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/organizations/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/organizations' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/employees/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/employees' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ROLE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/roles/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ROLE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/roles' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'MENU' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/menus/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'MENU' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/menus' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/permissions/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/permissions/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'SETTING' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/settings/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'DOWNLOAD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/downloads/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/audits/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'NOTIFICATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/notifications/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'NOTIFICATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/notifications/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/attachments' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/attachments' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'DOWNLOAD' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/attachments/*/download' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'SAVED_SEARCH' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/saved-searches/**' AS api_pattern, 'OWN' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
-WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_MANAGER' AS role_code, 'SAVED_SEARCH' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/saved-searches/**' AS api_pattern, 'OWN' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'BZA_MANAGER' AS role_code, 'DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'USER' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/admin-users/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'USER' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/admin-users' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/organizations/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/organizations' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/employees/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/employees' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ROLE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/roles/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ROLE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/roles' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'MENU' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/menus/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'MENU' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/menus' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/permissions/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/permissions/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'SETTING' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/settings/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'DOWNLOAD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/downloads/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/audits/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'NOTIFICATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/notifications/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'NOTIFICATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/notifications/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/attachments' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/attachments' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'ATTACHMENT' AS menu_code, 'DOWNLOAD' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/attachments/*/download' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'SAVED_SEARCH' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/saved-searches/**' AS api_pattern, 'OWN' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BZA_MANAGER' AS role_code, 'SAVED_SEARCH' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/saved-searches/**' AS api_pattern, 'OWN' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.allow_yn=src.allow_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.data_scope, src.allow_yn, src.created_by, src.updated_by);
@@ -543,13 +279,9 @@ WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.descriptio
 WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO BZA_ORGANIZATION tgt
-USING (SELECT 'HQ' AS organization_code, NULL AS parent_organization_code, '본사' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.organization_code=src.organization_code)
-WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);
-
-MERGE INTO BZA_ORGANIZATION tgt
-USING (SELECT 'OPS' AS organization_code, 'HQ' AS parent_organization_code, '업무운영팀' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'HQ' AS organization_code, NULL AS parent_organization_code, '본사' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'OPS' AS organization_code, 'HQ' AS parent_organization_code, '업무운영팀' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.organization_code=src.organization_code)
 WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);

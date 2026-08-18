@@ -25,6 +25,7 @@ export interface CommonResponseCodeRequest { responseCode: string; messageCode: 
 export interface CommonMessageRequest { messageId?: number; messageCode?: string; messageKey?: string; locale: string; messageFormatType?: "FIXED" | "INDEXED"; externalMessage?: string; internalMessage?: string; messageValue?: string; parameterCount?: number; parameterSample?: string; description?: string; useYn?: "Y" | "N"; reason: string; }
 `);
 const operations = [
+  "admApprovalRequest",
   "admCodeCreateCode", "admCodeDeleteCode", "admCodeFindCode", "admCodeFindCodes", "admCodeUpdateCode",
   "admConfigCreateConfig", "admConfigDeleteConfig", "admConfigFindConfig", "admConfigFindConfigs", "admConfigUpdateConfig",
   "admResponseCodeCreate", "admResponseCodeDelete", "admResponseCodeFindAll", "admResponseCodeFindOne", "admResponseCodeUpdate",
@@ -43,7 +44,7 @@ function invoke(name:string,args:unknown[]):Promise<unknown>{ calls.push({name,a
 ${operations.map(name => `export const ${name} = (...args:unknown[]) => invoke(${JSON.stringify(name)}, args);`).join("\n")}
 `);
 const compile = spawnSync(process.execPath, [
-  path.join(root,"node_modules","typescript","bin","tsc"), path.join(temp, "referenceMethods.ts"), path.join(temp, "mock-generated.ts"), path.join(temp, "mock-model.ts"),
+  path.join(root,"node_modules","typescript","bin","tsc"), "--ignoreConfig", path.join(temp, "referenceMethods.ts"), path.join(temp, "mock-generated.ts"), path.join(temp, "mock-model.ts"),
   "--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler", "--lib", "ES2022,DOM,DOM.Iterable",
   "--skipLibCheck", "--noImplicitAny", "false", "--outDir", temp
 ], { cwd: root, encoding: "utf8" });
@@ -67,32 +68,46 @@ api.reset(); api.setResponse("admCacheSummary", envelope({ ready: true }));
 let ctx = context(); await ctx.loadCacheSummary();
 assert.deepEqual(find("admCacheSummary")[0].args, []);
 
-api.reset(); api.setResponse("admCacheRefresh", envelope({ operation: "REFRESH" }));
+api.reset(); api.setResponse("admApprovalRequest", envelope({ approvalRequestId: "APR-1" }));
 ctx = context(); await ctx.refreshCache("MESSAGE");
-assert.deepEqual(find("admCacheRefresh")[0].args, [{ target: "MESSAGE", reason: "audited reason" }]);
+let approval = find("admApprovalRequest")[0].args[0];
+assert.equal(approval.actionType, "CACHE_REFRESH");
+assert.equal(approval.ownerModule, "CPF-DATA-CACHE");
+assert.equal(approval.ownerCommand, "CACHE_REFRESH");
+assert.equal(approval.targetType, "CACHE");
+assert.equal(approval.targetId, "MESSAGE");
+assert.equal(approval.reason, "audited reason");
+assert.deepEqual(JSON.parse(approval.payloadSnapshot), { target: "MESSAGE" });
+assert.match(String(approval.requestKey), /^cache-cache_refresh-/);
 
-api.reset(); api.setResponse("admCacheEvictKey", envelope({ operation: "EVICT_KEY" })); api.setResponse("admCacheSummary", envelope({ ready: true }));
+api.reset(); api.setResponse("admApprovalRequest", envelope({ approvalRequestId: "APR-2" }));
 ctx = context(); await ctx.evictCacheKey();
-let body = find("admCacheEvictKey")[0].args[0];
-assert.deepEqual(body, { tenantId: "TENANT", namespace: "users", key: "42", version: 3, reason: "audited reason" });
-assert.equal(Object.hasOwn(body, "requestUser"), false);
+approval = find("admApprovalRequest")[0].args[0];
+assert.equal(approval.actionType, "CACHE_EVICT_KEY");
+assert.equal(approval.targetId, "TENANT:users:42");
+assert.deepEqual(JSON.parse(approval.payloadSnapshot), { tenantId: "TENANT", namespace: "users", key: "42", version: 3 });
+assert.equal(Object.hasOwn(approval, "requestUser"), false);
 
-api.reset(); api.setResponse("admCacheEvictNamespace", envelope({ operation: "EVICT_NAMESPACE" })); api.setResponse("admCacheSummary", envelope({ ready: true }));
+api.reset(); api.setResponse("admApprovalRequest", envelope({ approvalRequestId: "APR-3" }));
 ctx = context(); await ctx.evictCacheNamespace();
-body = find("admCacheEvictNamespace")[0].args[0];
-assert.deepEqual(body, { tenantId: "TENANT", namespace: "users", version: 3, reason: "audited reason" });
+approval = find("admApprovalRequest")[0].args[0];
+assert.equal(approval.actionType, "CACHE_EVICT_NAMESPACE");
+assert.equal(approval.targetId, "TENANT:users");
+assert.deepEqual(JSON.parse(approval.payloadSnapshot), { tenantId: "TENANT", namespace: "users", version: 3 });
 
-api.reset(); api.setResponse("admCacheReconcile", envelope({ operation: "RECONCILE" })); api.setResponse("admCacheSummary", envelope({ ready: true }));
+api.reset(); api.setResponse("admApprovalRequest", envelope({ approvalRequestId: "APR-4" }));
 ctx = context(); await ctx.reconcileCache();
-assert.deepEqual(find("admCacheReconcile")[0].args, [{ reason: "audited reason" }]);
+approval = find("admApprovalRequest")[0].args[0];
+assert.equal(approval.actionType, "CACHE_RECONCILE");
+assert.equal(approval.targetId, "DURABLE");
+assert.deepEqual(JSON.parse(approval.payloadSnapshot), {});
 
 api.reset(); ctx = context(); await ctx.refreshCache("UNSUPPORTED");
-assert.equal(find("admCacheRefresh").length, 0);
+assert.equal(find("admApprovalRequest").length, 0);
 ctx.cacheControl.version = -1; await ctx.evictCacheKey();
-assert.equal(find("admCacheEvictKey").length, 0);
+assert.equal(find("admApprovalRequest").length, 0);
 ctx.cacheControl.version = 1; ctx.cacheReason = ""; await ctx.reconcileCache();
-assert.equal(find("admCacheReconcile").length, 0);
-
+assert.equal(find("admApprovalRequest").length, 0);
 const rawCalls = source.match(/(?:getJson|sendJson)\(\s*[`'"]\/adm\/api\/cache/g) || [];
 assert.equal(rawCalls.length, 0, "cache consumer must not use raw URL helpers");
-console.log(`[CPF][FRONTEND][PASS] cache generated-client runtime operations=5 rawUrl=0 actorSpoof=blocked invalidVersion=blocked`);
+console.log(`[CPF][FRONTEND][PASS] cache approval-gated generated-client runtime rawUrl=0 actorSpoof=blocked invalidVersion=blocked`);

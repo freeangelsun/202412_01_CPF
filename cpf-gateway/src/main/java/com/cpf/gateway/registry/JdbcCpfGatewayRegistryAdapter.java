@@ -543,8 +543,8 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
                        g.target_protocol,e.context_path,g.response_timeout_ms
                   FROM GW_SERVER_GROUP_MEMBER m
                   JOIN GW_SERVER_GROUP g ON g.server_group_id=m.server_group_id
-                  JOIN cpf_service_instance i ON i.instance_id=m.instance_id
-                  JOIN cpf_service_endpoint e ON e.endpoint_code=g.endpoint_code
+                  JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=m.instance_id
+                  JOIN OPS_SERVICE_ENDPOINT e ON e.endpoint_code=g.endpoint_code
                  WHERE m.enabled_yn='Y' AND g.group_status<>'RETIRED'
                    AND (m.probe_lease_until IS NULL OR m.probe_lease_until<CURRENT_TIMESTAMP)
                  ORDER BY COALESCE(m.last_probe_at,m.created_at),m.server_group_id,m.instance_id
@@ -580,8 +580,8 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
                 SELECT m.fencing_token,i.host_name,i.port_no,g.target_protocol,e.context_path,g.response_timeout_ms
                   FROM GW_SERVER_GROUP_MEMBER m
                   JOIN GW_SERVER_GROUP g ON g.server_group_id=m.server_group_id
-                  JOIN cpf_service_instance i ON i.instance_id=m.instance_id
-                  JOIN cpf_service_endpoint e ON e.endpoint_code=g.endpoint_code
+                  JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=m.instance_id
+                  JOIN OPS_SERVICE_ENDPOINT e ON e.endpoint_code=g.endpoint_code
                  WHERE m.server_group_id=? AND m.instance_id=? AND m.enabled_yn='Y'
                    AND (m.probe_lease_until IS NULL OR m.probe_lease_until<CURRENT_TIMESTAMP)
                 """,serverGroupId,instanceId);
@@ -689,7 +689,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         long unknown=samples.stream().filter(v->"UNKNOWN_RESULT".equalsIgnoreCase(v.status())||"UNKNOWN".equalsIgnoreCase(v.status())).count();
         long failed=Math.max(0,total-success-unknown);
         List<Long> durations=samples.stream().map(TrafficSample::durationMs).sorted().toList();
-        long openCircuit=countSafe("SELECT COUNT(*) FROM cpf_service_circuit_state WHERE circuit_state='OPEN'",List.of(),warnings,"CIRCUIT_READ_FAILED");
+        long openCircuit=countSafe("SELECT COUNT(*) FROM OPS_SERVICE_CIRCUIT_STATE WHERE circuit_state='OPEN'",List.of(),warnings,"CIRCUIT_READ_FAILED");
         long expiring=countSafe("SELECT COUNT(*) FROM GW_CERTIFICATE_INVENTORY WHERE certificate_status='ACTIVE' AND not_after<=?",
                 List.of(Timestamp.from(now.plusDays(30).toInstant())),warnings,"CERTIFICATE_READ_FAILED");
         long backlog=countSafe("SELECT COALESCE(SUM(backlog_count),0) FROM GW_SPOOL_CHECKPOINT",List.of(),warnings,"SPOOL_READ_FAILED");

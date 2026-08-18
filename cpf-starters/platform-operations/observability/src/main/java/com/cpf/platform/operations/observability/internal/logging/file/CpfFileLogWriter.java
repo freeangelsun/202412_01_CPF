@@ -39,6 +39,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -795,59 +796,56 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
     }
 
     private void applyRetentionOnce(Path activeLogPath) throws IOException {
-        if (!Files.isDirectory(logRoot()) || !shouldRunRetention()) {
+        if (!Files.isDirectory(logRoot()) || !shouldRunRetention() || !withinRetentionMaintenanceWindow()) {
             retentionSkipCount.incrementAndGet();
             return;
         }
         retentionRunCount.incrementAndGet();
         lastRetentionStartedAt.set(clock.instant());
+        long deadlineNanos = retentionDeadlineNanos();
         ProcessFileLock retentionGuard = acquireNamedProcessLock(
                 pathPolicy.instanceRoot().resolve(".cpf-retention.lock"));
         try {
             retentionGuard.ensureValid();
             int maxHistoryDays = bounded(
-                environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30),
-                1, 3_650, "cpf.logging.file.max-history-days");
-        Instant cutoff = currentLogDate()
-                .minusDays(maxHistoryDays)
-                .atStartOfDay(logZoneId)
-                .toInstant();
-        List<Path> candidates;
-        try (var files = Files.walk(logRoot())) {
-            candidates = files.filter(this::isSafeManagedLogFile)
-                    .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
-                    .toList();
-        }
-        for (Path candidate : candidates) {
-            if (logicalLockKey(candidate).equals(logicalLockKey(activeLogPath))) {
-                continue;
+                    environment.getProperty("cpf.logging.file.max-history-days", Integer.class, 30),
+                    1, 3_650, "cpf.logging.file.max-history-days");
+            Instant cutoff = currentLogDate().minusDays(maxHistoryDays).atStartOfDay(logZoneId).toInstant();
+            List<Path> candidates;
+            try (var files = Files.walk(logRoot())) {
+                candidates = files.filter(this::isSafeManagedLogFile)
+                        .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
+                        .sorted(Comparator.comparing(this::lastModified))
+                        .toList();
             }
-            FileLockEntry candidateLock = acquireFileLock(candidate);
-            ProcessFileLock candidateGuard = acquireProcessFileLock(candidate);
-            try {
-                candidateGuard.ensureValid();
-                if (!isSafeManagedLogFile(candidate)) continue;
-                if (logicalLogInstant(candidate).isBefore(cutoff)) {
-                    if (Files.deleteIfExists(candidate)) {
-                        deletedFileCount.incrementAndGet();
-                    }
-                    continue;
-                }
-                if (archiveCompressionEnabled()
-                        && candidate.getFileName().toString().endsWith(".log")
-                        && isPreviousLogDate(candidate)) {
-                    compressLog(candidate);
-                }
-            } finally {
+            for (Path candidate : candidates) {
+                if (retentionDeadlineExceeded(deadlineNanos)) break;
+                if (logicalLockKey(candidate).equals(logicalLockKey(activeLogPath))) continue;
+                FileLockEntry candidateLock = acquireFileLock(candidate);
+                ProcessFileLock candidateGuard = acquireProcessFileLock(candidate);
                 try {
-                    candidateGuard.close();
+                    candidateGuard.ensureValid();
+                    if (!isSafeManagedLogFile(candidate)) continue;
+                    boolean changed = false;
+                    if (logicalLogInstant(candidate).isBefore(cutoff)) {
+                        if (Files.deleteIfExists(candidate)) {
+                            deletedFileCount.incrementAndGet();
+                            changed = true;
+                        }
+                    } else if (archiveCompressionEnabled()
+                            && candidate.getFileName().toString().endsWith(".log")
+                            && isPreviousLogDate(candidate)) {
+                        compressLog(candidate);
+                        changed = true;
+                    }
+                    if (changed) retentionThrottle();
                 } finally {
-                    releaseFileLock(candidate, candidateLock);
+                    try { candidateGuard.close(); } finally { releaseFileLock(candidate, candidateLock); }
                 }
             }
-        }
-        applyTotalSizeCap(activeLogPath);
-        lastRetentionCompletedAt.set(clock.instant());
+            applyMaxHistoryCount(activeLogPath, deadlineNanos);
+            applyTotalSizeCap(activeLogPath, deadlineNanos);
+            lastRetentionCompletedAt.set(clock.instant());
         } finally {
             retentionGuard.close();
         }
@@ -873,11 +871,38 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
                 true);
     }
 
-    private void applyTotalSizeCap(Path activeLogPath) throws IOException {
-        long capBytes = parseSize(environment.getProperty("cpf.logging.file.total-size-cap", "2GB"));
-        if (capBytes < 1) {
-            return;
+    private void applyMaxHistoryCount(Path activeLogPath, long deadlineNanos) throws IOException {
+        int maxHistory = bounded(environment.getProperty("cpf.logging.file.max-history", Integer.class, 0),
+                0, 1_000_000, "cpf.logging.file.max-history");
+        if (maxHistory == 0) return;
+        List<Path> archives;
+        try (var stream = Files.walk(logRoot())) {
+            archives = stream.filter(this::isSafeManagedLogFile)
+                    .filter(path -> path.getFileName().toString().matches(".*\\.log(?:\\.gz)?$"))
+                    .filter(path -> !logicalLockKey(path).equals(logicalLockKey(activeLogPath)))
+                    .sorted(Comparator.comparing(this::lastModified).reversed())
+                    .toList();
         }
+        for (int i = maxHistory; i < archives.size(); i++) {
+            if (retentionDeadlineExceeded(deadlineNanos)) return;
+            Path file = archives.get(i);
+            FileLockEntry candidateLock = acquireFileLock(file);
+            ProcessFileLock guard = acquireProcessFileLock(file);
+            try {
+                guard.ensureValid();
+                if (isSafeManagedLogFile(file) && Files.deleteIfExists(file)) {
+                    deletedFileCount.incrementAndGet();
+                    retentionThrottle();
+                }
+            } finally {
+                try { guard.close(); } finally { releaseFileLock(file, candidateLock); }
+            }
+        }
+    }
+
+    private void applyTotalSizeCap(Path activeLogPath, long deadlineNanos) throws IOException {
+        long capBytes = parseSize(environment.getProperty("cpf.logging.file.total-size-cap", "2GB"));
+        if (capBytes < 1) return;
         List<Path> files;
         try (var stream = Files.walk(logRoot())) {
             files = stream.filter(this::isSafeManagedLogFile)
@@ -887,19 +912,12 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
         }
         long total = 0L;
         for (Path file : files) {
-            try {
-                total = Math.addExact(total, Files.size(file));
-            } catch (ArithmeticException overflow) {
-                throw new IOException("log size total exceeds supported range", overflow);
-            }
+            try { total = Math.addExact(total, Files.size(file)); }
+            catch (ArithmeticException overflow) { throw new IOException("log size total exceeds supported range", overflow); }
         }
         for (Path file : files) {
-            if (total <= capBytes) {
-                break;
-            }
-            if (logicalLockKey(file).equals(logicalLockKey(activeLogPath))) {
-                continue;
-            }
+            if (total <= capBytes || retentionDeadlineExceeded(deadlineNanos)) break;
+            if (logicalLockKey(file).equals(logicalLockKey(activeLogPath))) continue;
             FileLockEntry candidateLock = acquireFileLock(file);
             ProcessFileLock processGuard = acquireProcessFileLock(file);
             try {
@@ -909,15 +927,37 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
                 if (Files.deleteIfExists(file)) {
                     total -= size;
                     deletedFileCount.incrementAndGet();
+                    retentionThrottle();
                 }
             } finally {
-                try {
-                    processGuard.close();
-                } finally {
-                    releaseFileLock(file, candidateLock);
-                }
+                try { processGuard.close(); } finally { releaseFileLock(file, candidateLock); }
             }
         }
+    }
+
+    private boolean withinRetentionMaintenanceWindow() {
+        String startText = environment.getProperty("cpf.logging.file.maintenance-start", "").trim();
+        String endText = environment.getProperty("cpf.logging.file.maintenance-end", "").trim();
+        if (startText.isEmpty() && endText.isEmpty()) return true;
+        if (startText.isEmpty() || endText.isEmpty()) throw new IllegalArgumentException("file retention maintenance window requires start and end");
+        LocalTime start = LocalTime.parse(startText); LocalTime end = LocalTime.parse(endText);
+        LocalTime now = clock.instant().atZone(logZoneId).toLocalTime();
+        if (start.equals(end)) return true;
+        return start.isBefore(end) ? !now.isBefore(start) && now.isBefore(end) : !now.isBefore(start) || now.isBefore(end);
+    }
+
+    private long retentionDeadlineNanos() {
+        long maxRuntimeMs = bounded(environment.getProperty("cpf.logging.file.retention-max-runtime-ms", Long.class, 30_000L),
+                1L, 3_600_000L, "cpf.logging.file.retention-max-runtime-ms");
+        long nanos = TimeUnit.MILLISECONDS.toNanos(maxRuntimeMs); long now = System.nanoTime();
+        return Long.MAX_VALUE - now < nanos ? Long.MAX_VALUE : now + nanos;
+    }
+    private static boolean retentionDeadlineExceeded(long deadlineNanos) { return System.nanoTime() - deadlineNanos >= 0; }
+    private void retentionThrottle() {
+        long throttleMs = bounded(environment.getProperty("cpf.logging.file.retention-throttle-ms", Long.class, 0L),
+                0L, 60_000L, "cpf.logging.file.retention-throttle-ms");
+        if (throttleMs > 0) LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(throttleMs));
+        if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("file retention interrupted");
     }
 
     private Instant lastModified(Path path) {

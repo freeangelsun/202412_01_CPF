@@ -405,22 +405,24 @@ def _sql_variables(text: str) -> list[str]:
 
 def _oracle_merge_from_values(table: str, columns: list[str], source: str, conflict: list[str], updates: list[dict], name_map: dict[str,str]) -> str:
     if not conflict: raise ValueError(f'Oracle canonical upsert requires conflict columns: {table}')
-    stmts=[]
-    for row in _split_value_rows(source):
+    selects=[]
+    rows=_split_value_rows(source)
+    for row in rows:
         if len(row)!=len(columns): raise ValueError(f'{table}: VALUES width {len(row)} != columns {len(columns)}')
-        using='SELECT '+', '.join(f'{expr} AS {col}' for expr,col in zip(row,columns))+' FROM dual'
-        on=' AND '.join(f'tgt.{c}=src.{c}' for c in conflict)
-        pairs=[]
-        for u in updates:
-            expr=remap_seed_text(u['expression'],name_map)
-            expr=re.sub(r'VALUES\(([^)]+)\)',r'src.\1',expr,flags=re.I)
-            pairs.append(f'tgt.{u["column"]}={expr}')
-        insert_cols=', '.join(columns); insert_vals=', '.join('src.'+c for c in columns)
-        stmt=f'MERGE INTO {table} tgt\nUSING ({using}) src\nON ({on})'
-        if pairs: stmt+='\nWHEN MATCHED THEN UPDATE SET '+', '.join(pairs)
-        stmt+=f'\nWHEN NOT MATCHED THEN INSERT ({insert_cols}) VALUES ({insert_vals});'
-        stmts.append(stmt)
-    return '\n\n'.join(stmts)
+        selects.append('SELECT '+', '.join(f'{expr} AS {col}' for expr,col in zip(row,columns))+' FROM dual')
+    if not selects: raise ValueError(f'{table}: canonical VALUES seed is empty')
+    using='\nUNION ALL\n'.join(selects)
+    on=' AND '.join(f'tgt.{c}=src.{c}' for c in conflict)
+    pairs=[]
+    for u in updates:
+        expr=remap_seed_text(u['expression'],name_map)
+        expr=re.sub(r'VALUES\(([^)]+)\)',r'src.\1',expr,flags=re.I)
+        pairs.append(f'tgt.{u["column"]}={expr}')
+    insert_cols=', '.join(columns); insert_vals=', '.join('src.'+c for c in columns)
+    stmt=f'MERGE INTO {table} tgt\nUSING ({using}) src\nON ({on})'
+    if pairs: stmt+='\nWHEN MATCHED THEN UPDATE SET '+', '.join(pairs)
+    stmt+=f'\nWHEN NOT MATCHED THEN INSERT ({insert_cols}) VALUES ({insert_vals});'
+    return stmt
 
 
 def _oracle_merge_from_select(table: str, columns: list[str], source: str, conflict: list[str], updates: list[dict], name_map: dict[str,str]) -> str:

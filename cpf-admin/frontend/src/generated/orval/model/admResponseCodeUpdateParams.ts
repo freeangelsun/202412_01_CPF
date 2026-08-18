@@ -1,4 +1,2 @@
-/** Generated from OpenAPI query/header parameters. */
-export interface AdmResponseCodeUpdateParams {
-  reason: string;
-}
+/** Audited response-code update query. */
+export interface AdmResponseCodeUpdateParams { reason: string; }

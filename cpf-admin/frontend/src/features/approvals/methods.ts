@@ -31,7 +31,7 @@ export const approvalMethods = {
       allowAll: targetInput.allowAll === true,
     };
     return {
-      operationId: this.approvalForm.operationId || crypto.randomUUID(),
+      commandId: this.approvalForm.commandId || this.approvalForm.operationId || crypto.randomUUID(),
       changeType: this.approvalForm.changeType,
       payloadSchemaVersion: Number(this.approvalForm.payloadSchemaVersion || 1),
       target,
@@ -70,19 +70,20 @@ export const approvalMethods = {
       ownerModule: "cpf-starter-platform-operations-runtime-control",
       ownerCommand: "RUNTIME_CONTROL_CREATE",
       targetType: "CPF_RUNTIME_CHANGE",
-      targetId: body.operationId,
+      targetId: body.commandId,
       payloadSnapshot: JSON.stringify(body),
       reason: body.reason
     }});
     const requestId = String(this.approvalResult?.approvalRequestId ?? this.approvalResult?.requestId ?? this.approvalResult?.id ?? "");
-    this.approvalForm.operationId = body.operationId;
+    this.approvalForm.commandId = body.commandId;
+    this.approvalForm.operationId = body.commandId;
     this.approvalForm.approvalId = requestId;
     this.approvalEngine.requestId = requestId;
     this.approvalEngine.actionType = "RUNTIME_CONFIG_CHANGE";
     this.approvalEngine.ownerModule = "cpf-starter-platform-operations-runtime-control";
     this.approvalEngine.ownerCommand = "RUNTIME_CONTROL_CREATE";
     this.approvalEngine.targetType = "CPF_RUNTIME_CHANGE";
-    this.approvalEngine.targetId = body.operationId;
+    this.approvalEngine.targetId = body.commandId;
     this.approvalEngine.payloadSnapshot = JSON.stringify(body, null, 2);
     this.setMessage("Runtime 위험 변경 승인 요청을 생성했습니다. 승인 후 Owner Command를 실행하세요.");
   },
@@ -95,9 +96,9 @@ export const approvalMethods = {
     const changeId = String(this.approvalForm.selectedRequestId || "").trim();
     if (!changeId || !this.requireReason(this.approvalForm.reason)) return;
     const action = String(this.approvalForm.decisionAction || "CANCEL").toUpperCase();
-    const operationId = this.approvalForm.controlOperationId || crypto.randomUUID();
+    const commandId = this.approvalForm.controlCommandId || this.approvalForm.controlOperationId || crypto.randomUUID();
     const ownerCommand = action === "ROLLBACK" ? "RUNTIME_CONTROL_ROLLBACK" : "RUNTIME_CONTROL_CANCEL";
-    const payload = { changeId, operationId, reason: this.approvalForm.reason };
+    const payload = { changeId, commandId, reason: this.approvalForm.reason };
     this.approvalResult = await admApprovalRequest<Record<string, unknown>>({ data: {
       requestKey: crypto.randomUUID(),
       actionType: "RUNTIME_CONFIG_CHANGE",
@@ -109,7 +110,8 @@ export const approvalMethods = {
       reason: this.approvalForm.reason
     }});
     const requestId = String(this.approvalResult?.approvalRequestId ?? this.approvalResult?.requestId ?? this.approvalResult?.id ?? "");
-    this.approvalForm.controlOperationId = operationId;
+    this.approvalForm.controlCommandId = commandId;
+    this.approvalForm.controlOperationId = commandId;
     this.approvalForm.approvalId = requestId;
     this.approvalEngine.requestId = requestId;
     this.approvalEngine.actionType = "RUNTIME_CONFIG_CHANGE";

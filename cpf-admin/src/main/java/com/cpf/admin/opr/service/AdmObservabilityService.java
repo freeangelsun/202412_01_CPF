@@ -54,12 +54,12 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
             Long overrideId,
             int limit) {
         Map<String, Object> response = new LinkedHashMap<>();
-        boolean available = tableAvailable(cpfJdbcTemplate, "cpf_log_policy_audit");
+        boolean available = tableAvailable(cpfJdbcTemplate, "OPS_LOG_POLICY_AUDIT");
         response.put("available", available);
         response.put("items", available
                 ? queryPolicyAudits(operatorId, actionType, targetType, targetId, policyId, overrideId, limit)
                 : List.of());
-        response.put("source", "cpf_log_policy_audit");
+        response.put("source", "OPS_LOG_POLICY_AUDIT");
         return response;
     }
 
@@ -183,14 +183,14 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
             Long policyId,
             Long overrideId,
             int limit) {
-        if (!tableAvailable(cpfJdbcTemplate, "cpf_log_policy_audit")) {
+        if (!tableAvailable(cpfJdbcTemplate, "OPS_LOG_POLICY_AUDIT")) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("""
                 SELECT audit_id, policy_id, override_id, action_type, target_type, target_id,
                        reason, before_data, after_data, diff_data, operator_id, client_ip,
                        created_at, updated_at
-                FROM cpf_log_policy_audit
+                FROM OPS_LOG_POLICY_AUDIT
                 WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();

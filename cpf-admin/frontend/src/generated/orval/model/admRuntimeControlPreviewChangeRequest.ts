@@ -6,9 +6,9 @@ export interface AdmRuntimeControlPreviewChangeRequest {
   approvalId?: string;
   breakGlassId?: string;
   changeType?: string;
+  commandId?: string;
   expectedVersion?: number;
   expiresAt?: string;
-  operationId?: string;
   payload?: CpfRuntimePayload;
   payloadSchemaVersion: number;
   quorumPercent?: number;

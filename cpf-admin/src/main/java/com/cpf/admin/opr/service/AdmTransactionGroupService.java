@@ -3,10 +3,15 @@ package com.cpf.admin.opr.service;
 import com.cpf.batch.api.CpfBatchOperationsPort;
 import com.cpf.data.api.CpfDataRow;
 import com.cpf.platform.operations.observability.api.logging.CpfTransactionTimelineQueryPort;
+import com.cpf.platform.operations.observability.api.tracking.CpfSubjectTimelineQueryPort;
+import com.cpf.core.api.tracking.CpfSubjectRole;
+import com.cpf.core.api.tracking.CpfSubjectTrustLevel;
+import com.cpf.core.api.tracking.CpfSubjectType;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.cpf.foundation.annotation.CpfService;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,19 +28,23 @@ import java.util.StringJoiner;
 public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBaseService {
     private final CpfTransactionTimelineQueryPort timelineQueryPort;
     private final CpfBatchOperationsPort batchOperations;
+    private final CpfSubjectTimelineQueryPort subjectTimelineQueryPort;
 
     @Autowired
     public AdmTransactionGroupService(
             CpfTransactionTimelineQueryPort timelineQueryPort,
-            ObjectProvider<CpfBatchOperationsPort> batchOperationsProvider) {
+            ObjectProvider<CpfBatchOperationsPort> batchOperationsProvider,
+            ObjectProvider<CpfSubjectTimelineQueryPort> subjectTimelineQueryProvider) {
         this.timelineQueryPort = timelineQueryPort;
         this.batchOperations = batchOperationsProvider == null ? null : batchOperationsProvider.getIfAvailable();
+        this.subjectTimelineQueryPort = subjectTimelineQueryProvider == null ? null : subjectTimelineQueryProvider.getIfAvailable();
     }
 
     /** Test/single-module compatibility constructor. */
     public AdmTransactionGroupService(CpfTransactionTimelineQueryPort timelineQueryPort) {
         this.timelineQueryPort = timelineQueryPort;
         this.batchOperations = null;
+        this.subjectTimelineQueryPort = null;
     }
 
     public Map<String, Object> findGroups(Map<String, String> criteria) {
@@ -49,6 +58,30 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
         if (query.message() != null) {
             response.put("message", query.message());
         }
+        return response;
+    }
+
+    public Map<String, Object> findBySubject(String subjectType, String subjectId, String from, String to, int limit) {
+        if (subjectTimelineQueryPort == null) {
+            return Map.of("available", false, "items", List.of(), "message", "Subject tracking capability is unavailable.");
+        }
+        CpfSubjectType type;
+        try {
+            type = CpfSubjectType.valueOf(requiredText(subjectType, "subjectType").toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Unsupported subjectType", ex);
+        }
+        CpfSubjectTimelineQueryPort.SearchResult result = subjectTimelineQueryPort.findTransactions(
+                new CpfSubjectTimelineQueryPort.SearchRequest(type, CpfSubjectRole.ACTOR, requiredText(subjectId, "subjectId"),
+                        parseInstant(from), parseInstant(to), boundedLimit(limit <= 0 ? 100 : limit), CpfSubjectTrustLevel.TRUSTED));
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("available", result.available());
+        response.put("subjectType", type.name());
+        response.put("subjectRole", CpfSubjectRole.ACTOR.name());
+        response.put("maskedSubject", result.maskedSubject());
+        response.put("items", result.items());
+        response.put("limit", result.limit());
+        if (result.message() != null) response.put("message", result.message());
         return response;
     }
 
@@ -198,6 +231,19 @@ public class AdmTransactionGroupService extends com.cpf.admin.common.base.AdmBas
     private String text(Map<String, Object> row, String key) {
         Object value = row.get(key);
         return value == null ? "" : String.valueOf(value);
+    }
+
+    private String requiredText(String value, String field) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
+        String normalized = value.strip();
+        if (normalized.length() > 256) throw new IllegalArgumentException(field + " is too long");
+        return normalized;
+    }
+
+    private Instant parseInstant(String value) {
+        if (value == null || value.isBlank()) return null;
+        try { return Instant.parse(value.strip()); }
+        catch (java.time.format.DateTimeParseException ex) { throw new IllegalArgumentException("time must be ISO-8601 instant", ex); }
     }
 
     private int boundedLimit(int limit) {

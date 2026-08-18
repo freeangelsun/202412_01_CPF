@@ -26,6 +26,9 @@ public final class CpfHttpHeaderNames {
     public static final String CLIENT_INSTANCE_ID = "X-Client-Instance-Id";
     public static final String CLIENT_VERSION = "X-Client-Version";
     public static final String DEVICE_ID = "X-Device-Id";
+    // Optional subject tracking metadata. Not part of the mandatory transaction-header contract.
+    public static final String SUBJECT_TYPE = "X-Subject-Type";
+    public static final String SUBJECT_ID = "X-Subject-Id";
 
     // Existing non-canonical request semantics retained as bounded compatibility/control metadata.
     public static final String BUSINESS_DATE = "X-Cpf-Business-Date";

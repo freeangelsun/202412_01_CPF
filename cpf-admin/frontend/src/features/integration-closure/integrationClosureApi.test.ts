@@ -17,14 +17,20 @@ vi.mock('../../generated/cpf-api', () => ({
   admIntegrationDataQualityCorrectionExecute: vi.fn(), admIntegrationDataQualityReplay: vi.fn(),
   admIntegrationWebhookDlq: vi.fn(), admIntegrationWebhookReplay: vi.fn(),
 }));
-const generated = [admIntegrationCryptoStatus, admIntegrationTimeHealth, admIntegrationDataQualityValidate,
-  admIntegrationDataQualityCorrectionApprovalRequest, admIntegrationDataQualityCorrectionExecute,
-  admIntegrationDataQualityReplay, admIntegrationWebhookDlq, admIntegrationWebhookReplay].map(vi.mocked);
-afterEach(() => generated.forEach(fn => fn.mockReset()));
+const resetGeneratedMocks = () => {
+  vi.mocked(admIntegrationCryptoStatus).mockReset(); vi.mocked(admIntegrationTimeHealth).mockReset();
+  vi.mocked(admIntegrationDataQualityValidate).mockReset(); vi.mocked(admIntegrationDataQualityCorrectionApprovalRequest).mockReset();
+  vi.mocked(admIntegrationDataQualityCorrectionExecute).mockReset(); vi.mocked(admIntegrationDataQualityReplay).mockReset();
+  vi.mocked(admIntegrationWebhookDlq).mockReset(); vi.mocked(admIntegrationWebhookReplay).mockReset();
+};
+afterEach(resetGeneratedMocks);
 
 describe('integration closure generated API facade', () => {
   it('binds every operation to its generated function and typed request boundary', async () => {
-    generated.forEach(fn => fn.mockResolvedValue({}));
+    vi.mocked(admIntegrationCryptoStatus).mockResolvedValue({} as never); vi.mocked(admIntegrationTimeHealth).mockResolvedValue({} as never);
+    vi.mocked(admIntegrationDataQualityValidate).mockResolvedValue({} as never); vi.mocked(admIntegrationDataQualityCorrectionApprovalRequest).mockResolvedValue({} as never);
+    vi.mocked(admIntegrationDataQualityCorrectionExecute).mockResolvedValue({} as never); vi.mocked(admIntegrationDataQualityReplay).mockResolvedValue({} as never);
+    vi.mocked(admIntegrationWebhookDlq).mockResolvedValue({} as never); vi.mocked(admIntegrationWebhookReplay).mockResolvedValue({} as never);
     await integrationClosureApi.cryptoStatus();
     await integrationClosureApi.timeHealth('Asia/Seoul', 1500);
     await integrationClosureApi.validate('R-1', { name: 'Kim' });

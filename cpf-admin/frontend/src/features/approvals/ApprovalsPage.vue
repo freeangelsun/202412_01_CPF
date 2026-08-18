@@ -69,17 +69,18 @@
   </div>
 
   <section class="panel route-operation-panel"><h3>Break-glass·Operation 복구</h3><div class="filters"><label>Break-glass Session ID <input v-model="operationForm.breakGlassSessionId"></label><label>검토 상태 <select v-model="operationForm.reviewStatus"><option>APPROVED</option><option>REJECTED</option></select></label><label>Runtime Operation ID <input v-model="operationForm.operationId"></label><label>사유 <input v-model="operationForm.reason"></label></div><div class="actions"><button type="button" :title="actionTitle('admBreakGlassFindSessions')" :disabled="!canAction('admBreakGlassFindSessions')" @click="loadBreakGlassSessions">Break-glass 조회</button><button type="button" :title="actionTitle('admBreakGlassReviewSession')" :disabled="!canAction('admBreakGlassReviewSession')" @click="reviewBreakGlassSession">사후 검토</button><button type="button" :title="actionTitle('admRuntimeControlFindByOperation')" :disabled="!canAction('admRuntimeControlFindByOperation')" @click="loadRuntimeOperation">Operation 결과 조회</button></div></section>
-  <dialog :open="Boolean(approvalEngineConfirmAction)" class="modal">
+  <CpfModal :open="Boolean(approvalEngineConfirmAction)" @cancel="cancelApprovalEngineConfirm" aria-labelledby="approval-engine-confirm-title">
     <form class="modal-card" @submit.prevent="confirmApprovalEngineAction">
-      <div class="panel-title"><div><h2>{{ approvalEngineConfirmAction === 'EXECUTE' ? 'Owner Command 실행 확인' : 'UNKNOWN Reconcile 확인' }}</h2><p class="hint">{{ approvalEngineConfirmAction === 'EXECUTE' ? '승인된 Owner Command를 단회 실행합니다.' : 'Mutation을 재실행하지 않고 Owner 상태만 대조합니다.' }}</p></div></div>
+      <div class="panel-title"><div><h2 id="approval-engine-confirm-title">{{ approvalEngineConfirmAction === 'EXECUTE' ? 'Owner Command 실행 확인' : 'UNKNOWN Reconcile 확인' }}</h2><p class="hint">{{ approvalEngineConfirmAction === 'EXECUTE' ? '승인된 Owner Command를 단회 실행합니다.' : 'Mutation을 재실행하지 않고 Owner 상태만 대조합니다.' }}</p></div></div>
       <p>Request ID: <strong>{{ approvalEngine.requestId }}</strong></p>
       <p>사유: {{ approvalEngine.reason }}</p>
       <label><input v-model="approvalEngineConfirmed" type="checkbox"> 대상·사유·영향 범위를 확인했습니다.</label>
       <div class="actions"><button type="button" @click="cancelApprovalEngineConfirm">취소</button><button class="primary" type="submit" :disabled="!approvalEngineConfirmed">확인 후 실행</button></div>
     </form>
-  </dialog>
+  </CpfModal>
 </template>
 <script lang="ts">
+import CpfModal from '../../components/ui/CpfModal.vue';
 import { defineComponent } from "vue";
 import { useAdmConsolePage } from "../../app/useAdmConsolePage";
 import {
@@ -100,7 +101,7 @@ function unwrapGeneratedResponse(value: unknown): unknown {
   return value;
 }
 
-export default defineComponent({
+export default defineComponent({components:{CpfModal},
   setup(){return { ...useAdmConsolePage(), admSession: useAdmSessionStore() }},
   name:"ApprovalsPage",
   data(){return{

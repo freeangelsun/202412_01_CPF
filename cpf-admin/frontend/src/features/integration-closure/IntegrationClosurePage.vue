@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CpfModal from '../../components/ui/CpfModal.vue'
 import { computed, ref } from "vue";
 import { parseStrictJsonObject } from "../../shared/strictJsonObject";
 import { integrationClosureApi, type WebhookDelivery } from "./integrationClosureApi";
@@ -234,9 +235,9 @@ async function confirmDangerousAction(){
       </form>
       <pre v-if="webhookReplayResult" tabindex="0">{{ JSON.stringify(webhookReplayResult, null, 2) }}</pre>
     </section>
-    <dialog :open="Boolean(dangerousAction)" class="modal">
+    <CpfModal :open="Boolean(dangerousAction)" @cancel="cancelDangerousAction" aria-labelledby="integration-dangerous-action-title">
       <form class="modal-card" @submit.prevent="confirmDangerousAction">
-        <h2>위험 운영조치 확인</h2>
+        <h2 id="integration-dangerous-action-title">위험 운영조치 확인</h2>
         <p v-if="dangerousAction==='APPROVAL_EXECUTE'">승인 요청 {{approvalId}}을 단회 실행합니다.</p>
         <p v-else-if="dangerousAction==='QUALITY_REPLAY'">격리 데이터 {{quarantineId}}를 동일 멱등성 정책으로 재검증합니다.</p>
         <p v-else>Webhook {{webhookId}}를 재처리합니다.</p>
@@ -244,7 +245,7 @@ async function confirmDangerousAction(){
         <label><input v-model="dangerousConfirmed" type="checkbox"> 대상과 영향 범위를 확인했습니다.</label>
         <div class="actions"><button type="button" @click="cancelDangerousAction">취소</button><button type="submit" :disabled="!dangerousConfirmed">확인 후 실행</button></div>
       </form>
-    </dialog>
+    </CpfModal>
   </main>
 </template>
 

@@ -4,6 +4,7 @@ import java.util.Set;
 import java.time.Clock;
 import org.springframework.beans.factory.ObjectProvider;
 import com.cpf.security.api.audit.CpfAuthorizationAuditSink;
+import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -60,8 +61,9 @@ public class CpfResourceServerAutoConfiguration {
 
 
     @Bean
-    CpfAuthenticatedContextFilter cpfAuthenticatedContextFilter(CpfResourceServerProperties properties) {
-        return new CpfAuthenticatedContextFilter(properties);
+    CpfAuthenticatedContextFilter cpfAuthenticatedContextFilter(CpfResourceServerProperties properties,
+            ObjectProvider<CpfSubjectTrackingOperations> subjectTracking) {
+        return new CpfAuthenticatedContextFilter(properties, subjectTracking.getIfAvailable());
     }
 
     @Bean

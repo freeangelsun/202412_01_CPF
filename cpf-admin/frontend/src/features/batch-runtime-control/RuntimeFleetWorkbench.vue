@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useAdmSessionStore } from '../../stores/admSessionStore'
 import { fetchBatchRuntimeCommandState, fetchBatchView, submitBatchRuntimeCommand, type BatchRuntimeCommandRequest } from './api'
 import { apiMessage, read, statusClass, text, type AnyRow } from './pageSupport'
+import RuntimeInventorySelector from '../../components/RuntimeInventorySelector.vue'
 
 const props = withDefaults(defineProps<{
   view: 'worker-pools' | 'agents' | 'instances'
@@ -21,6 +22,8 @@ const actionLoading = ref(false)
 const error = ref('')
 const notice = ref('')
 const filter = ref('')
+const centralRuntimeId = ref('')
+const centralCapability = computed(() => props.view === 'agents' ? 'BATCH_AGENT' : 'BATCH_RUNTIME')
 const action = ref<BatchRuntimeCommandRequest['commandType']>('DRAIN')
 const reason = ref('')
 const approvalRequestId = ref('')
@@ -31,7 +34,7 @@ const commandResult = ref<AnyRow | null>(null)
 
 const operatorId = computed(() => String(session.operator?.operatorId ?? '').trim())
 const filtered = computed(() => {
-  const q = filter.value.toLowerCase()
+  const q = (centralRuntimeId.value || filter.value).toLowerCase()
   return rows.value.filter(row => !q || JSON.stringify(row).toLowerCase().includes(q))
 })
 const canCommand = computed(() => {
@@ -119,11 +122,11 @@ onMounted(load)
   <section class="fleet-workbench">
     <header class="page-header"><div><p class="eyebrow">BAT OWNER / RUNTIME FLEET</p><h2>{{ title }}</h2><p>{{ description }}</p></div><button type="button" :disabled="loading" @click="load">새로고침</button></header>
     <p v-if="error" class="message danger" role="alert">{{ error }}</p><p v-if="notice" class="message success" role="status">{{ notice }}</p>
-    <div class="toolbar"><input v-model.trim="filter" type="search" :placeholder="`${title} 검색`"><span>{{ filtered.length }}건</span></div>
+    <div class="toolbar"><input v-model.trim="filter" type="search" :placeholder="`${title} 검색`"><RuntimeInventorySelector v-model="centralRuntimeId" :capability="centralCapability" /><span>{{ filtered.length }}건</span></div>
     <div class="workspace"><section class="card"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Role/Pool</th><th>State</th><th>Host/Zone</th><th>Version</th><th>Heartbeat</th><th>Fencing</th></tr></thead><tbody>
       <tr v-for="row in filtered" :key="targetId(row)" :class="{selected:targetId(row)===targetId(selected||{})}" @click="selected=row"><td><button type="button" class="link">{{ targetId(row) }}</button></td><td>{{ text(row,'runtimeRole','runtime_role','poolId','pool_id','role') }}</td><td><span :class="['status',statusClass(read(row,'effectiveState','effective_state','status','state'))]">{{ text(row,'effectiveState','effective_state','status','state') }}</span></td><td>{{ text(row,'hostAlias','host_alias','host','zoneId','zone_id') }}</td><td>{{ text(row,'artifactVersion','artifact_version','version') }}</td><td>{{ text(row,'lastHeartbeatAt','last_heartbeat_at','heartbeatAt') }}</td><td>{{ text(row,'fencingToken','fencing_token') }}</td></tr>
       <tr v-if="!filtered.length"><td colspan="7">조회 결과가 없습니다.</td></tr></tbody></table></div></section>
-      <aside class="card detail"><h3>선택 대상</h3><CpfStructuredData :value="selected || {}" /><div class="danger-zone"><h3>승인 기반 Runtime 조치</h3><label>Command<select v-model="action"><option v-for="item in allowedActions" :key="item" :value="item">{{ item }}</option></select></label><label>사유<textarea v-model.trim="reason" minlength="5"></textarea></label><label>승인 요청 ID<input v-model.trim="approvalRequestId"></label><label>승인자<input v-model.trim="approvedBy" placeholder="요청자와 다른 운영자"></label><label>승인 정책 Version<input v-model.trim="approvalPolicyVersion"></label><label><input v-model="confirmed" type="checkbox"> 대상 Snapshot·CAS Version·UNKNOWN_RESULT 복구 절차를 확인했습니다.</label><button type="button" class="danger-button" :disabled="actionLoading || !selected || !canCommand || !stateAllowsAction" @click="execute">{{ action }} 요청</button></div><section v-if="commandResult"><div class="command-head"><h3>Command 결과</h3><button type="button" @click="refreshCommandState">상태 조회</button></div><CpfStructuredData :value="commandResult" /></section></aside></div>
+      <aside class="card detail"><h3>선택 대상</h3><CpfStructuredData :value="selected || {}" /><div class="danger-zone"><h3>승인 기반 Runtime 조치</h3><label>Command<select v-model="action"><option v-for="item in allowedActions" :key="String(item)" :value="item">{{ item }}</option></select></label><label>사유<textarea v-model.trim="reason" minlength="5"></textarea></label><label>승인 요청 ID<input v-model.trim="approvalRequestId"></label><label>승인자<input v-model.trim="approvedBy" placeholder="요청자와 다른 운영자"></label><label>승인 정책 Version<input v-model.trim="approvalPolicyVersion"></label><label><input v-model="confirmed" type="checkbox"> 대상 Snapshot·CAS Version·UNKNOWN_RESULT 복구 절차를 확인했습니다.</label><button type="button" class="danger-button" :disabled="actionLoading || !selected || !canCommand || !stateAllowsAction" @click="execute">{{ action }} 요청</button></div><section v-if="commandResult"><div class="command-head"><h3>Command 결과</h3><button type="button" @click="refreshCommandState">상태 조회</button></div><CpfStructuredData :value="commandResult" /></section></aside></div>
   </section>
 </template>
 <style scoped>

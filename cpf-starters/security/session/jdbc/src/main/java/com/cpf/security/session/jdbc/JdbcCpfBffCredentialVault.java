@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public final class JdbcCpfBffCredentialVault implements CpfBffCredentialVault {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String INSERT = """
-            INSERT INTO CPF_BFF_CREDENTIAL_VAULT
+            INSERT INTO SEC_BFF_CREDENTIAL_VAULT
             (HANDLE_ID, KEY_ID, ACCESS_IV, ACCESS_CIPHER_TEXT, REFRESH_IV, REFRESH_CIPHER_TEXT,
              ACCESS_EXPIRES_AT, REFRESH_EXPIRES_AT, CREATED_AT, UPDATED_AT, VERSION_NO)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
@@ -22,10 +22,10 @@ public final class JdbcCpfBffCredentialVault implements CpfBffCredentialVault {
     private static final String SELECT = """
             SELECT KEY_ID, ACCESS_IV, ACCESS_CIPHER_TEXT, REFRESH_IV, REFRESH_CIPHER_TEXT,
                    ACCESS_EXPIRES_AT, REFRESH_EXPIRES_AT, VERSION_NO
-              FROM CPF_BFF_CREDENTIAL_VAULT WHERE HANDLE_ID = ?
+              FROM SEC_BFF_CREDENTIAL_VAULT WHERE HANDLE_ID = ?
             """;
     private static final String UPDATE = """
-            UPDATE CPF_BFF_CREDENTIAL_VAULT
+            UPDATE SEC_BFF_CREDENTIAL_VAULT
                SET KEY_ID=?, ACCESS_IV=?, ACCESS_CIPHER_TEXT=?, REFRESH_IV=?, REFRESH_CIPHER_TEXT=?,
                    ACCESS_EXPIRES_AT=?, REFRESH_EXPIRES_AT=?, UPDATED_AT=?, VERSION_NO=VERSION_NO+1
              WHERE HANDLE_ID=? AND VERSION_NO=?
@@ -109,11 +109,11 @@ public final class JdbcCpfBffCredentialVault implements CpfBffCredentialVault {
     }
 
     @Override public void revoke(String handle) {
-        if (handle != null && !handle.isBlank()) jdbc.update("DELETE FROM CPF_BFF_CREDENTIAL_VAULT WHERE HANDLE_ID=?", handle);
+        if (handle != null && !handle.isBlank()) jdbc.update("DELETE FROM SEC_BFF_CREDENTIAL_VAULT WHERE HANDLE_ID=?", handle);
     }
 
     @Override public int purgeExpired(Instant now) {
-        return jdbc.update("DELETE FROM CPF_BFF_CREDENTIAL_VAULT WHERE REFRESH_EXPIRES_AT <= ?", Timestamp.from(now));
+        return jdbc.update("DELETE FROM SEC_BFF_CREDENTIAL_VAULT WHERE REFRESH_EXPIRES_AT <= ?", Timestamp.from(now));
     }
 
     private String decryptNullable(String handle, byte[] iv, byte[] ciphertext) {

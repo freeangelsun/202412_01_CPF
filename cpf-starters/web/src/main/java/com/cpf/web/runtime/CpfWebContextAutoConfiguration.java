@@ -4,6 +4,8 @@ import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
 import com.cpf.foundation.runtime.CpfRuntimeMetadata;
+import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
+import org.springframework.beans.factory.ObjectProvider;
 import com.cpf.web.context.CpfConfiguredIngressTrustResolver;
 import com.cpf.web.context.CpfDefaultHeaderFailureRecorder;
 import com.cpf.web.context.CpfHeaderFailureRecorder;
@@ -59,8 +61,10 @@ public class CpfWebContextAutoConfiguration {
     CpfWebContextFilter cpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider dates,
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry policies,
-            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime) {
-        return new CpfWebContextFilter(inbound, dates, transactionIds, trustResolver, clientIpResolver, policies, failures, runtime);
+            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime,
+            ObjectProvider<CpfSubjectTrackingOperations> subjectTracking) {
+        return new CpfWebContextFilter(inbound, dates, transactionIds, trustResolver, clientIpResolver, policies, failures, runtime,
+                subjectTracking.getIfAvailable());
     }
 
     @Bean

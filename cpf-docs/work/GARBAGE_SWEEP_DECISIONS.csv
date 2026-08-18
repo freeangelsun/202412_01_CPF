@@ -1349,3 +1349,6 @@ GARB-1328,cpf-education/src/main/java/com/cpf/education/online/fixedlength/Accou
 ,cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/offset-postgresql.sql,CURRENTIZATION,DELETE,Consumer가 제거된 legacy CMN sample runtime SQL; current runtime contract에서 제거,
 ,cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/soft-delete.sql,CURRENTIZATION,DELETE,Consumer가 제거된 legacy CMN sample runtime SQL; current runtime contract에서 제거,
 ,cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/update.sql,CURRENTIZATION,DELETE,Consumer가 제거된 legacy CMN sample runtime SQL; current runtime contract에서 제거,
+,cpf-admin/frontend/src/generated/orval/model/admTransactionMetaScanParams.ts,CURRENTIZATION,DELETE,OpenAPI/Orval currentization 후 미사용 stale generated model; canonical client surface에서 제거,Final overlay diff / generated client closure
+,cpf-admin/frontend/src/generated/orval/model/detectedTransaction.ts,CURRENTIZATION,DELETE,OpenAPI/Orval currentization 후 미사용 stale generated model; canonical client surface에서 제거,Final overlay diff / generated client closure
+,cpf-admin/frontend/src/generated/orval/model/transactionMetaScanResult.ts,CURRENTIZATION,DELETE,OpenAPI/Orval currentization 후 미사용 stale generated model; canonical client surface에서 제거,Final overlay diff / generated client closure

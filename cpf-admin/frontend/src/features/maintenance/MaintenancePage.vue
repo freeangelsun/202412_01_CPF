@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CpfModal from '../../components/ui/CpfModal.vue'
 import { computed, onMounted, reactive, ref } from "vue";
 import { admMaintenanceFindActions } from "../../generated/cpf-api";
 import { requestServiceInstanceApproval } from "../../shared/serviceRegistryApproval";
@@ -76,13 +77,13 @@ onMounted(load);
       </div>
       <p v-else class="cpf-empty">조회된 점검 명령이 없습니다.</p>
     </section>
-    <dialog :open="dialogOpen" class="modal" aria-labelledby="maintenance-dialog-title">
+    <CpfModal :open="dialogOpen" @cancel="closeCommand" aria-labelledby="maintenance-dialog-title">
       <form class="modal-card" @submit.prevent="execute">
         <div class="card-head"><div><p class="eyebrow">HIGH RISK OPERATION</p><h2 id="maintenance-dialog-title">점검 명령 승인 요청</h2></div><button type="button" class="icon-button" :disabled="executing" @click="closeCommand">×</button></div>
         <div class="cpf-form-grid"><label>Service<input v-model.trim="form.serviceId" required :disabled="executing" placeholder="MBR"></label><label>Endpoint<input v-model.trim="form.endpointCode" required :disabled="executing" placeholder="MBR_API"></label><label>Instance<input v-model.trim="form.instanceId" required :disabled="executing" placeholder="MBR-01"></label><label>Action<select v-model="form.action" :disabled="executing"><option value="DRAIN">DRAIN</option><option value="DISABLE">DISABLE</option><option value="RESUME">RESUME</option></select></label><label class="span-2">감사 사유<textarea v-model.trim="form.reason" minlength="8" required :disabled="executing" rows="3" placeholder="운영 명령의 구체적인 사유를 8자 이상 입력하세요."></textarea></label></div>
         <p class="cpf-note">서버가 인증된 Operator·Transaction ID·Operation ID를 감사 기록합니다. 결과 불명확 시 재시도하지 말고 이력에서 대사하세요.</p>
         <div class="dialog-actions"><button type="button" class="ghost" :disabled="executing" @click="closeCommand">취소</button><button class="danger" :disabled="executing">{{ executing ? '요청 중' : '승인 요청' }}</button></div>
       </form>
-    </dialog>
+    </CpfModal>
   </div>
 </template>

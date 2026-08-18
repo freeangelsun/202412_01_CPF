@@ -24,7 +24,7 @@ def main():
   public final class CpfMessageContextHarness {
     static void ok(boolean v,String m){if(!v)throw new IllegalStateException(m);}
     static CpfContext root(){Instant n=Instant.now();return new CpfContext(
-      new CpfContext.CpfTransactionContext("20260809000000000EDUlocal010000003","20260809000000000EDUlocal010000003",null,"CORR-M","TRACE-M","API","SYS-A",LocalDate.of(2026,8,9),n,CpfContext.CpfTransactionOriginKind.HTTP,"SYS-A",null),
+      new CpfContext.CpfTransactionContext("20260809000000000EDUlocal010000003","20260809000000000EDUlocal010000003",null,"CORR-M","TRACE-M","API","EDU","API","EDU",LocalDate.of(2026,8,9),n,CpfContext.CpfTransactionOriginKind.HTTP,"EDU",null),
       new CpfContext.CpfExecutionContext("OEDU020001","EX-M-ROOT","EX-M-ROOT",null,"SG-M-ROOT",null,CpfContext.CpfExecutionType.API,1,0,n,n.plusSeconds(60),CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
       new CpfContext.CpfOperationContext("OP-M","publish","CMD-M","IDEM-M",CpfContext.CpfIdempotencyScope.TRANSACTION,CpfContext.CpfIdempotencyMode.REQUIRED,null,null),null,null);}
     public static void main(String[] a)throws Exception{

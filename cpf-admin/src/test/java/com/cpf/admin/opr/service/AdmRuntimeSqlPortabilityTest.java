@@ -90,17 +90,17 @@ class AdmRuntimeSqlPortabilityTest {
         when(connection.getMetaData()).thenReturn(metadata);
         when(connection.getCatalog()).thenReturn("cpfDB");
         when(connection.getSchema()).thenReturn("cpf");
-        when(metadata.getTables("cpfDB", "cpf", "cpf_log_policy", new String[] {"TABLE"}))
+        when(metadata.getTables("cpfDB", "cpf", "OPS_LOG_POLICY", new String[] {"TABLE"}))
                 .thenReturn(tables);
         when(tables.next()).thenReturn(true);
-        when(tables.getString("TABLE_NAME")).thenReturn("CPF_LOG_POLICY");
+        when(tables.getString("TABLE_NAME")).thenReturn("OPS_LOG_POLICY");
         when(jdbcTemplate.execute(any(ConnectionCallback.class)))
                 .thenAnswer(invocation -> {
                     ConnectionCallback<Boolean> callback = invocation.getArgument(0);
                     return callback.doInConnection(connection);
                 });
 
-        assertThat(AdmJdbcQueries.tableExists(jdbcTemplate, "cpf_log_policy")).isTrue();
-        verify(metadata).getTables("cpfDB", "cpf", "cpf_log_policy", new String[] {"TABLE"});
+        assertThat(AdmJdbcQueries.tableExists(jdbcTemplate, "OPS_LOG_POLICY")).isTrue();
+        verify(metadata).getTables("cpfDB", "cpf", "OPS_LOG_POLICY", new String[] {"TABLE"});
     }
 }

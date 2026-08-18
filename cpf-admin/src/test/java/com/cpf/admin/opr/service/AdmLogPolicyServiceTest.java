@@ -86,7 +86,7 @@ class AdmLogPolicyServiceTest {
     @Test
     void findPoliciesReportsUnavailableWhenCpfTableIsMissing() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("cpf_log_policy")))
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("OPS_LOG_POLICY")))
                 .thenThrow(new DataAccessResourceFailureException("cpfDB 미적용"));
         AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
 

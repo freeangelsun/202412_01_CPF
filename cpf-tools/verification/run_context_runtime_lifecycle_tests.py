@@ -28,7 +28,7 @@ def main():
           static CpfContext root(String tx,String ex,String seg){
             Instant now=Instant.now();
             return new CpfContext(
-              new CpfContext.CpfTransactionContext(tx,tx,null,"CORR-1","TRACE-1","WEB","CALLER-A",LocalDate.of(2026,8,9),now,CpfContext.CpfTransactionOriginKind.HTTP,"CALLER-A",null),
+              new CpfContext.CpfTransactionContext(tx,tx,null,"CORR-1","TRACE-1","WEB","EDU","WEB","EDU",LocalDate.of(2026,8,9),now,CpfContext.CpfTransactionOriginKind.HTTP,"EDU",null),
               new CpfContext.CpfExecutionContext("OEDU010001",ex,ex,null,seg,null,CpfContext.CpfExecutionType.API,1,0,now,now.plusSeconds(60),CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
               new CpfContext.CpfOperationContext("OP-1","edu","CMD-1","IDEM-1",CpfContext.CpfIdempotencyScope.TRANSACTION,CpfContext.CpfIdempotencyMode.REQUIRED,null,null),
               new CpfContext.CpfIdentityContext("USER-1","OPERATOR-1",CpfContext.CpfPrincipalType.USER),

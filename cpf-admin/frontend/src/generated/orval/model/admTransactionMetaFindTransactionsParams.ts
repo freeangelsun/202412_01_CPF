@@ -2,6 +2,6 @@
 export interface AdmTransactionMetaFindTransactionsParams {
   moduleCode?: string;
   activeYn?: string;
-  transactionId?: string;
+  operationId?: string;
   limit?: number;
 }

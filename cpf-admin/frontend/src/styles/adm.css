@@ -307,3 +307,16 @@ tbody tr:hover {
 .adm-favorite-button:hover, .adm-favorite-button:focus-visible { background: rgba(251,191,36,.12); outline: none; }
 .adm-recent-menu { border-bottom: 1px solid rgba(148,163,184,.16); padding-bottom: 8px; margin-bottom: 8px; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* ADM UI QA: static tables are not interactive by default. */
+th, tbody tr { cursor: default; }
+[data-clickable="true"], .is-clickable, .is-sortable { cursor: pointer; }
+
+/* Mobile login must never keep the desktop 520px minimum column. */
+@media (max-width: 760px) {
+  .adm-login-shell { grid-template-columns: minmax(0, 1fr); }
+  .adm-login-card { padding: 32px 20px; min-width: 0; }
+  .adm-login-copy { margin: 36px 0 24px; }
+  .adm-login-copy h1 { font-size: 36px; }
+  .adm-login-visual { display: none; }
+}

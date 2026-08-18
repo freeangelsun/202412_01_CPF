@@ -1,6 +1,9 @@
 package com.cpf.starter.runtime;
 
 import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.tracking.CpfSubjectCollector;
+import com.cpf.core.api.tracking.CpfSubjectCandidateProvider;
+import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
 import com.cpf.foundation.message.CpfMessageResolver;
 import com.cpf.foundation.message.DefaultCpfMessageResolver;
 import com.cpf.foundation.version.CpfPlatformVersionLoader;
@@ -21,6 +24,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.core.env.Environment;
@@ -84,9 +88,16 @@ public class CpfStarterAutoConfiguration {
     CpfBusinessDateProvider cpfBusinessDateProvider(Clock cpfStarterClock) { return () -> LocalDate.now(cpfStarterClock); }
 
     @Bean @ConditionalOnMissingBean
+    CpfSubjectCollector cpfSubjectCollector(ObjectProvider<CpfSubjectTrackingOperations> operationsProvider,
+            ObjectProvider<CpfSubjectCandidateProvider> candidateProviders) {
+        return new CpfSubjectCollector(operationsProvider.getIfAvailable(), candidateProviders.orderedStream().toList());
+    }
+
+    @Bean @ConditionalOnMissingBean
     CpfContextExecutionFactory cpfContextExecutionFactory(CpfTransactionIdGenerator transactionIds,
-            CpfExecutionIdGenerator executionIds, CpfBusinessDateProvider businessDates, Clock cpfStarterClock) {
-        return new CpfContextExecutionFactory(transactionIds, executionIds, businessDates, cpfStarterClock);
+            CpfExecutionIdGenerator executionIds, CpfBusinessDateProvider businessDates, Clock cpfStarterClock,
+            CpfSubjectCollector subjectCollector) {
+        return new CpfContextExecutionFactory(transactionIds, executionIds, businessDates, cpfStarterClock, subjectCollector);
     }
 
 

@@ -28,7 +28,7 @@ import java.util.Map;
 /** ADM response-code catalog API. */
 @RestController
 @RequestMapping("/adm/api/response-codes")
-@Tag(name = "ADM-OPR Response Codes", description = "cpf_response_code management API")
+@Tag(name = "ADM-OPR Response Codes", description = "CMN_RESPONSE_CODE management API")
 public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBaseController {
     private final ResponseCodeCacheService responseCodeCacheService;
     private final AdmAuditLogService auditLogService;
@@ -38,13 +38,13 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from cpf_response_code.")
+    @GetMapping    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from CMN_RESPONSE_CODE.")
     public ResponseEntity<Map<String, Object>> findAll(HttpServletRequest request) {
         requireOperator(request);
         return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
     }
 
-    @GetMapping("/{responseCode}")    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from cpf_response_code.")
+    @GetMapping("/{responseCode}")    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from CMN_RESPONSE_CODE.")
     public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode, HttpServletRequest request) {
         requireOperator(request);
         return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
@@ -102,7 +102,7 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
         } catch (DataAccessException ex) {
             response.put("available", false);
             response.put("result", Map.of());
-            response.put("message", "cpf_response_code operation is temporarily unavailable.");
+            response.put("message", "CMN_RESPONSE_CODE operation is temporarily unavailable.");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
         }
     }
@@ -119,7 +119,7 @@ public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBase
             String responseCode,
             String reason) {
         auditLogService.record(
-                CpfContexts.transactionId(), operator, actionType, "cpf_response_code", responseCode, reason,
+                CpfContexts.transactionId(), operator, actionType, "CMN_RESPONSE_CODE", responseCode, reason,
                 servletRequest.getRemoteAddr());
     }
 }

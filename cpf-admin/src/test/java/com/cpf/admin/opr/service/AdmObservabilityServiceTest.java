@@ -39,7 +39,7 @@ class AdmObservabilityServiceTest {
         JdbcTemplate cpfJdbcTemplate = mock(JdbcTemplate.class);
         CpfBatchOperationsPort batchOperations = mock(CpfBatchOperationsPort.class);
         JdbcTemplate admJdbcTemplate = mock(JdbcTemplate.class);
-        when(cpfJdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("cpf_log_policy_audit")))
+        when(cpfJdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("OPS_LOG_POLICY_AUDIT")))
                 .thenReturn(0);
         AdmObservabilityService service =
                 new AdmObservabilityService(cpfJdbcTemplate, batchOperations, admJdbcTemplate);
@@ -50,7 +50,7 @@ class AdmObservabilityServiceTest {
         assertThat(result)
                 .containsEntry("available", false)
                 .containsEntry("items", List.of())
-                .containsEntry("source", "cpf_log_policy_audit");
+                .containsEntry("source", "OPS_LOG_POLICY_AUDIT");
         verifyNoMoreInteractions(admJdbcTemplate);
     }
 }

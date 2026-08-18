@@ -11,7 +11,8 @@
     "currentSnapshotAuthority": "cpf-tools/db/generated/current/{vendor}",
     "vendorSourceRole": "DERIVED_COMPATIBILITY_INPUT",
     "vendorSourceGeneratedBy": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
-    "directVendorSourceEditing": "FORBIDDEN"
+    "directVendorSourceEditing": "FORBIDDEN",
+    "platformConsolidatedFreshInstall": "cpfDB+bzaDB; legacy cmnDB/admDB/batDB source files are not current fresh-install inputs"
   },
   "mariadb": {
     "provisionFiles": [
@@ -20,9 +21,6 @@
     ],
     "emptyInstallFiles": [
       "10_cpf_schema.sql",
-      "20_cmn_schema.sql",
-      "30_adm_schema.sql",
-      "35_bat_schema.sql",
       "40_business_modules_schema.sql"
     ],
     "productSeedFiles": [
@@ -72,9 +70,6 @@
     ],
     "emptyInstallFiles": [
       "10_cpf_schema.sql",
-      "20_cmn_schema.sql",
-      "30_adm_schema.sql",
-      "35_bat_schema.sql",
       "40_business_modules_schema.sql"
     ],
     "productSeedFiles": [
@@ -105,9 +100,6 @@
     ],
     "emptyInstallFiles": [
       "10_cpf_schema.sql",
-      "20_cmn_schema.sql",
-      "30_adm_schema.sql",
-      "35_bat_schema.sql",
       "40_business_modules_schema.sql"
     ],
     "productSeedFiles": [

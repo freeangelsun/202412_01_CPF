@@ -5,8 +5,18 @@ export const observabilityMethods = {
           ? { key, direction: this.logSort.direction === "asc" ? "desc" : "asc" }
           : { key, direction: "asc" };
       },
-  moveLogPage(delta) {
-        this.logPage.page = Math.min(this.logTotalPages, Math.max(1, this.logPage.page + delta));
+  async moveLogPage(delta) {
+        if (delta > 0) {
+          if (!this.logPage.hasMore || this.logPage.nextCursor == null) return;
+          this.logPage.cursorHistory.push(this.logPage.cursor);
+          this.logPage.cursor = this.logPage.nextCursor;
+          this.logPage.page += 1;
+        } else {
+          if (this.logPage.page <= 1) return;
+          this.logPage.cursor = this.logPage.cursorHistory.pop() ?? null;
+          this.logPage.page = Math.max(1, this.logPage.page - 1);
+        }
+        await this.searchLogs(false);
       },
   async copyLogDetail() {
         if (!this.requireReason(this.downloadForm.reason)) return;
@@ -74,12 +84,25 @@ export const observabilityMethods = {
         await this.loadDownloadPolicies();
         this.setMessage(`${downloadType} CSV 다운로드를 요청했습니다.`);
       },
-  async searchLogs() {
-        const params = this.buildParams(this.logSearch);
+  async searchLogs(resetCursor = true) {
+        if (resetCursor) {
+          this.logPage.page = 1;
+          this.logPage.cursor = null;
+          this.logPage.nextCursor = null;
+          this.logPage.cursorHistory = [];
+        }
+        const params = this.buildParams({
+          ...this.logSearch,
+          beforeLogIdx: this.logPage.cursor,
+          size: this.logPage.size
+        });
         const data = await this.getJson(`/adm/api/logs?${params.toString()}`);
         this.logs = data.items || [];
-        this.logDetail = data;
-        this.setMessage(`거래 로그 ${this.logs.length}건을 조회했습니다.`);
+        this.logPage.total = Number(data.total || 0);
+        this.logPage.nextCursor = data.nextCursor == null ? null : Number(data.nextCursor);
+        this.logPage.hasMore = data.hasMore === true;
+        this.logDetail = { ...data, item: null };
+        this.setMessage(`거래 로그 ${this.logPage.total}건 중 ${this.logs.length}건을 조회했습니다.`);
       },
   transactionIdOf(item) {
         return item?.transaction_id || item?.transactionId || "";

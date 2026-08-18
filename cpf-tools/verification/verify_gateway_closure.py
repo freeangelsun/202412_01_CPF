@@ -31,7 +31,7 @@ checks={
  'cors_policy': 'CorsDecision' in main and 'CORS_DECISION_ATTR' in main,
  'authentication_authorization': all(t in main for t in ('CpfGatewayAuthenticationPort','CpfGatewayAuthorizationPort','CpfApiClientSecurityPolicy')),
  'tls_mtls_extension': 'mTLS' in main and 'cpf.client.cert.serial' in main,
- 'context_propagation': all(t in main for t in ('CpfGatewayContextFactory','CpfHttpOutboundContextAdapter','GATEWAY_TRANSACTION_ID','STANDARD_EXECUTION_ID')),
+ 'context_propagation': all(t in main for t in ('CpfGatewayContextFactory','CpfHttpOutboundContextAdapter','GATEWAY_TRANSACTION_ID','standardExecutionId','CpfContexts.requireCurrent')),
  'audit_reason_durable_recovery': all(t in main for t in ('auditReasonRequired','CpfGatewayAuditRecoverySpool','recordRequired')),
  'ledger_unknown_recovery': all(t in main for t in ('CpfGatewayLedgerRecoverySpool','UNKNOWN_RESULT','unknownResult')),
  'health_routing_drain': all(t in main for t in ('CpfGatewayHealthEvaluator','draining','maintenance')),

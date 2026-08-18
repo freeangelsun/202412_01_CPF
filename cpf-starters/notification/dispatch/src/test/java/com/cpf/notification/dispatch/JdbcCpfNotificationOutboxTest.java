@@ -130,7 +130,7 @@ class JdbcCpfNotificationOutboxTest {
     private static CpfNotificationRequest request(String template, Map<String, String> variables) {
         return new CpfNotificationRequest(
                 "n-1", "EMAIL", "user@example.invalid", template, variables,
-                "idem-1", "transaction-1", null);
+                "idem-1", null);
     }
 
     private static Map<String, Object> existingNotification(String template, String variables) {

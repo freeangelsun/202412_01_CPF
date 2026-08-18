@@ -43,16 +43,20 @@ public record CpfContext(
     public String subjectId() { return identity == null ? null : identity.subjectId(); }
     /** actorId 작업을 CPF 표준 계약에 따라 수행한다. */
     public String actorId() { return identity == null ? null : identity.actorId(); }
-    /** Legacy business channel metadata. It is not a canonical CPF system-routing value. */
-    public String channelCode() { return transaction.channelCode(); }
-    public String originalSystemCode() { return transaction.originalSystemCode(); }
-    public String systemCode() { return transaction.systemCode(); }
-    public String callerSystemCode() { return transaction.callerSystemCode(); }
-    public String targetSystemCode() { return transaction.targetSystemCode(); }
+    /** 최초 Transaction 시작 Channel. 동일 논리 Transaction 동안 유지됩니다. */
+    public String originalChannel() { return transaction.originalChannel(); }
+    /** 현재 요청을 처리 중인 Runtime Channel. Ingress/Domain hop에서 Framework가 확정합니다. */
+    public String currentChannel() { return transaction.currentChannel(); }
+    /** 바로 이전 Hop의 호출 Channel. Channel Policy의 canonical caller 입력입니다. */
+    public String callerChannel() { return transaction.callerChannel(); }
+    /** 현재 Hop이 향하는 Target Channel. */
+    public String targetChannel() { return transaction.targetChannel(); }
+    /** transactionId 발급 주체 metadata. 거래 Channel과 동일한 개념이 아닙니다. */
+    public String issuerCode() { return transaction.issuerCode(); }
     /** 현재 논리 거래가 실행 중인 Canonical operationId를 반환합니다. */
     public String operationId() { return operation == null ? null : operation.operationId(); }
-    /** 현재 호출 대상의 Canonical operationId를 반환합니다. */
-    public String targetOperationId() { return operationId(); }
+    /** 현재 outbound Boundary가 선택한 Target Operation ID를 반환합니다. 일반 실행 중에는 {@code null}일 수 있습니다. */
+    public String targetOperationId() { return operation == null ? null : operation.targetOperationId(); }
     /** 현재 거래의 Idempotency Key를 반환합니다. */
     public String idempotencyKey() { return operation == null ? null : operation.idempotencyKey(); }
     /** 비동기·외부 연계의 상관관계 식별자를 반환합니다. */
@@ -62,15 +66,15 @@ public record CpfContext(
      * Same-JVM Domain hop에서 wire Header 없이도 Canonical caller/target/operation 의미를 유지합니다.
      * 새 실행 ID 생성은 Foundation owner가 담당하므로 이 메서드는 기존 execution을 변경하지 않습니다.
      */
-    public CpfContext localDomainHop(String targetSystemCode, String targetOperationId) {
-        String target = required("targetSystemCode", targetSystemCode, 128);
+    public CpfContext localDomainHop(String targetChannel, String targetOperationId) {
+        String target = required("targetChannel", targetChannel, 128);
         String operationId = required("targetOperationId", targetOperationId, 160);
-        String caller = firstNonBlank(transaction.systemCode(), transaction.originSystemId());
+        String caller = firstNonBlank(transaction.currentChannel(), transaction.originalChannel());
         CpfTransactionContext nextTransaction = new CpfTransactionContext(
                 transaction.transactionId(), transaction.rootTransactionId(), transaction.parentTransactionId(),
-                transaction.correlationId(), transaction.traceId(), transaction.channelCode(), caller,
+                transaction.correlationId(), transaction.traceId(), transaction.originalChannel(), target, caller, target,
                 transaction.businessDate(), transaction.startedAt(), transaction.originKind(),
-                transaction.originSystemId(), transaction.originTransactionId(), target, target);
+                transaction.issuerCode(), transaction.originTransactionId());
         CpfOperationContext previous = operation;
         CpfOperationContext nextOperation = new CpfOperationContext(
                 operationId, previous == null ? operationId : previous.operationName(),
@@ -79,6 +83,7 @@ public record CpfContext(
                 previous == null ? CpfIdempotencyMode.NONE : previous.idempotencyMode(),
                 previous == null ? null : previous.payloadFingerprint(),
                 previous == null ? null : previous.operationId(),
+                null,
                 previous == null ? 1L : previous.transactionSequence() + 1L);
         return new CpfContext(nextTransaction, execution, nextOperation, identity, tenant);
     }
@@ -95,7 +100,25 @@ public record CpfContext(
                 previous == null ? null : previous.payloadFingerprint(),
                 previous == null || previous.operationId() == null || previous.operationId().equals(resolved)
                         ? null : previous.operationId(),
+                null,
                 previous == null ? 1L : previous.transactionSequence());
+        return new CpfContext(transaction, execution, next, identity, tenant);
+    }
+
+
+    /**
+     * 현재 Caller Operation은 그대로 유지하면서 한 번의 outbound Boundary에서 선택한 Target Operation만 표시합니다.
+     * Domain/External Client는 호출 범위에만 이 Context를 bind하고 완료 후 원 Context를 복원해야 합니다.
+     */
+    public CpfContext withTargetOperation(String targetOperationId) {
+        String target = required("targetOperationId", targetOperationId, 160);
+        CpfOperationContext previous = operation;
+        CpfOperationContext next = previous == null
+                ? new CpfOperationContext(null, null, null, null, CpfIdempotencyScope.CURRENT_OPERATION,
+                        CpfIdempotencyMode.NONE, null, null, target, 1L)
+                : new CpfOperationContext(previous.operationId(), previous.operationName(), previous.commandId(),
+                        previous.idempotencyKey(), previous.idempotencyScope(), previous.idempotencyMode(),
+                        previous.payloadFingerprint(), previous.parentOperationId(), target, previous.transactionSequence());
         return new CpfContext(transaction, execution, next, identity, tenant);
     }
 
@@ -110,60 +133,47 @@ public record CpfContext(
         return new CpfContext(transaction, execution, operation, nextIdentity, nextTenant);
     }
 
-    /** 시스템 전체 거래·추적·호출 원천·업무일자 의미입니다. */
+    /** 논리 거래의 Channel lineage와 transaction issuer metadata를 보존합니다. */
     public record CpfTransactionContext(
             String transactionId,
             String rootTransactionId,
             String parentTransactionId,
             String correlationId,
             String traceId,
-            String channelCode,
-            String callerSystemCode,
+            String originalChannel,
+            String currentChannel,
+            String callerChannel,
+            String targetChannel,
             LocalDate businessDate,
             Instant startedAt,
             CpfTransactionOriginKind originKind,
-            String originSystemId,
-            String originTransactionId,
-            String systemCode,
-            String targetSystemCode) {
+            String issuerCode,
+            String originTransactionId) {
         public CpfTransactionContext {
             transactionId = required("transactionId", transactionId, 160);
             rootTransactionId = required("rootTransactionId", rootTransactionId, 160);
             parentTransactionId = optional(parentTransactionId, 160);
             correlationId = optional(correlationId, 160);
             traceId = optional(traceId, 64);
-            channelCode = optional(channelCode, 64);
-            callerSystemCode = optional(callerSystemCode, 128);
+            originalChannel = optional(originalChannel, 128);
+            currentChannel = optional(currentChannel, 128);
+            callerChannel = optional(callerChannel, 128);
+            targetChannel = optional(targetChannel, 128);
             Objects.requireNonNull(businessDate, "businessDate");
             Objects.requireNonNull(startedAt, "startedAt");
             if (originKind == null) originKind = CpfTransactionOriginKind.INTERNAL;
-            originSystemId = optional(originSystemId, 160);
+            issuerCode = optional(issuerCode, 32);
             originTransactionId = optional(originTransactionId, 160);
-            systemCode = optional(systemCode, 128);
-            targetSystemCode = optional(targetSystemCode, 128);
-        }
-
-        /** transactionId를 최초 생성한 원본 System Code를 반환합니다. */
-        public String originalSystemCode() { return originSystemId; }
-
-        /** 이전 full-field Consumer를 위한 호환 생성자입니다. */
-        public CpfTransactionContext(
-                String transactionId, String rootTransactionId, String parentTransactionId, String correlationId,
-                String traceId, String channelCode, String callerSystemCode, LocalDate businessDate, Instant startedAt,
-                CpfTransactionOriginKind originKind, String originSystemId, String originTransactionId) {
-            this(transactionId, rootTransactionId, parentTransactionId, correlationId, traceId, channelCode,
-                    callerSystemCode, businessDate, startedAt, originKind, originSystemId, originTransactionId,
-                    originSystemId, originSystemId);
         }
 
         /** 이전 9필드 Consumer가 이미 결정한 값만 전달하는 호환 생성자입니다. */
         public CpfTransactionContext(
                 String transactionId, String rootTransactionId, String parentTransactionId, String correlationId,
                 LocalDate businessDate, Instant startedAt, CpfTransactionOriginKind originKind,
-                String originSystemId, String originTransactionId) {
+                String issuerCode, String originTransactionId) {
             this(transactionId, rootTransactionId, parentTransactionId, correlationId,
-                    null, null, originSystemId, businessDate, Objects.requireNonNull(startedAt, "startedAt"), originKind,
-                    originSystemId, originTransactionId, originSystemId, originSystemId);
+                    null, null, null, null, null, businessDate, Objects.requireNonNull(startedAt, "startedAt"), originKind,
+                    issuerCode, originTransactionId);
         }
     }
 
@@ -200,7 +210,7 @@ public record CpfContext(
     public record CpfOperationContext(
             String operationId, String operationName, String commandId, String idempotencyKey,
             CpfIdempotencyScope idempotencyScope, CpfIdempotencyMode idempotencyMode,
-            String payloadFingerprint, String parentOperationId, long transactionSequence) {
+            String payloadFingerprint, String parentOperationId, String targetOperationId, long transactionSequence) {
         public CpfOperationContext {
             operationId = optional(operationId, 160);
             operationName = optional(operationName, 160);
@@ -210,19 +220,29 @@ public record CpfContext(
             if (idempotencyMode == null) idempotencyMode = CpfIdempotencyMode.NONE;
             payloadFingerprint = optional(payloadFingerprint, 256);
             parentOperationId = optional(parentOperationId, 160);
+            targetOperationId = optional(targetOperationId, 160);
             if (transactionSequence < 1) transactionSequence = 1L;
             if (idempotencyMode == CpfIdempotencyMode.REQUIRED && idempotencyKey == null) {
                 throw new IllegalArgumentException("required idempotencyKey missing");
             }
         }
 
-        /** 이전 8필드 Consumer는 첫 Operation sequence=1로 승계합니다. */
+        /** 이전 9필드 Consumer는 outbound target이 없는 현재 Operation으로 승계합니다. */
+        public CpfOperationContext(
+                String operationId, String operationName, String commandId, String idempotencyKey,
+                CpfIdempotencyScope idempotencyScope, CpfIdempotencyMode idempotencyMode,
+                String payloadFingerprint, String parentOperationId, long transactionSequence) {
+            this(operationId, operationName, commandId, idempotencyKey, idempotencyScope, idempotencyMode,
+                    payloadFingerprint, parentOperationId, null, transactionSequence);
+        }
+
+        /** 이전 8필드 Consumer는 outbound target 없이 첫 Operation sequence=1로 승계합니다. */
         public CpfOperationContext(
                 String operationId, String operationName, String commandId, String idempotencyKey,
                 CpfIdempotencyScope idempotencyScope, CpfIdempotencyMode idempotencyMode,
                 String payloadFingerprint, String parentOperationId) {
             this(operationId, operationName, commandId, idempotencyKey, idempotencyScope, idempotencyMode,
-                    payloadFingerprint, parentOperationId, 1L);
+                    payloadFingerprint, parentOperationId, null, 1L);
         }
     }
 

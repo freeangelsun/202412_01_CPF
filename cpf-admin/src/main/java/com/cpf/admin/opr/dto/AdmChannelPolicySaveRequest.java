@@ -8,12 +8,10 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 
-/** ADM 표준 실행별 채널 정책 등록·수정 요청입니다. */
+/** ADM 업무 Operation별 Caller Channel 정책 등록·수정 요청입니다. */
 public record AdmChannelPolicySaveRequest(
-        @NotBlank @Pattern(regexp = "(?:\\*|[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4})") String standardExecutionId,
-        @NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{1,29}") String originalChannelCode,
-        @NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{1,29}") String callerChannelCode,
-        @NotBlank @Pattern(regexp = "[A-Z*][A-Z0-9_*]{0,29}") String requestType,
+        @NotBlank @Pattern(regexp = "(?:\\*|[A-Za-z][A-Za-z0-9_.:-]{2,159})") String operationId,
+        @NotBlank @Pattern(regexp = "(?:ANY|[A-Z][A-Z0-9_]{1,29})") String callerChannel,
         boolean allowed,
         boolean authenticationRequired,
         boolean signatureRequired,

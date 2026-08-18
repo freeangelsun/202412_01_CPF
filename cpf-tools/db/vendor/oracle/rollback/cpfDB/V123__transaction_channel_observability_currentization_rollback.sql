@@ -1,0 +1,9 @@
+-- CPF V123 rollback: restore previous System vocabulary while preserving data.
+ALTER TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE RENAME COLUMN target_channel TO remote_system; ALTER TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE RENAME COLUMN current_channel TO system_code;
+ALTER TABLE CPF_TRANSACTION_LINEAGE RENAME COLUMN target_channel TO remote_system; ALTER TABLE CPF_TRANSACTION_LINEAGE RENAME COLUMN current_channel TO system_code;
+DROP INDEX ix_cpf_transaction_segment_client_channel; DROP INDEX ix_cpf_transaction_segment_target_operation;
+ALTER TABLE CPF_TRANSACTION_SEGMENT RENAME COLUMN target_channel TO target_system_code; ALTER TABLE CPF_TRANSACTION_SEGMENT RENAME COLUMN caller_channel TO caller_system_code; ALTER TABLE CPF_TRANSACTION_SEGMENT RENAME COLUMN current_channel TO system_code; ALTER TABLE CPF_TRANSACTION_SEGMENT RENAME COLUMN original_channel TO original_system_code;
+CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_system_code, started_at); CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_system_code, target_operation_id, started_at);
+DROP INDEX ix_cpf_transaction_log_channel_time; DROP INDEX ix_cpf_transaction_log_target_operation;
+ALTER TABLE CPF_TRANSACTION_LOG DROP COLUMN HOST_IP; ALTER TABLE CPF_TRANSACTION_LOG RENAME COLUMN CURRENT_CHANNEL TO SYSTEM_CODE; ALTER TABLE CPF_TRANSACTION_LOG RENAME COLUMN ORIGINAL_CHANNEL TO ORIGINAL_SYSTEM_CODE; ALTER TABLE CPF_TRANSACTION_LOG RENAME COLUMN TARGET_CHANNEL TO TARGET_SYSTEM_CODE; ALTER TABLE CPF_TRANSACTION_LOG RENAME COLUMN CALLER_CHANNEL TO CALLER_SYSTEM_CODE;
+CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (SYSTEM_CODE, START_TIME); CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, START_TIME);

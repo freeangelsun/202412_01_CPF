@@ -48,8 +48,8 @@ public final class RuntimeControlApprovalOwnerCommandAdapter implements AdmAppro
             JsonNode payload=mapper.readTree(command.payloadSnapshot());
             return switch(command.ownerCommand()){
                 case CREATE -> executeCreate(command,payload);
-                case CANCEL -> terminal(control.cancel(required(payload,"changeId"),required(payload,"operationId"),required(payload,"reason"),command.approvedBy()),"CANCEL");
-                case ROLLBACK -> terminal(control.rollback(required(payload,"changeId"),required(payload,"operationId"),required(payload,"reason"),command.approvedBy()),"ROLLBACK");
+                case CANCEL -> terminal(control.cancel(required(payload,"changeId"),required(payload,"commandId"),required(payload,"reason"),command.approvedBy()),"CANCEL");
+                case ROLLBACK -> terminal(control.rollback(required(payload,"changeId"),required(payload,"commandId"),required(payload,"reason"),command.approvedBy()),"ROLLBACK");
                 default -> failed("RUNTIME_COMMAND_UNSUPPORTED","지원하지 않는 Runtime Control 명령입니다.");
             };
         }catch(IllegalArgumentException invalid){return failed("RUNTIME_APPROVED_PAYLOAD_INVALID",safe(invalid.getMessage()));}
@@ -62,20 +62,20 @@ public final class RuntimeControlApprovalOwnerCommandAdapter implements AdmAppro
             return failed("RUNTIME_OWNER_MISMATCH","Runtime Control 승인 Owner Command가 아닙니다.");
         try{
             JsonNode payload=mapper.readTree(command.payloadSnapshot());
-            String operationId=required(payload,"operationId");
-            return terminal(control.getByOperationId(operationId),"RECONCILE");
+            String operationId=required(payload,"commandId");
+            return terminal(control.getByCommandId(commandId),"RECONCILE");
         }catch(RuntimeException notObserved){return unknown("RUNTIME_RECONCILE_PENDING","Runtime Owner에서 최종 상태를 아직 관측하지 못했습니다.");}
         catch(Exception invalid){return failed("RUNTIME_APPROVED_PAYLOAD_INVALID","승인 Payload를 해석할 수 없습니다.");}
     }
 
     private AdmApprovedOperationResult executeCreate(AdmApprovedOperationCommand approved,JsonNode n) throws Exception{
-        String operationId=required(n,"operationId");
+        String commandId=required(n,"commandId");
         String changeType=required(n,"changeType");
         JsonNode targetNode=n.path("target");
         CpfRuntimeTargetSelector target=mapper.treeToValue(targetNode,CpfRuntimeTargetSelector.class);
         CpfRuntimePayload payload=CpfRuntimePayload.parse(n.path("payload").isMissingNode()?"{}":n.path("payload").toString());
         Long expectedVersion=n.hasNonNull("expectedVersion")?n.get("expectedVersion").asLong():null;
-        CpfRuntimeChangeCommand command=new CpfRuntimeChangeCommand(operationId,changeType,n.path("payloadSchemaVersion").asInt(1),target,payload,
+        CpfRuntimeChangeCommand command=new CpfRuntimeChangeCommand(commandId,changeType,n.path("payloadSchemaVersion").asInt(1),target,payload,
                 expectedVersion,textOr(n,"rolloutMode","ALL_AT_ONCE"),n.path("waveSize").asInt(1),n.path("quorumPercent").asInt(100),
                 instant(n,"scheduledAt"),instant(n,"expiresAt"),required(n,"reason"),String.valueOf(approved.approvalRequestId()),null,approved.requestedBy());
         return terminal(control.createChange(command),"CREATE");

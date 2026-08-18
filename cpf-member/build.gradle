@@ -1,4 +1,7 @@
 // CPF Generator가 생성한 Domain 공통 Gradle 설정입니다.
+import groovy.json.JsonOutput
+import java.security.MessageDigest
+
 plugins { id 'base' }
 
 allprojects {
@@ -7,9 +10,102 @@ allprojects {
     repositories { mavenLocal(); mavenCentral() }
 }
 
+def cpfTextAttribute = { String body, String key ->
+    def matcher = body =~ /(?s)(?:^|,)\s*${java.util.regex.Pattern.quote(key)}\s*=\s*"((?:\\.|[^"])*)"/
+    matcher.find() ? matcher.group(1).replace('\\"','"').replace('\\\\','\\') : null
+}
+def cpfFirstString = { String body ->
+    if (body == null) return ''
+    def matcher = body =~ /"((?:\\.|[^"])*)"/
+    matcher.find() ? matcher.group(1).replace('\\"','"').replace('\\\\','\\') : ''
+}
+def cpfJoinPath = { String base, String leaf ->
+    def left = (base ?: '').trim()
+    def right = (leaf ?: '').trim()
+    def joined = "${left}/${right}".replaceAll('/+', '/')
+    if (!joined.startsWith('/')) joined = '/' + joined
+    joined.length() > 1 && joined.endsWith('/') ? joined.substring(0, joined.length()-1) : joined
+}
+def cpfSha256 = { String value ->
+    MessageDigest.getInstance('SHA-256').digest(value.getBytes('UTF-8')).encodeHex().toString()
+}
+
 subprojects {
     plugins.withId('java') {
         java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
         tasks.withType(Test).configureEach { useJUnitPlatform() }
+
+        if (project.name == 'online') {
+            def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
+            def manifestFile = manifestRoot.map { it.file('META-INF/cpf/business-operation-manifest.json') }
+            tasks.register('generateCpfBusinessOperationManifest') {
+                group = 'CPF 20 | 검증'
+                description = '업무 Domain Online Operation을 Build 시점에 전수검사하고 Side Effect 없는 Canonical Manifest를 생성합니다.'
+                inputs.files(sourceSets.main.java).withPathSensitivity(PathSensitivity.RELATIVE)
+                outputs.file(manifestFile)
+                doLast {
+                    def operations = []
+                    sourceSets.main.java.files.findAll { it.isFile() }.sort { it.path }.each { source ->
+                        def text = source.getText('UTF-8')
+                        if (!text.contains('@CpfOnlineTransaction')) return
+                        def pkgMatcher = text =~ /(?m)^\s*package\s+([A-Za-z0-9_.]+)\s*;/
+                        if (!pkgMatcher.find()) throw new GradleException("Business Operation package를 찾을 수 없습니다: ${source}")
+                        def classMatcher = text =~ /\bclass\s+([A-Za-z_$][A-Za-z0-9_$]*)\b/
+                        if (!classMatcher.find()) throw new GradleException("Business Operation class를 찾을 수 없습니다: ${source}")
+                        def controllerClass = "${pkgMatcher.group(1)}.${classMatcher.group(1)}"
+                        def classPrefix = text.substring(0, classMatcher.start())
+                        def classMappings = (classPrefix =~ /(?s)@RequestMapping\s*(?:\((.*?)\))?/) .collect { it }
+                        def basePath = classMappings.isEmpty() ? '' : cpfFirstString(classMappings.last()[1] as String)
+
+                        def txMatcher = text =~ /(?s)@CpfOnlineTransaction\s*\((.*?)\)/
+                        while (txMatcher.find()) {
+                            def txBody = txMatcher.group(1)
+                            def operationId = cpfTextAttribute(txBody, 'operationId')
+                            def name = cpfTextAttribute(txBody, 'name')
+                            def description = cpfTextAttribute(txBody, 'description')
+                            if (!operationId || !name || !description) {
+                                throw new GradleException("@CpfOnlineTransaction operationId/name/description가 필요합니다: ${source}")
+                            }
+                            def previousBoundary = Math.max(text.lastIndexOf('}', txMatcher.start()), text.lastIndexOf(';', txMatcher.start()))
+                            def prefix = text.substring(Math.max(0, previousBoundary + 1), txMatcher.start())
+                            def openApiMatches = (prefix =~ /(?s)@Operation\s*\((.*?)\)/).collect { it }
+                            if (openApiMatches.isEmpty()) throw new GradleException("업무 Online Operation에는 @Operation(operationId=...)이 필요합니다: ${controllerClass}#${operationId}")
+                            def openApiId = cpfTextAttribute(openApiMatches.last()[1] as String, 'operationId')
+                            if (operationId != openApiId) throw new GradleException("CPF/OpenAPI operationId mismatch: ${operationId} != ${openApiId}")
+                            def mappingMatches = (prefix =~ /(?s)@(Get|Post|Put|Patch|Delete|Request)Mapping\s*(?:\((.*?)\))?/).collect { it }
+                            if (mappingMatches.isEmpty()) throw new GradleException("업무 Online Operation HTTP Mapping이 필요합니다: ${controllerClass}#${operationId}")
+                            def mapping = mappingMatches.last()
+                            def mappingType = mapping[1] as String
+                            def mappingBody = mapping[2] as String
+                            def httpMethod = mappingType == 'Request' ? 'ANY' : mappingType.toUpperCase(Locale.ROOT)
+                            def path = cpfJoinPath(basePath, cpfFirstString(mappingBody))
+                            def following = text.substring(txMatcher.end(), Math.min(text.length(), txMatcher.end() + 1600))
+                                    .replaceFirst(/(?s)^\s*\/\*\*.*?\*\//, '')
+                            def methodMatcher = following =~ /(?s)\b(?:public|protected)\s+[A-Za-z0-9_$.<>?,\[\]\s]+\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*\(/
+                            if (!methodMatcher.find()) throw new GradleException("업무 Online Operation Handler method를 찾을 수 없습니다: ${controllerClass}#${operationId}")
+                            def handlerMethod = methodMatcher.group(1)
+                            def fingerprint = cpfSha256("${operationId}|${name}|${description}|${httpMethod}|${path}|${controllerClass}|${handlerMethod}")
+                            operations << [operationId:operationId, name:name, description:description,
+                                           openApiOperationId:openApiId, httpMethod:httpMethod, apiPath:path,
+                                           controllerClass:controllerClass, handlerMethod:handlerMethod,
+                                           sourceFingerprint:fingerprint,
+                                           sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                        }
+                    }
+                    def duplicateIds = operations.groupBy { it.operationId }.findAll { k,v -> v.size() > 1 }.keySet()
+                    if (!duplicateIds.isEmpty()) throw new GradleException("Duplicate business operationId: ${duplicateIds.sort()}")
+                    operations.sort { a,b -> a.operationId <=> b.operationId }
+                    def target = manifestFile.get().asFile
+                    target.parentFile.mkdirs()
+                    target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([
+                            schemaVersion:1,
+                            projectPath:project.path,
+                            operations:operations
+                    ])) + System.lineSeparator(), 'UTF-8')
+                }
+            }
+            sourceSets.main.resources.srcDir(manifestRoot)
+            tasks.named('processResources') { dependsOn tasks.named('generateCpfBusinessOperationManifest') }
+        }
     }
 }

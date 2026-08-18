@@ -1456,7 +1456,7 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE (
     was_id VARCHAR(128) NULL,
     agent_id VARCHAR(128) NULL,
     worker_id VARCHAR(128) NULL,
-    remote_system VARCHAR(128) NULL,
+    target_channel VARCHAR(128) NULL,
     operation_id VARCHAR(160) NULL,
     message_id VARCHAR(160) NULL,
     consumer_group VARCHAR(160) NULL,
@@ -1506,7 +1506,7 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE (
     was_id VARCHAR(128) NULL,
     agent_id VARCHAR(128) NULL,
     worker_id VARCHAR(128) NULL,
-    remote_system VARCHAR(128) NULL,
+    target_channel VARCHAR(128) NULL,
     operation_id VARCHAR(160) NULL,
     message_id VARCHAR(160) NULL,
     consumer_group VARCHAR(160) NULL,
@@ -1551,8 +1551,8 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     API_VERSION VARCHAR(20) NULL,
     CLIENT_ID VARCHAR(80) NULL,
     CLIENT_VERSION VARCHAR(50) NULL,
-    CALLER_SYSTEM_CODE VARCHAR(120) NULL,
-    TARGET_SYSTEM_CODE VARCHAR(32) NULL,
+    CALLER_CHANNEL VARCHAR(120) NULL,
+    TARGET_CHANNEL VARCHAR(32) NULL,
     TARGET_OPERATION_ID VARCHAR(160) NULL,
     CALLER_INSTANCE_ID VARCHAR(120) NULL,
     CORRELATION_ID VARCHAR(120) NULL,
@@ -1560,8 +1560,8 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     LOCALE VARCHAR(20) NULL,
     TIMEZONE VARCHAR(50) NULL,
     REQUEST_TYPE VARCHAR(20) NULL,
-    ORIGINAL_SYSTEM_CODE VARCHAR(20) NULL,
-    SYSTEM_CODE VARCHAR(20) NULL,
+    ORIGINAL_CHANNEL VARCHAR(20) NULL,
+    CURRENT_CHANNEL VARCHAR(20) NULL,
     MEMBER_NO VARCHAR(50) NULL,
     CUSTOMER_NO VARCHAR(50) NULL,
     SCREEN_ID VARCHAR(50) NULL,
@@ -1570,6 +1570,7 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     WAS_ID VARCHAR(50) NULL,
     INSTANCE_ID VARCHAR(160) NULL,
     HOST_NAME VARCHAR(120) NULL,
+    HOST_IP VARCHAR(128) NULL,
     PROCESS_ID VARCHAR(80) NULL,
     THREAD_NAME VARCHAR(160) NULL,
     RESERVED_FIELD_1 VARCHAR(255) NULL,
@@ -1629,14 +1630,14 @@ CREATE INDEX ix_cpf_transaction_log_correlation ON CPF_TRANSACTION_LOG (CORRELAT
 CREATE INDEX ix_cpf_transaction_log_idempotency ON CPF_TRANSACTION_LOG (IDEMPOTENCY_KEY);
 CREATE INDEX ix_cpf_transaction_log_member_time ON CPF_TRANSACTION_LOG (MEMBER_NO, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_customer_time ON CPF_TRANSACTION_LOG (CUSTOMER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (SYSTEM_CODE, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_channel_time ON CPF_TRANSACTION_LOG (CURRENT_CHANNEL, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_time ON CPF_TRANSACTION_LOG (MODULE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_instance_time ON CPF_TRANSACTION_LOG (INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_was_time ON CPF_TRANSACTION_LOG (WAS_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_instance_time ON CPF_TRANSACTION_LOG (MODULE_ID, INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_status_time ON CPF_TRANSACTION_LOG (LOG_TYPE, RESPONSE_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_http_status_time ON CPF_TRANSACTION_LOG (HTTP_STATUS, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_CHANNEL, TARGET_OPERATION_ID, START_TIME);
 
 CREATE TABLE CPF_TRANSACTION_META (
     transaction_id VARCHAR(20) NOT NULL,
@@ -1695,11 +1696,11 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     member_no_masked VARCHAR(80) NULL,
     user_id_masked VARCHAR(80) NULL,
     operator_id_masked VARCHAR(80) NULL,
-    system_code VARCHAR(30) NULL,
-    original_system_code VARCHAR(30) NULL,
+    current_channel VARCHAR(30) NULL,
+    original_channel VARCHAR(30) NULL,
     client_id VARCHAR(100) NULL,
-    caller_system_code VARCHAR(100) NULL,
-    target_system_code VARCHAR(32) NULL,
+    caller_channel VARCHAR(100) NULL,
+    target_channel VARCHAR(32) NULL,
     target_operation_id VARCHAR(160) NULL,
     external_institution_code VARCHAR(50) NULL,
     external_transaction_id VARCHAR(120) NULL,
@@ -1729,12 +1730,12 @@ CREATE INDEX ix_cpf_transaction_segment_customer ON CPF_TRANSACTION_SEGMENT (cus
 CREATE INDEX ix_cpf_transaction_segment_member ON CPF_TRANSACTION_SEGMENT (member_no_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_user ON CPF_TRANSACTION_SEGMENT (user_id_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_operator ON CPF_TRANSACTION_SEGMENT (operator_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_system_code, started_at);
+CREATE INDEX ix_cpf_transaction_segment_client_channel ON CPF_TRANSACTION_SEGMENT (client_id, caller_channel, started_at);
 CREATE INDEX ix_cpf_transaction_segment_external ON CPF_TRANSACTION_SEGMENT (external_institution_code, external_transaction_id);
 CREATE INDEX ix_cpf_transaction_segment_instance ON CPF_TRANSACTION_SEGMENT (selected_instance_id, started_at);
 CREATE INDEX ix_cpf_transaction_segment_attempt ON CPF_TRANSACTION_SEGMENT (transaction_id, attempt_no);
 CREATE INDEX ix_cpf_transaction_segment_unknown ON CPF_TRANSACTION_SEGMENT (unknown_result_id);
-CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_system_code, target_operation_id, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_channel, target_operation_id, started_at);
 
 CREATE TABLE CPF_UNKNOWN_RESULT (
     unknown_seq BIGINT AUTO_INCREMENT NOT NULL,
@@ -2242,7 +2243,7 @@ ALTER TABLE OPS_RUNTIME_VERSION COMMENT = 'Runtime Control Plane 단조 증가 �
 
 CREATE TABLE OPS_SCHEMA_INSTALLATION (
     schema_name VARCHAR(64) NOT NULL,
-    system_code VARCHAR(20) NOT NULL,
+    current_channel VARCHAR(20) NOT NULL,
     database_vendor VARCHAR(20) NOT NULL,
     product_version VARCHAR(50) NOT NULL,
     baseline_key VARCHAR(100) NOT NULL,
@@ -2257,7 +2258,7 @@ CREATE TABLE OPS_SCHEMA_INSTALLATION (
     CONSTRAINT ck_cpf_schema_installation_state CHECK (install_state IN ('PRODUCT_SEEDED'))
 ) ENGINE=InnoDB;
 ALTER TABLE OPS_SCHEMA_INSTALLATION COMMENT = 'CPF 공식 Empty Install 및 Product Seed Baseline';
-CREATE INDEX ix_cpf_schema_installation_system ON OPS_SCHEMA_INSTALLATION (system_code);
+CREATE INDEX ix_cpf_schema_installation_system ON OPS_SCHEMA_INSTALLATION (current_channel);
 CREATE INDEX ix_cpf_schema_installation_version ON OPS_SCHEMA_INSTALLATION (product_version, install_state);
 
 CREATE TABLE OPS_SERVICE (

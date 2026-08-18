@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.batch.runtime;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 
 import com.cpf.batch.api.BatControlHeaders;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;

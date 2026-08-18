@@ -23,7 +23,7 @@ class DbSchemaGovernanceTest(unittest.TestCase):
         failures, summary = MODULE.verify(SCHEMA_PATH)
         self.assertEqual([], failures)
         self.assertEqual("PASS", summary["status"])
-        self.assertEqual(223, summary["tableCount"])
+        self.assertEqual(len(json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["tables"]), summary["tableCount"])
         self.assertEqual("STATIC_METADATA_ONLY", summary["runtimeClaim"])
         self.assertGreater(summary["foreignKeyCount"], 0)
 

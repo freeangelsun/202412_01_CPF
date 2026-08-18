@@ -2,7 +2,7 @@ package com.cpf.platform.operations.runtimecontrol;
 
 /** Runtime Instance Group/Cell/Zone 생성·수정 명령입니다. */
 public record CpfRuntimeGroupCommand(
-        String operationId,
+        String commandId,
         String groupId,
         String groupName,
         String parentGroupId,

@@ -1,5 +1,6 @@
 package com.cpf.notification.dispatch;
 
+import com.cpf.core.api.context.CpfContexts;
 import com.cpf.notification.api.CpfNotificationReceipt;
 import com.cpf.notification.api.CpfNotificationRequest;
 import com.cpf.notification.api.CpfNotificationResult;
@@ -41,7 +42,7 @@ public final class JdbcCpfNotificationOutbox {
                     VALUES(?,?,?,?,?,?,?,?,'PENDING',0,5,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
                     """,
                     request.notificationId(), request.channel(), request.recipient(), request.templateId(),
-                    encode(request.variables()), request.idempotencyKey(), request.transactionId(), contextCodec.capture(),
+                    encode(request.variables()), request.idempotencyKey(), CpfContexts.transactionId(), contextCodec.capture(),
                     request.notBefore() == null ? null : Timestamp.from(request.notBefore()));
             return new CpfNotificationResult(
                     request.notificationId(), "OUTBOX", "ACCEPTED", null, null, Instant.now(clock));
@@ -319,8 +320,7 @@ public final class JdbcCpfNotificationOutbox {
         return new CpfNotificationRequest(
                 String.valueOf(row.get("notification_id")), String.valueOf(row.get("channel_code")),
                 String.valueOf(row.get("recipient_value")), String.valueOf(row.get("template_id")),
-                decode(nullable(row.get("variable_json"))), String.valueOf(row.get("idempotency_key")),
-                String.valueOf(row.get("transaction_id")), null);
+                decode(nullable(row.get("variable_json"))), String.valueOf(row.get("idempotency_key")), null);
     }
 
 
@@ -341,8 +341,7 @@ public final class JdbcCpfNotificationOutbox {
         boolean same = request.channel().equals(String.valueOf(row.get("channelCode")))
                 && request.recipient().equals(String.valueOf(row.get("recipientValue")))
                 && request.templateId().equals(String.valueOf(row.get("templateId")))
-                && encode(request.variables()).equals(nullable(row.get("variableJson")))
-                && request.transactionId().equals(String.valueOf(row.get("transactionId")));
+                && encode(request.variables()).equals(nullable(row.get("variableJson")));
         if (!same) {
             throw new IllegalStateException(
                     "notification idempotency conflict: " + request.idempotencyKey());

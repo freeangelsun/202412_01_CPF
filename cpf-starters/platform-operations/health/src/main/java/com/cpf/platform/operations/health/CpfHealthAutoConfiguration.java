@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.cpf.starter.runtime.CpfRuntimeCapabilityInventory;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import org.springframework.core.env.Environment;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
@@ -18,18 +19,20 @@ public class CpfHealthAutoConfiguration {
     @Bean @ConditionalOnMissingBean CpfDrainControl cpfDrainControl(){return new CpfDrainManager();}
     @Bean @ConditionalOnMissingBean CpfRuntimeHealthRegistry cpfRuntimeHealthRegistry(){return new CpfRuntimeHealthRegistryMemory();}
     @Bean @ConditionalOnMissingBean CpfRuntimeHealthService cpfRuntimeHealthService(CpfHealthProperties properties, CpfDrainControl drain,
-            List<CpfDependencyHealthCheck> checks, CpfRuntimeCapabilityInventory inventory, Environment environment){
-        properties.applyRuntimeIdentity(environment);
+            List<CpfDependencyHealthCheck> checks, CpfRuntimeCapabilityInventory inventory, Environment environment,
+            CpfRuntimeMetadata runtime){
+        properties.applyRuntimeIdentity(runtime);
         Map<String,String> identity=new LinkedHashMap<>();
         put(identity,"environment",first(environment,"cpf.environment","spring.profiles.active","CPF_ENVIRONMENT"));
-        put(identity,"systemCode",first(environment,"cpf.system-code","cpf.system.id",properties.getSystemId()));
+        put(identity,"systemCode",runtime.systemCode());
         put(identity,"systemId",properties.getSystemId());
         put(identity,"domainCode",first(environment,"cpf.domain-code","cpf.domain.code","cpf.generated-domain.system-code"));
         put(identity,"domainId",first(environment,"cpf.domain-id","cpf.domain.id"));
-        put(identity,"application",first(environment,"spring.application.name",properties.getSystemId()));
+        put(identity,"application",runtime.application());
         put(identity,"module",first(environment,"cpf.module","cpf.runtime.role","spring.application.name"));
-        put(identity,"host",first(environment,"cpf.host","HOSTNAME","COMPUTERNAME"));
-        put(identity,"instanceId",properties.getInstanceId());
+        put(identity,"host",runtime.hostName());
+        put(identity,"hostIp",runtime.hostIp());
+        put(identity,"instanceId",runtime.instanceId());
         return new CpfRuntimeHealthService(properties.toConfig(),drain,checks,inventory,identity);
     }
     private static String first(Environment env,String... keysOrFallback){

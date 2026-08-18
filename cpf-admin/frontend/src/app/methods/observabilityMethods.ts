@@ -1,4 +1,4 @@
-import { admTransactionMetaScan, admTransactionMetaInactivate, admDynamicLogLevelFindRules, admApprovalRequest } from "../../generated/cpf-api";
+import { admTransactionMetaInactivate, admDynamicLogLevelFindRules, admApprovalRequest } from "../../generated/cpf-api";
 export const observabilityMethods = {
   sortLogs(key) {
         this.logSort = this.logSort.key === key
@@ -209,14 +209,9 @@ export const observabilityMethods = {
         const failed = Number(response.headers.get('X-CPF-Partial-Failure-Count') || 0);
         this.setMessage(failed > 0 ? `로그 ZIP을 생성했지만 ${failed}건은 실패했습니다.` : '선택 로그 ZIP을 다운로드했습니다.');
       },
-  async scanTransactions() {
-        if (!this.requireReason(this.transactionSearch.reason)) return;
-        this.transactionResult = await admTransactionMetaScan({ query: { reason: this.transactionSearch.reason } });
-        this.setMessage("거래 메타 재스캔을 요청했습니다.");
-      },
   async inactivateTransaction() {
-        if (!this.transactionSearch.selectedTransactionId || !this.requireReason(this.transactionSearch.reason)) return;
-        this.transactionResult = await admTransactionMetaInactivate({ path: { transactionId: this.transactionSearch.selectedTransactionId }, query: { reason: this.transactionSearch.reason } });
+        if (!this.transactionSearch.selectedOperationId || !this.requireReason(this.transactionSearch.reason)) return;
+        this.transactionResult = await admTransactionMetaInactivate({ path: { operationId: this.transactionSearch.selectedOperationId }, query: { policyVersion: this.transactionSearch.policyVersion, reason: this.transactionSearch.reason } });
         this.setMessage("거래 메타를 비활성화했습니다.");
       },
   async loadLogDetail(logIdx) {

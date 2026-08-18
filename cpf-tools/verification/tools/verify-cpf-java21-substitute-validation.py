@@ -19,9 +19,26 @@ from typing import Iterable
 
 JAVA_SOURCE = Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java")
 TEST_SOURCE = Path("cpf-admin/src/test/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlControllerActorTest.java")
+DTO_SOURCES = (
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeCommandRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeDeploymentPlanRequest.java"),
+)
 EXPECTED_MAJOR = 65  # Java 21 class-file major version
 
 STUBS: dict[str, str] = {
+    "com/cpf/admin/approval/service/AdmApprovalService.java": """
+package com.cpf.admin.approval.service;
+import java.util.Map;
+public class AdmApprovalService {
+  public Map<String,Object> execute(long id, String reason, String operatorId) { return Map.of(); }
+}
+""",
+    "io/swagger/v3/oas/annotations/media/Schema.java": """
+package io.swagger.v3.oas.annotations.media;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.PARAMETER})
+public @interface Schema { String name() default ""; String description() default ""; RequiredMode requiredMode() default RequiredMode.AUTO; enum RequiredMode { AUTO, REQUIRED, NOT_REQUIRED } }
+""",
     "com/cpf/admin/common/base/AdmBaseController.java": """
 package com.cpf.admin.common.base;
 public class AdmBaseController {}
@@ -219,7 +236,7 @@ def version_major(text: str) -> int | None:
 def write_sources(root: Path, repository_root: Path) -> list[Path]:
     source_root = root / "src"
     copied: list[Path] = []
-    for relative in (JAVA_SOURCE, TEST_SOURCE):
+    for relative in (JAVA_SOURCE, TEST_SOURCE, *DTO_SOURCES):
         source = repository_root / relative
         if not source.is_file():
             raise FileNotFoundError(f"required source missing: {relative}")

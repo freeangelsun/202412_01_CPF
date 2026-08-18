@@ -6,7 +6,7 @@ dependencies {
     api project(':framework:operations:observability')
     api project(':framework:integration')
     implementation project(':framework:base-runtime')
-    implementation project(':starters:web')
+    implementation project(':framework:web')
     implementation project(':internal:platform-operations:runtime-control')
     implementation project(':starters:data:jdbc')
     implementation project(':internal:integration:resilience')

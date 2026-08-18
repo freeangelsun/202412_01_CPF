@@ -37,9 +37,9 @@
   },
   "liveDbValidation": {
     "runner": "cpf-tools/verification/tools/invoke-reference-live-idempotency-conflict.ps1",
-    "testClass": "com.cpf.education.operations.runtime.persistence.JdbcEduOperationRepositoryLiveIdempotencyTest",
-    "testSource": "cpf-education/src/test/java/com/cpf/education/operations/runtime/persistence/JdbcEduOperationRepositoryLiveIdempotencyTest.java",
-    "repositorySource": "cpf-education/src/main/java/com/cpf/education/operations/runtime/persistence/JdbcEduOperationRepository.java",
+    "testClass": "com.cpf.education.contract.ReferenceFixtureLiveIdempotencyTest",
+    "testSource": "cpf-education/src/test/java/com/cpf/education/contract/ReferenceFixtureLiveIdempotencyTest.java",
+    "repositorySource": "cpf-education/src/test/java/com/cpf/education/contract/support/ReferenceFixtureIdempotencyRepository.java",
     "requiredAssertions": [
       "same-key-same-hash-replay",
       "same-key-different-hash-conflict",

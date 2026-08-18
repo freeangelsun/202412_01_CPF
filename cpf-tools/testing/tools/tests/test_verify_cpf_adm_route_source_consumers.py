@@ -141,10 +141,9 @@ class RouteSourceConsumerUnitTest(unittest.TestCase):
         (frontend / "src/components/RouteOperationWorkbench.vue").write_text(
             '<script setup lang="ts">\n'
             'const props=defineProps<{ title:string; operationIds:readonly CpfOperationId[] }>();\n'
-            'const descriptors=props.operationIds.map(id=>cpfOperationDescriptors.find(item=>item.operationId===id));\n'
-            'const mutationDialogOpen=true; const mutationConfirmed=true;\n'
-            'async function execute(){const descriptor=descriptors[0]; return admInvokeOperation(descriptor.operationId,{path,query,body});}\n'
-            '</script><template><dialog :open="mutationDialogOpen"><input v-model="mutationConfirmed" /></dialog><p role="alert">{{error}}</p><CpfStructuredData :value="result" /></template>',
+            'const descriptors=props.operationIds.map(id=>cpfOperationDescriptors.find(item=>item.operationId===id)).filter(item=>item.method==="GET");\n'
+            'async function execute(){const descriptor=descriptors[0]; if(descriptor.method!=="GET") throw new Error("read only"); return admInvokeOperation(descriptor.operationId,{path,query});}\n'
+            '</script><template><p role="alert">{{error}}</p><CpfStructuredData :value="result" /></template>',
             encoding="utf-8")
         (frontend / "src/shared/cpfApi.ts").write_text(
             'export async function admInvokeOperation<T = unknown>(operationId: CpfOperationId){\n'

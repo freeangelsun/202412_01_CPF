@@ -1,48 +1,45 @@
 package com.cpf.web.context;
 
 import org.springframework.core.env.Environment;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 
 import java.util.Locale;
 
-/** Runtime-known HTTP identity. Developers do not populate these values per request. */
-public record CpfRuntimeIdentity(String systemCode, String application, String instance) {
+/**
+ * Runtime-known HTTP identity. Business code never populates these values per request.
+ *
+ * <p>The runtime {@code systemCode} remains trusted runtime/registry metadata. For generated business
+ * domains the exact same canonical value is also the CPF transaction {@code currentChannel}; no
+ * System-to-Channel mapper or duplicate channel configuration exists.</p>
+ */
+public record CpfRuntimeIdentity(String systemCode, String currentChannel, String application, String instance) {
     public CpfRuntimeIdentity {
-        systemCode = requiredSystemCode(systemCode);
+        systemCode = requiredCode(systemCode, "systemCode");
+        currentChannel = requiredCode(currentChannel, "currentChannel");
         application = normalize(application, 128);
         instance = normalize(instance, 160);
     }
 
+    /** Generated-domain canonical relation: systemCode value itself is the runtime Channel identity. */
+    public CpfRuntimeIdentity(String systemCode, String application, String instance) {
+        this(systemCode, systemCode, application, instance);
+    }
+
     public static CpfRuntimeIdentity from(Environment environment) {
-        String system = first(environment,
-                "cpf.system-code",
-                "cpf.generated-domain.system-code",
-                "cpf.framework.module-id");
-        if (system == null) system = System.getenv("CPF_SYSTEM_CODE");
-        String application = first(environment, "spring.application.name", "cpf.framework.application-id");
-        String instance = first(environment, "cpf.runtime.instance-id");
-        if (instance == null) instance = System.getenv("CPF_RUNTIME_INSTANCE_ID");
-        if (instance == null) instance = CpfInstanceIdentity.current().instanceId();
-        if (application == null) application = system;
-        return new CpfRuntimeIdentity(system, application, instance);
+        return from(CpfRuntimeMetadata.from(environment));
     }
 
-    private static String first(Environment environment, String... keys) {
-        if (environment == null) return null;
-        for (String key : keys) {
-            String value = environment.getProperty(key);
-            if (value != null && !value.isBlank()) return value;
-        }
-        return null;
+    public static CpfRuntimeIdentity from(CpfRuntimeMetadata runtime) {
+        if (runtime == null) throw new IllegalArgumentException("runtime");
+        return new CpfRuntimeIdentity(runtime.systemCode(), runtime.systemCode(), runtime.application(), runtime.instanceId());
     }
 
-    private static String requiredSystemCode(String value) {
-        String normalized = normalize(value, 32);
-        if (normalized == null) throw new IllegalStateException(
-                "CPF runtime systemCode is required (cpf.system-code, cpf.generated-domain.system-code, or cpf.framework.module-id)");
+    private static String requiredCode(String value, String name) {
+        String normalized = normalize(value, 128);
+        if (normalized == null) throw new IllegalStateException("CPF runtime " + name + " is required");
         normalized = normalized.toUpperCase(Locale.ROOT);
-        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{1,31}")) {
-            throw new IllegalStateException("Invalid CPF runtime systemCode: " + normalized);
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,127}")) {
+            throw new IllegalStateException("Invalid CPF runtime " + name + ": " + normalized);
         }
         return normalized;
     }

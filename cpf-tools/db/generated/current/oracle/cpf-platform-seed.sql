@@ -34,10 +34,10 @@ WHEN MATCHED THEN UPDATE SET tgt.channel_name=src.channel_name, tgt.channel_type
 WHEN NOT MATCHED THEN INSERT (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by) VALUES (src.channel_code, src.channel_name, src.channel_type, src.trust_level, src.client_channel_yn, src.internal_channel_yn, src.authentication_required_yn, src.signature_required_yn, src.active_yn, src.description, src.policy_version, src.created_by, src.updated_by);
 
 MERGE INTO OPS_CHANNEL_EXECUTION_POLICY tgt
-USING (SELECT 'CPF.DEFAULT' AS policy_key, '*' AS standard_execution_id, 'ANY' AS original_channel_code, 'ANY' AS caller_channel_code, '*' AS request_type, 'Y' AS allowed_yn, 'N' AS authentication_required_yn, 'N' AS signature_required_yn, 0 AS max_tps, NULL AS effective_from, NULL AS effective_to, 'Y' AS active_yn, 0 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'CPF.DEFAULT' AS policy_key, '*' AS operation_id, 'ANY' AS caller_channel, 'Y' AS allowed_yn, 'N' AS authentication_required_yn, 'N' AS signature_required_yn, 0 AS max_tps, NULL AS effective_from, NULL AS effective_to, 'Y' AS active_yn, 0 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.policy_key=src.policy_key)
-WHEN MATCHED THEN UPDATE SET tgt.standard_execution_id=src.standard_execution_id, tgt.original_channel_code=src.original_channel_code, tgt.caller_channel_code=src.caller_channel_code, tgt.request_type=src.request_type, tgt.allowed_yn=src.allowed_yn, tgt.authentication_required_yn=src.authentication_required_yn, tgt.signature_required_yn=src.signature_required_yn, tgt.max_tps=src.max_tps, tgt.active_yn=src.active_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (policy_key, standard_execution_id, original_channel_code, caller_channel_code, request_type, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by) VALUES (src.policy_key, src.standard_execution_id, src.original_channel_code, src.caller_channel_code, src.request_type, src.allowed_yn, src.authentication_required_yn, src.signature_required_yn, src.max_tps, src.effective_from, src.effective_to, src.active_yn, src.policy_version, src.created_by, src.updated_by);
+WHEN MATCHED THEN UPDATE SET tgt.operation_id=src.operation_id, tgt.caller_channel=src.caller_channel, tgt.allowed_yn=src.allowed_yn, tgt.authentication_required_yn=src.authentication_required_yn, tgt.signature_required_yn=src.signature_required_yn, tgt.max_tps=src.max_tps, tgt.active_yn=src.active_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (policy_key, operation_id, caller_channel, allowed_yn, authentication_required_yn, signature_required_yn, max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by) VALUES (src.policy_key, src.operation_id, src.caller_channel, src.allowed_yn, src.authentication_required_yn, src.signature_required_yn, src.max_tps, src.effective_from, src.effective_to, src.active_yn, src.policy_version, src.created_by, src.updated_by);
 
 MERGE INTO CMN_CODE tgt
 USING (SELECT NULL AS parent_id, 'CODE_GROUP' AS code_key, 'MODULE' AS code_value, '서비스 모듈 코드 그룹' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
@@ -3518,12 +3518,6 @@ WHEN MATCHED THEN UPDATE SET tgt.MENU_ID=src.MENU_ID, tgt.ACTION_CODE=src.ACTION
 WHEN NOT MATCHED THEN INSERT (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.BUTTON_ID, src.MENU_ID, src.ACTION_CODE, src.BUTTON_NAME, src.HTTP_METHOD, src.API_PATTERN, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_BUTTON tgt
-USING (SELECT 'TRANSACTION_META_SCAN' AS BUTTON_ID, 'TRANSACTION_META' AS MENU_ID, 'SCAN' AS ACTION_CODE, '거래 메타 스캔' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/transactions/scan' AS API_PATTERN, 20 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.BUTTON_ID=src.BUTTON_ID)
-WHEN MATCHED THEN UPDATE SET tgt.MENU_ID=src.MENU_ID, tgt.ACTION_CODE=src.ACTION_CODE, tgt.BUTTON_NAME=src.BUTTON_NAME, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATTERN=src.API_PATTERN, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.BUTTON_ID, src.MENU_ID, src.ACTION_CODE, src.BUTTON_NAME, src.HTTP_METHOD, src.API_PATTERN, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
-
-MERGE INTO ADM_BUTTON tgt
 USING (SELECT 'TRANSACTION_META_WRITE' AS BUTTON_ID, 'TRANSACTION_META' AS MENU_ID, 'WRITE' AS ACTION_CODE, '거래 메타 비활성화' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/transactions/*/inactive' AS API_PATTERN, 30 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.BUTTON_ID=src.BUTTON_ID)
 WHEN MATCHED THEN UPDATE SET tgt.MENU_ID=src.MENU_ID, tgt.ACTION_CODE=src.ACTION_CODE, tgt.BUTTON_NAME=src.BUTTON_NAME, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATTERN=src.API_PATTERN, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
@@ -4871,7 +4865,7 @@ WHERE NOT EXISTS (
 
 -- CPF_SEED_INLINE_VARIABLE sample_end_time
 
-INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
+INSERT INTO CPF_TRANSACTION_LOG (LOG_DATE, TRANSACTION_ID, TRACE_ID, SPAN_ID, SEQUENCE_NO, MODULE_ID, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME, LOG_TYPE, API_VERSION, CLIENT_ID, CLIENT_VERSION, CALLER_CHANNEL, TARGET_CHANNEL, TARGET_OPERATION_ID, CALLER_INSTANCE_ID, CORRELATION_ID, IDEMPOTENCY_KEY, LOCALE, TIMEZONE, REQUEST_TYPE, ORIGINAL_CHANNEL, CURRENT_CHANNEL, MEMBER_NO, CUSTOMER_NO, SCREEN_ID, DEVICE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, HOST_IP, PROCESS_ID, THREAD_NAME, HTTP_METHOD, URI, CONTROLLER, EXECUTION_PACKAGE, EXECUTION_CLASS, EXECUTION_METHOD, EXECUTION_SIGNATURE, PARAMETERS, REQUEST_BODY, RESPONSE, HTTP_STATUS, RESPONSE_CODE, EXEC_USER, CLIENT_IP, USER_AGENT, START_TIME, END_TIME, DURATION_MS, created_by, updated_by)
 SELECT
     DATE(('2026-06-15 12:00:00.000')),
     ('20260615120000000MBRlocal010000001'),
@@ -4903,6 +4897,7 @@ SELECT
     'local01',
     'local-dev:sql-seed',
     'local-dev',
+    '127.0.0.1',
     'sql-seed',
     'sql-smoke',
     'GET',
@@ -4942,7 +4937,7 @@ SELECT (
       AND BUSINESS_TRANSACTION_ID = 'OEDUAA0001'
     ORDER BY LOG_IDX
     FETCH FIRST 1 ROW ONLY
-), 'headers', '{"X-System-Code":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
+), 'headers', '{"X-Current-Channel":"WEB","X-Request-Type":"NORMAL","X-Client-Version":"1.0.0"}', 'SYSTEM', 'SYSTEM'
 WHERE (
     SELECT LOG_IDX
     FROM CPF_TRANSACTION_LOG

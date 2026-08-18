@@ -9,7 +9,7 @@ export const admRouteOperationContract = {
   "operations-governance": ["admOperationsGovernanceSnapshot"],
   "logs": ["admLogExportCreate","admLogExportDownload","admLogFindLogs","admLogGetLogDetail"],
   "transactionGroups": ["admTransactionGroupFindDetail","admTransactionGroupFindExternalLogs","admTransactionGroupFindGroups","admTransactionGroupFindHeaders","admTransactionGroupFindSegments","admTransactionGroupFindTimeline","traceAdmByBusinessTransactionId","traceAdmByTraceId","traceAdmByTransactionId"],
-  "transactions": ["admTransactionMetaFindPage","admTransactionMetaFindTransaction","admTransactionMetaFindTransactions","admTransactionMetaInactivate","admTransactionMetaScan"],
+  "transactions": ["admTransactionMetaFindPage","admTransactionMetaFindTransaction","admTransactionMetaFindTransactions","admTransactionMetaInactivate"],
   "remoteLogs": ["admRemoteLogBundleDownload","admRemoteLogBundleDownloadTokenIssue","admRemoteLogBundleJobCreate","admRemoteLogBundleJobDownload","admRemoteLogBundleJobFind","admRemoteLogDiagnostics","admRemoteLogDownload","admRemoteLogPreview","admRemoteLogSearch"],
   "auditLogs": ["admAuditDeliveryList","admAuditDeliveryRetry","admAuditLogFindAuditLogs","admLogPolicyAuditFindPolicyAudits"],
   "logLevel": ["admApprovalRequest","admDynamicLogLevelFindRules"],

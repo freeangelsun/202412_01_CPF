@@ -9,4 +9,4 @@ def test_crosscut_gate_is_fail_closed_and_batch_is_not_generated_domain_runtime(
     assert 'sys.exit(0 if overall == "PASS" else 1)' in text
     assert 'for runtime in ["online", "batch"]' not in text
     assert 'GEN-BATCH-CAPABILITY-SEPARATE' in text
-    assert 'NO-GENERATED-BATCH' in text
+    assert 'GEN-EXTERNAL-OPTIONAL-BATCH-DISABLED' in text

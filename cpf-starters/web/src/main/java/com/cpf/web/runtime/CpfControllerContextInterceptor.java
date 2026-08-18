@@ -46,16 +46,17 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
 
         String resolvedOperation = resolvedTargetOperation(request, method);
         Object trust = request.getAttribute(CpfWebContextFilter.INGRESS_TRUST_ATTRIBUTE);
-        if (trust == CpfHttpIngressTrust.TRUSTED_INTERNAL) {
+        boolean trustedInternal = trust == CpfHttpIngressTrust.TRUSTED_INTERNAL;
+        if (trustedInternal) {
             Object raw = request.getAttribute(CpfWebContextFilter.RECEIVED_HEADERS_ATTRIBUTE);
             if (!(raw instanceof CpfHttpHeaders headers)) {
                 throw new IllegalStateException("Trusted internal request has no captured CPF headers");
             }
-            String currentSystem = runtime.systemCode();
-            assertSystem(headers.getRequired(CpfHttpHeaderNames.SYSTEM_CODE), currentSystem,
-                    CpfHttpHeaderNames.SYSTEM_CODE, "SYSTEM_CODE_MISMATCH");
-            assertSystem(headers.getRequired(CpfHttpHeaderNames.TARGET_SYSTEM_CODE), currentSystem,
-                    CpfHttpHeaderNames.TARGET_SYSTEM_CODE, "TARGET_SYSTEM_MISMATCH");
+            String currentChannel = runtime.currentChannel();
+            assertChannel(headers.getRequired(CpfHttpHeaderNames.CURRENT_CHANNEL), currentChannel,
+                    CpfHttpHeaderNames.CURRENT_CHANNEL, "CURRENT_CHANNEL_MISMATCH");
+            assertChannel(headers.getRequired(CpfHttpHeaderNames.TARGET_CHANNEL), currentChannel,
+                    CpfHttpHeaderNames.TARGET_CHANNEL, "TARGET_CHANNEL_MISMATCH");
 
             String declared = headers.getRequired(CpfHttpHeaderNames.TARGET_OPERATION_ID);
             if (!resolvedOperation.equals(declared)) {
@@ -66,7 +67,7 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
             }
         }
 
-        if (annotation != null) enforceOperationPolicy(request, currentContext, resolvedOperation, trust == CpfHttpIngressTrust.TRUSTED_INTERNAL);
+        if (annotation != null) enforceOperationPolicy(request, currentContext, resolvedOperation, trustedInternal);
 
         CpfContext resolvedContext = currentContext.withResolvedOperation(resolvedOperation, method.getMethod().getName());
         AutoCloseable scope = CpfContexts.bind(CpfContextSnapshot.capture(resolvedContext));
@@ -82,15 +83,21 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
         if (scope instanceof AutoCloseable closeable) closeable.close();
     }
 
-
     private void enforceOperationPolicy(HttpServletRequest request, CpfContext context, String operationId, boolean trustedInternal) {
         if (accessPolicies.size() != 1) {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
                     CpfHttpHeaderNames.TARGET_OPERATION_ID,
                     "Canonical operation access policy runtime is unavailable or ambiguous.", 503, "OPERATION_POLICY_UNAVAILABLE");
         }
-        CpfOperationAccessPolicy.Decision decision=accessPolicies.getFirst().evaluate(new CpfOperationAccessPolicy.Request(
-                operationId, context.callerSystemCode(), runtime.systemCode(), context.channelCode(), trustedInternal));
+        boolean authenticated = context.identity() != null
+                && context.identity().principalType() != CpfContext.CpfPrincipalType.ANONYMOUS;
+        String trustedCallerSystem = stringAttribute(request, CpfWebContextFilter.VERIFIED_CALLER_SYSTEM_ATTRIBUTE);
+        CpfOperationAccessPolicy.Decision decision = accessPolicies.getFirst().evaluate(new CpfOperationAccessPolicy.Request(
+                operationId,
+                trustedInternal ? trustedCallerSystem : null,
+                runtime.systemCode(),
+                context.callerChannel(),
+                authenticated, false, trustedInternal));
         if (!decision.allowed()) {
             int status = "CALLER_NOT_REGISTERED".equals(decision.reasonCode()) || "CALLER_DISABLED".equals(decision.reasonCode()) ? 403 : 409;
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
@@ -98,7 +105,9 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
                     status, decision.reasonCode());
         }
         request.setAttribute("cpf.operation.policy-version", decision.policyVersion());
+        request.setAttribute("cpf.operation.policy-decision", "ALLOW");
     }
+
     private String resolvedTargetOperation(HttpServletRequest request, HandlerMethod method) {
         String uri = request.getRequestURI();
         String marker = "/_cpf/domain/";
@@ -111,10 +120,15 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
         return operationIds.resolve(method);
     }
 
-    private void assertSystem(String headerValue, String expected, String header, String category) {
+    private void assertChannel(String headerValue, String expected, String header, String category) {
         if (!expected.equalsIgnoreCase(headerValue)) {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    header, "Target/current system header does not match this runtime.", 409, category);
+                    header, "Target/current Channel header does not match this runtime.", 409, category);
         }
+    }
+
+    private static String stringAttribute(HttpServletRequest request, String name) {
+        Object value = request.getAttribute(name);
+        return value instanceof String text && !text.isBlank() ? text.trim() : null;
     }
 }

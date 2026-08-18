@@ -1,6 +1,5 @@
 package com.cpf.data.cache.caffeine;
 
-import com.cpf.data.cache.CpfCacheAsideService;
 import com.cpf.data.cache.CpfLocalCacheProvider;
 import com.cpf.data.cache.api.CpfCacheKey;
 import com.cpf.data.cache.api.CpfCache;
@@ -40,10 +39,4 @@ public class CpfCacheAutoConfiguration {
         return new CaffeineCpfCache(cache, properties.maximumPayloadBytes());
     }
 
-    @Bean
-    @ConditionalOnBean({CpfCache.class, CpfDistributedLockPort.class})
-    @ConditionalOnMissingBean(CpfCacheAsideService.class)
-    CpfCacheAsideService cpfCacheAsideService(CpfCache cache, CpfDistributedLockPort locks) {
-        return new CpfCacheAsideService(cache, locks);
-    }
 }

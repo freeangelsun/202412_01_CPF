@@ -22,14 +22,29 @@ def verify(root:Path):
   findings.append('web context filter missing')
  else:
   t=web_filter.read_text(encoding='utf-8-sig')
-  for token in ('OncePerRequestFilter','inbound.resolve','UNTRUSTED_EXTERNAL','CpfContexts.bind'):
-   if token not in t: findings.append(f'web filter witness missing: {token}')
+  # Verify behavior, not stale local variable names. The filter must resolve ingress trust,
+  # delegate identity construction to the canonical inbound adapter, and bind the resolved context.
+  for token in ('OncePerRequestFilter','trustResolver.resolve','inbound.resolve','CpfContexts.bind'):
+   if token not in t: findings.append(f'web filter semantic witness missing: {token}')
  if not inbound.is_file():
   findings.append('transaction inbound adapter missing')
  else:
   t=inbound.read_text(encoding='utf-8-sig')
-  for token in ('CpfTransactionIds.isCanonical','TRUSTED_INTERNAL','rawInboundTransactionId','requireGeneratedTransactionId'):
-   if token not in t: findings.append(f'inbound adapter witness missing: {token}')
+  semantic_groups = {
+   'canonical transaction validation': ('CpfTransactionIds.isCanonical', 'canonicalTransactionId('),
+   'trusted internal branch': ('CpfHttpIngressTrust.TRUSTED_INTERNAL',),
+   'external five-header contract': (
+       'requireExternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID)',
+       'requireExternal(originalChannel, CpfHttpHeaderNames.ORIGINAL_CHANNEL)',
+       'requireExternal(callerChannel, CpfHttpHeaderNames.CALLER_CHANNEL)',
+       'requireExternal(targetChannel, CpfHttpHeaderNames.TARGET_CHANNEL)',
+       'requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID)'),
+   'receiver-owned current channel': ('runtime.currentChannel()', 'validateReceiverChannel(runtimeChannel, inboundCurrentChannel, targetChannel)'),
+   'external current channel optional assertion': ('inboundCurrentChannel = normalizeChannel(inboundCurrentChannel)',),
+   'generated transaction fallback': ('requireGeneratedTransactionId(transactionIds.newTransactionId())',),
+  }
+  for label,tokens in semantic_groups.items():
+   if not all(token in t for token in tokens): findings.append(f'inbound adapter semantic witness missing: {label}')
  if legacy:findings.append(f'legacy transaction identifier occurrences={len(legacy)}')
  # Zero annotations never proves route coverage; fallback must be present and measured.
  if routes and annotated==0 and not web_filter.is_file():findings.append('controller routes exist but no filter coverage')

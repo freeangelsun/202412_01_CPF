@@ -13,6 +13,12 @@ cpf:
     system-code: MBR
     database-role: CUSTOMER_BUSINESS_DB
     table-prefix: MBR
+  operation-policy:
+    seed:
+      # 최초 Operation 등록 때만 적용되며, 이후 ADM Policy를 restart/redeploy가 덮지 않습니다.
+      allowed-callers: ${CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS:}
+      source: YML
+      revision: ${CPF_OPERATION_POLICY_SEED_REVISION:GENERATED-1}
 mybatis:
   # Oracle/PostgreSQL/MariaDB 공통 Mapper만 로드하며 Vendor별 Business SQL 복제를 금지합니다.
   mapper-locations: classpath*:db/mapper/*.xml

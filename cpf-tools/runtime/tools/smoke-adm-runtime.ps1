@@ -741,7 +741,7 @@ try {
         -AccessToken $login.accessToken `
         -ResultPath $transactionMetaResultPath
     $result.transactionMetaApi.status = "PASSED"
-    $result.transactionMetaApi.endpoint = "/adm/api/transactions/scan"
+    $result.transactionMetaApi.endpoint = "/adm/api/transactions"
     $result.transactionMetaApi.resultPath = $transactionMetaResultPath
 
     & (Join-Path $Root "cpf-tools/verification/tools/smoke-adm-ui.ps1") -Root $Root

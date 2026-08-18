@@ -321,7 +321,7 @@ public final class CpfReconciliationWorker implements CpfReconciliationRuntimeSt
         String transactionId = CpfTransactionIds.requireCanonical(record.transactionId());
         String idempotencyKey = "reconciliation-"
                 + sha256(record.unknownId() + ":" + item.attemptCount());
-        CpfResilienceCallContext context = CpfResilienceCallContext.now(
+        CpfResilienceCallContext context = CpfResilienceCallContext.recoveredLineage(
                 "cpf.reconciliation.probe." + type,
                 transactionId,
                 idempotencyKey,

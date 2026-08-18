@@ -939,7 +939,7 @@ TransactionId/TraceId/BusinessTransactionId 하나로 Online·Remote·Event·Bat
 - Path: `/transactions`
 - Canonical: `ADM-TX`
 - Expected OpenAPI Operation: 5개
-- Operation 예: `admTransactionMetaFindPage, admTransactionMetaFindTransaction, admTransactionMetaScan, admTransactionMetaInactivate, admTransactionMetaFindTransactions`
+- Operation 예: `admTransactionMetaFindPage, admTransactionMetaFindTransaction, admTransactionMetaInactivate, admTransactionMetaFindTransactions`
 
 **필수 UI**
 - 화면 상단에 1~2문장의 기능 설명과 데이터 범위/최근 갱신시각을 표시한다.

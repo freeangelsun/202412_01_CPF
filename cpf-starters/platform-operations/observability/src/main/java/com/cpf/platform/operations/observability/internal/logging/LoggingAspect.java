@@ -5,7 +5,7 @@ import com.cpf.security.api.CpfMaskingRuntime;
 
 import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
-import com.cpf.foundation.context.system.CpfSystemCodes;
+import com.cpf.foundation.context.system.CpfCurrentChannels;
 import com.cpf.core.api.error.DefaultCpfMessageResolver;
 import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
 import com.cpf.core.api.error.CpfException;
@@ -382,7 +382,7 @@ public class LoggingAspect {
             LocalDateTime endTime,
             long durationMs) {
 
-        com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.Identity runtimeIdentity = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current();
+        com.cpf.foundation.runtime.CpfInstanceIdentity.Identity runtimeIdentity = com.cpf.foundation.runtime.CpfInstanceIdentity.current();
         return TransactionLogRecord.builder()
                 .transactionId(transactionId)
                 .traceId(traceId)
@@ -397,8 +397,8 @@ public class LoggingAspect {
                 .apiVersion(headerValue(transactionHeader, TransactionHeader::getApiVersion))
                 .clientId(headerValue(transactionHeader, TransactionHeader::getClientId))
                 .clientVersion(headerValue(transactionHeader, TransactionHeader::getClientVersion))
-                .callerSystemCode(TransactionContext.callerSystemCode())
-                .targetSystemCode(TransactionContext.targetSystemCode())
+                .callerChannel(TransactionContext.callerChannel())
+                .targetChannel(TransactionContext.targetChannel())
                 .targetOperationId(TransactionContext.targetOperationId())
                 .callerInstanceId(headerValue(transactionHeader, TransactionHeader::getCallerInstanceId))
                 .correlationId(headerValue(transactionHeader, TransactionHeader::getCorrelationId))
@@ -406,8 +406,8 @@ public class LoggingAspect {
                 .locale(headerValue(transactionHeader, TransactionHeader::getLocale))
                 .timezone(headerValue(transactionHeader, TransactionHeader::getTimezone))
                 .requestType(headerValue(transactionHeader, TransactionHeader::getRequestType))
-                .originalSystemCode(TransactionContext.originalSystemCode())
-                .systemCode(TransactionContext.systemCode())
+                .originalChannel(TransactionContext.originalChannel())
+                .currentChannel(TransactionContext.currentChannel())
                 .memberNo(headerValue(transactionHeader, TransactionHeader::getMemberNo))
                 .customerNo(headerValue(transactionHeader, TransactionHeader::getCustomerNo))
                 .screenId(headerValue(transactionHeader, TransactionHeader::getScreenId))
@@ -416,6 +416,7 @@ public class LoggingAspect {
                 .wasId(headerValue(transactionHeader, TransactionHeader::getWasId))
                 .instanceId(runtimeIdentity.instanceId())
                 .hostName(runtimeIdentity.hostName())
+                .hostIp(runtimeIdentity.hostIp())
                 .processId(runtimeIdentity.processId())
                 .threadName(runtimeIdentity.threadName())
                 .reservedField1(headerValue(transactionHeader, TransactionHeader::getReservedField1))
@@ -827,14 +828,14 @@ public class LoggingAspect {
      */
     private void addAutomaticManagementMetadata(Map<String, String> details, TransactionLogRecord record) {
         String application = firstConfigured("spring.application.name", "cpf.application", "cpf.app.name");
-        String systemCode = firstConfigured("cpf.system-code", "cpf.system.id", "cpf.generated-domain.system-code");
-        if (!hasText(systemCode)) systemCode = firstText(application, record != null ? record.getModuleId() : null, "CPF");
+        String currentChannel = firstConfigured("cpf.system-code", "cpf.system.id", "cpf.generated-domain.system-code");
+        if (!hasText(currentChannel)) currentChannel = firstText(application, record != null ? record.getModuleId() : null, "CPF");
         String domainCode = firstConfigured("cpf.domain-code", "cpf.domain.code", "cpf.generated-domain.domain-code");
         if (!hasText(domainCode)) domainCode = firstConfigured("cpf.generated-domain.system-code");
         String module = firstConfigured("cpf.framework.module-id", "cpf.module", "cpf.runtime.role");
         if (!hasText(module) && record != null) module = record.getModuleId();
 
-        putDetail(details, "runtime.systemCode", systemCode);
+        putDetail(details, "runtime.currentChannel", currentChannel);
         putDetail(details, "runtime.domainCode", domainCode);
         putDetail(details, "runtime.application", application);
         putDetail(details, "runtime.module", module);
@@ -858,18 +859,18 @@ public class LoggingAspect {
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
         String configuredModuleId = environment.getProperty("cpf.framework.module-id");
         if (hasText(configuredModuleId)) {
-            return CpfSystemCodes.normalize(configuredModuleId, CpfSystemCodes.CORE);
+            return CpfCurrentChannels.normalize(configuredModuleId, CpfCurrentChannels.CORE);
         }
 
         String declaringType = joinPoint.getSignature().getDeclaringTypeName();
-        String inferredModuleId = CpfSystemCodes.inferFromTypeName(declaringType);
+        String inferredModuleId = CpfCurrentChannels.inferFromTypeName(declaringType);
         if (hasText(inferredModuleId)) {
             return inferredModuleId;
         }
 
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
-            return CpfSystemCodes.normalize(appName, CpfSystemCodes.CORE);
+            return CpfCurrentChannels.normalize(appName, CpfCurrentChannels.CORE);
         }
         return "N/A";
     }

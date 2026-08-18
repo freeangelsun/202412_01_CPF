@@ -22,8 +22,8 @@ public class TransactionHeader {
     String apiVersion;
     String clientId;
     String clientVersion;
-    String callerSystemCode;
-    String targetSystemCode;
+    String callerChannel;
+    String targetChannel;
     String targetOperationId;
     String callerInstanceId;
     String correlationId;
@@ -31,8 +31,8 @@ public class TransactionHeader {
     String locale;
     String timezone;
     String requestType;
-    String originalSystemCode;
-    String systemCode;
+    String originalChannel;
+    String currentChannel;
     String channelDetailCode;
     String memberNo;
     String customerNo;

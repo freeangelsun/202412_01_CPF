@@ -142,7 +142,7 @@ def validate_contract(root: Path, contract: dict[str, Any]) -> list[tuple[dict[s
     migration = contract.get("migration") or {}
     version = int(migration.get("allocatedVersion") or 0)
     observed = int(migration.get("observedRepositoryMaxVersionAtAllocation") or 0)
-    if version != observed + 1 or version != 117:
+    if version != observed + 1:
         raise ContractError(f"migration version allocation drift: observed={observed} allocated={version}")
     if migration.get("logicalDatabase") != "cpfDB" or migration.get("name") != "platform_seed_currentization":
         raise ContractError("migration routing/name contract drift")
@@ -311,15 +311,17 @@ def verify_version_allocation(root: Path, contract: dict[str, Any], outputs: dic
         resolved = path.resolve()
         if resolved in expected_forward:
             continue
-        if value >= version:
+        # This contract owns exactly the allocated version. Later append-only migrations
+        # are valid repository history and must not make the historical V117 contract stale.
+        if value == version:
             collisions.append(path.relative_to(root).as_posix())
-        else:
+        elif value < version:
             seen_prior.append(value)
     actual_max = max(seen_prior, default=0)
     if actual_max != observed:
         raise ContractError(f"migration allocation stale: contract observed V{observed}, repository max V{actual_max}")
     if collisions:
-        raise ContractError(f"migration V{version} collision/newer allocation detected: {collisions}")
+        raise ContractError(f"migration V{version} collision detected: {collisions}")
 
 
 def verify_checksums(root: Path, outputs: dict[Path, str]) -> None:
@@ -374,7 +376,7 @@ def main() -> int:
         print(f"[FAIL] CPF platform seed currentization: {exc}")
         return 1
     mode = "WRITE" if args.write else "CHECK"
-    print(f"[PASS] CPF platform seed currentization {mode}: changed={len(changed)} version=V117 vendors=3 rollback=PRESERVE_CURRENT_NOOP")
+    print(f"[PASS] CPF platform seed currentization {mode}: changed={len(changed)} version=V{load_json(root / 'cpf-tools/db/canonical/platform-seed-currentization.json')['migration']['allocatedVersion']} vendors=3 rollback=PRESERVE_CURRENT_NOOP")
     for path in changed:
         print(f"  [UPDATED] {path}")
     return 0

@@ -53,9 +53,6 @@ public final class CpfNotificationContextCodec {
     public CpfContextSnapshot restore(
             String encoded, CpfNotificationRequest request, int attempt, boolean reconcile, String provider) {
         Map<String, String> values = decode(encoded);
-        if (!required(values, "tx").equals(request.transactionId())) {
-            throw new SecurityException("NOTIFICATION_TRANSACTION_CONTEXT_MISMATCH");
-        }
         LocalDate businessDate = LocalDate.parse(required(values, "bd"));
         Instant startedAt = Instant.parse(required(values, "ts"));
         Instant deadline = text(values.get("dl")) == null ? null : Instant.parse(values.get("dl"));

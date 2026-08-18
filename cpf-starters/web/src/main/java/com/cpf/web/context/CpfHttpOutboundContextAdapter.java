@@ -11,7 +11,7 @@ public final class CpfHttpOutboundContextAdapter {
     private final CpfRuntimeIdentity runtime;
     private final CpfHeaderPolicyRegistry policies;
 
-    /** Compatibility constructor for tests/legacy consumers; runtime identity is inferred from context when possible. */
+    /** Compatibility constructor for tests/legacy consumers; runtime Channel is inferred from context when possible. */
     public CpfHttpOutboundContextAdapter() { this(null, new CpfHeaderPolicyRegistry(null)); }
     public CpfHttpOutboundContextAdapter(CpfRuntimeIdentity runtime, CpfHeaderPolicyRegistry policies) {
         this.runtime = runtime;
@@ -25,17 +25,17 @@ public final class CpfHttpOutboundContextAdapter {
         LinkedHashMap<String,String> headers = new LinkedHashMap<>();
 
         if (target.trustedInternal()) {
-            String localSystem = localSystem(context);
-            String targetSystem = requiredSystem(target.targetSystem(), CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+            String callerChannel = localChannel(context);
+            String targetChannel = requiredChannel(target.targetChannel(), CpfHttpHeaderNames.TARGET_CHANNEL);
             String operation = required(target.targetOperation(), CpfHttpHeaderNames.TARGET_OPERATION_ID);
-            String original = first(context.originalSystemCode(), localSystem);
+            String original = first(context.originalChannel(), callerChannel);
 
-            putRequired(headers, CpfHttpHeaderNames.TRANSACTION_ID, context.transaction().transactionId());
-            putRequired(headers, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, original);
-            // On the wire these identify the receiving/current runtime for this hop.
-            putRequired(headers, CpfHttpHeaderNames.SYSTEM_CODE, targetSystem);
-            putRequired(headers, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, localSystem);
-            putRequired(headers, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, targetSystem);
+            putRequired(headers, CpfHttpHeaderNames.TRANSACTION_ID, context.transactionId());
+            putRequired(headers, CpfHttpHeaderNames.ORIGINAL_CHANNEL, original);
+            // On the wire Current/Target both identify the receiver for this hop. Receiver verifies Current against runtime.
+            putRequired(headers, CpfHttpHeaderNames.CURRENT_CHANNEL, targetChannel);
+            putRequired(headers, CpfHttpHeaderNames.CALLER_CHANNEL, callerChannel);
+            putRequired(headers, CpfHttpHeaderNames.TARGET_CHANNEL, targetChannel);
             putRequired(headers, CpfHttpHeaderNames.TARGET_OPERATION_ID, operation);
 
             if (interaction != null) {
@@ -46,17 +46,16 @@ public final class CpfHttpOutboundContextAdapter {
                 put(headers, CpfHttpHeaderNames.DEVICE_ID, interaction.deviceId());
                 put(headers, CpfHttpHeaderNames.USER_AGENT, interaction.userAgent());
                 put(headers, CpfHttpHeaderNames.ACCEPT_LANGUAGE, interaction.locale());
-                // trace propagation is standards-based and still scoped to trusted internal calls here.
                 put(headers, CpfHttpHeaderNames.TRACEPARENT, interaction.traceparent());
                 put(headers, CpfHttpHeaderNames.TRACESTATE, interaction.tracestate());
             }
-            put(headers, CpfHttpHeaderNames.CORRELATION_ID, context.transaction().correlationId());
+            put(headers, CpfHttpHeaderNames.CORRELATION_ID, context.correlationId());
             if (context.operation() != null) put(headers, CpfHttpHeaderNames.IDEMPOTENCY_KEY, context.operation().idempotencyKey());
             putAllowedCustom(headers, target.customHeaders(), true);
             return Map.copyOf(headers);
         }
 
-        // External institutions receive no CPF internal transaction/system headers by default.
+        // External institutions receive no CPF internal transaction/Channel headers by default.
         putAllowedCustom(headers, target.customHeaders(), false);
         return Map.copyOf(headers);
     }
@@ -75,18 +74,18 @@ public final class CpfHttpOutboundContextAdapter {
         });
     }
 
-    private String localSystem(CpfContext context) {
-        if (runtime != null) return runtime.systemCode();
-        String inferred = first(context.systemCode(), context.originalSystemCode());
-        return requiredSystem(inferred, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+    private String localChannel(CpfContext context) {
+        if (runtime != null) return runtime.currentChannel();
+        String inferred = first(context.currentChannel(), context.originalChannel());
+        return requiredChannel(inferred, CpfHttpHeaderNames.CALLER_CHANNEL);
     }
 
-    private static String requiredSystem(String value, String header) {
+    private static String requiredChannel(String value, String header) {
         String normalized = required(value, header).toUpperCase(Locale.ROOT);
-        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{1,31}")) {
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,127}")) {
             throw new CpfHeaderValidationException(
                     com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    header, "Invalid CPF system code.", 400, "SYSTEM_CODE_INVALID");
+                    header, "Invalid CPF Channel identity.", 400, "CHANNEL_INVALID");
         }
         return normalized;
     }

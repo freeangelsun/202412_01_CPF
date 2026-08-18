@@ -1,0 +1,16 @@
+-- GENERATED from cpf-tools/db/canonical/platform-seed-currentization.json and seed-model.json; DO NOT EDIT.
+-- D-010 V124: canonical EDU seed currentization with exact-owned retired REF cleanup.
+WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
+MERGE INTO cpf_message tgt USING (SELECT 'MEDU010001' message_code, 'ko' locale, 'INDEXED' message_format_type, '이미 등록된 {0}입니다.' external_message, '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE' internal_message, 2 parameter_count, '["샘플키","SAMPLE-0001"]' parameter_sample, 'EDU 동적 중복 교육 메시지' description, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual) src
+ON (tgt.message_code = src.message_code AND tgt.locale = src.locale)
+WHEN MATCHED THEN UPDATE SET tgt.message_format_type = src.message_format_type, tgt.external_message = src.external_message, tgt.internal_message = src.internal_message, tgt.parameter_count = src.parameter_count, tgt.parameter_sample = src.parameter_sample, tgt.description = src.description, tgt.updated_by = src.updated_by, tgt.use_yn = 'Y', tgt.updated_at = CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (message_code, locale, message_format_type, external_message, internal_message, parameter_count, parameter_sample, description, created_by, updated_by)
+VALUES (src.message_code, src.locale, src.message_format_type, src.external_message, src.internal_message, src.parameter_count, src.parameter_sample, src.description, src.created_by, src.updated_by);
+MERGE INTO cpf_response_code tgt USING (SELECT 'EEDU010001' response_code, 'MEDU010001' message_code, 'E' result_type, 'EDU' module_id, '01' response_group, '0001' sequence_no, 409 http_status, 'EDU 샘플 중복 오류' description, 'SYSTEM' created_by, 'SYSTEM' updated_by FROM dual) src
+ON (tgt.response_code = src.response_code)
+WHEN MATCHED THEN UPDATE SET tgt.message_code = src.message_code, tgt.result_type = src.result_type, tgt.module_id = src.module_id, tgt.response_group = src.response_group, tgt.sequence_no = src.sequence_no, tgt.http_status = src.http_status, tgt.description = src.description, tgt.updated_by = src.updated_by, tgt.use_yn = 'Y', tgt.updated_at = CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by)
+VALUES (src.response_code, src.message_code, src.result_type, src.module_id, src.response_group, src.sequence_no, src.http_status, src.description, src.created_by, src.updated_by);
+DELETE FROM cpf_response_code WHERE response_code = 'EREF090001' AND message_code = 'MREF090001' AND result_type = 'E' AND module_id = 'REF' AND response_group = '09' AND sequence_no = '0001' AND http_status = 409 AND description = 'REF 샘플 중복 오류' AND use_yn = 'Y' AND created_by = 'SYSTEM' AND updated_by = 'SYSTEM';
+DELETE FROM cpf_message WHERE message_code = 'MREF090001' AND locale = 'ko' AND message_format_type = 'INDEXED' AND external_message = '이미 등록된 {0}입니다.' AND internal_message = '{0}={1} 값이 이미 존재합니다. duplicateCheck=REF_EDU_SAMPLE' AND parameter_count = 2 AND parameter_sample = '["회원번호","M0001"]' AND description = 'REF 동적 중복 교육 메시지' AND use_yn = 'Y' AND created_by = 'SYSTEM' AND updated_by = 'SYSTEM' AND NOT EXISTS (SELECT 1 FROM cpf_response_code WHERE message_code = 'MREF090001');
+COMMIT;

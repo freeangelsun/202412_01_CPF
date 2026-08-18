@@ -61,10 +61,21 @@ def main() -> int:
     check('ADM_FRONTEND_CONSUMER', 'fixedLengthDetails' in frontend and '전문' in frontend,
           'ADM fixed-length detail consumer missing')
 
-    edu_controller=text('cpf-education/src/main/java/com/cpf/education/integration/telegram/controller/EducationTelegramEducationController.java')
-    edu_dto=text('cpf-education/src/main/java/com/cpf/education/integration/telegram/dto/EducationFixedLengthEducationTelegram.java')
-    check('EDUCATION_CONSUMER', all(t in edu_controller for t in ('fixed-length/parse','fixed-length/write','CpfFixedLengthDtoMapper'))
-          and '@CpfFixedLengthField' in edu_dto, 'EDU parse/write DTO consumer missing')
+    edu_controller=text('cpf-education/src/main/java/com/cpf/education/online/fixedlength/controller/AccountInquiryController.java')
+    edu_service=text('cpf-education/src/main/java/com/cpf/education/online/fixedlength/service/AccountInquiryService.java')
+    edu_client=text('cpf-education/src/main/java/com/cpf/education/online/fixedlength/client/AccountInquiryClient.java')
+    edu_adapter=text('cpf-education/src/main/java/com/cpf/education/online/fixedlength/adapter/AccountInquiryOutcomeAdapter.java')
+    check('EDUCATION_CONSUMER', all((
+          'AccountInquiryService' in edu_controller,
+          'AccountInquiryClient' in edu_service,
+          'fixed.write(' in edu_client,
+          'fixed.parse(' in edu_client,
+          'CpfRestClient' in edu_client,
+          'CpfResult' in edu_adapter,
+          'BUSINESS' in edu_adapter or 'businessFailure' in edu_adapter,
+          'technicalFailure' in edu_adapter,
+          'unknown' in edu_adapter)),
+          'EDU Controller→Service→Client→Adapter fixed-length Public API consumer missing')
 
     build_admin=text('cpf-admin/build.gradle'); build_edu=text('cpf-education/build.gradle')
     check('ACTUAL_MODULE_CONSUMERS', "project(':starters:integration:fixed-length')" in build_admin and

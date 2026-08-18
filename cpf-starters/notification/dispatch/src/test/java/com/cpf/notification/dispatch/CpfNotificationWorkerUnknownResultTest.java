@@ -28,7 +28,7 @@ class CpfNotificationWorkerUnknownResultTest {
     void unknownResultIsNotCompletedAsSent() {
         JdbcCpfNotificationOutbox outbox = mock(JdbcCpfNotificationOutbox.class);
         CpfNotificationRequest request = new CpfNotificationRequest(
-                "N-1", "email", "masked@example.com", "T-1", Map.of(), "I-1", "TX-1", null);
+                "N-1", "email", "masked@example.com", "T-1", Map.of(), "I-1", null);
         CpfNotificationContextCodec codec = codec();
         String lineage = captureLineage(codec, "TX-1");
         when(outbox.claimWithContext("w", 10, Instant.parse("2026-08-02T00:00:00Z"), Duration.ofSeconds(30)))
@@ -54,7 +54,7 @@ class CpfNotificationWorkerUnknownResultTest {
     void providerExceptionIsUnknownAndNeverBlindRetried() {
         JdbcCpfNotificationOutbox outbox = mock(JdbcCpfNotificationOutbox.class);
         CpfNotificationRequest request = new CpfNotificationRequest(
-                "N-2", "email", "masked@example.com", "T-1", Map.of(), "I-2", "TX-2", null);
+                "N-2", "email", "masked@example.com", "T-1", Map.of(), "I-2", null);
         Instant now = Instant.parse("2026-08-02T00:00:00Z");
         CpfNotificationContextCodec codec = codec();
         String lineage = captureLineage(codec, "TX-2");

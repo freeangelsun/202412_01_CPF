@@ -1,4 +1,4 @@
-MERGE INTO cpf_channel_registry target
+MERGE INTO OPS_CHANNEL_REGISTRY target
 USING (
     SELECT ? channel_code, ? channel_name, ? channel_type, ? trust_level,
            ? client_channel_yn, ? internal_channel_yn,

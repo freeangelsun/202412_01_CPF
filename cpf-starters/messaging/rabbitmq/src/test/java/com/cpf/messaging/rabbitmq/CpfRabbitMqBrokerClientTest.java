@@ -1,5 +1,16 @@
 package com.cpf.messaging.rabbitmq;
 
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
@@ -20,6 +31,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 class CpfRabbitMqBrokerClientTest {
+    private AutoCloseable cpfContextScope;
+    @BeforeEach void bindCpfContext() {
+        Clock clock=Clock.fixed(Instant.parse("2026-08-18T00:00:00Z"),ZoneOffset.UTC);
+        CpfExecutionIdGenerator ids=new CpfExecutionIdGenerator() { private int n; public String newExecutionId(){return "EX-"+(++n);} public String newSegmentId(){return "S-AMQP-1";} };
+        CpfContextExecutionFactory factory=new CpfContextExecutionFactory(() -> "T-AMQP-1",ids,() -> LocalDate.of(2026,8,18),clock);
+        cpfContextScope=CpfContexts.bind(CpfContextSnapshot.capture(factory.newRoot(null,"messaging.test",null,null,clock.instant().plusSeconds(60)),clock.instant()));
+    }
+    @AfterEach void clearCpfContext() throws Exception { if(cpfContextScope!=null) cpfContextScope.close(); Thread.interrupted(); }
+
 
     @Test
     void enqueuePreservesContentTypeAndTrackingHeaders() {
@@ -33,7 +53,7 @@ class CpfRabbitMqBrokerClientTest {
         }).when(template).send(eq("cpf.exchange"), eq("cpf.route"), any(Message.class), any(CorrelationData.class));
         var client = new CpfRabbitMqBrokerClient(template, properties());
 
-        var result = client.enqueue(request(Map.of("x-cpf-source", "REF")));
+        var result = client.send(request(Map.of("x-cpf-source", "REF")));
 
         assertThat(result.status()).isEqualTo("PUBLISHED");
         assertThat(captured.get().getMessageProperties().getContentType()).isEqualTo("application/json");
@@ -49,7 +69,7 @@ class CpfRabbitMqBrokerClientTest {
         var client = new CpfRabbitMqBrokerClient(template, properties());
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> client.enqueue(request(Map.of("CPF-TRANSACTION-ID", "ATTACK"))))
+                .isThrownBy(() -> client.send(request(Map.of("CPF-TRANSACTION-ID", "ATTACK"))))
                 .withMessageContaining("reserved CPF header");
         verifyNoInteractions(template);
     }
@@ -66,7 +86,7 @@ class CpfRabbitMqBrokerClientTest {
                 any(Message.class), any(CorrelationData.class));
         var client = new CpfRabbitMqBrokerClient(template, properties());
 
-        var result = client.enqueue(request(Map.of()));
+        var result = client.send(request(Map.of()));
 
         assertThat(result.status()).isEqualTo("FAILED");
         assertThat(result.detail()).contains("***")
@@ -98,18 +118,12 @@ class CpfRabbitMqBrokerClientTest {
     }
 
     @Test
-    void enqueueRejectsMissingTrackingBeforeProviderCall() {
+    void sendRejectsMissingIdempotencyBeforeProviderCall() {
         RabbitTemplate template = mock(RabbitTemplate.class);
         var client = new CpfRabbitMqBrokerClient(template, properties());
-        CpfBrokerPublishRequest missingTransaction = new CpfBrokerPublishRequest(
-                "M-X", "topic", "key", new byte[] {1}, "application/octet-stream",
-                null, "segment", "producer", "consumer", "idem", Map.of(), Map.of());
         CpfBrokerPublishRequest missingIdempotency = new CpfBrokerPublishRequest(
-                "M-X", "topic", "key", new byte[] {1}, "application/octet-stream",
-                "tx", "segment", "producer", "consumer", null, Map.of(), Map.of());
-
-        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(missingTransaction));
-        assertThatIllegalArgumentException().isThrownBy(() -> client.enqueue(missingIdempotency));
+                "M-X", "topic", "key", new byte[] {1}, "application/octet-stream", "producer", "consumer", null, Map.of(), Map.of());
+        assertThatIllegalArgumentException().isThrownBy(() -> client.send(missingIdempotency));
         verifyNoInteractions(template);
     }
 
@@ -157,8 +171,6 @@ class CpfRabbitMqBrokerClientTest {
                 "K-AMQP-1",
                 "{}".getBytes(StandardCharsets.UTF_8),
                 "application/json",
-                "T-AMQP-1",
-                "T-AMQP-1-RABBIT",
                 "REF",
                 "CMN",
                 "ID-AMQP-1",

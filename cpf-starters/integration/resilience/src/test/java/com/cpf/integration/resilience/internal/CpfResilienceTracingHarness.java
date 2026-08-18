@@ -35,9 +35,10 @@ public final class CpfResilienceTracingHarness {
         RecordingTelemetry telemetry = new RecordingTelemetry(false, false, false);
         AtomicInteger calls = new AtomicInteger();
         try (CpfResilienceEngine engine = engine(policy, telemetry)) {
-            CpfResilienceCallContext context = new CpfResilienceCallContext(
-                    policy.operationId(), "user@example.com", "idem-1", Instant.EPOCH,
-                    Map.of("cpf.module", "payment", "cpf.channel", "MOBILE"));
+            CpfResilienceCallContext context = CpfResilienceCallContext.recoveredLineage(
+                    policy.operationId(), "user@example.com", "idem-1",
+                    Map.of("cpf.module", "payment", "cpf.channel", "MOBILE"),
+                    Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
             CpfResilienceOutcome<String> result = engine.execute(context, () -> {
                 if (calls.incrementAndGet() == 1) throw new IllegalStateException("retry");
                 return "OK";
@@ -71,8 +72,9 @@ public final class CpfResilienceTracingHarness {
                 new RecordingTelemetry(true, false, false),
                 new RecordingTelemetry(false, true, true))) {
             try (CpfResilienceEngine engine = engine(policy, telemetry)) {
-                CpfResilienceOutcome<String> result = engine.execute(new CpfResilienceCallContext(
-                        policy.operationId(), "tx-safe", null, Instant.EPOCH, Map.of()), () -> "OK");
+                CpfResilienceOutcome<String> result = engine.execute(CpfResilienceCallContext.recoveredLineage(
+                        policy.operationId(), "tx-safe", null, Map.of(),
+                        Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)), () -> "OK");
                 check(result.status() == CpfResilienceOutcome.Status.SUCCESS,
                         "telemetry failure must not alter business outcome");
             }
@@ -83,10 +85,11 @@ public final class CpfResilienceTracingHarness {
         CpfResiliencePolicy policy = policy("cache.local", 1);
         RecordingTelemetry telemetry = new RecordingTelemetry(false, false, false);
         try (CpfResilienceEngine engine = engine(policy, telemetry)) {
-            CpfResilienceCallContext context = new CpfResilienceCallContext(
-                    policy.operationId(), "tx-local", null, Instant.EPOCH,
+            CpfResilienceCallContext context = CpfResilienceCallContext.recoveredLineage(
+                    policy.operationId(), "tx-local", null,
                     Map.of(CpfResilienceCallContext.TRACE_SPAN_KIND_ATTRIBUTE, "LOCAL",
-                            CpfResilienceCallContext.TRACE_SEGMENT_ATTRIBUTE, "CACHE"));
+                            CpfResilienceCallContext.TRACE_SEGMENT_ATTRIBUTE, "CACHE"),
+                    Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
             check(engine.execute(context, () -> "HIT").status() == CpfResilienceOutcome.Status.SUCCESS,
                     "local execution");
             check(engine.reconcile(context, () -> "PROBED").status() == CpfResilienceOutcome.Status.SUCCESS,

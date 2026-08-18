@@ -769,10 +769,6 @@
       "sha256": "41858eeff16741772ccab70c81d181903fc8feecbfff60ad862d24315d054d22"
     },
     {
-      "path": "src/generated/orval/model/admTransactionMetaScanParams.ts",
-      "sha256": "ca17813f81b853ea451ae6d16edbd148167b50875ddc9a41a642f9ad3345ad31"
-    },
-    {
       "path": "src/generated/orval/model/bindingStateCommand.ts",
       "sha256": "648c42f192ae75d03b2536826fd0d83b38da4b31cf89c1de23359d4f9a58e8f1"
     },
@@ -950,6 +946,6 @@
       "sha256": "692414f98f69965efdbebca93cecbcc3ee96405d65fe3cbc6c90bde306d141ad"
     }
   ],
-  "generatedFileSetSha256": "635f85c36234fd83dd1ebe6e9c8eacea6d11c10ced7d6b57387cf2a7e2748c89",
+  "generatedFileSetSha256": "ef088028fceaef7fca966b5868e9f97bb4d233eb9aab0c8c2016476e36025042",
   "sanitized": true
 }

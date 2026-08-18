@@ -1,6 +1,6 @@
 package com.cpf.common.runtime.cache;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.common.runtime.CpfCommonJdbcAutoConfiguration;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

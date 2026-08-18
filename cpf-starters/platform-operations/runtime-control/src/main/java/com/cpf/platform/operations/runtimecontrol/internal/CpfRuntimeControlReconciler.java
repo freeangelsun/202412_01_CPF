@@ -67,12 +67,12 @@ public class CpfRuntimeControlReconciler {
             String capability = CpfRuntimeCapabilityCatalog.resolve(changeType)
                     .map(CpfRuntimeCapabilityCatalog.Capability::code).orElse(changeType);
             if (!selfHealingAllowlist.contains(capability) && !selfHealingAllowlist.contains(changeType)) continue;
-            String operationId = "AUTO_ROLLBACK:" + changeId;
+            String commandId = "AUTO_ROLLBACK:" + changeId;
             if (repository.findOperation(operationId).isPresent()) continue; // change당 최대 1회 시도
             if (repository.acknowledgedTargets(changeId).isEmpty()) continue;
             try {
                 repository.consumeRateLimit("CPF_SELF_HEALING", selfHealingRateLimitPerMinute);
-                controlPlane.rollback(changeId, operationId,
+                controlPlane.rollback(changeId, commandId,
                         "CPF_SELF_HEALING: approved change automatic rollback", "CPF_CONTROLLER");
             } catch (RuntimeException failure) {
                 log.error("Runtime automatic rollback 실패. changeId={}", changeId, failure);

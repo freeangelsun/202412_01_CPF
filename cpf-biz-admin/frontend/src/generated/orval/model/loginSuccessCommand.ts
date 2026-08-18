@@ -3,6 +3,7 @@ import type { BzaOperatorRow } from './bzaOperatorRow';
 /** Controller-source pre-runtime request schema. Authenticated operator fields are server-derived. */
 export interface LoginSuccessCommand {
   clientIp?: string;
+  instanceId?: string;
   moduleId?: string;
   operationId?: string;
   operator?: BzaOperatorRow;
@@ -13,7 +14,6 @@ export interface LoginSuccessCommand {
   resultAccessTokenEnc?: string;
   resultExpireAt?: string;
   resultRefreshTokenEnc?: string;
-  instanceId?: string;
   transactionId?: string;
   upgradedPasswordHash?: string;
   userAgent?: string;

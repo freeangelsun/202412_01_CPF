@@ -53,8 +53,9 @@ if($Vendor -eq 'mariadb'){
 }else{
     $users=@($targets|ForEach-Object{$_.migrationUsername;$_.runtimeUsername}|Sort-Object -Unique)
     foreach($u in $users){if($u -notmatch '^[A-Za-z][A-Za-z0-9_$#]{0,62}$'){throw "Unsafe Oracle verifier user=$u"}}
-    $pwd=$first.adminPassword.Replace('"','""')
-    $sql="WHENEVER SQLERROR EXIT SQL.SQLCODE`nCONNECT $($first.adminUsername)/\"$pwd\"@//$($first.host):$($first.port)/$($first.databaseName)`n"
+    $pwd=[string]$first.adminPassword
+    $connect = '{0}/"{1}"@//{2}:{3}/{4}' -f ([string]$first.adminUsername), ($pwd.Replace('"','""')), ([string]$first.host), ([string]$first.port), ([string]$first.databaseName)
+    $sql="WHENEVER SQLERROR EXIT SQL.SQLCODE`nCONNECT $connect`n"
     foreach($u in $users){$upper=$u.ToUpperInvariant();$sql += "DECLARE c NUMBER; BEGIN SELECT COUNT(*) INTO c FROM dba_users WHERE username='$upper'; IF c>0 THEN EXECUTE IMMEDIATE 'DROP USER $upper CASCADE'; END IF; END;`n/`n"}
     $sql += "EXIT`n"
     $psi=[Diagnostics.ProcessStartInfo]::new('sqlplus')

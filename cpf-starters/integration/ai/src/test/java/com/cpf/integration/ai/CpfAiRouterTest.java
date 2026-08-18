@@ -73,7 +73,7 @@ class CpfAiRouterTest {
         assertThat(CpfContexts.current()).isNull();
     }
 
-    private static CpfAiRequest req(boolean high) { return new CpfAiRequest(TX, "m", "masked", high ? CpfAiRisk.HIGH : CpfAiRisk.LOW, Duration.ofMillis(50), false, Map.of()); }
+    private static CpfAiRequest req(boolean high) { return new CpfAiRequest("m", "masked", high ? CpfAiRisk.HIGH : CpfAiRisk.LOW, Duration.ofMillis(50), false, Map.of()); }
     private static CpfAiResponse response(String provider) { return new CpfAiResponse(provider, "m", "ok", new CpfAiUsage(1, 1, 2), Map.of()); }
     private static CpfAiProvider provider(String id, boolean safe) { return new CpfAiProvider() { public String providerId(){return id;} public boolean supports(String m){return true;} public boolean safeToFallbackAfterTimeout(){return safe;} public CpfAiResponse execute(CpfAiRequest r){return response(id);} }; }
     private static CpfAiPolicy noopPolicy() { return new CpfAiPolicy() { public CpfAiRequest authorizeAndMask(CpfAiRequest r){return r;} public void audit(CpfAiRequest r,CpfAiResponse s,Throwable f){} }; }

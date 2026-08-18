@@ -32,7 +32,7 @@ public final class CpfEnvironmentResilienceRuntimePolicyResolverHarness {
         CpfResiliencePolicy base = new CpfResiliencePolicy(
                 "PAYMENT.POST", 1, Duration.ofSeconds(1), 2, Duration.ofMillis(50),
                 3, Duration.ofSeconds(5), 2, 100, Duration.ofMinutes(1), true, true);
-        CpfResilienceCallContext context = CpfResilienceCallContext.now(
+        CpfResilienceCallContext context = CpfResilienceCallContext.recoveredLineage(
                 base.operationId(), "tx", "idem", Map.of(),
                 Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
         CpfResilienceRuntimePolicy resolved = resolver.resolve(base, context);

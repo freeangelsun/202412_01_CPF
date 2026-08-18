@@ -40,11 +40,8 @@ public final class KafkaCpfMessagingTemplate implements CpfMessagingTemplate {
     public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
-        if (!current.transaction().transactionId().equals(request.transactionId())) {
-            throw new SecurityException("Provider request transactionId does not match bound CPF Context");
-        }
         java.util.Objects.requireNonNull(request,"request");
-        String transactionId=required(request.transactionId(),"transactionId");
+        String transactionId=required(current.transactionId(),"transactionId");
         String idempotencyKey=required(request.idempotencyKey(),"idempotencyKey");
         if(request.payload().length>properties.maximumPayloadBytes())throw new IllegalArgumentException("Kafka message payload exceeds CPF maximumPayloadBytes.");
         Map<String,String> userHeaders=validatedSnapshot(request.headers());
@@ -53,7 +50,7 @@ public final class KafkaCpfMessagingTemplate implements CpfMessagingTemplate {
         addHeader(record,"cpf-transaction-id",transactionId);
         addHeader(record,"cpf-idempotency-key",idempotencyKey);
         addHeader(record,"cpf-content-type",request.contentType());
-        addHeader(record,"cpf-segment-id",request.segmentId());
+        addHeader(record,"cpf-segment-id",current.execution().segmentId());
         addHeader(record,"cpf-producer-module",request.producerModule());
         addHeader(record,"cpf-consumer-module",request.consumerModule());
         userHeaders.forEach((n,v)->addHeader(record,n,v));

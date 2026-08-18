@@ -15,8 +15,6 @@ public record CpfBrokerPublishRequest(
         String key,
         byte[] payload,
         String contentType,
-        String transactionId,
-        String segmentId,
         String producerModule,
         String consumerModule,
         String idempotencyKey,

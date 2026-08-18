@@ -86,10 +86,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        user_id_masked AS userIdMasked,
                        operator_id_masked AS operatorIdMasked,
                        client_id AS clientId,
-                       caller_system_code AS callerSystemCode,
-                       system_code AS systemCode,
-                       original_system_code AS originalSystemCode,
-                       target_system_code AS targetSystemCode,
+                       caller_channel AS callerChannel,
+                       current_channel AS currentChannel,
+                       original_channel AS originalChannel,
+                       target_channel AS targetChannel,
                        target_operation_id AS targetOperationId,
                        external_institution_code AS externalInstitutionCode,
                        external_transaction_id AS externalTransactionId,
@@ -123,7 +123,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                            parent_segment_id AS parentSegmentId, attempt_no AS attempt,
                            trace_id AS traceId, span_id AS spanId, request_id AS requestId,
                            idempotency_key AS idempotencyKey, tenant_id AS tenantId,
-                           system_code AS systemCode, actor_id_masked AS actorIdMasked,
+                           current_channel AS currentChannel, actor_id_masked AS actorIdMasked,
                            instance_id AS instanceId, was_id AS wasId, agent_id AS agentId,
                            worker_id AS workerId, remote_system AS remoteSystem, operation_id AS operation,
                            message_id AS messageId, consumer_group AS consumerGroup, dlq_id AS dlqId,
@@ -146,7 +146,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                 SELECT transaction_id AS transactionId, transaction_segment_id AS segmentId,
                        parent_segment_id AS parentSegmentId, execution_id AS executionId, COALESCE(attempt_no,1) AS attempt,
                        NULL AS traceId, NULL AS spanId, NULL AS requestId, NULL AS idempotencyKey,
-                       NULL AS tenantId, system_code AS systemCode, operator_id_masked AS actorIdMasked,
+                       NULL AS tenantId, current_channel AS currentChannel, operator_id_masked AS actorIdMasked,
                        selected_instance_id AS instanceId, NULL AS wasId, NULL AS agentId, NULL AS workerId,
                        external_institution_code AS remoteSystem, transaction_name AS operation,
                        NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
@@ -162,9 +162,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                 SELECT transaction_id AS transactionId, span_id AS segmentId,
                        parent_span_id AS parentSegmentId, COALESCE(sequence_no,1) AS attempt,
                        trace_id AS traceId, span_id AS spanId, correlation_id AS requestId,
-                       idempotency_key AS idempotencyKey, NULL AS tenantId, system_code AS systemCode,
+                       idempotency_key AS idempotencyKey, NULL AS tenantId, current_channel AS currentChannel,
                        NULL AS actorIdMasked, instance_id AS instanceId, was_id AS wasId,
-                       NULL AS agentId, NULL AS workerId, target_system_code AS remoteSystem,
+                       NULL AS agentId, NULL AS workerId, target_channel AS remoteSystem,
                        COALESCE(execution_method, business_transaction_name) AS operation,
                        NULL AS messageId, NULL AS consumerGroup, NULL AS dlqId,
                        NULL AS batchJobInstanceId, NULL AS batchJobExecutionId, NULL AS batchStepExecutionId,
@@ -484,10 +484,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        MAX(user_id_masked) AS userIdMasked,
                        MAX(operator_id_masked) AS operatorIdMasked,
                        MAX(client_id) AS clientId,
-                       MAX(caller_system_code) AS callerSystemCode,
-                       MAX(system_code) AS systemCode,
-                       MAX(original_system_code) AS originalSystemCode,
-                       MAX(target_system_code) AS targetSystemCode,
+                       MAX(caller_channel) AS callerChannel,
+                       MAX(current_channel) AS currentChannel,
+                       MAX(original_channel) AS originalChannel,
+                       MAX(target_channel) AS targetChannel,
                        MAX(target_operation_id) AS targetOperationId,
                        MAX(external_institution_code) AS externalInstitutionCode,
                        MAX(external_transaction_id) AS externalTransactionId,
@@ -531,10 +531,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         appendLike(sql, args, "user_id_masked", criteria.get("userId"));
         appendLike(sql, args, "operator_id_masked", criteria.get("operatorId"));
         appendLike(sql, args, "client_id", criteria.get("clientId"));
-        appendEquals(sql, args, "caller_system_code", criteria.get("callerSystemCode"));
-        appendEquals(sql, args, "system_code", criteria.get("systemCode"));
-        appendEquals(sql, args, "original_system_code", criteria.get("originalSystemCode"));
-        appendEquals(sql, args, "target_system_code", criteria.get("targetSystemCode"));
+        appendEquals(sql, args, "caller_channel", criteria.get("callerChannel"));
+        appendEquals(sql, args, "current_channel", criteria.get("currentChannel"));
+        appendEquals(sql, args, "original_channel", criteria.get("originalChannel"));
+        appendEquals(sql, args, "target_channel", criteria.get("targetChannel"));
         appendLike(sql, args, "target_operation_id", criteria.get("targetOperationId"));
         appendEquals(sql, args, "external_institution_code", criteria.get("externalInstitutionCode"));
         appendLike(sql, args, "external_transaction_id", criteria.get("externalTransactionId"));

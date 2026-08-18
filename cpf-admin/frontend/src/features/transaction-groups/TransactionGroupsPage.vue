@@ -25,10 +25,10 @@
           <label>사용자ID <input v-model="transactionGroupSearch.userId" type="text"></label>
           <label>운영자ID <input v-model="transactionGroupSearch.operatorId" type="text"></label>
           <label>Client ID <input v-model="transactionGroupSearch.clientId" type="text"></label>
-          <label>최초 System <input v-model="transactionGroupSearch.originalSystemCode" type="text"></label>
-          <label>현재 System <input v-model="transactionGroupSearch.systemCode" type="text"></label>
-          <label>Caller System <input v-model="transactionGroupSearch.callerSystemCode" type="text"></label>
-          <label>Target System <input v-model="transactionGroupSearch.targetSystemCode" type="text"></label>
+          <label>Original Channel <input v-model="transactionGroupSearch.originalChannel" type="text"></label>
+          <label>Current Channel <input v-model="transactionGroupSearch.currentChannel" type="text"></label>
+          <label>Caller Channel <input v-model="transactionGroupSearch.callerChannel" type="text"></label>
+          <label>Target Channel <input v-model="transactionGroupSearch.targetChannel" type="text"></label>
           <label>Target Operation <input v-model="transactionGroupSearch.targetOperationId" type="text"></label>
           <label>외부기관 <input v-model="transactionGroupSearch.externalInstitutionCode" type="text"></label>
           <label>외부거래ID <input v-model="transactionGroupSearch.externalTransactionId" type="text"></label>
@@ -37,7 +37,7 @@
           <label>오류코드 <input v-model="transactionGroupSearch.failureCode" type="text"></label>
           <label>소요 From(ms) <input v-model="transactionGroupSearch.durationMsFrom" type="number"></label>
           <label>소요 To(ms) <input v-model="transactionGroupSearch.durationMsTo" type="number"></label>
-          <label>표준 헤더 검색 <input v-model="transactionGroupSearch.standardHeaderValue" type="text" placeholder="X-Transaction-Id / X-System-Code"></label>
+          <label>표준 헤더 검색 <input v-model="transactionGroupSearch.standardHeaderValue" type="text" placeholder="X-Transaction-Id / X-Current-Channel"></label>
           <label>확장 헤더 검색 <input v-model="transactionGroupSearch.extensionHeaderValue" type="text" placeholder="X-Cpf-Ext-*"></label>
         </div>
         <div class="pager">
@@ -82,7 +82,7 @@
               <td>{{ item.failure_yn || item.failureYn }}</td>
               <td>{{ item.failed_module_code || item.failedModuleCode }} / {{ item.failed_segment_id || item.failedSegmentId }}</td>
               <td>{{ item.customer_no_masked || item.customerNoMasked }} / {{ item.member_no_masked || item.memberNoMasked }}</td>
-              <td>{{ item.original_system_code || item.originalSystemCode || '-' }} → {{ item.caller_system_code || item.callerSystemCode || '-' }} → {{ item.system_code || item.systemCode || '-' }} → {{ item.target_system_code || item.targetSystemCode || '-' }}</td>
+              <td>{{ item.original_channel || item.originalChannel || '-' }} → {{ item.caller_channel || item.callerChannel || '-' }} → {{ item.current_channel || item.currentChannel || '-' }} → {{ item.target_channel || item.targetChannel || '-' }}</td>
               <td>{{ item.target_operation_id || item.targetOperationId || '-' }}</td>
               <td>{{ item.external_institution_code || item.externalInstitutionCode }} / {{ item.external_transaction_id || item.externalTransactionId }}</td>
             </tr>

@@ -83,9 +83,7 @@ public final class CpfAiRouter implements CpfAiOperations, AutoCloseable {
         telemetry.accepted(request);
         long startedNanos = System.nanoTime();
         CpfContextSnapshot caller = CpfContexts.requireSnapshot();
-        if (!caller.context().transactionId().equals(request.transactionId())) {
-            throw new SecurityException("AI_TRANSACTION_CONTEXT_MISMATCH");
-        }
+        String transactionId = caller.context().transactionId();
         if (request.risk() == CpfAiRisk.HIGH && !request.humanApproved()) {
             throw new SecurityException("HIGH risk AI request requires human approval");
         }
@@ -113,7 +111,7 @@ public final class CpfAiRouter implements CpfAiOperations, AutoCloseable {
                                     caller.context().operation()));
                     // Owner-local metadata: useful for audit/metrics but never placed in Core Context.
                     new CpfAiContext(
-                            request.transactionId() + ":" + attempt,
+                            transactionId + ":" + attempt,
                             request.model(), provider.providerId(), null, null, attempt);
                     future = executor.submit(() -> CpfContexts.call(attemptSnapshot, () -> provider.execute(request)));
                     long timeoutMs = Math.max(1, Math.min(
@@ -130,7 +128,7 @@ public final class CpfAiRouter implements CpfAiOperations, AutoCloseable {
                     if (!provider.safeToFallbackAfterTimeout()) {
                         policy.audit(request, null, timeout);
                         telemetry.failed(request, timeout, System.nanoTime() - startedNanos);
-                        throw new CpfAiUnknownResultException(request.transactionId(), timeout);
+                        throw new CpfAiUnknownResultException(transactionId, timeout);
                     }
                     break;
                 } catch (InterruptedException interrupted) {
@@ -150,7 +148,7 @@ public final class CpfAiRouter implements CpfAiOperations, AutoCloseable {
         }
         policy.audit(request, null, last);
         telemetry.failed(request, last, System.nanoTime() - startedNanos);
-        throw new CpfAiUnknownResultException(request.transactionId(), last);
+        throw new CpfAiUnknownResultException(transactionId, last);
     }
 
     private static void sleep(Duration duration) {

@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
@@ -16,8 +15,8 @@ import java.util.Objects;
 public final class CpfResilientHttpClient {
     private final HttpClient client; private final CpfResilienceExecutor resilience;
     public CpfResilientHttpClient(HttpClient client,CpfResilienceExecutor resilience){this.client=Objects.requireNonNull(client);this.resilience=Objects.requireNonNull(resilience);}
-    public CpfResilienceOutcome<Response> exchange(String operationId,String transactionId,String idempotencyKey,URI uri,String method,byte[] body,Map<String,String> headers){
-        var context=new CpfResilienceCallContext(operationId,transactionId,idempotencyKey,Instant.now(),Map.of("transport","HTTP","host",uri.getHost()==null?"unknown":uri.getHost()));
+    public CpfResilienceOutcome<Response> exchange(String operationId,String idempotencyKey,URI uri,String method,byte[] body,Map<String,String> headers){
+        var context=CpfResilienceCallContext.current(operationId,idempotencyKey,Map.of("transport","HTTP","host",uri.getHost()==null?"unknown":uri.getHost()),java.time.Clock.systemUTC());
         return resilience.execute(context,()->{
             try {
                 var b=HttpRequest.newBuilder(uri); headers.forEach(b::header);

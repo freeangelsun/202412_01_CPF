@@ -34,8 +34,8 @@ public class TransactionLogRecord {
     private String apiVersion;
     private String clientId;
     private String clientVersion;
-    private String callerSystemCode;
-    private String targetSystemCode;
+    private String callerChannel;
+    private String targetChannel;
     private String targetOperationId;
     private String callerInstanceId;
     private String correlationId;
@@ -43,8 +43,8 @@ public class TransactionLogRecord {
     private String locale;
     private String timezone;
     private String requestType;
-    private String originalSystemCode;
-    private String systemCode;
+    private String originalChannel;
+    private String currentChannel;
     private String memberNo;
     private String customerNo;
     private String screenId;
@@ -53,6 +53,7 @@ public class TransactionLogRecord {
     private String wasId;
     private String instanceId;
     private String hostName;
+    private String hostIp;
     private String processId;
     private String threadName;
     private String reservedField1;
@@ -97,7 +98,7 @@ public class TransactionLogRecord {
     private Long durationMs;
 
     /**
-     * 표준 실행 정의 ID(O/S/B + SystemCode 기반)를 반환합니다.
+     * 표준 실행 정의 ID(O/S/B + CurrentChannel 기반)를 반환합니다.
      * 기존 businessTransactionId 필드는 저장 호환성을 위해 남겨 두되 신규 코드는 이 명칭을 사용합니다.
      */
     public String getStandardExecutionId() {

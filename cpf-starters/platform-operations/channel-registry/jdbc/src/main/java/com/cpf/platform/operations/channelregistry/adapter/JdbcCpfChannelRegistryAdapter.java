@@ -62,9 +62,8 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
             List<CpfChannelExecutionPolicy> policies = jdbcTemplate.query(
                     sql.required("channel-policy-find-all"),
                     (rs, rowNum) -> new CpfChannelExecutionPolicy(
-                    rs.getString("policy_key"), rs.getString("standard_execution_id"),
-                    rs.getString("original_channel_code"), rs.getString("caller_channel_code"),
-                    rs.getString("request_type"), yes(rs.getString("allowed_yn")),
+                    rs.getString("policy_key"), rs.getString("operation_id"),
+                    rs.getString("caller_channel"), yes(rs.getString("allowed_yn")),
                     yes(rs.getString("authentication_required_yn")), yes(rs.getString("signature_required_yn")),
                     rs.getInt("max_tps"), instant(rs.getTimestamp("effective_from")),
                     instant(rs.getTimestamp("effective_to")), yes(rs.getString("active_yn")),
@@ -98,8 +97,7 @@ public final class JdbcCpfChannelRegistryAdapter implements CpfChannelRegistryPo
         JdbcTemplate jdbcTemplate = requiredJdbcTemplate();
         long version = nextVersion(jdbcTemplate, "EXECUTION_POLICY", policy.policyKey(), actor, reason);
         jdbcTemplate.update(sql.required("channel-policy-upsert"),
-                policy.policyKey(), policy.standardExecutionId(), policy.originalChannelCode(),
-                policy.callerChannelCode(), policy.requestType(), yn(policy.allowed()),
+                policy.policyKey(), policy.operationId(), policy.callerChannel(), yn(policy.allowed()),
                 yn(policy.authenticationRequired()), yn(policy.signatureRequired()), policy.maxTps(),
                 timestamp(policy.effectiveFrom()), timestamp(policy.effectiveTo()), yn(policy.active()),
                 version, actor, actor);

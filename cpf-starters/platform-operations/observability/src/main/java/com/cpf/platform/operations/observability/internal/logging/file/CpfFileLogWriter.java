@@ -446,7 +446,7 @@ public final class CpfFileLogWriter implements CpfFileLogRuntimeStatus, CpfInteg
             LogPolicyDecision policy,
             Map<String, String> details) {
 
-        com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.Identity identity = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current();
+        com.cpf.foundation.runtime.CpfInstanceIdentity.Identity identity = com.cpf.foundation.runtime.CpfInstanceIdentity.current();
         Map<String, Object> event = new LinkedHashMap<>();
         OffsetDateTime now = OffsetDateTime.now(clock);
         event.put("timestamp", now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));

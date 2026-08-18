@@ -1,6 +1,7 @@
 import { expect, test, type Page, type Request } from "@playwright/test";
 import { admCapabilityRegistry } from "../src/app/routes";
 import { admRouteOperationContract } from "../src/generated/adm-route-operation-contract";
+import { resolveCpfOperation } from "../src/generated/cpf-operation-contract";
 
 const routes = Object.values(admCapabilityRegistry);
 const expectedRouteCount = Number(process.env.CPF_EXPECTED_ADM_ROUTE_COUNT || "65");
@@ -12,7 +13,11 @@ function expectedOperations(routeId: string): string[] {
   return [...(admRouteOperationContract[routeId as keyof typeof admRouteOperationContract] || [])];
 }
 function observedOperation(request: Request): string | undefined {
-  return request.headers()["x-cpf-operation-id"];
+  try {
+    const url = new URL(request.url());
+    if (!url.pathname.startsWith("/adm/api/")) return undefined;
+    return resolveCpfOperation(request.method(), url.pathname).operationId;
+  } catch { return undefined; }
 }
 async function waitForStableRoute(page: Page, routeId: string): Promise<void> {
   await expect(page.locator(".adm-commercial-page-boundary")).toHaveAttribute("data-route-id", routeId);

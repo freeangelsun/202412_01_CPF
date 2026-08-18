@@ -46,8 +46,6 @@ final class CpfBrokerHeaderPolicy {
                 request.key(),
                 request.payload(),
                 request.contentType(),
-                request.transactionId(),
-                request.segmentId(),
                 request.producerModule(),
                 request.consumerModule(),
                 request.idempotencyKey(),

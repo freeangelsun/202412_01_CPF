@@ -26,12 +26,14 @@ public class CpfRuntimeControlAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(CpfRuntimeControlPlaneRepository.class)
     @ConditionalOnMissingBean(CpfRuntimeControlPlane.class)
     CpfRuntimeControlPlane cpfRuntimeControlPlane(CpfRuntimeControlPlaneRepository repository) {
         return new CpfRuntimeControlPlaneService(repository);
     }
 
     @Bean
+    @ConditionalOnBean({CpfRuntimeControlPlaneRepository.class, CpfRuntimeControlPlane.class})
     @ConditionalOnMissingBean
     CpfRuntimeControlReconciler cpfRuntimeControlReconciler(
             CpfRuntimeControlPlaneRepository repository, CpfRuntimeControlPlane controlPlane,

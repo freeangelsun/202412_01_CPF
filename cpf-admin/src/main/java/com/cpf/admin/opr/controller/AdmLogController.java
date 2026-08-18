@@ -35,7 +35,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
 
     @GetMapping    @Operation(operationId = "admLogFindLogs",
             summary = "거래 로그 목록 조회",
-            description = "transactionId/traceId와 자동 수집된 system/domain/application/instance/starter/capability/provider/operation 메타데이터를 기준으로 모든 Domain의 CPF DB 로그를 통합 검색합니다.")
+            description = "transactionId/traceId와 자동 수집된 channel/domain/application/instance/starter/capability/provider/operation 메타데이터를 기준으로 모든 Domain의 CPF DB 로그를 통합 검색합니다.")
     public ResponseEntity<Map<String, Object>> findLogs(
             @RequestParam(required = false) String transactionId,
 
@@ -47,10 +47,10 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             @RequestParam(required = false) String responseCode,
             @RequestParam(required = false) Integer httpStatus,
             @RequestParam(required = false) String clientId,
-            @RequestParam(required = false) String originalSystemCode,
-            @RequestParam(required = false) String systemCode,
-            @RequestParam(required = false) String callerSystemCode,
-            @RequestParam(required = false) String targetSystemCode,
+            @RequestParam(required = false) String originalChannel,
+            @RequestParam(required = false) String currentChannel,
+            @RequestParam(required = false) String callerChannel,
+            @RequestParam(required = false) String targetChannel,
             @RequestParam(required = false) String targetOperationId,
             @RequestParam(required = false) String logType,
             @RequestParam(required = false) String moduleId,
@@ -70,7 +70,7 @@ public class AdmLogController extends com.cpf.admin.common.base.AdmBaseControlle
             response.put("items", logQueryService.findLogs(
                     transactionId, traceId, businessTransactionId, memberNo, customerNo,
                     uri, responseCode, httpStatus,
-                    clientId, originalSystemCode, systemCode, callerSystemCode, targetSystemCode, targetOperationId, logType,
+                    clientId, originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId, logType,
                     moduleId, wasId, instanceId, hostName,
                     domainCode, application, starterId, capabilityId, provider, capabilityOperation, limit));
         } catch (DataAccessException ex) {

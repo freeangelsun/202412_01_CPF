@@ -72,8 +72,9 @@ public final class CpfResilienceGuardCapacityHarness {
     }
 
     private static CpfResilienceOutcome<String> execute(CpfResilienceEngine engine, String operation) {
-        return engine.execute(new CpfResilienceCallContext(
-                operation, "tx-" + operation, null, Instant.EPOCH, Map.of()), () -> "OK");
+        return engine.execute(CpfResilienceCallContext.recoveredLineage(
+                operation, "tx-" + operation, null, Map.of(),
+                Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)), () -> "OK");
     }
 
     private static CpfResiliencePolicy policy(String operation) {

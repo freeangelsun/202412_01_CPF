@@ -38,65 +38,61 @@ public final class CpfHttpInboundContextAdapter {
             CpfRuntimeIdentity runtime) {
         Map<String,String> values = caseInsensitive(headers);
         CpfHttpIngressTrust effectiveTrust = trust == null ? CpfHttpIngressTrust.UNTRUSTED_EXTERNAL : trust;
-        String runtimeSystem = runtime == null
-                ? normalizeSystem(edge == null ? null : edge.currentSystemCode())
-                : runtime.systemCode();
+        String runtimeChannel = normalizeChannel(runtime == null
+                ? (edge == null ? null : edge.currentChannel()) : runtime.currentChannel());
 
         String rawTx = safe(values.get(lower(CpfHttpHeaderNames.TRANSACTION_ID)), 160);
-        String originalSystem = safe(values.get(lower(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE)), 32);
-        String system = safe(values.get(lower(CpfHttpHeaderNames.SYSTEM_CODE)), 32);
-        String caller = safe(values.get(lower(CpfHttpHeaderNames.CALLER_SYSTEM_CODE)), 32);
-        String target = safe(values.get(lower(CpfHttpHeaderNames.TARGET_SYSTEM_CODE)), 32);
+        String originalChannel = safe(values.get(lower(CpfHttpHeaderNames.ORIGINAL_CHANNEL)), 128);
+        String inboundCurrentChannel = safe(values.get(lower(CpfHttpHeaderNames.CURRENT_CHANNEL)), 128);
+        String callerChannel = safe(values.get(lower(CpfHttpHeaderNames.CALLER_CHANNEL)), 128);
+        String targetChannel = safe(values.get(lower(CpfHttpHeaderNames.TARGET_CHANNEL)), 128);
         String targetOperation = safe(values.get(lower(CpfHttpHeaderNames.TARGET_OPERATION_ID)), 160);
 
-        String inboundTransactionId = null;
+        String inboundTransactionId;
         if (effectiveTrust == CpfHttpIngressTrust.TRUSTED_INTERNAL) {
             requireInternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID);
-            requireInternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            requireInternal(system, CpfHttpHeaderNames.SYSTEM_CODE);
-            requireInternal(caller, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            requireInternal(target, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+            requireInternal(originalChannel, CpfHttpHeaderNames.ORIGINAL_CHANNEL);
+            requireInternal(inboundCurrentChannel, CpfHttpHeaderNames.CURRENT_CHANNEL);
+            requireInternal(callerChannel, CpfHttpHeaderNames.CALLER_CHANNEL);
+            requireInternal(targetChannel, CpfHttpHeaderNames.TARGET_CHANNEL);
             requireInternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID);
             inboundTransactionId = canonicalTransactionId(rawTx);
 
-            String normalizedRuntime = normalizeSystem(runtimeSystem);
-            String normalizedSystem = normalizeSystem(system);
-            String normalizedTarget = normalizeSystem(target);
-            String normalizedCaller = normalizeSystem(caller);
-            originalSystem = normalizeSystem(originalSystem);
-            system = normalizedSystem;
-            target = normalizedTarget;
-            caller = normalizedCaller;
+            originalChannel = normalizeChannel(originalChannel);
+            inboundCurrentChannel = normalizeChannel(inboundCurrentChannel);
+            callerChannel = normalizeChannel(callerChannel);
+            targetChannel = normalizeChannel(targetChannel);
 
-            if (normalizedRuntime != null && !normalizedRuntime.equals(normalizedSystem)) {
-                throw protocolMismatch(CpfHttpHeaderNames.SYSTEM_CODE,
-                        "X-System-Code does not match the runtime system.", "SYSTEM_CODE_MISMATCH");
-            }
-            if (normalizedRuntime != null && !normalizedRuntime.equals(normalizedTarget)) {
-                throw protocolMismatch(CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
-                        "X-Target-System-Code does not identify this runtime.", "TARGET_SYSTEM_MISMATCH");
-            }
-            String verifiedCaller = edge == null ? null : normalizeSystem(edge.callerApplication());
-            if (verifiedCaller != null && !verifiedCaller.equals(normalizedCaller)) {
-                throw trustViolation(CpfHttpHeaderNames.CALLER_SYSTEM_CODE,
-                        "X-Caller-System-Code does not match the authenticated internal caller.");
+            // Current Channel is receiver-owned. The wire value is only a protocol assertion to compare.
+            validateReceiverChannel(runtimeChannel, inboundCurrentChannel, targetChannel);
+
+            String verifiedCallerSystem = edge == null ? null : normalizeSystem(edge.verifiedCallerSystemCode());
+            // Generated-domain systemCode value itself is the corresponding Channel identity; no mapping layer exists.
+            if (verifiedCallerSystem != null && !verifiedCallerSystem.equals(callerChannel)) {
+                throw trustViolation(CpfHttpHeaderNames.CALLER_CHANNEL,
+                        "X-Caller-Channel does not match the authenticated internal caller identity.");
             }
         } else {
-            rejectUntrustedProtocolAssertion(values, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-            rejectUntrustedProtocolAssertion(values, CpfHttpHeaderNames.SYSTEM_CODE);
-            rejectUntrustedProtocolAssertion(values, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-            rejectUntrustedProtocolAssertion(values, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
-            rejectUntrustedProtocolAssertion(values, CpfHttpHeaderNames.TARGET_OPERATION_ID);
-            originalSystem = normalizeSystem(runtimeSystem);
-            system = normalizeSystem(runtimeSystem);
-            target = normalizeSystem(runtimeSystem);
-            caller = null;
+            // Direct external protocol callers own exactly five transaction inputs. Current Channel is receiver-owned.
+            requireExternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID);
+            requireExternal(originalChannel, CpfHttpHeaderNames.ORIGINAL_CHANNEL);
+            requireExternal(callerChannel, CpfHttpHeaderNames.CALLER_CHANNEL);
+            requireExternal(targetChannel, CpfHttpHeaderNames.TARGET_CHANNEL);
+            requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID);
+            inboundTransactionId = canonicalTransactionId(rawTx);
+
+            originalChannel = normalizeChannel(originalChannel);
+            callerChannel = normalizeChannel(callerChannel);
+            targetChannel = normalizeChannel(targetChannel);
+            inboundCurrentChannel = normalizeChannel(inboundCurrentChannel);
+
+            // External X-Current-Channel is optional and never authoritative. If sent, it must agree with the receiver.
+            validateReceiverChannel(runtimeChannel, inboundCurrentChannel, targetChannel);
         }
 
         String correlation = safe(values.get(lower(CpfHttpHeaderNames.CORRELATION_ID)), 160);
-        // External transaction IDs are not elevated to trusted CPF identity; retain only as correlation evidence.
-        if (effectiveTrust != CpfHttpIngressTrust.TRUSTED_INTERNAL && rawTx != null && correlation == null) correlation = rawTx;
         String tx = inboundTransactionId == null ? requireGeneratedTransactionId(transactionIds.newTransactionId()) : inboundTransactionId;
+        String issuerCode = CpfTransactionIds.issuerCode(tx);
 
         String traceparent = validatedTraceParent(values.get(lower(CpfHttpHeaderNames.TRACEPARENT)));
         String traceId = traceparent == null ? null : traceparent.substring(3, 35);
@@ -105,16 +101,17 @@ public final class CpfHttpInboundContextAdapter {
                 : new CpfContext.CpfOperationContext(targetOperation, standardExecutionId, null, idempotency,
                         CpfContext.CpfIdempotencyScope.CURRENT_OPERATION,
                         idempotency == null ? CpfContext.CpfIdempotencyMode.NONE : CpfContext.CpfIdempotencyMode.OPTIONAL,
-                        null, null);
+                        null, null, targetOperation, 1L);
 
         String executionId = executionIds.newExecutionId();
         String segmentId = executionIds.newSegmentId();
         Instant now = Instant.now();
         CpfContext context = new CpfContext(
-                new CpfContext.CpfTransactionContext(tx, tx, null, correlation, traceId, null, caller,
+                new CpfContext.CpfTransactionContext(
+                        tx, tx, null, correlation, traceId,
+                        originalChannel, runtimeChannel, callerChannel, targetChannel,
                         Objects.requireNonNull(businessDate, "businessDate"), now,
-                        CpfContext.CpfTransactionOriginKind.HTTP,
-                        originalSystem == null ? system : originalSystem, null, system, target),
+                        CpfContext.CpfTransactionOriginKind.HTTP, issuerCode, null),
                 new CpfContext.CpfExecutionContext(standardExecutionId, executionId, executionId, null,
                         segmentId, null, CpfContext.CpfExecutionType.API, 1, 0, now, deadline,
                         CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
@@ -136,6 +133,30 @@ public final class CpfHttpInboundContextAdapter {
         return new CpfHttpInboundResult(CpfContextSnapshot.capture(context), webContext);
     }
 
+    private static void requireExternal(String value, String header) {
+        if (value == null || value.isBlank()) {
+            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    header, "External CPF protocol call requires " + header + ".", 400, "EXTERNAL_HEADER_REQUIRED");
+        }
+    }
+
+    private static void validateReceiverChannel(String runtimeChannel, String inboundCurrentChannel, String targetChannel) {
+        if (runtimeChannel == null) {
+            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    CpfHttpHeaderNames.CURRENT_CHANNEL,
+                    "Receiver runtime Channel identity is required before Controller invocation.",
+                    503, "RUNTIME_CHANNEL_UNAVAILABLE");
+        }
+        if (inboundCurrentChannel != null && !runtimeChannel.equals(inboundCurrentChannel)) {
+            throw protocolMismatch(CpfHttpHeaderNames.CURRENT_CHANNEL,
+                    "X-Current-Channel does not match the receiver runtime Channel.", "CURRENT_CHANNEL_MISMATCH");
+        }
+        if (!runtimeChannel.equals(targetChannel)) {
+            throw protocolMismatch(CpfHttpHeaderNames.TARGET_CHANNEL,
+                    "X-Target-Channel does not identify this receiver runtime.", "TARGET_CHANNEL_MISMATCH");
+        }
+    }
+
     static String canonicalTransactionId(String value) {
         String normalized = safe(value, 160);
         if (normalized == null) return null;
@@ -155,7 +176,7 @@ public final class CpfHttpInboundContextAdapter {
 
     private static void rejectUntrustedProtocolAssertion(Map<String,String> values, String header) {
         if (safe(values.get(lower(header)), 256) != null) {
-            throw trustViolation(header, "External ingress cannot assert CPF internal routing headers.");
+            throw trustViolation(header, "External ingress cannot assert CPF protected routing headers.");
         }
     }
 
@@ -191,10 +212,16 @@ public final class CpfHttpInboundContextAdapter {
         return null;
     }
 
+    private static String normalizeChannel(String value) {
+        String normalized = safe(value, 128);
+        return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
+    }
+
     private static String normalizeSystem(String value) {
         String normalized = safe(value, 32);
         return normalized == null ? null : normalized.toUpperCase(Locale.ROOT);
     }
+
     private static String firstNonBlank(String first, String second) { return first != null && !first.isBlank() ? first : second; }
     private static String lower(String value) { return value.toLowerCase(Locale.ROOT); }
 

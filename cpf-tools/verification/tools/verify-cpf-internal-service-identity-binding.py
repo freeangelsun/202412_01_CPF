@@ -29,19 +29,19 @@ def verify(root:Path)->dict:
       and 'request.getHeader(' not in sources[resolver_rel],
   'adapter_defaults_to_untrusted':'trust == null ? CpfHttpIngressTrust.UNTRUSTED_EXTERNAL : trust' in sources[adapter_rel],
   'generic_rest_client_does_not_inject_internal_headers':'Intentionally no-op' in sources[rest_rel]
-      and 'CALLER_SYSTEM_CODE' not in sources[rest_rel],
+      and 'CALLER_CHANNEL' not in sources[rest_rel],
   'generic_webclient_does_not_inject_internal_headers':'CpfHttpOutboundContextAdapter' not in sources[webclient_rel]
-      and 'CALLER_SYSTEM_CODE' not in sources[webclient_rel],
+      and 'CALLER_CHANNEL' not in sources[webclient_rel],
   'typed_domain_transport_owns_internal_propagation':'CpfHttpOutboundContextAdapter' in sources[domain_rel]
       and 'trustedInternal' in sources[outbound_rel],
-  'outbound_adapter_emits_canonical_system_headers':all(token in sources[outbound_rel] for token in (
-      'TRANSACTION_ID','ORIGINAL_SYSTEM_CODE','SYSTEM_CODE','CALLER_SYSTEM_CODE','TARGET_SYSTEM_CODE','TARGET_OPERATION_ID')),
+  'outbound_adapter_emits_canonical_channel_headers':all(token in sources[outbound_rel] for token in (
+      'TRANSACTION_ID','ORIGINAL_CHANNEL','CURRENT_CHANNEL','CALLER_CHANNEL','TARGET_CHANNEL','TARGET_OPERATION_ID')),
   'external_outbound_has_separate_allowlist_path':'putAllowedCustom(headers, target.customHeaders(), false)' in sources[outbound_rel],
   'local_identity_uses_canonical_runtime_instance':'CpfInstanceIdentity.current().instanceId()' in sources[local_rel],
  }
  findings=[k for k,v in checks.items() if not v]
  result={'status':'PASS' if not findings else 'FAIL','checks':checks,'findings':findings,
-         'policy':'Inbound caller identity comes from verified security/peer mapping; generic HTTP clients never inject CPF internal protocol headers; typed Domain transport owns canonical six.'}
+         'policy':'Inbound caller identity comes from verified security/peer mapping; generic HTTP clients never inject CPF internal protocol headers; typed Domain transport owns canonical Channel transaction protocol.'}
  if findings: raise IdentityGateError(json.dumps(result,ensure_ascii=False,indent=2))
  return result
 

@@ -19,3 +19,4 @@ cpf-biz-admin,:starters:profiles:bff,profile,cpf-biz-admin/src/main/java/com/cpf
 cpf-biz-admin,:starters:data:mybatis,provider,cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/repository/BzaOperationRepository.java,BZA owned persistence provider
 cpf-biz-admin,:internal:file:attachment,capability-runtime,cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/service/BzaSupportService.java,BZA attachment storage runtime
 cpf-biz-admin,:starters:common,business-common,cpf-biz-admin/src/main/java/com/cpf/bizadmin/common/management/BzaCommonManagementService.java,Customer common management/message product services
+cpf-biz-admin,:starters:security:session:jdbc,capability-runtime,cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java,BZA BFF session bridge filter direct consumer

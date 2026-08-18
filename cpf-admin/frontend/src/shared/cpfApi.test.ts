@@ -11,8 +11,8 @@ describe("ADM BFF 공통 API client", () => {
     expect(headers.get("X-Client-Id")).toBe("cpf-adm-ui");
     expect(headers.get("X-Client-Version")).toBe("1.0.0");
     expect(headers.has("X-Transaction-Id")).toBe(false);
-    expect(headers.has("X-Original-System-Code")).toBe(false);
-    expect(headers.has("X-Caller-System-Code")).toBe(false);
+    expect(headers.has("X-Original-Channel")).toBe(false);
+    expect(headers.has("X-Caller-Channel")).toBe(false);
   });
 
   it("Browser caller가 CPF 보호 Header를 주입하면 fail-closed 한다", () => {

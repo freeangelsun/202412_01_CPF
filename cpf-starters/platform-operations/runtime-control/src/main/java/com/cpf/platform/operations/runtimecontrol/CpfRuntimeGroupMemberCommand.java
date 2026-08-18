@@ -2,7 +2,7 @@ package com.cpf.platform.operations.runtimecontrol;
 
 /** Runtime Group membership 멱등 변경 명령입니다. */
 public record CpfRuntimeGroupMemberCommand(
-        String operationId,
+        String commandId,
         String groupId,
         String instanceId,
         boolean active,

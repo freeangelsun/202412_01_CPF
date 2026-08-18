@@ -77,7 +77,7 @@ public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseContr
     }
 
     @PutMapping("/policies/{policyKey}")    @Operation(operationId = "admChannelSaveExecutionPolicy", summary = "거래별 채널 정책 등록 또는 수정",
-            description = "표준 실행 ID, 최초 채널, 호출 채널과 요청 유형 조합의 허용 정책을 저장합니다.")
+            description = "Canonical operationId + callerChannel 조합의 허용 정책을 저장합니다.")
     public ResponseEntity<CpfChannelPolicySnapshot> savePolicy(
             @PathVariable @jakarta.validation.constraints.Pattern(regexp = "[A-Z][A-Z0-9_.-]{2,99}") String policyKey,
             @Valid @RequestBody AdmChannelPolicySaveRequest request,
@@ -85,8 +85,7 @@ public class AdmChannelController extends com.cpf.admin.common.base.AdmBaseContr
         String actor = requestUser(servletRequest, request.requestUser());
         CpfChannelPolicySnapshot before = channelPolicyService.snapshot();
         CpfChannelExecutionPolicy policy = new CpfChannelExecutionPolicy(
-                policyKey, request.standardExecutionId(), request.originalChannelCode(),
-                request.callerChannelCode(), request.requestType(), request.allowed(),
+                policyKey, request.operationId(), request.callerChannel(), request.allowed(),
                 request.authenticationRequired(), request.signatureRequired(), request.maxTps(),
                 request.effectiveFrom(), request.effectiveTo(), request.active(), before.version());
         CpfChannelPolicySnapshot after = channelPolicyService.savePolicy(

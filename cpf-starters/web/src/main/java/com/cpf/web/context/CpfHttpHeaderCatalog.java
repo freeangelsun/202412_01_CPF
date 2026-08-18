@@ -18,10 +18,10 @@ public final class CpfHttpHeaderCatalog {
     static {
         LinkedHashMap<String, CpfHttpHeaderSpec> specs = new LinkedHashMap<>();
         required(specs, CpfHttpHeaderNames.TRANSACTION_ID);
-        required(specs, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
-        required(specs, CpfHttpHeaderNames.SYSTEM_CODE);
-        required(specs, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
-        required(specs, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
+        required(specs, CpfHttpHeaderNames.ORIGINAL_CHANNEL);
+        required(specs, CpfHttpHeaderNames.CURRENT_CHANNEL);
+        required(specs, CpfHttpHeaderNames.CALLER_CHANNEL);
+        required(specs, CpfHttpHeaderNames.TARGET_CHANNEL);
         required(specs, CpfHttpHeaderNames.TARGET_OPERATION_ID);
 
         optionalInternal(specs, CpfHttpHeaderNames.COUNTRY_CODE, CpfHeaderLogPolicy.IDENTIFIER);
@@ -49,10 +49,10 @@ public final class CpfHttpHeaderCatalog {
                 .map(CpfHttpHeaderSpec::name).collect(Collectors.toUnmodifiableSet());
         CANONICAL_TRANSACTION = Set.of(
                 CpfHttpHeaderNames.TRANSACTION_ID,
-                CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
-                CpfHttpHeaderNames.SYSTEM_CODE,
-                CpfHttpHeaderNames.CALLER_SYSTEM_CODE,
-                CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
+                CpfHttpHeaderNames.ORIGINAL_CHANNEL,
+                CpfHttpHeaderNames.CURRENT_CHANNEL,
+                CpfHttpHeaderNames.CALLER_CHANNEL,
+                CpfHttpHeaderNames.TARGET_CHANNEL,
                 CpfHttpHeaderNames.TARGET_OPERATION_ID);
         PROTECTED = SPECS.values().stream()
                 .filter(spec -> spec.requiredInternal()

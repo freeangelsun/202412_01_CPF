@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.cpf.testkit.fixture.CpfProcessKillHarness.Result;
+import com.cpf.testkit.fixture.CpfProcessLifecycleFixture;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -44,7 +45,7 @@ class CpfFaultInjectionHarnessTest {
 
     @Test
     void lightweightProcessKillHarnessSupportsKillAndRestart() throws Exception {
-        CpfProcessKillHarness harness = new CpfProcessKillHarness();
+        CpfProcessLifecycleFixture harness = new CpfProcessLifecycleFixture();
         assertTrue(harness.alive());
         harness.kill();
         assertTrue(harness.awaitKilled(Duration.ofSeconds(1)));

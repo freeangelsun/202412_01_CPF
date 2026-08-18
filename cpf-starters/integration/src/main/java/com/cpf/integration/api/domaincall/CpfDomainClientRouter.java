@@ -61,6 +61,19 @@ public final class CpfDomainClientRouter {
         if (binding.mode() == CpfDomainBindingMode.AUTO && (binding.serviceId() == null || binding.serviceId().isBlank())) {
             return CpfResult.technicalFailure("CPF-DOMAIN-BINDING-MISSING", systemCode + " remote serviceId가 없습니다.");
         }
-        return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
+        var current = CpfContexts.current();
+        if (current == null) {
+            return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
+        }
+        var outbound = current.withTargetOperation(operationId);
+        try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(outbound))) {
+            return remoteTransport.invoke(systemCode, operationId, binding, request, responseType, effectiveOptions);
+        // 실패·동시성·복구 경계에서도 원래 의미를 잃지 않도록 현재 Operation과 Target Operation을 분리하고 CPF Domain Client를 사용하는 내부 Domain 호출 Golden Path의 정책을 유지합니다.
+        } catch (RuntimeException e) {
+            throw e;
+        // 실패·동시성·복구 경계에서도 원래 의미를 잃지 않도록 현재 Operation과 Target Operation을 분리하고 CPF Domain Client를 사용하는 내부 Domain 호출 Golden Path의 정책을 유지합니다.
+        } catch (Exception e) {
+            throw new IllegalStateException("CPF remote Domain context restore failed", e);
+        }
     }
 }

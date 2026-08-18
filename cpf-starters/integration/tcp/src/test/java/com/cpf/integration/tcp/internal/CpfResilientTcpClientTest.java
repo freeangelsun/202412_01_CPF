@@ -3,6 +3,10 @@ package com.cpf.integration.tcp.internal;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.cpf.integration.resilience.api.CpfResilienceCallContext;
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.integration.resilience.api.CpfResilienceExecutor;
 import com.cpf.integration.resilience.api.CpfResilienceOutcome;
 import java.io.ByteArrayInputStream;
@@ -15,13 +19,36 @@ import java.net.SocketAddress;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 
 class CpfResilientTcpClientTest {
     private static final Clock CLOCK =
             Clock.fixed(Instant.parse("2026-08-05T12:00:00Z"), ZoneOffset.UTC);
+
+    private AutoCloseable contextScope;
+
+    @BeforeEach
+    void bindContext() {
+        CpfExecutionIdGenerator ids = new CpfExecutionIdGenerator() {
+            @Override public String newExecutionId() { return "tcp-execution-1"; }
+            @Override public String newSegmentId() { return "tcp-segment-1"; }
+        };
+        CpfContextExecutionFactory factory = new CpfContextExecutionFactory(
+                () -> "tx-tcp", ids, () -> LocalDate.of(2026, 8, 5), CLOCK);
+        contextScope = CpfContexts.bind(CpfContextSnapshot.capture(
+                factory.newRoot(null, "tcp.test", null, null, CLOCK.instant().plusSeconds(60)),
+                CLOCK.instant()));
+    }
+
+    @AfterEach
+    void clearContext() throws Exception {
+        if (contextScope != null) contextScope.close();
+    }
 
     @Test
     void writeRetryRequiresIdempotencyKeyBeforeExecutorInvocation() {
@@ -31,7 +58,7 @@ class CpfResilientTcpClientTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> client.exchangeWrite(
-                        "tcp.write", "tx-1", " ", "localhost", 1234, new byte[] {1},
+                        "tcp.write", " ", "localhost", 1234, new byte[] {1},
                         64, 100, 100, true));
         assertNull(captured.get());
     }
@@ -44,7 +71,7 @@ class CpfResilientTcpClientTest {
         byte[] request = new byte[] {7};
 
         CpfResilienceOutcome<byte[]> outcome = client.exchangeWrite(
-                "tcp.write", "tx-2", "idem-2", "localhost", 1234, request,
+                "tcp.write", "idem-2", "localhost", 1234, request,
                 64, 100, 100, true);
         request[0] = 9;
 
@@ -60,7 +87,7 @@ class CpfResilientTcpClientTest {
         AtomicReference<CpfResilienceCallContext> captured = new AtomicReference<>();
         CpfResilientTcpClient client = client(captured, new SuccessfulSocket());
 
-        client.exchange("tcp.compat", "tx-3", null, "localhost", 1234, new byte[0],
+        client.exchange("tcp.compat", null, "localhost", 1234, new byte[0],
                 64, 100, 100);
 
         assertEquals(CpfResilienceCallContext.OperationKind.UNKNOWN, captured.get().operationKind());
@@ -73,7 +100,7 @@ class CpfResilientTcpClientTest {
 
         assertThrows(
                 CpfResilientTcpClient.CpfTcpPreDispatchException.class,
-                () -> client.exchangeRead("tcp.read", "tx-4", "localhost", 1234,
+                () -> client.exchangeRead("tcp.read", "localhost", 1234,
                         new byte[] {1}, 64, 100, 100));
     }
 
@@ -83,7 +110,7 @@ class CpfResilientTcpClientTest {
 
         assertThrows(
                 CpfResilientTcpClient.CpfTcpUnknownResultException.class,
-                () -> client.exchangeWrite("tcp.write", "tx-5", "idem-5", "localhost", 1234,
+                () -> client.exchangeWrite("tcp.write", "idem-5", "localhost", 1234,
                         new byte[] {1}, 64, 100, 100, false));
     }
 
@@ -94,7 +121,7 @@ class CpfResilientTcpClientTest {
 
         assertThrows(
                 CpfResilientTcpClient.CpfTcpUnknownResultException.class,
-                () -> client.exchangeRead("tcp.read", "tx-6", "localhost", 1234,
+                () -> client.exchangeRead("tcp.read", "localhost", 1234,
                         new byte[] {1}, 2, 100, 100));
     }
 

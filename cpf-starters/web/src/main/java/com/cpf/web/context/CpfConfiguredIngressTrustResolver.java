@@ -13,7 +13,7 @@ import java.util.Map;
  * <p>A request Header never proves caller identity. Trusted internal identity comes from either a
  * security/mTLS filter that sets {@link #VERIFIED_INTERNAL_CALLER_ATTRIBUTE}, or from an explicit
  * operator-owned peer-to-system mapping. Network trust and caller identity are therefore evaluated
- * independently from {@code X-Caller-System-Code}.</p>
+ * independently from {@code X-Caller-Channel}.</p>
  */
 public final class CpfConfiguredIngressTrustResolver implements CpfHttpIngressTrustResolver {
     public static final String PEER_IDENTITIES_PROPERTY = "cpf.web.internal-peer-identities";

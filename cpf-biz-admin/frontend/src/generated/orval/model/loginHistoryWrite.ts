@@ -4,10 +4,10 @@ export interface LoginHistoryWrite {
   adminUserId?: number;
   clientIp?: string;
   failureReason?: string;
+  instanceId?: string;
   loginDomain?: string;
   loginResult?: string;
   moduleId?: string;
-  instanceId?: string;
   transactionId?: string;
   userAgent?: string;
   wasId?: string;

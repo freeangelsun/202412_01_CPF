@@ -52,10 +52,7 @@ public final class CpfRabbitMqBrokerClient implements CpfMessagingTemplate {
     public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
-        if (!current.transaction().transactionId().equals(request.transactionId())) {
-            throw new SecurityException("Provider request transactionId does not match bound CPF Context");
-        }
-        requireTracking(request.transactionId(), "transactionId");
+        requireTracking(current.transactionId(), "transactionId");
         requireTracking(request.idempotencyKey(), "idempotencyKey");
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("RabbitMQ payload exceeds CPF maximum size");
@@ -64,8 +61,11 @@ public final class CpfRabbitMqBrokerClient implements CpfMessagingTemplate {
         var builder = MessageBuilder.withBody(request.payload())
                 .setMessageId(request.messageId())
                 .setContentType(request.contentType())
-                .setHeader("cpf-transaction-id", request.transactionId())
-                .setHeader("cpf-idempotency-key", request.idempotencyKey());
+                .setHeader("cpf-transaction-id", current.transactionId())
+                .setHeader("cpf-idempotency-key", request.idempotencyKey())
+                .setHeader("cpf-segment-id", current.execution().segmentId())
+                .setHeader("cpf-producer-module", request.producerModule())
+                .setHeader("cpf-consumer-module", request.consumerModule());
         userHeaders.forEach(builder::setHeader);
         Message message = builder.build();
         CorrelationData correlation = new CorrelationData(request.messageId());

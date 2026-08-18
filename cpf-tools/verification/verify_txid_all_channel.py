@@ -12,7 +12,7 @@ witnesses={
  'SOAP':'cpf-starters/integration/soap/src/main/java/com/cpf/integration/soap/CpfSoapClient.java',
  'TCP':'cpf-starters/integration/tcp/src/main/java/com/cpf/integration/tcp/CpfTcpClient.java',
  'BATCH':'cpf-tools/verification/harness/context/CpfBatchContextHarness.java',
- 'SECURITY':'cpf-starters/security/resource-server/src/main/java/com/cpf/security/resource/CpfPermissionEvaluator.java',
+ 'SECURITY':'cpf-starters/web/src/main/java/com/cpf/web/context/CpfHttpInboundContextAdapter.java',
 }
 fail=[]
 for name,rel in witnesses.items():
@@ -20,7 +20,7 @@ for name,rel in witnesses.items():
  if not p.is_file(): fail.append('MISSING:'+name+':'+rel); continue
  text=p.read_text(errors='ignore')
  if name not in {'SECURITY'} and not any(t in text for t in ['CpfContexts','CpfContextExecutionFactory','transactionId']): fail.append('NO_CONTEXT_WITNESS:'+name)
- if name=='SECURITY' and 'transactionId' not in text: fail.append('NO_TXID_WITNESS:SECURITY')
+ if name=='SECURITY' and not all(t in text for t in ('authenticated','CpfIdentityContext','TRUSTED_INTERNAL')): fail.append('NO_TRUSTED_SECURITY_CONTEXT_WITNESS:SECURITY')
 # no legacy dynamic context mechanisms in actual product sources
 for p in root.rglob('*.java'):
  rel=p.relative_to(root).as_posix()

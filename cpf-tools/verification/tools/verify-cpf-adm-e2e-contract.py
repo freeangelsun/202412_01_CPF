@@ -44,7 +44,7 @@ def validate(root: Path) -> dict:
     require(config_text, "CPF_E2E_RELEASE", "release fail-closed mode")
 
     route_contract = route_spec.read_text(encoding="utf-8")
-    for token in ('admCapabilityRegistry', 'admRouteOperationContract', 'data-route-id', '.adm-sidebar button.active', 'x-cpf-operation-id', 'expectedOperations'):
+    for token in ('admCapabilityRegistry', 'admRouteOperationContract', 'data-route-id', '.adm-sidebar button.active', 'resolveCpfOperation', 'expectedOperations'):
         require(route_contract, token, "route E2E")
     if "20260801" in route_contract: raise ContractError("route E2E references retired campaign artifact")
     state_text = state_spec.read_text(encoding="utf-8")
@@ -54,7 +54,8 @@ def validate(root: Path) -> dict:
     if "20260801" in state_text: raise ContractError("error-state E2E references retired campaign artifact")
 
     api_text = api.read_text(encoding="utf-8")
-    if api_text.count("X-CPF-Operation-Id") < 3: raise ContractError("query/mutation/raw-response operation identity propagation incomplete")
+    require(api_text, "resolveCpfOperation", "generated management operation resolution")
+    if "X-CPF-Operation-Id" in api_text or "X-Target-Operation-Id" in api_text: raise ContractError("ADM browser must not inject business transaction operation headers")
     package_text = package.read_text(encoding="utf-8")
     for token in ('"test:e2e"', '"test:a11y"'): require(package_text, token, "package browser command")
     return {"routes": len(rows), "browsers": 3, "mandatoryStatuses": 7}

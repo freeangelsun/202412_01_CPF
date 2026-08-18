@@ -257,8 +257,6 @@ class CpfScgPrimaryHandlerPolicyTest {
                     "WEB.ACC",
                     "OACCAC0001",
                     "WEB",
-                    "WEB",
-                    "INQUIRY",
                     allowed,
                     true,
                     signatureRequired,
@@ -267,8 +265,8 @@ class CpfScgPrimaryHandlerPolicyTest {
                     null,
                     true,
                     1);
-            return new CpfChannelPolicySnapshot(
-                    1, Instant.now(), Map.of("WEB", web), List.of(policy));
+            return CpfChannelPolicySnapshot.loaded(
+                    1, Instant.now(), java.time.Duration.ofMinutes(5), Map.of("WEB", web), List.of(policy));
         }
 
         @Override

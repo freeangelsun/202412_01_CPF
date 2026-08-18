@@ -1,6 +1,7 @@
 package com.cpf.platform.operations.health;
 import java.time.Duration;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
 /** cpf.platform.health 설정입니다. */
@@ -21,16 +22,16 @@ public class CpfHealthProperties {
     public String getReportUrl(){return reportUrl;} public void setReportUrl(String v){reportUrl=blankToNull(v);}
     public String getReportToken(){return reportToken;} public void setReportToken(String v){reportToken=blankToNull(v);}
     public Duration getReportInterval(){return reportInterval;} public void setReportInterval(Duration v){reportInterval=positive(v,"reportInterval");}
-    /** 명시 설정이 없을 때 CPF/Spring runtime이 이미 알고 있는 식별자를 사용합니다. */
+    /** 명시 설정이 없을 때 Base Runtime이 기동 시 확정한 단일 Metadata 정본을 사용합니다. */
+    public void applyRuntimeIdentity(CpfRuntimeMetadata runtime){
+        if(runtime==null)return;
+        if("cpf".equalsIgnoreCase(systemId)) systemId=runtime.systemCode();
+        if(instanceId==null||instanceId.isBlank()) instanceId=runtime.instanceId();
+    }
+
+    /** 이전 호출부 호환용이며 실제 결정 규칙은 CpfRuntimeMetadata 정본을 사용합니다. */
     public void applyRuntimeIdentity(Environment environment){
-        if(environment==null)return;
-        if("cpf".equals(systemId)){
-            String resolved=first(environment.getProperty("cpf.system-code"),environment.getProperty("cpf.system.id"),environment.getProperty("spring.application.name"));
-            if(resolved!=null) systemId=resolved;
-        }
-        if(instanceId==null||instanceId.isBlank()){
-            instanceId=CpfInstanceIdentity.current().instanceId();
-        }
+        if(environment!=null) applyRuntimeIdentity(CpfRuntimeMetadata.from(environment));
     }
     private static String first(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return null;}
     /** ADM Health 보고에 필요한 URL과 Token이 모두 설정되었는지 반환합니다. */

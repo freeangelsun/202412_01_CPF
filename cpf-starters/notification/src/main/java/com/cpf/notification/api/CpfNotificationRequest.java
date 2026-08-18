@@ -12,7 +12,6 @@ public record CpfNotificationRequest(
         String templateId,
         Map<String, String> variables,
         String idempotencyKey,
-        String transactionId,
         Instant notBefore) {
     public CpfNotificationRequest {
         notificationId = required(notificationId, "notificationId");
@@ -20,7 +19,6 @@ public record CpfNotificationRequest(
         recipient = required(recipient, "recipient");
         templateId = required(templateId, "templateId");
         idempotencyKey = required(idempotencyKey, "idempotencyKey");
-        transactionId = required(transactionId, "transactionId");
         variables = Map.copyOf(variables == null ? Map.of() : variables);
     }
     private static String required(String value, String name) {

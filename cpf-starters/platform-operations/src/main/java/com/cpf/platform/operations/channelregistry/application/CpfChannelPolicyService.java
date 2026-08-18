@@ -63,34 +63,30 @@ public class CpfChannelPolicyService {
         }
     }
 
-    public CpfChannelPolicyDecision evaluate(
-            String standardExecutionId,
-            String originalChannelCode,
-            String callerChannelCode,
-            String requestType,
-            boolean authenticated,
-            boolean signed) {
+    /**
+     * Canonical Online Context의 callerChannel을 Channel Policy 정본으로 평가합니다.
+     * Policy key는 operationId + callerChannel이며 currentChannel/originalChannel을 허용 키로 사용하지 않습니다.
+     */
+    public CpfChannelPolicyDecision evaluateCallerChannel(
+            String operationId, String callerChannel, boolean authenticated, boolean signed) {
         CpfChannelPolicySnapshot snapshot = snapshotReference.get();
-        Instant now=Instant.now();
+        Instant now = Instant.now();
         if (snapshot == null || snapshot.expiredAt(now) || snapshot.status() == CpfChannelPolicySnapshot.Status.EXPIRED) {
             return new CpfChannelPolicyDecision(false, "채널 정책 LKG가 없거나 maxStale을 초과했습니다.",
                     snapshot == null ? -1 : snapshot.version(), "", false, false, 0);
         }
-        String original = normalize(originalChannelCode);
-        String caller = normalize(callerChannelCode);
-        String type = normalize(requestType);
-        CpfChannelDefinition originalDefinition = snapshot.channels().get(original);
+        String execution = operationId == null || operationId.isBlank() ? "*" : operationId.trim();
+        String caller = normalize(callerChannel);
+        if (caller.isEmpty()) {
+            return denied(snapshot, "Caller Channel이 필요합니다.");
+        }
         CpfChannelDefinition callerDefinition = snapshot.channels().get(caller);
-        if (originalDefinition == null || !originalDefinition.active()) {
-            return denied(snapshot, "등록되지 않았거나 중지된 최초 채널입니다.");
-        }
         if (callerDefinition == null || !callerDefinition.active()) {
-            return denied(snapshot, "등록되지 않았거나 중지된 호출 채널입니다.");
+            return denied(snapshot, "등록되지 않았거나 중지된 Caller Channel입니다.");
         }
-        return snapshot.resolve(standardExecutionId, original, caller, type, Instant.now())
-                .map(policy -> decide(
-                        snapshot, policy, originalDefinition, callerDefinition, authenticated, signed))
-                .orElseGet(() -> denied(snapshot, "일치하는 채널 실행 정책이 없습니다."));
+        return snapshot.resolve(execution, caller, now)
+                .map(policy -> decide(snapshot, policy, callerDefinition, authenticated, signed))
+                .orElseGet(() -> denied(snapshot, "일치하는 operationId + callerChannel 정책이 없습니다."));
     }
 
     @Transactional(transactionManager = "cpfTransactionManager")
@@ -145,13 +141,9 @@ public class CpfChannelPolicyService {
                         policyPackage.channels().stream().map(CpfChannelDefinition::channelCode))
                 .collect(Collectors.toUnmodifiableSet());
         for (CpfChannelExecutionPolicy policy : policyPackage.policies()) {
-            if (!channelCodes.contains(policy.originalChannelCode())) {
+            if (!"ANY".equals(policy.callerChannel()) && !channelCodes.contains(policy.callerChannel())) {
                 throw new IllegalArgumentException(
-                        "채널 정책 패키지의 최초 채널 참조가 없습니다. policyKey=" + policy.policyKey());
-            }
-            if (!channelCodes.contains(policy.callerChannelCode())) {
-                throw new IllegalArgumentException(
-                        "채널 정책 패키지의 호출 채널 참조가 없습니다. policyKey=" + policy.policyKey());
+                        "채널 정책 패키지의 Caller Channel 참조가 없습니다. policyKey=" + policy.policyKey());
             }
         }
     }
@@ -159,7 +151,6 @@ public class CpfChannelPolicyService {
     private CpfChannelPolicyDecision decide(
             CpfChannelPolicySnapshot snapshot,
             CpfChannelExecutionPolicy policy,
-            CpfChannelDefinition originalDefinition,
             CpfChannelDefinition callerDefinition,
             boolean authenticated,
             boolean signed) {
@@ -168,10 +159,8 @@ public class CpfChannelPolicyService {
                     policy.policyKey(), policy.authenticationRequired(), policy.signatureRequired(), policy.maxTps());
         }
         boolean authenticationRequired = policy.authenticationRequired()
-                || originalDefinition.authenticationRequired()
                 || callerDefinition.authenticationRequired();
         boolean signatureRequired = policy.signatureRequired()
-                || originalDefinition.signatureRequired()
                 || callerDefinition.signatureRequired();
         if (authenticationRequired && !authenticated) {
             return new CpfChannelPolicyDecision(false, "채널 정책에서 인증을 요구합니다.", snapshot.version(),

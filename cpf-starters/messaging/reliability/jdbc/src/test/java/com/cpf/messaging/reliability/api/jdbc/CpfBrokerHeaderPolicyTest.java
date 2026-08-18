@@ -81,8 +81,7 @@ class CpfBrokerHeaderPolicyTest {
     private static CpfBrokerPublishRequest request(Map<String, String> headers) {
         return CpfBrokerHeaderPolicy.validatedRequest(new CpfBrokerPublishRequest(
                 "msg-1", "topic-1", "key-1",
-                "payload".getBytes(StandardCharsets.UTF_8), "text/plain",
-                "tx-1", "seg-1", "producer", "consumer", "idem-1",
+                "payload".getBytes(StandardCharsets.UTF_8), "text/plain", "producer", "consumer", "idem-1",
                 headers, Map.of("tenant", "T1")));
     }
 }

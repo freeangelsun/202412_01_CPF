@@ -2,7 +2,7 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.core.api.context.CpfContexts;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;

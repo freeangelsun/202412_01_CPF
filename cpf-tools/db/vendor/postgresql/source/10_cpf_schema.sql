@@ -1,5 +1,6 @@
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated DDL directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
@@ -2355,13 +2356,13 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE (
     request_id VARCHAR(128) NULL,
     idempotency_key VARCHAR(160) NULL,
     tenant_id VARCHAR(128) NULL,
-    system_code VARCHAR(64) NULL,
+    current_channel VARCHAR(64) NULL,
     actor_id_masked VARCHAR(256) NULL,
     instance_id VARCHAR(128) NULL,
     was_id VARCHAR(128) NULL,
     agent_id VARCHAR(128) NULL,
     worker_id VARCHAR(128) NULL,
-    remote_system VARCHAR(128) NULL,
+    target_channel VARCHAR(128) NULL,
     operation_id VARCHAR(160) NULL,
     message_id VARCHAR(160) NULL,
     consumer_group VARCHAR(160) NULL,
@@ -2396,13 +2397,13 @@ COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.span_id IS '분산 span ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.request_id IS '요청 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.idempotency_key IS '멱등성 키';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.tenant_id IS '테넌트 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.channel_code IS '기동/현재 채널 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.current_channel IS '현재 처리 System 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.actor_id_masked IS '마스킹된 행위자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.instance_id IS '실행 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.was_id IS 'WAS ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.agent_id IS 'Agent ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.worker_id IS 'Worker ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.remote_system IS '원격 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.target_channel IS '원격 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.operation_id IS '업무/호출 Operation ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.message_id IS '메시지 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.consumer_group IS '메시지 Consumer Group';
@@ -2441,13 +2442,13 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE (
     request_id VARCHAR(128) NULL,
     idempotency_key VARCHAR(160) NULL,
     tenant_id VARCHAR(128) NULL,
-    system_code VARCHAR(64) NULL,
+    current_channel VARCHAR(64) NULL,
     actor_id_masked VARCHAR(256) NULL,
     instance_id VARCHAR(128) NULL,
     was_id VARCHAR(128) NULL,
     agent_id VARCHAR(128) NULL,
     worker_id VARCHAR(128) NULL,
-    remote_system VARCHAR(128) NULL,
+    target_channel VARCHAR(128) NULL,
     operation_id VARCHAR(160) NULL,
     message_id VARCHAR(160) NULL,
     consumer_group VARCHAR(160) NULL,
@@ -2483,13 +2484,13 @@ COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.span_id IS '분산 span ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.request_id IS '요청 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.idempotency_key IS '멱등성 키';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.tenant_id IS '테넌트 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.channel_code IS '기동/현재 채널 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.current_channel IS '현재 처리 System 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.actor_id_masked IS '마스킹된 행위자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.instance_id IS '실행 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.was_id IS 'WAS ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.agent_id IS 'Agent ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.worker_id IS 'Worker ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.remote_system IS '원격 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.target_channel IS '원격 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.operation_id IS '업무/호출 Operation ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.message_id IS '메시지 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.consumer_group IS '메시지 Consumer Group';
@@ -2530,8 +2531,8 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     API_VERSION VARCHAR(20) NULL,
     CLIENT_ID VARCHAR(80) NULL,
     CLIENT_VERSION VARCHAR(50) NULL,
-    CALLER_SYSTEM_CODE VARCHAR(120) NULL,
-    TARGET_SYSTEM_CODE VARCHAR(32) NULL,
+    CALLER_CHANNEL VARCHAR(120) NULL,
+    TARGET_CHANNEL VARCHAR(32) NULL,
     TARGET_OPERATION_ID VARCHAR(160) NULL,
     CALLER_INSTANCE_ID VARCHAR(120) NULL,
     CORRELATION_ID VARCHAR(120) NULL,
@@ -2539,8 +2540,8 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     LOCALE VARCHAR(20) NULL,
     TIMEZONE VARCHAR(50) NULL,
     REQUEST_TYPE VARCHAR(20) NULL,
-    ORIGINAL_SYSTEM_CODE VARCHAR(20) NULL,
-    SYSTEM_CODE VARCHAR(20) NULL,
+    ORIGINAL_CHANNEL VARCHAR(20) NULL,
+    CURRENT_CHANNEL VARCHAR(20) NULL,
     MEMBER_NO VARCHAR(50) NULL,
     CUSTOMER_NO VARCHAR(50) NULL,
     SCREEN_ID VARCHAR(50) NULL,
@@ -2549,6 +2550,7 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     WAS_ID VARCHAR(50) NULL,
     INSTANCE_ID VARCHAR(160) NULL,
     HOST_NAME VARCHAR(120) NULL,
+    HOST_IP VARCHAR(128) NULL,
     PROCESS_ID VARCHAR(80) NULL,
     THREAD_NAME VARCHAR(160) NULL,
     RESERVED_FIELD_1 VARCHAR(255) NULL,
@@ -2615,8 +2617,8 @@ COMMENT ON COLUMN CPF_TRANSACTION_LOG.LOG_TYPE IS '로그 유형';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.API_VERSION IS '호출 API 버전';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CLIENT_ID IS '클라이언트/Application 식별자';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CLIENT_VERSION IS '클라이언트 앱 또는 SDK 버전';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_SYSTEM_CODE IS '직전 호출 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_SYSTEM_CODE IS '현재 호출 대상 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_CHANNEL IS '직전 호출 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_CHANNEL IS '현재 호출 대상 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_OPERATION_ID IS '호출 대상 Canonical operationId';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_INSTANCE_ID IS '호출 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CORRELATION_ID IS '내부 연계 상관관계 ID';
@@ -2624,8 +2626,8 @@ COMMENT ON COLUMN CPF_TRANSACTION_LOG.IDEMPOTENCY_KEY IS '중복 처리 방지 �
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.LOCALE IS '클라이언트 locale';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.TIMEZONE IS '클라이언트 시간대';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.REQUEST_TYPE IS '요청 유형';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.ORIGINAL_SYSTEM_CODE IS '최초 거래 발생 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.SYSTEM_CODE IS '현재 요청 처리 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.ORIGINAL_CHANNEL IS '최초 거래 발생 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.CURRENT_CHANNEL IS '현재 요청 처리 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.MEMBER_NO IS '회원 번호';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CUSTOMER_NO IS '고객 번호';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.SCREEN_ID IS '화면 ID';
@@ -2634,6 +2636,7 @@ COMMENT ON COLUMN CPF_TRANSACTION_LOG.CLIENT_REQUEST_TIME IS '클라이언트 �
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.WAS_ID IS '처리 WAS ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.INSTANCE_ID IS '처리 서버 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.HOST_NAME IS '처리 서버 호스트명';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.HOST_IP IS 'Runtime host IP';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.PROCESS_ID IS '처리 서버 프로세스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.THREAD_NAME IS '처리 스레드명';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.RESERVED_FIELD_1 IS '업무 확장 예약 필드 1';
@@ -2689,63 +2692,14 @@ CREATE INDEX ix_cpf_transaction_log_correlation ON CPF_TRANSACTION_LOG (CORRELAT
 CREATE INDEX ix_cpf_transaction_log_idempotency ON CPF_TRANSACTION_LOG (IDEMPOTENCY_KEY);
 CREATE INDEX ix_cpf_transaction_log_member_time ON CPF_TRANSACTION_LOG (MEMBER_NO, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_customer_time ON CPF_TRANSACTION_LOG (CUSTOMER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (SYSTEM_CODE, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (CURRENT_CHANNEL, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_time ON CPF_TRANSACTION_LOG (MODULE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_instance_time ON CPF_TRANSACTION_LOG (INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_was_time ON CPF_TRANSACTION_LOG (WAS_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_instance_time ON CPF_TRANSACTION_LOG (MODULE_ID, INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_status_time ON CPF_TRANSACTION_LOG (LOG_TYPE, RESPONSE_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_http_status_time ON CPF_TRANSACTION_LOG (HTTP_STATUS, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, START_TIME);
-
-CREATE TABLE CPF_TRANSACTION_META (
-    transaction_id VARCHAR(20) NOT NULL,
-    transaction_name VARCHAR(150) NOT NULL,
-    module_code VARCHAR(20) NOT NULL,
-    domain_code VARCHAR(50) NULL,
-    http_method VARCHAR(20) DEFAULT 'ANY' NOT NULL,
-    api_path VARCHAR(500) NOT NULL,
-    controller_class VARCHAR(255) NOT NULL,
-    handler_method VARCHAR(150) NOT NULL,
-    swagger_operation_id VARCHAR(150) NULL,
-    log_policy_key VARCHAR(120) NULL,
-    sensitive_yn CHAR(1) DEFAULT 'N' NOT NULL,
-    masking_policy_key VARCHAR(120) NULL,
-    active_yn CHAR(1) DEFAULT 'Y' NOT NULL,
-    first_detected_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
-    last_detected_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
-    last_scanned_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
-    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT PK_CPF_TRANSACTION_META PRIMARY KEY (transaction_id)
-);
-COMMENT ON TABLE CPF_TRANSACTION_META IS 'CPF 온라인 거래 메타';
-COMMENT ON COLUMN CPF_TRANSACTION_META.transaction_id IS '업무 거래 정의 ID(실행 transactionId와 별개)';
-COMMENT ON COLUMN CPF_TRANSACTION_META.transaction_name IS '업무 거래명';
-COMMENT ON COLUMN CPF_TRANSACTION_META.module_code IS '모듈 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_META.domain_code IS '업무 영역 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_META.http_method IS 'HTTP 메서드';
-COMMENT ON COLUMN CPF_TRANSACTION_META.api_path IS 'API 경로';
-COMMENT ON COLUMN CPF_TRANSACTION_META.controller_class IS 'Controller 클래스명';
-COMMENT ON COLUMN CPF_TRANSACTION_META.handler_method IS 'Handler 메서드명';
-COMMENT ON COLUMN CPF_TRANSACTION_META.swagger_operation_id IS 'Swagger operation 식별자';
-COMMENT ON COLUMN CPF_TRANSACTION_META.log_policy_key IS '연결 로그 정책 키';
-COMMENT ON COLUMN CPF_TRANSACTION_META.sensitive_yn IS '민감 거래 여부';
-COMMENT ON COLUMN CPF_TRANSACTION_META.masking_policy_key IS '마스킹 정책 키';
-COMMENT ON COLUMN CPF_TRANSACTION_META.active_yn IS '활성 여부';
-COMMENT ON COLUMN CPF_TRANSACTION_META.first_detected_at IS '최초 감지일시';
-COMMENT ON COLUMN CPF_TRANSACTION_META.last_detected_at IS '최근 감지일시';
-COMMENT ON COLUMN CPF_TRANSACTION_META.last_scanned_at IS '최근 스캔일시';
-COMMENT ON COLUMN CPF_TRANSACTION_META.created_by IS '등록자';
-COMMENT ON COLUMN CPF_TRANSACTION_META.created_at IS '등록일시';
-COMMENT ON COLUMN CPF_TRANSACTION_META.updated_by IS '수정자';
-COMMENT ON COLUMN CPF_TRANSACTION_META.updated_at IS '수정일시';
-CREATE INDEX ix_cpf_transaction_meta_module ON CPF_TRANSACTION_META (module_code, domain_code, active_yn);
-CREATE INDEX ix_cpf_transaction_meta_path ON CPF_TRANSACTION_META (http_method, api_path);
-CREATE INDEX ix_cpf_transaction_meta_policy ON CPF_TRANSACTION_META (log_policy_key, active_yn);
-CREATE INDEX ix_cpf_transaction_meta_scan ON CPF_TRANSACTION_META (active_yn, last_scanned_at);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_CHANNEL, TARGET_OPERATION_ID, START_TIME);
 
 CREATE TABLE CPF_TRANSACTION_SEGMENT (
     segment_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -2775,11 +2729,11 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     member_no_masked VARCHAR(80) NULL,
     user_id_masked VARCHAR(80) NULL,
     operator_id_masked VARCHAR(80) NULL,
-    system_code VARCHAR(30) NULL,
-    original_system_code VARCHAR(30) NULL,
+    current_channel VARCHAR(30) NULL,
+    original_channel VARCHAR(30) NULL,
     client_id VARCHAR(100) NULL,
-    caller_system_code VARCHAR(100) NULL,
-    target_system_code VARCHAR(32) NULL,
+    caller_channel VARCHAR(100) NULL,
+    target_channel VARCHAR(32) NULL,
     target_operation_id VARCHAR(160) NULL,
     external_institution_code VARCHAR(50) NULL,
     external_transaction_id VARCHAR(120) NULL,
@@ -2826,11 +2780,11 @@ COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.customer_no_masked IS '마스킹된 �
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.member_no_masked IS '마스킹된 회원번호';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.user_id_masked IS '마스킹된 사용자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.operator_id_masked IS '마스킹된 운영자 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.system_code IS '현재 요청 처리 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.original_system_code IS '최초 거래 발생 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.current_channel IS '현재 요청 처리 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.original_channel IS '최초 거래 발생 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.client_id IS '클라이언트/Application 식별자';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.caller_system_code IS '직전 호출 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_system_code IS '현재 호출 대상 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.caller_channel IS '직전 호출 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_channel IS '현재 호출 대상 시스템 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_operation_id IS '호출 대상 Canonical operationId';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.external_institution_code IS '외부기관 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.external_transaction_id IS '외부기관 거래 ID';
@@ -2856,12 +2810,12 @@ CREATE INDEX ix_cpf_transaction_segment_customer ON CPF_TRANSACTION_SEGMENT (cus
 CREATE INDEX ix_cpf_transaction_segment_member ON CPF_TRANSACTION_SEGMENT (member_no_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_user ON CPF_TRANSACTION_SEGMENT (user_id_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_operator ON CPF_TRANSACTION_SEGMENT (operator_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_system_code, started_at);
+CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_channel, started_at);
 CREATE INDEX ix_cpf_transaction_segment_external ON CPF_TRANSACTION_SEGMENT (external_institution_code, external_transaction_id);
 CREATE INDEX ix_cpf_transaction_segment_instance ON CPF_TRANSACTION_SEGMENT (selected_instance_id, started_at);
 CREATE INDEX ix_cpf_transaction_segment_attempt ON CPF_TRANSACTION_SEGMENT (transaction_id, attempt_no);
 CREATE INDEX ix_cpf_transaction_segment_unknown ON CPF_TRANSACTION_SEGMENT (unknown_result_id);
-CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_system_code, target_operation_id, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_channel, target_operation_id, started_at);
 
 CREATE TABLE CPF_UNKNOWN_RESULT (
     unknown_seq BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -3129,6 +3083,68 @@ COMMENT ON COLUMN GW_SPOOL_CHECKPOINT.last_error_code IS '마지막 오류';
 COMMENT ON COLUMN GW_SPOOL_CHECKPOINT.last_error_at IS '마지막 오류 시각';
 COMMENT ON COLUMN GW_SPOOL_CHECKPOINT.updated_at IS '갱신 시각';
 CREATE INDEX ix_cpf_gwy_spool_backlog ON GW_SPOOL_CHECKPOINT (backlog_count, updated_at);
+
+CREATE TABLE OPS_ASYNC_OPERATION (
+    execution_id VARCHAR(160) NOT NULL,
+    operation_id VARCHAR(160) NOT NULL,
+    transaction_id CHAR(34) NOT NULL,
+    idempotency_key VARCHAR(256) NOT NULL,
+    command_type VARCHAR(300) NOT NULL,
+    command_payload TEXT NOT NULL,
+    context_payload TEXT NOT NULL,
+    result_type VARCHAR(300) NOT NULL,
+    result_payload TEXT NULL,
+    state VARCHAR(30) DEFAULT 'ACCEPTED' NOT NULL,
+    result_status VARCHAR(30) NULL,
+    error_code VARCHAR(120) NULL,
+    error_message VARCHAR(2000) NULL,
+    recovery_id VARCHAR(160) NULL,
+    recovery_action VARCHAR(120) NULL,
+    submitted_at TIMESTAMP(3) WITHOUT TIME ZONE NOT NULL,
+    started_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    updated_at TIMESTAMP(3) WITHOUT TIME ZONE NOT NULL,
+    completed_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    expires_at TIMESTAMP(3) WITHOUT TIME ZONE NOT NULL,
+    heartbeat_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    lease_owner VARCHAR(160) NULL,
+    lease_until TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    cancellation_reason VARCHAR(500) NULL,
+    version BIGINT DEFAULT 1 NOT NULL,
+    CONSTRAINT PK_OPS_ASYNC_OPERATION PRIMARY KEY (execution_id),
+    CONSTRAINT uk_ops_async_operation_idempotency UNIQUE (operation_id, idempotency_key),
+    CONSTRAINT ck_ops_async_operation_state CHECK (state IN ('ACCEPTED','RUNNING','SUCCEEDED','FAILED','UNKNOWN','CANCEL_REQUESTED','CANCELLED','EXPIRED')),
+    CONSTRAINT ck_ops_async_operation_result CHECK (result_status IS NULL OR result_status IN ('SUCCESS','BUSINESS_FAILURE','TECHNICAL_FAILURE','UNKNOWN','CANCELLED'))
+);
+COMMENT ON TABLE OPS_ASYNC_OPERATION IS 'CPF 범용 Async Operation durable execution state';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.execution_id IS 'CPF async executionId';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.operation_id IS 'Async handler Canonical operationId';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.transaction_id IS 'End-to-end transactionId';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.idempotency_key IS '중복 submit 방지 business key';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.command_type IS '등록 Async Handler command type';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.command_payload IS '마스킹/암호화 정책 적용 대상 command payload';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.context_payload IS 'CPF Context snapshot';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.result_type IS 'typed result class';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.result_payload IS '성공 결과 payload';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.state IS 'Async lifecycle state';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.result_status IS 'CPF Boundary outcome';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.error_code IS '실패/UNKNOWN code';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.error_message IS '마스킹된 실패 설명';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.recovery_id IS 'UNKNOWN recovery correlation';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.recovery_action IS 'Probe/Reconcile next action';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.submitted_at IS '접수시각';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.started_at IS '실행시작';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.updated_at IS '최종변경';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.completed_at IS '최종완료';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.expires_at IS '실행만료';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.heartbeat_at IS 'Worker heartbeat';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.lease_owner IS '현재 Runtime instanceId';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.lease_until IS 'Worker lease expiry';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.cancellation_reason IS 'cooperative cancel reason';
+COMMENT ON COLUMN OPS_ASYNC_OPERATION.version IS 'optimistic/fencing version';
+CREATE INDEX ix_ops_async_operation_state ON OPS_ASYNC_OPERATION (state, submitted_at);
+CREATE INDEX ix_ops_async_operation_tx ON OPS_ASYNC_OPERATION (transaction_id, submitted_at);
+CREATE INDEX ix_ops_async_operation_lease ON OPS_ASYNC_OPERATION (state, lease_until);
+CREATE INDEX ix_ops_async_operation_expiry ON OPS_ASYNC_OPERATION (expires_at, state);
 
 CREATE TABLE OPS_CHANNEL_POLICY_VERSION (
     version_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -3734,6 +3750,40 @@ COMMENT ON COLUMN OPS_SERVICE.updated_at IS '수정일시';
 COMMENT ON COLUMN OPS_SERVICE.row_version IS '낙관적 잠금 row version';
 CREATE INDEX ix_cpf_service_owner ON OPS_SERVICE (owner_module_code, use_yn);
 CREATE INDEX ix_cpf_service_type ON OPS_SERVICE (service_type, use_yn);
+
+CREATE TABLE OPS_SYSTEM_REGISTRY (
+    system_code VARCHAR(32) NOT NULL,
+    system_name VARCHAR(120) NOT NULL,
+    domain_code VARCHAR(50) NULL,
+    enabled_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    description VARCHAR(500) NULL,
+    policy_version BIGINT DEFAULT 1 NOT NULL,
+    first_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    last_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    last_instance_id VARCHAR(160) NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_SYSTEM_REGISTRY PRIMARY KEY (system_code),
+    CONSTRAINT ck_ops_system_registry_enabled CHECK (enabled_yn IN ('Y', 'N'))
+);
+COMMENT ON TABLE OPS_SYSTEM_REGISTRY IS 'CPF 업무 System Registry';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.system_code IS 'CPF System 코드';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.system_name IS 'System 명';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.domain_code IS '소유 Domain 코드';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.enabled_yn IS '등록 System 활성 여부';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.description IS 'System 설명';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.policy_version IS 'System 정책 버전';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.first_seen_at IS '최초 Runtime 발견 시각';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.last_seen_at IS '최근 Runtime 발견 시각';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.last_instance_id IS '최근 발견 Runtime instanceId';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.created_by IS '등록자';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_SYSTEM_REGISTRY.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_system_registry_domain ON OPS_SYSTEM_REGISTRY (domain_code, enabled_yn);
+CREATE INDEX ix_ops_system_registry_seen ON OPS_SYSTEM_REGISTRY (last_seen_at, enabled_yn);
 
 CREATE TABLE SEC_BFF_CREDENTIAL_VAULT (
     handle_id VARCHAR(64) NOT NULL,
@@ -5005,7 +5055,7 @@ CREATE INDEX ix_cpf_gwy_member_probe_lease ON GW_SERVER_GROUP_MEMBER (enabled_yn
 
 CREATE TABLE OPS_CHANNEL_EXECUTION_POLICY (
     policy_key VARCHAR(100) NOT NULL,
-    standard_execution_id VARCHAR(10) NOT NULL,
+    operation_id VARCHAR(160) NOT NULL,
     original_channel_code VARCHAR(30) NOT NULL,
     caller_channel_code VARCHAR(30) NOT NULL,
     request_type VARCHAR(30) DEFAULT '*' NOT NULL,
@@ -5022,7 +5072,7 @@ CREATE TABLE OPS_CHANNEL_EXECUTION_POLICY (
     updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT PK_OPS_CHANNEL_EXECUTION_POLICY PRIMARY KEY (policy_key),
-    CONSTRAINT ck_cpf_channel_execution_policy_execution CHECK (standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'),
+    CONSTRAINT ck_ops_channel_execution_policy_operation CHECK (operation_id = '*' OR operation_id REGEXP '^[A-Za-z][A-Za-z0-9_.:-]{2,159}$'),
     CONSTRAINT ck_cpf_channel_execution_policy_allowed CHECK (allowed_yn IN ('Y', 'N')),
     CONSTRAINT ck_cpf_channel_execution_policy_auth CHECK (authentication_required_yn IN ('Y', 'N')),
     CONSTRAINT ck_cpf_channel_execution_policy_signature CHECK (signature_required_yn IN ('Y', 'N')),
@@ -5031,9 +5081,9 @@ CREATE TABLE OPS_CHANNEL_EXECUTION_POLICY (
     CONSTRAINT fk_cpf_channel_execution_policy_original FOREIGN KEY (original_channel_code) REFERENCES OPS_CHANNEL_REGISTRY (channel_code),
     CONSTRAINT fk_cpf_channel_execution_policy_caller FOREIGN KEY (caller_channel_code) REFERENCES OPS_CHANNEL_REGISTRY (channel_code)
 );
-COMMENT ON TABLE OPS_CHANNEL_EXECUTION_POLICY IS 'CPF 표준 실행별 최초·호출 채널 정책';
+COMMENT ON TABLE OPS_CHANNEL_EXECUTION_POLICY IS 'CPF 업무 Operation별 최초·호출 채널 정책';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.policy_key IS '채널 실행 정책 불변 키';
-COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.standard_execution_id IS '10자리 표준 실행 ID 또는 전체 실행 *';
+COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.operation_id IS 'Canonical 업무 operationId 또는 전체 Operation *';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.original_channel_code IS '최초 채널 코드 또는 ANY';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.caller_channel_code IS '현재 호출 채널 코드 또는 ANY';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.request_type IS '요청 유형 또는 전체 유형 *';
@@ -5049,7 +5099,7 @@ COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_by IS '등록자';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.created_at IS '등록일시';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_by IS '수정자';
 COMMENT ON COLUMN OPS_CHANNEL_EXECUTION_POLICY.updated_at IS '수정일시';
-CREATE INDEX ix_cpf_channel_execution_policy_lookup ON OPS_CHANNEL_EXECUTION_POLICY (standard_execution_id, original_channel_code, caller_channel_code, request_type, active_yn);
+CREATE INDEX ix_cpf_channel_execution_policy_lookup ON OPS_CHANNEL_EXECUTION_POLICY (operation_id, original_channel_code, caller_channel_code, request_type, active_yn);
 CREATE INDEX ix_cpf_channel_execution_policy_effective ON OPS_CHANNEL_EXECUTION_POLICY (active_yn, effective_from, effective_to);
 
 CREATE TABLE OPS_RUNTIME_CHANGE (
@@ -5259,6 +5309,92 @@ COMMENT ON COLUMN OPS_SERVICE_ENDPOINT.updated_at IS '수정일시';
 COMMENT ON COLUMN OPS_SERVICE_ENDPOINT.row_version IS '낙관적 잠금 row version';
 CREATE INDEX ix_cpf_service_endpoint_service ON OPS_SERVICE_ENDPOINT (service_id, use_yn);
 CREATE INDEX ix_cpf_service_endpoint_type ON OPS_SERVICE_ENDPOINT (endpoint_type, use_yn);
+
+CREATE TABLE OPS_OPERATION_CATALOG (
+    operation_id VARCHAR(160) NOT NULL,
+    operation_name VARCHAR(150) NOT NULL,
+    description VARCHAR(1000) NULL,
+    system_code VARCHAR(32) NOT NULL,
+    domain_code VARCHAR(50) NULL,
+    application_code VARCHAR(100) NULL,
+    http_method VARCHAR(20) DEFAULT 'ANY' NOT NULL,
+    api_path VARCHAR(500) NOT NULL,
+    controller_class VARCHAR(255) NOT NULL,
+    handler_method VARCHAR(150) NOT NULL,
+    openapi_operation_id VARCHAR(160) NULL,
+    source_fingerprint VARCHAR(64) NULL,
+    discovery_status VARCHAR(30) DEFAULT 'ACTIVE' NOT NULL,
+    first_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    last_seen_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    last_instance_id VARCHAR(160) NULL,
+    metadata_version BIGINT DEFAULT 1 NOT NULL,
+    log_policy_key VARCHAR(120) NULL,
+    sensitive_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    masking_policy_key VARCHAR(120) NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_OPERATION_CATALOG PRIMARY KEY (operation_id),
+    CONSTRAINT ck_ops_operation_catalog_discovery CHECK (discovery_status IN ('ACTIVE', 'NOT_DISCOVERED')),
+    CONSTRAINT ck_ops_operation_catalog_sensitive CHECK (sensitive_yn IN ('Y', 'N')),
+    CONSTRAINT fk_ops_operation_catalog_system FOREIGN KEY (system_code) REFERENCES OPS_SYSTEM_REGISTRY (system_code)
+);
+COMMENT ON TABLE OPS_OPERATION_CATALOG IS 'CPF 업무 Online Operation Canonical Catalog';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.operation_id IS '업무 Domain Canonical operationId';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.operation_name IS '업무 Operation 명';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.description IS '업무 Operation 설명';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.system_code IS 'Operation 소유 System 코드';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.domain_code IS 'Operation 소유 Domain 코드';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.application_code IS '발견 Application 코드';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.http_method IS 'HTTP 메서드';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.api_path IS 'Canonical API 경로';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.controller_class IS 'Controller 클래스명';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.handler_method IS 'Handler 메서드명';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.openapi_operation_id IS '업무 API OpenAPI operationId';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.source_fingerprint IS 'Source/Handler 계약 SHA-256 fingerprint';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.discovery_status IS 'ACTIVE 또는 NOT_DISCOVERED 발견상태';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.first_seen_at IS '최초 발견 시각';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.last_seen_at IS '최근 발견 시각';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.last_instance_id IS '최근 발견 Runtime instanceId';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.metadata_version IS 'Source metadata optimistic version';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.log_policy_key IS '연결 로그 정책 키';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.sensitive_yn IS '민감 Operation 여부';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.masking_policy_key IS '마스킹 정책 키';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.created_by IS '등록자';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_OPERATION_CATALOG.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_operation_catalog_system ON OPS_OPERATION_CATALOG (system_code, domain_code, discovery_status);
+CREATE INDEX ix_ops_operation_catalog_path ON OPS_OPERATION_CATALOG (http_method, api_path);
+CREATE INDEX ix_ops_operation_catalog_seen ON OPS_OPERATION_CATALOG (last_seen_at, discovery_status);
+
+CREATE TABLE OPS_SYSTEM_DOMAIN_ACCESS (
+    caller_system_code VARCHAR(32) NOT NULL,
+    target_system_code VARCHAR(32) NOT NULL,
+    allowed_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    policy_version BIGINT DEFAULT 1 NOT NULL,
+    change_reason VARCHAR(500) NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_SYSTEM_DOMAIN_ACCESS PRIMARY KEY (caller_system_code, target_system_code),
+    CONSTRAINT ck_ops_system_domain_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT fk_ops_sys_domain_caller FOREIGN KEY (caller_system_code) REFERENCES OPS_SYSTEM_REGISTRY (system_code) ON DELETE CASCADE,
+    CONSTRAINT fk_ops_sys_domain_target FOREIGN KEY (target_system_code) REFERENCES OPS_SYSTEM_REGISTRY (system_code) ON DELETE CASCADE
+);
+COMMENT ON TABLE OPS_SYSTEM_DOMAIN_ACCESS IS 'CPF System/Domain 1차 호출 정책';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.caller_system_code IS '호출 System 코드';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.target_system_code IS '대상 System 코드';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.allowed_yn IS 'System/Domain 1차 호출 허용 여부';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.policy_version IS '정책 버전';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.change_reason IS '최근 변경 사유';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.created_by IS '등록자';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_SYSTEM_DOMAIN_ACCESS.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_system_domain_access_target ON OPS_SYSTEM_DOMAIN_ACCESS (target_system_code, allowed_yn);
 
 CREATE TABLE ADM_APPROVAL_EXECUTION (
     APPROVAL_REQUEST_ID BIGINT NOT NULL,
@@ -6179,6 +6315,107 @@ COMMENT ON COLUMN OPS_SERVICE_ROUTING_POLICY.created_at IS '등록일시';
 COMMENT ON COLUMN OPS_SERVICE_ROUTING_POLICY.updated_by IS '수정자';
 COMMENT ON COLUMN OPS_SERVICE_ROUTING_POLICY.updated_at IS '수정일시';
 CREATE INDEX ix_cpf_service_routing_active ON OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, active_yn, priority);
+
+CREATE TABLE OPS_OPERATION_CALLER_POLICY (
+    operation_id VARCHAR(160) NOT NULL,
+    caller_system_code VARCHAR(32) NOT NULL,
+    allowed_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    policy_version BIGINT DEFAULT 1 NOT NULL,
+    seed_source VARCHAR(80) NULL,
+    seed_revision VARCHAR(120) NULL,
+    seeded_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    change_reason VARCHAR(500) NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_OPERATION_CALLER_POLICY PRIMARY KEY (operation_id, caller_system_code),
+    CONSTRAINT ck_ops_operation_caller_allowed CHECK (allowed_yn IN ('Y', 'N')),
+    CONSTRAINT fk_ops_operation_caller_catalog FOREIGN KEY (operation_id) REFERENCES OPS_OPERATION_CATALOG (operation_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE OPS_OPERATION_CALLER_POLICY IS 'CPF 업무 Operation Caller별 ADM-owned 정책';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.operation_id IS '정책 대상 operationId';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.caller_system_code IS '허용/거부 Caller System 코드';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.allowed_yn IS 'Caller별 Operation 호출 허용 여부';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.policy_version IS 'Caller 정책 버전';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.seed_source IS '최초 Seed 출처';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.seed_revision IS '최초 Seed revision';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.seeded_at IS '최초 Seed 적용 시각';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.change_reason IS '최근 변경 사유';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.created_by IS '등록자';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_OPERATION_CALLER_POLICY.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_operation_caller_caller ON OPS_OPERATION_CALLER_POLICY (caller_system_code, allowed_yn);
+
+CREATE TABLE OPS_OPERATION_DISCOVERY_INSTANCE (
+    operation_id VARCHAR(160) NOT NULL,
+    instance_id VARCHAR(160) NOT NULL,
+    system_code VARCHAR(32) NOT NULL,
+    application_code VARCHAR(100) NULL,
+    artifact_version VARCHAR(120) NULL,
+    artifact_commit VARCHAR(120) NULL,
+    discovered_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    last_reported_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_OPERATION_DISCOVERY_INSTANCE PRIMARY KEY (operation_id, instance_id),
+    CONSTRAINT ck_ops_operation_discovery_yn CHECK (discovered_yn IN ('Y', 'N')),
+    CONSTRAINT fk_ops_operation_discovery_catalog FOREIGN KEY (operation_id) REFERENCES OPS_OPERATION_CATALOG (operation_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE OPS_OPERATION_DISCOVERY_INSTANCE IS 'CPF 업무 Operation Runtime/Artifact별 Source discovery evidence';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.operation_id IS '업무 Domain Canonical operationId';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.instance_id IS 'Operation을 스캔한 Runtime instanceId';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.system_code IS '스캔 Runtime System 코드';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.application_code IS '스캔 Application 코드';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.artifact_version IS '스캔 Artifact version';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.artifact_commit IS '스캔 Artifact commit/SHA';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.discovered_yn IS '해당 Runtime/Artifact에서 발견 여부';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.last_reported_at IS '최근 discovery report 시각';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.created_by IS '등록자';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_OPERATION_DISCOVERY_INSTANCE.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_operation_discovery_instance ON OPS_OPERATION_DISCOVERY_INSTANCE (instance_id, discovered_yn, last_reported_at);
+CREATE INDEX ix_ops_operation_discovery_scope ON OPS_OPERATION_DISCOVERY_INSTANCE (system_code, application_code, discovered_yn);
+
+CREATE TABLE OPS_OPERATION_POLICY (
+    operation_id VARCHAR(160) NOT NULL,
+    enabled_yn CHAR(1) DEFAULT 'Y' NOT NULL,
+    all_callers_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    channel_policy_required_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    policy_version BIGINT DEFAULT 1 NOT NULL,
+    seed_source VARCHAR(80) NULL,
+    seed_revision VARCHAR(120) NULL,
+    seeded_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    change_reason VARCHAR(500) NULL,
+    created_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'CPF' NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT PK_OPS_OPERATION_POLICY PRIMARY KEY (operation_id),
+    CONSTRAINT ck_ops_operation_policy_enabled CHECK (enabled_yn IN ('Y', 'N')),
+    CONSTRAINT ck_ops_operation_policy_all CHECK (all_callers_yn IN ('Y', 'N')),
+    CONSTRAINT ck_ops_operation_policy_channel CHECK (channel_policy_required_yn IN ('Y', 'N')),
+    CONSTRAINT fk_ops_operation_policy_catalog FOREIGN KEY (operation_id) REFERENCES OPS_OPERATION_CATALOG (operation_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE OPS_OPERATION_POLICY IS 'CPF 업무 Operation ADM-owned 실행 정책';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.operation_id IS '정책 대상 operationId';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.enabled_yn IS 'Operation 실행 허용 여부';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.all_callers_yn IS '등록·활성 Caller 전체 허용 여부';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.channel_policy_required_yn IS 'Channel 3차 정책 적용 필요 여부';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.policy_version IS 'Operation 정책 버전';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.seed_source IS '최초 Seed 출처';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.seed_revision IS '최초 Seed revision';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.seeded_at IS '최초 Seed 적용 시각';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.change_reason IS '최근 변경 사유';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.created_by IS '등록자';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.created_at IS '등록일시';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.updated_by IS '최종 수정자';
+COMMENT ON COLUMN OPS_OPERATION_POLICY.updated_at IS '최종 수정일시';
+CREATE INDEX ix_ops_operation_policy_enabled ON OPS_OPERATION_POLICY (enabled_yn, policy_version);
 
 CREATE TABLE ADM_ROLE_API_PERMISSION (
     ROLE_ID VARCHAR(50) NOT NULL,
@@ -7214,8 +7451,6 @@ CREATE TRIGGER TRG_CPF_STANDARD_EXECUTION_ALIAS_TOUCH BEFORE UPDATE ON CPF_STAND
 
 CREATE TRIGGER TRG_CPF_TRANSACTION_LOG_TOUCH BEFORE UPDATE ON CPF_TRANSACTION_LOG FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
-CREATE TRIGGER TRG_CPF_TRANSACTION_META_TOUCH BEFORE UPDATE ON CPF_TRANSACTION_META FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
-
 CREATE TRIGGER TRG_CPF_TRANSACTION_SEGMENT_TOUCH BEFORE UPDATE ON CPF_TRANSACTION_SEGMENT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_CPF_UNKNOWN_RESULT_TOUCH BEFORE UPDATE ON CPF_UNKNOWN_RESULT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
@@ -7243,6 +7478,8 @@ CREATE TRIGGER TRG_OPS_RUNTIME_VERSION_TOUCH BEFORE UPDATE ON OPS_RUNTIME_VERSIO
 CREATE TRIGGER TRG_OPS_SCHEMA_INSTALLATION_TOUCH BEFORE UPDATE ON OPS_SCHEMA_INSTALLATION FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_SERVICE_TOUCH BEFORE UPDATE ON OPS_SERVICE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_SYSTEM_REGISTRY_TOUCH BEFORE UPDATE ON OPS_SYSTEM_REGISTRY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_SEC_JWT_KEY_TOUCH BEFORE UPDATE ON SEC_JWT_KEY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
@@ -7288,6 +7525,10 @@ CREATE TRIGGER TRG_OPS_RUNTIME_POLICY_DELIVERY_TOUCH BEFORE UPDATE ON OPS_RUNTIM
 
 CREATE TRIGGER TRG_OPS_SERVICE_ENDPOINT_TOUCH BEFORE UPDATE ON OPS_SERVICE_ENDPOINT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
+CREATE TRIGGER TRG_OPS_OPERATION_CATALOG_TOUCH BEFORE UPDATE ON OPS_OPERATION_CATALOG FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_SYSTEM_DOMAIN_ACCESS_TOUCH BEFORE UPDATE ON OPS_SYSTEM_DOMAIN_ACCESS FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
 CREATE TRIGGER TRG_ADM_APPROVAL_EXECUTION_TOUCH BEFORE UPDATE ON ADM_APPROVAL_EXECUTION FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_ADM_APPROVAL_PARTICIPANT_TOUCH BEFORE UPDATE ON ADM_APPROVAL_PARTICIPANT FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
@@ -7311,6 +7552,12 @@ CREATE TRIGGER TRG_OPS_LOG_POLICY_AUDIT_TOUCH BEFORE UPDATE ON OPS_LOG_POLICY_AU
 CREATE TRIGGER TRG_OPS_SERVICE_INSTANCE_TOUCH BEFORE UPDATE ON OPS_SERVICE_INSTANCE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_OPS_SERVICE_ROUTING_POLICY_TOUCH BEFORE UPDATE ON OPS_SERVICE_ROUTING_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_OPERATION_CALLER_POLICY_TOUCH BEFORE UPDATE ON OPS_OPERATION_CALLER_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_OPERATION_DISCOVERY_INSTANCE_TOUCH BEFORE UPDATE ON OPS_OPERATION_DISCOVERY_INSTANCE FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
+
+CREATE TRIGGER TRG_OPS_OPERATION_POLICY_TOUCH BEFORE UPDATE ON OPS_OPERATION_POLICY FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 
 CREATE TRIGGER TRG_ADM_ROLE_API_PERMISSION_TOUCH BEFORE UPDATE ON ADM_ROLE_API_PERMISSION FOR EACH ROW EXECUTE FUNCTION CPF_TOUCH_UPDATED_AT();
 

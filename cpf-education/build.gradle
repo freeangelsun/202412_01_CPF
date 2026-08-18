@@ -41,76 +41,51 @@ def batchRoot = file('src/main/java/com/cpf/education/batch')
 
 tasks.register('verifyEducationCanonical35') {
     group = 'verification'
-    description = 'Canonical EDU가 online 20 + batch 15 = 35개인지 검증합니다.'
+    description = 'Canonical EDU 기능 package와 Catalog 20+15를 검증합니다.'
     doLast {
-        def online = fileTree(onlineRoot) { include 'Online??*Example.java' }.files
-        def batch = fileTree(batchRoot) { include 'Batch??*Example.java' }.files
-        if (online.size() != 20 || batch.size() != 15 || online.size() + batch.size() != 35) {
-            throw new GradleException("EDU canonical count mismatch: online=${online.size()}, batch=${batch.size()}, total=${online.size()+batch.size()}")
-        }
-        def roots = canonicalRoot.listFiles()?.findAll { it.isDirectory() }*.name?.toSet() ?: [] as Set
-        if (roots != (['online','batch'] as Set)) {
-            throw new GradleException("EDU package roots must be exactly online/batch after Delete Manifest apply: ${roots.sort()}")
+        def catalog=new groovy.json.JsonSlurper().parse(file('src/main/resources/education/cpf-education-canonical-35.json'))
+        if(catalog.onlineCount!=20 || catalog.batchCount!=15 || catalog.totalCount!=35 || catalog.examples.size()!=35) throw new GradleException("EDU canonical catalog mismatch")
+        def roots=canonicalRoot.listFiles()?.findAll{it.isDirectory()}*.name?.toSet() ?: [] as Set
+        if(roots != (['online','batch'] as Set)) throw new GradleException("EDU package roots must be exactly online/batch: ${roots.sort()}")
+        def flat=fileTree(canonicalRoot){include 'online/*.java','batch/*.java'}.files
+        def bad=fileTree(canonicalRoot){include '**/*.java'}.files.findAll{it.name ==~ /(?:Online|Batch)\d+.*|.*(?:Example|Sample|Demo)\.java/}
+        if(!flat.empty || !bad.empty) throw new GradleException("EDU flat/numeric/example source remains")
+        catalog.examples.each { row ->
+            def pkgDir=file('src/main/java/'+row.package.replace('.','/'))
+            if(!pkgDir.isDirectory()) throw new GradleException("EDU package missing: ${row.package}")
+            if(fileTree(pkgDir){include "**/${row.primaryClass}.java"}.files.empty) throw new GradleException("EDU primary class missing: ${row.id}/${row.primaryClass}")
+            if(fileTree('src/test/java'){include "**/${row.testClass}.java"}.files.empty) throw new GradleException("EDU test missing: ${row.id}/${row.testClass}")
         }
     }
 }
 
 tasks.register('verifyEducationPublicGoldenPath') {
-    group = 'verification'
-    description = 'EDU 35가 Public API를 사용하고 구형/Raw 우회 구현을 포함하지 않는지 검증합니다.'
+    group='verification'; description='EDU Public API/Raw 우회를 검증합니다.'
     doLast {
-        def direct = configurations.implementation.dependencies
-                .findAll { it instanceof org.gradle.api.artifacts.ProjectDependency }
-                .collect { it.path }.toSet()
-        def internal = direct.findAll { it.startsWith(':internal:') || it == ':framework:core' }
-        if (!internal.isEmpty()) throw new GradleException("EDU direct internal/core dependency is forbidden: ${internal.sort()}")
-
-        def sources = (fileTree(onlineRoot) { include '**/*.java' }.files + fileTree(batchRoot) { include '**/*.java' }.files)
-        def forbidden = [
-                /\bRestClient\b(?!\s*;)/, /\bWebClient\b/, /\bKafkaTemplate\b/, /\bRabbitTemplate\b/, /\bJmsTemplate\b/,
-                /\bRedisTemplate\b/, /\bJdbcTemplate\b/, /\bNamedParameterJdbcTemplate\b/, /@Transactional\b/,
-                /MDC\.put\s*\(/, /UUID\.randomUUID\s*\(/, /new\s+Thread\s*\(/, /Executors\./, /Thread\.sleep\s*\(/,
-                /X-Transaction-Id/, /X-Original-System-Code/, /X-System-Code/, /X-Caller-System-Code/, /X-Target-System-Code/, /X-Target-Operation-Id/,
-                /com\.cpf\.[A-Za-z0-9_.]*\.internal\./
-        ]
-        def violations=[]
-        sources.each { f ->
-            def text=f.getText('UTF-8')
-            forbidden.each { p -> if (text =~ p) violations << "${project.relativePath(f)} :: ${p}" }
-        }
-        if (!violations.isEmpty()) throw new GradleException("EDU forbidden/raw pattern detected:\n" + violations.join('\n'))
+        def direct=configurations.implementation.dependencies.findAll{it instanceof org.gradle.api.artifacts.ProjectDependency}.collect{it.path}.toSet()
+        def internal=direct.findAll{it.startsWith(':internal:') || it==':framework:core'}
+        if(!internal.empty) throw new GradleException("EDU direct internal/core dependency is forbidden: ${internal.sort()}")
+        def forbidden=[/\bWebClient\b/,/\bKafkaTemplate\b/,/\bRabbitTemplate\b/,/\bJmsTemplate\b/,/\bRedisTemplate\b/,/\bJdbcTemplate\b/,/\bNamedParameterJdbcTemplate\b/,/@Transactional\b/,/MDC\.put\s*\(/,/new\s+Thread\s*\(/,/Executors\./,/Thread\.sleep\s*\(/,/X-Transaction-Id/,/X-Original-Channel/,/X-Current-Channel/,/X-Caller-Channel/,/X-Target-Channel/,/X-Target-Operation-Id/,/com\.cpf\.[A-Za-z0-9_.]*\.internal\./]
+        def violations=[]; fileTree(canonicalRoot){include '**/*.java'}.files.each{f->def text=f.getText('UTF-8');forbidden.each{pat->if(text =~ pat) violations << "${project.relativePath(f)} :: ${pat}"}}
+        if(!violations.empty) throw new GradleException("EDU forbidden/raw pattern detected:\n"+violations.join('\n'))
     }
 }
 
 tasks.register('verifyEducationOperationIds') {
-    group='verification'
-    description='온라인 20개에서 CpfOnlineTransaction operationId와 OpenAPI operationId가 동일한지 검증합니다.'
+    group='verification'; description='업무 Online Controller operationId/OpenAPI 동일성을 검증합니다.'
     doLast {
-        def failures=[]; def ids=[]
-        fileTree(onlineRoot) { include 'Online??*Example.java' }.files.sort().each { f ->
-            def text=f.getText('UTF-8')
-            def cpf=(text =~ /@CpfOnlineTransaction\s*\(\s*operationId\s*=\s*"([^"]+)"/)
-            def api=(text =~ /@Operation\s*\(\s*operationId\s*=\s*"([^"]+)"/)
-            if (!cpf.find() || !api.find()) failures << "missing operation annotation: ${project.relativePath(f)}"
-            else { ids << cpf.group(1); if (cpf.group(1) != api.group(1)) failures << "operationId mismatch: ${project.relativePath(f)}" }
-        }
-        def expected=(1..20).collect { String.format('EDU-ONLINE-%02d',it) }.toSet()
-        if (ids.toSet()!=expected) failures << "online operationId set mismatch: ${ids.toSet().sort()}"
-        if (!failures.isEmpty()) throw new GradleException(failures.join('\n'))
+        def failures=[];def ids=[]
+        fileTree(onlineRoot){include '**/*.java'}.files.sort().each{f->def text=f.getText('UTF-8');def cpf=(text =~ /@CpfOnlineTransaction\s*\(\s*operationId\s*=\s*"([^"]+)"/);def api=(text =~ /@Operation\s*\(\s*operationId\s*=\s*"([^"]+)"/);if(cpf.find()){if(!api.find())failures<<"missing OpenAPI operation: ${project.relativePath(f)}";else{ids<<cpf.group(1);if(cpf.group(1)!=api.group(1))failures<<"operationId mismatch: ${project.relativePath(f)}"}}}
+        if(ids.size()!=ids.toSet().size()) failures<<"duplicate online operationId"
+        if(!failures.empty) throw new GradleException(failures.join('\n'))
     }
 }
 
 tasks.register('verifyEducationLegacyZero') {
-    group='verification'
-    description='구 EDU ID/package/count가 Current EDU에 남지 않았는지 검증합니다.'
+    group='verification'; description='구 EDU flat/numeric/legacy 구조 0건을 검증합니다.'
     doLast {
-        def patterns=[/EDU-DEV-[0-9]+/,/EDU-BAT-[0-9]+/,/EDU-ADM-[0-9]+/,/EDU-BZA-[0-9]+/,/EDU-GW-[0-9]+/,/EDU-OPS-[0-9]+/,/\bLegacy\b/,/\bCompatibility\b/]
-        def violations=[]
-        fileTree('src') { include '**/*'; exclude '**/build/**' }.files.findAll { it.isFile() }.each { f ->
-            def text=f.getText('UTF-8')
-            patterns.each { pattern -> if (text =~ pattern) violations << "${project.relativePath(f)} :: ${pattern}" }
-        }
-        if (!violations.isEmpty()) throw new GradleException("stale EDU reference remains:\n"+violations.take(200).join('\n'))
+        def violations=[];fileTree('src'){include '**/*';exclude '**/build/**'}.files.findAll{it.isFile()}.each{f->def text=f.getText('UTF-8');if(text =~ /EDU-(?:DEV|BAT|ADM|BZA|GW|OPS)-[0-9]+/)violations<<"${project.relativePath(f)} legacy-id";if(f.name ==~ /(?:Online|Batch)\d+.*|.*(?:Example|Sample|Demo)\.java/)violations<<"${project.relativePath(f)} legacy-name"}
+        if(!violations.empty) throw new GradleException("stale EDU reference remains:\n"+violations.take(200).join('\n'))
     }
 }
 

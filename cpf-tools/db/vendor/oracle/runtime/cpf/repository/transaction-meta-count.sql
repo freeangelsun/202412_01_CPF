@@ -1,5 +1,6 @@
 SELECT COUNT(*)
-  FROM cpf_transaction_meta
- WHERE (? IS NULL OR module_code = ?)
-   AND (? IS NULL OR active_yn = ?)
-   AND (? IS NULL OR transaction_id LIKE ?)
+FROM OPS_OPERATION_CATALOG c
+JOIN OPS_OPERATION_POLICY p ON p.operation_id=c.operation_id
+WHERE (? IS NULL OR c.system_code = ?)
+  AND (? IS NULL OR p.enabled_yn = ?)
+  AND (? IS NULL OR c.operation_id LIKE ?)

@@ -14,7 +14,7 @@
       "indexBlobSha": "5af4192e2d2d913e37866ed9be95ad4e6136a58b",
       "markerSourcePath": "cpf-admin/frontend/src/generated/.cpf-openapi-source.json",
       "markerFixture": "cpf-admin/openapi-source.json",
-      "markerBlobSha": "e36035beb29fa6fa4cd7373a6a7e6d6a8cd135c9",
+      "markerBlobSha": "5ba0ab7bbe44ce3d1dc9fa5de740872ab42ebeed",
       "requiredFeatureTokens": [
         "../../generated/cpf-api",
         "admRuntimeControlPreviewChange",

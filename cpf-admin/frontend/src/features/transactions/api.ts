@@ -1,45 +1,63 @@
-import { admQuery } from "../../shared/cpfApi";
-import { admTransactionMetaInactivate, admTransactionMetaScan } from "../../generated/orval/cpf-api";
+import {
+  admTransactionMetaFindPage,
+  admTransactionMetaFindTransaction,
+  admTransactionMetaInactivate,
+} from "../../generated/cpf-api";
 
-export interface TransactionMetaRow {
-  transaction_id?: string; transactionId?: string;
-  transaction_name?: string; transactionName?: string;
-  module_code?: string; moduleCode?: string;
-  domain_code?: string; domainCode?: string;
-  http_method?: string; httpMethod?: string;
-  api_path?: string; apiPath?: string;
-  controller_class?: string; controllerClass?: string;
-  handler_method?: string; handlerMethod?: string;
-  swagger_operation_id?: string; swaggerOperationId?: string;
-  log_policy_key?: string; logPolicyKey?: string;
-  sensitive_yn?: string; sensitiveYn?: string;
-  masking_policy_key?: string; maskingPolicyKey?: string;
-  active_yn?: string; activeYn?: string;
-  first_detected_at?: string; firstDetectedAt?: string;
-  last_detected_at?: string; lastDetectedAt?: string;
-  last_scanned_at?: string; lastScannedAt?: string;
-  updated_by?: string; updatedBy?: string;
-  updated_at?: string; updatedAt?: string;
+/** ADM Operation Catalog/Policy가 반환하는 행의 느슨한 읽기 모델입니다. */
+export interface OperationCatalogRow {
+  operation_id?: string; operationId?: string; OPERATION_ID?: string;
+  operation_name?: string; operationName?: string; OPERATION_NAME?: string;
+  system_code?: string; systemCode?: string; SYSTEM_CODE?: string;
+  domain_code?: string; domainCode?: string; DOMAIN_CODE?: string;
+  application_code?: string; applicationCode?: string; APPLICATION_CODE?: string;
+  http_method?: string; httpMethod?: string; HTTP_METHOD?: string;
+  api_path?: string; apiPath?: string; API_PATH?: string;
+  controller_class?: string; controllerClass?: string; CONTROLLER_CLASS?: string;
+  handler_method?: string; handlerMethod?: string; HANDLER_METHOD?: string;
+  openapi_operation_id?: string; openapiOperationId?: string; OPENAPI_OPERATION_ID?: string;
+  discovery_status?: string; discoveryStatus?: string; DISCOVERY_STATUS?: string;
+  first_seen_at?: string; firstSeenAt?: string; FIRST_SEEN_AT?: string;
+  last_seen_at?: string; lastSeenAt?: string; LAST_SEEN_AT?: string;
+  last_instance_id?: string; lastInstanceId?: string; LAST_INSTANCE_ID?: string;
+  enabled_yn?: string; enabledYn?: string; ENABLED_YN?: string;
+  all_callers_yn?: string; allCallersYn?: string; ALL_CALLERS_YN?: string;
+  channel_policy_required_yn?: string; channelPolicyRequiredYn?: string; CHANNEL_POLICY_REQUIRED_YN?: string;
+  policy_version?: number; policyVersion?: number; POLICY_VERSION?: number;
+  change_reason?: string; changeReason?: string; CHANGE_REASON?: string;
+  log_policy_key?: string; logPolicyKey?: string; LOG_POLICY_KEY?: string;
+  sensitive_yn?: string; sensitiveYn?: string; SENSITIVE_YN?: string;
+  masking_policy_key?: string; maskingPolicyKey?: string; MASKING_POLICY_KEY?: string;
+  updated_by?: string; updatedBy?: string; UPDATED_BY?: string;
+  updated_at?: string; updatedAt?: string; UPDATED_AT?: string;
   [key: string]: unknown;
 }
-export interface TransactionMetaPage {
-  available: boolean; items: TransactionMetaRow[]; page: number; size: number;
+
+export interface OperationCatalogPage {
+  available: boolean; items: OperationCatalogRow[]; page: number; size: number;
   totalElements: number; totalPages: number;
 }
-export interface TransactionMetaDetail { available: boolean; item: TransactionMetaRow; }
-export interface TransactionMetaScanResult { available: boolean; scanned?: number; inserted?: number; updated?: number; items?: unknown[]; message?: string; [key: string]: unknown; }
+export interface OperationCatalogDetail { available: boolean; item: OperationCatalogRow; }
 
-export function findTransactionMetaPage(query: { moduleCode?: string; activeYn?: string; transactionId?: string; page: number; size: number }) {
-  return admQuery<TransactionMetaPage>("/adm/api/transactions/page", query);
+export function findOperationCatalogPage(query: { systemCode?: string; activeYn?: string; operationId?: string; page: number; size: number }) {
+  return admTransactionMetaFindPage<OperationCatalogPage>({
+    query: {
+      moduleCode: query.systemCode || undefined,
+      activeYn: query.activeYn || undefined,
+      operationId: query.operationId || undefined,
+      page: query.page,
+      size: query.size,
+    },
+  });
 }
-export function findTransactionMeta(transactionId: string) {
-  return admQuery<TransactionMetaDetail>(`/adm/api/transactions/${encodeURIComponent(transactionId)}`);
+
+export function findOperationCatalog(operationId: string) {
+  return admTransactionMetaFindTransaction<OperationCatalogDetail>({ path: { operationId } });
 }
-export async function scanTransactionMeta(reason: string) {
-  const response = await admTransactionMetaScan({ reason });
-  return response.data as TransactionMetaScanResult;
-}
-export async function inactivateTransactionMeta(transactionId: string, reason: string) {
-  const response = await admTransactionMetaInactivate(transactionId, { reason });
-  return response.data as Record<string, unknown>;
+
+export function inactivateOperation(operationId: string, policyVersion: number, reason: string) {
+  return admTransactionMetaInactivate<Record<string, unknown>>({
+    path: { operationId },
+    query: { policyVersion, reason },
+  });
 }

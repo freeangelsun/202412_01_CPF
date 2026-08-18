@@ -11,8 +11,6 @@ from pathlib import Path
 OFFICIAL_VENDORS = {"mariadb", "postgresql", "oracle"}
 CONSUMER_PATHS = {
     "CmnJdbcCalendarStore": "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
-    "CmnSampleItemService": "cpf-education/src/main/java/com/cpf/education/common/sample/CmnSampleItemService.java",
-    "CmnSampleSqlDialect": "cpf-education/src/main/java/com/cpf/education/common/sample/CmnSampleSqlDialect.java",
     "CmnJdbcTemplateStore": "cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
 }
 JAVA_STRING = re.compile(r'(?s)"""(.*?)"""|"((?:\\.|[^"\\])*)"')
@@ -105,14 +103,7 @@ def evaluate(root: Path) -> dict:
             if any(re.match(r"^(SELECT|INSERT|UPDATE|DELETE|MERGE)\s", literal) for literal in literals):
                 findings.append(f"{consumer}: inline SQL literal detected")
 
-    vendor_groups = {"offset": set(), "cursor": set()}
-    for resource in resources:
-        match = re.fullmatch(r"sample/(offset|cursor)-(mariadb|postgresql|oracle)\.sql", resource)
-        if match:
-            vendor_groups[match.group(1)].add(match.group(2))
-    for group, vendors in vendor_groups.items():
-        if vendors != OFFICIAL_VENDORS:
-            findings.append(f"sample {group} vendor coverage mismatch: {sorted(vendors)}")
+
 
     return {
         "status": "PASS" if not findings else "FAIL",

@@ -714,10 +714,11 @@ String transactionId = context.transactionId();
 String campaignCode = CpfHttpHeaders.requireCurrent().get("X-Campaign-Code");
 ```
 
-내부 Domain 호출에서는 CPF Runtime이 `X-Transaction-Id`, `X-Original-System-Code`, `X-System-Code`,
-`X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`를 대상 계약과 Runtime Context로
-자동 구성한다. 일반 Custom Header만 `CpfHttpHeaders.Builder#set/add`로 다루며 Canonical/보호 Header는
-업무 코드가 변경할 수 없다. 외부 ingress의 보호값은 Framework가 신뢰 경계에서 확정한다.
+내부 Domain 호출에서는 CPF Runtime이 `X-Transaction-Id`, `X-Original-Channel`, `X-Current-Channel`,
+`X-Caller-Channel`, `X-Target-Channel`, `X-Target-Operation-Id`를 Target Contract와 trusted Runtime Context로
+자동 구성한다. Current Channel은 Receiver가 자동 확정하며, Channel Policy는 `operationId + callerChannel`을
+사용한다. 일반 Custom Header만 `CpfHttpHeaders.Builder#set/add`로 다루며 Canonical/보호 Header는 업무 코드가
+변경할 수 없다. Same-JVM 호출도 HTTP를 만들지 않을 뿐 동일한 Channel/Operation 의미로 Context를 전환한다.
 
 ### Fixed-Length
 

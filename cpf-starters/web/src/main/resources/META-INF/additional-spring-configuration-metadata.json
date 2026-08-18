@@ -17,6 +17,11 @@
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "Enables automatic Jakarta Bean Validation for @CpfDto arguments at @CpfController boundaries."
+    },
+    {
+      "name": "cpf.operation-catalog.manifest-required",
+      "type": "java.lang.Boolean",
+      "description": "Generated Business Domain에서 Build-time Operation Manifest와 실제 Handler Mapping의 exact 일치를 요구합니다. 기본값은 Generated Domain에서 true입니다."
     }
   ]
 }

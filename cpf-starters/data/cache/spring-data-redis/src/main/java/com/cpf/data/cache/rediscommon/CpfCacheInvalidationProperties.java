@@ -1,6 +1,6 @@
 package com.cpf.data.cache.rediscommon;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import java.util.Objects;
 
 /** Durable cache invalidation consumer contract shared by cache providers and ADM. */

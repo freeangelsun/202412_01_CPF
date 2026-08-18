@@ -4,10 +4,10 @@ export interface BzaLoginHistoryResponse {
   createdAt?: string;
   failureReason?: string;
   historyId: number;
+  instanceId?: string;
   loginId?: string;
   moduleId?: string;
   operatorId?: number;
-  instanceId?: string;
   successYn?: string;
   transactionId?: string;
   userAgent?: string;

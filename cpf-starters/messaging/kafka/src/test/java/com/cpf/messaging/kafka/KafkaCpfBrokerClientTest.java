@@ -1,5 +1,16 @@
 package com.cpf.messaging.kafka;
 
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,7 +33,15 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 
 class KafkaCpfMessagingTemplateTest {
-    @AfterEach void clearInterruptFlag(){Thread.interrupted();}
+    private AutoCloseable cpfContextScope;
+    @BeforeEach void bindCpfContext() {
+        Clock clock=Clock.fixed(Instant.parse("2026-08-18T00:00:00Z"),ZoneOffset.UTC);
+        CpfExecutionIdGenerator ids=new CpfExecutionIdGenerator() { private int n; public String newExecutionId(){return "EX-"+(++n);} public String newSegmentId(){return "segment-1";} };
+        CpfContextExecutionFactory factory=new CpfContextExecutionFactory(() -> "transaction-1",ids,() -> LocalDate.of(2026,8,18),clock);
+        cpfContextScope=CpfContexts.bind(CpfContextSnapshot.capture(factory.newRoot(null,"messaging.test",null,null,clock.instant().plusSeconds(60)),clock.instant()));
+    }
+    @AfterEach void clearCpfContext() throws Exception { if(cpfContextScope!=null) cpfContextScope.close(); Thread.interrupted(); }
+
 
     @Test void returnsPublishedOnlyAfterBrokerAckAndPropagatesCompleteCpfMetadata(){
         KafkaTemplate<String,byte[]> template=template();SendResult<String,byte[]> sendResult=mock(SendResult.class);RecordMetadata metadata=mock(RecordMetadata.class);
@@ -50,10 +69,10 @@ class KafkaCpfMessagingTemplateTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test void missingTrackingFailsBeforeProviderCall(){
+    @Test void missingIdempotencyFailsBeforeProviderCall(){
         KafkaTemplate<String,byte[]> template=template();
-        CpfBrokerPublishRequest invalid=new CpfBrokerPublishRequest("m","t","k",new byte[0],"x",null,"s","p","c","i",Map.of(),Map.of());
-        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("transactionId");
+        CpfBrokerPublishRequest invalid=new CpfBrokerPublishRequest("m","t","k",new byte[0],"x","p","c",null,Map.of(),Map.of());
+        assertThatThrownBy(()->client(template,Duration.ofSeconds(1)).send(invalid)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("idempotencyKey");
     }
 
     @Test void synchronousProviderFailureAfterInvocationIsUnknown(){
@@ -84,6 +103,6 @@ class KafkaCpfMessagingTemplateTest {
 
     @SuppressWarnings("unchecked") private static KafkaTemplate<String,byte[]> template(){return mock(KafkaTemplate.class);}
     private static KafkaCpfMessagingTemplate client(KafkaTemplate<String,byte[]> t,Duration d){return new KafkaCpfMessagingTemplate(t,new CpfKafkaProperties(d,1024,true));}
-    private static CpfBrokerPublishRequest request(Map<String,String> headers){return new CpfBrokerPublishRequest("message-1","cpf.events","partition-key",new byte[]{1},"application/octet-stream","transaction-1","segment-1","producer","consumer","idempotency-1",headers,Map.of());}
+    private static CpfBrokerPublishRequest request(Map<String,String> headers){return new CpfBrokerPublishRequest("message-1","cpf.events","partition-key",new byte[]{1},"application/octet-stream","producer","consumer","idempotency-1",headers,Map.of());}
     private static String value(ProducerRecord<String,byte[]> r,String n){var h=r.headers().lastHeader(n);return h==null?null:new String(h.value(),StandardCharsets.UTF_8);}
 }

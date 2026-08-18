@@ -41,14 +41,12 @@ public record CpfChannelPolicySnapshot(
 
     public boolean expiredAt(Instant now) { return now == null || !now.isBefore(expiresAt); }
 
-    public Optional<CpfChannelExecutionPolicy> resolve(String standardExecutionId,String originalChannelCode,
-            String callerChannelCode,String requestType,Instant evaluatedAt) {
-        return policies.stream().filter(policy->policy.isEffectiveAt(evaluatedAt))
-                .filter(policy->matches(policy.standardExecutionId(),standardExecutionId))
-                .filter(policy->matches(policy.originalChannelCode(),originalChannelCode))
-                .filter(policy->matches(policy.callerChannelCode(),callerChannelCode))
-                .filter(policy->matches(policy.requestType(),requestType))
-                .max(Comparator.comparingInt(policy->specificity(policy,standardExecutionId,originalChannelCode,callerChannelCode,requestType)));
+    /** Canonical Channel Policy key는 operationId + callerChannel입니다. */
+    public Optional<CpfChannelExecutionPolicy> resolve(String operationId, String callerChannel, Instant evaluatedAt) {
+        return policies.stream().filter(policy -> policy.isEffectiveAt(evaluatedAt))
+                .filter(policy -> matches(policy.operationId(), operationId))
+                .filter(policy -> matches(policy.callerChannel(), callerChannel))
+                .max(Comparator.comparingInt(policy -> specificity(policy, operationId, callerChannel)));
     }
 
     /** DB 없는 단위 테스트 등 명시적 비운영 구성에서 사용하는 fail-close snapshot입니다. */
@@ -59,9 +57,8 @@ public record CpfChannelPolicySnapshot(
     }
 
     private boolean matches(String configured,String actual){return configured!=null&&actual!=null&&("*".equals(configured)||"ANY".equals(configured)||configured.equalsIgnoreCase(actual));}
-    private int specificity(CpfChannelExecutionPolicy policy,String executionId,String originalChannel,String callerChannel,String requestType){
-        int score=0; score+=equals(policy.standardExecutionId(),executionId)?8:0; score+=equals(policy.originalChannelCode(),originalChannel)?4:0;
-        score+=equals(policy.callerChannelCode(),callerChannel)?2:0; score+=equals(policy.requestType(),requestType)?1:0; return score;
+    private int specificity(CpfChannelExecutionPolicy policy,String operationId,String callerChannel){
+        int score=0; score+=equals(policy.operationId(),operationId)?2:0; score+=equals(policy.callerChannel(),callerChannel)?1:0; return score;
     }
     private boolean equals(String a,String b){return a!=null&&b!=null&&a.equalsIgnoreCase(b);}
 }

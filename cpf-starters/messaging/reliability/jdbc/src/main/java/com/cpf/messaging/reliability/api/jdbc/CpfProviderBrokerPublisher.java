@@ -33,8 +33,6 @@ public final class CpfProviderBrokerPublisher implements CpfBrokerPublisher {
                 envelope.message().key(),
                 envelope.message().payload(),
                 envelope.message().contentType(),
-                envelope.transactionId(),
-                envelope.segmentId(),
                 envelope.producerModule(),
                 envelope.consumerModule(),
                 envelope.idempotencyKey(),

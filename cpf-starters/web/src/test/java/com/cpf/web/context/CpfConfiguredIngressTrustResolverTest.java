@@ -12,7 +12,7 @@ class CpfConfiguredIngressTrustResolverTest {
     void callerHeaderAloneNeverCreatesInternalTrust() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("10.20.30.40");
-        request.addHeader(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "FORGED");
+        request.addHeader(CpfHttpHeaderNames.CALLER_CHANNEL, "FORGED");
 
         var decision = new CpfConfiguredIngressTrustResolver(new MockEnvironment()).resolve(request);
 
@@ -27,7 +27,7 @@ class CpfConfiguredIngressTrustResolverTest {
                 "10.20.30.0/24=MBR;10.40.0.7=EXS");
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("10.20.30.40");
-        request.addHeader(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "FORGED");
+        request.addHeader(CpfHttpHeaderNames.CALLER_CHANNEL, "FORGED");
 
         var decision = new CpfConfiguredIngressTrustResolver(environment).resolve(request);
 

@@ -5,7 +5,7 @@ import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.admin.opr.dto.AdmLoginRequest;
 import com.cpf.admin.opr.dto.AdmPasswordChangeRequest;
 import com.cpf.core.api.error.CpfValidationException;
-import com.cpf.security.api.password.CpfPasswordEncoders;
+import com.cpf.security.api.password.CpfPasswordEncoderFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -42,7 +42,7 @@ class AdmOperatorPasswordChangeTest {
         environment.setActiveProfiles("test");
         operatorService = new AdmOperatorService(
                 new AdmPasswordPolicyService(properties),
-                CpfPasswordEncoders.pbkdf2(210_000, 256, new char[0]),
+                CpfPasswordEncoderFactories.pbkdf2(210_000, 256, new char[0]),
                 new OfflineJdbcTemplate(),
                 new AdmPersistencePolicy(environment),
                 mock(AdmSessionService.class));

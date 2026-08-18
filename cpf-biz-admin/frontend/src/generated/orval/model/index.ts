@@ -70,6 +70,7 @@ export * from './bzaSupportUploadAttachmentParams';
 export * from './bzaSupportUploadAttachmentRequest';
 export * from './commonMessageRequest';
 export * from './commonResponseCodeRequest';
+export * from './cpfApiError';
 export * from './cpfCommonMutation';
 export * from './cpfControllerSourceResponse';
 export * from './cpfSensitiveDataAccessRequest';

@@ -5,7 +5,7 @@ let calls=[]; global.fetch=async (url,options)=>{calls.push([url,options]);retur
 async function rejects(fn,part){let e;try{await fn()}catch(x){e=x}assert(e,`expected reject ${part}`);assert(String(e.message).includes(part),`message ${e.message} missing ${part}`)}
 async function test(modPath,surface){
   const api=require(modPath); const create=api[`create${surface==='ADM'?'Adm':'Bza'}Headers`]; const raw=api[`${surface.toLowerCase()}RawResponse`];
-  let h=create({}); assert.equal(h.get('X-Client-Id'),surface==='ADM'?'cpf-adm-ui':'cpf-bza-ui'); assert.equal(h.get('X-Client-Version'),'1.0.0'); assert(!h.has('Authorization')); for(const name of ['X-Transaction-Id','X-Original-System-Code','X-System-Code','X-Caller-System-Code','X-Target-System-Code','X-Target-Operation-Id']){ assert(!h.has(name),`browser must not author ${name}`); assert.throws(()=>create({[name]:'forged'}),new RegExp(name)); }
+  let h=create({}); assert.equal(h.get('X-Client-Id'),surface==='ADM'?'cpf-adm-ui':'cpf-bza-ui'); assert.equal(h.get('X-Client-Version'),'1.0.0'); assert(!h.has('Authorization')); for(const name of ['X-Transaction-Id','X-Original-Channel','X-Current-Channel','X-Caller-Channel','X-Target-Channel','X-Target-Operation-Id']){ assert(!h.has(name),`browser must not author ${name}`); assert.throws(()=>create({[name]:'forged'}),new RegExp(name)); }
   assert.throws(()=>create({Authorization:'Bearer x'}),/Browser Bearer Token/);
   await rejects(()=>raw(`https://evil.example/${surface.toLowerCase()}/api/runtime-control/status`),'same-origin');
   await rejects(()=>raw(`/${surface.toLowerCase()}/api/runtime-control/status`,'POST',{nested:{operatorId:'evil'}}),'operatorId');

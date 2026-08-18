@@ -1,6 +1,6 @@
 package com.cpf.integration.http.internal;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.util.Locale;

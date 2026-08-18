@@ -170,7 +170,7 @@ public class BatchRuntimeExecutorRegistry {
                 .getBytes(StandardCharsets.UTF_8);
         CpfBrokerPublishResult result = client.send(new CpfBrokerPublishRequest(
                 messageId, topic, text(parameters.get("key"), messageId), payload,
-                "application/json", transactionId, segmentId, "cpf-batch",
+                "application/json", "cpf-batch",
                 text(parameters.get("consumerModule"), ""), messageId, Map.of(),
                 Map.of("jobId", definition.jobId(),
                         "definitionVersion", Long.toString(definition.definitionVersion()))));

@@ -1,6 +1,7 @@
 package com.cpf.integration.ai;
 
 import com.cpf.integration.ai.api.CpfAiRequest;
+import com.cpf.core.api.context.CpfContexts;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
@@ -53,7 +54,7 @@ public final class CpfAiResourceLimiter {
 
     private static String normalizeTenant(CpfAiRequest request) {
         String tenant = request.attributes().get("tenantId");
-        if (tenant == null || tenant.isBlank()) tenant = "tx:" + request.transactionId();
+        if (tenant == null || tenant.isBlank()) tenant = "tx:" + CpfContexts.transactionId();
         return tenant.trim();
     }
 

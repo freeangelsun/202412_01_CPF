@@ -14,7 +14,7 @@ import com.cpf.security.common.token.CmnJwtCreateRequest;
 import com.cpf.security.common.token.CmnJwtService;
 import com.cpf.security.common.token.CmnJwtValidationResult;
 import com.cpf.foundation.util.CpfStrings;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.security.api.password.CpfPasswordEncoder;
 import com.cpf.security.api.password.CpfPasswordVerification;

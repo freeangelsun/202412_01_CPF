@@ -4,10 +4,14 @@
   "contract": "CPF_PLATFORM_SEED_CURRENTIZATION",
   "intentId": "D-010-PLATFORM-SEED-CURRENTIZATION",
   "sourceSeedModel": "cpf-tools/db/canonical/seed-model.json",
-  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
   "migration": {
-    "allocatedVersion": 117,
-    "observedRepositoryMaxVersionAtAllocation": 116,
+    "allocatedVersion": 124,
+    "observedRepositoryMaxVersionAtAllocation": 123,
     "logicalDatabase": "cpfDB",
     "name": "platform_seed_currentization",
     "historicalMigrationsImmutable": true
@@ -16,12 +20,17 @@
     {
       "canonicalTable": "CMN_MESSAGE",
       "historicalTable": "cpf_message",
-      "key": {"message_code": "MEDU010001", "locale": "ko"}
+      "key": {
+        "message_code": "MEDU010001",
+        "locale": "ko"
+      }
     },
     {
       "canonicalTable": "CMN_RESPONSE_CODE",
       "historicalTable": "cpf_response_code",
-      "key": {"response_code": "EEDU010001"}
+      "key": {
+        "response_code": "EEDU010001"
+      }
     }
   ],
   "retiredOwnedRows": [

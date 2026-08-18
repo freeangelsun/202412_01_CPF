@@ -37,19 +37,17 @@ public class CpfReliableBrokerClient implements CpfMessagingTemplate {
     @Transactional(transactionManager = "cpfTransactionManager")
     public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         CpfBrokerPublishRequest validated = CpfBrokerHeaderPolicy.validatedRequest(request);
-        requireTracking(validated.transactionId(), "transactionId");
         requireTracking(validated.idempotencyKey(), "idempotencyKey");
         var current = CpfContexts.requireCurrent();
-        if (!current.transaction().transactionId().equals(validated.transactionId())) {
-            throw new SecurityException("Broker request transactionId does not match bound CPF Context");
-        }
+        String transactionId = current.transactionId();
+        String segmentId = current.execution().segmentId();
         var outbound = contextSupport.prepareOutbound("OUTBOX", validated.topic(), validated.messageId(), validated.headers());
         Instant occurredAt = clock.instant();
         CpfBrokerMessage message = new CpfBrokerMessage(
                 validated.messageId(), validated.topic(), validated.key(), validated.payload(),
                 validated.contentType(), outbound.headers());
         CpfBrokerEnvelope envelope = new CpfBrokerEnvelope(
-                validated.transactionId(), validated.segmentId(), validated.producerModule(),
+                transactionId, segmentId, validated.producerModule(),
                 validated.consumerModule(), validated.idempotencyKey(), occurredAt,
                 message, validated.attributes());
         CpfBrokerResult result = Objects.requireNonNull(

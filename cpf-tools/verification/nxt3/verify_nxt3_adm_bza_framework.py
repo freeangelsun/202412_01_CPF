@@ -21,7 +21,7 @@ def main():
   if not rows: fail.append(f'{label} source missing'); continue
   controllers=[(p,t) for p,t in rows if p.stem.endswith('Controller')]
   wrong_tx=[str(p.relative_to(root)) for p,t in controllers if re.search(r'(?m)^\s*@CpfOnlineTransaction(?:\s*\(|\s*$)',t)]
-  wrong_tx_headers=[str(p.relative_to(root)) for p,t in controllers if all(x in t for x in ['X-Transaction-Id','X-Caller-System-Code','X-Target-Operation-Id'])]
+  wrong_tx_headers=[str(p.relative_to(root)) for p,t in controllers if all(x in t for x in ['X-Transaction-Id','X-Caller-Channel','X-Target-Operation-Id'])]
   direct_internal=[str(p.relative_to(root)) for p,t in rows if re.search(r'import\s+com\.cpf\.core\.(?:internal|impl)\.',t)]
   cross_internal=[str(p.relative_to(root)) for p,t in rows if label=='BZA' and re.search(r'import\s+com\.cpf\.(?:member|external)\..*\.internal\.',t)]
   web_controllers=[str(p.relative_to(root)) for p,t in controllers if '@RestController' in t or '@Controller' in t]

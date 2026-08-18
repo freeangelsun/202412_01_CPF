@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[4]
 base=Path(__file__).resolve().parent
 with tempfile.TemporaryDirectory(prefix='cpf-controller-java21-') as td:
  t=Path(td);src=t/'src';classes=t/'classes';shutil.copytree(base/'stubs',src);classes.mkdir()
- actual=[root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java',root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchControlClientException.java']
+ actual=[root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java',root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchControlClientException.java',root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeCommandRequest.java',root/'cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeDeploymentPlanRequest.java']
  for p in actual:
   if not p.is_file():raise SystemExit(f'missing actual source: {p}')
   q=src/p.relative_to(root/'cpf-admin/src/main/java');q.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(p,q)

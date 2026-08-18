@@ -19,7 +19,7 @@ $result = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     admBaseUrl = $AdmBaseUrl
     login = [ordered]@{}
-    scan = [ordered]@{}
+    bootstrap = [ordered]@{}
     list = [ordered]@{}
     detail = [ordered]@{}
 }
@@ -127,27 +127,26 @@ try {
     }
 
     $headers = @{ Authorization = "Bearer $AccessToken" }
-    $scan = Invoke-Json -Method Post -Uri "$AdmBaseUrl/adm/api/transactions/scan?reason=runtime-smoke&requestUser=smoke" -Headers $headers
-    $result.scan.status = "PASSED"
-    $result.scan.response = $scan
-
+    # Runtime ApplicationReady bootstrap is the only source scanner. ADM verifies the resulting Catalog; it never triggers a manual scan.
     $list = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transactions?activeYn=Y&limit=20" -Headers $headers
     $items = @($list.items)
     if ($items.Count -lt 1) {
-        throw "Transaction meta list is empty after scan."
+        throw "Operation Catalog is empty. Runtime automatic bootstrap must complete before this smoke test."
     }
+    $result.bootstrap.status = "PASSED"
+    $result.bootstrap.mode = "RUNTIME_AUTOMATIC"
     $first = $items | Select-Object -First 1
-    $transactionId = Get-Value -Object $first -Names @("transaction_id", "transactionId", "TRANSACTION_ID")
-    if ([string]::IsNullOrWhiteSpace($transactionId)) {
-        throw "Transaction meta list does not contain a transaction id."
+    $operationId = Get-Value -Object $first -Names @("operation_id", "operationId", "OPERATION_ID")
+    if ([string]::IsNullOrWhiteSpace($operationId)) {
+        throw "Operation Catalog list does not contain operationId."
     }
     $result.list.status = "PASSED"
     $result.list.count = $items.Count
-    $result.list.firstTransactionId = $transactionId
+    $result.list.firstOperationId = $operationId
 
-    $detail = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transactions/$transactionId" -Headers $headers
+    $detail = Invoke-Json -Method Get -Uri "$AdmBaseUrl/adm/api/transactions/$operationId" -Headers $headers
     $result.detail.status = "PASSED"
-    $result.detail.transactionId = $transactionId
+    $result.detail.operationId = $operationId
     $result.detail.response = $detail
     Save-Result
 } catch {

@@ -129,7 +129,7 @@ class CpfResilienceEngineTest {
     }
 
     private static CpfResilienceCallContext context(String operationId, String idempotencyKey) {
-        return new CpfResilienceCallContext(operationId, "tx-1", idempotencyKey, NOW, Map.of());
+        return CpfResilienceCallContext.recoveredLineage(operationId, "tx-1", idempotencyKey, Map.of(), CLOCK);
     }
 
     private static CpfResiliencePolicy policy(String operationId, int maxAttempts,

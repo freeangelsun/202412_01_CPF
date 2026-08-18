@@ -108,14 +108,14 @@ public class CpfOpenApiAutoConfiguration {
                 // External ingress does not have to provide these values. CPF internal generated clients/runtime do.
                 addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, false,
                         "CPF transaction ID. External ingress may omit it; CPF generates one. Internal CPF hops propagate it automatically.");
-                addHeader(operation, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, false,
+                addHeader(operation, CpfHttpHeaderNames.ORIGINAL_CHANNEL, false,
                         "CPF internal protocol value managed by the runtime. External clients must not assert it.");
-                addHeader(operation, CpfHttpHeaderNames.SYSTEM_CODE, false,
+                addHeader(operation, CpfHttpHeaderNames.CURRENT_CHANNEL, false,
                         "CPF internal current/receiving system code managed by the runtime.");
-                addHeader(operation, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, false,
-                        "CPF internal immediate caller system code managed by the runtime.");
-                addHeader(operation, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, false,
-                        "CPF internal target system code managed by the runtime.");
+                addHeader(operation, CpfHttpHeaderNames.CALLER_CHANNEL, false,
+                        "CPF internal immediate caller channel code managed by the runtime.");
+                addHeader(operation, CpfHttpHeaderNames.TARGET_CHANNEL, false,
+                        "CPF internal target channel code managed by the runtime.");
                 addHeader(operation, CpfHttpHeaderNames.TARGET_OPERATION_ID, false,
                         "CPF internal canonical operationId. Runtime validates it against the resolved handler before Controller execution.");
             }

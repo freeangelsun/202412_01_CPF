@@ -99,7 +99,6 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/remote-logs", "REMOTE_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundles", "REMOTE_LOG_BUNDLE_DOWNLOAD");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/remote-logs/bundle-jobs", "REMOTE_LOG_BUNDLE_CREATE");
-        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions/scan", "TRANSACTION_META_SCAN");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/transactions", "TRANSACTION_META_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/audit-logs", "AUDIT_LOG_READ");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/business-calendars", "BUSINESS_CALENDAR_READ");

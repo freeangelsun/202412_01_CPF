@@ -1,0 +1,13 @@
+package com.cpf.starter.async.operation;
+import com.cpf.core.api.async.*; import com.cpf.core.api.data.encryption.CpfFieldEncryptionOperations; import com.cpf.foundation.id.spi.CpfExecutionIdGenerator; import com.cpf.foundation.runtime.CpfRuntimeMetadata; import com.fasterxml.jackson.databind.ObjectMapper; import java.time.*; import java.util.*;
+import org.springframework.boot.autoconfigure.AutoConfiguration; import org.springframework.boot.autoconfigure.condition.*; import org.springframework.context.annotation.Bean; import org.springframework.core.task.AsyncTaskExecutor; import org.springframework.scheduling.annotation.EnableScheduling; import org.springframework.scheduling.annotation.Scheduled; import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+@AutoConfiguration @EnableScheduling
+@ConditionalOnBean({CpfAsyncOperationStore.class,CpfFieldEncryptionOperations.class})
+public class CpfAsyncOperationAutoConfiguration {
+ @Bean @ConditionalOnMissingBean CpfAsyncPayloadCodec cpfAsyncPayloadCodec(CpfFieldEncryptionOperations encryption,ObjectMapper json){return new CpfAsyncPayloadCodec(encryption,json);}
+ @Bean @ConditionalOnMissingBean(CpfAsyncOperations.class) DefaultCpfAsyncOperations cpfAsyncOperations(CpfAsyncOperationStore store,List<CpfAsyncHandler<?,?>> handlers,ObjectMapper json,CpfAsyncPayloadCodec payloads,CpfExecutionIdGenerator ids,Clock cpfStarterClock){return new DefaultCpfAsyncOperations(store,handlers,json,payloads,ids,cpfStarterClock);}
+ @Bean(name="cpfAsyncTaskExecutor") @ConditionalOnMissingBean(name="cpfAsyncTaskExecutor") AsyncTaskExecutor cpfAsyncTaskExecutor(){ThreadPoolTaskExecutor e=new ThreadPoolTaskExecutor();e.setCorePoolSize(2);e.setMaxPoolSize(8);e.setQueueCapacity(100);e.setThreadNamePrefix("cpf-async-");e.initialize();return e;}
+ @Bean @ConditionalOnMissingBean CpfAsyncOperationProcessor cpfAsyncOperationProcessor(CpfAsyncOperationStore store,DefaultCpfAsyncOperations operations,AsyncTaskExecutor cpfAsyncTaskExecutor,CpfRuntimeMetadata runtime,Clock cpfStarterClock,List<CpfAsyncCompletionListener> listeners){return new CpfAsyncOperationProcessor(store,operations,cpfAsyncTaskExecutor,runtime.instanceId(),cpfStarterClock,Duration.ofSeconds(15),listeners);}
+ @Bean CpfAsyncScheduler cpfAsyncScheduler(CpfAsyncOperationProcessor processor){return new CpfAsyncScheduler(processor);}
+ static final class CpfAsyncScheduler {private final CpfAsyncOperationProcessor processor;CpfAsyncScheduler(CpfAsyncOperationProcessor processor){this.processor=processor;}@Scheduled(fixedDelayString="${cpf.async.worker.poll-interval-ms:500}") void poll(){processor.poll();}@Scheduled(fixedDelayString="${cpf.async.worker.heartbeat-interval-ms:5000}") void heartbeat(){processor.heartbeat();}}
+}

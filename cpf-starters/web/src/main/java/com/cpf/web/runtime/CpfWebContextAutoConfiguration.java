@@ -3,6 +3,7 @@ package com.cpf.web.runtime;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import com.cpf.web.context.CpfConfiguredIngressTrustResolver;
 import com.cpf.web.context.CpfDefaultHeaderFailureRecorder;
 import com.cpf.web.context.CpfHeaderFailureRecorder;
@@ -30,7 +31,7 @@ import org.springframework.core.env.Environment;
 @EnableConfigurationProperties(CpfHeaderPolicyProperties.class)
 public class CpfWebContextAutoConfiguration {
     @Bean @ConditionalOnMissingBean
-    CpfRuntimeIdentity cpfRuntimeIdentity(Environment environment) { return CpfRuntimeIdentity.from(environment); }
+    CpfRuntimeIdentity cpfRuntimeIdentity(CpfRuntimeMetadata runtime) { return CpfRuntimeIdentity.from(runtime); }
 
     @Bean @ConditionalOnMissingBean
     CpfHeaderPolicyRegistry cpfHeaderPolicyRegistry(CpfHeaderPolicyProperties properties) { return new CpfHeaderPolicyRegistry(properties); }

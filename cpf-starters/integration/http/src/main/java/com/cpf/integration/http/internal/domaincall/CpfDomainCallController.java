@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Remote Domain Call의 내부 transport endpoint입니다.
@@ -20,15 +21,19 @@ import org.springframework.web.bind.annotation.RestController;
 public final class CpfDomainCallController {
     private final CpfDefaultDomainOperationRegistry registry;
     private final ObjectMapper objectMapper;
-    public CpfDomainCallController(CpfDefaultDomainOperationRegistry registry, ObjectMapper objectMapper) {
-        this.registry = registry; this.objectMapper = objectMapper;
+    private final CpfDomainInvocationGuard invocationGuard;
+    public CpfDomainCallController(CpfDefaultDomainOperationRegistry registry, ObjectMapper objectMapper,
+            CpfDomainInvocationGuard invocationGuard) {
+        this.registry = registry; this.objectMapper = objectMapper; this.invocationGuard = invocationGuard;
     }
 
     @PostMapping("/{systemCode}/{operationId}")
     @SuppressWarnings({"rawtypes", "unchecked"})
     public CpfDomainRemoteEnvelope invoke(
-            @PathVariable String systemCode, @PathVariable String operationId, @RequestBody JsonNode payload) {
+            @PathVariable String systemCode, @PathVariable String operationId, @RequestBody JsonNode payload,
+            HttpServletRequest servletRequest) {
         CpfDomainOperation operation = registry.requireOperation(systemCode, operationId);
+        invocationGuard.verify(servletRequest, operation);
         CpfRequest request = (CpfRequest) objectMapper.convertValue(payload, operation.requestType());
         CpfResult<?> result = operation.invoke(request);
         return CpfDomainRemoteEnvelope.from(result);

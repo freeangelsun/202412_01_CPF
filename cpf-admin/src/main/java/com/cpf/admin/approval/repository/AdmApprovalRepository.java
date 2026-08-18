@@ -535,7 +535,7 @@ public class AdmApprovalRepository implements AdmApprovalDirectoryPort {
     }
 
     private static String executionLeaseOwner(){
-        return com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();
+        return com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId();
     }
 
     public int updateCommandSnapshot(long id,long version,String payloadHash,String payloadSnapshot,String operatorId){

@@ -1,6 +1,6 @@
 package com.cpf.platform.operations.observability.internal.logging.file;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Files;

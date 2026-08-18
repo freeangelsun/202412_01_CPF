@@ -3,10 +3,10 @@ export interface LoginFailureCommand {
   adminUserId?: number;
   clientIp?: string;
   increaseFailCount: boolean;
+  instanceId?: string;
   loginId?: string;
   moduleId?: string;
   reason?: string;
-  instanceId?: string;
   transactionId?: string;
   userAgent?: string;
   wasId?: string;

@@ -1,17 +1,13 @@
 package com.cpf.platform.operations.channelregistry.model;
 
-import com.cpf.foundation.execution.api.CpfStandardExecutionId;
-
 import java.time.Instant;
 import java.util.Locale;
 
-/** 표준 실행별 최초 채널과 호출 채널의 허용 조건입니다. */
+/** 업무 Operation과 직전 호출 Channel 조합에 적용하는 Canonical Channel Policy입니다. */
 public record CpfChannelExecutionPolicy(
         String policyKey,
-        String standardExecutionId,
-        String originalChannelCode,
-        String callerChannelCode,
-        String requestType,
+        String operationId,
+        String callerChannel,
         boolean allowed,
         boolean authenticationRequired,
         boolean signatureRequired,
@@ -23,10 +19,8 @@ public record CpfChannelExecutionPolicy(
 
     public CpfChannelExecutionPolicy {
         policyKey = normalize(policyKey, "정책 키", "[A-Z][A-Z0-9_.-]{2,99}");
-        standardExecutionId = normalizeExecutionId(standardExecutionId);
-        originalChannelCode = normalizeChannel(originalChannelCode);
-        callerChannelCode = normalizeChannel(callerChannelCode);
-        requestType = normalize(requestType, "요청 유형", "[A-Z*][A-Z0-9_*]{0,29}");
+        operationId = normalizeOperationId(operationId);
+        callerChannel = normalizeChannel(callerChannel);
         if (maxTps < 0) {
             throw new IllegalArgumentException("최대 TPS는 0 이상이어야 합니다.");
         }
@@ -45,16 +39,16 @@ public record CpfChannelExecutionPolicy(
                 && (effectiveTo == null || !target.isAfter(effectiveTo));
     }
 
-    private static String normalizeExecutionId(String value) {
-        String normalized = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
-        if (!"*".equals(normalized) && !CpfStandardExecutionId.isValid(normalized)) {
-            throw new IllegalArgumentException("표준 실행 ID 또는 * 형식이 올바르지 않습니다. value=" + value);
+    private static String normalizeOperationId(String value) {
+        String normalized = value == null ? "" : value.trim();
+        if (!"*".equals(normalized) && !normalized.matches("[A-Za-z][A-Za-z0-9_.:-]{2,159}")) {
+            throw new IllegalArgumentException("Canonical operationId 또는 * 형식이 올바르지 않습니다. value=" + value);
         }
         return normalized;
     }
 
     private static String normalizeChannel(String value) {
-        return normalize(value, "채널 코드", "[A-Z][A-Z0-9_]{1,29}");
+        return normalize(value, "호출 Channel", "(?:ANY|[A-Z][A-Z0-9_]{1,29})");
     }
 
     private static String normalize(String value, String fieldName, String pattern) {

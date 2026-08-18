@@ -32,7 +32,7 @@ public final class TransactionContext {
     public static final String HEADER_API_VERSION = CpfHeaderNames.API_VERSION;
     public static final String HEADER_CLIENT_ID = CpfHeaderNames.CLIENT_ID;
     public static final String HEADER_CLIENT_VERSION = CpfHeaderNames.CLIENT_VERSION;
-    public static final String HEADER_CALLER_SYSTEM_CODE = CpfHeaderNames.CALLER_SYSTEM_CODE;
+    public static final String HEADER_CALLER_CHANNEL = CpfHeaderNames.CALLER_CHANNEL;
     public static final String HEADER_CALLER_INSTANCE_ID = CpfHeaderNames.CALLER_INSTANCE_ID;
     public static final String HEADER_CORRELATION_ID = CpfHeaderNames.CORRELATION_ID;
     public static final String HEADER_IDEMPOTENCY_KEY = CpfHeaderNames.IDEMPOTENCY_KEY;
@@ -212,32 +212,32 @@ public final class TransactionContext {
         return header != null ? header.getCorrelationId() : null;
     }
 
-    public static String originalSystemCode() {
-        String value = com.cpf.core.api.context.CpfContexts.originalSystemCode();
+    public static String originalChannel() {
+        String value = com.cpf.core.api.context.CpfContexts.originalChannel();
         if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getOriginalSystemCode() : null;
+        return header != null ? header.getOriginalChannel() : null;
     }
 
-    public static String systemCode() {
-        String value = com.cpf.core.api.context.CpfContexts.systemCode();
+    public static String currentChannel() {
+        String value = com.cpf.core.api.context.CpfContexts.currentChannel();
         if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getSystemCode() : null;
+        return header != null ? header.getCurrentChannel() : null;
     }
 
-    public static String callerSystemCode() {
-        String value = com.cpf.core.api.context.CpfContexts.callerSystemCode();
+    public static String callerChannel() {
+        String value = com.cpf.core.api.context.CpfContexts.callerChannel();
         if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getCallerSystemCode() : null;
+        return header != null ? header.getCallerChannel() : null;
     }
 
-    public static String targetSystemCode() {
-        String value = com.cpf.core.api.context.CpfContexts.targetSystemCode();
+    public static String targetChannel() {
+        String value = com.cpf.core.api.context.CpfContexts.targetChannel();
         if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
-        return header != null ? header.getTargetSystemCode() : null;
+        return header != null ? header.getTargetChannel() : null;
     }
 
     public static String targetOperationId() {
@@ -322,7 +322,7 @@ public final class TransactionContext {
      * 실행 정의 ID와 이름을 MDC에 저장합니다.
      *
      * <p>{@code transactionId}는 실제 거래 실행 전체를 관통하는 34자리 전역 추적 ID이고,
-     * {@code standardExecutionId}는 O/S/B + SystemCode 기반 실행 정의 ID입니다.</p>
+     * {@code standardExecutionId}는 O/S/B + CurrentChannel 기반 실행 정의 ID입니다.</p>
      */
     public static void putStandardExecution(String standardExecutionId, String standardExecutionName) {
         putIfHasText(MDC_STANDARD_EXECUTION_ID, standardExecutionId);

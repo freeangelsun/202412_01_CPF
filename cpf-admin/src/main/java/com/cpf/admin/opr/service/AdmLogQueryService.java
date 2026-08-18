@@ -66,10 +66,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String responseCode,
             Integer httpStatus,
             String clientId,
-            String originalSystemCode,
-            String systemCode,
-            String callerSystemCode,
-            String targetSystemCode,
+            String originalChannel,
+            String currentChannel,
+            String callerChannel,
+            String targetChannel,
             String targetOperationId,
             String logType,
             String moduleId,
@@ -93,6 +93,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     WAS_ID,
                     INSTANCE_ID,
                     HOST_NAME,
+                    HOST_IP,
                     PROCESS_ID,
                     THREAD_NAME,
                     BUSINESS_TRANSACTION_ID,
@@ -102,10 +103,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     CLIENT_ID,
                     CLIENT_VERSION,
                     CALLER_INSTANCE_ID,
-                    ORIGINAL_SYSTEM_CODE,
-                    SYSTEM_CODE,
-                    CALLER_SYSTEM_CODE,
-                    TARGET_SYSTEM_CODE,
+                    ORIGINAL_CHANNEL,
+                    CURRENT_CHANNEL,
+                    CALLER_CHANNEL,
+                    TARGET_CHANNEL,
                     TARGET_OPERATION_ID,
                     MEMBER_NO,
                     CUSTOMER_NO,
@@ -138,10 +139,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             args.add(httpStatus);
         }
         appendLike(sql, args, "CLIENT_ID", clientId);
-        appendEquals(sql, args, "ORIGINAL_SYSTEM_CODE", originalSystemCode);
-        appendEquals(sql, args, "SYSTEM_CODE", systemCode);
-        appendEquals(sql, args, "CALLER_SYSTEM_CODE", callerSystemCode);
-        appendEquals(sql, args, "TARGET_SYSTEM_CODE", targetSystemCode);
+        appendEquals(sql, args, "ORIGINAL_CHANNEL", originalChannel);
+        appendEquals(sql, args, "CURRENT_CHANNEL", currentChannel);
+        appendEquals(sql, args, "CALLER_CHANNEL", callerChannel);
+        appendEquals(sql, args, "TARGET_CHANNEL", targetChannel);
         appendLike(sql, args, "TARGET_OPERATION_ID", targetOperationId);
         appendEquals(sql, args, "LOG_TYPE", logType);
         appendEquals(sql, args, "MODULE_ID", moduleId);
@@ -171,10 +172,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
     public Map<String, Object> getLogDetail(Long logIdx) {
         Map<String, Object> response = new LinkedHashMap<>();
         Map<String, Object> summary = cpfJdbcTemplate.queryForMap("""
-                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID, HOST_NAME,
+                SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, HOST_IP,
                        PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME,
                        LOG_TYPE, REQUEST_TYPE, CLIENT_ID, CLIENT_VERSION, CALLER_INSTANCE_ID,
-                       ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE, TARGET_OPERATION_ID,
+                       ORIGINAL_CHANNEL, CURRENT_CHANNEL, CALLER_CHANNEL, TARGET_CHANNEL, TARGET_OPERATION_ID,
                        MEMBER_NO, CUSTOMER_NO, DEVICE_ID, CLIENT_IP, USER_AGENT, LOCALE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, EXEC_USER,
                        START_TIME, END_TIME, DURATION_MS, REQUEST_BODY, RESPONSE, ERROR_MESSAGE

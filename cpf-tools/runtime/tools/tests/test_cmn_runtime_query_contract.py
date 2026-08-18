@@ -23,7 +23,7 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
     def test_current_contract_passes(self):
         result = MOD.evaluate(ROOT)
         self.assertEqual("PASS", result["status"], result["findings"])
-        self.assertEqual(25, result["statementCount"])
+        self.assertEqual(14, result["statementCount"])
 
     def copy_fixture(self) -> Path:
         tmp = Path(tempfile.mkdtemp())
@@ -32,8 +32,6 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
             "cpf-tools/db/runtime-template/cmn",
             "cpf-starters/common/src/main/resources/cpf-sql/cmn",
             "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
-            "cpf-education/src/main/java/com/cpf/education/common/sample/CmnSampleItemService.java",
-            "cpf-education/src/main/java/com/cpf/education/common/sample/CmnSampleSqlDialect.java",
             "cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
         ]:
             src = ROOT / relative
@@ -50,9 +48,9 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
         path.write_text(path.read_text() + "\n-- drift\n")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
-    def test_missing_vendor_variant_fails(self):
+    def test_missing_declared_runtime_resource_fails(self):
         root = self.copy_fixture()
-        path = root / "cpf-tools/db/runtime-template/cmn/sample/offset-oracle.sql"
+        path = root / "cpf-tools/db/runtime-template/cmn/calendar/find.sql"
         path.unlink()
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 

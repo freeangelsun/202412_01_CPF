@@ -241,7 +241,7 @@ public class ApprovedFileExecutor {
         attributes.put("requestUser", requireToken(requestUser, "requestUser"));
         attributes.put("overwrite", Boolean.toString(overwrite));
         CpfFileRequest request = new CpfFileRequest(
-                transactionId, segmentId, endpoint.endpointCode(), operation,
+                endpoint.endpointCode(), operation,
                 localPath.toString(), remotePath,
                 localFingerprint == null ? null : localFingerprint.sha256(),
                 localFingerprint == null ? 0L : localFingerprint.size(), attributes);

@@ -14,12 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
-/** @CpfTimed 전용 계측 Runtime. Payload는 기록하지 않고 duration/status만 Metric과 안전 로그로 남깁니다. */
+/** @CpfTimed를 Micrometer Timer semantics로 계측하고 CPF context correlation을 추가합니다. */
 @Aspect
 public final class CpfTimedAspect {
     private static final Logger log = LoggerFactory.getLogger(CpfTimedAspect.class);
     private final CpfStarterProperties properties;
     private final MeterRegistry meterRegistry;
+
     public CpfTimedAspect(CpfStarterProperties properties, MeterRegistry meterRegistry) {
         this.properties = properties;
         this.meterRegistry = meterRegistry;
@@ -29,10 +30,13 @@ public final class CpfTimedAspect {
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isPerformanceAnnotationEnabled()) return joinPoint.proceed();
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        CpfTimed perf = AnnotatedElementUtils.findMergedAnnotation(method, CpfTimed.class);
-        if (perf == null) perf = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), CpfTimed.class);
-        if (perf == null || !perf.enabled()) return joinPoint.proceed();
-        String operation = perf.value().isBlank() ? method.getDeclaringClass().getSimpleName() + "." + method.getName() : perf.value();
+        CpfTimed timed = AnnotatedElementUtils.findMergedAnnotation(method, CpfTimed.class);
+        if (timed == null) timed = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), CpfTimed.class);
+        if (timed == null) return joinPoint.proceed();
+
+        String operation = timed.value().isBlank()
+                ? method.getDeclaringClass().getSimpleName() + "." + method.getName()
+                : timed.value();
         long started = System.nanoTime();
         String outcome = "SUCCESS";
         try {
@@ -42,12 +46,24 @@ public final class CpfTimedAspect {
             throw error;
         } finally {
             long nanos = System.nanoTime() - started;
-            Timer.builder("cpf.method.duration").tag("operation", operation).tag("outcome", outcome)
-                    .register(meterRegistry).record(nanos, TimeUnit.NANOSECONDS);
+            Timer.Builder builder = Timer.builder("cpf.method.duration")
+                    .tag("operation", operation)
+                    .tag("outcome", outcome);
+            if (!timed.description().isBlank()) builder.description(timed.description());
+            if (timed.percentiles().length > 0) builder.publishPercentiles(timed.percentiles());
+            if (timed.histogram()) builder.publishPercentileHistogram();
+            String[] tags = timed.extraTags();
+            if (tags.length % 2 != 0) {
+                throw new IllegalStateException("CpfTimed.extraTags must contain key/value pairs");
+            }
+            for (int i = 0; i < tags.length; i += 2) builder.tag(tags[i], tags[i + 1]);
+            builder.register(meterRegistry).record(nanos, TimeUnit.NANOSECONDS);
+
             long elapsedMs = TimeUnit.NANOSECONDS.toMillis(nanos);
-            if (elapsedMs >= perf.slowThresholdMillis()) {
+            long thresholdMs = properties.getPerformanceSlowThresholdMillis();
+            if (elapsedMs >= thresholdMs) {
                 log.warn("CPF SLOW operation={} tx={} exec={} elapsedMs={} thresholdMs={}", operation,
-                        CpfContexts.currentTransactionId(), CpfContexts.currentExecutionId(), elapsedMs, perf.slowThresholdMillis());
+                        CpfContexts.currentTransactionId(), CpfContexts.currentExecutionId(), elapsedMs, thresholdMs);
             }
         }
     }

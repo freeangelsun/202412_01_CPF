@@ -1,0 +1,22 @@
+-- CPF V123: currentize business transaction observability identity from System Header vocabulary to Channel vocabulary.
+ALTER TABLE cpf_transaction_log RENAME COLUMN caller_system_code TO caller_channel;
+ALTER TABLE cpf_transaction_log RENAME COLUMN target_system_code TO target_channel;
+ALTER TABLE cpf_transaction_log RENAME COLUMN original_system_code TO original_channel;
+ALTER TABLE cpf_transaction_log RENAME COLUMN system_code TO current_channel;
+ALTER TABLE cpf_transaction_log ADD COLUMN host_ip VARCHAR(128);
+DROP INDEX IF EXISTS ix_cpf_transaction_log_system_time;
+DROP INDEX IF EXISTS ix_cpf_transaction_log_target_operation;
+CREATE INDEX ix_cpf_transaction_log_channel_time ON cpf_transaction_log (current_channel, start_time);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON cpf_transaction_log (target_channel, target_operation_id, start_time);
+ALTER TABLE cpf_transaction_segment RENAME COLUMN original_system_code TO original_channel;
+ALTER TABLE cpf_transaction_segment RENAME COLUMN system_code TO current_channel;
+ALTER TABLE cpf_transaction_segment RENAME COLUMN caller_system_code TO caller_channel;
+ALTER TABLE cpf_transaction_segment RENAME COLUMN target_system_code TO target_channel;
+DROP INDEX IF EXISTS ix_cpf_transaction_segment_client_system;
+DROP INDEX IF EXISTS ix_cpf_transaction_segment_target_operation;
+CREATE INDEX ix_cpf_transaction_segment_client_channel ON cpf_transaction_segment (client_id, caller_channel, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON cpf_transaction_segment (target_channel, target_operation_id, started_at);
+ALTER TABLE cpf_transaction_lineage RENAME COLUMN system_code TO current_channel;
+ALTER TABLE cpf_transaction_lineage RENAME COLUMN remote_system TO target_channel;
+ALTER TABLE cpf_transaction_lineage_archive RENAME COLUMN system_code TO current_channel;
+ALTER TABLE cpf_transaction_lineage_archive RENAME COLUMN remote_system TO target_channel;

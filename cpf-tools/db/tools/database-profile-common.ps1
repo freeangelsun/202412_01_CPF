@@ -225,6 +225,7 @@ function ConvertTo-CpfModuleProfile {
         databaseLifecycle = $databaseLifecycle
         systemCode = $systemCode
         logicalDatabase = [string]$raw.logicalDatabase
+        sharesDatabaseWith = if ($null -ne $raw.PSObject.Properties["sharesDatabaseWith"]) { ([string]$raw.sharesDatabaseWith).Trim() } else { "" }
         vendor = $vendor
         host = [string]$raw.host
         port = $port

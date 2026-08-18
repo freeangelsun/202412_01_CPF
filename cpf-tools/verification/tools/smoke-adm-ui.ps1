@@ -289,7 +289,7 @@ test("ADM UI basic click flow", async ({ page }) => {
   await transactionGroupPanel.getByLabel("transactionId").fill(process.env.ADM_UI_SMOKE_TRANSACTION_ID || "");
   await transactionGroupPanel.getByLabel("\uBAA8\uB4C8").fill(process.env.ADM_UI_SMOKE_MODULE_CODE || "REF");
   await transactionGroupPanel.getByLabel("\uC2E4\uD328 \uC5EC\uBD80").selectOption(process.env.ADM_UI_SMOKE_FAILURE_YN || "");
-  await transactionGroupPanel.getByLabel("\uD45C\uC900 \uD5E4\uB354 \uAC80\uC0C9").fill("X-System-Code");
+  await transactionGroupPanel.getByLabel("\uD45C\uC900 \uD5E4\uB354 \uAC80\uC0C9").fill("X-Current-Channel");
   await transactionGroupPanel.getByRole("button", { name: "\uC870\uD68C" }).click();
   await expect(transactionGroupPanel.getByText("External Logs")).toBeVisible({ timeout: 15000 });
   const rows = transactionGroupPanel.locator("tbody tr");

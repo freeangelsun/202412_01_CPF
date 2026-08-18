@@ -65,14 +65,16 @@ public final class CpfContexts {
     public static String operationId() { var c = current(); return c == null ? null : c.operationId(); }
     /** 현재 분산 Trace 식별자를 반환합니다. */
     public static String traceId() { var c = current(); return c == null ? null : c.traceId(); }
-    /** transactionId를 최초 생성한 원본 System Code를 반환합니다. */
-    public static String originalSystemCode() { var c = current(); return c == null ? null : c.originalSystemCode(); }
-    /** 현재 요청을 실제 처리하는 System Code를 반환합니다. */
-    public static String systemCode() { var c = current(); return c == null ? null : c.systemCode(); }
-    /** 바로 직전 호출자의 System Code를 반환합니다. */
-    public static String callerSystemCode() { var c = current(); return c == null ? null : c.callerSystemCode(); }
-    /** 현재 호출 대상 System Code를 반환합니다. */
-    public static String targetSystemCode() { var c = current(); return c == null ? null : c.targetSystemCode(); }
+    /** 최초 Transaction 시작 Channel을 반환합니다. */
+    public static String originalChannel() { var c = current(); return c == null ? null : c.originalChannel(); }
+    /** 현재 요청을 처리 중인 Runtime Channel을 반환합니다. */
+    public static String currentChannel() { var c = current(); return c == null ? null : c.currentChannel(); }
+    /** 바로 이전 Hop의 Caller Channel을 반환합니다. */
+    public static String callerChannel() { var c = current(); return c == null ? null : c.callerChannel(); }
+    /** 현재 Hop의 Target Channel을 반환합니다. */
+    public static String targetChannel() { var c = current(); return c == null ? null : c.targetChannel(); }
+    /** transactionId 발급 주체 metadata를 반환합니다. Channel과 동일한 개념이 아닙니다. */
+    public static String issuerCode() { var c = current(); return c == null ? null : c.issuerCode(); }
     /** 현재 호출 대상의 Canonical operationId를 반환합니다. */
     public static String targetOperationId() { var c = current(); return c == null ? null : c.targetOperationId(); }
     /** currentExecutionId 작업을 CPF 표준 계약에 따라 수행한다. */

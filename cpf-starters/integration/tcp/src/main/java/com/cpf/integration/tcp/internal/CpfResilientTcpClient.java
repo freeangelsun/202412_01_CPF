@@ -45,7 +45,6 @@ public final class CpfResilientTcpClient {
      */
     public CpfResilienceOutcome<byte[]> exchange(
             String operationId,
-            String transactionId,
             String idempotencyKey,
             String host,
             int port,
@@ -55,7 +54,6 @@ public final class CpfResilientTcpClient {
             int readTimeoutMillis) {
         return exchange(
                 operationId,
-                transactionId,
                 idempotencyKey,
                 host,
                 port,
@@ -69,7 +67,6 @@ public final class CpfResilientTcpClient {
 
     public CpfResilienceOutcome<byte[]> exchangeRead(
             String operationId,
-            String transactionId,
             String host,
             int port,
             byte[] request,
@@ -78,7 +75,6 @@ public final class CpfResilientTcpClient {
             int readTimeoutMillis) {
         return exchange(
                 operationId,
-                transactionId,
                 null,
                 host,
                 port,
@@ -92,7 +88,6 @@ public final class CpfResilientTcpClient {
 
     public CpfResilienceOutcome<byte[]> exchangeWrite(
             String operationId,
-            String transactionId,
             String idempotencyKey,
             String host,
             int port,
@@ -107,7 +102,6 @@ public final class CpfResilientTcpClient {
         }
         return exchange(
                 operationId,
-                transactionId,
                 idempotencyKey,
                 host,
                 port,
@@ -121,7 +115,6 @@ public final class CpfResilientTcpClient {
 
     private CpfResilienceOutcome<byte[]> exchange(
             String operationId,
-            String transactionId,
             String idempotencyKey,
             String host,
             int port,
@@ -156,8 +149,8 @@ public final class CpfResilientTcpClient {
         attributes.put(CpfResilienceCallContext.TRACE_SEGMENT_ATTRIBUTE, "tcp.exchange");
         attributes.put("cpf.integration.post-dispatch-failure", "UNKNOWN");
 
-        CpfResilienceCallContext context = CpfResilienceCallContext.now(
-                operationId, transactionId, idempotencyKey, attributes, clock);
+        CpfResilienceCallContext context = CpfResilienceCallContext.current(
+                operationId, idempotencyKey, attributes, clock);
         return resilience.execute(
                 context,
                 () -> executeTransport(

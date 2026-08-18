@@ -95,12 +95,24 @@ def verify_marker(marker: Path, frontend: Path, module: str, fail: list[str]) ->
         compatibility_text = read_text(compatibility) if compatibility.is_file() else ""
         contract_text = read_text(contract) if contract.is_file() else ""
         orval_text = read_text(orval) if orval.is_file() else ""
+        pre_runtime_adapter = (
+            str(doc.get("origin", "")) == "CONTROLLER_SOURCE_PRE_RUNTIME"
+            and doc.get("releaseEligible") is False
+            and 'export * from "../cpf-api"' in orval_text
+        )
         for operation_id in operation_ids:
-            if f"function {operation_id}<" not in compatibility_text:
+            compatibility_present = f"function {operation_id}<" in compatibility_text
+            if not compatibility_present:
                 fail.append(f"COMPATIBILITY_OPERATION_MISSING:{module}:{operation_id}")
             if f'operationId: "{operation_id}"' not in contract_text:
                 fail.append(f"OPERATION_CONTRACT_MISSING:{module}:{operation_id}")
-            if not re.search(rf"export\s+const\s+{re.escape(operation_id)}\s*=", orval_text):
+            # Controller-source pre-runtime mode deliberately exposes a thin adapter that
+            # re-exports the generated compatibility client. Release mode must replace it
+            # with real Orval output after backend runtime OpenAPI generation.
+            if pre_runtime_adapter:
+                if not compatibility_present:
+                    fail.append(f"PRE_RUNTIME_ORVAL_ADAPTER_OPERATION_MISSING:{module}:{operation_id}")
+            elif not re.search(rf"export\s+const\s+{re.escape(operation_id)}\s*=", orval_text):
                 fail.append(f"ORVAL_OPERATION_MISSING:{module}:{operation_id}")
 
 

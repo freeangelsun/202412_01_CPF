@@ -29,7 +29,7 @@ public final class CpfIntegrationClientCoordinator {
         Map<String,String> attrs=Map.of(
                 CpfResilienceCallContext.OPERATION_KIND_ATTRIBUTE,client.sideEffecting()?"WRITE":"READ",
                 CpfResilienceCallContext.TIMEOUT_RETRY_ATTRIBUTE,"false");
-        CpfResilienceCallContext call=new CpfResilienceCallContext(policy.operationId(),current.transactionId(),key,clock.instant(),attrs);
+        CpfResilienceCallContext call=CpfResilienceCallContext.current(policy.operationId(),key,attrs,clock);
         CpfResilienceOutcome<Object> result=executor.execute(call,()->{
             try{return action.call();}catch(RuntimeException e){throw e;}catch(Exception e){throw new CpfCheckedIntegrationException(e);}
         });

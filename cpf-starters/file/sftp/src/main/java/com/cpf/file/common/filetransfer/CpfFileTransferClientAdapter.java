@@ -1,5 +1,7 @@
 package com.cpf.file.common.filetransfer;
 
+import com.cpf.core.api.context.CpfContexts;
+
 import com.cpf.file.api.filetransfer.CpfCredentialReference;
 import com.cpf.file.api.filetransfer.CpfFileEndpoint;
 import com.cpf.file.api.filetransfer.CpfFileRequest;
@@ -17,7 +19,9 @@ public final class CpfFileTransferClientAdapter implements com.cpf.file.api.file
         CpfCredentialReference c=e.credential();
         CpfCredentialRef credential=c==null?null:new CpfCredentialRef(c.scope(),c.credentialId(),c.version(),c.displayName());
         CpfFileTransferEndpoint ie=new CpfFileTransferEndpoint(e.endpointCode(),e.protocol(),e.host(),e.port(),e.remoteBasePath(),credential,e.timeout(),e.attributes());
-        CpfFileTransferRequest ir=new CpfFileTransferRequest(r.transactionId(),r.segmentId(),r.endpointCode(),r.operation(),r.localPath(),r.remotePath(),r.checksum(),r.fileSize(),r.attributes());
+        String transactionId = CpfContexts.transactionId();
+        String segmentId = CpfContexts.currentSegmentId();
+        CpfFileTransferRequest ir=new CpfFileTransferRequest(transactionId,segmentId,r.endpointCode(),r.operation(),r.localPath(),r.remotePath(),r.checksum(),r.fileSize(),r.attributes());
         CpfFileTransferResult x=engine.execute(ie,ir);
         return new CpfFileResult(x.status(),x.endpointCode(),x.localPath(),x.remotePath(),x.checksum(),x.fileSize(),x.completedAt(),x.detail());
     }

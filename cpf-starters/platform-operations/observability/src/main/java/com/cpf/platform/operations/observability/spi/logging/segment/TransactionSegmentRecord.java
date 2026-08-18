@@ -33,11 +33,11 @@ public class TransactionSegmentRecord {
     private String memberNoMasked;
     private String userIdMasked;
     private String operatorIdMasked;
-    private String systemCode;
-    private String originalSystemCode;
+    private String currentChannel;
+    private String originalChannel;
     private String clientId;
-    private String callerSystemCode;
-    private String targetSystemCode;
+    private String callerChannel;
+    private String targetChannel;
     private String targetOperationId;
     private String externalInstitutionCode;
     private String externalTransactionId;
@@ -270,20 +270,20 @@ public class TransactionSegmentRecord {
         this.operatorIdMasked = operatorIdMasked;
     }
 
-    public String getSystemCode() {
-        return systemCode;
+    public String getCurrentChannel() {
+        return currentChannel;
     }
 
-    public void setSystemCode(String systemCode) {
-        this.systemCode = systemCode;
+    public void setCurrentChannel(String currentChannel) {
+        this.currentChannel = currentChannel;
     }
 
-    public String getOriginalSystemCode() {
-        return originalSystemCode;
+    public String getOriginalChannel() {
+        return originalChannel;
     }
 
-    public void setOriginalSystemCode(String originalSystemCode) {
-        this.originalSystemCode = originalSystemCode;
+    public void setOriginalChannel(String originalChannel) {
+        this.originalChannel = originalChannel;
     }
 
     public String getClientId() {
@@ -294,20 +294,20 @@ public class TransactionSegmentRecord {
         this.clientId = clientId;
     }
 
-    public String getCallerSystemCode() {
-        return callerSystemCode;
+    public String getCallerChannel() {
+        return callerChannel;
     }
 
-    public void setCallerSystemCode(String callerSystemCode) {
-        this.callerSystemCode = callerSystemCode;
+    public void setCallerChannel(String callerChannel) {
+        this.callerChannel = callerChannel;
     }
 
-    public String getTargetSystemCode() {
-        return targetSystemCode;
+    public String getTargetChannel() {
+        return targetChannel;
     }
 
-    public void setTargetSystemCode(String targetSystemCode) {
-        this.targetSystemCode = targetSystemCode;
+    public void setTargetChannel(String targetChannel) {
+        this.targetChannel = targetChannel;
     }
 
     public String getTargetOperationId() {

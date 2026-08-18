@@ -31,7 +31,7 @@ if not base_impl.is_file():
     fail.append('TXID_DEFAULT_IMPLEMENTATION_MISSING_BASE_RUNTIME')
 else:
     text=base_impl.read_text(errors='ignore')
-    for token in ['CpfTransactionIds.requireCanonical','yyyyMMddHHmmssSSS','SEQUENCE_DIGITS = 7','cpf.framework.was-id']:
+    for token in ['CpfTransactionIds.requireCanonical','yyyyMMddHHmmssSSS','SEQUENCE_DIGITS = 7','cpf.runtime.instance-id']:
         if token not in text:
             fail.append('TXID_BASE_IMPLEMENTATION_WITNESS_MISSING:'+token)
     if 'UUID.randomUUID' in text:
@@ -56,9 +56,13 @@ if not web.is_file():
     fail.append('TXID_WEB_INGRESS_MISSING')
 else:
     text=web.read_text(errors='ignore')
-    for token in ['CpfTransactionIds.isCanonical','TRUSTED_INTERNAL','rawInboundTransactionId','correlation = rawInboundTransactionId']:
+    for token in ['CpfTransactionIds.isCanonical','TRUSTED_INTERNAL','requireGeneratedTransactionId']:
         if token not in text:
             fail.append('TXID_WEB_TRUST_WITNESS_MISSING:'+token)
+    if 'effectiveTrust == CpfHttpIngressTrust.TRUSTED_INTERNAL' not in text:
+        fail.append('TXID_WEB_TRUST_BRANCH_MISSING')
+    if 'String rawTx' not in text or 'inboundTransactionId' not in text:
+        fail.append('TXID_WEB_RAW_EVIDENCE_MISSING')
 
 
 # 실제 transactionId 변수/인수에 UUID를 직접 넣는 우회 경로를 전역에서 차단한다.

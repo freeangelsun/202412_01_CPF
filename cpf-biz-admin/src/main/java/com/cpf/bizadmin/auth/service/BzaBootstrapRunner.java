@@ -1,6 +1,6 @@
 package com.cpf.bizadmin.auth.service;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.bizadmin.auth.repository.BzaAuthRepository;
 import com.cpf.security.api.password.CpfPasswordEncoder;
 import java.io.IOException;

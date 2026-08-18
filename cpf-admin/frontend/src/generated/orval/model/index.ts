@@ -203,7 +203,6 @@ export * from './admTransactionGroupFindGroupsParams';
 export * from './admTransactionMetaFindPageParams';
 export * from './admTransactionMetaFindTransactionsParams';
 export * from './admTransactionMetaInactivateParams';
-export * from './admTransactionMetaScanParams';
 export * from './applyCommand';
 export * from './applyResult';
 export * from './approvalContext';

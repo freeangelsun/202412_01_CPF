@@ -4,13 +4,13 @@ package com.cpf.platform.operations.runtimecontrol;
 public interface CpfRuntimeControlPlane extends CpfRuntimeAgentPort {
     CpfRuntimeChangeResult createChange(CpfRuntimeChangeCommand command);
     CpfRuntimeChangeResult getChange(String changeId);
-    CpfRuntimeChangeResult getByOperationId(String operationId);
-    CpfRuntimeChangeResult cancel(String changeId, String operationId, String reason, String operatorId);
-    CpfRuntimeChangeResult rollback(String changeId, String operationId, String reason, String operatorId);
+    CpfRuntimeChangeResult getByCommandId(String commandId);
+    CpfRuntimeChangeResult cancel(String changeId, String commandId, String reason, String operatorId);
+    CpfRuntimeChangeResult rollback(String changeId, String commandId, String reason, String operatorId);
     CpfRuntimeGroupResult saveGroup(CpfRuntimeGroupCommand command);
     CpfRuntimeGroupResult changeGroupMember(CpfRuntimeGroupMemberCommand command);
     CpfRuntimeGroupResult getGroup(String groupId);
-    void deleteGroup(String groupId, String operationId, Long expectedVersion, String reason, String operatorId);
+    void deleteGroup(String groupId, String commandId, Long expectedVersion, String reason, String operatorId);
     CpfRuntimeStatus status(String environment, String serviceId);
     CpfRuntimeControlHealth health();
     CpfRuntimeTargetPreview previewTargets(String changeType, int payloadSchemaVersion, CpfRuntimeTargetSelector target);

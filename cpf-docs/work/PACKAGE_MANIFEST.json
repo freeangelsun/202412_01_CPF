@@ -1,52 +1,63 @@
 {
-  "schemaVersion": 3,
-  "packageType": "ROOT_RELATIVE_OVERLAY",
-  "generatedAt": "2026-08-17 20:46:20 +0900",
-  "baselineInput": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260817_163246.zip",
-  "baselineMarkerSha": "4b6f96796c3bf26b1c3324cc4d9b701bd9415acd",
+  "schemaVersion": 4,
+  "packageType": "ROOT_RELATIVE_OVERLAY_AND_FULL_SOURCE",
+  "generatedAt": "2026-08-18T10:44:43.657980+09:00",
+  "baselineInput": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260817_205301.zip",
+  "baselineSourceZipSha256": "fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41",
+  "gitExactSha": "UNVERIFIED_SOURCE_ZIP_HAS_NO_DOT_GIT",
   "baselineSourceIdentity": {
-    "policy": "CANONICAL_PATH_SIZE_SHA256_LINES",
-    "excludes": [
-      "cpf-docs/work/CHANGE_MANIFEST.csv",
-      "cpf-docs/work/PACKAGE_MANIFEST.json",
-      "cpf-docs/work/SHA256SUMS.txt"
-    ],
-    "sha256": "f6a7d0fce7e1399454a05c1b31714ec7a3ba422332d0b4565a18576e0996f346",
-    "fileCount": 9418,
-    "totalBytes": 338988133
+    "policy": "PATH_SIZE_SHA256_FILTERED",
+    "sha256": "4a7edd5522457ee68e372ab128519a00d03b93bb7a60e2e50c34fc5530f34832",
+    "fileCount": 8247,
+    "totalBytes": 336725937
   },
   "resultSourceIdentity": {
-    "policy": "CANONICAL_PATH_SIZE_SHA256_LINES",
-    "excludes": [
-      "cpf-docs/work/CHANGE_MANIFEST.csv",
-      "cpf-docs/work/PACKAGE_MANIFEST.json",
-      "cpf-docs/work/SHA256SUMS.txt"
-    ],
-    "sha256": "7789b174d1e558613bf5c04c0398d6a486e001c65c98e8885cc1358776b0b44f",
-    "fileCount": 8356,
-    "totalBytes": 337070224
+    "policy": "PATH_SIZE_SHA256_FILTERED",
+    "sha256": "de3ee0f7fdd5c8e2f26a6ebc2f96418c71f458236b87b3701780d858edc016da",
+    "fileCount": 8378,
+    "totalBytes": 336366695
   },
-  "developmentStatus": "SESSION_DEVELOPMENT_CLOSE",
+  "developmentStatus": "SOURCE_STATIC_DEVELOPMENT_COMPLETE",
   "verificationStatus": "RUNTIME_REVERIFY_REQUIRED",
   "javaPolicy": {
-    "productAndUserLocal": "25",
-    "assistantAlternate": "21"
+    "officialUserLocal": "25",
+    "assistantSubstitute": "21"
   },
   "diffCounts": {
-    "added": 205,
-    "modified": 290,
-    "deleted": 1267,
-    "overlayPayloadCount": 495,
-    "totalDiff": 1762
+    "added": 201,
+    "modified": 348,
+    "deleted": 70,
+    "total": 619
   },
+  "fullSourceFilteredFileCountBeforePackageMeta": 8378,
+  "hardExcluded": [
+    "root build/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**",
+    "**/.gradle/**",
+    "**/node_modules/**",
+    "**/*.pyc"
+  ],
   "deleteManifest": "cpf-docs/work/current/DELETE_MANIFEST.txt",
-  "changeManifest": "cpf-docs/work/CHANGE_MANIFEST.csv",
-  "evidence": "cpf-docs/work/TEST_AND_EVIDENCE.md",
-  "handover": "cpf-docs/work/HANDOVER.md",
-  "openIssues": "cpf-docs/work/OPEN_ISSUES.md",
-  "commands": "cpf-docs/work/APPLY_AND_VALIDATE_COMMANDS.txt",
-  "codexRequest": "cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md",
-  "protectedDeletionCount": 0,
-  "finalQaComplete": false,
-  "reasonNotFinalQa": "Java25 FullLocal/live Runtime/overall verification re-run remains for next session."
+  "garbageDecisionLedger": "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv",
+  "protectedDeleteCount": 0,
+  "executedSummary": {
+    "javaSyntax": "PASS 2733/2733",
+    "edu": "PASS 20+15 / flat0 / numeric0 / internal0",
+    "generatorGate": "PASS 28/28",
+    "generatedJavac": "PASS member26 external24",
+    "db3SemanticParity": "PASS 229 tables",
+    "testingTools": "378 PASS / 22 SKIP_ENV",
+    "runtimeTools": "65 PASS / 2 SKIP_ENV / 7 subtests PASS",
+    "generatorTests": "27 PASS / 10 SKIP_ENV / 6 subtests PASS",
+    "frontendGoldenPath": "PASS",
+    "nxt3ExecutableStaticGates": "PASS"
+  },
+  "unverified": [
+    "Java25 Root Gradle build/test/publication/SBOM",
+    "live Oracle/PostgreSQL/MariaDB",
+    "Docker/Redis/Valkey",
+    "Multi-WAS/process-kill",
+    "Browser E2E"
+  ]
 }

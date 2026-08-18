@@ -1,10 +1,10 @@
-INSERT INTO cpf_channel_execution_policy (
-    policy_key, standard_execution_id, original_channel_code, caller_channel_code,
+INSERT INTO OPS_CHANNEL_EXECUTION_POLICY (
+    policy_key, operation_id, original_channel_code, caller_channel_code,
     request_type, allowed_yn, authentication_required_yn, signature_required_yn,
     max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (policy_key) DO UPDATE SET
-    standard_execution_id = EXCLUDED.standard_execution_id,
+    operation_id = EXCLUDED.operation_id,
     original_channel_code = EXCLUDED.original_channel_code,
     caller_channel_code = EXCLUDED.caller_channel_code,
     request_type = EXCLUDED.request_type,

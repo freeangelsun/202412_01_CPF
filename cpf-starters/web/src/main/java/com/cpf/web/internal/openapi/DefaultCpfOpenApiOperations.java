@@ -3,7 +3,7 @@ package com.cpf.web.internal.openapi;
 import com.cpf.web.api.openapi.CpfOpenAPIOperations;
 import com.cpf.web.api.openapi.CpfOpenAPISnapshot;
 import com.cpf.web.api.openapi.CpfOpenAPIStatus;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;

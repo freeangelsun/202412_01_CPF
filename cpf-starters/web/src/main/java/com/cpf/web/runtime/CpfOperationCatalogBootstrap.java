@@ -24,15 +24,26 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
     private final CpfRuntimeIdentity runtime;
     private final Environment environment;
     private final List<CpfOperationCatalogRegistry> registries;
+    private final CpfBusinessOperationManifestVerifier manifestVerifier;
 
     public CpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime, Environment environment,
             List<CpfOperationCatalogRegistry> registries) {
-        this.mappings=mappings; this.runtime=runtime; this.environment=environment; this.registries=List.copyOf(registries);
+        this(mappings, runtime, environment, registries, new CpfBusinessOperationManifestVerifier());
+    }
+
+    CpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime, Environment environment,
+            List<CpfOperationCatalogRegistry> registries, CpfBusinessOperationManifestVerifier manifestVerifier) {
+        this.mappings=mappings; this.runtime=runtime; this.environment=environment;
+        this.registries=List.copyOf(registries); this.manifestVerifier=manifestVerifier;
     }
 
     @Override public void onApplicationEvent(ApplicationReadyEvent event) {
         List<CpfOperationCatalogRegistry.Operation> operations=detect();
-        if (operations.isEmpty()) return;
+        boolean generatedBusinessDomain = first("cpf.generated-domain.name") != null;
+        if (operations.isEmpty() && !generatedBusinessDomain) return;
+        boolean manifestRequired = environment.getProperty(
+                "cpf.operation-catalog.manifest-required", Boolean.class, generatedBusinessDomain);
+        manifestVerifier.verify(operations, manifestRequired);
         boolean required=environment.getProperty("cpf.operation-catalog.required",Boolean.class,true);
         if (registries.size()!=1) {
             if(required) throw new IllegalStateException("CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:"+registries.size());
@@ -41,7 +52,9 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
         String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain");
         if(domain==null) domain=runtime.systemCode();
         registries.getFirst().synchronize(new CpfOperationCatalogRegistry.SyncRequest(
-                runtime.systemCode(),domain,runtime.application(),runtime.instance(),operations));
+                runtime.systemCode(), domain, runtime.application(), runtime.instance(),
+                first("cpf.runtime.artifact-version", "info.build.version"),
+                first("cpf.runtime.artifact-commit", "git.commit.id"), operations));
     }
 
     private List<CpfOperationCatalogRegistry.Operation> detect(){
@@ -59,8 +72,10 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
             String httpMethod=entry.getKey().getMethodsCondition().getMethods().stream().map(Enum::name).sorted().findFirst().orElse("ANY");
             String path=entry.getKey().getPatternValues().stream().sorted().findFirst().orElse("/");
             String domain=first("cpf.domain","cpf.generated-domain.domain","cpf.framework.domain"); if(domain==null) domain=runtime.systemCode();
-            String fp=fingerprint(operationId+"|"+httpMethod+"|"+path+"|"+handler.getBeanType().getName()+"|"+method.getName());
-            out.add(new CpfOperationCatalogRegistry.Operation(operationId,required(tx.name(),"name"),required(tx.description(),"description"),
+            String name=required(tx.name(),"name");
+            String description=required(tx.description(),"description");
+            String fp=fingerprint(operationId+"|"+name+"|"+description+"|"+httpMethod+"|"+path+"|"+handler.getBeanType().getName()+"|"+method.getName());
+            out.add(new CpfOperationCatalogRegistry.Operation(operationId,name,description,
                     runtime.systemCode(),domain,runtime.application(),httpMethod,path,handler.getBeanType().getName(),method.getName(),fp));
         }
         out.sort(Comparator.comparing(CpfOperationCatalogRegistry.Operation::operationId));

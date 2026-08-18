@@ -48,12 +48,12 @@ public final class CpfHeaderNames {
     public static final String CLIENT_ID = "X-Client-Id";
     public static final String CLIENT_INSTANCE_ID = "X-Client-Instance-Id";
     public static final String CLIENT_VERSION = "X-Client-Version";
-    public static final String CALLER_SYSTEM_CODE = "X-Caller-System-Code";
+    public static final String CALLER_CHANNEL = "X-Caller-Channel";
     public static final String CALLER_INSTANCE_ID = "X-Caller-Instance-Id";
     // Canonical online system lineage names. Web owns validation/mutation policy; base only uses these for masked observation.
-    public static final String ORIGINAL_SYSTEM_CODE = "X-Original-System-Code";
-    public static final String SYSTEM_CODE = "X-System-Code";
-    public static final String TARGET_SYSTEM_CODE = "X-Target-System-Code";
+    public static final String ORIGINAL_CHANNEL = "X-Original-Channel";
+    public static final String CURRENT_CHANNEL = "X-Current-Channel";
+    public static final String TARGET_CHANNEL = "X-Target-Channel";
     public static final String TARGET_OPERATION_ID = "X-Target-Operation-Id";
     public static final String GATEWAY_INSTANCE_ID = "X-Cpf-Gateway-Instance-Id";
     public static final String GATEWAY_ROUTE_ID = "X-Cpf-Gateway-Route-Id";

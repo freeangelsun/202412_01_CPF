@@ -2,9 +2,9 @@ package com.cpf.platform.operations.runtimecontrol;
 
 import java.time.Instant;
 
-/** Runtime 변경 생성 명령입니다. operationId/requestHash/expectedVersion으로 멱등성과 CAS를 보장합니다. */
+/** Runtime 변경 생성 명령입니다. commandId/requestHash/expectedVersion으로 멱등성과 CAS를 보장합니다. */
 public record CpfRuntimeChangeCommand(
-        String operationId,
+        String commandId,
         String changeType,
         int payloadSchemaVersion,
         CpfRuntimeTargetSelector target,
@@ -29,12 +29,12 @@ public record CpfRuntimeChangeCommand(
     }
 
     /** 기존 14-인자 생성 코드와 동일한 schema version 기본값을 제공하는 Typed 생성자입니다. */
-    public CpfRuntimeChangeCommand(String operationId, String changeType, CpfRuntimeTargetSelector target,
+    public CpfRuntimeChangeCommand(String commandId, String changeType, CpfRuntimeTargetSelector target,
                                    CpfRuntimePayload payload, Long expectedVersion, String rolloutMode,
                                    Integer waveSize, Integer quorumPercent, Instant scheduledAt,
                                    Instant expiresAt, String reason, String approvalId,
                                    String breakGlassId, String requestedBy) {
-        this(operationId, changeType, 1, target, payload, expectedVersion, rolloutMode, waveSize,
+        this(commandId, changeType, 1, target, payload, expectedVersion, rolloutMode, waveSize,
                 quorumPercent, scheduledAt, expiresAt, reason, approvalId, breakGlassId, requestedBy);
     }
 }

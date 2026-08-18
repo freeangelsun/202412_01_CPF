@@ -38,10 +38,10 @@ public class CpfRuntimeControlPlaneRepository {
         this.objectMapper = objectMapper;
     }
 
-    Optional<Map<String, Object>> findOperation(String operationId) {
+    Optional<Map<String, Object>> findCommand(String commandId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT operation_id, command_type, request_hash, entity_id, result_state, result_json, expires_at " +
-                        "FROM cpf_control_operation WHERE operation_id=?", operationId);
+                        "FROM cpf_control_operation WHERE operation_id=?", commandId);
         return rows.stream().findFirst();
     }
 
@@ -69,22 +69,22 @@ public class CpfRuntimeControlPlaneRepository {
         }
     }
 
-    public boolean insertOperation(String operationId, String commandType, String requestHash, Instant expiresAt) {
+    public boolean insertCommand(String commandId, String commandType, String requestHash, Instant expiresAt) {
         try {
             return jdbc.update("INSERT INTO cpf_control_operation " +
                             "(operation_id, command_type, request_hash, result_state, expires_at, created_by, updated_by) " +
                             "VALUES (?,?,?,?,?,?,?)",
-                    operationId, commandType, requestHash, "PROCESSING", ts(expiresAt), "CPF", "CPF") == 1;
+                    commandId, commandType, requestHash, "PROCESSING", ts(expiresAt), "CPF", "CPF") == 1;
         } catch (DuplicateKeyException duplicate) {
             return false;
         }
     }
 
-    public void completeOperation(String operationId, String entityId, String state, String resultJson) {
+    public void completeCommand(String commandId, String entityId, String state, String resultJson) {
         int updated = jdbc.update("UPDATE cpf_control_operation SET entity_id=?, result_state=?, result_json=?, updated_at=CURRENT_TIMESTAMP " +
                         "WHERE operation_id=? AND request_hash IS NOT NULL",
-                entityId, state, resultJson, operationId);
-        if (updated != 1) throw new IllegalStateException("operation 완료 상태 갱신 실패: " + operationId);
+                entityId, state, resultJson, commandId);
+        if (updated != 1) throw new IllegalStateException("operation 완료 상태 갱신 실패: " + commandId);
     }
 
     public long lockAndNextVersion(Long expectedVersion) {

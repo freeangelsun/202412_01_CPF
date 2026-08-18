@@ -5,7 +5,7 @@ import java.time.Instant;
 /** Runtime 변경의 운영 조회 결과입니다. desired/actual/ACK/drift 상태를 한 번에 판단할 수 있습니다. */
 public record CpfRuntimeChangeResult(
         String changeId,
-        String operationId,
+        String commandId,
         String changeType,
         String state,
         long desiredVersion,

@@ -1,6 +1,6 @@
 package com.cpf.platform.operations.observability.internal.logging.fallback;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.platform.operations.observability.internal.logging.CpfTransactionLogIdentity;

@@ -1,6 +1,6 @@
 package com.cpf.admin.opr.centercut;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.batch.api.CpfCenterCutOperationsPort;

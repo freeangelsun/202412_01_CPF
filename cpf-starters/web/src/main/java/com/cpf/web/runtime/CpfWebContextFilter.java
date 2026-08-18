@@ -33,6 +33,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public final class CpfWebContextFilter extends OncePerRequestFilter {
     public static final String RECEIVED_HEADERS_ATTRIBUTE = "cpf.web.received-headers";
     public static final String INGRESS_TRUST_ATTRIBUTE = "cpf.web.ingress-trust";
+    /** Trusted caller System identity resolved by mTLS/security/peer registry; never sourced from Channel headers. */
+    public static final String VERIFIED_CALLER_SYSTEM_ATTRIBUTE = "cpf.web.verified-caller-system";
     private final CpfHttpInboundContextAdapter inbound;
     private final CpfBusinessDateProvider businessDates;
     private final CpfTransactionIdGenerator transactionIds;
@@ -65,6 +67,9 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
             headerPolicies.validate(received);
             CpfHttpIngressTrustResolver.Decision decision = trustResolver.resolve(request);
             request.setAttribute(INGRESS_TRUST_ATTRIBUTE, decision.trust());
+            if (decision.verifiedCallerSystemCode() != null) {
+                request.setAttribute(VERIFIED_CALLER_SYSTEM_ATTRIBUTE, decision.verifiedCallerSystemCode());
+            }
             String clientIp = clientIpResolver.resolve(request);
             Map<String,String> firstValues = received.asMap();
             CpfHttpIngressMetadata edge = new CpfHttpIngressMetadata(
@@ -73,7 +78,7 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
                     clientIp,
                     received.get(CpfHttpHeaderNames.COUNTRY_CODE),
                     received.get(CpfHttpHeaderNames.API_VERSION),
-                    runtime.systemCode());
+                    runtime.currentChannel());
             var resolved = inbound.resolve(firstValues, decision.trust(), null, null, edge,
                     request.getMethod() + " " + request.getRequestURI(), businessDates.currentBusinessDate(), null, runtime);
             try (AutoCloseable ignored = CpfContexts.bind(resolved.snapshot());

@@ -186,14 +186,32 @@ if ($selectedVendor -in @('postgresql','oracle')) {
 
 $logicalToKey = @{}
 foreach ($profileKey in $moduleOrder) {
-    $logicalDatabase = [string]$moduleProfiles[$profileKey].logicalDatabase
+    $target = $moduleProfiles[$profileKey]
+    $logicalDatabase = [string]$target.logicalDatabase
     if ([string]::IsNullOrWhiteSpace($logicalDatabase)) {
         throw "Profile logicalDatabase가 비어 있습니다: module=$profileKey"
     }
-    if ($logicalToKey.ContainsKey($logicalDatabase)) {
-        throw "Profile logicalDatabase가 중복되었습니다: $logicalDatabase"
+    if (-not $logicalToKey.ContainsKey($logicalDatabase)) {
+        $logicalToKey[$logicalDatabase] = $profileKey
+        continue
     }
-    $logicalToKey[$logicalDatabase] = $profileKey
+
+    # Multiple CPF owners may intentionally share one physical platform database (for example core/common/admin).
+    # This is valid only when the profile explicitly declares sharesDatabaseWith and the physical DB contract is exact.
+    $ownerKey = [string]$logicalToKey[$logicalDatabase]
+    $owner = $moduleProfiles[$ownerKey]
+    $declaredOwner = [string]$target.sharesDatabaseWith
+    if ([string]::IsNullOrWhiteSpace($declaredOwner)) {
+        throw "Profile logicalDatabase가 중복되었지만 sharesDatabaseWith가 없습니다: module=$profileKey logicalDatabase=$logicalDatabase owner=$ownerKey"
+    }
+    if ($declaredOwner -ne $ownerKey) {
+        throw "sharesDatabaseWith가 logicalDatabase 정본 Owner와 다릅니다: module=$profileKey sharesDatabaseWith=$declaredOwner owner=$ownerKey logicalDatabase=$logicalDatabase"
+    }
+    foreach ($property in @('vendor','host','port','databaseName','schemaName','migrationUsername','runtimeUsername')) {
+        if ([string]$target.$property -ne [string]$owner.$property) {
+            throw "공유 DB Profile 물리 계약이 다릅니다: module=$profileKey owner=$ownerKey property=$property"
+        }
+    }
 }
 
 $installFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql"

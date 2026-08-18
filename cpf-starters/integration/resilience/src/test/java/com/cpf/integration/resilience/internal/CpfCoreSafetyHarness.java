@@ -194,9 +194,10 @@ public final class CpfCoreSafetyHarness {
         CpfResiliencePolicy timeoutBase = policy("write.timeout", 2, 100, 3);
         try (CpfResilienceEngine engine = engine(timeoutBase, runtime(timeoutBase, Duration.ofMillis(20),
                 Duration.ofMillis(50), Duration.ZERO, Duration.ZERO, 0.0d, 10), null)) {
-            CpfResilienceCallContext writeContext = new CpfResilienceCallContext(
-                    timeoutBase.operationId(), "tx", "idem", Instant.EPOCH,
-                    Map.of(CpfResilienceCallContext.OPERATION_KIND_ATTRIBUTE, "WRITE"));
+            CpfResilienceCallContext writeContext = CpfResilienceCallContext.recoveredLineage(
+                    timeoutBase.operationId(), "tx", "idem",
+                    Map.of(CpfResilienceCallContext.OPERATION_KIND_ATTRIBUTE, "WRITE"),
+                    Clock.fixed(Instant.EPOCH, ZoneOffset.UTC));
             CpfResilienceOutcome<String> result = engine.execute(writeContext, () -> {
                 try { Thread.sleep(200); }
                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
@@ -211,8 +212,9 @@ public final class CpfCoreSafetyHarness {
         MutableClock wallClock = new MutableClock(Instant.parse("2026-08-05T00:00:10Z"));
         try (CpfResilienceEngine engine = engine(preExpired, runtime(preExpired, Duration.ofSeconds(1),
                 Duration.ofSeconds(2), Duration.ZERO, Duration.ZERO, 0.0d, 1), null, wallClock)) {
-            CpfResilienceOutcome<String> result = engine.execute(new CpfResilienceCallContext(
-                    preExpired.operationId(), "tx", null, wallClock.instant().minusSeconds(3), Map.of()),
+            CpfResilienceOutcome<String> result = engine.execute(CpfResilienceCallContext.recoveredLineage(
+                    preExpired.operationId(), "tx", null, Map.of(),
+                    Clock.fixed(wallClock.instant().minusSeconds(3), ZoneOffset.UTC)),
                     () -> "MUST_NOT_RUN");
             check(result.status() == CpfResilienceOutcome.Status.TIMEOUT
                     && "DEADLINE_EXCEEDED_BEFORE_EXECUTION".equals(result.reasonCode()),
@@ -493,8 +495,8 @@ public final class CpfCoreSafetyHarness {
 
     private static CpfResilienceCallContext context(
             String operation, String idempotencyKey, Clock clock) {
-        return new CpfResilienceCallContext(operation, "tx-" + operation, idempotencyKey,
-                clock.instant(), Map.of());
+        return CpfResilienceCallContext.recoveredLineage(
+                operation, "tx-" + operation, idempotencyKey, Map.of(), clock);
     }
 
     private static void check(boolean condition, String message) {

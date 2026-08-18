@@ -11,7 +11,7 @@ def run(*args):
 def test_capability_management_contract_positive():
     result=run()
     assert result.returncode==0, result.stdout+result.stderr
-    assert 'publicStarters=24' in result.stdout
+    data=json.loads(CATALOG.read_text(encoding='utf-8')); expected=sum(1 for m in data['modules'] if m.get('visibility')=='public'); assert f'publicStarters={expected}' in result.stdout
 
 def test_new_public_starter_without_management_is_fail_closed(tmp_path):
     data=json.loads(CATALOG.read_text(encoding='utf-8'))

@@ -35,7 +35,7 @@ class CpfResilienceEngineSafetyTest {
                 Clock.fixed(Instant.EPOCH, ZoneOffset.UTC), Executors.newVirtualThreadPerTaskExecutor(),
                 () -> 0.5d, System::nanoTime)) {
             CpfResilienceOutcome<String> outcome = engine.execute(
-                    new CpfResilienceCallContext("test", "tx", "idem", Instant.EPOCH, Map.of()), () -> {
+                    CpfResilienceCallContext.recoveredLineage("test", "tx", "idem", Map.of(), Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)), () -> {
                         if (calls.incrementAndGet() == 1) throw new IllegalStateException("retry");
                         return "OK";
                     });

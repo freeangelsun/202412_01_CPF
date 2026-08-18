@@ -8,6 +8,7 @@ import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
 import com.cpf.foundation.id.DefaultCpfTransactionIdGenerator;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import com.cpf.starter.internal.context.CpfStarterContextRuntime;
 import com.cpf.core.api.config.CpfConfigCatalog;
 import java.time.Clock;
@@ -62,9 +63,13 @@ public class CpfStarterAutoConfiguration {
     @Bean @ConditionalOnMissingBean(CpfConfigCatalog.class)
     CpfConfigCatalog cpfConfigCatalog(ApplicationContext context) { return new CpfConfigurationPolicyCatalog(context); }
 
+    @Bean @ConditionalOnMissingBean
+    CpfRuntimeMetadata cpfRuntimeMetadata(Environment environment) { return CpfRuntimeMetadata.from(environment); }
+
+
     @Bean @ConditionalOnMissingBean(CpfTransactionIdGenerator.class)
-    DefaultCpfTransactionIdGenerator cpfTransactionIdGenerator(Clock cpfStarterClock, Environment environment) {
-        return new DefaultCpfTransactionIdGenerator(environment, cpfStarterClock);
+    DefaultCpfTransactionIdGenerator cpfTransactionIdGenerator(Clock cpfStarterClock, CpfRuntimeMetadata runtime) {
+        return new DefaultCpfTransactionIdGenerator(runtime.systemCode(), runtime.instanceId(), cpfStarterClock);
     }
 
     @Bean @ConditionalOnMissingBean
@@ -99,8 +104,8 @@ public class CpfStarterAutoConfiguration {
     CpfLoggingAspect cpfLoggingAspect(CpfStarterProperties properties) { return new CpfLoggingAspect(properties); }
 
     @Bean @ConditionalOnMissingBean
-    CpfPerformanceAspect cpfPerformanceAspect(CpfStarterProperties properties, MeterRegistry meterRegistry) {
-        return new CpfPerformanceAspect(properties, meterRegistry);
+    CpfTimedAspect cpfTimedAspect(CpfStarterProperties properties, MeterRegistry meterRegistry) {
+        return new CpfTimedAspect(properties, meterRegistry);
     }
 
 

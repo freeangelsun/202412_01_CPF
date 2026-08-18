@@ -4,6 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cpf.messaging.api.CpfBrokerPublishRequest;
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
+import com.cpf.messaging.context.CpfMessageBridgeContextSupport;
 import com.cpf.messaging.spi.broker.CpfBrokerEnvelope;
 import com.cpf.messaging.spi.broker.CpfBrokerOutboxPort;
 import com.cpf.messaging.spi.broker.CpfBrokerResult;
@@ -12,22 +17,36 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.transaction.annotation.Transactional;
 
 class CpfReliableBrokerClientTest {
+    private AutoCloseable contextScope;
+    private CpfMessageBridgeContextSupport contextSupport;
+    @BeforeEach void bindContext() {
+        Clock clock=Clock.fixed(NOW,ZoneOffset.UTC);
+        CpfExecutionIdGenerator ids=new CpfExecutionIdGenerator(){private int n;public String newExecutionId(){return "EX-"+(++n);}public String newSegmentId(){return "seg-1";}};
+        CpfContextExecutionFactory factory=new CpfContextExecutionFactory(() -> "tx-1",ids,() -> LocalDate.of(2026,8,5),clock);
+        contextScope=CpfContexts.bind(CpfContextSnapshot.capture(factory.newRoot(null,"messaging.test",null,null,NOW.plusSeconds(60)),NOW));
+        contextSupport=new CpfMessageBridgeContextSupport(ids,clock);
+    }
+    @AfterEach void clearContext() throws Exception { if(contextScope!=null) contextScope.close(); }
+
     private static final Instant NOW = Instant.parse("2026-08-05T01:00:00Z");
 
     @Test
     void enqueuePersistsCompleteEnvelopeAndReturnsAccepted() throws Exception {
         RecordingOutbox outbox = new RecordingOutbox();
         CpfReliableBrokerClient client = new CpfReliableBrokerClient(
-                outbox, Clock.fixed(NOW, ZoneOffset.UTC));
+                outbox, Clock.fixed(NOW, ZoneOffset.UTC), contextSupport);
         CpfBrokerPublishRequest request = request();
 
-        var result = client.enqueue(request);
+        var result = client.send(request);
 
         assertThat(result.status()).isEqualTo("ACCEPTED");
         assertThat(result.messageId()).isEqualTo("msg-1");
@@ -42,7 +61,7 @@ class CpfReliableBrokerClientTest {
         assertThat(outbox.saved.attributes()).containsEntry("tenant", "T1");
 
         Method method = CpfReliableBrokerClient.class.getMethod(
-                "enqueue", CpfBrokerPublishRequest.class);
+                "send", CpfBrokerPublishRequest.class);
         assertThat(method.isAnnotationPresent(Transactional.class)).isTrue();
     }
 
@@ -50,13 +69,12 @@ class CpfReliableBrokerClientTest {
     void rejectsReservedOrCollidingHeadersBeforeOutboxWrite() {
         RecordingOutbox outbox = new RecordingOutbox();
         CpfReliableBrokerClient client = new CpfReliableBrokerClient(
-                outbox, Clock.fixed(NOW, ZoneOffset.UTC));
+                outbox, Clock.fixed(NOW, ZoneOffset.UTC), contextSupport);
         CpfBrokerPublishRequest reserved = new CpfBrokerPublishRequest(
-                "msg-1", "topic-1", "key-1", new byte[0], "application/octet-stream",
-                "tx-1", "seg-1", "producer", "consumer", "idem-1",
+                "msg-1", "topic-1", "key-1", new byte[0], "application/octet-stream", "producer", "consumer", "idem-1",
                 Map.of("CPF.Message-Id", "override"), Map.of());
 
-        assertThatThrownBy(() -> client.enqueue(reserved))
+        assertThatThrownBy(() -> client.send(reserved))
                 .isInstanceOf(SecurityException.class);
         assertThat(outbox.saved).isNull();
 
@@ -64,11 +82,10 @@ class CpfReliableBrokerClientTest {
         colliding.put("trace-parent", "a");
         colliding.put("trace.parent", "b");
         CpfBrokerPublishRequest duplicate = new CpfBrokerPublishRequest(
-                "msg-2", "topic-1", "key-1", new byte[0], "application/octet-stream",
-                "tx-2", "seg-1", "producer", "consumer", "idem-2",
+                "msg-2", "topic-1", "key-1", new byte[0], "application/octet-stream", "producer", "consumer", "idem-2",
                 colliding, Map.of());
 
-        assertThatThrownBy(() -> client.enqueue(duplicate))
+        assertThatThrownBy(() -> client.send(duplicate))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("normalize to the same provider name");
         assertThat(outbox.saved).isNull();
@@ -77,8 +94,7 @@ class CpfReliableBrokerClientTest {
     private static CpfBrokerPublishRequest request() {
         return new CpfBrokerPublishRequest(
                 "msg-1", "topic-1", "key-1",
-                "payload".getBytes(StandardCharsets.UTF_8), "text/plain",
-                "tx-1", "seg-1", "producer", "consumer", "idem-1",
+                "payload".getBytes(StandardCharsets.UTF_8), "text/plain", "producer", "consumer", "idem-1",
                 Map.of("trace", "abc"), Map.of("tenant", "T1"));
     }
 

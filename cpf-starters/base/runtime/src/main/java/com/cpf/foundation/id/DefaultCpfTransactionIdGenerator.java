@@ -8,14 +8,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.math.BigInteger;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Locale;
 import org.springframework.core.env.Environment;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfRuntimeMetadata;
+import com.cpf.foundation.runtime.CpfRuntimeSystemCode;
 
 /**
- * CPF 34자리 transactionId의 Foundation 기본 생성 구현입니다.
+ * CPF 34자리 transactionId의 Foundation 기본 발급 구현입니다.
  *
  * <p>Core는 transactionId의 공개 의미와 검증 계약만 소유하고 실제 시간/sequence 기반 발급은
  * Foundation Runtime이 담당합니다. 동일 runtime instance 안에서는 일자별 sequence를 직렬화하여
@@ -28,18 +30,22 @@ public class DefaultCpfTransactionIdGenerator
     private static final DateTimeFormatter TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     private static final int SEQUENCE_DIGITS = 7;
 
-    private final String systemCode;
+    private final String issuerCode;
     private final String instanceToken;
     private final Clock clock;
     private LocalDate sequenceDate;
     private long sequence;
 
     public DefaultCpfTransactionIdGenerator(Environment environment, Clock clock) {
-        this(resolveSystemCode(environment), resolveRuntimeInstanceId(environment), SEQUENCE_DIGITS, clock);
+        this(CpfRuntimeMetadata.from(environment), clock);
+    }
+
+    public DefaultCpfTransactionIdGenerator(CpfRuntimeMetadata runtime, Clock clock) {
+        this(runtime.systemCode(), runtime.instanceId(), SEQUENCE_DIGITS, clock);
     }
 
     public DefaultCpfTransactionIdGenerator(String systemCode, Clock clock) {
-        this(systemCode, resolveRuntimeInstanceId(), SEQUENCE_DIGITS, clock);
+        this(systemCode, CpfInstanceIdentity.instanceId(), SEQUENCE_DIGITS, clock);
     }
 
     public DefaultCpfTransactionIdGenerator(String systemCode, String instanceId, Clock clock) {
@@ -50,7 +56,7 @@ public class DefaultCpfTransactionIdGenerator
         if (sequenceDigits != SEQUENCE_DIGITS) {
             throw new IllegalArgumentException("CPF 표준 transactionId sequence는 7자리로 고정입니다.");
         }
-        this.systemCode = CpfSystemCodes.normalize(systemCode, CpfSystemCodes.CORE);
+        this.issuerCode = CpfSystemCodes.normalize(systemCode, CpfSystemCodes.CORE);
         this.instanceToken = instanceToken(instanceId);
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
@@ -62,14 +68,14 @@ public class DefaultCpfTransactionIdGenerator
 
     @Override
     public synchronized String generate() {
-        return generate(systemCode, instanceToken);
+        return generate(issuerCode, instanceToken);
     }
 
-    public synchronized String generate(String targetSystemCode, String targetInstanceId) {
+    public synchronized String generate(String issuerCode, String targetInstanceId) {
         LocalDateTime now = LocalDateTime.now(clock);
         long next = nextSequence(now.toLocalDate());
         String value = now.format(TIMESTAMP)
-                + CpfSystemCodes.normalize(targetSystemCode, systemCode)
+                + CpfSystemCodes.normalize(issuerCode, this.issuerCode)
                 + instanceToken(targetInstanceId)
                 + String.format("%07d", next);
         return CpfTransactionIds.requireCanonical(value);
@@ -87,7 +93,7 @@ public class DefaultCpfTransactionIdGenerator
 
     @Override
     public String getModuleId() {
-        return systemCode;
+        return issuerCode;
     }
 
     @Override
@@ -107,18 +113,6 @@ public class DefaultCpfTransactionIdGenerator
         return next;
     }
 
-    private static String resolveSystemCode(Environment environment) {
-        String generated = environment.getProperty("cpf.generated-domain.system-code");
-        if (hasText(generated)) {
-            return generated;
-        }
-        String configured = environment.getProperty("cpf.framework.module-id");
-        if (hasText(configured)) {
-            return configured;
-        }
-        return environment.getProperty("spring.application.name", CpfSystemCodes.CORE);
-    }
-
     private static String instanceToken(String value) {
         if (!hasText(value)) throw new IllegalArgumentException("CPF instanceId는 비어 있을 수 없습니다.");
         String normalized = value.trim().replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
@@ -135,29 +129,6 @@ public class DefaultCpfTransactionIdGenerator
         }
     }
 
-    private static String resolveRuntimeInstanceId(Environment environment) {
-        String configured = environment == null ? null : environment.getProperty("cpf.runtime.instance-id");
-        if (!hasText(configured)) configured = System.getenv("CPF_RUNTIME_INSTANCE_ID");
-        if (hasText(configured)) return configured.trim();
-        try {
-            String host = InetAddress.getLocalHost().getHostName();
-            if (hasText(host)) return host.trim();
-        } catch (Exception ignored) {
-            // deterministic fail below: do not silently invent local/domain identifiers.
-        }
-        throw new IllegalStateException("CPF instanceId를 확정할 수 없습니다. cpf.runtime.instance-id / CPF_RUNTIME_INSTANCE_ID 또는 Runtime hostname이 필요합니다.");
-    }
-
-    private static String resolveRuntimeInstanceId() {
-        String configured = System.getProperty("cpf.runtime.instance-id");
-        if (!hasText(configured)) configured = System.getenv("CPF_RUNTIME_INSTANCE_ID");
-        if (hasText(configured)) return configured.trim();
-        try {
-            String host = InetAddress.getLocalHost().getHostName();
-            if (hasText(host)) return host.trim();
-        } catch (Exception ignored) { }
-        throw new IllegalStateException("CPF instanceId를 확정할 수 없습니다. cpf.runtime.instance-id / CPF_RUNTIME_INSTANCE_ID 또는 Runtime hostname이 필요합니다.");
-    }
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();

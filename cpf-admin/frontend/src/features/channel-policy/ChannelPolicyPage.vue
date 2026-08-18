@@ -42,10 +42,8 @@
         </div>
         <div class="filters policy-editor">
           <label>정책 키 <input v-model.trim="channelPolicyForm.policyKey" type="text" maxlength="100"></label>
-          <label>표준 실행 ID <input v-model.trim="channelPolicyForm.standardExecutionId" type="text" maxlength="10"></label>
-          <label>최초 채널 <input v-model.trim="channelPolicyForm.originalChannelCode" type="text" maxlength="30"></label>
-          <label>호출 채널 <input v-model.trim="channelPolicyForm.callerChannelCode" type="text" maxlength="30"></label>
-          <label>요청 유형 <input v-model.trim="channelPolicyForm.requestType" type="text" maxlength="30"></label>
+          <label>Operation ID <input v-model.trim="channelPolicyForm.operationId" type="text" maxlength="160" placeholder="MBR_MEMBER_JOIN 또는 *"></label>
+          <label>Caller Channel <input v-model.trim="channelPolicyForm.callerChannel" type="text" maxlength="30" placeholder="WEB2, MOBILE, MBR 또는 ANY"></label>
           <label>최대 TPS <input v-model.number="channelPolicyForm.maxTps" type="number" min="0"></label>
           <label><input v-model="channelPolicyForm.allowed" type="checkbox"> 실행 허용</label>
           <label><input v-model="channelPolicyForm.authenticationRequired" type="checkbox"> 인증 필수</label>
@@ -56,11 +54,10 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>정책 키</th><th>표준 실행</th><th>최초 채널</th><th>호출 채널</th><th>요청 유형</th><th>허용</th><th>최대 TPS</th><th>버전</th></tr></thead>
+            <thead><tr><th>정책 키</th><th>Operation ID</th><th>Caller Channel</th><th>허용</th><th>최대 TPS</th><th>버전</th></tr></thead>
             <tbody>
             <tr v-for="item in channelSnapshot.policies || []" :key="item.policyKey" @click="selectChannelExecutionPolicy(item)">
-              <td>{{ item.policyKey }}</td><td>{{ item.standardExecutionId }}</td><td>{{ item.originalChannelCode }}</td>
-              <td>{{ item.callerChannelCode }}</td><td>{{ item.requestType }}</td><td>{{ item.allowed ? '허용' : '거부' }}</td>
+              <td>{{ item.policyKey }}</td><td>{{ item.operationId }}</td><td>{{ item.callerChannel }}</td><td>{{ item.allowed ? '허용' : '거부' }}</td>
               <td>{{ item.maxTps || '제한 없음' }}</td><td>{{ item.version }}</td>
             </tr>
             </tbody>

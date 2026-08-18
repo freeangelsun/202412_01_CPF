@@ -1,8 +1,9 @@
 package com.cpf.integration.http.internal;
 
 import com.cpf.integration.api.http.CpfRestClient;
+import com.cpf.core.api.result.CpfRecoveryInfo;
+import com.cpf.core.api.result.CpfResult;
 
-import com.cpf.foundation.execution.api.CpfStandardExecutionId;
 import com.cpf.foundation.context.header.CpfHeaderNames;
 import com.cpf.integration.http.internal.servicecall.CpfServiceCallEngine;
 import com.cpf.integration.http.internal.servicecall.CpfServiceCallException;
@@ -11,6 +12,7 @@ import com.cpf.integration.http.internal.servicecall.ServiceCallResolvedTarget;
 import com.cpf.integration.http.internal.servicecall.ServiceCallResult;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,6 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -101,45 +105,6 @@ public class CpfWebClient implements CpfRestClient {
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
-    }
-
-    @Override
-    public <T> T get(
-            String standardExecutionId,
-            String serviceId,
-            Function<UriBuilder, URI> uriFunction,
-            Class<T> responseType) {
-        return get(CpfStandardExecutionId.parse(standardExecutionId), serviceId, uriFunction, responseType);
-    }
-
-    /**
-     * 표준 실행 ID를 계약 키로 사용하는 typed GET adapter 호출을 수행합니다.
-     *
-     * <p>업무 서비스는 generated client 또는 facade를 사용하고, remote adapter만 이 메서드에서
-     * transport URI를 조립합니다. timeout과 retry는 중앙 정책 및 endpoint metadata가 결정합니다.</p>
-     *
-     * @param executionId 표준 실행 ID
-     * @param serviceId 대상 서비스 ID
-     * @param uriFunction adapter 전용 상대 URI 생성기
-     * @param responseType 응답 형식
-     * @param <T> 응답 형식
-     * @return 호출 응답
-     */
-    public <T> T get(
-            CpfStandardExecutionId executionId,
-            String serviceId,
-            Function<UriBuilder, URI> uriFunction,
-            Class<T> responseType) {
-        if (executionId == null) {
-            throw new IllegalArgumentException("표준 실행 ID는 필수입니다.");
-        }
-        URI relativeUri = relativeUri(uriFunction);
-        ServiceCallRequest request = ServiceCallRequest.builder(serviceId)
-                .endpointCode(executionId.value())
-                .httpMethod("GET")
-                .requestPath(relativeUri.toString())
-                .build();
-        return get(request, responseType);
     }
 
     /**
@@ -310,6 +275,152 @@ public class CpfWebClient implements CpfRestClient {
                 .retrieve()
                 .bodyToMono(responseType)
                 .block();
+    }
+
+    @Override
+    public <T> T put(String serviceId, String path, Object requestBody, Class<T> responseType) {
+        return exchange(serviceId, "PUT", b -> b.path(normalizePath(path)).build(), requestBody, Map.of(), responseType);
+    }
+
+    @Override
+    public <T> T patch(String serviceId, String path, Object requestBody, Class<T> responseType) {
+        return exchange(serviceId, "PATCH", b -> b.path(normalizePath(path)).build(), requestBody, Map.of(), responseType);
+    }
+
+    @Override
+    public <T> T delete(String serviceId, String path, Class<T> responseType) {
+        return exchange(serviceId, "DELETE", b -> b.path(normalizePath(path)).build(), null, Map.of(), responseType);
+    }
+
+    @Override
+    public <T> T exchange(
+            String serviceId,
+            String method,
+            Function<UriBuilder, URI> uriFunction,
+            Object requestBody,
+            Map<String, String> customHeaders,
+            Class<T> responseType) {
+        URI relativeUri = relativeUri(java.util.Objects.requireNonNull(uriFunction, "uriFunction"));
+        String httpMethod = normalizeMethod(method);
+        Map<String, String> safeHeaders = allowedExternalHeaders(customHeaders);
+        ServiceCallRequest.Builder builder = ServiceCallRequest.builder(serviceId)
+                .httpMethod(httpMethod)
+                .requestPath(relativeUri.toString());
+        safeHeaders.forEach(builder::header);
+        ServiceCallRequest effective = normalizeRequest(builder.build(), httpMethod);
+        CpfServiceCallEngine engine = serviceCallEngine();
+        if (engine != null && engine.isEnabled()) {
+            ServiceCallResult<T> result = invokeThroughEngineOrFallback(engine, effective,
+                    target -> executeWebClient(webClient(target), effective, requestBody, responseType, timeout(effective, target)));
+            if (result != null) return requireSuccess(result);
+        }
+        return executeWebClient(service(effective.serviceId()), effective, requestBody, responseType, null);
+    }
+
+    @Override
+    public <T> CpfResult<T> exchangeResult(
+            String serviceId,
+            String method,
+            Function<UriBuilder, URI> uriFunction,
+            Object requestBody,
+            Map<String, String> customHeaders,
+            Class<T> responseType) {
+        URI relativeUri = relativeUri(java.util.Objects.requireNonNull(uriFunction, "uriFunction"));
+        String httpMethod = normalizeMethod(method);
+        Map<String, String> safeHeaders = allowedExternalHeaders(customHeaders);
+        ServiceCallRequest.Builder builder = ServiceCallRequest.builder(serviceId)
+                .httpMethod(httpMethod)
+                .requestPath(relativeUri.toString());
+        safeHeaders.forEach(builder::header);
+        ServiceCallRequest effective = normalizeRequest(builder.build(), httpMethod);
+        CpfServiceCallEngine engine = serviceCallEngine();
+        if (engine != null && engine.isEnabled()) {
+            ServiceCallResult<T> result = invokeThroughEngineOrFallback(engine, effective,
+                    target -> executeWebClient(webClient(target), effective, requestBody, responseType, timeout(effective, target)));
+            if (result != null) return toCpfResult(result);
+        }
+        try {
+            return CpfResult.success(executeWebClient(service(effective.serviceId()), effective, requestBody, responseType, null));
+        } catch (RuntimeException ex) {
+            return CpfResult.technicalFailure("CPF-HTTP-TRANSPORT", safeMessage(ex));
+        }
+    }
+
+    private <T> CpfResult<T> toCpfResult(ServiceCallResult<T> result) {
+        if (result.successValue()) return CpfResult.success(result.responseBody());
+        if (result.businessFailureValue()) return CpfResult.businessFailure(result.failureCode(), result.failureMessage());
+        if (result.unknownValue()) {
+            String recoveryId = result.recoveryId() == null || result.recoveryId().isBlank()
+                    ? "service-call:" + java.util.UUID.randomUUID() : result.recoveryId();
+            String action = result.recoveryAction() == null || result.recoveryAction().isBlank()
+                    ? "PROBE_OR_RECONCILE" : result.recoveryAction();
+            return CpfResult.unknown(result.failureCode(), result.failureMessage(), new CpfRecoveryInfo(recoveryId, action));
+        }
+        return CpfResult.technicalFailure(result.failureCode(), result.failureMessage());
+    }
+
+    private String safeMessage(Throwable failure) {
+        String message = failure == null ? null : failure.getMessage();
+        return message == null || message.isBlank() ? "External HTTP transport failed" : message;
+    }
+
+    private <T> T executeWebClient(
+            WebClient client, ServiceCallRequest request, Object body, Class<T> responseType, Duration timeout) {
+        WebClient.RequestBodySpec spec = client.method(HttpMethod.valueOf(request.httpMethod()))
+                .uri(request.requestPath())
+                .headers(headers -> request.headers().forEach(headers::set));
+        WebClient.RequestHeadersSpec<?> ready = body == null ? spec : spec.bodyValue(body);
+        var mono = ready.retrieve().bodyToMono(responseType);
+        return timeout == null ? mono.block() : mono.block(timeout);
+    }
+
+    private ServiceCallRequest normalizeRequest(ServiceCallRequest request, String method) {
+        if (request == null || request.serviceId() == null || request.serviceId().isBlank()) {
+            throw new IllegalArgumentException("서비스 호출 serviceId는 필수입니다.");
+        }
+        return runtimePolicy.apply(withEndpointTimeout(new ServiceCallRequest(
+                request.serviceId().trim(), request.endpointCode(), request.instanceId(), method,
+                normalizePath(request.requestPath()), request.timeoutMillis(), request.retryCount(),
+                request.headers(), request.attributes())));
+    }
+
+    private String normalizeMethod(String method) {
+        if (method == null || method.isBlank()) throw new IllegalArgumentException("HTTP method는 필수입니다.");
+        String normalized = method.trim().toUpperCase(Locale.ROOT);
+        if (!Set.of("GET", "POST", "PUT", "PATCH", "DELETE").contains(normalized)) {
+            throw new IllegalArgumentException("지원하지 않는 HTTP method입니다: " + method);
+        }
+        return normalized;
+    }
+
+    private Map<String, String> allowedExternalHeaders(Map<String, String> headers) {
+        if (headers == null || headers.isEmpty()) return Map.of();
+        Map<String, String> copy = new java.util.LinkedHashMap<>();
+        for (var entry : headers.entrySet()) {
+            String name = entry.getKey();
+            String value = entry.getValue();
+            if (name == null || name.isBlank() || value == null) continue;
+            if (protectedExternalHeader(name)) {
+                throw new IllegalArgumentException("CPF 보호/인증 Header는 CpfRestClient customHeaders로 직접 설정할 수 없습니다: " + name);
+            }
+            copy.put(name, value);
+        }
+        return Map.copyOf(copy);
+    }
+
+    private boolean protectedExternalHeader(String name) {
+        String n = name.trim().toLowerCase(Locale.ROOT);
+        return Set.of(
+                CpfHeaderNames.TRANSACTION_ID,
+                CpfHeaderNames.ORIGINAL_CHANNEL,
+                CpfHeaderNames.CURRENT_CHANNEL,
+                CpfHeaderNames.CALLER_CHANNEL,
+                CpfHeaderNames.TARGET_CHANNEL,
+                CpfHeaderNames.TARGET_OPERATION_ID,
+                CpfHeaderNames.AUTHORIZATION,
+                CpfHeaderNames.API_KEY,
+                CpfHeaderNames.REQUEST_SIGNATURE)
+                .stream().map(v -> v.toLowerCase(Locale.ROOT)).anyMatch(n::equals);
     }
 
     private <T> ServiceCallResult<T> invokeThroughEngineOrFallback(

@@ -18,26 +18,26 @@ class CpfHttpHeadersContractTest {
     void canonicalSixAreReadOnlyToBusinessCodeAndValidationRejectsMissingValues() {
         Map<String, String> headers = Map.of(
                 CpfHttpHeaders.transactionId(), TX,
-                CpfHttpHeaders.originalSystemCode(), "MBR",
-                CpfHttpHeaders.systemCode(), "EXS",
-                CpfHttpHeaders.callerSystemCode(), "MBR",
-                CpfHttpHeaders.targetSystemCode(), "EXS",
+                CpfHttpHeaders.originalChannel(), "MBR",
+                CpfHttpHeaders.currentChannel(), "EXS",
+                CpfHttpHeaders.callerChannel(), "MBR",
+                CpfHttpHeaders.targetChannel(), "EXS",
                 CpfHttpHeaders.targetOperationId(), "memberFind");
 
         CpfHttpHeaders.validateInternal(headers);
         assertEquals(TX, CpfHttpHeaders.get(headers, CpfHttpHeaders.transactionId()));
-        assertEquals("MBR", CpfHttpHeaders.get(headers, CpfHttpHeaders.originalSystemCode()));
-        assertEquals("EXS", CpfHttpHeaders.get(headers, CpfHttpHeaders.systemCode()));
-        assertEquals("MBR", CpfHttpHeaders.get(headers, CpfHttpHeaders.callerSystemCode()));
-        assertEquals("EXS", CpfHttpHeaders.get(headers, CpfHttpHeaders.targetSystemCode()));
+        assertEquals("MBR", CpfHttpHeaders.get(headers, CpfHttpHeaders.originalChannel()));
+        assertEquals("EXS", CpfHttpHeaders.get(headers, CpfHttpHeaders.currentChannel()));
+        assertEquals("MBR", CpfHttpHeaders.get(headers, CpfHttpHeaders.callerChannel()));
+        assertEquals("EXS", CpfHttpHeaders.get(headers, CpfHttpHeaders.targetChannel()));
         assertEquals("memberFind", CpfHttpHeaders.get(headers, CpfHttpHeaders.targetOperationId()));
 
         Map<String, String> missingOperation = Map.of(
                 CpfHttpHeaders.transactionId(), TX,
-                CpfHttpHeaders.originalSystemCode(), "MBR",
-                CpfHttpHeaders.systemCode(), "EXS",
-                CpfHttpHeaders.callerSystemCode(), "MBR",
-                CpfHttpHeaders.targetSystemCode(), "EXS");
+                CpfHttpHeaders.originalChannel(), "MBR",
+                CpfHttpHeaders.currentChannel(), "EXS",
+                CpfHttpHeaders.callerChannel(), "MBR",
+                CpfHttpHeaders.targetChannel(), "EXS");
         assertThrows(CpfHeaderValidationException.class, () -> CpfHttpHeaders.validateInternal(missingOperation));
     }
 
@@ -62,7 +62,7 @@ class CpfHttpHeadersContractTest {
         assertThrows(CpfHeaderValidationException.class,
                 () -> CpfHttpHeaders.builder().set(CpfHttpHeaders.transactionId(), "forged"));
         assertThrows(CpfHeaderValidationException.class,
-                () -> CpfHttpHeaders.builder().remove(CpfHttpHeaders.targetSystemCode()));
+                () -> CpfHttpHeaders.builder().remove(CpfHttpHeaders.targetChannel()));
 
         Map<String, List<String>> custom = CpfHttpHeaders.builder()
                 .set("X-Business-Mode", "FAST")

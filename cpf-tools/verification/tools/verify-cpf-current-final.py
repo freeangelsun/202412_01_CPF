@@ -1,12 +1,59 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json,re,sys
+import json,re,sys,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
 FAIL=[]; INFO={}
 
 def fail(msg): FAIL.append(msg)
 def text(p): return p.read_text(encoding='utf-8-sig',errors='ignore')
+
+def _fallback_product_file(p:Path)->bool:
+    """Keep repository source/config files while excluding generated/external work trees.
+
+    `cpf-tools/build/**` is an intentional product-source path and must never be dropped
+    merely because a path component is named `build`.
+    """
+    try:
+        parts=p.relative_to(ROOT).parts
+    except ValueError:
+        return False
+    if any(part in {'.git','.gradle','node_modules','__pycache__','.idea','.vscode','coverage'} for part in parts):
+        return False
+    if 'build' in parts and not (len(parts)>=2 and parts[0]=='cpf-tools' and parts[1]=='build'):
+        return False
+    if 'dist' in parts and parts[0] in {'cpf-admin','cpf-biz-admin'}:
+        return False
+    return True
+
+def _git_product_paths()->set[str]|None:
+    """Use Git's tracked + untracked/non-ignored view when the verifier runs in a real checkout."""
+    try:
+        cp=subprocess.run(
+            ['git','-C',str(ROOT),'ls-files','-co','--exclude-standard','-z'],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True
+        )
+        return {x.decode('utf-8','surrogateescape').replace('\\','/') for x in cp.stdout.split(b'\\0') if x}
+    except Exception:
+        return None
+
+_GIT_PRODUCT_PATHS=_git_product_paths()
+
+def product_file(p:Path)->bool:
+    if not p.is_file():
+        return False
+    try:
+        rel=p.relative_to(ROOT).as_posix()
+    except ValueError:
+        return False
+    if _GIT_PRODUCT_PATHS is not None:
+        return rel in _GIT_PRODUCT_PATHS
+    return _fallback_product_file(p)
+
+def product_files(base:Path, pattern:str='*'):
+    if not base.exists():
+        return []
+    return [p for p in base.rglob(pattern) if product_file(p)]
 manifest=ROOT/'cpf-docs/work/current/DELETE_MANIFEST.txt'
 entries=[]
 if not manifest.is_file(): fail('DELETE_MANIFEST missing')
@@ -28,23 +75,37 @@ def survives(p:Path)->bool:
     try:r=p.relative_to(ROOT).as_posix()
     except ValueError:return False
     return r not in deleted
-# EDU exact 35 in final state
+# EDU exact 35 is feature-package based. Numeric flat Example classes are legacy and must be removed via manifest.
 base=ROOT/'cpf-education/src/main/java/com/cpf/education'
-on=[p for p in (base/'online').glob('Online??*Example.java') if survives(p)] if (base/'online').is_dir() else []
-ba=[p for p in (base/'batch').glob('Batch??*Example.java') if survives(p)] if (base/'batch').is_dir() else []
-INFO['eduOnline']=len(on); INFO['eduBatch']=len(ba)
-if len(on)!=20 or len(ba)!=15: fail(f'EDU count online={len(on)} batch={len(ba)}')
+online_expected={'basiccrud','querypaging','common','validation','internalservice','domaincall','externalrest','fixedlength','transaction','externalsideeffect','ondemandbatch','centercut','cache','messaging','file','securityaudit','recovery','concurrency','webhook'}
+# transaction owns two canonical feature subpackages: required + requiresnew. Count those separately.
+online_features=[]
+if (base/'online').is_dir():
+    for name in sorted(online_expected-{'transaction'}):
+        d=base/'online'/name
+        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): online_features.append(name)
+    for name in ('required','requiresnew'):
+        d=base/'online'/'transaction'/name
+        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): online_features.append('transaction.'+name)
+batch_expected={'tasklet','chunk','flatfile','partition','centercut','scheduler','restart','distributedworker','shellcommand','conditionalflow','chunktransaction','requiresnew','steptransaction','externalcall','ondemand'}
+batch_features=[]
+if (base/'batch').is_dir():
+    for name in sorted(batch_expected):
+        d=base/'batch'/name
+        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): batch_features.append(name)
+INFO['eduOnline']=len(online_features); INFO['eduBatch']=len(batch_features)
+if len(online_features)!=20 or len(batch_features)!=15: fail(f'EDU count online={len(online_features)} batch={len(batch_features)}')
 # surviving EDU root dirs (logical after manifest)
 roots=[]
 if base.is_dir():
     for d in base.iterdir():
         if not d.is_dir(): continue
-        if any(survives(p) for p in d.rglob('*') if p.is_file()): roots.append(d.name)
+        if any(survives(p) for p in product_files(d)): roots.append(d.name)
 if set(roots)!={'online','batch'}: fail(f'EDU final package roots={sorted(roots)}')
 # legacy ids in surviving EDU only
 legacy=[re.compile(r'EDU-DEV-\d+'),re.compile(r'EDU-BAT-\d+'),re.compile(r'EDU-ADM-\d+'),re.compile(r'EDU-BZA-\d+'),re.compile(r'EDU-GW-\d+'),re.compile(r'EDU-OPS-\d+')]
-for p in (ROOT/'cpf-education').rglob('*'):
-    if not p.is_file() or not survives(p) or p.stat().st_size>2_000_000: continue
+for p in product_files(ROOT/'cpf-education'):
+    if not survives(p) or p.stat().st_size>2_000_000: continue
     t=text(p)
     for pat in legacy:
         if pat.search(t): fail(f'legacy EDU id:{p.relative_to(ROOT)}:{pat.pattern}')
@@ -57,7 +118,7 @@ except Exception as e: fail(f'EDU governance catalog parse:{e}')
 # public Java file name + duplicate product FQCN
 fq={}; mismatch=[]
 exclude_prefix=('cpf-tools/verification/java21/','cpf-tools/runtime/tools/tests/runtime-fixtures/')
-for p in ROOT.rglob('*.java'):
+for p in product_files(ROOT,'*.java'):
     if not survives(p): continue
     rp=p.relative_to(ROOT).as_posix(); t=text(p)
     pm=re.search(r'(?m)^\s*package\s+([\w.]+)\s*;',t)
@@ -68,11 +129,11 @@ if mismatch: fail('public Java filename mismatch:'+str(mismatch[:20]))
 dups={k:v for k,v in fq.items() if len(v)>1}
 if dups: fail('duplicate public FQCN:'+str(list(dups.items())[:20]))
 # annotation single definition
-anns=[p for p in ROOT.rglob('CpfOnlineTransaction.java') if survives(p)]
+anns=[p for p in product_files(ROOT,'CpfOnlineTransaction.java') if survives(p)]
 if len(anns)!=1: fail(f'CpfOnlineTransaction definitions={len(anns)}')
 # method-level operation parity
 pairs=0;mism=[]
-for p in ROOT.rglob('*.java'):
+for p in product_files(ROOT,'*.java'):
     if not survives(p): continue
     lines=text(p).splitlines()
     for i,line in enumerate(lines):
@@ -89,7 +150,7 @@ if mism: fail('operationId/OpenAPI mismatch:'+str(mism[:20]))
 # management boundary
 for mod in ('cpf-admin','cpf-biz-admin','cpf-gateway'):
     tx=[]; internal=[]
-    for p in (ROOT/mod).rglob('*.java'):
+    for p in product_files(ROOT/mod,'*.java'):
         if not survives(p): continue
         t=text(p)
         if re.search(r'(?m)^\s*@CpfOnlineTransaction\b',t): tx.append(p.relative_to(ROOT).as_posix())
@@ -98,15 +159,15 @@ for mod in ('cpf-admin','cpf-biz-admin','cpf-gateway'):
     if tx: fail(f'{mod} management @CpfOnlineTransaction:{tx[:20]}')
     if internal: fail(f'{mod} core.internal import:{internal[:20]}')
 # instance canonical keys
-for p in list((ROOT/'deploy').rglob('*'))+list((ROOT/'cpf-tools').rglob('*')):
-    if not p.is_file() or not survives(p) or p.stat().st_size>2_000_000: continue
+for p in product_files(ROOT/'deploy')+product_files(ROOT/'cpf-tools'):
+    if not survives(p) or p.stat().st_size>2_000_000: continue
     if p.suffix.lower() not in {'.py','.ps1','.sh','.cmd','.bat','.env','.yml','.yaml','.json','.properties','.md'}: continue
     legacy_key='CPF_'+'INSTANCE_ID'
     if legacy_key in text(p): fail(f'legacy runtime instance env key:{p.relative_to(ROOT)}')
 # generated IA
 if not (ROOT/'cpf-member/online').is_dir() or not (ROOT/'cpf-member/batch').is_dir(): fail('cpf-member must contain online+batch')
 if not (ROOT/'cpf-external/online').is_dir(): fail('cpf-external online missing')
-if (ROOT/'cpf-external/batch').exists() and any((ROOT/'cpf-external/batch').rglob('*')): fail('cpf-external batch must be absent for batch=false fixture')
+if (ROOT/'cpf-external/batch').exists() and product_files(ROOT/'cpf-external/batch'): fail('cpf-external batch must be absent for batch=false fixture')
 # Generator current policy descriptions
 for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/development/GENERATOR_GUIDE.md','cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'):
     t=text(ROOT/rel)
@@ -114,7 +175,7 @@ for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/dev
     for b in bad:
         if b in t: fail(f'stale Generated Domain policy:{rel}:{b}')
 # JSON parse current product/config; runtime output blobs excluded
-for p in ROOT.rglob('*.json'):
+for p in product_files(ROOT,'*.json'):
     rp=p.relative_to(ROOT).as_posix()
     if not survives(p) or rp.startswith('cpf-tools/environment/docker-development-test/output/'): continue
     try: json.loads(text(p))

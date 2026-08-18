@@ -10,6 +10,7 @@ def main():
     api=root/'cpf-starters/data/src/main/java/com/cpf/data/cache/api'
     common=root/'cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon'
     sources=[str(p) for p in api.glob('*.java')]
+    sources += [str(root/'cpf-starters/base/runtime/src/main/java/com/cpf/foundation/runtime/CpfInstanceIdentity.java')]
     sources += [str(common/'CpfCacheInvalidationProperties.java'),str(common/'CpfCacheInvalidationSubjectKey.java'),str(common/'CpfCacheInvalidationCoordinator.java')]
     sources += [str(root/'cpf-tools/verification/harness/cache/CpfCacheCorrectnessHarness.java')]
     with tempfile.TemporaryDirectory(prefix='cpf_cache_correctness_') as td:

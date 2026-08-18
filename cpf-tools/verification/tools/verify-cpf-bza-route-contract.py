@@ -23,8 +23,9 @@ def validate(root:Path)->dict:
     for status in ('forbidden','feature-disabled','lazy-load-failure','not-found'):
         if f'name: "{status}"' not in router_text:raise ContractError(f'missing status route={status}')
     if 'bzaRouter.onError' not in router_text:raise ContractError('lazy-load failure handler missing')
-    for token in ('X-CPF-Operation-Id','X-XSRF-TOKEN','Authorization','same-origin','CLIENT_ACTOR_FIELDS'):
+    for token in ('resolveCpfOperation','X-XSRF-TOKEN','Authorization','same-origin','CLIENT_ACTOR_FIELDS'):
         if token not in api_text:raise ContractError(f'BZA browser trust boundary missing token={token}')
+    if 'X-CPF-Operation-Id' in api_text or 'X-Target-Operation-Id' in api_text: raise ContractError('BZA browser must not inject business transaction operation headers')
     openapi=json.loads(spec.read_text(encoding='utf-8'));m=json.loads(marker.read_text(encoding='utf-8'))
     if openapi.get('x-cpf-product-module')!='BZA' or openapi.get('x-cpf-export-origin')!='CONTROLLER_SOURCE_PRE_RUNTIME':raise ContractError('BZA pre-runtime OpenAPI identity drift')
     if int(openapi.get('x-cpf-openapi-operation-count',0))<1:raise ContractError('BZA operation inventory empty')

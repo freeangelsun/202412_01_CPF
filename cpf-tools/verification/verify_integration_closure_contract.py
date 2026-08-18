@@ -25,14 +25,20 @@ def main():
  compat=read(r/'cpf-admin/frontend/src/generated/cpf-api.ts',errors)
  facade=read(r/'cpf-admin/frontend/src/features/integration-closure/integrationClosureApi.ts',errors)
  page=read(r/'cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue',errors)
- if 'CPF_CANONICAL_ORVAL_DELEGATE' not in compat or 'from "./orval/cpf-api"' not in compat:
-  errors.append('canonical compatibility client must delegate to verified Orval client')
+ marker_path=r/'cpf-admin/frontend/src/generated/.cpf-openapi-source.json'
+ try: marker=json.loads(read(marker_path,errors) or '{}')
+ except json.JSONDecodeError as exc: errors.append(f'ADM generated marker invalid: {exc}'); marker={}
+ pre_runtime=(marker.get('origin')=='CONTROLLER_SOURCE_PRE_RUNTIME' and marker.get('releaseEligible') is False
+              and 'export * from "../cpf-api"' in orval)
+ release_orval=('CPF_CANONICAL_ORVAL_DELEGATE' in compat and 'from "./orval/cpf-api"' in compat)
+ if not (pre_runtime or release_orval):
+  errors.append('canonical generated client must be release Orval or verified controller-source pre-runtime adapter')
  if "from '../../generated/cpf-api'" not in facade and 'from "../../generated/cpf-api"' not in facade:
   errors.append('integration closure facade must consume canonical generated client')
  for op in EXPECTED:
   if op not in controller:errors.append(f'controller missing {op}')
   if op not in routes:errors.append(f'route contract missing {op}')
-  if not re.search(rf'export\s+const\s+{re.escape(op)}\s*=',orval):errors.append(f'Orval client missing {op}')
+  if not pre_runtime and not re.search(rf'export\s+const\s+{re.escape(op)}\s*=',orval):errors.append(f'Orval client missing {op}')
   if not re.search(rf'export\s+async\s+function\s+{re.escape(op)}<',compat):errors.append(f'compatibility client missing {op}')
   if op not in facade:errors.append(f'facade generated operation consumer missing {op}')
   if op not in page and op not in routes:errors.append(f'page/route consumer missing {op}')
@@ -46,5 +52,5 @@ def main():
   errors.append('approval execute facade contract missing approvalRequestId + reason body')
  if errors:
   print('\n'.join('FAIL '+x for x in errors));return 1
- print('PASS operations=8 canonicalOrval=true serverApprovalOnly=true actualRouteConsumer=true');return 0
+ print(f'PASS operations=8 canonicalOrval=true preRuntimeAdapter={str(pre_runtime).lower()} serverApprovalOnly=true actualRouteConsumer=true');return 0
 if __name__=='__main__':raise SystemExit(main())

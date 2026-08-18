@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 51,
+  "schemaVersion": 54,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -91,7 +91,7 @@
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
     "crossOwnerReferenceCount": 5
   },
-  "tableCount": 223,
+  "tableCount": 229,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -27767,7 +27767,7 @@
           "comment": "테넌트 ID"
         },
         {
-          "name": "system_code",
+          "name": "current_channel",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
@@ -27821,7 +27821,7 @@
           "comment": "Worker ID"
         },
         {
-          "name": "remote_system",
+          "name": "target_channel",
           "type": "VARCHAR(128)",
           "nullable": true,
           "default": null,
@@ -28195,7 +28195,7 @@
           "comment": "테넌트 ID"
         },
         {
-          "name": "system_code",
+          "name": "current_channel",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
@@ -28249,7 +28249,7 @@
           "comment": "Worker ID"
         },
         {
-          "name": "remote_system",
+          "name": "target_channel",
           "type": "VARCHAR(128)",
           "nullable": true,
           "default": null,
@@ -28631,7 +28631,7 @@
           "comment": "클라이언트 앱 또는 SDK 버전"
         },
         {
-          "name": "CALLER_SYSTEM_CODE",
+          "name": "CALLER_CHANNEL",
           "type": "VARCHAR(120)",
           "nullable": true,
           "default": null,
@@ -28640,7 +28640,7 @@
           "comment": "직전 호출 시스템 코드"
         },
         {
-          "name": "TARGET_SYSTEM_CODE",
+          "name": "TARGET_CHANNEL",
           "type": "VARCHAR(32)",
           "nullable": true,
           "default": null,
@@ -28712,7 +28712,7 @@
           "comment": "요청 유형"
         },
         {
-          "name": "ORIGINAL_SYSTEM_CODE",
+          "name": "ORIGINAL_CHANNEL",
           "type": "VARCHAR(20)",
           "nullable": true,
           "default": null,
@@ -28721,7 +28721,7 @@
           "comment": "최초 거래 발생 시스템 코드"
         },
         {
-          "name": "SYSTEM_CODE",
+          "name": "CURRENT_CHANNEL",
           "type": "VARCHAR(20)",
           "nullable": true,
           "default": null,
@@ -28800,6 +28800,13 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "처리 서버 호스트명"
+        },
+        {
+          "name": "HOST_IP",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "comment": "Runtime host IP"
         },
         {
           "name": "PROCESS_ID",
@@ -29292,7 +29299,7 @@
         {
           "name": "ix_cpf_transaction_log_system_time",
           "columns": [
-            "SYSTEM_CODE",
+            "CURRENT_CHANNEL",
             "START_TIME"
           ]
         },
@@ -29343,7 +29350,7 @@
         {
           "name": "ix_cpf_transaction_log_target_operation",
           "columns": [
-            "TARGET_SYSTEM_CODE",
+            "TARGET_CHANNEL",
             "TARGET_OPERATION_ID",
             "START_TIME"
           ]
@@ -29479,242 +29486,6 @@
       "targetDatabaseRole": "CPF_PLATFORM_DB",
       "targetPhysicalDatabase": "cpfDB",
       "targetTableName": "CPF_TRANSACTION_LOG_DETAIL",
-      "targetTablePrefix": "CPF_",
-      "migrationOwner": "cpf",
-      "runtimeConsumer": "cpf",
-      "atomicityClass": "PLATFORM_SHARED_CONTROL",
-      "productionDefault": true
-    },
-    {
-      "name": "CPF_TRANSACTION_META",
-      "columns": [
-        {
-          "name": "transaction_id",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "업무 거래 정의 ID(실행 transactionId와 별개)"
-        },
-        {
-          "name": "transaction_name",
-          "type": "VARCHAR(150)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "업무 거래명"
-        },
-        {
-          "name": "module_code",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "모듈 코드"
-        },
-        {
-          "name": "domain_code",
-          "type": "VARCHAR(50)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "업무 영역 코드"
-        },
-        {
-          "name": "http_method",
-          "type": "VARCHAR(20)",
-          "nullable": false,
-          "default": "'ANY'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "HTTP 메서드"
-        },
-        {
-          "name": "api_path",
-          "type": "VARCHAR(500)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "API 경로"
-        },
-        {
-          "name": "controller_class",
-          "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Controller 클래스명"
-        },
-        {
-          "name": "handler_method",
-          "type": "VARCHAR(150)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Handler 메서드명"
-        },
-        {
-          "name": "swagger_operation_id",
-          "type": "VARCHAR(150)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "Swagger operation 식별자"
-        },
-        {
-          "name": "log_policy_key",
-          "type": "VARCHAR(120)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "연결 로그 정책 키"
-        },
-        {
-          "name": "sensitive_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'N'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "민감 거래 여부"
-        },
-        {
-          "name": "masking_policy_key",
-          "type": "VARCHAR(120)",
-          "nullable": true,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "마스킹 정책 키"
-        },
-        {
-          "name": "active_yn",
-          "type": "CHAR(1)",
-          "nullable": false,
-          "default": "'Y'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "활성 여부"
-        },
-        {
-          "name": "first_detected_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최초 감지일시"
-        },
-        {
-          "name": "last_detected_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최근 감지일시"
-        },
-        {
-          "name": "last_scanned_at",
-          "type": "DATETIME(3)",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP(3)",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "최근 스캔일시"
-        },
-        {
-          "name": "created_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'CPF'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록자"
-        },
-        {
-          "name": "created_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "등록일시"
-        },
-        {
-          "name": "updated_by",
-          "type": "VARCHAR(100)",
-          "nullable": false,
-          "default": "'CPF'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "수정자"
-        },
-        {
-          "name": "updated_at",
-          "type": "DATETIME",
-          "nullable": false,
-          "default": "CURRENT_TIMESTAMP",
-          "autoIncrement": false,
-          "onUpdate": "CURRENT_TIMESTAMP",
-          "comment": "수정일시"
-        }
-      ],
-      "primaryKey": [
-        "transaction_id"
-      ],
-      "uniqueKeys": [],
-      "indexes": [
-        {
-          "name": "ix_cpf_transaction_meta_module",
-          "columns": [
-            "module_code",
-            "domain_code",
-            "active_yn"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_path",
-          "columns": [
-            "http_method",
-            "api_path"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_policy",
-          "columns": [
-            "log_policy_key",
-            "active_yn"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_scan",
-          "columns": [
-            "active_yn",
-            "last_scanned_at"
-          ]
-        }
-      ],
-      "foreignKeys": [],
-      "checks": [],
-      "comment": "CPF 온라인 거래 메타",
-      "module": "cpf",
-      "logicalDatabase": "cpfDB",
-      "currentLogicalDatabase": "cpfDB",
-      "currentName": "cpf_transaction_meta",
-      "logicalOwner": "cpf",
-      "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "targetPhysicalDatabase": "cpfDB",
-      "targetTableName": "CPF_TRANSACTION_META",
       "targetTablePrefix": "CPF_",
       "migrationOwner": "cpf",
       "runtimeConsumer": "cpf",
@@ -29968,7 +29739,7 @@
           "comment": "마스킹된 운영자 ID"
         },
         {
-          "name": "system_code",
+          "name": "current_channel",
           "type": "VARCHAR(30)",
           "nullable": true,
           "default": null,
@@ -29977,7 +29748,7 @@
           "comment": "현재 요청 처리 시스템 코드"
         },
         {
-          "name": "original_system_code",
+          "name": "original_channel",
           "type": "VARCHAR(30)",
           "nullable": true,
           "default": null,
@@ -29995,7 +29766,7 @@
           "comment": "클라이언트/Application 식별자"
         },
         {
-          "name": "caller_system_code",
+          "name": "caller_channel",
           "type": "VARCHAR(100)",
           "nullable": true,
           "default": null,
@@ -30004,7 +29775,7 @@
           "comment": "직전 호출 시스템 코드"
         },
         {
-          "name": "target_system_code",
+          "name": "target_channel",
           "type": "VARCHAR(32)",
           "nullable": true,
           "default": null,
@@ -30234,7 +30005,7 @@
           "name": "ix_cpf_transaction_segment_client_system",
           "columns": [
             "client_id",
-            "caller_system_code",
+            "caller_channel",
             "started_at"
           ]
         },
@@ -30268,7 +30039,7 @@
         {
           "name": "ix_cpf_transaction_segment_target_operation",
           "columns": [
-            "target_system_code",
+            "target_channel",
             "target_operation_id",
             "started_at"
           ]
@@ -33801,40 +33572,22 @@
           "comment": "채널 실행 정책 불변 키"
         },
         {
-          "name": "standard_execution_id",
-          "type": "VARCHAR(10)",
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
           "nullable": false,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "10자리 표준 실행 ID 또는 전체 실행 *"
+          "comment": "Canonical 업무 operationId 또는 전체 Operation *"
         },
         {
-          "name": "original_channel_code",
+          "name": "caller_channel",
           "type": "VARCHAR(30)",
           "nullable": false,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "최초 채널 코드 또는 ANY"
-        },
-        {
-          "name": "caller_channel_code",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": null,
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "현재 호출 채널 코드 또는 ANY"
-        },
-        {
-          "name": "request_type",
-          "type": "VARCHAR(30)",
-          "nullable": false,
-          "default": "'*'",
-          "autoIncrement": false,
-          "onUpdate": null,
-          "comment": "요청 유형 또는 전체 유형 *"
+          "comment": "직전 Hop의 Canonical Caller Channel 또는 ANY"
         },
         {
           "name": "allowed_yn",
@@ -33948,20 +33701,26 @@
       "primaryKey": [
         "policy_key"
       ],
-      "uniqueKeys": [],
+      "uniqueKeys": [
+        {
+          "name": "uk_ops_channel_execution_policy_operation_caller",
+          "columns": [
+            "operation_id",
+            "caller_channel"
+          ]
+        }
+      ],
       "indexes": [
         {
-          "name": "ix_cpf_channel_execution_policy_lookup",
+          "name": "ix_ops_channel_execution_policy_lookup",
           "columns": [
-            "standard_execution_id",
-            "original_channel_code",
-            "caller_channel_code",
-            "request_type",
+            "operation_id",
+            "caller_channel",
             "active_yn"
           ]
         },
         {
-          "name": "ix_cpf_channel_execution_policy_effective",
+          "name": "ix_ops_channel_execution_policy_effective",
           "columns": [
             "active_yn",
             "effective_from",
@@ -33971,21 +33730,9 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_cpf_channel_execution_policy_original",
+          "name": "fk_ops_channel_execution_policy_caller",
           "columns": [
-            "original_channel_code"
-          ],
-          "refTable": "OPS_CHANNEL_REGISTRY",
-          "refColumns": [
-            "channel_code"
-          ],
-          "onDelete": null,
-          "onUpdate": null
-        },
-        {
-          "name": "fk_cpf_channel_execution_policy_caller",
-          "columns": [
-            "caller_channel_code"
+            "caller_channel"
           ],
           "refTable": "OPS_CHANNEL_REGISTRY",
           "refColumns": [
@@ -33997,8 +33744,8 @@
       ],
       "checks": [
         {
-          "name": "ck_cpf_channel_execution_policy_execution",
-          "expression": "standard_execution_id = '*' OR standard_execution_id REGEXP '^[OSB][A-Z]{3}[A-Z0-9]{2}[0-9]{4}$'"
+          "name": "ck_ops_channel_execution_policy_operation",
+          "expression": "operation_id = '*' OR operation_id REGEXP '^[A-Za-z][A-Za-z0-9_.:-]{2,159}$'"
         },
         {
           "name": "ck_cpf_channel_execution_policy_allowed",
@@ -34021,7 +33768,7 @@
           "expression": "effective_from IS NULL OR effective_to IS NULL OR effective_from <= effective_to"
         }
       ],
-      "comment": "CPF 표준 실행별 최초·호출 채널 정책",
+      "comment": "CPF 업무 Operation + Caller Channel Canonical 허용 정책",
       "module": "cpf",
       "logicalDatabase": "cpfDB",
       "currentLogicalDatabase": "cpfDB",
@@ -41576,6 +41323,1407 @@
       "migrationOwner": "security",
       "runtimeConsumer": "security",
       "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_SYSTEM_REGISTRY",
+      "columns": [
+        {
+          "name": "system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF System 코드"
+        },
+        {
+          "name": "system_name",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "System 명"
+        },
+        {
+          "name": "domain_code",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "소유 Domain 코드"
+        },
+        {
+          "name": "enabled_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 System 활성 여부"
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "System 설명"
+        },
+        {
+          "name": "policy_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "System 정책 버전"
+        },
+        {
+          "name": "first_seen_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Runtime 발견 시각"
+        },
+        {
+          "name": "last_seen_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 Runtime 발견 시각"
+        },
+        {
+          "name": "last_instance_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 발견 Runtime instanceId"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "system_code"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_system_registry_domain",
+          "columns": [
+            "domain_code",
+            "enabled_yn"
+          ]
+        },
+        {
+          "name": "ix_ops_system_registry_seen",
+          "columns": [
+            "last_seen_at",
+            "enabled_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_ops_system_registry_enabled",
+          "expression": "enabled_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF 업무 System Registry",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_system_registry",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_SYSTEM_REGISTRY",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_OPERATION_CATALOG",
+      "columns": [
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 Domain Canonical operationId"
+        },
+        {
+          "name": "operation_name",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 Operation 명"
+        },
+        {
+          "name": "description",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 Operation 설명"
+        },
+        {
+          "name": "system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation 소유 System 코드"
+        },
+        {
+          "name": "domain_code",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation 소유 Domain 코드"
+        },
+        {
+          "name": "application_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "발견 Application 코드"
+        },
+        {
+          "name": "http_method",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": "'ANY'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "HTTP 메서드"
+        },
+        {
+          "name": "api_path",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical API 경로"
+        },
+        {
+          "name": "controller_class",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Controller 클래스명"
+        },
+        {
+          "name": "handler_method",
+          "type": "VARCHAR(150)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Handler 메서드명"
+        },
+        {
+          "name": "openapi_operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 API OpenAPI operationId"
+        },
+        {
+          "name": "source_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Source/Handler 계약 SHA-256 fingerprint"
+        },
+        {
+          "name": "discovery_status",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'ACTIVE'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "ACTIVE 또는 NOT_DISCOVERED 발견상태"
+        },
+        {
+          "name": "first_seen_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 발견 시각"
+        },
+        {
+          "name": "last_seen_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 발견 시각"
+        },
+        {
+          "name": "last_instance_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 발견 Runtime instanceId"
+        },
+        {
+          "name": "metadata_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Source metadata optimistic version"
+        },
+        {
+          "name": "log_policy_key",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "연결 로그 정책 키"
+        },
+        {
+          "name": "sensitive_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "민감 Operation 여부"
+        },
+        {
+          "name": "masking_policy_key",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹 정책 키"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "operation_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_catalog_system",
+          "columns": [
+            "system_code",
+            "domain_code",
+            "discovery_status"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_catalog_path",
+          "columns": [
+            "http_method",
+            "api_path"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_catalog_seen",
+          "columns": [
+            "last_seen_at",
+            "discovery_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_catalog_system",
+          "columns": [
+            "system_code"
+          ],
+          "refTable": "OPS_SYSTEM_REGISTRY",
+          "refColumns": [
+            "system_code"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_ops_operation_catalog_discovery",
+          "expression": "discovery_status IN ('ACTIVE', 'NOT_DISCOVERED')"
+        },
+        {
+          "name": "ck_ops_operation_catalog_sensitive",
+          "expression": "sensitive_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF 업무 Online Operation Canonical Catalog",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_operation_catalog",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_OPERATION_CATALOG",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_OPERATION_DISCOVERY_INSTANCE",
+      "columns": [
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "업무 Domain Canonical operationId"
+        },
+        {
+          "name": "instance_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation을 스캔한 Runtime instanceId"
+        },
+        {
+          "name": "system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "스캔 Runtime System 코드"
+        },
+        {
+          "name": "application_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "스캔 Application 코드"
+        },
+        {
+          "name": "artifact_version",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "스캔 Artifact version"
+        },
+        {
+          "name": "artifact_commit",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "스캔 Artifact commit/SHA"
+        },
+        {
+          "name": "discovered_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "해당 Runtime/Artifact에서 발견 여부"
+        },
+        {
+          "name": "last_reported_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 discovery report 시각"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "operation_id",
+        "instance_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_discovery_instance",
+          "columns": [
+            "instance_id",
+            "discovered_yn",
+            "last_reported_at"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_discovery_scope",
+          "columns": [
+            "system_code",
+            "application_code",
+            "discovered_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_discovery_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "refTable": "OPS_OPERATION_CATALOG",
+          "refColumns": [
+            "operation_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_ops_operation_discovery_yn",
+          "expression": "discovered_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF 업무 Operation Runtime/Artifact별 Source discovery evidence",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_operation_discovery_instance",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_OPERATION_DISCOVERY_INSTANCE",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_SYSTEM_DOMAIN_ACCESS",
+      "columns": [
+        {
+          "name": "caller_system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "호출 System 코드"
+        },
+        {
+          "name": "target_system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "대상 System 코드"
+        },
+        {
+          "name": "allowed_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "System/Domain 1차 호출 허용 여부"
+        },
+        {
+          "name": "policy_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정책 버전"
+        },
+        {
+          "name": "change_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 변경 사유"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "caller_system_code",
+        "target_system_code"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_system_domain_access_target",
+          "columns": [
+            "target_system_code",
+            "allowed_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_sys_domain_caller",
+          "columns": [
+            "caller_system_code"
+          ],
+          "refTable": "OPS_SYSTEM_REGISTRY",
+          "refColumns": [
+            "system_code"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        },
+        {
+          "name": "fk_ops_sys_domain_target",
+          "columns": [
+            "target_system_code"
+          ],
+          "refTable": "OPS_SYSTEM_REGISTRY",
+          "refColumns": [
+            "system_code"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_ops_system_domain_allowed",
+          "expression": "allowed_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF System/Domain 1차 호출 정책",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_system_domain_access",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_SYSTEM_DOMAIN_ACCESS",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_OPERATION_POLICY",
+      "columns": [
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정책 대상 operationId"
+        },
+        {
+          "name": "enabled_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'Y'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation 실행 허용 여부"
+        },
+        {
+          "name": "all_callers_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록·활성 Caller 전체 허용 여부"
+        },
+        {
+          "name": "channel_policy_required_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Channel 3차 정책 적용 필요 여부"
+        },
+        {
+          "name": "policy_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operation 정책 버전"
+        },
+        {
+          "name": "seed_source",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed 출처"
+        },
+        {
+          "name": "seed_revision",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed revision"
+        },
+        {
+          "name": "seeded_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed 적용 시각"
+        },
+        {
+          "name": "change_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 변경 사유"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "operation_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_policy_enabled",
+          "columns": [
+            "enabled_yn",
+            "policy_version"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_policy_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "refTable": "OPS_OPERATION_CATALOG",
+          "refColumns": [
+            "operation_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_ops_operation_policy_enabled",
+          "expression": "enabled_yn IN ('Y', 'N')"
+        },
+        {
+          "name": "ck_ops_operation_policy_all",
+          "expression": "all_callers_yn IN ('Y', 'N')"
+        },
+        {
+          "name": "ck_ops_operation_policy_channel",
+          "expression": "channel_policy_required_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF 업무 Operation ADM-owned 실행 정책",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_operation_policy",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_OPERATION_POLICY",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_OPERATION_CALLER_POLICY",
+      "columns": [
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "정책 대상 operationId"
+        },
+        {
+          "name": "caller_system_code",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "허용/거부 Caller System 코드"
+        },
+        {
+          "name": "allowed_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Caller별 Operation 호출 허용 여부"
+        },
+        {
+          "name": "policy_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Caller 정책 버전"
+        },
+        {
+          "name": "seed_source",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed 출처"
+        },
+        {
+          "name": "seed_revision",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed revision"
+        },
+        {
+          "name": "seeded_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최초 Seed 적용 시각"
+        },
+        {
+          "name": "change_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최근 변경 사유"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'CPF'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP",
+          "comment": "최종 수정일시"
+        }
+      ],
+      "primaryKey": [
+        "operation_id",
+        "caller_system_code"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_caller_caller",
+          "columns": [
+            "caller_system_code",
+            "allowed_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_caller_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "refTable": "OPS_OPERATION_CATALOG",
+          "refColumns": [
+            "operation_id"
+          ],
+          "onDelete": "CASCADE",
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_ops_operation_caller_allowed",
+          "expression": "allowed_yn IN ('Y', 'N')"
+        }
+      ],
+      "comment": "CPF 업무 Operation Caller별 ADM-owned 정책",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_operation_caller_policy",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_OPERATION_CALLER_POLICY",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "platform-operations",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_ASYNC_OPERATION",
+      "columns": [
+        {
+          "name": "execution_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF async executionId"
+        },
+        {
+          "name": "operation_id",
+          "type": "VARCHAR(160)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Async handler Canonical operationId"
+        },
+        {
+          "name": "transaction_id",
+          "type": "CHAR(34)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "End-to-end transactionId"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(256)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "중복 submit 방지 business key"
+        },
+        {
+          "name": "command_type",
+          "type": "VARCHAR(300)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록 Async Handler command type"
+        },
+        {
+          "name": "command_payload",
+          "type": "TEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹/암호화 정책 적용 대상 command payload"
+        },
+        {
+          "name": "context_payload",
+          "type": "TEXT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF Context snapshot"
+        },
+        {
+          "name": "result_type",
+          "type": "VARCHAR(300)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "typed result class"
+        },
+        {
+          "name": "result_payload",
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "성공 결과 payload"
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'ACCEPTED'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Async lifecycle state"
+        },
+        {
+          "name": "result_status",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF Boundary outcome"
+        },
+        {
+          "name": "error_code",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실패/UNKNOWN code"
+        },
+        {
+          "name": "error_message",
+          "type": "VARCHAR(2000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 실패 설명"
+        },
+        {
+          "name": "recovery_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "UNKNOWN recovery correlation"
+        },
+        {
+          "name": "recovery_action",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Probe/Reconcile next action"
+        },
+        {
+          "name": "submitted_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "접수시각"
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행시작"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종변경"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종완료"
+        },
+        {
+          "name": "expires_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행만료"
+        },
+        {
+          "name": "heartbeat_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Worker heartbeat"
+        },
+        {
+          "name": "lease_owner",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 Runtime instanceId"
+        },
+        {
+          "name": "lease_until",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Worker lease expiry"
+        },
+        {
+          "name": "cancellation_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "cooperative cancel reason"
+        },
+        {
+          "name": "version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "1",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "optimistic/fencing version"
+        }
+      ],
+      "primaryKey": [
+        "execution_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_ops_async_operation_idempotency",
+          "columns": [
+            "operation_id",
+            "idempotency_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_async_operation_state",
+          "columns": [
+            "state",
+            "submitted_at"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_tx",
+          "columns": [
+            "transaction_id",
+            "submitted_at"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_lease",
+          "columns": [
+            "state",
+            "lease_until"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_expiry",
+          "columns": [
+            "expires_at",
+            "state"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_ops_async_operation_state",
+          "expression": "state IN ('ACCEPTED','RUNNING','SUCCEEDED','FAILED','UNKNOWN','CANCEL_REQUESTED','CANCELLED','EXPIRED')"
+        },
+        {
+          "name": "ck_ops_async_operation_result",
+          "expression": "result_status IS NULL OR result_status IN ('SUCCESS','BUSINESS_FAILURE','TECHNICAL_FAILURE','UNKNOWN','CANCELLED')"
+        }
+      ],
+      "comment": "CPF 범용 Async Operation durable execution state",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_async_operation",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_ASYNC_OPERATION",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "base-runtime",
+      "atomicityClass": "PLATFORM_SHARED_CONTROL",
       "productionDefault": true
     }
   ]

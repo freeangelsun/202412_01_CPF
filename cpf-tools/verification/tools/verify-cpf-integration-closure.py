@@ -13,7 +13,7 @@ required=[
 'cpf-starters/security/src/main/java/com/cpf/security/crypto/data/CpfProtectedRecordService.java',
 'cpf-starters/data/src/main/java/com/cpf/data/api/quality/CpfDataQualityOperations.java',
 'cpf-starters/data/src/main/java/com/cpf/data/quality/InMemoryCpfDataQualityOperations.java',
-'cpf-starters/integration/webhook/src/main/java/com/cpf/integration/webhook/api/CpfWebhookOperations.java',
+'cpf-starters/integration/src/main/java/com/cpf/integration/api/webhook/CpfWebhookOperations.java',
 'cpf-starters/integration/webhook/src/main/java/com/cpf/integration/webhook/InMemoryCpfWebhookOperations.java',
 'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java',
 'cpf-admin/frontend/src/generated/cpf-api.ts',

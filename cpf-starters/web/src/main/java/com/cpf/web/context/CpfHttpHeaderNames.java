@@ -1,5 +1,7 @@
 package com.cpf.web.context;
 
+import com.cpf.foundation.context.header.CpfHeaderNames;
+
 /**
  * CPF HTTP Header wire-name canonical catalog.
  *
@@ -11,12 +13,12 @@ public final class CpfHttpHeaderNames {
     private CpfHttpHeaderNames() {}
 
     // Canonical online transaction protocol (mandatory on trusted internal CPF hops).
-    public static final String TRANSACTION_ID = "X-Transaction-Id";
-    public static final String ORIGINAL_SYSTEM_CODE = "X-Original-System-Code";
-    public static final String SYSTEM_CODE = "X-System-Code";
-    public static final String CALLER_SYSTEM_CODE = "X-Caller-System-Code";
-    public static final String TARGET_SYSTEM_CODE = "X-Target-System-Code";
-    public static final String TARGET_OPERATION_ID = "X-Target-Operation-Id";
+    public static final String TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
+    public static final String ORIGINAL_CHANNEL = CpfHeaderNames.ORIGINAL_CHANNEL;
+    public static final String CURRENT_CHANNEL = CpfHeaderNames.CURRENT_CHANNEL;
+    public static final String CALLER_CHANNEL = CpfHeaderNames.CALLER_CHANNEL;
+    public static final String TARGET_CHANNEL = CpfHeaderNames.TARGET_CHANNEL;
+    public static final String TARGET_OPERATION_ID = CpfHeaderNames.TARGET_OPERATION_ID;
 
     // Optional client/application context. Values are never a security authority by themselves.
     public static final String COUNTRY_CODE = "X-Country-Code";

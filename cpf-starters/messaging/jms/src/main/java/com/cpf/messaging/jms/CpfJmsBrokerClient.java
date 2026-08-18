@@ -48,10 +48,7 @@ public final class CpfJmsBrokerClient implements CpfMessagingTemplate {
     public CpfBrokerPublishResult send(CpfBrokerPublishRequest request) {
         java.util.Objects.requireNonNull(request, "request");
         var current = CpfContexts.requireCurrent();
-        if (!current.transaction().transactionId().equals(request.transactionId())) {
-            throw new SecurityException("Provider request transactionId does not match bound CPF Context");
-        }
-        requireTracking(request.transactionId(), "transactionId");
+        requireTracking(current.transactionId(), "transactionId");
         requireTracking(request.idempotencyKey(), "idempotencyKey");
         if (request.payload().length > properties.getMaxPayloadBytes()) {
             throw new IllegalArgumentException("JMS payload exceeds CPF maximum size");
@@ -61,10 +58,13 @@ public final class CpfJmsBrokerClient implements CpfMessagingTemplate {
             template.send(properties.getDestination(), session -> {
                 var message = session.createBytesMessage();
                 message.writeBytes(request.payload());
-                message.setJMSCorrelationID(request.transactionId());
+                message.setJMSCorrelationID(current.transactionId());
                 message.setStringProperty("cpfMessageId", request.messageId());
                 message.setStringProperty("cpfIdempotencyKey", request.idempotencyKey());
                 message.setStringProperty("cpfContentType", request.contentType());
+                message.setStringProperty("cpfSegmentId", current.execution().segmentId());
+                message.setStringProperty("cpfProducerModule", request.producerModule());
+                message.setStringProperty("cpfConsumerModule", request.consumerModule());
                 for (var header : userProperties.entrySet()) {
                     message.setStringProperty(header.getKey(), header.getValue());
                 }

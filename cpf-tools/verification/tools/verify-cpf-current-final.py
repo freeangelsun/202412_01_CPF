@@ -33,7 +33,11 @@ def _git_product_paths()->set[str]|None:
             ['git','-C',str(ROOT),'ls-files','-co','--exclude-standard','-z'],
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True
         )
-        return {x.decode('utf-8','surrogateescape').replace('\\','/') for x in cp.stdout.split(b'\\0') if x}
+        paths={x.decode('utf-8','surrogateescape').replace('\\','/') for x in cp.stdout.split(b'\x00') if x}
+        self_rel=Path(__file__).resolve().relative_to(ROOT).as_posix()
+        if self_rel not in paths:
+            raise RuntimeError(f'git product path parsing failed: verifier path missing ({self_rel})')
+        return paths
     except Exception:
         return None
 

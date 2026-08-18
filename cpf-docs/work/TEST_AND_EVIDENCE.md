@@ -67,3 +67,12 @@ Gradle 관련 rc=125/127, live DB/Redis/Multi-instance/Process-kill rc=127은 �
 - Docker/Redis/Valkey/Browser E2E
 
 위 항목은 **미검증**이며 정적 PASS를 Runtime PASS로 승계하지 않는다.
+
+## 5. 2026-08-18 Windows Git Working Tree FinalStatic Precheck Hotfix
+- 사용자 Java25 로컬에서 `run-cpf-final-local-validation.ps1` 실행 직후 `FINAL_STATIC_GATE`가 `eduOnline=0 / eduBatch=0 / operationPairs=0 / CpfOnlineTransaction definitions=0`으로 실패하여 실제 Build/Test 단계에 진입하지 못했다.
+- 원인은 Product Source/EDU 삭제가 아니라 `verify-cpf-current-final.py`의 Git product path 파싱 결함이었다. `git ls-files -co --exclude-standard -z`는 NUL(`\0`) 구분자를 반환하지만 verifier가 `b'\\0'`(문자 backslash+0)으로 분리하여 Git checkout의 전체 파일 목록을 하나의 문자열로 취급했다. ZIP/fallback scan에서는 Git 분기를 타지 않아 사전 검증에서 드러나지 않았다.
+- 수정: Git path split을 `b'\x00'`로 currentize하고 verifier 자체 경로가 parsed product path set에 존재하는지 self-check를 추가했다. Repository-wide Python scan에서 동일한 잘못된 NUL split 잔존은 0건이다.
+- 수정 후 실제 Git checkout 형태로 Source를 재현해 `verify-cpf-current-final.py`를 다시 실행한 결과 `PASS`, `eduOnline=20`, `eduBatch=15`, `operationPairs=32`, failures 0을 확인했다.
+- `operationPairs=32`가 현재 EDU/Operation 재구성 이후 Source의 실제 수치다. 이전 중간 Evidence에 언급된 44는 EDU 전면 재개발 전 수치이므로 현재 Source Evidence로 승계하지 않는다.
+- 이 Hotfix는 FinalLocal **사전 Gate 진입 결함만 수정**한다. Java25 Root Gradle/live DB3/Multi-WAS/Docker/Browser 검증은 여전히 사용자 로컬 재실행 결과가 필요하며 PASS로 승계하지 않는다.
+

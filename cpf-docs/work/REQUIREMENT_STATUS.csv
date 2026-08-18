@@ -1,4 +1,4 @@
-﻿exact_id,requirement,개발GPT_수행상태,개발GPT_개발상태,개발GPT_검증상태,개발GPT_전체상태,개발GPT_자체검수,개발GPT_검증내용,개발GPT_환경,개발GPT_Evidence,baseline_source_zip_sha256
+exact_id,requirement,개발GPT_수행상태,개발GPT_개발상태,개발GPT_검증상태,개발GPT_전체상태,개발GPT_자체검수,개발GPT_검증내용,개발GPT_환경,개발GPT_Evidence,baseline_source_zip_sha256
 DEV-01,기준 Source/인수인계 고정,완료,완료,완료,완료,완료,"Baseline ZIP SHA 고정, 과거 Evidence 자동승계 금지",GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
 DEV-02,최신 Steering 독립 검토 및 ID/Lifecycle 경계,완료,완료,완료,완료,완료,operation/transaction/execution/current-target 분리,GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
 DEV-03,QA Finding 독립 검산 및 Backlog 병합,완료,완료,완료,완료,완료,Source/정본과 대조 후 타당 Finding만 반영,GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
@@ -34,4 +34,4 @@ DEV-32,실 Runtime/Multi-WAS/Process-Kill/Browser,완료,완료,미검증,미검
 DEV-33,Canonical/Guide/Catalog currentization,완료,완료,완료,완료,완료,최신 Channel/Operation/EDU/DX 정본 반영,GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
 DEV-34,False-Green/Stale/Hygiene Gate 강화,완료,완료,완료,완료,완료,NXT3/Testing/Frontend/Generator stale gates currentize,GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
 DEV-35,최종 Self-QA/Evidence/Packaging,완료,완료,완료,완료,완료,정적/독립 Gate 재검증 후 manifest/package 생성,GPT static/Java21/Python/Node,TEST_AND_EVIDENCE.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
-DEV-36,사용자 Java25 FinalLocal 재검증,완료,완료,미검증,미검증,미완료,최종 스크립트/명령 제공; 사용자 로컬 실행 결과 필요,User Java25/live runtime required,OPEN_ISSUES.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41
+DEV-36,사용자 Java25 FinalLocal 재검증,완료,완료,미검증,미검증,미완료,Git Working Tree precheck NUL 파싱 Hotfix PASS; Java25 FullLocal 재실행 결과 필요,User Java25/live runtime required,OPEN_ISSUES.md,fb0cb9cc190f79db066e2872fa30b6002eac3140331c2a33f4716f86ba30ed41

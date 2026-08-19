@@ -54,16 +54,26 @@ def product_files(base:Path, pattern:str='*'):
     if not base.exists():
         return []
     return [p for p in base.rglob(pattern) if product_file(p)]
-manifest=ROOT/'cpf-docs/work/current/DELETE_MANIFEST.txt'
+manifest=ROOT/'cpf-docs/deliverables/DELETE_MANIFEST.csv'
 entries=[]
-if not manifest.is_file(): fail('DELETE_MANIFEST missing')
+if not manifest.is_file():
+    fail(f'DELETE_MANIFEST missing:{manifest.relative_to(ROOT).as_posix()}')
 else:
-    for n,line in enumerate(text(manifest).splitlines(),1):
-        s=line.strip()
-        if not s or s.startswith('#'): continue
-        if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
-        if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
-        entries.append(s)
+    import csv
+    try:
+        with manifest.open('r', encoding='utf-8-sig', newline='') as fh:
+            reader=csv.DictReader(fh)
+            if not reader.fieldnames or 'path' not in reader.fieldnames:
+                fail('DELETE_MANIFEST missing required path column')
+            else:
+                for n,row in enumerate(reader,2):
+                    s=(row.get('path') or '').strip().replace('\\','/')
+                    if not s: continue
+                    if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
+                    if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
+                    entries.append(s)
+    except Exception as e:
+        fail(f'DELETE_MANIFEST parse:{e}')
     if len(entries)!=len(set(entries)): fail('DELETE_MANIFEST duplicate path')
     protected=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
     for s in entries:

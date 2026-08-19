@@ -1,16 +1,16 @@
 {
   "schemaVersion": 6,
   "packageType": "DESIRED_STATE_FULL_SOURCE",
-  "generatedAt": "2026-08-19T01:48:07Z",
+  "generatedAt": "2026-08-19T03:45:00+00:00",
   "baselineInput": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260819_003152.zip",
   "baselineSourceZipSha256": "b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850",
   "baselineSourceFileCount": 8440,
   "gitExactSha": "UNVERIFIED_SOURCE_ZIP_HAS_NO_DOT_GIT",
   "sourceIdentity": {
-    "sha1": "6374b8bbef3c218a08afa39475db7dcf42a63cd0",
-    "sha256": "a0ed0cc2f9b816aa62aca62eccfc98535bf08b86153184ea373a90f2eada4021",
+    "sha1": "d4f63d8497ed00157f419da241ee5fb6aac74e66",
+    "sha256": "8ea7708512346e063c678c82b10bde4b9eb7f6ef5f161606efc87e0f3ff50bfd",
     "fileCount": 8393,
-    "totalBytes": 335267994,
+    "totalBytes": 335268249,
     "algorithm": "sorted SHA-256/path inventory hashed with SHA-1 and SHA-256",
     "excludedPaths": [
       "cpf-docs/work/CHANGE_MANIFEST.csv",
@@ -28,10 +28,10 @@
     "cpf-docs/work/SHA256SUMS.txt"
   ],
   "packagePayloadIdentity": {
-    "sha1": "58830047b88704c2f927161d38cb9e0a5bcdfe51",
-    "sha256": "89d452a387cb36c9c8a638c4c58c232a681e452f9e1ec190ff862e8033dad9a5",
+    "sha1": "7343d9a18cead2752e7e029aab25e4565fc73d01",
+    "sha256": "1b98406176dbd2447a23bcfb4b36dfc33c129cc2d036ab2b7fed593de8205e4c",
     "fileCount": 8396,
-    "totalBytes": 335285565,
+    "totalBytes": 335285820,
     "algorithm": "sorted SHA-256/path inventory hashed with SHA-1 and SHA-256"
   },
   "desiredState": {
@@ -41,7 +41,7 @@
   },
   "changeSummary": {
     "ADDED": 232,
-    "MODIFIED": 212,
+    "MODIFIED": 213,
     "DELETED": 273
   },
   "developmentStatus": "SOURCE_STATIC_CURRENT_PASS",
@@ -10278,7 +10278,7 @@
     {
       "path": "cpf-docs/work/QA_FINDING_REVALIDATION.csv",
       "sizeBytes": 11335,
-      "sha256": "c724a13dcf272e074cdf9bca9c814e800d041d330cdd75e18e7a240d2a46b167"
+      "sha256": "5fd78e3a09660e65f940f9ab3cfd4dd90832ac638c7e1c4f0cb2e3683811d7d6"
     },
     {
       "path": "cpf-docs/work/QA_REWORK_REQUEST.md",
@@ -41077,8 +41077,8 @@
     },
     {
       "path": "cpf-tools/verification/tools/run-cpf-final-local-validation.ps1",
-      "sizeBytes": 2660,
-      "sha256": "bd88130071b8a12919a2cf859e7774fc00ddb7db39864f868085fad1ed3e8c63"
+      "sizeBytes": 2915,
+      "sha256": "e88d1adcde6aca1ce16af3e160fcc23a8e0bbe1c8e878fe87c5383e765373306"
     },
     {
       "path": "cpf-tools/verification/tools/run-cpf-integration-closure-target-verification.ps1",

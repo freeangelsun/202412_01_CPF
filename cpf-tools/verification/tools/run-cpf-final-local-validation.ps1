@@ -14,15 +14,17 @@ Set-Location $RepoRoot
 $stamp=Get-Date -Format 'yyyyMMdd_HHmmss'
 $preDir=Join-Path $OutputRoot "CPF_FINAL_PRECHECK_$stamp"
 New-Item -ItemType Directory -Force -Path $preDir | Out-Null
-$manifest=Join-Path $RepoRoot 'cpf-docs\work\current\DELETE_MANIFEST.txt'
+$manifest=Join-Path $RepoRoot 'cpf-docs\deliverables\DELETE_MANIFEST.csv'
 if(-not (Test-Path -LiteralPath $manifest -PathType Leaf)){ throw "DELETE_MANIFEST missing: $manifest" }
+$rows=@(Import-Csv -LiteralPath $manifest)
+if($rows.Count -eq 0){ throw "DELETE_MANIFEST is empty: $manifest" }
 $remaining=[Collections.Generic.List[string]]::new()
-Get-Content -LiteralPath $manifest | ForEach-Object {
-    $rel=$_.Trim()
-    if($rel -and -not $rel.StartsWith('#')){
-        $p=Join-Path $RepoRoot $rel
-        if(Test-Path -LiteralPath $p){$remaining.Add($rel)}
-    }
+foreach($row in $rows){
+    $rel=([string]$row.path).Trim()
+    if(-not $rel){ throw "DELETE_MANIFEST path is empty: $manifest" }
+    if([IO.Path]::IsPathRooted($rel) -or $rel -match '(^|[\\/])\.\.([\\/]|$)'){ throw "Unsafe DELETE_MANIFEST path: $rel" }
+    $p=Join-Path $RepoRoot ($rel -replace '/', '\\')
+    if(Test-Path -LiteralPath $p){$remaining.Add($rel)}
 }
 if($remaining.Count -gt 0){
     $remaining | Set-Content -LiteralPath (Join-Path $preDir 'DELETE_NOT_APPLIED.txt') -Encoding UTF8

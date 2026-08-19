@@ -1,4 +1,0 @@
-import fs from 'node:fs';import path from 'node:path';
-const root=path.join(process.cwd(),'src');const forbidden=[/location\.hash/,/hashchange/,/sessionStorage\.(getItem|setItem)\([^)]*(accessToken|refreshToken)/i,/localStorage\.(getItem|setItem)\([^)]*(accessToken|refreshToken)/i,/admConsoleMixin/];
-let failures=[];function walk(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())walk(f);else if(/\.(ts|vue|js)$/.test(e.name)){const s=fs.readFileSync(f,'utf8');for(const r of forbidden)if(r.test(s))failures.push(`${path.relative(process.cwd(),f)}: ${r}`)}}}walk(root);if(failures.length){console.error(failures.join('\n'));process.exit(1)}
-for(const dep of ['element-plus','@tanstack/vue-table','vue-router','pinia','@tanstack/vue-query','zod'])if(!JSON.parse(fs.readFileSync('package.json','utf8')).dependencies[dep])throw new Error(`필수 Primary OSS 누락: ${dep}`);

@@ -10,7 +10,10 @@ dependencies {
     implementation project(':framework:core')
     implementation project(':starters:common')
     implementation project(':apps:admin')
-    implementation project(':apps:biz-admin')
+    // BZA is an Optional Prebuilt Business Domain. The local runtime must remain buildable when absent.
+    if (rootProject.findProject(':apps:biz-admin') != null) {
+        implementation project(':apps:biz-admin')
+    }
     implementation project(':runtime:gateway')
 
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'

@@ -1,5 +1,8 @@
 package com.cpf.web.context;
 
+import com.cpf.foundation.observability.CpfBoundaryFailureEvidence;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,7 +21,27 @@ public final class CpfDefaultHeaderFailureRecorder implements CpfHeaderFailureRe
                 safe(failure.transactionId()), safe(failure.systemCode()), safe(failure.application()), safe(failure.instance()),
                 safe(failure.headerName()), safe(failure.category()), safe(failure.errorCode()), failure.httpStatus(),
                 safe(failure.method()), safe(failure.uri()));
-        if (publisher != null) publisher.publishEvent(failure);
+        if (publisher != null) {
+            CpfInstanceIdentity.Identity identity = CpfInstanceIdentity.current();
+            publisher.publishEvent(new CpfBoundaryFailureEvidence(
+                    "HTTP_INGRESS_HEADER",
+                    failure.transactionId(),
+                    failure.traceReference(),
+                    failure.systemCode(),
+                    failure.application(),
+                    failure.instance(),
+                    identity.hostName(),
+                    identity.hostIp(),
+                    identity.processId(),
+                    failure.headerName(),
+                    failure.category(),
+                    failure.errorCode(),
+                    failure.httpStatus(),
+                    failure.method(),
+                    failure.uri(),
+                    failure.clientIp(),
+                    failure.occurredAt()));
+        }
     }
 
     private static String safe(String value) {

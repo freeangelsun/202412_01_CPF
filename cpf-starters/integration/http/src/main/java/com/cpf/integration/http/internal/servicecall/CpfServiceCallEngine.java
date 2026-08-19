@@ -1,5 +1,6 @@
 package com.cpf.integration.http.internal.servicecall;
 
+import com.cpf.foundation.context.header.CpfHeaderNames;
 import com.cpf.platform.operations.reconciliation.CpfReconciliationPort;
 import com.cpf.platform.operations.reconciliation.CpfUnknownResultRecord;
 import com.cpf.platform.operations.observability.api.lineage.CpfLineageRecord;
@@ -377,7 +378,7 @@ public class CpfServiceCallEngine {
         }
         try {
             String transactionId = firstText(
-                    request.headers().get("X-Cpf-Transaction-Id"),
+                    request.headers().get(CpfHeaderNames.TRANSACTION_ID),
                     stringValue(request.attributes().get("transactionId")));
             String endpoint = target == null ? request.endpointCode() : target.endpointCode();
             String instance = target == null ? request.instanceId() : target.instanceId();

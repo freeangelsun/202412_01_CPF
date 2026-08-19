@@ -25,6 +25,9 @@ class Gate:
 
 def read_manifest(path:Path):
  if not path.exists(): return set()
+ if path.suffix.lower()=='.csv':
+  with path.open(encoding='utf-8-sig',newline='') as f:
+   return {(row.get('path') or '').replace('\\','/').strip('/') for row in csv.DictReader(f) if (row.get('path') or '').strip()}
  return {line.strip().replace('\\','/').strip('/') for line in path.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')}
 
 def active_text_files(root:Path):
@@ -41,7 +44,7 @@ def files_under(root:Path,relroot:str):
  return [x.relative_to(root).as_posix() for x in p.rglob('*') if x.is_file()] if p.exists() else []
 
 def main(argv=None):
- ap=argparse.ArgumentParser(); ap.add_argument('--root',required=True); ap.add_argument('--delete-manifest',default='cpf-docs/work/current/DELETE_MANIFEST.txt'); ap.add_argument('--garbage-ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); a=ap.parse_args(argv)
+ ap=argparse.ArgumentParser(); ap.add_argument('--root',required=True); ap.add_argument('--delete-manifest',default='cpf-docs/deliverables/DELETE_MANIFEST.csv'); ap.add_argument('--garbage-ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); a=ap.parse_args(argv)
  root=Path(a.root).resolve(); g=Gate(); dm=root/a.delete_manifest; manifest=read_manifest(dm)
  g.check('DELETE_MANIFEST_PRESENT',dm.exists(),a.delete_manifest)
  dir_rows=[p for p in manifest if (root/p).exists() and (root/p).is_dir()]

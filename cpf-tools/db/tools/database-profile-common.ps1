@@ -222,6 +222,8 @@ function ConvertTo-CpfModuleProfile {
         enabled = [bool]$raw.enabled
         required = [bool]$raw.required
         transitional = [bool]$raw.transitional
+        sourceOptional = if ($null -ne $raw.PSObject.Properties["sourceOptional"]) { [bool]$raw.sourceOptional } else { $false }
+        ownerPath = if ($null -ne $raw.PSObject.Properties["ownerPath"]) { ([string]$raw.ownerPath).Trim().Replace('\','/') } else { "" }
         databaseLifecycle = $databaseLifecycle
         systemCode = $systemCode
         logicalDatabase = [string]$raw.logicalDatabase

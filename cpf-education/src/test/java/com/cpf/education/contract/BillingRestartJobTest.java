@@ -1,7 +1,7 @@
 package com.cpf.education.contract;
 
 import com.cpf.batch.api.annotation.CpfBatchJob;
-import com.cpf.education.batch.restart.BillingRestartJob;
+import com.cpf.education.batch.restart.job.BillingRestartJob;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

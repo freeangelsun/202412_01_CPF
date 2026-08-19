@@ -32,6 +32,10 @@ public final class TransactionContext {
     public static final String HEADER_API_VERSION = CpfHeaderNames.API_VERSION;
     public static final String HEADER_CLIENT_ID = CpfHeaderNames.CLIENT_ID;
     public static final String HEADER_CLIENT_VERSION = CpfHeaderNames.CLIENT_VERSION;
+    public static final String HEADER_ORIGINAL_SYSTEM_CODE = CpfHeaderNames.ORIGINAL_SYSTEM_CODE;
+    public static final String HEADER_SYSTEM_CODE = CpfHeaderNames.SYSTEM_CODE;
+    public static final String HEADER_CALLER_SYSTEM_CODE = CpfHeaderNames.CALLER_SYSTEM_CODE;
+    public static final String HEADER_TARGET_SYSTEM_CODE = CpfHeaderNames.TARGET_SYSTEM_CODE;
     public static final String HEADER_CALLER_CHANNEL = CpfHeaderNames.CALLER_CHANNEL;
     public static final String HEADER_CALLER_INSTANCE_ID = CpfHeaderNames.CALLER_INSTANCE_ID;
     public static final String HEADER_CORRELATION_ID = CpfHeaderNames.CORRELATION_ID;
@@ -210,6 +214,34 @@ public final class TransactionContext {
     public static String correlationId() {
         TransactionHeader header = currentHeader();
         return header != null ? header.getCorrelationId() : null;
+    }
+
+    public static String originalSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.originalSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getOriginalSystemCode() : null;
+    }
+
+    public static String currentSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.currentSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCurrentSystemCode() : null;
+    }
+
+    public static String callerSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.callerSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getCallerSystemCode() : null;
+    }
+
+    public static String targetSystemCode() {
+        String value = com.cpf.core.api.context.CpfContexts.targetSystemCode();
+        if (hasText(value)) return value;
+        TransactionHeader header = currentHeader();
+        return header != null ? header.getTargetSystemCode() : null;
     }
 
     public static String originalChannel() {

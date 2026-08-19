@@ -17,7 +17,21 @@ def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument('--root',required=True,type=Path); ap.add_argument('--evidence',type=Path); ns=ap.parse_args(); root=ns.root.resolve(); checks=[]
     def add(name,ok,detail): checks.append({'name':name,'status':'PASS' if ok else 'FAIL','detail':detail})
     names={p.name for p in root.iterdir()}; bad=sorted(names&FORBIDDEN_ROOT); add('forbidden-root-entry-zero',not bad,bad)
-    allowed=BASE_ROOT_FILES|BASE_ROOT_DIRS|set(EXPECTED_GENERATED)|{'build'}; extras=sorted(names-allowed); add('unexpected-root-entry-zero',not extras,extras)
+    optional_policy=root/'cpf-tools/governance/cpf-optional-surface-policy.json'
+    optional_roots=set()
+    if optional_policy.is_file():
+        try:
+            optional_doc=json.loads(optional_policy.read_text(encoding='utf-8-sig'))
+            for item in optional_doc.get('sourceRemovableApplications',[]):
+                owner=str(item.get('ownerPath') or '').replace('\\','/').strip('/')
+                if owner:
+                    optional_roots.add(owner.split('/',1)[0])
+        except Exception as exc:
+            add('optional-surface-policy-parse',False,str(exc))
+    else:
+        add('optional-surface-policy-present',False,str(optional_policy))
+    allowed=BASE_ROOT_FILES|BASE_ROOT_DIRS|set(EXPECTED_GENERATED)|optional_roots|{'build'}; extras=sorted(names-allowed); add('unexpected-root-entry-zero',not extras,extras)
+    add('optional-root-policy-closure',all((root/x).exists() for x in optional_roots if x in names),sorted(optional_roots))
     for physical,logical in EXPECTED_GENERATED.items():
         p=root/physical; definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'; add(f'{physical}-physical-root',p.is_dir(),str(p)); add(f'{physical}-logical-domain-name',domain_name(definition)==logical,str(definition)); add(f'{physical}-customer-metadata-zero',not (p/'.cpf').exists(),str(p/'.cpf'))
         batch_selected='batch: true' in definition.read_text(encoding='utf-8',errors='replace').lower(); expected={'online'}|({'batch'} if batch_selected else set()); dirs={x.name for x in p.iterdir() if x.is_dir() and x.name not in EPHEMERAL_DIRS and any(y.is_file() for y in x.rglob('*'))} if p.is_dir() else set(); add(f'{physical}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})

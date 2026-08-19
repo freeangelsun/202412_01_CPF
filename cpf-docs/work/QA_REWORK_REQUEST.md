@@ -1,15 +1,22 @@
-# CPF QA Rework Request — Final Development Package
+# CPF QA Rework / Revalidation Request — Current Development Package
 
-개발 GPT가 확인 가능한 Source/Static/Independent Gate 결함은 이번 패키지에 반영했다. QA는 동일 Requirement ID로 아래 **실 Runtime 재검증**을 우선 수행한다.
+Developer-GPT has repaired the reproducible Source/Static/Independent-Gate defects found in the supplied QA3 and local validation package. QA must revalidate the **current desired-state source**, not historical evidence.
 
-1. Java25 Root Gradle compile/test/build/publication/SBOM
-2. 외부 Inbound 5 Header + Receiver Current Channel 자동설정 및 400/403/409 Controller-before reject
-3. Generated Domain `systemCode == Channel Identity` 및 Same JVM/Remote Context parity
-4. Operation 자동 Bootstrap, YML 최초 Seed 1회, ADM Policy preserve
-5. `operationId + callerChannel` allow/deny, LKG/maxStale/fail-close, Multi-WAS policyVersion
-6. DB3 V121~V127 fresh/upgrade/runtime query/rollback
-7. Async lease/fencing/cancel/process-kill/recovery/idempotency
-8. Frontend actual runtime OpenAPI generated client/npm/browser E2E
-9. File/Cache/Message/UNKNOWN 대표 runtime regression
+Priority runtime/revalidation scope:
 
-Runtime Evidence가 없는 항목은 PASS로 처리하지 않는다. 과거 Evidence의 PASS를 현재 Source 결과로 승계하지 않는다.
+1. Java25 Root Gradle configuration/compile/test/build/publication/SBOM.
+2. Canonical System 6 Header + receiver-owned `X-System-Code`, controller-before reject and durable failure evidence.
+3. Same-JVM/Remote transaction-context parity and Operation policy.
+4. Optional `cpf-biz-admin` physical removal; external DB-less `cpf-biz-channel` and `cpf-biz-frontend` build/runtime; Direct HTTP same security contract.
+5. Common canonical `cpfDB` runtime and actual transaction execution.
+6. Runtime Instance identity, central Registry, server-side paging and multi-instance behavior.
+7. Subject late enrichment/concurrent bind/time-range search/timeline lineage.
+8. Retention scheduled/manual/pause/resume/lease/process-kill/recovery.
+9. DB3 Oracle/PostgreSQL/MariaDB fresh/upgrade/runtime query/rollback.
+10. Redis/Valkey reconnect/failover and other provider runtime regression.
+11. Education 20+15 build/runtime/consumer regression after Delete Manifest application.
+12. ADM + external BZA Reference actual Browser E2E and 401/403/404/409/429/500/503.
+13. Public Git release command on a clean private Git checkout; any failed gate must prevent push.
+14. Delete Manifest application must remove only approved root-relative candidates and protected delete count must remain 0.
+
+Runtime Evidence absent = `미검증`, never PASS. A failure reopens the same Requirement and should be repaired by common root cause rather than adding duplicate APIs/engines.

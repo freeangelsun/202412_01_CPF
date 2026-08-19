@@ -165,7 +165,7 @@ foreach ($path in $tracked) {
         Add-Failure "LEGACY_VENDOR_SOURCE_ROOT" $normalized `
             "Vendor canonical source는 cpf-tools/db/vendor/<vendor>/source가 소유합니다."
     }
-    if ($normalized -eq "cpf-biz-admin/frontend/src/features/console.ts") {
+    if ($normalized -eq "cpf-biz-frontend/src/features/console.ts") {
         Add-Failure "BZA_MONOLITHIC_CONSOLE" $normalized `
             "BZA 화면은 feature package/route registry/code splitting 구조를 사용합니다."
     }

@@ -1,7 +1,6 @@
 package com.cpf.common.calendar;
 
 import com.cpf.common.runtime.cache.CpfCommonCacheRefreshPublisher;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,6 @@ import java.util.Objects;
  * the Calendar mutation. The durable listener/retry/reconcile path is shared with other CMN caches.</p>
  */
 @Component
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 @ConditionalOnMissingBean(CmnCalendarChangePublisher.class)
 public final class CmnDurableCalendarChangePublisher implements CmnCalendarChangePublisher {
     static final String CACHE_NAME = "businessCalendar";

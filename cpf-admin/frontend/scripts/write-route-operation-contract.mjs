@@ -3,12 +3,19 @@ import path from "node:path";
 
 const root = process.cwd();
 const routesPath = path.join(root, "src/app/routes.ts");
+const routesDir = path.join(root, "src/app/routes");
 const specPath = path.resolve(process.env.CPF_OPENAPI_FILE || "openapi/cpf-openapi.json");
 const generatedDir = path.join(root, "src/generated");
 if (!fs.existsSync(routesPath)) throw new Error(`ADM route registry missing: ${routesPath}`);
 if (!fs.existsSync(specPath)) throw new Error(`OpenAPI source missing: ${specPath}`);
 
-const routesText = fs.readFileSync(routesPath, "utf8");
+const routeFiles = [routesPath];
+if (fs.existsSync(routesDir)) {
+  for (const entry of fs.readdirSync(routesDir).filter(name => name.endsWith(".ts") && name !== "types.ts").sort()) {
+    routeFiles.push(path.join(routesDir, entry));
+  }
+}
+const routesText = routeFiles.map(file => fs.readFileSync(file, "utf8")).join("\n");
 const spec = JSON.parse(fs.readFileSync(specPath, "utf8"));
 const methods = new Set(["get", "post", "put", "patch", "delete", "head", "options", "trace"]);
 const openApiIds = new Set();
@@ -49,4 +56,4 @@ const rows = [...contracts.entries()]
   .join(",\n");
 const output = `// Generated from ADM capability registry and canonical runtime OpenAPI.\n// Actual callsite coverage is verified separately; registry-only presence is never consumer evidence.\nexport const admRouteOperationContract = {\n${rows}\n} as const;\nexport type AdmRouteOperationContract = typeof admRouteOperationContract;\n`;
 fs.writeFileSync(path.join(generatedDir, "adm-route-operation-contract.ts"), output, "utf8");
-console.log(`[CPF][FRONTEND][PASS] route operation contract routes=${contracts.size}`);
+console.log(`[CPF][FRONTEND][PASS] route operation contract routes=${contracts.size} files=${routeFiles.length}`);

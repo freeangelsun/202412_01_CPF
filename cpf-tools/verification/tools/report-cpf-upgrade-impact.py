@@ -55,7 +55,7 @@ def config_prefixes(root: Path) -> list[str]:
 
 def openapi_operations(root: Path) -> dict[str,list[str]]:
     result={}
-    for key,rel in {'ADM':'cpf-admin/frontend/openapi/cpf-openapi.json','BZA':'cpf-biz-admin/frontend/openapi/cpf-openapi.json'}.items():
+    for key,rel in {'ADM':'cpf-admin/frontend/openapi/cpf-openapi.json','BZA':'cpf-biz-admin/openapi/cpf-openapi.json'}.items():
         path=root/rel; ops=[]
         if path.is_file():
             doc=json.loads(path.read_text(encoding='utf-8'))

@@ -1,0 +1,4 @@
+package com.cpf.education.online.validation.service;
+import com.cpf.common.message.api.CpfMessageSource;import com.cpf.core.api.error.*;import com.cpf.education.online.validation.dto.MemberValidationCommand;import com.cpf.foundation.annotation.CpfService;import java.util.*;
+/** Validation·표준 오류 교육 예제의 Service 역할과 CPF 표준 사용 경계를 보여줍니다. */
+@CpfService public class MemberValidationService {private final CpfMessageSource messages;public MemberValidationService(CpfMessageSource m){messages=m;}public Map<String,String> validate(MemberValidationCommand c){switch(c.scenario()){case "invalid"->throw new CpfValidationException("업무 검증에 실패했습니다.");case "missing"->throw new CpfNotFoundException("요청 회원을 찾을 수 없습니다.");case "conflict"->throw new CpfBusinessException(CpfErrorCode.CONFLICT,"다른 요청이 먼저 변경했습니다.");default->{}}return Map.of("message",messages.getMessage("member.validation.ok",Locale.KOREAN),"memberId",c.memberId());}}

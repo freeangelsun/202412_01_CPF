@@ -2,6 +2,8 @@ package com.cpf.foundation.runtime;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * CPF 프로세스/WAS의 단일 Runtime instance identity 정본입니다.
@@ -11,6 +13,8 @@ import java.net.InetAddress;
  * hostname 조회 실패가 instanceId 결정을 막지 않습니다.</p>
  */
 public final class CpfInstanceIdentity {
+    private static final Set<String> FORBIDDEN_INSTANCE_IDS = Set.of(
+            "localhost", "127.0.0.1", "::1", "unknown", "local");
     private static final String EXPLICIT_INSTANCE_ID = explicitInstanceId();
     private static final String HOST_NAME = resolveHostName();
     private static final String INSTANCE_ID = resolveInstanceId(EXPLICIT_INSTANCE_ID, HOST_NAME);
@@ -32,11 +36,19 @@ public final class CpfInstanceIdentity {
         return hasText(configured) ? configured.trim() : null;
     }
 
-    private static String resolveInstanceId(String explicit, String hostName) {
-        if (hasText(explicit)) return explicit.trim();
-        if (hasText(hostName)) return hostName.trim();
+    static String resolveInstanceId(String explicit, String hostName) {
+        if (hasText(explicit)) return validatedInstanceId(explicit, "explicit instanceId");
+        if (hasText(hostName)) return validatedInstanceId(hostName, "Runtime hostname");
         throw new IllegalStateException(
                 "CPF Runtime hostname을 확인할 수 없습니다. cpf.runtime.instance-id 또는 CPF_RUNTIME_INSTANCE_ID를 명시해야 합니다.");
+    }
+
+    private static String validatedInstanceId(String value, String source) {
+        String normalized = value.trim();
+        if (FORBIDDEN_INSTANCE_IDS.contains(normalized.toLowerCase(Locale.ROOT))) {
+            throw new IllegalStateException(source + " cannot be used as CPF Runtime instanceId: " + normalized);
+        }
+        return normalized;
     }
 
     private static String resolveHostName() {

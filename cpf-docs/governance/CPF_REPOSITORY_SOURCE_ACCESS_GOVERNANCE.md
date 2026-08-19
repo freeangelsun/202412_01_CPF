@@ -13,3 +13,17 @@
 - Break-glass는 TTL, 사유, 사후 Review/Audit 필수
 
 실제 GitHub Branch Protection/Team 설정은 Repository 관리자 실행 Evidence가 있어야 PASS로 판정한다.
+
+
+## Public Framework Repository Default-Deny Distribution
+
+Private implementation Repository와 Public Framework Repository의 Source 경계는 allowlist 기반으로 강제한다. Public staging은 항상 빈 디렉터리에서 시작하며 명시적으로 분류된 파일만 생성한다.
+
+- Public 허용 분류: `PUBLIC_USER_DOC`, `PUBLIC_USER_SCRIPT`, `PUBLIC_USER_CONFIG`, `PUBLIC_GENERATED_SOURCE`, `PUBLIC_BOOTSTRAP`, `PUBLIC_DEPLOY_ASSET`, `PUBLIC_RELEASE_METADATA`.
+- `cpf-core`, `cpf-starters/**` 구현, `cpf-admin`, 내부 `cpf-biz-admin` Domain Source, governance/work/evidence, private release implementation은 Public staging에 포함하지 않는다.
+- 외부 `cpf-biz-channel`과 `cpf-biz-frontend`는 명시적 Public Reference classification으로 포함할 수 있다. 이 허용이 내부 BZA Domain Source 공개를 의미하지 않는다.
+- staging의 미분류 파일, private/internal path, secret-like file/content, source/JAR/POM/BOM leakage는 FAIL이다.
+- clean public consumer/generated reference build/test, manifest/hash/SBOM/provenance, staged diff/whitespace 검증이 모두 PASS하기 전 commit/push에 도달하지 않는다.
+- 실제 remote Git push는 사용자 또는 승인된 release trigger가 명시적으로 수행하며 Gate failure를 우회하는 push option을 제공하지 않는다.
+
+Canonical implementation owner는 `cpf-tools/release/public/**`이며 기존 Publication/Release 자산을 재사용한다. 별도 `ReleaseV2`/`PublisherV2` 계층을 만들지 않는다.

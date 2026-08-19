@@ -3,7 +3,6 @@ package com.cpf.common.calendar;
 import com.cpf.data.persistence.sql.CmnSqlResourceLoader;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +14,6 @@ import java.util.Optional;
 
 /** Product mode의 CMN canonical Calendar JDBC Adapter입니다. */
 @Component
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 @ConditionalOnProperty(name="cpf.common.calendar.jdbc.enabled",havingValue="true",matchIfMissing=true)
 public class CmnJdbcCalendarStore implements CmnCalendarStore {
     private final JdbcTemplate jdbc;

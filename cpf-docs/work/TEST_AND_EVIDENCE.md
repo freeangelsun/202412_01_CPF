@@ -1,72 +1,61 @@
 # CPF TEST AND EVIDENCE
 
-- Evidence time: `2026-08-18T23:19:00+09:00`
-- Baseline full-source ZIP SHA-256: `a62e1abfa134d3124f2ab6743821610fa225ed5cc3e8c21e201e7a20785a25f4`
-- Baseline file count: `8,383`
+- Baseline full-source ZIP SHA-256: `b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850`
+- Baseline file count: `8,440`
+- Desired-state file count: `8,399`
+- Source identity (Git-independent, evidence-metadata excluded): `762343a5d08d11a7cfc9990236761f5a380e4f92e0f4bfd54a98d52095da2a64`
 - Git exact SHA: `UNVERIFIED_SOURCE_ZIP_HAS_NO_DOT_GIT`
-- Development status: **SOURCE/STATIC DEVELOPMENT COMPLETE**
-- Verification status: **RUNTIME REVERIFY REQUIRED**
+- Development status: **SOURCE/STATIC/PACKAGE CLOSURE PASS IN ASSISTANT ENVIRONMENT**
+- Verification status: **ENVIRONMENT-DEPENDENT RUNTIME REVALIDATION REQUIRED**
 
-## 1. Final development scope closed
+## Current PASS evidence
 
-This development pass currentized and revalidated the integrated Channel/Header/Context, Same-JVM/Remote invocation boundary, DB3, Subject Tracking, Central Managed Server Registry, File/DB Retention execution, ADM/OpenAPI/Frontend, Generator/Generated Domain, EDU, stale verifier/harness, and repository hygiene surfaces.
-
-The current development source intentionally does **not** claim QA final completion for runtime checks that were not executed on the latest modified source.
-
-## 2. Latest-source PASS evidence
-
-| Gate | Result | Evidence |
+| Gate | Result | Current evidence |
 |---|---|---|
-| Final static verifier | PASS | online=20, batch=15, operationPairs=27, uniqueOperationIds=27, failures=0 |
-| Subject Tracking closure | PASS | types=4, DB3=3, rawPersistence=0, ADM consumer=1 |
-| Central Registry / Retention closure | PASS | centralRegistryUiConsumers=6, canonicalTables=233 |
-| DB3 semantic parity | PASS | MariaDB/PostgreSQL/Oracle, canonicalTableCount=233, findings=0 |
-| Java source syntax | PASS | 2,745 source files, errors=0 on final snapshot run |
-| Repository hygiene | PASS | protectedDelete=0, directoryDelete=0 |
-| Frontend TypeScript | PASS before final packaging | vue-tsc --noEmit exit code 0 after final ADM UI patch; a later duplicate rerun exceeded this environment execution window and is not substituted for that PASS |
-| Generated client | PASS | 337 operations; generated/request boundary contract passed |
-| Frontend consumer closure | PASS | 337/337 consumers |
-| Verification tests | PASS | 17/17 test files exit code 0 |
-| DB verification tests | PASS | 15/15 test files exit code 0 |
-| Runtime tool tests | PASS | 17/17 test files exit code 0 |
-| Generator verification tests | PASS | 11/11 test files exit code 0 |
-| Testing-tools regression | PASS | 83/83 test files, actual FAIL 0; one parallel resource-contention flake was rerun standalone and passed 7/7 |
-| Changed-impact NXT3 gates | PASS | 11/11 |
-| Cache standalone compile closure | PASS | main=29, test=11, warnings=0 |
+| BZA boundary | PASS | backend OpenAPI 96 = Channel routes 96; Reference routes 4; DB-less=1; CPF Java dependency=0 |
+| Frontend consumer closure | PASS | 563 files / 790 imports / findings=0 |
+| Frontend source syntax | PASS | 590 files / errors=0 |
+| Frontend Golden Path | PASS | ADM live generated source + external BZA reference source |
+| BZA/ADM reference workflow runtime | PASS | Node/TypeScript harness 10 checks + 4 reference pages contract |
+| Education active surface | PASS | Online 20 / Batch 15 / role groups 20+15 / catalog 35 |
+| Education executable coverage | PASS | 35/35 tests mapped; flat/numeric/internal import 0 |
+| Common Product Service DX | PASS | services=5 / goldenPath=5 / educationConsumer PASS / managementBoundary PASS |
+| Optional surface | PASS | source-removable applications=3 / selectable Starters=25 |
+| Public staging static | PASS | 116 classified files / private implementation path leakage 0 |
+| Public release tool tests | PASS | 4/4 |
+| Focused release/BZA/frontend/evidence Python tests | PASS | 22/22 |
+| NXT3 final all | PASS | 23/23 checks / failed=0 / unverified=0 (static gate scope) |
+| ADM route/generated client | PASS | 68 routes / 329 explicit route operations / 337 generated OpenAPI operations |
+| Evidence integrity | PASS | 36 developer requirements / 25 QA findings / current source identity / file-level package hashes fail-closed |
+| Java source syntax | PASS | 2,820 files / errors=0 on final desired-state static rerun |
 
-## 3. Important defect closures
+## Current structural closures
 
-- Final verifier `git ls-files -z` now parses actual NUL (`b'\0'`) and retains ZIP/fallback mode; wrong escaped-NUL parsing is fail-closed by regression checks.
-- Same-JVM domain invocation no longer bypasses the transport-independent operation access policy boundary.
-- External Business Domain contract is five required wire headers; `X-Current-Channel` remains receiver-owned and non-required.
-- Channel identity validation is 1..16 with no silent uppercase normalization; Generated Domain `systemCode` is used as current Channel value without mapping.
-- Channel DB policy is `operation_id + caller_channel`; DB3 fresh/source/install/migration/runtime surfaces converge on the canonical schema.
-- PostgreSQL/Oracle vendor dialect generation no longer inherits incompatible MariaDB expressions.
-- Subject Tracking uses role/type/source/trust metadata, protected deterministic search token, transaction binding and existing ADM transaction timeline; raw identifier persistence is not the search model.
-- Central server management uses stable Managed Server + existing Runtime Instance/State/Capability ownership; feature screens consume shared Runtime Inventory instead of creating feature-specific server masters.
-- File/DB Retention is wired to real execution paths. Scheduled/Manual/Resume share one engine; pause occurs between safe chunks; lease/fencing, maxRows/maxRuntime/throttle and history are enforced. Manual run re-previews server-side before execution.
-- EDU 20 online + 15 batch keeps scenario count while removing compressed nested golden-path responsibilities; generated customer-domain hardcoding and ObjectProvider repository fallback were removed from EDU golden paths.
-- ADM frontend server paging/lazy load/runtime status/mobile/modal/shared table/form/authorization-context defects were currentized; generated client and actual consumers were regenerated/currentized.
+- Canonical transaction wire is System-based 6 headers. Channel identity is a separate optional policy/context axis.
+- Runtime instance identity uses the Foundation single provider and fails closed on invalid fallback values.
+- Pre-controller canonical-header rejection produces sanitized durable transaction evidence through the Observability owner.
+- Subject time search uses original transaction start time; first subject discovery time remains provenance.
+- Common active runtime is cpfDB + cpfCommonTransactionManager; legacy cmn runtime has no active main-source consumer.
+- `cpf-biz-admin` is an Optional Prebuilt Business Administration Domain; business master data remains owned by the corresponding Business Domain.
+- `cpf-biz-channel` is DB-less Pure Spring Boot and does not depend on CPF Java/BOM/Starter/Internal API.
+- `cpf-biz-frontend` consumes the Channel only and exposes four representative reference feature routes.
+- Generated-domain-like public contracts are reused inside `cpf-biz-admin`; Generator does not create BZA.
+- Optional Source applications may be physically absent without breaking Root configuration; optional DB/deployment surfaces are skipped when owner source is absent.
+- Public Git staging is default-deny and every staged file requires a public classification. Private/internal paths and secret-like content fail closed.
 
-## 4. Latest-source unverified runtime items — NOT PASS
+## Delete candidates — not physically deleted
 
-The following are **not** reported as PASS because they were not completed on the latest modified source in this assistant environment:
+`cpf-docs/deliverables/DELETE_MANIFEST.csv` currently contains `273` root-relative file candidates. It includes 29 superseded Education flat sources, 239 legacy embedded BZA Frontend files, and 4 stale BZA frontend fixtures. Protected-path deletion count is 0.
 
-- Java 25 root Gradle configuration/compile/test/build/publication/SBOM
-- Live Oracle Fresh/Upgrade/Runtime/Rollback
-- Live PostgreSQL Fresh/Upgrade/Runtime/Rollback
-- Live MariaDB Fresh/Upgrade/Runtime/Rollback
+## Unverified runtime — NOT PASS
+
+- Java 25 Root Gradle configuration/compile/test/build/publication/SBOM
+- Live Oracle/PostgreSQL/MariaDB Fresh/Upgrade/Runtime/Rollback
 - Redis/Valkey live reconnect/failover
-- Multi-WAS policy propagation, Subject concurrent bind, retention lease contention with real multiple JVMs
-- Process kill/restart/redeploy recovery
-- Final real-browser Playwright viewport matrix on the latest source
+- Multi-WAS policy/identity/lease contention
+- process kill/restart/redeploy recovery
+- external BZA Channel + Frontend live HTTP/browser E2E
+- PowerShell runtime/parse execution in this Linux assistant environment
+- Public Git real remote clone/commit/push
 
-These are environmental/runtime revalidation requirements, not permission to revert the implemented source.
-
-## 5. Final local validation
-
-Canonical entry point:
-
-`cpf-tools/verification/tools/run-cpf-final-local-validation.ps1`
-
-The next QA run must use the latest local Working Tree and must validate both actual Git checkout mode and ZIP/fallback mode for the final verifier.
+These remain `미검증`; static or previous-SHA evidence is not substituted.

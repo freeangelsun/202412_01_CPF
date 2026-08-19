@@ -1,11 +1,55 @@
 # CPF 최종 목표 요구사항 정본
 
 > Canonical path: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-> Revision date: `2026-08-12`
-> Previous runtime/evidence basis SHA: `c4068ae7dcc3afe4a9516e5e0f743bd6b2ef9e07` (`11_02`; historical evidence only)
-> Currentization static-source basis SHA: `d14a6e4fab73533871cc4a5f833c9b7be56cc4a6` (`12_03 docs-currentized master`; 12_04 integrated redevelopment requirement basis, not runtime PASS)
+> Revision date: `2026-08-19`
+> Previous runtime/evidence basis SHA: historical evidence only; current Runtime PASS is not inherited.
+> Currentization local-source ZIP SHA-256: `b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850` (8,440 files, `.git` absent; exact Git SHA unavailable).
 > Canonical Requirement Count: **186개**
 > Legacy Alias: **8개** — 완료율 중복 집계 금지
+
+
+## 0.0 2026-08-19 Superseding Architecture Amendment
+
+이 절은 2026-08-19 최신 Steering과 현재 Source 재검증을 반영한 **최우선 Current Target**이다. 같은 문서의 과거 전환 문구, SHA 고정 문구, Channel-based 거래 Header, embedded BZA Frontend, `cpf-biz-admin`을 필수 관리 Application으로 보는 설명이 이 절과 충돌하면 해당 문구는 stale이며 이 절을 우선한다. 과거 Runtime/Evidence PASS를 현재 Source에 승계하지 않는다.
+
+### Canonical Transaction / System Identity
+
+업무 Domain Online Transaction의 Canonical transport 6종은 정확히 다음이다.
+
+1. `X-Transaction-Id`
+2. `X-Original-System-Code`
+3. `X-System-Code`
+4. `X-Caller-System-Code`
+5. `X-Target-System-Code`
+6. `X-Target-Operation-Id`
+
+`X-Original-System-Code`는 해당 transactionId를 최초 생성·기동한 System으로 생성 시 확정 후 불변이다. `X-System-Code`는 현재 요청을 실제 처리하는 Receiver System이 자신의 trusted runtime metadata로 확정한다. `X-Caller-System-Code`는 직전 호출 System, `X-Target-System-Code`는 현재 호출 대상 System이다. 업무 개발자는 Canonical 6종을 직접 조립·변경하지 않는다. Channel identity는 인증·정책·유입 경로를 위한 별도 optional context이며 Canonical System identity를 대체하거나 System Header로 변환하지 않는다.
+
+외부 Channel이 Business Domain Public HTTP Contract를 호출할 때 Receiver-owned `X-System-Code`를 신뢰값으로 작성하지 않는다. Direct HTTP는 Gateway 보안 우회 경로가 아니라 endpoint만 다른 동일 Public HTTP Contract이며 인증·인가·Channel Policy·Audit·Canonical Header/Context 검증을 동일하게 충족해야 한다.
+
+### BZA Final Architecture
+
+`cpf-biz-admin`은 CPF 내부의 **Optional Prebuilt Business Administration Domain**이다. Generator 생성 대상은 아니지만 Generated Business Domain과 동일한 Public Starter/API, Canonical transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3, Runtime/Test 계약을 사용한다.
+
+- BZA Domain은 Backoffice 업무 자체의 승인 상태, BZA 업무권한, Backoffice 설정 등 **BZA-owned data**만 소유한다. Member/Customer/Account 등 Business Master는 각 Business Domain이 exactly-one Owner이며 `cpf-biz-admin`이 원장을 복제하거나 해당 Domain DB를 직접 접근하지 않는다.
+- BZA를 사용하지 않으면 `cpf-biz-admin` Source와 BZA-owned DB migration/seed bundle을 제외할 수 있다. 이 부재가 Root settings/configuration/build/test/publication/installer/verifier, `cpf-core`, Common, ADM, Gateway, Batch, 다른 Business Domain을 깨뜨리면 Optionality 실패다. 존재할 때는 aggregate regression에 자동 참여한다.
+- 외부 `cpf-biz-channel`은 **DB-less Pure Spring Boot Channel/BFF**다. CPF BOM/Starter/Java API/Annotation/Internal API에 의존하지 않고 HTTP/HTTPS Public Contract만 사용한다. 로그인/Session을 이유로 업무 상태·권한 원장을 저장하는 영속 DB를 추가하지 않는다. Stateless Token, 외부 인증체계 또는 공식 Session 정책을 사용한다.
+- 외부 `cpf-biz-frontend`는 Channel Server만 호출하는 선택형 Reference Frontend다. CPF가 제공하는 기본 외부 UI는 검색/Paging·상세/변경·승인·권한 등 대표 흐름을 보여주는 소수의 실제 Reference Page로 유지하며, 고객 전체 Backoffice를 제품 UI에 고정하지 않는다.
+- `cpf-biz-admin`, `cpf-biz-channel`, `cpf-biz-frontend`는 각각 역할이 다르며 한 모듈로 다시 결합하지 않는다.
+
+### Optional Surface Common Contract
+
+Canonical Catalog/Architecture에서 optional/user-selectable로 분류된 Module/Application/Capability는 BZA와 동일한 Optionality 원칙을 따른다. 물리 Source 부재나 미선택 상태가 필수 Build/Runtime/Publication/Install/Verification을 실패시키지 않아야 하며, 선택 시에만 Bean/외부 연결/listener/scheduler/health ACTIVE 등록/DB migration/deploy asset가 활성화된다. 다른 Module의 역의존과 무조건 `dependsOn`을 금지한다. `cpf-core` 등 필수 Foundation은 이 규칙의 대상이 아니다.
+
+### Source Maintainability / Operability Quality
+
+기능 동작만으로 완료 처리하지 않는다. 모든 Backend/Frontend Source는 Architecture/Ownership, 패키지와 의존 방향, 개발자 탐색성, 변경 영향 범위, 장애 분석, 운영·유지보수 비용을 품질 기준으로 검수한다. 기능 중심 package 아래 필요한 `controller/service/repository/client/dto/model` 등 역할 경계를 두되 파일 크기만으로 기계적으로 분할하거나 의미 없는 초소형 계층을 양산하지 않는다. `CommonUtil`, `Helper`, `Manager`, `V2` 같은 모호한 책임 은닉과 대형 통파일/static inner 기반 업무 구현을 피한다. ADM/BZA를 포함한 Frontend도 기능별 `pages/components/api/model(or types)/composables/store`를 필요한 수준으로 분리하고 화면·API·상태·모델을 하나의 거대 파일에 혼합하지 않는다.
+
+### Public Distribution / Public Git
+
+Private Repository에서 Public Repository를 만들 때는 **Default-Deny**다. 빈 staging에서 explicit allowlist/classification에 포함된 Public User Doc/Script/Config, Generated Source, Bootstrap, Deploy Asset, Release Metadata만 생성한다. `cpf-core`, `cpf-starters` 구현, `cpf-admin`, `cpf-biz-admin`, governance/work/evidence/internal release implementation 등 Private Source가 staging에 유입되면 FAIL한다. 외부 BZA Channel/Reference Frontend는 명시적 Public Reference classification으로 포함할 수 있다.
+
+Public Git publish entrypoint는 staging/classification → secret/private/internal leakage → manifest/hash/SBOM/provenance → clean public consumer/generated sample build/test → staged diff/whitespace 검증을 모두 PASS한 뒤에만 commit/push 단계에 도달해야 한다. 중간 Gate 하나라도 실패하면 push는 실행되지 않는다. 실제 remote push는 사용자/승인된 release trigger가 수행한다.
 
 ### Core Kernel / Root Layout 강제 정책
 
@@ -208,7 +252,7 @@ CPF는 금융권을 포함한 다양한 업무 시스템을 구축·운영·감�
 - 독립 Microservice
 - 동일 JVM Local Facade
 - 분리 WAS Remote Facade
-- ADM/BZA 독립 Static Artifact + Web Server
+- ADM 독립 Frontend Artifact + Web Server, BZA는 외부 `cpf-biz-channel` + `cpf-biz-frontend` 선택형 배포
 - Gateway 독립 Runtime
 - Agent/Runner/Worker 독립 Process
 - Multi-instance와 Multi-zone
@@ -234,7 +278,9 @@ Local 구현이 Remote보다 기능이 적거나, Remote 전환을 위해 업무
 | 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | CPF 전역 Kernel: topology-independent Contract/Semantics/Value와 최소 순수 Logic. 특정 Owner/Optional Capability API·SPI와 Runtime 구현은 소유하지 않음 |
 | CPF Common Product Capability | `cpf-starters/common` (`cpf-starter-common`) | `com.cpf.common` | CMN | CPF가 소유·버전관리하며 고객 업무가 직접 사용하는 Code/Parameter/Message/Calendar/Template. 고객 특화 공통은 `<customer>-common` |
 | 플랫폼 관리자 | `cpf-admin` | `com.cpf.admin` | ADM | 플랫폼 운영 Control Plane, 플랫폼 위험조치 승인과 운영자 감사 |
-| 고객 업무 관리자 | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | 고객 업무 관리, 조직·업무 결재, 선택형 Customization Sample |
+| 고객 업무 관리자 Domain | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | Optional Prebuilt Business Administration Domain. Backoffice 업무/승인/권한/설정 Owner이며 다른 Business Master/DB를 소유하지 않음 |
+| BZA 외부 Channel | `cpf-biz-channel` | 독립 Spring Boot package | 외부 Channel | DB-less Pure Spring Boot BFF. CPF Java dependency 0, HTTP/HTTPS Public Contract only |
+| BZA Reference Frontend | `cpf-biz-frontend` | Vue/TypeScript | Browser | Channel Server만 호출하는 선택형 대표 Reference UI |
 | Batch 실행 기반 | `cpf-batch` | `com.cpf.batch` | BAT | Spring Batch, Scheduler, Center-Cut, Agent, Runner, Worker |
 | Gateway Runtime | `cpf-gateway` | `com.cpf.gateway` | GWY | 외부 진입, trust boundary, route/load balance/resilience와 attempt ledger |
 | Generated Customer Domain Verification — Member | `cpf-member` | `member` | MBR | Root-level 실제 Generator Output. `online/`을 필수 생성하고 `modules.batch=true` 회귀로 `batch/`도 선택 생성한다. MBR_* Sample Transaction과 Public `cpf-starter-batch` 소비를 검증한다. CPF Product/Public Artifact 아님 |
@@ -251,7 +297,7 @@ Generated/Business Domain → Public Starter/Common Capability → cpf-core
 cpf-gateway → cpf-core Public Contract + 선택 Starter
 cpf-batch → cpf-core Public Contract + Business Public Contract
 cpf-admin → Operations Command/Query Contract
-cpf-biz-admin → Business Public Contract
+cpf-biz-channel → HTTP/HTTPS Public Contract → cpf-biz-admin → Business Public Contract
 Customer Adapter/Plugin → Capability Public SPI / `<customer>-common`; Core SPI는 genuine Kernel extension에 한정
 ```
 
@@ -260,7 +306,7 @@ Customer Adapter/Plugin → Capability Public SPI / `<customer>-common`; Core SP
 - `cpf-core`의 Common/Admin/Batch/업무 역방향 의존
 - 선택 기능 Runtime(Kafka, Redis, OTel exporter 등)의 Core 강제 포함
 - 업무 Domain 간 DB 직접 접근
-- ADM/BZA의 Owner DB 직접 갱신
+- ADM의 Owner DB 직접 갱신 및 `cpf-biz-admin`의 다른 Business Domain DB 직접 접근
 - 내부 호출의 Gateway 재경유
 - 순환 의존과 Internal Package 직접 참조
 - 실제 Product Consumer 없는 Interface/Adapter/Starter
@@ -570,20 +616,30 @@ TCP Starter는 연결 수명주기, framing, encoding, heartbeat, reconnect, bac
 
 ADM은 플랫폼 운영 Control Plane이며 Owner DB를 직접 수정하지 않는다. 위험조치는 Owner Command API로 수행한다.
 
-BZA는 고객 업무 관리와 업무 결재를 소유하며 플랫폼 Runtime을 직접 제어하지 않는다.
+`cpf-biz-admin`은 Optional Prebuilt Business Administration Domain이다. Backoffice 업무규칙·승인·업무권한·BZA-owned data를 소유하되 Member/Customer/Account 등 다른 Business Master를 중복 소유하거나 타 Domain DB를 직접 접근하지 않는다. 다른 업무 데이터는 공식 Business Domain Invocation/Public Contract를 사용한다.
 
-공통 Frontend 기준:
+BZA 외부 배포는 다음처럼 분리한다.
 
-- ADM/BZA 독립 Vue 3 + TypeScript + Vite Application/Artifact
-- feature folder, route registry, Pinia state, TanStack Query API boundary
-- Orval exact-SHA generated client와 drift gate
-- package.json/package-lock exact 일치와 clean `npm ci`
-- Element Plus/TanStack Table/Zod를 실제 화면 Consumer에 적용
-- raw `fetch`는 단일 승인 mutator/auth bootstrap 경계 외 금지
-- search/paging/sort/detail/status/loading/empty/error/retry UX
-- deep link, 403/404, session expiry, browser history
-- responsive, keyboard, accessibility와 Chromium/Firefox/WebKit E2E
-- 외부 Runtime CDN/font/script 의존 금지
+```text
+Browser → cpf-biz-frontend → cpf-biz-channel → Gateway 또는 허용된 Direct Public HTTP → cpf-biz-admin → Business Domain
+```
+
+- `cpf-biz-channel`: Pure Spring Boot, DB-less, CPF Java/BOM/Starter/Internal dependency 0, HTTP/HTTPS only.
+- `cpf-biz-frontend`: Channel만 호출하는 선택형 Vue/TypeScript Reference Frontend. 기본 Public Reference는 대표 흐름의 소수 Page로 유지한다.
+- Direct HTTP는 Gateway 보안 우회가 아니며 인증·인가·Channel Policy·Audit·Canonical System Header 검증을 동일하게 수행한다.
+- BZA Channel/Frontend를 제거해도 내부 CPF Business Runtime은 정상이어야 하고, `cpf-biz-admin`까지 제거한 BZA 미사용 구성도 필수 Framework/Domain Build와 Runtime을 깨뜨리지 않아야 한다.
+
+Frontend 공통 기준:
+
+- ADM/BZA Frontend는 독립 Vue 3 + TypeScript + Vite Application/Artifact로 배포하되 BZA Frontend는 외부 Channel만 호출한다.
+- feature-first 구조를 사용하고 기능별 `pages/components/api/model/composables/store`를 필요한 수준으로 분리한다.
+- OpenAPI generated client와 source contract drift gate를 유지한다.
+- package.json/package-lock exact 일치와 clean `npm ci`를 검증한다.
+- raw `fetch`/HTTP transport는 승인된 공통 transport 경계에 한정하고 feature API가 이를 재사용한다.
+- search/paging/sort/detail/status/loading/empty/error/retry, 401/403/404/409/429/500/503 UX를 구분한다.
+- deep link, session expiry, browser history, responsive, keyboard, accessibility를 검증한다.
+- 외부 Runtime CDN/font/script 의존을 금지한다.
+- native `prompt/confirm`, raw JSON dump를 주요 운영 UX로 사용하지 않는다.
 
 BFF/Session 기준:
 
@@ -1967,7 +2023,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 7. 실제 Kafka, 외부 failure, response loss와 unknown-result reconciliation
 8. Spring Batch, Scheduler, Center-Cut, Agent/Runner/Worker
 9. Gateway streaming/disconnect/retry/failover와 ledger
-10. ADM/BZA Server Authorization, Production Build와 3 Browser E2E
+10. ADM Server Authorization/Production Build와 외부 BZA Reference Frontend의 Browser E2E; 내부 `cpf-biz-admin`은 Domain/API/권한/DB 계약을 별도 검증
 11. Session/BFF, Security, Approval, Audit, Privacy와 Masking
 12. Generator create→runtime→remove→regenerate lifecycle
 13. Final Artifact signature, deploy, selective rollback와 supply-chain scan
@@ -2616,19 +2672,17 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 
 ### 16.3.16G CPF HTTP Header / Transaction Context Developer Contract
 
-온라인 CPF 거래 Header는 Web Runtime이 소유하는 단일 Canonical 계약이며, 업무 개발자가 직접 조립하지 않는다. 이 절의 Channel Vocabulary가 거래 호출 Identity의 최종 정본이며, 과거 System Header 표현보다 우선한다.
+온라인 CPF 거래 Header는 Web Runtime이 소유하는 단일 Canonical 계약이며, 업무 개발자가 직접 조립하지 않는다. **System Vocabulary가 거래 호출 Identity의 최종 정본**이며 과거 Channel-based Canonical six 문구는 stale다.
 
-- 신뢰된 내부 CPF Business Domain HTTP hop의 Canonical 6개는 정확히 `X-Transaction-Id`, `X-Original-Channel`, `X-Current-Channel`, `X-Caller-Channel`, `X-Target-Channel`, `X-Target-Operation-Id`다. `Channel-Code` suffix를 사용하지 않는다.
-- `X-Transaction-Id`는 end-to-end 논리 거래 ID다. `X-Original-Channel`은 최초 Transaction 시작 Channel이며 동일 Transaction 동안 불변이다. `X-Current-Channel`은 현재 요청을 실제 처리 중인 Runtime Channel로 Receiver가 자신의 trusted Runtime identity를 기준으로 자동 확정한다. `X-Caller-Channel`은 직전 hop 호출자, `X-Target-Channel`은 이번 hop의 목적지다.
-- 내부 Domain Client는 현재 Context의 Original Channel을 유지하고, 현재 Runtime Channel을 다음 hop의 Caller Channel로 전환하며, 선택된 Target Contract에서 Target Channel과 Target Operation을 확정하여 Canonical 6개를 자동 serialize한다. 현재 operationId를 targetOperationId로 복사하지 않는다. 동일 JVM 호출은 self-HTTP를 만들지 않되 Remote와 동일한 Original/Current/Caller/Target Channel 및 Operation semantics로 논리 Context를 전환한다.
-- 외부 시스템이 CPF Business Domain API를 직접 호출할 때 필수 입력 Header는 `X-Transaction-Id`, `X-Original-Channel`, `X-Caller-Channel`, `X-Target-Channel`, `X-Target-Operation-Id`의 5개다. `X-Current-Channel`은 외부 Caller 필수 입력이 아니며 Receiver Runtime이 Generated Domain canonical `systemCode` 값을 그대로 사용해 ingress 즉시 자동 확정한다. 외부가 `X-Current-Channel`을 보내더라도 Source of Truth로 사용하지 않고 Receiver가 확정한 Current Channel과의 일치 여부만 검증한다. `X-Target-Channel`과 Receiver Current Channel이 다르면 Controller 이전에 차단한다. CPF 내부 Domain Call에서는 업무 개발자가 이 5개조차 직접 작성하지 않으며 Framework가 현재 Context와 Target Contract에서 자동 구성한다.
-- 내부 수신은 Controller 실행 전에 Canonical 6개 누락·형식, `Target Channel == Runtime Current Channel`, trusted Caller Channel, 실제 Canonical operationId와 `X-Target-Operation-Id`의 일치를 검증한다. 누락/형식은 400, 신뢰 경계 위조는 403, Channel/Target/Operation protocol mismatch는 409로 처리하고 실패도 transaction/log/ADM correlation에 남긴다.
-- Channel Policy의 호출자 판정키는 `operationId + callerChannel`이다. Current Channel은 현재 Runtime/Target 관계 검증과 observability에 사용하며 Caller Channel 대체값으로 사용하지 않는다. 기존 Channel Definition/Policy/LKG/maxStale/fail-close/version/audit 정본을 재사용하고 System→Channel Mapper/Resolver/Table을 새로 만들지 않는다.
-- 실제 Runtime System Metadata, Host/Operating System, Application, Domain, Deployment, instanceId처럼 거래 Header와 별개의 System 개념은 유지한다. 거래 Header의 Channel 값을 System Registry 입력으로 기계적으로 재해석하지 않는다. System/Domain 통제가 별도로 필요한 경우 trusted Runtime/Registry metadata로 판정하며 Header Channel을 System 값으로 변환하는 Mapping 계층을 만들지 않는다.
-- 업무 개발자 Public Surface는 `CpfHttpHeaders` 하나로 통일한다. 미등록 Custom Header도 `current()/requireCurrent()/get()/getRequired()/getAll()/containsKey()/names()/asMap()`으로 읽고 안전한 타입 변환을 사용할 수 있으며, 추가 Header는 `set()/add()`로 다룬다. Canonical 6개, Authorization/Proxy/Trace 등 Framework 보호값은 일반 Custom mutation API로 변경할 수 없다.
-- `CpfContexts`는 transactionId/traceId/operationId/originalChannel/currentChannel/callerChannel/targetChannel/targetOperationId와 Context capture/restore를 Public API로 제공한다. 기존 거래 호출 Identity 의미의 `originalSystemCode/systemCode/callerSystemCode/targetSystemCode`는 최종 Canonical Public API로 병행하지 않는다. Web 전용 client/locale 정보는 `CpfWebContexts`, 인증/권한은 `CpfSecurityContext`, Runtime instance/hostname은 `CpfInstanceIdentity`가 각 Owner의 read-only Public Surface로 제공한다.
-- `transactionId` 자체의 canonical format 안에 존재하는 3자리 발급자 토큰은 거래 Header의 Original Channel과 같은 개념으로 해석하지 않는다. 이는 transactionId 발급/분산 유일성의 내부 issuer metadata이며 `X-Original-Channel`과 일치 비교하지 않는다. Public helper/검증 이름도 Channel과 혼동되지 않도록 issuer 의미로 currentize한다.
-- 외부기관 outbound에는 CPF 내부 Canonical Header를 기본 전파하지 않고 기관별 Allowlist 계약만 적용한다. 기관 거래코드/서비스코드/provider request/correlation ID는 Institution Adapter가 소유하며 CPF Header 존재 여부로 외부기관 결과를 판정하지 않는다.
+- 신뢰된 CPF Business Domain hop의 Canonical 6개는 정확히 `X-Transaction-Id`, `X-Original-System-Code`, `X-System-Code`, `X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`다.
+- `X-Transaction-Id`는 end-to-end 논리 거래 ID다. `X-Original-System-Code`는 해당 transactionId를 최초 생성·기동한 System으로 최초 확정 후 불변이다. `X-System-Code`는 현재 요청을 실제 처리하는 Receiver System이 trusted runtime metadata로 확정한다. `X-Caller-System-Code`는 직전 hop 호출 System, `X-Target-System-Code`는 이번 hop의 목적지다.
+- 내부 Domain Client는 Original System을 유지하고 현재 System을 다음 hop Caller로 전환하며 Target Contract에서 Target System과 Target Operation을 확정해 Canonical 6종을 자동 serialize한다. 동일 JVM은 self-HTTP를 만들지 않고 동일한 논리 Context 전환을 수행한다.
+- 외부 Channel이 Business Domain Public HTTP Contract를 호출할 때 `X-Transaction-Id`, `X-Original-System-Code`, `X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`를 공식 ingress 정책에 따라 전달하고 Receiver-owned `X-System-Code`는 Receiver가 확정한다. 외부 입력의 `X-System-Code`를 trust source로 사용하지 않는다.
+- 수신은 Controller 실행 전에 누락·형식, Target System과 Receiver System, trusted caller/channel policy, 실제 Canonical operationId와 `X-Target-Operation-Id`의 일치를 검증한다. protocol/security failure도 transaction/log/ADM correlation에 durable evidence로 남긴다.
+- Channel identity는 Web/Mobile/BZA/Partner 등 유입·인증·정책 문맥을 위한 별도 optional context다. `originalChannel/currentChannel/callerChannel/targetChannel`을 Canonical System Header의 alias로 사용하거나 System Code로 기계 변환하지 않는다.
+- 업무 개발자 Public Surface는 Framework 보호 Canonical Header를 read-only로 조회하고 일반 custom header API로 변경할 수 없게 한다. Web 전용 client/locale, Security identity, Runtime instance/hostname은 각 Owner API에서 제공한다.
+- transactionId 내부 issuer token은 `X-Original-System-Code`와 다른 발급 metadata이며 두 값을 동일 개념으로 비교하지 않는다.
+
 - Operation ID는 업무 Domain의 `@CpfOnlineTransaction.operationId`, 해당 OpenAPI `operationId`, Domain Client Target Contract, `X-Target-Operation-Id`, ADM Operation Catalog, Log/Trace에서 하나의 Canonical ID를 사용한다. ADM/BZA/Gateway/Health/Framework 관리 Endpoint의 OpenAPI operationId는 그 사실만으로 업무 Online Operation이 되지 않는다. 실행 건 `executionId`는 별도 의미다.
 - Header Catalog, Policy, Context adapter, Domain call, Gateway, Logging/DB/ADM, Generator/Generated Domain/EDU/Test/문서는 동일 계약과 동일 이름을 사용한다. 구 System 거래 Header와 신규 Channel Header를 이중 Canonical로 남기지 않는다.
 
@@ -2652,7 +2706,7 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 2. **Catalog와 Policy Ownership 분리**: Source/Framework는 Operation 사실·Handler/OpenAPI·발견상태·배포 Metadata를 소유한다. YML은 신규 Operation의 최초 Policy Seed만 제공하고, 최초 등록 뒤 enabled/Caller Channel/Operation/Channel/ALL/override/version은 ADM Policy가 최종 정본이다. `ALL`은 등록·활성 Caller Channel 전체를 평가 시점에 의미하는 symbolic policy이며 unknown/disabled/spoofed caller까지 허용하지 않는다. Source 미발견은 자동 삭제·자동 비활성화가 아니라 활성 Instance/Deployment 전체의 discovery evidence를 근거로 발견상태만 변경한다.
 3. **호출 통제와 장애 기본값**: trusted Caller Channel 등록·활성 확인, Target Channel과 Runtime Current Channel 정합, 실제 Handler operationId 검증 후 Operation Policy와 필요한 거래의 Channel Policy(`operationId + callerChannel`)를 Controller invocation 전에 적용한다. 독립 System/Domain 정책이 필요한 경우 Header Channel을 System 값으로 변환하지 않고 trusted Runtime/Registry metadata로 판정한다. Policy Store 장애는 유효 LKG와 maxStale 범위에서만 허용하고 LKG 부재·만료 시 fail-close한다. wildcard local fallback으로 호출을 허용하지 않는다.
 4. **Runtime Identity**: `instanceId`는 명시 `cpf.runtime.instance-id`, 환경변수 `CPF_RUNTIME_INSTANCE_ID`, 실제 Runtime Hostname 순으로 기동 시 한 번 확정한다. `local/dev/test/prod`, localhost, Domain명 등을 합성 fallback으로 사용하지 않는다.
-5. **관리 Application 경계**: ADM/BZA/Gateway는 업무 Domain Online Transaction Runtime이 아니다. 자체 관리 API에는 `@CpfOnlineTransaction`이나 거래 Header 6개를 강제하지 않는다. 각 Owner Module/Public Starter/API를 사용하고 `cpf-core` internal 구현에 직접 결합하지 않는다. 실제 업무 Domain Operation을 호출하는 outbound 경계부터 CPF Domain Client가 거래 Context를 생성·전파한다.
+5. **관리/업무 경계**: ADM과 Gateway 관리 API는 업무 Domain Online Transaction Runtime이 아니므로 자체 관리 Controller에 `@CpfOnlineTransaction`이나 업무 거래 Header 6개를 강제하지 않는다. `cpf-biz-admin`은 이와 달리 **Optional Prebuilt Business Administration Domain**으로 업무 Domain Public 계약을 따른다. 외부 `cpf-biz-channel`은 DB-less HTTP Channel이며 CPF Java API를 사용하지 않는다. BZA Domain이 다른 Business Domain Operation을 호출할 때는 공식 Domain Invocation/Public Contract를 사용하고 타 Domain DB에 직접 접근하지 않는다.
 6. **Generated Domain IA**: `cpf-<domain>/online/`은 필수, `modules.batch=true`이면 `cpf-<domain>/batch/`를 선택 생성한다. Batch 실행 계약 Owner는 `cpf-batch`이며 Public Starter를 소비한다. 공유 `domain/`은 둘 이상의 Runtime에서 실제 공유 Consumer가 있을 때만 생성한다.
 7. **EDU Canonical**: `cpf-education/src/main/java/com/cpf/education/online` 20개와 `.../batch` 15개, 총 35개만 Canonical 업무 예제로 유지한다. ADM/BZA/Gateway/OPS/Legacy/Compatibility/Micro Sample 체계는 병행 유지하지 않는다. EDU는 최신 Public API/Golden Path를 사용하고 Internal/raw API 우회를 두지 않는다.
 8. **OSS/Spring Naming**: Spring/공식 OSS를 감싸거나 확장하는 CPF 공개 타입은 `Cpf + 공식 타입명`을 사용하고 메서드명은 공식 API 이름을 따른다. 동일 역할 Alias를 병행하지 않으며 Spring/OSS의 의미·기본값·예외 규칙을 CPF가 임의 변경하지 않는다.

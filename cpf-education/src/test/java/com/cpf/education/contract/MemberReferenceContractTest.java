@@ -1,7 +1,7 @@
 package com.cpf.education.contract;
 
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.education.online.common.MemberReferenceController;
+import com.cpf.education.online.common.controller.MemberReferenceController;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

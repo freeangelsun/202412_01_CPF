@@ -3,11 +3,11 @@ package com.cpf.batch.control.retention;
 import com.cpf.platform.operations.api.retention.CpfRetentionCommand;
 import com.cpf.platform.operations.api.retention.CpfRetentionPolicy;
 import com.cpf.platform.operations.api.retention.CpfRetentionResult;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.time.*;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +31,7 @@ public class BatRetentionExecutionService {
     BatRetentionExecutionService(BatRetentionOperations operations, BatRetentionExecutionRepository repository,
                                  Environment environment, Clock clock) {
         this.operations=operations; this.repository=repository; this.environment=environment; this.clock=clock;
-        this.runtimeInstanceId=resolveRuntimeInstanceId(environment);
+        this.runtimeInstanceId=CpfInstanceIdentity.instanceId();
     }
 
     public List<BatRetentionPolicyDefinition> policies(){ return repository.findPolicies(); }
@@ -147,8 +147,5 @@ public class BatRetentionExecutionService {
         return now.plusSeconds(safetySeconds);
     }
 
-    private static String resolveRuntimeInstanceId(Environment e){
-        String explicit=e.getProperty("cpf.runtime.instance-id"); if(explicit!=null&&!explicit.isBlank())return explicit.trim();
-        try{return InetAddress.getLocalHost().getHostName();}catch(Exception ignored){String host=System.getenv("HOSTNAME");if(host!=null&&!host.isBlank())return host;throw new IllegalStateException("Runtime hostname을 확인할 수 없습니다.");}
-    }
+
 }

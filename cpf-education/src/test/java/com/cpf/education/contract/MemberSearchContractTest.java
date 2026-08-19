@@ -1,7 +1,7 @@
 package com.cpf.education.contract;
 
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.education.online.querypaging.MemberSearchController;
+import com.cpf.education.online.querypaging.controller.MemberSearchController;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -112,7 +112,9 @@
       "profile": "local",
       "approvalRequired": false,
       "rollbackEnabled": true,
-      "runtimeMode": "embedded-bootjar"
+      "runtimeMode": "embedded-bootjar",
+      "optional": true,
+      "sourceOwnerPath": "cpf-biz-admin"
     },
     {
       "module": "EDU",

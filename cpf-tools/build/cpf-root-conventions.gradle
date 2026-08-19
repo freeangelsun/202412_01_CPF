@@ -449,9 +449,9 @@ def cpfUxGroupLabels = [
         'file':'파일','common':'업무 공통','base':'기본','platform-operations':'운영','notification':'알림','web':'웹'
 ]
 def cpfRunnableDescriptions = [
-        ':runtime:local':'[실행/권장] ADM+BZA 중심 통합 로컬 Runtime - 1 JVM / 1 Port',
+        ':runtime:local':'[실행/권장] ADM 중심 통합 로컬 Runtime - Optional Domain은 존재할 때만 조립 - 1 JVM / 1 Port',
         ':apps:admin':'[실행] CPF ADM 관리 Backend/Frontend',
-        ':apps:biz-admin':'[실행] CPF BZA 업무관리 Backend/Frontend',
+        ':apps:biz-admin':'[실행] Optional CPF BZA Business Administration Domain',
         ':runtime:gateway':'[실행] CPF Gateway',
         ':runtime:local-batch':'[실행] Batch 선택 프로젝트용 로컬 Batch Runtime',
         ':apps:education':'[실행/학습] CPF 기능 예제 및 교육 Runtime',
@@ -474,7 +474,15 @@ def registerCpfRunAlias = { String taskName, String targetTask, String descripti
 }
 registerCpfRunAlias('cpfRunLocal', ':runtime:local:bootRun', '[권장] 통합 로컬 Runtime을 1 JVM/1 Port로 실행합니다.')
 registerCpfRunAlias('cpfRunAdm', ':apps:admin:bootRun', 'ADM만 단독 실행합니다.')
-registerCpfRunAlias('cpfRunBza', ':apps:biz-admin:bootRun', 'BZA만 단독 실행합니다.')
+if (rootProject.findProject(':apps:biz-admin') != null) {
+    registerCpfRunAlias('cpfRunBza', ':apps:biz-admin:bootRun', 'Optional BZA Domain만 단독 실행합니다.')
+} else {
+    tasks.register('cpfRunBza') {
+        group = 'CPF 30 | 실행'
+        description = 'Optional BZA Domain이 현재 Source에 없음을 확인합니다.'
+        doLast { logger.lifecycle('cpf-biz-admin is ABSENT (normal optional state).') }
+    }
+}
 registerCpfRunAlias('cpfRunGateway', ':runtime:gateway:bootRun', 'Gateway만 단독 실행합니다.')
 registerCpfRunAlias('cpfRunBatch', ':runtime:local-batch:bootRun', 'Batch를 사용하는 프로젝트의 로컬 Batch Runtime을 실행합니다.')
 registerCpfRunAlias('cpfRunEducation', ':apps:education:bootRun', 'CPF Education 예제 Runtime을 실행합니다.')

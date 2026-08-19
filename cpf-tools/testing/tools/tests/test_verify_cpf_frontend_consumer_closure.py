@@ -10,13 +10,19 @@ spec.loader.exec_module(gate)
 class GateTest(unittest.TestCase):
     def fixture(self) -> Path:
         root = Path(tempfile.mkdtemp())
-        for surface, prefix in (("cpf-admin", "adm"), ("cpf-biz-admin", "bza")):
-            src = root / surface / "frontend/src"
-            (src / "generated").mkdir(parents=True)
-            (src / "features").mkdir()
-            (src / "generated/cpf-operation-contract.ts").write_text(f'export type CpfOperationId = "{prefix}Good";', encoding="utf-8")
-            (src / "features/helper.ts").write_text("export const value=1;", encoding="utf-8")
-            (src / "features/Page.ts").write_text(f'import {{value}} from "./helper"; {prefix}InvokeOperation("{prefix}Good");', encoding="utf-8")
+        adm = root / "cpf-admin/frontend/src"
+        (adm / "generated").mkdir(parents=True)
+        (adm / "features").mkdir()
+        (adm / "generated/cpf-operation-contract.ts").write_text('export type CpfOperationId = "admGood";', encoding="utf-8")
+        (adm / "features/helper.ts").write_text("export const value=1;", encoding="utf-8")
+        (adm / "features/Page.ts").write_text('import {value} from "./helper"; admInvokeOperation("admGood");', encoding="utf-8")
+        bza = root / "cpf-biz-frontend/src"
+        (bza / "generated").mkdir(parents=True)
+        (bza / "shared/api").mkdir(parents=True)
+        (bza / "features").mkdir()
+        (bza / "generated/bza-api.ts").write_text('/* AUTO-GENERATED */ import { invokeBza } from "../shared/api/channelHttpClient";', encoding="utf-8")
+        (bza / "shared/api/channelHttpClient.ts").write_text('const x="VITE_BZA_CHANNEL_BASE_URL"; export function invokeBza(){}', encoding="utf-8")
+        (bza / "features/Page.ts").write_text('import { invokeBza } from "../shared/api/channelHttpClient";', encoding="utf-8")
         return root
 
     def test_positive(self):
@@ -26,11 +32,6 @@ class GateTest(unittest.TestCase):
         root = self.fixture()
         (root / "cpf-admin/frontend/src/features/Page.ts").write_text('import x from "./missing";', encoding="utf-8")
         self.assertIn("MISSING_RELATIVE_IMPORT", {item["type"] for item in gate.verify(root)["findings"]})
-
-    def test_unknown_operation_fails(self):
-        root = self.fixture()
-        (root / "cpf-biz-admin/frontend/src/features/Page.ts").write_text('bzaInvokeOperation("bzaMissing");', encoding="utf-8")
-        self.assertIn("UNKNOWN_OPERATION_ID", {item["type"] for item in gate.verify(root)["findings"]})
 
     def test_native_confirmation_fails(self):
         root = self.fixture()

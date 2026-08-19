@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "policyId": "CPF-PUBLIC-SURFACE",
+  "repository": "cpf-team/cpf-framework",
+  "defaultPolicy": "DENY",
+  "sourceRules": [
+    {"pattern": "cpf-member/**", "target": "cpf-member", "classification": "PUBLIC_GENERATED_SOURCE", "required": true},
+    {"pattern": "cpf-biz-channel/**", "target": "cpf-biz-channel", "classification": "PUBLIC_BOOTSTRAP", "required": false, "option": "bza"},
+    {"pattern": "cpf-biz-frontend/**", "target": "cpf-biz-frontend", "classification": "PUBLIC_BOOTSTRAP", "required": false, "option": "bza"},
+    {"pattern": "gradle/wrapper/**", "target": "gradle/wrapper", "classification": "PUBLIC_BOOTSTRAP", "required": true},
+    {"pattern": "gradlew", "target": "gradlew", "classification": "PUBLIC_BOOTSTRAP", "required": true},
+    {"pattern": "gradlew.bat", "target": "gradlew.bat", "classification": "PUBLIC_BOOTSTRAP", "required": true}
+  ],
+  "templateRules": [
+    {"source": "cpf-tools/release/public/templates/README.md", "target": "README.md", "classification": "PUBLIC_USER_DOC"},
+    {"source": "cpf-tools/release/public/templates/verify-public-workspace.ps1", "target": "tools/verify-public-workspace.ps1", "classification": "PUBLIC_USER_SCRIPT"},
+    {"source": "cpf-tools/release/public/templates/verify-public-workspace.sh", "target": "tools/verify-public-workspace.sh", "classification": "PUBLIC_USER_SCRIPT"}
+  ],
+  "allowedClassifications": [
+    "PUBLIC_USER_DOC",
+    "PUBLIC_USER_SCRIPT",
+    "PUBLIC_USER_CONFIG",
+    "PUBLIC_GENERATED_SOURCE",
+    "PUBLIC_BOOTSTRAP",
+    "PUBLIC_DEPLOY_ASSET",
+    "PUBLIC_RELEASE_METADATA"
+  ],
+  "forbiddenPathPrefixes": [
+    "cpf-core/", "cpf-common/", "cpf-admin/", "cpf-biz-admin/", "cpf-starters/", "cpf-tools/", "cpf-docs/governance/", "cpf-docs/work/", "cpf-docs/deliverables/", ".git/"
+  ],
+  "forbiddenNamePatterns": ["*.pem", "*.p12", "*.pfx", "*.jks", "*.keystore", ".env", ".env.*"],
+  "forbiddenContentPatterns": [
+    "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+    "AKIA[0-9A-Z]{16}",
+    "(?i)(?:password|secret|token)\\s*[:=]\\s*['\"][^'\"]{12,}['\"]"
+  ]
+}

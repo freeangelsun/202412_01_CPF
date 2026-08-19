@@ -20,13 +20,22 @@ def mutation_signatures(text:str):
 
 def verify(root:Path):
     root=root.resolve(); findings=[]; front_count=0; controller_count=0
-    # Browser/BFF: actor aliases must be rejected recursively in body/query before generated or raw calls.
-    for surface,rel in (("ADM","cpf-admin/frontend/src/shared/cpfApi.ts"),("BZA","cpf-biz-admin/frontend/src/shared/cpfApi.ts")):
-        p=root/rel; t=read(p); front_count += 1
-        for tok in ("CLIENT_ACTOR_FIELDS","assertNoClientActor","assertNoClientActorQuery","URLSearchParams","FormData","Blob","JSON.parse"):
-            if tok not in t: findings.append(f"{rel}: {surface} browser actor guard missing {tok}")
-        for alias in ("requestuser","requestedby","actorid","operatoridoverride"):
-            if alias not in t.lower(): findings.append(f"{rel}: actor alias missing {alias}")
+    # ADM embedded BFF rejects browser-supplied privileged actor aliases.
+    rel="cpf-admin/frontend/src/shared/cpfApi.ts"; p=root/rel; t=read(p); front_count += 1
+    for tok in ("CLIENT_ACTOR_FIELDS","assertNoClientActor","assertNoClientActorQuery","URLSearchParams","FormData","Blob","JSON.parse"):
+        if tok not in t: findings.append(f"{rel}: ADM browser actor guard missing {tok}")
+    for alias in ("requestuser","requestedby","actorid","operatoridoverride"):
+        if alias not in t.lower(): findings.append(f"{rel}: actor alias missing {alias}")
+
+    # External BZA frontend is intentionally thin and never authors canonical transaction/actor headers.
+    bza_front_rel="cpf-biz-frontend/src/shared/api/channelHttpClient.ts"
+    bza_front=read(root/bza_front_rel); front_count += 1
+    for forbidden in ("X-Transaction-Id","X-Original-System-Code","X-System-Code","X-Caller-System-Code","X-Target-System-Code","X-Target-Operation-Id"):
+        if forbidden.lower() in bza_front.lower(): findings.append(f"{bza_front_rel}: external frontend must not author {forbidden}")
+    channel_guard_rel="cpf-biz-channel/src/main/java/com/cpf/bzachannel/shared/protocol/CanonicalHeaderOwnershipFilter.java"
+    channel_guard=read(root/channel_guard_rel)
+    for tok in ("BROWSER_FORBIDDEN","SC_BAD_REQUEST","/api/bza/"):
+        if tok not in channel_guard: findings.append(f"{channel_guard_rel}: BZA channel ownership guard missing {tok}")
     adm_mutator=root/'cpf-admin/frontend/src/shared/orval-mutator.ts'
     if adm_mutator.is_file():
         t=read(adm_mutator); front_count += 1

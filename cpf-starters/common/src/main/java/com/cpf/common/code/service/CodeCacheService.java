@@ -9,12 +9,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -32,8 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>Startup/Periodic refresh는 Spring self-invocation에 의존하지 않고 CacheManager에 명시적으로 Snapshot을 적재합니다.
  * 변경 Transaction이 rollback 되면 기존 Cache를 유지하며, commit 이후에만 무효화·재적재합니다.</p>
  */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class CodeCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(CodeCacheService.class);
     private static final String CACHE_NAME = "codeCache";
@@ -90,7 +87,7 @@ public class CodeCacheService extends CpfBaseService {
         return codeMapper.findCodeById(codeId);
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> createCode(CommonCodeRequest request) {
         codeMapper.insertCode(request);
         scheduleReloadAfterCommit();
@@ -98,7 +95,7 @@ public class CodeCacheService extends CpfBaseService {
         return getCodeById(request.getCodeId());
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> updateCode(Long codeId, CommonCodeRequest request) {
         codeMapper.updateCode(codeId, request);
         scheduleReloadAfterCommit();
@@ -106,7 +103,7 @@ public class CodeCacheService extends CpfBaseService {
         return getCodeById(codeId);
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public List<Map<String, Object>> deleteCode(Long codeId) {
         Map<String, Object> beforeDelete = getCodeById(codeId);
         String eventKey = beforeDelete == null ? String.valueOf(codeId) : mapValue(beforeDelete, "codeKey", "code_key");

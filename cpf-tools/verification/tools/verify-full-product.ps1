@@ -98,7 +98,7 @@ try{
             if(-not(Native 'Gradle clean test assemble' $gradle @('clean','test','assemble','--no-daemon'))){$allOk=$false}
         }else{Result 'Gradle clean test assemble' 'FAIL' 'gradlew.bat missing';$allOk=$false}
 
-        foreach($fe in @('cpf-admin/frontend','cpf-biz-admin/frontend')){
+        foreach($fe in @('cpf-admin/frontend','cpf-biz-frontend')){
             $dir=Join-Path $Root $fe
             if(-not(Test-Path(Join-Path $dir 'package.json'))){Result "$fe frontend" 'FAIL' 'package.json missing';$allOk=$false;continue}
             if(-not(Native "$fe npm test" 'npm.cmd' @('test','--','--run') $dir)){$allOk=$false}

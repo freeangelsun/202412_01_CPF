@@ -59,7 +59,7 @@ jobs:
           python ./cpf-tools/verification/tools/verify-cpf-edu-profile-isolation.py --root .
           python ./cpf-tools/verification/tools/verify-cpf-edu-impact.py --root .
           python ./cpf-tools/verification/openapi/verify-cpf-openapi-controller-coverage.py --root . --module cpf-admin --openapi cpf-admin/frontend/openapi/cpf-openapi.json
-          python ./cpf-tools/verification/openapi/verify-cpf-openapi-controller-coverage.py --root . --module cpf-biz-admin --openapi cpf-biz-admin/frontend/openapi/cpf-openapi.json
+          python ./cpf-tools/verification/openapi/verify-cpf-openapi-controller-coverage.py --root . --module cpf-biz-admin --openapi cpf-biz-admin/openapi/cpf-openapi.json
           python ./cpf-tools/verification/tools/verify-cpf-final-plan.py --root .
           python ./cpf-tools/verification/tools/verify-cpf-final-wrapper-contract.py --root .
           python ./cpf-tools/verification/tools/verify-cpf-approved-baseline-metadata.py --root .
@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        frontend: [cpf-admin/frontend, cpf-biz-admin/frontend]
+        frontend: [cpf-admin/frontend, cpf-biz-frontend]
     defaults:
       run:
         working-directory: ${{ matrix.frontend }}

@@ -3,7 +3,6 @@ package com.cpf.common.calendar;
 import com.cpf.foundation.api.CpfBaseService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
@@ -25,20 +24,13 @@ public class CmnCalendarService extends CpfBaseService implements CmnBusinessCal
     private final Clock clock;
 
     @Autowired
-    public CmnCalendarService(ObjectProvider<CmnCalendarStore> storeProvider,ObjectProvider<CmnCalendarChangePublisher> publisherProvider,Environment environment,Clock clock){
-        String mode=environment.getProperty("cpf.common.runtime-mode","product").trim().toLowerCase();
-        this.productMode="product".equals(mode);
+    public CmnCalendarService(ObjectProvider<CmnCalendarStore> storeProvider,ObjectProvider<CmnCalendarChangePublisher> publisherProvider,Clock clock){
+        this.productMode=true;
         CmnCalendarStore resolved=storeProvider.getIfAvailable();
-        if(productMode){
-            if(resolved==null||!resolved.writable()||!resolved.actorAwareMutations()){
-                throw new IllegalStateException("CPF product mode에는 writable/actor-aware CMN Calendar Store와 cpfDB가 필수입니다.");
-            }
-            this.store=resolved;
-        } else if("library".equals(mode)||"edu".equals(mode)||"test".equals(mode)||"local".equals(mode)) {
-            this.store=resolved==null?new CmnWeekendCalendarStore():resolved;
-        } else {
-            throw new IllegalStateException("지원하지 않는 cpf.common.runtime-mode입니다: "+mode);
+        if(resolved==null||!resolved.writable()||!resolved.actorAwareMutations()){
+            throw new IllegalStateException("CPF Common Calendar requires the canonical writable/actor-aware cpfDB store.");
         }
+        this.store=resolved;
         this.changePublisher=publisherProvider.getIfAvailable(CmnCalendarChangePublisher::noop);
         this.clock=Objects.requireNonNull(clock,"clock");
     }

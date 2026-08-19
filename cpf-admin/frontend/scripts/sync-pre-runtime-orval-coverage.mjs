@@ -148,8 +148,25 @@ function ensureClientImports(typeNames) {
   const replacement = `import type {\n  ${[...names].sort().join(",\n  ")}\n} from './model';`;
   source = source.replace(match[0], replacement);
 }
-function responseTypes(id) {
-  return `export type ${id}Response200 = {\n  data: CpfControllerSourceResponse\n  status: 200\n}\n\nexport type ${id}ResponseSuccess = (${id}Response200) & {\n  headers: Headers;\n};\n\nexport type ${id}Response = (${id}ResponseSuccess)\n`;
+function successResponseType(operation) {
+  const responses = operation?.responses || {};
+  const successCode = Object.keys(responses).filter(code => /^2\d\d$/.test(code)).sort()[0] || "200";
+  const schema = responses[successCode]?.content?.["application/json"]?.schema;
+  return { successCode, type: schemaType(schema) };
+}
+function responseTypes(id, operation) {
+  const { successCode, type } = successResponseType(operation);
+  return `export type ${id}Response${successCode} = {
+  data: ${type}
+  status: ${successCode}
+}
+
+export type ${id}ResponseSuccess = (${id}Response${successCode}) & {
+  headers: Headers;
+};
+
+export type ${id}Response = (${id}ResponseSuccess)
+`;
 }
 function pathParameters(route, parameters) {
   return [...route.matchAll(/\{([^{}]+)\}/g)].map(match => {
@@ -205,7 +222,7 @@ function requestOptionLines(parameters, hasBody, bodyMediaType = "application/js
   return lines.join("\n");
 }
 
-function getBlock(id, route, pathParams, contractParams, paramsType) {
+function getBlock(id, route, pathParams, contractParams, paramsType, operation) {
   const symbol = pascal(id);
   const pathArgs = pathParams.map(value => `${value.name}: ${value.type}`);
   const paramsRequired = contractParams.some(value => value.required);
@@ -222,9 +239,9 @@ function getBlock(id, route, pathParams, contractParams, paramsType) {
   const requiredChecks = pathParams.map(value => `toValue(${value.name}) !== null && toValue(${value.name}) !== undefined`);
   if (paramsArg && paramsRequired) requiredChecks.push("toValue(params) !== null && toValue(params) !== undefined");
   const enabled = requiredChecks.length ? `, enabled: computed(() => ${requiredChecks.join(" && ")})` : "";
-  return `${responseTypes(id)}\nexport const get${symbol}Url = (${pathArgs.join(", ")}) => ${renderedPath(route, pathParams)};\n\nexport const ${id} = async (${[...args, `options?: CpfOrvalGeneratedRequestOptions`].join(", ")}): Promise<${id}Response> => {\n  return cpfOrvalRequest<${id}Response>(get${symbol}Url(${urlArgs}), {\n    ...options,\n    method: 'GET',\n${requestOptions}\n  });\n};\n\nexport const get${symbol}QueryKey = (${reactiveArgs.join(", ")}) => [${keyValues.join(", ")}] as const;\n\nexport const get${symbol}QueryOptions = <TData = Awaited<ReturnType<typeof ${id}>>, TError = unknown>(\n  ${reactiveArgs.length ? reactiveArgs.join(", ") + ", " : ""}options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }\n) => {\n  const { query: queryOptions, request: requestOptions } = options ?? {};\n  const queryKey = get${symbol}QueryKey(${unwrapped.join(", ")});\n  const queryFn: QueryFunction<Awaited<ReturnType<typeof ${id}>>> = ({ signal }) => ${id}(${callArgs});\n  return { queryKey, queryFn${enabled}, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>;\n};\n\nexport type ${symbol}QueryResult = NonNullable<Awaited<ReturnType<typeof ${id}>>>;\nexport type ${symbol}QueryError = unknown;\n\nexport function use${symbol}<TData = Awaited<ReturnType<typeof ${id}>>, TError = unknown>(\n  ${reactiveArgs.length ? reactiveArgs.join(", ") + ", " : ""}options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },\n  queryClient?: QueryClient\n): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {\n  const queryOptions = get${symbol}QueryOptions(${optionCall});\n  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };\n  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;\n  return query;\n}\n`;
+  return `${responseTypes(id, operation)}\nexport const get${symbol}Url = (${pathArgs.join(", ")}) => ${renderedPath(route, pathParams)};\n\nexport const ${id} = async (${[...args, `options?: CpfOrvalGeneratedRequestOptions`].join(", ")}): Promise<${id}Response> => {\n  return cpfOrvalRequest<${id}Response>(get${symbol}Url(${urlArgs}), {\n    ...options,\n    method: 'GET',\n${requestOptions}\n  });\n};\n\nexport const get${symbol}QueryKey = (${reactiveArgs.join(", ")}) => [${keyValues.join(", ")}] as const;\n\nexport const get${symbol}QueryOptions = <TData = Awaited<ReturnType<typeof ${id}>>, TError = unknown>(\n  ${reactiveArgs.length ? reactiveArgs.join(", ") + ", " : ""}options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }\n) => {\n  const { query: queryOptions, request: requestOptions } = options ?? {};\n  const queryKey = get${symbol}QueryKey(${unwrapped.join(", ")});\n  const queryFn: QueryFunction<Awaited<ReturnType<typeof ${id}>>> = ({ signal }) => ${id}(${callArgs});\n  return { queryKey, queryFn${enabled}, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>;\n};\n\nexport type ${symbol}QueryResult = NonNullable<Awaited<ReturnType<typeof ${id}>>>;\nexport type ${symbol}QueryError = unknown;\n\nexport function use${symbol}<TData = Awaited<ReturnType<typeof ${id}>>, TError = unknown>(\n  ${reactiveArgs.length ? reactiveArgs.join(", ") + ", " : ""}options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof ${id}>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },\n  queryClient?: QueryClient\n): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {\n  const queryOptions = get${symbol}QueryOptions(${optionCall});\n  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };\n  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;\n  return query;\n}\n`;
 }
-function mutationBlock(id, method, route, pathParams, contractParams, paramsType, bodyType, bodyMediaType = "application/json") {
+function mutationBlock(id, method, route, pathParams, contractParams, paramsType, bodyType, operation, bodyMediaType = "application/json") {
   const symbol = pascal(id);
   const pathArgs = pathParams.map(value => `${value.name}: ${value.type}`);
   const paramsRequired = contractParams.some(value => value.required);
@@ -237,7 +254,7 @@ function mutationBlock(id, method, route, pathParams, contractParams, paramsType
   const destructure = names.length ? `const { ${names.join(", ")} } = props;` : "";
   const mutationArgs = variableType === "void" ? "()" : "(props)";
   const requestOptions = requestOptionLines(contractParams, Boolean(bodyType), bodyMediaType);
-  return `${responseTypes(id)}\nexport const get${symbol}Url = (${pathArgs.join(", ")}) => ${renderedPath(route, pathParams)};\n\nexport const ${id} = async (${fnArgs.join(", ")}): Promise<${id}Response> => {\n  return cpfOrvalRequest<${id}Response>(get${symbol}Url(${pathParams.map(value => value.name).join(", ")}), {\n    ...options,\n    method: '${method.toUpperCase()}',\n${requestOptions}\n  });\n};\n\nexport const get${symbol}MutationOptions = <TError = unknown, TContext = unknown>(\n  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }\n): UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext> => {\n  const mutationKey = ['${id}'];\n  const { mutation: mutationOptions, request: requestOptions } = options\n    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey\n      ? options\n      : { ...options, mutation: { ...options.mutation, mutationKey } }\n    : { mutation: { mutationKey }, request: undefined };\n  const mutationFn: MutationFunction<Awaited<ReturnType<typeof ${id}>>, ${variableType}> = ${mutationArgs} => {\n    ${destructure}\n    return ${id}(${callArgs});\n  };\n  return { mutationFn, ...mutationOptions };\n};\n\nexport type ${symbol}MutationResult = NonNullable<Awaited<ReturnType<typeof ${id}>>>;\nexport type ${symbol}MutationBody = ${bodyType || "never"};\nexport type ${symbol}MutationError = unknown;\n\nexport const use${symbol} = <TError = unknown, TContext = unknown>(\n  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },\n  queryClient?: QueryClient\n): UseMutationReturnType<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext> => {\n  return useMutation(get${symbol}MutationOptions(options), queryClient);\n};\n`;
+  return `${responseTypes(id, operation)}\nexport const get${symbol}Url = (${pathArgs.join(", ")}) => ${renderedPath(route, pathParams)};\n\nexport const ${id} = async (${fnArgs.join(", ")}): Promise<${id}Response> => {\n  return cpfOrvalRequest<${id}Response>(get${symbol}Url(${pathParams.map(value => value.name).join(", ")}), {\n    ...options,\n    method: '${method.toUpperCase()}',\n${requestOptions}\n  });\n};\n\nexport const get${symbol}MutationOptions = <TError = unknown, TContext = unknown>(\n  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }\n): UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext> => {\n  const mutationKey = ['${id}'];\n  const { mutation: mutationOptions, request: requestOptions } = options\n    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey\n      ? options\n      : { ...options, mutation: { ...options.mutation, mutationKey } }\n    : { mutation: { mutationKey }, request: undefined };\n  const mutationFn: MutationFunction<Awaited<ReturnType<typeof ${id}>>, ${variableType}> = ${mutationArgs} => {\n    ${destructure}\n    return ${id}(${callArgs});\n  };\n  return { mutationFn, ...mutationOptions };\n};\n\nexport type ${symbol}MutationResult = NonNullable<Awaited<ReturnType<typeof ${id}>>>;\nexport type ${symbol}MutationBody = ${bodyType || "never"};\nexport type ${symbol}MutationError = unknown;\n\nexport const use${symbol} = <TError = unknown, TContext = unknown>(\n  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },\n  queryClient?: QueryClient\n): UseMutationReturnType<Awaited<ReturnType<typeof ${id}>>, TError, ${variableType}, TContext> => {\n  return useMutation(get${symbol}MutationOptions(options), queryClient);\n};\n`;
 }
 
 // Keep explicit public models aligned even when the local Orval CLI is unavailable.
@@ -295,8 +312,8 @@ for (const value of missing) {
     }
   }
   const generated = value.method === "get"
-    ? getBlock(value.operation.operationId, value.route, pathParams, contractParams, paramsType)
-    : mutationBlock(value.operation.operationId, value.method, value.route, pathParams, contractParams, paramsType, bodyType, bodyMediaType);
+    ? getBlock(value.operation.operationId, value.route, pathParams, contractParams, paramsType, value.operation)
+    : mutationBlock(value.operation.operationId, value.method, value.route, pathParams, contractParams, paramsType, bodyType, value.operation, bodyMediaType);
   source += `\n\n// CPF PRE-RUNTIME FALLBACK START ${value.operation.operationId}\n${generated}// CPF PRE-RUNTIME FALLBACK END ${value.operation.operationId}\n`;
 }
 ensureModelIndex(importedTypes);

@@ -9,12 +9,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -27,8 +25,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /** CPF 공통 메시지 cache를 commit-safe snapshot 방식으로 관리합니다. */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class MessageCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(MessageCacheService.class);
     private static final String CACHE_NAME = "messageCache";
@@ -87,7 +84,7 @@ public class MessageCacheService extends CpfBaseService {
         return messageMapper.findMessageById(messageId);
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> createMessage(CommonMessageRequest request) {
         messageMapper.insertMessage(request);
         Map<String, Object> created = getMessageById(request.getMessageId());
@@ -96,7 +93,7 @@ public class MessageCacheService extends CpfBaseService {
         return created;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> updateMessage(Long messageId, CommonMessageRequest request) {
         messageMapper.updateMessage(messageId, request);
         Map<String, Object> updated = getMessageById(messageId);
@@ -105,7 +102,7 @@ public class MessageCacheService extends CpfBaseService {
         return updated;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public List<Map<String, Object>> deleteMessage(Long messageId) {
         Map<String, Object> beforeDelete = getMessageById(messageId);
         String key = beforeDelete == null ? String.valueOf(messageId)

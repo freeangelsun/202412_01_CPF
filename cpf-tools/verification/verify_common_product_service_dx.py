@@ -34,7 +34,7 @@ mgmt=txt('cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfCommon
 if 'refreshCaches(String actor, String reason)' not in mgmt: errors.append('Common management refresh contract missing')
 compat=txt('cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java')
 if 'extends CpfCalendarService' not in compat or '@Deprecated' not in compat: errors.append('Calendar compatibility alias must delegate/deprecate')
-edu_paths=list((ROOT/'cpf-education/src/main/java/com/cpf/education/online').glob('*.java'))+list((ROOT/'cpf-education/src/main/java/com/cpf/education/batch').glob('*.java'))
+edu_paths=list((ROOT/'cpf-education/src/main/java/com/cpf/education/online').rglob('*.java'))+list((ROOT/'cpf-education/src/main/java/com/cpf/education/batch').rglob('*.java'))
 edu='\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in edu_paths)
 for name in ('CpfCodeService','CpfMessageSource','CpfParameterService','CpfCalendarService'):
  if name not in edu: errors.append(f'Canonical Education consumer missing {name}')
@@ -48,7 +48,14 @@ for root_name in ('cpf-education','cpf-member','cpf-external'):
   if re.search(r'import\s+com\.cpf\.common\.(?:runtime|code\.service|parameter\.service|template\.service)\.',s):
    errors.append(f'customer-facing consumer bypasses Common public API: {p.relative_to(ROOT)}')
 bza=txt('cpf-biz-admin/src/main/java/com/cpf/bizadmin/commoncatalog/BzaCommonCatalogController.java')
-if 'CpfCommonCatalogManagementService' not in bza: errors.append('BZA Common management must use public management API')
+if 'CpfCommonCatalogManagementService' not in bza: errors.append('Internal cpf-biz-admin Common management must use public management API')
+for external in ('cpf-biz-channel','cpf-biz-frontend'):
+ rp=ROOT/external
+ if not rp.exists(): continue
+ for p in rp.rglob('*'):
+  if p.is_file() and p.suffix in ('.java','.ts','.vue'):
+   body=p.read_text(encoding='utf-8-sig',errors='replace')
+   if re.search(r'(?:import\s+com\.cpf\.common|com\.cpf\.common\.)',body): errors.append(f'external BZA surface must not depend on Common Java API: {p.relative_to(ROOT)}')
 if errors:
  print('CPF_COMMON_PRODUCT_SERVICE_DX=FAIL')
  for i,e in enumerate(errors,1): print(f'{i:03d} {e}')

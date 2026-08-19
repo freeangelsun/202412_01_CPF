@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the split canonical requirement master and the 31-row developer projection.
+"""Validate the split canonical requirement master and the current developer projection.
 
 This gate deliberately does not mutate or reinterpret QA/Codex status.  It proves that the
 small REQUIREMENT_STATUS.csv is a development projection and cannot be mistaken for the
@@ -53,8 +53,8 @@ def verify(root:Path)->dict:
   total+=len(pr)
  if total!=logical_count or len(seen)!=logical_count: raise GateError(f'logical assembly mismatch expected={logical_count} actual={total}/{len(seen)}')
  pf,prows=rows(projection)
- if len(prows)!=31: raise GateError(f'developer projection count drift: {len(prows)}')
- required_projection={'exact_id','개발GPT_수행상태','개발GPT_개발상태','개발GPT_검증상태','개발GPT_전체상태','개발GPT_자체검수','개발GPT_검증내용','개발GPT_환경','개발GPT_Evidence','baseline_sha'}
+ if len(prows)!=36: raise GateError(f'developer projection count drift: {len(prows)}')
+ required_projection={'exact_id','개발GPT_수행상태','개발GPT_개발상태','개발GPT_검증상태','개발GPT_전체상태','개발GPT_자체검수','개발GPT_검증내용','개발GPT_환경','개발GPT_Evidence','baseline_source_zip_sha256'}
  if required_projection-set(pf): raise GateError(f'developer projection columns missing: {sorted(required_projection-set(pf))}')
  forbidden=[c for c in pf if c.startswith('QA_') or c.startswith('Codex_')]
  if forbidden: raise GateError(f'developer projection must not own QA/Codex status columns: {forbidden}')

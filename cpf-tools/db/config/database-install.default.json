@@ -199,7 +199,9 @@
         "product": true,
         "optionalSample": false,
         "test": false
-      }
+      },
+      "sourceOptional": true,
+      "ownerPath": "cpf-biz-admin"
     },
     "batch": {
       "domainName": "batch",

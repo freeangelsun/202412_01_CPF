@@ -1,113 +1,40 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.management.*;
 import com.cpf.common.parameter.dto.CommonConfigRequest;
-import com.cpf.common.parameter.service.ConfigCacheService;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** ADM Runtime 설정의 조회·변경·검증·감사 계약을 제공하는 운영 API입니다. */
+/** ADM Runtime 설정을 canonical Common Management API로 조회·변경합니다. */
 @RestController
 @RequestMapping("/adm/api/configs")
-@Tag(name = "ADM-CPF Configs", description = "CPF 공통 설정 관리 API")
+@Tag(name="ADM-CPF Configs",description="CPF 공통 설정 관리 API")
 public class AdmConfigController extends com.cpf.admin.common.base.AdmBaseController {
-    private final ConfigCacheService configCacheService;
-    private final AdmAuditLogService auditLogService;
+    private final CpfCommonManagementApi common; private final AdmAuditLogService audit;
+    public AdmConfigController(CpfCommonManagementApi common,AdmAuditLogService audit){this.common=common;this.audit=audit;}
 
-    public AdmConfigController(ConfigCacheService configCacheService, AdmAuditLogService auditLogService) {
-        this.configCacheService = configCacheService;
-        this.auditLogService = auditLogService;
-    }
+    @GetMapping @Operation(operationId="admConfigFindConfigs",summary="공통 설정 목록 조회")
+    public ResponseEntity<List<Map<String,Object>>> findConfigs(HttpServletRequest r){requireOperator(r);return ResponseEntity.ok(common.search(CpfCommonResource.PARAMETER,null,0,200,true,null).content().stream().map(this::maskSecret).toList());}
+    @GetMapping("/{configId}") @Operation(operationId="admConfigFindConfig",summary="공통 설정 상세 조회")
+    public ResponseEntity<Map<String,Object>> findConfig(@PathVariable Long configId,HttpServletRequest r){requireOperator(r);return ResponseEntity.ok(maskSecret(common.get(CpfCommonResource.PARAMETER,Map.of("config_id",configId))));}
+    @PostMapping @Operation(operationId="admConfigCreateConfig",summary="공통 설정 등록")
+    public ResponseEntity<Map<String,Object>> createConfig(@Valid @RequestBody CommonConfigRequest b,HttpServletRequest r){String actor=requireOperator(r),reason=audit.requireReason(b.getReason());Map<String,Object> out=common.create(CpfCommonResource.PARAMETER,new CpfCommonMutation(Map.of(),values(b),null,reason),actor);record(r,actor,"CONFIG_CREATE",String.valueOf(value(out,"config_id",b.getConfigKey())),reason,null,maskSecret(out));return ResponseEntity.ok(maskSecret(out));}
+    @PutMapping("/{configId}") @Operation(operationId="admConfigUpdateConfig",summary="공통 설정 수정")
+    public ResponseEntity<Map<String,Object>> updateConfig(@PathVariable Long configId,@Valid @RequestBody CommonConfigRequest b,HttpServletRequest r){String actor=requireOperator(r),reason=audit.requireReason(b.getReason());Map<String,Object> before=maskSecret(common.get(CpfCommonResource.PARAMETER,Map.of("config_id",configId)));Map<String,Object> out=common.update(CpfCommonResource.PARAMETER,new CpfCommonMutation(Map.of("config_id",configId),values(b),null,reason),actor);record(r,actor,"CONFIG_UPDATE",String.valueOf(configId),reason,before,maskSecret(out));return ResponseEntity.ok(maskSecret(out));}
+    @DeleteMapping("/{configId}") @Operation(operationId="admConfigDeleteConfig",summary="공통 설정 비활성")
+    public ResponseEntity<List<Map<String,Object>>> deleteConfig(@PathVariable Long configId,@RequestParam String reason,HttpServletRequest r){String actor=requireOperator(r),required=audit.requireReason(reason);Map<String,Object> before=maskSecret(common.get(CpfCommonResource.PARAMETER,Map.of("config_id",configId)));common.delete(CpfCommonResource.PARAMETER,new CpfCommonMutation(Map.of("config_id",configId),Map.of(),null,required),actor);record(r,actor,"CONFIG_DISABLE",String.valueOf(configId),required,before,null);return ResponseEntity.ok(common.search(CpfCommonResource.PARAMETER,null,0,200,true,null).content().stream().map(this::maskSecret).toList());}
 
-    @GetMapping    @Operation(operationId = "admConfigFindConfigs", summary = "공통 설정 목록 조회", description = "CMN_PARAMETER 기준 설정을 조회하며 암호화 항목 값은 마스킹합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findConfigs(HttpServletRequest request) {
-        requireOperator(request);
-        return ResponseEntity.ok(configCacheService.getAllConfigs().stream().map(this::maskSecret).toList());
-    }
-
-    @GetMapping("/{configId}")    @Operation(operationId = "admConfigFindConfig", summary = "공통 설정 상세 조회", description = "설정 ID로 CMN_PARAMETER 상세 정보를 조회하며 암호화 항목 값은 마스킹합니다.")
-    public ResponseEntity<Map<String, Object>> findConfig(@PathVariable Long configId, HttpServletRequest request) {
-        requireOperator(request);
-        return ResponseEntity.ok(maskSecret(configCacheService.getConfigById(configId)));
-    }
-
-    @PostMapping    @Operation(operationId = "admConfigCreateConfig", summary = "공통 설정 등록", description = "cpf_config에 신규 설정을 등록하고 설정 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> createConfig(
-            @Valid @RequestBody CommonConfigRequest request,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> created = configCacheService.createConfig(request);
-        auditLogService.record(
-                CpfContexts.transactionId(), operator, "CONFIG_CREATE", "CMN_PARAMETER",
-                String.valueOf(created.getOrDefault("configId", request.getConfigKey())), reason,
-                null, String.valueOf(maskSecret(created)), String.valueOf(maskSecret(created)), servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(maskSecret(created));
-    }
-
-    @PutMapping("/{configId}")    @Operation(operationId = "admConfigUpdateConfig", summary = "공통 설정 수정", description = "cpf_config를 수정하고 설정 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> updateConfig(
-            @PathVariable Long configId,
-            @Valid @RequestBody CommonConfigRequest request,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> before = configCacheService.getConfigById(configId);
-        Map<String, Object> updated = configCacheService.updateConfig(configId, request);
-        auditLogService.record(
-                CpfContexts.transactionId(), operator, "CONFIG_UPDATE", "CMN_PARAMETER", String.valueOf(configId), reason,
-                String.valueOf(maskSecret(before)), String.valueOf(maskSecret(updated)), "설정 수정", servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(maskSecret(updated));
-    }
-
-    @DeleteMapping("/{configId}")    @Operation(operationId = "admConfigDeleteConfig", summary = "공통 설정 비활성", description = "cpf_config를 비활성화하고 설정 캐시를 갱신합니다.")
-    public ResponseEntity<List<Map<String, Object>>> deleteConfig(
-            @PathVariable Long configId,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        String requiredReason = auditLogService.requireReason(reason);
-        Map<String, Object> before = configCacheService.getConfigById(configId);
-        List<Map<String, Object>> latest = configCacheService.deleteConfig(configId).stream().map(this::maskSecret).toList();
-        auditLogService.record(
-                CpfContexts.transactionId(), operator, "CONFIG_DISABLE", "CMN_PARAMETER", String.valueOf(configId), requiredReason,
-                String.valueOf(maskSecret(before)), null, "설정 비활성", servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(latest);
-    }
-
-    private Map<String, Object> maskSecret(Map<String, Object> source) {
-        if (source == null) return Map.of();
-        Map<String, Object> masked = new LinkedHashMap<>(source);
-        Object encrypted = firstValue(masked, "encryptedYn", "encrypted_yn", "ENCRYPTED_YN");
-        if ("Y".equalsIgnoreCase(String.valueOf(encrypted))) {
-            masked.computeIfPresent("configValue", (key, value) -> "********");
-            masked.computeIfPresent("config_value", (key, value) -> "********");
-            masked.computeIfPresent("CONFIG_VALUE", (key, value) -> "********");
-        }
-        return masked;
-    }
-
-    private Object firstValue(Map<String, Object> source, String... keys) {
-        for (String key : keys) if (source.containsKey(key)) return source.get(key);
-        return "";
-    }
+    private Map<String,Object> values(CommonConfigRequest r){Map<String,Object> v=new LinkedHashMap<>();v.put("config_key",r.getConfigKey());v.put("config_value",r.getConfigValue());v.put("config_type",r.getConfigType());if(r.getDescription()!=null)v.put("description",r.getDescription());v.put("encrypted_yn",r.getEncryptedYn());v.put("use_yn",r.getUseYn());return v;}
+    private Map<String,Object> maskSecret(Map<String,Object> source){Map<String,Object> out=new LinkedHashMap<>(source);Object encrypted=value(out,"encrypted_yn","N");if("Y".equalsIgnoreCase(String.valueOf(encrypted)))for(String k:List.copyOf(out.keySet()))if(k.equalsIgnoreCase("config_value"))out.put(k,"[MASKED]");return out;}
+    private Object value(Map<String,Object> map,String key,Object fallback){for(var e:map.entrySet())if(e.getKey().equalsIgnoreCase(key))return e.getValue();return fallback;}
+    private void record(HttpServletRequest req,String actor,String action,String key,String reason,Object before,Object after){audit.record(CpfContexts.transactionId(),actor,action,"CMN_PARAMETER",key,reason,before==null?null:String.valueOf(before),after==null?null:String.valueOf(after),action,req.getRemoteAddr());}
 }

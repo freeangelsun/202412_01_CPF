@@ -127,6 +127,8 @@ import type {
   AdmMaintenanceFindActionsParams,
   AdmManagedServerDisableRequest,
   AdmManagedServerFindAllParams,
+  AdmManagedServerPageResponse,
+  AdmManagedServerResponse,
   AdmManagedServerSaveRequest,
   AdmMenu,
   AdmMenuManagement,
@@ -199,6 +201,8 @@ import type {
   AdmRuntimeControlRollbackChangeRequest,
   AdmRuntimeControlSaveGroupRequest,
   AdmRuntimeInventoryFindAllParams,
+  AdmRuntimeInventoryPageResponse,
+  AdmRuntimeInventoryResponse,
   AdmSecretFindMetadataParams,
   AdmSecurityDisableMfaParams,
   AdmServiceRegistryFindCallHistoryParams,
@@ -222,6 +226,7 @@ import type {
   AdmTransactionMetaInactivateParams,
   ApplyCommand,
   ApplyResult,
+  ApplyStatus,
   ApprovalContext,
   ApprovalMutationResult,
   ApprovalOwnerTuple,
@@ -232,12 +237,17 @@ import type {
   BatchRuntimeCommandRequest,
   BatchRuntimeDeploymentPlanRequest,
   BindingStateCommand,
+  CallHistory,
   Candidate,
+  Capability,
+  CatalogPage,
   ChangeResult,
+  CircuitState,
   ClaimConnectionTests,
   ClaimHealthProbe,
   ClaimHealthProbes,
   ClaimedDelivery,
+  CmnCalendarDay,
   CommandReservation,
   CommonCodeRequest,
   CommonConfigRequest,
@@ -245,20 +255,44 @@ import type {
   CommonResponseCodeRequest,
   ComparableValue,
   ConnectionTestCancel,
+  ConnectionTestOperation,
   ConnectionTestRequest,
+  ConnectionTestResult,
   ConnectionTestRevalidation,
   CpfApiError,
   CpfCacheHealth,
   CpfCacheInvalidationEvent,
   CpfCacheMetricsSnapshot,
   CpfChannelPolicyPackage,
+  CpfChannelPolicySnapshot,
   CpfControllerSourceResponse,
+  CpfDataQualityDecision,
   CpfDataRow,
+  CpfExecutionDefinition,
+  CpfFeatureFlagResultOfCpfFeatureFlagValue,
+  CpfOpenAPISnapshot,
+  CpfPlatformVersion,
+  CpfRemoteLogArtifact,
+  CpfRemoteLogBundleJob,
+  CpfRemoteLogDownloadGrant,
+  CpfRemoteLogPreview,
+  CpfResiliencePolicy,
+  CpfRuntimeAuditVerification,
+  CpfRuntimeChangePreview,
+  CpfRuntimeChangeResult,
+  CpfRuntimeControlHealth,
+  CpfRuntimeGroupResult,
   CpfRuntimeHealth,
   CpfRuntimePayload,
+  CpfRuntimeStateCatalogResponse,
+  CpfRuntimeStatus,
+  CpfRuntimeTargetPreview,
   CpfRuntimeTargetSelector,
+  CpfSecretMetadata,
   CpfSensitiveDataAccessRequest,
   CpfTabularSchema,
+  CpfTimeSnapshot,
+  CpfWebhookDelivery,
   CreateRequest,
   CurrentState,
   DecisionCommand,
@@ -271,9 +305,11 @@ import type {
   DownloadPolicy,
   DownloadRequest,
   DownloadResult,
+  Endpoint,
   EndpointDefinition,
   Entry,
   Evaluation,
+  FileSystemResource,
   FindAdmBatchJobInstanceLogsParams,
   FindAdmBrokerDlqParams,
   FindAdmBrokerInboxParams,
@@ -281,20 +317,34 @@ import type {
   FindAdmFileTransferHistoryParams,
   FindAdmIdempotencyRecordsParams,
   FindAdmUnknownResultsParams,
+  GatewayBinding,
   GatewayBindingCommand,
   GetAdmBatchJobInstanceLogParams,
+  GroupMember,
+  Health,
   IncidentActionRequest,
   IncidentResponse,
+  InputStreamResource,
+  Instance,
   InstanceDefinition,
+  IssueView,
   IssuedCapability,
   Job,
   LogPage,
   MaintenanceResponse,
   MaintenanceSaveRequest,
+  MutationResult,
   NotificationSendResult,
+  OperationsEvent,
+  OperationsSnapshot,
   OperatorContactProfile,
   OperatorDirectoryRow,
+  Overview,
   OwnerTuple,
+  PageOfIncidentResponse,
+  PageOfMaintenanceResponse,
+  PageOfPolicyResponse,
+  PoisonRetryResult,
   PolicyCommand,
   PolicyRequest,
   PolicyResponse,
@@ -307,13 +357,17 @@ import type {
   Reservation,
   Resolved,
   RollbackCommand,
+  RoutingPolicy,
   Row,
+  ServerGroup,
   ServerGroupCommand,
+  Service,
   ServiceDefinition,
   SessionRow,
   SignalRequest,
   SignalResult,
   Snapshot,
+  SseEmitter,
   State,
   Status,
   StepCommand,
@@ -326,6 +380,8 @@ import type {
   TraceAdmByBusinessTransactionIdParams,
   TraceAdmByTraceIdParams,
   TraceAdmByTransactionIdParams,
+  TraceRecoveryRunResult,
+  TraceRecoveryStatus,
   TransactionMetaPage,
   Verification
 } from './model';
@@ -336,7 +392,7 @@ type SecondParameter<T extends (...args: never) => unknown> = CpfOrvalGeneratedR
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalPolicies
 export type admApprovalPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -384,7 +440,7 @@ export function useAdmApprovalPolicies<TData = Awaited<ReturnType<typeof admAppr
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalPolicySave
 export type admApprovalPolicySaveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -436,7 +492,7 @@ export const useAdmApprovalPolicySave = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalPolicyDetail
 export type admApprovalPolicyDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -484,7 +540,7 @@ export function useAdmApprovalPolicyDetail<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalRequest
 export type admApprovalRequestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -536,7 +592,7 @@ export const useAdmApprovalRequest = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalRequestDetail
 export type admApprovalRequestDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -584,7 +640,7 @@ export function useAdmApprovalRequestDetail<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalDecision
 export type admApprovalDecisionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -636,7 +692,7 @@ export const useAdmApprovalDecision = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalExecute
 export type admApprovalExecuteResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -687,7 +743,7 @@ export const useAdmApprovalExecute = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admApprovalReconcile
 export type admApprovalReconcileResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -738,7 +794,7 @@ export const useAdmApprovalReconcile = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admAuditLogFindAuditLogs
 export type admAuditLogFindAuditLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -786,7 +842,7 @@ export function useAdmAuditLogFindAuditLogs<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admAuditDeliveryList
 export type admAuditDeliveryListResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -834,7 +890,7 @@ export function useAdmAuditDeliveryList<TData = Awaited<ReturnType<typeof admAud
 
 // CPF PRE-RUNTIME FALLBACK START admAuditDeliveryRetry
 export type admAuditDeliveryRetryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -885,7 +941,7 @@ export const useAdmAuditDeliveryRetry = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admAuthLogin
 export type admAuthLoginResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmLoginResponse
   status: 200
 }
 
@@ -937,7 +993,7 @@ export const useAdmAuthLogin = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admAuthLogout
 export type admAuthLogoutResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmLogoutResponse
   status: 200
 }
 
@@ -967,7 +1023,7 @@ export const getAdmAuthLogoutMutationOptions = <TError = unknown, TContext = unk
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admAuthLogout>>, void> = () => {
-
+    
     return admAuthLogout(requestOptions);
   };
   return { mutationFn, ...mutationOptions };
@@ -988,7 +1044,7 @@ export const useAdmAuthLogout = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admAuthMe
 export type admAuthMeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmCurrentSessionResponse
   status: 200
 }
 
@@ -1036,7 +1092,7 @@ export function useAdmAuthMe<TData = Awaited<ReturnType<typeof admAuthMe>>, TErr
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRuntimeCommand
 export type admBatchRuntimeCommandResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1088,7 +1144,7 @@ export const useAdmBatchRuntimeCommand = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRuntimeCommandState
 export type admBatchRuntimeCommandStateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1136,7 +1192,7 @@ export function useAdmBatchRuntimeCommandState<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRuntimeCreateDeploymentPlan
 export type admBatchRuntimeCreateDeploymentPlanResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1188,7 +1244,7 @@ export const useAdmBatchRuntimeCreateDeploymentPlan = <TError = unknown, TContex
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRuntimeInstances
 export type admBatchRuntimeInstancesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1236,7 +1292,7 @@ export function useAdmBatchRuntimeInstances<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admBatchJobDefinitions
 export type admBatchJobDefinitionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1284,7 +1340,7 @@ export function useAdmBatchJobDefinitions<TData = Awaited<ReturnType<typeof admB
 
 // CPF PRE-RUNTIME FALLBACK START admBatchJobDefinitionSave
 export type admBatchJobDefinitionSaveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1336,7 +1392,7 @@ export const useAdmBatchJobDefinitionSave = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admBatchJobDefinitionValidate
 export type admBatchJobDefinitionValidateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1388,7 +1444,7 @@ export const useAdmBatchJobDefinitionValidate = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admBatchJobDefinitionDetail
 export type admBatchJobDefinitionDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1436,7 +1492,7 @@ export function useAdmBatchJobDefinitionDetail<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admBatchJobDefinitionTransition
 export type admBatchJobDefinitionTransitionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1488,7 +1544,7 @@ export const useAdmBatchJobDefinitionTransition = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionPolicies
 export type admRetentionPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1536,7 +1592,7 @@ export function useAdmRetentionPolicies<TData = Awaited<ReturnType<typeof admRet
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionPolicySave
 export type admRetentionPolicySaveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1588,7 +1644,7 @@ export const useAdmRetentionPolicySave = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionPolicyPause
 export type admRetentionPolicyPauseResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1639,7 +1695,7 @@ export const useAdmRetentionPolicyPause = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionPolicyResume
 export type admRetentionPolicyResumeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1690,7 +1746,7 @@ export const useAdmRetentionPolicyResume = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionRunNow
 export type admRetentionRunNowResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1742,7 +1798,7 @@ export const useAdmRetentionRunNow = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionPreview
 export type admRetentionPreviewResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1794,7 +1850,7 @@ export const useAdmRetentionPreview = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionRuns
 export type admRetentionRunsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1842,7 +1898,7 @@ export function useAdmRetentionRuns<TData = Awaited<ReturnType<typeof admRetenti
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionRunPause
 export type admRetentionRunPauseResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1893,7 +1949,7 @@ export const useAdmRetentionRunPause = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admRetentionRunResume
 export type admRetentionRunResumeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1945,7 +2001,7 @@ export const useAdmRetentionRunResume = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRuntimeView
 export type admBatchRuntimeViewResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -1993,7 +2049,7 @@ export function useAdmBatchRuntimeView<TData = Awaited<ReturnType<typeof admBatc
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindExecutionTargets
 export type admBatchFindExecutionTargetsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2041,7 +2097,7 @@ export function useAdmBatchFindExecutionTargets<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindExecutions
 export type admBatchFindExecutionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2089,7 +2145,7 @@ export function useAdmBatchFindExecutions<TData = Awaited<ReturnType<typeof admB
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindExecutionPage
 export type admBatchFindExecutionPageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2137,7 +2193,7 @@ export function useAdmBatchFindExecutionPage<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindExecutionDetail
 export type admBatchFindExecutionDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2185,7 +2241,7 @@ export function useAdmBatchFindExecutionDetail<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRetryExecution
 export type admBatchRetryExecutionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2237,7 +2293,7 @@ export const useAdmBatchRetryExecution = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchStopExecution
 export type admBatchStopExecutionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2289,7 +2345,7 @@ export const useAdmBatchStopExecution = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindGhostCandidates
 export type admBatchFindGhostCandidatesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2337,7 +2393,7 @@ export function useAdmBatchFindGhostCandidates<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admBatchActGhostExecution
 export type admBatchActGhostExecutionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2389,7 +2445,7 @@ export const useAdmBatchActGhostExecution = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindInstances
 export type admBatchFindInstancesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2437,7 +2493,7 @@ export function useAdmBatchFindInstances<TData = Awaited<ReturnType<typeof admBa
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindJobs
 export type admBatchFindJobsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2485,7 +2541,7 @@ export function useAdmBatchFindJobs<TData = Awaited<ReturnType<typeof admBatchFi
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRegisterJob
 export type admBatchRegisterJobResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2537,7 +2593,7 @@ export const useAdmBatchRegisterJob = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindJobDetail
 export type admBatchFindJobDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2585,7 +2641,7 @@ export function useAdmBatchFindJobDetail<TData = Awaited<ReturnType<typeof admBa
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRunJob
 export type admBatchRunJobResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2637,7 +2693,7 @@ export const useAdmBatchRunJob = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindLocks
 export type admBatchFindLocksResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2685,7 +2741,7 @@ export function useAdmBatchFindLocks<TData = Awaited<ReturnType<typeof admBatchF
 
 // CPF PRE-RUNTIME FALLBACK START admBatchReleaseLock
 export type admBatchReleaseLockResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2737,7 +2793,7 @@ export const useAdmBatchReleaseLock = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindOperationLogs
 export type admBatchFindOperationLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2785,7 +2841,7 @@ export function useAdmBatchFindOperationLogs<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindRelations
 export type admBatchFindRelationsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2833,7 +2889,7 @@ export function useAdmBatchFindRelations<TData = Awaited<ReturnType<typeof admBa
 
 // CPF PRE-RUNTIME FALLBACK START admBatchRunSchedulerOnce
 export type admBatchRunSchedulerOnceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2885,7 +2941,7 @@ export const useAdmBatchRunSchedulerOnce = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindSchedules
 export type admBatchFindSchedulesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -2933,7 +2989,7 @@ export function useAdmBatchFindSchedules<TData = Awaited<ReturnType<typeof admBa
 
 // CPF PRE-RUNTIME FALLBACK START admBatchDisableSchedule
 export type admBatchDisableScheduleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -2985,7 +3041,7 @@ export const useAdmBatchDisableSchedule = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admBatchEnableSchedule
 export type admBatchEnableScheduleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3037,7 +3093,7 @@ export const useAdmBatchEnableSchedule = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admBatchSimulateSchedule
 export type admBatchSimulateScheduleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -3085,7 +3141,7 @@ export function useAdmBatchSimulateSchedule<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindStepExecutions
 export type admBatchFindStepExecutionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -3133,7 +3189,7 @@ export function useAdmBatchFindStepExecutions<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchExecutions
 export type admBatchWorkbenchExecutionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3181,7 +3237,7 @@ export function useAdmBatchWorkbenchExecutions<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchExecutionDetail
 export type admBatchWorkbenchExecutionDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3229,7 +3285,7 @@ export function useAdmBatchWorkbenchExecutionDetail<TData = Awaited<ReturnType<t
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchInfrastructure
 export type admBatchWorkbenchInfrastructureResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3277,7 +3333,7 @@ export function useAdmBatchWorkbenchInfrastructure<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchJobs
 export type admBatchWorkbenchJobsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3325,7 +3381,7 @@ export function useAdmBatchWorkbenchJobs<TData = Awaited<ReturnType<typeof admBa
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchJobDetail
 export type admBatchWorkbenchJobDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3373,7 +3429,7 @@ export function useAdmBatchWorkbenchJobDetail<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchOverview
 export type admBatchWorkbenchOverviewResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3421,7 +3477,7 @@ export function useAdmBatchWorkbenchOverview<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchRecovery
 export type admBatchWorkbenchRecoveryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3469,7 +3525,7 @@ export function useAdmBatchWorkbenchRecovery<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admBatchWorkbenchSchedules
 export type admBatchWorkbenchSchedulesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3517,7 +3573,7 @@ export function useAdmBatchWorkbenchSchedules<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admBatchFindWorkers
 export type admBatchFindWorkersResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -3565,7 +3621,7 @@ export function useAdmBatchFindWorkers<TData = Awaited<ReturnType<typeof admBatc
 
 // CPF PRE-RUNTIME FALLBACK START admBreakGlassFindSessions
 export type admBreakGlassFindSessionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -3613,7 +3669,7 @@ export function useAdmBreakGlassFindSessions<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admBreakGlassOpenSession
 export type admBreakGlassOpenSessionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3665,7 +3721,7 @@ export const useAdmBreakGlassOpenSession = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admBreakGlassCloseSession
 export type admBreakGlassCloseSessionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3717,7 +3773,7 @@ export const useAdmBreakGlassCloseSession = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admBreakGlassReviewSession
 export type admBreakGlassReviewSessionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3769,7 +3825,7 @@ export const useAdmBreakGlassReviewSession = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admCalendarFindDays
 export type admCalendarFindDaysResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3817,7 +3873,7 @@ export function useAdmCalendarFindDays<TData = Awaited<ReturnType<typeof admCale
 
 // CPF PRE-RUNTIME FALLBACK START admCalendarDeleteDay
 export type admCalendarDeleteDayResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -3868,7 +3924,7 @@ export const useAdmCalendarDeleteDay = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admCalendarSaveDay
 export type admCalendarSaveDayResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CmnCalendarDay
   status: 200
 }
 
@@ -3921,7 +3977,7 @@ export const useAdmCalendarSaveDay = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admCalendarResolveDate
 export type admCalendarResolveDateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -3969,7 +4025,7 @@ export function useAdmCalendarResolveDate<TData = Awaited<ReturnType<typeof admC
 
 // CPF PRE-RUNTIME FALLBACK START admCacheSummary
 export type admCacheSummaryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmCacheSummaryResponse
   status: 200
 }
 
@@ -4017,7 +4073,7 @@ export function useAdmCacheSummary<TData = Awaited<ReturnType<typeof admCacheSum
 
 // CPF PRE-RUNTIME FALLBACK START admCapabilityManagementIssues
 export type admCapabilityManagementIssuesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<IssueView>
   status: 200
 }
 
@@ -4065,7 +4121,7 @@ export function useAdmCapabilityManagementIssues<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admCapabilityManagementOverview
 export type admCapabilityManagementOverviewResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Overview
   status: 200
 }
 
@@ -4113,7 +4169,7 @@ export function useAdmCapabilityManagementOverview<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutReconcileUnknownExecution
 export type admCenterCutReconcileUnknownExecutionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4165,7 +4221,7 @@ export const useAdmCenterCutReconcileUnknownExecution = <TError = unknown, TCont
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutReprocessFailedExecution
 export type admCenterCutReprocessFailedExecutionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4217,7 +4273,7 @@ export const useAdmCenterCutReprocessFailedExecution = <TError = unknown, TConte
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindJobs
 export type admCenterCutFindJobsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4265,7 +4321,7 @@ export function useAdmCenterCutFindJobs<TData = Awaited<ReturnType<typeof admCen
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindJobDetail
 export type admCenterCutFindJobDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4313,7 +4369,7 @@ export function useAdmCenterCutFindJobDetail<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindParameters
 export type admCenterCutFindParametersResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4361,7 +4417,7 @@ export function useAdmCenterCutFindParameters<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindResults
 export type admCenterCutFindResultsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4409,7 +4465,7 @@ export function useAdmCenterCutFindResults<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindSummary
 export type admCenterCutFindSummaryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4457,7 +4513,7 @@ export function useAdmCenterCutFindSummary<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindTargets
 export type admCenterCutFindTargetsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4505,7 +4561,7 @@ export function useAdmCenterCutFindTargets<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admCenterCutFindResultDetail
 export type admCenterCutFindResultDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4553,7 +4609,7 @@ export function useAdmCenterCutFindResultDetail<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admChannelFindSnapshot
 export type admChannelFindSnapshotResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicySnapshot
   status: 200
 }
 
@@ -4601,7 +4657,7 @@ export function useAdmChannelFindSnapshot<TData = Awaited<ReturnType<typeof admC
 
 // CPF PRE-RUNTIME FALLBACK START admChannelExportPackage
 export type admChannelExportPackageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicyPackage
   status: 200
 }
 
@@ -4649,7 +4705,7 @@ export function useAdmChannelExportPackage<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admChannelImportPackage
 export type admChannelImportPackageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicySnapshot
   status: 200
 }
 
@@ -4701,7 +4757,7 @@ export const useAdmChannelImportPackage = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admChannelSaveExecutionPolicy
 export type admChannelSaveExecutionPolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicySnapshot
   status: 200
 }
 
@@ -4753,7 +4809,7 @@ export const useAdmChannelSaveExecutionPolicy = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admChannelRefreshSnapshot
 export type admChannelRefreshSnapshotResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicySnapshot
   status: 200
 }
 
@@ -4783,7 +4839,7 @@ export const getAdmChannelRefreshSnapshotMutationOptions = <TError = unknown, TC
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, void> = () => {
-
+    
     return admChannelRefreshSnapshot(requestOptions);
   };
   return { mutationFn, ...mutationOptions };
@@ -4804,7 +4860,7 @@ export const useAdmChannelRefreshSnapshot = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admChannelSave
 export type admChannelSaveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfChannelPolicySnapshot
   status: 200
 }
 
@@ -4856,7 +4912,7 @@ export const useAdmChannelSave = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admCodeFindCodes
 export type admCodeFindCodesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4866,16 +4922,17 @@ export type admCodeFindCodesResponseSuccess = (admCodeFindCodesResponse200) & {
 
 export type admCodeFindCodesResponse = (admCodeFindCodesResponseSuccess)
 
-export const getAdmCodeFindCodesUrl = () => {
-  const base = `/adm/api/codes`;
-  return base;
-};
+export const getAdmCodeFindCodesUrl = () => `/adm/api/codes`;
 
 export const admCodeFindCodes = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeFindCodesResponse> => {
-  return cpfOrvalRequest<admCodeFindCodesResponse>(getAdmCodeFindCodesUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admCodeFindCodesResponse>(getAdmCodeFindCodesUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmCodeFindCodesQueryKey = () => ["adm","api","codes"] as const;
+export const getAdmCodeFindCodesQueryKey = () => ["adm", "api", "codes"] as const;
 
 export const getAdmCodeFindCodesQueryOptions = <TData = Awaited<ReturnType<typeof admCodeFindCodes>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCodes>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -4898,10 +4955,12 @@ export function useAdmCodeFindCodes<TData = Awaited<ReturnType<typeof admCodeFin
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admCodeFindCodes
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeCreateCode
 export type admCodeCreateCodeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -4911,13 +4970,15 @@ export type admCodeCreateCodeResponseSuccess = (admCodeCreateCodeResponse200) & 
 
 export type admCodeCreateCodeResponse = (admCodeCreateCodeResponseSuccess)
 
-export const getAdmCodeCreateCodeUrl = () => {
-  const base = `/adm/api/codes`;
-  return base;
-};
+export const getAdmCodeCreateCodeUrl = () => `/adm/api/codes`;
 
 export const admCodeCreateCode = async (data: CommonCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeCreateCodeResponse> => {
-  return cpfOrvalRequest<admCodeCreateCodeResponse>(getAdmCodeCreateCodeUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admCodeCreateCodeResponse>(getAdmCodeCreateCodeUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmCodeCreateCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4926,7 +4987,8 @@ export const getAdmCodeCreateCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeCreateCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeCreateCode>>, {data: CommonCodeRequest}> = (props) => {
     const { data } = props;
@@ -4942,11 +5004,15 @@ export type AdmCodeCreateCodeMutationError = unknown;
 export const useAdmCodeCreateCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext> => useMutation(getAdmCodeCreateCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeCreateCode>>, TError, {data: CommonCodeRequest}, TContext> => {
+  return useMutation(getAdmCodeCreateCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeCreateCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeDeleteCode
 export type admCodeDeleteCodeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -4956,15 +5022,14 @@ export type admCodeDeleteCodeResponseSuccess = (admCodeDeleteCodeResponse200) & 
 
 export type admCodeDeleteCodeResponse = (admCodeDeleteCodeResponseSuccess)
 
-export const getAdmCodeDeleteCodeUrl = (codeId: number, params: AdmCodeDeleteCodeParams) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmCodeDeleteCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeDeleteCode = async (codeId: number, params: AdmCodeDeleteCodeParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeDeleteCodeResponse> => {
-  return cpfOrvalRequest<admCodeDeleteCodeResponse>(getAdmCodeDeleteCodeUrl(codeId, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admCodeDeleteCodeResponse>(getAdmCodeDeleteCodeUrl(codeId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmCodeDeleteCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -4973,7 +5038,8 @@ export const getAdmCodeDeleteCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeDeleteCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeDeleteCode>>, {codeId: number; params: AdmCodeDeleteCodeParams}> = (props) => {
     const { codeId, params } = props;
@@ -4989,11 +5055,15 @@ export type AdmCodeDeleteCodeMutationError = unknown;
 export const useAdmCodeDeleteCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext> => useMutation(getAdmCodeDeleteCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeDeleteCode>>, TError, {codeId: number; params: AdmCodeDeleteCodeParams}, TContext> => {
+  return useMutation(getAdmCodeDeleteCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeDeleteCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeFindCode
 export type admCodeFindCodeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -5003,16 +5073,17 @@ export type admCodeFindCodeResponseSuccess = (admCodeFindCodeResponse200) & {
 
 export type admCodeFindCodeResponse = (admCodeFindCodeResponseSuccess)
 
-export const getAdmCodeFindCodeUrl = (codeId: number) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  return base;
-};
+export const getAdmCodeFindCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeFindCode = async (codeId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeFindCodeResponse> => {
-  return cpfOrvalRequest<admCodeFindCodeResponse>(getAdmCodeFindCodeUrl(codeId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admCodeFindCodeResponse>(getAdmCodeFindCodeUrl(codeId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmCodeFindCodeQueryKey = (codeId: MaybeRefOrGetter<number>) => ["adm","api","codes",codeId] as const;
+export const getAdmCodeFindCodeQueryKey = (codeId: MaybeRefOrGetter<number>) => ["adm", "api", "codes", codeId] as const;
 
 export const getAdmCodeFindCodeQueryOptions = <TData = Awaited<ReturnType<typeof admCodeFindCode>>, TError = unknown>(
   codeId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -5020,7 +5091,7 @@ export const getAdmCodeFindCodeQueryOptions = <TData = Awaited<ReturnType<typeof
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmCodeFindCodeQueryKey(toValue(codeId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admCodeFindCode>>> = ({ signal }) => admCodeFindCode(toValue(codeId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(codeId) !== null && toValue(codeId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>;
 };
 
 export type AdmCodeFindCodeQueryResult = NonNullable<Awaited<ReturnType<typeof admCodeFindCode>>>;
@@ -5030,15 +5101,17 @@ export function useAdmCodeFindCode<TData = Awaited<ReturnType<typeof admCodeFind
   codeId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admCodeFindCode>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmCodeFindCodeQueryOptions(toValue(codeId), options);
+  const queryOptions = getAdmCodeFindCodeQueryOptions(codeId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admCodeFindCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admCodeUpdateCode
 export type admCodeUpdateCodeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -5048,13 +5121,15 @@ export type admCodeUpdateCodeResponseSuccess = (admCodeUpdateCodeResponse200) & 
 
 export type admCodeUpdateCodeResponse = (admCodeUpdateCodeResponseSuccess)
 
-export const getAdmCodeUpdateCodeUrl = (codeId: number) => {
-  const base = `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
-  return base;
-};
+export const getAdmCodeUpdateCodeUrl = (codeId: number) => `/adm/api/codes/${encodeURIComponent(String(codeId))}`;
 
 export const admCodeUpdateCode = async (codeId: number, data: CommonCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admCodeUpdateCodeResponse> => {
-  return cpfOrvalRequest<admCodeUpdateCodeResponse>(getAdmCodeUpdateCodeUrl(codeId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admCodeUpdateCodeResponse>(getAdmCodeUpdateCodeUrl(codeId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmCodeUpdateCodeMutationOptions = <TError = unknown, TContext = unknown>(
@@ -5063,7 +5138,8 @@ export const getAdmCodeUpdateCodeMutationOptions = <TError = unknown, TContext =
   const mutationKey = ['admCodeUpdateCode'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admCodeUpdateCode>>, {codeId: number; data: CommonCodeRequest}> = (props) => {
     const { codeId, data } = props;
@@ -5079,11 +5155,15 @@ export type AdmCodeUpdateCodeMutationError = unknown;
 export const useAdmCodeUpdateCode = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext> => useMutation(getAdmCodeUpdateCodeMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admCodeUpdateCode>>, TError, {codeId: number; data: CommonCodeRequest}, TContext> => {
+  return useMutation(getAdmCodeUpdateCodeMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admCodeUpdateCode
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigFindConfigs
 export type admConfigFindConfigsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -5093,16 +5173,17 @@ export type admConfigFindConfigsResponseSuccess = (admConfigFindConfigsResponse2
 
 export type admConfigFindConfigsResponse = (admConfigFindConfigsResponseSuccess)
 
-export const getAdmConfigFindConfigsUrl = () => {
-  const base = `/adm/api/configs`;
-  return base;
-};
+export const getAdmConfigFindConfigsUrl = () => `/adm/api/configs`;
 
 export const admConfigFindConfigs = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigFindConfigsResponse> => {
-  return cpfOrvalRequest<admConfigFindConfigsResponse>(getAdmConfigFindConfigsUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admConfigFindConfigsResponse>(getAdmConfigFindConfigsUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmConfigFindConfigsQueryKey = () => ["adm","api","configs"] as const;
+export const getAdmConfigFindConfigsQueryKey = () => ["adm", "api", "configs"] as const;
 
 export const getAdmConfigFindConfigsQueryOptions = <TData = Awaited<ReturnType<typeof admConfigFindConfigs>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfigs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -5125,10 +5206,12 @@ export function useAdmConfigFindConfigs<TData = Awaited<ReturnType<typeof admCon
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admConfigFindConfigs
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigCreateConfig
 export type admConfigCreateConfigResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -5138,13 +5221,15 @@ export type admConfigCreateConfigResponseSuccess = (admConfigCreateConfigRespons
 
 export type admConfigCreateConfigResponse = (admConfigCreateConfigResponseSuccess)
 
-export const getAdmConfigCreateConfigUrl = () => {
-  const base = `/adm/api/configs`;
-  return base;
-};
+export const getAdmConfigCreateConfigUrl = () => `/adm/api/configs`;
 
 export const admConfigCreateConfig = async (data: CommonConfigRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigCreateConfigResponse> => {
-  return cpfOrvalRequest<admConfigCreateConfigResponse>(getAdmConfigCreateConfigUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admConfigCreateConfigResponse>(getAdmConfigCreateConfigUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmConfigCreateConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -5153,7 +5238,8 @@ export const getAdmConfigCreateConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigCreateConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigCreateConfig>>, {data: CommonConfigRequest}> = (props) => {
     const { data } = props;
@@ -5169,11 +5255,15 @@ export type AdmConfigCreateConfigMutationError = unknown;
 export const useAdmConfigCreateConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext> => useMutation(getAdmConfigCreateConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigCreateConfig>>, TError, {data: CommonConfigRequest}, TContext> => {
+  return useMutation(getAdmConfigCreateConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigCreateConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigDeleteConfig
 export type admConfigDeleteConfigResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -5183,15 +5273,14 @@ export type admConfigDeleteConfigResponseSuccess = (admConfigDeleteConfigRespons
 
 export type admConfigDeleteConfigResponse = (admConfigDeleteConfigResponseSuccess)
 
-export const getAdmConfigDeleteConfigUrl = (configId: number, params: AdmConfigDeleteConfigParams) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmConfigDeleteConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigDeleteConfig = async (configId: number, params: AdmConfigDeleteConfigParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigDeleteConfigResponse> => {
-  return cpfOrvalRequest<admConfigDeleteConfigResponse>(getAdmConfigDeleteConfigUrl(configId, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admConfigDeleteConfigResponse>(getAdmConfigDeleteConfigUrl(configId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmConfigDeleteConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -5200,7 +5289,8 @@ export const getAdmConfigDeleteConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigDeleteConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigDeleteConfig>>, {configId: number; params: AdmConfigDeleteConfigParams}> = (props) => {
     const { configId, params } = props;
@@ -5216,11 +5306,15 @@ export type AdmConfigDeleteConfigMutationError = unknown;
 export const useAdmConfigDeleteConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext> => useMutation(getAdmConfigDeleteConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigDeleteConfig>>, TError, {configId: number; params: AdmConfigDeleteConfigParams}, TContext> => {
+  return useMutation(getAdmConfigDeleteConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigDeleteConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigFindConfig
 export type admConfigFindConfigResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -5230,16 +5324,17 @@ export type admConfigFindConfigResponseSuccess = (admConfigFindConfigResponse200
 
 export type admConfigFindConfigResponse = (admConfigFindConfigResponseSuccess)
 
-export const getAdmConfigFindConfigUrl = (configId: number) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  return base;
-};
+export const getAdmConfigFindConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigFindConfig = async (configId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigFindConfigResponse> => {
-  return cpfOrvalRequest<admConfigFindConfigResponse>(getAdmConfigFindConfigUrl(configId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admConfigFindConfigResponse>(getAdmConfigFindConfigUrl(configId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmConfigFindConfigQueryKey = (configId: MaybeRefOrGetter<number>) => ["adm","api","configs",configId] as const;
+export const getAdmConfigFindConfigQueryKey = (configId: MaybeRefOrGetter<number>) => ["adm", "api", "configs", configId] as const;
 
 export const getAdmConfigFindConfigQueryOptions = <TData = Awaited<ReturnType<typeof admConfigFindConfig>>, TError = unknown>(
   configId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -5247,7 +5342,7 @@ export const getAdmConfigFindConfigQueryOptions = <TData = Awaited<ReturnType<ty
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmConfigFindConfigQueryKey(toValue(configId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admConfigFindConfig>>> = ({ signal }) => admConfigFindConfig(toValue(configId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(configId) !== null && toValue(configId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>;
 };
 
 export type AdmConfigFindConfigQueryResult = NonNullable<Awaited<ReturnType<typeof admConfigFindConfig>>>;
@@ -5257,15 +5352,17 @@ export function useAdmConfigFindConfig<TData = Awaited<ReturnType<typeof admConf
   configId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admConfigFindConfig>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmConfigFindConfigQueryOptions(toValue(configId), options);
+  const queryOptions = getAdmConfigFindConfigQueryOptions(configId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admConfigFindConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admConfigUpdateConfig
 export type admConfigUpdateConfigResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -5275,13 +5372,15 @@ export type admConfigUpdateConfigResponseSuccess = (admConfigUpdateConfigRespons
 
 export type admConfigUpdateConfigResponse = (admConfigUpdateConfigResponseSuccess)
 
-export const getAdmConfigUpdateConfigUrl = (configId: number) => {
-  const base = `/adm/api/configs/${encodeURIComponent(String(configId))}`;
-  return base;
-};
+export const getAdmConfigUpdateConfigUrl = (configId: number) => `/adm/api/configs/${encodeURIComponent(String(configId))}`;
 
 export const admConfigUpdateConfig = async (configId: number, data: CommonConfigRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admConfigUpdateConfigResponse> => {
-  return cpfOrvalRequest<admConfigUpdateConfigResponse>(getAdmConfigUpdateConfigUrl(configId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admConfigUpdateConfigResponse>(getAdmConfigUpdateConfigUrl(configId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmConfigUpdateConfigMutationOptions = <TError = unknown, TContext = unknown>(
@@ -5290,7 +5389,8 @@ export const getAdmConfigUpdateConfigMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admConfigUpdateConfig'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admConfigUpdateConfig>>, {configId: number; data: CommonConfigRequest}> = (props) => {
     const { configId, data } = props;
@@ -5306,11 +5406,15 @@ export type AdmConfigUpdateConfigMutationError = unknown;
 export const useAdmConfigUpdateConfig = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext> => useMutation(getAdmConfigUpdateConfigMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admConfigUpdateConfig>>, TError, {configId: number; data: CommonConfigRequest}, TContext> => {
+  return useMutation(getAdmConfigUpdateConfigMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admConfigUpdateConfig
 
 
+// CPF PRE-RUNTIME FALLBACK START admDownloadFindDownloadAuditLogs
 export type admDownloadFindDownloadAuditLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<DownloadAuditLog>
   status: 200
 }
 
@@ -5358,7 +5462,7 @@ export function useAdmDownloadFindDownloadAuditLogs<TData = Awaited<ReturnType<t
 
 // CPF PRE-RUNTIME FALLBACK START admDownloadDownloadCsv
 export type admDownloadDownloadCsvResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<number>
   status: 200
 }
 
@@ -5410,7 +5514,7 @@ export const useAdmDownloadDownloadCsv = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admDownloadFindPolicies
 export type admDownloadFindPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<DownloadPolicy>
   status: 200
 }
 
@@ -5458,7 +5562,7 @@ export function useAdmDownloadFindPolicies<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admFileJobList
 export type admFileJobListResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmFileJobResponse>
   status: 200
 }
 
@@ -5506,7 +5610,7 @@ export function useAdmFileJobList<TData = Awaited<ReturnType<typeof admFileJobLi
 
 // CPF PRE-RUNTIME FALLBACK START admFileJobUpload
 export type admFileJobUploadResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmFileJobResponse
   status: 200
 }
 
@@ -5559,7 +5663,7 @@ export const useAdmFileJobUpload = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admFileJobDetail
 export type admFileJobDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmFileJobResponse
   status: 200
 }
 
@@ -5607,7 +5711,7 @@ export function useAdmFileJobDetail<TData = Awaited<ReturnType<typeof admFileJob
 
 // CPF PRE-RUNTIME FALLBACK START admFileJobArtifact
 export type admFileJobArtifactResponse200 = {
-  data: CpfControllerSourceResponse
+  data: InputStreamResource
   status: 200
 }
 
@@ -5655,7 +5759,7 @@ export function useAdmFileJobArtifact<TData = Awaited<ReturnType<typeof admFileJ
 
 // CPF PRE-RUNTIME FALLBACK START admFileJobRows
 export type admFileJobRowsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmFileJobRowResponse>
   status: 200
 }
 
@@ -5703,7 +5807,7 @@ export function useAdmFileJobRows<TData = Awaited<ReturnType<typeof admFileJobRo
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindBindings
 export type admGatewayFindBindingsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<GatewayBinding>
   status: 200
 }
 
@@ -5751,7 +5855,7 @@ export function useAdmGatewayFindBindings<TData = Awaited<ReturnType<typeof admG
 
 // CPF PRE-RUNTIME FALLBACK START admGatewaySaveBinding
 export type admGatewaySaveBindingResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -5803,7 +5907,7 @@ export const useAdmGatewaySaveBinding = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayDeleteBinding
 export type admGatewayDeleteBindingResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -5855,7 +5959,7 @@ export const useAdmGatewayDeleteBinding = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindApplyStatus
 export type admGatewayFindApplyStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<ApplyStatus>
   status: 200
 }
 
@@ -5903,7 +6007,7 @@ export function useAdmGatewayFindApplyStatus<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindConnectionTests
 export type admGatewayFindConnectionTestsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<ConnectionTestResult>
   status: 200
 }
 
@@ -5951,7 +6055,7 @@ export function useAdmGatewayFindConnectionTests<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayRequestConnectionTest
 export type admGatewayRequestConnectionTestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: ConnectionTestOperation
   status: 200
 }
 
@@ -6003,7 +6107,7 @@ export const useAdmGatewayRequestConnectionTest = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayChangeBindingState
 export type admGatewayChangeBindingStateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -6055,7 +6159,7 @@ export const useAdmGatewayChangeBindingState = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayCapability
 export type admGatewayCapabilityResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfDataRow
   status: 200
 }
 
@@ -6103,7 +6207,7 @@ export function useAdmGatewayCapability<TData = Awaited<ReturnType<typeof admGat
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindConnectionTestOperation
 export type admGatewayFindConnectionTestOperationResponse200 = {
-  data: CpfControllerSourceResponse
+  data: ConnectionTestOperation
   status: 200
 }
 
@@ -6151,7 +6255,7 @@ export function useAdmGatewayFindConnectionTestOperation<TData = Awaited<ReturnT
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayCancelConnectionTest
 export type admGatewayCancelConnectionTestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: ConnectionTestOperation
   status: 200
 }
 
@@ -6203,7 +6307,7 @@ export const useAdmGatewayCancelConnectionTest = <TError = unknown, TContext = u
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayRevalidateConnectionTest
 export type admGatewayRevalidateConnectionTestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: ConnectionTestOperation
   status: 200
 }
 
@@ -6255,7 +6359,7 @@ export const useAdmGatewayRevalidateConnectionTest = <TError = unknown, TContext
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayOperationsEvents
 export type admGatewayOperationsEventsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<OperationsEvent>
   status: 200
 }
 
@@ -6303,7 +6407,7 @@ export function useAdmGatewayOperationsEvents<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayOperationsSnapshot
 export type admGatewayOperationsSnapshotResponse200 = {
-  data: CpfControllerSourceResponse
+  data: OperationsSnapshot
   status: 200
 }
 
@@ -6351,7 +6455,7 @@ export function useAdmGatewayOperationsSnapshot<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayOperationsStream
 export type admGatewayOperationsStreamResponse200 = {
-  data: CpfControllerSourceResponse
+  data: SseEmitter
   status: 200
 }
 
@@ -6400,7 +6504,7 @@ export function useAdmGatewayOperationsStream<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindServerGroups
 export type admGatewayFindServerGroupsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<ServerGroup>
   status: 200
 }
 
@@ -6448,7 +6552,7 @@ export function useAdmGatewayFindServerGroups<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admGatewaySaveServerGroup
 export type admGatewaySaveServerGroupResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -6500,7 +6604,7 @@ export const useAdmGatewaySaveServerGroup = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayDeleteServerGroup
 export type admGatewayDeleteServerGroupResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -6552,7 +6656,7 @@ export const useAdmGatewayDeleteServerGroup = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admGatewayFindGroupMembers
 export type admGatewayFindGroupMembersResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<GroupMember>
   status: 200
 }
 
@@ -6600,7 +6704,7 @@ export function useAdmGatewayFindGroupMembers<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START getAdmReadiness
 export type getAdmReadinessResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -6648,7 +6752,7 @@ export function useGetAdmReadiness<TData = Awaited<ReturnType<typeof getAdmReadi
 
 // CPF PRE-RUNTIME FALLBACK START admHealthInstanceList
 export type admHealthInstanceListResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -6696,7 +6800,7 @@ export function useAdmHealthInstanceList<TData = Awaited<ReturnType<typeof admHe
 
 // CPF PRE-RUNTIME FALLBACK START admHealthInstanceDetail
 export type admHealthInstanceDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Entry
   status: 200
 }
 
@@ -6744,7 +6848,7 @@ export function useAdmHealthInstanceDetail<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START getAdmLiveness
 export type getAdmLivenessResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -6792,7 +6896,7 @@ export function useGetAdmLiveness<TData = Awaited<ReturnType<typeof getAdmLivene
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentFindIncidents
 export type admIncidentFindIncidentsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PageOfIncidentResponse
   status: 200
 }
 
@@ -6840,7 +6944,7 @@ export function useAdmIncidentFindIncidents<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentCreateIncident
 export type admIncidentCreateIncidentResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -6892,7 +6996,7 @@ export const useAdmIncidentCreateIncident = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentFindMaintenance
 export type admIncidentFindMaintenanceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PageOfMaintenanceResponse
   status: 200
 }
 
@@ -6940,7 +7044,7 @@ export function useAdmIncidentFindMaintenance<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentCreateMaintenance
 export type admIncidentCreateMaintenanceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MaintenanceResponse
   status: 200
 }
 
@@ -6992,7 +7096,7 @@ export const useAdmIncidentCreateMaintenance = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentUpdateMaintenance
 export type admIncidentUpdateMaintenanceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MaintenanceResponse
   status: 200
 }
 
@@ -7044,7 +7148,7 @@ export const useAdmIncidentUpdateMaintenance = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentFindPolicies
 export type admIncidentFindPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PageOfPolicyResponse
   status: 200
 }
 
@@ -7092,7 +7196,7 @@ export function useAdmIncidentFindPolicies<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentCreatePolicy
 export type admIncidentCreatePolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PolicyResponse
   status: 200
 }
 
@@ -7144,7 +7248,7 @@ export const useAdmIncidentCreatePolicy = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentUpdatePolicy
 export type admIncidentUpdatePolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PolicyResponse
   status: 200
 }
 
@@ -7196,7 +7300,7 @@ export const useAdmIncidentUpdatePolicy = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentIngestSignal
 export type admIncidentIngestSignalResponse200 = {
-  data: CpfControllerSourceResponse
+  data: SignalResult
   status: 200
 }
 
@@ -7248,7 +7352,7 @@ export const useAdmIncidentIngestSignal = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentFindIncident
 export type admIncidentFindIncidentResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7296,7 +7400,7 @@ export function useAdmIncidentFindIncident<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentAcknowledge
 export type admIncidentAcknowledgeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7348,7 +7452,7 @@ export const useAdmIncidentAcknowledge = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentEscalate
 export type admIncidentEscalateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7400,7 +7504,7 @@ export const useAdmIncidentEscalate = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentRecordPostmortem
 export type admIncidentRecordPostmortemResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7452,7 +7556,7 @@ export const useAdmIncidentRecordPostmortem = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentReopen
 export type admIncidentReopenResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7504,7 +7608,7 @@ export const useAdmIncidentReopen = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentResolve
 export type admIncidentResolveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: IncidentResponse
   status: 200
 }
 
@@ -7556,7 +7660,7 @@ export const useAdmIncidentResolve = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentTransitionIncident
 export type admIncidentTransitionIncidentResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -7608,7 +7712,7 @@ export const useAdmIncidentTransitionIncident = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admIncidentFindTimeline
 export type admIncidentFindTimelineResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<TimelineResponse>
   status: 200
 }
 
@@ -7656,7 +7760,7 @@ export function useAdmIncidentFindTimeline<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationCryptoStatus
 export type admIntegrationCryptoStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -7704,7 +7808,7 @@ export function useAdmIntegrationCryptoStatus<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationDataQualityCorrectionExecute
 export type admIntegrationDataQualityCorrectionExecuteResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -7756,7 +7860,7 @@ export const useAdmIntegrationDataQualityCorrectionExecute = <TError = unknown, 
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationDataQualityCorrectionApprovalRequest
 export type admIntegrationDataQualityCorrectionApprovalRequestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -7808,7 +7912,7 @@ export const useAdmIntegrationDataQualityCorrectionApprovalRequest = <TError = u
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationDataQualityReplay
 export type admIntegrationDataQualityReplayResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfDataQualityDecision
   status: 200
 }
 
@@ -7860,7 +7964,7 @@ export const useAdmIntegrationDataQualityReplay = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationDataQualityValidate
 export type admIntegrationDataQualityValidateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfDataQualityDecision
   status: 200
 }
 
@@ -7912,7 +8016,7 @@ export const useAdmIntegrationDataQualityValidate = <TError = unknown, TContext 
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationTimeHealth
 export type admIntegrationTimeHealthResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfTimeSnapshot
   status: 200
 }
 
@@ -7960,7 +8064,7 @@ export function useAdmIntegrationTimeHealth<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationWebhookDlq
 export type admIntegrationWebhookDlqResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CpfWebhookDelivery>
   status: 200
 }
 
@@ -8008,7 +8112,7 @@ export function useAdmIntegrationWebhookDlq<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admIntegrationWebhookReplay
 export type admIntegrationWebhookReplayResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfWebhookDelivery
   status: 200
 }
 
@@ -8059,7 +8163,7 @@ export const useAdmIntegrationWebhookReplay = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admLogExportCreate
 export type admLogExportCreateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmLogExportResponse
   status: 200
 }
 
@@ -8111,7 +8215,7 @@ export const useAdmLogExportCreate = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admLogExportDownload
 export type admLogExportDownloadResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<number>
   status: 200
 }
 
@@ -8159,7 +8263,7 @@ export function useAdmLogExportDownload<TData = Awaited<ReturnType<typeof admLog
 
 // CPF PRE-RUNTIME FALLBACK START admDynamicLogLevelFindRules
 export type admDynamicLogLevelFindRulesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8207,7 +8311,7 @@ export function useAdmDynamicLogLevelFindRules<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyFindPolicies
 export type admLogPolicyFindPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8255,7 +8359,7 @@ export function useAdmLogPolicyFindPolicies<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyCreatePolicy
 export type admLogPolicyCreatePolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8307,7 +8411,7 @@ export const useAdmLogPolicyCreatePolicy = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyClearCache
 export type admLogPolicyClearCacheResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8358,7 +8462,7 @@ export const useAdmLogPolicyClearCache = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyRefreshCache
 export type admLogPolicyRefreshCacheResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8409,7 +8513,7 @@ export const useAdmLogPolicyRefreshCache = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyDistributionStatus
 export type admLogPolicyDistributionStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8457,7 +8561,7 @@ export function useAdmLogPolicyDistributionStatus<TData = Awaited<ReturnType<typ
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyFindTraceBoostHistory
 export type admLogPolicyFindTraceBoostHistoryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8505,7 +8609,7 @@ export function useAdmLogPolicyFindTraceBoostHistory<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyCreateOverride
 export type admLogPolicyCreateOverrideResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8557,7 +8661,7 @@ export const useAdmLogPolicyCreateOverride = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyDisableOverride
 export type admLogPolicyDisableOverrideResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8608,7 +8712,7 @@ export const useAdmLogPolicyDisableOverride = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyFindTraceBoostRuntimeState
 export type admLogPolicyFindTraceBoostRuntimeStateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8656,7 +8760,7 @@ export function useAdmLogPolicyFindTraceBoostRuntimeState<TData = Awaited<Return
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyCreateTraceBoost
 export type admLogPolicyCreateTraceBoostResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8708,7 +8812,7 @@ export const useAdmLogPolicyCreateTraceBoost = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyFindPolicy
 export type admLogPolicyFindPolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8756,7 +8860,7 @@ export function useAdmLogPolicyFindPolicy<TData = Awaited<ReturnType<typeof admL
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyUpdatePolicy
 export type admLogPolicyUpdatePolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8808,7 +8912,7 @@ export const useAdmLogPolicyUpdatePolicy = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyDisablePolicy
 export type admLogPolicyDisablePolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8859,7 +8963,7 @@ export const useAdmLogPolicyDisablePolicy = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admLogPolicyAuditFindPolicyAudits
 export type admLogPolicyAuditFindPolicyAuditsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8907,7 +9011,7 @@ export function useAdmLogPolicyAuditFindPolicyAudits<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admLogFindLogs
 export type admLogFindLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -8955,7 +9059,7 @@ export function useAdmLogFindLogs<TData = Awaited<ReturnType<typeof admLogFindLo
 
 // CPF PRE-RUNTIME FALLBACK START admLogGetLogDetail
 export type admLogGetLogDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9003,7 +9107,7 @@ export function useAdmLogGetLogDetail<TData = Awaited<ReturnType<typeof admLogGe
 
 // CPF PRE-RUNTIME FALLBACK START admMaintenanceFindActions
 export type admMaintenanceFindActionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -9051,7 +9155,7 @@ export function useAdmMaintenanceFindActions<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admMaintenanceExecuteAction
 export type admMaintenanceExecuteActionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9103,7 +9207,7 @@ export const useAdmMaintenanceExecuteAction = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admMessageFindMessages
 export type admMessageFindMessagesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -9116,10 +9220,14 @@ export type admMessageFindMessagesResponse = (admMessageFindMessagesResponseSucc
 export const getAdmMessageFindMessagesUrl = () => `/adm/api/messages`;
 
 export const admMessageFindMessages = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageFindMessagesResponse> => {
-  return cpfOrvalRequest<admMessageFindMessagesResponse>(getAdmMessageFindMessagesUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admMessageFindMessagesResponse>(getAdmMessageFindMessagesUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmMessageFindMessagesQueryKey = () => ['adm','api','messages'] as const;
+export const getAdmMessageFindMessagesQueryKey = () => ["adm", "api", "messages"] as const;
 
 export const getAdmMessageFindMessagesQueryOptions = <TData = Awaited<ReturnType<typeof admMessageFindMessages>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessages>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -9142,10 +9250,12 @@ export function useAdmMessageFindMessages<TData = Awaited<ReturnType<typeof admM
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admMessageFindMessages
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageCreateMessage
 export type admMessageCreateMessageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9158,7 +9268,12 @@ export type admMessageCreateMessageResponse = (admMessageCreateMessageResponseSu
 export const getAdmMessageCreateMessageUrl = () => `/adm/api/messages`;
 
 export const admMessageCreateMessage = async (data: CommonMessageRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageCreateMessageResponse> => {
-  return cpfOrvalRequest<admMessageCreateMessageResponse>(getAdmMessageCreateMessageUrl(), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admMessageCreateMessageResponse>(getAdmMessageCreateMessageUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmMessageCreateMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -9167,7 +9282,8 @@ export const getAdmMessageCreateMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageCreateMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageCreateMessage>>, {data: CommonMessageRequest}> = (props) => {
     const { data } = props;
@@ -9183,11 +9299,15 @@ export type AdmMessageCreateMessageMutationError = unknown;
 export const useAdmMessageCreateMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext> => useMutation(getAdmMessageCreateMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageCreateMessage>>, TError, {data: CommonMessageRequest}, TContext> => {
+  return useMutation(getAdmMessageCreateMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageCreateMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageDeleteMessage
 export type admMessageDeleteMessageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -9200,7 +9320,11 @@ export type admMessageDeleteMessageResponse = (admMessageDeleteMessageResponseSu
 export const getAdmMessageDeleteMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageDeleteMessage = async (messageId: number, params: AdmMessageDeleteMessageParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageDeleteMessageResponse> => {
-  return cpfOrvalRequest<admMessageDeleteMessageResponse>((() => { const base = getAdmMessageDeleteMessageUrl(messageId); const search = new URLSearchParams(); search.set('reason', params.reason); return base + '?' + search.toString(); })(), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admMessageDeleteMessageResponse>(getAdmMessageDeleteMessageUrl(messageId), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmMessageDeleteMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -9209,7 +9333,8 @@ export const getAdmMessageDeleteMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageDeleteMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageDeleteMessage>>, {messageId: number; params: AdmMessageDeleteMessageParams}> = (props) => {
     const { messageId, params } = props;
@@ -9225,11 +9350,15 @@ export type AdmMessageDeleteMessageMutationError = unknown;
 export const useAdmMessageDeleteMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext> => useMutation(getAdmMessageDeleteMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageDeleteMessage>>, TError, {messageId: number; params: AdmMessageDeleteMessageParams}, TContext> => {
+  return useMutation(getAdmMessageDeleteMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageDeleteMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageFindMessage
 export type admMessageFindMessageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9242,10 +9371,14 @@ export type admMessageFindMessageResponse = (admMessageFindMessageResponseSucces
 export const getAdmMessageFindMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageFindMessage = async (messageId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageFindMessageResponse> => {
-  return cpfOrvalRequest<admMessageFindMessageResponse>(getAdmMessageFindMessageUrl(messageId), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admMessageFindMessageResponse>(getAdmMessageFindMessageUrl(messageId), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmMessageFindMessageQueryKey = (messageId: MaybeRefOrGetter<number>) => ['adm','api','messages',messageId] as const;
+export const getAdmMessageFindMessageQueryKey = (messageId: MaybeRefOrGetter<number>) => ["adm", "api", "messages", messageId] as const;
 
 export const getAdmMessageFindMessageQueryOptions = <TData = Awaited<ReturnType<typeof admMessageFindMessage>>, TError = unknown>(
   messageId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -9253,7 +9386,7 @@ export const getAdmMessageFindMessageQueryOptions = <TData = Awaited<ReturnType<
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmMessageFindMessageQueryKey(toValue(messageId));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admMessageFindMessage>>> = ({ signal }) => admMessageFindMessage(toValue(messageId), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(messageId) !== null && toValue(messageId) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>;
 };
 
 export type AdmMessageFindMessageQueryResult = NonNullable<Awaited<ReturnType<typeof admMessageFindMessage>>>;
@@ -9263,15 +9396,17 @@ export function useAdmMessageFindMessage<TData = Awaited<ReturnType<typeof admMe
   messageId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admMessageFindMessage>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmMessageFindMessageQueryOptions(toValue(messageId), options);
+  const queryOptions = getAdmMessageFindMessageQueryOptions(messageId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admMessageFindMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admMessageUpdateMessage
 export type admMessageUpdateMessageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9284,7 +9419,12 @@ export type admMessageUpdateMessageResponse = (admMessageUpdateMessageResponseSu
 export const getAdmMessageUpdateMessageUrl = (messageId: number) => `/adm/api/messages/${encodeURIComponent(String(messageId))}`;
 
 export const admMessageUpdateMessage = async (messageId: number, data: CommonMessageRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMessageUpdateMessageResponse> => {
-  return cpfOrvalRequest<admMessageUpdateMessageResponse>(getAdmMessageUpdateMessageUrl(messageId), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+  return cpfOrvalRequest<admMessageUpdateMessageResponse>(getAdmMessageUpdateMessageUrl(messageId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmMessageUpdateMessageMutationOptions = <TError = unknown, TContext = unknown>(
@@ -9293,7 +9433,8 @@ export const getAdmMessageUpdateMessageMutationOptions = <TError = unknown, TCon
   const mutationKey = ['admMessageUpdateMessage'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMessageUpdateMessage>>, {messageId: number; data: CommonMessageRequest}> = (props) => {
     const { messageId, data } = props;
@@ -9309,11 +9450,15 @@ export type AdmMessageUpdateMessageMutationError = unknown;
 export const useAdmMessageUpdateMessage = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext> => useMutation(getAdmMessageUpdateMessageMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admMessageUpdateMessage>>, TError, {messageId: number; data: CommonMessageRequest}, TContext> => {
+  return useMutation(getAdmMessageUpdateMessageMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admMessageUpdateMessage
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDeliveryLogs
 export type admNotificationFindDeliveryLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmNotificationDeliveryLogResponse>
   status: 200
 }
 
@@ -9323,26 +9468,20 @@ export type admNotificationFindDeliveryLogsResponseSuccess = (admNotificationFin
 
 export type admNotificationFindDeliveryLogsResponse = (admNotificationFindDeliveryLogsResponseSuccess)
 
-export const getAdmNotificationFindDeliveryLogsUrl = (params?: AdmNotificationFindDeliveryLogsParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDeliveryLogsUrl = () => `/adm/api/notifications/delivery-logs`;
 
 export const admNotificationFindDeliveryLogs = async (params?: AdmNotificationFindDeliveryLogsParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDeliveryLogsResponse> => {
-  return cpfOrvalRequest<admNotificationFindDeliveryLogsResponse>(getAdmNotificationFindDeliveryLogsUrl(params), {
+  return cpfOrvalRequest<admNotificationFindDeliveryLogsResponse>(getAdmNotificationFindDeliveryLogsUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDeliveryLogsQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs",params] as const;
-};
+export const getAdmNotificationFindDeliveryLogsQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>) => ["adm", "api", "notifications", "delivery-logs", toValue(params)] as const;
 
 export const getAdmNotificationFindDeliveryLogsQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDeliveryLogsQueryKey(toValue(params));
@@ -9354,18 +9493,20 @@ export type AdmNotificationFindDeliveryLogsQueryResult = NonNullable<Awaited<Ret
 export type AdmNotificationFindDeliveryLogsQueryError = unknown;
 
 export function useAdmNotificationFindDeliveryLogs<TData = Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindDeliveryLogsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryLogs>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDeliveryLogsQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindDeliveryLogsQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDeliveryLogs
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDlq
 export type admNotificationFindDlqResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmNotificationDeliveryLogResponse>
   status: 200
 }
 
@@ -9375,26 +9516,20 @@ export type admNotificationFindDlqResponseSuccess = (admNotificationFindDlqRespo
 
 export type admNotificationFindDlqResponse = (admNotificationFindDlqResponseSuccess)
 
-export const getAdmNotificationFindDlqUrl = (params?: AdmNotificationFindDlqParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/dlq` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDlqUrl = () => `/adm/api/notifications/delivery-logs/dlq`;
 
 export const admNotificationFindDlq = async (params?: AdmNotificationFindDlqParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDlqResponse> => {
-  return cpfOrvalRequest<admNotificationFindDlqResponse>(getAdmNotificationFindDlqUrl(params), {
+  return cpfOrvalRequest<admNotificationFindDlqResponse>(getAdmNotificationFindDlqUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDlqQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs","dlq",params] as const;
-};
+export const getAdmNotificationFindDlqQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>) => ["adm", "api", "notifications", "delivery-logs", "dlq", toValue(params)] as const;
 
 export const getAdmNotificationFindDlqQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDlq>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDlqQueryKey(toValue(params));
@@ -9406,18 +9541,20 @@ export type AdmNotificationFindDlqQueryResult = NonNullable<Awaited<ReturnType<t
 export type AdmNotificationFindDlqQueryError = unknown;
 
 export function useAdmNotificationFindDlq<TData = Awaited<ReturnType<typeof admNotificationFindDlq>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindDlqParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDlq>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDlqQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindDlqQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDlq
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindDeliveryAttempts
 export type admNotificationFindDeliveryAttemptsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmNotificationDeliveryAttemptResponse>
   status: 200
 }
 
@@ -9427,26 +9564,20 @@ export type admNotificationFindDeliveryAttemptsResponseSuccess = (admNotificatio
 
 export type admNotificationFindDeliveryAttemptsResponse = (admNotificationFindDeliveryAttemptsResponseSuccess)
 
-export const getAdmNotificationFindDeliveryAttemptsUrl = (deliveryId: number, params?: AdmNotificationFindDeliveryAttemptsParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/attempts` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindDeliveryAttemptsUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/attempts`;
 
 export const admNotificationFindDeliveryAttempts = async (deliveryId: number, params?: AdmNotificationFindDeliveryAttemptsParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindDeliveryAttemptsResponse> => {
-  return cpfOrvalRequest<admNotificationFindDeliveryAttemptsResponse>(getAdmNotificationFindDeliveryAttemptsUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationFindDeliveryAttemptsResponse>(getAdmNotificationFindDeliveryAttemptsUrl(deliveryId), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindDeliveryAttemptsQueryKey = (deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>) => {
-  return ["adm","api","notifications","delivery-logs",deliveryId,"attempts",params] as const;
-};
+export const getAdmNotificationFindDeliveryAttemptsQueryKey = (deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>) => ["adm", "api", "notifications", "delivery-logs", deliveryId, "attempts", toValue(params)] as const;
 
 export const getAdmNotificationFindDeliveryAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError = unknown>(
-  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindDeliveryAttemptsQueryKey(toValue(deliveryId), toValue(params));
@@ -9458,18 +9589,20 @@ export type AdmNotificationFindDeliveryAttemptsQueryResult = NonNullable<Awaited
 export type AdmNotificationFindDeliveryAttemptsQueryError = unknown;
 
 export function useAdmNotificationFindDeliveryAttempts<TData = Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError = unknown>(
-  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  deliveryId: MaybeRefOrGetter<number>, params?: MaybeRefOrGetter<AdmNotificationFindDeliveryAttemptsParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindDeliveryAttempts>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindDeliveryAttemptsQueryOptions(deliveryId,params,options);
+  const queryOptions = getAdmNotificationFindDeliveryAttemptsQueryOptions(deliveryId, params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindDeliveryAttempts
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationCancelDelivery
 export type admNotificationCancelDeliveryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationDeliveryStatusResponse
   status: 200
 }
 
@@ -9479,18 +9612,13 @@ export type admNotificationCancelDeliveryResponseSuccess = (admNotificationCance
 
 export type admNotificationCancelDeliveryResponse = (admNotificationCancelDeliveryResponseSuccess)
 
-export const getAdmNotificationCancelDeliveryUrl = (deliveryId: number, params: AdmNotificationCancelDeliveryParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.expectedVersion !== undefined && params?.expectedVersion !== null) searchParams.append("expectedVersion", String(params.expectedVersion));
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/cancel` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationCancelDeliveryUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/cancel`;
 
 export const admNotificationCancelDelivery = async (deliveryId: number, params: AdmNotificationCancelDeliveryParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationCancelDeliveryResponse> => {
-  return cpfOrvalRequest<admNotificationCancelDeliveryResponse>(getAdmNotificationCancelDeliveryUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationCancelDeliveryResponse>(getAdmNotificationCancelDeliveryUrl(deliveryId), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    params: { expectedVersion: params.expectedVersion, reason: params.reason },
   });
 };
 
@@ -9519,11 +9647,13 @@ export const useAdmNotificationCancelDelivery = <TError = unknown, TContext = un
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationCancelDelivery>>, TError, {deliveryId: number; params: AdmNotificationCancelDeliveryParams}, TContext> => {
   return useMutation(getAdmNotificationCancelDeliveryMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationCancelDelivery
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationRetryDelivery
 export type admNotificationRetryDeliveryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationDeliveryStatusResponse
   status: 200
 }
 
@@ -9533,18 +9663,13 @@ export type admNotificationRetryDeliveryResponseSuccess = (admNotificationRetryD
 
 export type admNotificationRetryDeliveryResponse = (admNotificationRetryDeliveryResponseSuccess)
 
-export const getAdmNotificationRetryDeliveryUrl = (deliveryId: number, params: AdmNotificationRetryDeliveryParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.expectedVersion !== undefined && params?.expectedVersion !== null) searchParams.append("expectedVersion", String(params.expectedVersion));
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/retry` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationRetryDeliveryUrl = (deliveryId: number) => `/adm/api/notifications/delivery-logs/${encodeURIComponent(String(deliveryId))}/retry`;
 
 export const admNotificationRetryDelivery = async (deliveryId: number, params: AdmNotificationRetryDeliveryParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationRetryDeliveryResponse> => {
-  return cpfOrvalRequest<admNotificationRetryDeliveryResponse>(getAdmNotificationRetryDeliveryUrl(deliveryId, params), {
+  return cpfOrvalRequest<admNotificationRetryDeliveryResponse>(getAdmNotificationRetryDeliveryUrl(deliveryId), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    params: { expectedVersion: params.expectedVersion, reason: params.reason },
   });
 };
 
@@ -9573,11 +9698,13 @@ export const useAdmNotificationRetryDelivery = <TError = unknown, TContext = unk
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationRetryDelivery>>, TError, {deliveryId: number; params: AdmNotificationRetryDeliveryParams}, TContext> => {
   return useMutation(getAdmNotificationRetryDeliveryMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationRetryDelivery
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindRules
 export type admNotificationFindRulesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmNotificationRuleResponse>
   status: 200
 }
 
@@ -9587,26 +9714,20 @@ export type admNotificationFindRulesResponseSuccess = (admNotificationFindRulesR
 
 export type admNotificationFindRulesResponse = (admNotificationFindRulesResponseSuccess)
 
-export const getAdmNotificationFindRulesUrl = (params?: AdmNotificationFindRulesParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.limit !== undefined && params?.limit !== null) searchParams.append("limit", String(params.limit));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/rules` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationFindRulesUrl = () => `/adm/api/notifications/rules`;
 
 export const admNotificationFindRules = async (params?: AdmNotificationFindRulesParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindRulesResponse> => {
-  return cpfOrvalRequest<admNotificationFindRulesResponse>(getAdmNotificationFindRulesUrl(params), {
+  return cpfOrvalRequest<admNotificationFindRulesResponse>(getAdmNotificationFindRulesUrl(), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+    params: { limit: params?.limit },
   });
 };
 
-export const getAdmNotificationFindRulesQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>) => {
-  return ["adm","api","notifications","rules",params] as const;
-};
+export const getAdmNotificationFindRulesQueryKey = (params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>) => ["adm", "api", "notifications", "rules", toValue(params)] as const;
 
 export const getAdmNotificationFindRulesQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindRules>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
+  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmNotificationFindRulesQueryKey(toValue(params));
@@ -9618,18 +9739,20 @@ export type AdmNotificationFindRulesQueryResult = NonNullable<Awaited<ReturnType
 export type AdmNotificationFindRulesQueryError = unknown;
 
 export function useAdmNotificationFindRules<TData = Awaited<ReturnType<typeof admNotificationFindRules>>, TError = unknown>(
-  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams | undefined>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  params?: MaybeRefOrGetter<AdmNotificationFindRulesParams>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRules>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindRulesQueryOptions(params,options);
+  const queryOptions = getAdmNotificationFindRulesQueryOptions(params, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindRules
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationSaveRule
 export type admNotificationSaveRuleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationRuleResponse
   status: 200
 }
 
@@ -9646,7 +9769,7 @@ export const admNotificationSaveRule = async (data: AdmNotificationRuleRequest, 
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9675,11 +9798,13 @@ export const useAdmNotificationSaveRule = <TError = unknown, TContext = unknown>
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationSaveRule>>, TError, {data: AdmNotificationRuleRequest}, TContext> => {
   return useMutation(getAdmNotificationSaveRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationSaveRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationFindRule
 export type admNotificationFindRuleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationRuleResponse
   status: 200
 }
 
@@ -9694,13 +9819,12 @@ export const getAdmNotificationFindRuleUrl = (ruleId: number) => `/adm/api/notif
 export const admNotificationFindRule = async (ruleId: number, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationFindRuleResponse> => {
   return cpfOrvalRequest<admNotificationFindRuleResponse>(getAdmNotificationFindRuleUrl(ruleId), {
     ...options,
-    method: 'GET'
+    method: 'GET',
+
   });
 };
 
-export const getAdmNotificationFindRuleQueryKey = (ruleId: MaybeRefOrGetter<number>) => {
-  return ["adm","api","notifications","rules",ruleId] as const;
-};
+export const getAdmNotificationFindRuleQueryKey = (ruleId: MaybeRefOrGetter<number>) => ["adm", "api", "notifications", "rules", ruleId] as const;
 
 export const getAdmNotificationFindRuleQueryOptions = <TData = Awaited<ReturnType<typeof admNotificationFindRule>>, TError = unknown>(
   ruleId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRule>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -9718,15 +9842,17 @@ export function useAdmNotificationFindRule<TData = Awaited<ReturnType<typeof adm
   ruleId: MaybeRefOrGetter<number>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admNotificationFindRule>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmNotificationFindRuleQueryOptions(ruleId,options);
+  const queryOptions = getAdmNotificationFindRuleQueryOptions(ruleId, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admNotificationFindRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationUpdateRule
 export type admNotificationUpdateRuleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationRuleResponse
   status: 200
 }
 
@@ -9743,7 +9869,7 @@ export const admNotificationUpdateRule = async (ruleId: number, data: AdmNotific
     ...options,
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9772,11 +9898,13 @@ export const useAdmNotificationUpdateRule = <TError = unknown, TContext = unknow
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationUpdateRule>>, TError, {ruleId: number; data: AdmNotificationRuleRequest}, TContext> => {
   return useMutation(getAdmNotificationUpdateRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationUpdateRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationDisableRule
 export type admNotificationDisableRuleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationRuleResponse
   status: 200
 }
 
@@ -9786,17 +9914,13 @@ export type admNotificationDisableRuleResponseSuccess = (admNotificationDisableR
 
 export type admNotificationDisableRuleResponse = (admNotificationDisableRuleResponseSuccess)
 
-export const getAdmNotificationDisableRuleUrl = (ruleId: number, params: AdmNotificationDisableRuleParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.reason !== undefined && params?.reason !== null) searchParams.append("reason", String(params.reason));
-  const query = searchParams.toString();
-  return `/adm/api/notifications/rules/${encodeURIComponent(String(ruleId))}/disable` + (query ? `?${query}` : "");
-};
+export const getAdmNotificationDisableRuleUrl = (ruleId: number) => `/adm/api/notifications/rules/${encodeURIComponent(String(ruleId))}/disable`;
 
 export const admNotificationDisableRule = async (ruleId: number, params: AdmNotificationDisableRuleParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admNotificationDisableRuleResponse> => {
-  return cpfOrvalRequest<admNotificationDisableRuleResponse>(getAdmNotificationDisableRuleUrl(ruleId, params), {
+  return cpfOrvalRequest<admNotificationDisableRuleResponse>(getAdmNotificationDisableRuleUrl(ruleId), {
     ...options,
-    method: 'PUT'
+    method: 'PUT',
+    params: { reason: params.reason },
   });
 };
 
@@ -9825,11 +9949,13 @@ export const useAdmNotificationDisableRule = <TError = unknown, TContext = unkno
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationDisableRule>>, TError, {ruleId: number; params: AdmNotificationDisableRuleParams}, TContext> => {
   return useMutation(getAdmNotificationDisableRuleMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationDisableRule
 
 
+// CPF PRE-RUNTIME FALLBACK START admNotificationSendTest
 export type admNotificationSendTestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmNotificationTestSendResponse
   status: 200
 }
 
@@ -9846,7 +9972,7 @@ export const admNotificationSendTest = async (ruleId: number, data: AdmNotificat
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    data
+    data,
   });
 };
 
@@ -9875,11 +10001,13 @@ export const useAdmNotificationSendTest = <TError = unknown, TContext = unknown>
   queryClient?: QueryClient
 ): UseMutationReturnType<Awaited<ReturnType<typeof admNotificationSendTest>>, TError, {ruleId: number; data: AdmNotificationTestSendRequest}, TContext> => {
   return useMutation(getAdmNotificationSendTestMutationOptions(options), queryClient);
-}
+};
+// CPF PRE-RUNTIME FALLBACK END admNotificationSendTest
 
 
+// CPF PRE-RUNTIME FALLBACK START traceAdmByBusinessTransactionId
 export type traceAdmByBusinessTransactionIdResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9927,7 +10055,7 @@ export function useTraceAdmByBusinessTransactionId<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START getAdmFileLogRecoveryStatus
 export type getAdmFileLogRecoveryStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -9975,7 +10103,7 @@ export function useGetAdmFileLogRecoveryStatus<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START traceAdmByTraceId
 export type traceAdmByTraceIdResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -10023,7 +10151,7 @@ export function useTraceAdmByTraceId<TData = Awaited<ReturnType<typeof traceAdmB
 
 // CPF PRE-RUNTIME FALLBACK START traceAdmByTransactionId
 export type traceAdmByTransactionIdResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -10071,7 +10199,7 @@ export function useTraceAdmByTransactionId<TData = Awaited<ReturnType<typeof tra
 
 // CPF PRE-RUNTIME FALLBACK START admOpenApiRefresh
 export type admOpenApiRefreshResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfOpenAPISnapshot
   status: 200
 }
 
@@ -10123,7 +10251,7 @@ export const useAdmOpenApiRefresh = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admOpenApiStatus
 export type admOpenApiStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfOpenAPISnapshot
   status: 200
 }
 
@@ -10171,7 +10299,7 @@ export function useAdmOpenApiStatus<TData = Awaited<ReturnType<typeof admOpenApi
 
 // CPF PRE-RUNTIME FALLBACK START admOperationsGovernanceSnapshot
 export type admOperationsGovernanceSnapshotResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -10219,7 +10347,7 @@ export function useAdmOperationsGovernanceSnapshot<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorFindOperators
 export type admOperatorFindOperatorsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmOperator>
   status: 200
 }
 
@@ -10267,7 +10395,7 @@ export function useAdmOperatorFindOperators<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorCreateOperator
 export type admOperatorCreateOperatorResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10319,7 +10447,7 @@ export const useAdmOperatorCreateOperator = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorFindMenus
 export type admOperatorFindMenusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmMenu>
   status: 200
 }
 
@@ -10367,7 +10495,7 @@ export function useAdmOperatorFindMenus<TData = Awaited<ReturnType<typeof admOpe
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorFindCreateResult
 export type admOperatorFindCreateResultResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10415,7 +10543,7 @@ export function useAdmOperatorFindCreateResult<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorPasswordPolicy
 export type admOperatorPasswordPolicyResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmPasswordPolicyResponse
   status: 200
 }
 
@@ -10463,7 +10591,7 @@ export function useAdmOperatorPasswordPolicy<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorValidatePassword
 export type admOperatorValidatePasswordResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmPasswordValidationResponse
   status: 200
 }
 
@@ -10511,7 +10639,7 @@ export function useAdmOperatorValidatePassword<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorFindRoles
 export type admOperatorFindRolesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmRole>
   status: 200
 }
 
@@ -10559,7 +10687,7 @@ export function useAdmOperatorFindRoles<TData = Awaited<ReturnType<typeof admOpe
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorFindSessions
 export type admOperatorFindSessionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmSessionSummaryResponse>
   status: 200
 }
 
@@ -10607,7 +10735,7 @@ export function useAdmOperatorFindSessions<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorCleanupExpiredSessions
 export type admOperatorCleanupExpiredSessionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmSessionMutationResponse
   status: 200
 }
 
@@ -10659,7 +10787,7 @@ export const useAdmOperatorCleanupExpiredSessions = <TError = unknown, TContext 
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorRevokeSession
 export type admOperatorRevokeSessionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmSessionMutationResponse
   status: 200
 }
 
@@ -10711,7 +10839,7 @@ export const useAdmOperatorRevokeSession = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorUpdateContact
 export type admOperatorUpdateContactResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10763,7 +10891,7 @@ export const useAdmOperatorUpdateContact = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorRawContact
 export type admOperatorRawContactResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperatorRawContactResponse
   status: 200
 }
 
@@ -10815,7 +10943,7 @@ export const useAdmOperatorRawContact = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorChangePassword
 export type admOperatorChangePasswordResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10867,7 +10995,7 @@ export const useAdmOperatorChangePassword = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorResetPassword
 export type admOperatorResetPasswordResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10919,7 +11047,7 @@ export const useAdmOperatorResetPassword = <TError = unknown, TContext = unknown
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorUpdateRoles
 export type admOperatorUpdateRolesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -10971,7 +11099,7 @@ export const useAdmOperatorUpdateRoles = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorUpdateStatus
 export type admOperatorUpdateStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -11023,7 +11151,7 @@ export const useAdmOperatorUpdateStatus = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admOperatorUnlockOperator
 export type admOperatorUnlockOperatorResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmOperator
   status: 200
 }
 
@@ -11075,7 +11203,7 @@ export const useAdmOperatorUnlockOperator = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admParameterReferenceSearch
 export type admParameterReferenceSearchResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CatalogPage
   status: 200
 }
 
@@ -11123,7 +11251,7 @@ export function useAdmParameterReferenceSearch<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindApiPermissionMatrix
 export type admPermissionFindApiPermissionMatrixResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -11171,7 +11299,7 @@ export function useAdmPermissionFindApiPermissionMatrix<TData = Awaited<ReturnTy
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindApiPermissions
 export type admPermissionFindApiPermissionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmApiPermission>
   status: 200
 }
 
@@ -11219,7 +11347,7 @@ export function useAdmPermissionFindApiPermissions<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionCreateApiPermission
 export type admPermissionCreateApiPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmApiPermission
   status: 200
 }
 
@@ -11271,7 +11399,7 @@ export const useAdmPermissionCreateApiPermission = <TError = unknown, TContext =
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindApiPermission
 export type admPermissionFindApiPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmApiPermission
   status: 200
 }
 
@@ -11319,7 +11447,7 @@ export function useAdmPermissionFindApiPermission<TData = Awaited<ReturnType<typ
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateApiPermission
 export type admPermissionUpdateApiPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmApiPermission
   status: 200
 }
 
@@ -11371,7 +11499,7 @@ export const useAdmPermissionUpdateApiPermission = <TError = unknown, TContext =
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateApiPermissionStatus
 export type admPermissionUpdateApiPermissionStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmApiPermission
   status: 200
 }
 
@@ -11423,7 +11551,7 @@ export const useAdmPermissionUpdateApiPermissionStatus = <TError = unknown, TCon
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindButtonMatrix
 export type admPermissionFindButtonMatrixResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -11471,7 +11599,7 @@ export function useAdmPermissionFindButtonMatrix<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindButtons
 export type admPermissionFindButtonsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmButton>
   status: 200
 }
 
@@ -11519,7 +11647,7 @@ export function useAdmPermissionFindButtons<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionCreateButton
 export type admPermissionCreateButtonResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmButton
   status: 200
 }
 
@@ -11571,7 +11699,7 @@ export const useAdmPermissionCreateButton = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindButton
 export type admPermissionFindButtonResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmButton
   status: 200
 }
 
@@ -11619,7 +11747,7 @@ export function useAdmPermissionFindButton<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateButton
 export type admPermissionUpdateButtonResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmButton
   status: 200
 }
 
@@ -11671,7 +11799,7 @@ export const useAdmPermissionUpdateButton = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateButtonStatus
 export type admPermissionUpdateButtonStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmButton
   status: 200
 }
 
@@ -11723,7 +11851,7 @@ export const useAdmPermissionUpdateButtonStatus = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindMenuMatrix
 export type admPermissionFindMenuMatrixResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -11771,7 +11899,7 @@ export function useAdmPermissionFindMenuMatrix<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindManagedMenus
 export type admPermissionFindManagedMenusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmMenuManagement>
   status: 200
 }
 
@@ -11819,7 +11947,7 @@ export function useAdmPermissionFindManagedMenus<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionCreateMenu
 export type admPermissionCreateMenuResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmMenuManagement
   status: 200
 }
 
@@ -11871,7 +11999,7 @@ export const useAdmPermissionCreateMenu = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindManagedMenu
 export type admPermissionFindManagedMenuResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmMenuManagement
   status: 200
 }
 
@@ -11919,7 +12047,7 @@ export function useAdmPermissionFindManagedMenu<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateMenu
 export type admPermissionUpdateMenuResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmMenuManagement
   status: 200
 }
 
@@ -11971,7 +12099,7 @@ export const useAdmPermissionUpdateMenu = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateMenuStatus
 export type admPermissionUpdateMenuStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmMenuManagement
   status: 200
 }
 
@@ -12023,7 +12151,7 @@ export const useAdmPermissionUpdateMenuStatus = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindRoles
 export type admPermissionFindRolesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<AdmRoleManagement>
   status: 200
 }
 
@@ -12071,7 +12199,7 @@ export function useAdmPermissionFindRoles<TData = Awaited<ReturnType<typeof admP
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionCreateRole
 export type admPermissionCreateRoleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmRoleManagement
   status: 200
 }
 
@@ -12123,7 +12251,7 @@ export const useAdmPermissionCreateRole = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionFindRole
 export type admPermissionFindRoleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmRoleManagement
   status: 200
 }
 
@@ -12171,7 +12299,7 @@ export function useAdmPermissionFindRole<TData = Awaited<ReturnType<typeof admPe
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateRole
 export type admPermissionUpdateRoleResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmRoleManagement
   status: 200
 }
 
@@ -12223,7 +12351,7 @@ export const useAdmPermissionUpdateRole = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateRoleApiPermission
 export type admPermissionUpdateRoleApiPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -12275,7 +12403,7 @@ export const useAdmPermissionUpdateRoleApiPermission = <TError = unknown, TConte
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateButtonPermission
 export type admPermissionUpdateButtonPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -12327,7 +12455,7 @@ export const useAdmPermissionUpdateButtonPermission = <TError = unknown, TContex
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateMenuPermission
 export type admPermissionUpdateMenuPermissionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -12379,7 +12507,7 @@ export const useAdmPermissionUpdateMenuPermission = <TError = unknown, TContext 
 
 // CPF PRE-RUNTIME FALLBACK START admPermissionUpdateRoleStatus
 export type admPermissionUpdateRoleStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmRoleManagement
   status: 200
 }
 
@@ -12431,7 +12559,7 @@ export const useAdmPermissionUpdateRoleStatus = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagSearch
 export type admFeatureFlagSearchResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CpfFeatureFlagResultOfCpfFeatureFlagValue>
   status: 200
 }
 
@@ -12479,7 +12607,7 @@ export function useAdmFeatureFlagSearch<TData = Awaited<ReturnType<typeof admFea
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagEvaluate
 export type admFeatureFlagEvaluateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfFeatureFlagResultOfCpfFeatureFlagValue
   status: 200
 }
 
@@ -12531,7 +12659,7 @@ export const useAdmFeatureFlagEvaluate = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagRequestOverride
 export type admFeatureFlagRequestOverrideResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, string>
   status: 200
 }
 
@@ -12583,7 +12711,7 @@ export const useAdmFeatureFlagRequestOverride = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagApproveOverride
 export type admFeatureFlagApproveOverrideResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfFeatureFlagResultOfCpfFeatureFlagValue
   status: 200
 }
 
@@ -12635,7 +12763,7 @@ export const useAdmFeatureFlagApproveOverride = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagRevokeOverride
 export type admFeatureFlagRevokeOverrideResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -12687,7 +12815,7 @@ export const useAdmFeatureFlagRevokeOverride = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admFeatureFlagFind
 export type admFeatureFlagFindResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfFeatureFlagResultOfCpfFeatureFlagValue
   status: 200
 }
 
@@ -12735,7 +12863,7 @@ export function useAdmFeatureFlagFind<TData = Awaited<ReturnType<typeof admFeatu
 
 // CPF PRE-RUNTIME FALLBACK START admResiliencePolicySearch
 export type admResiliencePolicySearchResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CpfResiliencePolicy>
   status: 200
 }
 
@@ -12783,7 +12911,7 @@ export function useAdmResiliencePolicySearch<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admResiliencePolicyRequest
 export type admResiliencePolicyRequestResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, string>
   status: 200
 }
 
@@ -12835,7 +12963,7 @@ export const useAdmResiliencePolicyRequest = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admResiliencePolicyApprove
 export type admResiliencePolicyApproveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfResiliencePolicy
   status: 200
 }
 
@@ -12887,7 +13015,7 @@ export const useAdmResiliencePolicyApprove = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admResiliencePolicyReject
 export type admResiliencePolicyRejectResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -12939,7 +13067,7 @@ export const useAdmResiliencePolicyReject = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START admResiliencePolicyFind
 export type admResiliencePolicyFindResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfResiliencePolicy
   status: 200
 }
 
@@ -12987,7 +13115,7 @@ export function useAdmResiliencePolicyFind<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admPlatformVersion
 export type admPlatformVersionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfPlatformVersion
   status: 200
 }
 
@@ -13035,7 +13163,7 @@ export function useAdmPlatformVersion<TData = Awaited<ReturnType<typeof admPlatf
 
 // CPF PRE-RUNTIME FALLBACK START findAdmBatchJobInstanceLogs
 export type findAdmBatchJobInstanceLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13083,7 +13211,7 @@ export function useFindAdmBatchJobInstanceLogs<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START getAdmBatchJobInstanceLog
 export type getAdmBatchJobInstanceLogResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -13131,7 +13259,7 @@ export function useGetAdmBatchJobInstanceLog<TData = Awaited<ReturnType<typeof g
 
 // CPF PRE-RUNTIME FALLBACK START findAdmBrokerDlq
 export type findAdmBrokerDlqResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13179,7 +13307,7 @@ export function useFindAdmBrokerDlq<TData = Awaited<ReturnType<typeof findAdmBro
 
 // CPF PRE-RUNTIME FALLBACK START requestAdmBrokerDlqReplay
 export type requestAdmBrokerDlqReplayResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -13231,7 +13359,7 @@ export const useRequestAdmBrokerDlqReplay = <TError = unknown, TContext = unknow
 
 // CPF PRE-RUNTIME FALLBACK START findAdmBrokerInbox
 export type findAdmBrokerInboxResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13279,7 +13407,7 @@ export function useFindAdmBrokerInbox<TData = Awaited<ReturnType<typeof findAdmB
 
 // CPF PRE-RUNTIME FALLBACK START findAdmBrokerOutbox
 export type findAdmBrokerOutboxResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13327,7 +13455,7 @@ export function useFindAdmBrokerOutbox<TData = Awaited<ReturnType<typeof findAdm
 
 // CPF PRE-RUNTIME FALLBACK START findAdmFileTransferHistory
 export type findAdmFileTransferHistoryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13375,7 +13503,7 @@ export function useFindAdmFileTransferHistory<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START findAdmIdempotencyRecords
 export type findAdmIdempotencyRecordsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13423,7 +13551,7 @@ export function useFindAdmIdempotencyRecords<TData = Awaited<ReturnType<typeof f
 
 // CPF PRE-RUNTIME FALLBACK START getAdmTransactionLogRecoveryStatus
 export type getAdmTransactionLogRecoveryStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: TraceRecoveryStatus
   status: 200
 }
 
@@ -13471,7 +13599,7 @@ export function useGetAdmTransactionLogRecoveryStatus<TData = Awaited<ReturnType
 
 // CPF PRE-RUNTIME FALLBACK START retryAdmTraceRecoveryPoison
 export type retryAdmTraceRecoveryPoisonResponse200 = {
-  data: CpfControllerSourceResponse
+  data: PoisonRetryResult
   status: 200
 }
 
@@ -13523,7 +13651,7 @@ export const useRetryAdmTraceRecoveryPoison = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START runAdmTransactionLogRecovery
 export type runAdmTransactionLogRecoveryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: TraceRecoveryRunResult
   status: 200
 }
 
@@ -13575,7 +13703,7 @@ export const useRunAdmTransactionLogRecovery = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START findAdmUnknownResults
 export type findAdmUnknownResultsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -13623,7 +13751,7 @@ export function useFindAdmUnknownResults<TData = Awaited<ReturnType<typeof findA
 
 // CPF PRE-RUNTIME FALLBACK START resolveAdmUnknownResult
 export type resolveAdmUnknownResultResponse200 = {
-  data: CpfControllerSourceResponse
+  data: ChangeResult
   status: 200
 }
 
@@ -13675,7 +13803,7 @@ export const useResolveAdmUnknownResult = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogSearch
 export type admRemoteLogSearchResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CpfRemoteLogArtifact>
   status: 200
 }
 
@@ -13723,7 +13851,7 @@ export function useAdmRemoteLogSearch<TData = Awaited<ReturnType<typeof admRemot
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogBundleJobCreate
 export type admRemoteLogBundleJobCreateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRemoteLogBundleJob
   status: 200
 }
 
@@ -13775,7 +13903,7 @@ export const useAdmRemoteLogBundleJobCreate = <TError = unknown, TContext = unkn
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogBundleJobFind
 export type admRemoteLogBundleJobFindResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRemoteLogBundleJob
   status: 200
 }
 
@@ -13823,7 +13951,7 @@ export function useAdmRemoteLogBundleJobFind<TData = Awaited<ReturnType<typeof a
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogBundleJobDownload
 export type admRemoteLogBundleJobDownloadResponse200 = {
-  data: CpfControllerSourceResponse
+  data: FileSystemResource
   status: 200
 }
 
@@ -13871,7 +13999,7 @@ export function useAdmRemoteLogBundleJobDownload<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogBundleDownloadTokenIssue
 export type admRemoteLogBundleDownloadTokenIssueResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRemoteLogDownloadGrant
   status: 200
 }
 
@@ -13923,7 +14051,7 @@ export const useAdmRemoteLogBundleDownloadTokenIssue = <TError = unknown, TConte
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogBundleDownload
 export type admRemoteLogBundleDownloadResponse200 = {
-  data: CpfControllerSourceResponse
+  data: FileSystemResource
   status: 200
 }
 
@@ -13975,7 +14103,7 @@ export const useAdmRemoteLogBundleDownload = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogDiagnostics
 export type admRemoteLogDiagnosticsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14023,7 +14151,7 @@ export function useAdmRemoteLogDiagnostics<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogDownload
 export type admRemoteLogDownloadResponse200 = {
-  data: CpfControllerSourceResponse
+  data: FileSystemResource
   status: 200
 }
 
@@ -14071,7 +14199,7 @@ export function useAdmRemoteLogDownload<TData = Awaited<ReturnType<typeof admRem
 
 // CPF PRE-RUNTIME FALLBACK START admRemoteLogPreview
 export type admRemoteLogPreviewResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRemoteLogPreview
   status: 200
 }
 
@@ -14119,7 +14247,7 @@ export function useAdmRemoteLogPreview<TData = Awaited<ReturnType<typeof admRemo
 
 // CPF PRE-RUNTIME FALLBACK START admResponseCodeFindAll
 export type admResponseCodeFindAllResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14129,16 +14257,17 @@ export type admResponseCodeFindAllResponseSuccess = (admResponseCodeFindAllRespo
 
 export type admResponseCodeFindAllResponse = (admResponseCodeFindAllResponseSuccess)
 
-export const getAdmResponseCodeFindAllUrl = () => {
-  const base = `/adm/api/response-codes`;
-  return base;
-};
+export const getAdmResponseCodeFindAllUrl = () => `/adm/api/response-codes`;
 
 export const admResponseCodeFindAll = async (options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeFindAllResponse> => {
-  return cpfOrvalRequest<admResponseCodeFindAllResponse>(getAdmResponseCodeFindAllUrl(), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admResponseCodeFindAllResponse>(getAdmResponseCodeFindAllUrl(), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmResponseCodeFindAllQueryKey = () => ["adm","api","response-codes"] as const;
+export const getAdmResponseCodeFindAllQueryKey = () => ["adm", "api", "response-codes"] as const;
 
 export const getAdmResponseCodeFindAllQueryOptions = <TData = Awaited<ReturnType<typeof admResponseCodeFindAll>>, TError = unknown>(
   options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindAll>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -14161,10 +14290,12 @@ export function useAdmResponseCodeFindAll<TData = Awaited<ReturnType<typeof admR
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeFindAll
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeCreate
 export type admResponseCodeCreateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14174,28 +14305,30 @@ export type admResponseCodeCreateResponseSuccess = (admResponseCodeCreateRespons
 
 export type admResponseCodeCreateResponse = (admResponseCodeCreateResponseSuccess)
 
-export const getAdmResponseCodeCreateUrl = (params: AdmResponseCodeCreateParams) => {
-  const base = `/adm/api/response-codes`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeCreateUrl = () => `/adm/api/response-codes`;
 
-export const admResponseCodeCreate = async (params: AdmResponseCodeCreateParams, data: CommonResponseCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeCreateResponse> => {
-  return cpfOrvalRequest<admResponseCodeCreateResponse>(getAdmResponseCodeCreateUrl(params), { ...options, method: 'POST', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+export const admResponseCodeCreate = async (data: CommonResponseCodeRequest, params: AdmResponseCodeCreateParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeCreateResponse> => {
+  return cpfOrvalRequest<admResponseCodeCreateResponse>(getAdmResponseCodeCreateUrl(), {
+    ...options,
+    method: 'POST',
+    params: { reason: params.reason },
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmResponseCodeCreateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext> => {
   const mutationKey = ['admResponseCodeCreate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeCreate>>, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}> = (props) => {
-    const { params, data } = props;
-    return admResponseCodeCreate(params, data, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeCreate>>, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}> = (props) => {
+    const { data, params } = props;
+    return admResponseCodeCreate(data, params, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
@@ -14205,13 +14338,17 @@ export type AdmResponseCodeCreateMutationBody = CommonResponseCodeRequest;
 export type AdmResponseCodeCreateMutationError = unknown;
 
 export const useAdmResponseCodeCreate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {params: AdmResponseCodeCreateParams; data: CommonResponseCodeRequest}, TContext> => useMutation(getAdmResponseCodeCreateMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeCreate>>, TError, {data: CommonResponseCodeRequest; params: AdmResponseCodeCreateParams}, TContext> => {
+  return useMutation(getAdmResponseCodeCreateMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeCreate
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeDelete
 export type admResponseCodeDeleteResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14221,15 +14358,14 @@ export type admResponseCodeDeleteResponseSuccess = (admResponseCodeDeleteRespons
 
 export type admResponseCodeDeleteResponse = (admResponseCodeDeleteResponseSuccess)
 
-export const getAdmResponseCodeDeleteUrl = (responseCode: string, params: AdmResponseCodeDeleteParams) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeDeleteUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
 export const admResponseCodeDelete = async (responseCode: string, params: AdmResponseCodeDeleteParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeDeleteResponse> => {
-  return cpfOrvalRequest<admResponseCodeDeleteResponse>(getAdmResponseCodeDeleteUrl(responseCode, params), { ...options, method: 'DELETE' });
+  return cpfOrvalRequest<admResponseCodeDeleteResponse>(getAdmResponseCodeDeleteUrl(responseCode), {
+    ...options,
+    method: 'DELETE',
+    params: { reason: params.reason },
+  });
 };
 
 export const getAdmResponseCodeDeleteMutationOptions = <TError = unknown, TContext = unknown>(
@@ -14238,7 +14374,8 @@ export const getAdmResponseCodeDeleteMutationOptions = <TError = unknown, TConte
   const mutationKey = ['admResponseCodeDelete'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeDelete>>, {responseCode: string; params: AdmResponseCodeDeleteParams}> = (props) => {
     const { responseCode, params } = props;
@@ -14254,11 +14391,15 @@ export type AdmResponseCodeDeleteMutationError = unknown;
 export const useAdmResponseCodeDelete = <TError = unknown, TContext = unknown>(
   options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext> => useMutation(getAdmResponseCodeDeleteMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeDelete>>, TError, {responseCode: string; params: AdmResponseCodeDeleteParams}, TContext> => {
+  return useMutation(getAdmResponseCodeDeleteMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeDelete
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeFindOne
 export type admResponseCodeFindOneResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14268,16 +14409,17 @@ export type admResponseCodeFindOneResponseSuccess = (admResponseCodeFindOneRespo
 
 export type admResponseCodeFindOneResponse = (admResponseCodeFindOneResponseSuccess)
 
-export const getAdmResponseCodeFindOneUrl = (responseCode: string) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  return base;
-};
+export const getAdmResponseCodeFindOneUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
 export const admResponseCodeFindOne = async (responseCode: string, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeFindOneResponse> => {
-  return cpfOrvalRequest<admResponseCodeFindOneResponse>(getAdmResponseCodeFindOneUrl(responseCode), { ...options, method: 'GET' });
+  return cpfOrvalRequest<admResponseCodeFindOneResponse>(getAdmResponseCodeFindOneUrl(responseCode), {
+    ...options,
+    method: 'GET',
+
+  });
 };
 
-export const getAdmResponseCodeFindOneQueryKey = (responseCode: MaybeRefOrGetter<string>) => ["adm","api","response-codes",responseCode] as const;
+export const getAdmResponseCodeFindOneQueryKey = (responseCode: MaybeRefOrGetter<string>) => ["adm", "api", "response-codes", responseCode] as const;
 
 export const getAdmResponseCodeFindOneQueryOptions = <TData = Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError = unknown>(
   responseCode: MaybeRefOrGetter<string>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> }
@@ -14285,7 +14427,7 @@ export const getAdmResponseCodeFindOneQueryOptions = <TData = Awaited<ReturnType
   const { query: queryOptions, request: requestOptions } = options ?? {};
   const queryKey = getAdmResponseCodeFindOneQueryKey(toValue(responseCode));
   const queryFn: QueryFunction<Awaited<ReturnType<typeof admResponseCodeFindOne>>> = ({ signal }) => admResponseCodeFindOne(toValue(responseCode), { signal, ...requestOptions });
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>;
+  return { queryKey, queryFn, enabled: computed(() => toValue(responseCode) !== null && toValue(responseCode) !== undefined), ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>;
 };
 
 export type AdmResponseCodeFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof admResponseCodeFindOne>>>;
@@ -14295,15 +14437,17 @@ export function useAdmResponseCodeFindOne<TData = Awaited<ReturnType<typeof admR
   responseCode: MaybeRefOrGetter<string>, options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof admResponseCodeFindOne>>, TError, TData>>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
 ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdmResponseCodeFindOneQueryOptions(toValue(responseCode), options);
+  const queryOptions = getAdmResponseCodeFindOneQueryOptions(responseCode, options);
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
   query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
   return query;
 }
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeFindOne
 
 
+// CPF PRE-RUNTIME FALLBACK START admResponseCodeUpdate
 export type admResponseCodeUpdateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -14313,28 +14457,30 @@ export type admResponseCodeUpdateResponseSuccess = (admResponseCodeUpdateRespons
 
 export type admResponseCodeUpdateResponse = (admResponseCodeUpdateResponseSuccess)
 
-export const getAdmResponseCodeUpdateUrl = (responseCode: string, params: AdmResponseCodeUpdateParams) => {
-  const base = `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
-  const search = new URLSearchParams();
-  search.set('reason', String(params.reason));
-  return base + '?' + search.toString();
-};
+export const getAdmResponseCodeUpdateUrl = (responseCode: string) => `/adm/api/response-codes/${encodeURIComponent(String(responseCode))}`;
 
-export const admResponseCodeUpdate = async (responseCode: string, params: AdmResponseCodeUpdateParams, data: CommonResponseCodeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeUpdateResponse> => {
-  return cpfOrvalRequest<admResponseCodeUpdateResponse>(getAdmResponseCodeUpdateUrl(responseCode, params), { ...options, method: 'PUT', headers: { 'Content-Type': 'application/json', ...options?.headers }, data });
+export const admResponseCodeUpdate = async (responseCode: string, data: CommonResponseCodeRequest, params: AdmResponseCodeUpdateParams, options?: CpfOrvalGeneratedRequestOptions): Promise<admResponseCodeUpdateResponse> => {
+  return cpfOrvalRequest<admResponseCodeUpdateResponse>(getAdmResponseCodeUpdateUrl(responseCode), {
+    ...options,
+    method: 'PUT',
+    params: { reason: params.reason },
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
+  });
 };
 
 export const getAdmResponseCodeUpdateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext> => {
   const mutationKey = ['admResponseCodeUpdate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options : { ...options, mutation: { ...options.mutation, mutationKey } }
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeUpdate>>, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}> = (props) => {
-    const { responseCode, params, data } = props;
-    return admResponseCodeUpdate(responseCode, params, data, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admResponseCodeUpdate>>, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}> = (props) => {
+    const { responseCode, data, params } = props;
+    return admResponseCodeUpdate(responseCode, data, params, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
@@ -14344,13 +14490,17 @@ export type AdmResponseCodeUpdateMutationBody = CommonResponseCodeRequest;
 export type AdmResponseCodeUpdateMutationError = unknown;
 
 export const useAdmResponseCodeUpdate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; params: AdmResponseCodeUpdateParams; data: CommonResponseCodeRequest}, TContext> => useMutation(getAdmResponseCodeUpdateMutationOptions(options), queryClient);
+): UseMutationReturnType<Awaited<ReturnType<typeof admResponseCodeUpdate>>, TError, {responseCode: string; data: CommonResponseCodeRequest; params: AdmResponseCodeUpdateParams}, TContext> => {
+  return useMutation(getAdmResponseCodeUpdateMutationOptions(options), queryClient);
+};
+// CPF PRE-RUNTIME FALLBACK END admResponseCodeUpdate
 
 
+// CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindCapabilities
 export type admRuntimeControlFindCapabilitiesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Capability>
   status: 200
 }
 
@@ -14398,7 +14548,7 @@ export function useAdmRuntimeControlFindCapabilities<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlCreateChange
 export type admRuntimeControlCreateChangeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangeResult
   status: 200
 }
 
@@ -14450,7 +14600,7 @@ export const useAdmRuntimeControlCreateChange = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindChange
 export type admRuntimeControlFindChangeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangeResult
   status: 200
 }
 
@@ -14498,7 +14648,7 @@ export function useAdmRuntimeControlFindChange<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlVerifyAudit
 export type admRuntimeControlVerifyAuditResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeAuditVerification
   status: 200
 }
 
@@ -14546,7 +14696,7 @@ export function useAdmRuntimeControlVerifyAudit<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlCancelChange
 export type admRuntimeControlCancelChangeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangeResult
   status: 200
 }
 
@@ -14598,7 +14748,7 @@ export const useAdmRuntimeControlCancelChange = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlRollbackChange
 export type admRuntimeControlRollbackChangeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangeResult
   status: 200
 }
 
@@ -14650,7 +14800,7 @@ export const useAdmRuntimeControlRollbackChange = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindByOperation
 export type admRuntimeControlFindByOperationResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangeResult
   status: 200
 }
 
@@ -14698,7 +14848,7 @@ export function useAdmRuntimeControlFindByOperation<TData = Awaited<ReturnType<t
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlSaveGroup
 export type admRuntimeControlSaveGroupResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeGroupResult
   status: 200
 }
 
@@ -14750,7 +14900,7 @@ export const useAdmRuntimeControlSaveGroup = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlDeleteGroup
 export type admRuntimeControlDeleteGroupResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -14801,7 +14951,7 @@ export const useAdmRuntimeControlDeleteGroup = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindGroup
 export type admRuntimeControlFindGroupResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeGroupResult
   status: 200
 }
 
@@ -14849,7 +14999,7 @@ export function useAdmRuntimeControlFindGroup<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlChangeGroupMember
 export type admRuntimeControlChangeGroupMemberResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeGroupResult
   status: 200
 }
 
@@ -14901,7 +15051,7 @@ export const useAdmRuntimeControlChangeGroupMember = <TError = unknown, TContext
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindHealth
 export type admRuntimeControlFindHealthResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeControlHealth
   status: 200
 }
 
@@ -14949,7 +15099,7 @@ export function useAdmRuntimeControlFindHealth<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlPreviewChange
 export type admRuntimeControlPreviewChangeResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeChangePreview
   status: 200
 }
 
@@ -15001,7 +15151,7 @@ export const useAdmRuntimeControlPreviewChange = <TError = unknown, TContext = u
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlPreviewTargets
 export type admRuntimeControlPreviewTargetsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeTargetPreview
   status: 200
 }
 
@@ -15053,7 +15203,7 @@ export const useAdmRuntimeControlPreviewTargets = <TError = unknown, TContext = 
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindStateCatalog
 export type admRuntimeControlFindStateCatalogResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeStateCatalogResponse
   status: 200
 }
 
@@ -15101,7 +15251,7 @@ export function useAdmRuntimeControlFindStateCatalog<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeControlFindStatus
 export type admRuntimeControlFindStatusResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfRuntimeStatus
   status: 200
 }
 
@@ -15149,7 +15299,7 @@ export function useAdmRuntimeControlFindStatus<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admRuntimeInventoryFindAll
 export type admRuntimeInventoryFindAllResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmRuntimeInventoryPageResponse
   status: 200
 }
 
@@ -15165,7 +15315,7 @@ export const admRuntimeInventoryFindAll = async (params?: AdmRuntimeInventoryFin
   return cpfOrvalRequest<admRuntimeInventoryFindAllResponse>(getAdmRuntimeInventoryFindAllUrl(), {
     ...options,
     method: 'GET',
-    params: { environment: params?.environment, capability: params?.capability, status: params?.status, keyword: params?.keyword, limit: params?.limit },
+    params: { environment: params?.environment, capability: params?.capability, status: params?.status, keyword: params?.keyword, page: params?.page, size: params?.size },
   });
 };
 
@@ -15197,7 +15347,7 @@ export function useAdmRuntimeInventoryFindAll<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admSecretFindMetadata
 export type admSecretFindMetadataResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfSecretMetadata
   status: 200
 }
 
@@ -15245,7 +15395,7 @@ export function useAdmSecretFindMetadata<TData = Awaited<ReturnType<typeof admSe
 
 // CPF PRE-RUNTIME FALLBACK START admSecretFindProviders
 export type admSecretFindProvidersResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -15293,7 +15443,7 @@ export function useAdmSecretFindProviders<TData = Awaited<ReturnType<typeof admS
 
 // CPF PRE-RUNTIME FALLBACK START admSecurityFindIpAllowlist
 export type admSecurityFindIpAllowlistResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -15341,7 +15491,7 @@ export function useAdmSecurityFindIpAllowlist<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admSecuritySaveIpAllowlist
 export type admSecuritySaveIpAllowlistResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -15393,7 +15543,7 @@ export const useAdmSecuritySaveIpAllowlist = <TError = unknown, TContext = unkno
 
 // CPF PRE-RUNTIME FALLBACK START admSecurityFindMfaStates
 export type admSecurityFindMfaStatesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Record<string, unknown>>
   status: 200
 }
 
@@ -15441,7 +15591,7 @@ export function useAdmSecurityFindMfaStates<TData = Awaited<ReturnType<typeof ad
 
 // CPF PRE-RUNTIME FALLBACK START admSecurityDisableMfa
 export type admSecurityDisableMfaResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -15492,7 +15642,7 @@ export const useAdmSecurityDisableMfa = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admSecurityRegisterMfa
 export type admSecurityRegisterMfaResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -15544,7 +15694,7 @@ export const useAdmSecurityRegisterMfa = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admSecurityVerifyMfa
 export type admSecurityVerifyMfaResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -15596,7 +15746,7 @@ export const useAdmSecurityVerifyMfa = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admManagedServerFindAll
 export type admManagedServerFindAllResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmManagedServerPageResponse
   status: 200
 }
 
@@ -15612,7 +15762,7 @@ export const admManagedServerFindAll = async (params?: AdmManagedServerFindAllPa
   return cpfOrvalRequest<admManagedServerFindAllResponse>(getAdmManagedServerFindAllUrl(), {
     ...options,
     method: 'GET',
-    params: { environment: params?.environment, status: params?.status, keyword: params?.keyword, limit: params?.limit },
+    params: { environment: params?.environment, status: params?.status, keyword: params?.keyword, page: params?.page, size: params?.size },
   });
 };
 
@@ -15644,7 +15794,7 @@ export function useAdmManagedServerFindAll<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admManagedServerSave
 export type admManagedServerSaveResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmManagedServerResponse
   status: 200
 }
 
@@ -15696,7 +15846,7 @@ export const useAdmManagedServerSave = <TError = unknown, TContext = unknown>(
 
 // CPF PRE-RUNTIME FALLBACK START admManagedServerFindOne
 export type admManagedServerFindOneResponse200 = {
-  data: CpfControllerSourceResponse
+  data: AdmManagedServerResponse
   status: 200
 }
 
@@ -15744,7 +15894,7 @@ export function useAdmManagedServerFindOne<TData = Awaited<ReturnType<typeof adm
 
 // CPF PRE-RUNTIME FALLBACK START admManagedServerDisable
 export type admManagedServerDisableResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, never>
   status: 200
 }
 
@@ -15796,7 +15946,7 @@ export const useAdmManagedServerDisable = <TError = unknown, TContext = unknown>
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindCallHistory
 export type admServiceRegistryFindCallHistoryResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CallHistory>
   status: 200
 }
 
@@ -15844,7 +15994,7 @@ export function useAdmServiceRegistryFindCallHistory<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryCapabilities
 export type admServiceRegistryCapabilitiesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfDataRow
   status: 200
 }
 
@@ -15892,7 +16042,7 @@ export function useAdmServiceRegistryCapabilities<TData = Awaited<ReturnType<typ
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindCircuitStates
 export type admServiceRegistryFindCircuitStatesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<CircuitState>
   status: 200
 }
 
@@ -15940,7 +16090,7 @@ export function useAdmServiceRegistryFindCircuitStates<TData = Awaited<ReturnTyp
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindEndpoints
 export type admServiceRegistryFindEndpointsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Endpoint>
   status: 200
 }
 
@@ -15988,7 +16138,7 @@ export function useAdmServiceRegistryFindEndpoints<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistrySaveEndpoint
 export type admServiceRegistrySaveEndpointResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -16040,7 +16190,7 @@ export const useAdmServiceRegistrySaveEndpoint = <TError = unknown, TContext = u
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindHealth
 export type admServiceRegistryFindHealthResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Health>
   status: 200
 }
 
@@ -16088,7 +16238,7 @@ export function useAdmServiceRegistryFindHealth<TData = Awaited<ReturnType<typeo
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindInstances
 export type admServiceRegistryFindInstancesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Instance>
   status: 200
 }
 
@@ -16136,7 +16286,7 @@ export function useAdmServiceRegistryFindInstances<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistrySaveInstance
 export type admServiceRegistrySaveInstanceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -16188,7 +16338,7 @@ export const useAdmServiceRegistrySaveInstance = <TError = unknown, TContext = u
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindRoutingPolicies
 export type admServiceRegistryFindRoutingPoliciesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<RoutingPolicy>
   status: 200
 }
 
@@ -16236,7 +16386,7 @@ export function useAdmServiceRegistryFindRoutingPolicies<TData = Awaited<ReturnT
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistryFindServices
 export type admServiceRegistryFindServicesResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Array<Service>
   status: 200
 }
 
@@ -16284,7 +16434,7 @@ export function useAdmServiceRegistryFindServices<TData = Awaited<ReturnType<typ
 
 // CPF PRE-RUNTIME FALLBACK START admServiceRegistrySaveService
 export type admServiceRegistrySaveServiceResponse200 = {
-  data: CpfControllerSourceResponse
+  data: MutationResult
   status: 200
 }
 
@@ -16336,7 +16486,7 @@ export const useAdmServiceRegistrySaveService = <TError = unknown, TContext = un
 
 // CPF PRE-RUNTIME FALLBACK START admStandardExecutionFindAll
 export type admStandardExecutionFindAllResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16384,7 +16534,7 @@ export function useAdmStandardExecutionFindAll<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admStandardExecutionFindOne
 export type admStandardExecutionFindOneResponse200 = {
-  data: CpfControllerSourceResponse
+  data: CpfExecutionDefinition
   status: 200
 }
 
@@ -16432,7 +16582,7 @@ export function useAdmStandardExecutionFindOne<TData = Awaited<ReturnType<typeof
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindGroups
 export type admTransactionGroupFindGroupsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16480,7 +16630,7 @@ export function useAdmTransactionGroupFindGroups<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindBySubject
 export type admTransactionGroupFindBySubjectResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16532,7 +16682,7 @@ export const useAdmTransactionGroupFindBySubject = <TError = unknown, TContext =
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindDetail
 export type admTransactionGroupFindDetailResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16580,7 +16730,7 @@ export function useAdmTransactionGroupFindDetail<TData = Awaited<ReturnType<type
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindExternalLogs
 export type admTransactionGroupFindExternalLogsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16628,7 +16778,7 @@ export function useAdmTransactionGroupFindExternalLogs<TData = Awaited<ReturnTyp
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindHeaders
 export type admTransactionGroupFindHeadersResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16676,7 +16826,7 @@ export function useAdmTransactionGroupFindHeaders<TData = Awaited<ReturnType<typ
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindSegments
 export type admTransactionGroupFindSegmentsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16724,7 +16874,7 @@ export function useAdmTransactionGroupFindSegments<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionGroupFindTimeline
 export type admTransactionGroupFindTimelineResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16772,7 +16922,7 @@ export function useAdmTransactionGroupFindTimeline<TData = Awaited<ReturnType<ty
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionMetaFindTransactions
 export type admTransactionMetaFindTransactionsResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16820,7 +16970,7 @@ export function useAdmTransactionMetaFindTransactions<TData = Awaited<ReturnType
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionMetaFindPage
 export type admTransactionMetaFindPageResponse200 = {
-  data: CpfControllerSourceResponse
+  data: TransactionMetaPage
   status: 200
 }
 
@@ -16868,7 +17018,7 @@ export function useAdmTransactionMetaFindPage<TData = Awaited<ReturnType<typeof 
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionMetaFindTransaction
 export type admTransactionMetaFindTransactionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16916,7 +17066,7 @@ export function useAdmTransactionMetaFindTransaction<TData = Awaited<ReturnType<
 
 // CPF PRE-RUNTIME FALLBACK START admTransactionMetaInactivate
 export type admTransactionMetaInactivateResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, unknown>
   status: 200
 }
 
@@ -16967,7 +17117,7 @@ export const useAdmTransactionMetaInactivate = <TError = unknown, TContext = unk
 
 // CPF PRE-RUNTIME FALLBACK START getAdmSystemVersion
 export type getAdmSystemVersionResponse200 = {
-  data: CpfControllerSourceResponse
+  data: Record<string, string>
   status: 200
 }
 

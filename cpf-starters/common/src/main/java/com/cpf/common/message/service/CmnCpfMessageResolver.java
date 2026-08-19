@@ -3,22 +3,19 @@ package com.cpf.common.message.service;
 import com.cpf.core.api.error.CpfErrorDefinition;
 import com.cpf.foundation.message.CpfMessageResolver;
 import com.cpf.foundation.message.CpfResolvedMessage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
-import java.util.Map;
 
 /** DB 캐시 메시지를 우선 사용하고 누락 시 오류 정의 기본값으로 대체합니다. */
 @Primary
 @Component
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CmnCpfMessageResolver implements CpfMessageResolver {
-    private final MessageCacheService messageCacheService;
+    private final CmnErrorCatalogStore catalog;
 
-    public CmnCpfMessageResolver(MessageCacheService messageCacheService) {
-        this.messageCacheService = messageCacheService;
+    CmnCpfMessageResolver(CmnErrorCatalogStore catalog) {
+        this.catalog = catalog;
     }
 
     /** Locale 언어 코드에 맞는 외부·내부 메시지를 해석합니다. */
@@ -28,25 +25,12 @@ public class CmnCpfMessageResolver implements CpfMessageResolver {
                 ? "ko"
                 : locale.getLanguage();
 
-        Map<String, Object> message = messageCacheService.getMessageByKeyAndLocale(errorCode.getMessageCode(), language);
-        String externalMessage = mapValue(message, "externalMessage", "external_message", errorCode.getDefaultExternalMessage());
-        String internalMessage = mapValue(message, "internalMessage", "internal_message", errorCode.getDefaultInternalMessage());
+        var message = catalog.message(errorCode.getMessageCode(), Locale.forLanguageTag(language));
+        String externalMessage = message == null || message.externalMessage() == null ? errorCode.getDefaultExternalMessage() : message.externalMessage();
+        String internalMessage = message == null || message.internalMessage() == null ? errorCode.getDefaultInternalMessage() : message.internalMessage();
 
         return new CpfResolvedMessage(externalMessage, internalMessage);
     }
 
-    private String mapValue(Map<String, Object> message, String camelKey, String snakeKey, String fallback) {
-        if (message == null || message.isEmpty()) {
-            return fallback;
-        }
 
-        Object value = message.get(camelKey);
-        if (value == null) {
-            value = message.get(snakeKey);
-        }
-        if (value == null && snakeKey != null) {
-            value = message.get(snakeKey.toUpperCase());
-        }
-        return value == null ? fallback : String.valueOf(value);
-    }
 }

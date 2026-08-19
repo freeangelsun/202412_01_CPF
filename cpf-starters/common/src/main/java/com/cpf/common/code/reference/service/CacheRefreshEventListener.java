@@ -9,9 +9,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -26,8 +24,7 @@ import java.util.Map;
  * 고정합니다. Snapshot 생성 중 발생한 Event는 다음 Poll에서 반드시 재생되므로 Offline 복귀와
  * 초기 기동 Race에서도 Event가 유실되지 않습니다.</p>
  */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class CacheRefreshEventListener {
     private static final Logger log = LoggerFactory.getLogger(CacheRefreshEventListener.class);
 

@@ -25,19 +25,23 @@
     {
       "generator": "cpf-admin-orval",
       "status": "SUPPORTED",
-      "openapi_profiles": ["3.1.*"],
+      "openapi_profiles": [
+        "3.1.*"
+      ],
       "evidence_paths": [
         "cpf-admin/frontend/orval.config.ts",
         "cpf-admin/frontend/scripts/generate-checked-client.mjs"
       ]
     },
     {
-      "generator": "cpf-biz-admin-orval",
+      "generator": "cpf-biz-reference-client",
       "status": "SUPPORTED",
-      "openapi_profiles": ["3.1.*"],
+      "openapi_profiles": [
+        "3.1.*"
+      ],
       "evidence_paths": [
-        "cpf-biz-admin/frontend/orval.config.ts",
-        "cpf-biz-admin/frontend/scripts/generate-checked-client.mjs"
+        "cpf-biz-frontend/scripts/generate-reference-client.mjs",
+        "cpf-biz-frontend/openapi/cpf-openapi.json"
       ]
     }
   ],
@@ -59,11 +63,12 @@
       ]
     },
     {
-      "path": "cpf-biz-admin/frontend/openapi/cpf-openapi.json",
+      "path": "cpf-biz-admin/openapi/cpf-openapi.json",
       "owner": "cpf-biz-admin",
       "consumers": [
-        "cpf-biz-admin/frontend/orval.config.ts",
-        "cpf-biz-admin/frontend/src/generated/cpf-api.ts"
+        "cpf-biz-channel/src/main/resources/bza-routes.tsv",
+        "cpf-biz-frontend/openapi/cpf-openapi.json",
+        "cpf-biz-frontend/scripts/generate-reference-client.mjs"
       ]
     }
   ]

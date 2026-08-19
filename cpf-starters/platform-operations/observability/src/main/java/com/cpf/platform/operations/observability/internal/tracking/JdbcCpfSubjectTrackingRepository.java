@@ -65,19 +65,25 @@ public final class JdbcCpfSubjectTrackingRepository implements CpfSubjectTrackin
         if (tokens.isEmpty()) return new SearchResult(false, mask(request.subjectType(), canonical), List.of(), request.limit(), "No readable search-key version is configured.");
         String placeholders = String.join(",", tokens.stream().map(ignored -> "?").toList());
         StringBuilder sql = new StringBuilder("""
-                SELECT transaction_id AS transactionId,
-                       subject_role AS subjectRole,
-                       subject_type AS subjectType,
-                       subject_masked_value AS subjectMaskedValue,
-                       source_type AS sourceType,
-                       trust_level AS trustLevel,
-                       search_key_version AS searchKeyVersion,
-                       first_seen_at AS firstSeenAt,
-                       last_seen_at AS lastSeenAt
-                  FROM OPS_TRANSACTION_SUBJECT
-                 WHERE subject_role = ?
-                   AND subject_type = ?
-                   AND subject_search_key IN (""").append(placeholders).append(")");
+                SELECT s.transaction_id AS transactionId,
+                       s.subject_role AS subjectRole,
+                       s.subject_type AS subjectType,
+                       s.subject_masked_value AS subjectMaskedValue,
+                       s.source_type AS sourceType,
+                       s.trust_level AS trustLevel,
+                       s.search_key_version AS searchKeyVersion,
+                       s.first_seen_at AS firstSeenAt,
+                       s.last_seen_at AS lastSeenAt,
+                       l.transaction_start_time AS transactionStartedAt
+                  FROM OPS_TRANSACTION_SUBJECT s
+                  JOIN (
+                        SELECT TRANSACTION_ID, MIN(START_TIME) AS transaction_start_time
+                          FROM CPF_TRANSACTION_LOG
+                         GROUP BY TRANSACTION_ID
+                       ) l ON l.TRANSACTION_ID = s.transaction_id
+                 WHERE s.subject_role = ?
+                   AND s.subject_type = ?
+                   AND s.subject_search_key IN (""").append(placeholders).append(")");
         ArrayList<Object> args = new ArrayList<>();
         args.add(request.subjectRole().name());
         args.add(request.subjectType().name());
@@ -89,9 +95,9 @@ public final class JdbcCpfSubjectTrackingRepository implements CpfSubjectTrackin
                 .append(String.join(",", acceptedTrust.stream().map(ignored -> "?").toList()))
                 .append(")");
         acceptedTrust.forEach(level -> args.add(level.name()));
-        if (request.from() != null) { sql.append(" AND first_seen_at >= ?"); args.add(Timestamp.from(request.from())); }
-        if (request.to() != null) { sql.append(" AND first_seen_at <= ?"); args.add(Timestamp.from(request.to())); }
-        sql.append(" ORDER BY first_seen_at DESC, transaction_id DESC");
+        if (request.from() != null) { sql.append(" AND l.transaction_start_time >= ?"); args.add(Timestamp.from(request.from())); }
+        if (request.to() != null) { sql.append(" AND l.transaction_start_time <= ?"); args.add(Timestamp.from(request.to())); }
+        sql.append(" ORDER BY l.transaction_start_time DESC, s.transaction_id DESC");
         try {
             List<Map<String,Object>> rows = queryLimited(sql.toString(), args, request.limit()).stream()
                     .map(this::safeSearchRow).toList();

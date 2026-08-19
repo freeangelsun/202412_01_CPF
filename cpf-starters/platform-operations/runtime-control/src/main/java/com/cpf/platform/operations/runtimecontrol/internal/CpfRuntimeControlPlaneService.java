@@ -38,11 +38,11 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         fingerprint.put("breakGlassId",command.breakGlassId());
         String requestHash=CpfRuntimeCanonicalHash.sha256(fingerprint);
 
-        var existing=repository.findOperation(command.commandId());
+        var existing=repository.findCommand(command.commandId());
         if(existing.isPresent()) return replay(command.commandId(),requestHash,existing.get());
         repository.consumeRateLimit(command.requestedBy(),60);
-        if(!repository.insertOperation(command.commandId(),"RUNTIME_CHANGE",requestHash,operationExpiry(command))) {
-            return replay(command.commandId(),requestHash,repository.findOperation(command.commandId()).orElseThrow());
+        if(!repository.insertCommand(command.commandId(),"RUNTIME_CHANGE",requestHash,operationExpiry(command))) {
+            return replay(command.commandId(),requestHash,repository.findCommand(command.commandId()).orElseThrow());
         }
 
         List<String> targets=repository.resolveTargets(command.changeType(),command.payloadSchemaVersion(),command.target());
@@ -58,7 +58,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
                 version,command.rolloutMode(),command.waveSize(),command.quorumPercent(),command.scheduledAt(),command.expiresAt(),
                 command.reason(),command.approvalId(),command.breakGlassId(),command.requestedBy(),targets);
         CpfRuntimeChangeResult result=getChange(changeId);
-        repository.completeOperation(command.commandId(),changeId,result.state(),repository.json(Map.of("changeId",changeId,"state",result.state())));
+        repository.completeCommand(command.commandId(),changeId,result.state(),repository.json(Map.of("changeId",changeId,"state",result.state())));
         return result;
     }
 
@@ -108,13 +108,13 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
         Map<String,Object> fp=new LinkedHashMap<>();fp.put("groupId",command.groupId());fp.put("groupName",command.groupName());fp.put("parentGroupId",safe(command.parentGroupId()));fp
                 .put("environment",safe(command.environment()));fp.put("description",safe(command.description()));fp.put("expectedVersion",command.expectedVersion());fp.put("active",command.active());
                 fp.put("reason",command.reason());
-        String hash=CpfRuntimeCanonicalHash.sha256(fp); var existing=repository.findOperation(command.commandId());
+        String hash=CpfRuntimeCanonicalHash.sha256(fp); var existing=repository.findCommand(command.commandId());
         if(existing.isPresent()) { if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new IllegalStateException("commandId payload fingerprint 충돌: "+command.commandId());
                 return getGroup(command.groupId()); }
-        if(!repository.insertOperation(command.commandId(),"RUNTIME_GROUP_SAVE",hash,Instant.now().plusSeconds(86400*7L))) return getGroup(command.groupId());
+        if(!repository.insertCommand(command.commandId(),"RUNTIME_GROUP_SAVE",hash,Instant.now().plusSeconds(86400*7L))) return getGroup(command.groupId());
         var result=groupResult(repository.saveGroup(command.groupId(),command.groupName(),command.parentGroupId(),command.environment(),command.description(),command.expectedVersion(),command
                 .active(),command.requestedBy()));
-        repository.completeOperation(command.commandId(),command.groupId(),"SUCCESS",repository.json(result)); return result;
+        repository.completeCommand(command.commandId(),command.groupId(),"SUCCESS",repository.json(result)); return result;
     }
 
     @Override
@@ -124,10 +124,10 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
                 .instanceId(),"instanceId");require(command.requestedBy(),"requestedBy");require(command.reason(),"reason");
         repository.consumeRateLimit(command.requestedBy(),60);
         Map<String,Object> fp=Map.of("groupId",command.groupId(),"instanceId",command.instanceId(),"active",command.active(),"reason",command.reason());String hash=CpfRuntimeCanonicalHash.sha256(fp);
-        var existing=repository.findOperation(command.commandId()); if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new
+        var existing=repository.findCommand(command.commandId()); if(existing.isPresent()){if(!hash.equals(String.valueOf(existing.get().get("request_hash"))))throw new
                 IllegalStateException("commandId payload fingerprint 충돌: "+command.commandId());return getGroup(command.groupId());}
-        if(!repository.insertOperation(command.commandId(),"RUNTIME_GROUP_MEMBER",hash,Instant.now().plusSeconds(86400*7L)))return getGroup(command.groupId());
-        var result=groupResult(repository.changeGroupMember(command.groupId(),command.instanceId(),command.active(),command.requestedBy()));repository.completeOperation(command.commandId(),command
+        if(!repository.insertCommand(command.commandId(),"RUNTIME_GROUP_MEMBER",hash,Instant.now().plusSeconds(86400*7L)))return getGroup(command.groupId());
+        var result=groupResult(repository.changeGroupMember(command.groupId(),command.instanceId(),command.active(),command.requestedBy()));repository.completeCommand(command.commandId(),command
                 .groupId(),"SUCCESS",repository.json(result));return result;
     }
 
@@ -253,37 +253,8 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     }
 
     @Override
-    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment,String status,String keyword,int limit){
-        return repository.findManagedServers(environment,status,keyword,limit);
-    }
-
-    @Override
-    public CpfManagedServerSnapshot getManagedServer(String managedServerId){
-        return repository.getManagedServer(require(managedServerId,"managedServerId"));
-    }
-
-    @Override
-    @Transactional(transactionManager = "cpfTransactionManager")
-    public CpfManagedServerSnapshot saveManagedServer(CpfManagedServerCommand command){
-        if(command==null) throw new IllegalArgumentException("Managed Server command가 필요합니다.");
-        return repository.saveManagedServer(command);
-    }
-
-    @Override
-    @Transactional(transactionManager = "cpfTransactionManager")
-    public void disableManagedServer(String managedServerId,long expectedVersion,String reason,String operatorId){
-        require(managedServerId,"managedServerId"); require(reason,"reason"); require(operatorId,"operatorId");
-        repository.disableManagedServer(managedServerId,expectedVersion,operatorId);
-    }
-
-    @Override
-    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit){
-        return repository.findRuntimeInventory(environment,capability,status,keyword,limit);
-    }
-
-    @Override
-    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment,String status,String keyword,int limit){
-        return repository.findManagedServers(environment,status,keyword,limit);
+    public CpfManagedServerPage findManagedServers(String environment,String status,String keyword,int page,int size){
+        return repository.findManagedServers(environment,status,keyword,page,size);
     }
 
     @Override
@@ -307,8 +278,8 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
     }
 
     @Override
-    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit){
-        return repository.findRuntimeInventory(environment,capability,status,keyword,limit);
+    public CpfRuntimeInventoryPage findRuntimeInventory(String environment,String capability,String status,String keyword,int page,int size){
+        return repository.findRuntimeInventory(environment,capability,status,keyword,page,size);
     }
 
 
@@ -342,7 +313,7 @@ public class CpfRuntimeControlPlaneService implements CpfRuntimeControlPlane {
                 instant(row.get("scheduled_at")),instant(row.get("expires_at")),instant(row.get("created_at")),instant(row.get("updated_at")),null);
     }
 
-    private void validate(CpfRuntimeChangeCommand c){if(c==null)throw new IllegalArgumentException("Runtime Change command가 필요합니다.");require(c.operationId(),"commandId");require(c.changeType(),
+    private void validate(CpfRuntimeChangeCommand c){if(c==null)throw new IllegalArgumentException("Runtime Change command가 필요합니다.");require(c.commandId(),"commandId");require(c.changeType(),
             "changeType");require(c.requestedBy(),"requestedBy");require(c.reason(),"reason");if(c.target()==null)throw new IllegalArgumentException("target이 필요합니다.");if(c.expiresAt()!=null&&c
             .expiresAt().isBefore(Instant.now()))throw new IllegalArgumentException("이미 만료된 Runtime Change입니다.");}
     private Instant operationExpiry(CpfRuntimeChangeCommand c){return c.expiresAt()!=null?c.expiresAt():Instant.now().plusSeconds(86400*7L);}

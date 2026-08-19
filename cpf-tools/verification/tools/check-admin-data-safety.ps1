@@ -42,7 +42,7 @@ $bzaEmployee = 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/service/
 $bzaAudit = 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/audit/service/BzaBusinessAuditService.java'
 $admAuditDelivery = 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmAuditDeliveryService.java'
 $admFrontend = 'cpf-admin/frontend/src/app/methods/accessMethods.ts'
-$bzaFrontend = 'cpf-biz-admin/frontend/src/components/CrudTable.vue'
+$bzaFrontend = 'cpf-biz-frontend/src/features/employees/components/EmployeeChangeForm.vue'
 
 # 제품 영속성 및 fail-closed 구조.
 Require-Contains $admPolicy 'DATABASE' 'ADM 제품 기본 영속성 모드가 DATABASE가 아닙니다.'

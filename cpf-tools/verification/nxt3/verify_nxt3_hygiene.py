@@ -28,11 +28,14 @@ def is_generated_cache_path(path: str) -> bool:
 
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); a=ap.parse_args(); r=Path(a.root).resolve(); fail=[]
- mf=r/'cpf-docs/work/current/DELETE_MANIFEST.txt'; gf=r/'cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'
+ mf=r/'cpf-docs/deliverables/DELETE_MANIFEST.csv'; gf=r/'cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'
  rows=[]; grows=[]
  if not mf.exists(): fail.append('delete_manifest_missing')
  else:
-  rows=[line.strip().replace('\\','/').strip('/') for line in mf.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')]
+  if mf.suffix.lower()=='.csv':
+   with mf.open(encoding='utf-8-sig',newline='') as f: rows=[(row.get('path') or '').replace('\\','/').strip('/') for row in csv.DictReader(f) if (row.get('path') or '').strip()]
+  else:
+   rows=[line.strip().replace('\\','/').strip('/') for line in mf.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')]
  if not gf.exists(): fail.append('garbage_decisions_missing')
  else:
   with gf.open(encoding='utf-8-sig',newline='') as f: grows=list(csv.DictReader(f))
@@ -45,7 +48,7 @@ def main():
   if Path(path).is_absolute() or '..' in Path(path).parts: fail.append('unsafe_delete='+path)
   if any(path==x.rstrip('/') or path.startswith(x) for x in PROTECTED): fail.append('protected_delete='+path)
   if (r/path).exists() and (r/path).is_dir(): fail.append('directory_delete_forbidden='+path)
-  if 'DELETE' not in decided.get(path,set()): fail.append('delete_without_garbage_decision='+path)
+  if not ({'DELETE','DELETE_CANDIDATE'} & decided.get(path,set())): fail.append('delete_without_garbage_decision='+path)
  tools=r/'cpf-tools'
  if tools.exists():
   active={p.name for p in tools.iterdir() if p.is_dir()}

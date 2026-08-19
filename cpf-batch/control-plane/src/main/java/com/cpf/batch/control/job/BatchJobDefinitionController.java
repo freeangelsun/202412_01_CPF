@@ -1,5 +1,7 @@
 package com.cpf.batch.control.job;
 
+import com.cpf.foundation.context.header.CpfHeaderNames;
+
 import com.cpf.batch.api.BatchJobDefinition;
 import com.cpf.batch.api.BatchJobDefinitionControlPort;
 import com.cpf.batch.control.security.BatVerifiedActorResolver;
@@ -94,13 +96,13 @@ public class BatchJobDefinitionController {
             actor = approved.approvedBy();
             auditContext = new BatchJobDefinitionService.AuditContext(
                     approved.requestedBy(), approved.approvalRequestId(),
-                    header(servletRequest, "X-CPF-Transaction-Id"),
-                    firstHeader(servletRequest, "X-CPF-Trace-Id", "traceparent"));
+                    header(servletRequest, CpfHeaderNames.TRANSACTION_ID),
+                    firstHeader(servletRequest, CpfHeaderNames.TRACE_ID, CpfHeaderNames.TRACEPARENT));
         } else {
             actor = actorResolver.actor(servletRequest, request.operatorId(), "operatorId");
             auditContext = new BatchJobDefinitionService.AuditContext(
-                    actor, null, header(servletRequest, "X-CPF-Transaction-Id"),
-                    firstHeader(servletRequest, "X-CPF-Trace-Id", "traceparent"));
+                    actor, null, header(servletRequest, CpfHeaderNames.TRANSACTION_ID),
+                    firstHeader(servletRequest, CpfHeaderNames.TRACE_ID, CpfHeaderNames.TRACEPARENT));
         }
         return service.transition(jobId, version, request.expectedRowVersion(), target,
                 actor, request.reason(), auditContext);

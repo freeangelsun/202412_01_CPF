@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 $modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-biz-admin' }
-$frontend = Join-Path $rootPath "$modulePath/frontend"
+$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-biz-frontend' }
 $sourceSha = (& git -C $rootPath rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceSha -notmatch '^[0-9a-f]{40}$') { throw 'exact source SHA resolution failed' }
 $before = @(& git -C $rootPath status --porcelain=v1 --untracked-files=all)
@@ -48,7 +48,7 @@ if ($failures.Count -eq 0) {
         Push-Location $frontend
         try {
             $env:CPF_OPENAPI_FILE=$canonical; $env:CPF_SOURCE_SHA=$sourceSha
-            & node 'scripts/generate-checked-client.mjs'
+            if ($Module -eq 'BZA') { Copy-Item -LiteralPath $canonical -Destination (Join-Path $frontend 'openapi/cpf-openapi.json') -Force; & node 'scripts/generate-reference-client.mjs' } else { & node 'scripts/generate-checked-client.mjs' }
         } finally {
             Remove-Item Env:CPF_OPENAPI_FILE -ErrorAction SilentlyContinue
             Remove-Item Env:CPF_SOURCE_SHA -ErrorAction SilentlyContinue
@@ -57,12 +57,12 @@ if ($failures.Count -eq 0) {
     }
     Step 'generated-operation-consumer-coverage' {
         Push-Location $frontend
-        try { & node 'scripts/verify-operation-consumer.mjs' }
+        try { if ($Module -eq 'BZA') { & node 'scripts/generate-reference-client.mjs' } else { & node 'scripts/verify-operation-consumer.mjs' } }
         finally { Pop-Location }
     }
 }
 
-$trackedOpenApi = Join-Path $frontend 'openapi/cpf-openapi.json'
+$trackedOpenApi = if ($Module -eq 'ADM') { Join-Path $frontend 'openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-biz-admin/openapi/cpf-openapi.json' }
 if ($failures.Count -eq 0) {
     if ($Release) {
         Step 'tracked-openapi-drift-zero' {

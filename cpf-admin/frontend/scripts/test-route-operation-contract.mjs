@@ -7,7 +7,14 @@ const sourceRoot = process.cwd();
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "cpf-route-contract-"));
 const appDir = path.join(fixture, "src/app");
 fs.mkdirSync(appDir, { recursive: true });
-const routesSource = fs.readFileSync(path.join(sourceRoot, "src/app/routes.ts"), "utf8");
+const sourceRouteFiles = [path.join(sourceRoot, "src/app/routes.ts")];
+const sourceRoutesDir = path.join(sourceRoot, "src/app/routes");
+if (fs.existsSync(sourceRoutesDir)) {
+  for (const entry of fs.readdirSync(sourceRoutesDir).filter(name => name.endsWith(".ts") && name !== "types.ts").sort()) {
+    sourceRouteFiles.push(path.join(sourceRoutesDir, entry));
+  }
+}
+const routesSource = sourceRouteFiles.map(file => fs.readFileSync(file, "utf8")).join("\n");
 fs.writeFileSync(path.join(appDir, "routes.ts"), routesSource, "utf8");
 const routePattern = /^\s*"([^"]+)": \{ routeId: "\1"[\s\S]*?expectedOperationIds: \[([^\]]*)\][\s\S]*?import\("([^"]+)"\)/gm;
 const operationIds = new Set();

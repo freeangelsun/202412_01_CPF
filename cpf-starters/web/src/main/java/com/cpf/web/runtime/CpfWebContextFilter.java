@@ -7,12 +7,12 @@ import com.cpf.core.api.error.CpfFrameworkErrorCode;
 import com.cpf.core.api.tracking.CpfSubjectCandidate;
 import com.cpf.core.api.tracking.CpfSubjectRole;
 import com.cpf.core.api.tracking.CpfSubjectSourceType;
-import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
 import com.cpf.core.api.tracking.CpfSubjectTrustLevel;
 import com.cpf.core.api.tracking.CpfSubjectType;
 import com.cpf.core.api.transaction.CpfTransactionIds;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
+import com.cpf.foundation.tracking.CpfSubjectCollector;
 import com.cpf.web.api.CpfHttpHeaders;
 import com.cpf.web.context.CpfHeaderFailureRecorder;
 import com.cpf.web.context.CpfHeaderPolicyRegistry;
@@ -53,19 +53,19 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
     private final CpfHeaderPolicyRegistry headerPolicies;
     private final CpfHeaderFailureRecorder failures;
     private final CpfRuntimeIdentity runtime;
-    private final CpfSubjectTrackingOperations subjectTracking;
+    private final CpfSubjectCollector subjectCollector;
 
     public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
             CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime) {
-        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures, runtime, null);
+        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures, runtime, (CpfSubjectCollector) null);
     }
 
     public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
-            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime, CpfSubjectTrackingOperations subjectTracking) {
+            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime, CpfSubjectCollector subjectCollector) {
         this.inbound = inbound;
         this.businessDates = businessDates;
         this.transactionIds = transactionIds;
@@ -74,7 +74,7 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
         this.headerPolicies = headerPolicies;
         this.failures = failures;
         this.runtime = runtime;
-        this.subjectTracking = subjectTracking;
+        this.subjectCollector = subjectCollector;
     }
 
     @Override
@@ -100,7 +100,7 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
                     runtime.currentChannel());
             var resolved = inbound.resolve(firstValues, decision.trust(), null, null, edge,
                     request.getMethod() + " " + request.getRequestURI(), businessDates.currentBusinessDate(), null, runtime);
-            bindClaimedSubject(received, resolved.snapshot().context().transactionId());
+            collectSubjects(received, resolved.snapshot().context());
             try (AutoCloseable ignored = CpfContexts.bind(resolved.snapshot());
                  AutoCloseable ignoredWeb = CpfWebContexts.bind(resolved.interaction());
                  AutoCloseable ignoredHeaders = CpfHttpHeadersContext.bind(received)) {
@@ -118,10 +118,15 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
     }
 
 
-    private void bindClaimedSubject(CpfHttpHeaders headers, String transactionId) {
+    private void collectSubjects(CpfHttpHeaders headers, com.cpf.core.api.context.CpfContext context) {
+        if (subjectCollector == null || context == null) return;
         String typeText = text(headers.get(CpfHttpHeaderNames.SUBJECT_TYPE));
         String subjectId = text(headers.get(CpfHttpHeaderNames.SUBJECT_ID));
-        if (typeText == null && subjectId == null) return;
+        if (typeText == null && subjectId == null) {
+            // Mandatory pipeline, optional value: providers may contribute trusted identity even with no Subject header.
+            subjectCollector.collect(context);
+            return;
+        }
         if (typeText == null || subjectId == null) {
             String missing = typeText == null ? CpfHttpHeaderNames.SUBJECT_TYPE : CpfHttpHeaderNames.SUBJECT_ID;
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.MISSING_TRANSACTION_HEADER, missing,
@@ -134,9 +139,8 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
                     CpfHttpHeaderNames.SUBJECT_TYPE, "Unsupported Subject Type.", 400, "SUBJECT_TYPE_INVALID");
         }
-        if (subjectTracking == null) return;
         try {
-            subjectTracking.collect(transactionId, List.of(new CpfSubjectCandidate(type, CpfSubjectRole.ACTOR, subjectId,
+            subjectCollector.collect(context, List.of(new CpfSubjectCandidate(type, CpfSubjectRole.ACTOR, subjectId,
                     CpfSubjectSourceType.OPTIONAL_SUBJECT_HEADER, CpfSubjectTrustLevel.CLAIMED)));
         } catch (CpfException ex) {
             if (ex.fallbackError() == CpfErrorCode.CONFLICT) {

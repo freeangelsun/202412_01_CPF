@@ -56,7 +56,20 @@ $platformKeys = @($moduleOrder | Where-Object {
 $generatedProfileKeys = @($moduleOrder | Where-Object {
         $moduleProfiles[$_].databaseLifecycle -eq "generated-domain"
     })
-$enabledKeys = @($platformKeys | Where-Object { $moduleProfiles[$_].enabled })
+$enabledKeys = @($platformKeys | Where-Object {
+        $m = $moduleProfiles[$_]
+        if (-not $m.enabled) { return $false }
+        if (-not $m.sourceOptional) { return $true }
+        if ([string]::IsNullOrWhiteSpace($m.ownerPath)) {
+            throw "sourceOptional Module은 ownerPath가 필요합니다: $_"
+        }
+        $owner = Join-Path $Root $m.ownerPath
+        if (-not (Test-Path -LiteralPath $owner -PathType Container)) {
+            Write-Host "CPF DB optional module skipped because source is ABSENT: $_ owner=$($m.ownerPath)"
+            return $false
+        }
+        return $true
+    })
 foreach ($requiredKey in @($platformKeys | Where-Object { $moduleProfiles[$_].required })) {
     if (-not $moduleProfiles[$requiredKey].enabled) {
         throw "필수 Module DB를 disabled로 설정할 수 없습니다: $requiredKey"

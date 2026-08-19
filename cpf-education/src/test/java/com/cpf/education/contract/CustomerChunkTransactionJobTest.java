@@ -1,7 +1,7 @@
 package com.cpf.education.contract;
 
 import com.cpf.batch.api.annotation.CpfBatchJob;
-import com.cpf.education.batch.chunktransaction.CustomerChunkTransactionJob;
+import com.cpf.education.batch.chunktransaction.job.CustomerChunkTransactionJob;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

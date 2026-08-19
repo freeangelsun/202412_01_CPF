@@ -15,7 +15,7 @@ $checks = [ordered]@{
     bzaFindEmployeeTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-01.sql.template"
     bzaRawContactTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-raw-contact-01.sql.template"
     admUi = "cpf-admin/frontend/src/features/operators/OperatorsPage.vue"
-    bzaUi = "cpf-biz-admin/frontend/src/features/employees/EmployeesPage.vue"
+    bzaUi = "cpf-biz-frontend/src/features/employees/components/EmployeeChangeForm.vue"
 }
 
 foreach ($entry in $checks.GetEnumerator()) {

@@ -22,6 +22,10 @@ public class TransactionHeader {
     String apiVersion;
     String clientId;
     String clientVersion;
+    String originalSystemCode;
+    String currentSystemCode;
+    String callerSystemCode;
+    String targetSystemCode;
     String callerChannel;
     String targetChannel;
     String targetOperationId;

@@ -417,6 +417,8 @@ export function createAdmState() {
         passwordResult: {} as Record<string, any>,
         securityResult: {} as Record<string, any>,
         serviceRegistryResult: {} as Record<string, any>,
+        centralRuntimeInventory: [] as Record<string, any>[],
+        managedServerInventory: [] as Record<string, any>[],
         reliabilityResult: {} as Record<string, any>,
         operationResult: {} as Record<string, any>,
         approvalResult: {} as Record<string, any>,
@@ -477,6 +479,8 @@ export function resetAdmSensitiveState(state: Record<string, any>) {
   state.passwordResult = {};
   state.securityResult = {};
   state.serviceRegistryResult = {};
+  state.centralRuntimeInventory = [];
+  state.managedServerInventory = [];
   state.reliabilityResult = {};
   state.operationResult = {};
   state.approvalResult = {};

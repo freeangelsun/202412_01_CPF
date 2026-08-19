@@ -31,9 +31,9 @@ def main() -> int:
         checks.append((name,bool(cond),detail))
 
     adm_gen=read(root/'cpf-admin/frontend/src/generated/cpf-api.ts')
-    bza_gen=read(root/'cpf-biz-admin/frontend/src/generated/cpf-api.ts')
+    bza_gen=read(root/'cpf-biz-frontend/src/generated/bza-api.ts')
     ok('adm_generated_client', len(adm_gen)>1000 and ('operation' in adm_gen.lower() or 'generated' in adm_gen.lower()))
-    ok('bza_generated_client', len(bza_gen)>1000 and ('operation' in bza_gen.lower() or 'generated' in bza_gen.lower()))
+    ok('bza_generated_client', 'AUTO-GENERATED' in bza_gen and 'invokeBza' in bza_gen)
 
     maintenance=read(root/'cpf-admin/frontend/src/features/maintenance/MaintenancePage.vue')
     registry=read(root/'cpf-admin/frontend/src/features/service-registry/ServiceRegistryPage.vue')
@@ -44,14 +44,13 @@ def main() -> int:
     ok('approval_version_fence', 'expectedVersion' in approval and 'targetId' in approval and 'SERVICE_INSTANCE_' in approval)
 
     adm_state=read(root/'cpf-admin/frontend/src/shared/operationState.ts')
-    bza_state=read(root/'cpf-biz-admin/frontend/src/shared/operationState.ts')
-    bza_query=read(root/'cpf-biz-admin/frontend/src/shared/queryClient.ts')
+    bza_http=read(root/'cpf-biz-frontend/src/shared/api/channelHttpClient.ts')
     for c in HTTP_CODES:
         ok(f'adm_http_{c}', str(c) in adm_state)
-        ok(f'bza_http_{c}', str(c) in bza_state)
-    ok('bza_state_actual_consumer', 'bzaOperationState(error)' in bza_query)
+    ok('bza_http_error_status', 'response.status' in bza_http and 'BzaHttpError' in bza_http)
+    ok('bza_channel_only_consumer', 'VITE_BZA_CHANNEL_BASE_URL' in bza_http and 'fetch(' in bza_http)
 
-    for surface in ('cpf-admin/frontend','cpf-biz-admin/frontend'):
+    for surface in ('cpf-admin/frontend','cpf-biz-frontend'):
         idx=read(root/surface/'index.html')
         external=bool(re.search(r'(?i)(?:src|href)=["\']https?://',idx))
         ok(surface.replace('/','_')+'_no_runtime_cdn', not external)

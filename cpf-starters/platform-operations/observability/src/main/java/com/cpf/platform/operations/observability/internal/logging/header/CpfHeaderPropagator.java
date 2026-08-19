@@ -103,6 +103,10 @@ public final class CpfHeaderPropagator {
         putIfHasText(headers, CpfHeaderNames.API_VERSION, headerValue(transactionHeader, TransactionHeader::getApiVersion));
         putIfHasText(headers, CpfHeaderNames.CLIENT_ID, headerValue(transactionHeader, TransactionHeader::getClientId));
         putIfHasText(headers, CpfHeaderNames.CLIENT_VERSION, headerValue(transactionHeader, TransactionHeader::getClientVersion));
+        putIfHasText(headers, CpfHeaderNames.ORIGINAL_SYSTEM_CODE, TransactionContext.originalSystemCode());
+        putIfHasText(headers, CpfHeaderNames.SYSTEM_CODE, TransactionContext.currentSystemCode());
+        putIfHasText(headers, CpfHeaderNames.CALLER_SYSTEM_CODE, TransactionContext.callerSystemCode());
+        putIfHasText(headers, CpfHeaderNames.TARGET_SYSTEM_CODE, TransactionContext.targetSystemCode());
         putIfHasText(headers, CpfHeaderNames.CALLER_CHANNEL, TransactionContext.callerChannel());
         putIfHasText(headers, CpfHeaderNames.CALLER_INSTANCE_ID, headerValue(transactionHeader, TransactionHeader::getCallerInstanceId));
         putIfHasText(headers, CpfHeaderNames.ORIGINAL_CHANNEL, TransactionContext.originalChannel());

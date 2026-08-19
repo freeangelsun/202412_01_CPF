@@ -169,6 +169,44 @@ def verify_live(root: Path, module: str, fail: list[str]) -> bool:
     return True
 
 
+def verify_bza_reference_live(root: Path, fail: list[str]) -> bool:
+    frontend = root / "cpf-biz-frontend"
+    if not frontend.is_dir():
+        return False
+    required = [
+        frontend / "src/generated/bza-api.ts",
+        frontend / "src/shared/api/channelHttpClient.ts",
+        frontend / "src/router/index.ts",
+        frontend / "index.html",
+        frontend / "openapi/cpf-openapi.json",
+        frontend / "package-lock.json",
+    ]
+    for p in required:
+        if not p.is_file():
+            fail.append(f"BZA_REFERENCE_REQUIRED_FILE_MISSING:{p.relative_to(root).as_posix()}")
+    consumers=[]
+    features=frontend / "src/features"
+    if features.is_dir():
+        for p in features.rglob("*"):
+            if not p.is_file() or p.suffix.lower() not in {".ts", ".vue", ".tsx"}: continue
+            s=read_text(p)
+            if "generated/bza-api" in s: consumers.append(p)
+            if "fetch(" in s: fail.append(f"BZA_FEATURE_RAW_FETCH_FORBIDDEN:{p.relative_to(root).as_posix()}")
+    if not consumers: fail.append("BZA_REFERENCE_GENERATED_CLIENT_CONSUMER_MISSING")
+    transport=frontend / "src/shared/api/channelHttpClient.ts"
+    if transport.is_file():
+        s=read_text(transport)
+        for token in ("VITE_BZA_CHANNEL_BASE_URL", "credentials: 'include'", "fetch("):
+            if token not in s: fail.append(f"BZA_CHANNEL_TRANSPORT_TOKEN_MISSING:{token}")
+        for token in ("localStorage", "sessionStorage", "X-System-Code", "X-Transaction-Id"):
+            if token in s: fail.append(f"BZA_BROWSER_PROTOCOL_OWNERSHIP_FORBIDDEN:{token}")
+    router=frontend / "src/router/index.ts"
+    if router.is_file():
+        s=read_text(router)
+        for route in ("path: '/'", "path: '/employees'", "path: '/approvals'", "path: '/authorization'"):
+            if route not in s: fail.append(f"BZA_REFERENCE_ROUTE_MISSING:{route}")
+    return True
+
 def verify_fixture(module: str, meta: dict, baseline_sha: str, expected_baseline: str, fail: list[str]) -> None:
     if baseline_sha != expected_baseline:
         fail.append(f"FRONTEND_EVIDENCE_BASELINE_SHA_MISMATCH:{baseline_sha}")
@@ -211,7 +249,7 @@ def verify_fixture(module: str, meta: dict, baseline_sha: str, expected_baseline
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(ROOT))
-    ap.add_argument("--baseline-sha", default="b7d3cdacff3adba757d852faacf4cff5ee80cdaf")
+    ap.add_argument("--baseline-sha")
     args = ap.parse_args()
     root = Path(args.root).resolve()
     fail: list[str] = []
@@ -221,18 +259,18 @@ def main() -> int:
         evidence = {"baselineSha": "", "modules": {}}
     else:
         evidence = json.loads(read_text(evidence_file))
-    for module in ["cpf-admin", "cpf-biz-admin"]:
-        if verify_live(root, module, fail):
-            continue
-        meta = (evidence.get("modules") or {}).get(module)
-        if not isinstance(meta, dict):
-            fail.append(f"FRONTEND_MISSING_AND_NO_EVIDENCE:{module}")
-            continue
-        verify_fixture(module, meta, str(evidence.get("baselineSha", "")), args.baseline_sha, fail)
+    if not verify_live(root, "cpf-admin", fail):
+        meta = (evidence.get("modules") or {}).get("cpf-admin")
+        if not isinstance(meta, dict): fail.append("FRONTEND_MISSING_AND_NO_EVIDENCE:cpf-admin")
+        elif not args.baseline_sha:
+            fail.append("FRONTEND_FIXTURE_BASELINE_NOT_EXPLICIT:cpf-admin")
+        else: verify_fixture("cpf-admin", meta, str(evidence.get("baselineSha", "")), args.baseline_sha, fail)
+    if not verify_bza_reference_live(root, fail):
+        fail.append("FRONTEND_MISSING:cpf-biz-frontend")
     fail = sorted(set(fail))
     print("CPF_FRONTEND_GOLDEN_PATH=" + ("PASS" if not fail else "FAIL"))
     print("mode=" + ("LIVE_SOURCE_HASHED" if not fail else "FAILED"))
-    print("baselineSha=" + args.baseline_sha)
+    print("baselineSha=" + (args.baseline_sha or "LIVE_SOURCE_NA"))
     print("failures=" + str(len(fail)))
     for item in fail:
         print(item)

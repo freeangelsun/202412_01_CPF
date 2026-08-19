@@ -35,9 +35,29 @@ def operation_ids(path: Path) -> set[str]:
 def verify(root: Path) -> dict:
     findings: list[dict[str, str]] = []
     files = imports = invocations = 0
-    for surface in (root / "cpf-admin/frontend/src", root / "cpf-biz-admin/frontend/src"):
-        ops = operation_ids(surface / "generated/cpf-operation-contract.ts")
-        if not ops:
+    surfaces = [
+        {
+            "name": "ADM",
+            "root": root / "cpf-admin/frontend/src",
+            "operationContract": root / "cpf-admin/frontend/src/generated/cpf-operation-contract.ts",
+            "operationPattern": OP_RE,
+        },
+        {
+            "name": "BZA_REFERENCE",
+            "root": root / "cpf-biz-frontend/src",
+            "operationContract": None,
+            "operationPattern": None,
+        },
+    ]
+    for descriptor in surfaces:
+        surface = descriptor["root"]
+        if not surface.is_dir():
+            # BZA reference frontend is optional; ADM is not.
+            if descriptor["name"] == "ADM":
+                findings.append({"type": "MISSING_FRONTEND_SURFACE", "surface": surface.as_posix()})
+            continue
+        ops = operation_ids(descriptor["operationContract"]) if descriptor["operationContract"] else set()
+        if descriptor["operationContract"] and not ops:
             findings.append({"type": "MISSING_OPERATION_CONTRACT", "surface": surface.as_posix()})
         for path in sorted(surface.rglob("*")):
             if not path.is_file() or path.suffix not in {".ts", ".tsx", ".js", ".mjs", ".vue"}:
@@ -50,13 +70,24 @@ def verify(root: Path) -> dict:
                 imports += 1
                 if resolve(path.parent, spec) is None:
                     findings.append({"type": "MISSING_RELATIVE_IMPORT", "path": path.relative_to(root).as_posix(), "import": spec})
-            for operation_id in OP_RE.findall(text):
-                invocations += 1
-                if operation_id not in ops:
-                    findings.append({"type": "UNKNOWN_OPERATION_ID", "path": path.relative_to(root).as_posix(), "operationId": operation_id})
+            if descriptor["operationPattern"]:
+                for operation_id in descriptor["operationPattern"].findall(text):
+                    invocations += 1
+                    if operation_id not in ops:
+                        findings.append({"type": "UNKNOWN_OPERATION_ID", "path": path.relative_to(root).as_posix(), "operationId": operation_id})
             for token in FORBIDDEN:
                 if token in text:
                     findings.append({"type": "BROWSER_NATIVE_DANGEROUS_CONFIRMATION", "path": path.relative_to(root).as_posix(), "token": token})
+
+    # The external BZA reference must consume only the generated Channel client and never a CPF Java/raw backend client.
+    bza = root / "cpf-biz-frontend"
+    if bza.is_dir():
+        generated = bza / "src/generated/bza-api.ts"
+        transport = bza / "src/shared/api/channelHttpClient.ts"
+        if not generated.is_file() or "AUTO-GENERATED" not in generated.read_text(encoding="utf-8", errors="replace"):
+            findings.append({"type": "BZA_GENERATED_CHANNEL_CLIENT_MISSING", "surface": bza.as_posix()})
+        if not transport.is_file() or "VITE_BZA_CHANNEL_BASE_URL" not in transport.read_text(encoding="utf-8", errors="replace"):
+            findings.append({"type": "BZA_CHANNEL_TRANSPORT_MISSING", "surface": bza.as_posix()})
     return {"status": "PASS" if not findings else "FAIL", "files": files, "imports": imports, "operationInvocations": invocations, "findings": findings}
 
 def main() -> int:

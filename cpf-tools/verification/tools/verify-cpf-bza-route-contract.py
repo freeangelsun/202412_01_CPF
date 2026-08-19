@@ -1,38 +1,78 @@
 #!/usr/bin/env python3
-"""Verify BZA route, status, generated API and browser trust-boundary contracts."""
+"""Verify the final BZA architecture: optional CPF domain + DB-less Spring channel + external reference frontend."""
 from __future__ import annotations
-import argparse,json,re,sys
+import argparse, json, re, sys
 from pathlib import Path
-class ContractError(RuntimeError):pass
+class ContractError(RuntimeError): pass
+
+def read(p:Path)->str:
+    if not p.is_file(): raise ContractError(f'missing {p}')
+    return p.read_text(encoding='utf-8-sig')
 
 def validate(root:Path)->dict:
-    routes=root/'cpf-biz-admin/frontend/src/app/routes.ts';router=root/'cpf-biz-admin/frontend/src/app/router.ts';app=root/'cpf-biz-admin/frontend/src/App.vue'
-    api=root/'cpf-biz-admin/frontend/src/shared/cpfApi.ts';spec=root/'cpf-biz-admin/frontend/openapi/cpf-openapi.json';marker=root/'cpf-biz-admin/frontend/src/generated/.cpf-openapi-source.json'
-    for p in (routes,router,app,api,spec,marker):
-        if not p.is_file():raise ContractError(f'missing {p.relative_to(root)}')
-    route_text=routes.read_text(encoding='utf-8');router_text=router.read_text(encoding='utf-8');app_text=app.read_text(encoding='utf-8');api_text=api.read_text(encoding='utf-8')
-    route_ids=re.findall(r'\{ id:"([^"]+)"',route_text)
-    if len(route_ids)!=len(set(route_ids)):raise ContractError(f'BZA duplicate route id actual={len(route_ids)} unique={len(set(route_ids))}')
-    req=root/'cpf-docs/work/current/CPF_BZA_UI_FUNCTION_REQUIREMENTS.csv'
-    if req.is_file():
-        import csv
-        with req.open(encoding='utf-8-sig',newline='') as h: required={str(r.get('route_id','')).strip() for r in csv.DictReader(h) if str(r.get('route_id','')).strip()}
-        if set(route_ids)!=required:raise ContractError(f'BZA route/requirement drift missing={sorted(required-set(route_ids))} unexpected={sorted(set(route_ids)-required)}')
-    if 'BzaRouteId | undefined' not in route_text or 'return undefined' not in route_text:raise ContractError('unknown BZA route must remain undefined')
-    if 'allowed[0]' in app_text or 'router.replace({name:selected.id})' in app_text:raise ContractError('BZA silent dashboard/menu fallback remains')
-    for status in ('forbidden','feature-disabled','lazy-load-failure','not-found'):
-        if f'name: "{status}"' not in router_text:raise ContractError(f'missing status route={status}')
-    if 'bzaRouter.onError' not in router_text:raise ContractError('lazy-load failure handler missing')
-    for token in ('resolveCpfOperation','X-XSRF-TOKEN','Authorization','same-origin','CLIENT_ACTOR_FIELDS'):
-        if token not in api_text:raise ContractError(f'BZA browser trust boundary missing token={token}')
-    if 'X-CPF-Operation-Id' in api_text or 'X-Target-Operation-Id' in api_text: raise ContractError('BZA browser must not inject business transaction operation headers')
-    openapi=json.loads(spec.read_text(encoding='utf-8'));m=json.loads(marker.read_text(encoding='utf-8'))
-    if openapi.get('x-cpf-product-module')!='BZA' or openapi.get('x-cpf-export-origin')!='CONTROLLER_SOURCE_PRE_RUNTIME':raise ContractError('BZA pre-runtime OpenAPI identity drift')
-    if int(openapi.get('x-cpf-openapi-operation-count',0))<1:raise ContractError('BZA operation inventory empty')
-    if m.get('schemaVersion')!=3 or m.get('identityPolicy')!='TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE' or m.get('openApiPath')!='openapi/cpf-openapi.json':raise ContractError('BZA generated marker contract drift')
-    return {'routes':len(route_ids),'operations':openapi['x-cpf-openapi-operation-count']}
+    domain=root/'cpf-biz-admin'; channel=root/'cpf-biz-channel'; frontend=root/'cpf-biz-frontend'
+    if not any(p.is_dir() for p in (domain,channel,frontend)):
+        return {'state':'ABSENT','routes':0,'referenceRoutes':0,'operations':0}
+    operations=0
+    if domain.is_dir():
+        build=read(domain/'build.gradle')
+        for token in ('frontendBuild','frontendInstall','frontendVerify','srcDir(frontend','generated/frontend/static/bza'):
+            if token in build: raise ContractError(f'cpf-biz-admin still embeds frontend: {token}')
+        page=domain/'src/main/java/com/cpf/bizadmin/backoffice/controller/BzaPageController.java'
+        if page.is_file() and re.search(r'@(Controller|GetMapping|RequestMapping)',read(page)):
+            raise ContractError('cpf-biz-admin still exposes embedded browser page mapping')
+        spec=domain/'openapi/cpf-openapi.json'
+        if spec.is_file():
+            doc=json.loads(read(spec)); operations=int(doc.get('x-cpf-openapi-operation-count',0) or 0)
+            if operations < 1:
+                operations=sum(1 for item in doc.get('paths',{}).values() for method,op in item.items()
+                               if method.upper() in {'GET','POST','PUT','PATCH','DELETE'} and isinstance(op,dict) and op.get('operationId'))
+    channel_routes=0
+    if channel.is_dir():
+        build=read(channel/'build.gradle').lower()
+        forbidden_build=('project(', 'cpf-starter', 'com.cpf:', 'jdbc', 'jpa', 'mybatis', 'mariadb', 'postgresql', 'oracle')
+        leaked=[x for x in forbidden_build if x in build]
+        if leaked: raise ContractError(f'BZA Channel is not DB-less/pure Spring: {leaked}')
+        framework_imports=[]
+        for p in (channel/'src').rglob('*.java'):
+            for line in read(p).splitlines():
+                if line.startswith('import com.cpf.') and '.bzachannel.' not in line:
+                    framework_imports.append(f'{p.relative_to(root)}:{line}')
+        if framework_imports: raise ContractError(f'BZA Channel CPF Java dependency leak: {framework_imports[:5]}')
+        source='\n'.join(read(p) for p in (channel/'src/main/java').rglob('*.java'))
+        required=('gatewayBaseUri','directBaseUri','TARGET_OPERATION_ID','ORIGINAL_SYSTEM_CODE','CALLER_SYSTEM_CODE','TARGET_SYSTEM_CODE')
+        for token in required:
+            if token not in source: raise ContractError(f'BZA Channel contract missing {token}')
+        if 'builder.header(BzaCanonicalHeaders.SYSTEM_CODE' in source:
+            raise ContractError('BZA external Channel must not write receiver-owned X-System-Code')
+        client_source=read(channel/'src/main/java/com/cpf/bzachannel/shared/client/BusinessApiHttpClient.java')
+        if 'properties.selectedBaseUri()' not in client_source:
+            raise ContractError('BZA client must use exactly one pre-selected upstream and never implement runtime fallback')
+        catalog=channel/'src/main/resources/bza-routes.tsv'
+        rows=[line.split('\t') for line in read(catalog).splitlines() if line and not line.startswith('#')]
+        if any(len(r)!=3 for r in rows): raise ContractError('invalid BZA route catalog')
+        if len({(r[0],r[1]) for r in rows}) != len(rows): raise ContractError('duplicate BZA channel route')
+        channel_routes=len(rows)
+        if domain.is_dir() and operations and channel_routes != operations:
+            raise ContractError(f'BZA Channel/OpenAPI operation drift channel={channel_routes} backend={operations}')
+    reference_routes=0
+    if frontend.is_dir():
+        routes=read(frontend/'src/router/index.ts')
+        reference_routes=len(re.findall(r"\bpath\s*:\s*['\"]",routes))
+        if reference_routes != 4: raise ContractError(f'BZA reference frontend must expose 4 representative routes, actual={reference_routes}')
+        generator=read(frontend/'scripts/generate-reference-client.mjs')
+        if 'cpf-openapi.json' not in generator or 'OpenAPI operations missing' not in generator:
+            raise ContractError('BZA reference frontend is not OpenAPI-generated-client driven')
+        api=read(frontend/'src/shared/api/channelHttpClient.ts')
+        if '/api/bza' not in '\n'.join(read(p) for p in (frontend/'src').rglob('*') if p.is_file() and p.suffix in {'.ts','.vue'}):
+            raise ContractError('BZA frontend has no Channel API consumer')
+        if any(x in api.lower() for x in ('jdbc','datasource','mybatis')):
+            raise ContractError('BZA frontend contains DB concern')
+    return {'state':'PRESENT','routes':channel_routes,'referenceRoutes':reference_routes,'operations':operations}
+
 def main()->int:
-    ap=argparse.ArgumentParser();ap.add_argument('--root',type=Path,default=Path.cwd());args=ap.parse_args();result=validate(args.root.resolve());print(f"[PASS] BZA route contract routes={result['routes']} operations={result['operations']} silentFallback=0");return 0
+    ap=argparse.ArgumentParser();ap.add_argument('--root',type=Path,default=Path.cwd());a=ap.parse_args()
+    r=validate(a.root.resolve());print(f"BZA_BOUNDARY_CONTRACT=PASS state={r['state']} backendOperations={r['operations']} channelRoutes={r['routes']} referenceRoutes={r['referenceRoutes']} dbLess=1 cpfJavaDependency=0");return 0
 if __name__=='__main__':
-    try:raise SystemExit(main())
-    except ContractError as e:print(f'[FAIL] {e}',file=sys.stderr);raise SystemExit(1)
+    try: raise SystemExit(main())
+    except ContractError as e: print(f'BZA_BOUNDARY_CONTRACT=FAIL {e}',file=sys.stderr); raise SystemExit(1)

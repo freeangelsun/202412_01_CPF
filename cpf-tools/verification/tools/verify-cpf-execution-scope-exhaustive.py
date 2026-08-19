@@ -45,8 +45,8 @@ SCENARIO_REQUIRED = (
 
 GROUP_SOURCE_MAP = {
     "ADM_UI": ["cpf-admin/frontend/src/app/routes.ts", "cpf-admin/frontend/src/generated/cpf-operation-contract.ts", "cpf-admin/frontend/src/features", "cpf-admin/src/main/java/com/cpf/admin", "cpf-admin/src/test"],
-    "BZA_UI": ["cpf-biz-admin/frontend/src/app/routes.ts", "cpf-biz-admin/frontend/src/generated/cpf-operation-contract.ts", "cpf-biz-admin/frontend/src/features", "cpf-biz-admin/src/main/java/com/cpf/bizadmin", "cpf-biz-admin/src/test"],
-    "FRONTEND": ["cpf-admin/frontend", "cpf-biz-admin/frontend"],
+    "BZA_UI": ["cpf-biz-frontend/src/router/index.ts", "cpf-biz-frontend/scripts/generate-reference-client.mjs", "cpf-biz-frontend/src/features", "cpf-biz-admin/src/main/java/com/cpf/bizadmin", "cpf-biz-admin/src/test"],
+    "FRONTEND": ["cpf-admin/frontend", "cpf-biz-frontend"],
     "TEST": ["cpf-tools/testing", "cpf-tools/verification"],
     "QUALITY": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/work/qa"],
     "RELEASE": ["build.gradle", "settings.gradle", "cpf-tools/release", "deploy"],
@@ -67,7 +67,7 @@ GROUP_SOURCE_MAP = {
     "COMMON": ["cpf-common", "cpf-core/src/main/java/com/cpf/core/api"],
     "RUNTIME_CONTROL": ["cpf-core/src/main/java/com/cpf/core/api/runtimecontrol", "cpf-admin/src/main/java/com/cpf/admin/opr", "cpf-starters"],
     "FILE": ["cpf-core/src/main/java/com/cpf/core/api/filetransfer", "cpf-core/src/main/java/com/cpf/core/api/attachment", "cpf-admin/frontend/src/features/file-jobs"],
-    "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-biz-admin/frontend/openapi"],
+    "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-biz-admin/openapi"],
     "GOV": ["cpf-docs/governance", "cpf-docs/work/current"],
 }
 
@@ -128,16 +128,25 @@ def split_ops(text: str) -> set[str]:
 
 
 def parse_route_contract(path: Path, mode: str) -> tuple[set[str], set[str], set[str]]:
-    text = path.read_text(encoding="utf-8")
     if mode == "adm":
+        texts = [path.read_text(encoding="utf-8")]
+        route_dir = path.parent / "routes"
+        if route_dir.is_dir():
+            texts.extend(p.read_text(encoding="utf-8") for p in sorted(route_dir.glob("*.ts")) if p.name != "types.ts")
+        text = "\n".join(texts)
         route_ids = set(re.findall(r'routeId:\s*"([^"]+)"', text))
-        components = set(re.findall(r'import\("(\.\./features/[^"]+)"\)', text))
+        components = set(re.findall(r'import\("(?:\.\./|\.\./\.\./)features/([^"]+)"\)', text))
+        expected = set()
+        for block in re.findall(r"expectedOperationIds:\s*\[([^\]]*)\]", text, re.S):
+            expected.update(re.findall(r'"([^"]+)"', block))
     else:
-        route_ids = set(re.findall(r'\{\s*id:"([^"]+)"', text))
-        components = set(re.findall(r'import\("(\.\./features/[^"]+)"\)', text))
-    expected = set()
-    for block in re.findall(r"expectedOperationIds:\s*\[([^\]]*)\]", text, re.S):
-        expected.update(re.findall(r'"([^"]+)"', block))
+        text = path.read_text(encoding="utf-8")
+        route_ids = set(re.findall(r"\bpath\s*:\s*['\"]([^'\"]+)['\"]", text))
+        components = set(re.findall(r"from\s+['\"]\.\./features/([^'\"]+)['\"]", text))
+        generator = path.parents[2] / "scripts/generate-reference-client.mjs"
+        generator_text = generator.read_text(encoding="utf-8") if generator.is_file() else ""
+        wanted = re.search(r"const wanted=\[([\s\S]*?)\]", generator_text)
+        expected = set(re.findall(r"['\"]([^'\"]+)['\"]", wanted.group(1))) if wanted else set()
     if not route_ids or not components or not expected:
         raise AuditError(f"route contract is sparse or unparsable: {path}")
     return route_ids, components, expected
@@ -188,13 +197,14 @@ def verify(args: argparse.Namespace) -> dict:
 
     # Route/OpenAPI contracts are product consumer evidence for the UI phases.
     adm_route = root / "cpf-admin/frontend/src/app/routes.ts"
-    bza_route = root / "cpf-biz-admin/frontend/src/app/routes.ts"
+    bza_route = root / "cpf-biz-frontend/src/router/index.ts"
     adm_contract = root / "cpf-admin/frontend/src/generated/cpf-operation-contract.ts"
-    bza_contract = root / "cpf-biz-admin/frontend/src/generated/cpf-operation-contract.ts"
+    bza_contract = root / "cpf-biz-admin/openapi/cpf-openapi.json"
     adm_route_ids, adm_components, adm_expected = parse_route_contract(adm_route, "adm")
     bza_route_ids, bza_components, bza_expected = parse_route_contract(bza_route, "bza")
     adm_ops = split_ops(adm_contract.read_text(encoding="utf-8"))
-    bza_ops = split_ops(bza_contract.read_text(encoding="utf-8"))
+    bza_spec = json.loads(bza_contract.read_text(encoding="utf-8"))
+    bza_ops = {op.get("operationId") for item in bza_spec.get("paths", {}).values() for op in item.values() if isinstance(op, dict) and op.get("operationId")}
     missing_adm_ops = sorted(adm_expected - adm_ops)
     missing_bza_ops = sorted(bza_expected - bza_ops)
     if missing_adm_ops or missing_bza_ops:

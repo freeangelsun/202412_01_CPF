@@ -107,7 +107,7 @@
       "id": "EDU-ONLINE-12",
       "category": "online",
       "title": "On-Demand Batch 호출",
-      "package": "com.cpf.education.online.ondemandbatch",
+      "package": "com.cpf.education.online.ondemandbatch.controller",
       "primaryClass": "MemberExportController",
       "primaryPublicApi": "CpfBatchOperations",
       "testClass": "MemberExportContractTest"

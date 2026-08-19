@@ -1,15 +1,52 @@
-# CPF BZA Business Admin UI·IA 상세 개발요건
+# CPF BZA Domain · Channel · Reference Frontend 상세 개발요건
 
-> Currentization source/basis: `e6f2e7a599a948277b118967d0fb5f840f65c114` (`18_19`)  
-> 실행 시 최신 `origin/master` exact SHA를 다시 확인한다.  
+> Current local-source ZIP SHA-256: `b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850` (8,440 files, `.git` absent)  
+> Revision: `2026-08-19`; Runtime/remote Git PASS를 의미하지 않는다.  
 > 신규 Canonical Requirement ID 추가: 0건  
 > 강화 대상: `BZA-BUSINESS`, `BZA-ORG`, `BZA-APPROVAL` 및 관련 Security/Audit/Download 계약
 
-## 0A. 18_19 BZA Source Audit — 확정 Gap
 
-Target CSV의 27 route는 최신 `cpf-biz-admin/frontend/src/app/routes.ts`에 모두 존재하고 각 `expectedOperationIds`도 Requirement CSV와 일치한다. 그러나 **Route/Operation 존재만으로 완료가 아니다.**
+## 0. 2026-08-19 Superseding BZA Target
 
-최신 Navigation은 5개 group(`overview`, `people`, `access`, `approval`, `support`)이므로 Target 7개 업무 IA와 불일치한다.
+이 절이 본 문서의 최우선 Current Target이다. 아래 과거 27-route embedded UI 상세는 **내부 `cpf-biz-admin` Domain capability가 어떤 업무를 지원해야 하는지 추적하기 위한 historical capability mapping**으로만 보존하며, 외부 Reference Frontend의 활성 Route/IA 목표로 사용하지 않는다.
+
+### 0.1 최종 구성
+
+```text
+Browser
+  → cpf-biz-frontend            # 선택형 외부 Reference UI
+  → cpf-biz-channel             # DB-less Pure Spring Boot, CPF Java dependency 0
+  → Gateway 또는 허용된 Direct Public HTTP
+  → cpf-biz-admin               # CPF 내부 Optional Prebuilt Business Administration Domain
+  → 필요한 Business Domain Public/Invocation Contract
+  → 각 Domain-owned DB
+```
+
+- `cpf-biz-admin`은 BZA 업무규칙, 승인 상태, BZA 업무권한, Backoffice 설정 등 BZA-owned data의 Owner다. Member/Customer/Account 등의 Business Master를 복제하거나 해당 Domain DB를 직접 읽고 쓰지 않는다.
+- `cpf-biz-admin`은 Generator 생성 대상이 아니지만 Generated Business Domain과 동일한 Public Starter/API, Canonical System transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3/Test 계약을 사용한다.
+- BZA를 사용하지 않는 경우 `cpf-biz-admin`과 BZA DB bundle을 물리적으로 제외해도 Root Build/Publication/Installer/Verifier와 필수 CPF Runtime이 정상이어야 한다.
+- `cpf-biz-channel`은 DB/JDBC/JPA/MyBatis와 CPF BOM/Starter/Java/Internal dependency를 두지 않는다. Session을 이유로 업무 상태/권한 원장을 영속 저장하지 않는다.
+- `cpf-biz-frontend`는 Channel만 호출하고 대표 업무 흐름을 보여주는 소수 Reference Page를 제공한다. 현재 Canonical Reference Route는 Dashboard, Employee Search/Change, Approval Inbox/Decision, Role/Permission의 4개다.
+- Direct Public HTTP는 Gateway 보안 우회가 아니다. authN/authZ/Channel Policy/Audit/Canonical System Header/Operation 계약을 동일하게 충족한다. 자동 Gateway→Direct fallback을 금지한다.
+
+### 0.2 UI/Source 구조 품질
+
+BZA Channel과 Frontend는 feature-first 구조를 사용한다. Channel은 기능별 API/controller가 공통 HTTP transport/protocol/routing을 재사용하고, Frontend는 기능별 `pages/components/api/model/composables`를 필요한 수준으로 분리한다. Controller/API/상태/모델을 한 통파일에 몰거나 모든 Controller를 하나의 공용 package에 집중시키지 않는다. 반대로 파일 크기만으로 의미 없이 쪼개지도 않는다.
+
+### 0.3 완료 판정
+
+- 내부 Domain OpenAPI/권한/감사/DB/Domain-call 계약과 외부 Channel Route가 일치한다.
+- Channel routes와 Backend public operations가 drift하지 않는다.
+- 외부 Reference UI는 Generated/OpenAPI-derived client의 실제 Consumer다.
+- Channel `DB-less=1`, CPF Java dependency 0, receiver-owned `X-System-Code` 작성 0을 Gate로 검증한다.
+- 외부 Frontend/Channel 및 내부 BZA Domain 각각을 제거/미선택한 지원 구성에서 Optionality 계약을 검증한다.
+- 실제 Browser/Gradle/DB Runtime을 실행하지 못하면 `미검증`으로 기록한다.
+
+## 0A. Historical Embedded UI Audit — Capability Absorption Only
+
+과거 Target CSV의 27 route와 embedded `cpf-biz-admin/frontend`는 더 이상 active external UI target이 아니다. 해당 목록의 업무 의미는 내부 `cpf-biz-admin` Domain capability/API/권한/감사 요구로 1:1 흡수하고, 외부 UI는 4개 대표 Reference 흐름만 제공한다. **과거 Route/Operation 존재를 현재 완료 근거로 사용하지 않는다.**
+
+과거 embedded Navigation의 group/route 배치는 historical mapping이며 현재 외부 Reference Navigation의 Acceptance가 아니다.
 
 1. Dashboard
 2. 조직·인사
@@ -19,7 +56,7 @@ Target CSV의 27 route는 최신 `cpf-biz-admin/frontend/src/app/routes.ts`에 �
 6. 감사·다운로드
 7. 설정
 
-27 route를 위 7개 Menu IA에 재배치하고, 각 화면의 실제 Backend enforcement/Generated Client/Permission/Audit/Error UX를 Browser에서 검증한다.
+27-route 업무 의미는 내부 Domain capability/API에 보존하고, 외부 Reference UI는 선택된 대표 흐름에서 Backend enforcement/Generated Client/Permission/Audit/Error UX를 검증한다.
 
 Approval은 policy와 immutable execution snapshot을 분리하고 sequential/parallel, person/role/org, ALL/ANY/N_OF_M, delegation/proxy, withdraw/resubmit/expiry/concurrency를 실제 Backend + UI + E2E로 증명한다. 조직/인사/Role은 유효기간·겸직·임시발령·대행·위임·snapshot semantics를 포함한다.
 
@@ -47,12 +84,11 @@ BZA도 단순 CRUD 샘플이 아니라 고객 프로젝트에서 바로 확장·
 ### BZA-APPROVAL
 순차/병렬/개인/Role/조직/ALL/ANY/N_OF_M/위임/대결/회수/재상신/만료/동시승인과 Policy/Instance 분리를 제공한다.
 
-## 3. 현재 Source 기준
+## 3. Historical Embedded UI Source 기준
 
-`10_15`의 BZA Route는 **27개**다.
-현재 그룹은 `overview / people / access / approval / support`이지만 다음 체크포인트에서 실제 사용자 업무 관점으로 재검토한다.
+과거 embedded BZA UI에는 27개 Route가 있었다. 현재 active external UI는 `cpf-biz-frontend`의 4개 Reference Route이며, 내부 `cpf-biz-admin` Domain은 기존 업무 capability/API를 계속 소유한다. 아래 27-route 정보는 capability traceability를 위한 historical mapping이다.
 
-## 4. 권장 Top-Level IA
+## 4. 내부 BZA Domain Capability IA (External Reference Route 수와 독립)
 
 ```text
 BZA
@@ -249,7 +285,7 @@ Detail:
 - Audit.
 - Actions.
 
-## 12. Route별 상세
+## 12. Historical Route별 Domain Capability Mapping
 
 ### `dashboard` — 대시보드
 
@@ -927,9 +963,9 @@ Detail:
 **완료 연결**
 `Requirement → 업무 Menu → Route → Page → Generated Client → Backend → BZA_DB/Owner Runtime → Permission/Audit → E2E`
 
-## 13. Browser/E2E
+## 13. External Reference Frontend Browser/E2E
 
-가능한 모든 Route를 실제 Browser로 순회한다.
+현재 외부 `cpf-biz-frontend`의 4개 Reference Route와 선택된 핵심 정상/실패 흐름을 실제 Browser로 검증한다. 내부 `cpf-biz-admin`의 전체 capability는 Domain/API/권한/DB Test로 별도 검증한다.
 
 - Normal.
 - Empty.
@@ -948,8 +984,8 @@ Screenshot은 Evidence일 뿐 자동 PASS가 아니다. 사람이 읽을 수 있
 
 0건 목표:
 
-- Canonical 기능인데 UI/비메뉴 UX Evidence 없음.
-- Menu→Route→Page 연결 끊김.
+- 내부 BZA Domain capability에 API/권한/감사/Test Evidence가 없거나, 외부 Reference 대상으로 선택된 기능에 실제 UI Consumer Evidence가 없음.
+- Reference Menu→Route→Page→Channel→Domain 연결 끊김.
 - Generated Client Consumer 없음.
 - Mock-only/Fixture-only.
 - 조직/권한/승인 Snapshot 미구현.

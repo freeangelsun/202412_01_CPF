@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-tools/governance",
+  "policy": "Canonical optional/user-selectable surfaces must be zero-footprint when absent or disabled and must participate in aggregate regression when present.",
+  "sourceRemovableApplications": [
+    {
+      "id": "biz-admin-domain",
+      "ownerPath": "cpf-biz-admin",
+      "gradleProject": ":apps:biz-admin",
+      "databaseModuleKey": "bizAdmin",
+      "requiredBy": [],
+      "absenceState": "NORMAL_OPTIONAL"
+    },
+    {
+      "id": "biz-admin-channel",
+      "ownerPath": "cpf-biz-channel",
+      "gradleProject": null,
+      "databaseModuleKey": null,
+      "requiredBy": [],
+      "absenceState": "NORMAL_OPTIONAL"
+    },
+    {
+      "id": "biz-admin-frontend",
+      "ownerPath": "cpf-biz-frontend",
+      "gradleProject": null,
+      "databaseModuleKey": null,
+      "requiredBy": [],
+      "absenceState": "NORMAL_OPTIONAL"
+    }
+  ],
+  "generatedDomainPolicy": {
+    "rootBuildMode": "opt-in-composite",
+    "physicalAbsenceAllowed": true,
+    "batchComponentOptional": true
+  },
+  "starterCapabilityPolicy": {
+    "catalog": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
+    "userSelectableField": "userSelectable",
+    "disabledStateMustNotCreate": [
+      "bean",
+      "external-connection",
+      "listener",
+      "scheduler",
+      "active-health-contributor",
+      "active-capability-registration"
+    ]
+  }
+}

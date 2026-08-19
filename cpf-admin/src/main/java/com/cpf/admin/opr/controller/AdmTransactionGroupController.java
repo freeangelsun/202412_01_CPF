@@ -44,8 +44,11 @@ public class AdmTransactionGroupController extends com.cpf.admin.common.base.Adm
         String operator = requireOperator(request);
         String reason = auditLogService.requireReason(body.reason());
         Map<String, Object> result = transactionGroupService.findBySubject(body.subjectType(), body.subjectId(), body.from(), body.to(), body.limit());
+        Object items = result.get("items");
+        int resultCount = items instanceof java.util.Collection<?> collection ? collection.size() : 0;
         auditLogService.record(CpfContexts.transactionId(), operator, "SUBJECT_TIMELINE_SEARCH", "TRANSACTION_SUBJECT",
-                String.valueOf(result.getOrDefault("maskedSubject", "masked")), reason, clientIp(request));
+                String.valueOf(result.getOrDefault("maskedSubject", "masked")), reason, null,
+                "{\"resultCount\":" + resultCount + "}", null, clientIp(request));
         return ResponseEntity.ok(result);
     }
 

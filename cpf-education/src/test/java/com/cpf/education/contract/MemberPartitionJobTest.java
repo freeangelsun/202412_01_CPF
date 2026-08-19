@@ -1,7 +1,7 @@
 package com.cpf.education.contract;
 
 import com.cpf.batch.api.annotation.CpfBatchJob;
-import com.cpf.education.batch.partition.MemberPartitionJob;
+import com.cpf.education.batch.partition.job.MemberPartitionJob;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

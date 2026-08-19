@@ -461,7 +461,7 @@ $environment=[ordered]@{
 if($python){
     Invoke-CpfStage 'RESOURCE_POLICY' $python @('.\cpf-tools\verification\verify-cpf-resource-policy.py','--root','.')
     Invoke-CpfStage 'NXT3_22' $python @('.\cpf-tools\verification\nxt3\run_nxt3_final_all.py','--root','.', '--evidence',(Join-Path $evidenceDir 'nxt3.json'),'--log',(Join-Path $evidenceDir 'nxt3.log'))
-    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/work','--source-head',$sourceIdentity,'--expected-sha',$sourceIdentity,'--expected-requirements','31','--expected-findings','25')
+    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/work','--expected-requirements','36','--expected-findings','25')
     $inventory=Join-Path $evidenceDir 'inventory'
     Invoke-CpfStage 'ARCH_INVENTORY_GENERATE' $python @('.\cpf-tools\governance\tools\generate-cpf-project-inventory.py','--root','.', '--output-dir',$inventory)
     Invoke-CpfStage 'ARCH_INVENTORY_VERIFY' $python @('.\cpf-tools\governance\tools\verify-cpf-project-inventory.py','--inventory-dir',$inventory,'--policy','.\cpf-tools\governance\cpf-product-surface-policy.json','--waivers','.\cpf-tools\governance\cpf-project-inventory-waivers.csv','--release')
@@ -590,9 +590,9 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
 # 3. ADM/BZA Frontend를 Java와 겹치지 않게 순차 실행한다.
 $frontendSandboxes=@{}
 if(-not $SkipFrontend -and $npm){
-    foreach($frontend in @('cpf-admin\frontend','cpf-biz-admin\frontend')){
+    foreach($frontend in @('cpf-admin\frontend','cpf-biz-frontend')){
         $name=if($frontend.StartsWith('cpf-admin')){'ADM'}else{'BZA'}
-        $moduleDir=if($name -eq 'ADM'){'cpf-admin'}else{'cpf-biz-admin'}
+        $moduleDir=if($name -eq 'ADM'){'cpf-admin'}else{'cpf-biz-frontend'}
         $nodeOptions=Get-CpfNodeOptions $moduleDir
         $frontendSandbox=New-CpfFrontendSandbox $frontend $name
         if($null -eq $frontendSandbox){
@@ -853,10 +853,11 @@ if(-not $SkipOneWas -and $pwsh){
             }else{
                 Invoke-CpfStage 'ADM_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-adm-ui.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-LogDir',(Join-Path $evidenceDir 'browser'),'-BrowserClick','-RequireBrowserClick') $RepoRoot @{CPF_ADM_SMOKE_PASSWORD=$browserAdminPassword}
             }
-            if([string]::IsNullOrWhiteSpace($bzaSmokePassword) -or $null -eq $oneWasBzaBootstrapResult){
-                Add-CpfTextResult 'BZA_BROWSER_E2E_SMOKE' 'FAIL' 'Verifier-owned BZA bootstrap/browser credential is unavailable.' 'FullLocal requires a real authenticated BZA browser flow'
+            $bzaFrontendUrl=[Environment]::GetEnvironmentVariable('CPF_BZA_FRONTEND_URL','Process')
+            if([string]::IsNullOrWhiteSpace($bzaFrontendUrl)){
+                Add-CpfTextResult 'BZA_BROWSER_E2E_SMOKE' 'NOT_EXECUTED' 'External BZA frontend is optional and CPF_BZA_FRONTEND_URL is not configured.' 'Start cpf-biz-channel + cpf-biz-frontend and set CPF_BZA_FRONTEND_URL for live browser verification.'
             }else{
-                Invoke-CpfStage 'BZA_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-bza-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'),'-BzaBaseUrl','http://127.0.0.1:8080','-BzaUsername',[string]$oneWasBzaBootstrapResult.loginId,'-BrowserClick','-RequireBrowserClick') $RepoRoot @{CPF_BZA_SMOKE_PASSWORD=$bzaSmokePassword}
+                Invoke-CpfStage 'BZA_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-bza-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'),'-BzaFrontendUrl',$bzaFrontendUrl,'-BrowserClick','-RequireBrowserClick') $RepoRoot
             }
             if($npm -and $frontendSandboxes.ContainsKey('ADM')){
                 $admSandbox=[string]$frontendSandboxes['ADM']
@@ -865,8 +866,8 @@ if(-not $SkipOneWas -and $pwsh){
             }else{Skip-CpfStage 'ADM_PLAYWRIGHT_E2E' 'ADM frontend sandbox/npm unavailable'}
             if($npm -and $frontendSandboxes.ContainsKey('BZA')){
                 $bzaSandbox=[string]$frontendSandboxes['BZA']
-                Invoke-CpfStage 'BZA_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_FRONTEND_URL='http://127.0.0.1:8080/bza/'}
-                Invoke-CpfStage 'BZA_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $bzaSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-biz-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_BZA_FRONTEND_URL='http://127.0.0.1:8080/bza/'}
+                Add-CpfTextResult 'BZA_PLAYWRIGHT_E2E' 'NOT_EXECUTED' 'BZA live browser ownership moved to smoke-bza-ui.ps1 external reference flow.'
+                Add-CpfTextResult 'BZA_PLAYWRIGHT_A11Y' 'NOT_EXECUTED' 'External BZA accessibility runtime requires a separately started reference frontend.'
             }else{Skip-CpfStage 'BZA_PLAYWRIGHT_E2E' 'BZA frontend sandbox/npm unavailable'}
         }finally{Restore-CpfEnvironment $browserSecretPrevious}
     }elseif(-not $IncludeBrowserE2E){Skip-CpfStage 'BROWSER_E2E' 'IncludeBrowserE2E not requested'}

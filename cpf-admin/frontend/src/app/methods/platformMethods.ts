@@ -71,14 +71,16 @@ export const platformMethods = {
           transactionId: search.transactionId,
           limit: search.limit || 50
         });
-        const [services, endpoints, instances, health, routingPolicies, circuits, callHistory] = await Promise.allSettled([
+        const [services, endpoints, instances, health, routingPolicies, circuits, callHistory, runtimeInventory, managedServers] = await Promise.allSettled([
           this.getJson(`/adm/api/service-registry/services?${baseParams.toString()}`),
           this.getJson(`/adm/api/service-registry/endpoints?${baseParams.toString()}`),
           this.getJson(`/adm/api/service-registry/instances?${instanceParams.toString()}`),
           this.getJson(`/adm/api/service-registry/health?${baseParams.toString()}`),
           this.getJson(`/adm/api/service-registry/routing-policies?${baseParams.toString()}`),
           this.getJson(`/adm/api/service-registry/circuit-states?${baseParams.toString()}`),
-          this.getJson(`/adm/api/service-registry/call-history?${historyParams.toString()}`)
+          this.getJson(`/adm/api/service-registry/call-history?${historyParams.toString()}`),
+          this.getJson(`/adm/api/runtime-inventory?limit=500`),
+          this.getJson(`/adm/api/servers?limit=500`)
         ]);
         this.serviceRegistryResult = {
           services: this.settledValue(services),
@@ -89,7 +91,9 @@ export const platformMethods = {
           circuits: this.settledValue(circuits),
           callHistory: this.settledValue(callHistory)
         };
-        this.setMessage("Service Registry status loaded.");
+        this.centralRuntimeInventory = this.settledValue(runtimeInventory);
+        this.managedServerInventory = this.settledValue(managedServers);
+        this.setMessage("Central Runtime Inventory와 Service Registry 상태를 조회했습니다.");
       },
   async loadReliability() {
         const search = this.reliabilitySearch;

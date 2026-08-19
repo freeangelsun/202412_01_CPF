@@ -105,19 +105,21 @@ public class CpfOpenApiAutoConfiguration {
         return (operation, handlerMethod) -> {
             OnlineTransactionMetadata online = findOnlineTransaction(handlerMethod);
             if (online != null) {
-                // External direct CPF callers provide exactly five transaction headers. Current Channel is receiver-owned.
+                // External channel callers provide five transport values. X-System-Code is receiver-owned.
                 addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, true,
                         "Required end-to-end CPF transaction ID. Internal CPF hops propagate it automatically.");
-                addChannelHeader(operation, CpfHttpHeaderNames.ORIGINAL_CHANNEL, true,
-                        "Required original Channel that started the logical transaction.");
-                addChannelHeader(operation, CpfHttpHeaderNames.CURRENT_CHANNEL, false,
-                        "Receiver-owned current Channel. External callers do not provide it; CPF derives it from the receiver canonical systemCode.");
-                addChannelHeader(operation, CpfHttpHeaderNames.CALLER_CHANNEL, true,
-                        "Required immediate caller Channel for this hop.");
-                addChannelHeader(operation, CpfHttpHeaderNames.TARGET_CHANNEL, true,
-                        "Required target Channel for this hop. Runtime validates it against the receiver current Channel.");
+                addHeader(operation, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, true,
+                        "Required System Code that first created/started this transaction. Immutable for the transaction lifetime.");
+                addHeader(operation, CpfHttpHeaderNames.SYSTEM_CODE, false,
+                        "Receiver-owned current processing System Code. External callers must not assert it.");
+                addHeader(operation, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, true,
+                        "Required immediate caller System Code for this hop.");
+                addHeader(operation, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, true,
+                        "Required target System Code. Runtime validates it against the receiver System Code.");
                 addHeader(operation, CpfHttpHeaderNames.TARGET_OPERATION_ID, true,
                         "Required canonical target operationId. Runtime validates it against the resolved handler before Controller execution.");
+                addChannelHeader(operation, CpfHttpHeaderNames.CALLER_CHANNEL, false,
+                        "Optional Channel policy context. It is not a substitute for Caller System Code.");
             }
             addHeader(operation, CpfHttpHeaderNames.COUNTRY_CODE, false, "Client/service country code when supplied by contract.");
             addHeader(operation, CpfHttpHeaderNames.CLIENT_ID, false, "Client/application identifier; not a security authority by itself.");

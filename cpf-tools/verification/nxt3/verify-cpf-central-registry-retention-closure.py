@@ -34,7 +34,7 @@ def main() -> int:
         require(token.lower() in repo.lower(),f'central registry repository missing {token}',f)
     require('resolveManagedServer' in repo,'runtime self-registration managed-server association missing',f)
 
-    controller=read(root/'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java')
+    controller=read(root/'cpf-admin/src/main/java/com/cpf/admin/opr/server/controller/AdmManagedServerController.java')
     for op in ('admManagedServerFindAll','admManagedServerFindOne','admManagedServerSave','admManagedServerDisable','admRuntimeInventoryFindAll'):
         require(op in controller,f'ADM central registry API missing {op}',f)
 
@@ -46,11 +46,19 @@ def main() -> int:
       'cpf-admin/frontend/src/features/remote-logs/RemoteLogsPage.vue',
       'cpf-admin/frontend/src/features/batch-runtime-control/RuntimeFleetWorkbench.vue',
       'cpf-admin/frontend/src/features/health/InstanceHealthPage.vue',
-      'cpf-admin/frontend/src/features/server-management/ServerManagementPage.vue',
+      'cpf-admin/frontend/src/features/server-management/pages/ServerManagementPage.vue',
     ]
     consumer_count=sum('RuntimeInventorySelector' in read(root/x) for x in consumer_files)
+    discovered_consumers=[]
+    frontend=root/'cpf-admin/frontend/src/features'
+    if frontend.exists():
+        for candidate in frontend.rglob('*.vue'):
+            if 'RuntimeInventorySelector' in read(candidate):
+                discovered_consumers.append(candidate.relative_to(root).as_posix())
     info['centralRegistryUiConsumers']=consumer_count
+    info['centralRegistryUiConsumersDiscovered']=len(discovered_consumers)
     require(consumer_count==len(consumer_files),f'central registry UI consumer closure {consumer_count}/{len(consumer_files)}',f)
+    require(len(discovered_consumers)>=len(consumer_files),f'central registry discovered consumers {len(discovered_consumers)} < {len(consumer_files)}',f)
 
     # Current runtime code must not query the pre-consolidation service/runtime table names.
     legacy=[]

@@ -2,117 +2,86 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.common.code.dto.CommonCodeRequest;
-import com.cpf.common.code.service.CodeCacheService;
+import com.cpf.common.management.CpfCommonManagementApi;
+import com.cpf.common.management.CpfCommonMutation;
+import com.cpf.common.management.CpfCommonResource;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** 공통 코드 Group·Item·Version·유효기간을 운영하는 ADM API입니다. */
+/** 공통 코드 Group·Item을 canonical Common Management API로 운영하는 ADM API입니다. */
 @RestController
 @RequestMapping("/adm/api/codes")
 @Tag(name = "ADM-CPF Codes", description = "CPF 공통 코드 관리 API")
 public class AdmCodeController extends com.cpf.admin.common.base.AdmBaseController {
-    private final CodeCacheService codeCacheService;
+    private final CpfCommonManagementApi common;
     private final AdmAuditLogService auditLogService;
 
-    public AdmCodeController(CodeCacheService codeCacheService, AdmAuditLogService auditLogService) {
-        this.codeCacheService = codeCacheService;
+    public AdmCodeController(CpfCommonManagementApi common, AdmAuditLogService auditLogService) {
+        this.common = common;
         this.auditLogService = auditLogService;
     }
 
-    @GetMapping    @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회", description = "CMN_CODE 기준 코드 그룹과 코드를 조회합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findCodes(HttpServletRequest request) {
+    @GetMapping @Operation(operationId = "admCodeFindCodes", summary = "공통 코드 목록 조회")
+    public ResponseEntity<List<Map<String,Object>>> findCodes(HttpServletRequest request) {
         requireOperator(request);
-        return ResponseEntity.ok(codeCacheService.getAllCodes());
+        return ResponseEntity.ok(common.search(CpfCommonResource.CODE, null, 0, 200, true, null).content());
     }
 
-    @GetMapping("/{codeId}")    @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회", description = "코드 ID로 CMN_CODE 상세 정보를 조회합니다.")
-    public ResponseEntity<Map<String, Object>> findCode(@PathVariable Long codeId, HttpServletRequest request) {
+    @GetMapping("/{codeId}") @Operation(operationId = "admCodeFindCode", summary = "공통 코드 상세 조회")
+    public ResponseEntity<Map<String,Object>> findCode(@PathVariable Long codeId, HttpServletRequest request) {
         requireOperator(request);
-        return ResponseEntity.ok(codeCacheService.getCodeById(codeId));
+        return ResponseEntity.ok(common.get(CpfCommonResource.CODE, Map.of("code_id", codeId)));
     }
 
-    @PostMapping    @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록", description = "cpf_code에 신규 코드를 등록하고 코드 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> createCode(
-            @Valid @RequestBody CommonCodeRequest request,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> created = codeCacheService.createCode(request);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                operator,
-                "CODE_CREATE",
-                "CMN_CODE",
-                String.valueOf(created.getOrDefault("codeId", request.getCodeKey())),
-                reason,
-                null,
-                String.valueOf(created),
-                String.valueOf(created),
-                servletRequest.getRemoteAddr());
+    @PostMapping @Operation(operationId = "admCodeCreateCode", summary = "공통 코드 등록")
+    public ResponseEntity<Map<String,Object>> createCode(@Valid @RequestBody CommonCodeRequest body, HttpServletRequest request) {
+        String actor=requireOperator(request), reason=auditLogService.requireReason(body.getReason());
+        Map<String,Object> created=common.create(CpfCommonResource.CODE,
+                new CpfCommonMutation(Map.of(), values(body), null, reason), actor);
+        audit(request,actor,"CODE_CREATE",String.valueOf(value(created,"code_id",body.getCodeKey())),reason,null,created);
         return ResponseEntity.ok(created);
     }
 
-    @PutMapping("/{codeId}")    @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정", description = "cpf_code를 수정하고 코드 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> updateCode(
-            @PathVariable Long codeId,
-            @Valid @RequestBody CommonCodeRequest request,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> before = codeCacheService.getCodeById(codeId);
-        Map<String, Object> updated = codeCacheService.updateCode(codeId, request);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                operator,
-                "CODE_UPDATE",
-                "CMN_CODE",
-                String.valueOf(codeId),
-                reason,
-                String.valueOf(before),
-                String.valueOf(updated),
-                "코드 수정",
-                servletRequest.getRemoteAddr());
+    @PutMapping("/{codeId}") @Operation(operationId = "admCodeUpdateCode", summary = "공통 코드 수정")
+    public ResponseEntity<Map<String,Object>> updateCode(@PathVariable Long codeId,@Valid @RequestBody CommonCodeRequest body,HttpServletRequest request) {
+        String actor=requireOperator(request), reason=auditLogService.requireReason(body.getReason());
+        Map<String,Object> before=common.get(CpfCommonResource.CODE,Map.of("code_id",codeId));
+        Map<String,Object> updated=common.update(CpfCommonResource.CODE,
+                new CpfCommonMutation(Map.of("code_id",codeId),values(body),null,reason),actor);
+        audit(request,actor,"CODE_UPDATE",String.valueOf(codeId),reason,before,updated);
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{codeId}")    @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성", description = "cpf_code를 비활성화하고 코드 캐시를 갱신합니다.")
-    public ResponseEntity<List<Map<String, Object>>> deleteCode(
-            @PathVariable Long codeId,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        String requiredReason = auditLogService.requireReason(reason);
-        Map<String, Object> before = codeCacheService.getCodeById(codeId);
-        List<Map<String, Object>> latest = codeCacheService.deleteCode(codeId);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                operator,
-                "CODE_DISABLE",
-                "CMN_CODE",
-                String.valueOf(codeId),
-                requiredReason,
-                String.valueOf(before),
-                null,
-                "코드 비활성",
-                servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(latest);
+    @DeleteMapping("/{codeId}") @Operation(operationId = "admCodeDeleteCode", summary = "공통 코드 비활성")
+    public ResponseEntity<List<Map<String,Object>>> deleteCode(@PathVariable Long codeId,@RequestParam String reason,HttpServletRequest request) {
+        String actor=requireOperator(request), required=auditLogService.requireReason(reason);
+        Map<String,Object> before=common.get(CpfCommonResource.CODE,Map.of("code_id",codeId));
+        common.delete(CpfCommonResource.CODE,new CpfCommonMutation(Map.of("code_id",codeId),Map.of(),null,required),actor);
+        audit(request,actor,"CODE_DISABLE",String.valueOf(codeId),required,before,null);
+        return ResponseEntity.ok(common.search(CpfCommonResource.CODE,null,0,200,true,null).content());
+    }
+
+    private Map<String,Object> values(CommonCodeRequest r) {
+        Map<String,Object> v=new LinkedHashMap<>();
+        if(r.getParentId()!=null)v.put("parent_id",r.getParentId());
+        v.put("code_key",r.getCodeKey()); v.put("code_value",r.getCodeValue());
+        if(r.getDescription()!=null)v.put("description",r.getDescription());
+        v.put("use_yn",r.getUseYn()); return v;
+    }
+    private Object value(Map<String,Object> map,String key,Object fallback){
+        for(var e:map.entrySet()) if(e.getKey().equalsIgnoreCase(key)) return e.getValue(); return fallback;
+    }
+    private void audit(HttpServletRequest req,String actor,String action,String key,String reason,Object before,Object after){
+        auditLogService.record(CpfContexts.transactionId(),actor,action,"CMN_CODE",key,reason,
+                before==null?null:String.valueOf(before),after==null?null:String.valueOf(after),action,req.getRemoteAddr());
     }
 }

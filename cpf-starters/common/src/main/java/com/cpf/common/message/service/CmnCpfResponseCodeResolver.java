@@ -5,7 +5,8 @@ import com.cpf.core.api.error.CpfErrorDefinition;
 import com.cpf.foundation.message.CpfMessageFormatter;
 import com.cpf.core.api.error.CpfResolvedResponse;
 import com.cpf.core.api.error.CpfResponseCodeResolver;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import com.cpf.common.message.api.CpfMessageRecord;
+import com.cpf.common.message.api.CpfResponseCodeRecord;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -17,17 +18,12 @@ import java.util.Map;
  */
 @Primary
 @Component
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
-    private final ResponseCodeCacheService responseCodeCacheService;
-    private final MessageCacheService messageCacheService;
+    private final CmnErrorCatalogStore catalog;
     private final DefaultCpfResponseCodeResolver fallback = new DefaultCpfResponseCodeResolver();
 
-    public CmnCpfResponseCodeResolver(
-            ResponseCodeCacheService responseCodeCacheService,
-            MessageCacheService messageCacheService) {
-        this.responseCodeCacheService = responseCodeCacheService;
-        this.messageCacheService = messageCacheService;
+    CmnCpfResponseCodeResolver(CmnErrorCatalogStore catalog) {
+        this.catalog = catalog;
     }
 
     @Override
@@ -115,7 +111,8 @@ public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
             return null;
         }
         try {
-            return responseCodeCacheService.getResponseCode(responseCode);
+            CpfResponseCodeRecord record = catalog.response(responseCode);
+            return record == null ? null : responseMap(record);
         } catch (RuntimeException ex) {
             return null;
         }
@@ -126,10 +123,30 @@ public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
             return null;
         }
         try {
-            return messageCacheService.getMessageByKeyAndLocale(messageCode, language);
+            CpfMessageRecord record = catalog.message(messageCode, Locale.forLanguageTag(language));
+            return record == null ? null : messageMap(record);
         } catch (RuntimeException ex) {
             return null;
         }
+    }
+
+
+    private Map<String, Object> responseMap(CpfResponseCodeRecord r) {
+        return Map.ofEntries(
+                Map.entry("responseCode", r.responseCode()), Map.entry("messageCode", r.messageCode()),
+                Map.entry("resultType", r.resultType()), Map.entry("moduleId", r.moduleId()),
+                Map.entry("responseGroup", r.responseGroup()), Map.entry("sequenceNo", r.sequenceNo()),
+                Map.entry("category", r.category()), Map.entry("retryDisposition", r.retryDisposition()),
+                Map.entry("exposure", r.exposure()), Map.entry("catalogVersion", r.catalogVersion()),
+                Map.entry("useYn", r.useYn()));
+    }
+
+    private Map<String, Object> messageMap(CpfMessageRecord r) {
+        Map<String,Object> m = new java.util.LinkedHashMap<>();
+        m.put("messageId", r.messageId()); m.put("messageCode", r.messageCode()); m.put("locale", r.locale());
+        m.put("externalMessage", r.externalMessage()); m.put("internalMessage", r.internalMessage());
+        m.put("catalogVersion", r.catalogVersion()); m.put("useYn", r.useYn());
+        return m;
     }
 
     private int intValue(String value, int fallback) {

@@ -52,11 +52,11 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
             if (!(raw instanceof CpfHttpHeaders headers)) {
                 throw new IllegalStateException("Trusted internal request has no captured CPF headers");
             }
-            String currentChannel = runtime.currentChannel();
-            assertChannel(headers.getRequired(CpfHttpHeaderNames.CURRENT_CHANNEL), currentChannel,
-                    CpfHttpHeaderNames.CURRENT_CHANNEL, "CURRENT_CHANNEL_MISMATCH");
-            assertChannel(headers.getRequired(CpfHttpHeaderNames.TARGET_CHANNEL), currentChannel,
-                    CpfHttpHeaderNames.TARGET_CHANNEL, "TARGET_CHANNEL_MISMATCH");
+            String currentSystem = runtime.systemCode();
+            assertSystem(headers.getRequired(CpfHttpHeaderNames.SYSTEM_CODE), currentSystem,
+                    CpfHttpHeaderNames.SYSTEM_CODE, "SYSTEM_CODE_MISMATCH");
+            assertSystem(headers.getRequired(CpfHttpHeaderNames.TARGET_SYSTEM_CODE), currentSystem,
+                    CpfHttpHeaderNames.TARGET_SYSTEM_CODE, "TARGET_SYSTEM_CODE_MISMATCH");
 
             String declared = headers.getRequired(CpfHttpHeaderNames.TARGET_OPERATION_ID);
             if (!resolvedOperation.equals(declared)) {
@@ -120,10 +120,10 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
         return operationIds.resolve(method);
     }
 
-    private void assertChannel(String headerValue, String expected, String header, String category) {
+    private void assertSystem(String headerValue, String expected, String header, String category) {
         if (!expected.equalsIgnoreCase(headerValue)) {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    header, "Target/current Channel header does not match this runtime.", 409, category);
+                    header, "Target/current System header does not match this runtime.", 409, category);
         }
     }
 

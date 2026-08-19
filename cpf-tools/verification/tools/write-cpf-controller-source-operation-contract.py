@@ -230,6 +230,17 @@ def normalize_java_type(java_type: str) -> str:
     return re.sub(r"(?<![\w$])(?:[a-z_][\w$]*\.)+([A-Za-z_$][\w$]*)", r"\1", value)
 
 
+def generic_component_name(java_type: str) -> str:
+    """Convert arbitrary Java generic DTO types to stable OpenAPI component identifiers."""
+    simple = normalize_java_type(java_type).replace("$", ".")
+    match = re.fullmatch(r"([A-Za-z_$][\w$]*)<(.+)>", simple)
+    if not match:
+        return re.sub(r"[^A-Za-z0-9_$]", "_", simple)
+    base, arguments = match.groups()
+    parts = [generic_component_name(value) for value in split_top_level(arguments)]
+    return base + "Of" + "And".join(parts)
+
+
 def java_schema(java_type: str) -> dict[str, Any]:
     simple = normalize_java_type(java_type).replace("$", ".")
     # Java nested DTO references use the nested simple name in the component inventory.
@@ -277,7 +288,8 @@ def java_schema(java_type: str) -> dict[str, Any]:
     mapping = re.fullmatch(r"Map<[^,>]+,(.+)>", simple)
     if mapping:
         return {"type": "object", "additionalProperties": java_schema(mapping.group(1))}
-    return {"$ref": f"#/components/schemas/{simple}"}
+    component = generic_component_name(simple)
+    return {"$ref": f"#/components/schemas/{component}"}
 
 
 
@@ -373,7 +385,7 @@ def parameter_contract(raw: str) -> dict[str, Any] | None:
     return {"kind": "parameter", "name": name, "in": location, "required": required, "schema": schema}
 
 
-def method_signature(text: str, start: int) -> tuple[str, str, int]:
+def method_signature(text: str, start: int) -> tuple[str, str, int, str]:
     # Mapping annotations are followed by zero or more method-level annotations.  Skip those
     # annotations structurally so identifiers or strings inside annotations (for example
     # @PreAuthorize("hasAuthority(...)")) can never be mistaken for the Java handler method.
@@ -406,8 +418,32 @@ def method_signature(text: str, start: int) -> tuple[str, str, int]:
         raise ContractError("controller method declaration missing after mapping")
     opening = declaration.end() - 1
     closing = find_matching(text, opening)
-    return declaration.group(1), text[opening + 1 : closing], closing
+    declaration_prefix = text[cursor:declaration.start(1)].strip()
+    declaration_prefix = re.sub(
+        r"^(?:(?:public|protected|private|static|final|synchronized|abstract|default|native|strictfp)\s+)+",
+        "",
+        declaration_prefix,
+    )
+    declaration_prefix = re.sub(r"^<[^>]+>\s*", "", declaration_prefix).strip()
+    return declaration.group(1), text[opening + 1 : closing], closing, declaration_prefix
 
+
+
+def response_java_type(java_type: str) -> str:
+    normalized = normalize_java_type(java_type)
+    for wrapper in ("ResponseEntity", "HttpEntity"):
+        match = re.fullmatch(rf"{wrapper}<(.+)>", normalized)
+        if match:
+            normalized = match.group(1)
+            break
+    return normalized
+
+
+def response_schema(java_type: str) -> dict[str, Any]:
+    normalized = response_java_type(java_type)
+    if normalized in {"void", "Void"}:
+        return {"type": "object", "additionalProperties": False, "description": "No response body"}
+    return java_schema(normalized)
 
 def record_schemas(text: str, *, strip_server_derived: bool = False) -> dict[str, dict[str, Any]]:
     schemas: dict[str, dict[str, Any]] = {}
@@ -519,7 +555,7 @@ def discover(root: Path, module: str) -> tuple[list[dict[str, Any]], dict[str, d
             path = normalize(base, annotation_path(mapping.group(2)))
             if not path.startswith(prefix):
                 continue
-            _, parameters_text, signature_end = method_signature(text, mapping.end())
+            _, parameters_text, signature_end, return_type = method_signature(text, mapping.end())
             annotation_scope = text[mapping.end() : signature_end]
             # Java annotation order is semantically irrelevant. @Hidden may appear before or
             # after the Spring mapping annotation, so inspect the contiguous declaration prefix
@@ -609,12 +645,16 @@ def discover(root: Path, module: str) -> tuple[list[dict[str, Any]], dict[str, d
             # the same-origin CSRF header at the browser/BFF boundary.
             if module == "ADM" and method in MUTATION_METHODS and "admSessionCookie" in security:
                 security.append("admCsrfHeader")
+            success_schema = response_schema(return_type)
+            for referenced_name in schema_references(success_schema):
+                referenced_schemas.add(referenced_name)
             records.append({
                 "method": method,
                 "template": path,
                 "operationId": operation_id,
                 "parameters": parameters,
                 "requestBody": request_body,
+                "responseSchema": success_schema,
                 "responses": explicit_api_responses(declaration_annotations),
                 "security": security,
                 "source": file.relative_to(root).as_posix(),
@@ -654,7 +694,7 @@ def build_openapi_spec(module: str, records: list[dict[str, Any]], schemas: dict
         responses: dict[str, Any] = {
             "200": {
                 "description": "Controller source contract response",
-                "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CpfControllerSourceResponse"}}},
+                "content": {"application/json": {"schema": record.get("responseSchema", {"$ref": "#/components/schemas/CpfControllerSourceResponse"})}},
             }
         }
         applicable = standard_error_statuses(module, record["method"], record["template"])
@@ -819,17 +859,19 @@ def main() -> int:
     parser.add_argument("--module", choices=sorted(MODULES), default="ADM")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--openapi-output", type=Path)
+    parser.add_argument("--openapi-only", action="store_true", help="Write only the controller-source OpenAPI contract without frontend compatibility artifacts")
     parser.add_argument("--check-openapi", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    default_output = Path("cpf-admin/frontend/src/generated" if args.module == "ADM" else "cpf-biz-admin/frontend/src/generated")
+    default_output = Path("cpf-admin/frontend/src/generated" if args.module == "ADM" else "cpf-biz-frontend/src/generated")
     raw_output = args.output or default_output
     output = raw_output if raw_output.is_absolute() else root / raw_output
     records, schemas = discover(root, args.module)
-    openapi_output = None if args.openapi_output is None else (args.openapi_output if args.openapi_output.is_absolute() else root / args.openapi_output)
+    default_openapi = Path("cpf-admin/frontend/openapi/cpf-openapi.json" if args.module == "ADM" else "cpf-biz-admin/openapi/cpf-openapi.json")
+    openapi_output = (args.openapi_output or default_openapi)
+    openapi_output = openapi_output if openapi_output.is_absolute() else root / openapi_output
     if args.check_openapi:
-        frontend_root = root / ("cpf-admin/frontend" if args.module == "ADM" else "cpf-biz-admin/frontend")
-        tracked = openapi_output or (frontend_root / "openapi/cpf-openapi.json")
+        tracked = openapi_output
         if not tracked.is_file():
             raise ContractError(f"tracked pre-runtime OpenAPI missing: {tracked}")
         actual = json.loads(tracked.read_text(encoding="utf-8"))
@@ -837,6 +879,12 @@ def main() -> int:
         if actual != expected:
             raise ContractError(f"tracked pre-runtime OpenAPI drift: module={args.module} path={tracked}")
         print(f"[PASS] tracked pre-runtime OpenAPI current module={args.module} operations={len(records)} path={tracked}")
+        return 0
+    if args.openapi_only:
+        spec = build_openapi_spec(args.module, records, schemas)
+        openapi_output.parent.mkdir(parents=True, exist_ok=True)
+        openapi_output.write_text(json.dumps(spec, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
+        print(f"[PASS] pre-runtime controller OpenAPI module={args.module} operations={len(records)} output={openapi_output}")
         return 0
     write(root, args.module, output, records, schemas, openapi_output)
     print(f"[PASS] pre-runtime controller operation contract module={args.module} operations={len(records)} output={output}")

@@ -21,6 +21,13 @@
 | Evidence | `cpf-docs/work/TEST_AND_EVIDENCE.md` |
 | Delete/Hygiene | `cpf-docs/work/CPF_DELETE_MANIFEST.csv`, `CPF_DELETE_ONE_LINE.ps1.txt` |
 
+
+## 2.0 Optional Surface Role Rule
+
+`cpf-biz-admin`은 Generator Output이 아니라 CPF가 미리 제공하는 Optional Business Domain이다. 폴더 부재가 Root Build/Publication/Installer/Verifier와 필수 Runtime을 깨뜨리지 않아야 한다. `cpf-biz-channel`과 `cpf-biz-frontend`도 선택형이며 외부 Channel/Reference 역할만 소유한다. 모든 optional/user-selectable Surface는 `cpf-tools/governance/cpf-optional-surface-policy.json`과 동일한 physical-removal 계약을 따른다.
+
+Source 구조는 기능 Owner를 우선하고 기능 아래 필요한 역할 package를 둔다. Backend/Frontend 모두 파일 크기만으로 기계 분리하거나 거대 통파일/모호한 Helper·Util 계층을 만들지 않는다.
+
 ## 2. Target Source Ownership
 
 | 기능 | Canonical Owner/Path |
@@ -39,7 +46,9 @@
 | Batch Runtime | `cpf-batch/**` |
 | Gateway Runtime | `cpf-gateway/**` |
 | Platform Admin | `cpf-admin/**` |
-| Business Admin | `cpf-biz-admin/**` |
+| Optional Prebuilt Business Administration Domain | `cpf-biz-admin/**` |
+| External DB-less BZA Channel | `cpf-biz-channel/**` |
+| External BZA Reference Frontend | `cpf-biz-frontend/**` |
 | Generator Contract/Template | `cpf-tools/generator/contracts/**`, `cpf-tools/generator/templates/**` |
 | Generated Customer Domain — Member | `cpf-member/**` — Root-level 실제 Generator Output, logical domain member/MBR, Online 회귀, minimal generated surface, final deliverable 유지, CPF Product/Public Artifact 아님. Batch는 초기 프로젝트 구성의 별도 `cpf-starter-batch` Capability |
 | Generated Customer Domain — External | `cpf-external/**` — Root-level 실제 Generator Output, logical domain external/EXS, Online 회귀, minimal generated surface, final deliverable 유지, CPF Product/Public Artifact 아님. Batch는 초기 프로젝트 구성의 별도 `cpf-starter-batch` Capability |

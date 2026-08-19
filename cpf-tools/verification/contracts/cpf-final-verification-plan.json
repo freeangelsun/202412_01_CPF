@@ -59,7 +59,7 @@
       "stage": "frontend",
       "runner": "npm",
       "path": "package.json",
-      "workingDirectory": "cpf-biz-admin/frontend",
+      "workingDirectory": "cpf-biz-frontend",
       "args": ["run", "verify"],
       "required": true,
       "requiredTool": "node22"

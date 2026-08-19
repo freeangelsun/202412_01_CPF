@@ -10,7 +10,7 @@ const root = path.resolve(process.argv[2] || '.');
 
 function loadTypeScript() {
   const candidates = [];
-  for (const frontend of ['cpf-admin/frontend', 'cpf-biz-admin/frontend']) {
+  for (const frontend of ['cpf-admin/frontend', 'cpf-biz-frontend']) {
     const packageJson = path.join(root, frontend, 'package.json');
     if (fs.existsSync(packageJson)) {
       try {
@@ -57,7 +57,7 @@ function walk(dir) {
   }
 }
 
-for (const relative of ['cpf-admin/frontend/src', 'cpf-biz-admin/frontend/src']) {
+for (const relative of ['cpf-admin/frontend/src', 'cpf-biz-frontend/src']) {
   const absolute = path.join(root, relative);
   if (fs.existsSync(absolute)) walk(absolute);
 }

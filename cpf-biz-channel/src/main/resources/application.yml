@@ -1,0 +1,22 @@
+server:
+  port: ${BZA_CHANNEL_PORT:8090}
+spring:
+  application:
+    name: cpf-biz-channel
+  main:
+    banner-mode: "off"
+bza:
+  channel:
+    mode: ${BZA_CHANNEL_MODE:GATEWAY}
+    gateway-base-uri: ${BZA_GATEWAY_BASE_URI:http://127.0.0.1:8080}
+    direct-base-uri: ${BZA_DIRECT_BASE_URI:http://127.0.0.1:8082}
+    caller-system-code: ${BZA_CHANNEL_SYSTEM_CODE:BCH}
+    target-system-code: ${BZA_TARGET_SYSTEM_CODE:BZA}
+    caller-channel: ${BZA_CHANNEL_CODE:BZA}
+    connect-timeout: ${BZA_CONNECT_TIMEOUT:3s}
+    request-timeout: ${BZA_REQUEST_TIMEOUT:10s}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

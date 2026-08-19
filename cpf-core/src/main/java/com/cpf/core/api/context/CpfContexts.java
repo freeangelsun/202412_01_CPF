@@ -65,6 +65,14 @@ public final class CpfContexts {
     public static String operationId() { var c = current(); return c == null ? null : c.operationId(); }
     /** 현재 분산 Trace 식별자를 반환합니다. */
     public static String traceId() { var c = current(); return c == null ? null : c.traceId(); }
+    /** 최초 Transaction 시작 Canonical System Code를 반환합니다. */
+    public static String originalSystemCode() { var c = current(); return c == null ? null : c.originalSystemCode(); }
+    /** 현재 Hop을 실제 처리하는 Canonical System Code를 반환합니다. */
+    public static String currentSystemCode() { var c = current(); return c == null ? null : c.currentSystemCode(); }
+    /** 바로 이전 Hop의 Canonical Caller System Code를 반환합니다. */
+    public static String callerSystemCode() { var c = current(); return c == null ? null : c.callerSystemCode(); }
+    /** 현재 Hop의 Canonical Target System Code를 반환합니다. */
+    public static String targetSystemCode() { var c = current(); return c == null ? null : c.targetSystemCode(); }
     /** 최초 Transaction 시작 Channel을 반환합니다. */
     public static String originalChannel() { var c = current(); return c == null ? null : c.originalChannel(); }
     /** 현재 요청을 처리 중인 Runtime Channel을 반환합니다. */

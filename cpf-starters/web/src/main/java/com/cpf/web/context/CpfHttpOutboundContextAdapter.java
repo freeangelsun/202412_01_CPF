@@ -21,22 +21,30 @@ public final class CpfHttpOutboundContextAdapter {
     public Map<String,String> headers(CpfContext context, CpfWebContext interaction, CpfHttpOutboundRequest request) {
         Objects.requireNonNull(context, "context");
         CpfHttpOutboundRequest target = request == null
-                ? new CpfHttpOutboundRequest(null, null, null, false, Map.of()) : request;
+                ? new CpfHttpOutboundRequest(null, null, null, null, false, Map.of()) : request;
         LinkedHashMap<String,String> headers = new LinkedHashMap<>();
 
         if (target.trustedInternal()) {
-            String callerChannel = localChannel(context);
-            String targetChannel = requiredChannel(target.targetChannel(), CpfHttpHeaderNames.TARGET_CHANNEL);
+            String callerSystem = localSystem(context);
+            String targetSystem = requiredSystem(target.targetSystemCode(), CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
             String operation = required(target.targetOperation(), CpfHttpHeaderNames.TARGET_OPERATION_ID);
-            String original = first(context.originalChannel(), callerChannel);
+            String originalSystem = first(context.originalSystemCode(), callerSystem);
 
             putRequired(headers, CpfHttpHeaderNames.TRANSACTION_ID, context.transactionId());
-            putRequired(headers, CpfHttpHeaderNames.ORIGINAL_CHANNEL, original);
-            // On the wire Current/Target both identify the receiver for this hop. Receiver verifies Current against runtime.
-            putRequired(headers, CpfHttpHeaderNames.CURRENT_CHANNEL, targetChannel);
-            putRequired(headers, CpfHttpHeaderNames.CALLER_CHANNEL, callerChannel);
-            putRequired(headers, CpfHttpHeaderNames.TARGET_CHANNEL, targetChannel);
+            putRequired(headers, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, originalSystem);
+            // On an internal hop the sender asserts the receiver's System Code; the receiver verifies it against runtime identity.
+            putRequired(headers, CpfHttpHeaderNames.SYSTEM_CODE, targetSystem);
+            putRequired(headers, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, callerSystem);
+            putRequired(headers, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, targetSystem);
             putRequired(headers, CpfHttpHeaderNames.TARGET_OPERATION_ID, operation);
+
+            String targetChannel = optionalChannel(target.targetChannel());
+            String callerChannel = localChannel(context);
+            String originalChannel = first(context.originalChannel(), callerChannel);
+            put(headers, CpfHttpHeaderNames.ORIGINAL_CHANNEL, originalChannel);
+            put(headers, CpfHttpHeaderNames.CURRENT_CHANNEL, targetChannel);
+            put(headers, CpfHttpHeaderNames.CALLER_CHANNEL, callerChannel);
+            put(headers, CpfHttpHeaderNames.TARGET_CHANNEL, targetChannel);
 
             if (interaction != null) {
                 put(headers, CpfHttpHeaderNames.COUNTRY_CODE, interaction.countryCode());
@@ -74,10 +82,36 @@ public final class CpfHttpOutboundContextAdapter {
         });
     }
 
+    private String localSystem(CpfContext context) {
+        if (runtime != null) return runtime.systemCode();
+        String inferred = first(context.currentSystemCode(), context.originalSystemCode());
+        return requiredSystem(inferred, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
+    }
+
     private String localChannel(CpfContext context) {
-        if (runtime != null) return runtime.currentChannel();
-        String inferred = first(context.currentChannel(), context.originalChannel());
-        return requiredChannel(inferred, CpfHttpHeaderNames.CALLER_CHANNEL);
+        if (runtime != null && runtime.currentChannel() != null) return runtime.currentChannel();
+        return optionalChannel(first(context.currentChannel(), context.originalChannel()));
+    }
+
+    private static String requiredSystem(String value, String header) {
+        String normalized = required(value, header).toUpperCase(Locale.ROOT);
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,31}")) {
+            throw new CpfHeaderValidationException(
+                    com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    header, "Invalid CPF System Code.", 400, "SYSTEM_CODE_INVALID");
+        }
+        return normalized;
+    }
+
+    private static String optionalChannel(String value) {
+        if (value == null || value.isBlank()) return null;
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
+            throw new CpfHeaderValidationException(
+                    com.cpf.core.api.error.CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    "*", "Invalid CPF Channel identity.", 400, "CHANNEL_INVALID");
+        }
+        return normalized;
     }
 
     private static String requiredChannel(String value, String header) {

@@ -27,7 +27,7 @@ final class CpfDomainInvocationGuard {
         Object trust = request.getAttribute(CpfWebContextFilter.INGRESS_TRUST_ATTRIBUTE);
         if (trust != CpfHttpIngressTrust.TRUSTED_INTERNAL) {
             throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                    CpfHttpHeaderNames.CALLER_CHANNEL,
+                    CpfHttpHeaderNames.CALLER_SYSTEM_CODE,
                     "Remote CPF Domain transport requires a trusted internal caller.",
                     403, "DOMAIN_CALLER_NOT_TRUSTED");
         }

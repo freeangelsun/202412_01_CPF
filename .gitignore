@@ -10,7 +10,9 @@ HELP.md
 /cpf-batch/build/
 /cpf-batch/*/build/
 /cpf-biz-admin/build/
-/cpf-biz-admin/frontend/build/
+/cpf-biz-frontend/dist/
+/cpf-biz-frontend/node_modules/
+/cpf-biz-channel/build/
 /cpf-core/build/
 /cpf-gateway/build/
 /cpf-starters/**/build/

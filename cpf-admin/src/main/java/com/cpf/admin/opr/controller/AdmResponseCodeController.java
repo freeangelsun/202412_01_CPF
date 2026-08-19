@@ -1,125 +1,34 @@
-/* ADM/BZA 실제 Consumer가 CPF Framework Annotation을 사용하도록 currentize한다. */
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.message.api.*;
 import com.cpf.common.message.dto.CommonResponseCodeRequest;
-import com.cpf.common.message.service.ResponseCodeCacheService;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/** ADM response-code catalog API. */
+/** Response Code catalog의 canonical Common Product Service Consumer입니다. */
 @RestController
 @RequestMapping("/adm/api/response-codes")
-@Tag(name = "ADM-OPR Response Codes", description = "CMN_RESPONSE_CODE management API")
+@Tag(name="ADM-OPR Response Codes",description="CMN_RESPONSE_CODE management API")
 public class AdmResponseCodeController extends com.cpf.admin.common.base.AdmBaseController {
-    private final ResponseCodeCacheService responseCodeCacheService;
-    private final AdmAuditLogService auditLogService;
-
-    public AdmResponseCodeController(ResponseCodeCacheService responseCodeCacheService, AdmAuditLogService auditLogService) {
-        this.responseCodeCacheService = responseCodeCacheService;
-        this.auditLogService = auditLogService;
-    }
-
-    @GetMapping    @Operation(operationId = "admResponseCodeFindAll", summary = "List response codes", description = "Lists active response codes from CMN_RESPONSE_CODE.")
-    public ResponseEntity<Map<String, Object>> findAll(HttpServletRequest request) {
-        requireOperator(request);
-        return safeResponse(() -> responseCodeCacheService.getAllResponseCodes());
-    }
-
-    @GetMapping("/{responseCode}")    @Operation(operationId = "admResponseCodeFindOne", summary = "Get response code", description = "Gets one active response code from CMN_RESPONSE_CODE.")
-    public ResponseEntity<Map<String, Object>> findOne(@PathVariable String responseCode, HttpServletRequest request) {
-        requireOperator(request);
-        return safeResponse(() -> responseCodeCacheService.getResponseCode(responseCode));
-    }
-
-    @PostMapping    @Operation(operationId = "admResponseCodeCreate", summary = "Create response code", description = "Creates a response code and refreshes responseCodeCache.")
-    public ResponseEntity<Map<String, Object>> create(
-            @Valid @RequestBody CommonResponseCodeRequest request,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String auditReason = auditLogService.requireReason(reason);
-        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.createResponseCode(request));
-        recordAudit(servletRequest, operator, "RESPONSE_CODE_CREATE", request.getResponseCode(), auditReason);
-        return response;
-    }
-
-    @PutMapping("/{responseCode}")    @Operation(operationId = "admResponseCodeUpdate", summary = "Update response code", description = "Updates a response code and refreshes responseCodeCache.")
-    public ResponseEntity<Map<String, Object>> update(
-            @PathVariable String responseCode,
-            @Valid @RequestBody CommonResponseCodeRequest request,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        request.setRequestUser(operator);
-        String auditReason = auditLogService.requireReason(reason);
-        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.updateResponseCode(responseCode, request));
-        recordAudit(servletRequest, operator, "RESPONSE_CODE_UPDATE", responseCode, auditReason);
-        return response;
-    }
-
-    @DeleteMapping("/{responseCode}")    @Operation(operationId = "admResponseCodeDelete", summary = "Delete response code", description = "Deletes a response code and refreshes responseCodeCache.")
-    public ResponseEntity<Map<String, Object>> delete(
-            @PathVariable String responseCode,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String operator = requireOperator(servletRequest);
-        String auditReason = auditLogService.requireReason(reason);
-        ResponseEntity<Map<String, Object>> response = safeResponse(() -> responseCodeCacheService.deleteResponseCode(responseCode));
-        recordAudit(servletRequest, operator, "RESPONSE_CODE_DELETE", responseCode, auditReason);
-        return response;
-    }
-
-    private ResponseEntity<Map<String, Object>> safeResponse(ResponseCodeAction action) {
-        Map<String, Object> response = new LinkedHashMap<>();
-        try {
-            response.put("available", true);
-            response.put("result", action.run());
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            response.put("available", false);
-            response.put("message", ex.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        } catch (DataAccessException ex) {
-            response.put("available", false);
-            response.put("result", Map.of());
-            response.put("message", "CMN_RESPONSE_CODE operation is temporarily unavailable.");
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
-        }
-    }
-
-    @FunctionalInterface
-    private interface ResponseCodeAction {
-        Object run();
-    }
-
-    private void recordAudit(
-            HttpServletRequest servletRequest,
-            String operator,
-            String actionType,
-            String responseCode,
-            String reason) {
-        auditLogService.record(
-                CpfContexts.transactionId(), operator, actionType, "CMN_RESPONSE_CODE", responseCode, reason,
-                servletRequest.getRemoteAddr());
-    }
+    private final CpfCommonCatalogManagementService common; private final AdmAuditLogService audit;
+    public AdmResponseCodeController(CpfCommonCatalogManagementService common,AdmAuditLogService audit){this.common=common;this.audit=audit;}
+    @GetMapping @Operation(operationId="admResponseCodeFindAll",summary="List response codes")
+    public ResponseEntity<Map<String,Object>> findAll(HttpServletRequest r){requireOperator(r);return ResponseEntity.ok(Map.of("available",true,"result",common.searchResponseCodes(null,null,0,500).content().stream().map(this::map).toList()));}
+    @GetMapping("/{responseCode}") @Operation(operationId="admResponseCodeFindOne",summary="Get response code")
+    public ResponseEntity<Map<String,Object>> findOne(@PathVariable String responseCode,HttpServletRequest r){requireOperator(r);return ResponseEntity.ok(Map.of("available",true,"result",map(common.getResponseCode(responseCode))));}
+    @PostMapping @Operation(operationId="admResponseCodeCreate",summary="Create response code")
+    public ResponseEntity<Map<String,Object>> create(@Valid @RequestBody CommonResponseCodeRequest b,@RequestParam String reason,HttpServletRequest r){String actor=requireOperator(r),required=audit.requireReason(reason);CpfResponseCodeRecord out=common.createResponseCode(b,actor,required);record(r,actor,"RESPONSE_CODE_CREATE",out.responseCode(),required);return ResponseEntity.ok(Map.of("available",true,"result",map(out)));}
+    @PutMapping("/{responseCode}") @Operation(operationId="admResponseCodeUpdate",summary="Update response code")
+    public ResponseEntity<Map<String,Object>> update(@PathVariable String responseCode,@Valid @RequestBody CommonResponseCodeRequest b,@RequestParam String reason,HttpServletRequest r){String actor=requireOperator(r),required=audit.requireReason(reason);CpfResponseCodeRecord before=common.getResponseCode(responseCode);long expected=b.getCatalogVersion()==null?before.catalogVersion():b.getCatalogVersion();CpfResponseCodeRecord out=common.updateResponseCode(responseCode,expected,b,actor,required);record(r,actor,"RESPONSE_CODE_UPDATE",responseCode,required);return ResponseEntity.ok(Map.of("available",true,"result",map(out)));}
+    @DeleteMapping("/{responseCode}") @Operation(operationId="admResponseCodeDelete",summary="Disable response code")
+    public ResponseEntity<Map<String,Object>> delete(@PathVariable String responseCode,@RequestParam String reason,HttpServletRequest r){String actor=requireOperator(r),required=audit.requireReason(reason);CpfResponseCodeRecord before=common.getResponseCode(responseCode);common.deleteResponseCode(responseCode,before.catalogVersion(),actor,required);record(r,actor,"RESPONSE_CODE_DISABLE",responseCode,required);return ResponseEntity.ok(Map.of("available",true,"result",common.searchResponseCodes(null,null,0,500).content().stream().map(this::map).toList()));}
+    private Map<String,Object> map(CpfResponseCodeRecord x){Map<String,Object> m=new LinkedHashMap<>();m.put("responseCode",x.responseCode());m.put("messageCode",x.messageCode());m.put("resultType",x.resultType());m.put("moduleId",x.moduleId());m.put("responseGroup",x.responseGroup());m.put("sequenceNo",x.sequenceNo());m.put("category",x.category());m.put("retryDisposition",x.retryDisposition());m.put("exposure",x.exposure());m.put("effectiveFrom",x.effectiveFrom());m.put("effectiveTo",x.effectiveTo());m.put("catalogVersion",x.catalogVersion());m.put("description",x.description());m.put("useYn",x.useYn());m.put("updatedAt",x.updatedAt());return m;}
+    private void record(HttpServletRequest req,String actor,String action,String key,String reason){audit.record(CpfContexts.transactionId(),actor,action,"CMN_RESPONSE_CODE",key,reason,req.getRemoteAddr());}
 }

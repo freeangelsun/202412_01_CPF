@@ -173,13 +173,26 @@ Generator Template/Generated build.gradle의 Internal Artifact 직접 참조는 
 
 `currentization_source_sha`를 이후 세션의 영구적인 "현재 master"로 해석하지 않는다. 완료 판정과 Evidence는 `verified_sha`를 기준으로 한다.
 
-## Current-State 관리 Application과 업무 Domain Runtime 경계
+## Current-State 관리 Application / Optional Business Administration Domain 경계
 
-ADM(`cpf-admin`), BZA(`cpf-biz-admin`), Gateway는 생성형 업무 Domain의 Online Transaction Runtime이 아니다. 자체 관리 API에는 `@CpfOnlineTransaction`, CPF 표준 거래 Header 6개, 업무 Operation Caller/Target 통제를 강제하지 않는다. 이들 Application은 Spring Web/Security/Validation/OpenAPI와 각 Owner Module의 Public Starter/API를 사용한다.
+ADM(`cpf-admin`)과 Gateway 관리 API는 생성형 업무 Domain의 Online Transaction Runtime이 아니다. 자체 관리 Controller에는 업무 `@CpfOnlineTransaction`과 업무 거래 Header 계약을 강제하지 않고 각 Owner의 Public API를 사용한다.
 
-관리 Application Source가 `cpf-core` internal 구현이나 업무 Domain internal package를 직접 import하는 것은 금지한다. Public Starter가 내부적으로 topology-independent `cpf-core` 계약을 transitive하게 소비하거나, 정당한 `cpf-core` Public Contract를 직접 소비하는 것은 허용한다.
+`cpf-biz-admin`은 관리 Application 예외가 아니라 **Optional Prebuilt Business Administration Domain**이다. Generator가 생성하지는 않지만 Generated Business Domain과 동일한 Public Starter/API, Canonical System transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3/Test 계약을 따른다. BZA-owned data만 소유하며 다른 Business Domain 원장/DB를 직접 소유·접근하지 않는다.
 
-관리 API가 실제 업무 Domain Operation을 호출할 때는 관리 Controller 자체를 업무 거래로 바꾸지 않는다. `관리 Controller -> Domain Client/Public API -> 업무 Domain Operation`의 outbound 경계부터 CPF Domain Client가 거래 Context를 생성·전파하며, 원격 호출은 Framework가 표준 거래 Header를 serialize하고 동일 JVM은 논리 Context로 전달한다.
+외부 `cpf-biz-channel`은 DB-less Pure Spring Boot Channel이고 CPF Java/Starter/Internal API에 의존하지 않는다. `cpf-biz-frontend`는 Channel만 호출하는 선택형 Reference UI다. Direct Public HTTP도 Gateway 보안 우회가 아니며 동일 인증·인가·Channel Policy·Audit·Canonical Header 검증을 충족한다.
+
+관리/업무 Source가 `cpf-core` internal 구현이나 다른 업무 Domain internal package를 직접 import하는 것은 금지한다. Public Starter가 topology-independent Core Public Contract를 transitive하게 소비하는 것은 허용한다.
+
+## Optional Surface Physical-Removal Contract
+
+Canonical Catalog에서 optional/user-selectable로 분류된 Module/Application/Capability는 다음을 모두 만족한다.
+
+- Source가 물리적으로 없어도 Root settings/configuration/build/test/publication/installer/verifier가 정상이다.
+- 다른 필수 Module이 optional module을 `project(...)`, fixed `dependsOn`, implementation import로 역의존하지 않는다.
+- Source가 존재하면 aggregate build/regression/publication 대상에 자동 참여한다.
+- Optional DB schema/migration/seed, Docker/deploy asset, listener/scheduler/external connection/health ACTIVE registration은 선택/존재 시에만 적용한다.
+- `ABSENT` 또는 disabled는 정상 Optional 상태이며 verifier가 FAIL/False Green으로 오판하지 않는다.
+- `cpf-core` 등 필수 Foundation은 이 정책의 대상이 아니다.
 
 Fixed Length/Webhook/HTTP 등 업무 개발자가 사용하는 기능은 **Public Contract/API와 Internal/Provider 구현을 분리**한다. 업무 Domain과 EDU는 Public 계약만 의존하며 Internal Starter/package를 직접 import하지 않는다.
 

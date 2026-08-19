@@ -1,115 +1,36 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.message.api.*;
 import com.cpf.common.message.dto.CommonMessageRequest;
-import com.cpf.common.message.service.MessageCacheService;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
-import java.util.List;
-import java.util.Map;
-
-/** 공통 메시지 코드와 다국어 메시지의 조회·변경·감사 API를 제공합니다. */
+/** 공통 메시지 카탈로그를 canonical Common Product Service로 관리합니다. */
 @RestController
 @RequestMapping("/adm/api/messages")
-@Tag(name = "ADM-CPF Messages", description = "CPF 공통 메시지 관리 API")
+@Tag(name="ADM-CPF Messages",description="CPF 공통 메시지 관리 API")
 public class AdmMessageController extends com.cpf.admin.common.base.AdmBaseController {
-    private final MessageCacheService messageCacheService;
-    private final AdmAuditLogService auditLogService;
+    private final CpfCommonCatalogManagementService common; private final AdmAuditLogService audit;
+    public AdmMessageController(CpfCommonCatalogManagementService common,AdmAuditLogService audit){this.common=common;this.audit=audit;}
 
-    public AdmMessageController(MessageCacheService messageCacheService, AdmAuditLogService auditLogService) {
-        this.messageCacheService = messageCacheService;
-        this.auditLogService = auditLogService;
-    }
+    @GetMapping @Operation(operationId="admMessageFindMessages",summary="공통 메시지 목록 조회")
+    public ResponseEntity<List<Map<String,Object>>> findMessages(HttpServletRequest request){requireOperator(request);return ResponseEntity.ok(common.searchMessages(null,null,null,0,500).content().stream().map(this::map).toList());}
+    @GetMapping("/{messageId}") @Operation(operationId="admMessageFindMessage",summary="공통 메시지 상세 조회")
+    public ResponseEntity<Map<String,Object>> findMessage(@PathVariable Long messageId,HttpServletRequest request){requireOperator(request);return ResponseEntity.ok(map(common.getMessage(messageId)));}
+    @PostMapping @Operation(operationId="admMessageCreateMessage",summary="공통 메시지 등록")
+    public ResponseEntity<Map<String,Object>> createMessage(@Valid @RequestBody CommonMessageRequest b,HttpServletRequest r){String actor=requireOperator(r),reason=audit.requireReason(b.getReason());CpfMessageRecord out=common.createMessage(b,actor,reason);record(r,actor,"MESSAGE_CREATE",String.valueOf(out.messageId()),reason,null,out);return ResponseEntity.ok(map(out));}
+    @PutMapping("/{messageId}") @Operation(operationId="admMessageUpdateMessage",summary="공통 메시지 수정")
+    public ResponseEntity<Map<String,Object>> updateMessage(@PathVariable Long messageId,@Valid @RequestBody CommonMessageRequest b,HttpServletRequest r){String actor=requireOperator(r),reason=audit.requireReason(b.getReason());CpfMessageRecord before=common.getMessage(messageId);long expected=b.getCatalogVersion()==null?before.catalogVersion():b.getCatalogVersion();CpfMessageRecord out=common.updateMessage(messageId,expected,b,actor,reason);record(r,actor,"MESSAGE_UPDATE",String.valueOf(messageId),reason,before,out);return ResponseEntity.ok(map(out));}
+    @DeleteMapping("/{messageId}") @Operation(operationId="admMessageDeleteMessage",summary="공통 메시지 비활성")
+    public ResponseEntity<List<Map<String,Object>>> deleteMessage(@PathVariable Long messageId,@RequestParam String reason,HttpServletRequest r){String actor=requireOperator(r),required=audit.requireReason(reason);CpfMessageRecord before=common.getMessage(messageId);common.deleteMessage(messageId,before.catalogVersion(),actor,required);record(r,actor,"MESSAGE_DISABLE",String.valueOf(messageId),required,before,null);return ResponseEntity.ok(common.searchMessages(null,null,null,0,500).content().stream().map(this::map).toList());}
 
-    @GetMapping    @Operation(operationId = "admMessageFindMessages", summary = "공통 메시지 목록 조회", description = "CMN_MESSAGE 기준 메시지를 locale별로 조회합니다.")
-    public ResponseEntity<List<Map<String, Object>>> findMessages() {
-        return ResponseEntity.ok(messageCacheService.getAllMessages());
-    }
-
-    @GetMapping("/{messageId}")    @Operation(operationId = "admMessageFindMessage", summary = "공통 메시지 상세 조회", description = "메시지 ID로 CMN_MESSAGE 상세 정보를 조회합니다.")
-    public ResponseEntity<Map<String, Object>> findMessage(@PathVariable Long messageId) {
-        return ResponseEntity.ok(messageCacheService.getMessageById(messageId));
-    }
-
-    @PostMapping    @Operation(operationId = "admMessageCreateMessage", summary = "공통 메시지 등록", description = "cpf_message에 신규 메시지를 등록하고 메시지 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> createMessage(
-            @Valid @RequestBody CommonMessageRequest request,
-            HttpServletRequest servletRequest) {
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> created = messageCacheService.createMessage(request);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
-                "MESSAGE_CREATE",
-                "CMN_MESSAGE",
-                String.valueOf(created.getOrDefault("messageId", request.getEffectiveMessageCode())),
-                reason,
-                null,
-                String.valueOf(created),
-                String.valueOf(created),
-                servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(created);
-    }
-
-    @PutMapping("/{messageId}")    @Operation(operationId = "admMessageUpdateMessage", summary = "공통 메시지 수정", description = "cpf_message를 수정하고 메시지 캐시를 갱신합니다.")
-    public ResponseEntity<Map<String, Object>> updateMessage(
-            @PathVariable Long messageId,
-            @Valid @RequestBody CommonMessageRequest request,
-            HttpServletRequest servletRequest) {
-        String reason = auditLogService.requireReason(request.getReason());
-        Map<String, Object> before = messageCacheService.getMessageById(messageId);
-        Map<String, Object> updated = messageCacheService.updateMessage(messageId, request);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                requestUser(servletRequest, request.getRequestUser()),
-                "MESSAGE_UPDATE",
-                "CMN_MESSAGE",
-                String.valueOf(messageId),
-                reason,
-                String.valueOf(before),
-                String.valueOf(updated),
-                "메시지 수정",
-                servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(updated);
-    }
-
-    @DeleteMapping("/{messageId}")    @Operation(operationId = "admMessageDeleteMessage", summary = "공통 메시지 비활성", description = "cpf_message를 비활성화하고 메시지 캐시를 갱신합니다.")
-    public ResponseEntity<List<Map<String, Object>>> deleteMessage(
-            @PathVariable Long messageId,
-            @RequestParam String reason,
-            HttpServletRequest servletRequest) {
-        String requiredReason = auditLogService.requireReason(reason);
-        Map<String, Object> before = messageCacheService.getMessageById(messageId);
-        List<Map<String, Object>> latest = messageCacheService.deleteMessage(messageId);
-        auditLogService.record(
-                CpfContexts.transactionId(),
-                requireOperator(servletRequest),
-                "MESSAGE_DISABLE",
-                "CMN_MESSAGE",
-                String.valueOf(messageId),
-                requiredReason,
-                String.valueOf(before),
-                null,
-                "메시지 비활성",
-                servletRequest.getRemoteAddr());
-        return ResponseEntity.ok(latest);
-    }
-
-    private String requestUser(HttpServletRequest request, String fallback) {
-        return requireOperator(request);
-    }
+    private Map<String,Object> map(CpfMessageRecord x){Map<String,Object> m=new LinkedHashMap<>();m.put("messageId",x.messageId());m.put("messageCode",x.messageCode());m.put("locale",x.locale());m.put("messageFormatType",x.messageFormatType());m.put("externalMessage",x.externalMessage());m.put("internalMessage",x.internalMessage());m.put("parameterCount",x.parameterCount());m.put("parameterSample",x.parameterSample());m.put("parameterSchemaJson",x.parameterSchemaJson());m.put("escapeHtmlYn",x.escapeHtmlYn());m.put("maskArgumentsYn",x.maskArgumentsYn());m.put("effectiveFrom",x.effectiveFrom());m.put("effectiveTo",x.effectiveTo());m.put("catalogVersion",x.catalogVersion());m.put("description",x.description());m.put("useYn",x.useYn());m.put("updatedAt",x.updatedAt());return m;}
+    private void record(HttpServletRequest req,String actor,String action,String key,String reason,Object before,Object after){audit.record(CpfContexts.transactionId(),actor,action,"CMN_MESSAGE",key,reason,before==null?null:String.valueOf(before),after==null?null:String.valueOf(after),action,req.getRemoteAddr());}
 }

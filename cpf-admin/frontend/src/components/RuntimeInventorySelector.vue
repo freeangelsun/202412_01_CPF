@@ -15,8 +15,8 @@ const selected = computed(() => rows.value.find(row => String(row.instanceId ?? 
 async function load(){
   loading.value=true; error.value=''
   try{
-    const response=await admRuntimeInventoryFindAll({ environment:props.environment||undefined, capability:props.capability||undefined, status:props.status||undefined, limit:500 })
-    rows.value=Array.isArray(response.data)? response.data as RuntimeRow[] : []
+    const response=await admRuntimeInventoryFindAll({ environment:props.environment||undefined, capability:props.capability||undefined, status:props.status||undefined, page:0, size:200 })
+    rows.value=Array.isArray(response.data.items)? response.data.items as RuntimeRow[] : []
     emit('selected', selected.value)
   }catch(cause){ error.value=cause instanceof Error?cause.message:String(cause) }
   finally{ loading.value=false }

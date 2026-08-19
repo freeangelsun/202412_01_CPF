@@ -12,13 +12,19 @@ import com.cpf.foundation.context.header.CpfHeaderNames;
 public final class CpfHttpHeaderNames {
     private CpfHttpHeaderNames() {}
 
-    // Canonical online transaction protocol (mandatory on trusted internal CPF hops).
+    // Canonical online transaction protocol. X-System-Code is receiver-owned for external ingress.
     public static final String TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
+    public static final String ORIGINAL_SYSTEM_CODE = CpfHeaderNames.ORIGINAL_SYSTEM_CODE;
+    public static final String SYSTEM_CODE = CpfHeaderNames.SYSTEM_CODE;
+    public static final String CALLER_SYSTEM_CODE = CpfHeaderNames.CALLER_SYSTEM_CODE;
+    public static final String TARGET_SYSTEM_CODE = CpfHeaderNames.TARGET_SYSTEM_CODE;
+    public static final String TARGET_OPERATION_ID = CpfHeaderNames.TARGET_OPERATION_ID;
+
+    // Optional Channel policy/context, deliberately outside the Canonical 6.
     public static final String ORIGINAL_CHANNEL = CpfHeaderNames.ORIGINAL_CHANNEL;
     public static final String CURRENT_CHANNEL = CpfHeaderNames.CURRENT_CHANNEL;
     public static final String CALLER_CHANNEL = CpfHeaderNames.CALLER_CHANNEL;
     public static final String TARGET_CHANNEL = CpfHeaderNames.TARGET_CHANNEL;
-    public static final String TARGET_OPERATION_ID = CpfHeaderNames.TARGET_OPERATION_ID;
 
     // Optional client/application context. Values are never a security authority by themselves.
     public static final String COUNTRY_CODE = "X-Country-Code";

@@ -3,7 +3,6 @@ package com.cpf.common.template;
 import com.cpf.data.persistence.sql.CmnSqlResourceLoader;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,7 +21,6 @@ import java.util.UUID;
 
 /** Official cpfDB JDBC implementation for versioned common-template lifecycle and append-only audit. */
 @Repository
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
 @ConditionalOnProperty(name = "cpf.common.template.jdbc.enabled", havingValue = "true", matchIfMissing = true)
 public final class CmnJdbcTemplateStore implements CmnTemplateStore {
     private static final int MAX_AUDIT_ROWS = 500;

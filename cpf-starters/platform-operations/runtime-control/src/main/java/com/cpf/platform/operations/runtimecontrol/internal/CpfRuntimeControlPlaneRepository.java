@@ -1064,24 +1064,31 @@ public class CpfRuntimeControlPlaneRepository {
         return discovered;
     }
 
-    public java.util.List<CpfManagedServerSnapshot> findManagedServers(String environment, String status, String keyword, int limit) {
-        StringBuilder sql = new StringBuilder("SELECT s.*, " +
-                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
-                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
-                "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count " +
-                "FROM ops_managed_server s WHERE 1=1");
+    public CpfManagedServerPage findManagedServers(String environment, String status, String keyword, int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(200, size <= 0 ? 50 : size));
+        long from = (long) safePage * safeSize;
+        long to = from + safeSize;
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
         java.util.List<Object> args = new java.util.ArrayList<>();
-        if (environment != null && !environment.isBlank()) { sql.append(" AND s.environment_code=?"); args.add(environment.trim()); }
-        if (status != null && !status.isBlank()) { sql.append(" AND s.status=?"); args.add(status.trim().toUpperCase(java.util.Locale.ROOT)); }
+        if (environment != null && !environment.isBlank()) { where.append(" AND s.environment_code=?"); args.add(environment.trim()); }
+        if (status != null && !status.isBlank()) { where.append(" AND s.status=?"); args.add(status.trim().toUpperCase(java.util.Locale.ROOT)); }
         if (keyword != null && !keyword.isBlank()) {
-            sql.append(" AND (LOWER(s.server_name) LIKE ? OR LOWER(s.display_name) LIKE ? OR LOWER(COALESCE(s.hostname,'')) LIKE ? OR LOWER(s.managed_server_id) LIKE ?)");
+            where.append(" AND (LOWER(s.server_name) LIKE ? OR LOWER(s.display_name) LIKE ? OR LOWER(COALESCE(s.hostname,'')) LIKE ? OR LOWER(s.managed_server_id) LIKE ?)");
             String q = "%" + keyword.trim().toLowerCase(java.util.Locale.ROOT) + "%";
             args.add(q); args.add(q); args.add(q); args.add(q);
         }
-        sql.append(" ORDER BY s.environment_code,s.server_name,s.managed_server_id");
-        int safeLimit=Math.max(1,Math.min(2000,limit<=0?200:limit));
-        java.util.List<java.util.Map<String,Object>> rows=jdbc.queryForList(sql.toString(),args.toArray());
-        return rows.stream().limit(safeLimit).map(this::managedServer).toList();
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM ops_managed_server s" + where, Long.class, args.toArray());
+        String sql = "SELECT * FROM (SELECT s.*, " +
+                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id) runtime_count, " +
+                "(SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE i WHERE i.managed_server_id=s.managed_server_id AND i.active_yn='Y' " +
+                "AND i.instance_status IN ('UP','ACTIVE','DEGRADED','RECOVERING','DRAINING')) active_runtime_count, " +
+                "ROW_NUMBER() OVER(ORDER BY s.environment_code,s.server_name,s.managed_server_id) cpf_rn " +
+                "FROM ops_managed_server s" + where + ") cpf_page WHERE cpf_rn>? AND cpf_rn<=? ORDER BY cpf_rn";
+        java.util.List<Object> pageArgs = new java.util.ArrayList<>(args);
+        pageArgs.add(from); pageArgs.add(to);
+        java.util.List<CpfManagedServerSnapshot> items = jdbc.queryForList(sql, pageArgs.toArray()).stream().map(this::managedServer).toList();
+        return CpfManagedServerPage.of(items, safePage, safeSize, total == null ? 0L : total);
     }
 
     public CpfManagedServerSnapshot getManagedServer(String managedServerId) {
@@ -1136,24 +1143,36 @@ public class CpfRuntimeControlPlaneRepository {
         }
     }
 
-    public java.util.List<CpfRuntimeInventorySnapshot> findRuntimeInventory(String environment,String capability,String status,String keyword,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT i.instance_id,i.managed_server_id,ms.server_name,i.service_id,i.system_code,i.application_name,i.application_role,i.runtime_hostname,i.environment_code,i.zone_code,i.instance_status,i.started_at,i.last_heartbeat_at," +
-                "s.artifact_version,s.capabilities_json,i.cpf_version,i.java_version FROM OPS_SERVICE_INSTANCE i LEFT JOIN ops_managed_server ms ON ms.managed_server_id=i.managed_server_id LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id WHERE 1=1");
+    public CpfRuntimeInventoryPage findRuntimeInventory(String environment,String capability,String status,String keyword,int page,int size) {
+        int safePage=Math.max(0,page);
+        int safeSize=Math.max(1,Math.min(200,size<=0?50:size));
+        long from=(long)safePage*safeSize;
+        long to=from+safeSize;
+        StringBuilder where=new StringBuilder(" WHERE 1=1");
         java.util.List<Object> args=new java.util.ArrayList<>();
-        if(environment!=null&&!environment.isBlank()){sql.append(" AND i.environment_code=?");args.add(environment.trim());}
-        if(status!=null&&!status.isBlank()){sql.append(" AND i.instance_status=?");args.add(status.trim().toUpperCase(java.util.Locale.ROOT));}
-        if(keyword!=null&&!keyword.isBlank()){sql.append(" AND (LOWER(i.instance_id) LIKE ? OR LOWER(COALESCE(ms.server_name,'')) LIKE ? OR LOWER(COALESCE(i.runtime_hostname,'')) LIKE ? OR LOWER(COALESCE(i.system_code,'')) LIKE ?)");String q="%"+keyword.trim().toLowerCase(java.util.Locale.ROOT)+"%";args.add(q);args.add(q);args.add(q);args.add(q);}
-        sql.append(" ORDER BY i.environment_code,COALESCE(ms.server_name,''),i.instance_id");
-        int safeLimit=Math.max(1,Math.min(5000,limit<=0?500:limit));
-        java.util.List<CpfRuntimeInventorySnapshot> out=new java.util.ArrayList<>();
-        for(java.util.Map<String,Object> row:jdbc.queryForList(sql.toString(),args.toArray())){
-            java.util.Map<String,Object> raw=readMapOrEmpty(nullable(row.get("capabilities_json")));
-            java.util.LinkedHashMap<String,String> caps=new java.util.LinkedHashMap<>(); raw.forEach((k,v)->caps.put(k,String.valueOf(v)));
-            if(capability!=null&&!capability.isBlank()&&!caps.containsKey(capability.trim())) continue;
-            out.add(new CpfRuntimeInventorySnapshot(nullable(row.get("instance_id")),nullable(row.get("managed_server_id")),nullable(row.get("server_name")),nullable(row.get("service_id")),nullable(row.get("system_code")),nullable(row.get("application_name")),nullable(row.get("application_role")),nullable(row.get("runtime_hostname")),nullable(row.get("environment_code")),nullable(row.get("zone_code")),nullable(row.get("instance_status")),nullable(row.get("artifact_version")),nullable(row.get("cpf_version")),nullable(row.get("java_version")),caps,toInstant(row.get("started_at")),toInstant(row.get("last_heartbeat_at"))));
-            if(out.size()>=safeLimit) break;
+        if(environment!=null&&!environment.isBlank()){where.append(" AND i.environment_code=?");args.add(environment.trim());}
+        if(status!=null&&!status.isBlank()){where.append(" AND i.instance_status=?");args.add(status.trim().toUpperCase(java.util.Locale.ROOT));}
+        if(capability!=null&&!capability.isBlank()){
+            where.append(" AND LOWER(COALESCE(s.capabilities_json,'')) LIKE ?");
+            args.add("%\""+capability.trim().toLowerCase(java.util.Locale.ROOT)+"\"%");
         }
-        return java.util.List.copyOf(out);
+        if(keyword!=null&&!keyword.isBlank()){
+            where.append(" AND (LOWER(i.instance_id) LIKE ? OR LOWER(COALESCE(ms.server_name,'')) LIKE ? OR LOWER(COALESCE(i.runtime_hostname,'')) LIKE ? OR LOWER(COALESCE(i.system_code,'')) LIKE ?)");
+            String q="%"+keyword.trim().toLowerCase(java.util.Locale.ROOT)+"%";args.add(q);args.add(q);args.add(q);args.add(q);
+        }
+        String joins=" FROM OPS_SERVICE_INSTANCE i LEFT JOIN ops_managed_server ms ON ms.managed_server_id=i.managed_server_id LEFT JOIN OPS_RUNTIME_INSTANCE_STATE s ON s.instance_id=i.instance_id";
+        Long total=jdbc.queryForObject("SELECT COUNT(*)"+joins+where,Long.class,args.toArray());
+        String sql="SELECT * FROM (SELECT i.instance_id,i.managed_server_id,ms.server_name,i.service_id,i.system_code,i.application_name,i.application_role,i.runtime_hostname,i.environment_code,i.zone_code,i.instance_status,i.started_at,i.last_heartbeat_at,"+
+                "s.artifact_version,s.capabilities_json,i.cpf_version,i.java_version,ROW_NUMBER() OVER(ORDER BY i.environment_code,COALESCE(ms.server_name,''),i.instance_id) cpf_rn"+
+                joins+where+") cpf_page WHERE cpf_rn>? AND cpf_rn<=? ORDER BY cpf_rn";
+        java.util.List<Object> pageArgs=new java.util.ArrayList<>(args);pageArgs.add(from);pageArgs.add(to);
+        java.util.List<CpfRuntimeInventorySnapshot> items=new java.util.ArrayList<>();
+        for(java.util.Map<String,Object> row:jdbc.queryForList(sql,pageArgs.toArray())){
+            java.util.Map<String,Object> raw=readMapOrEmpty(nullable(row.get("capabilities_json")));
+            java.util.LinkedHashMap<String,String> caps=new java.util.LinkedHashMap<>();raw.forEach((k,v)->caps.put(k,String.valueOf(v)));
+            items.add(new CpfRuntimeInventorySnapshot(nullable(row.get("instance_id")),nullable(row.get("managed_server_id")),nullable(row.get("server_name")),nullable(row.get("service_id")),nullable(row.get("system_code")),nullable(row.get("application_name")),nullable(row.get("application_role")),nullable(row.get("runtime_hostname")),nullable(row.get("environment_code")),nullable(row.get("zone_code")),nullable(row.get("instance_status")),nullable(row.get("artifact_version")),nullable(row.get("cpf_version")),nullable(row.get("java_version")),caps,toInstant(row.get("started_at")),toInstant(row.get("last_heartbeat_at"))));
+        }
+        return CpfRuntimeInventoryPage.of(items,safePage,safeSize,total==null?0L:total);
     }
 
     private CpfManagedServerSnapshot managedServer(java.util.Map<String,Object> row){

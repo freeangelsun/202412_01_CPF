@@ -24,33 +24,33 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void externalDirectCallAcceptsFiveHeadersAndReceiverSetsCurrentChannel() {
+    void externalDirectCallAcceptsFiveTransportHeadersAndReceiverSetsCurrentSystem() {
         var adapter = adapter();
         var result = adapter.resolve(externalHeaders("MBR"), CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
                 null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
                 new CpfRuntimeIdentity("MBR", "member", "MBR01"));
 
         assertEquals(CANONICAL_TX, result.snapshot().transaction().transactionId());
-        assertEquals("WEB2", result.snapshot().context().originalChannel());
-        assertEquals("MBR", result.snapshot().context().currentChannel());
-        assertEquals("WEB2", result.snapshot().context().callerChannel());
-        assertEquals("MBR", result.snapshot().context().targetChannel());
+        assertEquals("BZA", result.snapshot().context().originalSystemCode());
+        assertEquals("MBR", result.snapshot().context().currentSystemCode());
+        assertEquals("BZA", result.snapshot().context().callerSystemCode());
+        assertEquals("MBR", result.snapshot().context().targetSystemCode());
         assertEquals("MBR_MEMBER_JOIN", result.snapshot().context().targetOperationId());
     }
 
     @Test
-    void externalCurrentChannelIsOptionalAndNeverRequired() {
+    void externalChannelContextIsOptionalAndNeverPartOfCanonicalSix() {
         var adapter = adapter();
         var headers = externalHeaders("MBR");
-        headers.remove(CpfHttpHeaderNames.CURRENT_CHANNEL);
+        headers.remove(CpfHttpHeaderNames.CALLER_CHANNEL);
         var result = adapter.resolve(headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
                 null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
                 new CpfRuntimeIdentity("MBR", "member", "MBR01"));
-        assertEquals("MBR", result.snapshot().context().currentChannel());
+        assertEquals("MBR", result.snapshot().context().currentSystemCode());
     }
 
     @Test
-    void externalTargetMustMatchReceiverChannelBeforeController() {
+    void externalTargetSystemMustMatchReceiverBeforeController() {
         var adapter = adapter();
         assertThrows(CpfHeaderValidationException.class, () -> adapter.resolve(
                 externalHeaders("EXS"), CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
@@ -59,10 +59,10 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void externalCurrentAssertionCannotOverrideReceiverIdentity() {
+    void externalSystemAssertionCannotOverrideReceiverIdentity() {
         var adapter = adapter();
         var headers = externalHeaders("MBR");
-        headers.put(CpfHttpHeaderNames.CURRENT_CHANNEL, "EXS");
+        headers.put(CpfHttpHeaderNames.SYSTEM_CODE, "EXS");
         assertThrows(CpfHeaderValidationException.class, () -> adapter.resolve(
                 headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
                 null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
@@ -73,8 +73,8 @@ class CpfHttpInboundContextAdapterTest {
     void externalFiveHeadersAreAllRequired() {
         var adapter = adapter();
         for (String required : new String[] {
-                CpfHttpHeaderNames.TRANSACTION_ID, CpfHttpHeaderNames.ORIGINAL_CHANNEL,
-                CpfHttpHeaderNames.CALLER_CHANNEL, CpfHttpHeaderNames.TARGET_CHANNEL,
+                CpfHttpHeaderNames.TRANSACTION_ID, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
+                CpfHttpHeaderNames.CALLER_SYSTEM_CODE, CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
                 CpfHttpHeaderNames.TARGET_OPERATION_ID}) {
             var headers = externalHeaders("MBR");
             headers.remove(required);
@@ -95,12 +95,14 @@ class CpfHttpInboundContextAdapterTest {
         return new CpfHttpInboundContextAdapter(txIds, executionIds);
     }
 
-    private static Map<String,String> externalHeaders(String targetChannel) {
+    private static Map<String,String> externalHeaders(String targetSystemCode) {
         var headers = new LinkedHashMap<String,String>();
         headers.put(CpfHttpHeaderNames.TRANSACTION_ID, CANONICAL_TX);
-        headers.put(CpfHttpHeaderNames.ORIGINAL_CHANNEL, "WEB2");
-        headers.put(CpfHttpHeaderNames.CALLER_CHANNEL, "WEB2");
-        headers.put(CpfHttpHeaderNames.TARGET_CHANNEL, targetChannel);
+        headers.put(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, "BZA");
+        headers.put(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "BZA");
+        headers.put(CpfHttpHeaderNames.TARGET_SYSTEM_CODE, targetSystemCode);
+        // Channel is optional policy/context and is deliberately not one of the canonical six.
+        headers.put(CpfHttpHeaderNames.CALLER_CHANNEL, "BZA");
         headers.put(CpfHttpHeaderNames.TARGET_OPERATION_ID, "MBR_MEMBER_JOIN");
         return headers;
     }

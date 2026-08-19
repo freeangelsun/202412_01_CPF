@@ -1,0 +1,4 @@
+package com.cpf.education.online.securityaudit.service;
+import com.cpf.core.api.context.CpfContexts;import com.cpf.education.online.securityaudit.dto.MemberSecurityCommand;import com.cpf.foundation.annotation.CpfService;import com.cpf.security.api.CpfMasking;import com.cpf.security.api.audit.*;import java.time.Instant;import java.util.Map;
+/** 보안·감사 교육 예제의 Service 역할과 CPF 표준 사용 경계를 보여줍니다. */
+@CpfService public class MemberSecurityService {private final CpfAuthorizationAuditSink audit;public MemberSecurityService(CpfAuthorizationAuditSink a){audit=a;}public Map<String,String> read(MemberSecurityCommand c){audit.record(new CpfAuthorizationAuditEvent("AUTHORIZATION","MEMBER_READ",CpfContexts.transactionId(),CpfContexts.currentExecutionId(),CpfContexts.userId(),CpfContexts.operatorId(),true,"교육 권한 허용",Instant.now()));return Map.of("memberId",c.memberId(),"mobile",CpfMasking.mobile(c.mobile()));}}

@@ -1,8 +1,6 @@
 package com.cpf.common.code.reference.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -18,8 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * <p>업무 mutation은 {@link #publishRequired}를 같은 cmnTransaction 안에서 호출합니다. 따라서 event 저장 실패를
  * 메모리 queue로 숨기지 않고 업무 변경도 rollback시켜 "DB는 바뀌었지만 다른 노드는 영원히 모르는" 상태를 금지합니다.</p>
  */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class CacheRefreshEventPublisher {
     private final CacheRefreshEventStore store;
     private final Clock clock;

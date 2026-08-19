@@ -257,17 +257,17 @@
       "consumer": "cpf-admin-runtime"
     },
     {
-      "artifactId": "cpf-biz-admin-frontend",
-      "ownerPath": "cpf-biz-admin/frontend",
+      "artifactId": "cpf-biz-frontend",
+      "ownerPath": "cpf-biz-frontend",
       "kind": "frontend",
       "producer": "npm run build",
-      "outputPattern": "cpf-biz-admin/frontend/dist/**",
+      "outputPattern": "cpf-biz-frontend/dist/**",
       "requiredAttestations": [
         "sha256",
         "npm-lock",
         "browser-test"
       ],
-      "consumer": "cpf-biz-admin-runtime"
+      "consumer": "external-bza-channel-users"
     },
     {
       "artifactId": "cpf-db-oracle-pack",
@@ -1281,6 +1281,19 @@
         "license-review"
       ],
       "consumer": "internal-starter-composition"
+    },
+    {
+      "artifactId": "cpf-biz-channel",
+      "ownerPath": "cpf-biz-channel",
+      "kind": "runtime",
+      "producer": "gradle:bootJar",
+      "outputPattern": "cpf-biz-channel/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "external-bza-channel-deployment"
     }
   ],
   "removedArtifactIds": [

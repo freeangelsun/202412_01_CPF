@@ -1,5 +1,7 @@
 package com.cpf.web.internal.web;
 
+import com.cpf.foundation.context.header.CpfHeaderNames;
+
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.core.MethodParameter;
@@ -26,8 +28,8 @@ public class CpfResponseHeaderAdvice implements ResponseBodyAdvice<Object> {
     public static final String MESSAGE_CODE_HEADER = "X-Cpf-Message-Code";
     public static final String MESSAGE_CONTENT_HEADER = "X-Cpf-Message-Content";
     public static final String MESSAGE_ID_HEADER = "X-Cpf-Message-Id";
-    public static final String TRANSACTION_ID_HEADER = "X-Cpf-Transaction-Id";
-    public static final String TRACE_ID_HEADER = "X-Cpf-Trace-Id";
+    public static final String TRANSACTION_ID_HEADER = CpfHeaderNames.TRANSACTION_ID;
+    public static final String TRACE_ID_HEADER = CpfHeaderNames.TRACE_ID;
 
     private static final int MAX_HEADER_VALUE_LENGTH = 500;
 

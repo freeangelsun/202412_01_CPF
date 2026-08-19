@@ -412,11 +412,15 @@ public class CpfWebClient implements CpfRestClient {
         String n = name.trim().toLowerCase(Locale.ROOT);
         return Set.of(
                 CpfHeaderNames.TRANSACTION_ID,
+                CpfHeaderNames.ORIGINAL_SYSTEM_CODE,
+                CpfHeaderNames.SYSTEM_CODE,
+                CpfHeaderNames.CALLER_SYSTEM_CODE,
+                CpfHeaderNames.TARGET_SYSTEM_CODE,
+                CpfHeaderNames.TARGET_OPERATION_ID,
                 CpfHeaderNames.ORIGINAL_CHANNEL,
                 CpfHeaderNames.CURRENT_CHANNEL,
                 CpfHeaderNames.CALLER_CHANNEL,
                 CpfHeaderNames.TARGET_CHANNEL,
-                CpfHeaderNames.TARGET_OPERATION_ID,
                 CpfHeaderNames.AUTHORIZATION,
                 CpfHeaderNames.API_KEY,
                 CpfHeaderNames.REQUEST_SIGNATURE)

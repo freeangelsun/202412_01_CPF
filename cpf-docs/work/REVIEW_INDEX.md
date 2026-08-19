@@ -7,7 +7,7 @@
 - Requirement status: `cpf-docs/work/REQUIREMENT_STATUS.csv`
 - Source findings: `cpf-docs/work/CPF_SOURCE_FINDINGS.csv`
 - Change manifest: `cpf-docs/work/CHANGE_MANIFEST.csv`
-- Delete manifest: `cpf-docs/work/current/DELETE_MANIFEST.txt`
+- Delete manifest: `cpf-docs/deliverables/DELETE_MANIFEST.csv`
 - Test/Evidence: `cpf-docs/work/TEST_AND_EVIDENCE.md`
 - Open issues: `cpf-docs/work/OPEN_ISSUES.md`
 - Handover: `cpf-docs/work/HANDOVER.md`

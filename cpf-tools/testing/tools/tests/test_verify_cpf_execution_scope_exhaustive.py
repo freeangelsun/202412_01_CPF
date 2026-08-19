@@ -37,9 +37,11 @@ class GateTest(unittest.TestCase):
         for p in ["cpf-admin/frontend/src/app","cpf-admin/frontend/src/generated","cpf-admin/frontend/src/features","cpf-admin/src/main/java/com/cpf/admin","cpf-admin/src/test"]:(root/p).mkdir(parents=True,exist_ok=True)
         (root/"cpf-admin/frontend/src/app/routes.ts").write_text('export const admCapabilityRegistry={"x":{routeId:"x", expectedOperationIds:["op"], component:import("../features/x/X.vue")}}',encoding="utf-8")
         (root/"cpf-admin/frontend/src/generated/cpf-operation-contract.ts").write_text('export type CpfOperationId = "op";',encoding="utf-8")
-        for p in ["cpf-biz-admin/frontend/src/app","cpf-biz-admin/frontend/src/generated","cpf-biz-admin/frontend/src/features","cpf-biz-admin/src/main/java/com/cpf/bizadmin","cpf-biz-admin/src/test"]:(root/p).mkdir(parents=True,exist_ok=True)
-        (root/"cpf-biz-admin/frontend/src/app/routes.ts").write_text('const x=[{ id:"x", expectedOperationIds:["bop"], load:()=>import("../features/x/X.vue") }]',encoding="utf-8")
-        (root/"cpf-biz-admin/frontend/src/generated/cpf-operation-contract.ts").write_text('export type CpfOperationId = "bop";',encoding="utf-8")
+        for p in ["cpf-biz-frontend/src/router","cpf-biz-frontend/src/features/x","cpf-biz-frontend/scripts","cpf-biz-admin/openapi","cpf-biz-admin/src/main/java/com/cpf/bizadmin","cpf-biz-admin/src/test"]:(root/p).mkdir(parents=True,exist_ok=True)
+        (root/"cpf-biz-frontend/src/router/index.ts").write_text('import X from "../features/x/X.vue"; const routes=[{ path:"/x", component:X }]',encoding="utf-8")
+        (root/"cpf-biz-frontend/src/features/x/X.vue").write_text('<template><div>x</div></template>',encoding="utf-8")
+        (root/"cpf-biz-frontend/scripts/generate-reference-client.mjs").write_text("const wanted=['bop']",encoding="utf-8")
+        (root/"cpf-biz-admin/openapi/cpf-openapi.json").write_text(json.dumps({"paths":{"/api/bza/x":{"get":{"operationId":"bop"}}}}),encoding="utf-8")
         args=type("A",(),dict(root=str(root),expected_sha="a"*40,source_head="a"*40,start_row=1,expected_total_execution=1,expected_scope=1,audit_csv="audit.csv",work_package_csv="wp.csv"))()
         return td,root,args
     def test_positive(self):

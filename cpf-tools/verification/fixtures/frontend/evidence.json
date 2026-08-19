@@ -22,27 +22,6 @@
         "admRuntimeControlRollbackChange",
         "admRuntimeControlVerifyAudit"
       ]
-    },
-    "cpf-biz-admin": {
-      "featureSourcePath": "cpf-biz-admin/frontend/src/features/approval-inbox/ApprovalInboxPage.vue",
-      "featureFixture": "cpf-biz-admin/feature-consumer.vue",
-      "featureBlobSha": "5a101f6b2a4f2cb8bcc45a1058b45e7f201e4c16",
-      "mutatorSourcePath": "cpf-biz-admin/frontend/src/shared/orval-mutator.ts",
-      "mutatorFixture": "cpf-biz-admin/orval-mutator.ts",
-      "mutatorBlobSha": "b7582c8db0f355860c16cd2e7244024828574dfb",
-      "indexSourcePath": "cpf-biz-admin/frontend/index.html",
-      "indexFixture": "cpf-biz-admin/index.html",
-      "indexBlobSha": "6f258baf56f0119717b2b0b40e26e48e4320ee40",
-      "markerSourcePath": "cpf-biz-admin/frontend/src/generated/.cpf-openapi-source.json",
-      "markerFixture": "cpf-biz-admin/openapi-source.json",
-      "markerBlobSha": "a495921de59c38239b29000946d6998de682500f",
-      "requiredFeatureTokens": [
-        "../../generated/orval/cpf-api",
-        "bzaApprovalParticipantDecision",
-        "crypto.randomUUID()",
-        "reason:reason.value",
-        "comment:reason.value"
-      ]
     }
   }
 }

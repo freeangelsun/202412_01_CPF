@@ -28,7 +28,7 @@ def is_generated_cache_path(path: str) -> bool:
     return False
 
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); ap.add_argument('--manifest',default='cpf-docs/work/current/DELETE_MANIFEST.txt'); a=ap.parse_args(); root=Path(a.root).resolve(); fail=[]
+ ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--ledger',default='cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv'); ap.add_argument('--manifest',default='cpf-docs/deliverables/DELETE_MANIFEST.csv'); a=ap.parse_args(); root=Path(a.root).resolve(); fail=[]
  lp=root/a.ledger; mp=root/a.manifest
  if not lp.exists(): fail.append('garbage_ledger_missing')
  if not mp.exists(): fail.append('delete_manifest_missing')
@@ -36,7 +36,10 @@ def main():
  if lp.exists():
   with lp.open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
  if mp.exists():
-  dels=[line.strip().replace('\\','/').strip('/') for line in mp.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')]
+  if mp.suffix.lower()=='.csv':
+   with mp.open(encoding='utf-8-sig',newline='') as f: dels=[(row.get('path') or '').replace('\\','/').strip('/') for row in csv.DictReader(f) if (row.get('path') or '').strip()]
+  else:
+   dels=[line.strip().replace('\\','/').strip('/') for line in mp.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')]
  bypath={}
  for r in rows: bypath.setdefault((r.get('path') or '').replace('\\','/').strip('/'),[]).append(r)
  for p in dels:
@@ -45,9 +48,9 @@ def main():
   if any(p==x.rstrip('/') or p.startswith(x) for x in PROTECTED): fail.append('protected_delete='+p)
   target=root/p
   if target.exists() and target.is_dir(): fail.append('directory_delete_forbidden='+p)
-  if not any((x.get('decision') or x.get('action'))=='DELETE' for x in bypath.get(p,[])): fail.append('delete_without_decision='+p)
+  if not any((x.get('decision') or x.get('action')) in {'DELETE','DELETE_CANDIDATE'} for x in bypath.get(p,[])): fail.append('delete_without_decision='+p)
  stale='cpf-tools/config/cpf-starter-catalog.json'
- if (root/stale).exists() and not any((x.get('decision') or x.get('action'))=='DELETE' for x in bypath.get(stale,[])): fail.append('stale_catalog_not_delete')
+ if (root/stale).exists() and not any((x.get('decision') or x.get('action')) in {'DELETE','DELETE_CANDIDATE'} for x in bypath.get(stale,[])): fail.append('stale_catalog_not_delete')
  # Python execution caches are local runtime artifacts, never product Source or delete-manifest obligations.
  ephemeral_cache_count=0
  for p in root.rglob('*'):

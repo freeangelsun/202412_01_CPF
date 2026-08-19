@@ -126,16 +126,24 @@ public final class CpfHttpHeaders {
     // Canonical transaction header names.
     /** Canonical X-Transaction-Id Header 이름을 반환합니다. */
     public static String transactionId() { return CpfHttpHeaderNames.TRANSACTION_ID; }
-    /** Canonical X-Original-Channel Header 이름을 반환합니다. */
-    public static String originalChannel() { return CpfHttpHeaderNames.ORIGINAL_CHANNEL; }
-    /** Canonical X-Current-Channel Header 이름을 반환합니다. */
-    public static String currentChannel() { return CpfHttpHeaderNames.CURRENT_CHANNEL; }
-    /** Canonical X-Caller-Channel Header 이름을 반환합니다. */
-    public static String callerChannel() { return CpfHttpHeaderNames.CALLER_CHANNEL; }
-    /** Canonical X-Target-Channel Header 이름을 반환합니다. */
-    public static String targetChannel() { return CpfHttpHeaderNames.TARGET_CHANNEL; }
+    /** Canonical X-Original-System-Code Header 이름을 반환합니다. */
+    public static String originalSystemCode() { return CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE; }
+    /** Canonical X-System-Code Header 이름을 반환합니다. */
+    public static String systemCode() { return CpfHttpHeaderNames.SYSTEM_CODE; }
+    /** Canonical X-Caller-System-Code Header 이름을 반환합니다. */
+    public static String callerSystemCode() { return CpfHttpHeaderNames.CALLER_SYSTEM_CODE; }
+    /** Canonical X-Target-System-Code Header 이름을 반환합니다. */
+    public static String targetSystemCode() { return CpfHttpHeaderNames.TARGET_SYSTEM_CODE; }
     /** Canonical X-Target-Operation-Id Header 이름을 반환합니다. */
     public static String targetOperationId() { return CpfHttpHeaderNames.TARGET_OPERATION_ID; }
+    /** Optional X-Original-Channel Header 이름을 반환합니다. */
+    public static String originalChannel() { return CpfHttpHeaderNames.ORIGINAL_CHANNEL; }
+    /** Optional X-Current-Channel Header 이름을 반환합니다. */
+    public static String currentChannel() { return CpfHttpHeaderNames.CURRENT_CHANNEL; }
+    /** Optional X-Caller-Channel Header 이름을 반환합니다. */
+    public static String callerChannel() { return CpfHttpHeaderNames.CALLER_CHANNEL; }
+    /** Optional X-Target-Channel Header 이름을 반환합니다. */
+    public static String targetChannel() { return CpfHttpHeaderNames.TARGET_CHANNEL; }
 
     /** 선택 Client Context의 Country Code Header 이름을 반환합니다. */
     public static String countryCode() { return CpfHttpHeaderNames.COUNTRY_CODE; }

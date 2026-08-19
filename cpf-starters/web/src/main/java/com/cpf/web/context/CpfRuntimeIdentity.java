@@ -15,10 +15,7 @@ import java.util.Locale;
 public record CpfRuntimeIdentity(String systemCode, String currentChannel, String application, String instance) {
     public CpfRuntimeIdentity {
         systemCode = requiredSystemCode(systemCode, "systemCode");
-        currentChannel = requiredChannel(currentChannel, "currentChannel");
-        if (!systemCode.equals(currentChannel)) {
-            throw new IllegalStateException("CPF runtime currentChannel must equal canonical systemCode");
-        }
+        currentChannel = optionalChannel(currentChannel, "currentChannel");
         application = normalize(application, 128);
         instance = normalize(instance, 160);
     }
@@ -48,9 +45,10 @@ public record CpfRuntimeIdentity(String systemCode, String currentChannel, Strin
     }
 
 
-    private static String requiredChannel(String value, String name) {
+    private static String optionalChannel(String value, String name) {
         String normalized = normalize(value, 16);
-        if (normalized == null) throw new IllegalStateException("CPF runtime " + name + " is required");
+        if (normalized == null) return null;
+        normalized = normalized.toUpperCase(Locale.ROOT);
         if (!normalized.matches("[A-Z0-9][A-Z0-9_-]{0,15}")) {
             throw new IllegalStateException("Invalid CPF runtime " + name + ": " + normalized);
         }

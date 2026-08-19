@@ -8,7 +8,7 @@ CATEGORIES={
  'STARTER':['cpf-starters/**'],
  'GENERATOR':['cpf-tools/generator/**'],
  'ADM_OPERATION':['cpf-admin/src/main/java/**/*Controller.java','cpf-admin/frontend/src/app/routes.ts','cpf-admin/frontend/src/features/**'],
- 'OPENAPI_CONTRACT':['cpf-admin/frontend/openapi/**','cpf-biz-admin/frontend/openapi/**','cpf-admin/frontend/src/generated/**','cpf-biz-admin/frontend/src/generated/**'],
+ 'OPENAPI_CONTRACT':['cpf-admin/frontend/openapi/**','cpf-biz-admin/openapi/**','cpf-admin/frontend/src/generated/**','cpf-biz-frontend/src/generated/**'],
  'DB_CONTRACT':['cpf-tools/db/**'],
  'RUNTIME_CONTRACT':['cpf-gateway/src/main/java/**','cpf-batch/**/src/main/java/**'],
 }

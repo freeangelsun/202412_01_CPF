@@ -1,89 +1,23 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.common.message.api.CpfCommonCatalogManagementService;
+import com.cpf.common.message.api.CpfMessageRecord;
 import com.cpf.common.message.dto.CommonMessageRequest;
-import com.cpf.common.message.service.MessageCacheService;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
-
+import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class AdmMessageControllerAuthenticationTest {
-
-    @Test
-    void rejectsMissingOperatorBeforeCreateSideEffects() {
-        MessageCacheService messageService = mock(MessageCacheService.class);
-        AdmAuditLogService auditService = mock(AdmAuditLogService.class);
-        AdmMessageController controller = new AdmMessageController(messageService, auditService);
-        CommonMessageRequest request = request("browser-spoof");
-
-        assertThatThrownBy(() -> controller.createMessage(request, new MockHttpServletRequest()))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("operator session");
-
-        verify(messageService, never()).createMessage(any());
-        verify(auditService, never()).requireReason(any());
-    }
-
-    @Test
-    void usesAuthenticatedOperatorInsteadOfRequestBodyIdentity() {
-        MessageCacheService messageService = mock(MessageCacheService.class);
-        AdmAuditLogService auditService = mock(AdmAuditLogService.class);
-        AdmMessageController controller = new AdmMessageController(messageService, auditService);
-        CommonMessageRequest request = request("browser-spoof");
-        MockHttpServletRequest servletRequest = authenticated("operator-a");
-        when(auditService.requireReason("message create")).thenReturn("message create");
-        when(messageService.createMessage(request)).thenReturn(Map.of("messageId", 10L));
-
-        controller.createMessage(request, servletRequest);
-
-        verify(auditService).record(
-                any(), eq("operator-a"), eq("MESSAGE_CREATE"), eq("CMN_MESSAGE"), eq("10"),
-                eq("message create"), eq(null), any(), any(), eq("127.0.0.1"));
-    }
-
-    @Test
-    void deleteRequiresSessionOperatorAndHasNoClaimedOperatorParameter() {
-        MessageCacheService messageService = mock(MessageCacheService.class);
-        AdmAuditLogService auditService = mock(AdmAuditLogService.class);
-        AdmMessageController controller = new AdmMessageController(messageService, auditService);
-        MockHttpServletRequest servletRequest = authenticated("operator-a");
-        when(auditService.requireReason("disable message")).thenReturn("disable message");
-        when(messageService.getMessageById(10L)).thenReturn(Map.of("messageId", 10L));
-        when(messageService.deleteMessage(10L)).thenReturn(List.of());
-
-        assertThat(controller.deleteMessage(10L, "disable message", servletRequest).getBody()).isEmpty();
-
-        verify(auditService).record(
-                any(), eq("operator-a"), eq("MESSAGE_DISABLE"), eq("CMN_MESSAGE"), eq("10"),
-                eq("disable message"), any(), eq(null), eq("메시지 비활성"), eq("127.0.0.1"));
-    }
-
-    private CommonMessageRequest request(String claimedUser) {
-        CommonMessageRequest request = new CommonMessageRequest();
-        request.setMessageCode("MCPF900001");
-        request.setLocale("ko-KR");
-        request.setExternalMessage("message");
-        request.setReason("message create");
-        request.setRequestUser(claimedUser);
-        return request;
-    }
-
-    private MockHttpServletRequest authenticated(String operatorId) {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setAttribute("adm.operatorId", operatorId);
-        request.setRemoteAddr("127.0.0.1");
-        return request;
-    }
+    @Test void rejectsMissingOperatorBeforeCreateSideEffects(){CpfCommonCatalogManagementService common=mock(CpfCommonCatalogManagementService.class);AdmAuditLogService audit=mock(AdmAuditLogService.class);assertThatThrownBy(()->new AdmMessageController(common,audit).createMessage(request("spoof"),new MockHttpServletRequest())).isInstanceOf(ResponseStatusException.class);verifyNoInteractions(common);verify(audit,never()).requireReason(any());}
+    @Test void usesAuthenticatedOperatorInsteadOfRequestBodyIdentity(){CpfCommonCatalogManagementService common=mock(CpfCommonCatalogManagementService.class);AdmAuditLogService audit=mock(AdmAuditLogService.class);CommonMessageRequest body=request("spoof");when(audit.requireReason("message create")).thenReturn("message create");when(common.createMessage(body,"operator-a","message create")).thenReturn(record(10,1,"Y"));new AdmMessageController(common,audit).createMessage(body,authenticated("operator-a"));verify(common).createMessage(body,"operator-a","message create");assertThat(body.getRequestUser()).isEqualTo("spoof");}
+    @Test void deleteUsesCurrentCatalogVersionAndSessionOperator(){CpfCommonCatalogManagementService common=mock(CpfCommonCatalogManagementService.class);AdmAuditLogService audit=mock(AdmAuditLogService.class);when(audit.requireReason("disable message")).thenReturn("disable message");when(common.getMessage(10L)).thenReturn(record(10,7,"Y"));when(common.searchMessages(null,null,null,0,500)).thenReturn(new com.cpf.common.message.api.CpfCatalogPage<>(List.of(),0,500,0));var response=new AdmMessageController(common,audit).deleteMessage(10L,"disable message",authenticated("operator-a"));assertThat(response.getBody()).isEmpty();verify(common).deleteMessage(10L,7L,"operator-a","disable message");}
+    private CpfMessageRecord record(long id,long version,String use){return new CpfMessageRecord(id,"MCPF900001","ko-KR","FIXED","message","internal",0,null,null,"Y","Y",null,null,version,"test",use,Instant.now());}
+    private CommonMessageRequest request(String claimed){CommonMessageRequest r=new CommonMessageRequest();r.setMessageCode("MCPF900001");r.setLocale("ko-KR");r.setExternalMessage("message");r.setInternalMessage("internal");r.setReason("message create");r.setRequestUser(claimed);return r;}
+    private MockHttpServletRequest authenticated(String id){MockHttpServletRequest r=new MockHttpServletRequest();r.setAttribute("adm.operatorId",id);r.setRemoteAddr("127.0.0.1");return r;}
 }

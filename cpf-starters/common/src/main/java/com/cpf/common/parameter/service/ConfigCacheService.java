@@ -9,12 +9,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -27,8 +25,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /** CPF 공통 설정 cache를 commit-safe snapshot 방식으로 관리합니다. */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class ConfigCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigCacheService.class);
     private static final String CACHE_NAME = "configCache";
@@ -73,7 +70,7 @@ public class ConfigCacheService extends CpfBaseService {
 
     public Map<String, Object> getConfigById(Long configId) { return configMapper.findConfigById(configId); }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> createConfig(CommonConfigRequest request) {
         configMapper.insertConfig(request);
         Map<String, Object> created = getConfigById(request.getConfigId());
@@ -82,7 +79,7 @@ public class ConfigCacheService extends CpfBaseService {
         return created;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> updateConfig(Long configId, CommonConfigRequest request) {
         configMapper.updateConfig(configId, request);
         Map<String, Object> updated = getConfigById(configId);
@@ -91,7 +88,7 @@ public class ConfigCacheService extends CpfBaseService {
         return updated;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public List<Map<String, Object>> deleteConfig(Long configId) {
         Map<String, Object> beforeDelete = getConfigById(configId);
         String key = beforeDelete == null ? String.valueOf(configId) : mapValue(beforeDelete, "configKey", "config_key");

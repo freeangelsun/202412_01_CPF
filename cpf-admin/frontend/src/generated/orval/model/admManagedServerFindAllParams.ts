@@ -3,5 +3,6 @@ export interface AdmManagedServerFindAllParams {
   environment?: string;
   status?: string;
   keyword?: string;
-  limit?: number;
+  page?: number;
+  size?: number;
 }

@@ -3,8 +3,7 @@
   "include": [
     "../../../cpf-admin/frontend/src/features/maintenance/maintenanceWorkflow.ts",
     "../../../cpf-admin/frontend/src/features/break-glass/breakGlassWorkflow.ts",
-    "../../../cpf-biz-admin/frontend/src/features/attachments/attachmentWorkflow.ts",
-    "../../../cpf-biz-admin/frontend/src/features/sessions/sessionWorkflow.ts",
-    "../../../cpf-biz-admin/frontend/src/components/dangerousOperationWorkflow.ts"
+    "../../../cpf-biz-frontend/src/features/employees/model/employeeModel.ts",
+    "../../../cpf-biz-frontend/src/features/approvals/model/approvalModel.ts"
   ]
 }

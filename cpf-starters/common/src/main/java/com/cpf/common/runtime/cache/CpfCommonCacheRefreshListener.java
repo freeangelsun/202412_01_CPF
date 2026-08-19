@@ -2,6 +2,7 @@ package com.cpf.common.runtime.cache;
 
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

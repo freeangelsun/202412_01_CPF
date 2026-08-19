@@ -22,9 +22,9 @@ final class CpfDomainOperationAccessGuard {
                     "Target operation header does not match the resolved Domain operation.",
                     "TARGET_OPERATION_MISMATCH");
         }
-        if (!runtime.currentChannel().equalsIgnoreCase(operation.systemCode())) {
-            throw rejected(CpfHttpHeaderNames.TARGET_CHANNEL,
-                    "Resolved Domain Operation does not belong to this runtime Channel identity.",
+        if (!runtime.systemCode().equalsIgnoreCase(operation.systemCode())) {
+            throw rejected(CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
+                    "Resolved Domain Operation does not belong to this runtime System identity.",
                     "DOMAIN_OPERATION_SYSTEM_MISMATCH");
         }
     }

@@ -10,12 +10,10 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -34,8 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 기존 cache를 교체합니다. 업무 변경 중에는 cache를 건드리지 않고 commit 이후 교체하여 rollback된
  * 데이터가 cache에 노출되지 않게 합니다.</p>
  */
-@Service
-@ConditionalOnExpression("'${cpf.common.runtime-mode:product}'.toLowerCase() == 'product'")
+@Deprecated(forRemoval = false)
 public class ResponseCodeCacheService extends CpfBaseService {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCodeCacheService.class);
     public static final String CACHE_NAME = "responseCodeCache";
@@ -86,7 +83,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
         return responseCodeMapper.findResponseCode(normalized);
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> createResponseCode(CommonResponseCodeRequest request) {
         normalize(request);
         responseCodeMapper.insertResponseCode(request);
@@ -96,7 +93,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
         return created;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public Map<String, Object> updateResponseCode(String responseCode, CommonResponseCodeRequest request) {
         normalize(request);
         responseCodeMapper.updateResponseCode(CpfStrings.normalizeCode(responseCode), request);
@@ -106,7 +103,7 @@ public class ResponseCodeCacheService extends CpfBaseService {
         return updated;
     }
 
-    @Transactional(transactionManager = "cmnTransactionManager")
+    @Transactional(transactionManager = "cpfCommonTransactionManager")
     public List<Map<String, Object>> deleteResponseCode(String responseCode) {
         String normalized = CpfStrings.normalizeCode(responseCode);
         responseCodeMapper.deleteResponseCode(normalized);

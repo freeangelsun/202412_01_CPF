@@ -1,26 +1,14 @@
 package com.cpf.data.persistence.mybatis.config;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
+import org.springframework.context.annotation.Configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** Common Product Service must not recreate a separate CMN MyBatis runtime. */
 class CmnMyBatisContextTest {
-    private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withUserConfiguration(CmnMyBatisConfig.class);
-
-    @Test
-    void libraryRuntimeModeDoesNotCreateCmnMyBatisBeans() {
-        runner.withPropertyValues("cpf.common.runtime-mode=library")
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(context).doesNotHaveBean("cmnSqlSessionFactory");
-                    assertThat(context).doesNotHaveBean("cmnSqlSessionTemplate");
-                });
-    }
-
-    @Test
-    void productRuntimeWithoutCmnDatasourceFailsClosed() {
-        runner.run(context -> assertThat(context.getStartupFailure()).isNotNull());
+    @Test void legacyCmnMyBatisTypeIsNotAnActiveConfiguration() {
+        assertThat(CmnMyBatisConfig.class.isAnnotationPresent(Configuration.class)).isFalse();
+        assertThat(CmnMyBatisConfig.class.isAnnotationPresent(Deprecated.class)).isTrue();
+        assertThat(CmnMyBatisConfig.class.getDeclaredMethods()).isEmpty();
     }
 }

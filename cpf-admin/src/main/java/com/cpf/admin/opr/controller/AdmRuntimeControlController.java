@@ -130,61 +130,6 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
             .of("deleted",true));return ResponseEntity.noContent().build();}
 
 
-    @GetMapping("/adm/api/servers")
-    @Operation(operationId="admManagedServerFindAll", summary="Central Managed Server 목록",
-            description="Gateway/Batch/Logging/Health/Configuration이 공통 참조하는 Managed Server master를 조회합니다.")
-    public ResponseEntity<List<CpfManagedServerSnapshot>> managedServers(
-            @RequestParam(required=false) String environment,
-            @RequestParam(required=false) String status,
-            @RequestParam(required=false) String keyword,
-            @RequestParam(defaultValue="100") int limit, HttpServletRequest request) {
-        operator(request);
-        return ResponseEntity.ok(controlPlane.findManagedServers(environment,status,keyword,limit));
-    }
-
-    @GetMapping("/adm/api/servers/{managedServerId}")
-    @Operation(operationId="admManagedServerFindOne", summary="Central Managed Server 상세")
-    public ResponseEntity<CpfManagedServerSnapshot> managedServer(
-            @PathVariable String managedServerId, HttpServletRequest request) {
-        operator(request);
-        return ResponseEntity.ok(controlPlane.getManagedServer(managedServerId));
-    }
-
-    @PostMapping("/adm/api/servers")
-    @Operation(operationId="admManagedServerSave", summary="Central Managed Server 등록/수정")
-    public ResponseEntity<CpfManagedServerSnapshot> saveManagedServer(
-            @RequestBody ManagedServerRequest body, HttpServletRequest request) {
-        String operator=operator(request);
-        CpfManagedServerSnapshot saved=controlPlane.saveManagedServer(new CpfManagedServerCommand(
-                body.managedServerId(),body.serverName(),body.displayName(),body.hostname(),body.managementIdentity(),
-                body.environment(),body.serverGroup(),body.zone(),body.location(),body.description(),body.tagsJson(),
-                body.expectedVersion(),body.reason(),operator));
-        audit(request,operator,"MANAGED_SERVER_SAVE",saved.managedServerId(),body.reason(),saved);
-        return ResponseEntity.ok(saved);
-    }
-
-    @PostMapping("/adm/api/servers/{managedServerId}/disable")
-    @Operation(operationId="admManagedServerDisable", summary="Managed Server 비활성화",
-            description="OS shutdown이 아니라 CPF 관리 대상 master를 DISABLED로 전환합니다.")
-    public ResponseEntity<Void> disableManagedServer(
-            @PathVariable String managedServerId,@RequestBody ManagedServerDisableRequest body,HttpServletRequest request){
-        String operator=operator(request);
-        controlPlane.disableManagedServer(managedServerId,body.expectedVersion(),body.reason(),operator);
-        audit(request,operator,"MANAGED_SERVER_DISABLE",managedServerId,body.reason(),Map.of("status","DISABLED"));
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/adm/api/runtime-inventory")
-    @Operation(operationId="admRuntimeInventoryFindAll", summary="Central Runtime Inventory",
-            description="Managed Server/Runtime Instance/Capability의 공통 projection입니다.")
-    public ResponseEntity<List<CpfRuntimeInventorySnapshot>> runtimeInventory(
-            @RequestParam(required=false) String environment,@RequestParam(required=false) String capability,
-            @RequestParam(required=false) String status,@RequestParam(required=false) String keyword,
-            @RequestParam(defaultValue="200") int limit,HttpServletRequest request){
-        operator(request);
-        return ResponseEntity.ok(controlPlane.findRuntimeInventory(environment,capability,status,keyword,limit));
-    }
-
     @PostMapping("/cpf/runtime-control/agent/register") @Operation(operationId="cpfRuntimeAgentRegister", summary="Runtime Agent 자기등록")
     public ResponseEntity<CpfRuntimeInstanceLease> register(@RequestHeader(TOKEN_HEADER)String token,@RequestBody CpfRuntimeInstanceRegistration registration){agent(token);return ResponseEntity
             .ok(controlPlane.register(registration));}
@@ -259,13 +204,6 @@ public class AdmRuntimeControlController extends com.cpf.admin.common.base.AdmBa
     private void audit(HttpServletRequest req,String user,String action,String id,String reason,Object after){
         audit.record(CpfContexts.transactionId(),user,action,"OPS_RUNTIME_CHANGE",id,reason,"",String.valueOf(after),"Runtime Control Plane",req.getRemoteAddr());
     }
-
-
-    public record ManagedServerRequest(
-            String managedServerId,String serverName,String displayName,String hostname,String managementIdentity,
-            String environment,String serverGroup,String zone,String location,String description,String tagsJson,
-            Long expectedVersion,String reason) {}
-    public record ManagedServerDisableRequest(long expectedVersion,String reason) {}
 
 
     /** Browser가 운영자 ID를 제출하지 못하게 하고, 검증된 Session operator를 서버에서 주입합니다. */

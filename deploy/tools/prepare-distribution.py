@@ -91,6 +91,10 @@ def main() -> int:
     source=load_json(candidates[0])
     rows=[]
     for service in source.get('services',[]):
+        owner = service.get('sourceOwnerPath')
+        if service.get('optional') is True and owner and not (root / owner).is_dir():
+            # ABSENT is a normal state for source-optional applications/domains.
+            continue
         entry=dict(service); entry['generatedDomain']=False; entry['kind']='batch' if service.get('runtimeRole') else 'online'
         entry['artifactPatterns']=platform_candidates(root,service); rows.append(entry)
     rows.extend(generated_entries(root,ns.env))

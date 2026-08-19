@@ -25,7 +25,8 @@ if ($UpdateSnapshot) {
 
 $rootPath = (Resolve-Path $Root).Path
 $modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-biz-admin' }
-$sourceOpenApi = Join-Path $rootPath "$modulePath/frontend/openapi/cpf-openapi.json"
+$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-biz-frontend' }
+$sourceOpenApi = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend/openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-biz-admin/openapi/cpf-openapi.json' }
 if (-not (Test-Path -LiteralPath $sourceOpenApi -PathType Leaf)) {
     throw "Tracked source OpenAPI is missing: $sourceOpenApi"
 }
@@ -87,7 +88,7 @@ try {
     & $Python @canonicalArgs
     if ($LASTEXITCODE -ne 0) { throw 'OpenAPI canonicalization failed' }
 
-    Push-Location (Join-Path $rootPath "$modulePath/frontend")
+    Push-Location $frontend
     try {
         & node 'scripts/validate-openapi.mjs' '--scope=release' "--file=$canonicalPath"
         if ($LASTEXITCODE -ne 0) { throw 'Runtime OpenAPI release validation failed' }

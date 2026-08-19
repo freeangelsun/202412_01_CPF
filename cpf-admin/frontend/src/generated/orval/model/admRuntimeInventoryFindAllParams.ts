@@ -4,5 +4,6 @@ export interface AdmRuntimeInventoryFindAllParams {
   capability?: string;
   status?: string;
   keyword?: string;
-  limit?: number;
+  page?: number;
+  size?: number;
 }

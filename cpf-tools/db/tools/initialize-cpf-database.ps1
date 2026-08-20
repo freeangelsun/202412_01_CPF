@@ -176,18 +176,18 @@ if ($selectedVendor -in @('postgresql','oracle')) {
     }
     if ($RequireRun) {
         $moduleArgs = @($selectedKeys)
-        & pwsh -NoProfile -File $runner -Vendor $selectedVendor -Mode provision -ProfilePath $ProfilePath -Modules $moduleArgs
+        & $runner -Vendor $selectedVendor -Mode provision -ProfilePath $ProfilePath -Modules $moduleArgs
         if ($LASTEXITCODE -ne 0) { throw "$selectedVendor provision 실패" }
         if (-not $ProvisionOnly) {
-            & pwsh -NoProfile -File $runner -Vendor $selectedVendor -Mode install -ProfilePath $ProfilePath -Modules $moduleArgs
+            & $runner -Vendor $selectedVendor -Mode install -ProfilePath $ProfilePath -Modules $moduleArgs
             if ($LASTEXITCODE -ne 0) { throw "$selectedVendor install 실패" }
             $effectiveSeedMode = $SeedMode
             if ($effectiveSeedMode -eq 'profile') { $effectiveSeedMode = 'product' }
-            if ($effectiveSeedMode -in @('product','all')) { & pwsh -NoProfile -File $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
+            if ($effectiveSeedMode -in @('product','all')) { & $runner -Vendor $selectedVendor -Mode productSeed -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor productSeed 실패" } }
             if ($effectiveSeedMode -eq 'all') {
-                foreach ($mode in @('optionalSampleSeed','testSeed')) { & pwsh -NoProfile -File $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
+                foreach ($mode in @('optionalSampleSeed','testSeed')) { & $runner -Vendor $selectedVendor -Mode $mode -ProfilePath $ProfilePath -Modules $moduleArgs; if ($LASTEXITCODE -ne 0) { throw "$selectedVendor $mode 실패" } }
             }
-            & pwsh -NoProfile -File $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
+            & $runner -Vendor $selectedVendor -Mode verify -ProfilePath $ProfilePath -Modules $moduleArgs
             if ($LASTEXITCODE -ne 0) { throw "$selectedVendor verify 실패" }
         }
     }
@@ -446,10 +446,16 @@ function Quote-UserHost {
 
 function Get-UseSections {
     param([string] $Text)
-    $matches = [regex]::Matches(
-        $Text,
-        '(?im)^[ \t]*USE[ \t]+`?([A-Za-z][A-Za-z0-9_$#]*)`?[ \t]*;[ \t]*$'
-    )
+    # Current lifecycle bundles are database-neutral and identify ownership with an explicit marker.
+    # Older MariaDB packs used USE <logicalDb>; support both, but never silently return an empty pack.
+    $markerPattern = '(?im)^[ \t]*--[ \t]*CPF_LOGICAL_DATABASE=([A-Za-z][A-Za-z0-9_$#]*)[ \t]*$'
+    $matches = [regex]::Matches($Text, $markerPattern)
+    if ($matches.Count -eq 0) {
+        $matches = [regex]::Matches(
+            $Text,
+            '(?im)^[ \t]*USE[ \t]+`?([A-Za-z][A-Za-z0-9_$#]*)`?[ \t]*;[ \t]*$'
+        )
+    }
     $list = New-Object System.Collections.Generic.List[object]
     for ($i = 0; $i -lt $matches.Count; $i++) {
         $start = $matches[$i].Index

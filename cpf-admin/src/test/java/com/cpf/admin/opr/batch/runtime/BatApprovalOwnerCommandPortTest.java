@@ -43,6 +43,7 @@ class BatApprovalOwnerCommandPortTest {
                 .andExpect(jsonPath("$.requestedBy").value("requester-a"))
                 .andExpect(jsonPath("$.approvedBy").value("approver-b"))
                 .andExpect(jsonPath("$.approvalRequestId").value("42"))
+                .andExpect(jsonPath("$.expectedVersion").value(7))
                 .andExpect(jsonPath("$.reason").value("approved maintenance"))
                 .andRespond(withSuccess(
                         "{\"command_state\":\"SUCCEEDED\"}",
@@ -71,6 +72,7 @@ class BatApprovalOwnerCommandPortTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.requestedBy").value("requester-a"))
                 .andExpect(jsonPath("$.approvedBy").value("approver-b"))
+                .andExpect(jsonPath("$.expectedVersion").value(7))
                 .andExpect(jsonPath("$.reason").value("approved maintenance"))
                 .andRespond(withSuccess(
                         """
@@ -99,10 +101,13 @@ class BatApprovalOwnerCommandPortTest {
                 java.util.Set.of("DEPLOY_PLAN", "ROLLBACK_PLAN").contains(ownerCommand) ? "BAT_DEPLOYMENT_PLAN" : "BAT_INSTANCE",
                 targetId,
                 "a".repeat(64),
+                "{\"expectedVersion\":7}",
                 "requester-a",
                 "approver-b",
                 "approved maintenance",
-                TRANSACTION_ID);
+                TRANSACTION_ID,
+                "adm-instance-01",
+                1L);
     }
     @Test
     void ownerTupleIsCaseSensitiveAndRejectsNearMatches() {

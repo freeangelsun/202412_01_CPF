@@ -118,13 +118,12 @@ public class CpfServerSessionSecurityAutoConfiguration {
             CpfBffSessionBridgeFilter bridgeFilter,
             CpfBffLogoutFilter logoutFilter,
             CpfServerSessionProperties properties) throws Exception {
-        http.securityMatcher("/adm/**", "/api/bza/**", "/bza/**")
+        http.securityMatcher("/adm/**")
                 .authorizeHttpRequests(authorize -> authorize
                         // 정적 Shell과 최초 로그인만 공개합니다. 권한은 Browser 표시가 아니라 Server Chain이 소유합니다.
                         .requestMatchers(
                                 "/adm", "/adm/", "/adm/index.html", "/adm/assets/**",
-                                "/bza", "/bza/", "/bza/index.html", "/bza/assets/**",
-                                "/api/bza/auth/login")
+                                "/adm/api/auth/login")
                         .permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors

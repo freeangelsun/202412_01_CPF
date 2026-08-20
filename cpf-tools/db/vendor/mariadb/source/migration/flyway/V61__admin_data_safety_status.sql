@@ -1,4 +1,4 @@
--- V61: ADM/BZA 데이터 안전성 상태·버전 모델
+-- V61: ADM/MBW 데이터 안전성 상태·버전 모델
 USE admDB;
 
 ALTER TABLE adm_operator
@@ -28,14 +28,14 @@ UPDATE adm_operator_profile p
 JOIN adm_operator u ON u.OPERATOR_ID = p.OPERATOR_ID
    SET p.DISPLAY_NAME = COALESCE(p.DISPLAY_NAME, u.OPERATOR_NAME);
 
-USE bzaDB;
+USE backofficeDB;
 
-ALTER TABLE bza_admin_user
-    MODIFY COLUMN role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 실제 권한은 bza_user_role 정본',
+ALTER TABLE mbw_admin_user
+    MODIFY COLUMN role_code VARCHAR(50) NULL COMMENT '호환용 대표 역할 코드; 실제 권한은 mbw_user_role 정본',
     ADD COLUMN IF NOT EXISTS account_status VARCHAR(30) NOT NULL DEFAULT 'PENDING_ACTIVATION' COMMENT '계정 상태' AFTER role_code,
     ADD COLUMN IF NOT EXISTS version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전' AFTER account_status;
 
-UPDATE bza_admin_user
+UPDATE mbw_admin_user
    SET account_status = CASE
        WHEN use_yn <> 'Y' THEN 'DISABLED'
        WHEN lock_yn = 'Y' THEN 'LOCKED'
@@ -43,14 +43,14 @@ UPDATE bza_admin_user
    END
  WHERE account_status IS NULL OR account_status = 'PENDING_ACTIVATION';
 
-ALTER TABLE bza_admin_user
-    ADD INDEX IF NOT EXISTS ix_bza_admin_user_status (account_status, use_yn),
-    DROP CONSTRAINT IF EXISTS ck_bza_admin_user_status,
-    ADD CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'));
+ALTER TABLE mbw_admin_user
+    ADD INDEX IF NOT EXISTS ix_mbw_admin_user_status (account_status, use_yn),
+    DROP CONSTRAINT IF EXISTS ck_mbw_admin_user_status,
+    ADD CONSTRAINT ck_mbw_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'));
 
 -- V60 이전 ACTIVE 혼재값은 과거 재직 상태 alias로 간주하여 EMPLOYED로 정규화합니다.
-UPDATE bza_employee SET employment_status = 'EMPLOYED' WHERE employment_status = 'ACTIVE';
+UPDATE mbw_employee SET employment_status = 'EMPLOYED' WHERE employment_status = 'ACTIVE';
 
-ALTER TABLE bza_employee
-    DROP CONSTRAINT IF EXISTS ck_bza_employee_status,
-    ADD CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED'));
+ALTER TABLE mbw_employee
+    DROP CONSTRAINT IF EXISTS ck_mbw_employee_status,
+    ADD CONSTRAINT ck_mbw_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED'));

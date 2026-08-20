@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: cpf-backoffice
+  datasource:
+    # MBW Backoffice-owned DB. Secret/Endpoint는 환경 Binding으로만 주입합니다.
+    url: ${MBW_DATASOURCE_URL}
+    username: ${MBW_DATASOURCE_USERNAME}
+    password: ${MBW_DATASOURCE_PASSWORD}
+    driver-class-name: ${MBW_DATASOURCE_DRIVER}
+
+cpf:
+  generated-domain:
+    # Backoffice는 Generator가 매번 생성하지 않는 Optional Prebuilt Business Domain이지만
+    # Runtime 계약은 Generated Business Domain과 동일합니다.
+    name: backoffice
+    system-code: MBW
+    database-role: CUSTOMER_BUSINESS_DB
+    table-prefix: MBW
+  runtime:
+    role: backoffice-online
+  operation-policy:
+    seed:
+      allowed-callers: ${CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS:}
+      source: YML
+      revision: ${CPF_OPERATION_POLICY_SEED_REVISION:BACKOFFICE-1}
+  backoffice:
+    security:
+      jwt-secret: ${CPF_MBW_JWT_SECRET:}
+      access-token-ttl-seconds: ${CPF_MBW_ACCESS_TOKEN_TTL_SECONDS:600}
+      refresh-token-ttl-seconds: ${CPF_MBW_REFRESH_TOKEN_TTL_SECONDS:7200}
+    bootstrap:
+      approval-token-file: ${CPF_MBW_BOOTSTRAP_APPROVAL_TOKEN_FILE:}
+      password-file: ${CPF_MBW_BOOTSTRAP_PASSWORD_FILE:}
+      approval-scope: ${CPF_MBW_BOOTSTRAP_APPROVAL_SCOPE:}
+      operation-id: ${CPF_MBW_BOOTSTRAP_OPERATION_ID:}
+      claim-lease-seconds: ${CPF_MBW_BOOTSTRAP_CLAIM_LEASE_SECONDS:300}
+      login-id: ${CPF_MBW_BOOTSTRAP_LOGIN_ID:}
+      operator-name: ${CPF_MBW_BOOTSTRAP_OPERATOR_NAME:}
+      role-code: ${CPF_MBW_BOOTSTRAP_ROLE_CODE:MBW_MANAGER}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

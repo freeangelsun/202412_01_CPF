@@ -4,11 +4,11 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[4];SCRIPT=ROOT/"cpf-tools/verification/tools/verify-cpf-operator-trust-boundary.py"
 def load():s=importlib.util.spec_from_file_location("g",SCRIPT);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 COPY=(
- "cpf-admin/frontend/src/shared/cpfApi.ts","cpf-biz-frontend/src/shared/api/channelHttpClient.ts","cpf-biz-channel/src/main/java/com/cpf/bzachannel/shared/protocol/CanonicalHeaderOwnershipFilter.java",
+ "cpf-admin/frontend/src/shared/cpfApi.ts","cpf-backoffice-web/frontend/src/shared/api/channelHttpClient.ts","cpf-backoffice-web/src/main/java/com/cpf/backoffice/web/shared/protocol/CanonicalHeaderOwnershipFilter.java",
  "cpf-admin/src/main/java/com/cpf/admin/opr/filter/AdmApiAuthFilter.java",
  "cpf-admin/src/main/java/com/cpf/admin/opr/audit/AdmVerifiedActorRequestBodyAdvice.java",
  "cpf-admin/src/main/java/com/cpf/admin/opr/audit/AdmMandatoryAuditInterceptor.java",
- "cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/filter/BzaApiAuthFilter.java",
+ "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/auth/filter/BackofficeApiAuthFilter.java",
  "cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java",
  "cpf-admin/src/test/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlControllerEndpointTest.java",
 )

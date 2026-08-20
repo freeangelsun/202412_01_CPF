@@ -1,7 +1,7 @@
 package com.cpf.gateway.runtime;
 
 import com.cpf.gateway.api.CpfGatewayRegistryPort;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

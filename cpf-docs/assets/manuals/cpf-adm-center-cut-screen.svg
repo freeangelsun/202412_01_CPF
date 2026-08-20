@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">ADM Center-Cut Execution Recovery</title><desc id="desc">FAILED와 UNKNOWN Execution만 별도 승인으로 조치한다.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/></filter></defs>
+<rect width="1400" height="820" fill="#f8fafc"/>
+<text x="70" y="65" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#0f172a">ADM Center-Cut Execution Recovery</text>
+<text x="70" y="102" font-family="Arial,sans-serif" font-size="18" fill="#475569">FAILED와 UNKNOWN Execution만 별도 승인으로 조치한다.</text>
+<line x1="340" y1="265" x2="385" y2="265" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="362" y="257" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">select</text>
+<line x1="690" y1="265" x2="755" y2="265" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="722" y="257" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">prepare</text>
+<line x1="1030" y1="265" x2="1075" y2="265" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="1052" y="257" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">execute</text>
+<line x1="540" y1="360" x2="540" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="540" y="422" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">state</text>
+<line x1="890" y1="360" x2="890" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="890" y="422" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">reload</text>
+<rect x="70" y="170" width="270" height="190" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="90" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Job 목록</text>
+<text x="90" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Job·이름·상태</text>
+<text x="90" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">열기 Button</text>
+<rect x="390" y="170" width="300" height="190" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="410" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Execution 결과</text>
+<text x="410" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Execution·Result·상태</text>
+<text x="410" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Masked message·Action</text>
+<rect x="760" y="170" width="270" height="190" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="780" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">승인 Dialog</text>
+<text x="780" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Reason·Approval ID</text>
+<text x="780" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Idempotency Key</text>
+<rect x="1080" y="170" width="250" height="190" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1100" y="206" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Owner 실행</text>
+<text x="1100" y="240" font-family="Arial,sans-serif" font-size="15" fill="#334155">Execution-scope API</text>
+<text x="1100" y="266" font-family="Arial,sans-serif" font-size="15" fill="#334155">Item·집계·Audit Transaction</text>
+<rect x="390" y="510" width="300" height="150" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="410" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Button 조건</text>
+<text x="410" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">FAILED → 실패 재처리</text>
+<text x="410" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">UNKNOWN → UNKNOWN 대사</text>
+<rect x="760" y="510" width="270" height="150" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="780" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">결과 대사</text>
+<text x="780" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">requeued·resultVersion</text>
+<text x="780" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">업무 건수·금액</text>
+</svg>

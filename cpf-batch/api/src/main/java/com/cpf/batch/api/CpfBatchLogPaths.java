@@ -1,6 +1,6 @@
 package com.cpf.batch.api;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 
 import java.nio.file.Path;
 import java.time.LocalDate;

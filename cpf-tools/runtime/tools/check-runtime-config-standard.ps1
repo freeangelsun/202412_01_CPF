@@ -11,7 +11,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 
 $ErrorActionPreference = "Stop"
 
-$modules = @("cpf-admin", "cpf-batch", "cpf-biz-admin", "cpf-education", "cpf-gateway")
+$modules = @("cpf-admin", "cpf-batch", "cpf-backoffice/online", "cpf-education", "cpf-gateway")
 $moduleCodes = @("ADM", "BAT", "BZA", "EDU", "GWY")
 $profiles = @("local", "dev", "stg", "prod")
 $batRuntimeRoles = [ordered]@{
@@ -49,7 +49,7 @@ $batRuntimeRoles = [ordered]@{
 $prefixByModule = @{
     "cpf-admin" = "ADM"
     "cpf-batch" = "BAT"
-    "cpf-biz-admin" = "BZA"
+    "cpf-backoffice/online" = "BZA"
     "cpf-education" = "EDU"
     "cpf-gateway" = "GWY"
 }

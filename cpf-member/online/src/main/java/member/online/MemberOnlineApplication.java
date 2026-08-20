@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** member Generated API 실행 진입점입니다. */
 @SpringBootApplication(scanBasePackages="member")
-@MapperScan("member.domain.mapper")
+@MapperScan("member.online.member.repository")
 public class MemberOnlineApplication {
     public static void main(String[] args) { SpringApplication.run(MemberOnlineApplication.class,args); }
 }

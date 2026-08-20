@@ -1,0 +1,178 @@
+services:
+  cpf-postgresql:
+    image: ${CPF_POSTGRES_IMAGE:-postgres:18.4-trixie}
+    container_name: cpf-public-postgresql
+    environment:
+      POSTGRES_PASSWORD: ${CPF_LOCAL_DB_ADMIN_PASSWORD:?CPF_LOCAL_DB_ADMIN_PASSWORD is required}
+    ports:
+      - "${CPF_POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_postgresql:/var/lib/postgresql/data
+
+  cpf-mariadb:
+    image: ${CPF_MARIADB_IMAGE:-mariadb:12.3.2}
+    container_name: cpf-public-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: ${CPF_LOCAL_DB_ADMIN_PASSWORD:?CPF_LOCAL_DB_ADMIN_PASSWORD is required}
+    ports:
+      - "${CPF_MARIADB_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_mariadb:/var/lib/mysql
+
+  cpf-oracle:
+    image: ${CPF_ORACLE_IMAGE:-container-registry.oracle.com/database/free:26ai-free-23.26.2.0.0}
+    container_name: cpf-public-oracle
+    environment:
+      ORACLE_PWD: ${CPF_LOCAL_DB_ADMIN_PASSWORD:?CPF_LOCAL_DB_ADMIN_PASSWORD is required}
+    ports:
+      - "${CPF_ORACLE_PORT:-1521}:1521"
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+    volumes:
+      - cpf_public_oracle:/opt/oracle/oradata
+
+  cpf-redis:
+    image: ${CPF_REDIS_IMAGE:-redis:8.8.1-trixie}
+    container_name: cpf-public-redis
+    command: ["sh", "-ec", "exec redis-server --requirepass \"$$CPF_LOCAL_MIDDLEWARE_PASSWORD\" --save '' --appendonly no"]
+    environment:
+      CPF_LOCAL_MIDDLEWARE_PASSWORD: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+    ports:
+      - "${CPF_REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$CPF_LOCAL_MIDDLEWARE_PASSWORD\" ping | grep -qx PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_redis:/data
+
+  cpf-valkey:
+    image: ${CPF_VALKEY_IMAGE:-valkey/valkey:9.1.1-alpine}
+    container_name: cpf-public-valkey
+    command: ["sh", "-ec", "exec valkey-server --requirepass \"$$CPF_LOCAL_MIDDLEWARE_PASSWORD\" --save '' --appendonly no"]
+    environment:
+      CPF_LOCAL_MIDDLEWARE_PASSWORD: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+    ports:
+      - "${CPF_VALKEY_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli --no-auth-warning -a \"$$CPF_LOCAL_MIDDLEWARE_PASSWORD\" ping | grep -qx PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_valkey:/data
+
+  cpf-kafka:
+    image: ${CPF_KAFKA_IMAGE:-apache/kafka:4.3.1}
+    container_name: cpf-public-kafka
+    hostname: cpf-public-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:19092,CONTROLLER://:19093,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cpf-public-kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@cpf-public-kafka:19093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "${CPF_KAFKA_PORT:-9092}:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:19092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+    volumes:
+      - cpf_public_kafka:/var/lib/kafka/data
+
+  cpf-rabbitmq:
+    image: ${CPF_RABBITMQ_IMAGE:-rabbitmq:4.1.8-management}
+    container_name: cpf-public-rabbitmq
+    hostname: cpf-public-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CPF_RABBITMQ_USER:-cpf}
+      RABBITMQ_DEFAULT_PASS: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+      RABBITMQ_DEFAULT_VHOST: ${CPF_RABBITMQ_VHOST:-/cpf}
+    ports:
+      - "${CPF_RABBITMQ_PORT:-5672}:5672"
+      - "${CPF_RABBITMQ_MGMT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_rabbitmq:/var/lib/rabbitmq
+
+  cpf-artemis:
+    image: ${CPF_ARTEMIS_IMAGE:-apache/artemis:2.55.0}
+    container_name: cpf-public-artemis
+    hostname: cpf-public-artemis
+    environment:
+      ARTEMIS_USER: ${CPF_ARTEMIS_USER:-cpf}
+      ARTEMIS_PASSWORD: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+      ANONYMOUS_LOGIN: "false"
+      EXTRA_ARGS: "--http-host 0.0.0.0 --relax-jolokia"
+    ports:
+      - "${CPF_ARTEMIS_PORT:-61616}:61616"
+      - "${CPF_ARTEMIS_HTTP_PORT:-8161}:8161"
+    healthcheck:
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/61616'"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+    volumes:
+      - cpf_public_artemis:/var/lib/artemis-instance
+
+  cpf-ibm-mq:
+    image: ${CPF_IBM_MQ_IMAGE:-icr.io/ibm-messaging/mq:9.4.5.1-r1}
+    profiles: ["ibm-mq"]
+    container_name: cpf-public-ibm-mq
+    hostname: cpf-public-ibm-mq
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: ${CPF_IBM_MQ_QMGR:-QM1}
+      MQ_DEV: "true"
+      MQ_CONNAUTH_USE_HTP: "true"
+      MQ_ADMIN_PASSWORD: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+      MQ_APP_PASSWORD: ${CPF_LOCAL_MIDDLEWARE_PASSWORD:?CPF_LOCAL_MIDDLEWARE_PASSWORD is required}
+    ports:
+      - "${CPF_IBM_MQ_PORT:-1414}:1414"
+      - "${CPF_IBM_MQ_HTTPS_PORT:-9443}:9443"
+    healthcheck:
+      test: ["CMD-SHELL", "dspmq | grep -q 'STATUS(Running)'"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+    volumes:
+      - cpf_public_ibm_mq:/mnt/mqm
+
+volumes:
+  cpf_public_postgresql:
+  cpf_public_mariadb:
+  cpf_public_oracle:
+  cpf_public_redis:
+  cpf_public_valkey:
+  cpf_public_kafka:
+  cpf_public_rabbitmq:
+  cpf_public_artemis:
+  cpf_public_ibm_mq:

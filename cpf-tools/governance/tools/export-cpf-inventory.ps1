@@ -109,7 +109,7 @@ if ($starterModuleNames.Count -eq 0) {
     throw "Canonical Starter root has no Gradle projects: $starterRoot"
 }
 $moduleNames = @(
-    "cpf-core", "cpf-gateway", "cpf-common", "cpf-admin", "cpf-biz-admin",
+    "cpf-core", "cpf-gateway", "cpf-common", "cpf-admin", "cpf-backoffice/online",
     "cpf-batch", "cpf-member", "cpf-account", "cpf-education", "cpf-external"
 ) + $starterModuleNames
 foreach ($moduleName in $moduleNames) {

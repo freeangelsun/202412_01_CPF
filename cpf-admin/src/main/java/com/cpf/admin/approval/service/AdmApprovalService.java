@@ -617,7 +617,7 @@ public class AdmApprovalService extends AdmBaseService {
                     ? action.substring("BATCH_GHOST_".length()) : optional(payload.get("actionType"));
             case "updateScheduleEnabled" -> action.endsWith("ENABLE")?"enabled=true":"enabled=false";
             case "requestRun" -> jsonValue(payload.get("jobParameters"));
-            case "runtimeCommand" -> json(payload);
+            case "runtimeCommand", "retentionPolicySave", "retentionRunNow", "retentionRunResume", "retentionPolicyResume" -> json(payload);
             default -> "";
         };
         return new CpfBatchRiskCommand(operation,required(request.targetType(),"targetType"),

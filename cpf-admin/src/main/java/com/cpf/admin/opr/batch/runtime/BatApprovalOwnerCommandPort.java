@@ -11,6 +11,9 @@ import com.cpf.batch.api.CommandState;
 import com.cpf.batch.api.DeploymentResult;
 import com.cpf.batch.api.RuntimeCommand;
 import com.cpf.web.api.CpfHttpHeaders;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -32,13 +35,32 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
 
     private final RestClient client;
     private final String callerInstanceId;
+    private final ObjectMapper objectMapper;
 
+    @Autowired
     public BatApprovalOwnerCommandPort(
             RestClient.Builder builder,
-            @Value("${cpf.batch.control.base-url}") String baseUrl) {
+            @Value("${cpf.batch.control.base-url}") String baseUrl,
+            ObjectMapper objectMapper) {
+        this(builder, baseUrl, CpfInstanceIdentity.current().instanceId(), objectMapper);
+    }
+
+    BatApprovalOwnerCommandPort(
+            RestClient.Builder builder,
+            String baseUrl,
+            String callerInstanceId) {
+        this(builder, baseUrl, callerInstanceId, new ObjectMapper());
+    }
+
+    private BatApprovalOwnerCommandPort(
+            RestClient.Builder builder,
+            String baseUrl,
+            String callerInstanceId,
+            ObjectMapper objectMapper) {
         String explicitBaseUrl = requireRemoteBaseUrl(baseUrl);
         this.client = builder.baseUrl(explicitBaseUrl).build();
-        this.callerInstanceId = CpfInstanceIdentity.current().instanceId();
+        this.callerInstanceId = requireRuntimeInstanceId(callerInstanceId);
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
     }
 
     @Override
@@ -127,10 +149,11 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
         String endpoint = "ROLLBACK_PLAN".equals(ownerCommand)
                 ? "/api/v1/batch/deployment-plans/{id}/rollback-approved"
                 : "/api/v1/batch/deployment-plans/{id}/execute-approved";
+        long expectedVersion = expectedVersion(command);
         ApprovedExecution body = new ApprovedExecution(
                 command.approvalRequestId(),
                 command.commandRequestId(),
-                0L,
+                expectedVersion,
                 command.requestedBy(),
                 command.approvedBy(),
                 command.reason());
@@ -158,7 +181,7 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
                 List.of(command.targetId()),
                 command.targetId(),
                 command.payloadHash(),
-                0L,
+                expectedVersion(command),
                 command.requestedBy(),
                 command.reason(),
                 now,
@@ -233,6 +256,37 @@ public class BatApprovalOwnerCommandPort implements AdmApprovalOwnerCommandPort 
                 AdmApprovalExecutionStatus.UNKNOWN,
                 code,
                 "Owner result is unknown; reconciliation required");
+    }
+
+
+    private long expectedVersion(AdmApprovedOperationCommand command) {
+        try {
+            JsonNode root = objectMapper.readTree(command.payloadSnapshot());
+            JsonNode value = root == null ? null : root.get("expectedVersion");
+            if (value == null || !value.isIntegralNumber() || !value.canConvertToLong()) {
+                throw new IllegalArgumentException("approved BAT snapshot expectedVersion is required");
+            }
+            long expectedVersion = value.longValue();
+            if (expectedVersion < 0) {
+                throw new IllegalArgumentException("approved BAT snapshot expectedVersion must be non-negative");
+            }
+            return expectedVersion;
+        } catch (IllegalArgumentException invalid) {
+            throw invalid;
+        } catch (Exception invalidJson) {
+            throw new IllegalArgumentException("approved BAT snapshot JSON is invalid", invalidJson);
+        }
+    }
+
+    private static String requireRuntimeInstanceId(String value) {
+        String instanceId = requireText(value, "callerInstanceId");
+        String normalized = instanceId.toLowerCase(Locale.ROOT);
+        if (Set.of("local", "localhost", "127.0.0.1", "::1", "unknown").contains(normalized)
+                || normalized.matches(".*(?:^|[-_])local(?:[-_]|$).*")
+                || normalized.equals("adm-local-01")) {
+            throw new IllegalArgumentException("callerInstanceId must be a real Runtime instance identity");
+        }
+        return instanceId;
     }
 
     private static String requireRemoteBaseUrl(String value) {

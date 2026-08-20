@@ -1,0 +1,136 @@
+﻿catalog_id,domain,state_or_error,meaning,retry_rule,recovery,evidence,status
+SER-001,Generator Dry Run과 충돌 검토,기존 파일 충돌·지원하지 않는 조합,Generator Dry Run과 충돌 검토 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Dry Run 결과를 수정하고 적용 전 diff를 재검토,Operation ID·원장·Trace·Audit,완료
+SER-002,secure-api Profile 조립,선택하지 않은 Provider Bean 유입,secure-api Profile 조립 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Resolved Lock과 dependencyInsight로 원인을 제거,Operation ID·원장·Trace·Audit,완료
+SER-003,조건 검색과 Paging,허용되지 않은 Sort·과대 Page,조건 검색과 Paging 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,400으로 차단하고 최대 Page Size를 유지,Operation ID·원장·Trace·Audit,완료
+SER-004,상세 조회와 Masking,타 조직 ID·원문 민감값 조회,상세 조회와 Masking 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,"403 또는 Masked 응답, Audit로 시도 확인",Operation ID·원장·Trace·Audit,완료
+SER-005,Versioned 상태 변경,오래된 Version,Versioned 상태 변경 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,409와 현재 Version 반환 후 사용자가 재판단,Operation ID·원장·Trace·Audit,완료
+SER-006,Idempotency 동일 요청 재호출,응답 유실 뒤 같은 요청 재호출,Idempotency 동일 요청 재호출 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,"원본 Operation 결과 조회, 새 Row 생성 금지",Operation ID·원장·Trace·Audit,완료
+SER-007,Idempotency Key Payload 충돌,Key 재사용으로 다른 업무 실행 시도,Idempotency Key Payload 충돌 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,원본 Hash를 유지하고 새 Key 발급,Operation ID·원장·Trace·Audit,완료
+SER-008,Optimistic Lock 동시 수정,Last-write-wins로 덮어쓰기,Optimistic Lock 동시 수정 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,최신 상태 재조회와 사유 재입력,Operation ID·원장·Trace·Audit,완료
+SER-009,업무 Transaction과 Audit,Audit만 Commit 또는 업무만 Commit,업무 Transaction과 Audit 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Transaction Rollback 후 재시도 가능 상태 확인,Operation ID·원장·Trace·Audit,완료
+SER-010,Outbox 원자 저장,DB Commit 후 Process 종료,Outbox 원자 저장 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Publisher가 미발행 Row를 Claim해 발행,Operation ID·원장·Trace·Audit,완료
+SER-011,Outbox Publisher Lease,Lease 만료 뒤 이전 Publisher 늦은 갱신,Outbox Publisher Lease 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Fencing Token으로 stale writer 차단,Operation ID·원장·Trace·Audit,완료
+SER-012,Inbox 중복 소비 차단,ACK 전 Consumer 종료,Inbox 중복 소비 차단 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Inbox와 업무 결과를 확인하고 ACK만 재수행,Operation ID·원장·Trace·Audit,완료
+SER-013,Broker DLQ와 Replay,원인 미해결 Blind Replay,Broker DLQ와 Replay 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,"Replay 중단, Payload와 Consumer Version 분석",Operation ID·원장·Trace·Audit,완료
+SER-014,Kafka Consumer Process Kill,Commit 후 ACK 전 Kill,Kafka Consumer Process Kill 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Inbox 기준으로 재전달을 정상화,Operation ID·원장·Trace·Audit,완료
+SER-015,RabbitMQ Provider 교체,Provider SDK Type이 Public API에 노출,RabbitMQ Provider 교체 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Adapter 경계로 이동하고 Contract Test 재실행,Operation ID·원장·Trace·Audit,완료
+SER-016,JMS Provider 교체,Transaction/Ack 의미 불일치,JMS Provider 교체 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Provider별 Adapter Test와 운영 정책 보정,Operation ID·원장·Trace·Audit,완료
+SER-017,IBM MQ 연계,Channel Down·Backout Queue,IBM MQ 연계 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Backout 원인 제거 후 승인 Replay,Operation ID·원장·Trace·Audit,완료
+SER-018,HTTP Timeout Budget,하위 Timeout이 상위보다 김,HTTP Timeout Budget 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,정책 검증에서 차단하고 Budget 재배분,Operation ID·원장·Trace·Audit,완료
+SER-019,HTTP 응답 유실,Target 접수 후 Client Timeout,HTTP 응답 유실 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Status API/대사 파일로 결과 확정,Operation ID·원장·Trace·Audit,완료
+SER-020,Circuit Breaker 전이,Retry Storm과 Thread 고갈,Circuit Breaker 전이 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Retry를 줄이고 Bulkhead·Timeout을 함께 조정,Operation ID·원장·Trace·Audit,완료
+SER-021,TCP Length Framing,길이 불일치·Oversize,TCP Length Framing 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Connection 종료·원문 격리·재전송 판단,Operation ID·원장·Trace·Audit,완료
+SER-022,TCP CRLF Framing,본문 CRLF 오해석,TCP CRLF Framing 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Escape/Length 방식으로 계약 변경,Operation ID·원장·Trace·Audit,완료
+SER-023,TCP STX/ETX Framing,DLE 누락·Frame 중첩,TCP STX/ETX Framing 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Connection Reset과 원문 분석,Operation ID·원장·Trace·Audit,완료
+SER-024,Fixed-length 전문,Byte 길이·한글 Charset 오류,Fixed-length 전문 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,원문 보존 후 Layout Version으로 재파싱,Operation ID·원장·Trace·Audit,완료
+SER-025,ISO8583 전문,Bitmap·MAC·Field Length 오류,ISO8583 전문 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,NACK·격리 후 Spec Version 재확인,Operation ID·원장·Trace·Audit,완료
+SER-026,Attachment Upload,확장자 위장·Checksum 불일치,Attachment Upload 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,격리하고 Object 삭제 또는 재검사,Operation ID·원장·Trace·Audit,완료
+SER-027,Archive 안전 해제,Zip Slip·압축폭탄,Archive 안전 해제 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,전체 해제 중단·임시폴더 삭제·Audit,Operation ID·원장·Trace·Audit,완료
+SER-028,Tabular Preview·Apply,Apply 중 일부 Row 실패,Tabular Preview·Apply 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,성공·실패 Row 원장 분리 후 실패만 Reprocess,Operation ID·원장·Trace·Audit,완료
+SER-029,SFTP 수신,중간 끊김·Host Key 변경,SFTP 수신 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,부분 파일 삭제·Host Key 승인 확인 후 재수신,Operation ID·원장·Trace·Audit,완료
+SER-030,Email Notification,SMTP Timeout·Bounce,Email Notification 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Attempt 상태에 따라 Retry 또는 DLQ,Operation ID·원장·Trace·Audit,완료
+SER-031,SMS SPI,Provider Timeout·중복 발송,SMS SPI 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Idempotency와 Provider Message ID로 대사,Operation ID·원장·Trace·Audit,완료
+SER-032,Caffeine Local Cache,Stale Entry·Memory Pressure,Caffeine Local Cache 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Namespace Evict 후 Owner에서 재적재,Operation ID·원장·Trace·Audit,완료
+SER-033,Valkey Distributed Cache,Valkey Down·Partial Key,Valkey Distributed Cache 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Fail-open/closed 정책 적용 후 Ledger Reconcile,Operation ID·원장·Trace·Audit,완료
+SER-034,Durable Cache Invalidation,Pub/Sub Signal 유실,Durable Cache Invalidation 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Durable Ledger를 읽어 누락 Event 재적용,Operation ID·원장·Trace·Audit,완료
+SER-035,Feature Flag Override,만료 누락·잘못된 Target,Feature Flag Override 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Override 폐기 또는 Kill Switch,Operation ID·원장·Trace·Audit,완료
+SER-036,Secret Rotation,일부 Consumer 구 Version,Secret Rotation 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,"Grace 내 재적용, 실패 Consumer 격리",Operation ID·원장·Trace·Audit,완료
+SER-037,Service Identity,Wrong Audience·Expired Credential,Service Identity 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Credential 교체와 실패 Attempt 확인,Operation ID·원장·Trace·Audit,완료
+SER-038,Browser Session·CSRF,CSRF·Session Fixation·Role Revoke,Browser Session·CSRF 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Session 폐기·재로그인·권한 재평가,Operation ID·원장·Trace·Audit,완료
+SER-039,Data Scope와 Masking,권한 우회·Raw Export,Data Scope와 Masking 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,403·Masked 결과·Download Audit 확인,Operation ID·원장·Trace·Audit,완료
+SER-040,Business Calendar,유효기간 겹침·휴일 누락,Business Calendar 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,새 Version 저장 후 Cache Reconcile,Operation ID·원장·Trace·Audit,완료
+SER-041,Time·Deadline,Clock Skew·DST 경계,Time·Deadline 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Time Health 확인 후 실행 차단 또는 보정,Operation ID·원장·Trace·Audit,완료
+SER-042,Data Quality Quarantine,오탐·Rule Version Drift,Data Quality Quarantine 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Rule Version 확인 후 승인 정정,Operation ID·원장·Trace·Audit,완료
+SER-043,정정 승인 Snapshot,승인 후 Payload 변경·만료,정정 승인 Snapshot 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,실행 차단 후 새 승인 요청,Operation ID·원장·Trace·Audit,완료
+SER-044,OpenAPI Snapshot Refresh,중복 Operation ID·Unsafe Path,OpenAPI Snapshot Refresh 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Schema 수정 후 Refresh 제한을 지켜 재실행,Operation ID·원장·Trace·Audit,완료
+SER-045,Local·Remote 계약 동등성,Remote Serialization·Timeout 차이,Local·Remote 계약 동등성 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Adapter 수정 후 같은 Contract Test 재실행,Operation ID·원장·Trace·Audit,완료
+SER-046,Tasklet 단일 작업,중간 예외,Tasklet 단일 작업 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,멱등성 확인 후 Restart,Operation ID·원장·Trace·Audit,완료
+SER-047,Chunk Reader·Processor·Writer,Writer 실패,Chunk Reader·Processor·Writer 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,마지막 Commit 이후 Restart,Operation ID·원장·Trace·Audit,완료
+SER-048,Paging Reader 정렬,정렬 Key 중복,Paging Reader 정렬 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,복합 Sort Key로 보정,Operation ID·원장·Trace·Audit,완료
+SER-049,Cursor Reader Resource,Connection Drop,Cursor Reader Resource 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Checkpoint와 재연결 정책으로 Restart,Operation ID·원장·Trace·Audit,완료
+SER-050,Processor Validation,검증 예외 폭증,Processor Validation 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Skip 한도 초과 시 Job 실패,Operation ID·원장·Trace·Audit,완료
+SER-051,Writer Upsert·Version,동시 Writer 충돌,Writer Upsert·Version 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,충돌 Item 격리·Reprocess,Operation ID·원장·Trace·Audit,완료
+SER-052,Skip 정책,System Error를 Skip,Skip 정책 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,정책 수정 후 Job Version 증가,Operation ID·원장·Trace·Audit,완료
+SER-053,Retry 정책,영구 오류 Retry Storm,Retry 정책 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,즉시 실패·DLQ/격리,Operation ID·원장·Trace·Audit,완료
+SER-054,JobParameter 식별,비식별 Parameter 오용,JobParameter 식별 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,식별/비식별 Parameter 분리,Operation ID·원장·Trace·Audit,완료
+SER-055,ExecutionContext Checkpoint,Checkpoint 유실,ExecutionContext Checkpoint 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,업무 원장과 대사해 안전 위치 결정,Operation ID·원장·Trace·Audit,완료
+SER-056,Stop 요청,즉시 Process Kill,Stop 요청 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Ghost 판정 후 Recovery,Operation ID·원장·Trace·Audit,완료
+SER-057,Restart,Job Version 변경,Restart 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,호환 정책 확인 후 새 Instance/Reprocess,Operation ID·원장·Trace·Audit,완료
+SER-058,Abandon,진행 중 Execution Abandon,Abandon 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,상태 검증에서 차단,Operation ID·원장·Trace·Audit,완료
+SER-059,Reprocess 실패 대상,성공 Item 재처리,Reprocess 실패 대상 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,대상 Snapshot으로 차단,Operation ID·원장·Trace·Audit,완료
+SER-060,Partition 분할,경계 중복,Partition 분할 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Partition Snapshot 재생성,Operation ID·원장·Trace·Audit,완료
+SER-061,Remote Worker,Worker 응답 유실,Remote Worker 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Lease 만료 후 Reconcile,Operation ID·원장·Trace·Audit,완료
+SER-062,Lease·Fencing,Clock Skew·늦은 Commit,Lease·Fencing 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,DB Token 비교로 거부,Operation ID·원장·Trace·Audit,완료
+SER-063,Scheduler Trigger,중복 Trigger,Scheduler Trigger 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,DB Lease와 Idempotency로 차단,Operation ID·원장·Trace·Audit,완료
+SER-064,Misfire SKIP,누락 숨김,Misfire SKIP 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Audit·Alert 생성,Operation ID·원장·Trace·Audit,완료
+SER-065,Misfire FIRE_ONCE,여러 번 Catch-up,Misfire FIRE_ONCE 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Trigger 원장으로 중복 차단,Operation ID·원장·Trace·Audit,완료
+SER-066,Job Definition Version,실행 중 정의 변경,Job Definition Version 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,새 Version은 다음 실행부터,Operation ID·원장·Trace·Audit,완료
+SER-067,Job Pack Checksum,Artifact 변조,Job Pack Checksum 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,배포 거부·LKG 사용,Operation ID·원장·Trace·Audit,완료
+SER-068,Runner Process,시작 응답 유실,Runner Process 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Process/Execution 대사,Operation ID·원장·Trace·Audit,완료
+SER-069,Agent Host Command,중복 Command,Agent Host Command 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Command Ledger 결과 반환,Operation ID·원장·Trace·Audit,완료
+SER-070,Center-Cut 대상 Preview,Preview 후 데이터 변경,Center-Cut 대상 Preview 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,승인 전 Snapshot 재생성,Operation ID·원장·Trace·Audit,완료
+SER-071,Center-Cut 승인 실행,승인 우회,Center-Cut 승인 실행 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,서버에서 차단·Audit,Operation ID·원장·Trace·Audit,완료
+SER-072,Center-Cut 부분 실패,전체 성공으로 오판,Center-Cut 부분 실패 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,결과 원장과 업무 합계 대사,Operation ID·원장·Trace·Audit,완료
+SER-073,Process Kill Restart,ACK 전 Kill,Process Kill Restart 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Metadata·업무 원장 비교,Operation ID·원장·Trace·Audit,완료
+SER-074,Ghost Execution,살아 있는 Process 오판,Ghost Execution 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Host/Lease/Process 3자 확인,Operation ID·원장·Trace·Audit,완료
+SER-075,정산 대사,합계 불일치,정산 대사 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,차이 Item 추출 후 Reprocess/보상,Operation ID·원장·Trace·Audit,완료
+SER-076,Owner Query Port,Owner Timeout,Owner Query Port 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Timeout 응답과 Trace로 원인 확인,Operation ID·원장·Trace·Audit,완료
+SER-077,Owner Command Port,409·응답 유실,Owner Command Port 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Operation 조회와 Reconcile,Operation ID·원장·Trace·Audit,완료
+SER-078,Same-JVM Adapter,Internal Repository 직접 접근,Same-JVM Adapter 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Public Port로 교체,Operation ID·원장·Trace·Audit,완료
+SER-079,Remote Adapter,Network Timeout,Remote Adapter 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,UNKNOWN 가능성 분리,Operation ID·원장·Trace·Audit,완료
+SER-080,ADM Controller,Permission 누락,ADM Controller 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,403 Negative Test,Operation ID·원장·Trace·Audit,완료
+SER-081,OpenAPI Operation,Schema Drift,OpenAPI Operation 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,생성·검증 Gate 재실행,Operation ID·원장·Trace·Audit,완료
+SER-082,Generated Client,수기 Client Drift,Generated Client 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Client 재생성,Operation ID·원장·Trace·Audit,완료
+SER-083,Route Registry,Unknown Route Dashboard 대체,Route Registry 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Fail-closed 처리,Operation ID·원장·Trace·Audit,완료
+SER-084,검색 Form,빈 값·과대 기간,검색 Form 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Client/Server 양쪽 차단,Operation ID·원장·Trace·Audit,완료
+SER-085,Table·Detail,Raw PII 노출,Table·Detail 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Masking 정책 수정,Operation ID·원장·Trace·Audit,완료
+SER-086,Command Dialog,Client만 승인 판단,Command Dialog 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,서버 승인 ID 사용,Operation ID·원장·Trace·Audit,완료
+SER-087,409 Conflict UX,무조건 재시도,409 Conflict UX 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,사용자 재판단,Operation ID·원장·Trace·Audit,완료
+SER-088,Timeout·UNKNOWN UX,중복 클릭,Timeout·UNKNOWN UX 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Button 잠금·Idempotency,Operation ID·원장·Trace·Audit,완료
+SER-089,Masking·Export,화면 권한으로 Export,Masking·Export 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Download API에서 재검증,Operation ID·원장·Trace·Audit,완료
+SER-090,Browser Negative Test,권한 없는 Button 노출,Browser Negative Test 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Route/Component/API parity 수정,Operation ID·원장·Trace·Audit,완료
+SER-091,통합 정정 승인,approved boolean 위조,통합 정정 승인 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Server 승인 원장으로 차단,Operation ID·원장·Trace·Audit,완료
+SER-092,부분 적용 Rollback,전체 성공 표시,부분 적용 Rollback 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Target별 ACK/NACK 대사,Operation ID·원장·Trace·Audit,완료
+SER-093,Artifact·Checksum 검증,변조·혼합 Version,Artifact·Checksum 검증 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,배포 중단·승인본 재수신,Operation ID·원장·Trace·Audit,완료
+SER-094,계정·Directory 준비,공용 관리자 계정,계정·Directory 준비 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,전용 계정으로 교체,Operation ID·원장·Trace·Audit,완료
+SER-095,Secret·Certificate 설치,만료·Wrong Chain,Secret·Certificate 설치 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Rotation·Rollback,Operation ID·원장·Trace·Audit,완료
+SER-096,MariaDB Lifecycle,DDL 차이·Lock,MariaDB Lifecycle 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Backup 복원·Migration 보정,Operation ID·원장·Trace·Audit,완료
+SER-097,PostgreSQL Lifecycle,Search Path·Sequence 오류,PostgreSQL Lifecycle 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,권한·Sequence 보정,Operation ID·원장·Trace·Audit,완료
+SER-098,Oracle Lifecycle,Identifier·LOB·Lock 오류,Oracle Lifecycle 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Vendor Pack Script 보정,Operation ID·원장·Trace·Audit,완료
+SER-099,Kafka 준비,ACL·Broker Down,Kafka 준비 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Credential/Topic 복구,Operation ID·원장·Trace·Audit,완료
+SER-100,신규 설치,Migration 미적용,신규 설치 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,기동 중단·DB 정상화,Operation ID·원장·Trace·Audit,완료
+SER-101,기동·종료,강제 Kill,기동·종료 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,원장·Lease·Attempt 대사,Operation ID·원장·Trace·Audit,완료
+SER-102,Rolling 배포,NACK·Health 저하,Rolling 배포 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Rollout 중지·LKG,Operation ID·원장·Trace·Audit,완료
+SER-103,Canary·Blue-Green,일부 지표 누락,Canary·Blue-Green 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,승격 중단·Traffic 복귀,Operation ID·원장·Trace·Audit,완료
+SER-104,Observability,Collector Down·High Cardinality,Observability 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Local Buffer·설정 보정,Operation ID·원장·Trace·Audit,완료
+SER-105,Backup·Restore,불완전 Backup,Backup·Restore 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,백업 폐기·재생성,Operation ID·원장·Trace·Audit,완료
+SER-106,Upgrade·Rollback,Rollback 불가 Migration,Upgrade·Rollback 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Forward Recovery 계획,Operation ID·원장·Trace·Audit,완료
+SER-107,DR Failover·Failback,Split Brain,DR Failover·Failback 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Writer 차단·차이 복구,Operation ID·원장·Trace·Audit,완료
+SER-108,초기 관리자 Bootstrap,Token 재사용,초기 관리자 Bootstrap 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,폐기 후 새 Bootstrap 절차,Operation ID·원장·Trace·Audit,완료
+SER-109,조직 계층,Cycle·겹침,조직 계층 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,변경 차단·유효기간 보정,Operation ID·원장·Trace·Audit,완료
+SER-110,직원 발령,겹치는 발령,직원 발령 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Version Conflict 처리,Operation ID·원장·Trace·Audit,완료
+SER-111,사용자 연결,퇴직자 활성,사용자 연결 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Session 폐기·상태 변경,Operation ID·원장·Trace·Audit,완료
+SER-112,Role 정의,사용 중 삭제,Role 정의 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,새 Version과 영향 분석,Operation ID·원장·Trace·Audit,완료
+SER-113,Permission Matrix,Self lockout,Permission Matrix 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Break-glass 경로 확인,Operation ID·원장·Trace·Audit,완료
+SER-114,Data Scope,Scope 확대,Data Scope 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Simulation·Audit로 검출,Operation ID·원장·Trace·Audit,완료
+SER-115,결재 정책,Rule 중첩,결재 정책 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,우선순위·Version 보정,Operation ID·원장·Trace·Audit,완료
+SER-116,결재 Snapshot,조직 변경 후 Drift,결재 Snapshot 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,기존 Snapshot 유지,Operation ID·원장·Trace·Audit,완료
+SER-117,승인·반려·회수,자기 승인·중복 결정,승인·반려·회수 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,서버 차단·현재 상태 반환,Operation ID·원장·Trace·Audit,완료
+SER-118,위임·대결,순환 위임,위임·대결 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,등록 차단,Operation ID·원장·Trace·Audit,완료
+SER-119,Attachment·Notification,파일 권한·발송 중복,Attachment·Notification 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,권한 재검증·Receipt 대사,Operation ID·원장·Trace·Audit,완료
+SER-120,업무 Domain 연동,BZA가 업무 DB 직접 수정,업무 Domain 연동 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Owner Command로 교체,Operation ID·원장·Trace·Audit,완료
+SER-121,Backup·Upgrade,Policy 누락,Backup·Upgrade 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Restore 후 Effective Permission 대사,Operation ID·원장·Trace·Audit,완료
+SER-122,Server Group,Member 0·중복 URI,Server Group 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Member 보정·Binding 재검증,Operation ID·원장·Trace·Audit,완료
+SER-123,Route Predicate,Overlap·Shadow,Route Predicate 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,우선순위·조건 보정,Operation ID·원장·Trace·Audit,완료
+SER-124,Rewrite·Filter,중복 Header·Path 오류,Rewrite·Filter 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Golden Vector로 보정,Operation ID·원장·Trace·Audit,완료
+SER-125,Authentication·Audience,Wrong Audience·Expired,Authentication·Audience 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,401/403·Credential 교체,Operation ID·원장·Trace·Audit,완료
+SER-126,HMAC Golden Vector,Body 변조·Clock Skew,HMAC Golden Vector 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,요청 거부·시간 동기화,Operation ID·원장·Trace·Audit,완료
+SER-127,SSRF·TLS,DNS Rebinding·Wrong Cert,SSRF·TLS 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Target 격리·Allowlist 보정,Operation ID·원장·Trace·Audit,완료
+SER-128,Timeout·Retry,POST 무조건 Retry,Timeout·Retry 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Idempotency 없으면 Retry 금지,Operation ID·원장·Trace·Audit,완료
+SER-129,Circuit·Bulkhead,전체 Route 자원 고갈,Circuit·Bulkhead 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Pool 분리·정책 Rollback,Operation ID·원장·Trace·Audit,완료
+SER-130,Attempt Ledger,응답 유실,Attempt Ledger 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Target 상태와 대사,Operation ID·원장·Trace·Audit,완료
+SER-131,Validate·Approval,Client approved flag,Validate·Approval 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,서버 승인 원장 사용,Operation ID·원장·Trace·Audit,완료
+SER-132,Publish,일부 Target 미응답,Publish 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,PARTIAL 유지·대사,Operation ID·원장·Trace·Audit,완료
+SER-133,ACK·NACK,NACK를 성공으로 집계,ACK·NACK 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,원인 제거 또는 Rollback,Operation ID·원장·Trace·Audit,완료
+SER-134,LKG Rollback,LKG 없음·Schema 비호환,LKG Rollback 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,게시 차단·Forward Recovery,Operation ID·원장·Trace·Audit,완료
+SER-135,Scale-out·Drift,Restart 후 stale config,Scale-out·Drift 수행 중 정상 계약을 벗어난 상태,결과 확정·멱등성·Retryable 여부 확인 후,Reconcile·재적용,Operation ID·원장·Trace·Audit,완료

@@ -83,7 +83,16 @@ class RouteConsumerResult:
 
 
 def read_routes(path: Path) -> dict[str, tuple[str, set[str]]]:
-    text = path.read_text(encoding="utf-8")
+    # Current ADM owns route declarations by feature under app/routes/*.ts; routes.ts only assembles them.
+    # Normalize feature-file component imports to the routes.ts base so the existing consumer crawler remains canonical.
+    parts=[path.read_text(encoding="utf-8")]
+    feature_dir=path.parent / "routes"
+    if feature_dir.is_dir():
+        for child in sorted(feature_dir.glob("*.ts")):
+            if child.name == "types.ts":
+                continue
+            parts.append(child.read_text(encoding="utf-8").replace('import("../../', 'import("../'))
+    text = "\n".join(parts)
     rows: dict[str, tuple[str, set[str]]] = {}
     for match in ROUTE_LINE.finditer(text):
         route_id = match.group("id")

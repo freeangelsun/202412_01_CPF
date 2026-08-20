@@ -11,16 +11,16 @@ class ControllerContractTest(unittest.TestCase):
   directory=tempfile.TemporaryDirectory();root=Path(directory.name)
   op='@Operation(operationId="admThingCreate")' if operation else ''
   self.write(root,'cpf-admin/src/main/java/com/cpf/admin/opr/controller/ThingController.java',f'''package x; @RestController @RequestMapping("/adm/api/things") class ThingController {{ @PostMapping("/{{id}}") {op} public void create(){{}} }}''')
-  if duplicate:self.write(root,'cpf-biz-admin/src/main/java/com/cpf/bizadmin/ThingController.java',f'''package x; @RestController @RequestMapping("/api/bza/things") class ThingController {{ @GetMapping {op} public void find(){{}} }}''')
+  if duplicate:self.write(root,'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/ThingController.java',f'''package x; @RestController @RequestMapping("/api/v1/backoffice/things") class ThingController {{ @GetMapping {op} public void find(){{}} }}''')
   security='BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/things", "ADM:THING:WRITE");' if permission else 'BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/other", "ADM:OTHER:READ");'
   self.write(root,'cpf-admin/src/main/java/com/cpf/admin/opr/filter/AdmApiAuthFilter.java',f'class AdmApiAuthFilter{{String rule="{security}";}}')
   return directory,root
- def bza_fixture(self,manifest=True):
+ def backoffice_fixture(self,manifest=True):
   directory=tempfile.TemporaryDirectory();root=Path(directory.name)
-  self.write(root,'cpf-biz-admin/src/main/java/com/cpf/bizadmin/directory/controller/BzaDirectoryController.java','''package x; @RestController @RequestMapping("/api/bza/directory") class BzaDirectoryController { @PostMapping("/positions") @Operation(operationId="bzaDirectorySavePosition") public void save(){} }''')
+  self.write(root,'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/directory/controller/BackofficeDirectoryController.java','''package x; @RestController @RequestMapping("/api/v1/backoffice/directory") class BackofficeDirectoryController { @PostMapping("/positions") @Operation(operationId="MBW_DIRECTORY_SAVE_POSITION") public void save(){} }''')
   if manifest:
    data={'schemaVersion':2,'apiResourceGroups':{'directory/positions':'EMPLOYEE'},'actionRules':[{'method':'POST','pathPattern':'*/**','actionCode':'WRITE'}]}
-   self.write(root,'cpf-tools/db/metadata/bza-permission-manifest.json',json.dumps(data))
+   self.write(root,'cpf-tools/db/metadata/backoffice-permission-manifest.json',json.dumps(data))
   return directory,root
  def test_real_overlay_stream_operation_id(self):
   root=Path(__file__).resolve().parents[4]
@@ -45,13 +45,13 @@ class ControllerContractTest(unittest.TestCase):
   directory,root=self.fixture(duplicate=True)
   try:self.assertTrue(any('duplicate operationId' in error for error in module.validate(root,True)[1]))
   finally:directory.cleanup()
- def test_bza_real_path_is_discovered_and_manifest_authorizes(self):
-  directory,root=self.bza_fixture()
+ def test_backoffice_real_path_is_discovered_and_manifest_authorizes(self):
+  directory,root=self.backoffice_fixture()
   try:
-   records,errors,warnings=module.validate(root,True);self.assertEqual('/api/bza/directory/positions',records[0]['path']);self.assertEqual([],errors);self.assertEqual([],warnings)
+   records,errors,warnings=module.validate(root,True);self.assertEqual('/api/v1/backoffice/directory/positions',records[0]['path']);self.assertEqual([],errors);self.assertEqual([],warnings)
   finally:directory.cleanup()
- def test_bza_missing_manifest_is_fail_closed(self):
-  directory,root=self.bza_fixture(manifest=False)
-  try:self.assertTrue(any('BZA permission manifest' in error for error in module.validate(root,True)[1]))
+ def test_backoffice_missing_manifest_is_fail_closed(self):
+  directory,root=self.backoffice_fixture(manifest=False)
+  try:self.assertTrue(any('Backoffice permission manifest' in error for error in module.validate(root,True)[1]))
   finally:directory.cleanup()
 if __name__=='__main__':unittest.main()

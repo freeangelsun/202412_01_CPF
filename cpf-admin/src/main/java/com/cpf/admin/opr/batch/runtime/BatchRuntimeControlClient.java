@@ -146,32 +146,102 @@ public class BatchRuntimeControlClient {
         return row(invoke(HttpMethod.POST, "/bat/api/retention/policies", request));
     }
 
+    public CpfDataRow saveRetentionPolicyApproved(Map<String,Object> request, String approvalRequestId, String approvalRequesterId) {
+        Map<String,Object> body = approvedBody(request, approvalRequestId, approvalRequesterId);
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies", body,
+                approval(approvalRequestId, approvalRequesterId)));
+    }
+
     public CpfDataRow previewRetention(Map<String,Object> request) {
         return row(invoke(HttpMethod.POST, "/bat/api/retention/preview", request));
     }
 
-    public CpfDataRow runRetentionPolicy(String policyId, String reason) {
-        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/run", Map.of("reason", required(reason,"reason"))));
+    public CpfDataRow runRetentionPolicy(String policyId, long expectedVersion, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/run",
+                Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason"))));
     }
 
-    public CpfDataRow pauseRetentionRun(String runId) {
-        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/pause", Map.of()));
+    public CpfDataRow runRetentionPolicyApproved(String policyId, long expectedVersion, String reason,
+                                                  String approvalRequestId, String approvalRequesterId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/run",
+                approvedBody(Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason")),
+                        approvalRequestId, approvalRequesterId),
+                approval(approvalRequestId, approvalRequesterId)));
     }
 
-    public CpfDataRow resumeRetentionRun(String runId, String reason) {
-        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/resume", Map.of("reason", required(reason,"reason"))));
+    public CpfDataRow pauseRetentionRun(String runId, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/pause",
+                Map.of("reason", required(reason,"reason"))));
     }
 
-    public CpfDataRow pauseRetentionPolicy(String policyId) {
-        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/pause", Map.of()));
+    public CpfDataRow resumeRetentionRun(String runId, long expectedVersion, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/resume",
+                Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason"))));
     }
 
-    public CpfDataRow resumeRetentionPolicy(String policyId) {
-        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/resume", Map.of()));
+    public CpfDataRow resumeRetentionRunApproved(String runId, long expectedVersion, String reason,
+                                                  String approvalRequestId, String approvalRequesterId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/resume",
+                approvedBody(Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason")),
+                        approvalRequestId, approvalRequesterId),
+                approval(approvalRequestId, approvalRequesterId)));
+    }
+
+    public CpfDataRow pauseRetentionPolicy(String policyId, long expectedVersion, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/pause",
+                Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason"))));
+    }
+
+    public CpfDataRow resumeRetentionPolicy(String policyId, long expectedVersion, String reason) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/resume",
+                Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason"))));
+    }
+
+    public CpfDataRow resumeRetentionPolicyApproved(String policyId, long expectedVersion, String reason,
+                                                     String approvalRequestId, String approvalRequesterId) {
+        return row(invoke(HttpMethod.POST, "/bat/api/retention/policies/" + encode(policyId) + "/resume",
+                approvedBody(Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason")),
+                        approvalRequestId, approvalRequesterId),
+                approval(approvalRequestId, approvalRequesterId)));
+    }
+
+    public List<CpfDataRow> retentionAuditsByApprovalRequestId(String approvalRequestId) {
+        return rows(invoke(HttpMethod.GET, "/bat/api/retention/audit/by-approval/" + encode(approvalRequestId), null));
+    }
+
+    public CpfDataRow retentionPolicy(String policyId) {
+        return retentionPolicies().stream()
+                .filter(row -> policyId.equals(String.valueOf(row.getOrDefault("policyId", row.get("policy_id")))))
+                .findFirst()
+                .orElseThrow(() -> new BatchControlClientException(
+                        BatchControlClientException.Category.NOT_FOUND, "RETENTION_POLICY_NOT_FOUND",
+                        "Retention policy를 찾을 수 없습니다: " + policyId, null, null));
+    }
+
+    public CpfDataRow retentionRun(String runId) {
+        return retentionRuns(null, 500).stream()
+                .filter(row -> runId.equals(String.valueOf(row.getOrDefault("runId", row.get("run_id")))))
+                .findFirst()
+                .orElseThrow(() -> new BatchControlClientException(
+                        BatchControlClientException.Category.NOT_FOUND, "RETENTION_RUN_NOT_FOUND",
+                        "Retention run을 찾을 수 없습니다: " + runId, null, null));
     }
 
     private Object invoke(HttpMethod method, String path, Object payload) {
         return invoke(method, path, payload, null);
+    }
+
+    private static ApprovalContext approval(String approvalRequestId, String approvalRequesterId) {
+        return new ApprovalContext(required(approvalRequestId, "approvalRequestId"),
+                required(approvalRequesterId, "approvalRequesterId"));
+    }
+
+    private static Map<String,Object> approvedBody(Map<String,Object> source, String approvalRequestId,
+                                                    String approvalRequesterId) {
+        Map<String,Object> body = new java.util.LinkedHashMap<>(source == null ? Map.of() : source);
+        body.put("approvalRequestId", required(approvalRequestId, "approvalRequestId"));
+        body.put("requestedBy", required(approvalRequesterId, "approvalRequesterId"));
+        return java.util.Collections.unmodifiableMap(body);
     }
 
     private Object invoke(HttpMethod method, String path, Object payload, ApprovalContext approval) {

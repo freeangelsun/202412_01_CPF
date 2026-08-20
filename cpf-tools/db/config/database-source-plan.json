@@ -12,7 +12,7 @@
     "vendorSourceRole": "DERIVED_COMPATIBILITY_INPUT",
     "vendorSourceGeneratedBy": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
     "directVendorSourceEditing": "FORBIDDEN",
-    "platformConsolidatedFreshInstall": "cpfDB+bzaDB; legacy cmnDB/admDB/batDB source files are not current fresh-install inputs"
+    "platformConsolidatedFreshInstall": "cpfDB+mbwDB; legacy split platform/business database packs are not current fresh-install inputs"
   },
   "mariadb": {
     "provisionFiles": [
@@ -26,7 +26,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
-      "56_bza_product_seed.sql",
+      "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"
     ],
@@ -75,7 +75,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
-      "56_bza_product_seed.sql",
+      "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"
     ],
@@ -105,7 +105,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
-      "56_bza_product_seed.sql",
+      "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"
     ],

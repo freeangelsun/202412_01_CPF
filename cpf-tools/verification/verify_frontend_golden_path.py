@@ -170,7 +170,7 @@ def verify_live(root: Path, module: str, fail: list[str]) -> bool:
 
 
 def verify_bza_reference_live(root: Path, fail: list[str]) -> bool:
-    frontend = root / "cpf-biz-frontend"
+    frontend = root / "cpf-backoffice-web/frontend"
     if not frontend.is_dir():
         return False
     required = [
@@ -266,7 +266,7 @@ def main() -> int:
             fail.append("FRONTEND_FIXTURE_BASELINE_NOT_EXPLICIT:cpf-admin")
         else: verify_fixture("cpf-admin", meta, str(evidence.get("baselineSha", "")), args.baseline_sha, fail)
     if not verify_bza_reference_live(root, fail):
-        fail.append("FRONTEND_MISSING:cpf-biz-frontend")
+        fail.append("FRONTEND_MISSING:cpf-backoffice-web/frontend")
     fail = sorted(set(fail))
     print("CPF_FRONTEND_GOLDEN_PATH=" + ("PASS" if not fail else "FAIL"))
     print("mode=" + ("LIVE_SOURCE_HASHED" if not fail else "FAILED"))

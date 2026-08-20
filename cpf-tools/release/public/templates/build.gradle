@@ -1,0 +1,21 @@
+plugins { id 'base' }
+
+def includedNames = gradle.includedBuilds.collect { it.name }.sort()
+
+tasks.register('cpfBuild') {
+    group = 'CPF'
+    description = 'Public Workspace의 모든 발견 Domain/Reference Application을 Build합니다.'
+    dependsOn includedNames.collect { gradle.includedBuild(it).task(':build') }
+}
+
+tasks.register('cpfTest') {
+    group = 'CPF'
+    description = 'Public Workspace의 모든 발견 Domain/Reference Application Test를 실행합니다.'
+    dependsOn includedNames.collect { gradle.includedBuild(it).task(':test') }
+}
+
+tasks.register('cpfVerify') {
+    group = 'CPF'
+    description = 'Public Workspace Build/Test를 fail-closed로 검증합니다.'
+    dependsOn 'cpfBuild', 'cpfTest'
+}

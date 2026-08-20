@@ -4,24 +4,16 @@
   "policy": "Canonical optional/user-selectable surfaces must be zero-footprint when absent or disabled and must participate in aggregate regression when present.",
   "sourceRemovableApplications": [
     {
-      "id": "biz-admin-domain",
-      "ownerPath": "cpf-biz-admin",
-      "gradleProject": ":apps:biz-admin",
-      "databaseModuleKey": "bizAdmin",
+      "id": "backoffice-domain",
+      "ownerPath": "cpf-backoffice",
+      "gradleProject": ":apps:backoffice",
+      "databaseModuleKey": "backoffice",
       "requiredBy": [],
       "absenceState": "NORMAL_OPTIONAL"
     },
     {
-      "id": "biz-admin-channel",
-      "ownerPath": "cpf-biz-channel",
-      "gradleProject": null,
-      "databaseModuleKey": null,
-      "requiredBy": [],
-      "absenceState": "NORMAL_OPTIONAL"
-    },
-    {
-      "id": "biz-admin-frontend",
-      "ownerPath": "cpf-biz-frontend",
+      "id": "backoffice-web",
+      "ownerPath": "cpf-backoffice-web",
       "gradleProject": null,
       "databaseModuleKey": null,
       "requiredBy": [],

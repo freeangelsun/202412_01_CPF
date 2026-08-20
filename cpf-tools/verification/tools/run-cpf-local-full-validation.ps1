@@ -394,20 +394,20 @@ function New-CpfFrontendSandbox([string]$FrontendRelative,[string]$Name) {
     $source=Join-Path $RepoRoot $FrontendRelative
     if(-not(Test-Path -LiteralPath $source -PathType Container)){return $null}
     $sandboxRepo=Join-Path $scratchRoot ("frontend-{0}-repo" -f $Name.ToLowerInvariant())
-    $moduleDir=if($Name -eq 'ADM'){'cpf-admin'}else{'cpf-biz-admin'}
+    $moduleDir=if($Name -eq 'ADM'){'cpf-admin'}else{'cpf-backoffice/online'}
     $sandboxModule=Join-Path $sandboxRepo $moduleDir
     $target=Join-Path $sandboxModule 'frontend'
     [IO.Directory]::CreateDirectory($target) | Out-Null
     # Frontend 검증은 TEMP의 repository-shaped sandbox에서 수행한다.
-    # Backend contract consumer와 BZA permission manifest가 ../.. 상대경로를 사용하므로 필요한 read-only Source도 함께 복사한다.
+    # Backend contract consumer와 Backoffice permission manifest가 ../.. 상대경로를 사용하므로 필요한 read-only Source도 함께 복사한다.
     foreach($item in Get-ChildItem -LiteralPath $source -Force){
         if($item.Name -in @('node_modules','dist','.vite','playwright-report','test-results')){continue}
         Copy-Item -LiteralPath $item.FullName -Destination $target -Recurse -Force
     }
     $backendSource=Join-Path $RepoRoot "$moduleDir\src"
     if(Test-Path -LiteralPath $backendSource -PathType Container){Copy-Item -LiteralPath $backendSource -Destination $sandboxModule -Recurse -Force}
-    if($Name -eq 'BZA'){
-        $permissionSource=Join-Path $RepoRoot 'cpf-tools\db\metadata\bza-permission-manifest.json'
+    if($Name -eq 'BACKOFFICE'){
+        $permissionSource=Join-Path $RepoRoot 'cpf-tools\db\metadata\backoffice-permission-manifest.json'
         if(Test-Path -LiteralPath $permissionSource -PathType Leaf){
             $permissionTarget=Join-Path $sandboxRepo 'cpf-tools\db\metadata'
             [IO.Directory]::CreateDirectory($permissionTarget)|Out-Null
@@ -587,12 +587,12 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     }
 }else{Skip-CpfStage 'GRADLE_JAVA_TEST_QUALITY' $(if(-not $java25Ready){'Java 25 unavailable'}else{'gradlew.bat missing'})}
 
-# 3. ADM/BZA Frontend를 Java와 겹치지 않게 순차 실행한다.
+# 3. ADM/BACKOFFICE Frontend를 Java와 겹치지 않게 순차 실행한다.
 $frontendSandboxes=@{}
 if(-not $SkipFrontend -and $npm){
-    foreach($frontend in @('cpf-admin\frontend','cpf-biz-frontend')){
-        $name=if($frontend.StartsWith('cpf-admin')){'ADM'}else{'BZA'}
-        $moduleDir=if($name -eq 'ADM'){'cpf-admin'}else{'cpf-biz-frontend'}
+    foreach($frontend in @('cpf-admin\frontend','cpf-backoffice-web/frontend')){
+        $name=if($frontend.StartsWith('cpf-admin')){'ADM'}else{'BACKOFFICE'}
+        $moduleDir=if($name -eq 'ADM'){'cpf-admin'}else{'cpf-backoffice-web/frontend'}
         $nodeOptions=Get-CpfNodeOptions $moduleDir
         $frontendSandbox=New-CpfFrontendSandbox $frontend $name
         if($null -eq $frontendSandbox){
@@ -691,7 +691,7 @@ if($IncludeRuntimeClosure){
 }else{Skip-CpfStage 'RUNTIME_DOCKER_CLOSURE' 'IncludeRuntimeClosure not requested'}
 
 # 7. 기본 로컬 Runtime은 1 WAS만. Batch/다중 WAS는 기본으로 띄우지 않는다.
-# FullLocal에서는 검증 전용 MariaDB를 준비해 ADM/BZA/DB Log를 실제 DB Runtime으로 검증합니다.
+# FullLocal에서는 검증 전용 MariaDB를 준비해 ADM/BACKOFFICE/DB Log를 실제 DB Runtime으로 검증합니다.
 # 사용자 기존 DB/Volume은 삭제하지 않고 실행별 고유 database/user만 만들며 finally에서 그 자원만 정리합니다.
 if(-not $SkipOneWas -and $pwsh){
     $oneWasDbState=$null
@@ -699,14 +699,14 @@ if(-not $SkipOneWas -and $pwsh){
     $oneWasDbProfilePath=$null
     $oneWasRuntimeEnv=@{CPF_LOG_ROOT=$runtimeFileLogRoot}
     $oneWasRuntimeDbPrepared=$false
-    $oneWasBzaBootstrapResult=$null
+    $oneWasBackofficeBootstrapResult=$null
     $oneWasSecretDirectory=$null
     $admSmokePassword=$null
     $admApprovalProofKey=$null
-    $bzaSmokePassword=$null
+    $backofficeSmokePassword=$null
     if($FullLocal){
         if($SkipDocker -or -not $dockerReady){
-            Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PREP' 'FAIL' 'FullLocal 1-WAS requires verifier-owned MariaDB but Docker is unavailable.' 'FullLocal runtime DB is mandatory for ADM/BZA/DB-log closure'
+            Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PREP' 'FAIL' 'FullLocal 1-WAS requires verifier-owned MariaDB but Docker is unavailable.' 'FullLocal runtime DB is mandatory for ADM/BACKOFFICE/DB-log closure'
         }elseif(-not(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf)){
             Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PREP' 'FAIL' "Docker secret env missing: $DockerSecretFile" 'FullLocal runtime DB credentials are unavailable'
         }else{
@@ -725,7 +725,7 @@ if(-not $SkipOneWas -and $pwsh){
                     $runtimePepper="CpfPepper-$([guid]::NewGuid().ToString('N'))"
                     $admSmokePassword="Adm!$([guid]::NewGuid().ToString('N').Substring(0,20))7X"
                     $admApprovalProofKey=[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-                    $bzaSmokePassword="Bza!$([guid]::NewGuid().ToString('N').Substring(0,20))6Y"
+                    $backofficeSmokePassword="Backoffice!$([guid]::NewGuid().ToString('N').Substring(0,20))6Y"
                     $runtimeDbEvidence=Join-Path $evidenceDir 'local-runtime-db'
                     $oneWasSecretDirectory=Join-Path $scratchRoot 'runtime-secrets'
                     [IO.Directory]::CreateDirectory($oneWasSecretDirectory)|Out-Null
@@ -741,47 +741,47 @@ if(-not $SkipOneWas -and $pwsh){
                         if((Test-Path -LiteralPath $runtimeDbResultPath -PathType Leaf) -and (Test-Path -LiteralPath $oneWasDbProfilePath -PathType Leaf)){
                             $runtimeDb=Get-Content -LiteralPath $runtimeDbResultPath -Raw -Encoding UTF8|ConvertFrom-Json
                             $platformUrl="jdbc:mariadb://127.0.0.1:3306/$($runtimeDb.platformDatabase)"
-                            $bzaUrl="jdbc:mariadb://127.0.0.1:3306/$($runtimeDb.bzaDatabase)"
-                            $bzaBootstrapResultPath=Join-Path $runtimeDbEvidence 'bza-bootstrap.json'
-                            Invoke-CpfStage 'LOCAL_ONE_WAS_BZA_BOOTSTRAP_PREP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\prepare-cpf-local-bza-bootstrap.ps1','-VerifierRunId',$runtimeRunId,'-RuntimeDbResultPath',$runtimeDbResultPath,'-SecretDirectory',$oneWasSecretDirectory,'-ResultPath',$bzaBootstrapResultPath) $RepoRoot @{CPF_ADMIN_PASSWORD=$adminPassword;CPF_BZA_SMOKE_PASSWORD=$bzaSmokePassword}
+                            $backofficeUrl="jdbc:mariadb://127.0.0.1:3306/$($runtimeDb.backofficeDatabase)"
+                            $backofficeBootstrapResultPath=Join-Path $runtimeDbEvidence 'backoffice-bootstrap.json'
+                            Invoke-CpfStage 'LOCAL_ONE_WAS_BACKOFFICE_BOOTSTRAP_PREP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\prepare-cpf-local-backoffice-bootstrap.ps1','-VerifierRunId',$runtimeRunId,'-RuntimeDbResultPath',$runtimeDbResultPath,'-SecretDirectory',$oneWasSecretDirectory,'-ResultPath',$backofficeBootstrapResultPath) $RepoRoot @{CPF_ADMIN_PASSWORD=$adminPassword;CPF_BACKOFFICE_SMOKE_PASSWORD=$backofficeSmokePassword}
                             if($summary[$summary.Count-1].status -ne 'PASS'){
-                                Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PROFILE' 'FAIL' 'BZA verifier bootstrap fixture preparation failed.'
+                                Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PROFILE' 'FAIL' 'BACKOFFICE verifier bootstrap fixture preparation failed.'
                             }else{
-                                $oneWasBzaBootstrapResult=Get-Content -LiteralPath $bzaBootstrapResultPath -Raw -Encoding UTF8|ConvertFrom-Json
+                                $oneWasBackofficeBootstrapResult=Get-Content -LiteralPath $backofficeBootstrapResultPath -Raw -Encoding UTF8|ConvertFrom-Json
                             }
                             $oneWasRuntimeEnv=@{
                                 CPF_LOG_ROOT=$runtimeFileLogRoot
                                 CPF_PASSWORD_PEPPER=$runtimePepper
                                 CPF_ENVIRONMENT_CODE='local'
-                                CPF_RUNTIME_INSTANCE_ID=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.instanceId}else{"cpf-local-$runtimeRunId"}
+                                CPF_RUNTIME_INSTANCE_ID=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.instanceId}else{"cpf-local-$runtimeRunId"}
                                 CPF_ADM_BOOTSTRAP_ENABLED='true'
                                 CPF_ADM_BOOTSTRAP_PASSWORD=$admSmokePassword
                                 CPF_ADM_BOOTSTRAP_OPERATOR_ID='admin'
                                 CPF_ADM_BOOTSTRAP_OPERATOR_NAME='CPF FullLocal Admin'
                                 CPF_ADM_APPROVAL_PROOF_KEY_BASE64=$admApprovalProofKey
-                                CPF_BZA_DATASOURCE_ENABLED='true'
-                                CPF_BZA_BOOTSTRAP_APPROVAL_TOKEN_FILE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.tokenFile}else{''}
-                                CPF_BZA_BOOTSTRAP_PASSWORD_FILE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.passwordFile}else{''}
-                                CPF_BZA_BOOTSTRAP_APPROVAL_SCOPE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.approvalScope}else{''}
-                                CPF_BZA_BOOTSTRAP_OPERATION_ID=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.operationId}else{''}
-                                CPF_BZA_BOOTSTRAP_LOGIN_ID=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.loginId}else{''}
-                                CPF_BZA_BOOTSTRAP_OPERATOR_NAME=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.operatorName}else{''}
-                                CPF_BZA_BOOTSTRAP_ROLE_CODE=if($oneWasBzaBootstrapResult){[string]$oneWasBzaBootstrapResult.roleCode}else{'BZA_MANAGER'}
+                                CPF_BACKOFFICE_DATASOURCE_ENABLED='true'
+                                CPF_BACKOFFICE_BOOTSTRAP_APPROVAL_TOKEN_FILE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.tokenFile}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_PASSWORD_FILE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.passwordFile}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_APPROVAL_SCOPE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.approvalScope}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_OPERATION_ID=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.operationId}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_LOGIN_ID=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.loginId}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_OPERATOR_NAME=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.operatorName}else{''}
+                                CPF_BACKOFFICE_BOOTSTRAP_ROLE_CODE=if($oneWasBackofficeBootstrapResult){[string]$oneWasBackofficeBootstrapResult.roleCode}else{'BACKOFFICE_MANAGER'}
                                 CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CPF_PLATFORM_DB_ENABLED='true'
                                 CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CPF_PLATFORM_DB_URL=$platformUrl
                                 CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CPF_PLATFORM_DB_USERNAME=[string]$runtimeDb.platformRuntimeUser
                                 CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CPF_PLATFORM_DB_PASSWORD=$runtimeDbSecret
                                 CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CPF_PLATFORM_DB_DRIVER_CLASS_NAME='org.mariadb.jdbc.Driver'
-                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_ENABLED='true'
-                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_URL=$bzaUrl
-                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_USERNAME=[string]$runtimeDb.bzaRuntimeUser
-                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_PASSWORD=$runtimeDbSecret
-                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_DRIVER_CLASS_NAME='org.mariadb.jdbc.Driver'
+                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_ENABLED='true'
+                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_URL=$backofficeUrl
+                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_USERNAME=[string]$runtimeDb.backofficeRuntimeUser
+                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_PASSWORD=$runtimeDbSecret
+                                CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_DRIVER_CLASS_NAME='org.mariadb.jdbc.Driver'
                             }
                             # Cleanup tool reads the same env-referenced secrets from the generated profile.
                             [Environment]::SetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD',$runtimeMigrationSecret,'Process')
                             [Environment]::SetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_PASSWORD',$runtimeDbSecret,'Process')
-                            $oneWasRuntimeDbPrepared=($null -ne $oneWasBzaBootstrapResult)
+                            $oneWasRuntimeDbPrepared=($null -ne $oneWasBackofficeBootstrapResult)
                         }else{
                             Add-CpfTextResult 'LOCAL_ONE_WAS_DB_PROFILE' 'FAIL' 'Runtime DB result/profile was not created after successful prepare stage.'
                         }
@@ -834,10 +834,10 @@ if(-not $SkipOneWas -and $pwsh){
     }
     if($node -and $python -and $oneWasReady){
         Invoke-CpfStage 'ADM_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','ADM','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\adm'),'-SourceIdentity',$sourceIdentity)
-        Invoke-CpfStage 'BZA_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','BZA','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\bza'),'-SourceIdentity',$sourceIdentity)
+        Invoke-CpfStage 'BACKOFFICE_RUNTIME_OPENAPI_RELEASE' $pwsh @('-NoProfile','-File','.\cpf-tools\contracts\openapi\verify-cpf-runtime-openapi-release.ps1','-Module','BACKOFFICE','-BaseUrl','http://127.0.0.1:8080','-Root',$RepoRoot,'-EvidenceDirectory',(Join-Path $evidenceDir 'runtime-openapi\backoffice'),'-SourceIdentity',$sourceIdentity)
     }elseif(-not $oneWasReady){
         Add-CpfTextResult 'ADM_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; ADM runtime OpenAPI parity was not executed' 'upstream runtime start failed'
-        Add-CpfTextResult 'BZA_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; BZA runtime OpenAPI parity was not executed' 'upstream runtime start failed'
+        Add-CpfTextResult 'BACKOFFICE_RUNTIME_OPENAPI_RELEASE' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; BACKOFFICE runtime OpenAPI parity was not executed' 'upstream runtime start failed'
     }else{
         Skip-CpfStage 'RUNTIME_OPENAPI_RELEASE' 'node/python unavailable'
     }
@@ -853,22 +853,22 @@ if(-not $SkipOneWas -and $pwsh){
             }else{
                 Invoke-CpfStage 'ADM_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-adm-ui.ps1','-Root',$RepoRoot,'-AdmBaseUrl','http://127.0.0.1:8080','-LogDir',(Join-Path $evidenceDir 'browser'),'-BrowserClick','-RequireBrowserClick') $RepoRoot @{CPF_ADM_SMOKE_PASSWORD=$browserAdminPassword}
             }
-            $bzaFrontendUrl=[Environment]::GetEnvironmentVariable('CPF_BZA_FRONTEND_URL','Process')
-            if([string]::IsNullOrWhiteSpace($bzaFrontendUrl)){
-                Add-CpfTextResult 'BZA_BROWSER_E2E_SMOKE' 'NOT_EXECUTED' 'External BZA frontend is optional and CPF_BZA_FRONTEND_URL is not configured.' 'Start cpf-biz-channel + cpf-biz-frontend and set CPF_BZA_FRONTEND_URL for live browser verification.'
+            $backofficeFrontendUrl=[Environment]::GetEnvironmentVariable('CPF_BACKOFFICE_FRONTEND_URL','Process')
+            if([string]::IsNullOrWhiteSpace($backofficeFrontendUrl)){
+                Add-CpfTextResult 'BACKOFFICE_BROWSER_E2E_SMOKE' 'NOT_EXECUTED' 'External BACKOFFICE frontend is optional and CPF_BACKOFFICE_FRONTEND_URL is not configured.' 'Start cpf-backoffice-web + cpf-backoffice-web/frontend and set CPF_BACKOFFICE_FRONTEND_URL for live browser verification.'
             }else{
-                Invoke-CpfStage 'BZA_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-bza-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'),'-BzaFrontendUrl',$bzaFrontendUrl,'-BrowserClick','-RequireBrowserClick') $RepoRoot
+                Invoke-CpfStage 'BACKOFFICE_BROWSER_E2E_SMOKE' $pwsh @('-NoProfile','-File','.\cpf-tools\verification\tools\smoke-backoffice-ui.ps1','-Root',$RepoRoot,'-ResultDir',(Join-Path $evidenceDir 'browser'),'-BackofficeFrontendUrl',$backofficeFrontendUrl,'-BrowserClick','-RequireBrowserClick') $RepoRoot
             }
             if($npm -and $frontendSandboxes.ContainsKey('ADM')){
                 $admSandbox=[string]$frontendSandboxes['ADM']
                 Invoke-CpfStage 'ADM_PLAYWRIGHT_E2E' $npm @('run','test:e2e') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_FRONTEND_URL='http://127.0.0.1:8080/adm/'}
                 Invoke-CpfStage 'ADM_PLAYWRIGHT_A11Y' $npm @('run','test:a11y') $admSandbox @{NODE_OPTIONS=(Get-CpfNodeOptions 'cpf-admin');CPF_SOURCE_SHA=$env:CPF_SOURCE_SHA;CPF_ADM_FRONTEND_URL='http://127.0.0.1:8080/adm/'}
             }else{Skip-CpfStage 'ADM_PLAYWRIGHT_E2E' 'ADM frontend sandbox/npm unavailable'}
-            if($npm -and $frontendSandboxes.ContainsKey('BZA')){
-                $bzaSandbox=[string]$frontendSandboxes['BZA']
-                Add-CpfTextResult 'BZA_PLAYWRIGHT_E2E' 'NOT_EXECUTED' 'BZA live browser ownership moved to smoke-bza-ui.ps1 external reference flow.'
-                Add-CpfTextResult 'BZA_PLAYWRIGHT_A11Y' 'NOT_EXECUTED' 'External BZA accessibility runtime requires a separately started reference frontend.'
-            }else{Skip-CpfStage 'BZA_PLAYWRIGHT_E2E' 'BZA frontend sandbox/npm unavailable'}
+            if($npm -and $frontendSandboxes.ContainsKey('BACKOFFICE')){
+                $backofficeSandbox=[string]$frontendSandboxes['BACKOFFICE']
+                Add-CpfTextResult 'BACKOFFICE_PLAYWRIGHT_E2E' 'NOT_EXECUTED' 'BACKOFFICE live browser ownership moved to smoke-backoffice-ui.ps1 external reference flow.'
+                Add-CpfTextResult 'BACKOFFICE_PLAYWRIGHT_A11Y' 'NOT_EXECUTED' 'External BACKOFFICE accessibility runtime requires a separately started reference frontend.'
+            }else{Skip-CpfStage 'BACKOFFICE_PLAYWRIGHT_E2E' 'BACKOFFICE frontend sandbox/npm unavailable'}
         }finally{Restore-CpfEnvironment $browserSecretPrevious}
     }elseif(-not $IncludeBrowserE2E){Skip-CpfStage 'BROWSER_E2E' 'IncludeBrowserE2E not requested'}
     else{Add-CpfTextResult 'BROWSER_E2E' 'NOT_EXECUTED' 'LOCAL_ONE_WAS_START failed; Browser E2E was not executed' 'upstream runtime start failed'}
@@ -900,7 +900,7 @@ if(-not $SkipOneWas -and $pwsh){
         Invoke-CpfStage 'LOCAL_ONE_WAS_DB_CLEANUP' $pwsh @('-NoProfile','-File','.\cpf-tools\db\verification\cleanup-cpf-local-runtime-db.ps1','-ProfilePath',$oneWasDbProfilePath,'-VerifierRunId',$runtimeRunId,'-Root',$RepoRoot) $RepoRoot @{CPF_ADMIN_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process');CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD','Process');CPF_LOCAL_RUNTIME_DB_PASSWORD=[Environment]::GetEnvironmentVariable('CPF_LOCAL_RUNTIME_DB_PASSWORD','Process')}
     }
     if($oneWasSecretDirectory -and (Test-Path -LiteralPath $oneWasSecretDirectory -PathType Container)){
-        try{Remove-Item -LiteralPath $oneWasSecretDirectory -Recurse -Force -ErrorAction Stop;Add-CpfTextResult 'LOCAL_ONE_WAS_SECRET_CLEANUP' 'PASS' 'Verifier-owned BZA bootstrap scratch removed; no user secret path was touched.'}
+        try{Remove-Item -LiteralPath $oneWasSecretDirectory -Recurse -Force -ErrorAction Stop;Add-CpfTextResult 'LOCAL_ONE_WAS_SECRET_CLEANUP' 'PASS' 'Verifier-owned BACKOFFICE bootstrap scratch removed; no user secret path was touched.'}
         catch{Add-CpfTextResult 'LOCAL_ONE_WAS_SECRET_CLEANUP' 'FAIL' $_.Exception.Message 'Verifier-owned secret cleanup failed'}
     }
     if($FullLocal){

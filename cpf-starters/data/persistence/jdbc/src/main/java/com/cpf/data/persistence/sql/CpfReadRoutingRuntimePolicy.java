@@ -47,5 +47,6 @@ public final class CpfReadRoutingRuntimePolicy {
         }
     }
 
+    /** Read routing 정책의 현재 version과 대상 정보를 원자적으로 전달하는 불변 Snapshot입니다. */
     public record Snapshot(boolean enabled, long maxReplicaLagMillis, long readAfterWriteMillis) {}
 }

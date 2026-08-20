@@ -1,0 +1,68 @@
+{
+  "02_프레임워크_개발자_가이드": {
+    "bookmarks": 27,
+    "internal_links": 44,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 29,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  },
+  "03_배치_개발자_가이드": {
+    "bookmarks": 20,
+    "internal_links": 39,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 21,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  },
+  "04_운영자_매뉴얼": {
+    "bookmarks": 13,
+    "internal_links": 32,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 12,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  },
+  "05_배치_운영_가이드": {
+    "bookmarks": 14,
+    "internal_links": 34,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 12,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  },
+  "06_Gateway_개발_사용_가이드": {
+    "bookmarks": 12,
+    "internal_links": 29,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 9,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  },
+  "07_Specification_기술_명세": {
+    "bookmarks": 18,
+    "internal_links": 34,
+    "broken_internal_links": [],
+    "toc_bookmarks": [
+      "TOC"
+    ],
+    "tables": 20,
+    "equal_width_multi_col_tables": [],
+    "long_cells_over_220": []
+  }
+}

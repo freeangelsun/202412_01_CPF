@@ -154,7 +154,7 @@ foreach ($requiredGeneratedBindingMarker in @('CUSTOMER_BUSINESS_DB', '${prefix}
 . (Join-Path $runtimeToolRoot 'runtime-common.ps1')
 $resolvedDefaultModules = @(Resolve-CpfRuntimeModules -Modules @() -Root $Root)
 $resolvedCodes = @($resolvedDefaultModules | ForEach-Object { [string]$_.module })
-foreach ($platformCode in @('ADM', 'BAT', 'BZA', 'EDU', 'GWY')) {
+foreach ($platformCode in @('ADM', 'BAT', 'MBW', 'EDU', 'GWY')) {
     if ($resolvedCodes -notcontains $platformCode) {
         throw "Default Runtime inventory에 platform module이 없습니다: $platformCode"
     }

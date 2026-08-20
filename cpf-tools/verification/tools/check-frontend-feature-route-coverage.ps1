@@ -6,8 +6,8 @@ $python=Get-Command python -ErrorAction Stop
 if($LASTEXITCODE -ne 0){throw 'Frontend consumer closure failed.'}
 $admRouteRoot=Join-Path $Root 'cpf-admin/frontend/src/app/routes'
 $admAggregator=Join-Path $Root 'cpf-admin/frontend/src/app/routes.ts'
-$bzaRouter=Join-Path $Root 'cpf-biz-frontend/src/router/index.ts'
-$bzaGenerator=Join-Path $Root 'cpf-biz-frontend/scripts/generate-reference-client.mjs'
+$bzaRouter=Join-Path $Root 'cpf-backoffice-web/frontend/src/router/index.ts'
+$bzaGenerator=Join-Path $Root 'cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs'
 foreach($path in @($admRouteRoot,$admAggregator,$bzaRouter,$bzaGenerator)){if(-not(Test-Path $path)){throw "Frontend route contract source missing: $path"}}
 $bzaText=Get-Content $bzaRouter -Raw -Encoding UTF8
 foreach($route in @("path: '/'","path: '/employees'","path: '/approvals'","path: '/authorization'")){if($bzaText -notlike "*$route*"){throw "BZA reference route missing: $route"}}

@@ -88,10 +88,10 @@ $result = [ordered]@{
         )
         protectedInternal = @(
             "X-Transaction-Id",
-            "X-Original-Channel",
-            "X-Current-Channel",
-            "X-Caller-Channel",
-            "X-Target-Channel",
+            "X-Original-System-Code",
+            "X-System-Code",
+            "X-Caller-System-Code",
+            "X-Target-System-Code",
             "X-Target-Operation-Id"
         )
         allowedExtension = @("X-Cpf-Ext-1", "X-Cpf-Ext-Campaign-Id", "X-Cpf-Ext-Partner-Code")
@@ -411,8 +411,8 @@ function Test-MockDownstreamCapture {
     $forbidden = @()
     foreach ($name in @(
             "Authorization", "X-Api-Key", "X-Cpf-Ext-Token",
-            "X-Transaction-Id", "X-Original-Channel", "X-Current-Channel",
-            "X-Caller-Channel", "X-Target-Channel", "X-Target-Operation-Id")) {
+            "X-Transaction-Id", "X-Original-System-Code", "X-System-Code",
+            "X-Caller-System-Code", "X-Target-System-Code", "X-Target-Operation-Id")) {
         if (Get-HeaderValue $capture.headers $name) {
             $forbidden += $name
         }

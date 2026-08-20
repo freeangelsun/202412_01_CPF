@@ -18,6 +18,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * CPF JDBC Public Starter의 표준 {@code DataSource}/Transaction 연동을 구성합니다.
+ * <p>애플리케이션이 JDBC capability를 선택했을 때만 사용하며, CPF 공용 JDBC 작업 계약과
+ * readiness 검증을 Spring Bean으로 연결합니다. 업무 코드는 이 자동구성 클래스를 직접 호출하지 않습니다.
+ */
 @AutoConfiguration(afterName = "com.cpf.core.config.CpfDataSourceConfig")
 @EnableConfigurationProperties(CpfJdbcStarterProperties.class)
 public class CpfJdbcStarterAutoConfiguration {

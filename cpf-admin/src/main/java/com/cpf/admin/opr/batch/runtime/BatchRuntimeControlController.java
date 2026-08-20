@@ -3,12 +3,19 @@ package com.cpf.admin.opr.batch.runtime;
 import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.admin.approval.service.AdmApprovalService;
+import com.cpf.data.api.CpfDataRow;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,10 +35,13 @@ public class BatchRuntimeControlController extends AdmBaseController {
 
     private final BatchRuntimeControlClient client;
     private final AdmApprovalService approvalService;
+    private final ObjectMapper objectMapper;
 
-    public BatchRuntimeControlController(BatchRuntimeControlClient client, AdmApprovalService approvalService) {
+    public BatchRuntimeControlController(BatchRuntimeControlClient client, AdmApprovalService approvalService,
+                                         ObjectMapper objectMapper) {
         this.client = client;
         this.approvalService = approvalService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/instances")
@@ -213,12 +223,18 @@ public class BatchRuntimeControlController extends AdmBaseController {
     }
 
     @PostMapping("/retention/policies")
-    @Operation(operationId = "admRetentionPolicySave", summary = "DB Retention 정책 저장")
+    @Operation(operationId = "admRetentionPolicySave", summary = "DB Retention 정책 변경 승인 요청",
+            description = "Retention 정책 변경은 현재 rowVersion을 immutable approval snapshot으로 고정한 뒤 독립 승인 후 BAT Owner에서 CAS 실행합니다.")
     ResponseEntity<Map<String,Object>> retentionPolicySave(@RequestAttribute("adm.operatorId") String operatorId,
                                                             @RequestBody Map<String,Object> request) {
         try {
             requireCommandField(request,"policyId"); requireCommandField(request,"target"); requireCommandField(request,"reason");
-            return ResponseEntity.ok(client.saveRetentionPolicy(withServerActor(request,operatorId)));
+            long expectedVersion = requireVersion(request, "rowVersion");
+            Map<String,Object> payload = new java.util.LinkedHashMap<>(withServerActor(request,operatorId));
+            payload.put("expectedVersion", expectedVersion);
+            return approvalRequested("retentionPolicySave", "BATCH_RETENTION_POLICY_CHANGE",
+                    "bat_retention_policy", String.valueOf(request.get("policyId")), expectedVersion,
+                    payload, String.valueOf(request.get("reason")), operatorId);
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_INVALID",failure); }
     }
@@ -236,43 +252,137 @@ public class BatchRuntimeControlController extends AdmBaseController {
     }
 
     @PostMapping("/retention/policies/{policyId}/run")
-    @Operation(operationId = "admRetentionRunNow", summary = "DB Retention 실제 수동 실행",
-            description = "Preview/정책 확인 후 BAT Owner의 Scheduled Run과 동일 Execution Engine을 실행합니다.")
+    @Operation(operationId = "admRetentionRunNow", summary = "DB Retention 실제 수동 실행 승인 요청",
+            description = "현재 policy rowVersion을 승인 Snapshot으로 고정하고 독립 승인 완료 후 BAT Owner가 동일 Version에서만 실행합니다.")
     ResponseEntity<Map<String,Object>> retentionRunNow(@PathVariable String policyId,
                                                         @RequestAttribute("adm.operatorId") String operatorId,
                                                         @RequestBody Map<String,Object> request) {
-        try { requireCommandField(request,"reason"); return ResponseEntity.ok(client.runRetentionPolicy(policyId,String.valueOf(request.get("reason")))); }
-        catch (BatchControlClientException failure) { return error(failure); }
+        try {
+            requireCommandField(request,"reason");
+            CpfDataRow policy = client.retentionPolicy(policyId);
+            long expectedVersion = rowVersion(policy);
+            Map<String,Object> payload = new java.util.LinkedHashMap<>();
+            payload.put("policyId", policyId); payload.put("expectedVersion", expectedVersion);
+            payload.put("reason", String.valueOf(request.get("reason")));
+            return approvalRequested("retentionRunNow", "BATCH_RETENTION_EXECUTE", "bat_retention_policy",
+                    policyId, expectedVersion, payload, String.valueOf(request.get("reason")), operatorId);
+        } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_RUN_INVALID",failure); }
     }
 
     @PostMapping("/retention/runs/{runId}/pause")
-    @Operation(operationId = "admRetentionRunPause", summary = "실행 중 Retention 안전 일시정지 요청")
-    ResponseEntity<Map<String,Object>> retentionRunPause(@PathVariable String runId) {
-        try { return ResponseEntity.ok(client.pauseRetentionRun(runId)); }
-        catch (BatchControlClientException failure) { return error(failure); }
+    @Operation(operationId = "admRetentionRunPause", summary = "실행 중 Retention 안전 일시정지 요청",
+            description = "삭제/보관을 더 진행하지 않게 하는 fail-safe 조치이며 승인 대신 권한·사유·인증 actor를 강제합니다.")
+    ResponseEntity<Map<String,Object>> retentionRunPause(@PathVariable String runId,
+                                                          @RequestAttribute("adm.operatorId") String operatorId,
+                                                          @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"reason");
+            return ResponseEntity.ok(client.pauseRetentionRun(runId, String.valueOf(request.get("reason"))));
+        } catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_PAUSE_INVALID",failure); }
     }
 
     @PostMapping("/retention/runs/{runId}/resume")
-    @Operation(operationId = "admRetentionRunResume", summary = "Retention Run 재개")
-    ResponseEntity<Map<String,Object>> retentionRunResume(@PathVariable String runId,@RequestBody Map<String,Object> request) {
-        try { requireCommandField(request,"reason"); return ResponseEntity.ok(client.resumeRetentionRun(runId,String.valueOf(request.get("reason")))); }
-        catch (BatchControlClientException failure) { return error(failure); }
+    @Operation(operationId = "admRetentionRunResume", summary = "Retention Run 재개 승인 요청")
+    ResponseEntity<Map<String,Object>> retentionRunResume(@PathVariable String runId,
+                                                           @RequestAttribute("adm.operatorId") String operatorId,
+                                                           @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"reason");
+            CpfDataRow run = client.retentionRun(runId);
+            String policyId = rowText(run, "policyId", "policy_id");
+            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            Map<String,Object> payload = Map.of("runId",runId,"policyId",policyId,
+                    "expectedVersion",expectedVersion,"reason",String.valueOf(request.get("reason")));
+            return approvalRequested("retentionRunResume", "BATCH_RETENTION_RESUME", "bat_retention_run",
+                    runId, expectedVersion, payload, String.valueOf(request.get("reason")), operatorId);
+        } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_RESUME_INVALID",failure); }
     }
 
     @PostMapping("/retention/policies/{policyId}/pause")
-    @Operation(operationId = "admRetentionPolicyPause", summary = "Retention Schedule 일시정지")
-    ResponseEntity<Map<String,Object>> retentionPolicyPause(@PathVariable String policyId) {
-        try { return ResponseEntity.ok(client.pauseRetentionPolicy(policyId)); }
-        catch (BatchControlClientException failure) { return error(failure); }
+    @Operation(operationId = "admRetentionPolicyPause", summary = "Retention Schedule 안전 일시정지",
+            description = "향후 실행을 막는 fail-safe 조치이며 현재 rowVersion CAS와 사유를 강제합니다.")
+    ResponseEntity<Map<String,Object>> retentionPolicyPause(@PathVariable String policyId,
+                                                             @RequestAttribute("adm.operatorId") String operatorId,
+                                                             @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"reason");
+            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            return ResponseEntity.ok(client.pauseRetentionPolicy(policyId, expectedVersion, String.valueOf(request.get("reason"))));
+        } catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_PAUSE_INVALID",failure); }
     }
 
     @PostMapping("/retention/policies/{policyId}/resume")
-    @Operation(operationId = "admRetentionPolicyResume", summary = "Retention Schedule 재개")
-    ResponseEntity<Map<String,Object>> retentionPolicyResume(@PathVariable String policyId) {
-        try { return ResponseEntity.ok(client.resumeRetentionPolicy(policyId)); }
-        catch (BatchControlClientException failure) { return error(failure); }
+    @Operation(operationId = "admRetentionPolicyResume", summary = "Retention Schedule 재개 승인 요청")
+    ResponseEntity<Map<String,Object>> retentionPolicyResume(@PathVariable String policyId,
+                                                              @RequestAttribute("adm.operatorId") String operatorId,
+                                                              @RequestBody Map<String,Object> request) {
+        try {
+            requireCommandField(request,"reason");
+            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            Map<String,Object> payload = Map.of("policyId",policyId,"expectedVersion",expectedVersion,
+                    "reason",String.valueOf(request.get("reason")));
+            return approvalRequested("retentionPolicyResume", "BATCH_RETENTION_POLICY_RESUME",
+                    "bat_retention_policy", policyId, expectedVersion, payload,
+                    String.valueOf(request.get("reason")), operatorId);
+        } catch (BatchControlClientException failure) { return error(failure); }
+        catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_RESUME_INVALID",failure); }
+    }
+
+    private ResponseEntity<Map<String,Object>> approvalRequested(String ownerCommand, String actionType,
+                                                                  String targetType, String targetId,
+                                                                  long expectedVersion, Map<String,Object> payload,
+                                                                  String reason, String operatorId) {
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion must be non-negative");
+        try {
+            Map<String,Object> snapshot = new java.util.LinkedHashMap<>(payload);
+            snapshot.put("expectedVersion", expectedVersion);
+            String canonicalSnapshot = objectMapper.writeValueAsString(new java.util.TreeMap<>(snapshot));
+            String requestKey = retentionRequestKey(actionType, targetType, targetId, expectedVersion,
+                    operatorId, reason, canonicalSnapshot);
+            AdmApprovalService.CreateRequest request = new AdmApprovalService.CreateRequest(
+                    requestKey, null, null, actionType, "BAT", ownerCommand, targetType, targetId,
+                    canonicalSnapshot, Instant.now().plusSeconds(900), reason);
+            return ResponseEntity.accepted().body(approvalService.requestApproval(request, operatorId));
+        } catch (JsonProcessingException invalid) {
+            throw new IllegalArgumentException("Retention approval snapshot 직렬화에 실패했습니다.", invalid);
+        }
+    }
+
+
+    private static String retentionRequestKey(String actionType, String targetType, String targetId, long expectedVersion,
+                                              String operatorId, String reason, String canonicalSnapshot) {
+        String material = String.join("\n", actionType, targetType, targetId, String.valueOf(expectedVersion),
+                operatorId, reason, canonicalSnapshot);
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(material.getBytes(StandardCharsets.UTF_8));
+            return "RET-" + HexFormat.of().formatHex(digest, 0, 16);
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is unavailable", impossible);
+        }
+    }
+
+    private static long rowVersion(Map<String,Object> row) {
+        Object value = row.containsKey("rowVersion") ? row.get("rowVersion") : row.get("row_version");
+        if (!(value instanceof Number number) || number.longValue() < 0) {
+            try {
+                long parsed = Long.parseLong(String.valueOf(value));
+                if (parsed >= 0) return parsed;
+            } catch (RuntimeException ignored) { }
+            throw new IllegalArgumentException("Retention rowVersion is missing or invalid");
+        }
+        return number.longValue();
+    }
+
+    private static String rowText(Map<String,Object> row, String... keys) {
+        for (String key : keys) {
+            Object value = row.get(key);
+            if (value != null && !String.valueOf(value).isBlank()) return String.valueOf(value).trim();
+        }
+        throw new IllegalArgumentException("Retention row field is missing: " + String.join("/", keys));
     }
 
     private static Map<String, Object> withServerActor(Map<String, Object> request, String operatorId) {
@@ -317,10 +427,17 @@ public class BatchRuntimeControlController extends AdmBaseController {
     }
 
     private static void requireExpectedVersion(Map<String, Object> request) {
-        Object value = request.get("expectedVersion");
-        if (!(value instanceof Number number) || number.longValue() < 0) {
-            throw new IllegalArgumentException("expectedVersion must be a non-negative number");
-        }
+        requireVersion(request, "expectedVersion");
+    }
+
+    private static long requireVersion(Map<String, Object> request, String field) {
+        Object value = request.get(field);
+        if (value instanceof Number number && number.longValue() >= 0) return number.longValue();
+        try {
+            long parsed = Long.parseLong(String.valueOf(value));
+            if (parsed >= 0) return parsed;
+        } catch (RuntimeException ignored) { }
+        throw new IllegalArgumentException(field + " must be a non-negative number");
     }
 
     private static void requireApprovalForRiskState(Map<String, Object> request) {

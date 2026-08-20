@@ -101,20 +101,20 @@
       "runtimeMode": "embedded-bootjar"
     },
     {
-      "module": "BZA",
-      "hostAlias": "biz-admin-local",
-      "sshHostEnvKey": "BZA_SSH_HOST",
-      "sshUserEnvKey": "BZA_SSH_USER",
-      "deployBase": "build/deploy/cpf-biz-admin",
-      "healthUrl": "http://localhost:${BZA_SERVER_PORT}/actuator/health",
-      "serviceName": "cpf-biz-admin",
-      "portEnvKey": "BZA_SERVER_PORT",
+      "module": "MBW",
+      "hostAlias": "backoffice-local",
+      "sshHostEnvKey": "MBW_SSH_HOST",
+      "sshUserEnvKey": "MBW_SSH_USER",
+      "deployBase": "build/deploy/cpf-backoffice",
+      "healthUrl": "http://localhost:${MBW_ONLINE_PORT}/actuator/health/readiness",
+      "serviceName": "cpf-backoffice",
+      "portEnvKey": "MBW_ONLINE_PORT",
       "profile": "local",
       "approvalRequired": false,
       "rollbackEnabled": true,
       "runtimeMode": "embedded-bootjar",
       "optional": true,
-      "sourceOwnerPath": "cpf-biz-admin"
+      "sourceOwnerPath": "cpf-backoffice"
     },
     {
       "module": "EDU",

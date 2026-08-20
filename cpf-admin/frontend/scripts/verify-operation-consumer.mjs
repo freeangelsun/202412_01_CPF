@@ -140,7 +140,7 @@ for(const operation of operations){
     failures.push(`high-risk mutation must call concrete typed Orval generated API/model: ${operation.operationId} ${operation.method} ${operation.template}`);
   }
 }
-const publicPrefix=String(openapi["x-cpf-product-module"]).toUpperCase()==="ADM"?"/adm/api/":"/api/bza/";
-const internalPrefixes=["/adm/api/auth/","/api/bza/auth/"];
+const publicPrefix=String(openapi["x-cpf-product-module"]).toUpperCase()==="ADM"?"/adm/api/":"/api/v1/backoffice/";
+const internalPrefixes=["/adm/api/auth/","/api/v1/backoffice/auth/"];
 if(verificationScope!=="changed")for(const operation of operations){if(!operation.template.startsWith(publicPrefix)||internalPrefixes.some(prefix=>operation.template.startsWith(prefix)))continue;if(!consumed.has(operation.operationId)&&!waived.has(operation.operationId))failures.push(`public operation has no real frontend consumer or approved waiver: ${operation.operationId} ${operation.method} ${operation.template}`);}
 if(failures.length){console.error(failures.join("\n"));process.exit(1);}console.log(`[CPF][FRONTEND][PASS] operation consumer closure scope=${verificationScope} operations=${operations.length} consumed=${consumed.size} waived=${waived.size}`);

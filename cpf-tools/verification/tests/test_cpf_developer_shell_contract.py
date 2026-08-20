@@ -65,7 +65,7 @@ def test_gradle_run_aliases_use_logical_project_tree():
     expected = {
         'cpfRunLocal': ':runtime:local:bootRun',
         'cpfRunAdm': ':apps:admin:bootRun',
-        'cpfRunBza': ':apps:biz-admin:bootRun',
+        'cpfRunBackoffice': ':apps:backoffice:bootRun',
         'cpfRunGateway': ':runtime:gateway:bootRun',
         'cpfRunBatch': ':runtime:local-batch:bootRun',
         'cpfRunEducation': ':apps:education:bootRun',
@@ -74,7 +74,7 @@ def test_gradle_run_aliases_use_logical_project_tree():
         assert f"registerCpfRunAlias('{task}', '{target}'" in text
     assert 'Gradle Projects는 apps / runtime / framework / starters / internal 계층' in text
     for legacy in (
-        ':cpf-local-runtime:bootRun', ':cpf-admin:bootRun', ':cpf-biz-admin:bootRun',
+        ':cpf-local-runtime:bootRun', ':cpf-admin:bootRun', ':cpf-backoffice:bootRun',
         ':cpf-gateway:bootRun', ':cpf-local-batch-runtime:bootRun', ':cpf-education:bootRun',
     ):
         assert legacy not in text

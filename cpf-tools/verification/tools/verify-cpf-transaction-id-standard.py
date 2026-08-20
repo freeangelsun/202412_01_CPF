@@ -33,14 +33,20 @@ def verify(root:Path):
   semantic_groups = {
    'canonical transaction validation': ('CpfTransactionIds.isCanonical', 'canonicalTransactionId('),
    'trusted internal branch': ('CpfHttpIngressTrust.TRUSTED_INTERNAL',),
-   'external five-header contract': (
+   # External CPF channels serialize the canonical six system headers. The receiver validates
+   # X-System-Code and X-Target-System-Code against authenticated runtime identity; headers are not authentication proof.
+   'external canonical six system contract': (
        'requireExternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID)',
-       'requireExternal(originalChannel, CpfHttpHeaderNames.ORIGINAL_CHANNEL)',
-       'requireExternal(callerChannel, CpfHttpHeaderNames.CALLER_CHANNEL)',
-       'requireExternal(targetChannel, CpfHttpHeaderNames.TARGET_CHANNEL)',
+       'requireExternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE)',
+       'requireExternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE)',
+       'requireExternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE)',
+       'requireExternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE)',
        'requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID)'),
-   'receiver-owned current channel': ('runtime.currentChannel()', 'validateReceiverChannel(runtimeChannel, inboundCurrentChannel, targetChannel)'),
-   'external current channel optional assertion': ('inboundCurrentChannel = normalizeChannel(inboundCurrentChannel)',),
+   'receiver runtime system validation': ('runtime.systemCode()', 'validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem)'),
+   'system target receiver validation': ('SYSTEM_CODE_MISMATCH', 'TARGET_SYSTEM_CODE_MISMATCH'),
+   'transaction issuer original-system invariant': ('CpfTransactionIds.issuerCode(tx)', 'ORIGINAL_SYSTEM_CODE_MISMATCH'),
+   # Channel remains optional policy/context metadata and cannot substitute for the six System headers.
+   'optional channel context': ('inboundCurrentChannel = normalizeChannel(inboundCurrentChannel)', 'validateOptionalReceiverChannel('),
    'generated transaction fallback': ('requireGeneratedTransactionId(transactionIds.newTransactionId())',),
   }
   for label,tokens in semantic_groups.items():

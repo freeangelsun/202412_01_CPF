@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed source gate for the current ADM Route/Menu/Component capability registry."""
+"""Fail-closed source gate for the modular ADM Route/Menu/Component capability registry."""
 from __future__ import annotations
 import argparse, os, re, sys
 from pathlib import Path
@@ -17,12 +17,20 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
+def route_sources(root: Path) -> list[Path]:
+    route_dir = root / "cpf-admin/frontend/src/app/routes"
+    files = sorted(p for p in route_dir.glob("*.ts") if p.name != "types.ts")
+    if not files:
+        fail(f"ADM modular route registry is empty: {route_dir.relative_to(root)}")
+    return files
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     expected_env = os.getenv("CPF_EXPECTED_ADM_ROUTE_COUNT", "").strip()
     parser.add_argument("--expected-routes", type=int, default=int(expected_env) if expected_env else None,
-                        help="Optional compatibility assertion; canonical routes.ts cardinality is otherwise authoritative")
+                        help="Optional compatibility assertion; modular route registry cardinality is otherwise authoritative")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     routes = root / "cpf-admin/frontend/src/app/routes.ts"
@@ -33,11 +41,21 @@ def main() -> None:
         if not path.is_file():
             fail(f"required file missing: {path.relative_to(root)}")
 
-    route_text = routes.read_text(encoding="utf-8")
-    matches = list(ENTRY.finditer(route_text))
-    actual = {m.group("route_id"): m.groupdict() for m in matches}
-    if len(matches) != len(actual):
-        fail("duplicate ADM routeId in capability registry")
+    files = route_sources(root)
+    actual: dict[str, dict[str, str]] = {}
+    source_file_by_route: dict[str, Path] = {}
+    all_text: list[str] = []
+    for source_file in files:
+        route_text = source_file.read_text(encoding="utf-8")
+        all_text.append(route_text)
+        for match in ENTRY.finditer(route_text):
+            route_id = match.group("route_id")
+            if route_id in actual:
+                fail(f"duplicate ADM routeId in capability registry: {route_id}")
+            actual[route_id] = match.groupdict()
+            source_file_by_route[route_id] = source_file
+    if not actual:
+        fail("ADM modular route registry contains no capability entries")
     if args.expected_routes is not None and len(actual) != args.expected_routes:
         fail(f"route cardinality mismatch expected={args.expected_routes} source={len(actual)}")
     if len({row['path'] for row in actual.values()}) != len(actual):
@@ -50,16 +68,14 @@ def main() -> None:
     for route_id, source in actual.items():
         if not source["feature_flag"].startswith("adm.route.") or not source["feature_flag"].endswith(".enabled"):
             fail(f"invalid feature flag contract: {route_id}={source['feature_flag']}")
-        component = source["component"]
-        component_rel = component[3:] if component.startswith("../") else component
-        component_path = root / "cpf-admin/frontend/src" / component_rel
+        component_path = (source_file_by_route[route_id].parent / source["component"]).resolve()
         if not component_path.is_file():
-            fail(f"component missing route={route_id} path={component}")
+            fail(f"component missing route={route_id} path={source['component']}")
 
-    compact = route_text.replace(" ", "")
+    compact = "\n".join(all_text).replace(" ", "")
     for pattern in ('||"home"', "||'home'", 'return"dashboard"'):
         if pattern in compact:
-            fail(f"silent fallback pattern detected in routes.ts: {pattern}")
+            fail(f"silent fallback pattern detected in modular route registry: {pattern}")
 
     app_text = app.read_text(encoding="utf-8")
     if "<RouterView" not in app_text:
@@ -74,7 +90,7 @@ def main() -> None:
     if "admRouter.onError" not in router_text:
         fail("lazy-load failure handler missing")
 
-    print(f"[PASS] ADM capability registry closure: routes={len(actual)} generated={len(generated_ids)} statusRoutes=4 silentFallback=0")
+    print(f"[PASS] ADM capability registry closure: routeFiles={len(files)} routes={len(actual)} generated={len(generated_ids)} statusRoutes=4 silentFallback=0")
 
 
 if __name__ == "__main__":

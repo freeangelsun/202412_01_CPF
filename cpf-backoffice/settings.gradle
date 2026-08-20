@@ -1,0 +1,13 @@
+// CPF Optional Prebuilt Business Domain settings. Generated Business Domain과 동일한 독립 Build 계약을 사용합니다.
+rootProject.name = 'cpf-backoffice'
+include 'online'
+
+// CPF Product Source 회귀검증에서만 Composite Build를 연결합니다. 고객/배포 Build는 Published CPF Binary를 사용합니다.
+def cpfProductCompositeRoot = providers.gradleProperty('cpfProductCompositeRoot').orNull
+if (cpfProductCompositeRoot) {
+    def productRoot = file(cpfProductCompositeRoot).canonicalFile
+    if (!new File(productRoot, 'settings.gradle').isFile()) {
+        throw new GradleException("CPF Product composite root가 유효하지 않습니다: ${productRoot}")
+    }
+    includeBuild(productRoot) { name = 'cpf-product-source' }
+}

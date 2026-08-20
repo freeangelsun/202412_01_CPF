@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760">
+<rect width="1500" height="760" fill="white"/>
+<style>text{font-family:'NanumSquare','Noto Sans CJK KR','Malgun Gothic',sans-serif;} .title{font-size:34px;font-weight:800;fill:#18233D}.sub{font-size:19px;fill:#667085}.cardTitle{font-size:22px;font-weight:800}.label{font-size:17px;font-weight:700;fill:#18233D}.node{font-size:12px;font-weight:650;fill:#18233D}.note{font-size:16px;font-weight:650;fill:#18233D}</style>
+<text x="42" y="62" class="title">Transaction 표준 패턴</text>
+<text x="42" y="98" class="sub">Service method의 @CpfTransactional가 Local DB Transaction 경계를 만들고, Remote/외부 호출은 같은 원자성으로 가정하지 않습니다.</text>
+<line x1="42" y1="120" x2="1458" y2="120" stroke="#D7DFED" stroke-width="2"/>
+
+<!-- card A -->
+<rect x="45" y="180" width="330" height="390" rx="18" fill="#FCFDFF" stroke="#4F6EF7" stroke-width="2"/>
+<text x="65" y="225" class="cardTitle" fill="#4F6EF7">A. 일반 업무</text>
+<rect x="70" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="210" y="292" class="label" text-anchor="middle">@CpfTransactional 기본</text>
+<g stroke="#4F6EF7" stroke-width="2" fill="#fff">
+<rect x="64" y="350" width="61" height="52" rx="9"/><rect x="140" y="350" width="61" height="52" rx="9"/><rect x="216" y="350" width="78" height="52" rx="9"/><rect x="309" y="350" width="48" height="52" rx="9"/>
+</g>
+<g class="node" text-anchor="middle"><text x="94.5" y="382">Controller</text><text x="170.5" y="382">Service</text><text x="255" y="382">Repository</text><text x="333" y="382">DB</text></g>
+<g stroke="#4F6EF7" stroke-width="2" fill="#4F6EF7"><line x1="125" y1="376" x2="137" y2="376"/><polygon points="137,376 129,381 129,371"/><line x1="201" y1="376" x2="213" y2="376"/><polygon points="213,376 205,381 205,371"/><line x1="294" y1="376" x2="306" y2="376"/><polygon points="306,376 298,381 298,371"/></g>
+<text x="210" y="495" class="note" text-anchor="middle">REQUIRED가 기본</text>
+
+<!-- card B -->
+<rect x="405" y="180" width="330" height="390" rx="18" fill="#FCFDFF" stroke="#58B7C9" stroke-width="2"/>
+<text x="425" y="225" class="cardTitle" fill="#58B7C9">B. 조회 전용</text>
+<rect x="430" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="570" y="292" class="label" text-anchor="middle">readOnly = true</text>
+<g stroke="#58B7C9" stroke-width="2" fill="#fff"><rect x="424" y="350" width="61" height="52" rx="9"/><rect x="500" y="350" width="61" height="52" rx="9"/><rect x="576" y="350" width="78" height="52" rx="9"/><rect x="669" y="350" width="48" height="52" rx="9"/></g>
+<g class="node" text-anchor="middle"><text x="454.5" y="382">Controller</text><text x="530.5" y="382">Service</text><text x="615" y="382">Repository</text><text x="693" y="382">DB</text></g>
+<g stroke="#58B7C9" stroke-width="2" fill="#58B7C9"><line x1="485" y1="376" x2="497" y2="376"/><polygon points="497,376 489,381 489,371"/><line x1="561" y1="376" x2="573" y2="376"/><polygon points="573,376 565,381 565,371"/><line x1="654" y1="376" x2="666" y2="376"/><polygon points="666,376 658,381 658,371"/></g>
+<text x="570" y="495" class="note" text-anchor="middle">조회 업무에 사용</text>
+
+<!-- card C -->
+<rect x="765" y="180" width="330" height="390" rx="18" fill="#FCFDFF" stroke="#7357E8" stroke-width="2"/>
+<text x="785" y="225" class="cardTitle" fill="#7357E8">C. 별도 Commit</text>
+<rect x="790" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="930" y="292" class="label" text-anchor="middle">REQUIRES_NEW</text>
+<g stroke="#7357E8" stroke-width="2" fill="#fff"><rect x="795" y="350" width="78" height="52" rx="9"/><rect x="891" y="350" width="92" height="52" rx="9"/><rect x="1001" y="350" width="58" height="52" rx="9"/></g>
+<g class="node" text-anchor="middle"><text x="834" y="382">Main Service</text><text x="937" y="382">Audit Service</text><text x="1030" y="382">DB</text></g>
+<g stroke="#7357E8" stroke-width="2" fill="#7357E8"><line x1="873" y1="376" x2="888" y2="376"/><polygon points="888,376 880,381 880,371"/><line x1="983" y1="376" x2="998" y2="376"/><polygon points="998,376 990,381 990,371"/></g>
+<text x="930" y="495" class="note" text-anchor="middle">독립 Commit이 필요할 때만</text>
+
+<!-- card D -->
+<rect x="1125" y="180" width="330" height="390" rx="18" fill="#FCFDFF" stroke="#E99A42" stroke-width="2"/>
+<text x="1145" y="225" class="cardTitle" fill="#E99A42">D. 외부 연계 포함</text>
+<rect x="1150" y="255" width="280" height="58" rx="12" fill="#fff" stroke="#D7DFED" stroke-width="2"/><text x="1290" y="292" class="label" text-anchor="middle">Local TX + Remote Boundary</text>
+<rect x="1252" y="337" width="76" height="48" rx="9" fill="#fff" stroke="#E99A42" stroke-width="2"/><text x="1290" y="367" class="node" text-anchor="middle">Service</text>
+<line x1="1290" y1="385" x2="1290" y2="408" stroke="#E99A42" stroke-width="2"/>
+<line x1="1216" y1="408" x2="1364" y2="408" stroke="#E99A42" stroke-width="2"/>
+<line x1="1216" y1="408" x2="1216" y2="426" stroke="#E99A42" stroke-width="2"/><line x1="1364" y1="408" x2="1364" y2="426" stroke="#E99A42" stroke-width="2"/>
+<polygon points="1216,432 1210,422 1222,422" fill="#E99A42"/><polygon points="1364,432 1358,422 1370,422" fill="#E99A42"/>
+<rect x="1166" y="432" width="100" height="50" rx="9" fill="#fff" stroke="#E99A42" stroke-width="2"/><rect x="1314" y="432" width="100" height="50" rx="9" fill="#fff" stroke="#E99A42" stroke-width="2"/>
+<g class="node" text-anchor="middle"><text x="1216" y="455">Local DB</text><text x="1364" y="451">Remote /</text><text x="1364" y="468">외부 시스템</text></g>
+<text x="1290" y="525" class="note" text-anchor="middle">DB TX와 외부 결과를 분리 판단</text>
+
+<rect x="120" y="620" width="1260" height="80" rx="16" fill="#FFF8F8" stroke="#C85A5A" stroke-width="2"/>
+<text x="750" y="652" font-size="18" fill="#C85A5A" font-weight="800" text-anchor="middle">중요</text>
+<text x="750" y="680" font-size="17" fill="#18233D" font-weight="650" text-anchor="middle">self-invocation은 Proxy 경계를 확인하고, Remote timeout과 DB Transaction timeout을 같은 값으로 보지 않습니다.</text>
+</svg>

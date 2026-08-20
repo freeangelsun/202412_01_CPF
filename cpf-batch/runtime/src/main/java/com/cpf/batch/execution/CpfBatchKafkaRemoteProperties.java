@@ -85,5 +85,5 @@ public record CpfBatchKafkaRemoteProperties(
     }
     private static Duration positive(Duration value,Duration fallback){return value==null||value.isZero()||value.isNegative()?fallback:value;}
     private static boolean blank(String value){return value==null||value.isBlank();}
-    private static String instanceId(){return com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();}
+    private static String instanceId(){return com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId();}
 }

@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string] $RepoRoot = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [ValidateSet('integrated','minimal','standard','full','integration')]
     [string] $Mode = 'integrated',
@@ -18,7 +18,7 @@
     [switch] $SkipBuild,
     [switch] $WebOnly,
     [switch] $BatchOnly,
-    [switch] $EnableBizAdmin,
+    [switch] $EnableBackoffice,
     [switch] $EnableCenterCut,
     [switch] $EnableAgent
 )
@@ -212,14 +212,14 @@ $registry = @()
 try {
     if (-not $BatchOnly) {
         $webJar = Resolve-BootJar (Join-Path $RepoRoot 'cpf-tools\runtime\cpf-local-runtime') 'local-web'
-        $enableBza = $EnableBizAdmin -or $Mode -in @('integrated','full','integration')
+        $enableBackoffice = $EnableBackoffice -or $Mode -in @('integrated','full','integration')
         $registry += Start-CpfProcess 'LOCAL_WEB' $webJar $WebPort "local,local-$Mode" $WebXms $WebXmx `
             @("http://127.0.0.1:$WebPort/actuator/health") @(
                 '--cpf.local.runtime.enabled=true',
                 '--cpf.local.modules.domains.enabled=true',
                 '--cpf.local.modules.domains.auto-discover=true',
                 "--cpf.local.modules.gateway=$((($Mode -in @('full','integration'))).ToString().ToLowerInvariant())",
-                "--cpf.local.modules.biz-admin=$($enableBza.ToString().ToLowerInvariant())"
+                "--cpf.local.modules.backoffice=$($enableBackoffice.ToString().ToLowerInvariant())"
             )
     }
     if (-not $WebOnly) {

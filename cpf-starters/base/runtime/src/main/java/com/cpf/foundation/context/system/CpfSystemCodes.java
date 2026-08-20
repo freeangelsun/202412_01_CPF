@@ -20,8 +20,7 @@ public final class CpfSystemCodes {
             Map.entry("gateway", "GWY"),
             Map.entry("common", "CMN"),
             Map.entry("admin", "ADM"),
-            Map.entry("biz-admin", "BZA"),
-            Map.entry("bizadmin", "BZA"),
+            Map.entry("backoffice", "MBW"),
             Map.entry("batch", "BAT"),
             Map.entry("reference", "REF"));
 

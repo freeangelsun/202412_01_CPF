@@ -2,7 +2,7 @@
 """Generate the current CPF physical database schema manifest.
 
 The manifest is derived from the rendered MariaDB current schemas that are actually
-installed (cpfDB, bzaDB, referenceFixture) and is cross-checked against the canonical
+installed (cpfDB, mbwDB, referenceFixture) and is cross-checked against the canonical
 platform schema before it is written. Historical split DB source files are not a
 manifest authority.
 """
@@ -17,7 +17,7 @@ from typing import Iterable
 
 PHYSICAL_SOURCES = {
     "cpfDB": "cpf-platform-schema.sql",
-    "bzaDB": "bza-schema.sql",
+    "mbwDB": "backoffice-schema.sql",
     "referenceFixture": "reference-fixture-schema.sql",
 }
 

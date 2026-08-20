@@ -17,6 +17,7 @@ public record CmnTemplateRecord(
         Instant approvedAt,
         String updatedBy,
         Instant updatedAt) {
+    /** Template lifecycle의 사용 가능 상태를 나타내는 Canonical 상태값입니다. */
     public enum Status { DRAFT, APPROVED, RETIRED }
 
     public CmnTemplateRecord {

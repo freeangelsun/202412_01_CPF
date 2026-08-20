@@ -26,7 +26,7 @@ final class CpfTrustedOriginFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return safe(request.getMethod())
-                || !(path.startsWith("/adm/") || path.startsWith("/api/bza/") || path.startsWith("/bza/"));
+                || !(path.startsWith("/adm/") || path.startsWith("/adm/"));
     }
 
     @Override

@@ -9,6 +9,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
+/**
+ * test/verification/chaos profile에서만 CPF Fault Injector를 활성화하는 Testkit 구성입니다.
+ * <p>명시적인 {@code cpf.fault-injection.enabled=true}가 없으면 실제 장애 주입 Bean을 만들지 않습니다.
+ */
 @Configuration
 public class CpfFaultInjectionConfiguration {
     @Bean

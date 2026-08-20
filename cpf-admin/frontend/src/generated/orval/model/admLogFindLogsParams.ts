@@ -9,6 +9,10 @@ export interface AdmLogFindLogsParams {
   responseCode?: string;
   httpStatus?: number;
   clientId?: string;
+  originalSystemCode?: string;
+  systemCode?: string;
+  callerSystemCode?: string;
+  targetSystemCode?: string;
   originalChannel?: string;
   currentChannel?: string;
   callerChannel?: string;

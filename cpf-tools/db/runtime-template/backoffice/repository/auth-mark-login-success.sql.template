@@ -1,0 +1,4 @@
+UPDATE mbw_admin_user
+SET login_fail_count = 0, version_no = version_no + 1,
+    last_login_at = @NOW@, updated_by = 'MBW_AUTH', updated_at = @NOW@
+WHERE admin_user_id = :adminUserId

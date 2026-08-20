@@ -13,14 +13,14 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
         cls.prepare = (DBV / "prepare-cpf-local-runtime-db.ps1").read_text(encoding="utf-8")
         cls.cleanup = (DBV / "cleanup-cpf-db-verifier-owned.ps1").read_text(encoding="utf-8")
         cls.cleanup_local = (DBV / "cleanup-cpf-local-runtime-db.ps1").read_text(encoding="utf-8")
-        cls.bootstrap = (DBV / "prepare-cpf-local-bza-bootstrap.ps1").read_text(encoding="utf-8")
+        cls.bootstrap = (DBV / "prepare-cpf-local-backoffice-bootstrap.ps1").read_text(encoding="utf-8")
         cls.full = FULL.read_text(encoding="utf-8")
 
     def test_verifier_owned_lifecycle_is_isolated_and_fail_closed(self):
         self.assertIn("^[0-9a-f]{40}$", self.lifecycle)
         self.assertIn("CPF_ADMIN_PASSWORD is required", self.lifecycle)
         self.assertIn("cpf_verify_${runId}_platform", self.lifecycle)
-        self.assertIn("cpf_verify_${runId}_bza", self.lifecycle)
+        self.assertIn("cpf_verify_${runId}_mbw", self.lifecycle)
         self.assertIn("-VerifierOwnedDisposable", self.lifecycle)
         self.assertIn("-ConfirmExecute", self.lifecycle)
         self.assertIn("-ConfirmApplicationsStopped", self.lifecycle)
@@ -32,7 +32,7 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
 
     def test_local_runtime_db_uses_env_secrets_and_run_scoped_names(self):
         self.assertIn("cpf_verify_${VerifierRunId}_runtime", self.prepare)
-        self.assertIn("cpf_verify_${VerifierRunId}_bza", self.prepare)
+        self.assertIn("cpf_verify_${VerifierRunId}_mbw", self.prepare)
         for name in (
             "CPF_ADMIN_PASSWORD",
             "CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD",
@@ -61,9 +61,9 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
         self.assertNotIn("& psql", self.cleanup_local)
         self.assertNotIn("sqlplus", self.cleanup_local)
 
-    def test_bza_bootstrap_is_run_scoped_and_secret_safe(self):
-        self.assertIn('^cpf_verify_${VerifierRunId}_bza$', self.bootstrap)
-        self.assertIn("CPF_BZA_SMOKE_PASSWORD", self.bootstrap)
+    def test_backoffice_bootstrap_is_run_scoped_and_secret_safe(self):
+        self.assertIn('^cpf_verify_${VerifierRunId}_mbw$', self.bootstrap)
+        self.assertIn("CPF_BACKOFFICE_SMOKE_PASSWORD", self.bootstrap)
         self.assertIn("CPF_ADMIN_PASSWORD", self.bootstrap)
         self.assertIn("chmod 600", self.bootstrap)
         self.assertIn('MARIADB_ROOT_PASSWORD', self.bootstrap)
@@ -75,14 +75,14 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
         for token in (
             "LOCAL_ONE_WAS_DB_PREP",
             "prepare-cpf-local-runtime-db.ps1",
-            "LOCAL_ONE_WAS_BZA_BOOTSTRAP_PREP",
-            "prepare-cpf-local-bza-bootstrap.ps1",
+            "LOCAL_ONE_WAS_BACKOFFICE_BOOTSTRAP_PREP",
+            "prepare-cpf-local-backoffice-bootstrap.ps1",
             "LOCAL_ONE_WAS_DB_CLEANUP",
             "cleanup-cpf-local-runtime-db.ps1",
             "LOCAL_ONE_WAS_SECRET_CLEANUP",
         ):
             self.assertIn(token, self.full)
-        self.assertIn("CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_BZA_DB_ENABLED='true'", self.full)
+        self.assertIn("CPF_DATA_PERSISTENCE_JDBC_ROLE_DATASOURCES_CUSTOMER_BUSINESS_DB_ENABLED='true'", self.full)
         self.assertIn("CPF_LOG_ROOT=$runtimeFileLogRoot", self.full)
 
 

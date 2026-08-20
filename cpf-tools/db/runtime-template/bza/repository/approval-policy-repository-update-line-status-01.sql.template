@@ -1,5 +1,0 @@
-UPDATE bza_approval_line
-   SET decision_status=:status, decision_comment=:comment,
-       decided_at=CASE WHEN :status='WAITING' THEN NULL ELSE @NOW@ END,
-       updated_by=:operatorId
- WHERE approval_line_id=:lineId

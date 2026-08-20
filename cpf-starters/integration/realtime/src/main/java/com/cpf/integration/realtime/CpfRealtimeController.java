@@ -13,6 +13,10 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * CPF Realtime client가 사용하는 표준 HTTP 진입점을 제공합니다.
+ * <p>직접 상태를 소유하지 않고 {@link CpfRealtimeHub}에 위임하며, 애플리케이션의 Security/Context 정책을 우회하지 않습니다.
+ */
 @RestController
 public final class CpfRealtimeController {
     private final CpfRealtimeBroker broker;

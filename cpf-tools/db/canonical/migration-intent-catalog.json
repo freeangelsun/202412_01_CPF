@@ -12,7 +12,7 @@
     {
       "id": "NXT2-DB-CONSOLIDATE-PLATFORM",
       "owner": "cpf-tools/db",
-      "description": "Render consolidated cpfDB/BZA_DB/reference-fixture current snapshot from canonical 215-table model.",
+      "description": "Render consolidated cpfDB/CUSTOMER_BUSINESS_DB(backoffice)/reference-fixture current snapshot from canonical 234-table model.",
       "source": "cpf-tools/db/canonical/platform-schema.json",
       "vendors": [
         "mariadb",
@@ -80,6 +80,18 @@
         "oracle"
       ],
       "lifecycleScenarioId": "CPF-DB3-D011-TRANSACTION-CONTEXT-001"
+    },
+    {
+      "id": "P0-BACKOFFICE-MBW-IDENTITY",
+      "owner": "cpf-backoffice",
+      "description": "Append-only DB3 upgrade renames legacy Backoffice BZA physical tables to canonical MBW tables and preserves role/menu grants while currentizing MBW routes.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-BACKOFFICE-MBW-001"
     }
   ]
 }

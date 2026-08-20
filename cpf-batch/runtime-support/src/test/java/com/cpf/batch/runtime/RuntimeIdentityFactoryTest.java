@@ -22,7 +22,7 @@ class RuntimeIdentityFactoryTest {
         var registration = RuntimeIdentityFactory.fromEnvironment(
                 environment, RuntimeRole.WORKER, "cpf-batch-worker", 18092);
 
-        assertThat(registration.instanceId()).isEqualTo(com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId());
+        assertThat(registration.instanceId()).isEqualTo(com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId());
         assertThat(registration.wasId()).isEqualTo("BAT-WAS-02");
         assertThat(registration.hostAlias()).isEqualTo("home-notebook");
         assertThat(registration.zone()).isEqualTo("home");

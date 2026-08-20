@@ -1,0 +1,15 @@
+INSERT INTO mbw_approval_document (
+    approval_no, approval_type, business_domain, policy_code, policy_version,
+    policy_snapshot_json, title, requester_employee_no,
+    requester_organization_code, requester_position_code, requester_job_title_code,
+    approval_status, approval_mode, current_step_no, due_at,
+    payload_json, payload_hash, request_idempotency_key, attachment_group_id,
+    resubmitted_from_approval_id, version_no, transaction_id, submitted_at, created_by, updated_by
+) VALUES (
+    :approvalNo, :approvalType, :businessDomain, :policyCode, :policyVersion,
+    :policySnapshotJson, :title, :requesterEmployeeNo,
+    :requesterOrganizationCode, :requesterPositionCode, :requesterJobTitleCode,
+    'IN_REVIEW', :approvalMode, 1, :dueAt,
+    :payloadJson, :payloadHash, :requestIdempotencyKey, :attachmentGroupId,
+    :resubmittedFromApprovalId, 0, :transactionId, CURRENT_TIMESTAMP(3), :operatorId, :operatorId
+)

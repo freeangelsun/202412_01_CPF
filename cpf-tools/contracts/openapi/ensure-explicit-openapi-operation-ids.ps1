@@ -16,7 +16,7 @@ $modules = @(
     [ordered]@{ project = "cpf-common"; code = "cmn" },
     [ordered]@{ project = "cpf-member"; code = "mbr" },
     [ordered]@{ project = "cpf-admin"; code = "adm" },
-    [ordered]@{ project = "cpf-biz-admin"; code = "bza" },
+    [ordered]@{ project = "cpf-backoffice"; code = "mbw"; sourceRoot = "cpf-backoffice/online/src/main/java" },
     [ordered]@{ project = "cpf-batch"; code = "bat" },
     [ordered]@{ project = "cpf-account"; code = "acc" },
     [ordered]@{ project = "cpf-reference"; code = "ref" },
@@ -137,7 +137,8 @@ function Get-MethodMappings {
 
 $controllerFiles = New-Object System.Collections.Generic.List[object]
 foreach ($module in $modules) {
-    $sourceRoot = Join-Path $Root "$($module.project)/src/main/java"
+    $sourceRelative = if ($module.Contains("sourceRoot")) { [string]$module.sourceRoot } else { "$($module.project)/src/main/java" }
+    $sourceRoot = Join-Path $Root $sourceRelative
     if (-not (Test-Path -LiteralPath $sourceRoot)) {
         continue
     }

@@ -34,7 +34,7 @@ QA Requirement가 위 Target을 더 구체화하면 QA Requirement를 우선하�
 | `cpf-common` = 고객 업무 공통 독립 Product Domain | 독립 `cpf-common` Root 제거. CPF Common Product Service를 `cpf-starters/common` Capability로 이관 |
 | 고객 공통 확장을 `cpf-common` Source에 적치 | 고객 특화 공통은 고객 Repository의 선택형 `<customer>-common` |
 | `cmnDB`, `admDB`, `batDB` 독립 Platform DB | CPF 소유 관계형 데이터는 기본 `CPF_PLATFORM_DB`(`cpfDB`)로 통합. Ownership은 Table Prefix/Metadata로 유지 |
-| Generated Domain마다 `mbrDB`, `accDB` 등 DB/Schema 생성 | Customer Business DB/Schema는 통합하고 `MBR_*`, `ACC_*`, `PRD_*` Table Prefix로 Domain Ownership 구분 |
+| Generated Domain Source Tree 내부에 Vendor별 DB 폴더 생성 | Domain별 logical DB/schema identity(`<systemCode lower>DB`)와 환경별 Oracle/PostgreSQL/MariaDB Binding을 분리하고 DB3는 Canonical Renderer/Installer가 외부 lifecycle 자산으로 생성 |
 | `cpf-member`/`cpf-external`을 CPF Product Module/Public Artifact로 취급하거나 Generated Domain을 transient-only로 검증 | `cpf-member/`(MBR)+`cpf-external/`(EXS)은 동일 Canonical Generator의 **retained Generated Customer Domain 회귀 Root**로 유지한다. 둘을 Product Module/Public BOM/Publication에 넣는 것은 금지하며 제3 임의 Domain만 transient genericity 검증에 사용한다. |
 | Public Profile Artifact에 `cpf-starter-profile-*` 사용 | 개발자 공개 Artifact는 `cpf-starter-<profile>` 형식으로 단순화 |
 | Capability별 `*/core` 물리 Module | `cpf-core` 외 `core` 이름의 Capability Module 금지. `api/runtime/provider/autoconfigure/internal` 역할명 사용 |
@@ -134,7 +134,7 @@ cpf-member/   = MBR
 cpf-external/ = EXS
 ```
 
-둘은 CPF Product Module/Public Artifact가 아니며, 동일 Canonical Schema·Naming Strategy·Generator Engine·Template으로 생성한다. `CUSTOMER_BUSINESS_DB`, API+Batch, Sample Transaction, DB3, Build/Test를 함께 검증하고 최종 결과물에 포함한다.
+둘은 CPF Product Module/Public Artifact가 아니며, 동일 Canonical Schema·Naming Strategy·Generator Engine·Template으로 생성한다. `CUSTOMER_BUSINESS_DB` role, Domain별 환경 DB Binding, API/선택 Batch, Sample Transaction, 외부 Canonical DB3 Renderer, Build/Test를 함께 검증하고 최종 결과물에 포함한다.
 
 Legacy single-canary/transient-only 정책은 Current Target이 아니다. 단, 제3 임의 Domain은 genericity 추가 검증용 transient output으로 생성 후 cleanup할 수 있다.
 

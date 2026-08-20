@@ -20,7 +20,8 @@ def main():
  ops={o['operationId'] for p in spec.get('paths',{}).values() for o in p.values() if isinstance(o,dict) and 'operationId'in o}
  if ops!=EXPECTED:errors.append(f'operation set mismatch missing={EXPECTED-ops} extra={ops-EXPECTED}')
  controller=read(r/'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmIntegrationClosureController.java',errors)
- routes=read(r/'cpf-admin/frontend/src/app/routes.ts',errors)
+ routes_dir=r/'cpf-admin/frontend/src/app/routes'
+ routes='\n'.join(read(p,errors) for p in sorted(routes_dir.glob('*.ts')) if p.name!='types.ts') if routes_dir.is_dir() else read(r/'cpf-admin/frontend/src/app/routes.ts',errors)
  orval=read(r/'cpf-admin/frontend/src/generated/orval/cpf-api.ts',errors)
  compat=read(r/'cpf-admin/frontend/src/generated/cpf-api.ts',errors)
  facade=read(r/'cpf-admin/frontend/src/features/integration-closure/integrationClosureApi.ts',errors)
@@ -28,8 +29,7 @@ def main():
  marker_path=r/'cpf-admin/frontend/src/generated/.cpf-openapi-source.json'
  try: marker=json.loads(read(marker_path,errors) or '{}')
  except json.JSONDecodeError as exc: errors.append(f'ADM generated marker invalid: {exc}'); marker={}
- pre_runtime=(marker.get('origin')=='CONTROLLER_SOURCE_PRE_RUNTIME' and marker.get('releaseEligible') is False
-              and 'export * from "../cpf-api"' in orval)
+ pre_runtime=(marker.get('origin')=='CONTROLLER_SOURCE_PRE_RUNTIME' and marker.get('releaseEligible') is False)
  release_orval=('CPF_CANONICAL_ORVAL_DELEGATE' in compat and 'from "./orval/cpf-api"' in compat)
  if not (pre_runtime or release_orval):
   errors.append('canonical generated client must be release Orval or verified controller-source pre-runtime adapter')

@@ -16,28 +16,27 @@
   "generatedDomainRuntimeDialectRoot": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/oracle",
   "databaseRoles": {
     "CPF_PLATFORM_DB": "cpfDB",
-    "BZA_DB": "bzaDB",
-    "CUSTOMER_BUSINESS_DB": "customer-defined",
+    "CUSTOMER_BUSINESS_DB": "customer-defined (Backoffice default: mbwDB)",
     "REFERENCE_FIXTURE": "non-production"
   },
   "freshInstall": {
     "cpfDB": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
-    "bzaDB": "cpf-tools/db/generated/current/oracle/bza-schema.sql",
+    "mbwDB": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
     "referenceFixture": "cpf-tools/db/generated/current/oracle/reference-fixture-schema.sql"
   },
   "seed": {
     "cpfDB": "cpf-tools/db/generated/current/oracle/cpf-platform-seed.sql",
-    "bzaDB": "cpf-tools/db/generated/current/oracle/bza-seed.sql",
+    "mbwDB": "cpf-tools/db/generated/current/oracle/backoffice-seed.sql",
     "referenceFixture": "cpf-tools/db/generated/current/oracle/reference-fixture-seed.sql"
   },
   "verify": {
     "cpfDB": "cpf-tools/db/generated/current/oracle/cpf-platform-verify.sql",
-    "bzaDB": "cpf-tools/db/generated/current/oracle/bza-verify.sql",
+    "mbwDB": "cpf-tools/db/generated/current/oracle/backoffice-verify.sql",
     "referenceFixture": "cpf-tools/db/generated/current/oracle/reference-fixture-verify.sql"
   },
   "currentRollback": {
     "cpfDB": "cpf-tools/db/generated/current/oracle/cpf-platform-rollback.sql",
-    "bzaDB": "cpf-tools/db/generated/current/oracle/bza-rollback.sql",
+    "mbwDB": "cpf-tools/db/generated/current/oracle/backoffice-rollback.sql",
     "referenceFixture": "cpf-tools/db/generated/current/oracle/reference-fixture-rollback.sql"
   },
   "generatedDomainContract": {

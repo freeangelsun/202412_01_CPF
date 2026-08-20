@@ -56,10 +56,10 @@ class CpfServerSessionSecurityFilterChainTest {
     @Test
     void staticShellAndLoginArePublicButPrivilegedApisAreNot() throws Exception {
         mvc.perform(get("/adm/index.html")).andExpect(status().isOk());
-        mvc.perform(post("/api/bza/auth/login").header("Origin", "http://localhost").with(csrf()))
+        mvc.perform(post("/adm/api/auth/login").header("Origin", "http://localhost").with(csrf()))
                 .andExpect(status().isOk());
         mvc.perform(get("/adm/api/runtime/control")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/bza/customers")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/adm/api/customers")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -85,7 +85,7 @@ class CpfServerSessionSecurityFilterChainTest {
         MockHttpSession session = session("handle-1", "BZA001");
         when(vault.find("handle-1")).thenReturn(Optional.of(credential(false)));
 
-        mvc.perform(get("/api/bza/session").session(session))
+        mvc.perform(get("/adm/api/session").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string("BZA001:0:Bearer vault-access"));
         verify(vault).find("handle-1");
@@ -99,7 +99,7 @@ class CpfServerSessionSecurityFilterChainTest {
         MockHttpSession session = session("handle-1", "BZA001");
         when(vault.find("handle-1")).thenReturn(Optional.of(credential(true)));
 
-        mvc.perform(post("/api/bza/auth/refresh").header("Origin", "http://localhost").session(session).with(csrf()))
+        mvc.perform(post("/adm/api/auth/refresh").header("Origin", "http://localhost").session(session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("BZA001:vault-refresh"));
     }
@@ -109,7 +109,7 @@ class CpfServerSessionSecurityFilterChainTest {
         MockHttpSession session = session("handle-1", "BZA001");
         when(vault.find("handle-1")).thenReturn(Optional.of(credential(true)));
 
-        mvc.perform(post("/api/bza/auth/logout").header("Origin", "http://localhost").session(session).with(csrf()))
+        mvc.perform(post("/adm/api/auth/logout").header("Origin", "http://localhost").session(session).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("BZA001"));
 
@@ -146,12 +146,12 @@ class CpfServerSessionSecurityFilterChainTest {
             return "ok";
         }
 
-        @org.springframework.web.bind.annotation.PostMapping("/api/bza/auth/login")
+        @org.springframework.web.bind.annotation.PostMapping("/adm/api/auth/login")
         String login() {
             return "ok";
         }
 
-        @org.springframework.web.bind.annotation.GetMapping("/api/bza/customers")
+        @org.springframework.web.bind.annotation.GetMapping("/adm/api/customers")
         String customers() {
             return "ok";
         }
@@ -168,19 +168,19 @@ class CpfServerSessionSecurityFilterChainTest {
             return "ok";
         }
 
-        @org.springframework.web.bind.annotation.GetMapping("/api/bza/session")
+        @org.springframework.web.bind.annotation.GetMapping("/adm/api/session")
         String session(
                 Authentication authentication,
                 @org.springframework.web.bind.annotation.RequestHeader("Authorization") String authorization) {
             return authentication.getName() + ":" + authentication.getAuthorities().size() + ":" + authorization;
         }
 
-        @org.springframework.web.bind.annotation.PostMapping("/api/bza/auth/refresh")
+        @org.springframework.web.bind.annotation.PostMapping("/adm/api/auth/refresh")
         String refresh(HttpServletRequest request, Authentication authentication) {
             return authentication.getName() + ":" + CpfBffSessionBridgeFilter.internalRefreshToken(request);
         }
 
-        @org.springframework.web.bind.annotation.PostMapping("/api/bza/auth/logout")
+        @org.springframework.web.bind.annotation.PostMapping("/adm/api/auth/logout")
         String logout(Authentication authentication) {
             return authentication.getName();
         }

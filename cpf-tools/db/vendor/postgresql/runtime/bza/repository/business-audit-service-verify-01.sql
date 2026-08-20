@@ -1,4 +1,0 @@
-SELECT audit_id AS auditId,transaction_id AS transactionId,actor_id AS actorId,action_type AS actionType,
-       target_type AS targetType,target_id AS targetId,reason,before_data AS beforeData,after_data AS afterData,
-       previous_record_hash AS previousRecordHash,record_hash AS recordHash
-  FROM bza_business_audit ORDER BY audit_id

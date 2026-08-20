@@ -14,6 +14,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * JDBC Persistence capability의 Runtime 상태와 운영 제어 정보를 CPF 운영 관리 계약에 연결합니다.
+ * <p>업무 Repository API가 아니라 운영 관측/제어용 자동구성이며 애플리케이션에서 직접 인스턴스화하지 않습니다.
+ */
 @AutoConfiguration
 public class CpfPersistenceRuntimeControlAutoConfiguration {
     @Bean

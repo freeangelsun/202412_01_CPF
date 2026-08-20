@@ -4,10 +4,39 @@ import java.security.MessageDigest
 
 plugins { id 'base' }
 
+def cpfResolvedPlatformVersion = providers.environmentVariable('CPF_VERSION')
+        .orElse(providers.gradleProperty('cpfPlatformVersion'))
+        .get()
+def cpfProductCompositeRootValue = providers.gradleProperty('cpfProductCompositeRoot').orNull
+def cpfPublicRepositoryUrl = providers.environmentVariable('CPF_MAVEN_REPOSITORY_URL')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
+        .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
+        .orNull
+if (!cpfProductCompositeRootValue && !cpfPublicRepositoryUrl) {
+    throw new GradleException('Standalone Generated Domain은 CPF_MAVEN_REPOSITORY_URL 또는 cpfArtifactRepositoryUrl이 필요합니다. Private Source composite 회귀검증은 -PcpfProductCompositeRoot를 사용하세요.')
+}
+
 allprojects {
     group = 'external'
     version = '1.0.0-SNAPSHOT'
-    repositories { mavenLocal(); mavenCentral() }
+    ext.set('cpfPlatformVersion', cpfResolvedPlatformVersion)
+    repositories {
+        if (cpfPublicRepositoryUrl) {
+            maven {
+                name = 'cpfPublicBinary'
+                url = uri(cpfPublicRepositoryUrl)
+                content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+                def cpfRepoUser = System.getenv('CPF_MAVEN_REPOSITORY_USER') ?: System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                if (cpfRepoUser) {
+                    credentials {
+                        username = cpfRepoUser
+                        password = System.getenv('CPF_MAVEN_REPOSITORY_PASSWORD') ?: System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                    }
+                }
+            }
+        }
+        mavenCentral { content { excludeGroupByRegex 'com[.]cpf([.].*)?' } }
+    }
 }
 
 def cpfTextAttribute = { String body, String key ->

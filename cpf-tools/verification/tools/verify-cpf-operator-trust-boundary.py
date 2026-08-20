@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed ADM/BZA operator identity trust-boundary gate.
+"""Fail-closed ADM/Backoffice operator identity trust-boundary gate.
 
 The gate verifies the server-authenticated operator context, browser actor-field rejection,
 and mutation signatures without confusing read filters/target operator IDs with privileged actors.
@@ -27,15 +27,15 @@ def verify(root:Path):
     for alias in ("requestuser","requestedby","actorid","operatoridoverride"):
         if alias not in t.lower(): findings.append(f"{rel}: actor alias missing {alias}")
 
-    # External BZA frontend is intentionally thin and never authors canonical transaction/actor headers.
-    bza_front_rel="cpf-biz-frontend/src/shared/api/channelHttpClient.ts"
+    # External Backoffice frontend is intentionally thin and never authors canonical transaction/actor headers.
+    bza_front_rel="cpf-backoffice-web/frontend/src/shared/api/channelHttpClient.ts"
     bza_front=read(root/bza_front_rel); front_count += 1
     for forbidden in ("X-Transaction-Id","X-Original-System-Code","X-System-Code","X-Caller-System-Code","X-Target-System-Code","X-Target-Operation-Id"):
         if forbidden.lower() in bza_front.lower(): findings.append(f"{bza_front_rel}: external frontend must not author {forbidden}")
-    channel_guard_rel="cpf-biz-channel/src/main/java/com/cpf/bzachannel/shared/protocol/CanonicalHeaderOwnershipFilter.java"
+    channel_guard_rel="cpf-backoffice-web/src/main/java/com/cpf/backoffice/web/shared/protocol/CanonicalHeaderOwnershipFilter.java"
     channel_guard=read(root/channel_guard_rel)
-    for tok in ("BROWSER_FORBIDDEN","SC_BAD_REQUEST","/api/bza/"):
-        if tok not in channel_guard: findings.append(f"{channel_guard_rel}: BZA channel ownership guard missing {tok}")
+    for tok in ("BROWSER_FORBIDDEN","SC_BAD_REQUEST","/api/v1/backoffice/"):
+        if tok not in channel_guard: findings.append(f"{channel_guard_rel}: Backoffice Web channel ownership guard missing {tok}")
     adm_mutator=root/'cpf-admin/frontend/src/shared/orval-mutator.ts'
     if adm_mutator.is_file():
         t=read(adm_mutator); front_count += 1
@@ -52,12 +52,12 @@ def verify(root:Path):
     for tok in ('adm.operatorId','reserve(','requestUser'):
         if tok not in interceptor: findings.append(f'ADM mandatory audit trust contract missing {tok}')
 
-    # BZA server context must be bound by the auth filter.
-    bza_auth=read(root/'cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/filter/BzaApiAuthFilter.java')
-    if 'request.setAttribute("bza.operatorId"' not in bza_auth: findings.append('BZA auth filter does not bind server operator')
+    # Backoffice Domain server context must be bound by the auth filter.
+    bza_auth=read(root/'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/auth/filter/BackofficeApiAuthFilter.java')
+    if 'request.setAttribute("backoffice.operatorId"' not in bza_auth: findings.append('Backoffice auth filter does not bind server operator')
 
     # Mutation methods must not accept a privileged actor as a query/form parameter.
-    for base in ('cpf-admin/src/main/java','cpf-biz-admin/src/main/java'):
+    for base in ('cpf-admin/src/main/java','cpf-backoffice/online/src/main/java'):
         directory=root/base
         for p in directory.rglob('*Controller.java') if directory.is_dir() else []:
             text=read(p); controller_count += 1

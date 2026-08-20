@@ -65,7 +65,7 @@ tasks.register('verifyEducationPublicGoldenPath') {
         def direct=configurations.implementation.dependencies.findAll{it instanceof org.gradle.api.artifacts.ProjectDependency}.collect{it.path}.toSet()
         def internal=direct.findAll{it.startsWith(':internal:') || it==':framework:core'}
         if(!internal.empty) throw new GradleException("EDU direct internal/core dependency is forbidden: ${internal.sort()}")
-        def forbidden=[/\bWebClient\b/,/\bKafkaTemplate\b/,/\bRabbitTemplate\b/,/\bJmsTemplate\b/,/\bRedisTemplate\b/,/\bJdbcTemplate\b/,/\bNamedParameterJdbcTemplate\b/,/@Transactional\b/,/MDC\.put\s*\(/,/new\s+Thread\s*\(/,/Executors\./,/Thread\.sleep\s*\(/,/X-Transaction-Id/,/X-Original-Channel/,/X-Current-Channel/,/X-Caller-Channel/,/X-Target-Channel/,/X-Target-Operation-Id/,/com\.cpf\.[A-Za-z0-9_.]*\.internal\./]
+        def forbidden=[/\bWebClient\b/,/\bKafkaTemplate\b/,/\bRabbitTemplate\b/,/\bJmsTemplate\b/,/\bRedisTemplate\b/,/\bJdbcTemplate\b/,/\bNamedParameterJdbcTemplate\b/,/@Transactional\b/,/MDC\.put\s*\(/,/new\s+Thread\s*\(/,/Executors\./,/Thread\.sleep\s*\(/,/X-Transaction-Id/,/X-Original-System-Code/,/X-System-Code/,/X-Caller-System-Code/,/X-Target-System-Code/,/X-Target-Operation-Id/,/com\.cpf\.[A-Za-z0-9_.]*\.internal\./]
         def violations=[]; fileTree(canonicalRoot){include '**/*.java'}.files.each{f->def text=f.getText('UTF-8');forbidden.each{pat->if(text =~ pat) violations << "${project.relativePath(f)} :: ${pat}"}}
         if(!violations.empty) throw new GradleException("EDU forbidden/raw pattern detected:\n"+violations.join('\n'))
     }

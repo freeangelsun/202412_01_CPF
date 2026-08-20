@@ -38,11 +38,11 @@ $admService = 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmOperatorServ
 $admSession = 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmSessionService.java'
 $admPermission = 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmPermissionService.java'
 $admPolicy = 'cpf-admin/src/main/java/com/cpf/admin/config/AdmPersistencePolicy.java'
-$bzaEmployee = 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/service/BzaBackofficeService.java'
-$bzaAudit = 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/audit/service/BzaBusinessAuditService.java'
+$bzaEmployee = 'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/backoffice/service/BzaBackofficeService.java'
+$bzaAudit = 'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/audit/service/BzaBusinessAuditService.java'
 $admAuditDelivery = 'cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmAuditDeliveryService.java'
 $admFrontend = 'cpf-admin/frontend/src/app/methods/accessMethods.ts'
-$bzaFrontend = 'cpf-biz-frontend/src/features/employees/components/EmployeeChangeForm.vue'
+$bzaFrontend = 'cpf-backoffice-web/frontend/src/features/employees/components/EmployeeChangeForm.vue'
 
 # 제품 영속성 및 fail-closed 구조.
 Require-Contains $admPolicy 'DATABASE' 'ADM 제품 기본 영속성 모드가 DATABASE가 아닙니다.'
@@ -75,7 +75,7 @@ Require-Contains $admAuditDelivery 'setMaxRows\(' 'ADM 감사 relay/list가 Vend
 Require-NotContains $admAuditDelivery 'LIMIT\s+\?|DATE_ADD\s*\(|TIMESTAMPADD\s*\(|POW\s*\(|CURRENT_TIMESTAMP\s*\(3\)|CONCAT\s*\(' 'ADM 감사 relay에 Vendor 전용 SQL이 남아 있습니다.'
 
 # 외부 Module은 cpf-core internal package를 직접 참조하면 안 됩니다.
-$moduleRoots = @('cpf-admin/src/main/java','cpf-biz-admin/src/main/java','cpf-gateway/src/main/java','cpf-batch')
+$moduleRoots = @('cpf-admin/src/main/java','cpf-backoffice/online/src/main/java','cpf-gateway/src/main/java','cpf-batch')
 foreach ($moduleRoot in $moduleRoots) {
     $dir = Join-Path $RootPath $moduleRoot
     if (-not (Test-Path -LiteralPath $dir -PathType Container)) { continue }
@@ -84,7 +84,7 @@ foreach ($moduleRoot in $moduleRoots) {
 }
 
 # BZA Java inline SQL 금지.
-$bzaJava = Join-Path $RootPath 'cpf-biz-admin/src/main/java'
+$bzaJava = Join-Path $RootPath 'cpf-backoffice/online/src/main/java'
 $sqlPattern = '(?is)(?:"{3}\s*(SELECT|INSERT|UPDATE|DELETE|WITH)\b|"\s*(SELECT|INSERT\s+INTO|UPDATE\s+[A-Za-z_]|DELETE\s+FROM|WITH\s+RECURSIVE)\b)'
 foreach ($java in Get-ChildItem -LiteralPath $bzaJava -Recurse -Filter '*.java') {
     $content = Get-Content -LiteralPath $java.FullName -Raw -Encoding UTF8
@@ -93,7 +93,7 @@ foreach ($java in Get-ChildItem -LiteralPath $bzaJava -Recurse -Filter '*.java')
 
 # Raw PII는 audited POST + body reason 이어야 하며 Browser prompt/query-string에 남기지 않습니다.
 Require-Contains 'cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmOperatorController.java' '@PostMapping\("/\{operatorId\}/contacts/raw"\)' 'ADM PII raw 조회가 audited POST가 아닙니다.'
-Require-Contains 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/controller/BzaBackofficeController.java' '@PostMapping\("/employees/\{employeeNo\}/contacts/raw"\)' 'BZA PII raw 조회가 audited POST가 아닙니다.'
+Require-Contains 'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/backoffice/controller/BzaBackofficeController.java' '@PostMapping\("/employees/\{employeeNo\}/contacts/raw"\)' 'BZA PII raw 조회가 audited POST가 아닙니다.'
 Require-NotContains $admFrontend 'window\.prompt|contacts/raw\?reason=' 'ADM Raw PII가 prompt 또는 URL query reason을 사용합니다.'
 Require-NotContains $bzaFrontend 'contacts/raw\?reason=|reason=\$\{encodeURIComponent' 'BZA PII 조회 사유가 URL query string에 남아 있습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql' "OPERATOR_PII_RAW'.*'POST'.*/contacts/raw" 'ADM PII raw Permission Seed HTTP method가 POST와 일치하지 않습니다.'

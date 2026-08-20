@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 3,
-  "contractId": "CPF-GENERATOR-LIFECYCLE-3",
+  "schemaVersion": 4,
+  "contractId": "CPF-GENERATOR-LIFECYCLE-4",
   "owner": "cpf-tools/generator",
   "canonicalEngine": "cpf-tools/generator/engine/cpf_domain_generator.py",
   "canonicalCli": "cpf-tools/runtime/cli/cpf.py",
@@ -32,7 +32,6 @@
     ".cpf",
     "README.md",
     "verification",
-    "db",
     "canonical",
     "vendors",
     "cpf-domain.yaml",
@@ -83,5 +82,30 @@
     "distribution manifest derived from definition",
     "settings/includeBuild derived from physical root",
     "canonical definition only when --purge-definition is explicit"
-  ]
+  ],
+  "generatedDatabaseAssets": {
+    "owner": "CPF_GENERATOR_MANAGED",
+    "root": "db/<vendor>",
+    "vendors": [
+      "mariadb",
+      "postgresql",
+      "oracle"
+    ],
+    "lifecycle": [
+      "install",
+      "migration",
+      "seed",
+      "verify",
+      "rollback"
+    ],
+    "sourceControlled": true,
+    "purpose": "Public Workspace DB lifecycle without Private CPF source"
+  },
+  "workspaceOwnershipLock": {
+    "directory": "<definition-root>/<domain>/cpf-generator.lock.json",
+    "sourceControlled": true,
+    "semanticSourceOfTruth": false,
+    "freshCloneRecovery": true,
+    "generatedProjectMetadata": false
+  }
 }

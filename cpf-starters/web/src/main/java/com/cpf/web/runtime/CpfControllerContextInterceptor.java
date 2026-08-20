@@ -13,6 +13,7 @@ import com.cpf.web.context.CpfHttpHeaderNames;
 import com.cpf.web.context.CpfHttpIngressTrust;
 import com.cpf.web.context.CpfOperationIdResolver;
 import com.cpf.web.context.CpfRuntimeIdentity;
+import com.cpf.web.context.CpfRequestOperationResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -27,11 +28,19 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
     private final CpfOperationIdResolver operationIds;
     private final CpfRuntimeIdentity runtime;
     private final List<CpfOperationAccessPolicy> accessPolicies;
+    private final List<CpfRequestOperationResolver> requestOperationResolvers;
 
     public CpfControllerContextInterceptor(CpfControllerPolicyProperties properties,
             CpfOperationIdResolver operationIds, CpfRuntimeIdentity runtime, List<CpfOperationAccessPolicy> accessPolicies) {
+        this(properties, operationIds, runtime, accessPolicies, List.of());
+    }
+
+    public CpfControllerContextInterceptor(CpfControllerPolicyProperties properties,
+            CpfOperationIdResolver operationIds, CpfRuntimeIdentity runtime, List<CpfOperationAccessPolicy> accessPolicies,
+            List<CpfRequestOperationResolver> requestOperationResolvers) {
         this.properties = properties; this.operationIds = operationIds; this.runtime = runtime;
         this.accessPolicies = accessPolicies == null ? List.of() : List.copyOf(accessPolicies);
+        this.requestOperationResolvers = requestOperationResolvers == null ? List.of() : List.copyOf(requestOperationResolvers);
     }
 
     @Override
@@ -47,10 +56,10 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
         String resolvedOperation = resolvedTargetOperation(request, method);
         Object trust = request.getAttribute(CpfWebContextFilter.INGRESS_TRUST_ATTRIBUTE);
         boolean trustedInternal = trust == CpfHttpIngressTrust.TRUSTED_INTERNAL;
-        if (trustedInternal) {
+        if (annotation != null) {
             Object raw = request.getAttribute(CpfWebContextFilter.RECEIVED_HEADERS_ATTRIBUTE);
             if (!(raw instanceof CpfHttpHeaders headers)) {
-                throw new IllegalStateException("Trusted internal request has no captured CPF headers");
+                throw new IllegalStateException("Managed CPF request has no captured CPF headers");
             }
             String currentSystem = runtime.systemCode();
             assertSystem(headers.getRequired(CpfHttpHeaderNames.SYSTEM_CODE), currentSystem,
@@ -109,15 +118,20 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
     }
 
     private String resolvedTargetOperation(HttpServletRequest request, HandlerMethod method) {
-        String uri = request.getRequestURI();
-        String marker = "/_cpf/domain/";
-        int index = uri == null ? -1 : uri.indexOf(marker);
-        if (index >= 0) {
-            String tail = uri.substring(index + marker.length());
-            String[] segments = tail.split("/");
-            if (segments.length >= 2 && !segments[1].isBlank()) return segments[1];
+        String resolved = null;
+        for (CpfRequestOperationResolver resolver : requestOperationResolvers) {
+            String candidate = resolver.resolve(request, method);
+            if (candidate == null || candidate.isBlank()) continue;
+            candidate = candidate.trim();
+            if (resolved != null && !resolved.equals(candidate)) {
+                throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                        CpfHttpHeaderNames.TARGET_OPERATION_ID,
+                        "Multiple request operation resolvers returned conflicting canonical operationIds.",
+                        503, "OPERATION_RESOLVER_AMBIGUOUS");
+            }
+            resolved = candidate;
         }
-        return operationIds.resolve(method);
+        return resolved != null ? resolved : operationIds.resolve(method);
     }
 
     private void assertSystem(String headerValue, String expected, String header, String category) {

@@ -12,7 +12,7 @@ import com.cpf.foundation.context.header.CpfHeaderNames;
 public final class CpfHttpHeaderNames {
     private CpfHttpHeaderNames() {}
 
-    // Canonical online transaction protocol. X-System-Code is receiver-owned for external ingress.
+    // Canonical online transaction protocol. 모든 HTTP 업무 경계에서 6개를 함께 전달하고 Runtime이 정합성을 검증합니다.
     public static final String TRANSACTION_ID = CpfHeaderNames.TRANSACTION_ID;
     public static final String ORIGINAL_SYSTEM_CODE = CpfHeaderNames.ORIGINAL_SYSTEM_CODE;
     public static final String SYSTEM_CODE = CpfHeaderNames.SYSTEM_CODE;

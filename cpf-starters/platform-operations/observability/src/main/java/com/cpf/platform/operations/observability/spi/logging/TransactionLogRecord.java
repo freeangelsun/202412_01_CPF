@@ -34,6 +34,14 @@ public class TransactionLogRecord {
     private String apiVersion;
     private String clientId;
     private String clientVersion;
+    /** 바로 직전 호출 Logical System. Canonical System lineage 정본이며 Channel과 독립적입니다. */
+    private String callerSystemCode;
+    /** 현재 호출 대상 Logical System. Canonical System lineage 정본이며 Channel과 독립적입니다. */
+    private String targetSystemCode;
+    /** 최초 거래 발급 Logical System. transactionId issuer와 불변으로 일치해야 합니다. */
+    private String originalSystemCode;
+    /** 현재 요청을 처리하는 Logical System. */
+    private String systemCode;
     private String callerChannel;
     private String targetChannel;
     private String targetOperationId;

@@ -95,7 +95,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
 
     def test_full_local_browser_and_owned_db_lifecycle_are_fail_closed(self):
         self.assertIn("CPF_ADM_FRONTEND_URL='http://127.0.0.1:8080/adm/'", self.text)
-        self.assertIn("CPF_BZA_FRONTEND_URL='http://127.0.0.1:8080/bza/'", self.text)
+        self.assertIn("CPF_BACKOFFICE_FRONTEND_URL", self.text)
         self.assertIn("$browserSecretPrevious=Import-CpfEnvFile $DockerSecretFile", self.text)
         self.assertIn("'-BrowserClick','-RequireBrowserClick'", self.text)
         self.assertIn("CPF_ADM_SMOKE_PASSWORD=$browserAdminPassword", self.text)

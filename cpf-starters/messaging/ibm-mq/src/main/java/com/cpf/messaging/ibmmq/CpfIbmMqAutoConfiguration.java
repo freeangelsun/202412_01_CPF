@@ -15,6 +15,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
+/**
+ * IBM MQ를 CPF Public Messaging 계약에 연결하는 Starter 자동구성입니다.
+ * <p>IBM MQ를 명시적으로 선택한 애플리케이션에서만 Broker adapter를 구성하며, 업무 코드는 CPF Messaging API를 사용합니다.
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(CpfIbmMqProperties.class)
 @ConditionalOnProperty(prefix="cpf.messaging.ibm-mq", name="enabled", havingValue="true")

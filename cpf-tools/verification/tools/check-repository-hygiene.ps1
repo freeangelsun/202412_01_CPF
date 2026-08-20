@@ -143,7 +143,7 @@ if (-not $windowsCli.Contains('EnableDelayedExpansion') -or -not $windowsCli.Con
 $forbiddenPrefixes = @(
     "cpf-docs/evidence/20260722_01/",
     "cpf-core/src/main/resources/sql/vendor/",
-    "cpf-biz-admin/src/main/resources/sql/vendor/",
+    "cpf-backoffice/online/src/main/resources/sql/vendor/",
     "cpf-core/src/main/resources/mybatis/vendor/",
     "cpf-common/src/main/resources/mybatis/vendor/",
     "cpf-member/src/main/resources/mybatis/vendor/",
@@ -165,7 +165,7 @@ foreach ($path in $tracked) {
         Add-Failure "LEGACY_VENDOR_SOURCE_ROOT" $normalized `
             "Vendor canonical source는 cpf-tools/db/vendor/<vendor>/source가 소유합니다."
     }
-    if ($normalized -eq "cpf-biz-frontend/src/features/console.ts") {
+    if ($normalized -eq "cpf-backoffice-web/frontend/src/features/console.ts") {
         Add-Failure "BZA_MONOLITHIC_CONSOLE" $normalized `
             "BZA 화면은 feature package/route registry/code splitting 구조를 사용합니다."
     }

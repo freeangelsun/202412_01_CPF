@@ -74,7 +74,7 @@ class CpfBffCredentialResponseAdviceTest {
                 long expiresIn,
                 Operator operator) {}
 
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/login");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/login");
         Object result = invoke(
                 new LoginResult("access-secret", "refresh-secret", "Bearer", 300,
                         new Operator("BZA001", "관리자")),
@@ -125,7 +125,7 @@ class CpfBffCredentialResponseAdviceTest {
 
     @Test
     void refreshWithoutNewRefreshTokenPreservesExistingRefreshCredentialAndExpiry() {
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/login");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/login");
         invoke(Map.of(
                 "operatorId", "BZA001",
                 "accessToken", "first",
@@ -133,7 +133,7 @@ class CpfBffCredentialResponseAdviceTest {
         String handle = (String) request.getSession(false)
                 .getAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE);
         CpfBffCredential before = vault.find(handle).orElseThrow();
-        request.setRequestURI("/api/bza/auth/refresh");
+        request.setRequestURI("/adm/api/auth/refresh");
 
         invoke(Map.of(
                 "operatorId", "BZA001",

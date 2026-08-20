@@ -55,13 +55,13 @@ public final class CpfLocalRuntimeSafetyGuard
         }
 
         long enabledModules = java.util.stream.Stream
-                .of("core", "common", "gateway", "admin", "biz-admin", "domains")
+                .of("core", "common", "gateway", "admin", "backoffice", "domains")
                 .filter(module -> environment.getProperty(
                         "cpf.local.modules."
                                 + module
                                 + ("domains".equals(module) ? ".enabled" : ""),
                         Boolean.class,
-                        !Set.of("biz-admin", "domains").contains(module)))
+                        !Set.of("backoffice", "domains").contains(module)))
                 .count();
         int maxEnabledModules = environment.getProperty(
                 "cpf.local.runtime.max-enabled-modules",

@@ -8,7 +8,11 @@ class AdmE2eContractTest(unittest.TestCase):
         root=Path(__file__).parents[4]
         result=module.validate(root)
         routes_file=root/"cpf-admin/frontend/src/app/routes.ts"
-        expected=len(module.ENTRY.findall(routes_file.read_text(encoding="utf-8")))
+        source=routes_file.read_text(encoding="utf-8")
+        routes_dir=routes_file.parent/"routes"
+        if routes_dir.is_dir():
+            source += "\n" + "\n".join(p.read_text(encoding="utf-8") for p in sorted(routes_dir.glob("*.ts")) if p.name != "types.ts")
+        expected=len(module.ENTRY.findall(source))
         self.assertGreater(expected,0)
         self.assertEqual(expected,result['routes'])
     def test_missing_browser_rejected(self):
@@ -18,6 +22,6 @@ class AdmE2eContractTest(unittest.TestCase):
             import shutil
             shutil.copytree(root/'cpf-admin',target/'cpf-admin')
             shutil.copytree(root/'cpf-docs',target/'cpf-docs')
-            p=target/'cpf-admin/frontend/playwright.config.ts';p.write_text(p.read_text(encoding="utf-8").replace('name: "webkit"','name: "webkit-disabled"'), encoding="utf-8")
+            p=target/'cpf-admin/frontend/playwright.config.ts';p.write_text(p.read_text(encoding="utf-8").replace('name: "webkit-desktop"','name: "webkit-disabled"'), encoding="utf-8")
             with self.assertRaises(module.ContractError):module.validate(target)
 if __name__=='__main__':unittest.main()

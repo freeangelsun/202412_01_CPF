@@ -37,7 +37,7 @@
           <label>오류코드 <input v-model="transactionGroupSearch.failureCode" type="text"></label>
           <label>소요 From(ms) <input v-model="transactionGroupSearch.durationMsFrom" type="number"></label>
           <label>소요 To(ms) <input v-model="transactionGroupSearch.durationMsTo" type="number"></label>
-          <label>표준 헤더 검색 <input v-model="transactionGroupSearch.standardHeaderValue" type="text" placeholder="X-Transaction-Id / X-Current-Channel"></label>
+          <label>표준 헤더 검색 <input v-model="transactionGroupSearch.standardHeaderValue" type="text" placeholder="X-Transaction-Id / X-System-Code"></label>
           <label>확장 헤더 검색 <input v-model="transactionGroupSearch.extensionHeaderValue" type="text" placeholder="X-Cpf-Ext-*"></label>
         </div>
         <div class="pager">

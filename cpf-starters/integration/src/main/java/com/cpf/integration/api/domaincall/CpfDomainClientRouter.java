@@ -53,7 +53,7 @@ public final class CpfDomainClientRouter {
             var localHop = current.localDomainHop(systemCode, operationId);
             try (AutoCloseable ignored = CpfContexts.bind(CpfContextSnapshot.capture(localHop))) {
                 return localOperations.invoke(
-                        CpfDomainOperationRegistry.InvocationMetadata.trustedInternal(current.currentChannel()),
+                        CpfDomainOperationRegistry.InvocationMetadata.trustedInternal(current.currentSystemCode()),
                         systemCode, operationId, request, responseType);
             // 원격 Domain 호출 실패의 원래 의미를 보존해 표준 CPF 호출 오류·UNKNOWN 판정 경계로 전달합니다.
             } catch (RuntimeException e) {

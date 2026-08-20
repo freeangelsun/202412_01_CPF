@@ -23,9 +23,14 @@
       "responsibility": "platform operations and administration"
     },
     {
-      "prefix": "cpf-biz-admin/",
-      "owner": "cpf-biz-admin",
-      "responsibility": "customer business administration"
+      "prefix": "cpf-backoffice/",
+      "owner": "cpf-backoffice",
+      "responsibility": "optional prebuilt customer business administration domain using generated-domain contracts"
+    },
+    {
+      "prefix": "cpf-backoffice-web/",
+      "owner": "cpf-backoffice-web",
+      "responsibility": "DB-less external channel/BFF reference for Backoffice business transactions"
     },
     {
       "prefix": "cpf-batch/",

@@ -394,7 +394,7 @@ CREATE TABLE IF NOT EXISTS cpf_bff_credential_vault (
     CONSTRAINT ck_cpf_bff_credential_expiry CHECK (refresh_expires_at >= access_expires_at),
     INDEX idx_cpf_bff_credential_expiry (refresh_expires_at),
     INDEX idx_cpf_bff_credential_key (key_id, updated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM/BZA BFF Access/Refresh Token 암호화 Vault';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ADM/MBW BFF Access/Refresh Token 암호화 Vault';
 
 CREATE TABLE IF NOT EXISTS adm_approval_policy_step (
     POLICY_CODE VARCHAR(80) NOT NULL COMMENT '승인 정책 코드',

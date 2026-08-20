@@ -25,13 +25,6 @@ public class CpfJdbcRoleDataSourceAutoConfiguration {
         return CpfDataSources.resolve(environment, ROOT + "cpf-platform-db");
     }
 
-    @Bean("cpfBzaRoleDataSource")
-    @ConditionalOnMissingBean(name = "cpfBzaRoleDataSource")
-    @ConditionalOnProperty(prefix = ROOT + "bza-db", name = "enabled", havingValue = "true")
-    DataSource cpfBzaRoleDataSource(Environment environment) throws NamingException {
-        return CpfDataSources.resolve(environment, ROOT + "bza-db");
-    }
-
     @Bean("cpfCustomerBusinessDataSource")
     @ConditionalOnMissingBean(name = "cpfCustomerBusinessDataSource")
     @ConditionalOnProperty(prefix = ROOT + "customer-business-db", name = "enabled", havingValue = "true")

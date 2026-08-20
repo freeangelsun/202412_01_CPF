@@ -52,7 +52,7 @@ SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'ADM' AS code_value, '관리자 운영 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BZA' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'MBW' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BAT' AS code_value, '선택 배치 실행 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -145,11 +145,11 @@ SELECT 'MCPF990000' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format
 UNION ALL
 SELECT 'MCPF990001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '데이터베이스 오류가 발생했습니다.' AS external_message, '데이터베이스 처리 오류가 발생했습니다. sqlState={0}' AS internal_message, 1 AS parameter_count, '["HY000"]' AS parameter_sample, 'CPF 데이터베이스 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'BZA 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'MBW 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'BZA 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'BZA 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'MBW 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'MBW 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'BZA 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'MBW 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MEDU010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '이미 등록된 {0}입니다.' AS external_message, '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE' AS internal_message, 2 AS parameter_count, '["샘플키","SAMPLE-0001"]' AS parameter_sample, 'EDU 동적 중복 교육 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -192,11 +192,11 @@ SELECT 'ECPF990000' AS response_code, 'MCPF990000' AS message_code, 'E' AS resul
 UNION ALL
 SELECT 'ECPF990001' AS response_code, 'MCPF990001' AS message_code, 'E' AS result_type, 'CPF' AS module_id, '99' AS response_group, '0001' AS sequence_no, 500 AS http_status, '데이터베이스 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'BZA' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'BZA 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'MBW' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'MBW 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'BZA 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'MBW 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'BZA 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'MBW 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EEDU010001' AS response_code, 'MEDU010001' AS message_code, 'E' AS result_type, 'EDU' AS module_id, '01' AS response_group, '0001' AS sequence_no, 409 AS http_status, 'EDU 샘플 중복 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.response_code=src.response_code)
@@ -400,11 +400,11 @@ ON (tgt.response_code=src.response_code)
 WHEN MATCHED THEN UPDATE SET tgt.message_code=src.message_code, tgt.result_type=src.result_type, tgt.module_id=src.module_id, tgt.response_group=src.response_group, tgt.sequence_no=src.sequence_no, tgt.http_status=src.http_status, tgt.description=src.description, tgt.use_yn='Y', tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES (src.response_code, src.message_code, src.result_type, src.module_id, src.response_group, src.sequence_no, src.http_status, src.description, src.created_by, src.updated_by);
 MERGE INTO CMN_PARAMETER tgt
-USING (SELECT 'CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'BZA 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'MBW 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'BZA Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'MBW Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'BZA Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'MBW Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'CPF.RETENTION.EXECUTE_ENABLED' AS config_key, 'N' AS config_value, 'BOOLEAN' AS config_type, '실제 Archive/Purge 실행 Kill Switch 기본 OFF' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1169,95 +1169,95 @@ WHEN MATCHED THEN UPDATE SET tgt.standard_execution_id=src.standard_execution_id
 WHEN NOT MATCHED THEN INSERT (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES (src.legacy_execution_id, src.standard_execution_id, src.migration_reason, src.created_by, src.updated_by);
 -- ===== END 52_standard_execution_alias_seed.sql =====
 
--- ===== BEGIN 56_bza_product_seed.sql =====
+-- ===== BEGIN 56_backoffice_product_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
--- vendor=oracle; source=56_bza_product_seed.sql
+-- vendor=oracle; source=56_backoffice_product_seed.sql
 -- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
 -- DO NOT EDIT generated seed directly.
 
--- CPF_LOGICAL_DATABASE=bzaDB
-MERGE INTO BZA_ROLE tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, '업무 관리자' AS role_name, 'Y' AS write_allowed_yn, 'ALL' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+-- CPF_LOGICAL_DATABASE=mbwDB
+MERGE INTO MBW_ROLE tgt
+USING (SELECT 'MBW_ADMIN' AS role_code, '업무 관리자' AS role_name, 'Y' AS write_allowed_yn, 'ALL' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_OPERATOR' AS role_code, '업무 운영자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_OPERATOR' AS role_code, '업무 운영자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVER' AS role_code, '업무 결재자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_APPROVER' AS role_code, '업무 결재자' AS role_name, 'Y' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_VIEWER' AS role_code, '업무 조회자' AS role_name, 'N' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'MBW_VIEWER' AS role_code, '업무 조회자' AS role_name, 'N' AS write_allowed_yn, 'ORGANIZATION' AS data_scope, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code)
 WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.data_scope=src.data_scope, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BZA_MENU tgt
-USING (SELECT 'BZA_DASHBOARD' AS menu_code, '업무 관리자 대시보드' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza' AS route_path, 'dashboard' AS icon_code, 'ALL' AS environment_code, '/api/bza/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+MERGE INTO MBW_MENU tgt
+USING (SELECT 'MBW_DASHBOARD' AS menu_code, '업무 관리자 대시보드' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice' AS route_path, 'dashboard' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/dashboard' AS api_path, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/organizations' AS route_path, 'organization' AS icon_code, 'ALL' AS environment_code, '/api/bza/organizations' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/organizations' AS route_path, 'organization' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/organizations' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_EMPLOYEE' AS menu_code, '직원·소속 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/employees' AS route_path, 'employee' AS icon_code, 'ALL' AS environment_code, '/api/bza/employees' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_EMPLOYEE' AS menu_code, '직원·소속 관리' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/employees' AS route_path, 'employee' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/employees' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_AUTHORIZATION' AS menu_code, '업무 권한 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/authorization' AS route_path, 'shield' AS icon_code, 'ALL' AS environment_code, '/api/bza/authorization' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_AUTHORIZATION' AS menu_code, '업무 권한 관리' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/authorization' AS route_path, 'shield' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/authorization' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVAL' AS menu_code, '업무 결재 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/approvals' AS route_path, 'approval' AS icon_code, 'ALL' AS environment_code, '/api/bza/approvals' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_APPROVAL' AS menu_code, '업무 결재 관리' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/approvals' AS route_path, 'approval' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/approvals' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_AUDIT' AS menu_code, '업무 감사 조회' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/audits' AS route_path, 'audit' AS icon_code, 'ALL' AS environment_code, '/api/bza/audits' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_AUDIT' AS menu_code, '업무 감사 조회' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/audits' AS route_path, 'audit' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/audits' AS api_path, 60 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_ATTACHMENT' AS menu_code, '첨부 관리' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/attachments' AS route_path, 'attachment' AS icon_code, 'ALL' AS environment_code, '/api/bza/attachments' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_ATTACHMENT' AS menu_code, '첨부 관리' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/attachments' AS route_path, 'attachment' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/attachments' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_SETTING' AS menu_code, '업무 관리자 설정' AS menu_name, NULL AS parent_menu_code, 'BZA' AS module_code, '/bza/settings' AS route_path, 'setting' AS icon_code, 'ALL' AS environment_code, '/api/bza/settings' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'MBW_SETTING' AS menu_code, '업무 관리자 설정' AS menu_name, NULL AS parent_menu_code, 'MBW' AS module_code, '/backoffice/settings' AS route_path, 'setting' AS icon_code, 'ALL' AS environment_code, '/api/v1/backoffice/settings' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.menu_code=src.menu_code)
 WHEN MATCHED THEN UPDATE SET tgt.menu_name=src.menu_name, tgt.parent_menu_code=src.parent_menu_code, tgt.module_code=src.module_code, tgt.route_path=src.route_path, tgt.icon_code=src.icon_code, tgt.environment_code=src.environment_code, tgt.api_path=src.api_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_code, src.menu_name, src.parent_menu_code, src.module_code, src.route_path, src.icon_code, src.environment_code, src.api_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, menu_code AS menu_code, 'ALL' AS button_code, 'API' AS permission_type, '*' AS http_method, CONCAT(api_path, '/**') AS api_pattern, NULL AS domain_code, environment_code AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM BZA_MENU
+MERGE INTO MBW_PERMISSION tgt
+USING (SELECT 'MBW_ADMIN' AS role_code, menu_code AS menu_code, 'ALL' AS button_code, 'API' AS permission_type, '*' AS http_method, CONCAT(api_path, '/**') AS api_pattern, NULL AS domain_code, environment_code AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_MENU
 WHERE use_yn = 'Y') src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_OPERATOR' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+MERGE INTO MBW_PERMISSION tgt
+USING (SELECT 'MBW_OPERATOR' AS role_code, 'MBW_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_OPERATOR' AS role_code, 'BZA_ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/organizations/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_OPERATOR' AS role_code, 'MBW_ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/organizations/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_OPERATOR' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/employees/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_OPERATOR' AS role_code, 'MBW_EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/employees/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/approvals/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/approvals/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_VIEWER' AS role_code, 'BZA_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_VIEWER' AS role_code, 'MBW_DASHBOARD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/dashboard/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_VIEWER' AS role_code, 'BZA_AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/audits/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'MBW_VIEWER' AS role_code, 'MBW_AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/audits/**' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.permission_type=src.permission_type, tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.environment_code=src.environment_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BZA_PROJECT_SETTING tgt
-USING (SELECT 'BZA.APPROVAL.SELF_APPROVAL_ALLOWED' AS setting_key, 'N' AS setting_value, '기본 자기승인 차단 정책' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+MERGE INTO MBW_PROJECT_SETTING tgt
+USING (SELECT 'MBW.APPROVAL.SELF_APPROVAL_ALLOWED' AS setting_key, 'N' AS setting_value, '기본 자기승인 차단 정책' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA.APPROVAL.DEFAULT_DUE_HOURS' AS setting_key, '24' AS setting_value, '기본 결재 SLA 시간' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW.APPROVAL.DEFAULT_DUE_HOURS' AS setting_key, '24' AS setting_value, '기본 결재 SLA 시간' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA.APPROVAL.REQUIRE_PAYLOAD_HASH' AS setting_key, 'Y' AS setting_value, '결재 대상 Payload 변조 검증용 SHA-256 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW.APPROVAL.REQUIRE_PAYLOAD_HASH' AS setting_key, 'Y' AS setting_value, '결재 대상 Payload 변조 검증용 SHA-256 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA.AUDIT.HASH_CHAIN_ENABLED' AS setting_key, 'Y' AS setting_value, '업무 감사 로그 hash-chain 검증 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW.AUDIT.HASH_CHAIN_ENABLED' AS setting_key, 'Y' AS setting_value, '업무 감사 로그 hash-chain 검증 사용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED' AS setting_key, 'Y' AS setting_value, '첨부 보안검사 완료 후 사용 허용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW.ATTACHMENT.SECURITY_SCAN_REQUIRED' AS setting_key, 'Y' AS setting_value, '첨부 보안검사 완료 후 사용 허용' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS' AS setting_key, '365' AS setting_value, '첨부 기본 보존일수' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'MBW.ATTACHMENT.DEFAULT_RETENTION_DAYS' AS setting_key, '365' AS setting_value, '첨부 기본 보존일수' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.setting_key=src.setting_key)
 WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO BZA_PERMISSION tgt
-USING (SELECT 'BZA_ADMIN' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+MERGE INTO MBW_PERMISSION tgt
+USING (SELECT 'MBW_ADMIN' AS role_code, 'MBW_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_ADMIN' AS role_code, 'BZA_EMPLOYEE' AS menu_code, 'PII_RAW' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/employees/*/contacts/raw' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_ADMIN' AS role_code, 'MBW_EMPLOYEE' AS menu_code, 'PII_RAW' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/backoffice/employees/*/contacts/raw' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_OPERATOR' AS role_code, 'BZA_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/bza/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_OPERATOR' AS role_code, 'MBW_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/backoffice/approvals/*/actions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/backoffice/approvals/*/actions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BZA_APPROVER' AS role_code, 'BZA_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/bza/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
 WHEN MATCHED THEN UPDATE SET tgt.http_method=src.http_method, tgt.api_pattern=src.api_pattern, tgt.domain_code=src.domain_code, tgt.data_scope=src.data_scope, tgt.allow_yn=src.allow_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by) VALUES (src.role_code, src.menu_code, src.button_code, src.permission_type, src.http_method, src.api_pattern, src.domain_code, src.environment_code, src.data_scope, src.allow_yn, src.use_yn, src.created_by, src.updated_by);
--- ===== END 56_bza_product_seed.sql =====
+-- ===== END 56_backoffice_product_seed.sql =====
 
 -- ===== BEGIN 60_adm_seed_data.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json

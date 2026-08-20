@@ -14,14 +14,18 @@ REQUIRED_ERRORS=('401','403','404','409','429','500','503')
 class ContractError(RuntimeError):pass
 
 def read_routes(path:Path):
- text=path.read_text(encoding='utf-8'); rows={}
- for m in ROUTE.finditer(text):
-  d=m.groupdict(); rid=d['id']
-  if rid in rows: raise ContractError(f'duplicate route id: {rid}')
-  d['operations']=re.findall(r'"([^"]+)"',d['ops']); rows[rid]=d
+ paths_to_read=sorted(path.glob('*.ts')) if path.is_dir() else [path]
+ rows={}
+ for source in paths_to_read:
+  if source.name == 'types.ts': continue
+  text=source.read_text(encoding='utf-8')
+  for m in ROUTE.finditer(text):
+   d=m.groupdict(); rid=d['id']
+   if rid in rows: raise ContractError(f'duplicate route id: {rid}')
+   d['operations']=re.findall(r'"([^"]+)"',d['ops']); rows[rid]=d
  if not rows: raise ContractError('ADM route registry empty')
- paths=[r['path'] for r in rows.values()]
- if len(paths)!=len(set(paths)): raise ContractError('duplicate route path')
+ route_paths=[r['path'] for r in rows.values()]
+ if len(route_paths)!=len(set(route_paths)): raise ContractError('duplicate route path')
  return rows
 
 def source_ops(root:Path):
@@ -32,7 +36,7 @@ def source_ops(root:Path):
  return result
 
 def validate(root:Path):
- routes=read_routes(root/'cpf-admin/frontend/src/app/routes.ts'); known=source_ops(root)
+ routes=read_routes(root/'cpf-admin/frontend/src/app/routes'); known=source_ops(root)
  req=root/'cpf-docs/work/current/CPF_ADM_UI_FUNCTION_REQUIREMENTS.csv'
  if not req.is_file(): raise ContractError('canonical ADM capability ledger missing')
  with req.open(encoding='utf-8-sig',newline='') as h: caps=list(csv.DictReader(h))

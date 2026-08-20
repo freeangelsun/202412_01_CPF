@@ -98,7 +98,7 @@ try{
             if(-not(Native 'Gradle clean test assemble' $gradle @('clean','test','assemble','--no-daemon'))){$allOk=$false}
         }else{Result 'Gradle clean test assemble' 'FAIL' 'gradlew.bat missing';$allOk=$false}
 
-        foreach($fe in @('cpf-admin/frontend','cpf-biz-frontend')){
+        foreach($fe in @('cpf-admin/frontend','cpf-backoffice-web/frontend')){
             $dir=Join-Path $Root $fe
             if(-not(Test-Path(Join-Path $dir 'package.json'))){Result "$fe frontend" 'FAIL' 'package.json missing';$allOk=$false;continue}
             if(-not(Native "$fe npm test" 'npm.cmd' @('test','--','--run') $dir)){$allOk=$false}
@@ -119,7 +119,7 @@ try{
     }else{Skip 'CPF all DB initialize/verify' 'use -WithDatabase'}
 
     if($WithBrowser){
-        foreach($script in @('cpf-tools/verification/tools/smoke-adm-ui.ps1','cpf-tools/verification/tools/smoke-bza-ui.ps1')){
+        foreach($script in @('cpf-tools/verification/tools/smoke-adm-ui.ps1','cpf-tools/verification/tools/smoke-backoffice-ui.ps1')){
             if(Test-Path(Join-Path $Root $script)){
                 if(-not(Pwsh "Browser smoke: $script" $script @('-Root',$Root))){$allOk=$false}
             }else{Result "Browser smoke: $script" 'FAIL' 'script missing';$allOk=$false}

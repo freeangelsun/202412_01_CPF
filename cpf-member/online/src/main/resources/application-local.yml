@@ -1,11 +1,3 @@
 # Local 통합모드는 CPF_LOCAL_SHARED_PORT 한 개를 사용하고, 분산 검증에서만 Domain별 stable Port를 사용합니다.
 server:
   port: ${CPF_LOCAL_SHARED_PORT:${MBR_ONLINE_PORT:18080}}
-cpf:
-  integration:
-    domain-call:
-      bindings:
-        EXS:
-          # 동일 JVM operation이 있으면 LOCAL, 없으면 Registry 기반 REMOTE를 선택합니다.
-          mode: AUTO
-          service-id: EXS

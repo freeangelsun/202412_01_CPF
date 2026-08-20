@@ -2,7 +2,7 @@
   "profileVersion": 1,
   "profileName": "production-template",
   "environment": "production",
-  "description": "CPF DB connection/lifecycle profile. CPF/CMN/ADM/BAT share CPF_PLATFORM_DB(cpfDB); BZA uses bzaDB; cpf-education may consume the DB Tool-owned non-production REFERENCE_FIXTURE. enabled means an independent DB lifecycle target, not application enablement.",
+  "description": "CPF DB connection/lifecycle profile. CPF/CMN/ADM/BAT share CPF_PLATFORM_DB(cpfDB); Backoffice(MBW) uses mbwDB as its CUSTOMER_BUSINESS_DB development target; cpf-education may consume the DB Tool-owned non-production REFERENCE_FIXTURE. enabled means an independent DB lifecycle target, not application enablement.",
   "supportedVendors": [
     "mariadb",
     "postgresql",
@@ -156,53 +156,6 @@
       },
       "sharesDatabaseWith": "core"
     },
-    "bizAdmin": {
-      "domainName": "biz-admin",
-      "systemCode": "BZA",
-      "moduleName": "cpf-biz-admin",
-      "enabled": true,
-      "required": false,
-      "transitional": false,
-      "logicalDatabase": "bzaDB",
-      "vendor": "mariadb",
-      "host": "${BZA_DB_HOST}",
-      "port": 0,
-      "databaseName": "bzaDB",
-      "schemaName": "bzaDB",
-      "clientPath": "",
-      "sslMode": "verify-full",
-      "admin": {
-        "username": "root",
-        "userHost": "%",
-        "password": {
-          "env": "CPF_BZA_DB_ADMIN_PASSWORD",
-          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
-        }
-      },
-      "migration": {
-        "username": "cpf_bza_migration",
-        "userHost": "%",
-        "password": {
-          "env": "CPF_BZA_DB_MIGRATION_PASSWORD",
-          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
-        }
-      },
-      "runtime": {
-        "username": "cpf_bza_app",
-        "userHost": "%",
-        "password": {
-          "env": "CPF_BZA_DB_RUNTIME_PASSWORD",
-          "fallbackEnv": "CPF_DB_APP_PASSWORD"
-        }
-      },
-      "seed": {
-        "product": true,
-        "optionalSample": false,
-        "test": false
-      },
-      "sourceOptional": true,
-      "ownerPath": "cpf-biz-admin"
-    },
     "batch": {
       "domainName": "batch",
       "systemCode": "BAT",
@@ -293,6 +246,53 @@
         "optionalSample": true,
         "test": true
       }
+    },
+    "backoffice": {
+      "domainName": "backoffice",
+      "systemCode": "MBW",
+      "moduleName": "cpf-backoffice",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "mbwDB",
+      "vendor": "mariadb",
+      "host": "${CPF_MBW_DB_HOST}",
+      "port": 0,
+      "databaseName": "mbwDB",
+      "schemaName": "mbwDB",
+      "clientPath": "",
+      "sslMode": "verify-full",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBW_DB_ADMIN_PASSWORD",
+          "fallbackEnv": "CPF_DB_ROOT_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpf_mbw_migration",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBW_DB_MIGRATION_PASSWORD",
+          "fallbackEnv": "CPF_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpf_mbw_app",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_MBW_DB_RUNTIME_PASSWORD",
+          "fallbackEnv": "CPF_DB_APP_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sourceOptional": true,
+      "ownerPath": "cpf-backoffice"
     }
   }
 }

@@ -56,7 +56,7 @@ function Get-CpfRuntimePlatformModuleMap {
             module = "ADM"
             moduleLower = "adm"
             projectName = "cpf-admin"
-            wasId = "admAP01"
+            instanceId = $null
             port = 8090
             portEnv = "ADM_SERVER_PORT"
             healthPath = "/adm/api/health/readiness"
@@ -69,7 +69,7 @@ function Get-CpfRuntimePlatformModuleMap {
             module = "BAT"
             moduleLower = "bat"
             projectName = "cpf-batch:control-plane"
-            wasId = "batCT01"
+            instanceId = $null
             port = 8180
             portEnv = "CPF_PORT"
             healthPath = "/actuator/health/readiness"
@@ -79,15 +79,15 @@ function Get-CpfRuntimePlatformModuleMap {
             generatedDomain = $false
         },
         [ordered]@{
-            module = "BZA"
-            moduleLower = "bza"
-            projectName = "cpf-biz-admin"
-            wasId = "bzaAP01"
+            module = "MBW"
+            moduleLower = "mbw"
+            projectName = "cpf-backoffice"
+            instanceId = $null
             port = 8091
-            portEnv = "BZA_SERVER_PORT"
+            portEnv = "MBW_ONLINE_PORT"
             healthPath = "/actuator/health/readiness"
-            jarDir = "cpf-biz-admin/build/libs"
-            jarPattern = "cpf-biz-admin-*.jar"
+            jarDir = "cpf-backoffice/online/build/libs"
+            jarPattern = "cpf-backoffice-online-*.jar"
             openApi = $true
             generatedDomain = $false
         },
@@ -95,7 +95,7 @@ function Get-CpfRuntimePlatformModuleMap {
             module = "EDU"
             moduleLower = "edu"
             projectName = "cpf-education"
-            wasId = "eduAP01"
+            instanceId = $null
             port = 8099
             portEnv = "EDU_SERVER_PORT"
             healthPath = "/v3/api-docs"
@@ -108,7 +108,7 @@ function Get-CpfRuntimePlatformModuleMap {
             module = "GWY"
             moduleLower = "gwy"
             projectName = "cpf-gateway"
-            wasId = "gwLC001"
+            instanceId = $null
             port = 8070
             portEnv = "GWY_SERVER_PORT"
             healthPath = "/actuator/health"
@@ -141,7 +141,7 @@ function Get-CpfGeneratedRuntimeModuleMap {
             module = [string]$domain.systemCode
             moduleLower = $moduleLower
             projectName = $projectName
-            wasId = $moduleLower + "AP01"
+            instanceId = $null
             port = $port
             portEnv = "$([string]$domain.systemCode)_ONLINE_PORT"
             healthPath = "/v3/api-docs"

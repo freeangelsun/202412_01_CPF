@@ -40,7 +40,11 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
             tuple("runtimeCommand", "BATCH_RUNTIME_RESTART", "bat_runtime"),
             tuple("runtimeCommand", "BATCH_RUNTIME_DRAIN", "bat_runtime"),
             tuple("runtimeCommand", "BATCH_RUNTIME_RESUME", "bat_runtime"),
-            tuple("runtimeCommand", "BATCH_RUNTIME_ROLLBACK", "bat_runtime"));
+            tuple("runtimeCommand", "BATCH_RUNTIME_ROLLBACK", "bat_runtime"),
+            tuple("retentionPolicySave", "BATCH_RETENTION_POLICY_CHANGE", "bat_retention_policy"),
+            tuple("retentionRunNow", "BATCH_RETENTION_EXECUTE", "bat_retention_policy"),
+            tuple("retentionRunResume", "BATCH_RETENTION_RESUME", "bat_retention_run"),
+            tuple("retentionPolicyResume", "BATCH_RETENTION_POLICY_RESUME", "bat_retention_policy"));
 
     private final CpfBatchOperationsPort batch;
     private final ObjectMapper objectMapper;
@@ -104,6 +108,10 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
                 case "runSchedulerOnce" -> batch.runSchedulerOnce(risk);
                 case "reconcileSchedulerTrigger" -> executeSchedulerTriggerReconcile(command, risk);
                 case "runtimeCommand" -> executeRuntimeCommand(command, risk);
+                case "retentionPolicySave" -> executeRetentionPolicySave(command, risk);
+                case "retentionRunNow" -> executeRetentionRunNow(command, risk);
+                case "retentionRunResume" -> executeRetentionRunResume(command, risk);
+                case "retentionPolicyResume" -> executeRetentionPolicyResume(command, risk);
                 default -> throw new IllegalArgumentException("unsupported BAT command");
             }
             return new AdmApprovedOperationResult(
@@ -139,6 +147,8 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
                 case "requestRetry", "requestRun", "runSchedulerOnce" -> observeOperationLedger(command, risk);
                 case "reconcileSchedulerTrigger" -> observeSchedulerTrigger(risk);
                 case "runtimeCommand" -> observeRuntimeCommand(command);
+                case "retentionPolicySave", "retentionRunNow", "retentionRunResume", "retentionPolicyResume" ->
+                        observeRetention(command, risk);
                 default -> unknown("BAT_RECONCILE_UNSUPPORTED", "Owner 상태 관측 계약이 없습니다.");
             };
         } catch (RuntimeException readFailure) {
@@ -219,6 +229,109 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
         request.put("approvalRequestId", String.valueOf(command.approvalRequestId()));
         request.put("approvedBy", command.approvedBy());
         runtimeClient.commandApproved(request, String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+
+    private void executeRetentionPolicySave(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        ensureRuntimeClient();
+        Map<String,Object> payload = retentionPayload(risk);
+        payload.put("rowVersion", requiredExpectedVersion(risk));
+        payload.put("expectedVersion", requiredExpectedVersion(risk));
+        payload.put("requestedBy", command.requestedBy());
+        payload.put("reason", risk.reason());
+        runtimeClient.saveRetentionPolicyApproved(payload, String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+    private void executeRetentionRunNow(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        ensureRuntimeClient();
+        runtimeClient.runRetentionPolicyApproved(risk.targetId(), requiredExpectedVersion(risk), risk.reason(),
+                String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+    private void executeRetentionRunResume(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        ensureRuntimeClient();
+        runtimeClient.resumeRetentionRunApproved(risk.targetId(), requiredExpectedVersion(risk), risk.reason(),
+                String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+    private void executeRetentionPolicyResume(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        ensureRuntimeClient();
+        runtimeClient.resumeRetentionPolicyApproved(risk.targetId(), requiredExpectedVersion(risk), risk.reason(),
+                String.valueOf(command.approvalRequestId()), command.requestedBy());
+    }
+
+    private AdmApprovedOperationResult observeRetention(AdmApprovedOperationCommand command, CpfBatchRiskCommand risk) {
+        ensureRuntimeClient();
+        List<CpfDataRow> auditRows = runtimeClient.retentionAuditsByApprovalRequestId(String.valueOf(command.approvalRequestId()));
+        CpfDataRow terminalAudit = auditRows.stream()
+                .filter(row -> risk.targetId().equals(first(row, "targetId", "target_id")))
+                .filter(row -> risk.operation().equals(first(row, "operationType", "operation_type"))
+                        || retentionAuditOperation(risk.operation()).equals(first(row, "operationType", "operation_type")))
+                .reduce((left, right) -> right).orElse(null);
+        if (terminalAudit != null) {
+            String audited = upper(first(terminalAudit, "resultState", "result_state"));
+            if ("SUCCEEDED".equals(audited))
+                return succeeded("BAT_RETENTION_AUDIT_RECONCILED", "승인 ID와 결합된 Retention Audit 성공 결과를 관측했습니다.");
+            if ("FAILED".equals(audited))
+                return failed("BAT_RETENTION_AUDIT_RECONCILED_FAILED", "승인 ID와 결합된 Retention Audit 실패 결과를 관측했습니다.");
+            if (Set.of("STARTED", "PENDING", "RUNNING").contains(audited))
+                return unknown("BAT_RETENTION_AUDIT_PENDING", "Retention Audit가 아직 최종 상태가 아닙니다.");
+        }
+        if ("retentionRunResume".equals(command.ownerCommand())) {
+            CpfDataRow run = runtimeClient.retentionRun(risk.targetId());
+            String state = upper(first(run, "status"));
+            if (Set.of("RUNNING", "SUCCESS", "COMPLETED", "PARTIAL").contains(state))
+                return succeeded("BAT_RETENTION_RUN_RECONCILED_" + state, "Retention Run 상태를 Owner에서 관측했습니다.");
+            if (Set.of("FAILED", "ERROR").contains(state))
+                return failed("BAT_RETENTION_RUN_RECONCILED_" + state, "Retention Run 실패 상태를 Owner에서 관측했습니다.");
+            return unknown("BAT_RETENTION_RUN_RECONCILE_PENDING", "Retention Run 상태가 아직 승인 명령 결과를 확정하지 못합니다.");
+        }
+        CpfDataRow policy = runtimeClient.retentionPolicy(risk.targetId());
+        long currentVersion = rowLong(policy, "rowVersion", "row_version");
+        if ("retentionPolicySave".equals(command.ownerCommand()) && currentVersion == requiredExpectedVersion(risk) + 1)
+            return succeeded("BAT_RETENTION_POLICY_RECONCILED", "Retention 정책 CAS 변경을 관측했습니다.");
+        if ("retentionPolicyResume".equals(command.ownerCommand())) {
+            String paused = upper(first(policy, "pausedYn", "paused_yn", "paused"));
+            if (Set.of("N", "FALSE").contains(paused) && currentVersion == requiredExpectedVersion(risk) + 1)
+                return succeeded("BAT_RETENTION_POLICY_RESUME_RECONCILED", "Retention 정책 재개를 관측했습니다.");
+        }
+        if ("retentionRunNow".equals(command.ownerCommand())) {
+            boolean observed = runtimeClient.retentionRuns(risk.targetId(), 100).stream()
+                    .anyMatch(row -> String.valueOf(row.getOrDefault("actorId", row.get("actor_id"))).equals(command.requestedBy()));
+            if (observed) return succeeded("BAT_RETENTION_RUN_RECONCILED", "Retention 수동 실행 이력을 Owner에서 관측했습니다.");
+        }
+        return unknown("BAT_RETENTION_RECONCILE_PENDING", "Retention Owner 상태가 아직 승인 명령 결과를 확정하지 못합니다.");
+    }
+
+    private static String retentionAuditOperation(String ownerCommand) {
+        return switch (ownerCommand) {
+            case "retentionPolicySave" -> "POLICY_SAVE";
+            case "retentionRunNow" -> "RUN_NOW";
+            case "retentionRunResume" -> "RUN_RESUME";
+            case "retentionPolicyResume" -> "POLICY_RESUME";
+            default -> ownerCommand;
+        };
+    }
+
+    private void ensureRuntimeClient() {
+        if (runtimeClient == null) throw new IllegalStateException("BAT runtime client is unavailable");
+    }
+
+    private Map<String,Object> retentionPayload(CpfBatchRiskCommand risk) {
+        Map<String,Object> payload = new LinkedHashMap<>(read(risk.payload()));
+        for (String field : List.of("requestedBy","requestUser","actorId","operatorId","operatorIdOverride","approvedBy")) payload.remove(field);
+        return payload;
+    }
+
+    private static long requiredExpectedVersion(CpfBatchRiskCommand risk) {
+        if (risk.expectedVersion() == null || risk.expectedVersion() < 0) throw new IllegalArgumentException("retention expectedVersion is required");
+        return risk.expectedVersion();
+    }
+
+    private static long rowLong(Map<String,?> row, String... keys) {
+        String value = first(row, keys);
+        if (value.isBlank()) throw new IllegalArgumentException("row version is missing");
+        return Long.parseLong(value);
     }
 
     private AdmApprovedOperationResult observeRuntimeCommand(AdmApprovedOperationCommand command) {
@@ -347,6 +460,8 @@ public final class BatchRuntimeApprovalOwnerCommandAdapter implements AdmApprova
             case "reconcileSchedulerTrigger" -> "bat_schedule_trigger";
             case "requestRun" -> "bat_job";
             case "runtimeCommand" -> "bat_runtime";
+            case "retentionPolicySave", "retentionRunNow", "retentionPolicyResume" -> "bat_retention_policy";
+            case "retentionRunResume" -> "bat_retention_run";
             default -> throw new IllegalArgumentException("unsupported BAT command: " + command);
         };
     }

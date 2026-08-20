@@ -299,13 +299,13 @@ try {
             & $gradle :cpf-admin:frontendVerify --no-daemon
         }
         Invoke-CpfGate 'BZA frontend' {
-            & $gradle :cpf-biz-admin:frontendVerify --no-daemon
+            & $gradle :cpf-backoffice/online:frontendVerify --no-daemon
         }
         Invoke-CpfGate 'ADM browser/UI smoke' {
             & pwsh -NoProfile -File .\cpf-tools\verification\tools\smoke-adm-ui.ps1
         }
         Invoke-CpfGate 'BZA browser/UI smoke' {
-            & pwsh -NoProfile -File .\cpf-tools\verification\tools\smoke-bza-ui.ps1
+            & pwsh -NoProfile -File .\cpf-tools\verification\tools\smoke-backoffice-ui.ps1
         }
     }
 

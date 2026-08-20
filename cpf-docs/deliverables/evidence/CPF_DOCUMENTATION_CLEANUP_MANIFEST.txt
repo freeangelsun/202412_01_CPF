@@ -1,0 +1,23 @@
+# CPF 문서·매뉴얼 작업 정리 Manifest
+
+실행 위치: CPF Repository Root
+
+정확한 삭제 대상(존재할 때만):
+- cpf-docs/assets/manuals/cpf-document-quality-r9.svg
+- Repository Root/CPF_DOCUMENTATION_PRODUCT_R9_EE977CF.zip
+- $env:USERPROFILE/Downloads/CPF_DOCUMENTATION_PRODUCT_R9_EE977CF.zip
+- cpf-docs/assets/guides/customer (이미 비어 있는 경우에만 빈 폴더 삭제)
+
+보호 대상:
+- README.md
+- cpf-docs/guides/**
+- cpf-docs/deliverables/**
+- cpf-docs/assets/manuals/cpf-document-quality-r10.svg 및 다른 사용 중 SVG
+- Source·SQL·API·Config·Frontend·Script·Test
+- 다른 작업자의 변경과 다른 미추적 파일
+
+PowerShell 한 줄 명령:
+& { $repo=(Get-Location).Path; $files=@((Join-Path $repo 'cpf-docs\assets\manuals\cpf-document-quality-r9.svg'),(Join-Path $repo 'CPF_DOCUMENTATION_PRODUCT_R9_EE977CF.zip'),(Join-Path $env:USERPROFILE 'Downloads\CPF_DOCUMENTATION_PRODUCT_R9_EE977CF.zip')); foreach($p in $files){if(Test-Path -LiteralPath $p -PathType Leaf){Remove-Item -LiteralPath $p -Force}}; $legacyDir=Join-Path $repo 'cpf-docs\assets\guides\customer'; if((Test-Path -LiteralPath $legacyDir -PathType Container) -and -not (Get-ChildItem -LiteralPath $legacyDir -Force -ErrorAction SilentlyContinue)){Remove-Item -LiteralPath $legacyDir -Force}; git status --short }
+
+실행 후 확인:
+git status --short; git diff --name-status; git ls-files --others --exclude-standard

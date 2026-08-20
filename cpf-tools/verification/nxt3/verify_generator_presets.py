@@ -6,7 +6,7 @@ from pathlib import Path
 
 def run(cmd,cwd):
     cp=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True)
-    return {'cmd':cmd,'rc':cp.returncode,'stdout':cp.stdout[-5000:],'stderr':cp.stderr[-5000:]}
+    return {'cmd':cmd,'rc':cp.returncode,'stdout':cp.stdout,'stderr':cp.stderr}
 
 def definition(name,code,prefix,preset,features,sample,batch=False):
     lines=[
@@ -34,32 +34,49 @@ def main():
       for name,code,prefix,preset,features,sample,batch in cases:
         f=t/f'{name}.yaml'; out=t/f'cpf-{name}'; f.write_text(definition(name,code,prefix,preset,features,sample,batch),encoding='utf-8',newline='\n')
         r=run(cli+['domain','generate','--file',str(f),'--output',str(out)],root)
+        failures=[]
         ok=r['rc']==0
+        if not ok:
+          failures.append(f'generate rc={r["rc"]}')
         if ok:
-          vr=run(cli+['verify','domain','--file',str(f),'--output',str(out)],root); ok=vr['rc']==0
+          vr=run(cli+['verify','domain','--file',str(f),'--output',str(out)],root)
+          if vr['rc']!=0: failures.append(f'domain verify rc={vr["rc"]}')
           files=[p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file()]
           sample_files=[x for x in files if 'SampleTransaction' in x or '_sample_transaction.sql' in x]
-          if sample and not sample_files: ok=False
-          if not sample and sample_files: ok=False
-          if not (out/'online').is_dir(): ok=False
+          if sample and not sample_files: failures.append('sampleTransaction requested but sample source missing')
+          if not sample and sample_files: failures.append(f'sampleTransaction disabled but sample source exists: {sample_files[:3]}')
+          if not (out/'online').is_dir(): failures.append('online module missing')
           batch_exists=(out/'batch').is_dir() and any(p.is_file() for p in (out/'batch').rglob('*'))
-          if batch_exists != batch: ok=False
-          if any((out/x).exists() for x in ('domain','jobpack')): ok=False
-          if any((out/x).exists() for x in ['README.md','verification','db',f'{name}-api',f'{name}-common',f'{name}-batch']): ok=False
+          if batch_exists != batch: failures.append(f'batch selection mismatch expected={batch} actual={batch_exists}')
+          forbidden_roots=[x for x in ('domain','jobpack') if (out/x).exists()]
+          if forbidden_roots: failures.append(f'legacy roots present: {forbidden_roots}')
+          forbidden_misc=[x for x in ['README.md','verification',f'{name}-api',f'{name}-common',f'{name}-batch'] if (out/x).exists()]
+          if forbidden_misc: failures.append(f'forbidden generated surface present: {forbidden_misc}')
+          persistence = (features or {}).get('persistence') if features is not None else None
+          expects_db = persistence not in {None, 'none'} or preset in {'standard-enterprise','full-enterprise'}
+          db_exists = (out/'db').is_dir() and any(p.is_file() for p in (out/'db').rglob('*'))
+          if db_exists != expects_db: failures.append(f'db selection mismatch expected={expects_db} actual={db_exists}')
           if preset in {'minimal','custom'} and not sample:
             app=(out/'online/src/main/resources/application.yml').read_text(encoding='utf-8')
-            if 'datasource:' in app or 'mybatis:' in app: ok=False
+            if 'datasource:' in app or 'mybatis:' in app: failures.append('minimal/custom application.yml contains persistence config')
           dr=run(cli+['domain','dry-run','--file',str(f),'--output',str(out)],root)
           if dr['rc']!=0:
-            ok=False
+            failures.append(f'dry-run rc={dr["rc"]}')
           else:
-            payload=json.loads(dr['stdout'])
+            try:
+              payload=json.loads(dr['stdout'])
+            except json.JSONDecodeError:
+              failures.append('dry-run stdout is not JSON'); payload={}
             summary=payload.get('selectionSummary',{})
             bc=summary.get('batchCapability',{})
-            if bc.get('generatedByDomainGenerator') is not True or bool(bc.get('selected')) != batch: ok=False
-            if summary.get('internalArtifactsDirectlyExposed')!=[]: ok=False
-            if not summary.get('publicArtifacts'): ok=False
-        checks.append({'preset':preset,'name':name,'status':'PASS' if ok else 'FAIL','detail':r})
+            if bc.get('generatedByDomainGenerator') is not True or bool(bc.get('selected')) != batch:
+              failures.append(f'batchCapability mismatch expected={batch} actual={bc}')
+            if summary.get('internalArtifactsDirectlyExposed')!=[]:
+              failures.append(f'internal artifacts exposed: {summary.get("internalArtifactsDirectlyExposed")}')
+            if not summary.get('publicArtifacts'): failures.append('publicArtifacts selection empty')
+          ok=not failures
+        detail=dict(r); detail['stdout']=detail['stdout'][-5000:]; detail['stderr']=detail['stderr'][-5000:]; detail['assertionFailures']=failures
+        checks.append({'preset':preset,'name':name,'status':'PASS' if ok else 'FAIL','detail':detail})
       # Invalid standard-enterprise must fail-fast instead of silently downgrading the Golden Path.
       bad=t/'bad.yaml'; bad.write_text(definition('badstd','BAD','BA','standard-enterprise',{'persistence':'none','httpClient':False,'resilience':False},True),encoding='utf-8',newline='\n')
       rr=run(cli+['domain','generate','--file',str(bad),'--output',str(t/'cpf-badstd')],root)

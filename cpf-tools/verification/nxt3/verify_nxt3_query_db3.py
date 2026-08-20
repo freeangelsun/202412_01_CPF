@@ -187,6 +187,12 @@ def audit(root: Path, policy_path: Path) -> tuple[list[Finding], list[Inventory]
         sql_like = bool(SQL_LOOKING.search(sql_surface))
         vendor = _vendor_segment(rel)
         matches = _owner_matches(rel, policy)
+        generated_domain_db3 = (
+            sql_like
+            and vendor is not None
+            and "-- GENERATED FILE. DO NOT EDIT." in text[:500]
+            and "-- Source: cpf-tools/db/canonical/generated-domain-schema.json" in text[:700]
+        )
 
         if len(matches) > 1:
             findings.append(Finding("OWNER_AMBIGUOUS", rel, ",".join(x["owner"] for x in matches)))
@@ -197,6 +203,13 @@ def audit(root: Path, policy_path: Path) -> tuple[list[Finding], list[Inventory]
             owner = matches[0]["owner"]
             classification = matches[0]["section"]
             test_id = matches[0]["testId"]
+        elif generated_domain_db3:
+            # Generated Business Domain DB3 files are renderer output, not three manually
+            # maintained copies.  Accept only the canonical generated-domain schema marker
+            # so handwritten vendor SQL cannot masquerade as generated output.
+            owner = "CPF_GENERATED_DOMAIN_DB3_RENDERER_OUTPUT"
+            classification = "rendererOwners"
+            test_id = "NXT3-GENERATOR-DB3-OUTPUT"
         else:
             owner = "PORTABLE_CANONICAL_SQL" if sql_like else "NON_SQL_SOURCE"
             classification = "portable" if sql_like else "non-sql"

@@ -1,0 +1,9 @@
+{
+  "basis_sha": "758757c3206079b990ad7bef2f16c25063540041",
+  "scope": "README + 24 official DOCX",
+  "allowed_identifier_exception": [
+    "standard-enterprise"
+  ],
+  "prohibited_or_stale_hits": [],
+  "result": "PASS"
+}

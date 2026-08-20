@@ -1,0 +1,117 @@
+[
+  {
+    "document": "00_프레임워크안내.docx",
+    "heading": "16. 제품 완료 상태의 End-to-End 수용 기준",
+    "found": true
+  },
+  {
+    "document": "01_개발자매뉴얼.docx",
+    "heading": "29. 온라인·외부연계 수용 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "01_개발자매뉴얼.docx",
+    "heading": "30. 온라인 개발 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "02_배치개발매뉴얼.docx",
+    "heading": "24. Batch 수용 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "02_배치개발매뉴얼.docx",
+    "heading": "25. Batch 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "03_ADM개발자매뉴얼.docx",
+    "heading": "22. ADM 연동 개발 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "03_ADM개발자매뉴얼.docx",
+    "heading": "23. ADM 연동 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "04_ADM운영자매뉴얼.docx",
+    "heading": "17. ADM 운영 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "04_ADM운영자매뉴얼.docx",
+    "heading": "18. ADM 조치 종료 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "05_플랫폼운영매뉴얼.docx",
+    "heading": "30. 플랫폼 설치·운영 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "05_플랫폼운영매뉴얼.docx",
+    "heading": "31. 플랫폼 설치·DR 인수 Record",
+    "found": true
+  },
+  {
+    "document": "90_BZA매뉴얼.docx",
+    "heading": "24. BZA 도입·운영 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "90_BZA매뉴얼.docx",
+    "heading": "25. BZA 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "91_Gateway매뉴얼.docx",
+    "heading": "30. Gateway 도입·운영 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "91_Gateway매뉴얼.docx",
+    "heading": "31. Gateway 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "기술사양서.docx",
+    "heading": "19. 제품 계약 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "기술사양서.docx",
+    "heading": "20. 계약 인수 Evidence Record",
+    "found": true
+  },
+  {
+    "document": "기술표준서.docx",
+    "heading": "19. 변경 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "기술표준서.docx",
+    "heading": "20. 변경 승인 Evidence 최소 세트",
+    "found": true
+  },
+  {
+    "document": "데이터베이스표준서.docx",
+    "heading": "19. DB 완료 판정 Gate",
+    "found": true
+  },
+  {
+    "document": "데이터베이스표준서.docx",
+    "heading": "20. DB 운영 인수 Record",
+    "found": true
+  },
+  {
+    "document": "산출물목록.docx",
+    "heading": "13. 제품 완료 상태 인수 Pack",
+    "found": true
+  },
+  {
+    "document": "아키텍처설계서.docx",
+    "heading": "21. Architecture 완료 판정 Gate",
+    "found": true
+  }
+]

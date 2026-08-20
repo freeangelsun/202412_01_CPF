@@ -1,0 +1,128 @@
+{
+  "basis_sha": "758757c3206079b990ad7bef2f16c25063540041",
+  "documents": [
+    {
+      "document": "00_프레임워크안내",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "01_개발자매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "02_배치개발매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "03_ADM개발자매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "04_ADM운영자매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "05_플랫폼운영매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "06_빠른시작_초기설정가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "07_Starter_공통기능활용가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "08_온라인거래_트랜잭션_MSA호출예제가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "09_Generator_업무도메인생성가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "10_설정_프로파일_환경가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "11_데이터_DB_마이그레이션가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "12_메시징_외부연계가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "13_보안_권한_감사가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "14_CLI_도구_검증가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "15_Education_예제찾기가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "16_장애대응_Reconcile가이드",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "90_BZA매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "91_Gateway매뉴얼",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "기술사양서",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "기술표준서",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "데이터베이스표준서",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "산출물목록",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "document": "아키텍처설계서",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "warnings": 0,
+  "errors": 0,
+  "note": "Final 24 PDFs checked after last DOCX/PDF synchronization."
+}

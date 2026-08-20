@@ -180,13 +180,15 @@ class RuntimeCommandExecutorFailureClassificationTest {
         persisted(command, CommandState.APPROVED);
         when(commands.beginExecution(command.commandId())).thenReturn(true);
         when(registry.snapshot("runtime-1")).thenReturn(Map.of("actual_state", "RUNNING"));
+        when(registry.updateDesiredState(
+                "runtime-1", com.cpf.batch.api.DesiredState.ROLLING_BACK, 7L)).thenReturn(8L);
         when(lifecycle.operate(
                 "runtime-1", "ROLLBACK", "requester", "approver", "APR-1",
                 "approved maintenance"))
                 .thenReturn(result(CommandState.SUCCEEDED, "rolled back"));
         doThrow(new IllegalStateException("desired state store unavailable"))
                 .when(registry).updateDesiredState(
-                        eq("runtime-1"), eq(com.cpf.batch.api.DesiredState.RUNNING), eq(0L));
+                        eq("runtime-1"), eq(com.cpf.batch.api.DesiredState.RUNNING), eq(8L));
         doThrow(new IllegalStateException("attempt store unavailable"))
                 .when(commands).recordAttempt(
                         eq("CMD-1"), eq(1), eq("runtime-1"), eq("POST_ROLLBACK_STATE"),

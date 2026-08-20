@@ -1,1 +1,0 @@
-INSERT INTO bza_refresh_token (admin_user_id, login_domain, refresh_token_hash, transaction_id, login_operation_id, expire_at) VALUES (:adminUserId, :loginDomain, :refreshTokenHash, :transactionId, :loginOperationId, :expireAt)

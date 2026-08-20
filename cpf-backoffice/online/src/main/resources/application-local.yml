@@ -1,0 +1,2 @@
+server:
+  port: ${CPF_LOCAL_SHARED_PORT:${MBW_ONLINE_PORT:18091}}

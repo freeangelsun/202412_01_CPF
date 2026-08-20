@@ -38,7 +38,7 @@ public final class JdbcCpfGatewayRouteProvider implements CpfGatewayRouteProvide
 
     private Map<String, CpfGatewayRoute> loadRoutes(boolean requireCurrentInstanceAck) {
         OffsetDateTime now = OffsetDateTime.now();
-        String currentInstanceId = com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId();
+        String currentInstanceId = com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId();
         Map<String, CpfGatewayRoute> result = new LinkedHashMap<>();
         for (CpfGatewayRegistryPort.GatewayBinding binding
                 : registry.findBindings(null, null, "ACTIVE", 10_000)) {

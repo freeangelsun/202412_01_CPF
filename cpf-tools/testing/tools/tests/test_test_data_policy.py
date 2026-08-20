@@ -23,7 +23,7 @@ class TestDataPolicyTest(unittest.TestCase):
    classes={c['class'] for c in inv['columns']}
    self.assertTrue({'email','phone','ip','person_name','employee_number','secret','payload','message','file_name'}<=classes)
    pairs={(c['table'].lower(),c['column'].lower()) for c in inv['columns']}
-   self.assertIn(('bza_employee','email'),pairs);self.assertIn(('adm_operator_profile','mobile_no'),pairs)
+   self.assertIn(('mbw_employee','email'),pairs);self.assertIn(('adm_operator_profile','mobile_no'),pairs)
   finally:td.cleanup()
  def test_synthetic_pack_has_only_reserved_markers_and_ten_rows(self):
   for vendor in ('mariadb','postgresql','oracle'):

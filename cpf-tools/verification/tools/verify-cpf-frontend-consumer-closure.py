@@ -4,7 +4,8 @@ import argparse, json, re
 from pathlib import Path
 
 IMPORT_RE = re.compile(r"(?:from\s+|import\s*\()([\"'])(\.[^\"']+)\1")
-OP_RE = re.compile(r"(?:adm|bza)InvokeOperation(?:<[^>]+>)?\(\s*[\"']([^\"']+)[\"']")
+OP_RE = re.compile(r'admInvokeOperation(?:<[^>]+>)?\(\s*["\']([^"\']+)["\']')
+ADM_INVOKE_RE = re.compile(r'\badmInvokeOperation(?:<[^>]+>)?\(')
 FORBIDDEN = ("window.prompt(", "window.confirm(", "prompt(", "confirm(")
 EXTENSIONS = (".ts", ".tsx", ".js", ".mjs", ".vue", ".json")
 
@@ -35,6 +36,7 @@ def operation_ids(path: Path) -> set[str]:
 def verify(root: Path) -> dict:
     findings: list[dict[str, str]] = []
     files = imports = invocations = 0
+    adm_consumer_calls = 0
     surfaces = [
         {
             "name": "ADM",
@@ -43,8 +45,8 @@ def verify(root: Path) -> dict:
             "operationPattern": OP_RE,
         },
         {
-            "name": "BZA_REFERENCE",
-            "root": root / "cpf-biz-frontend/src",
+            "name": "BACKOFFICE_REFERENCE",
+            "root": root / "cpf-backoffice-web/frontend/src",
             "operationContract": None,
             "operationPattern": None,
         },
@@ -52,7 +54,7 @@ def verify(root: Path) -> dict:
     for descriptor in surfaces:
         surface = descriptor["root"]
         if not surface.is_dir():
-            # BZA reference frontend is optional; ADM is not.
+            # Backoffice reference frontend is optional; ADM is not.
             if descriptor["name"] == "ADM":
                 findings.append({"type": "MISSING_FRONTEND_SURFACE", "surface": surface.as_posix()})
             continue
@@ -71,6 +73,12 @@ def verify(root: Path) -> dict:
                 if resolve(path.parent, spec) is None:
                     findings.append({"type": "MISSING_RELATIVE_IMPORT", "path": path.relative_to(root).as_posix(), "import": spec})
             if descriptor["operationPattern"]:
+                # Count actual consumer call-sites even when the canonical operationId comes from a generated descriptor variable.
+                # Literal operationIds, when used, are additionally validated against the generated contract.
+                calls = len(ADM_INVOKE_RE.findall(text))
+                if path.name == "cpfApi.ts":
+                    calls = max(0, calls - 1)  # helper function declaration is not a consumer.
+                adm_consumer_calls += calls
                 for operation_id in descriptor["operationPattern"].findall(text):
                     invocations += 1
                     if operation_id not in ops:
@@ -79,16 +87,27 @@ def verify(root: Path) -> dict:
                 if token in text:
                     findings.append({"type": "BROWSER_NATIVE_DANGEROUS_CONFIRMATION", "path": path.relative_to(root).as_posix(), "token": token})
 
-    # The external BZA reference must consume only the generated Channel client and never a CPF Java/raw backend client.
-    bza = root / "cpf-biz-frontend"
-    if bza.is_dir():
-        generated = bza / "src/generated/bza-api.ts"
-        transport = bza / "src/shared/api/channelHttpClient.ts"
+    # The external Backoffice reference must consume the generated BFF client; raw CPF Java/backend coupling is forbidden.
+    backoffice = root / "cpf-backoffice-web/frontend"
+    backoffice_consumers = 0
+    if backoffice.is_dir():
+        generated = backoffice / "src/generated/backoffice-api.ts"
+        transport = backoffice / "src/shared/api/channelHttpClient.ts"
         if not generated.is_file() or "AUTO-GENERATED" not in generated.read_text(encoding="utf-8", errors="replace"):
-            findings.append({"type": "BZA_GENERATED_CHANNEL_CLIENT_MISSING", "surface": bza.as_posix()})
-        if not transport.is_file() or "VITE_BZA_CHANNEL_BASE_URL" not in transport.read_text(encoding="utf-8", errors="replace"):
-            findings.append({"type": "BZA_CHANNEL_TRANSPORT_MISSING", "surface": bza.as_posix()})
-    return {"status": "PASS" if not findings else "FAIL", "files": files, "imports": imports, "operationInvocations": invocations, "findings": findings}
+            findings.append({"type": "BACKOFFICE_GENERATED_CHANNEL_CLIENT_MISSING", "surface": backoffice.as_posix()})
+        if not transport.is_file() or "invokeBackoffice" not in transport.read_text(encoding="utf-8", errors="replace"):
+            findings.append({"type": "BACKOFFICE_CHANNEL_TRANSPORT_MISSING", "surface": backoffice.as_posix()})
+        for path in sorted((backoffice / "src/features").rglob("*.ts")) if (backoffice / "src/features").is_dir() else []:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if "generated/backoffice-api" in text:
+                backoffice_consumers += 1
+        if backoffice_consumers == 0:
+            findings.append({"type": "BACKOFFICE_GENERATED_CLIENT_CONSUMER_MISSING", "surface": backoffice.as_posix()})
+    if files == 0 or imports == 0:
+        findings.append({"type": "VACUOUS_FRONTEND_CLOSURE", "files": str(files), "imports": str(imports)})
+    if (root / "cpf-admin/frontend/src").is_dir() and adm_consumer_calls == 0:
+        findings.append({"type": "ADM_OPERATION_CONSUMER_MISSING", "surface": "cpf-admin/frontend"})
+    return {"status": "PASS" if not findings else "FAIL", "files": files, "imports": imports, "operationInvocations": adm_consumer_calls, "literalOperationInvocations": invocations, "backofficeGeneratedConsumers": backoffice_consumers, "findings": findings}
 
 def main() -> int:
     parser = argparse.ArgumentParser()

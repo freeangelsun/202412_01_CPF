@@ -31,11 +31,15 @@ const notice = ref('')
 
 const policyId = computed(() => String(selectedPolicy.value?.policyId ?? selectedPolicy.value?.policy_id ?? ''))
 const runId = computed(() => String(selectedRun.value?.runId ?? selectedRun.value?.run_id ?? ''))
-const canManage = computed(() => {
-  const ids = new Set(session.buttonIds.map(v => String(v).toUpperCase()))
-  return ['RETENTION_MANAGE','SERVER_RETENTION_MANAGE','BATCH_RETENTION_MANAGE'].some(id => ids.has(id))
-})
-const canRun = computed(() => canManage.value && Boolean(policyId.value) && reason.value.trim().length >= 5 && Boolean(preview.value))
+const permissionIds = computed(() => new Set(session.buttonIds.map(v => String(v).toUpperCase())))
+const canPreview = computed(() => permissionIds.value.has('BAT_RETENTION_PREVIEW'))
+const canPolicyRequest = computed(() => permissionIds.value.has('BAT_RETENTION_POLICY_REQUEST'))
+const canRunRequest = computed(() => permissionIds.value.has('BAT_RETENTION_RUN_REQUEST'))
+const canRunPause = computed(() => permissionIds.value.has('BAT_RETENTION_RUN_PAUSE'))
+const canRunResume = computed(() => permissionIds.value.has('BAT_RETENTION_RUN_RESUME'))
+const canPolicyPause = computed(() => permissionIds.value.has('BAT_RETENTION_POLICY_PAUSE'))
+const canPolicyResume = computed(() => permissionIds.value.has('BAT_RETENTION_POLICY_RESUME'))
+const canRun = computed(() => canRunRequest.value && Boolean(policyId.value) && reason.value.trim().length >= 5 && Boolean(preview.value))
 
 function value(row: Record<string, unknown> | null, ...keys: string[]): unknown {
   for (const key of keys) if (row?.[key] !== undefined && row[key] !== null) return row[key]
@@ -68,7 +72,7 @@ async function load() {
 }
 async function refreshRuns() { try { runs.value = await fetchRetentionRuns(policyId.value, 100) } catch (e) { error.value = e instanceof Error ? e.message : String(e) } }
 async function doPreview() {
-  if (!selectedPolicy.value || reason.value.trim().length < 5) return
+  if (!canPreview.value || !selectedPolicy.value || reason.value.trim().length < 5) return
   running.value = true; error.value = ''; notice.value = ''
   try {
     const retentionDays = Number(value(selectedPolicy.value,'retentionDays','retention_days'))
@@ -88,13 +92,13 @@ async function doPreview() {
 async function doRun() {
   if (!canRun.value) return
   running.value = true; error.value = ''
-  try { await admRetentionRunNow({ path: { policyId: policyId.value }, data: { reason: reason.value.trim() } }); preview.value = null; notice.value = 'Retention 실행을 요청했습니다.'; await refreshRuns() }
+  try { await admRetentionRunNow({ path: { policyId: policyId.value }, data: { reason: reason.value.trim() } }); preview.value = null; notice.value = 'Retention 실행 승인 요청을 생성했습니다. 독립 승인 후 BAT에서 실행됩니다.'; await refreshRuns() }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }
 
 async function savePolicy() {
-  if (!canManage.value || !selectedPolicy.value || reason.value.trim().length < 5) return
+  if (!canPolicyRequest.value || !selectedPolicy.value || reason.value.trim().length < 5) return
   running.value = true; error.value = ''; notice.value = ''
   try {
     const body: AdmRetentionPolicySaveRequest = {
@@ -110,7 +114,7 @@ async function savePolicy() {
       reason: reason.value.trim(),
     }
     await admRetentionPolicySave(body)
-    notice.value = 'Retention 정책을 저장했습니다.'
+    notice.value = 'Retention 정책 변경 승인 요청을 생성했습니다. 승인 전에는 정책이 변경되지 않습니다.'
     preview.value = null
     await load()
   } catch (e) { error.value = e instanceof Error ? e.message : String(e) }
@@ -118,23 +122,33 @@ async function savePolicy() {
 }
 
 async function togglePolicy(paused: boolean) {
-  if (!canManage.value || !policyId.value) return
-  running.value = true; error.value = ''
-  try { if (paused) await admRetentionPolicyPause({ path: { policyId: policyId.value } }); else await admRetentionPolicyResume({ path: { policyId: policyId.value } }); await load() }
+  if ((!paused && !canPolicyResume.value) || (paused && !canPolicyPause.value) || !policyId.value || reason.value.trim().length < 5) return
+  running.value = true; error.value = ''; notice.value = ''
+  const expectedVersion = Number(value(selectedPolicy.value,'rowVersion','row_version'))
+  try {
+    if (paused) {
+      await admRetentionPolicyPause({ path: { policyId: policyId.value }, data: { expectedVersion, reason: reason.value.trim() } })
+      notice.value = 'Retention Schedule을 안전 일시정지했습니다.'
+      await load()
+    } else {
+      await admRetentionPolicyResume({ path: { policyId: policyId.value }, data: { reason: reason.value.trim() } })
+      notice.value = 'Retention Schedule 재개 승인 요청을 생성했습니다.'
+    }
+  }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }
 async function pauseRun() {
-  if (!canManage.value || !runId.value) return
-  running.value = true; error.value = ''
-  try { await admRetentionRunPause({ path: { runId: runId.value } }); await refreshRuns() }
+  if (!canRunPause.value || !runId.value || reason.value.trim().length < 5) return
+  running.value = true; error.value = ''; notice.value = ''
+  try { await admRetentionRunPause({ path: { runId: runId.value }, data: { expectedVersion: 0, reason: reason.value.trim() } }); notice.value = 'Retention Run 일시정지를 요청했습니다.'; await refreshRuns() }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }
 async function resumeRun() {
-  if (!canManage.value || !runId.value || reason.value.trim().length < 5) return
-  running.value = true; error.value = ''
-  try { await admRetentionRunResume({ path: { runId: runId.value }, data: { reason: reason.value.trim() } }); await refreshRuns() }
+  if (!canRunResume.value || !runId.value || reason.value.trim().length < 5) return
+  running.value = true; error.value = ''; notice.value = ''
+  try { await admRetentionRunResume({ path: { runId: runId.value }, data: { reason: reason.value.trim() } }); notice.value = 'Retention Run 재개 승인 요청을 생성했습니다.' }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }
@@ -157,13 +171,13 @@ onMounted(load)
           <label>Max Rows<input v-model.number="policyEditor.maxRowsPerRun" type="number" min="1" /></label>
           <label>Max Runtime(s)<input v-model.number="policyEditor.maxRuntimeSeconds" type="number" min="1" /></label>
         </div>
-        <div class="actions"><button type="button" :disabled="!canManage || running || !policyId || reason.length<5" @click="savePolicy">정책 저장</button><button type="button" :disabled="!canManage || running || !policyId" @click="togglePolicy(true)">Schedule Pause</button><button type="button" :disabled="!canManage || running || !policyId" @click="togglePolicy(false)">Schedule Resume</button></div>
+        <div class="actions"><button type="button" :disabled="!canPolicyRequest || running || !policyId || reason.length<5" @click="savePolicy">정책 저장</button><button type="button" :disabled="!canPolicyPause || running || !policyId || reason.length<5" @click="togglePolicy(true)">Schedule Pause</button><button type="button" :disabled="!canPolicyResume || running || !policyId || reason.length<5" @click="togglePolicy(false)">Schedule Resume</button></div>
       </section>
-      <aside class="card"><h3>Manual Run</h3><label>실행 사유<textarea v-model.trim="reason" minlength="5" placeholder="5자 이상 입력"></textarea></label><div class="actions"><button type="button" :disabled="running || !policyId || reason.length<5" @click="doPreview">1. Preview</button><button type="button" class="danger-button" :disabled="running || !canRun" @click="doRun">2. 지금 실행</button></div><p class="hint">Preview가 성공해야 실제 실행 버튼이 활성화됩니다.</p><CpfStructuredData v-if="preview" :value="preview" /></aside>
+      <aside class="card"><h3>Manual Run</h3><label>실행 사유<textarea v-model.trim="reason" minlength="5" placeholder="5자 이상 입력"></textarea></label><div class="actions"><button type="button" :disabled="running || !canPreview || !policyId || reason.length<5" @click="doPreview">1. Preview</button><button type="button" class="danger-button" :disabled="running || !canRun" @click="doRun">2. 지금 실행</button></div><p class="hint">Preview가 성공해야 실제 실행 버튼이 활성화됩니다.</p><CpfStructuredData v-if="preview" :value="preview" /></aside>
     </div>
     <section class="card"><div class="section-head"><h3>실제 Run History</h3><button type="button" @click="refreshRuns">이력 새로고침</button></div><div class="table-wrap"><table><thead><tr><th>Run</th><th>Trigger</th><th>Status</th><th>Runtime</th><th>Policy Version</th><th>Processed</th><th>Deleted</th><th>Archived</th><th>Compressed</th><th>Freed Bytes</th><th>Started / Completed</th><th>Error</th></tr></thead><tbody>
       <tr v-for="row in runs" :key="fmt(value(row,'runId','run_id'))" :class="{selected:fmt(value(row,'runId','run_id'))===runId}" @click="selectedRun=row"><td><button type="button" class="link">{{ fmt(value(row,'runId','run_id')) }}</button></td><td>{{ fmt(value(row,'triggerType','trigger_type')) }}</td><td><span :class="['status',statusClass(value(row,'status'))]">{{ fmt(value(row,'status')) }}</span></td><td>{{ fmt(value(row,'runtimeInstanceId','runtime_instance_id')) }}</td><td>{{ fmt(value(row,'policyVersion','policy_version')) }}</td><td>{{ fmt(value(row,'processedCount','processed_count')) }}</td><td>{{ fmt(value(row,'deletedCount','deleted_count')) }}</td><td>{{ fmt(value(row,'archivedCount','archived_count')) }}</td><td>{{ fmt(value(row,'compressedCount','compressed_count')) }}</td><td>{{ fmt(value(row,'freedBytes','freed_bytes')) }}</td><td>{{ fmt(value(row,'startedAt','started_at')) }}<br>{{ fmt(value(row,'completedAt','completed_at')) }}</td><td>{{ fmt(value(row,'errorCode','error_code')) }} {{ fmt(value(row,'errorSummary','error_summary')) }}</td></tr>
-      <tr v-if="!runs.length"><td colspan="12">실행 이력이 없습니다.</td></tr></tbody></table></div><div class="actions"><button type="button" :disabled="!canManage || running || !runId" @click="pauseRun">Run Pause</button><button type="button" :disabled="!canManage || running || !runId || reason.length<5" @click="resumeRun">Run Resume</button></div></section>
+      <tr v-if="!runs.length"><td colspan="12">실행 이력이 없습니다.</td></tr></tbody></table></div><div class="actions"><button type="button" :disabled="!canRunPause || running || !runId || reason.length<5" @click="pauseRun">Run Pause</button><button type="button" :disabled="!canRunResume || running || !runId || reason.length<5" @click="resumeRun">Run Resume</button></div></section>
   </section>
 </template>
 

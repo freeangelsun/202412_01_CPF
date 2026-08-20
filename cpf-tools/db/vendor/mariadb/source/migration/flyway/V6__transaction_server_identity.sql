@@ -1,5 +1,5 @@
 -- PRE-GA CANONICAL REPAIR (R9)
--- Legacy fixed BIZADM/EXS DDL was removed. EXS is a Generated Domain and BZA has its own canonical baseline at V29.
+-- Legacy fixed BIZADM/EXS DDL was removed. EXS is a Generated Domain and MBW has its own canonical baseline at V29.
 -- V6 now owns only the transaction/server identity increment that belongs to cpfDB.
 
 USE cpfDB;

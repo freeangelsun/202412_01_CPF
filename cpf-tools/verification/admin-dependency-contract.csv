@@ -15,8 +15,8 @@ cpf-admin,:internal:file:attachment,capability-runtime,cpf-admin/src/main/java/c
 cpf-admin,:internal:file:tabular:poi,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,Tabular API runtime provider
 cpf-admin,:starters:common,business-common,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java,Common message/code/parameter/calendar product services
 cpf-admin,:runtime:batch:api,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBatchController.java,Batch approved command/query contract consumer
-cpf-biz-admin,:starters:profiles:bff,profile,cpf-biz-admin/src/main/java/com/cpf/bizadmin/BzaApplication.java,BZA browser BFF security/session assembly
-cpf-biz-admin,:starters:data:mybatis,provider,cpf-biz-admin/src/main/java/com/cpf/bizadmin/operation/repository/BzaOperationRepository.java,BZA owned persistence provider
-cpf-biz-admin,:internal:file:attachment,capability-runtime,cpf-biz-admin/src/main/java/com/cpf/bizadmin/support/service/BzaSupportService.java,BZA attachment storage runtime
-cpf-biz-admin,:starters:common,business-common,cpf-biz-admin/src/main/java/com/cpf/bizadmin/common/management/BzaCommonManagementService.java,Customer common management/message product services
-cpf-biz-admin,:starters:security:session:jdbc,capability-runtime,cpf-biz-admin/src/main/java/com/cpf/bizadmin/auth/controller/BzaAuthController.java,BZA BFF session bridge filter direct consumer
+cpf-backoffice/online,:starters:profiles:bff,profile,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/BzaApplication.java,BZA browser BFF security/session assembly
+cpf-backoffice/online,:starters:data:mybatis,provider,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/operation/repository/BzaOperationRepository.java,BZA owned persistence provider
+cpf-backoffice/online,:internal:file:attachment,capability-runtime,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/support/service/BzaSupportService.java,BZA attachment storage runtime
+cpf-backoffice/online,:starters:common,business-common,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/common/management/BzaCommonManagementService.java,Customer common management/message product services
+cpf-backoffice/online,:starters:security:session:jdbc,capability-runtime,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/auth/controller/BzaAuthController.java,BZA BFF session bridge filter direct consumer

@@ -1,20 +1,197 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policyId": "CPF-PUBLIC-SURFACE",
   "repository": "cpf-team/cpf-framework",
   "defaultPolicy": "DENY",
   "sourceRules": [
-    {"pattern": "cpf-member/**", "target": "cpf-member", "classification": "PUBLIC_GENERATED_SOURCE", "required": true},
-    {"pattern": "cpf-biz-channel/**", "target": "cpf-biz-channel", "classification": "PUBLIC_BOOTSTRAP", "required": false, "option": "bza"},
-    {"pattern": "cpf-biz-frontend/**", "target": "cpf-biz-frontend", "classification": "PUBLIC_BOOTSTRAP", "required": false, "option": "bza"},
-    {"pattern": "gradle/wrapper/**", "target": "gradle/wrapper", "classification": "PUBLIC_BOOTSTRAP", "required": true},
-    {"pattern": "gradlew", "target": "gradlew", "classification": "PUBLIC_BOOTSTRAP", "required": true},
-    {"pattern": "gradlew.bat", "target": "gradlew.bat", "classification": "PUBLIC_BOOTSTRAP", "required": true}
+    {
+      "pattern": "cpf-member/**",
+      "target": "cpf-member",
+      "classification": "PUBLIC_GENERATED_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/**",
+      "target": "cpf-external",
+      "classification": "PUBLIC_GENERATED_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/generator/definitions/member/cpf-domain.yaml",
+      "target": "domains/member/cpf-domain.yaml",
+      "classification": "PUBLIC_USER_CONFIG",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/generator/definitions/member/cpf-generator.lock.json",
+      "target": "domains/member/cpf-generator.lock.json",
+      "classification": "PUBLIC_USER_CONFIG",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/generator/definitions/external/cpf-domain.yaml",
+      "target": "domains/external/cpf-domain.yaml",
+      "classification": "PUBLIC_USER_CONFIG",
+      "required": true
+    },
+    {
+      "pattern": "cpf-tools/generator/definitions/external/cpf-generator.lock.json",
+      "target": "domains/external/cpf-generator.lock.json",
+      "classification": "PUBLIC_USER_CONFIG",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/**",
+      "target": "cpf-backoffice-web",
+      "classification": "PUBLIC_BOOTSTRAP",
+      "required": false,
+      "option": "backoffice"
+    },
+    {
+      "pattern": "gradle/wrapper/**",
+      "target": "gradle/wrapper",
+      "classification": "PUBLIC_BOOTSTRAP",
+      "required": true
+    },
+    {
+      "pattern": "gradlew",
+      "target": "gradlew",
+      "classification": "PUBLIC_BOOTSTRAP",
+      "required": true
+    },
+    {
+      "pattern": "gradlew.bat",
+      "target": "gradlew.bat",
+      "classification": "PUBLIC_BOOTSTRAP",
+      "required": true
+    }
   ],
   "templateRules": [
-    {"source": "cpf-tools/release/public/templates/README.md", "target": "README.md", "classification": "PUBLIC_USER_DOC"},
-    {"source": "cpf-tools/release/public/templates/verify-public-workspace.ps1", "target": "tools/verify-public-workspace.ps1", "classification": "PUBLIC_USER_SCRIPT"},
-    {"source": "cpf-tools/release/public/templates/verify-public-workspace.sh", "target": "tools/verify-public-workspace.sh", "classification": "PUBLIC_USER_SCRIPT"}
+    {
+      "source": "cpf-tools/release/public/templates/README.md",
+      "target": "README.md",
+      "classification": "PUBLIC_USER_DOC"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/settings.gradle",
+      "target": "settings.gradle",
+      "classification": "PUBLIC_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/build.gradle",
+      "target": "build.gradle",
+      "classification": "PUBLIC_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/gradle.properties",
+      "target": "gradle.properties",
+      "classification": "PUBLIC_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/.gitignore",
+      "target": ".gitignore",
+      "classification": "PUBLIC_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/config/cpf-workspace.properties",
+      "target": "config/cpf-workspace.properties",
+      "classification": "PUBLIC_USER_CONFIG"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/deploy/local/compose.yaml",
+      "target": "deploy/local/compose.yaml",
+      "classification": "PUBLIC_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/CpfBootstrap.java",
+      "target": "bin/CpfBootstrap.java",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.ps1",
+      "target": "bin/cpf-bootstrap.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.sh",
+      "target": "bin/cpf-bootstrap.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-stop.ps1",
+      "target": "bin/cpf-stop.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-stop.sh",
+      "target": "bin/cpf-stop.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-reset.ps1",
+      "target": "bin/cpf-reset.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-reset.sh",
+      "target": "bin/cpf-reset.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-build.ps1",
+      "target": "bin/cpf-build.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-build.sh",
+      "target": "bin/cpf-build.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-test.ps1",
+      "target": "bin/cpf-test.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-test.sh",
+      "target": "bin/cpf-test.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/verify-public-workspace.ps1",
+      "target": "tools/verify-public-workspace.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/verify-public-workspace.sh",
+      "target": "tools/verify-public-workspace.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/CpfGeneratorLauncher.java",
+      "target": "bin/CpfGeneratorLauncher.java",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.ps1",
+      "target": "bin/cpf-domain-new.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.sh",
+      "target": "bin/cpf-domain-new.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.ps1",
+      "target": "bin/cpf-domain-sync.ps1",
+      "classification": "PUBLIC_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.sh",
+      "target": "bin/cpf-domain-sync.sh",
+      "classification": "PUBLIC_USER_SCRIPT"
+    }
   ],
   "allowedClassifications": [
     "PUBLIC_USER_DOC",
@@ -26,12 +203,32 @@
     "PUBLIC_RELEASE_METADATA"
   ],
   "forbiddenPathPrefixes": [
-    "cpf-core/", "cpf-common/", "cpf-admin/", "cpf-biz-admin/", "cpf-starters/", "cpf-tools/", "cpf-docs/governance/", "cpf-docs/work/", "cpf-docs/deliverables/", ".git/"
+    "cpf-core/",
+    "cpf-common/",
+    "cpf-admin/",
+    "cpf-backoffice/",
+    "cpf-biz-admin/",
+    "cpf-starters/",
+    "cpf-tools/",
+    "cpf-docs/governance/",
+    "cpf-docs/work/",
+    "cpf-docs/deliverables/",
+    ".git/"
   ],
-  "forbiddenNamePatterns": ["*.pem", "*.p12", "*.pfx", "*.jks", "*.keystore", ".env", ".env.*"],
+  "forbiddenNamePatterns": [
+    "*.pem",
+    "*.p12",
+    "*.pfx",
+    "*.jks",
+    "*.keystore",
+    ".env",
+    ".env.*"
+  ],
   "forbiddenContentPatterns": [
     "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
     "AKIA[0-9A-Z]{16}",
-    "(?i)(?:password|secret|token)\\s*[:=]\\s*['\"][^'\"]{12,}['\"]"
-  ]
+    "(?i)(?:password|secret|token)\\s*[:=]\\s*['\\\"][^'\\\"+${}\\r\\n]{12,}['\\\"]",
+    "(?i)(?:C:|D:)[\\\\/]+Users[\\\\/]"
+  ],
+  "gitRemoteEnvironment": "CPF_PUBLIC_GIT_REMOTE"
 }

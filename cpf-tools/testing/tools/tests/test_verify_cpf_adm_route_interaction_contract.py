@@ -18,15 +18,16 @@ class RouteContractTest(unittest.TestCase):
             with self.assertRaises(gate.ContractError): gate.read_routes(p)
 
     def test_duplicate_route_path_rejected(self):
-        source=(REAL_ROOT/"cpf-admin/frontend/src/app/routes.ts").read_text(encoding="utf-8")
+        source=(REAL_ROOT/"cpf-admin/frontend/src/app/routes/operations.ts").read_text(encoding="utf-8")
         # Duplicate one known path while preserving route syntax.
         import re
         paths=re.findall(r'path: "([^"]+)"',source)
         self.assertGreaterEqual(len(paths),2)
         mutated=source.replace(f'path: "{paths[1]}"',f'path: "{paths[0]}"',1)
         with tempfile.TemporaryDirectory() as d:
-            p=Path(d)/"routes.ts";p.write_text(mutated,encoding="utf-8")
-            with self.assertRaises(gate.ContractError): gate.read_routes(p)
+            route_dir=Path(d)/"routes";route_dir.mkdir()
+            (route_dir/"operations.ts").write_text(mutated,encoding="utf-8")
+            with self.assertRaises(gate.ContractError): gate.read_routes(route_dir)
 
     def test_required_error_statuses_are_canonical(self):
         self.assertEqual(("401","403","404","409","429","500","503"),gate.REQUIRED_ERRORS)

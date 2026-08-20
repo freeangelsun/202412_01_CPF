@@ -14,6 +14,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+/**
+ * Apache Kafka를 CPF Public Messaging Publisher/Listener 계약에 연결하는 Starter 자동구성입니다.
+ * <p>Kafka client 세부 설정을 업무 코드에 노출하지 않고 CPF 표준 Retry/Trace/Error 흐름과 결합합니다.
+ */
 @AutoConfiguration
 @ConditionalOnClass(KafkaTemplate.class)
 @EnableConfigurationProperties(CpfKafkaProperties.class)

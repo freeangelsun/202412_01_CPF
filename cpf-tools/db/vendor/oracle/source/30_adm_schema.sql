@@ -693,7 +693,7 @@ CREATE TABLE cpf_bff_credential_vault (
 );
 CREATE INDEX idx_cpf_bff_credential_expiry ON cpf_bff_credential_vault (refresh_expires_at);
 CREATE INDEX idx_cpf_bff_credential_key ON cpf_bff_credential_vault (key_id, updated_at);
-COMMENT ON TABLE cpf_bff_credential_vault IS 'ADM/BZA BFF Access/Refresh Token 암호화 Vault';
+COMMENT ON TABLE cpf_bff_credential_vault IS 'ADM/MBW BFF Access/Refresh Token 암호화 Vault';
 COMMENT ON COLUMN cpf_bff_credential_vault.handle_id IS 'Session에 저장되는 난수 Credential Handle';
 COMMENT ON COLUMN cpf_bff_credential_vault.key_id IS '암호화 Key 식별자';
 COMMENT ON COLUMN cpf_bff_credential_vault.access_iv IS 'Access Token AES-GCM IV';

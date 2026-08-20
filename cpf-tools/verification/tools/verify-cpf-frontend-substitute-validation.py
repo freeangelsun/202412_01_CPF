@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Validate ADM/BZA shared API actor trust controls with local Node/TypeScript/Chromium.
+"""Validate ADM/Backoffice browser trust controls with local Node/TypeScript/Chromium.
 
-The script uses the real cpfApi.ts files, creates only temporary dependency stubs,
+The script uses the real ADM cpfApi.ts and Backoffice channel client, with temporary dependency stubs,
 runs strict TypeScript compilation, Node runtime contract tests, and Chromium browser
 contract tests. It does not write node_modules, dist, logs, or caches into the repository.
 """
@@ -24,7 +24,7 @@ from typing import Any
 
 FRONTENDS = {
     "ADM": Path("cpf-admin/frontend/src/shared/cpfApi.ts"),
-    "BZA": Path("cpf-biz-frontend/src/shared/api/channelHttpClient.ts"),
+    "BACKOFFICE": Path("cpf-backoffice-web/frontend/src/shared/api/channelHttpClient.ts"),
 }
 IMPORT_RE = re.compile(r"^import\s+.*?;\s*$", re.MULTILINE)
 
@@ -38,8 +38,8 @@ class CpfOrvalError extends Error { status = 500; payload: unknown = null; }
 type CpfOrvalResponse<T> = { data: T };
 async function cpfOrvalRequest<T>(config: unknown): Promise<T> { return ({ data: { ok: true, config } } as unknown) as T; }
 const protectedCpfTransactionHeaders = [
-  "X-Transaction-Id", "X-Original-Channel", "X-Current-Channel",
-  "X-Caller-Channel", "X-Target-Channel", "X-Target-Operation-Id"
+  "X-Transaction-Id", "X-Original-System-Code", "X-System-Code",
+  "X-Caller-System-Code", "X-Target-System-Code", "X-Target-Operation-Id"
 ] as const;
 function assertNoProtectedCpfHeaders(headers: Headers): void {
   for (const name of protectedCpfTransactionHeaders) {
@@ -254,30 +254,30 @@ def validate_one(label: str, source: Path, tsc: str, node: str, phase: str = "AL
 
         return result
 
-def validate_bza_channel_boundary(repository_root: Path, source: Path, phase: str) -> dict[str, Any]:
+def validate_backoffice_channel_boundary(repository_root: Path, source: Path, phase: str) -> dict[str, Any]:
     text = source.read_text(encoding="utf-8")
-    required = ["VITE_BZA_CHANNEL_BASE_URL", "credentials: 'include'", "fetch("]
+    required = ["VITE_MBW_WEB_BASE_URL", "credentials: 'include'", "fetch("]
     missing = [token for token in required if token not in text]
     if missing:
-        raise RuntimeError(f"BZA channel transport contract missing: {missing}")
+        raise RuntimeError(f"Backoffice Web transport contract missing: {missing}")
     forbidden = ["localStorage", "sessionStorage", "Authorization: 'Bearer", "X-System-Code", "X-Transaction-Id"]
     present = [token for token in forbidden if token in text]
     if present:
-        raise RuntimeError(f"BZA browser transport owns forbidden security/CPF protocol state: {present}")
-    guard = repository_root / "cpf-biz-channel/src/main/java/com/cpf/bzachannel/shared/protocol/CanonicalHeaderOwnershipFilter.java"
+        raise RuntimeError(f"Backoffice browser transport owns forbidden security/CPF protocol state: {present}")
+    guard = repository_root / "cpf-backoffice-web/src/main/java/com/cpf/backoffice/web/shared/protocol/CanonicalHeaderOwnershipFilter.java"
     if not guard.is_file():
-        raise FileNotFoundError(f"BZA Channel ownership guard missing: {guard}")
+        raise FileNotFoundError(f"Backoffice Web ownership guard missing: {guard}")
     guard_text = guard.read_text(encoding="utf-8")
-    header_contract = repository_root / "cpf-biz-channel/src/main/java/com/cpf/bzachannel/shared/protocol/CanonicalTransactionHeaders.java"
+    header_contract = repository_root / "cpf-backoffice-web/src/main/java/com/cpf/backoffice/web/shared/protocol/CanonicalTransactionHeaders.java"
     if not header_contract.is_file():
-        raise FileNotFoundError(f"BZA Channel canonical header contract missing: {header_contract}")
+        raise FileNotFoundError(f"Backoffice Web canonical header contract missing: {header_contract}")
     header_text = header_contract.read_text(encoding="utf-8")
     if "CanonicalTransactionHeaders.BROWSER_FORBIDDEN" not in guard_text:
-        raise RuntimeError("BZA Channel ownership guard does not consume BROWSER_FORBIDDEN")
+        raise RuntimeError("Backoffice Web ownership guard does not consume BROWSER_FORBIDDEN")
     for token in ("X-Transaction-Id", "X-Original-System-Code", "X-System-Code", "X-Caller-System-Code", "X-Target-System-Code", "X-Target-Operation-Id"):
         if token not in header_text:
-            raise RuntimeError(f"BZA Channel canonical header contract missing: {token}")
-    return {"label":"BZA","source":str(source),"phase":phase,"boundary":"DB-less browser -> BZA Channel -> CPF Public HTTP","staticTrustBoundary":"PASS"}
+            raise RuntimeError(f"Backoffice Web canonical header contract missing: {token}")
+    return {"label":"BACKOFFICE","source":str(source),"phase":phase,"boundary":"DB-less browser -> Backoffice Web BFF -> CPF Public HTTP","staticTrustBoundary":"PASS"}
 
 def validate(repository_root: Path, frontend: str = "ALL", phase: str = "ALL") -> dict[str, Any]:
     tsc = shutil.which("tsc")
@@ -292,8 +292,8 @@ def validate(repository_root: Path, frontend: str = "ALL", phase: str = "ALL") -
         source = repository_root / relative
         if not source.is_file():
             raise FileNotFoundError(f"required source missing: {relative}")
-        if label == "BZA":
-            results.append(validate_bza_channel_boundary(repository_root, source, phase))
+        if label == "BACKOFFICE":
+            results.append(validate_backoffice_channel_boundary(repository_root, source, phase))
         else:
             results.append(validate_one(label, source, tsc, node, phase))
     return {
@@ -304,7 +304,7 @@ def validate(repository_root: Path, frontend: str = "ALL", phase: str = "ALL") -
         "playwrightPythonVersion": importlib.metadata.version("playwright"),
         "validatedFrontends": results,
         "phase": phase,
-        "scope": "ADM browser actor trust runtime + external BZA browser/channel protocol ownership boundary",
+        "scope": "ADM browser actor trust runtime + external Backoffice Web browser/BFF protocol ownership boundary",
         "repositoryBuildOutputsCreated": False,
     }
 

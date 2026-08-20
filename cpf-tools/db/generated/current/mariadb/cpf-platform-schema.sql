@@ -1442,6 +1442,8 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE (
     request_id VARCHAR(128) NULL,
     idempotency_key VARCHAR(160) NULL,
     tenant_id VARCHAR(128) NULL,
+    system_code VARCHAR(64) NULL,
+    target_system_code VARCHAR(128) NULL,
     current_channel VARCHAR(64) NULL,
     actor_id_masked VARCHAR(256) NULL,
     instance_id VARCHAR(128) NULL,
@@ -1492,6 +1494,8 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE (
     request_id VARCHAR(128) NULL,
     idempotency_key VARCHAR(160) NULL,
     tenant_id VARCHAR(128) NULL,
+    system_code VARCHAR(64) NULL,
+    target_system_code VARCHAR(128) NULL,
     current_channel VARCHAR(64) NULL,
     actor_id_masked VARCHAR(256) NULL,
     instance_id VARCHAR(128) NULL,
@@ -1543,6 +1547,10 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     API_VERSION VARCHAR(20) NULL,
     CLIENT_ID VARCHAR(80) NULL,
     CLIENT_VERSION VARCHAR(50) NULL,
+    CALLER_SYSTEM_CODE VARCHAR(120) NULL,
+    TARGET_SYSTEM_CODE VARCHAR(32) NULL,
+    ORIGINAL_SYSTEM_CODE VARCHAR(20) NULL,
+    SYSTEM_CODE VARCHAR(20) NULL,
     CALLER_CHANNEL VARCHAR(120) NULL,
     TARGET_CHANNEL VARCHAR(32) NULL,
     TARGET_OPERATION_ID VARCHAR(160) NULL,
@@ -1622,14 +1630,14 @@ CREATE INDEX ix_cpf_transaction_log_correlation ON CPF_TRANSACTION_LOG (CORRELAT
 CREATE INDEX ix_cpf_transaction_log_idempotency ON CPF_TRANSACTION_LOG (IDEMPOTENCY_KEY);
 CREATE INDEX ix_cpf_transaction_log_member_time ON CPF_TRANSACTION_LOG (MEMBER_NO, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_customer_time ON CPF_TRANSACTION_LOG (CUSTOMER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (CURRENT_CHANNEL, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (SYSTEM_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_time ON CPF_TRANSACTION_LOG (MODULE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_instance_time ON CPF_TRANSACTION_LOG (INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_was_time ON CPF_TRANSACTION_LOG (WAS_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_instance_time ON CPF_TRANSACTION_LOG (MODULE_ID, INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_status_time ON CPF_TRANSACTION_LOG (LOG_TYPE, RESPONSE_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_http_status_time ON CPF_TRANSACTION_LOG (HTTP_STATUS, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_CHANNEL, TARGET_OPERATION_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, START_TIME);
 
 CREATE TABLE CPF_TRANSACTION_SEGMENT (
     segment_id BIGINT AUTO_INCREMENT NOT NULL,
@@ -1659,6 +1667,10 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     member_no_masked VARCHAR(80) NULL,
     user_id_masked VARCHAR(80) NULL,
     operator_id_masked VARCHAR(80) NULL,
+    system_code VARCHAR(30) NULL,
+    original_system_code VARCHAR(30) NULL,
+    caller_system_code VARCHAR(100) NULL,
+    target_system_code VARCHAR(32) NULL,
     current_channel VARCHAR(30) NULL,
     original_channel VARCHAR(30) NULL,
     client_id VARCHAR(100) NULL,
@@ -1693,12 +1705,12 @@ CREATE INDEX ix_cpf_transaction_segment_customer ON CPF_TRANSACTION_SEGMENT (cus
 CREATE INDEX ix_cpf_transaction_segment_member ON CPF_TRANSACTION_SEGMENT (member_no_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_user ON CPF_TRANSACTION_SEGMENT (user_id_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_operator ON CPF_TRANSACTION_SEGMENT (operator_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_channel, started_at);
+CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_system_code, started_at);
 CREATE INDEX ix_cpf_transaction_segment_external ON CPF_TRANSACTION_SEGMENT (external_institution_code, external_transaction_id);
 CREATE INDEX ix_cpf_transaction_segment_instance ON CPF_TRANSACTION_SEGMENT (selected_instance_id, started_at);
 CREATE INDEX ix_cpf_transaction_segment_attempt ON CPF_TRANSACTION_SEGMENT (transaction_id, attempt_no);
 CREATE INDEX ix_cpf_transaction_segment_unknown ON CPF_TRANSACTION_SEGMENT (unknown_result_id);
-CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_channel, target_operation_id, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_system_code, target_operation_id, started_at);
 
 CREATE TABLE CPF_UNKNOWN_RESULT (
     unknown_seq BIGINT AUTO_INCREMENT NOT NULL,
@@ -2199,6 +2211,25 @@ CREATE TABLE OPS_RESILIENCE_POLICY_REQUEST (
 ALTER TABLE OPS_RESILIENCE_POLICY_REQUEST COMMENT = 'Resilience 정책 승인 요청';
 CREATE INDEX ix_cpf_rpreq_status ON OPS_RESILIENCE_POLICY_REQUEST (request_status, created_at);
 
+CREATE TABLE OPS_RETENTION_CONTROL_AUDIT (
+    audit_id VARCHAR(64) NOT NULL,
+    operation_type VARCHAR(40) NOT NULL,
+    target_type VARCHAR(20) NOT NULL,
+    target_id VARCHAR(80) NOT NULL,
+    requested_by VARCHAR(100) NOT NULL,
+    approved_by VARCHAR(100) NULL,
+    approval_request_id VARCHAR(120) NULL,
+    reason_text VARCHAR(500) NOT NULL,
+    expected_version BIGINT NULL,
+    result_state VARCHAR(20) DEFAULT 'SUCCEEDED' NOT NULL,
+    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    CONSTRAINT PK_OPS_RETENTION_CONTROL_AUDIT PRIMARY KEY (audit_id),
+    CONSTRAINT ck_ops_retention_audit_result CHECK (result_state IN ('SUCCEEDED','FAILED','UNKNOWN'))
+) ENGINE=InnoDB;
+ALTER TABLE OPS_RETENTION_CONTROL_AUDIT COMMENT = 'Immutable operator/approval audit for retention control actions';
+CREATE INDEX ix_ops_retention_audit_target ON OPS_RETENTION_CONTROL_AUDIT (target_type, target_id, created_at);
+CREATE INDEX ix_ops_retention_audit_approval ON OPS_RETENTION_CONTROL_AUDIT (approval_request_id, created_at);
+
 CREATE TABLE OPS_RETENTION_POLICY (
     policy_id VARCHAR(80) NOT NULL,
     target_name VARCHAR(80) NOT NULL,
@@ -2439,7 +2470,7 @@ CREATE TABLE SEC_BFF_CREDENTIAL_VAULT (
     CONSTRAINT ck_cpf_bff_credential_version CHECK (version_no > 0),
     CONSTRAINT ck_cpf_bff_credential_expiry CHECK (refresh_expires_at >= access_expires_at)
 ) ENGINE=InnoDB;
-ALTER TABLE SEC_BFF_CREDENTIAL_VAULT COMMENT = 'ADM/BZA BFF Access/Refresh Token 암호화 Vault';
+ALTER TABLE SEC_BFF_CREDENTIAL_VAULT COMMENT = 'ADM/Backoffice Web BFF Access/Refresh Token 암호화 Vault';
 CREATE INDEX idx_cpf_bff_credential_expiry ON SEC_BFF_CREDENTIAL_VAULT (refresh_expires_at);
 CREATE INDEX idx_cpf_bff_credential_key ON SEC_BFF_CREDENTIAL_VAULT (key_id, updated_at);
 
@@ -3305,6 +3336,8 @@ CREATE TABLE OPS_RETENTION_RUN (
     compressed_count BIGINT DEFAULT 0 NOT NULL,
     freed_bytes BIGINT DEFAULT 0 NOT NULL,
     pause_requested_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    control_actor_id VARCHAR(100) NULL,
+    control_reason VARCHAR(500) NULL,
     error_code VARCHAR(100) NULL,
     error_summary VARCHAR(500) NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,

@@ -16,7 +16,7 @@ $operationRoots = @(
     "cpf-core/src/main/java",
     "cpf-common/src/main/java",
     "cpf-admin/src/main/java",
-    "cpf-biz-admin/src/main/java",
+    "cpf-backoffice/online/src/main/java",
     "cpf-member/src/main/java"
 )
 $educationRoots = @(
@@ -26,7 +26,7 @@ $allowedProductSampleRoots = @(
     # CMN은 설치·Paging·Transaction 검증을 위한 Minimal Sample Table 1개를 제공합니다.
     "cpf-common/src/main/java/com/cpf/common/sample",
     # BZA 채번은 선택형 Customization Sample이며 Platform Runtime 필수 기능이 아닙니다.
-    "cpf-biz-admin/src/main/java/com/cpf/bizadmin/sample"
+    "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/sample"
 )
 $failures = New-Object System.Collections.Generic.List[string]
 

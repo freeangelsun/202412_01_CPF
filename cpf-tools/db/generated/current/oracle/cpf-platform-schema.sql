@@ -2356,6 +2356,8 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE (
     request_id VARCHAR2(128 CHAR) NULL,
     idempotency_key VARCHAR2(160 CHAR) NULL,
     tenant_id VARCHAR2(128 CHAR) NULL,
+    system_code VARCHAR2(64 CHAR) NULL,
+    target_system_code VARCHAR2(128 CHAR) NULL,
     current_channel VARCHAR2(64 CHAR) NULL,
     actor_id_masked VARCHAR2(256 CHAR) NULL,
     instance_id VARCHAR2(128 CHAR) NULL,
@@ -2397,13 +2399,15 @@ COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.span_id IS '분산 span ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.request_id IS '요청 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.idempotency_key IS '멱등성 키';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.tenant_id IS '테넌트 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.current_channel IS '현재 처리 System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.system_code IS '현재 처리 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.target_system_code IS '원격 Target Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.current_channel IS '현재 처리 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.actor_id_masked IS '마스킹된 행위자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.instance_id IS '실행 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.was_id IS 'WAS ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.agent_id IS 'Agent ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.worker_id IS 'Worker ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.target_channel IS '원격 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.target_channel IS '원격 Target Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.operation_id IS '업무/호출 Operation ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.message_id IS '메시지 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE.consumer_group IS '메시지 Consumer Group';
@@ -2442,6 +2446,8 @@ CREATE TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE (
     request_id VARCHAR2(128 CHAR) NULL,
     idempotency_key VARCHAR2(160 CHAR) NULL,
     tenant_id VARCHAR2(128 CHAR) NULL,
+    system_code VARCHAR2(64 CHAR) NULL,
+    target_system_code VARCHAR2(128 CHAR) NULL,
     current_channel VARCHAR2(64 CHAR) NULL,
     actor_id_masked VARCHAR2(256 CHAR) NULL,
     instance_id VARCHAR2(128 CHAR) NULL,
@@ -2484,13 +2490,15 @@ COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.span_id IS '분산 span ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.request_id IS '요청 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.idempotency_key IS '멱등성 키';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.tenant_id IS '테넌트 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.current_channel IS '현재 처리 System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.system_code IS '현재 처리 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.target_system_code IS '원격 Target Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.current_channel IS '현재 처리 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.actor_id_masked IS '마스킹된 행위자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.instance_id IS '실행 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.was_id IS 'WAS ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.agent_id IS 'Agent ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.worker_id IS 'Worker ID';
-COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.target_channel IS '원격 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.target_channel IS '원격 Target Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.operation_id IS '업무/호출 Operation ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.message_id IS '메시지 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LINEAGE_ARCHIVE.consumer_group IS '메시지 Consumer Group';
@@ -2531,6 +2539,10 @@ CREATE TABLE CPF_TRANSACTION_LOG (
     API_VERSION VARCHAR2(20 CHAR) NULL,
     CLIENT_ID VARCHAR2(80 CHAR) NULL,
     CLIENT_VERSION VARCHAR2(50 CHAR) NULL,
+    CALLER_SYSTEM_CODE VARCHAR2(120 CHAR) NULL,
+    TARGET_SYSTEM_CODE VARCHAR2(32 CHAR) NULL,
+    ORIGINAL_SYSTEM_CODE VARCHAR2(20 CHAR) NULL,
+    SYSTEM_CODE VARCHAR2(20 CHAR) NULL,
     CALLER_CHANNEL VARCHAR2(120 CHAR) NULL,
     TARGET_CHANNEL VARCHAR2(32 CHAR) NULL,
     TARGET_OPERATION_ID VARCHAR2(160 CHAR) NULL,
@@ -2617,8 +2629,12 @@ COMMENT ON COLUMN CPF_TRANSACTION_LOG.LOG_TYPE IS '로그 유형';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.API_VERSION IS '호출 API 버전';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CLIENT_ID IS '클라이언트/Application 식별자';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CLIENT_VERSION IS '클라이언트 앱 또는 SDK 버전';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_CHANNEL IS '직전 호출 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_CHANNEL IS '현재 호출 대상 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_SYSTEM_CODE IS '바로 직전 호출 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_SYSTEM_CODE IS '현재 호출 대상 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.ORIGINAL_SYSTEM_CODE IS 'X-Transaction-Id 최초 발급 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.SYSTEM_CODE IS '현재 요청을 실제 처리하는 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_CHANNEL IS '직전 호출 Channel 코드(선택 Context)';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_CHANNEL IS '호출 대상 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.TARGET_OPERATION_ID IS '호출 대상 Canonical operationId';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CALLER_INSTANCE_ID IS '호출 인스턴스 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CORRELATION_ID IS '내부 연계 상관관계 ID';
@@ -2626,8 +2642,8 @@ COMMENT ON COLUMN CPF_TRANSACTION_LOG.IDEMPOTENCY_KEY IS '중복 처리 방지 �
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.LOCALE IS '클라이언트 locale';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.TIMEZONE IS '클라이언트 시간대';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.REQUEST_TYPE IS '요청 유형';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.ORIGINAL_CHANNEL IS '최초 거래 발생 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_LOG.CURRENT_CHANNEL IS '현재 요청 처리 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.ORIGINAL_CHANNEL IS '최초 유입 Channel 코드(선택 Context)';
+COMMENT ON COLUMN CPF_TRANSACTION_LOG.CURRENT_CHANNEL IS '현재 처리 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.MEMBER_NO IS '회원 번호';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.CUSTOMER_NO IS '고객 번호';
 COMMENT ON COLUMN CPF_TRANSACTION_LOG.SCREEN_ID IS '화면 ID';
@@ -2692,14 +2708,14 @@ CREATE INDEX ix_cpf_transaction_log_correlation ON CPF_TRANSACTION_LOG (CORRELAT
 CREATE INDEX ix_cpf_transaction_log_idempotency ON CPF_TRANSACTION_LOG (IDEMPOTENCY_KEY);
 CREATE INDEX ix_cpf_transaction_log_member_time ON CPF_TRANSACTION_LOG (MEMBER_NO, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_customer_time ON CPF_TRANSACTION_LOG (CUSTOMER_NO, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (CURRENT_CHANNEL, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG (SYSTEM_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_time ON CPF_TRANSACTION_LOG (MODULE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_instance_time ON CPF_TRANSACTION_LOG (INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_was_time ON CPF_TRANSACTION_LOG (WAS_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_module_instance_time ON CPF_TRANSACTION_LOG (MODULE_ID, INSTANCE_ID, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_status_time ON CPF_TRANSACTION_LOG (LOG_TYPE, RESPONSE_CODE, START_TIME);
 CREATE INDEX ix_cpf_transaction_log_http_status_time ON CPF_TRANSACTION_LOG (HTTP_STATUS, START_TIME);
-CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_CHANNEL, TARGET_OPERATION_ID, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_SYSTEM_CODE, TARGET_OPERATION_ID, START_TIME);
 
 CREATE TABLE CPF_TRANSACTION_SEGMENT (
     segment_id NUMBER(19) GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -2729,6 +2745,10 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     member_no_masked VARCHAR2(80 CHAR) NULL,
     user_id_masked VARCHAR2(80 CHAR) NULL,
     operator_id_masked VARCHAR2(80 CHAR) NULL,
+    system_code VARCHAR2(30 CHAR) NULL,
+    original_system_code VARCHAR2(30 CHAR) NULL,
+    caller_system_code VARCHAR2(100 CHAR) NULL,
+    target_system_code VARCHAR2(32 CHAR) NULL,
     current_channel VARCHAR2(30 CHAR) NULL,
     original_channel VARCHAR2(30 CHAR) NULL,
     client_id VARCHAR2(100 CHAR) NULL,
@@ -2780,11 +2800,15 @@ COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.customer_no_masked IS '마스킹된 �
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.member_no_masked IS '마스킹된 회원번호';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.user_id_masked IS '마스킹된 사용자 ID';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.operator_id_masked IS '마스킹된 운영자 ID';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.current_channel IS '현재 요청 처리 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.original_channel IS '최초 거래 발생 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.system_code IS '현재 요청을 실제 처리하는 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.original_system_code IS 'X-Transaction-Id 최초 발급 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.caller_system_code IS '바로 직전 호출 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_system_code IS '현재 호출 대상 Logical System 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.current_channel IS '현재 처리 Channel 코드(선택 Context)';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.original_channel IS '최초 유입 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.client_id IS '클라이언트/Application 식별자';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.caller_channel IS '직전 호출 시스템 코드';
-COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_channel IS '현재 호출 대상 시스템 코드';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.caller_channel IS '직전 호출 Channel 코드(선택 Context)';
+COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_channel IS '호출 대상 Channel 코드(선택 Context)';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.target_operation_id IS '호출 대상 Canonical operationId';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.external_institution_code IS '외부기관 코드';
 COMMENT ON COLUMN CPF_TRANSACTION_SEGMENT.external_transaction_id IS '외부기관 거래 ID';
@@ -2810,12 +2834,12 @@ CREATE INDEX ix_cpf_transaction_segment_customer ON CPF_TRANSACTION_SEGMENT (cus
 CREATE INDEX ix_cpf_transaction_segment_member ON CPF_TRANSACTION_SEGMENT (member_no_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_user ON CPF_TRANSACTION_SEGMENT (user_id_masked, started_at);
 CREATE INDEX ix_cpf_transaction_segment_operator ON CPF_TRANSACTION_SEGMENT (operator_id_masked, started_at);
-CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_channel, started_at);
+CREATE INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT (client_id, caller_system_code, started_at);
 CREATE INDEX ix_cpf_transaction_segment_external ON CPF_TRANSACTION_SEGMENT (external_institution_code, external_transaction_id);
 CREATE INDEX ix_cpf_transaction_segment_instance ON CPF_TRANSACTION_SEGMENT (selected_instance_id, started_at);
 CREATE INDEX ix_cpf_transaction_segment_attempt ON CPF_TRANSACTION_SEGMENT (transaction_id, attempt_no);
 CREATE INDEX ix_cpf_transaction_segment_unknown ON CPF_TRANSACTION_SEGMENT (unknown_result_id);
-CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_channel, target_operation_id, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_system_code, target_operation_id, started_at);
 
 CREATE TABLE CPF_UNKNOWN_RESULT (
     unknown_seq NUMBER(19) GENERATED BY DEFAULT AS IDENTITY NOT NULL,
@@ -3625,6 +3649,36 @@ COMMENT ON COLUMN OPS_RESILIENCE_POLICY_REQUEST.created_at IS '등록 일시';
 COMMENT ON COLUMN OPS_RESILIENCE_POLICY_REQUEST.updated_at IS 'updated_at';
 CREATE INDEX ix_cpf_rpreq_status ON OPS_RESILIENCE_POLICY_REQUEST (request_status, created_at);
 
+CREATE TABLE OPS_RETENTION_CONTROL_AUDIT (
+    audit_id VARCHAR2(64 CHAR) NOT NULL,
+    operation_type VARCHAR2(40 CHAR) NOT NULL,
+    target_type VARCHAR2(20 CHAR) NOT NULL,
+    target_id VARCHAR2(80 CHAR) NOT NULL,
+    requested_by VARCHAR2(100 CHAR) NOT NULL,
+    approved_by VARCHAR2(100 CHAR) NULL,
+    approval_request_id VARCHAR2(120 CHAR) NULL,
+    reason_text VARCHAR2(500 CHAR) NOT NULL,
+    expected_version NUMBER(19) NULL,
+    result_state VARCHAR2(20 CHAR) DEFAULT 'SUCCEEDED' NOT NULL,
+    created_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    CONSTRAINT PK_OPS_RETENTION_CONTROL_AUDIT PRIMARY KEY (audit_id),
+    CONSTRAINT ck_ops_retention_audit_result CHECK (result_state IN ('SUCCEEDED','FAILED','UNKNOWN'))
+);
+COMMENT ON TABLE OPS_RETENTION_CONTROL_AUDIT IS 'Immutable operator/approval audit for retention control actions';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.audit_id IS 'Retention control audit identity';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.operation_type IS 'POLICY_SAVE/RUN_NOW/RUN_PAUSE/RUN_RESUME/POLICY_PAUSE/POLICY_RESUME';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.target_type IS 'POLICY or RUN';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.target_id IS 'Retention policy/run identity';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.requested_by IS 'Verified request operator';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.approved_by IS 'Verified independent approver';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.approval_request_id IS 'ADM approval request identity';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.reason_text IS 'Operator reason';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.expected_version IS 'Approved optimistic policy version';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.result_state IS 'Control result state';
+COMMENT ON COLUMN OPS_RETENTION_CONTROL_AUDIT.created_at IS 'Audit creation time';
+CREATE INDEX ix_ops_retention_audit_target ON OPS_RETENTION_CONTROL_AUDIT (target_type, target_id, created_at);
+CREATE INDEX ix_ops_retention_audit_approval ON OPS_RETENTION_CONTROL_AUDIT (approval_request_id, created_at);
+
 CREATE TABLE OPS_RETENTION_POLICY (
     policy_id VARCHAR2(80 CHAR) NOT NULL,
     target_name VARCHAR2(80 CHAR) NOT NULL,
@@ -3996,7 +4050,7 @@ CREATE TABLE SEC_BFF_CREDENTIAL_VAULT (
     CONSTRAINT ck_cpf_bff_credential_version CHECK (version_no > 0),
     CONSTRAINT ck_cpf_bff_credential_expiry CHECK (refresh_expires_at >= access_expires_at)
 );
-COMMENT ON TABLE SEC_BFF_CREDENTIAL_VAULT IS 'ADM/BZA BFF Access/Refresh Token 암호화 Vault';
+COMMENT ON TABLE SEC_BFF_CREDENTIAL_VAULT IS 'ADM/Backoffice Web BFF Access/Refresh Token 암호화 Vault';
 COMMENT ON COLUMN SEC_BFF_CREDENTIAL_VAULT.handle_id IS 'Session에 저장되는 난수 Credential Handle';
 COMMENT ON COLUMN SEC_BFF_CREDENTIAL_VAULT.key_id IS '암호화 Key 식별자';
 COMMENT ON COLUMN SEC_BFF_CREDENTIAL_VAULT.access_iv IS 'Access Token AES-GCM IV';
@@ -5407,6 +5461,8 @@ CREATE TABLE OPS_RETENTION_RUN (
     compressed_count NUMBER(19) DEFAULT 0 NOT NULL,
     freed_bytes NUMBER(19) DEFAULT 0 NOT NULL,
     pause_requested_yn CHAR(1 CHAR) DEFAULT 'N' NOT NULL,
+    control_actor_id VARCHAR2(100 CHAR) NULL,
+    control_reason VARCHAR2(500 CHAR) NULL,
     error_code VARCHAR2(100 CHAR) NULL,
     error_summary VARCHAR2(500 CHAR) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -5436,6 +5492,8 @@ COMMENT ON COLUMN OPS_RETENTION_RUN.processed_count IS 'Committed processed rows
 COMMENT ON COLUMN OPS_RETENTION_RUN.compressed_count IS 'Compressed artifacts if applicable';
 COMMENT ON COLUMN OPS_RETENTION_RUN.freed_bytes IS 'Freed bytes if measurable';
 COMMENT ON COLUMN OPS_RETENTION_RUN.pause_requested_yn IS 'Pause requested; honored at chunk boundary';
+COMMENT ON COLUMN OPS_RETENTION_RUN.control_actor_id IS 'Last pause/resume control actor';
+COMMENT ON COLUMN OPS_RETENTION_RUN.control_reason IS 'Last pause/resume control reason';
 COMMENT ON COLUMN OPS_RETENTION_RUN.error_code IS 'Sanitized failure code';
 COMMENT ON COLUMN OPS_RETENTION_RUN.error_summary IS 'Sanitized failure summary';
 COMMENT ON COLUMN OPS_RETENTION_RUN.created_at IS 'Created time';

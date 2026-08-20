@@ -10,8 +10,8 @@ def main()->int:
     sources=[
       root/'cpf-admin/frontend/src/features/break-glass/breakGlassWorkflow.ts',
       root/'cpf-admin/frontend/src/features/maintenance/maintenanceWorkflow.ts',
-      root/'cpf-biz-frontend/src/features/employees/model/employeeModel.ts',
-      root/'cpf-biz-frontend/src/features/approvals/model/approvalModel.ts',
+      root/'cpf-backoffice-web/frontend/src/features/employees/model/employeeModel.ts',
+      root/'cpf-backoffice-web/frontend/src/features/approvals/model/approvalModel.ts',
     ]
     missing=[str(p) for p in sources if not p.is_file()]
     if missing:

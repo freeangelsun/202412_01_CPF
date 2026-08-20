@@ -59,8 +59,8 @@ def _iter(root:Path, manifest_paths:set[str])->Iterable[Path]:
             if p.is_file() and p.suffix.lower() in SOURCE_EXT|CONFIG_EXT: yield p
         return
     # ZIP에는 Git diff가 없으므로 default full scan은 '개발자가 직접 소비하는 Public/Generated/EDU/Config Surface'만 검사한다.
-    # ADM/BZA 내부 구현까지 public Java method라는 이유만으로 개발자 Public API로 오인하지 않는다.
-    roots=[root/'cpf-member',root/'cpf-external',root/'cpf-education',root/'cpf-core',root/'cpf-admin',root/'cpf-biz-admin',root/'cpf-starters']
+    # ADM/Backoffice 내부 구현까지 public Java method라는 이유만으로 개발자 Public API로 오인하지 않는다.
+    roots=[root/'cpf-member',root/'cpf-external',root/'cpf-education',root/'cpf-core',root/'cpf-admin',root/'cpf-backoffice/online',root/'cpf-starters']
     seen=set()
     for base in roots:
         if not base.exists(): continue
@@ -73,7 +73,7 @@ def _iter(root:Path, manifest_paths:set[str])->Iterable[Path]:
             public_surface = rp.startswith(('cpf-member/','cpf-external/','cpf-education/'))
             if rp.startswith('cpf-core/'):
                 public_surface = any(token in '/'+rp.lower() for token in ('/api/','/spi/','/annotation/','/context/'))
-            if rp.startswith(('cpf-starters/','cpf-admin/','cpf-biz-admin/')):
+            if rp.startswith(('cpf-starters/','cpf-admin/','cpf-backoffice/online/')):
                 low='/'+rp.lower()
                 public_surface = any(token in low for token in ('/api/','/spi/','/annotation/','/config/')) or p.name.endswith(('Properties.java','Properties.kt'))
             if p.suffix.lower() in CONFIG_EXT:

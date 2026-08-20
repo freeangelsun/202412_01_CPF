@@ -13,7 +13,7 @@ class VendorRendererTest(unittest.TestCase):
 
     def test_role_counts_and_vendor_dirs(self):
         schema=json.loads((DB/'canonical/platform-schema.json').read_text(encoding='utf-8-sig'))
-        roles=('CPF_PLATFORM_DB','BZA_DB','REFERENCE_FIXTURE')
+        roles=('CPF_PLATFORM_DB','CUSTOMER_BUSINESS_DB','REFERENCE_FIXTURE')
         counts={r:sum(1 for t in schema['tables'] if t.get('targetDatabaseRole')==r) for r in roles}
         self.assertEqual(len(schema['tables']),sum(counts.values()),counts)
         self.assertTrue(all(counts[r] > 0 for r in roles),counts)

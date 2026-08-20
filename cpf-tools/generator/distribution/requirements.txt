@@ -1,0 +1,2 @@
+# Private release-agent dependency only. Public developers do not need Python/PyInstaller.
+pyinstaller==6.21.0

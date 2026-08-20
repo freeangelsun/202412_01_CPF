@@ -43,7 +43,7 @@ public final class CpfTransactionTraceEnricher {
         if (type.contains("MESSAGE") || type.contains("BROKER") || type.contains("EVENT")) return CpfTraceContext.SpanKind.MESSAGE;
         if (type.contains("BATCH") || type.contains("JOB")) return CpfTraceContext.SpanKind.BATCH;
         if (type.contains("FILE")) return CpfTraceContext.SpanKind.FILE;
-        if (record.getCallerChannel() != null || type.contains("REMOTE") || type.contains("HTTP")) return CpfTraceContext.SpanKind.REMOTE;
+        if (record.getCallerSystemCode() != null || record.getCallerChannel() != null || type.contains("REMOTE") || type.contains("HTTP")) return CpfTraceContext.SpanKind.REMOTE;
         return CpfTraceContext.SpanKind.LOCAL;
     }
 

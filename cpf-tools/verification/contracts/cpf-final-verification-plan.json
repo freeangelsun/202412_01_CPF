@@ -1,14 +1,27 @@
 {
   "schemaVersion": 2,
   "planId": "cpf-current-final-onepass",
-  "orderedStages": ["source", "java", "frontend", "database", "closure"],
+  "orderedStages": [
+    "source",
+    "java",
+    "frontend",
+    "database",
+    "closure"
+  ],
   "commands": [
     {
       "id": "nxt3-current-source",
       "stage": "source",
       "runner": "python",
       "path": "cpf-tools/verification/nxt3/run_nxt3_final_all.py",
-      "args": ["--root", "{root}", "--evidence", "{evidence}/nxt3-final.json", "--log", "{evidence}/nxt3-final.log"],
+      "args": [
+        "--root",
+        "{root}",
+        "--evidence",
+        "{evidence}/nxt3-final.json",
+        "--log",
+        "{evidence}/nxt3-final.log"
+      ],
       "required": true
     },
     {
@@ -16,7 +29,10 @@
       "stage": "source",
       "runner": "python",
       "path": "cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py",
-      "args": ["--root", "{root}"],
+      "args": [
+        "--root",
+        "{root}"
+      ],
       "required": true
     },
     {
@@ -24,7 +40,13 @@
       "stage": "source",
       "runner": "python",
       "path": "cpf-tools/governance/tools/verify-cpf-requirement-traceability.py",
-      "args": ["--root", "{root}", "--expected-sha", "{sha}", "--require-clean"],
+      "args": [
+        "--root",
+        "{root}",
+        "--expected-sha",
+        "{sha}",
+        "--require-clean"
+      ],
       "required": true
     },
     {
@@ -32,7 +54,10 @@
       "stage": "source",
       "runner": "python",
       "path": "cpf-tools/verification/tools/verify-cpf-adm-e2e-contract.py",
-      "args": ["--root", "{root}"],
+      "args": [
+        "--root",
+        "{root}"
+      ],
       "required": true
     },
     {
@@ -40,7 +65,14 @@
       "stage": "java",
       "runner": "gradle",
       "path": "gradlew.bat",
-      "args": ["clean", "test", "assemble", "qualityGate", "--no-daemon", "--stacktrace"],
+      "args": [
+        "clean",
+        "test",
+        "assemble",
+        "qualityGate",
+        "--no-daemon",
+        "--stacktrace"
+      ],
       "required": true,
       "requiredTool": "java25"
     },
@@ -50,17 +82,23 @@
       "runner": "npm",
       "path": "package.json",
       "workingDirectory": "cpf-admin/frontend",
-      "args": ["run", "verify"],
+      "args": [
+        "run",
+        "verify"
+      ],
       "required": true,
       "requiredTool": "node22"
     },
     {
-      "id": "bza-frontend-verify",
+      "id": "backoffice-frontend-verify",
       "stage": "frontend",
       "runner": "npm",
       "path": "package.json",
-      "workingDirectory": "cpf-biz-frontend",
-      "args": ["run", "verify"],
+      "workingDirectory": "cpf-backoffice-web/frontend",
+      "args": [
+        "run",
+        "verify"
+      ],
       "required": true,
       "requiredTool": "node22"
     },
@@ -69,7 +107,10 @@
       "stage": "database",
       "runner": "pwsh",
       "path": "cpf-tools/db/verification/check-db-vendor-pack-parity.ps1",
-      "args": ["-Root", "{root}"],
+      "args": [
+        "-Root",
+        "{root}"
+      ],
       "required": true
     },
     {
@@ -77,7 +118,10 @@
       "stage": "database",
       "runner": "pwsh",
       "path": "cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1",
-      "args": ["-Root", "{root}"],
+      "args": [
+        "-Root",
+        "{root}"
+      ],
       "required": true
     },
     {
@@ -85,7 +129,12 @@
       "stage": "closure",
       "runner": "pwsh",
       "path": "cpf-tools/verification/tools/verify-cpf-final-completion.ps1",
-      "args": ["-RepoRoot", "{root}", "-ExpectedSourceSha", "{sha}"],
+      "args": [
+        "-RepoRoot",
+        "{root}",
+        "-ExpectedSourceSha",
+        "{sha}"
+      ],
       "required": true,
       "requiredTool": "java25"
     }

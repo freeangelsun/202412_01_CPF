@@ -2,7 +2,7 @@ package com.cpf.gateway.runtime;
 
 import com.cpf.gateway.api.CpfGatewayRegistryPort;
 import com.cpf.gateway.api.CpfGatewayRoute;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
 import com.cpf.gateway.config.CpfGatewaySafetyEnforcer;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;

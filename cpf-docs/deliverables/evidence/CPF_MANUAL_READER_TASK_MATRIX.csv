@@ -1,0 +1,41 @@
+﻿task_id,document,reader,task,completion_evidence,review_status
+READER-001,README,도입 검토자,CPF로 온라인·Batch·BZA·Gateway 중 무엇을 만들 수 있는지 설명,제품 구성·역할별 Guide 링크를 찾음,완료
+READER-002,00,아키텍트,Local/Remote·Modular Monolith/MSA 선택,결정 질문과 책임표로 근거 작성,완료
+READER-003,00,기획자,외부기관 응답 유실을 설계 범위에 포함,Attempt·UNKNOWN_RESULT·Reconcile 선택,완료
+READER-004,01,신규 개발자,Generator Dry Run 수행,충돌 경로·Resolved Lock·DB Vendor 확인,완료
+READER-005,01,신규 개발자,PAY 등록 API와 상태 변경 구현 순서 이해,DTO→Domain→Transaction→Audit/Outbox 연결,완료
+READER-006,01,개발자,같은 Idempotency Key 재호출 판정,같은 Hash는 기존 결과·다른 Hash는 Conflict,완료
+READER-007,01,개발자,두 사용자 동시 수정 재현,한 건 성공·한 건 409·현재 Version 확인,완료
+READER-008,01,연계 개발자,기관 Read Timeout 뒤 복구,Attempt UNKNOWN→Status Query→Decision,완료
+READER-009,01,메시지 개발자,Consumer Commit 후 Kill 복구,Inbox로 부작용 1회·ACK 재수행,완료
+READER-010,01,개발자,OpenAPI·Generated Client·ADM 인계,Operation ID와 Error 계약 연결,완료
+READER-011,02,배치 개발자,Tasklet/Chunk/Partition 선택,데이터량·Checkpoint·확장성 근거 기록,완료
+READER-012,02,배치 개발자,정산 JobParameter 정의,식별/비식별 Parameter 분리,완료
+READER-013,02,배치 개발자,Writer Commit 뒤 Kill 재현,Metadata·업무 원장 대사 후 Restart,완료
+READER-014,02,배치 운영자,Stop·Restart·Abandon 구분,상태별 허용 조치표 사용,완료
+READER-015,02,배치 운영자,Center-Cut 부분 실패 재처리,성공 제외·실패 Snapshot·합계 대사,완료
+READER-016,03,ADM 연동 개발자,Owner Query/Command Port 연결,ADM DB 직접 수정 없이 Adapter 구성,완료
+READER-017,03,ADM 연동 개발자,OpenAPI→Generated Client→Vue 연결,수기 URL 없이 Operation 사용,완료
+READER-018,03,Frontend 개발자,409 UX 구현,현재 Version 표시·사용자 재판단,완료
+READER-019,03,Frontend 개발자,202 UNKNOWN UX 구현,Operation 상태조회·중복 클릭 차단,완료
+READER-020,03,QA,403·409·Timeout Browser Test 작성,Negative Fixture와 기대 화면 확인,완료
+READER-021,04,ADM 조회자,Dashboard 이상을 상세 화면으로 추적,기준시각·식별자 고정,완료
+READER-022,04,ADM 운영자,응답 유실 Operation 대사,Incident→Trace→Recovery Center 순서,완료
+READER-023,04,ADM 승인자,Data Quality 정정 승인,Snapshot·Version·Approval ID 확인,완료
+READER-024,04,보안 담당자,Secret Rotation 일부 실패 판단,Consumer Active Version·Grace 확인,완료
+READER-025,04,교대 운영자,Incident 종료 기록 작성,Owner 상태·Audit·남은 위험 기록,완료
+READER-026,05,플랫폼 운영자,Artifact·계정·Directory 사전 준비,Hash·Owner·Permission Gate 통과,완료
+READER-027,05,DBA,MariaDB/PostgreSQL/Oracle Migration 판정,Vendor별 Preflight·History·Rollback,완료
+READER-028,05,운영자,77개 Configuration 해석,actual-key와 capability-prefix 구분,완료
+READER-029,05,운영자,Gateway 일부 NACK Runbook 수행,Publish 중단·Target 보정/LKG,완료
+READER-030,05,DR 담당자,Restore Drill과 Failover 기록,RPO/RTO·단일 Writer·대사,완료
+READER-031,90,BZA 관리자,초기 조직·직원·사용자 구성,기준일·Version·Audit 확인,완료
+READER-032,90,보안 관리자,Role·Permission·Data Scope 적용,Effective Permission Simulation,완료
+READER-033,90,결재 관리자,정책·결재선 Snapshot 구성,Requester/Approver 분리·만료,완료
+READER-034,90,운영자,권한 회수 뒤 Session 검증,기존 Session 403 또는 폐기 확인,완료
+READER-035,91,Gateway 개발자,Route·Predicate·Rewrite 정의,Golden Request 단일 Match,완료
+READER-036,91,보안 담당자,HMAC Golden Vector 실행,Timestamp·Nonce·Body Hash·Audience 판정,완료
+READER-037,91,Gateway 운영자,게시 ACK/NACK 판정,Desired/Observed·Target별 상태 확인,완료
+READER-038,91,Gateway 운영자,Partial Apply LKG 복구,Rollback Operation·Drift 0 확인,완료
+READER-039,설계,설계 검토자,Module Owner·Consumer·Failure Domain 검토,Architecture View와 Sequence 사용,완료
+READER-040,DB표준,DBA,원장 Table과 Migration Review,Owner·Version·Vendor·Restore 기준 사용,완료

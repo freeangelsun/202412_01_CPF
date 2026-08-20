@@ -45,13 +45,13 @@ SCENARIO_REQUIRED = (
 
 GROUP_SOURCE_MAP = {
     "ADM_UI": ["cpf-admin/frontend/src/app/routes.ts", "cpf-admin/frontend/src/generated/cpf-operation-contract.ts", "cpf-admin/frontend/src/features", "cpf-admin/src/main/java/com/cpf/admin", "cpf-admin/src/test"],
-    "BZA_UI": ["cpf-biz-frontend/src/router/index.ts", "cpf-biz-frontend/scripts/generate-reference-client.mjs", "cpf-biz-frontend/src/features", "cpf-biz-admin/src/main/java/com/cpf/bizadmin", "cpf-biz-admin/src/test"],
-    "FRONTEND": ["cpf-admin/frontend", "cpf-biz-frontend"],
+    "BZA_UI": ["cpf-backoffice-web/frontend/src/router/index.ts", "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs", "cpf-backoffice-web/frontend/src/features", "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online", "cpf-backoffice/online/src/test"],
+    "FRONTEND": ["cpf-admin/frontend", "cpf-backoffice-web/frontend"],
     "TEST": ["cpf-tools/testing", "cpf-tools/verification"],
     "QUALITY": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/work/qa"],
     "RELEASE": ["build.gradle", "settings.gradle", "cpf-tools/release", "deploy"],
-    "SECURITY": ["cpf-core/src/main/java/com/cpf/core/api/security", "cpf-core/src/main/java/com/cpf/core/common", "cpf-admin/src/main/java/com/cpf/admin", "cpf-biz-admin/src/main/java/com/cpf/bizadmin"],
-    "PRODUCT": ["cpf-core", "cpf-common", "cpf-admin", "cpf-biz-admin", "cpf-batch", "cpf-tools/generator"],
+    "SECURITY": ["cpf-core/src/main/java/com/cpf/core/api/security", "cpf-core/src/main/java/com/cpf/core/common", "cpf-admin/src/main/java/com/cpf/admin", "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online"],
+    "PRODUCT": ["cpf-core", "cpf-common", "cpf-admin", "cpf-backoffice/online", "cpf-batch", "cpf-tools/generator"],
     "BATCH": ["cpf-batch", "cpf-admin/frontend/src/features/batch", "cpf-tools/db/vendor"],
     "DOC": ["cpf-docs"],
     "CORE": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-core/src/main/java/com/cpf/core/spi", "cpf-core/src/main/java/com/cpf/core/internal"],
@@ -67,7 +67,7 @@ GROUP_SOURCE_MAP = {
     "COMMON": ["cpf-common", "cpf-core/src/main/java/com/cpf/core/api"],
     "RUNTIME_CONTROL": ["cpf-core/src/main/java/com/cpf/core/api/runtimecontrol", "cpf-admin/src/main/java/com/cpf/admin/opr", "cpf-starters"],
     "FILE": ["cpf-core/src/main/java/com/cpf/core/api/filetransfer", "cpf-core/src/main/java/com/cpf/core/api/attachment", "cpf-admin/frontend/src/features/file-jobs"],
-    "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-biz-admin/openapi"],
+    "API": ["cpf-core/src/main/java/com/cpf/core/api", "cpf-admin/frontend/openapi", "cpf-backoffice/online/openapi"],
     "GOV": ["cpf-docs/governance", "cpf-docs/work/current"],
 }
 
@@ -197,9 +197,9 @@ def verify(args: argparse.Namespace) -> dict:
 
     # Route/OpenAPI contracts are product consumer evidence for the UI phases.
     adm_route = root / "cpf-admin/frontend/src/app/routes.ts"
-    bza_route = root / "cpf-biz-frontend/src/router/index.ts"
+    bza_route = root / "cpf-backoffice-web/frontend/src/router/index.ts"
     adm_contract = root / "cpf-admin/frontend/src/generated/cpf-operation-contract.ts"
-    bza_contract = root / "cpf-biz-admin/openapi/cpf-openapi.json"
+    bza_contract = root / "cpf-backoffice/online/openapi/cpf-openapi.json"
     adm_route_ids, adm_components, adm_expected = parse_route_contract(adm_route, "adm")
     bza_route_ids, bza_components, bza_expected = parse_route_contract(bza_route, "bza")
     adm_ops = split_ops(adm_contract.read_text(encoding="utf-8"))

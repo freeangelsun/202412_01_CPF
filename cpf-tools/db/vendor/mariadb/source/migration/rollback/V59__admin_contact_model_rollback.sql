@@ -1,7 +1,7 @@
 -- V59 rollback: remove contact model additions only.
 
-USE bzaDB;
-ALTER TABLE bza_employee
+USE backofficeDB;
+ALTER TABLE mbw_employee
     DROP COLUMN IF EXISTS office_phone_no;
 
 USE admDB;

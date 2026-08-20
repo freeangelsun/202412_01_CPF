@@ -7,7 +7,7 @@ VENDORS=r'(?:oracle|postgres(?:ql)?|mariadb)'
 BRANCH=re.compile(rf'(?is)(?:\bif\s*\([^)]*{VENDORS}|\belse\s+if\b[^\n]*{VENDORS}|\bswitch\s*\([^)]*(?:vendor|database)|getDatabaseProductName\s*\(|DatabaseMetaData[^\n]*{VENDORS})')
 THREE_COPY=re.compile(r'(?i)(oracle|postgres(?:ql)?|mariadb)')
 AUTHORIZED_PARTS={'dialect','renderer','generated','vendor','vendors','db','database','migration','migrations'}
-SCAN_ROOTS=['cpf-common','cpf-admin','cpf-biz-admin','cpf-batch','cpf-gateway','cpf-starters','cpf-education','cpf-member','cpf-external']
+SCAN_ROOTS=['cpf-common','cpf-admin','cpf-backoffice/online','cpf-batch','cpf-gateway','cpf-starters','cpf-education','cpf-member','cpf-external']
 
 def authorized(p:Path)->bool:
  # Vendor 차이는 Application/Business가 아니라 명시적인 Data Provider/Dialect 경계가 소유한다.

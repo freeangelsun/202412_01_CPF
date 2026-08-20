@@ -24,7 +24,7 @@ STOP_TOKENS = {
 }
 OWNER_PREFIX = {
     "cpf-admin": "cpf-admin/",
-    "cpf-biz-admin": "cpf-biz-admin/",
+    "cpf-backoffice/online": "cpf-backoffice/online/",
     "cpf-core": "cpf-core/",
     "cpf-common": "cpf-common/",
     "cpf-batch": "cpf-batch/",

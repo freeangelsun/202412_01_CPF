@@ -37,7 +37,7 @@ def _require_tokens(path: Path, tokens: list[str]) -> None:
     if missing: raise ContractError(f"{path}: required lifecycle tokens missing={missing}")
 
 def validate_contract(root: Path, contract: dict) -> None:
-    if contract.get("schemaVersion") != 3: raise ContractError("schemaVersion must be 3")
+    if contract.get("schemaVersion") != 4: raise ContractError("schemaVersion must be 4")
     if contract.get("supportedVendors") != VENDORS: raise ContractError(f"supportedVendors must be exactly {VENDORS}")
     if contract.get("operations") != OPERATIONS: raise ContractError(f"operations must be exactly {OPERATIONS}")
     engine=require_file(root,str(contract.get("canonicalEngine","")))
@@ -49,6 +49,9 @@ def validate_contract(root: Path, contract: dict) -> None:
     state=contract.get("transientState")
     if not isinstance(state,dict) or state.get("customerProjectMetadata") != "NONE" or "build/domain-generator/verification" not in str(state.get("directory","")):
         raise ContractError("transientState must keep lifecycle state outside the generated customer project")
+    lock=contract.get("workspaceOwnershipLock")
+    if not isinstance(lock,dict) or lock.get("sourceControlled") is not True or lock.get("semanticSourceOfTruth") is not False or lock.get("freshCloneRecovery") is not True or lock.get("generatedProjectMetadata") is not False:
+        raise ContractError("workspaceOwnershipLock must be source-controlled safety metadata outside Generated Project")
     forbidden=contract.get("forbiddenPermanentProjectEntries")
     if not isinstance(forbidden,list) or len(forbidden)!=len(set(forbidden)) or not {".cpf","cpf-domain.yaml","manifest"}.issubset(set(forbidden)):
         raise ContractError("forbiddenPermanentProjectEntries must block permanent generator metadata")
@@ -60,6 +63,9 @@ def validate_contract(root: Path, contract: dict) -> None:
       "purgeDefinitionRequiresExplicitOption":True,"frameworkIntegrationPointsRemovedWithDomain":True,
     }
     if protection != required: raise ContractError("userProtection must remain fail-closed")
+    db_assets=contract.get("generatedDatabaseAssets")
+    if not isinstance(db_assets,dict) or db_assets.get("sourceControlled") is not True or db_assets.get("vendors") != VENDORS:
+        raise ContractError("generatedDatabaseAssets must expose source-controlled DB3 lifecycle assets")
 
 def _load_engine(root: Path, rel: str):
     path=root/rel
@@ -72,7 +78,7 @@ def validate_lifecycle_runtime(root: Path, contract: dict) -> None:
     engine=_load_engine(root,contract["canonicalEngine"])
     with tempfile.TemporaryDirectory(prefix="cpf-generator-lifecycle-") as td:
         stage=Path(td); repo=stage/"repo"; repo.mkdir()
-        for rel in [contract["canonicalInputSchema"],"cpf-tools/generator/config/application-starters.yml","gradle/cpf-stack.properties"]:
+        for rel in [contract["canonicalInputSchema"],"cpf-tools/generator/contracts/cpf-starter-catalog.json","gradle/cpf-stack.properties"]:
             src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
         for rel in ["cpf-tools/db/generated/domain-template",
                     "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect"]:
@@ -128,11 +134,31 @@ generation:
         if restored.get("status")!="RESTORED": raise ContractError("restore did not restore matching seed")
         if not engine.diff(repo,definition,output).get("clean"): raise ContractError("restore parity is not clean")
 
+        # Public Workspace fresh clone: source-controlled definition + ownership lock만으로 sync/upgrade가 복구되어야 한다.
+        public_repo=stage/"public-repo"; public_repo.mkdir()
+        for rel in [contract["canonicalInputSchema"],"cpf-tools/generator/contracts/cpf-starter-catalog.json","gradle/cpf-stack.properties"]:
+            src=root/rel; dst=public_repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
+        src=root/"cpf-tools/db/generated/domain-template"; dst=public_repo/"cpf-tools/db/generated/domain-template"; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst)
+        public_def=public_repo/"domains/ledger/cpf-domain.yaml"; public_def.parent.mkdir(parents=True)
+        public_def.write_text(definition.read_text(encoding="utf-8"),encoding="utf-8")
+        public_output=public_repo/"cpf-ledger"
+        public_gen=engine.generate(public_repo,public_def,public_output)
+        if public_gen.get("status")!="GENERATED": raise ContractError("public workspace generate did not pass")
+        lock=public_repo/"domains/ledger/cpf-generator.lock.json"
+        if not lock.is_file(): raise ContractError("source-controlled workspace ownership lock missing")
+        transient_public=public_repo/"build/domain-generator/verification/cpf-ledger"
+        if transient_public.exists(): shutil.rmtree(transient_public)
+        updated=public_def.read_text(encoding="utf-8").replace("  online: true\n", "  online: true\n  batch: true\n")
+        public_def.write_text(updated,encoding="utf-8")
+        synced=engine.upgrade(public_repo,public_def,public_output)
+        if synced.get("status")!="UPGRADED" or not (public_output/"batch/build.gradle").is_file():
+            raise ContractError("fresh clone ownership lock did not restore safe sync/upgrade")
+
 def main() -> int:
     parser=argparse.ArgumentParser(); parser.add_argument("--root",type=Path,default=Path.cwd()); parser.add_argument("--contract",default="cpf-tools/generator/contracts/generator-lifecycle-contract.json"); parser.add_argument("--static-only",action="store_true")
     args=parser.parse_args(); root=args.root.resolve(); contract=load_json(root/args.contract); validate_contract(root,contract)
     if not args.static_only: validate_lifecycle_runtime(root,contract)
-    print(f"[PASS] CPF generator lifecycle schema=3 vendors={len(VENDORS)} operations={len(OPERATIONS)} runtime={not args.static_only}")
+    print(f"[PASS] CPF generator lifecycle schema=4 vendors={len(VENDORS)} operations={len(OPERATIONS)} runtime={not args.static_only}")
     return 0
 
 if __name__=="__main__":

@@ -9,11 +9,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /** CPF capability 경계의 호출/복구 순서를 기술 독립적으로 기록하는 probe. */
 public final class CpfProtocolProbe {
+    /** Protocol Probe가 관찰한 요청/응답 방향 또는 통신 Channel을 구분합니다. */
     public enum Channel {
         HTTP, DB, MESSAGING, OUTBOX, INBOX, SAGA, TCC, BATCH,
         OBJECT_STORAGE, HEALTH, GRAPHQL
     }
 
+    /** Protocol Probe가 캡처한 message와 시각/Channel metadata를 전달하는 Event입니다. */
     public record Event(Channel channel, String operation, String outcome,
                         String transactionId, String instanceId, Instant at,
                         Map<String, String> attributes) {

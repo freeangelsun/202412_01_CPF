@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 class CoreOnlyConsumerTest {
  @Test void coreContractLoadsWithoutBootProviderRuntime(){
-  assertThat(CpfBrokerPublishRequest.class.getName()).startsWith("com.cpf.core.api");
+  // Messaging contracts are intentionally owned by the Messaging capability after Core Slimming.
+  assertThat(CpfBrokerPublishRequest.class.getName()).startsWith("com.cpf.messaging.api");
  }
 }

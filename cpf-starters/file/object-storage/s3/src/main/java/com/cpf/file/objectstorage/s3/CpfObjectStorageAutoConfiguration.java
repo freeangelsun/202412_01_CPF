@@ -16,6 +16,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+/**
+ * S3 Object Storage capability를 CPF Object Storage API에 연결하는 Public Starter 자동구성입니다.
+ * <p>Bucket/Region/Endpoint 정책을 검증하고 scan/lifecycle/context hook을 조립합니다.
+ */
 @AutoConfiguration
 @EnableScheduling
 @EnableConfigurationProperties(CpfObjectStorageProperties.class)

@@ -1,4 +1,4 @@
-# 최소 개발모드도 Generated Domain을 같은 Port에 올릴 수 있으며 ADM/BZA/Gateway만 제외합니다.
+# 최소 개발모드도 Generated Domain을 같은 Port에 올릴 수 있으며 ADM/Backoffice/Gateway만 제외합니다.
 cpf:
   local:
     runtime:
@@ -8,7 +8,7 @@ cpf:
       common: true
       gateway: false
       admin: false
-      biz-admin: false
+      backoffice: false
       domains:
         enabled: true
         auto-discover: true

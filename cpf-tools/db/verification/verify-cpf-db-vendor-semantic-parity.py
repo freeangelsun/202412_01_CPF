@@ -318,7 +318,7 @@ def verify(root:Path)->dict:
    for vendor in VENDORS:
     current=root/'cpf-tools/db/generated/current'/vendor
     inventory[vendor]={'generatedCurrent':[]}
-    schema_files=[current/'cpf-platform-schema.sql',current/'bza-schema.sql',current/'reference-fixture-schema.sql']
+    schema_files=[current/'cpf-platform-schema.sql',current/'backoffice-schema.sql',current/'reference-fixture-schema.sql']
     for f in schema_files:
      if not f.is_file(): findings.append(f'{vendor}/generated-current: missing {f.name}'); continue
      text=f.read_text(encoding='utf-8-sig')

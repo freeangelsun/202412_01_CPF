@@ -17,5 +17,5 @@ def test_current_tree_uses_five_logical_roots_and_no_flat_run_aliases():
     convention=(ROOT/'cpf-tools/build/cpf-root-conventions.gradle').read_text(encoding='utf-8')
     for root_group in ('apps','runtime','framework','starters','internal'):
         assert f"project(':{root_group}').projectDir" in settings
-    for legacy in (':cpf-local-runtime:bootRun',':cpf-admin:bootRun',':cpf-biz-admin:bootRun',':cpf-gateway:bootRun',':cpf-local-batch-runtime:bootRun',':cpf-education:bootRun'):
+    for legacy in (':cpf-local-runtime:bootRun',':cpf-admin:bootRun',':cpf-backoffice:bootRun',':cpf-gateway:bootRun',':cpf-local-batch-runtime:bootRun',':cpf-education:bootRun'):
         assert legacy not in convention

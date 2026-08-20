@@ -1,0 +1,3 @@
+backoffice:
+  web:
+    secure-cookies: ${MBW_WEB_SECURE_COOKIES:false}

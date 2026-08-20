@@ -1,0 +1,55 @@
+{
+  "packageType": "CPF_DEV20_FINAL_LOCAL_SOURCE_SNAPSHOT",
+  "baseline": {
+    "file": "CPF_DEV19_CHECKPOINT_9982_WORKED_FULL_SOURCE_20260820_091408(1).zip",
+    "sha256": "cbe640dcba5ec75425f18c7403e7d3e4aa6f62a6132222073dd016bd57bca9b5",
+    "handover": "CPF_DEV19_CHECKPOINT_9982_HANDOVER_20260820_091408(1).md"
+  },
+  "sourceIdentity": {
+    "type": "LOCAL_CONTENT_TREE_SHA256",
+    "sha256": "6e830557ec01aca85d96e52d7a5b1d66b245336a7a0ce1cc65d82a18f3c0e2b7",
+    "gitWritePerformed": false
+  },
+  "verification": {
+    "sourceBlockers": 0,
+    "currentFinalStatic": "PASS",
+    "generator": "29 passed, 10 skipped, 6 subtests",
+    "db": "157 passed",
+    "publicRelease": "28 passed",
+    "runtimeSecurity": "73 passed, 2 skipped, 7 subtests",
+    "verificationOpenapi": "76 passed",
+    "testingTools": "375 passed, 22 skipped, 2 subtests",
+    "frontendApiRuntime": "PASS checks>=38",
+    "frontendSubstitute": "PASS ADM Node/Chromium + Backoffice boundary",
+    "controllerPermission": "PASS 425 ops/196 mutations",
+    "backofficeBoundary": "PASS 96/96, DB-less, CPF Java dep 0, Canonical6",
+    "batchFencing": "PASS 22 checks",
+    "db3CanonicalRender": "PASS vendors=3 tables=234 seeds=156",
+    "gradleLogicalTree": "PASS catalog=64",
+    "publicEmptyStaging": "PASS files=178",
+    "java25GradleFull": "NOT_EXECUTED_ENVIRONMENT: wrapper download blocked; runtime Java 21",
+    "liveInfrastructure": "NOT_EXECUTED_ENVIRONMENT"
+  },
+  "hygiene": {
+    "deleteManifestRows": 429,
+    "deletePathsStillPresent": 0,
+    "emptyDirectories": 0,
+    "pyc": 0,
+    "classFiles": 0,
+    "retiredProductRoots": 0,
+    "cpfToolsBuildSourcePresent": true
+  },
+  "deliverables": [
+    "CHANGE_MANIFEST.csv",
+    "TEST_AND_EVIDENCE.md",
+    "REQUIREMENT_STATUS.csv",
+    "OPEN_ISSUES.md",
+    "QA_REWORK_REQUEST.md",
+    "PACKAGE_MANIFEST.json",
+    "SHA256SUMS.txt",
+    "HANDOVER.md",
+    "CONTINUITY.md",
+    "CODEX_REVALIDATION_REQUEST.md",
+    "evidence/DEV20_BZA_STALE_CLASSIFICATION.csv"
+  ]
+}

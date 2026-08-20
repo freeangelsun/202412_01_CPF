@@ -70,6 +70,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String responseCode,
             Integer httpStatus,
             String clientId,
+            String originalSystemCode,
+            String systemCode,
+            String callerSystemCode,
+            String targetSystemCode,
             String originalChannel,
             String currentChannel,
             String callerChannel,
@@ -93,6 +97,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         QueryFilter filter = buildFilter(
                 transactionId, traceId, businessTransactionId, memberNo, customerNo,
                 uri, responseCode, httpStatus, clientId,
+                originalSystemCode, systemCode, callerSystemCode, targetSystemCode,
                 originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId,
                 logType, moduleId, wasId, instanceId, hostName,
                 domainCode, application, starterId, capabilityId, provider, capabilityOperation);
@@ -116,6 +121,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                     CLIENT_ID,
                     CLIENT_VERSION,
                     CALLER_INSTANCE_ID,
+                    ORIGINAL_SYSTEM_CODE,
+                    SYSTEM_CODE,
+                    CALLER_SYSTEM_CODE,
+                    TARGET_SYSTEM_CODE,
                     ORIGINAL_CHANNEL,
                     CURRENT_CHANNEL,
                     CALLER_CHANNEL,
@@ -180,6 +189,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String responseCode,
             Integer httpStatus,
             String clientId,
+            String originalSystemCode,
+            String systemCode,
+            String callerSystemCode,
+            String targetSystemCode,
             String originalChannel,
             String currentChannel,
             String callerChannel,
@@ -200,6 +213,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
         return findLogPage(
                 transactionId, traceId, businessTransactionId, memberNo, customerNo,
                 uri, responseCode, httpStatus, clientId,
+                originalSystemCode, systemCode, callerSystemCode, targetSystemCode,
                 originalChannel, currentChannel, callerChannel, targetChannel, targetOperationId,
                 logType, moduleId, wasId, instanceId, hostName,
                 domainCode, application, starterId, capabilityId, provider, capabilityOperation,
@@ -216,6 +230,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             String responseCode,
             Integer httpStatus,
             String clientId,
+            String originalSystemCode,
+            String systemCode,
+            String callerSystemCode,
+            String targetSystemCode,
             String originalChannel,
             String currentChannel,
             String callerChannel,
@@ -246,6 +264,10 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
             args.add(httpStatus);
         }
         appendLike(where, args, "CLIENT_ID", clientId);
+        appendEquals(where, args, "ORIGINAL_SYSTEM_CODE", originalSystemCode);
+        appendEquals(where, args, "SYSTEM_CODE", systemCode);
+        appendEquals(where, args, "CALLER_SYSTEM_CODE", callerSystemCode);
+        appendEquals(where, args, "TARGET_SYSTEM_CODE", targetSystemCode);
         appendEquals(where, args, "ORIGINAL_CHANNEL", originalChannel);
         appendEquals(where, args, "CURRENT_CHANNEL", currentChannel);
         appendEquals(where, args, "CALLER_CHANNEL", callerChannel);
@@ -295,6 +317,7 @@ public class AdmLogQueryService extends com.cpf.admin.common.base.AdmBaseService
                 SELECT LOG_IDX, TRANSACTION_ID, TRACE_ID, MODULE_ID, WAS_ID, INSTANCE_ID, HOST_NAME, HOST_IP,
                        PROCESS_ID, THREAD_NAME, BUSINESS_TRANSACTION_ID, BUSINESS_TRANSACTION_NAME,
                        LOG_TYPE, REQUEST_TYPE, CLIENT_ID, CLIENT_VERSION, CALLER_INSTANCE_ID,
+                       ORIGINAL_SYSTEM_CODE, SYSTEM_CODE, CALLER_SYSTEM_CODE, TARGET_SYSTEM_CODE,
                        ORIGINAL_CHANNEL, CURRENT_CHANNEL, CALLER_CHANNEL, TARGET_CHANNEL, TARGET_OPERATION_ID,
                        MEMBER_NO, CUSTOMER_NO, DEVICE_ID, CLIENT_IP, USER_AGENT, LOCALE,
                        HTTP_METHOD, URI, HTTP_STATUS, RESPONSE_CODE, ERROR_CODE, EXEC_USER,

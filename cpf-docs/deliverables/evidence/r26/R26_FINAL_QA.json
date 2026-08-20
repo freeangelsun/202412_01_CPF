@@ -1,0 +1,360 @@
+{
+  "docx": [
+    {
+      "file": "cpf-docs/deliverables/기술사양서.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 49,
+      "windows": 3,
+      "window_types": {
+        "CODE": 3
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/deliverables/기술표준서.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 71,
+      "windows": 41,
+      "window_types": {
+        "BAD": 15,
+        "CODE": 7,
+        "GOOD": 15,
+        "JSON": 1,
+        "SOURCE": 2,
+        "SQL": 1
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/deliverables/데이터베이스표준서.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 48,
+      "windows": 24,
+      "window_types": {
+        "CODE": 2,
+        "FLOW": 1,
+        "SQL": 21
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/deliverables/산출물목록.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 70,
+      "windows": 2,
+      "window_types": {
+        "CODE": 2
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/deliverables/아키텍처설계서.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 47,
+      "windows": 12,
+      "window_types": {
+        "CODE": 4,
+        "FLOW": 6,
+        "TREE": 2
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/00_프레임워크안내.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 45,
+      "windows": 10,
+      "window_types": {
+        "CODE": 1,
+        "CONFIG": 1,
+        "FLOW": 6,
+        "TERMINAL": 1,
+        "TREE": 1
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/01_개발자매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 163,
+      "windows": 86,
+      "window_types": {
+        "CODE": 19,
+        "CONFIG": 6,
+        "FLOW": 3,
+        "HTTP": 3,
+        "OUTPUT": 5,
+        "SOURCE": 20,
+        "SQL": 5,
+        "TERMINAL": 22,
+        "TREE": 3
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/02_배치개발매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 79,
+      "windows": 35,
+      "window_types": {
+        "CODE": 8,
+        "CONFIG": 1,
+        "FLOW": 4,
+        "OUTPUT": 1,
+        "SOURCE": 6,
+        "SQL": 2,
+        "TERMINAL": 13
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/03_ADM개발자매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 85,
+      "windows": 56,
+      "window_types": {
+        "CODE": 27,
+        "CONFIG": 1,
+        "FLOW": 2,
+        "SOURCE": 24,
+        "TERMINAL": 2
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/04_ADM운영자매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 268,
+      "windows": 69,
+      "window_types": {
+        "CODE": 3,
+        "FLOW": 1,
+        "JSON": 1,
+        "SOURCE": 63,
+        "TERMINAL": 1
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/05_플랫폼운영매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 79,
+      "windows": 24,
+      "window_types": {
+        "CODE": 10,
+        "CONFIG": 2,
+        "FLOW": 4,
+        "SQL": 1,
+        "TERMINAL": 5,
+        "TREE": 2
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/90_BZA매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 111,
+      "windows": 43,
+      "window_types": {
+        "CODE": 3,
+        "FLOW": 8,
+        "JSON": 2,
+        "OUTPUT": 1,
+        "SOURCE": 26,
+        "TERMINAL": 3
+      },
+      "banned_hits": {}
+    },
+    {
+      "file": "cpf-docs/guides/91_Gateway매뉴얼.docx",
+      "comments_xml": 0,
+      "tracked_insertions": 0,
+      "tracked_deletions": 0,
+      "tables": 46,
+      "windows": 15,
+      "window_types": {
+        "CODE": 7,
+        "CONFIG": 1,
+        "FLOW": 2,
+        "JSON": 1,
+        "OUTPUT": 1,
+        "TERMINAL": 3
+      },
+      "banned_hits": {}
+    }
+  ],
+  "pdf": [
+    {
+      "file": "cpf-docs/deliverables/기술사양서.pdf",
+      "pages": 50,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 115,
+      "last_page_chars": 1306
+    },
+    {
+      "file": "cpf-docs/deliverables/기술표준서.pdf",
+      "pages": 39,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 111,
+      "last_page_chars": 1280
+    },
+    {
+      "file": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "pages": 36,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 115,
+      "last_page_chars": 607
+    },
+    {
+      "file": "cpf-docs/deliverables/산출물목록.pdf",
+      "pages": 34,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 106,
+      "last_page_chars": 607
+    },
+    {
+      "file": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "pages": 41,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 124,
+      "last_page_chars": 1117
+    },
+    {
+      "file": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "pages": 33,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 269,
+      "last_page_chars": 1919
+    },
+    {
+      "file": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "pages": 80,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 88,
+      "last_page_chars": 2157
+    },
+    {
+      "file": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "pages": 46,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 105,
+      "last_page_chars": 607
+    },
+    {
+      "file": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "pages": 58,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 120,
+      "last_page_chars": 607
+    },
+    {
+      "file": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "pages": 196,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 116,
+      "last_page_chars": 657
+    },
+    {
+      "file": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "pages": 59,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 122,
+      "last_page_chars": 1500
+    },
+    {
+      "file": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "pages": 62,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 109,
+      "last_page_chars": 1060
+    },
+    {
+      "file": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "pages": 41,
+      "encrypted": false,
+      "blank_noncover": [],
+      "out_of_bounds_blocks": [],
+      "min_noncover_chars": 88,
+      "last_page_chars": 607
+    }
+  ],
+  "readme": {
+    "local_refs": 45,
+    "missing": []
+  },
+  "summary": {
+    "logical_docs": 13,
+    "pdfs": 13,
+    "pages_total": 775,
+    "windows_total": 420,
+    "window_types_total": {
+      "CODE": 96,
+      "BAD": 15,
+      "GOOD": 15,
+      "JSON": 5,
+      "SOURCE": 141,
+      "SQL": 30,
+      "FLOW": 37,
+      "TREE": 8,
+      "CONFIG": 12,
+      "TERMINAL": 50,
+      "HTTP": 3,
+      "OUTPUT": 8
+    },
+    "comments_total": 0,
+    "tracked_insertions_total": 0,
+    "tracked_deletions_total": 0,
+    "banned_hits_total": 0,
+    "blank_noncover_total": 0,
+    "out_of_bounds_total": 0,
+    "readme_missing_refs": 0
+  }
+}

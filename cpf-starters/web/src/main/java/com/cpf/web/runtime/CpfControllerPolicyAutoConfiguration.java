@@ -2,6 +2,7 @@ package com.cpf.web.runtime;
 
 import com.cpf.web.context.CpfOperationIdResolver;
 import com.cpf.web.context.CpfRuntimeIdentity;
+import com.cpf.web.context.CpfRequestOperationResolver;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import org.springframework.beans.factory.ObjectProvider;
@@ -26,8 +27,10 @@ public class CpfControllerPolicyAutoConfiguration {
     }
     @Bean CpfOperationIdResolver cpfOperationIdResolver() { return new CpfOperationIdResolver(); }
     @Bean CpfControllerContextInterceptor cpfControllerContextInterceptor(CpfControllerPolicyProperties properties,
-            CpfOperationIdResolver operationIds, CpfRuntimeIdentity runtime, ObjectProvider<CpfOperationAccessPolicy> accessPolicies) {
-        return new CpfControllerContextInterceptor(properties, operationIds, runtime, accessPolicies.orderedStream().toList());
+            CpfOperationIdResolver operationIds, CpfRuntimeIdentity runtime, ObjectProvider<CpfOperationAccessPolicy> accessPolicies,
+            ObjectProvider<CpfRequestOperationResolver> requestOperationResolvers) {
+        return new CpfControllerContextInterceptor(properties, operationIds, runtime, accessPolicies.orderedStream().toList(),
+                requestOperationResolvers.orderedStream().toList());
     }
 
     @Bean CpfOperationCatalogBootstrap cpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime,

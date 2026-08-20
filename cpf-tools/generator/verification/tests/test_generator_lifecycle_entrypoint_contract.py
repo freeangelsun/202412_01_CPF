@@ -8,10 +8,10 @@ spec=importlib.util.spec_from_file_location('generator_lifecycle',SCRIPT); asser
 MODULE=importlib.util.module_from_spec(spec); spec.loader.exec_module(MODULE)
 
 class GeneratorLifecycleEntrypointContractTest(unittest.TestCase):
-    def test_repository_contract_is_stateless_v3(self):
+    def test_repository_contract_is_stateless_v4(self):
         contract=MODULE.load_json(ROOT/'cpf-tools/generator/contracts/generator-lifecycle-contract.json')
         MODULE.validate_contract(ROOT,contract)
-        self.assertEqual(3,contract['schemaVersion'])
+        self.assertEqual(4,contract['schemaVersion'])
         self.assertEqual('NONE',contract['transientState']['customerProjectMetadata'])
         self.assertIn('manifest',contract['forbiddenPermanentProjectEntries'])
 

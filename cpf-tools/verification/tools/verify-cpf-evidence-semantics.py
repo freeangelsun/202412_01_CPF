@@ -88,6 +88,7 @@ def main()->int:
  parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=Path.cwd());parser.add_argument('--matrix');parser.add_argument('--requirement-master',default='cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv');parser.add_argument('--expected-sha')
  args=parser.parse_args();root=args.root.resolve()
  verified,documents=(validate_matrix(root,root/args.matrix,args.expected_sha) if args.matrix else validate_requirement_master(root,root/args.requirement_master,args.expected_sha))
+ if verified <= 0 or documents <= 0: raise EvidenceError(f'vacuous evidence closure forbidden: verifiedRows={verified} documents={documents}')
  print(f'[PASS] CPF evidence semantics verifiedRows={verified} documents={documents} bulkIdForbidden=true');return 0
 if __name__=='__main__':
  try:raise SystemExit(main())

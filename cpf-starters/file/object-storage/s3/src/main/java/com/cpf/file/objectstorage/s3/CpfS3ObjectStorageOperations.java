@@ -25,6 +25,11 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.*;
 
+/**
+ * AWS S3 compatible storage를 CPF Object Storage 공개 계약으로 구현합니다.
+ * <p>Tenant key isolation, presign 정책, multipart lifecycle, scan hook 및 CPF Context를 함께 적용합니다.
+ * Presigned PUT처럼 scan 경로를 우회할 수 있는 기능은 명시 정책이 없으면 fail-closed 합니다.
+ */
 public final class CpfS3ObjectStorageOperations implements CpfObjectStorageOperations {
  private final S3Client s3; private final S3Presigner presigner; private final CpfObjectStorageProperties p; private final com.cpf.file.objectstorage.api.CpfObjectStorageScanHook scan; private final CpfObjectStorageLifecycleHook lifecycle; private final CpfFileContextSupport contextSupport;
  public CpfS3ObjectStorageOperations(S3Client s3,S3Presigner pr,CpfObjectStorageProperties p,com.cpf.file.objectstorage.api.CpfObjectStorageScanHook scan,CpfObjectStorageLifecycleHook lifecycle,CpfFileContextSupport contextSupport){this.s3=Objects.requireNonNull(s3);this.presigner=Objects.requireNonNull(pr);this.p=Objects.requireNonNull(p);this.scan=Objects.requireNonNull(scan);this.lifecycle=Objects.requireNonNull(lifecycle);this.contextSupport=Objects.requireNonNull(contextSupport);}

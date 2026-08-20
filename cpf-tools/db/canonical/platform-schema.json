@@ -54,17 +54,13 @@
           "platform-operations"
         ]
       },
-      "BZA_DB": {
-        "defaultPhysicalName": "bzaDB",
-        "owners": [
-          "bza"
-        ]
-      },
       "CUSTOMER_BUSINESS_DB": {
         "physicalName": "customer-defined",
         "owners": [
-          "generated-business-domains"
-        ]
+          "generated-business-domains",
+          "backoffice"
+        ],
+        "backofficeDefaultPhysicalName": "mbwDB"
       },
       "REFERENCE_FIXTURE": {
         "physicalName": "referenceFixture",
@@ -91,7 +87,7 @@
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
     "crossOwnerReferenceCount": 5
   },
-  "tableCount": 233,
+  "tableCount": 234,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -17438,7 +17434,7 @@
       "productionDefault": true
     },
     {
-      "name": "BZA_ADMIN_USER",
+      "name": "MBW_ADMIN_USER",
       "columns": [
         {
           "name": "admin_user_id",
@@ -17483,7 +17479,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 bza_user_role 다중 매핑이 정본"
+          "comment": "호환용 대표 역할 코드; 신규 계정은 Role 미부여가 기본이며 실제 권한은 MBW_USER_ROLE 다중 매핑이 정본"
         },
         {
           "name": "account_status",
@@ -17608,13 +17604,13 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_admin_user_login",
+          "name": "uk_mbw_admin_user_login",
           "columns": [
             "admin_login_id"
           ]
         },
         {
-          "name": "uk_bza_admin_user_create_operation",
+          "name": "uk_mbw_admin_user_create_operation",
           "columns": [
             "create_operation_id"
           ]
@@ -17622,14 +17618,14 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_admin_user_role",
+          "name": "ix_mbw_admin_user_role",
           "columns": [
             "role_code",
             "use_yn"
           ]
         },
         {
-          "name": "ix_bza_admin_user_status",
+          "name": "ix_mbw_admin_user_status",
           "columns": [
             "account_status",
             "use_yn"
@@ -17639,27 +17635,27 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_admin_user_status",
+          "name": "ck_mbw_admin_user_status",
           "expression": "account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED')"
         }
       ],
-      "comment": "BZA 업무 관리자 사용자",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_admin_user",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_ADMIN_USER",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 관리자 사용자",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_admin_user",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_ADMIN_USER",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_DELEGATION",
+      "name": "MBW_APPROVAL_DELEGATION",
       "columns": [
         {
           "name": "delegation_id",
@@ -17785,7 +17781,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_approval_delegation_active",
+          "name": "ix_mbw_approval_delegation_active",
           "columns": [
             "delegator_employee_no",
             "use_yn",
@@ -17796,11 +17792,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_delegation_from",
+          "name": "fk_mbw_approval_delegation_from",
           "columns": [
             "delegator_employee_no"
           ],
-          "refTable": "BZA_EMPLOYEE",
+          "refTable": "MBW_EMPLOYEE",
           "refColumns": [
             "employee_no"
           ],
@@ -17808,11 +17804,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_approval_delegation_to",
+          "name": "fk_mbw_approval_delegation_to",
           "columns": [
             "delegate_employee_no"
           ],
-          "refTable": "BZA_EMPLOYEE",
+          "refTable": "MBW_EMPLOYEE",
           "refColumns": [
             "employee_no"
           ],
@@ -17822,35 +17818,35 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_approval_delegation_use",
+          "name": "ck_mbw_approval_delegation_use",
           "expression": "use_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_approval_delegation_period",
+          "name": "ck_mbw_approval_delegation_period",
           "expression": "valid_to > valid_from"
         },
         {
-          "name": "ck_bza_approval_delegation_self",
+          "name": "ck_mbw_approval_delegation_self",
           "expression": "delegator_employee_no <> delegate_employee_no"
         }
       ],
-      "comment": "BZA 결재 위임/대결 유효기간",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_delegation",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_DELEGATION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 결재 위임/대결 유효기간",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_delegation",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_DELEGATION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_DOCUMENT",
+      "name": "MBW_APPROVAL_DOCUMENT",
       "columns": [
         {
           "name": "approval_id",
@@ -18119,13 +18115,13 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_approval_document_no",
+          "name": "uk_mbw_approval_document_no",
           "columns": [
             "approval_no"
           ]
         },
         {
-          "name": "uk_bza_approval_document_idempotency",
+          "name": "uk_mbw_approval_document_idempotency",
           "columns": [
             "request_idempotency_key"
           ]
@@ -18133,28 +18129,28 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_approval_document_status",
+          "name": "ix_mbw_approval_document_status",
           "columns": [
             "approval_status",
             "due_at"
           ]
         },
         {
-          "name": "ix_bza_approval_document_requester",
+          "name": "ix_mbw_approval_document_requester",
           "columns": [
             "requester_employee_no",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_approval_document_transaction",
+          "name": "ix_mbw_approval_document_transaction",
           "columns": [
             "transaction_id",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_approval_document_resubmit",
+          "name": "ix_mbw_approval_document_resubmit",
           "columns": [
             "resubmitted_from_approval_id"
           ]
@@ -18162,12 +18158,12 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_document_policy",
+          "name": "fk_mbw_approval_document_policy",
           "columns": [
             "policy_code",
             "policy_version"
           ],
-          "refTable": "BZA_APPROVAL_POLICY",
+          "refTable": "MBW_APPROVAL_POLICY",
           "refColumns": [
             "policy_code",
             "policy_version"
@@ -18176,11 +18172,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_approval_document_resubmit",
+          "name": "fk_mbw_approval_document_resubmit",
           "columns": [
             "resubmitted_from_approval_id"
           ],
-          "refTable": "BZA_APPROVAL_DOCUMENT",
+          "refTable": "MBW_APPROVAL_DOCUMENT",
           "refColumns": [
             "approval_id"
           ],
@@ -18190,43 +18186,43 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_approval_document_policy_pair",
+          "name": "ck_mbw_approval_document_policy_pair",
           "expression": "(policy_code IS NULL AND policy_version IS NULL) OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)"
         },
         {
-          "name": "ck_bza_approval_document_status",
+          "name": "ck_mbw_approval_document_status",
           "expression": "approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')"
         },
         {
-          "name": "ck_bza_approval_document_mode",
+          "name": "ck_mbw_approval_document_mode",
           "expression": "approval_mode IN ('SEQUENTIAL','PARALLEL')"
         },
         {
-          "name": "ck_bza_approval_document_step",
+          "name": "ck_mbw_approval_document_step",
           "expression": "current_step_no >= 0"
         },
         {
-          "name": "ck_bza_approval_document_version",
+          "name": "ck_mbw_approval_document_version",
           "expression": "version_no >= 0"
         }
       ],
-      "comment": "BZA 결재 문서",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_document",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_DOCUMENT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 결재 문서",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_document",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_DOCUMENT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_HISTORY",
+      "name": "MBW_APPROVAL_HISTORY",
       "columns": [
         {
           "name": "approval_history_id",
@@ -18360,7 +18356,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_approval_history_idempotency",
+          "name": "uk_mbw_approval_history_idempotency",
           "columns": [
             "idempotency_key"
           ]
@@ -18368,7 +18364,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_approval_history_document",
+          "name": "ix_mbw_approval_history_document",
           "columns": [
             "approval_id",
             "created_at"
@@ -18377,11 +18373,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_history_document",
+          "name": "fk_mbw_approval_history_document",
           "columns": [
             "approval_id"
           ],
-          "refTable": "BZA_APPROVAL_DOCUMENT",
+          "refTable": "MBW_APPROVAL_DOCUMENT",
           "refColumns": [
             "approval_id"
           ],
@@ -18390,23 +18386,23 @@
         }
       ],
       "checks": [],
-      "comment": "BZA 결재 상태 변경 이력",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_history",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_HISTORY",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 결재 상태 변경 이력",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_history",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_HISTORY",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_LINE",
+      "name": "MBW_APPROVAL_LINE",
       "columns": [
         {
           "name": "approval_line_id",
@@ -18576,7 +18572,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_approval_line",
+          "name": "uk_mbw_approval_line",
           "columns": [
             "approval_id",
             "step_no",
@@ -18587,7 +18583,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_approval_line_approver",
+          "name": "ix_mbw_approval_line_approver",
           "columns": [
             "approver_employee_no",
             "decision_status"
@@ -18596,11 +18592,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_line_document",
+          "name": "fk_mbw_approval_line_document",
           "columns": [
             "approval_id"
           ],
-          "refTable": "BZA_APPROVAL_DOCUMENT",
+          "refTable": "MBW_APPROVAL_DOCUMENT",
           "refColumns": [
             "approval_id"
           ],
@@ -18610,47 +18606,47 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_approval_line_step",
+          "name": "ck_mbw_approval_line_step",
           "expression": "step_no >= 1"
         },
         {
-          "name": "ck_bza_approval_line_step_type",
+          "name": "ck_mbw_approval_line_step_type",
           "expression": "step_type IN ('APPROVAL','AGREEMENT','REVIEW')"
         },
         {
-          "name": "ck_bza_approval_line_target",
+          "name": "ck_mbw_approval_line_target",
           "expression": "target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')"
         },
         {
-          "name": "ck_bza_approval_line_rule",
+          "name": "ck_mbw_approval_line_rule",
           "expression": "decision_rule IN ('ALL','ANY','N_OF_M')"
         },
         {
-          "name": "ck_bza_approval_line_required",
+          "name": "ck_mbw_approval_line_required",
           "expression": "required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )"
         },
         {
-          "name": "ck_bza_approval_line_status",
+          "name": "ck_mbw_approval_line_status",
           "expression": "decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')"
         }
       ],
-      "comment": "BZA 결재선",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_line",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_LINE",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 결재선",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_line",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_LINE",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_PARTICIPANT",
+      "name": "MBW_APPROVAL_PARTICIPANT",
       "columns": [
         {
           "name": "approval_participant_id",
@@ -18829,14 +18825,14 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_approval_participant",
+          "name": "uk_mbw_approval_participant",
           "columns": [
             "approval_line_id",
             "approver_employee_no"
           ]
         },
         {
-          "name": "uk_bza_approval_participant_idem",
+          "name": "uk_mbw_approval_participant_idem",
           "columns": [
             "idempotency_key"
           ]
@@ -18844,7 +18840,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_approval_participant_inbox",
+          "name": "ix_mbw_approval_participant_inbox",
           "columns": [
             "approver_employee_no",
             "decision_status",
@@ -18854,11 +18850,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_participant_document",
+          "name": "fk_mbw_approval_participant_document",
           "columns": [
             "approval_id"
           ],
-          "refTable": "BZA_APPROVAL_DOCUMENT",
+          "refTable": "MBW_APPROVAL_DOCUMENT",
           "refColumns": [
             "approval_id"
           ],
@@ -18866,11 +18862,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_approval_participant_line",
+          "name": "fk_mbw_approval_participant_line",
           "columns": [
             "approval_line_id"
           ],
-          "refTable": "BZA_APPROVAL_LINE",
+          "refTable": "MBW_APPROVAL_LINE",
           "refColumns": [
             "approval_line_id"
           ],
@@ -18880,35 +18876,35 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_approval_participant_step",
+          "name": "ck_mbw_approval_participant_step",
           "expression": "step_no >= 1"
         },
         {
-          "name": "ck_bza_approval_participant_source",
+          "name": "ck_mbw_approval_participant_source",
           "expression": "resolution_source IN ('DIRECT','ROLE','ORG','ORG_MANAGER','POSITION','DELEGATION','ACTING')"
         },
         {
-          "name": "ck_bza_approval_participant_status",
+          "name": "ck_mbw_approval_participant_status",
           "expression": "decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')"
         }
       ],
-      "comment": "BZA 결재 참여자 Snapshot",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_participant",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_PARTICIPANT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 결재 참여자 Snapshot",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_participant",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_PARTICIPANT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_POLICY",
+      "name": "MBW_APPROVAL_POLICY",
       "columns": [
         {
           "name": "policy_code",
@@ -19044,7 +19040,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_approval_policy_lookup",
+          "name": "ix_mbw_approval_policy_lookup",
           "columns": [
             "business_domain",
             "approval_type",
@@ -19057,35 +19053,35 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_approval_policy_version",
+          "name": "ck_mbw_approval_policy_version",
           "expression": "policy_version > 0"
         },
         {
-          "name": "ck_bza_approval_policy_flags",
+          "name": "ck_mbw_approval_policy_flags",
           "expression": "enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_approval_policy_effective",
+          "name": "ck_mbw_approval_policy_effective",
           "expression": "effective_to IS NULL OR effective_to > effective_from"
         }
       ],
-      "comment": "BZA 업무 결재 정책 Version",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_policy",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_POLICY",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 결재 정책 Version",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_policy",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_POLICY",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_APPROVAL_POLICY_STEP",
+      "name": "MBW_APPROVAL_POLICY_STEP",
       "columns": [
         {
           "name": "policy_code",
@@ -19225,12 +19221,12 @@
       "indexes": [],
       "foreignKeys": [
         {
-          "name": "fk_bza_approval_policy_step_policy",
+          "name": "fk_mbw_approval_policy_step_policy",
           "columns": [
             "policy_code",
             "policy_version"
           ],
-          "refTable": "BZA_APPROVAL_POLICY",
+          "refTable": "MBW_APPROVAL_POLICY",
           "refColumns": [
             "policy_code",
             "policy_version"
@@ -19241,43 +19237,43 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_approval_policy_step_no",
+          "name": "ck_mbw_approval_policy_step_no",
           "expression": "step_no >= 1"
         },
         {
-          "name": "ck_bza_approval_policy_step_type",
+          "name": "ck_mbw_approval_policy_step_type",
           "expression": "step_type IN ('APPROVAL','AGREEMENT','REVIEW')"
         },
         {
-          "name": "ck_bza_approval_policy_step_target",
+          "name": "ck_mbw_approval_policy_step_target",
           "expression": "target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')"
         },
         {
-          "name": "ck_bza_approval_policy_step_rule",
+          "name": "ck_mbw_approval_policy_step_rule",
           "expression": "decision_rule IN ('ALL','ANY','N_OF_M')"
         },
         {
-          "name": "ck_bza_approval_policy_step_required",
+          "name": "ck_mbw_approval_policy_step_required",
           "expression": "required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )"
         }
       ],
-      "comment": "BZA 업무 결재 정책 단계",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_approval_policy_step",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_APPROVAL_POLICY_STEP",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 결재 정책 단계",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_policy_step",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_POLICY_STEP",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_ATTACHMENT",
+      "name": "MBW_ATTACHMENT",
       "columns": [
         {
           "name": "attachment_id",
@@ -19438,7 +19434,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_attachment_storage_key",
+          "name": "uk_mbw_attachment_storage_key",
           "columns": [
             "storage_key"
           ]
@@ -19446,7 +19442,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_attachment_group",
+          "name": "ix_mbw_attachment_group",
           "columns": [
             "attachment_group_id",
             "use_yn",
@@ -19454,13 +19450,13 @@
           ]
         },
         {
-          "name": "ix_bza_attachment_checksum",
+          "name": "ix_mbw_attachment_checksum",
           "columns": [
             "checksum_sha256"
           ]
         },
         {
-          "name": "ix_bza_attachment_retention",
+          "name": "ix_mbw_attachment_retention",
           "columns": [
             "retention_until",
             "use_yn"
@@ -19470,35 +19466,35 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_attachment_scan",
+          "name": "ck_mbw_attachment_scan",
           "expression": "scan_status IN ('PENDING','CLEAN','INFECTED','FAILED','QUARANTINED')"
         },
         {
-          "name": "ck_bza_attachment_classification",
+          "name": "ck_mbw_attachment_classification",
           "expression": "data_classification IN ('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED')"
         },
         {
-          "name": "ck_bza_attachment_quarantine",
+          "name": "ck_mbw_attachment_quarantine",
           "expression": "quarantine_yn IN ('Y','N')"
         }
       ],
-      "comment": "BZA 첨부파일 메타",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_attachment",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_ATTACHMENT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 첨부파일 메타",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_attachment",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_ATTACHMENT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_AUDIT_CHAIN_LOCK",
+      "name": "MBW_AUDIT_CHAIN_LOCK",
       "columns": [
         {
           "name": "chain_id",
@@ -19562,23 +19558,23 @@
       "indexes": [],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 감사 체인 동시성/무결성 head",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_audit_chain_lock",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_AUDIT_CHAIN_LOCK",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 감사 체인 동시성/무결성 head",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_audit_chain_lock",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_AUDIT_CHAIN_LOCK",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_BOOTSTRAP_APPROVAL",
+      "name": "MBW_BOOTSTRAP_APPROVAL",
       "columns": [
         {
           "name": "token_hash",
@@ -19668,7 +19664,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "생성된 BZA 관리자 사용자 순번"
+          "comment": "생성된 Backoffice 관리자 사용자 순번"
         },
         {
           "name": "failure_code",
@@ -19757,7 +19753,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "ux_bza_bootstrap_operation",
+          "name": "ux_mbw_bootstrap_operation",
           "columns": [
             "operation_id"
           ]
@@ -19765,14 +19761,14 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_bootstrap_expiry",
+          "name": "ix_mbw_bootstrap_expiry",
           "columns": [
             "status",
             "expires_at"
           ]
         },
         {
-          "name": "ix_bza_bootstrap_claim_lease",
+          "name": "ix_mbw_bootstrap_claim_lease",
           "columns": [
             "status",
             "claim_expires_at"
@@ -19782,35 +19778,35 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_bootstrap_status",
+          "name": "ck_mbw_bootstrap_status",
           "expression": "status IN ('APPROVED','CLAIMED','COMPLETED','FAILED','EXPIRED')"
         },
         {
-          "name": "ck_bza_bootstrap_maker_checker",
+          "name": "ck_mbw_bootstrap_maker_checker",
           "expression": "requested_by <> approved_by"
         },
         {
-          "name": "ck_bza_bootstrap_cleanup_status",
+          "name": "ck_mbw_bootstrap_cleanup_status",
           "expression": "cleanup_status IN ('PENDING','COMPLETED','FAILED')"
         }
       ],
-      "comment": "BZA 최초 특권 운영자 Bootstrap 승인 및 복구 원장",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_bootstrap_approval",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_BOOTSTRAP_APPROVAL",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 최초 특권 운영자 Bootstrap 승인 및 복구 원장",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_bootstrap_approval",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_BOOTSTRAP_APPROVAL",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_BUSINESS_AUDIT",
+      "name": "MBW_BUSINESS_AUDIT",
       "columns": [
         {
           "name": "audit_id",
@@ -19954,7 +19950,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_business_audit_target",
+          "name": "ix_mbw_business_audit_target",
           "columns": [
             "target_type",
             "target_id",
@@ -19962,20 +19958,20 @@
           ]
         },
         {
-          "name": "ix_bza_business_audit_actor",
+          "name": "ix_mbw_business_audit_actor",
           "columns": [
             "actor_id",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_business_audit_transaction",
+          "name": "ix_mbw_business_audit_transaction",
           "columns": [
             "transaction_id"
           ]
         },
         {
-          "name": "ix_bza_business_audit_hash",
+          "name": "ix_mbw_business_audit_hash",
           "columns": [
             "record_hash"
           ]
@@ -19983,23 +19979,23 @@
       ],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 업무 감사",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_business_audit",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_BUSINESS_AUDIT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 감사",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_business_audit",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_BUSINESS_AUDIT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_DOWNLOAD_AUDIT",
+      "name": "MBW_DOWNLOAD_AUDIT",
       "columns": [
         {
           "name": "download_audit_id",
@@ -20134,20 +20130,20 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_download_audit_actor",
+          "name": "ix_mbw_download_audit_actor",
           "columns": [
             "actor_id",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_download_audit_transaction",
+          "name": "ix_mbw_download_audit_transaction",
           "columns": [
             "transaction_id"
           ]
         },
         {
-          "name": "ix_bza_download_audit_status",
+          "name": "ix_mbw_download_audit_status",
           "columns": [
             "result_status",
             "created_at"
@@ -20156,23 +20152,23 @@
       ],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 다운로드 감사",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_download_audit",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_DOWNLOAD_AUDIT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 다운로드 감사",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_download_audit",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_DOWNLOAD_AUDIT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_EMPLOYEE",
+      "name": "MBW_EMPLOYEE",
       "columns": [
         {
           "name": "employee_id",
@@ -20208,7 +20204,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "대표 조직 코드; 유효 소속 정본은 bza_employee_assignment"
+          "comment": "대표 조직 코드; 유효 소속 정본은 MBW_EMPLOYEE_ASSIGNMENT"
         },
         {
           "name": "employee_name",
@@ -20360,13 +20356,13 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_employee_no",
+          "name": "uk_mbw_employee_no",
           "columns": [
             "employee_no"
           ]
         },
         {
-          "name": "uk_bza_employee_admin_user",
+          "name": "uk_mbw_employee_admin_user",
           "columns": [
             "admin_user_id"
           ]
@@ -20374,7 +20370,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_employee_organization",
+          "name": "ix_mbw_employee_organization",
           "columns": [
             "organization_code",
             "employment_status"
@@ -20383,11 +20379,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_employee_admin_user",
+          "name": "fk_mbw_employee_admin_user",
           "columns": [
             "admin_user_id"
           ],
-          "refTable": "BZA_ADMIN_USER",
+          "refTable": "MBW_ADMIN_USER",
           "refColumns": [
             "admin_user_id"
           ],
@@ -20395,11 +20391,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_organization",
+          "name": "fk_mbw_employee_organization",
           "columns": [
             "organization_code"
           ],
-          "refTable": "BZA_ORGANIZATION",
+          "refTable": "MBW_ORGANIZATION",
           "refColumns": [
             "organization_code"
           ],
@@ -20407,11 +20403,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_position",
+          "name": "fk_mbw_employee_position",
           "columns": [
             "position_code"
           ],
-          "refTable": "BZA_POSITION",
+          "refTable": "MBW_POSITION",
           "refColumns": [
             "position_code"
           ],
@@ -20419,11 +20415,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_job_title",
+          "name": "fk_mbw_employee_job_title",
           "columns": [
             "job_title_code"
           ],
-          "refTable": "BZA_JOB_TITLE",
+          "refTable": "MBW_JOB_TITLE",
           "refColumns": [
             "job_title_code"
           ],
@@ -20433,35 +20429,35 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_employee_use",
+          "name": "ck_mbw_employee_use",
           "expression": "use_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_employee_status",
+          "name": "ck_mbw_employee_status",
           "expression": "employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')"
         },
         {
-          "name": "ck_bza_employee_employment_period",
+          "name": "ck_mbw_employee_employment_period",
           "expression": "leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date"
         }
       ],
-      "comment": "BZA 직원 프로필",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_employee",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_EMPLOYEE",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 직원 프로필",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_employee",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_EMPLOYEE",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_EMPLOYEE_ASSIGNMENT",
+      "name": "MBW_EMPLOYEE_ASSIGNMENT",
       "columns": [
         {
           "name": "assignment_id",
@@ -20596,7 +20592,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_employee_assignment_current",
+          "name": "ix_mbw_employee_assignment_current",
           "columns": [
             "employee_no",
             "effective_to",
@@ -20604,7 +20600,7 @@
           ]
         },
         {
-          "name": "ix_bza_employee_assignment_org",
+          "name": "ix_mbw_employee_assignment_org",
           "columns": [
             "organization_code",
             "effective_to",
@@ -20614,11 +20610,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_employee_assignment_employee",
+          "name": "fk_mbw_employee_assignment_employee",
           "columns": [
             "employee_no"
           ],
-          "refTable": "BZA_EMPLOYEE",
+          "refTable": "MBW_EMPLOYEE",
           "refColumns": [
             "employee_no"
           ],
@@ -20626,11 +20622,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_assignment_org",
+          "name": "fk_mbw_employee_assignment_org",
           "columns": [
             "organization_code"
           ],
-          "refTable": "BZA_ORGANIZATION",
+          "refTable": "MBW_ORGANIZATION",
           "refColumns": [
             "organization_code"
           ],
@@ -20638,11 +20634,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_assignment_position",
+          "name": "fk_mbw_employee_assignment_position",
           "columns": [
             "position_code"
           ],
-          "refTable": "BZA_POSITION",
+          "refTable": "MBW_POSITION",
           "refColumns": [
             "position_code"
           ],
@@ -20650,11 +20646,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_employee_assignment_job_title",
+          "name": "fk_mbw_employee_assignment_job_title",
           "columns": [
             "job_title_code"
           ],
-          "refTable": "BZA_JOB_TITLE",
+          "refTable": "MBW_JOB_TITLE",
           "refColumns": [
             "job_title_code"
           ],
@@ -20664,35 +20660,35 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_employee_assignment_type",
+          "name": "ck_mbw_employee_assignment_type",
           "expression": "assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')"
         },
         {
-          "name": "ck_bza_employee_assignment_primary",
+          "name": "ck_mbw_employee_assignment_primary",
           "expression": "primary_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_employee_assignment_effective",
+          "name": "ck_mbw_employee_assignment_effective",
           "expression": "effective_to IS NULL OR effective_to > effective_from"
         }
       ],
-      "comment": "BZA 직원 유효기간 기반 조직/직급/직책 Assignment",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_employee_assignment",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_EMPLOYEE_ASSIGNMENT",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 직원 유효기간 기반 조직/직급/직책 Assignment",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_employee_assignment",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_EMPLOYEE_ASSIGNMENT",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_JOB_TITLE",
+      "name": "MBW_JOB_TITLE",
       "columns": [
         {
           "name": "job_title_code",
@@ -20784,27 +20780,27 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_job_title_flags",
+          "name": "ck_mbw_job_title_flags",
           "expression": "manager_yn IN ('Y','N') AND use_yn IN ('Y','N')"
         }
       ],
-      "comment": "BZA 직책 기준정보",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_job_title",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_JOB_TITLE",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 직책 기준정보",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_job_title",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_JOB_TITLE",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_LOGIN_HISTORY",
+      "name": "MBW_LOGIN_HISTORY",
       "columns": [
         {
           "name": "login_history_id",
@@ -20828,7 +20824,7 @@
           "name": "login_domain",
           "type": "VARCHAR(30)",
           "nullable": false,
-          "default": "'BZA'",
+          "default": "'MBW'",
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "로그인 도메인"
@@ -20888,22 +20884,22 @@
           "comment": "CPF 전역 transactionId"
         },
         {
-          "name": "module_id",
-          "type": "VARCHAR(3)",
+          "name": "system_code",
+          "type": "VARCHAR(20)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "모듈 ID"
+          "comment": "논리 Backoffice System Code (MBW)"
         },
         {
-          "name": "was_id",
-          "type": "VARCHAR(7)",
+          "name": "application_name",
+          "type": "VARCHAR(200)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "WAS ID"
+          "comment": "현재 요청 처리 Application 이름"
         },
         {
           "name": "instance_id",
@@ -20957,21 +20953,21 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_login_history_user_time",
+          "name": "ix_mbw_login_history_user_time",
           "columns": [
             "admin_user_id",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_login_history_result_time",
+          "name": "ix_mbw_login_history_result_time",
           "columns": [
             "login_result",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_login_history_global",
+          "name": "ix_mbw_login_history_global",
           "columns": [
             "transaction_id"
           ]
@@ -20979,11 +20975,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_login_history_user",
+          "name": "fk_mbw_login_history_user",
           "columns": [
             "admin_user_id"
           ],
-          "refTable": "BZA_ADMIN_USER",
+          "refTable": "MBW_ADMIN_USER",
           "refColumns": [
             "admin_user_id"
           ],
@@ -20992,23 +20988,23 @@
         }
       ],
       "checks": [],
-      "comment": "BZA 업무 관리자 로그인 이력",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_login_history",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_LOGIN_HISTORY",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 관리자 로그인 이력",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_login_history",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_LOGIN_HISTORY",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_LOGIN_OPERATION",
+      "name": "MBW_LOGIN_OPERATION",
       "columns": [
         {
           "name": "operation_id",
@@ -21152,14 +21148,14 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_login_operation_user_time",
+          "name": "ix_mbw_login_operation_user_time",
           "columns": [
             "admin_user_id",
             "created_at"
           ]
         },
         {
-          "name": "ix_bza_login_operation_expiry",
+          "name": "ix_mbw_login_operation_expiry",
           "columns": [
             "operation_status",
             "result_expires_at"
@@ -21168,11 +21164,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_login_operation_user",
+          "name": "fk_mbw_login_operation_user",
           "columns": [
             "admin_user_id"
           ],
-          "refTable": "BZA_ADMIN_USER",
+          "refTable": "MBW_ADMIN_USER",
           "refColumns": [
             "admin_user_id"
           ],
@@ -21182,27 +21178,27 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_login_operation_status",
+          "name": "ck_mbw_login_operation_status",
           "expression": "operation_status IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED')"
         }
       ],
-      "comment": "BZA 로그인 멱등 처리 이력",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_login_operation",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_LOGIN_OPERATION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 로그인 멱등 처리 이력",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_login_operation",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_LOGIN_OPERATION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_MENU",
+      "name": "MBW_MENU",
       "columns": [
         {
           "name": "menu_id",
@@ -21244,7 +21240,7 @@
           "name": "module_code",
           "type": "VARCHAR(20)",
           "nullable": false,
-          "default": "'BZA'",
+          "default": "'MBW'",
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "소유 업무 모듈 코드"
@@ -21354,7 +21350,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_menu_code",
+          "name": "uk_mbw_menu_code",
           "columns": [
             "menu_code"
           ]
@@ -21363,23 +21359,23 @@
       "indexes": [],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 업무 메뉴",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_menu",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_MENU",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 메뉴",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_menu",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_MENU",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_NOTIFICATION",
+      "name": "MBW_NOTIFICATION",
       "columns": [
         {
           "name": "notification_id",
@@ -21397,7 +21393,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "수신 BZA 로그인 ID"
+          "comment": "수신 Backoffice 로그인 ID"
         },
         {
           "name": "notification_type",
@@ -21514,7 +21510,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_notification_recipient",
+          "name": "ix_mbw_notification_recipient",
           "columns": [
             "recipient_login_id",
             "read_yn",
@@ -21523,7 +21519,7 @@
           ]
         },
         {
-          "name": "ix_bza_notification_reference",
+          "name": "ix_mbw_notification_reference",
           "columns": [
             "reference_type",
             "reference_id"
@@ -21532,23 +21528,23 @@
       ],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 업무 알림",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_notification",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_NOTIFICATION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 알림",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_notification",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_NOTIFICATION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_ORGANIZATION",
+      "name": "MBW_ORGANIZATION",
       "columns": [
         {
           "name": "organization_id",
@@ -21682,7 +21678,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_organization_code",
+          "name": "uk_mbw_organization_code",
           "columns": [
             "organization_code"
           ]
@@ -21690,7 +21686,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_organization_parent",
+          "name": "ix_mbw_organization_parent",
           "columns": [
             "parent_organization_code",
             "sort_order"
@@ -21700,31 +21696,31 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_organization_use",
+          "name": "ck_mbw_organization_use",
           "expression": "use_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_organization_effective",
+          "name": "ck_mbw_organization_effective",
           "expression": "effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from"
         }
       ],
-      "comment": "BZA 조직",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_organization",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_ORGANIZATION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 조직",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_organization",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_ORGANIZATION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_ORGANIZATION_RESPONSIBILITY",
+      "name": "MBW_ORGANIZATION_RESPONSIBILITY",
       "columns": [
         {
           "name": "responsibility_id",
@@ -21850,7 +21846,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_org_responsibility_active",
+          "name": "ix_mbw_org_responsibility_active",
           "columns": [
             "organization_code",
             "responsibility_type",
@@ -21860,7 +21856,7 @@
           ]
         },
         {
-          "name": "ix_bza_org_responsibility_employee",
+          "name": "ix_mbw_org_responsibility_employee",
           "columns": [
             "employee_no",
             "use_yn",
@@ -21870,11 +21866,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_org_responsibility_org",
+          "name": "fk_mbw_org_responsibility_org",
           "columns": [
             "organization_code"
           ],
-          "refTable": "BZA_ORGANIZATION",
+          "refTable": "MBW_ORGANIZATION",
           "refColumns": [
             "organization_code"
           ],
@@ -21882,11 +21878,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_org_responsibility_employee",
+          "name": "fk_mbw_org_responsibility_employee",
           "columns": [
             "employee_no"
           ],
-          "refTable": "BZA_EMPLOYEE",
+          "refTable": "MBW_EMPLOYEE",
           "refColumns": [
             "employee_no"
           ],
@@ -21896,39 +21892,39 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_org_responsibility_type",
+          "name": "ck_mbw_org_responsibility_type",
           "expression": "responsibility_type IN ('MANAGER','DEPUTY','ACTING','APPROVAL_OWNER')"
         },
         {
-          "name": "ck_bza_org_responsibility_use",
+          "name": "ck_mbw_org_responsibility_use",
           "expression": "use_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_org_responsibility_priority",
+          "name": "ck_mbw_org_responsibility_priority",
           "expression": "priority_no >= 1"
         },
         {
-          "name": "ck_bza_org_responsibility_effective",
+          "name": "ck_mbw_org_responsibility_effective",
           "expression": "effective_to IS NULL OR effective_to > effective_from"
         }
       ],
-      "comment": "BZA 조직 책임자/대행/결재 책임자 유효기간 모델",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_organization_responsibility",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_ORGANIZATION_RESPONSIBILITY",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 조직 책임자/대행/결재 책임자 유효기간 모델",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_organization_responsibility",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_ORGANIZATION_RESPONSIBILITY",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_PERMISSION",
+      "name": "MBW_PERMISSION",
       "columns": [
         {
           "name": "permission_id",
@@ -22090,7 +22086,7 @@
       "uniqueKeys": [],
       "indexes": [
         {
-          "name": "ix_bza_permission_scope",
+          "name": "ix_mbw_permission_scope",
           "columns": [
             "role_code",
             "menu_code",
@@ -22101,7 +22097,7 @@
           ]
         },
         {
-          "name": "ix_bza_permission_menu",
+          "name": "ix_mbw_permission_menu",
           "columns": [
             "menu_code"
           ]
@@ -22109,23 +22105,23 @@
       ],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 업무 권한",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_permission",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_PERMISSION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 권한",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_permission",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_PERMISSION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_POSITION",
+      "name": "MBW_POSITION",
       "columns": [
         {
           "name": "position_code",
@@ -22217,27 +22213,27 @@
       "foreignKeys": [],
       "checks": [
         {
-          "name": "ck_bza_position_use",
+          "name": "ck_mbw_position_use",
           "expression": "use_yn IN ('Y','N')"
         }
       ],
-      "comment": "BZA 직급 기준정보",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_position",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_POSITION",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 직급 기준정보",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_position",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_POSITION",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_PROJECT_SETTING",
+      "name": "MBW_PROJECT_SETTING",
       "columns": [
         {
           "name": "setting_id",
@@ -22326,7 +22322,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_project_setting_key",
+          "name": "uk_mbw_project_setting_key",
           "columns": [
             "setting_key"
           ]
@@ -22335,23 +22331,23 @@
       "indexes": [],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 프로젝트 설정",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_project_setting",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_PROJECT_SETTING",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 프로젝트 설정",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_project_setting",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_PROJECT_SETTING",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_REFRESH_TOKEN",
+      "name": "MBW_REFRESH_TOKEN",
       "columns": [
         {
           "name": "refresh_token_id",
@@ -22375,7 +22371,7 @@
           "name": "login_domain",
           "type": "VARCHAR(30)",
           "nullable": false,
-          "default": "'BZA'",
+          "default": "'MBW'",
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "로그인 도메인"
@@ -22476,7 +22472,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_refresh_token_hash",
+          "name": "uk_mbw_refresh_token_hash",
           "columns": [
             "refresh_token_hash"
           ]
@@ -22484,7 +22480,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_refresh_token_user",
+          "name": "ix_mbw_refresh_token_user",
           "columns": [
             "admin_user_id",
             "revoked_yn",
@@ -22492,7 +22488,7 @@
           ]
         },
         {
-          "name": "ix_bza_refresh_token_login_operation",
+          "name": "ix_mbw_refresh_token_login_operation",
           "columns": [
             "login_operation_id",
             "revoked_yn"
@@ -22501,11 +22497,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_refresh_token_user",
+          "name": "fk_mbw_refresh_token_user",
           "columns": [
             "admin_user_id"
           ],
-          "refTable": "BZA_ADMIN_USER",
+          "refTable": "MBW_ADMIN_USER",
           "refColumns": [
             "admin_user_id"
           ],
@@ -22514,23 +22510,23 @@
         }
       ],
       "checks": [],
-      "comment": "BZA 업무 관리자 refresh token hash 저장소",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_refresh_token",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_REFRESH_TOKEN",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 관리자 refresh token hash 저장소",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_refresh_token",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_REFRESH_TOKEN",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_ROLE",
+      "name": "MBW_ROLE",
       "columns": [
         {
           "name": "role_id",
@@ -22637,7 +22633,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_role_code",
+          "name": "uk_mbw_role_code",
           "columns": [
             "role_code"
           ]
@@ -22646,23 +22642,23 @@
       "indexes": [],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 업무 역할",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_role",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_ROLE",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 업무 역할",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_role",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_ROLE",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_SAVED_SEARCH",
+      "name": "MBW_SAVED_SEARCH",
       "columns": [
         {
           "name": "saved_search_id",
@@ -22769,7 +22765,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_saved_search_owner",
+          "name": "uk_mbw_saved_search_owner",
           "columns": [
             "owner_login_id",
             "screen_code",
@@ -22779,7 +22775,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_saved_search_screen",
+          "name": "ix_mbw_saved_search_screen",
           "columns": [
             "screen_code",
             "shared_yn",
@@ -22789,23 +22785,23 @@
       ],
       "foreignKeys": [],
       "checks": [],
-      "comment": "BZA 저장 검색",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_saved_search",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_SAVED_SEARCH",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 저장 검색",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_saved_search",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_SAVED_SEARCH",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
-      "name": "BZA_USER_ROLE",
+      "name": "MBW_USER_ROLE",
       "columns": [
         {
           "name": "user_role_id",
@@ -22930,7 +22926,7 @@
       ],
       "uniqueKeys": [
         {
-          "name": "uk_bza_user_role_operation",
+          "name": "uk_mbw_user_role_operation",
           "columns": [
             "operation_id"
           ]
@@ -22938,7 +22934,7 @@
       ],
       "indexes": [
         {
-          "name": "ix_bza_user_role_user",
+          "name": "ix_mbw_user_role_user",
           "columns": [
             "admin_user_id",
             "valid_to",
@@ -22947,7 +22943,7 @@
           ]
         },
         {
-          "name": "ix_bza_user_role_role",
+          "name": "ix_mbw_user_role_role",
           "columns": [
             "role_code",
             "valid_to",
@@ -22957,11 +22953,11 @@
       ],
       "foreignKeys": [
         {
-          "name": "fk_bza_user_role_user",
+          "name": "fk_mbw_user_role_user",
           "columns": [
             "admin_user_id"
           ],
-          "refTable": "BZA_ADMIN_USER",
+          "refTable": "MBW_ADMIN_USER",
           "refColumns": [
             "admin_user_id"
           ],
@@ -22969,11 +22965,11 @@
           "onUpdate": null
         },
         {
-          "name": "fk_bza_user_role_role",
+          "name": "fk_mbw_user_role_role",
           "columns": [
             "role_code"
           ],
-          "refTable": "BZA_ROLE",
+          "refTable": "MBW_ROLE",
           "refColumns": [
             "role_code"
           ],
@@ -22983,27 +22979,27 @@
       ],
       "checks": [
         {
-          "name": "ck_bza_user_role_primary",
+          "name": "ck_mbw_user_role_primary",
           "expression": "primary_yn IN ('Y','N')"
         },
         {
-          "name": "ck_bza_user_role_effective",
+          "name": "ck_mbw_user_role_effective",
           "expression": "valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from"
         }
       ],
-      "comment": "BZA 사용자 다중 역할 이력",
-      "module": "biz",
-      "logicalDatabase": "bzaDB",
-      "currentLogicalDatabase": "bzaDB",
-      "currentName": "bza_user_role",
-      "logicalOwner": "bza",
-      "targetDatabaseRole": "BZA_DB",
-      "targetPhysicalDatabase": "bzaDB",
-      "targetTableName": "BZA_USER_ROLE",
-      "targetTablePrefix": "BZA_",
-      "migrationOwner": "bza",
-      "runtimeConsumer": "bza",
-      "atomicityClass": "BZA_OWNER_LOCAL",
+      "comment": "Backoffice 사용자 다중 역할 이력",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_user_role",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_USER_ROLE",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
       "productionDefault": true
     },
     {
@@ -27791,13 +27787,31 @@
           "comment": "테넌트 ID"
         },
         {
+          "name": "system_code",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 처리 Logical System 코드"
+        },
+        {
+          "name": "target_system_code",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원격 Target Logical System 코드"
+        },
+        {
           "name": "current_channel",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 처리 System 코드"
+          "comment": "현재 처리 Channel 코드(선택 Context)"
         },
         {
           "name": "actor_id_masked",
@@ -27851,7 +27865,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "원격 시스템 코드"
+          "comment": "원격 Target Channel 코드(선택 Context)"
         },
         {
           "name": "operation_id",
@@ -28219,13 +28233,31 @@
           "comment": "테넌트 ID"
         },
         {
+          "name": "system_code",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 처리 Logical System 코드"
+        },
+        {
+          "name": "target_system_code",
+          "type": "VARCHAR(128)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "원격 Target Logical System 코드"
+        },
+        {
           "name": "current_channel",
           "type": "VARCHAR(64)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 처리 System 코드"
+          "comment": "현재 처리 Channel 코드(선택 Context)"
         },
         {
           "name": "actor_id_masked",
@@ -28279,7 +28311,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "원격 시스템 코드"
+          "comment": "원격 Target Channel 코드(선택 Context)"
         },
         {
           "name": "operation_id",
@@ -28655,13 +28687,49 @@
           "comment": "클라이언트 앱 또는 SDK 버전"
         },
         {
+          "name": "CALLER_SYSTEM_CODE",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "바로 직전 호출 Logical System 코드"
+        },
+        {
+          "name": "TARGET_SYSTEM_CODE",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 호출 대상 Logical System 코드"
+        },
+        {
+          "name": "ORIGINAL_SYSTEM_CODE",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "X-Transaction-Id 최초 발급 Logical System 코드"
+        },
+        {
+          "name": "SYSTEM_CODE",
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 요청을 실제 처리하는 Logical System 코드"
+        },
+        {
           "name": "CALLER_CHANNEL",
           "type": "VARCHAR(120)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "직전 호출 시스템 코드"
+          "comment": "직전 호출 Channel 코드(선택 Context)"
         },
         {
           "name": "TARGET_CHANNEL",
@@ -28670,7 +28738,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 호출 대상 시스템 코드"
+          "comment": "호출 대상 Channel 코드(선택 Context)"
         },
         {
           "name": "TARGET_OPERATION_ID",
@@ -28742,7 +28810,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "최초 거래 발생 시스템 코드"
+          "comment": "최초 유입 Channel 코드(선택 Context)"
         },
         {
           "name": "CURRENT_CHANNEL",
@@ -28751,7 +28819,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 요청 처리 시스템 코드"
+          "comment": "현재 처리 Channel 코드(선택 Context)"
         },
         {
           "name": "MEMBER_NO",
@@ -29323,7 +29391,7 @@
         {
           "name": "ix_cpf_transaction_log_system_time",
           "columns": [
-            "CURRENT_CHANNEL",
+            "SYSTEM_CODE",
             "START_TIME"
           ]
         },
@@ -29374,7 +29442,7 @@
         {
           "name": "ix_cpf_transaction_log_target_operation",
           "columns": [
-            "TARGET_CHANNEL",
+            "TARGET_SYSTEM_CODE",
             "TARGET_OPERATION_ID",
             "START_TIME"
           ]
@@ -29763,13 +29831,49 @@
           "comment": "마스킹된 운영자 ID"
         },
         {
+          "name": "system_code",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 요청을 실제 처리하는 Logical System 코드"
+        },
+        {
+          "name": "original_system_code",
+          "type": "VARCHAR(30)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "X-Transaction-Id 최초 발급 Logical System 코드"
+        },
+        {
+          "name": "caller_system_code",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "바로 직전 호출 Logical System 코드"
+        },
+        {
+          "name": "target_system_code",
+          "type": "VARCHAR(32)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "현재 호출 대상 Logical System 코드"
+        },
+        {
           "name": "current_channel",
           "type": "VARCHAR(30)",
           "nullable": true,
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 요청 처리 시스템 코드"
+          "comment": "현재 처리 Channel 코드(선택 Context)"
         },
         {
           "name": "original_channel",
@@ -29778,7 +29882,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "최초 거래 발생 시스템 코드"
+          "comment": "최초 유입 Channel 코드(선택 Context)"
         },
         {
           "name": "client_id",
@@ -29796,7 +29900,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "직전 호출 시스템 코드"
+          "comment": "직전 호출 Channel 코드(선택 Context)"
         },
         {
           "name": "target_channel",
@@ -29805,7 +29909,7 @@
           "default": null,
           "autoIncrement": false,
           "onUpdate": null,
-          "comment": "현재 호출 대상 시스템 코드"
+          "comment": "호출 대상 Channel 코드(선택 Context)"
         },
         {
           "name": "target_operation_id",
@@ -30029,7 +30133,7 @@
           "name": "ix_cpf_transaction_segment_client_system",
           "columns": [
             "client_id",
-            "caller_channel",
+            "caller_system_code",
             "started_at"
           ]
         },
@@ -30063,7 +30167,7 @@
         {
           "name": "ix_cpf_transaction_segment_target_operation",
           "columns": [
-            "target_channel",
+            "target_system_code",
             "target_operation_id",
             "started_at"
           ]
@@ -38051,6 +38155,24 @@
           "comment": "Pause requested; honored at chunk boundary"
         },
         {
+          "name": "control_actor_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Last pause/resume control actor"
+        },
+        {
+          "name": "control_reason",
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Last pause/resume control reason"
+        },
+        {
           "name": "error_code",
           "type": "VARCHAR(100)",
           "nullable": true,
@@ -38149,6 +38271,152 @@
       "targetDatabaseRole": "CPF_PLATFORM_DB",
       "targetPhysicalDatabase": "cpfDB",
       "targetTableName": "OPS_RETENTION_RUN",
+      "targetTablePrefix": "OPS_",
+      "migrationOwner": "platform-operations",
+      "runtimeConsumer": "cpf-batch-control-plane",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "OPS_RETENTION_CONTROL_AUDIT",
+      "columns": [
+        {
+          "name": "audit_id",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Retention control audit identity"
+        },
+        {
+          "name": "operation_type",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "POLICY_SAVE/RUN_NOW/RUN_PAUSE/RUN_RESUME/POLICY_PAUSE/POLICY_RESUME"
+        },
+        {
+          "name": "target_type",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "POLICY or RUN"
+        },
+        {
+          "name": "target_id",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Retention policy/run identity"
+        },
+        {
+          "name": "requested_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Verified request operator"
+        },
+        {
+          "name": "approved_by",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Verified independent approver"
+        },
+        {
+          "name": "approval_request_id",
+          "type": "VARCHAR(120)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "ADM approval request identity"
+        },
+        {
+          "name": "reason_text",
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Operator reason"
+        },
+        {
+          "name": "expected_version",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Approved optimistic policy version"
+        },
+        {
+          "name": "result_state",
+          "type": "VARCHAR(20)",
+          "nullable": false,
+          "default": "'SUCCEEDED'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Control result state"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Audit creation time"
+        }
+      ],
+      "primaryKey": [
+        "audit_id"
+      ],
+      "uniqueKeys": [],
+      "indexes": [
+        {
+          "name": "ix_ops_retention_audit_target",
+          "columns": [
+            "target_type",
+            "target_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_audit_approval",
+          "columns": [
+            "approval_request_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_ops_retention_audit_result",
+          "expression": "result_state IN ('SUCCEEDED','FAILED','UNKNOWN')"
+        }
+      ],
+      "comment": "Immutable operator/approval audit for retention control actions",
+      "module": "cpf",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "cpfDB",
+      "currentName": "ops_retention_control_audit",
+      "logicalOwner": "platform-operations",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "OPS_RETENTION_CONTROL_AUDIT",
       "targetTablePrefix": "OPS_",
       "migrationOwner": "platform-operations",
       "runtimeConsumer": "cpf-batch-control-plane",
@@ -43516,7 +43784,7 @@
           "expression": "refresh_expires_at >= access_expires_at"
         }
       ],
-      "comment": "ADM/BZA BFF Access/Refresh Token 암호화 Vault",
+      "comment": "ADM/Backoffice Web BFF Access/Refresh Token 암호화 Vault",
       "module": "adm",
       "logicalDatabase": "cpfDB",
       "currentLogicalDatabase": "admDB",

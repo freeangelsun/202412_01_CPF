@@ -1,0 +1,12 @@
+SELECT p.menu_code
+  FROM mbw_permission p
+  JOIN mbw_role r ON r.role_code = p.role_code AND r.use_yn = 'Y'
+  JOIN mbw_menu m ON m.menu_code = p.menu_code AND m.use_yn = 'Y'
+ WHERE p.role_code IN (:roleCodes)
+   AND p.use_yn = 'Y'
+   AND p.environment_code IN ('ALL', :environmentCode)
+   AND m.environment_code IN ('ALL', :environmentCode)
+ GROUP BY p.menu_code
+HAVING SUM(CASE WHEN p.allow_yn = 'N' THEN 1 ELSE 0 END) = 0
+   AND SUM(CASE WHEN p.allow_yn = 'Y' THEN 1 ELSE 0 END) > 0
+ ORDER BY p.menu_code

@@ -17,7 +17,7 @@ $profileLogicalDatabases=@($platformModules | ForEach-Object { [string]$_.logica
 if(($logicalDatabases -join "`n") -cne ($profileLogicalDatabases -join "`n")){
  throw "Canonical schema/profile logical database drift. schema=$($logicalDatabases -join ',') profile=$($profileLogicalDatabases -join ',')"
 }
-$fileByDb=@{cpfDB='10_cpf_schema.sql';cmnDB='20_cmn_schema.sql';admDB='30_adm_schema.sql';batDB='35_bat_schema.sql';bzaDB='40_business_modules_schema.sql';refDB='40_business_modules_schema.sql'}
+$fileByDb=@{cpfDB='10_cpf_schema.sql';cmnDB='20_cmn_schema.sql';admDB='30_adm_schema.sql';batDB='35_bat_schema.sql';mbwDB='40_business_modules_schema.sql';refDB='40_business_modules_schema.sql'}
 function W([string]$p,[string]$s){New-Item -ItemType Directory -Force -Path (Split-Path -Parent $p)|Out-Null;[IO.File]::WriteAllText($p,$s.TrimEnd()+"`n",[Text.UTF8Encoding]::new($false))}
 function Assert-DbIdentifier([string]$value,[string]$name){
  if($value -cnotmatch '^[A-Za-z][A-Za-z0-9_$#]{1,62}$'){throw "Invalid $name in canonical DB profile: $value"}
@@ -272,22 +272,22 @@ foreach($module in $platformModules){
    ''
   )
  }
- if($systemCode -eq 'BZA'){
+ if($systemCode -eq 'MBW'){
   $postgresVerify+=@(
-   "SELECT 'bzaDB.product_seed' AS check_name,"
+   "SELECT 'mbwDB.product_seed' AS check_name,"
    '       CASE WHEN'
    "           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4"
    "           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8"
-   "           AND (SELECT COUNT(*) FROM bza_permission WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
+   "           AND (SELECT COUNT(*) FROM mbw_permission WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
    '       THEN 1 ELSE 0 END AS passed;'
    ''
   )
   $oracleVerify+=@(
-   "SELECT 'bzaDB.product_seed' AS check_name,"
+   "SELECT 'mbwDB.product_seed' AS check_name,"
    '       CASE WHEN'
    "           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4"
    "           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8"
-   "           AND (SELECT COUNT(*) FROM bza_permission WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
+   "           AND (SELECT COUNT(*) FROM mbw_permission WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
    '       THEN 1 ELSE 0 END AS passed FROM dual;'
    ''
   )

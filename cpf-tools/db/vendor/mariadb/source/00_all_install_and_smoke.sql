@@ -2344,7 +2344,7 @@ CREATE TABLE SEC_BFF_CREDENTIAL_VAULT (
     CONSTRAINT ck_cpf_bff_credential_version CHECK (version_no > 0),
     CONSTRAINT ck_cpf_bff_credential_expiry CHECK (refresh_expires_at >= access_expires_at)
 ) ENGINE=InnoDB;
-ALTER TABLE SEC_BFF_CREDENTIAL_VAULT COMMENT = 'ADM/BZA BFF Access/Refresh Token 암호화 Vault';
+ALTER TABLE SEC_BFF_CREDENTIAL_VAULT COMMENT = 'ADM/MBW BFF Access/Refresh Token 암호화 Vault';
 CREATE INDEX idx_cpf_bff_credential_expiry ON SEC_BFF_CREDENTIAL_VAULT (refresh_expires_at);
 CREATE INDEX idx_cpf_bff_credential_key ON SEC_BFF_CREDENTIAL_VAULT (key_id, updated_at);
 
@@ -4500,9 +4500,9 @@ CREATE INDEX ix_bat_center_cut_result_transaction ON BAT_CENTER_CUT_RESULT (tran
 CREATE INDEX ix_bat_center_cut_result_parent_segment ON BAT_CENTER_CUT_RESULT (parent_segment_id);
 CREATE INDEX ix_bat_center_cut_result_job ON BAT_CENTER_CUT_RESULT (center_cut_job_id, created_at);
 -- AUTO-GENERATED DERIVED COMPATIBILITY SOURCE
--- authority=cpf-tools/db/generated/current/mariadb/bza-schema.sql
--- CPF_LOGICAL_DATABASE=bzaDB
-CREATE TABLE BZA_ADMIN_USER (
+-- authority=cpf-tools/db/generated/current/mariadb/backoffice-schema.sql
+-- CPF_LOGICAL_DATABASE=mbwDB
+CREATE TABLE MBW_ADMIN_USER (
     admin_user_id BIGINT AUTO_INCREMENT NOT NULL,
     admin_login_id VARCHAR(80) NOT NULL,
     admin_name VARCHAR(100) NOT NULL,
@@ -4521,16 +4521,16 @@ CREATE TABLE BZA_ADMIN_USER (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_ADMIN_USER PRIMARY KEY (admin_user_id),
-    CONSTRAINT uk_bza_admin_user_login UNIQUE (admin_login_id),
-    CONSTRAINT uk_bza_admin_user_create_operation UNIQUE (create_operation_id),
-    CONSTRAINT ck_bza_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
+    CONSTRAINT PK_MBW_ADMIN_USER PRIMARY KEY (admin_user_id),
+    CONSTRAINT uk_mbw_admin_user_login UNIQUE (admin_login_id),
+    CONSTRAINT uk_mbw_admin_user_create_operation UNIQUE (create_operation_id),
+    CONSTRAINT ck_mbw_admin_user_status CHECK (account_status IN ('PENDING_ACTIVATION','ACTIVE','LOCKED','SUSPENDED','DISABLED'))
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_ADMIN_USER COMMENT = 'BZA 업무 관리자 사용자';
-CREATE INDEX ix_bza_admin_user_role ON BZA_ADMIN_USER (role_code, use_yn);
-CREATE INDEX ix_bza_admin_user_status ON BZA_ADMIN_USER (account_status, use_yn);
+ALTER TABLE MBW_ADMIN_USER COMMENT = 'Backoffice 업무 관리자 사용자';
+CREATE INDEX ix_mbw_admin_user_role ON MBW_ADMIN_USER (role_code, use_yn);
+CREATE INDEX ix_mbw_admin_user_status ON MBW_ADMIN_USER (account_status, use_yn);
 
-CREATE TABLE BZA_APPROVAL_POLICY (
+CREATE TABLE MBW_APPROVAL_POLICY (
     policy_code VARCHAR(80) NOT NULL,
     policy_version INT NOT NULL,
     policy_name VARCHAR(150) NOT NULL,
@@ -4545,15 +4545,15 @@ CREATE TABLE BZA_APPROVAL_POLICY (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_APPROVAL_POLICY PRIMARY KEY (policy_code, policy_version),
-    CONSTRAINT ck_bza_approval_policy_version CHECK (policy_version > 0),
-    CONSTRAINT ck_bza_approval_policy_flags CHECK (enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_approval_policy_effective CHECK (effective_to IS NULL OR effective_to > effective_from)
+    CONSTRAINT PK_MBW_APPROVAL_POLICY PRIMARY KEY (policy_code, policy_version),
+    CONSTRAINT ck_mbw_approval_policy_version CHECK (policy_version > 0),
+    CONSTRAINT ck_mbw_approval_policy_flags CHECK (enabled_yn IN ('Y','N') AND self_approval_allowed_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_approval_policy_effective CHECK (effective_to IS NULL OR effective_to > effective_from)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_POLICY COMMENT = 'BZA 업무 결재 정책 Version';
-CREATE INDEX ix_bza_approval_policy_lookup ON BZA_APPROVAL_POLICY (business_domain, approval_type, enabled_yn, effective_from, effective_to);
+ALTER TABLE MBW_APPROVAL_POLICY COMMENT = 'Backoffice 업무 결재 정책 Version';
+CREATE INDEX ix_mbw_approval_policy_lookup ON MBW_APPROVAL_POLICY (business_domain, approval_type, enabled_yn, effective_from, effective_to);
 
-CREATE TABLE BZA_ATTACHMENT (
+CREATE TABLE MBW_ATTACHMENT (
     attachment_id BIGINT AUTO_INCREMENT NOT NULL,
     attachment_group_id VARCHAR(80) NOT NULL,
     original_file_name VARCHAR(255) NOT NULL,
@@ -4571,29 +4571,29 @@ CREATE TABLE BZA_ATTACHMENT (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_ATTACHMENT PRIMARY KEY (attachment_id),
-    CONSTRAINT uk_bza_attachment_storage_key UNIQUE (storage_key),
-    CONSTRAINT ck_bza_attachment_scan CHECK (scan_status IN ('PENDING','CLEAN','INFECTED','FAILED','QUARANTINED')),
-    CONSTRAINT ck_bza_attachment_classification CHECK (data_classification IN ('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED')),
-    CONSTRAINT ck_bza_attachment_quarantine CHECK (quarantine_yn IN ('Y','N'))
+    CONSTRAINT PK_MBW_ATTACHMENT PRIMARY KEY (attachment_id),
+    CONSTRAINT uk_mbw_attachment_storage_key UNIQUE (storage_key),
+    CONSTRAINT ck_mbw_attachment_scan CHECK (scan_status IN ('PENDING','CLEAN','INFECTED','FAILED','QUARANTINED')),
+    CONSTRAINT ck_mbw_attachment_classification CHECK (data_classification IN ('PUBLIC','INTERNAL','CONFIDENTIAL','RESTRICTED')),
+    CONSTRAINT ck_mbw_attachment_quarantine CHECK (quarantine_yn IN ('Y','N'))
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_ATTACHMENT COMMENT = 'BZA 첨부파일 메타';
-CREATE INDEX ix_bza_attachment_group ON BZA_ATTACHMENT (attachment_group_id, use_yn, created_at);
-CREATE INDEX ix_bza_attachment_checksum ON BZA_ATTACHMENT (checksum_sha256);
-CREATE INDEX ix_bza_attachment_retention ON BZA_ATTACHMENT (retention_until, use_yn);
+ALTER TABLE MBW_ATTACHMENT COMMENT = 'MBW 첨부파일 메타';
+CREATE INDEX ix_mbw_attachment_group ON MBW_ATTACHMENT (attachment_group_id, use_yn, created_at);
+CREATE INDEX ix_mbw_attachment_checksum ON MBW_ATTACHMENT (checksum_sha256);
+CREATE INDEX ix_mbw_attachment_retention ON MBW_ATTACHMENT (retention_until, use_yn);
 
-CREATE TABLE BZA_AUDIT_CHAIN_LOCK (
+CREATE TABLE MBW_AUDIT_CHAIN_LOCK (
     chain_id BIGINT NOT NULL,
     current_hash CHAR(64) NULL,
     last_audit_id BIGINT NULL,
     version_no BIGINT DEFAULT 0 NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_AUDIT_CHAIN_LOCK PRIMARY KEY (chain_id)
+    CONSTRAINT PK_MBW_AUDIT_CHAIN_LOCK PRIMARY KEY (chain_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_AUDIT_CHAIN_LOCK COMMENT = 'BZA 감사 체인 동시성/무결성 head';
+ALTER TABLE MBW_AUDIT_CHAIN_LOCK COMMENT = 'MBW 감사 체인 동시성/무결성 head';
 
-CREATE TABLE BZA_BOOTSTRAP_APPROVAL (
+CREATE TABLE MBW_BOOTSTRAP_APPROVAL (
     token_hash VARCHAR(64) NOT NULL,
     env_fingerprint VARCHAR(64) NOT NULL,
     status VARCHAR(20) NOT NULL,
@@ -4613,17 +4613,17 @@ CREATE TABLE BZA_BOOTSTRAP_APPROVAL (
     approval_reason VARCHAR(500) NOT NULL,
     created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
     updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
-    CONSTRAINT PK_BZA_BOOTSTRAP_APPROVAL PRIMARY KEY (token_hash),
-    CONSTRAINT ux_bza_bootstrap_operation UNIQUE (operation_id),
-    CONSTRAINT ck_bza_bootstrap_status CHECK (status IN ('APPROVED','CLAIMED','COMPLETED','FAILED','EXPIRED')),
-    CONSTRAINT ck_bza_bootstrap_maker_checker CHECK (requested_by <> approved_by),
-    CONSTRAINT ck_bza_bootstrap_cleanup_status CHECK (cleanup_status IN ('PENDING','COMPLETED','FAILED'))
+    CONSTRAINT PK_MBW_BOOTSTRAP_APPROVAL PRIMARY KEY (token_hash),
+    CONSTRAINT ux_mbw_bootstrap_operation UNIQUE (operation_id),
+    CONSTRAINT ck_mbw_bootstrap_status CHECK (status IN ('APPROVED','CLAIMED','COMPLETED','FAILED','EXPIRED')),
+    CONSTRAINT ck_mbw_bootstrap_maker_checker CHECK (requested_by <> approved_by),
+    CONSTRAINT ck_mbw_bootstrap_cleanup_status CHECK (cleanup_status IN ('PENDING','COMPLETED','FAILED'))
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_BOOTSTRAP_APPROVAL COMMENT = 'BZA 최초 특권 운영자 Bootstrap 승인 및 복구 원장';
-CREATE INDEX ix_bza_bootstrap_expiry ON BZA_BOOTSTRAP_APPROVAL (status, expires_at);
-CREATE INDEX ix_bza_bootstrap_claim_lease ON BZA_BOOTSTRAP_APPROVAL (status, claim_expires_at);
+ALTER TABLE MBW_BOOTSTRAP_APPROVAL COMMENT = 'MBW 최초 특권 운영자 Bootstrap 승인 및 복구 원장';
+CREATE INDEX ix_mbw_bootstrap_expiry ON MBW_BOOTSTRAP_APPROVAL (status, expires_at);
+CREATE INDEX ix_mbw_bootstrap_claim_lease ON MBW_BOOTSTRAP_APPROVAL (status, claim_expires_at);
 
-CREATE TABLE BZA_BUSINESS_AUDIT (
+CREATE TABLE MBW_BUSINESS_AUDIT (
     audit_id BIGINT AUTO_INCREMENT NOT NULL,
     transaction_id CHAR(34) NULL,
     actor_id VARCHAR(100) NOT NULL,
@@ -4639,15 +4639,15 @@ CREATE TABLE BZA_BUSINESS_AUDIT (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_BUSINESS_AUDIT PRIMARY KEY (audit_id)
+    CONSTRAINT PK_MBW_BUSINESS_AUDIT PRIMARY KEY (audit_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_BUSINESS_AUDIT COMMENT = 'BZA 업무 감사';
-CREATE INDEX ix_bza_business_audit_target ON BZA_BUSINESS_AUDIT (target_type, target_id, created_at);
-CREATE INDEX ix_bza_business_audit_actor ON BZA_BUSINESS_AUDIT (actor_id, created_at);
-CREATE INDEX ix_bza_business_audit_transaction ON BZA_BUSINESS_AUDIT (transaction_id);
-CREATE INDEX ix_bza_business_audit_hash ON BZA_BUSINESS_AUDIT (record_hash);
+ALTER TABLE MBW_BUSINESS_AUDIT COMMENT = 'Backoffice 업무 감사';
+CREATE INDEX ix_mbw_business_audit_target ON MBW_BUSINESS_AUDIT (target_type, target_id, created_at);
+CREATE INDEX ix_mbw_business_audit_actor ON MBW_BUSINESS_AUDIT (actor_id, created_at);
+CREATE INDEX ix_mbw_business_audit_transaction ON MBW_BUSINESS_AUDIT (transaction_id);
+CREATE INDEX ix_mbw_business_audit_hash ON MBW_BUSINESS_AUDIT (record_hash);
 
-CREATE TABLE BZA_DOWNLOAD_AUDIT (
+CREATE TABLE MBW_DOWNLOAD_AUDIT (
     download_audit_id BIGINT AUTO_INCREMENT NOT NULL,
     actor_id VARCHAR(100) NOT NULL,
     download_code VARCHAR(80) NOT NULL,
@@ -4662,14 +4662,14 @@ CREATE TABLE BZA_DOWNLOAD_AUDIT (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_DOWNLOAD_AUDIT PRIMARY KEY (download_audit_id)
+    CONSTRAINT PK_MBW_DOWNLOAD_AUDIT PRIMARY KEY (download_audit_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_DOWNLOAD_AUDIT COMMENT = 'BZA 다운로드 감사';
-CREATE INDEX ix_bza_download_audit_actor ON BZA_DOWNLOAD_AUDIT (actor_id, created_at);
-CREATE INDEX ix_bza_download_audit_transaction ON BZA_DOWNLOAD_AUDIT (transaction_id);
-CREATE INDEX ix_bza_download_audit_status ON BZA_DOWNLOAD_AUDIT (result_status, created_at);
+ALTER TABLE MBW_DOWNLOAD_AUDIT COMMENT = 'MBW 다운로드 감사';
+CREATE INDEX ix_mbw_download_audit_actor ON MBW_DOWNLOAD_AUDIT (actor_id, created_at);
+CREATE INDEX ix_mbw_download_audit_transaction ON MBW_DOWNLOAD_AUDIT (transaction_id);
+CREATE INDEX ix_mbw_download_audit_status ON MBW_DOWNLOAD_AUDIT (result_status, created_at);
 
-CREATE TABLE BZA_JOB_TITLE (
+CREATE TABLE MBW_JOB_TITLE (
     job_title_code VARCHAR(50) NOT NULL,
     job_title_name VARCHAR(100) NOT NULL,
     manager_yn CHAR(1) DEFAULT 'N' NOT NULL,
@@ -4679,17 +4679,17 @@ CREATE TABLE BZA_JOB_TITLE (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_JOB_TITLE PRIMARY KEY (job_title_code),
-    CONSTRAINT ck_bza_job_title_flags CHECK (manager_yn IN ('Y','N') AND use_yn IN ('Y','N'))
+    CONSTRAINT PK_MBW_JOB_TITLE PRIMARY KEY (job_title_code),
+    CONSTRAINT ck_mbw_job_title_flags CHECK (manager_yn IN ('Y','N') AND use_yn IN ('Y','N'))
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_JOB_TITLE COMMENT = 'BZA 직책 기준정보';
+ALTER TABLE MBW_JOB_TITLE COMMENT = 'MBW 직책 기준정보';
 
-CREATE TABLE BZA_MENU (
+CREATE TABLE MBW_MENU (
     menu_id BIGINT AUTO_INCREMENT NOT NULL,
     menu_code VARCHAR(80) NOT NULL,
     menu_name VARCHAR(120) NOT NULL,
     parent_menu_code VARCHAR(80) NULL,
-    module_code VARCHAR(20) DEFAULT 'BZA' NOT NULL,
+    module_code VARCHAR(20) DEFAULT 'MBW' NOT NULL,
     route_path VARCHAR(300) NULL,
     icon_code VARCHAR(80) NULL,
     environment_code VARCHAR(20) DEFAULT 'ALL' NOT NULL,
@@ -4701,12 +4701,12 @@ CREATE TABLE BZA_MENU (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_MENU PRIMARY KEY (menu_id),
-    CONSTRAINT uk_bza_menu_code UNIQUE (menu_code)
+    CONSTRAINT PK_MBW_MENU PRIMARY KEY (menu_id),
+    CONSTRAINT uk_mbw_menu_code UNIQUE (menu_code)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_MENU COMMENT = 'BZA 업무 메뉴';
+ALTER TABLE MBW_MENU COMMENT = 'Backoffice 업무 메뉴';
 
-CREATE TABLE BZA_NOTIFICATION (
+CREATE TABLE MBW_NOTIFICATION (
     notification_id BIGINT AUTO_INCREMENT NOT NULL,
     recipient_login_id VARCHAR(100) NOT NULL,
     notification_type VARCHAR(40) NOT NULL,
@@ -4721,13 +4721,13 @@ CREATE TABLE BZA_NOTIFICATION (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_NOTIFICATION PRIMARY KEY (notification_id)
+    CONSTRAINT PK_MBW_NOTIFICATION PRIMARY KEY (notification_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_NOTIFICATION COMMENT = 'BZA 업무 알림';
-CREATE INDEX ix_bza_notification_recipient ON BZA_NOTIFICATION (recipient_login_id, read_yn, use_yn, created_at);
-CREATE INDEX ix_bza_notification_reference ON BZA_NOTIFICATION (reference_type, reference_id);
+ALTER TABLE MBW_NOTIFICATION COMMENT = 'Backoffice 업무 알림';
+CREATE INDEX ix_mbw_notification_recipient ON MBW_NOTIFICATION (recipient_login_id, read_yn, use_yn, created_at);
+CREATE INDEX ix_mbw_notification_reference ON MBW_NOTIFICATION (reference_type, reference_id);
 
-CREATE TABLE BZA_ORGANIZATION (
+CREATE TABLE MBW_ORGANIZATION (
     organization_id BIGINT AUTO_INCREMENT NOT NULL,
     organization_code VARCHAR(50) NOT NULL,
     parent_organization_code VARCHAR(50) NULL,
@@ -4742,15 +4742,15 @@ CREATE TABLE BZA_ORGANIZATION (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_ORGANIZATION PRIMARY KEY (organization_id),
-    CONSTRAINT uk_bza_organization_code UNIQUE (organization_code),
-    CONSTRAINT ck_bza_organization_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_organization_effective CHECK (effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from)
+    CONSTRAINT PK_MBW_ORGANIZATION PRIMARY KEY (organization_id),
+    CONSTRAINT uk_mbw_organization_code UNIQUE (organization_code),
+    CONSTRAINT ck_mbw_organization_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_organization_effective CHECK (effective_to IS NULL OR effective_from IS NULL OR effective_to > effective_from)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_ORGANIZATION COMMENT = 'BZA 조직';
-CREATE INDEX ix_bza_organization_parent ON BZA_ORGANIZATION (parent_organization_code, sort_order);
+ALTER TABLE MBW_ORGANIZATION COMMENT = 'MBW 조직';
+CREATE INDEX ix_mbw_organization_parent ON MBW_ORGANIZATION (parent_organization_code, sort_order);
 
-CREATE TABLE BZA_PERMISSION (
+CREATE TABLE MBW_PERMISSION (
     permission_id BIGINT AUTO_INCREMENT NOT NULL,
     role_code VARCHAR(50) NOT NULL,
     menu_code VARCHAR(80) NOT NULL,
@@ -4768,13 +4768,13 @@ CREATE TABLE BZA_PERMISSION (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_PERMISSION PRIMARY KEY (permission_id)
+    CONSTRAINT PK_MBW_PERMISSION PRIMARY KEY (permission_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_PERMISSION COMMENT = 'BZA 업무 권한';
-CREATE INDEX ix_bza_permission_scope ON BZA_PERMISSION (role_code, menu_code, button_code, environment_code, domain_code, http_method);
-CREATE INDEX ix_bza_permission_menu ON BZA_PERMISSION (menu_code);
+ALTER TABLE MBW_PERMISSION COMMENT = 'Backoffice 업무 권한';
+CREATE INDEX ix_mbw_permission_scope ON MBW_PERMISSION (role_code, menu_code, button_code, environment_code, domain_code, http_method);
+CREATE INDEX ix_mbw_permission_menu ON MBW_PERMISSION (menu_code);
 
-CREATE TABLE BZA_POSITION (
+CREATE TABLE MBW_POSITION (
     position_code VARCHAR(50) NOT NULL,
     position_name VARCHAR(100) NOT NULL,
     rank_order INT DEFAULT 0 NOT NULL,
@@ -4784,12 +4784,12 @@ CREATE TABLE BZA_POSITION (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_POSITION PRIMARY KEY (position_code),
-    CONSTRAINT ck_bza_position_use CHECK (use_yn IN ('Y','N'))
+    CONSTRAINT PK_MBW_POSITION PRIMARY KEY (position_code),
+    CONSTRAINT ck_mbw_position_use CHECK (use_yn IN ('Y','N'))
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_POSITION COMMENT = 'BZA 직급 기준정보';
+ALTER TABLE MBW_POSITION COMMENT = 'MBW 직급 기준정보';
 
-CREATE TABLE BZA_PROJECT_SETTING (
+CREATE TABLE MBW_PROJECT_SETTING (
     setting_id BIGINT AUTO_INCREMENT NOT NULL,
     setting_key VARCHAR(120) NOT NULL,
     setting_value VARCHAR(1000) NULL,
@@ -4799,12 +4799,12 @@ CREATE TABLE BZA_PROJECT_SETTING (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_PROJECT_SETTING PRIMARY KEY (setting_id),
-    CONSTRAINT uk_bza_project_setting_key UNIQUE (setting_key)
+    CONSTRAINT PK_MBW_PROJECT_SETTING PRIMARY KEY (setting_id),
+    CONSTRAINT uk_mbw_project_setting_key UNIQUE (setting_key)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_PROJECT_SETTING COMMENT = 'BZA 프로젝트 설정';
+ALTER TABLE MBW_PROJECT_SETTING COMMENT = 'MBW 프로젝트 설정';
 
-CREATE TABLE BZA_ROLE (
+CREATE TABLE MBW_ROLE (
     role_id BIGINT AUTO_INCREMENT NOT NULL,
     role_code VARCHAR(50) NOT NULL,
     role_name VARCHAR(120) NOT NULL,
@@ -4816,12 +4816,12 @@ CREATE TABLE BZA_ROLE (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_ROLE PRIMARY KEY (role_id),
-    CONSTRAINT uk_bza_role_code UNIQUE (role_code)
+    CONSTRAINT PK_MBW_ROLE PRIMARY KEY (role_id),
+    CONSTRAINT uk_mbw_role_code UNIQUE (role_code)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_ROLE COMMENT = 'BZA 업무 역할';
+ALTER TABLE MBW_ROLE COMMENT = 'Backoffice 업무 역할';
 
-CREATE TABLE BZA_SAVED_SEARCH (
+CREATE TABLE MBW_SAVED_SEARCH (
     saved_search_id BIGINT AUTO_INCREMENT NOT NULL,
     owner_login_id VARCHAR(100) NOT NULL,
     screen_code VARCHAR(80) NOT NULL,
@@ -4833,38 +4833,38 @@ CREATE TABLE BZA_SAVED_SEARCH (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_SAVED_SEARCH PRIMARY KEY (saved_search_id),
-    CONSTRAINT uk_bza_saved_search_owner UNIQUE (owner_login_id, screen_code, search_name)
+    CONSTRAINT PK_MBW_SAVED_SEARCH PRIMARY KEY (saved_search_id),
+    CONSTRAINT uk_mbw_saved_search_owner UNIQUE (owner_login_id, screen_code, search_name)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_SAVED_SEARCH COMMENT = 'BZA 저장 검색';
-CREATE INDEX ix_bza_saved_search_screen ON BZA_SAVED_SEARCH (screen_code, shared_yn, use_yn);
+ALTER TABLE MBW_SAVED_SEARCH COMMENT = 'MBW 저장 검색';
+CREATE INDEX ix_mbw_saved_search_screen ON MBW_SAVED_SEARCH (screen_code, shared_yn, use_yn);
 
-CREATE TABLE BZA_LOGIN_HISTORY (
+CREATE TABLE MBW_LOGIN_HISTORY (
     login_history_id BIGINT AUTO_INCREMENT NOT NULL,
     admin_user_id BIGINT NULL,
-    login_domain VARCHAR(30) DEFAULT 'BZA' NOT NULL,
+    login_domain VARCHAR(30) DEFAULT 'MBW' NOT NULL,
     admin_login_id VARCHAR(80) NOT NULL,
     login_result VARCHAR(30) NOT NULL,
     failure_reason VARCHAR(500) NULL,
     client_ip VARCHAR(50) NULL,
     user_agent VARCHAR(500) NULL,
     transaction_id CHAR(34) NULL,
-    module_id VARCHAR(3) NULL,
-    was_id VARCHAR(7) NULL,
+    system_code VARCHAR(20) NULL,
+    application_name VARCHAR(200) NULL,
     instance_id VARCHAR(200) NULL,
     created_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_LOGIN_HISTORY PRIMARY KEY (login_history_id),
-    CONSTRAINT fk_bza_login_history_user FOREIGN KEY (admin_user_id) REFERENCES BZA_ADMIN_USER (admin_user_id) ON DELETE SET NULL
+    CONSTRAINT PK_MBW_LOGIN_HISTORY PRIMARY KEY (login_history_id),
+    CONSTRAINT fk_mbw_login_history_user FOREIGN KEY (admin_user_id) REFERENCES MBW_ADMIN_USER (admin_user_id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_LOGIN_HISTORY COMMENT = 'BZA 업무 관리자 로그인 이력';
-CREATE INDEX ix_bza_login_history_user_time ON BZA_LOGIN_HISTORY (admin_user_id, created_at);
-CREATE INDEX ix_bza_login_history_result_time ON BZA_LOGIN_HISTORY (login_result, created_at);
-CREATE INDEX ix_bza_login_history_global ON BZA_LOGIN_HISTORY (transaction_id);
+ALTER TABLE MBW_LOGIN_HISTORY COMMENT = 'Backoffice 업무 관리자 로그인 이력';
+CREATE INDEX ix_mbw_login_history_user_time ON MBW_LOGIN_HISTORY (admin_user_id, created_at);
+CREATE INDEX ix_mbw_login_history_result_time ON MBW_LOGIN_HISTORY (login_result, created_at);
+CREATE INDEX ix_mbw_login_history_global ON MBW_LOGIN_HISTORY (transaction_id);
 
-CREATE TABLE BZA_LOGIN_OPERATION (
+CREATE TABLE MBW_LOGIN_OPERATION (
     operation_id VARCHAR(100) NOT NULL,
     admin_user_id BIGINT NOT NULL,
     admin_login_id VARCHAR(80) NOT NULL,
@@ -4880,18 +4880,18 @@ CREATE TABLE BZA_LOGIN_OPERATION (
     result_expires_at DATETIME(3) NULL,
     failure_code VARCHAR(80) NULL,
     failure_message VARCHAR(500) NULL,
-    CONSTRAINT PK_BZA_LOGIN_OPERATION PRIMARY KEY (operation_id),
-    CONSTRAINT ck_bza_login_operation_status CHECK (operation_status IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED')),
-    CONSTRAINT fk_bza_login_operation_user FOREIGN KEY (admin_user_id) REFERENCES BZA_ADMIN_USER (admin_user_id) ON DELETE CASCADE
+    CONSTRAINT PK_MBW_LOGIN_OPERATION PRIMARY KEY (operation_id),
+    CONSTRAINT ck_mbw_login_operation_status CHECK (operation_status IN ('PROCESSING','SUCCESS','FAILED','UNKNOWN','EXPIRED')),
+    CONSTRAINT fk_mbw_login_operation_user FOREIGN KEY (admin_user_id) REFERENCES MBW_ADMIN_USER (admin_user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_LOGIN_OPERATION COMMENT = 'BZA 로그인 멱등 처리 이력';
-CREATE INDEX ix_bza_login_operation_user_time ON BZA_LOGIN_OPERATION (admin_user_id, created_at);
-CREATE INDEX ix_bza_login_operation_expiry ON BZA_LOGIN_OPERATION (operation_status, result_expires_at);
+ALTER TABLE MBW_LOGIN_OPERATION COMMENT = 'MBW 로그인 멱등 처리 이력';
+CREATE INDEX ix_mbw_login_operation_user_time ON MBW_LOGIN_OPERATION (admin_user_id, created_at);
+CREATE INDEX ix_mbw_login_operation_expiry ON MBW_LOGIN_OPERATION (operation_status, result_expires_at);
 
-CREATE TABLE BZA_REFRESH_TOKEN (
+CREATE TABLE MBW_REFRESH_TOKEN (
     refresh_token_id BIGINT AUTO_INCREMENT NOT NULL,
     admin_user_id BIGINT NOT NULL,
-    login_domain VARCHAR(30) DEFAULT 'BZA' NOT NULL,
+    login_domain VARCHAR(30) DEFAULT 'MBW' NOT NULL,
     refresh_token_hash VARCHAR(300) NOT NULL,
     transaction_id CHAR(34) NULL,
     login_operation_id VARCHAR(100) NULL,
@@ -4902,15 +4902,15 @@ CREATE TABLE BZA_REFRESH_TOKEN (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_REFRESH_TOKEN PRIMARY KEY (refresh_token_id),
-    CONSTRAINT uk_bza_refresh_token_hash UNIQUE (refresh_token_hash),
-    CONSTRAINT fk_bza_refresh_token_user FOREIGN KEY (admin_user_id) REFERENCES BZA_ADMIN_USER (admin_user_id) ON DELETE CASCADE
+    CONSTRAINT PK_MBW_REFRESH_TOKEN PRIMARY KEY (refresh_token_id),
+    CONSTRAINT uk_mbw_refresh_token_hash UNIQUE (refresh_token_hash),
+    CONSTRAINT fk_mbw_refresh_token_user FOREIGN KEY (admin_user_id) REFERENCES MBW_ADMIN_USER (admin_user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_REFRESH_TOKEN COMMENT = 'BZA 업무 관리자 refresh token hash 저장소';
-CREATE INDEX ix_bza_refresh_token_user ON BZA_REFRESH_TOKEN (admin_user_id, revoked_yn, expire_at);
-CREATE INDEX ix_bza_refresh_token_login_operation ON BZA_REFRESH_TOKEN (login_operation_id, revoked_yn);
+ALTER TABLE MBW_REFRESH_TOKEN COMMENT = 'Backoffice 업무 관리자 refresh token hash 저장소';
+CREATE INDEX ix_mbw_refresh_token_user ON MBW_REFRESH_TOKEN (admin_user_id, revoked_yn, expire_at);
+CREATE INDEX ix_mbw_refresh_token_login_operation ON MBW_REFRESH_TOKEN (login_operation_id, revoked_yn);
 
-CREATE TABLE BZA_APPROVAL_DOCUMENT (
+CREATE TABLE MBW_APPROVAL_DOCUMENT (
     approval_id BIGINT AUTO_INCREMENT NOT NULL,
     approval_no VARCHAR(50) NOT NULL,
     approval_type VARCHAR(50) NOT NULL,
@@ -4940,24 +4940,24 @@ CREATE TABLE BZA_APPROVAL_DOCUMENT (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_APPROVAL_DOCUMENT PRIMARY KEY (approval_id),
-    CONSTRAINT uk_bza_approval_document_no UNIQUE (approval_no),
-    CONSTRAINT uk_bza_approval_document_idempotency UNIQUE (request_idempotency_key),
-    CONSTRAINT ck_bza_approval_document_policy_pair CHECK ((policy_code IS NULL AND policy_version IS NULL) OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)),
-    CONSTRAINT ck_bza_approval_document_status CHECK (approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')),
-    CONSTRAINT ck_bza_approval_document_mode CHECK (approval_mode IN ('SEQUENTIAL','PARALLEL')),
-    CONSTRAINT ck_bza_approval_document_step CHECK (current_step_no >= 0),
-    CONSTRAINT ck_bza_approval_document_version CHECK (version_no >= 0),
-    CONSTRAINT fk_bza_approval_document_policy FOREIGN KEY (policy_code, policy_version) REFERENCES BZA_APPROVAL_POLICY (policy_code, policy_version),
-    CONSTRAINT fk_bza_approval_document_resubmit FOREIGN KEY (resubmitted_from_approval_id) REFERENCES BZA_APPROVAL_DOCUMENT (approval_id)
+    CONSTRAINT PK_MBW_APPROVAL_DOCUMENT PRIMARY KEY (approval_id),
+    CONSTRAINT uk_mbw_approval_document_no UNIQUE (approval_no),
+    CONSTRAINT uk_mbw_approval_document_idempotency UNIQUE (request_idempotency_key),
+    CONSTRAINT ck_mbw_approval_document_policy_pair CHECK ((policy_code IS NULL AND policy_version IS NULL) OR (policy_code IS NOT NULL AND policy_version IS NOT NULL)),
+    CONSTRAINT ck_mbw_approval_document_status CHECK (approval_status IN ('DRAFT','IN_REVIEW','APPROVED','REJECTED','WITHDRAWN','CANCELED','EXPIRED')),
+    CONSTRAINT ck_mbw_approval_document_mode CHECK (approval_mode IN ('SEQUENTIAL','PARALLEL')),
+    CONSTRAINT ck_mbw_approval_document_step CHECK (current_step_no >= 0),
+    CONSTRAINT ck_mbw_approval_document_version CHECK (version_no >= 0),
+    CONSTRAINT fk_mbw_approval_document_policy FOREIGN KEY (policy_code, policy_version) REFERENCES MBW_APPROVAL_POLICY (policy_code, policy_version),
+    CONSTRAINT fk_mbw_approval_document_resubmit FOREIGN KEY (resubmitted_from_approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_DOCUMENT COMMENT = 'BZA 결재 문서';
-CREATE INDEX ix_bza_approval_document_status ON BZA_APPROVAL_DOCUMENT (approval_status, due_at);
-CREATE INDEX ix_bza_approval_document_requester ON BZA_APPROVAL_DOCUMENT (requester_employee_no, created_at);
-CREATE INDEX ix_bza_approval_document_transaction ON BZA_APPROVAL_DOCUMENT (transaction_id, created_at);
-CREATE INDEX ix_bza_approval_document_resubmit ON BZA_APPROVAL_DOCUMENT (resubmitted_from_approval_id);
+ALTER TABLE MBW_APPROVAL_DOCUMENT COMMENT = 'Backoffice 결재 문서';
+CREATE INDEX ix_mbw_approval_document_status ON MBW_APPROVAL_DOCUMENT (approval_status, due_at);
+CREATE INDEX ix_mbw_approval_document_requester ON MBW_APPROVAL_DOCUMENT (requester_employee_no, created_at);
+CREATE INDEX ix_mbw_approval_document_transaction ON MBW_APPROVAL_DOCUMENT (transaction_id, created_at);
+CREATE INDEX ix_mbw_approval_document_resubmit ON MBW_APPROVAL_DOCUMENT (resubmitted_from_approval_id);
 
-CREATE TABLE BZA_APPROVAL_POLICY_STEP (
+CREATE TABLE MBW_APPROVAL_POLICY_STEP (
     policy_code VARCHAR(80) NOT NULL,
     policy_version INT NOT NULL,
     step_no INT NOT NULL,
@@ -4972,17 +4972,17 @@ CREATE TABLE BZA_APPROVAL_POLICY_STEP (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_APPROVAL_POLICY_STEP PRIMARY KEY (policy_code, policy_version, step_no, target_type, target_code),
-    CONSTRAINT ck_bza_approval_policy_step_no CHECK (step_no >= 1),
-    CONSTRAINT ck_bza_approval_policy_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
-    CONSTRAINT ck_bza_approval_policy_step_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
-    CONSTRAINT ck_bza_approval_policy_step_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
-    CONSTRAINT ck_bza_approval_policy_step_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
-    CONSTRAINT fk_bza_approval_policy_step_policy FOREIGN KEY (policy_code, policy_version) REFERENCES BZA_APPROVAL_POLICY (policy_code, policy_version) ON DELETE CASCADE
+    CONSTRAINT PK_MBW_APPROVAL_POLICY_STEP PRIMARY KEY (policy_code, policy_version, step_no, target_type, target_code),
+    CONSTRAINT ck_mbw_approval_policy_step_no CHECK (step_no >= 1),
+    CONSTRAINT ck_mbw_approval_policy_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
+    CONSTRAINT ck_mbw_approval_policy_step_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
+    CONSTRAINT ck_mbw_approval_policy_step_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_mbw_approval_policy_step_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
+    CONSTRAINT fk_mbw_approval_policy_step_policy FOREIGN KEY (policy_code, policy_version) REFERENCES MBW_APPROVAL_POLICY (policy_code, policy_version) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_POLICY_STEP COMMENT = 'BZA 업무 결재 정책 단계';
+ALTER TABLE MBW_APPROVAL_POLICY_STEP COMMENT = 'Backoffice 업무 결재 정책 단계';
 
-CREATE TABLE BZA_EMPLOYEE (
+CREATE TABLE MBW_EMPLOYEE (
     employee_id BIGINT AUTO_INCREMENT NOT NULL,
     employee_no VARCHAR(50) NOT NULL,
     admin_user_id BIGINT NULL,
@@ -5003,21 +5003,21 @@ CREATE TABLE BZA_EMPLOYEE (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_EMPLOYEE PRIMARY KEY (employee_id),
-    CONSTRAINT uk_bza_employee_no UNIQUE (employee_no),
-    CONSTRAINT uk_bza_employee_admin_user UNIQUE (admin_user_id),
-    CONSTRAINT ck_bza_employee_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
-    CONSTRAINT ck_bza_employee_employment_period CHECK (leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date),
-    CONSTRAINT fk_bza_employee_admin_user FOREIGN KEY (admin_user_id) REFERENCES BZA_ADMIN_USER (admin_user_id) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_organization FOREIGN KEY (organization_code) REFERENCES BZA_ORGANIZATION (organization_code),
-    CONSTRAINT fk_bza_employee_position FOREIGN KEY (position_code) REFERENCES BZA_POSITION (position_code) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_job_title FOREIGN KEY (job_title_code) REFERENCES BZA_JOB_TITLE (job_title_code) ON DELETE SET NULL
+    CONSTRAINT PK_MBW_EMPLOYEE PRIMARY KEY (employee_id),
+    CONSTRAINT uk_mbw_employee_no UNIQUE (employee_no),
+    CONSTRAINT uk_mbw_employee_admin_user UNIQUE (admin_user_id),
+    CONSTRAINT ck_mbw_employee_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_employee_status CHECK (employment_status IN ('EMPLOYED','ON_LEAVE','SECONDMENT','DISPATCHED','RETIRED','TERMINATED')),
+    CONSTRAINT ck_mbw_employee_employment_period CHECK (leave_date IS NULL OR join_date IS NULL OR leave_date >= join_date),
+    CONSTRAINT fk_mbw_employee_admin_user FOREIGN KEY (admin_user_id) REFERENCES MBW_ADMIN_USER (admin_user_id) ON DELETE SET NULL,
+    CONSTRAINT fk_mbw_employee_organization FOREIGN KEY (organization_code) REFERENCES MBW_ORGANIZATION (organization_code),
+    CONSTRAINT fk_mbw_employee_position FOREIGN KEY (position_code) REFERENCES MBW_POSITION (position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_mbw_employee_job_title FOREIGN KEY (job_title_code) REFERENCES MBW_JOB_TITLE (job_title_code) ON DELETE SET NULL
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_EMPLOYEE COMMENT = 'BZA 직원 프로필';
-CREATE INDEX ix_bza_employee_organization ON BZA_EMPLOYEE (organization_code, employment_status);
+ALTER TABLE MBW_EMPLOYEE COMMENT = 'MBW 직원 프로필';
+CREATE INDEX ix_mbw_employee_organization ON MBW_EMPLOYEE (organization_code, employment_status);
 
-CREATE TABLE BZA_USER_ROLE (
+CREATE TABLE MBW_USER_ROLE (
     user_role_id BIGINT AUTO_INCREMENT NOT NULL,
     admin_user_id BIGINT NOT NULL,
     role_code VARCHAR(50) NOT NULL,
@@ -5031,18 +5031,18 @@ CREATE TABLE BZA_USER_ROLE (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_USER_ROLE PRIMARY KEY (user_role_id),
-    CONSTRAINT uk_bza_user_role_operation UNIQUE (operation_id),
-    CONSTRAINT ck_bza_user_role_primary CHECK (primary_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_user_role_effective CHECK (valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from),
-    CONSTRAINT fk_bza_user_role_user FOREIGN KEY (admin_user_id) REFERENCES BZA_ADMIN_USER (admin_user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_user_role_role FOREIGN KEY (role_code) REFERENCES BZA_ROLE (role_code)
+    CONSTRAINT PK_MBW_USER_ROLE PRIMARY KEY (user_role_id),
+    CONSTRAINT uk_mbw_user_role_operation UNIQUE (operation_id),
+    CONSTRAINT ck_mbw_user_role_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_user_role_effective CHECK (valid_to IS NULL OR valid_from IS NULL OR valid_to > valid_from),
+    CONSTRAINT fk_mbw_user_role_user FOREIGN KEY (admin_user_id) REFERENCES MBW_ADMIN_USER (admin_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_mbw_user_role_role FOREIGN KEY (role_code) REFERENCES MBW_ROLE (role_code)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_USER_ROLE COMMENT = 'BZA 사용자 다중 역할 이력';
-CREATE INDEX ix_bza_user_role_user ON BZA_USER_ROLE (admin_user_id, valid_to, primary_yn, user_role_id);
-CREATE INDEX ix_bza_user_role_role ON BZA_USER_ROLE (role_code, valid_to, admin_user_id);
+ALTER TABLE MBW_USER_ROLE COMMENT = 'MBW 사용자 다중 역할 이력';
+CREATE INDEX ix_mbw_user_role_user ON MBW_USER_ROLE (admin_user_id, valid_to, primary_yn, user_role_id);
+CREATE INDEX ix_mbw_user_role_role ON MBW_USER_ROLE (role_code, valid_to, admin_user_id);
 
-CREATE TABLE BZA_APPROVAL_HISTORY (
+CREATE TABLE MBW_APPROVAL_HISTORY (
     approval_history_id BIGINT AUTO_INCREMENT NOT NULL,
     approval_id BIGINT NOT NULL,
     action_type VARCHAR(30) NOT NULL,
@@ -5057,14 +5057,14 @@ CREATE TABLE BZA_APPROVAL_HISTORY (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_APPROVAL_HISTORY PRIMARY KEY (approval_history_id),
-    CONSTRAINT uk_bza_approval_history_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT fk_bza_approval_history_document FOREIGN KEY (approval_id) REFERENCES BZA_APPROVAL_DOCUMENT (approval_id)
+    CONSTRAINT PK_MBW_APPROVAL_HISTORY PRIMARY KEY (approval_history_id),
+    CONSTRAINT uk_mbw_approval_history_idempotency UNIQUE (idempotency_key),
+    CONSTRAINT fk_mbw_approval_history_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_HISTORY COMMENT = 'BZA 결재 상태 변경 이력';
-CREATE INDEX ix_bza_approval_history_document ON BZA_APPROVAL_HISTORY (approval_id, created_at);
+ALTER TABLE MBW_APPROVAL_HISTORY COMMENT = 'Backoffice 결재 상태 변경 이력';
+CREATE INDEX ix_mbw_approval_history_document ON MBW_APPROVAL_HISTORY (approval_id, created_at);
 
-CREATE TABLE BZA_APPROVAL_LINE (
+CREATE TABLE MBW_APPROVAL_LINE (
     approval_line_id BIGINT AUTO_INCREMENT NOT NULL,
     approval_id BIGINT NOT NULL,
     step_no INT NOT NULL,
@@ -5083,20 +5083,20 @@ CREATE TABLE BZA_APPROVAL_LINE (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT PK_BZA_APPROVAL_LINE PRIMARY KEY (approval_line_id),
-    CONSTRAINT uk_bza_approval_line UNIQUE (approval_id, step_no, target_type, target_code),
-    CONSTRAINT ck_bza_approval_line_step CHECK (step_no >= 1),
-    CONSTRAINT ck_bza_approval_line_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
-    CONSTRAINT ck_bza_approval_line_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
-    CONSTRAINT ck_bza_approval_line_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
-    CONSTRAINT ck_bza_approval_line_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
-    CONSTRAINT ck_bza_approval_line_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
-    CONSTRAINT fk_bza_approval_line_document FOREIGN KEY (approval_id) REFERENCES BZA_APPROVAL_DOCUMENT (approval_id) ON DELETE CASCADE
+    CONSTRAINT PK_MBW_APPROVAL_LINE PRIMARY KEY (approval_line_id),
+    CONSTRAINT uk_mbw_approval_line UNIQUE (approval_id, step_no, target_type, target_code),
+    CONSTRAINT ck_mbw_approval_line_step CHECK (step_no >= 1),
+    CONSTRAINT ck_mbw_approval_line_step_type CHECK (step_type IN ('APPROVAL','AGREEMENT','REVIEW')),
+    CONSTRAINT ck_mbw_approval_line_target CHECK (target_type IN ('EMPLOYEE','ROLE','ORGANIZATION','ORG_MANAGER','POSITION')),
+    CONSTRAINT ck_mbw_approval_line_rule CHECK (decision_rule IN ('ALL','ANY','N_OF_M')),
+    CONSTRAINT ck_mbw_approval_line_required CHECK (required_yn IN ('Y','N') AND ( (decision_rule = 'N_OF_M' AND required_count IS NOT NULL AND required_count > 0) OR (decision_rule <> 'N_OF_M' AND required_count IS NULL) )),
+    CONSTRAINT ck_mbw_approval_line_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
+    CONSTRAINT fk_mbw_approval_line_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_LINE COMMENT = 'BZA 결재선';
-CREATE INDEX ix_bza_approval_line_approver ON BZA_APPROVAL_LINE (approver_employee_no, decision_status);
+ALTER TABLE MBW_APPROVAL_LINE COMMENT = 'Backoffice 결재선';
+CREATE INDEX ix_mbw_approval_line_approver ON MBW_APPROVAL_LINE (approver_employee_no, decision_status);
 
-CREATE TABLE BZA_APPROVAL_DELEGATION (
+CREATE TABLE MBW_APPROVAL_DELEGATION (
     delegation_id BIGINT AUTO_INCREMENT NOT NULL,
     delegator_employee_no VARCHAR(50) NOT NULL,
     delegate_employee_no VARCHAR(50) NOT NULL,
@@ -5110,17 +5110,17 @@ CREATE TABLE BZA_APPROVAL_DELEGATION (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_APPROVAL_DELEGATION PRIMARY KEY (delegation_id),
-    CONSTRAINT ck_bza_approval_delegation_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_approval_delegation_period CHECK (valid_to > valid_from),
-    CONSTRAINT ck_bza_approval_delegation_self CHECK (delegator_employee_no <> delegate_employee_no),
-    CONSTRAINT fk_bza_approval_delegation_from FOREIGN KEY (delegator_employee_no) REFERENCES BZA_EMPLOYEE (employee_no),
-    CONSTRAINT fk_bza_approval_delegation_to FOREIGN KEY (delegate_employee_no) REFERENCES BZA_EMPLOYEE (employee_no)
+    CONSTRAINT PK_MBW_APPROVAL_DELEGATION PRIMARY KEY (delegation_id),
+    CONSTRAINT ck_mbw_approval_delegation_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_approval_delegation_period CHECK (valid_to > valid_from),
+    CONSTRAINT ck_mbw_approval_delegation_self CHECK (delegator_employee_no <> delegate_employee_no),
+    CONSTRAINT fk_mbw_approval_delegation_from FOREIGN KEY (delegator_employee_no) REFERENCES MBW_EMPLOYEE (employee_no),
+    CONSTRAINT fk_mbw_approval_delegation_to FOREIGN KEY (delegate_employee_no) REFERENCES MBW_EMPLOYEE (employee_no)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_DELEGATION COMMENT = 'BZA 결재 위임/대결 유효기간';
-CREATE INDEX ix_bza_approval_delegation_active ON BZA_APPROVAL_DELEGATION (delegator_employee_no, use_yn, valid_from, valid_to);
+ALTER TABLE MBW_APPROVAL_DELEGATION COMMENT = 'Backoffice 결재 위임/대결 유효기간';
+CREATE INDEX ix_mbw_approval_delegation_active ON MBW_APPROVAL_DELEGATION (delegator_employee_no, use_yn, valid_from, valid_to);
 
-CREATE TABLE BZA_EMPLOYEE_ASSIGNMENT (
+CREATE TABLE MBW_EMPLOYEE_ASSIGNMENT (
     assignment_id BIGINT AUTO_INCREMENT NOT NULL,
     employee_no VARCHAR(50) NOT NULL,
     organization_code VARCHAR(50) NOT NULL,
@@ -5135,20 +5135,20 @@ CREATE TABLE BZA_EMPLOYEE_ASSIGNMENT (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_EMPLOYEE_ASSIGNMENT PRIMARY KEY (assignment_id),
-    CONSTRAINT ck_bza_employee_assignment_type CHECK (assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')),
-    CONSTRAINT ck_bza_employee_assignment_primary CHECK (primary_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_employee_assignment_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
-    CONSTRAINT fk_bza_employee_assignment_employee FOREIGN KEY (employee_no) REFERENCES BZA_EMPLOYEE (employee_no) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_employee_assignment_org FOREIGN KEY (organization_code) REFERENCES BZA_ORGANIZATION (organization_code),
-    CONSTRAINT fk_bza_employee_assignment_position FOREIGN KEY (position_code) REFERENCES BZA_POSITION (position_code) ON DELETE SET NULL,
-    CONSTRAINT fk_bza_employee_assignment_job_title FOREIGN KEY (job_title_code) REFERENCES BZA_JOB_TITLE (job_title_code) ON DELETE SET NULL
+    CONSTRAINT PK_MBW_EMPLOYEE_ASSIGNMENT PRIMARY KEY (assignment_id),
+    CONSTRAINT ck_mbw_employee_assignment_type CHECK (assignment_type IN ('PRIMARY','CONCURRENT','SECONDMENT','ACTING')),
+    CONSTRAINT ck_mbw_employee_assignment_primary CHECK (primary_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_employee_assignment_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
+    CONSTRAINT fk_mbw_employee_assignment_employee FOREIGN KEY (employee_no) REFERENCES MBW_EMPLOYEE (employee_no) ON DELETE CASCADE,
+    CONSTRAINT fk_mbw_employee_assignment_org FOREIGN KEY (organization_code) REFERENCES MBW_ORGANIZATION (organization_code),
+    CONSTRAINT fk_mbw_employee_assignment_position FOREIGN KEY (position_code) REFERENCES MBW_POSITION (position_code) ON DELETE SET NULL,
+    CONSTRAINT fk_mbw_employee_assignment_job_title FOREIGN KEY (job_title_code) REFERENCES MBW_JOB_TITLE (job_title_code) ON DELETE SET NULL
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_EMPLOYEE_ASSIGNMENT COMMENT = 'BZA 직원 유효기간 기반 조직/직급/직책 Assignment';
-CREATE INDEX ix_bza_employee_assignment_current ON BZA_EMPLOYEE_ASSIGNMENT (employee_no, effective_to, primary_yn);
-CREATE INDEX ix_bza_employee_assignment_org ON BZA_EMPLOYEE_ASSIGNMENT (organization_code, effective_to, job_title_code);
+ALTER TABLE MBW_EMPLOYEE_ASSIGNMENT COMMENT = 'MBW 직원 유효기간 기반 조직/직급/직책 Assignment';
+CREATE INDEX ix_mbw_employee_assignment_current ON MBW_EMPLOYEE_ASSIGNMENT (employee_no, effective_to, primary_yn);
+CREATE INDEX ix_mbw_employee_assignment_org ON MBW_EMPLOYEE_ASSIGNMENT (organization_code, effective_to, job_title_code);
 
-CREATE TABLE BZA_ORGANIZATION_RESPONSIBILITY (
+CREATE TABLE MBW_ORGANIZATION_RESPONSIBILITY (
     responsibility_id BIGINT AUTO_INCREMENT NOT NULL,
     organization_code VARCHAR(50) NOT NULL,
     responsibility_type VARCHAR(30) DEFAULT 'MANAGER' NOT NULL,
@@ -5162,19 +5162,19 @@ CREATE TABLE BZA_ORGANIZATION_RESPONSIBILITY (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_ORGANIZATION_RESPONSIBILITY PRIMARY KEY (responsibility_id),
-    CONSTRAINT ck_bza_org_responsibility_type CHECK (responsibility_type IN ('MANAGER','DEPUTY','ACTING','APPROVAL_OWNER')),
-    CONSTRAINT ck_bza_org_responsibility_use CHECK (use_yn IN ('Y','N')),
-    CONSTRAINT ck_bza_org_responsibility_priority CHECK (priority_no >= 1),
-    CONSTRAINT ck_bza_org_responsibility_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
-    CONSTRAINT fk_bza_org_responsibility_org FOREIGN KEY (organization_code) REFERENCES BZA_ORGANIZATION (organization_code),
-    CONSTRAINT fk_bza_org_responsibility_employee FOREIGN KEY (employee_no) REFERENCES BZA_EMPLOYEE (employee_no)
+    CONSTRAINT PK_MBW_ORGANIZATION_RESPONSIBILITY PRIMARY KEY (responsibility_id),
+    CONSTRAINT ck_mbw_org_responsibility_type CHECK (responsibility_type IN ('MANAGER','DEPUTY','ACTING','APPROVAL_OWNER')),
+    CONSTRAINT ck_mbw_org_responsibility_use CHECK (use_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_org_responsibility_priority CHECK (priority_no >= 1),
+    CONSTRAINT ck_mbw_org_responsibility_effective CHECK (effective_to IS NULL OR effective_to > effective_from),
+    CONSTRAINT fk_mbw_org_responsibility_org FOREIGN KEY (organization_code) REFERENCES MBW_ORGANIZATION (organization_code),
+    CONSTRAINT fk_mbw_org_responsibility_employee FOREIGN KEY (employee_no) REFERENCES MBW_EMPLOYEE (employee_no)
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_ORGANIZATION_RESPONSIBILITY COMMENT = 'BZA 조직 책임자/대행/결재 책임자 유효기간 모델';
-CREATE INDEX ix_bza_org_responsibility_active ON BZA_ORGANIZATION_RESPONSIBILITY (organization_code, responsibility_type, use_yn, effective_to, priority_no);
-CREATE INDEX ix_bza_org_responsibility_employee ON BZA_ORGANIZATION_RESPONSIBILITY (employee_no, use_yn, effective_to);
+ALTER TABLE MBW_ORGANIZATION_RESPONSIBILITY COMMENT = 'MBW 조직 책임자/대행/결재 책임자 유효기간 모델';
+CREATE INDEX ix_mbw_org_responsibility_active ON MBW_ORGANIZATION_RESPONSIBILITY (organization_code, responsibility_type, use_yn, effective_to, priority_no);
+CREATE INDEX ix_mbw_org_responsibility_employee ON MBW_ORGANIZATION_RESPONSIBILITY (employee_no, use_yn, effective_to);
 
-CREATE TABLE BZA_APPROVAL_PARTICIPANT (
+CREATE TABLE MBW_APPROVAL_PARTICIPANT (
     approval_participant_id BIGINT AUTO_INCREMENT NOT NULL,
     approval_id BIGINT NOT NULL,
     approval_line_id BIGINT NOT NULL,
@@ -5194,17 +5194,17 @@ CREATE TABLE BZA_APPROVAL_PARTICIPANT (
     created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
     updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
     updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_BZA_APPROVAL_PARTICIPANT PRIMARY KEY (approval_participant_id),
-    CONSTRAINT uk_bza_approval_participant UNIQUE (approval_line_id, approver_employee_no),
-    CONSTRAINT uk_bza_approval_participant_idem UNIQUE (idempotency_key),
-    CONSTRAINT ck_bza_approval_participant_step CHECK (step_no >= 1),
-    CONSTRAINT ck_bza_approval_participant_source CHECK (resolution_source IN ('DIRECT','ROLE','ORG','ORG_MANAGER','POSITION','DELEGATION','ACTING')),
-    CONSTRAINT ck_bza_approval_participant_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
-    CONSTRAINT fk_bza_approval_participant_document FOREIGN KEY (approval_id) REFERENCES BZA_APPROVAL_DOCUMENT (approval_id) ON DELETE CASCADE,
-    CONSTRAINT fk_bza_approval_participant_line FOREIGN KEY (approval_line_id) REFERENCES BZA_APPROVAL_LINE (approval_line_id) ON DELETE CASCADE
+    CONSTRAINT PK_MBW_APPROVAL_PARTICIPANT PRIMARY KEY (approval_participant_id),
+    CONSTRAINT uk_mbw_approval_participant UNIQUE (approval_line_id, approver_employee_no),
+    CONSTRAINT uk_mbw_approval_participant_idem UNIQUE (idempotency_key),
+    CONSTRAINT ck_mbw_approval_participant_step CHECK (step_no >= 1),
+    CONSTRAINT ck_mbw_approval_participant_source CHECK (resolution_source IN ('DIRECT','ROLE','ORG','ORG_MANAGER','POSITION','DELEGATION','ACTING')),
+    CONSTRAINT ck_mbw_approval_participant_status CHECK (decision_status IN ('WAITING','APPROVED','AGREED','REJECTED','SKIPPED')),
+    CONSTRAINT fk_mbw_approval_participant_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id) ON DELETE CASCADE,
+    CONSTRAINT fk_mbw_approval_participant_line FOREIGN KEY (approval_line_id) REFERENCES MBW_APPROVAL_LINE (approval_line_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
-ALTER TABLE BZA_APPROVAL_PARTICIPANT COMMENT = 'BZA 결재 참여자 Snapshot';
-CREATE INDEX ix_bza_approval_participant_inbox ON BZA_APPROVAL_PARTICIPANT (approver_employee_no, decision_status, approval_id);
+ALTER TABLE MBW_APPROVAL_PARTICIPANT COMMENT = 'Backoffice 결재 참여자 Snapshot';
+CREATE INDEX ix_mbw_approval_participant_inbox ON MBW_APPROVAL_PARTICIPANT (approver_employee_no, decision_status, approval_id);
 
 -- AUTO-GENERATED DERIVED COMPATIBILITY SOURCE
 -- authority=cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql
@@ -5239,7 +5239,7 @@ INSERT INTO CMN_CODE (parent_id, code_key, code_value, description, created_by, 
 VALUES ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CPF', '프레임워크 공통 엔진', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'CMN', '업무 공통 라이브러리', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'ADM', '관리자 운영 서비스', 'SYSTEM', 'SYSTEM'),
-    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BZA', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
+    ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'MBW', '업무 백오피스 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'BAT', '선택 배치 실행 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p), 'MODULE', 'EDU', '교육 샘플 서비스', 'SYSTEM', 'SYSTEM'),
     ((SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'REQUEST_TYPE') p), 'REQUEST_TYPE', 'NORMAL', '일반 요청', 'SYSTEM', 'SYSTEM'),
@@ -5287,9 +5287,9 @@ VALUES ('MCPF000000', 'ko', 'FIXED', '정상 처리되었습니다.', 'CPF 공�
     ('MCPF900005', 'ko', 'INDEXED', '내부 공유 API에 접근할 수 없습니다.', 'CPF 내부 서비스 신원 또는 호출 경로 검증에 실패했습니다. reason={0}', 1, '["service identity verification failed"]', 'CPF 내부 공유 API 접근 거부 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF990000', 'ko', 'INDEXED', '처리 중 오류가 발생했습니다.', 'CPF 내부 오류가 발생했습니다. error={0}', 1, '["Exception"]', 'CPF 내부 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCPF990001', 'ko', 'INDEXED', '데이터베이스 오류가 발생했습니다.', '데이터베이스 처리 오류가 발생했습니다. sqlState={0}', 1, '["HY000"]', 'CPF 데이터베이스 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MBZA000000', 'ko', 'FIXED', '성공', 'BZA 요청이 정상 처리되었습니다.', 0, NULL, 'BZA 성공 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'BZA 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'BZA 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
-    ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'BZA 서버 권한 검사에 실패했습니다.', 0, NULL, 'BZA 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA000000', 'ko', 'FIXED', '성공', 'MBW 요청이 정상 처리되었습니다.', 0, NULL, 'MBW 성공 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA010001', 'ko', 'INDEXED', '업무 요청 값이 올바르지 않습니다.', 'MBW 입력값 검증에 실패했습니다. field={0}', 1, '["field"]', 'MBW 입력값 오류 메시지', 'SYSTEM', 'SYSTEM'),
+    ('MBZA010002', 'ko', 'FIXED', '처리 권한이 없습니다.', 'MBW 서버 권한 검사에 실패했습니다.', 0, NULL, 'MBW 권한 오류 메시지', 'SYSTEM', 'SYSTEM'),
     ('MEDU010001', 'ko', 'INDEXED', '이미 등록된 {0}입니다.', '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE', 2, '["샘플키","SAMPLE-0001"]', 'EDU 동적 중복 교육 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'ko', 'FIXED', 'CPF 교육 시스템에 오신 것을 환영합니다.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM'),
     ('MCMN000001', 'en', 'FIXED', 'Welcome to the CPF education system.', 'CMN education welcome message.', 0, NULL, 'CMN 교육 환영 메시지', 'SYSTEM', 'SYSTEM')
@@ -5312,9 +5312,9 @@ VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 �
     ('ECPF900005', 'MCPF900005', 'E', 'CPF', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),
     ('ECPF990000', 'MCPF990000', 'E', 'CPF', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),
     ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),
-    ('SBZA000000', 'MBZA000000', 'S', 'BZA', '00', '0000', 200, 'BZA 성공', 'SYSTEM', 'SYSTEM'),
-    ('EBZA010001', 'MBZA010001', 'E', 'BZA', '01', '0001', 400, 'BZA 입력값 오류', 'SYSTEM', 'SYSTEM'),
-    ('EBZA010002', 'MBZA010002', 'E', 'BZA', '01', '0002', 403, 'BZA 권한 오류', 'SYSTEM', 'SYSTEM'),
+    ('SBZA000000', 'MBZA000000', 'S', 'MBW', '00', '0000', 200, 'MBW 성공', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010001', 'MBZA010001', 'E', 'MBW', '01', '0001', 400, 'MBW 입력값 오류', 'SYSTEM', 'SYSTEM'),
+    ('EBZA010002', 'MBZA010002', 'E', 'MBW', '01', '0002', 403, 'MBW 권한 오류', 'SYSTEM', 'SYSTEM'),
     ('EEDU010001', 'MEDU010001', 'E', 'EDU', '01', '0001', 409, 'EDU 샘플 중복 오류', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
@@ -5425,9 +5425,9 @@ VALUES ('ECPF030002','MCPF030002','E','CPF','03','0002',504,'Timeout','SYSTEM','
 ON DUPLICATE KEY UPDATE message_code=VALUES(message_code), result_type=VALUES(result_type), module_id=VALUES(module_id), response_group=VALUES(response_group), sequence_no=VALUES(sequence_no), http_status=VALUES(http_status), description=VALUES(description), use_yn='Y', updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO CMN_PARAMETER (config_key, config_value, config_type, description, encrypted_yn, created_by, updated_by)
-VALUES ('CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','BZA 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
-    ('CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS','600','NUMBER','BZA Access Token TTL','N','SYSTEM','SYSTEM'),
-    ('CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS','7200','NUMBER','BZA Refresh Token TTL','N','SYSTEM','SYSTEM'),
+VALUES ('CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT','5','NUMBER','MBW 로그인 실패 잠금 기준','N','SYSTEM','SYSTEM'),
+    ('CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS','600','NUMBER','MBW Access Token TTL','N','SYSTEM','SYSTEM'),
+    ('CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS','7200','NUMBER','MBW Refresh Token TTL','N','SYSTEM','SYSTEM'),
     ('CPF.RETENTION.EXECUTE_ENABLED','N','BOOLEAN','실제 Archive/Purge 실행 Kill Switch 기본 OFF','N','SYSTEM','SYSTEM'),
     ('CPF.FILE.DOWNLOAD_REQUIRE_CLEAN','Y','BOOLEAN','첨부 다운로드 CLEAN 상태 강제','N','SYSTEM','SYSTEM'),
     ('CPF.HEALTH.INSTANCE_ID_REQUIRED','Y','BOOLEAN','운영 Health 응답 인스턴스 식별자 필수','N','SYSTEM','SYSTEM')
@@ -6443,45 +6443,45 @@ VALUES ('CPF_BAT_CENTER_CUT_JOB', 'businessDatePattern', 'D+0', 'N', 'Y', 'SYSTE
 ON DUPLICATE KEY UPDATE parameter_value=VALUES(parameter_value), encrypted_yn=VALUES(encrypted_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by)
-VALUES ('BZA', '업무 백오피스 서비스', 'INTERNAL', 'BZA', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW', '업무 백오피스 서비스', 'INTERNAL', 'MBW', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('EDU', '온라인 교육 서비스', 'INTERNAL', 'EDU', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE service_name=VALUES(service_name), service_type=VALUES(service_type), owner_module_code=VALUES(owner_module_code), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE_ENDPOINT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by)
-VALUES ('BZA_API', 'BZA', 'BZA API Endpoint', 'HTTP', 'http://localhost:8091', '/api/bza', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW_API', 'MBW', 'MBW API Endpoint', 'HTTP', 'http://localhost:8091', '/api/backoffice', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('EDU_API', 'EDU', 'EDU API Endpoint', 'HTTP', 'http://localhost:8099', '/education', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE service_id=VALUES(service_id), endpoint_name=VALUES(endpoint_name), endpoint_type=VALUES(endpoint_type), base_url=VALUES(base_url), context_path=VALUES(context_path), default_timeout_ms=VALUES(default_timeout_ms), default_retry_count=VALUES(default_retry_count), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE_INSTANCE (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by)
-VALUES ('BZA-local-01', 'BZA', 'BZA_API', 'BZA local instance', 'http://localhost:8091', 'localhost', 8091, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW-local-01', 'MBW', 'MBW_API', 'MBW local instance', 'http://localhost:8091', 'localhost', 8091, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('EDU-local-01', 'EDU', 'EDU_API', 'EDU local instance', 'http://localhost:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT-local-01', 'BAT', 'BAT_API', 'BAT local instance', 'http://localhost:8093', 'localhost', 8093, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM-local-01', 'ADM', 'ADM_API', 'ADM local instance', 'http://localhost:8090', 'localhost', 8090, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE service_id=VALUES(service_id), endpoint_code=VALUES(endpoint_code), instance_name=VALUES(instance_name), base_url=VALUES(base_url), host_name=VALUES(host_name), port_no=VALUES(port_no), instance_status=VALUES(instance_status), weight=VALUES(weight), active_yn=VALUES(active_yn), last_heartbeat_at=VALUES(last_heartbeat_at), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by)
-VALUES ('BZA', 'BZA_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW', 'MBW_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('EDU', 'EDU_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE routing_mode=VALUES(routing_mode), load_balance_type=VALUES(load_balance_type), failover_enabled_yn=VALUES(failover_enabled_yn), health_check_required_yn=VALUES(health_check_required_yn), active_yn=VALUES(active_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE_CIRCUIT_STATE (service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by)
-VALUES ('BZA', 'BZA_API', 'BZA-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW', 'MBW_API', 'MBW-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('EDU', 'EDU_API', 'EDU-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('BAT', 'BAT_API', 'BAT-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'),
     ('ADM', 'ADM_API', 'ADM-local-01', 'CLOSED', 0, 0, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE circuit_state=VALUES(circuit_state), failure_count=VALUES(failure_count), success_count=VALUES(success_count), closed_at=VALUES(closed_at), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'BZA', 'BZA_API', 'BZA-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
-    WHERE service_id = 'BZA' AND endpoint_code = 'BZA_API' AND instance_id = 'BZA-local-01' AND created_by = 'SYSTEM'
+    WHERE service_id = 'MBW' AND endpoint_code = 'MBW_API' AND instance_id = 'MBW-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
@@ -6868,83 +6868,83 @@ VALUES ('ADM_ADMIN','API_GATEWAY_READ','Y','SYSTEM','SYSTEM'),
 ('ADM_VIEWER','API_GATEWAY_TEST_CONTROL','N','SYSTEM','SYSTEM')
 ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
 -- AUTO-GENERATED DERIVED COMPATIBILITY SOURCE
--- authority=cpf-tools/db/generated/current/mariadb/bza-seed.sql
--- CPF_LOGICAL_DATABASE=bzaDB
-INSERT INTO BZA_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by)
-VALUES ('BZA_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_OPERATOR', '업무 운영자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVER', '업무 결재자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM')
+-- authority=cpf-tools/db/generated/current/mariadb/backoffice-seed.sql
+-- CPF_LOGICAL_DATABASE=mbwDB
+INSERT INTO MBW_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by)
+VALUES ('MBW_ADMIN', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_OPERATOR', '업무 운영자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVER', '업무 결재자', 'Y', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_VIEWER', '업무 조회자', 'N', 'ORGANIZATION', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE role_name=VALUES(role_name), write_allowed_yn=VALUES(write_allowed_yn), data_scope=VALUES(data_scope), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_MENU (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('BZA_DASHBOARD', '업무 관리자 대시보드', NULL, 'BZA', '/bza', 'dashboard', 'ALL', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_ORGANIZATION', '조직 관리', NULL, 'BZA', '/bza/organizations', 'organization', 'ALL', '/api/bza/organizations', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_EMPLOYEE', '직원·소속 관리', NULL, 'BZA', '/bza/employees', 'employee', 'ALL', '/api/bza/employees', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_AUTHORIZATION', '업무 권한 관리', NULL, 'BZA', '/bza/authorization', 'shield', 'ALL', '/api/bza/authorization', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVAL', '업무 결재 관리', NULL, 'BZA', '/bza/approvals', 'approval', 'ALL', '/api/bza/approvals', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_AUDIT', '업무 감사 조회', NULL, 'BZA', '/bza/audits', 'audit', 'ALL', '/api/bza/audits', 60, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_ATTACHMENT', '첨부 관리', NULL, 'BZA', '/bza/attachments', 'attachment', 'ALL', '/api/bza/attachments', 70, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_SETTING', '업무 관리자 설정', NULL, 'BZA', '/bza/settings', 'setting', 'ALL', '/api/bza/settings', 80, 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_MENU (menu_code, menu_name, parent_menu_code, module_code, route_path, icon_code, environment_code, api_path, sort_order, use_yn, created_by, updated_by)
+VALUES ('MBW_DASHBOARD', '업무 관리자 대시보드', NULL, 'MBW', '/backoffice', 'dashboard', 'ALL', '/api/v1/backoffice/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_ORGANIZATION', '조직 관리', NULL, 'MBW', '/backoffice/organizations', 'organization', 'ALL', '/api/v1/backoffice/organizations', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_EMPLOYEE', '직원·소속 관리', NULL, 'MBW', '/backoffice/employees', 'employee', 'ALL', '/api/v1/backoffice/employees', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_AUTHORIZATION', '업무 권한 관리', NULL, 'MBW', '/backoffice/authorization', 'shield', 'ALL', '/api/v1/backoffice/authorization', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVAL', '업무 결재 관리', NULL, 'MBW', '/backoffice/approvals', 'approval', 'ALL', '/api/v1/backoffice/approvals', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_AUDIT', '업무 감사 조회', NULL, 'MBW', '/backoffice/audits', 'audit', 'ALL', '/api/v1/backoffice/audits', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_ATTACHMENT', '첨부 관리', NULL, 'MBW', '/backoffice/attachments', 'attachment', 'ALL', '/api/v1/backoffice/attachments', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_SETTING', '업무 관리자 설정', NULL, 'MBW', '/backoffice/settings', 'setting', 'ALL', '/api/v1/backoffice/settings', 80, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE menu_name=VALUES(menu_name), parent_menu_code=VALUES(parent_menu_code), module_code=VALUES(module_code), route_path=VALUES(route_path), icon_code=VALUES(icon_code), environment_code=VALUES(environment_code), api_path=VALUES(api_path), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
-SELECT 'BZA_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
+INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
+SELECT 'MBW_ADMIN', menu_code, 'ALL', 'API', '*', CONCAT(api_path, '/**'),
        NULL, environment_code, 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'
-FROM BZA_MENU
+FROM MBW_MENU
 WHERE use_yn = 'Y'
 ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
-VALUES ('BZA_OPERATOR', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_OPERATOR', 'BZA_ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_OPERATOR', 'BZA_EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/employees/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVER', 'BZA_APPROVAL', 'READ', 'API', 'GET', '/api/bza/approvals/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', 'BZA_DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_VIEWER', 'BZA_AUDIT', 'READ', 'API', 'GET', '/api/bza/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
+VALUES ('MBW_OPERATOR', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_OPERATOR', 'MBW_ORGANIZATION', 'READ', 'API', 'GET', '/api/v1/backoffice/organizations/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_OPERATOR', 'MBW_EMPLOYEE', 'READ', 'API', 'GET', '/api/v1/backoffice/employees/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVER', 'MBW_APPROVAL', 'READ', 'API', 'GET', '/api/v1/backoffice/approvals/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_VIEWER', 'MBW_DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_VIEWER', 'MBW_AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/audits/**', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE permission_type=VALUES(permission_type), http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), environment_code=VALUES(environment_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
-VALUES ('BZA.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.APPROVAL.REQUIRE_PAYLOAD_HASH', 'Y', '결재 대상 Payload 변조 검증용 SHA-256 사용', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.AUDIT.HASH_CHAIN_ENABLED', 'Y', '업무 감사 로그 hash-chain 검증 사용', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.ATTACHMENT.SECURITY_SCAN_REQUIRED', 'Y', '첨부 보안검사 완료 후 사용 허용', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
+VALUES ('MBW.APPROVAL.SELF_APPROVAL_ALLOWED', 'N', '기본 자기승인 차단 정책', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW.APPROVAL.DEFAULT_DUE_HOURS', '24', '기본 결재 SLA 시간', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW.APPROVAL.REQUIRE_PAYLOAD_HASH', 'Y', '결재 대상 Payload 변조 검증용 SHA-256 사용', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW.AUDIT.HASH_CHAIN_ENABLED', 'Y', '업무 감사 로그 hash-chain 검증 사용', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW.ATTACHMENT.SECURITY_SCAN_REQUIRED', 'Y', '첨부 보안검사 완료 후 사용 허용', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW.ATTACHMENT.DEFAULT_RETENTION_DAYS', '365', '첨부 기본 보존일수', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
-VALUES ('BZA_ADMIN', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_ADMIN', 'BZA_EMPLOYEE', 'PII_RAW', 'API', 'POST', '/api/bza/backoffice/employees/*/contacts/raw', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_OPERATOR', 'BZA_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/bza/backoffice/permissions/effective', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/backoffice/approvals/*/actions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_APPROVER', 'BZA_APPROVAL', 'DECIDE', 'API', 'POST', '/api/bza/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, domain_code, environment_code, data_scope, allow_yn, use_yn, created_by, updated_by)
+VALUES ('MBW_ADMIN', 'MBW_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/v1/backoffice/backoffice/permissions/effective', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_ADMIN', 'MBW_EMPLOYEE', 'PII_RAW', 'API', 'POST', '/api/v1/backoffice/backoffice/employees/*/contacts/raw', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_OPERATOR', 'MBW_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/v1/backoffice/backoffice/permissions/effective', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/backoffice/approvals/*/actions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), domain_code=VALUES(domain_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
+INSERT INTO MBW_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
 VALUES ('SAMPLE_ROOT', NULL, '샘플 본부', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SAMPLE_DEV', 'SAMPLE_ROOT', '샘플 개발부', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE parent_organization_code=VALUES(parent_organization_code), organization_name=VALUES(organization_name), organization_type=VALUES(organization_type), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by)
+INSERT INTO MBW_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by)
 VALUES ('SAMPLE_P1', '샘플 일반', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SAMPLE_P2', '샘플 책임', 20, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE position_name=VALUES(position_name), rank_order=VALUES(rank_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by)
+INSERT INTO MBW_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by)
 VALUES ('SAMPLE_MEMBER', '샘플 구성원', 'N', 'Y', 'SYSTEM', 'SYSTEM'),
     ('SAMPLE_MANAGER', '샘플 부서장', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE job_title_name=VALUES(job_title_name), manager_yn=VALUES(manager_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by)
+INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by)
 VALUES ('SAMPLE0001', NULL, 'SAMPLE_DEV', '샘플 결재자', 'SAMPLE_P2', 'SAMPLE_MANAGER', NULL,
      'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SAMPLE0002', NULL, 'SAMPLE_DEV', '샘플 요청자', 'SAMPLE_P1', 'SAMPLE_MEMBER', 'SAMPLE0001',
      'ACTIVE', CURRENT_DATE, NULL, NULL, NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), manager_employee_no=VALUES(manager_employee_no), employment_status=VALUES(employment_status), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
+INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
 FROM (
     SELECT 'SAMPLE0001' employee_no, 'SAMPLE_DEV' organization_code, 'SAMPLE_P2' position_code, 'SAMPLE_MANAGER' job_title_code
@@ -6952,20 +6952,20 @@ FROM (
     SELECT 'SAMPLE0002', 'SAMPLE_DEV', 'SAMPLE_P1', 'SAMPLE_MEMBER'
 ) v
 WHERE NOT EXISTS (
-    SELECT 1 FROM BZA_EMPLOYEE_ASSIGNMENT a
+    SELECT 1 FROM MBW_EMPLOYEE_ASSIGNMENT a
     WHERE a.employee_no = v.employee_no AND a.organization_code = v.organization_code
       AND a.primary_yn = 'Y' AND a.effective_to IS NULL
 );
 
-INSERT INTO BZA_ORGANIZATION_RESPONSIBILITY (organization_code, responsibility_type, employee_no, effective_from, effective_to, priority_no, use_yn, created_by, updated_by)
+INSERT INTO MBW_ORGANIZATION_RESPONSIBILITY (organization_code, responsibility_type, employee_no, effective_from, effective_to, priority_no, use_yn, created_by, updated_by)
 SELECT 'SAMPLE_DEV', 'MANAGER', 'SAMPLE0001', CURRENT_TIMESTAMP(3), NULL, 1, 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM BZA_ORGANIZATION_RESPONSIBILITY
+    SELECT 1 FROM MBW_ORGANIZATION_RESPONSIBILITY
     WHERE organization_code = 'SAMPLE_DEV' AND responsibility_type = 'MANAGER'
       AND employee_no = 'SAMPLE0001' AND use_yn = 'Y' AND effective_to IS NULL
 );
 
-INSERT INTO BZA_APPROVAL_POLICY (policy_code, policy_version, policy_name, business_domain, approval_type, effective_from, effective_to, enabled_yn, self_approval_allowed_yn, description, created_by, updated_by)
+INSERT INTO MBW_APPROVAL_POLICY (policy_code, policy_version, policy_name, business_domain, approval_type, effective_from, effective_to, enabled_yn, self_approval_allowed_yn, description, created_by, updated_by)
 VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, '샘플 표준 결재', 'SAMPLE', 'STANDARD',
     CURRENT_TIMESTAMP(3), NULL, 'Y', 'N',
@@ -6973,134 +6973,134 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE policy_name=VALUES(policy_name), enabled_yn=VALUES(enabled_yn), self_approval_allowed_yn=VALUES(self_approval_allowed_yn), description=VALUES(description), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_APPROVAL_POLICY_STEP (policy_code, policy_version, step_no, step_type, target_type, target_code, decision_rule, required_count, required_yn, sort_order, created_by, updated_by)
+INSERT INTO MBW_APPROVAL_POLICY_STEP (policy_code, policy_version, step_no, step_type, target_type, target_code, decision_rule, required_count, required_yn, sort_order, created_by, updated_by)
 VALUES (
     'SAMPLE_STANDARD_APPROVAL', 1, 1, 'APPROVAL', 'ORG_MANAGER', 'SAMPLE_DEV',
     'ALL', NULL, 'Y', 10, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE step_type=VALUES(step_type), target_type=VALUES(target_type), target_code=VALUES(target_code), decision_rule=VALUES(decision_rule), required_count=VALUES(required_count), required_yn=VALUES(required_yn), sort_order=VALUES(sort_order), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by)
+INSERT INTO MBW_ADMIN_USER (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by)
 VALUES (
-    'bza-admin', '업무 관리자 샘플', NULL, 'BZA_MANAGER', 'Y', 'N',
+    'backoffice-admin', '업무 관리자 샘플', NULL, 'MBW_MANAGER', 'Y', 'N',
     0, 'Y', NULL, NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE admin_name=VALUES(admin_name), role_code=VALUES(role_code), use_yn=VALUES(use_yn), lock_yn=VALUES(lock_yn), login_fail_count=VALUES(login_fail_count), password_change_required_yn=VALUES(password_change_required_yn), password_expire_at=VALUES(password_expire_at), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, module_id, was_id, instance_id, created_by, updated_by)
-SELECT admin_user_id, 'BZA', 'bza-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
-       '20260715120000000BZAbzaAP010000001', 'BZA', 'bzaAP01', 'local-bza:seed', 'SYSTEM', 'SYSTEM'
-FROM BZA_ADMIN_USER
-WHERE admin_login_id = 'bza-admin'
+INSERT INTO MBW_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, system_code, application_name, instance_id, created_by, updated_by)
+SELECT admin_user_id, 'MBW', 'backoffice-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260715120000000MBWmbwAP010000001', 'MBW', 'cpf-backoffice', 'MBW-SEED-01', 'SYSTEM', 'SYSTEM'
+FROM MBW_ADMIN_USER
+WHERE admin_login_id = 'backoffice-admin'
   AND NOT EXISTS (
       SELECT 1
-      FROM BZA_LOGIN_HISTORY
-      WHERE admin_login_id = 'bza-admin'
-        AND transaction_id = '20260715120000000BZAbzaAP010000001'
+      FROM MBW_LOGIN_HISTORY
+      WHERE admin_login_id = 'backoffice-admin'
+        AND transaction_id = '20260715120000000MBWmbwAP010000001'
   );
 
-INSERT INTO BZA_MENU (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('DASHBOARD', '업무 대시보드', 'BZA', '/bza', '/api/bza/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('USER', '백오피스 사용자', 'BZA', '/bza#users', '/api/bza/admin-users', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ORGANIZATION', '조직 관리', 'BZA', '/bza#organizations', '/api/bza/backoffice/organizations', 30, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('EMPLOYEE', '직원 관리', 'BZA', '/bza#employees', '/api/bza/backoffice/employees', 40, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ROLE', '역할 관리', 'BZA', '/bza#roles', '/api/bza/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MENU', '메뉴 관리', 'BZA', '/bza#menus', '/api/bza/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('PERMISSION', '권한 관리', 'BZA', '/bza#permissions', '/api/bza/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('APPROVAL', '결재 관리', 'BZA', '/bza#approvals', '/api/bza/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SETTING', '업무 설정', 'BZA', '/bza#settings', '/api/bza/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('DOWNLOAD', '다운로드 감사', 'BZA', '/bza#downloads', '/api/bza/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('AUDIT', '업무 감사', 'BZA', '/bza#audits', '/api/bza/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('NOTIFICATION', '업무 알림', 'BZA', '/bza#notifications', '/api/bza/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('ATTACHMENT', '첨부파일', 'BZA', '/bza#attachments', '/api/bza/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('SAVED_SEARCH', '저장 검색', 'BZA', '/bza#savedSearches', '/api/bza/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_MENU (menu_code, menu_name, module_code, route_path, api_path, sort_order, use_yn, created_by, updated_by)
+VALUES ('DASHBOARD', '업무 대시보드', 'MBW', '/backoffice', '/api/v1/backoffice/dashboard', 10, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('USER', '백오피스 사용자', 'MBW', '/backoffice#users', '/api/v1/backoffice/admin-users', 20, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ORGANIZATION', '조직 관리', 'MBW', '/backoffice#organizations', '/api/v1/backoffice/backoffice/organizations', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EMPLOYEE', '직원 관리', 'MBW', '/backoffice#employees', '/api/v1/backoffice/backoffice/employees', 40, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ROLE', '역할 관리', 'MBW', '/backoffice#roles', '/api/v1/backoffice/roles', 50, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MENU', '메뉴 관리', 'MBW', '/backoffice#menus', '/api/v1/backoffice/menus', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('PERMISSION', '권한 관리', 'MBW', '/backoffice#permissions', '/api/v1/backoffice/permissions', 70, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('APPROVAL', '결재 관리', 'MBW', '/backoffice#approvals', '/api/v1/backoffice/backoffice/approvals', 80, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SETTING', '업무 설정', 'MBW', '/backoffice#settings', '/api/v1/backoffice/settings', 120, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('DOWNLOAD', '다운로드 감사', 'MBW', '/backoffice#downloads', '/api/v1/backoffice/downloads', 130, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('AUDIT', '업무 감사', 'MBW', '/backoffice#audits', '/api/v1/backoffice/backoffice/audits', 140, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('NOTIFICATION', '업무 알림', 'MBW', '/backoffice#notifications', '/api/v1/backoffice/notifications', 150, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ATTACHMENT', '첨부파일', 'MBW', '/backoffice#attachments', '/api/v1/backoffice/attachments', 160, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SAVED_SEARCH', '저장 검색', 'MBW', '/backoffice#savedSearches', '/api/v1/backoffice/saved-searches', 170, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE menu_name=VALUES(menu_name), api_path=VALUES(api_path), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by)
+INSERT INTO MBW_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by)
 VALUES (
-    'BZA_MANAGER', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'
+    'MBW_MANAGER', '업무 관리자', 'Y', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE role_name=VALUES(role_name), write_allowed_yn=VALUES(write_allowed_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_USER_ROLE (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by)
-SELECT admin_user_id, 'BZA_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y',
-       'CPF_TEST_SEED', 'CPF-TEST-BZA-ROLE-MANAGER-0001', 'SYSTEM', 'SYSTEM'
-FROM BZA_ADMIN_USER
-WHERE admin_login_id = 'bza-admin'
+INSERT INTO MBW_USER_ROLE (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by)
+SELECT admin_user_id, 'MBW_MANAGER', CURRENT_TIMESTAMP(3), NULL, 'Y',
+       'CPF_TEST_SEED', 'CPF-TEST-MBW-ROLE-MANAGER-0001', 'SYSTEM', 'SYSTEM'
+FROM MBW_ADMIN_USER
+WHERE admin_login_id = 'backoffice-admin'
 ON DUPLICATE KEY UPDATE valid_to=NULL, primary_yn='Y', grant_reason=VALUES(grant_reason), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by)
-VALUES ('BZA_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/bza/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'USER', 'READ', 'API', 'GET', '/api/bza/admin-users/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'USER', 'WRITE', 'API', 'POST', '/api/bza/admin-users', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ORGANIZATION', 'READ', 'API', 'GET', '/api/bza/backoffice/organizations/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ORGANIZATION', 'WRITE', 'API', 'POST', '/api/bza/backoffice/organizations', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'EMPLOYEE', 'READ', 'API', 'GET', '/api/bza/backoffice/employees/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'EMPLOYEE', 'WRITE', 'API', 'POST', '/api/bza/backoffice/employees', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ROLE', 'READ', 'API', 'GET', '/api/bza/roles/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ROLE', 'WRITE', 'API', 'POST', '/api/bza/roles', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'MENU', 'READ', 'API', 'GET', '/api/bza/menus/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'MENU', 'WRITE', 'API', 'POST', '/api/bza/menus', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'PERMISSION', 'READ', 'API', 'GET', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/bza/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/bza/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/bza/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/bza/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/bza/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'NOTIFICATION', 'READ', 'API', 'GET', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'NOTIFICATION', 'WRITE', 'API', 'POST', '/api/bza/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ATTACHMENT', 'READ', 'API', 'GET', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ATTACHMENT', 'WRITE', 'API', 'POST', '/api/bza/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'ATTACHMENT', 'DOWNLOAD', 'API', 'GET', '/api/bza/attachments/*/download', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'SAVED_SEARCH', 'READ', 'API', 'GET', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('BZA_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/bza/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM')
+INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, http_method, api_pattern, data_scope, allow_yn, created_by, updated_by)
+VALUES ('MBW_MANAGER', 'DASHBOARD', 'READ', 'API', 'GET', '/api/v1/backoffice/dashboard', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'USER', 'READ', 'API', 'GET', '/api/v1/backoffice/admin-users/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'USER', 'WRITE', 'API', 'POST', '/api/v1/backoffice/admin-users', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ORGANIZATION', 'READ', 'API', 'GET', '/api/v1/backoffice/backoffice/organizations/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ORGANIZATION', 'WRITE', 'API', 'POST', '/api/v1/backoffice/backoffice/organizations', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'EMPLOYEE', 'READ', 'API', 'GET', '/api/v1/backoffice/backoffice/employees/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'EMPLOYEE', 'WRITE', 'API', 'POST', '/api/v1/backoffice/backoffice/employees', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ROLE', 'READ', 'API', 'GET', '/api/v1/backoffice/roles/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ROLE', 'WRITE', 'API', 'POST', '/api/v1/backoffice/roles', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'MENU', 'READ', 'API', 'GET', '/api/v1/backoffice/menus/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'MENU', 'WRITE', 'API', 'POST', '/api/v1/backoffice/menus', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'PERMISSION', 'READ', 'API', 'GET', '/api/v1/backoffice/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'PERMISSION', 'WRITE', 'API', 'POST', '/api/v1/backoffice/permissions/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'APPROVAL', 'READ', 'API', 'GET', '/api/v1/backoffice/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'APPROVAL', 'WRITE', 'API', 'POST', '/api/v1/backoffice/backoffice/approvals/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'SETTING', 'READ', 'API', 'GET', '/api/v1/backoffice/settings/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'DOWNLOAD', 'READ', 'API', 'GET', '/api/v1/backoffice/downloads/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'AUDIT', 'READ', 'API', 'GET', '/api/v1/backoffice/backoffice/audits/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'NOTIFICATION', 'READ', 'API', 'GET', '/api/v1/backoffice/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'NOTIFICATION', 'WRITE', 'API', 'POST', '/api/v1/backoffice/notifications/**', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ATTACHMENT', 'READ', 'API', 'GET', '/api/v1/backoffice/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ATTACHMENT', 'WRITE', 'API', 'POST', '/api/v1/backoffice/attachments', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'ATTACHMENT', 'DOWNLOAD', 'API', 'GET', '/api/v1/backoffice/attachments/*/download', 'ALL', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'SAVED_SEARCH', 'READ', 'API', 'GET', '/api/v1/backoffice/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MBW_MANAGER', 'SAVED_SEARCH', 'WRITE', 'API', 'POST', '/api/v1/backoffice/saved-searches/**', 'OWN', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE allow_yn=VALUES(allow_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
+INSERT INTO MBW_PROJECT_SETTING (setting_key, setting_value, description, use_yn, created_by, updated_by)
 VALUES (
     'DOWNLOAD.MASKING.ENABLED', 'Y', '업무 다운로드 마스킹 사용 여부', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
+INSERT INTO MBW_ORGANIZATION (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by)
 VALUES ('HQ', NULL, '본사', 'COMPANY', 10, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM'),
     ('OPS', 'HQ', '업무운영팀', 'DEPARTMENT', 20, CURRENT_TIMESTAMP(3), NULL, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE parent_organization_code=VALUES(parent_organization_code), organization_name=VALUES(organization_name), organization_type=VALUES(organization_type), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by)
+INSERT INTO MBW_POSITION (position_code, position_name, rank_order, use_yn, created_by, updated_by)
 VALUES ('P3', '책임', 30, 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE position_name=VALUES(position_name), rank_order=VALUES(rank_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by)
+INSERT INTO MBW_JOB_TITLE (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by)
 VALUES ('OPERATOR', '업무담당자', 'N', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE job_title_name=VALUES(job_title_name), manager_yn=VALUES(manager_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by)
+INSERT INTO MBW_EMPLOYEE (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by)
 SELECT 'EMP001', admin_user_id, 'OPS', '업무 담당자', 'P3', 'OPERATOR', 'ACTIVE', CURRENT_DATE,
        'operator@example.com', 'Y', 'SYSTEM', 'SYSTEM'
-FROM BZA_ADMIN_USER WHERE admin_login_id = 'bza-admin'
+FROM MBW_ADMIN_USER WHERE admin_login_id = 'backoffice-admin'
 ON DUPLICATE KEY UPDATE admin_user_id=VALUES(admin_user_id), organization_code=VALUES(organization_code), employee_name=VALUES(employee_name), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), employment_status=VALUES(employment_status), email=VALUES(email), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO BZA_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
+INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
 VALUES (
     'EMP001', 'OPS', 'P3', 'OPERATOR', 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE organization_code=VALUES(organization_code), position_code=VALUES(position_code), job_title_code=VALUES(job_title_code), primary_yn=VALUES(primary_yn), effective_to=NULL, updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP(3);
 
-INSERT INTO BZA_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
-SELECT 'bza-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
-       'APPROVAL', 'BZA-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
+INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
+SELECT 'backoffice-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
+       'APPROVAL', 'MBW-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
-    SELECT 1 FROM BZA_NOTIFICATION
-     WHERE recipient_login_id = 'bza-admin'
+    SELECT 1 FROM MBW_NOTIFICATION
+     WHERE recipient_login_id = 'backoffice-admin'
        AND reference_type = 'APPROVAL'
-       AND reference_id = 'BZA-SAMPLE-001'
+       AND reference_id = 'MBW-SAMPLE-001'
 );
 
-INSERT INTO BZA_SAVED_SEARCH (owner_login_id, screen_code, search_name, criteria_json, shared_yn, use_yn, created_by, updated_by)
+INSERT INTO MBW_SAVED_SEARCH (owner_login_id, screen_code, search_name, criteria_json, shared_yn, use_yn, created_by, updated_by)
 VALUES (
-    'bza-admin', 'APPROVAL', '진행 중 결재', '{"approvalStatus":"IN_REVIEW"}',
+    'backoffice-admin', 'APPROVAL', '진행 중 결재', '{"approvalStatus":"IN_REVIEW"}',
     'N', 'Y', 'SYSTEM', 'SYSTEM'
 )
 ON DUPLICATE KEY UPDATE criteria_json=VALUES(criteria_json), shared_yn=VALUES(shared_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
@@ -7154,7 +7154,7 @@ SELECT 'admDB.table_count' AS check_name,
 FROM information_schema.tables
 WHERE LOWER(table_schema) = 'admdb' AND table_type = 'BASE TABLE';
 
-SELECT 'bzaDB.table_count' AS check_name,
+SELECT 'mbwDB.table_count' AS check_name,
        IF(COUNT(*) = 28, 1, 0) AS passed
 FROM information_schema.tables
 WHERE LOWER(table_schema) = 'bzadb' AND table_type = 'BASE TABLE';
@@ -7203,7 +7203,7 @@ SELECT 'cpfDB.platform_baseline_identity' AS check_name,
        IF(COUNT(*) = 6, 1, 0) AS passed
 FROM cpfDB.cpf_schema_installation
 WHERE (LOWER(schema_name), system_code) IN (
-    ('cpfdb', 'CPF'), ('cmndb', 'CMN'), ('admdb', 'ADM'), ('bzadb', 'BZA'),
+    ('cpfdb', 'CPF'), ('cmndb', 'CMN'), ('admdb', 'ADM'), ('bzadb', 'MBW'),
     ('batdb', 'BAT'), ('refdb', 'REF')
 )
   AND database_vendor = 'MARIADB'
@@ -7246,12 +7246,12 @@ SELECT 'admDB.product_seed' AS check_name,
            1, 0
        ) AS passed;
 
-SELECT 'bzaDB.product_seed' AS check_name,
+SELECT 'mbwDB.product_seed' AS check_name,
        IF(
-           (SELECT COUNT(*) FROM bzaDB.bza_role WHERE use_yn = 'Y') >= 4
-           AND (SELECT COUNT(*) FROM bzaDB.bza_menu WHERE use_yn = 'Y') >= 8
-           AND (SELECT COUNT(*) FROM bzaDB.bza_permission
-                WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8,
+           (SELECT COUNT(*) FROM mbwDB.mbw_role WHERE use_yn = 'Y') >= 4
+           AND (SELECT COUNT(*) FROM mbwDB.mbw_menu WHERE use_yn = 'Y') >= 8
+           AND (SELECT COUNT(*) FROM mbwDB.mbw_permission
+                WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8,
            1, 0
        ) AS passed;
 
@@ -7264,7 +7264,7 @@ WHERE
     OR (
         LOWER(table_schema) = 'bzadb'
         AND LOWER(table_name) IN (
-            'bza_customer', 'bza_product', 'bza_order', 'bza_masking_audit'
+            'mbw_customer', 'mbw_product', 'mbw_order', 'mbw_masking_audit'
         )
     );
 
@@ -7275,16 +7275,16 @@ SELECT 'VERIFY adm_operator account safety columns' AS check_name,
  WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator'
    AND UPPER(column_name) IN ('ACCOUNT_STATUS','VERSION_NO','CREATE_OPERATION_ID');
 
-SELECT 'VERIFY bza_admin_user account safety columns' AS check_name,
+SELECT 'VERIFY mbw_admin_user account safety columns' AS check_name,
        IF(COUNT(*) = 2, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user'
    AND LOWER(column_name) IN ('account_status','version_no');
 
-SELECT 'VERIFY BZA employee status default' AS check_name,
+SELECT 'VERIFY MBW employee status default' AS check_name,
        IF(MAX(UPPER(TRIM(BOTH '\'' FROM COALESCE(column_default,'')))) = 'EMPLOYED', 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND LOWER(column_name)='employment_status';
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_employee' AND LOWER(column_name)='employment_status';
 
 SELECT 'VERIFY ADM contact ownership' AS check_name,
        IF(
@@ -7298,29 +7298,29 @@ SELECT 'VERIFY V61 status catalog constraints' AS check_name,
        IF(
          (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator' AND constraint_name='ck_adm_operator_status') = 1
          AND
-         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user' AND constraint_name='ck_bza_admin_user_status') = 1
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user' AND constraint_name='ck_mbw_admin_user_status') = 1
          AND
-         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND constraint_name='ck_bza_employee_status') = 1,
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_employee' AND constraint_name='ck_mbw_employee_status') = 1,
          1, 0
        ) AS passed;
 
--- V62/V63 BZA idempotency and login-operation verification
+-- V62/V63 MBW idempotency and login-operation verification
 SELECT 'VERIFY V62 bootstrap operation id' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user'
    AND LOWER(column_name)='create_operation_id';
 
 SELECT 'VERIFY V63 login operation table' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.tables
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_login_operation'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_login_operation'
    AND table_type='BASE TABLE';
 
 SELECT 'VERIFY V63 refresh login operation link' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_refresh_token'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_refresh_token'
    AND LOWER(column_name)='login_operation_id';
 
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences

@@ -73,7 +73,11 @@ def main()->int:
     check('retained-member-external-verify-all',all_verify['rc']==0 and '"status": "PASS"' in all_verify['stdout'],all_verify)
     for name in ('cpf-member','cpf-external'):
         d=root/name; dirs=domain_surface_dirs(d)
-        check(f'{name}-minimal-ia',dirs=={'online'},sorted(dirs))
+        logical=name.removeprefix('cpf-')
+        definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'
+        dd=engine.validate_definition(engine.load_yaml_subset(definition))
+        expected={'online'} | ({'batch'} if dd.batch else set())
+        check(f'{name}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})
         check(f'{name}-no-readme-verification-db',not any((d/x).exists() for x in ['README.md','verification','db']),str(d))
     for name in ('cpf-member','cpf-external'):
         try:
@@ -102,7 +106,7 @@ def main()->int:
         add('add-domain-does-not-damage-retained-roots','PASS' if ar['rc']==0 and intact else 'FAIL',{'add':ar,'retainedIntact':intact})
 
         # 사용자 수정 영역 보호는 Public CLI regenerate에서 fail-closed를 확인한다.
-        mod=out/'domain/src/main/java/ledger/domain/policy/SampleTransactionPolicy.java'
+        mod=out/'online/src/main/java/ledger/online/ledger/service/SampleTransactionPolicy.java'
         if mod.is_file():
             original=mod.read_text(encoding='utf-8'); mod.write_text(original+'\n// 사용자 수정 보호 검증\n',encoding='utf-8',newline='\n')
             rr=run([*launcher,'domain','regenerate','ledger','--file',str(definition),'--output',str(out)],root,8)

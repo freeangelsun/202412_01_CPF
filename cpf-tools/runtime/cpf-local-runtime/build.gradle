@@ -10,9 +10,9 @@ dependencies {
     implementation project(':framework:core')
     implementation project(':starters:common')
     implementation project(':apps:admin')
-    // BZA is an Optional Prebuilt Business Domain. The local runtime must remain buildable when absent.
-    if (rootProject.findProject(':apps:biz-admin') != null) {
-        implementation project(':apps:biz-admin')
+    // Backoffice is an Optional Prebuilt Business Domain. The local runtime must remain buildable when absent.
+    if (rootProject.findProject(':apps:backoffice') != null) {
+        implementation project(':apps:backoffice')
     }
     implementation project(':runtime:gateway')
 

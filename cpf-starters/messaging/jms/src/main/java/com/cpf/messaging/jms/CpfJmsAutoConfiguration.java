@@ -14,6 +14,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
+/**
+ * 표준 JMS Broker를 CPF Public Messaging 계약에 연결하는 Starter 자동구성입니다.
+ * <p>JMS provider 세부 구현 대신 CPF Messaging API를 소비하도록 Bean 구성을 제공합니다.
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(CpfJmsProperties.class)
 @ConditionalOnProperty(prefix = "cpf.messaging.jms", name = "enabled", havingValue = "true")

@@ -1,6 +1,6 @@
 -- V60 rollback: restore the pre-QA employee status default without changing existing rows.
 
-USE bzaDB;
+USE backofficeDB;
 
-ALTER TABLE bza_employee
+ALTER TABLE mbw_employee
     ALTER COLUMN employment_status SET DEFAULT 'ACTIVE';

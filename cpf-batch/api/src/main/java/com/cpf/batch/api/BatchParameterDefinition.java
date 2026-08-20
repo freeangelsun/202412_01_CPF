@@ -214,6 +214,7 @@ public record BatchParameterDefinition(
         return value == null || value.isBlank() ? fallback : value.trim();
     }
 
+    /** Batch Parameter 값 검증의 성공 여부와 오류 사유를 반환하는 결과 계약입니다. */
     public record ValidationResult(String name, boolean valid, String code, String message, String normalizedValue) {
         public static ValidationResult valid(String name, String normalizedValue) {
             return new ValidationResult(name, true, "OK", "", normalizedValue);

@@ -103,7 +103,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
             self.assertEqual(0, completed.returncode, completed.stdout + completed.stderr)
             payload = json.loads(completed.stdout.strip().splitlines()[-1])
             by_code = {item["module"]: item for item in payload}
-            self.assertEqual({"ADM", "BAT", "BZA", "EDU", "GWY", "PAY"}, set(by_code))
+            self.assertEqual({"ADM", "BAT", "MBW", "EDU", "GWY", "PAY"}, set(by_code))
             self.assertTrue(by_code["PAY"]["generatedDomain"])
             self.assertEqual("cpf-payment", by_code["PAY"]["projectName"])
             self.assertEqual("CUSTOMER_BUSINESS_DB", by_code["PAY"]["databaseRole"])

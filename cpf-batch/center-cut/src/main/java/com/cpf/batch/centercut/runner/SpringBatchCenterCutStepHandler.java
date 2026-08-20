@@ -8,7 +8,7 @@ import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import java.time.Instant;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.batch.spi.BatchStepHandler;

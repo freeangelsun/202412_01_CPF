@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "owner": "cpf-backoffice",
+  "sourceProjection": "cpf-tools/db/metadata/backoffice-permission-manifest.json",
+  "menuGroups": [
+    "DASHBOARD",
+    "ORGANIZATION",
+    "EMPLOYEE",
+    "AUTHORIZATION",
+    "APPROVAL",
+    "AUDIT",
+    "ATTACHMENT",
+    "SETTING"
+  ],
+  "apiResourceGroups": {
+    "dashboard": "DASHBOARD",
+    "admin-users": "AUTHORIZATION",
+    "menus": "AUTHORIZATION",
+    "roles": "AUTHORIZATION",
+    "permissions": "AUTHORIZATION",
+    "settings": "SETTING",
+    "downloads": "SETTING",
+    "backoffice/organizations": "ORGANIZATION",
+    "backoffice/employees": "EMPLOYEE",
+    "backoffice/permissions": "AUTHORIZATION",
+    "backoffice/approvals": "APPROVAL",
+    "backoffice/audits": "AUDIT",
+    "directory/positions": "EMPLOYEE",
+    "directory/job-titles": "EMPLOYEE",
+    "directory/assignments": "EMPLOYEE",
+    "directory/responsibilities": "EMPLOYEE",
+    "directory/user-roles": "AUTHORIZATION",
+    "approvals": "APPROVAL",
+    "audits": "AUDIT",
+    "notifications": "SETTING",
+    "attachments": "ATTACHMENT",
+    "saved-searches": "SETTING",
+    "download-audits": "AUDIT",
+    "common-catalog": "SETTING",
+    "common": "SETTING"
+  },
+  "actionRules": [
+    {
+      "method": "POST",
+      "pathPattern": "backoffice/employees/*/contacts/raw",
+      "actionCode": "PII_RAW"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "backoffice/permissions/effective",
+      "actionCode": "SIMULATE"
+    },
+    {
+      "method": "POST",
+      "pathPattern": "permissions/simulate",
+      "actionCode": "SIMULATE"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "**/download/**",
+      "actionCode": "DOWNLOAD"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "attachments/*/download",
+      "actionCode": "DOWNLOAD"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "downloads/**",
+      "actionCode": "DOWNLOAD"
+    },
+    {
+      "method": "POST",
+      "pathPattern": "backoffice/approvals/*/actions",
+      "actionCode": "DECIDE"
+    },
+    {
+      "method": "POST",
+      "pathPattern": "approvals/**/decisions",
+      "actionCode": "DECIDE"
+    },
+    {
+      "method": "POST",
+      "pathPattern": "approvals/simulate",
+      "actionCode": "SIMULATE"
+    },
+    {
+      "method": "POST",
+      "pathPattern": "*/**",
+      "actionCode": "WRITE"
+    },
+    {
+      "method": "PUT",
+      "pathPattern": "*/**",
+      "actionCode": "UPDATE"
+    },
+    {
+      "method": "PATCH",
+      "pathPattern": "*/**",
+      "actionCode": "UPDATE"
+    },
+    {
+      "method": "DELETE",
+      "pathPattern": "*/**",
+      "actionCode": "DELETE"
+    },
+    {
+      "method": "GET",
+      "pathPattern": "*/**",
+      "actionCode": "READ"
+    }
+  ],
+  "permissionAliases": {
+    "USER": "AUTHORIZATION",
+    "MENU": "AUTHORIZATION",
+    "ROLE": "AUTHORIZATION",
+    "PERMISSION": "AUTHORIZATION",
+    "POSITION": "EMPLOYEE",
+    "JOB_TITLE": "EMPLOYEE",
+    "ASSIGNMENT": "EMPLOYEE",
+    "RESPONSIBILITY": "EMPLOYEE",
+    "USER_ROLE": "AUTHORIZATION",
+    "NOTIFICATION": "SETTING",
+    "SAVED_SEARCH": "SETTING"
+  }
+}

@@ -27,7 +27,7 @@ public class SchedulerCoordinator implements RuntimeStateProvider {
     public SchedulerCoordinator(
             JdbcSchedulerLeaderRepository repository,
             @Value("${cpf.batch.scheduler.lease-seconds:15}") long leaseSeconds) {
-        this(repository, com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(), leaseSeconds);
+        this(repository, com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(), leaseSeconds);
     }
 
     SchedulerCoordinator(

@@ -1,0 +1,31 @@
+server:
+  port: ${MBW_WEB_PORT:8090}
+  shutdown: graceful
+spring:
+  application:
+    name: cpf-backoffice-web
+  main:
+    banner-mode: "off"
+backoffice:
+  web:
+    mode: ${MBW_WEB_MODE:GATEWAY}
+    gateway-base-uri: ${MBW_GATEWAY_BASE_URI:http://127.0.0.1:8080}
+    direct-base-uri: ${MBW_DIRECT_BASE_URI:http://127.0.0.1:8082}
+    caller-system-code: ${MBW_WEB_SYSTEM_CODE:MBW}
+    target-system-code: ${MBW_TARGET_SYSTEM_CODE:MBW}
+    caller-channel: ${MBW_WEB_CHANNEL:MBW}
+    connect-timeout: ${MBW_CONNECT_TIMEOUT:3s}
+    request-timeout: ${MBW_REQUEST_TIMEOUT:10s}
+    access-cookie-name: ${MBW_ACCESS_COOKIE_NAME:CPF_MBW_ACCESS}
+    refresh-cookie-name: ${MBW_REFRESH_COOKIE_NAME:CPF_MBW_REFRESH}
+    secure-cookies: ${MBW_WEB_SECURE_COOKIES:true}
+    cookie-same-site: ${MBW_WEB_COOKIE_SAME_SITE:Strict}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

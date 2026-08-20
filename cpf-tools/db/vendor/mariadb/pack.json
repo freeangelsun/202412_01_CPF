@@ -16,28 +16,27 @@
   "generatedDomainRuntimeDialectRoot": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/mariadb",
   "databaseRoles": {
     "CPF_PLATFORM_DB": "cpfDB",
-    "BZA_DB": "bzaDB",
-    "CUSTOMER_BUSINESS_DB": "customer-defined",
+    "CUSTOMER_BUSINESS_DB": "customer-defined (Backoffice default: mbwDB)",
     "REFERENCE_FIXTURE": "non-production"
   },
   "freshInstall": {
     "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
-    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-schema.sql",
+    "mbwDB": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
     "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-schema.sql"
   },
   "seed": {
     "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql",
-    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-seed.sql",
+    "mbwDB": "cpf-tools/db/generated/current/mariadb/backoffice-seed.sql",
     "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-seed.sql"
   },
   "verify": {
     "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-verify.sql",
-    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-verify.sql",
+    "mbwDB": "cpf-tools/db/generated/current/mariadb/backoffice-verify.sql",
     "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-verify.sql"
   },
   "currentRollback": {
     "cpfDB": "cpf-tools/db/generated/current/mariadb/cpf-platform-rollback.sql",
-    "bzaDB": "cpf-tools/db/generated/current/mariadb/bza-rollback.sql",
+    "mbwDB": "cpf-tools/db/generated/current/mariadb/backoffice-rollback.sql",
     "referenceFixture": "cpf-tools/db/generated/current/mariadb/reference-fixture-rollback.sql"
   },
   "generatedDomainContract": {

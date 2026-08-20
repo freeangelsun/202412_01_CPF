@@ -52,9 +52,9 @@ tasks.register('prepareCpfVendorResources') {
         }
         def rendered = candidates[0].getText('UTF-8')
         def replacements = [
-            '@CPF_MAPPER_NAMESPACE@': 'member.domain.mapper.SampleTransactionMapper',
-            '@CPF_RESULT_TYPE@': 'member.domain.model.SampleItem',
-            '@CPF_IDEMPOTENCY_RESULT_TYPE@': 'member.domain.model.SampleIdempotencyRecord',
+            '@CPF_MAPPER_NAMESPACE@': 'member.online.member.repository.SampleTransactionMapper',
+            '@CPF_RESULT_TYPE@': 'member.online.member.model.SampleItem',
+            '@CPF_IDEMPOTENCY_RESULT_TYPE@': 'member.online.member.model.SampleIdempotencyRecord',
             '@CPF_TABLE_PREFIX@': 'MBR',
             '@CPF_SCHEMA_NAME@': ''
         ]

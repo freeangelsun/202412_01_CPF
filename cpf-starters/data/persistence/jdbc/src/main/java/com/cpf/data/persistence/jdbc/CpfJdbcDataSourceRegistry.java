@@ -32,7 +32,6 @@ final class CpfJdbcDataSourceRegistry implements CpfDataSourceRegistry {
         }
         String conventional = switch (role) {
             case CPF_PLATFORM_DB -> "cpfPlatformDataSource";
-            case BZA_DB -> "cpfBzaRoleDataSource";
             case CUSTOMER_BUSINESS_DB -> "cpfCustomerBusinessDataSource";
             case REFERENCE_FIXTURE -> "cpfReferenceFixtureDataSource";
         };

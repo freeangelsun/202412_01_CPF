@@ -1,1 +1,0 @@
-UPDATE bza_refresh_token SET revoked_yn = 'Y', revoked_at = CURRENT_TIMESTAMP, updated_by = 'BZA_LOGIN_RETRY', updated_at = CURRENT_TIMESTAMP WHERE login_operation_id = :operationId AND revoked_yn = 'N'

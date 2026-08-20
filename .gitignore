@@ -9,10 +9,11 @@ HELP.md
 /cpf-admin/frontend/build/
 /cpf-batch/build/
 /cpf-batch/*/build/
-/cpf-biz-admin/build/
-/cpf-biz-frontend/dist/
-/cpf-biz-frontend/node_modules/
-/cpf-biz-channel/build/
+/cpf-backoffice/build/
+/cpf-backoffice/online/build/
+/cpf-backoffice-web/build/
+/cpf-backoffice-web/frontend/dist/
+/cpf-backoffice-web/frontend/node_modules/
 /cpf-core/build/
 /cpf-gateway/build/
 /cpf-starters/**/build/

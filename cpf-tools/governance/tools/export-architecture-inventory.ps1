@@ -30,7 +30,7 @@ if ($starterModules.Count -eq 0) {
 }
 
 $modules = @(
-    'cpf-core', 'cpf-common', 'cpf-member', 'cpf-admin', 'cpf-biz-admin',
+    'cpf-core', 'cpf-common', 'cpf-member', 'cpf-admin', 'cpf-backoffice/online',
     'cpf-batch', 'cpf-education', 'cpf-gateway',
     'cpf-tools/runtime/cpf-local-runtime', 'cpf-tools/runtime/cpf-local-batch-runtime'
 ) + $starterModules

@@ -11,7 +11,7 @@ public CpfLocalRuntimeStatusController(Environment e){this.e=e;}
  @GetMapping("/cpf/local/runtime/status")
  public Status status(){return new Status("CPF_LOCAL_WEB",true,true,e.getProperty("server.port",Integer.class,8080),List.of(e.getActiveProfiles()),modules(),simulators(),Runtime.getRuntime()
          .maxMemory()/1024/1024,Instant.now());}
- private List<Module> modules(){return List.of(module("core",true),module("common",true),module("gateway",true),module("admin",true),module("biz-admin",false),new Module("domains",e
+ private List<Module> modules(){return List.of(module("core",true),module("common",true),module("gateway",true),module("admin",true),module("backoffice",false),new Module("domains",e
          .getProperty("cpf.local.modules.domains.enabled",Boolean.class,false),e.getProperty("cpf.local.modules.domains.base-packages","")));}
  private Module module(String n,boolean d){return new Module(n,e.getProperty("cpf.local.modules."+n,Boolean.class,d),"");}
  private List<Simulator> simulators(){return List.of(sim("redis"),sim("broker"),sim("external"),sim("file-transfer"));}private Simulator sim(String n){return new Simulator(n,e

@@ -10,12 +10,12 @@ $checks = [ordered]@{
     migration = "cpf-tools/db/vendor/mariadb/source/migration/flyway/V59__admin_contact_model.sql"
     rollback = "cpf-tools/db/vendor/mariadb/source/migration/rollback/V59__admin_contact_model_rollback.sql"
     admService = "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmOperatorService.java"
-    bzaRepository = "cpf-biz-admin/src/main/java/com/cpf/bizadmin/backoffice/repository/BzaBackofficeRepository.java"
+    bzaRepository = "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/backoffice/repository/BzaBackofficeRepository.java"
     bzaFindEmployeesTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employees-01.sql.template"
     bzaFindEmployeeTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-01.sql.template"
     bzaRawContactTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-raw-contact-01.sql.template"
     admUi = "cpf-admin/frontend/src/features/operators/OperatorsPage.vue"
-    bzaUi = "cpf-biz-frontend/src/features/employees/components/EmployeeChangeForm.vue"
+    bzaUi = "cpf-backoffice-web/frontend/src/features/employees/components/EmployeeChangeForm.vue"
 }
 
 foreach ($entry in $checks.GetEnumerator()) {

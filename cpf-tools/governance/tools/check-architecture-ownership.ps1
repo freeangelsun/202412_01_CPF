@@ -31,14 +31,14 @@ if ($starterModules.Count -eq 0) {
 }
 
 $fixedModules = @(
-    "cpf-core", "cpf-common", "cpf-education", "cpf-biz-admin",
+    "cpf-core", "cpf-common", "cpf-education", "cpf-backoffice/online",
     "cpf-batch", "cpf-admin", "cpf-gateway",
     "cpf-local-runtime", "cpf-local-batch-runtime"
 ) + $starterModules
-$fixedBusinessModules = @("cpf-education", "cpf-biz-admin")
+$fixedBusinessModules = @("cpf-education", "cpf-backoffice/online")
 $fixedModulePackages = [ordered]@{
     "cpf-education" = "com.cpf.education"
-    "cpf-biz-admin" = "com.cpf.bizadmin"
+    "cpf-backoffice/online" = "com.cpf.backoffice.online"
     "cpf-batch" = "com.cpf.batch"
     "cpf-admin" = "com.cpf.admin"
 }

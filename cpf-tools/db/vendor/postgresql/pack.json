@@ -16,28 +16,27 @@
   "generatedDomainRuntimeDialectRoot": "cpf-starters/data/persistence/src/main/resources/cpf-generated-domain-dialect/postgresql",
   "databaseRoles": {
     "CPF_PLATFORM_DB": "cpfDB",
-    "BZA_DB": "bzaDB",
-    "CUSTOMER_BUSINESS_DB": "customer-defined",
+    "CUSTOMER_BUSINESS_DB": "customer-defined (Backoffice default: mbwDB)",
     "REFERENCE_FIXTURE": "non-production"
   },
   "freshInstall": {
     "cpfDB": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
-    "bzaDB": "cpf-tools/db/generated/current/postgresql/bza-schema.sql",
+    "mbwDB": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
     "referenceFixture": "cpf-tools/db/generated/current/postgresql/reference-fixture-schema.sql"
   },
   "seed": {
     "cpfDB": "cpf-tools/db/generated/current/postgresql/cpf-platform-seed.sql",
-    "bzaDB": "cpf-tools/db/generated/current/postgresql/bza-seed.sql",
+    "mbwDB": "cpf-tools/db/generated/current/postgresql/backoffice-seed.sql",
     "referenceFixture": "cpf-tools/db/generated/current/postgresql/reference-fixture-seed.sql"
   },
   "verify": {
     "cpfDB": "cpf-tools/db/generated/current/postgresql/cpf-platform-verify.sql",
-    "bzaDB": "cpf-tools/db/generated/current/postgresql/bza-verify.sql",
+    "mbwDB": "cpf-tools/db/generated/current/postgresql/backoffice-verify.sql",
     "referenceFixture": "cpf-tools/db/generated/current/postgresql/reference-fixture-verify.sql"
   },
   "currentRollback": {
     "cpfDB": "cpf-tools/db/generated/current/postgresql/cpf-platform-rollback.sql",
-    "bzaDB": "cpf-tools/db/generated/current/postgresql/bza-rollback.sql",
+    "mbwDB": "cpf-tools/db/generated/current/postgresql/backoffice-rollback.sql",
     "referenceFixture": "cpf-tools/db/generated/current/postgresql/reference-fixture-rollback.sql"
   },
   "generatedDomainContract": {

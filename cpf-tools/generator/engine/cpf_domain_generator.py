@@ -12,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,9 +22,44 @@ from cpf_korean_comment_policy import ensure_java_korean_contract_comments
 
 SUPPORTED_VENDORS = ("oracle", "postgresql", "mariadb")
 SCHEMA_REL = Path("cpf-tools/generator/contracts/cpf-domain.schema.json")
-CATALOG_REL = Path("cpf-tools/generator/config/application-starters.yml")
+CATALOG_REL = Path("cpf-tools/generator/contracts/cpf-starter-catalog.json")
 STACK_REL = Path("gradle/cpf-stack.properties")
-GENERATOR_VERSION = "6.2.0"
+GENERATOR_VERSION = "6.4.0"
+
+
+def _generator_resource_root(workspace_root: Path) -> Path:
+    """Generator 계약/Template의 읽기 전용 Resource Root를 결정합니다.
+
+    Private Source 회귀검증에서는 workspace root 자체를 사용하고, Published Generator
+    Binary는 CPF_GENERATOR_RESOURCE_ROOT 또는 PyInstaller의 embedded resource root를
+    사용합니다. Public Developer Workspace가 Private cpf-tools Source를 포함할 필요가
+    없도록 Workspace와 Generator Resource ownership을 분리합니다.
+    """
+    configured = os.environ.get("CPF_GENERATOR_RESOURCE_ROOT", "").strip()
+    if configured:
+        root = Path(configured).expanduser().resolve()
+        if root.is_dir():
+            return root
+        raise DomainError(f"CPF_GENERATOR_RESOURCE_ROOT가 유효하지 않습니다: {root}")
+    embedded = getattr(sys, "_MEIPASS", None)
+    if embedded:
+        candidate = Path(embedded).resolve() / "cpf-generator-resources"
+        if candidate.is_dir():
+            return candidate
+    return workspace_root.resolve()
+
+
+def _workspace_definition_root(workspace_root: Path) -> Path:
+    """Source-controlled Canonical Domain Definition Root를 반환합니다.
+
+    Public Workspace는 domains/<domain>/cpf-domain.yaml을 정본으로 사용하고 Private
+    Repository는 기존 cpf-tools/generator/definitions를 유지합니다. Local hidden state는
+    정본으로 사용하지 않습니다.
+    """
+    public_root = workspace_root / "domains"
+    if public_root.is_dir():
+        return public_root
+    return workspace_root / "cpf-tools" / "generator" / "definitions"
 
 
 class DomainError(RuntimeError):
@@ -57,9 +93,12 @@ def _scalar(value: str) -> Any:
 
 
 def load_yaml_subset(path: Path) -> dict[str, Any]:
-    """외부 패키지 없이 cpf-domain.yaml의 map/scalar subset을 결정적으로 읽는다."""
-    root: dict[str, Any] = {}
-    stack: list[tuple[int, dict[str, Any]]] = [(-1, root)]
+    """외부 YAML Runtime 없이 CPF canonical subset(map/scalar/list[str])을 결정적으로 읽는다.
+
+    Generated Domain dependency operation 목록을 지원하되 anchor/tag/multiline 같은 복잡한 YAML 기능은
+    의도적으로 허용하지 않는다. 동일 Definition이 Public binary/Private source에서 같은 의미로 읽혀야 한다.
+    """
+    tokens: list[tuple[int, int, str]] = []
     for line_no, raw in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
         if not raw.strip() or raw.lstrip().startswith("#"):
             continue
@@ -70,27 +109,62 @@ def load_yaml_subset(path: Path) -> dict[str, Any]:
         if indent % 2:
             raise DomainError(f"indent는 2칸 단위여야 합니다: {path}:{line_no}")
         text = raw.strip()
-        if ":" not in text:
-            raise DomainError(f"key:value 형식이 아닙니다: {path}:{line_no}")
-        key, value = text.split(":", 1)
-        key = key.strip()
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", key):
-            raise DomainError(f"유효하지 않은 key입니다: {path}:{line_no}:{key}")
-        while stack and indent <= stack[-1][0]:
-            stack.pop()
-        if not stack:
-            raise DomainError(f"indent 계층이 올바르지 않습니다: {path}:{line_no}")
-        parent = stack[-1][1]
-        if key in parent:
-            raise DomainError(f"중복 key입니다: {path}:{line_no}:{key}")
-        if not value.strip():
-            child: dict[str, Any] = {}
-            parent[key] = child
-            stack.append((indent, child))
-        else:
-            parent[key] = _scalar(value)
-    return root
+        if text.startswith(("&", "*", "!", "|", ">")):
+            raise DomainError(f"지원하지 않는 YAML 기능입니다: {path}:{line_no}")
+        tokens.append((indent, line_no, text))
 
+    def parse_block(index: int, indent: int) -> tuple[Any, int]:
+        if index >= len(tokens) or tokens[index][0] < indent:
+            return {}, index
+        is_list = tokens[index][0] == indent and tokens[index][2].startswith("- ")
+        if is_list:
+            values: list[Any] = []
+            while index < len(tokens) and tokens[index][0] == indent:
+                _, line_no, text = tokens[index]
+                if not text.startswith("- "):
+                    raise DomainError(f"list/map 혼합은 허용하지 않습니다: {path}:{line_no}")
+                item = text[2:].strip()
+                if not item:
+                    raise DomainError(f"빈 list 항목은 허용하지 않습니다: {path}:{line_no}")
+                values.append(_scalar(item))
+                index += 1
+                if index < len(tokens) and tokens[index][0] > indent:
+                    raise DomainError(f"object list는 현재 Canonical subset에서 허용하지 않습니다: {path}:{tokens[index][1]}")
+            return values, index
+
+        result: dict[str, Any] = {}
+        while index < len(tokens) and tokens[index][0] == indent:
+            _, line_no, text = tokens[index]
+            if text.startswith("- ") or ":" not in text:
+                raise DomainError(f"key:value 형식이 아닙니다: {path}:{line_no}")
+            key, value = text.split(":", 1)
+            key = key.strip()
+            if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", key):
+                raise DomainError(f"유효하지 않은 key입니다: {path}:{line_no}:{key}")
+            if key in result:
+                raise DomainError(f"중복 key입니다: {path}:{line_no}:{key}")
+            index += 1
+            if value.strip():
+                result[key] = _scalar(value)
+                if index < len(tokens) and tokens[index][0] > indent:
+                    raise DomainError(f"scalar 아래 child block은 허용하지 않습니다: {path}:{tokens[index][1]}")
+            elif index < len(tokens) and tokens[index][0] > indent:
+                child_indent = tokens[index][0]
+                if child_indent != indent + 2:
+                    raise DomainError(f"indent 계층은 정확히 2칸씩 증가해야 합니다: {path}:{tokens[index][1]}")
+                result[key], index = parse_block(index, child_indent)
+            else:
+                result[key] = {}
+        return result, index
+
+    if not tokens:
+        return {}
+    if tokens[0][0] != 0:
+        raise DomainError(f"root indentation은 0이어야 합니다: {path}:{tokens[0][1]}")
+    value, index = parse_block(0, 0)
+    if index != len(tokens) or not isinstance(value, dict):
+        raise DomainError(f"root는 object여야 합니다: {path}")
+    return value
 
 def _require_exact_keys(value: dict[str, Any], allowed: set[str], required: set[str], path: str) -> None:
     missing = sorted(required - set(value))
@@ -103,6 +177,7 @@ def _require_exact_keys(value: dict[str, Any], allowed: set[str], required: set[
 class DomainDependency:
     name: str
     system_code: str
+    operations: tuple[str, ...]
 
     @property
     def class_name(self) -> str:
@@ -159,6 +234,24 @@ class DomainDefinition:
         return self.online
     @property
     def sample_tx_id(self) -> str: return f"{self.system_code}_SAMPLE_TX"
+
+    @property
+    def primary_feature(self) -> str:
+        """Generated Golden Path의 기본 Business Feature package 이름입니다.
+
+        Domain 이름을 그대로 업무 Feature Owner로 사용하되 Java package에 허용되지 않는
+        하이픈만 제거합니다. 실제 프로젝트의 추가 Feature는 업무 Capability 이름으로
+        별도 생성/추가하며 기술 Layer를 Feature보다 상위에 두지 않습니다.
+        """
+        return self.name.replace("-", "")
+
+    @property
+    def feature_package(self) -> str:
+        return f"{self.package_name}.online.{self.primary_feature}"
+
+    @property
+    def feature_path(self) -> Path:
+        return self.package_path / "online" / self.primary_feature
 
 
 def _reject_plaintext_secrets(value: Any, path: str = "$") -> None:
@@ -218,14 +311,15 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     preset = str(raw["preset"])
     if preset not in {"minimal","standard-enterprise","full-enterprise","custom"}: raise DomainError(f"지원하지 않는 preset: {preset}")
     if not isinstance(modules["online"], bool): raise DomainError("modules.online은 boolean이어야 합니다.")
-    if not modules["online"]: raise DomainError("Generated Domain은 online 업무 Runtime을 생성하므로 modules.online=true여야 합니다.")
+    online = modules["online"]
     batch = modules.get("batch", False)
     if not isinstance(batch, bool): raise DomainError("modules.batch는 boolean이어야 합니다.")
+    if not online and not batch: raise DomainError("Generated Domain은 online/batch 중 최소 하나의 Runtime을 선택해야 합니다.")
 
     preset_defaults = {
       "minimal": {"persistence":"none","httpClient":False,"resilience":False,"cache":"none","messaging":"none","objectStorage":"none","securityProfile":"resource-server"},
       "standard-enterprise": {"persistence":"mybatis","httpClient":True,"resilience":True,"cache":"none","messaging":"none","objectStorage":"none","securityProfile":"resource-server"},
-      "full-enterprise": {"persistence":"mybatis","httpClient":True,"resilience":True,"cache":"none","messaging":"none","objectStorage":"none","securityProfile":"resource-server"},
+      "full-enterprise": {"persistence":"mybatis","httpClient":True,"resilience":True,"cache":"valkey","messaging":"kafka","objectStorage":"s3","securityProfile":"resource-server"},
       "custom": {"persistence":"none","httpClient":False,"resilience":False,"cache":"none","messaging":"none","objectStorage":"none","securityProfile":"resource-server"},
     }[preset]
     f={**preset_defaults, **features}
@@ -257,21 +351,36 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
                 "권장 조합=features 생략 또는 none/false + securityProfile=resource-server + generation.sampleTransaction=false; "
                 "수정 경로=$.features, $.generation.sampleTransaction"
             )
+    if sample_tx and not online:
+        raise DomainError("generation.sampleTransaction=true는 modules.online=true가 필요합니다.")
     if sample_tx and persistence != "mybatis":
         raise DomainError("현재 Canonical Sample Transaction은 중앙 Vendor Mapper Pack을 소비하므로 persistence=mybatis가 필요합니다.")
+    if persistence == "none" and (cache not in {"none","caffeine"} or messaging != "none" or object_storage != "none"):
+        pass  # DB와 독립적인 Capability는 허용합니다.
     domain_dependencies: list[DomainDependency] = []
     seen_dependency_codes: set[str] = set()
     for dependency_name, dependency_raw in domain_dependencies_raw.items():
         if not re.fullmatch(r"[a-z][a-z0-9-]{1,49}", str(dependency_name)):
             raise DomainError(f"domainDependencies key 형식이 올바르지 않습니다: {dependency_name}")
         if not isinstance(dependency_raw, dict): raise DomainError(f"domainDependencies.{dependency_name}은 object여야 합니다.")
-        _require_exact_keys(dependency_raw, {"systemCode"}, {"systemCode"}, f"$.domainDependencies.{dependency_name}")
+        _require_exact_keys(dependency_raw, {"systemCode","operations"}, {"systemCode","operations"}, f"$.domainDependencies.{dependency_name}")
         dependency_code = str(dependency_raw["systemCode"]).upper()
         if not re.fullmatch(r"[A-Z][A-Z0-9]{2}", dependency_code): raise DomainError(f"domainDependencies.{dependency_name}.systemCode는 3자리 대문자/숫자여야 합니다.")
         if dependency_code == system: raise DomainError("자기 Domain을 domainDependencies에 선언할 수 없습니다.")
         if dependency_code in seen_dependency_codes: raise DomainError(f"domainDependencies systemCode 중복: {dependency_code}")
+        operations_raw = dependency_raw.get("operations")
+        if not isinstance(operations_raw, list) or not operations_raw:
+            raise DomainError(f"domainDependencies.{dependency_name}.operations는 1개 이상의 operationId list여야 합니다.")
+        operations: list[str] = []
+        for operation in operations_raw:
+            operation_id = str(operation).strip()
+            if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.:-]{1,119}", operation_id):
+                raise DomainError(f"domainDependencies.{dependency_name}.operations operationId 형식 오류: {operation_id}")
+            if operation_id in operations:
+                raise DomainError(f"domainDependencies.{dependency_name}.operations 중복: {operation_id}")
+            operations.append(operation_id)
         seen_dependency_codes.add(dependency_code)
-        domain_dependencies.append(DomainDependency(str(dependency_name), dependency_code))
+        domain_dependencies.append(DomainDependency(str(dependency_name), dependency_code, tuple(operations)))
 
     external_clients: list[ExternalClientDefinition] = []
     seen_external_ids: set[str] = set()
@@ -282,38 +391,105 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
         _require_exact_keys(client_raw, {"id","capability"}, {"id","capability"}, f"$.externalClients.{client_name}")
         client_id = str(client_raw["id"]); capability = str(client_raw["capability"])
         if not re.fullmatch(r"[a-z][a-z0-9-]{1,63}", client_id): raise DomainError(f"externalClients.{client_name}.id 형식이 올바르지 않습니다.")
-        if capability not in {"http","tcp","soap","fixed-length","iso8583","sftp","messaging","object-storage"}: raise DomainError(f"지원하지 않는 external client capability: {capability}")
+        public_external_capabilities = {"http","fixed-length","messaging","object-storage"}
+        if capability not in public_external_capabilities:
+            raise DomainError(f"Public Generated Domain에서 지원하지 않는 external client capability: {capability}; public={sorted(public_external_capabilities)}")
         if client_id in seen_external_ids: raise DomainError(f"externalClients id 중복: {client_id}")
         seen_external_ids.add(client_id)
         external_clients.append(ExternalClientDefinition(str(client_name), client_id, capability))
 
+    for client in external_clients:
+        if client.capability == "messaging" and messaging == "none":
+            raise DomainError(f"externalClients.{client.name}=messaging은 features.messaging provider 선택이 필요합니다.")
+        if client.capability == "object-storage" and object_storage == "none":
+            raise DomainError(f"externalClients.{client.name}=object-storage는 features.objectStorage=s3가 필요합니다.")
+
     default_online_port = _stable_local_online_port(system)
     local_online_port = int(runtime.get("localOnlinePort", default_online_port))
     if not 18080 <= local_online_port <= 18999: raise DomainError(f"runtime.localOnlinePort는 18080~18999 범위여야 합니다: {local_online_port}")
-    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,True,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,local_online_port,tuple(domain_dependencies),tuple(external_clients))
+    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,local_online_port,tuple(domain_dependencies),tuple(external_clients))
+
+def _load_workspace_definitions(root: Path, current: DomainDefinition | None = None) -> dict[str,DomainDefinition]:
+    definitions: dict[str,DomainDefinition] = {}
+    definition_root=_workspace_definition_root(root)
+    if definition_root.is_dir():
+        for definition in sorted(definition_root.glob('*/cpf-domain.yaml')):
+            try:
+                item=validate_definition(load_yaml_subset(definition))
+            except DomainError as exc:
+                raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
+            if item.name in definitions:
+                raise DomainError(f"Generated Domain definition 이름 중복: {item.name}")
+            definitions[item.name]=item
+    if current is not None:
+        definitions[current.name]=current
+    return definitions
+
+
+def validate_domain_dependency_graph(root: Path, d: DomainDefinition) -> None:
+    """Declared Business Domain dependency의 target/systemCode/cycle을 생성 전에 검증합니다."""
+    definitions=_load_workspace_definitions(root,d)
+    for owner in definitions.values():
+        for dep in owner.domain_dependencies:
+            target=definitions.get(dep.name)
+            if target is None:
+                raise DomainError(f"{owner.system_code} dependency requires {dep.system_code}/{dep.name}, but target Domain definition is missing")
+            if target.system_code != dep.system_code:
+                raise DomainError(f"{owner.system_code} dependency target SystemCode mismatch: declared={dep.system_code} actual={target.system_code} domain={dep.name}")
+            available = {"ping"}
+            if target.sample_transaction:
+                available.add(target.sample_tx_id)
+            target_root = root / f"cpf-{target.name}"
+            if target_root.is_dir():
+                pattern = re.compile(r'@CpfOnlineTransaction\s*\([^)]*operationId\s*=\s*"([^"]+)"', re.MULTILINE)
+                for source in target_root.rglob("*.java"):
+                    try:
+                        available.update(pattern.findall(source.read_text(encoding="utf-8-sig", errors="ignore")))
+                    except OSError:
+                        pass
+            missing_operations = sorted(set(dep.operations) - available)
+            if missing_operations:
+                raise DomainError(f"{owner.system_code} dependency target operation 없음/미발견: {dep.system_code}/{dep.name} operations={missing_operations}")
+    graph={name:[dep.name for dep in item.domain_dependencies] for name,item in definitions.items()}
+    visiting:set[str]=set(); visited:set[str]=set(); path:list[str]=[]
+    def visit(node:str)->None:
+        if node in visiting:
+            start=path.index(node) if node in path else 0
+            cycle=path[start:]+[node]
+            raise DomainError(f"Business Domain 순환 의존 금지: {' -> '.join(cycle)}")
+        if node in visited: return
+        visiting.add(node); path.append(node)
+        for target in graph.get(node,[]): visit(target)
+        path.pop(); visiting.remove(node); visited.add(node)
+    for node in sorted(graph): visit(node)
+
 
 def validate_repository_uniqueness(root: Path, d: DomainDefinition, output: Path) -> None:
     """영구 Project metadata 없이 Framework canonical definitions 사이의 식별자 충돌을 생성 전에 차단한다."""
     if not root.is_dir(): return
     attrs=(("domain.name","name"),("domain.systemCode","system_code"),("domain.packageName(derived)","package_name"),("database.tablePrefix","table_prefix"))
-    requested_ports={d.local_online_port}
-    definitions=root/'cpf-tools/generator/definitions'
+    requested_ports={d.local_online_port} if d.online else set()
+    definitions=_workspace_definition_root(root)
     candidates=sorted(definitions.glob('*/cpf-domain.yaml')) if definitions.is_dir() else []
     for definition in candidates:
         try: other=validate_definition(load_yaml_subset(definition))
         except DomainError as exc: raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
         if other.name==d.name: continue
-        other_ports={other.local_online_port}
+        other_ports={other.local_online_port} if other.online else set()
         collision=sorted(requested_ports & other_ports)
         if collision: raise DomainError(f"Generated Domain local port 충돌: {collision}; existing={definition}")
         for label,attr in attrs:
             if getattr(other,attr) == getattr(d,attr):
                 raise DomainError(f"Generated Domain uniqueness 충돌: {label}={getattr(d,attr)}; existing={definition}")
+    validate_domain_dependency_graph(root,d)
 
 
 def read_stack(root: Path) -> dict[str, str]:
     values: dict[str, str] = {}
+    resource_root = _generator_resource_root(root)
     path = root / STACK_REL
+    if not path.is_file():
+        path = resource_root / STACK_REL
     if not path.is_file():
         return {"javaVersion":"25","springBootVersion":"4.1.0","springDependencyManagementVersion":"1.1.7","cpfVersion":"1.0.0-SNAPSHOT"}
     for raw in path.read_text(encoding="utf-8-sig").splitlines():
@@ -325,7 +501,7 @@ def read_stack(root: Path) -> dict[str, str]:
 
 
 def load_catalog(root: Path) -> dict[str, Any]:
-    path = root / CATALOG_REL
+    path = _generator_resource_root(root) / CATALOG_REL
     if not path.is_file():
         raise DomainError(f"Starter Catalog가 없습니다: {path}")
     data = json.loads(path.read_text(encoding="utf-8-sig"))
@@ -367,6 +543,7 @@ def direct_dependencies(d: DomainDefinition, kind: str, catalog: dict[str, Any])
     elif d.security_profile == "service-identity":
         # service-identity가 Internal-only이면 Generated Domain이 직접 뚫지 않고 Public Profile Composition에 맡긴다.
         if "cpf-starter-security-service-identity" in public: deps.append("cpf-starter-security-service-identity")
+    if any(client.capability == "fixed-length" for client in d.external_clients): deps.append("cpf-starter-integration-fixed-length")
     for artifact in deps:
         if artifact not in public:
             raise DomainError(f"Generated Domain direct dependency가 Public Starter Catalog에 없습니다: {artifact}")
@@ -419,7 +596,7 @@ def _developer_selection_summary(d: DomainDefinition, catalog: dict[str, Any]) -
 
 
 def render_root_settings(d: DomainDefinition) -> str:
-    includes=["online"] + (["batch"] if d.batch else [])
+    includes=(["online"] if d.online else []) + (["batch"] if d.batch else [])
     lines=["// Generated Customer Domain 최소 IA settings입니다.", f"rootProject.name = 'cpf-{d.name}'"]
     for name in includes: lines.append(f"include '{name}'")
     lines += [
@@ -446,10 +623,39 @@ import java.security.MessageDigest
 
 plugins {{ id 'base' }}
 
+def cpfResolvedPlatformVersion = providers.environmentVariable('CPF_VERSION')
+        .orElse(providers.gradleProperty('cpfPlatformVersion'))
+        .get()
+def cpfProductCompositeRootValue = providers.gradleProperty('cpfProductCompositeRoot').orNull
+def cpfPublicRepositoryUrl = providers.environmentVariable('CPF_MAVEN_REPOSITORY_URL')
+        .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
+        .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
+        .orNull
+if (!cpfProductCompositeRootValue && !cpfPublicRepositoryUrl) {{
+    throw new GradleException('Standalone Generated Domain은 CPF_MAVEN_REPOSITORY_URL 또는 cpfArtifactRepositoryUrl이 필요합니다. Private Source composite 회귀검증은 -PcpfProductCompositeRoot를 사용하세요.')
+}}
+
 allprojects {{
     group = '{d.package_name}'
     version = '1.0.0-SNAPSHOT'
-    repositories {{ mavenLocal(); mavenCentral() }}
+    ext.set('cpfPlatformVersion', cpfResolvedPlatformVersion)
+    repositories {{
+        if (cpfPublicRepositoryUrl) {{
+            maven {{
+                name = 'cpfPublicBinary'
+                url = uri(cpfPublicRepositoryUrl)
+                content {{ includeGroupByRegex 'com[.]cpf([.].*)?' }}
+                def cpfRepoUser = System.getenv('CPF_MAVEN_REPOSITORY_USER') ?: System.getenv('CPF_ARTIFACT_REPOSITORY_USER')
+                if (cpfRepoUser) {{
+                    credentials {{
+                        username = cpfRepoUser
+                        password = System.getenv('CPF_MAVEN_REPOSITORY_PASSWORD') ?: System.getenv('CPF_ARTIFACT_REPOSITORY_PASSWORD')
+                    }}
+                }}
+            }}
+        }}
+        mavenCentral {{ content {{ excludeGroupByRegex 'com[.]cpf([.].*)?' }} }}
+    }}
 }}
 
 def cpfTextAttribute = {{ String body, String key ->
@@ -595,9 +801,9 @@ tasks.register('prepareCpfVendorResources') {{
         }}
         def rendered = candidates[0].getText('UTF-8')
         def replacements = [
-            '@CPF_MAPPER_NAMESPACE@': '{d.package_name}.domain.mapper.SampleTransactionMapper',
-            '@CPF_RESULT_TYPE@': '{d.package_name}.domain.model.SampleItem',
-            '@CPF_IDEMPOTENCY_RESULT_TYPE@': '{d.package_name}.domain.model.SampleIdempotencyRecord',
+            '@CPF_MAPPER_NAMESPACE@': '{d.package_name}.online.{d.primary_feature}.repository.SampleTransactionMapper',
+            '@CPF_RESULT_TYPE@': '{d.package_name}.online.{d.primary_feature}.model.SampleItem',
+            '@CPF_IDEMPOTENCY_RESULT_TYPE@': '{d.package_name}.online.{d.primary_feature}.model.SampleIdempotencyRecord',
             '@CPF_TABLE_PREFIX@': '{d.table_prefix}',
             '@CPF_SCHEMA_NAME@': ''
         ]
@@ -806,7 +1012,7 @@ public final class SampleItem {{
 
 
 def render_requests(d: DomainDefinition) -> dict[str,str]:
-    pkg=f"{d.package_name}.common.model"
+    pkg=f"{d.package_name}.common.dto"
     return {
       "CreateSampleRequest.java": f'''package {pkg};
 
@@ -855,6 +1061,7 @@ public record SampleSearchRequest(String keyword, String statusCode, Integer pag
       "SamplePage.java": f'''package {pkg};
 
 import java.util.List;
+import {d.package_name}.common.model.SampleItem;
 
 /** Search/Page 표준 응답입니다. */
 public record SamplePage(List<SampleItem> items, long total, int page, int size) {{ }}
@@ -862,6 +1069,7 @@ public record SamplePage(List<SampleItem> items, long total, int page, int size)
       "SampleSlice.java": f'''package {pkg};
 
 import java.util.List;
+import {d.package_name}.common.model.SampleItem;
 
 /** Cursor/Slice 표준 응답입니다. */
 public record SampleSlice(List<SampleItem> items, boolean hasNext, Long nextCursor) {{ }}
@@ -1058,6 +1266,7 @@ import {d.package_name}.common.audit.DomainAuditLogger;
 import {d.package_name}.common.base.{c}BaseService;
 import {d.package_name}.common.repository.SampleTransactionRepository;
 import {d.package_name}.common.model.*;
+import {d.package_name}.common.dto.*;
 import {d.package_name}.common.policy.SampleTransactionPolicy;
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
@@ -1230,7 +1439,8 @@ def render_controller(d: DomainDefinition) -> str:
 
 import {d.package_name}.api.base.{c}BaseController;
 import {d.package_name}.api.service.SampleTransactionService;
-import {d.package_name}.common.model.*;
+import {d.package_name}.common.model.SampleItem;
+import {d.package_name}.common.dto.*;
 import com.cpf.web.api.CpfRestController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
@@ -1296,7 +1506,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** {d.name} Generated API 실행 진입점입니다. */
 @SpringBootApplication(scanBasePackages="{d.package_name}")
-@MapperScan("{d.package_name}.common.mapper")
+@MapperScan("{d.package_name}.online.{d.primary_feature}.repository")
 public class {c}ApiApplication {{
     public static void main(String[] args) {{ SpringApplication.run({c}ApiApplication.class,args); }}
 }}
@@ -1413,9 +1623,10 @@ public final class Default{c}DomainClient implements {c}DomainClient {{
 
 def render_domain_dependency_consumer(d: DomainDefinition, runtime: str) -> str:
     package = f"{d.package_name}.{runtime}.domaincall"
-    fields=[]; params=[]; assigns=[]; methods=[]
+    fields=[]; params=[]; assigns=[]; methods=[]; client_imports=[]
     for dep in d.domain_dependencies:
         c=dep.class_name; var=dep.name.replace('-','_') + "DomainClient"
+        client_imports.append(f"import {package}.{c}DomainClient;")
         fields.append(f"    private final {c}DomainClient {var};")
         params.append(f"{c}DomainClient {var}")
         assigns.append(f"        this.{var} = {var};")
@@ -1425,6 +1636,7 @@ def render_domain_dependency_consumer(d: DomainDefinition, runtime: str) -> str:
     }}''')
     return f'''package {package};
 
+{chr(10).join(client_imports)}
 import com.cpf.core.api.domain.CpfDomainPingRequest;
 import com.cpf.core.api.domain.CpfDomainPingResponse;
 import com.cpf.core.api.result.CpfResult;
@@ -1521,7 +1733,7 @@ def _render_db_template(root: Path, d: DomainDefinition, vendor: str, relative_p
     """
     if vendor not in SUPPORTED_VENDORS:
         raise DomainError(f"지원하지 않는 Generated Domain DB Vendor입니다: {vendor}")
-    template = root / "cpf-tools" / "db" / "generated" / "domain-template" / vendor / relative_path
+    template = _generator_resource_root(root) / "cpf-tools" / "db" / "generated" / "domain-template" / vendor / relative_path
     if not template.is_file():
         raise DomainError(f"Generated Domain canonical DB template이 없습니다: {template}")
     rendered = template.read_text(encoding="utf-8-sig")
@@ -1533,10 +1745,10 @@ def _render_db_template(root: Path, d: DomainDefinition, vendor: str, relative_p
         "@CPF_MODULE_NAME@": d.module_name,
         "@CPF_PACKAGE_NAME@": d.package_name,
         "@CPF_TABLE_PREFIX@": d.table_prefix,
-        "@CPF_MAPPER_NAMESPACE@": f"{d.package_name}.domain.mapper.SampleTransactionMapper",
+        "@CPF_MAPPER_NAMESPACE@": f"{d.package_name}.online.{d.primary_feature}.repository.SampleTransactionMapper",
         "@CPF_MAPPER_NAME@": "SampleTransactionMapper",
-        "@CPF_RESULT_TYPE@": f"{d.package_name}.domain.model.SampleItem",
-        "@CPF_IDEMPOTENCY_RESULT_TYPE@": f"{d.package_name}.domain.model.SampleIdempotencyRecord",
+        "@CPF_RESULT_TYPE@": f"{d.package_name}.online.{d.primary_feature}.model.SampleItem",
+        "@CPF_IDEMPOTENCY_RESULT_TYPE@": f"{d.package_name}.online.{d.primary_feature}.model.SampleIdempotencyRecord",
     }
     for token, value in replacements.items():
         rendered = rendered.replace(token, value)
@@ -1577,7 +1789,7 @@ def render_readme(d: DomainDefinition, deps: dict[str,list[str]]) -> str:
 - tablePrefix: `{d.table_prefix}`
 - preset: `{d.preset}`
 - sampleTransaction: `{d.sample_tx_id}`
-- domainDependencies: `{', '.join(x.system_code for x in d.domain_dependencies) or 'none'}`
+- domainDependencies: `{', '.join(x.system_code + ':' + '|'.join(x.operations) for x in d.domain_dependencies) or 'none'}`
 - externalClients: `{', '.join(x.client_id for x in d.external_clients) or 'none'}`
 - API direct CPF dependencies: `{', '.join(deps.get('api',[]))}`
 - Batch Module: `modules.batch=true`일 때만 `batch/`를 생성하고 Public `cpf-starter-batch`를 소비
@@ -1586,16 +1798,32 @@ Generated Source를 수동 복제하여 다른 Domain을 만들지 않습니다.
 '''
 
 
-def _minimal_java(content: str, d: DomainDefinition) -> str:
-    """Legacy renderer의 의미를 재사용하되 고객 IA/package 명칭을 domain/online으로 currentize한다."""
-    content=content.replace(f"{d.package_name}.common",f"{d.package_name}.domain")
-    content=content.replace(f"{d.package_name}.api",f"{d.package_name}.online")
+def _feature_java(content: str, d: DomainDefinition, role: str | None = None) -> str:
+    """Legacy renderer의 의미를 재사용하면서 Feature-First package로 투영합니다.
+
+    Domain → Business Feature → Technical Role 순서를 강제합니다. Domain-wide Base와
+    Application entry만 Feature 밖에 두고, 실제 업무 Source는 모두 primary feature 아래에 둡니다.
+    """
+    feature=f"{d.package_name}.online.{d.primary_feature}"
+    replacements = {
+        f"{d.package_name}.common.base": f"{d.package_name}.online.base",
+        f"{d.package_name}.api.base": f"{d.package_name}.online.base",
+        f"{d.package_name}.common.model": f"{feature}.model",
+        f"{d.package_name}.common.dto": f"{feature}.dto",
+        f"{d.package_name}.common.policy": f"{feature}.service",
+        f"{d.package_name}.common.mapper": f"{feature}.repository",
+        f"{d.package_name}.common.repository": f"{feature}.repository",
+        f"{d.package_name}.common.audit": f"{feature}.service",
+        f"{d.package_name}.api.service": f"{feature}.service",
+        f"{d.package_name}.api.controller": f"{feature}.controller",
+    }
+    for source,target in replacements.items(): content=content.replace(source,target)
+    if role is None:
+        content=content.replace(f"{d.package_name}.api",f"{d.package_name}.online")
+    elif role in {"client","operation"}:
+        content=content.replace(f"{d.package_name}.online.domaincall",f"{feature}.{role}")
     content=content.replace(f"{d.class_name}ApiApplication",f"{d.class_name}OnlineApplication")
     return content
-
-
-def _shared_owner(d: DomainDefinition) -> str:
-    return "online"
 
 
 def _transient_root(root: Path, d: DomainDefinition) -> Path:
@@ -1603,52 +1831,60 @@ def _transient_root(root: Path, d: DomainDefinition) -> Path:
 
 
 def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tuple[dict[str,str],dict[str,list[str]]]:
-    """개발자가 실제 수정/사용할 최소 Source Surface만 생성한다."""
+    """개발자가 실제 수정/사용할 Feature-First 최소 Source Surface만 생성한다."""
     stack=read_stack(root)
     online_deps=direct_dependencies(d,"api",catalog)
     batch_deps=direct_dependencies(d,"batch",catalog) if d.batch else []
     deps={"online":online_deps, **({"batch":batch_deps} if d.batch else {})}
     p=d.package_path.as_posix()
+    feature=d.primary_feature
+    fp=f"{p}/online/{feature}"
     files: dict[str,str]={
       "settings.gradle":render_root_settings(d),
       "build.gradle":render_root_build(d,stack),
       "gradle.properties":render_gradle_properties(stack),
     }
-    owner=_shared_owner(d)
-    # 실제 공유 Consumer가 있을 때만 domain/에 배치하고, 단일 Runtime이면 해당 Runtime 내부에 둔다.
-    files[f"{owner}/src/main/java/{p}/domain/base/{d.class_name}BaseService.java"]=_minimal_java(render_domain_base_service(d),d)
-    if d.persistence != "none":
-        files[f"{owner}/src/main/java/{p}/domain/base/{d.class_name}BaseRepository.java"]=_minimal_java(render_domain_base_repository(d),d)
-    if d.sample_transaction:
-        shared={
-          f"{owner}/src/main/java/{p}/domain/model/SampleItem.java":render_model(d),
-          f"{owner}/src/main/java/{p}/domain/policy/SampleTransactionPolicy.java":render_policy(d),
-          f"{owner}/src/main/java/{p}/domain/mapper/SampleTransactionMapper.java":render_mapper(d),
-          f"{owner}/src/main/java/{p}/domain/repository/SampleTransactionRepository.java":render_repository(d),
-          f"{owner}/src/main/java/{p}/domain/audit/DomainAuditLogger.java":render_audit(d),
-        }
-        for fn,content in render_requests(d).items(): shared[f"{owner}/src/main/java/{p}/domain/model/{fn}"]=content
-        for rel,content in shared.items(): files[rel]=_minimal_java(content,d)
-        files[f"{owner}/src/test/java/{p}/domain/policy/SampleTransactionPolicyTest.java"]=_minimal_java(render_policy_test(d),d)
     if d.online:
         files["online/build.gradle"]=render_app_build(d,"online",online_deps,stack)
-        files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseController.java"]=_minimal_java(render_domain_base_controller(d),d)
-        files[f"online/src/main/java/{p}/online/{d.class_name}OnlineApplication.java"]=_minimal_java(render_api_application(d),d)
+        files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseController.java"]=_feature_java(render_domain_base_controller(d),d)
+        files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseService.java"]=_feature_java(render_domain_base_service(d),d)
+        if d.persistence != "none":
+            files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseRepository.java"]=_feature_java(render_domain_base_repository(d),d)
+        files[f"online/src/main/java/{p}/online/{d.class_name}OnlineApplication.java"]=_feature_java(render_api_application(d),d)
         files["online/src/main/resources/application.yml"]=render_application_yml(d,"api").replace(f"{d.name}-api",f"{d.name}-online")
         files["online/src/main/resources/META-INF/cpf/generated-domain.properties"]=(
             f"# CPF 생성 Domain의 Local Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=online\nscanPackage={d.package_name}\n")
         for profile in ("local","test","dev","stg","prod"):
             files[f"online/src/main/resources/application-{profile}.yml"]=render_profile_yml(d,"api",profile)
-        files[f"online/src/main/java/{p}/online/domaincall/{d.class_name}DomainPingOperation.java"]=_minimal_java(render_domain_ping_operation(d,"online"),d)
+
+        # Runtime/Domain invocation 역시 해당 업무 Feature Owner 아래 둔다.
+        files[f"online/src/main/java/{fp}/operation/{d.class_name}DomainPingOperation.java"]=_feature_java(render_domain_ping_operation(d,"online"),d,"operation")
         for dependency in d.domain_dependencies:
-            files[f"online/src/main/java/{p}/online/domaincall/{dependency.class_name}DomainClient.java"]=_minimal_java(render_domain_dependency_client(d,"online",dependency),d)
-            files[f"online/src/main/java/{p}/online/domaincall/Default{dependency.class_name}DomainClient.java"]=_minimal_java(render_domain_dependency_adapter(d,"online",dependency),d)
+            files[f"online/src/main/java/{fp}/client/{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_client(d,"online",dependency),d,"client")
+            files[f"online/src/main/java/{fp}/client/Default{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_adapter(d,"online",dependency),d,"client")
         if d.domain_dependencies:
-            files[f"online/src/main/java/{p}/online/domaincall/DomainDependencySampleService.java"]=_minimal_java(render_domain_dependency_consumer(d,"online"),d)
+            files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=_feature_java(render_domain_dependency_consumer(d,"online"),d,"client").replace(f"package {d.feature_package}.client;",f"package {d.feature_package}.service;")
+
         if d.sample_transaction:
-            files[f"online/src/main/java/{p}/online/service/SampleTransactionService.java"]=_minimal_java(render_service(d),d)
-            files[f"online/src/main/java/{p}/online/controller/SampleTransactionController.java"]=_minimal_java(render_controller(d),d)
-            files[f"online/src/test/java/{p}/online/controller/SampleTransactionControllerContractTest.java"]=_minimal_java(render_api_contract_test(d),d)
+            files[f"online/src/main/java/{fp}/model/SampleItem.java"]=_feature_java(render_model(d),d)
+            # Durable idempotency record is a business support model, not an HTTP DTO.
+            requests=render_requests(d)
+            idem=requests.pop("SampleIdempotencyRecord.java")
+            files[f"online/src/main/java/{fp}/model/SampleIdempotencyRecord.java"]=_feature_java(idem,d).replace(f"package {d.feature_package}.dto;",f"package {d.feature_package}.model;")
+            for fn,content in requests.items():
+                files[f"online/src/main/java/{fp}/dto/{fn}"]=_feature_java(content,d)
+            files[f"online/src/main/java/{fp}/service/SampleTransactionPolicy.java"]=_feature_java(render_policy(d),d)
+            files[f"online/src/main/java/{fp}/repository/SampleTransactionMapper.java"]=_feature_java(render_mapper(d),d)
+            files[f"online/src/main/java/{fp}/repository/SampleTransactionRepository.java"]=_feature_java(render_repository(d),d)
+            files[f"online/src/main/java/{fp}/service/DomainAuditLogger.java"]=_feature_java(render_audit(d),d)
+            files[f"online/src/main/java/{fp}/service/SampleTransactionService.java"]=_feature_java(render_service(d),d)
+            files[f"online/src/main/java/{fp}/controller/SampleTransactionController.java"]=_feature_java(render_controller(d),d)
+            files[f"online/src/test/java/{fp}/service/SampleTransactionPolicyTest.java"]=_feature_java(render_policy_test(d),d)
+            files[f"online/src/test/java/{fp}/controller/SampleTransactionControllerContractTest.java"]=_feature_java(render_api_contract_test(d),d)
+
+    # DB3는 Generated Domain Source Tree가 아니라 Canonical DB Renderer/Installer가 소유합니다.
+    # Domain별 Vendor/Host/Schema는 local/environment DB profile에 바인딩하고 Source에는 vendor 폴더를 생성하지 않습니다.
+
     if d.batch:
         files["batch/build.gradle"]=render_app_build(d,"batch",batch_deps,stack)
         files["batch/src/main/resources/application.yml"]=render_application_yml(d,"batch")
@@ -1660,15 +1896,13 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
         app_path=d.package_path.as_posix()
         files[f"batch/src/main/java/{app_path}/batch/{d.class_name}BatchApplication.java"]=(
             f"package {app_pkg}.batch;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n/** {d.name} Generated Domain의 선택형 Batch Runtime 진입점입니다. */\n@SpringBootApplication(scanBasePackages=\"{app_pkg}\")\npublic class {d.class_name}BatchApplication {{ public static void main(String[] args) {{ SpringApplication.run({d.class_name}BatchApplication.class,args); }} }}\n")
-        files[f"batch/src/main/java/{app_path}/batch/job/SampleBatchJob.java"]=(
-            f"package {app_pkg}.batch.job;\n\nimport com.cpf.batch.api.annotation.CpfBatchJob;\nimport com.cpf.batch.api.annotation.CpfBatchStep;\n\n/** Generator가 생성하는 최소 Batch Golden Path. 실제 업무 Job은 이 구조를 확장합니다. */\n@CpfBatchJob(value=\"{d.system_code}_SAMPLE_BATCH\", restartable=true)\npublic class SampleBatchJob {{ @CpfBatchStep(value=\"sampleStep\",order=1,idempotent=true) public void execute() {{ }} }}\n")
+        files[f"batch/src/main/java/{app_path}/batch/{feature}/job/SampleBatchJob.java"]=(
+            f"package {app_pkg}.batch.{feature}.job;\n\nimport com.cpf.batch.api.annotation.CpfBatchJob;\nimport com.cpf.batch.api.annotation.CpfBatchStep;\n\n/** Generator가 생성하는 Feature-First Batch Golden Path. 실제 업무 Job은 같은 Feature Owner 아래 역할별로 확장합니다. */\n@CpfBatchJob(value=\"{d.system_code}_SAMPLE_BATCH\", restartable=true)\npublic class SampleBatchJob {{ @CpfBatchStep(value=\"sampleStep\",order=1,idempotent=true) public void execute() {{ }} }}\n")
 
-    # Generated Java/Kotlin은 한글 계약 주석을 생성 단계에서 보강한다.
     for rel in list(files):
         if rel.endswith((".java",".kt")):
             files[rel]=ensure_java_korean_contract_comments(files[rel])
     return files,deps
-
 
 def normalized_bytes(content: str) -> bytes:
     return content.replace("\r\n","\n").encode("utf-8")
@@ -1735,10 +1969,10 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     load_catalog(root)
     if not definition_path.is_file(): raise DomainError(f"Generator 입력 정의가 없습니다: {definition_path}")
     if output.name != f"cpf-{d.name}": raise DomainError(f"Generated Root naming 위반: {output.name}")
-    forbidden_roots=['.cpf','README.md','verification','db','canonical','vendors',d.name+'-api',d.name+'-common',d.name+'-online',d.name+'-batch']
+    forbidden_roots=['.cpf','README.md','verification','canonical','vendors','db',d.name+'-api',d.name+'-common',d.name+'-online',d.name+'-batch']
     bad=[x for x in forbidden_roots if (output/x).exists()]
     if bad: raise DomainError(f"Generated Customer Domain 최소 IA 위반: {bad}")
-    allowed_dirs={'online'} | ({'batch'} if d.batch else set())
+    allowed_dirs=({'online'} if d.online else set()) | ({'batch'} if d.batch else set())
     actual_dirs={p.name for p in output.iterdir() if p.is_dir() and p.name not in {'build','.gradle'} and any(x.is_file() for x in p.rglob('*'))}
     extra=sorted(actual_dirs-allowed_dirs)
     if extra: raise DomainError(f"선택하지 않은/비표준 Generated Directory 발견: {extra}")
@@ -1764,13 +1998,19 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     if d.online and d.sample_transaction: required += ['@CpfRestController','@CpfOnlineTransaction','@Operation']
     for token in required:
         if token not in java: raise DomainError(f"Generated Runtime Consumer 누락: {token}")
+    if d.online:
+        java_root=output/'online'/'src/main/java'/d.package_path/'online'
+        feature_root=java_root/d.primary_feature
+        if not feature_root.is_dir(): raise DomainError(f'Feature-First 업무 Feature package 누락: {feature_root}')
+        forbidden_layer_first=[java_root/name for name in ('controller','service','repository','client','dto','model','mapper','domaincall')]
+        stale=[str(path.relative_to(output)) for path in forbidden_layer_first if path.exists()]
+        if stale: raise DomainError(f'Feature보다 상위인 Layer-First package 금지: {stale}')
     if d.sample_transaction:
-        owner=_shared_owner(d)
-        policy=output/owner/'src/main/java'/d.package_path/'domain/policy/SampleTransactionPolicy.java'
+        policy=output/'online'/'src/main/java'/d.feature_path/'service/SampleTransactionPolicy.java'
         if not policy.is_file() or '@Component' not in policy.read_text(encoding='utf-8-sig'): raise DomainError('SampleTransactionPolicy wiring 누락')
         local_mappers=list(output.rglob('src/main/resources/db/mapper/SampleTransactionMapper.xml'))
         if local_mappers: raise DomainError(f'Generated Source Tree의 Vendor Mapper 적재 금지: {local_mappers}')
-        mapper_owner_build=output/owner/'build.gradle'
+        mapper_owner_build=output/'online'/'build.gradle'
         mapper_build_text=mapper_owner_build.read_text(encoding='utf-8-sig')
         for token in ('prepareCpfVendorResources','cpfDbVendor','cpf-generated-domain-dialect/${vendor}',
                       'generated-resources/cpf-vendor'):
@@ -1795,7 +2035,7 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
                 for dependency in d.domain_dependencies:
                     if dependency.system_code not in profile_text or 'domain-call:' not in profile_text:
                         raise DomainError(f"Generated Domain Binding profile 누락: {runtime}/{profile}/{dependency.system_code}")
-    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batch':d.batch,'batchCapabilitySelection':'DOMAIN_DEFINITION'},'customerMetadata':'NONE','publicBoundary':'PASS','db3Renderer':'PASS' if d.sample_transaction else 'NOT_APPLICABLE','runtimeConsumers':'PASS','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
+    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batch':d.batch,'batchCapabilitySelection':'DOMAIN_DEFINITION'},'customerMetadata':'NONE','publicBoundary':'PASS','db3Renderer':'EXTERNAL_CANONICAL_RENDERER' if d.persistence != 'none' else 'NOT_APPLICABLE','runtimeConsumers':'PASS','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
     if persist_evidence:
         _write_transient_verification(root,d,result)
     return result
@@ -1808,8 +2048,63 @@ def _materialize(root: Path, definition_path: Path, output: Path, d: DomainDefin
     for rel,content in files.items(): write_text(output/rel,content)
     result=verify_generated(root,definition_path,output,d,persist_evidence=persist_state)
     if persist_state:
-        _write_transient_state(root,definition_path,d,result,_expected_hashes(root,d))
+        expected_hashes=_expected_hashes(root,d)
+        _write_transient_state(root,definition_path,d,result,expected_hashes)
+        _write_workspace_lock(root,definition_path,d,expected_hashes)
     return result
+
+
+def _workspace_lock_path(root: Path, d: DomainDefinition) -> Path:
+    """Source-controlled Workspace Catalog의 Generator ownership lock 경로입니다.
+
+    Lock은 업무 의미 정본이 아니라 안전한 sync/upgrade를 위한 ownership hash입니다.
+    Generated Project 내부나 숨김 .cpf state를 사용하지 않습니다.
+    """
+    return _workspace_definition_root(root) / d.name / "cpf-generator.lock.json"
+
+
+def _definition_is_canonical(root: Path, definition_path: Path, d: DomainDefinition) -> bool:
+    try:
+        return definition_path.resolve() == (_workspace_definition_root(root) / d.name / "cpf-domain.yaml").resolve()
+    except OSError:
+        return False
+
+
+def _write_workspace_lock(root: Path, definition_path: Path, d: DomainDefinition, expected_hashes: dict[str,str]) -> None:
+    if not _definition_is_canonical(root, definition_path, d):
+        return
+    target = _workspace_lock_path(root, d)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+      "lockVersion":"1.0",
+      "domain":d.name,
+      "systemCode":d.system_code,
+      "generatorVersion":GENERATOR_VERSION,
+      "definitionSha256":definition_hash(definition_path),
+      "expectedFiles":[{"path":rel,"sha256":digest} for rel,digest in sorted(expected_hashes.items())]
+    }
+    target.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8",newline="\n")
+
+
+def _read_workspace_lock(root: Path, d: DomainDefinition) -> dict[str,Any]:
+    path = _workspace_lock_path(root, d)
+    if not path.is_file():
+        raise DomainError(f"Workspace ownership lock이 없습니다: {path}")
+    data=json.loads(path.read_text(encoding='utf-8-sig'))
+    if data.get('lockVersion')!='1.0' or data.get('domain')!=d.name or data.get('systemCode')!=d.system_code:
+        raise DomainError(f"지원하지 않는 Workspace ownership lock입니다: {path}")
+    rows=data.get('expectedFiles')
+    if not isinstance(rows,list) or any(not isinstance(x,dict) or not x.get('path') or not x.get('sha256') for x in rows):
+        raise DomainError(f"Workspace ownership lock expectedFiles가 손상되었습니다: {path}")
+    return data
+
+
+def _read_ownership_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
+    """Local transient state를 우선 사용하고, fresh clone에서는 source-controlled lock으로 복구합니다."""
+    try:
+        return _read_transient_state(root,d)
+    except DomainError:
+        return _read_workspace_lock(root,d)
 
 
 def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
@@ -1829,7 +2124,7 @@ def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
 def preflight(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     """쓰기 전에 입력/Starter 조합/식별자/Target collision을 검증한다."""
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
-    schema=root/SCHEMA_REL
+    schema=_generator_resource_root(root)/SCHEMA_REL
     if not schema.is_file(): raise DomainError(f"Canonical input schema가 없습니다: {schema}")
     json.loads(schema.read_text(encoding='utf-8-sig'))
     validate_repository_uniqueness(root,d,output)
@@ -1897,7 +2192,9 @@ def generate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
         dr=diff(root,definition_path,output)
         if dr['clean']:
             vr=verify_generated(root,definition_path,output,d)
-            _write_transient_state(root,definition_path,d,vr,_expected_hashes(root,d))
+            expected_hashes=_expected_hashes(root,d)
+            _write_transient_state(root,definition_path,d,vr,expected_hashes)
+            _write_workspace_lock(root,definition_path,d,expected_hashes)
             return {'domain':d.name,'status':'IDEMPOTENT','output':str(output),'diff':dr,'verify':vr}
         raise DomainError(f"기존 Generated Root의 Seed Source가 달라 자동 덮어쓰기를 금지합니다. diff를 확인하세요: {output}")
     result=_materialize(root,definition_path,output,d)
@@ -1925,6 +2222,7 @@ def regenerate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]
         if not p.exists(): write_text(p,content); restored.append(rel)
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,expected_hashes)
+    _write_workspace_lock(root,definition_path,d,expected_hashes)
     return {'domain':d.name,'status':'REGENERATED','output':str(output),'restored':sorted(restored),'verify':vr}
 
 
@@ -1937,7 +2235,7 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
     validate_repository_uniqueness(root,d,output)
     if not output.is_dir(): raise DomainError(f"upgrade 대상이 없습니다: {output}")
-    state=_read_transient_state(root,d)
+    state=_read_ownership_state(root,d)
     previous={str(x['path']):str(x['sha256']) for x in state['expectedFiles']}
     current_files,_=_expected_files(root,d)
     current_hashes={rel:sha256_bytes(normalized_bytes(content)) for rel,content in current_files.items()}
@@ -1963,6 +2261,7 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
         except OSError: pass
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,current_hashes)
+    _write_workspace_lock(root,definition_path,d,current_hashes)
     return {'domain':d.name,'status':'UPGRADED','output':str(output),'fromGeneratorVersion':state.get('generatorVersion'),
             'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':removed,'verify':vr}
 
@@ -1974,7 +2273,7 @@ def restore(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     명시적인 fresh generation을 선택하게 하여 복원과 승격 의미를 분리한다.
     """
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
-    state=_read_transient_state(root,d)
+    state=_read_ownership_state(root,d)
     if output.exists() and any(output.iterdir()): raise DomainError(f"restore target이 비어 있지 않습니다: {output}")
     expected=_expected_hashes(root,d)
     previous={str(x['path']):str(x['sha256']) for x in state['expectedFiles']}

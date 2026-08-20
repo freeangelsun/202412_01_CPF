@@ -48,7 +48,7 @@ SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'ADM' AS code_value, '관리자 운영 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BZA' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'MBW' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BAT' AS code_value, '선택 배치 실행 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -141,11 +141,11 @@ SELECT 'MCPF990000' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format
 UNION ALL
 SELECT 'MCPF990001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '데이터베이스 오류가 발생했습니다.' AS external_message, '데이터베이스 처리 오류가 발생했습니다. sqlState={0}' AS internal_message, 1 AS parameter_count, '["HY000"]' AS parameter_sample, 'CPF 데이터베이스 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'BZA 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'MBW 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'BZA 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'BZA 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'MBW 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'MBW 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'BZA 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'MBW 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MEDU010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '이미 등록된 {0}입니다.' AS external_message, '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE' AS internal_message, 2 AS parameter_count, '["샘플키","SAMPLE-0001"]' AS parameter_sample, 'EDU 동적 중복 교육 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -188,11 +188,11 @@ SELECT 'ECPF990000' AS response_code, 'MCPF990000' AS message_code, 'E' AS resul
 UNION ALL
 SELECT 'ECPF990001' AS response_code, 'MCPF990001' AS message_code, 'E' AS result_type, 'CPF' AS module_id, '99' AS response_group, '0001' AS sequence_no, 500 AS http_status, '데이터베이스 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'BZA' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'BZA 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'MBW' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'MBW 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'BZA 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'MBW 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'BZA 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'MBW 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EEDU010001' AS response_code, 'MEDU010001' AS message_code, 'E' AS result_type, 'EDU' AS module_id, '01' AS response_group, '0001' AS sequence_no, 409 AS http_status, 'EDU 샘플 중복 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.response_code=src.response_code)
@@ -396,11 +396,11 @@ ON (tgt.response_code=src.response_code)
 WHEN MATCHED THEN UPDATE SET tgt.message_code=src.message_code, tgt.result_type=src.result_type, tgt.module_id=src.module_id, tgt.response_group=src.response_group, tgt.sequence_no=src.sequence_no, tgt.http_status=src.http_status, tgt.description=src.description, tgt.use_yn='Y', tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES (src.response_code, src.message_code, src.result_type, src.module_id, src.response_group, src.sequence_no, src.http_status, src.description, src.created_by, src.updated_by);
 MERGE INTO CMN_PARAMETER tgt
-USING (SELECT 'CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'BZA 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'MBW 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'BZA Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'MBW Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'BZA Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'MBW Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'CPF.RETENTION.EXECUTE_ENABLED' AS config_key, 'N' AS config_value, 'BOOLEAN' AS config_type, '실제 Archive/Purge 실행 Kill Switch 기본 OFF' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL

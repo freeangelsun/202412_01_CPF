@@ -16,8 +16,6 @@ features:
   cache: none
   messaging: none
 domainDependencies:
-  external:
-    systemCode: EXS
 externalClients:
 runtime:
   # local 전용 안정 Port. dev/stg/prod는 환경 Binding을 필수로 합니다.

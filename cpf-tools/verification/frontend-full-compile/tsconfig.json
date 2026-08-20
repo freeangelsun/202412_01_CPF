@@ -22,7 +22,7 @@
   "include": [
     "shims.d.ts",
     "../../../cpf-admin/frontend/src/**/*.ts",
-    "../../../cpf-biz-frontend/src/**/*.ts",
-    "../../../cpf-tools/db/metadata/bza-permission-manifest.json"
+    "../../../cpf-backoffice-web/frontend/src/**/*.ts",
+    "../../../cpf-tools/db/metadata/backoffice-permission-manifest.json"
   ]
 }

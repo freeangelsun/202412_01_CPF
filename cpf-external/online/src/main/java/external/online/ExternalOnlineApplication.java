@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** external Generated API 실행 진입점입니다. */
 @SpringBootApplication(scanBasePackages="external")
-@MapperScan("external.domain.mapper")
+@MapperScan("external.online.external.repository")
 public class ExternalOnlineApplication {
     public static void main(String[] args) { SpringApplication.run(ExternalOnlineApplication.class,args); }
 }

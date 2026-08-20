@@ -42,7 +42,7 @@ public final class CpfBffSessionBridgeFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !(path.startsWith("/adm/api/") || path.startsWith("/api/bza/"));
+        return !(path.startsWith("/adm/api/"));
     }
 
     @Override

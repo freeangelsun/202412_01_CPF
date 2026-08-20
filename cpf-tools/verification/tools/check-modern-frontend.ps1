@@ -35,15 +35,15 @@ $checks = [ordered]@{
     admTypeScriptSources = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src') -Recurse -File -Filter '*.ts').Count -ge 6
     admFeaturePages = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-admin/frontend/src/features') -Recurse -File -Filter '*.vue').Count -ge 10
     admPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/frontend/package-lock.json')
-    bzaVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-frontend/src/App.vue')
-    bzaTypeScriptSources = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-biz-frontend/src') -Recurse -File -Filter '*.ts').Count -ge 6
-    bzaFeaturePages = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-biz-frontend/src/features') -Recurse -File -Filter '*.vue').Count -ge 4
-    bzaPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-frontend/package-lock.json')
+    bzaVueSfc = Test-Path -LiteralPath (Join-Path $Root 'cpf-backoffice-web/frontend/src/App.vue')
+    bzaTypeScriptSources = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-backoffice-web/frontend/src') -Recurse -File -Filter '*.ts').Count -ge 6
+    bzaFeaturePages = @(Get-ChildItem -LiteralPath (Join-Path $Root 'cpf-backoffice-web/frontend/src/features') -Recurse -File -Filter '*.vue').Count -ge 4
+    bzaPackageLock = Test-Path -LiteralPath (Join-Path $Root 'cpf-backoffice-web/frontend/package-lock.json')
     legacyAdmScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/src/main/resources/static/adm/adm.js'))
-    legacyBzaScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-admin/src/main/resources/static/bza/bza.js'))
+    legacyBzaScriptRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-backoffice/online/src/main/resources/static/bza/bza.js'))
     globalVueRemoved = -not (Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/src/main/resources/static/adm/vendor/vue.global.prod.js'))
     admProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'cpf-admin/build/generated/frontend/static/adm/index.html')
-    bzaProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'cpf-biz-frontend/dist/index.html')
+    bzaProductionBuild = Test-Path -LiteralPath (Join-Path $Root 'cpf-backoffice-web/frontend/dist/index.html')
 }
 
 $archives = [ordered]@{}

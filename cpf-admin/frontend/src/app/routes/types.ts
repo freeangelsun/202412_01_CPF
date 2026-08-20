@@ -11,7 +11,7 @@ export interface AdmCapabilityRoute {
   group: AdmFeatureGroup;
   component: Component;
   icon: string;
-  ownerModule: "cpf-admin" | "cpf-biz-admin";
+  ownerModule: "cpf-admin";
   riskLevel: AdmRouteRiskLevel;
   featureFlag: string;
   expectedOperationIds: readonly string[];

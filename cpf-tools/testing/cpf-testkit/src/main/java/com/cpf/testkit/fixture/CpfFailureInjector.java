@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /** retry/UNKNOWN/recovery 검증을 위한 thread-safe one-shot failure injector. */
 public final class CpfFailureInjector {
+    /** Test failure injection이 지연/예외 등 어떤 장애 형태로 동작할지 선택합니다. */
     public enum Mode { SUCCESS, FAIL, UNKNOWN }
     private final ConcurrentHashMap<String, AtomicReference<Mode>> modes = new ConcurrentHashMap<>();
 

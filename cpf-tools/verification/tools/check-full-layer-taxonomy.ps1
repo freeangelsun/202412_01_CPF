@@ -30,7 +30,7 @@ if ($starterModules.Count -eq 0) {
 }
 
 $fixedModules = @(
-    'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-biz-admin',
+    'cpf-core', 'cpf-gateway', 'cpf-common', 'cpf-admin', 'cpf-backoffice/online',
     'cpf-education',
     'cpf-batch/api', 'cpf-batch/runtime-support', 'cpf-batch/runtime', 'cpf-batch/control-plane',
     'cpf-batch/scheduler', 'cpf-batch/worker', 'cpf-batch/center-cut',

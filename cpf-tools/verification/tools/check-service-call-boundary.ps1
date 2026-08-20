@@ -13,7 +13,7 @@ $failures = New-Object System.Collections.Generic.List[string]
 $modules = @(
     [ordered]@{ project = 'cpf-member'; package = 'member' },
     [ordered]@{ project = 'cpf-education'; package = 'education' },
-    [ordered]@{ project = 'cpf-biz-admin'; package = 'bizadmin' },
+    [ordered]@{ project = 'cpf-backoffice/online'; package = 'bizadmin' },
     [ordered]@{ project = 'cpf-batch'; package = 'batch' },
     [ordered]@{ project = 'cpf-admin'; package = 'admin' },
     [ordered]@{ project = 'cpf-account'; package = 'account' },

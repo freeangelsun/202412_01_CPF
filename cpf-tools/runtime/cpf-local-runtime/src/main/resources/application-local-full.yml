@@ -8,7 +8,7 @@ cpf:
       common: true
       gateway: true
       admin: true
-      biz-admin: true
+      backoffice: true
       domains:
         enabled: true
         auto-discover: true

@@ -19,9 +19,9 @@ def main()->int:
         if not out.is_dir() or not definition.is_file(): continue
         d=eng.validate_definition(eng.load_yaml_subset(definition)); domains.append(d.name)
         ck(f'{d.name}-root-prefix',out.name==f'cpf-{d.name}',out.name)
-        expected={'online'}|({'batch'} if d.batch else set())
+        expected={'online'}|({'batch'} if d.batch else set())|({'db'} if d.persistence!='none' else set())
         actual=domain_surface_dirs(out); ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})
-        forbidden=['README.md','verification','db','canonical','vendors',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
+        forbidden=['README.md','verification','canonical','vendors',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
         bad=[x for x in forbidden if (out/x).exists()]; ck(f'{d.name}-forbidden-surface-zero',not bad,bad)
         ck(f'{d.name}-customer-metadata-zero',not (out/'.cpf').exists(),str(out/'.cpf'))
         for cap in sorted(expected): ck(f'{d.name}-{cap}-non-empty',any(p.is_file() for p in (out/cap).rglob('*')),cap)
@@ -29,7 +29,8 @@ def main()->int:
         # Minimal IA is therefore judged by files/consumers, not empty directory inode residue.
         settings=(out/'settings.gradle').read_text(encoding='utf-8')
         for cap in ('online','batch','domain','jobpack'):
-            ck(f'{d.name}-settings-{cap}',(f"include '{cap}'" in settings)==(cap in expected),settings)
+            executable_expected={x for x in expected if x in {'online','batch'}}
+            ck(f'{d.name}-settings-{cap}',(f"include '{cap}'" in settings)==(cap in executable_expected),settings)
         try:
             vr=eng.verify_generated(root,definition,out,d); ck(f'{d.name}-engine-verify',vr.get('status')=='PASS',vr)
         except Exception as exc: ck(f'{d.name}-engine-verify',False,repr(exc))

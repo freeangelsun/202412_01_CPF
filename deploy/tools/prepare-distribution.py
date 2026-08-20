@@ -48,7 +48,7 @@ def platform_candidates(root: Path, service: dict) -> list[Path]:
     name=service.get('artifactName') or service.get('serviceName')
     module=service.get('module')
     direct={
-        'ADM':root/'cpf-admin/build/libs', 'BZA':root/'cpf-biz-admin/build/libs',
+        'ADM':root/'cpf-admin/build/libs', 'MBW':root/'cpf-backoffice/online/build/libs',
         'GWY':root/'cpf-gateway/build/libs', 'EDU':root/'cpf-education/build/libs'
     }.get(module)
     dirs=[direct] if direct else []

@@ -1,3 +1,0 @@
-UPDATE bza_organization_responsibility SET organization_code=:organizationCode,responsibility_type=:responsibilityType,employee_no=:employeeNo,effective_from=:effectiveFrom,effective_to=:effectiveTo,
-  priority_no=:priorityNo,use_yn=:useYn,version_no=version_no+1,updated_by=:operatorId,updated_at=@NOW3@
-WHERE responsibility_id=:responsibilityId AND version_no=:expectedVersion

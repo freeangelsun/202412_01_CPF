@@ -323,10 +323,15 @@ public record CpfContext(
 
     /** CpfCancellationMode 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
     public enum CpfCancellationMode { DEADLINE_ENFORCED, COOPERATIVE, NON_CANCELLABLE }
+    /** 현재 CPF Context가 Online/Batch 등 어떤 실행 유형에 속하는지 나타냅니다. */
     public enum CpfExecutionType { API, BATCH, MESSAGE, SCHEDULED, ASYNC, INTEGRATION, INTERNAL }
+    /** 현재 Operation의 idempotency 적용 방식과 중복요청 처리 정책을 나타냅니다. */
     public enum CpfIdempotencyMode { NONE, OPTIONAL, REQUIRED }
+    /** Idempotency key가 어떤 업무/거래 범위에서 유일해야 하는지 나타냅니다. */
     public enum CpfIdempotencyScope { CURRENT_OPERATION, TRANSACTION, BUSINESS_KEY }
+    /** 현재 거래 Principal이 사용자/서비스 등 어떤 신원 유형인지 나타냅니다. */
     public enum CpfPrincipalType { ANONYMOUS, USER, SYSTEM, SERVICE, OPERATOR }
+    /** Transaction ID가 생성되거나 외부에서 유입된 출처 유형을 나타냅니다. */
     public enum CpfTransactionOriginKind { HTTP, MESSAGE, BATCH, SCHEDULE, INTERNAL, INTEGRATION, RECOVERY }
 
     private static String firstNonBlank(String first, String second) {

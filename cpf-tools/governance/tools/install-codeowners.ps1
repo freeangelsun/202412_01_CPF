@@ -17,7 +17,7 @@ $content=@"
 /cpf-common/          $PlatformCoreOwner
 /cpf-batch/           $BatchOwner $SecurityOwner
 /cpf-admin/           $PlatformCoreOwner
-/cpf-biz-admin/       $DomainOwner
+/cpf-backoffice/online/       $DomainOwner
 /cpf-tools/db/        $DatabaseOwner $PlatformCoreOwner
 /cpf-tools/release/   $ReleaseOwner $SecurityOwner
 /cpf-tools/generator/ $PlatformCoreOwner $DomainOwner

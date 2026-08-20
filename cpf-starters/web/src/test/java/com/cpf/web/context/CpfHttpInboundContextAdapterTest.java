@@ -10,7 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CpfHttpInboundContextAdapterTest {
-    private static final String CANONICAL_TX = "20260810010101001MBRlocal010000001";
+    private static final String CANONICAL_TX = "20260810010101001MBWlocal010000001";
 
     @Test
     void canonicalTransactionIdKeepsValidTrustedIdForRetryAndHopPropagation() {
@@ -24,16 +24,16 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void externalDirectCallAcceptsFiveTransportHeadersAndReceiverSetsCurrentSystem() {
+    void externalDirectCallRequiresCanonicalSixAndValidatesCurrentSystem() {
         var adapter = adapter();
         var result = adapter.resolve(externalHeaders("MBR"), CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
                 null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
                 new CpfRuntimeIdentity("MBR", "member", "MBR01"));
 
         assertEquals(CANONICAL_TX, result.snapshot().transaction().transactionId());
-        assertEquals("BZA", result.snapshot().context().originalSystemCode());
+        assertEquals("MBW", result.snapshot().context().originalSystemCode());
         assertEquals("MBR", result.snapshot().context().currentSystemCode());
-        assertEquals("BZA", result.snapshot().context().callerSystemCode());
+        assertEquals("MBW", result.snapshot().context().callerSystemCode());
         assertEquals("MBR", result.snapshot().context().targetSystemCode());
         assertEquals("MBR_MEMBER_JOIN", result.snapshot().context().targetOperationId());
     }
@@ -50,6 +50,18 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
+    void transactionIssuerMustMatchImmutableOriginalSystemBeforeController() {
+        var adapter = adapter();
+        var headers = externalHeaders("MBR");
+        headers.put(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, "EXS");
+        CpfHeaderValidationException error = assertThrows(CpfHeaderValidationException.class, () -> adapter.resolve(
+                headers, CpfHttpIngressTrust.UNTRUSTED_EXTERNAL,
+                null, null, null, "POST /members", LocalDate.of(2026, 8, 18), null,
+                new CpfRuntimeIdentity("MBR", "member", "MBR01")));
+        assertEquals("ORIGINAL_SYSTEM_CODE_MISMATCH", error.category());
+    }
+
+    @Test
     void externalTargetSystemMustMatchReceiverBeforeController() {
         var adapter = adapter();
         assertThrows(CpfHeaderValidationException.class, () -> adapter.resolve(
@@ -59,7 +71,7 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void externalSystemAssertionCannotOverrideReceiverIdentity() {
+    void externalSystemCodeMustMatchReceiverIdentity() {
         var adapter = adapter();
         var headers = externalHeaders("MBR");
         headers.put(CpfHttpHeaderNames.SYSTEM_CODE, "EXS");
@@ -70,11 +82,11 @@ class CpfHttpInboundContextAdapterTest {
     }
 
     @Test
-    void externalFiveHeadersAreAllRequired() {
+    void externalCanonicalSixHeadersAreAllRequired() {
         var adapter = adapter();
         for (String required : new String[] {
                 CpfHttpHeaderNames.TRANSACTION_ID, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
-                CpfHttpHeaderNames.CALLER_SYSTEM_CODE, CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
+                CpfHttpHeaderNames.SYSTEM_CODE, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
                 CpfHttpHeaderNames.TARGET_OPERATION_ID}) {
             var headers = externalHeaders("MBR");
             headers.remove(required);
@@ -98,11 +110,12 @@ class CpfHttpInboundContextAdapterTest {
     private static Map<String,String> externalHeaders(String targetSystemCode) {
         var headers = new LinkedHashMap<String,String>();
         headers.put(CpfHttpHeaderNames.TRANSACTION_ID, CANONICAL_TX);
-        headers.put(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, "BZA");
-        headers.put(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "BZA");
+        headers.put(CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, "MBW");
+        headers.put(CpfHttpHeaderNames.SYSTEM_CODE, targetSystemCode);
+        headers.put(CpfHttpHeaderNames.CALLER_SYSTEM_CODE, "MBW");
         headers.put(CpfHttpHeaderNames.TARGET_SYSTEM_CODE, targetSystemCode);
         // Channel is optional policy/context and is deliberately not one of the canonical six.
-        headers.put(CpfHttpHeaderNames.CALLER_CHANNEL, "BZA");
+        headers.put(CpfHttpHeaderNames.CALLER_CHANNEL, "MBW");
         headers.put(CpfHttpHeaderNames.TARGET_OPERATION_ID, "MBR_MEMBER_JOIN");
         return headers;
     }

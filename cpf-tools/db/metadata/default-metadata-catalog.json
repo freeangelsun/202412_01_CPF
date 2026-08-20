@@ -9,7 +9,7 @@
     "vendorProjectionPattern": "cpf-tools/db/vendor/<vendor>/source"
   },
   "permissionManifests": {
-    "bza": "cpf-tools/db/metadata/bza-permission-manifest.json"
+    "backoffice": "cpf-tools/db/metadata/backoffice-permission-manifest.json"
   },
   "codeGroups": {
     "YN": [

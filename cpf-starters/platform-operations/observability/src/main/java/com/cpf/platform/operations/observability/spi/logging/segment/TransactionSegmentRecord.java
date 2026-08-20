@@ -33,6 +33,10 @@ public class TransactionSegmentRecord {
     private String memberNoMasked;
     private String userIdMasked;
     private String operatorIdMasked;
+    private String systemCode;
+    private String originalSystemCode;
+    private String callerSystemCode;
+    private String targetSystemCode;
     private String currentChannel;
     private String originalChannel;
     private String clientId;
@@ -268,6 +272,38 @@ public class TransactionSegmentRecord {
 
     public void setOperatorIdMasked(String operatorIdMasked) {
         this.operatorIdMasked = operatorIdMasked;
+    }
+
+    public String getSystemCode() {
+        return systemCode;
+    }
+
+    public void setSystemCode(String systemCode) {
+        this.systemCode = systemCode;
+    }
+
+    public String getOriginalSystemCode() {
+        return originalSystemCode;
+    }
+
+    public void setOriginalSystemCode(String originalSystemCode) {
+        this.originalSystemCode = originalSystemCode;
+    }
+
+    public String getCallerSystemCode() {
+        return callerSystemCode;
+    }
+
+    public void setCallerSystemCode(String callerSystemCode) {
+        this.callerSystemCode = callerSystemCode;
+    }
+
+    public String getTargetSystemCode() {
+        return targetSystemCode;
+    }
+
+    public void setTargetSystemCode(String targetSystemCode) {
+        this.targetSystemCode = targetSystemCode;
     }
 
     public String getCurrentChannel() {

@@ -87,15 +87,18 @@ def main() -> int:
             if token not in hs: errors.append(f'health runtime identity missing {token}')
     controller=root/'cpf-admin/src/main/java/com/cpf/admin/opr/capability/AdmCapabilityManagementController.java'
     ui=root/'cpf-admin/frontend/src/features/capabilities/CapabilityFleetPage.vue'
-    routes=root/'cpf-admin/frontend/src/app/routes.ts'
+    routes_dir=root/'cpf-admin/frontend/src/app/routes'
     auth=root/'cpf-admin/src/main/java/com/cpf/admin/opr/filter/AdmApiAuthFilter.java'
     checks={controller:['admCapabilityManagementOverview','admCapabilityManagementIssues','starterId','capabilityId','provider'],
             ui:['admCapabilityManagementOverview','admCapabilityManagementIssues','starterId','capabilityId','provider'],
-            routes:['CAPABILITY_FLEET','operations','traceLog','failureRecovery','configPolicy','auditChange'],
+            routes_dir:['CAPABILITY_FLEET','operations','traceLog','failureRecovery','configPolicy','auditChange'],
             auth:['/adm/api/capability-management','CAPABILITY_FLEET_READ']}
     for path,tokens in checks.items():
         if not path.exists(): errors.append(f'missing {path.relative_to(root)}'); continue
-        txt=path.read_text(encoding='utf-8')
+        if path.is_dir():
+            txt='\n'.join(p.read_text(encoding='utf-8') for p in sorted(path.glob('*.ts')))
+        else:
+            txt=path.read_text(encoding='utf-8')
         for token in tokens:
             if token not in txt: errors.append(f'{path.relative_to(root)} missing {token}')
     seed=root/'cpf-tools/db/canonical/seed-model.json'

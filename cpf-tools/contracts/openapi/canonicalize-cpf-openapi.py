@@ -5,7 +5,7 @@ import argparse,hashlib,json,re,sys
 from pathlib import Path
 HTTP_METHODS={'get','post','put','patch','delete','head','options','trace'}
 ERROR_CODES=('401','403','404','409','429','500','503')
-MODULE_PREFIX={'ADM':'/adm/api/','BZA':'/api/bza/'}
+MODULE_PREFIX={'ADM':'/adm/api/','MBW':'/api/v1/backoffice/'}
 class ContractError(RuntimeError):pass
 
 def canonicalize(spec:dict,module:str,release:bool=False)->tuple[dict,list[str]]:
@@ -31,7 +31,12 @@ def canonicalize(spec:dict,module:str,release:bool=False)->tuple[dict,list[str]]
     for code in ERROR_CODES:
         responses.setdefault(f'Cpf{code}',{'description':descriptions[code],'content':{'application/json':{'schema':{'$ref':'#/components/schemas/CpfApiError'}}}})
     schemes=components.setdefault('securitySchemes',{})
-    schemes.setdefault('cpfSession',{'type':'apiKey','in':'cookie','name':'JSESSIONID','description':'Same-origin CPF administrator session'})
+    if module == 'ADM':
+        schemes.setdefault('cpfSession',{'type':'apiKey','in':'cookie','name':'JSESSIONID','description':'Same-origin CPF administrator session'})
+        public_security=[{'cpfSession':[]}]
+    else:
+        schemes.setdefault('cpfBearer',{'type':'http','scheme':'bearer','bearerFormat':'JWT','description':'Backoffice Web/BFF authenticated channel credential for MBW Domain'})
+        public_security=[{'cpfBearer':[]}]
     ids=[];warnings=[];public_operations=0;empty_success=[]
     prefix=MODULE_PREFIX[module]
     for path,item in sorted((spec.get('paths') or {}).items()):
@@ -54,7 +59,7 @@ def canonicalize(spec:dict,module:str,release:bool=False)->tuple[dict,list[str]]
                     if schema == {} or schema is None:empty_success.append(f'{operation_id}:{code}')
             if path.startswith(prefix):
                 public_operations+=1
-                operation['security']=[{'cpfSession':[]}]
+                operation['security']=public_security
                 for code in ERROR_CODES:operation_responses.setdefault(code,{'$ref':f'#/components/responses/Cpf{code}'})
     if not ids:raise ContractError('empty OpenAPI operation inventory')
     duplicates=sorted({value for value in ids if ids.count(value)>1})

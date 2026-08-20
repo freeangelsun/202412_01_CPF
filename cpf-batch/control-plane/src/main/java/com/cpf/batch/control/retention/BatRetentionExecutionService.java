@@ -36,54 +36,109 @@ public class BatRetentionExecutionService {
 
     public List<BatRetentionPolicyDefinition> policies(){ return repository.findPolicies(); }
     public List<BatRetentionRunSnapshot> runs(String policyId,int limit){ return repository.findRuns(policyId,Math.max(1,Math.min(limit,500))); }
-    public BatRetentionPolicyDefinition savePolicy(BatRetentionPolicyDefinition policy,String actor){
+    public BatRetentionPolicyDefinition savePolicy(BatRetentionPolicyDefinition policy,String requestedBy,String approvedBy,
+                                                     String approvalRequestId,String reason){
+        requiredApproval(requestedBy, approvedBy, approvalRequestId, reason);
         Instant next=policy.nextRunAt()!=null?policy.nextRunAt():nextRun(policy.scheduleExpression(),clock.instant());
-        return repository.savePolicy(new BatRetentionPolicyDefinition(policy.policyId(),policy.target(),policy.action(),policy.retentionDays(),policy.scheduleExpression(),policy.maintenanceStart(),policy.maintenanceEnd(),policy.enabled(),policy.legalHold(),policy.chunkSize(),policy.throttleMillis(),policy.maxRowsPerRun(),policy.maxRuntimeSeconds(),policy.leaseSeconds(),policy.policyVersion(),next,policy.rowVersion()),actor);
+        BatRetentionPolicyDefinition saved = repository.savePolicy(new BatRetentionPolicyDefinition(policy.policyId(),policy.target(),policy.action(),policy.retentionDays(),policy.scheduleExpression(),policy.maintenanceStart(),policy.maintenanceEnd(),policy.enabled(),policy.legalHold(),policy.chunkSize(),policy.throttleMillis(),policy.maxRowsPerRun(),policy.maxRuntimeSeconds(),policy.leaseSeconds(),policy.policyVersion(),next,policy.rowVersion()),requestedBy);
+        repository.audit("POLICY_SAVE","POLICY",policy.policyId(),requestedBy,approvedBy,approvalRequestId,reason,
+                policy.rowVersion(),"SUCCEEDED");
+        return saved;
     }
 
     /**
      * Manual destructive execution always performs a server-side dry-run first.
      * The ADM preview is an operator UX safeguard; this check makes the API boundary safe even when called directly.
      */
-    public BatRetentionRunSnapshot runNow(String policyId,String actor,String reason){
-        BatRetentionPolicyDefinition p=repository.findPolicy(policyId).orElseThrow(()->new IllegalArgumentException("Retention policy 없음: "+policyId));
+    public BatRetentionRunSnapshot runNow(String policyId,long expectedVersion,String requestedBy,String approvedBy,
+                                           String approvalRequestId,String reason){
+        requiredApproval(requestedBy, approvedBy, approvalRequestId, reason);
+        BatRetentionPolicyDefinition p=policyAtVersion(policyId, expectedVersion);
         Instant now=clock.instant();
         Instant cutoff=now.minus(Duration.ofDays(p.retentionDays()));
-        executeChunkWithRetry(new CpfRetentionCommand(new CpfRetentionPolicy(p.target(),p.action(),p.legalHold(),true),cutoff,actor,reason,Math.max(1,p.chunkSize())));
-        return startNew(p,"MANUAL",actor,reason,now,cutoff);
+        executeChunkWithRetry(new CpfRetentionCommand(new CpfRetentionPolicy(p.target(),p.action(),p.legalHold(),true),cutoff,requestedBy,reason,Math.max(1,p.chunkSize())));
+        repository.audit("RUN_NOW","POLICY",policyId,requestedBy,approvedBy,approvalRequestId,reason,expectedVersion,"STARTED");
+        BatRetentionRunSnapshot run = startNew(p,"MANUAL",requestedBy,reason,now,cutoff,expectedVersion);
+        repository.audit("RUN_NOW","POLICY",policyId,requestedBy,approvedBy,approvalRequestId,reason,expectedVersion,auditState(run));
+        return run;
     }
     public BatRetentionRunSnapshot runScheduled(String policyId){ return startNew(policyId,"SCHEDULED","CPF_RETENTION_SCHEDULER","scheduled retention"); }
-    public BatRetentionRunSnapshot requestPause(String runId,String actor){ repository.requestPause(runId,actor); return repository.findRun(runId).orElseThrow(); }
-    public BatRetentionPolicyDefinition pausePolicy(String policyId,boolean paused,String actor){ repository.setPolicyPaused(policyId,paused,actor); return repository.findPolicy(policyId).orElseThrow(); }
+    public BatRetentionRunSnapshot requestPause(String runId,String actor,String reason){
+        repository.requestPause(runId,actor,reason);
+        repository.audit("RUN_PAUSE","RUN",runId,actor,null,null,reason,null,"SUCCEEDED");
+        return repository.findRun(runId).orElseThrow();
+    }
+    public BatRetentionPolicyDefinition pausePolicy(String policyId,boolean paused,long expectedVersion,String requestedBy,
+                                                     String reason,String approvedBy,String approvalRequestId){
+        if(!paused) requiredApproval(requestedBy,approvedBy,approvalRequestId,reason);
+        repository.setPolicyPaused(policyId,paused,requestedBy,expectedVersion);
+        repository.audit(paused?"POLICY_PAUSE":"POLICY_RESUME","POLICY",policyId,requestedBy,approvedBy,
+                approvalRequestId,reason,expectedVersion,"SUCCEEDED");
+        return repository.findPolicy(policyId).orElseThrow();
+    }
 
-    public BatRetentionRunSnapshot resume(String runId,String actor,String reason){
+    public BatRetentionRunSnapshot resume(String runId,long expectedVersion,String requestedBy,String approvedBy,
+                                           String approvalRequestId,String reason){
+        requiredApproval(requestedBy, approvedBy, approvalRequestId, reason);
         BatRetentionRunSnapshot run=repository.findRun(runId).orElseThrow(()->new IllegalArgumentException("Retention run 없음: "+runId));
         if(!"PAUSED".equals(run.status()) && !"PARTIAL".equals(run.status()) && !"FAILED".equals(run.status())) throw new IllegalStateException("재개할 수 없는 Run 상태: "+run.status());
-        BatRetentionPolicyDefinition p=repository.findPolicy(run.policyId()).orElseThrow();
+        BatRetentionPolicyDefinition p=policyAtVersion(run.policyId(), expectedVersion);
         Instant now=clock.instant();
-        if(!repository.claim(p.policyId(),runtimeInstanceId,now,leaseUntil(p,now))) throw new IllegalStateException("RETENTION_LEASE_BUSY");
-        repository.markRunning(runId,runtimeInstanceId,actor);
-        try { executeLoop(runId,p,run.cutoffAt(),actor,reason,run); }
+        if(!repository.claim(p.policyId(),runtimeInstanceId,now,leaseUntil(p,now),expectedVersion)) throw new IllegalStateException("RETENTION_VERSION_OR_LEASE_CONFLICT");
+        repository.markRunning(runId,runtimeInstanceId,requestedBy);
+        try { executeLoop(runId,p,run.cutoffAt(),requestedBy,reason,run); }
         finally { repository.release(p.policyId(),runtimeInstanceId,nextRun(p.scheduleExpression(),clock.instant())); }
-        return repository.findRun(runId).orElseThrow();
+        BatRetentionRunSnapshot finalRun=repository.findRun(runId).orElseThrow();
+        repository.audit("RUN_RESUME","RUN",runId,requestedBy,approvedBy,approvalRequestId,reason,expectedVersion,auditState(finalRun));
+        return finalRun;
+    }
+
+    public List<java.util.Map<String,Object>> audits(String approvalRequestId) {
+        return repository.findAuditsByApprovalRequestId(approvalRequestId);
+    }
+
+    private static String auditState(BatRetentionRunSnapshot run) {
+        if (run == null || run.status() == null) return "UNKNOWN";
+        return switch (run.status().trim().toUpperCase(java.util.Locale.ROOT)) {
+            case "SUCCESS", "COMPLETED" -> "SUCCEEDED";
+            case "FAILED", "ERROR" -> "FAILED";
+            case "PAUSED", "PARTIAL", "RUNNING" -> "PENDING";
+            default -> "UNKNOWN";
+        };
     }
 
     private BatRetentionRunSnapshot startNew(String policyId,String trigger,String actor,String reason){
         BatRetentionPolicyDefinition p=repository.findPolicy(policyId).orElseThrow(()->new IllegalArgumentException("Retention policy 없음: "+policyId));
         Instant now=clock.instant();
-        return startNew(p,trigger,actor,reason,now,now.minus(Duration.ofDays(p.retentionDays())));
+        return startNew(p,trigger,actor,reason,now,now.minus(Duration.ofDays(p.retentionDays())),null);
     }
 
-    private BatRetentionRunSnapshot startNew(BatRetentionPolicyDefinition p,String trigger,String actor,String reason,Instant now,Instant cutoff){
+    private BatRetentionRunSnapshot startNew(BatRetentionPolicyDefinition p,String trigger,String actor,String reason,Instant now,Instant cutoff,Long expectedVersion){
         if(!p.enabled()) throw new IllegalStateException("RETENTION_POLICY_DISABLED");
         if(!inMaintenanceWindow(p,now)) throw new IllegalStateException("RETENTION_OUTSIDE_MAINTENANCE_WINDOW");
-        if(!repository.claim(p.policyId(),runtimeInstanceId,now,leaseUntil(p,now))) throw new IllegalStateException("RETENTION_LEASE_BUSY");
+        if(!repository.claim(p.policyId(),runtimeInstanceId,now,leaseUntil(p,now),expectedVersion)) throw new IllegalStateException("RETENTION_VERSION_OR_LEASE_CONFLICT");
         String runId=UUID.randomUUID().toString();
         BatRetentionRunSnapshot run=new BatRetentionRunSnapshot(runId,p.policyId(),trigger,"RUNNING",runtimeInstanceId,actor,reason,p.policyVersion(),cutoff,now,null,0,0,0,0,0,0,false,null,null);
         repository.createRun(run);
         try { executeLoop(runId,p,cutoff,actor,reason,run); }
         finally { repository.release(p.policyId(),runtimeInstanceId,nextRun(p.scheduleExpression(),clock.instant())); }
         return repository.findRun(runId).orElseThrow();
+    }
+
+    private BatRetentionPolicyDefinition policyAtVersion(String policyId,long expectedVersion){
+        if(expectedVersion<0) throw new IllegalArgumentException("expectedVersion은 0 이상이어야 합니다.");
+        BatRetentionPolicyDefinition policy=repository.findPolicy(policyId)
+                .orElseThrow(()->new IllegalArgumentException("Retention policy 없음: "+policyId));
+        if(policy.rowVersion()!=expectedVersion) throw new IllegalStateException("RETENTION_POLICY_VERSION_CONFLICT");
+        return policy;
+    }
+
+    private static void requiredApproval(String requestedBy,String approvedBy,String approvalRequestId,String reason){
+        if(requestedBy==null||requestedBy.isBlank()) throw new IllegalArgumentException("requestedBy is required");
+        if(approvedBy==null||approvedBy.isBlank()) throw new IllegalArgumentException("approvedBy is required");
+        if(approvalRequestId==null||approvalRequestId.isBlank()) throw new IllegalArgumentException("approvalRequestId is required");
+        if(requestedBy.trim().equals(approvedBy.trim())) throw new IllegalArgumentException("requester and approver must differ");
+        if(reason==null||reason.isBlank()) throw new IllegalArgumentException("reason is required");
     }
 
     private void executeLoop(String runId,BatRetentionPolicyDefinition p,Instant cutoff,String actor,String reason,BatRetentionRunSnapshot initial){

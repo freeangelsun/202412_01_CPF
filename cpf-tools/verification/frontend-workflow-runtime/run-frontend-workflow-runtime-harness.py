@@ -9,10 +9,10 @@ def main()->int:
     cp=subprocess.run(['python',str(launcher),'--root',str(root)],cwd=root,text=True)
     if cp.returncode: return cp.returncode
     required={
-      'EmployeesPage':root/'cpf-biz-frontend/src/features/employees/pages/EmployeesPage.vue',
-      'ApprovalInboxPage':root/'cpf-biz-frontend/src/features/approvals/pages/ApprovalInboxPage.vue',
-      'AuthorizationPage':root/'cpf-biz-frontend/src/features/authorization/pages/AuthorizationPage.vue',
-      'DashboardPage':root/'cpf-biz-frontend/src/features/dashboard/pages/DashboardPage.vue',
+      'EmployeesPage':root/'cpf-backoffice-web/frontend/src/features/employees/pages/EmployeesPage.vue',
+      'ApprovalInboxPage':root/'cpf-backoffice-web/frontend/src/features/approvals/pages/ApprovalInboxPage.vue',
+      'AuthorizationPage':root/'cpf-backoffice-web/frontend/src/features/authorization/pages/AuthorizationPage.vue',
+      'DashboardPage':root/'cpf-backoffice-web/frontend/src/features/dashboard/pages/DashboardPage.vue',
     }
     for label,p in required.items():
       if not p.is_file(): raise SystemExit(f'{label}: page missing')

@@ -1,0 +1,26 @@
+// Backoffice(MBW) Online Domain. Generated Business Domain과 동일한 Public Starter/API 계약을 사용합니다.
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.cpf.backoffice'
+
+dependencies {
+    implementation platform("com.cpf:cpf-platform-bom:${cpfPlatformVersion}")
+    implementation "com.cpf.starter:cpf-starter:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-secure-api:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-data-mybatis:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-common:${cpfPlatformVersion}"
+
+    // MBW는 공식 DB3 Vendor만 지원합니다. Version은 CPF BOM이 정렬합니다.
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('bootJar') { archiveBaseName = 'cpf-backoffice-online' }

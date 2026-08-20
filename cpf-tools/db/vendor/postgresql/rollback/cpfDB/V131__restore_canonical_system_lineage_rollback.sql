@@ -1,0 +1,12 @@
+DROP INDEX IF EXISTS ix_cpf_transaction_log_system_time;
+DROP INDEX IF EXISTS ix_cpf_transaction_log_target_operation;
+CREATE INDEX ix_cpf_transaction_log_channel_time ON cpf_transaction_log (current_channel, start_time);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON cpf_transaction_log (target_channel, target_operation_id, start_time);
+ALTER TABLE cpf_transaction_log DROP COLUMN caller_system_code, DROP COLUMN target_system_code, DROP COLUMN original_system_code, DROP COLUMN system_code;
+DROP INDEX IF EXISTS ix_cpf_transaction_segment_client_system;
+DROP INDEX IF EXISTS ix_cpf_transaction_segment_target_operation;
+CREATE INDEX ix_cpf_transaction_segment_client_channel ON cpf_transaction_segment (client_id, caller_channel, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON cpf_transaction_segment (target_channel, target_operation_id, started_at);
+ALTER TABLE cpf_transaction_segment DROP COLUMN system_code, DROP COLUMN original_system_code, DROP COLUMN caller_system_code, DROP COLUMN target_system_code;
+ALTER TABLE cpf_transaction_lineage DROP COLUMN system_code, DROP COLUMN target_system_code;
+ALTER TABLE cpf_transaction_lineage_archive DROP COLUMN system_code, DROP COLUMN target_system_code;

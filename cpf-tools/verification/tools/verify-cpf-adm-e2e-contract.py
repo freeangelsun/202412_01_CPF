@@ -12,6 +12,7 @@ def require(text: str, token: str, label: str) -> None:
 
 def validate(root: Path) -> dict:
     routes_file = root / "cpf-admin/frontend/src/app/routes.ts"
+    routes_dir = root / "cpf-admin/frontend/src/app/routes"
     generated = root / "cpf-admin/frontend/src/generated/adm-route-operation-contract.ts"
     config = root / "cpf-admin/frontend/playwright.config.ts"
     route_spec = root / "cpf-admin/frontend/e2e/adm-route-contract.spec.ts"
@@ -22,6 +23,8 @@ def validate(root: Path) -> dict:
         if not path.is_file(): raise ContractError(f"missing {path.relative_to(root)}")
 
     route_text = routes_file.read_text(encoding="utf-8")
+    if routes_dir.is_dir():
+        route_text += "\n" + "\n".join(p.read_text(encoding="utf-8") for p in sorted(routes_dir.glob("*.ts")) if p.name != "types.ts")
     rows = list(ENTRY.finditer(route_text))
     ids = [m.group("route_id") for m in rows]; paths = [m.group("path") for m in rows]
     if not rows: raise ContractError("route registry empty")
@@ -39,7 +42,8 @@ def validate(root: Path) -> dict:
         raise ContractError(f"route/generated registry mismatch missing={missing} stale={stale}")
 
     config_text = config.read_text(encoding="utf-8")
-    for browser in ("chromium", "firefox", "webkit"): require(config_text, f'name: "{browser}"', "playwright project")
+    required_projects=("chromium-desktop","firefox-desktop","webkit-desktop","chromium-mobile","webkit-mobile")
+    for project in required_projects: require(config_text, f'name: "{project}"', "playwright project")
     require(config_text, "CPF_E2E_AUTH_STATE", "authenticated storage state")
     require(config_text, "CPF_E2E_RELEASE", "release fail-closed mode")
 
@@ -58,7 +62,7 @@ def validate(root: Path) -> dict:
     if "X-CPF-Operation-Id" in api_text or "X-Target-Operation-Id" in api_text: raise ContractError("ADM browser must not inject business transaction operation headers")
     package_text = package.read_text(encoding="utf-8")
     for token in ('"test:e2e"', '"test:a11y"'): require(package_text, token, "package browser command")
-    return {"routes": len(rows), "browsers": 3, "mandatoryStatuses": 7}
+    return {"routes": len(rows), "browsers": 5, "mandatoryStatuses": 7}
 
 def main() -> int:
     ap = argparse.ArgumentParser(); ap.add_argument("--root", type=Path, default=Path.cwd()); args = ap.parse_args()

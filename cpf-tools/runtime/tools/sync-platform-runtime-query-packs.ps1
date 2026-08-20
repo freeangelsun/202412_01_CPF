@@ -162,10 +162,10 @@ if (($contractVendors -join "`n") -cne ($expectedVendors -join "`n")) {
 
 $modules = @($contract.modules)
 if ($modules.Count -ne 3 -or
-        "bza" -notin @($modules.module) -or
+        "backoffice" -notin @($modules.module) -or
         "cpf" -notin @($modules.module) -or
         "ref" -notin @($modules.module)) {
-    throw "Platform Runtime Query contract must contain exactly CPF, BZA, and REF modules."
+    throw "Platform Runtime Query contract must contain exactly CPF, Backoffice, and REF modules."
 }
 
 $written = 0

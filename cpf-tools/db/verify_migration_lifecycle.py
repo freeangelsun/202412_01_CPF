@@ -40,7 +40,7 @@ EXPECTED_RUNTIME_OWNERS = {
     "cpf": "cpf-core",
     "cmn": "cpf-common",
     "adm": "cpf-admin",
-    "bza": "cpf-biz-admin",
+    "backoffice": "cpf-backoffice",
     "bat": "cpf-batch",
     "gwy": "cpf-gateway",
     "ref": "cpf-education",

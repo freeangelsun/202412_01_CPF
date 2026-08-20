@@ -274,7 +274,7 @@ def main() -> int:
         "workResultReviewPolicy": "Generate only when user explicitly requests it after final development/validation/packaging.",
         "unverifiedRuntime": [
             "Java25 root Gradle configuration/compile/test/build/publication/SBOM",
-            "cpf-biz-channel standalone Gradle build/test",
+            "cpf-backoffice-web standalone Gradle build/test",
             "official Node >=22.18 clean frontend build/test",
             "live Oracle/PostgreSQL/MariaDB lifecycle",
             "Redis/Valkey live reconnect/failover",

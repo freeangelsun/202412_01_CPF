@@ -9,7 +9,7 @@ cpf:
       common: true
       gateway: false
       admin: true
-      biz-admin: true
+      backoffice: true
       domains:
         enabled: true
         auto-discover: true

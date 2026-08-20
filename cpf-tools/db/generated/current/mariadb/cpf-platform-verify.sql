@@ -173,6 +173,7 @@ SELECT 'OPS_OPERATION_POLICY' AS table_name, COUNT(*) AS present FROM informatio
 SELECT 'OPS_RESILIENCE_AUDIT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RESILIENCE_AUDIT';
 SELECT 'OPS_RESILIENCE_POLICY' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RESILIENCE_POLICY';
 SELECT 'OPS_RESILIENCE_POLICY_REQUEST' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RESILIENCE_POLICY_REQUEST';
+SELECT 'OPS_RETENTION_CONTROL_AUDIT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RETENTION_CONTROL_AUDIT';
 SELECT 'OPS_RETENTION_POLICY' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RETENTION_POLICY';
 SELECT 'OPS_RETENTION_RUN' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RETENTION_RUN';
 SELECT 'OPS_RUNTIME_CHANGE' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'OPS_RUNTIME_CHANGE';

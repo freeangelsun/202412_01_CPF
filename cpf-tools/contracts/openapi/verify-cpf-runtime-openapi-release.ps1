@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][ValidateSet('ADM','BZA')][string]$Module,
+    [Parameter(Mandatory)][ValidateSet('ADM','MBW')][string]$Module,
     [Parameter(Mandatory)][string]$BaseUrl,
     [string]$Root = (Get-Location).Path,
     [string]$EvidenceDirectory = '',
@@ -11,9 +11,9 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
-$modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-biz-admin' }
-$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-biz-frontend' }
-$sourceOpenApi = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend/openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-biz-admin/openapi/cpf-openapi.json' }
+$modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-backoffice' }
+$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-backoffice-web/frontend' }
+$sourceOpenApi = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend/openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-backoffice/online/openapi/cpf-openapi.json' }
 $stateTool = Join-Path $rootPath 'cpf-tools/verification/tools/cpf-source-state.py'
 if ([string]::IsNullOrWhiteSpace($EvidenceDirectory)) {
     $EvidenceDirectory = Join-Path $rootPath "build/runtime-openapi/$($Module.ToLowerInvariant())"

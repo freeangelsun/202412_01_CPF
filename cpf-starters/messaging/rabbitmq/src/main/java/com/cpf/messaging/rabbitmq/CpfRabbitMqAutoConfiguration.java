@@ -24,6 +24,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * RabbitMQ를 CPF Public Messaging 계약에 연결하는 Starter 자동구성입니다.
+ * <p>RabbitMQ를 선택한 애플리케이션에서만 활성화되며 업무 코드는 CPF Messaging API를 통해 사용합니다.
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(CpfRabbitMqProperties.class)
 @ConditionalOnProperty(prefix = "cpf.messaging.rabbitmq", name = "enabled", havingValue = "true")

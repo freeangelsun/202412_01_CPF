@@ -9,6 +9,10 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.UUID;
 
+/**
+ * CPF Realtime capability의 Hub와 Web endpoint를 Spring Runtime에 연결하는 Public Starter 자동구성입니다.
+ * <p>Realtime capability를 선택한 경우에만 활성화하며 별도 자체 프로토콜을 만들지 않고 CPF Context/Security 계약을 유지합니다.
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(CpfRealtimeProperties.class)
 @ConditionalOnProperty(prefix = "cpf.integration.realtime", name = "enabled", havingValue = "true")

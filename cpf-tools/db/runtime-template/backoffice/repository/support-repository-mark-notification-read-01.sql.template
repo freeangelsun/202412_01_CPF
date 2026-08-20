@@ -1,0 +1,6 @@
+UPDATE mbw_notification
+   SET read_yn = 'Y', read_at = @NOW@,
+       updated_by = :requestUser, updated_at = @NOW@
+ WHERE notification_id = :notificationId
+   AND recipient_login_id = :loginId
+   AND use_yn = 'Y'

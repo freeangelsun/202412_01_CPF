@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('ADM', 'BZA')]
+    [ValidateSet('ADM', 'MBW')]
     [string] $Module,
 
     [Parameter(Mandatory)]
@@ -24,9 +24,9 @@ if ($UpdateSnapshot) {
 }
 
 $rootPath = (Resolve-Path $Root).Path
-$modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-biz-admin' }
-$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-biz-frontend' }
-$sourceOpenApi = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend/openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-biz-admin/openapi/cpf-openapi.json' }
+$modulePath = if ($Module -eq 'ADM') { 'cpf-admin' } else { 'cpf-backoffice' }
+$frontend = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend' } else { Join-Path $rootPath 'cpf-backoffice-web/frontend' }
+$sourceOpenApi = if ($Module -eq 'ADM') { Join-Path $rootPath 'cpf-admin/frontend/openapi/cpf-openapi.json' } else { Join-Path $rootPath 'cpf-backoffice/online/openapi/cpf-openapi.json' }
 if (-not (Test-Path -LiteralPath $sourceOpenApi -PathType Leaf)) {
     throw "Tracked source OpenAPI is missing: $sourceOpenApi"
 }
@@ -117,7 +117,7 @@ try {
         sourceSha = $sourceIdentity
         resultSha = $sourceIdentity
         module = $Module
-        command = 'export-cpf-backend-openapi.ps1 -Module <ADM|BZA> -BaseUrl <sanitized> -SourceSha <exact> -Release'
+        command = 'export-cpf-backend-openapi.ps1 -Module <ADM|MBW> -BaseUrl <sanitized> -SourceSha <exact> -Release'
         profile = 'BACKEND_RUNTIME_OPENAPI'
         sourceIdentityPolicy = 'EXPLICIT_OR_BASE_SHA_OR_PACKAGE_MANIFEST'
         startedAt = $startedAt.ToString('o')

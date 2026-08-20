@@ -4,7 +4,7 @@ import com.cpf.admin.AdmApplication;
 import com.cpf.admin.config.AdmBootstrapProperties;
 import com.cpf.admin.config.AdmPasswordPolicyProperties;
 import com.cpf.admin.config.AdmSecurityProperties;
-import com.cpf.bizadmin.BzaApplication;
+import com.cpf.backoffice.online.BackofficeOnlineApplication;
 import com.cpf.gateway.CpfGatewayApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -57,12 +57,12 @@ public class CpfLocalRuntimeModules {
     }
 
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnProperty(prefix = "cpf.local.modules", name = "biz-admin", havingValue = "true")
+    @ConditionalOnProperty(prefix = "cpf.local.modules", name = "backoffice", havingValue = "true")
     @ComponentScan(
-            basePackages = "com.cpf.bizadmin",
+            basePackages = "com.cpf.backoffice.online",
             excludeFilters = @ComponentScan.Filter(
                     type = FilterType.ASSIGNABLE_TYPE,
-                    classes = BzaApplication.class))
-    static class BizAdminModule {
+                    classes = BackofficeOnlineApplication.class))
+    static class BackofficeModule {
     }
 }

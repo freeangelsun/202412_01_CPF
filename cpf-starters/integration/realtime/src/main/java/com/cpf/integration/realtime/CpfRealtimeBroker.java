@@ -225,6 +225,7 @@ public final class CpfRealtimeBroker implements AutoCloseable {
         private RateWindow(long epochSecond, int count) { this.epochSecond = epochSecond; this.count = count; }
     }
 
+    /** Realtime subscriber의 channel/filter/cursor 상태를 표현하는 subscription 계약입니다. */
     public final class Subscription implements AutoCloseable {
         private final String id;
         private final Filter filter;
@@ -265,11 +266,13 @@ public final class CpfRealtimeBroker implements AutoCloseable {
         @Override public void close() { close("client-close"); }
     }
 
+    /** Realtime Broker가 subscriber에게 전달한 message와 delivery metadata를 표현합니다. */
     public sealed interface Delivery permits Delivery.Event, Delivery.Heartbeat {
         record Event(CpfRealtimeEvent event) implements Delivery { }
         record Heartbeat(Instant at) implements Delivery { }
     }
 
+    /** Realtime subscription이 수신할 event 범위를 제한하는 filter 계약입니다. */
     public record Filter(String tenantId, String channel, String topic, String subjectId) {
         public Filter {
             tenantId = require(tenantId, "tenantId");

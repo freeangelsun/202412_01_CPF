@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">ADM Runtime 변경 화면</title><desc id="desc">Preview·Target Snapshot·Approval·Target별 적용·Rollback을 한 Operation으로 추적한다.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker><filter id="shadow"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.18"/></filter></defs>
+<rect width="1400" height="820" fill="#f8fafc"/>
+<text x="70" y="65" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#0f172a">ADM Runtime 변경 화면</text>
+<text x="70" y="102" font-family="Arial,sans-serif" font-size="18" fill="#475569">Preview·Target Snapshot·Approval·Target별 적용·Rollback을 한 Operation으로 추적한다.</text>
+<line x1="285" y1="255" x2="320" y2="255" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="555" y1="255" x2="590" y2="255" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="825" y1="255" x2="860" y2="255" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="1095" y1="255" x2="1130" y2="255" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<line x1="975" y1="345" x2="945" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="960" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">failure</text>
+<line x1="715" y1="345" x2="500" y2="500" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="607" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#475569">reconcile</text>
+<rect x="55" y="165" width="230" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="75" y="201" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">1. Preview</text>
+<text x="75" y="235" font-family="Arial,sans-serif" font-size="15" fill="#334155">Group·Target 조건</text>
+<text x="75" y="261" font-family="Arial,sans-serif" font-size="15" fill="#334155">Desired State·Version</text>
+<rect x="325" y="165" width="230" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="345" y="201" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">2. Approval</text>
+<text x="345" y="235" font-family="Arial,sans-serif" font-size="15" fill="#334155">Reason·Requester</text>
+<text x="345" y="261" font-family="Arial,sans-serif" font-size="15" fill="#334155">Approver·Expiry</text>
+<rect x="595" y="165" width="230" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="615" y="201" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">3. Apply</text>
+<text x="615" y="235" font-family="Arial,sans-serif" font-size="15" fill="#334155">Command ID</text>
+<text x="615" y="261" font-family="Arial,sans-serif" font-size="15" fill="#334155">Target Attempt</text>
+<rect x="865" y="165" width="230" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="885" y="201" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">4. Observe</text>
+<text x="885" y="235" font-family="Arial,sans-serif" font-size="15" fill="#334155">Desired/Observed</text>
+<text x="885" y="261" font-family="Arial,sans-serif" font-size="15" fill="#334155">ACK/NACK/UNKNOWN</text>
+<rect x="1135" y="165" width="220" height="180" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="1155" y="201" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">5. Close</text>
+<text x="1155" y="235" font-family="Arial,sans-serif" font-size="15" fill="#334155">Audit Verify</text>
+<text x="1155" y="261" font-family="Arial,sans-serif" font-size="15" fill="#334155">LKG/Result</text>
+<rect x="335" y="510" width="300" height="145" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="355" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">부분 적용</text>
+<text x="355" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">성공 Target 보존</text>
+<text x="355" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">실패 Target 분리</text>
+<rect x="795" y="510" width="300" height="145" rx="15" fill="#fff" stroke="#94a3b8" stroke-width="2" filter="url(#shadow)"/>
+<text x="815" y="546" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Rollback</text>
+<text x="815" y="580" font-family="Arial,sans-serif" font-size="15" fill="#334155">LKG Snapshot</text>
+<text x="815" y="606" font-family="Arial,sans-serif" font-size="15" fill="#334155">Target별 결과</text>
+</svg>

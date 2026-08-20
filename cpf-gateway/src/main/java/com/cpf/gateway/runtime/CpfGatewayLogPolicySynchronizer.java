@@ -2,7 +2,7 @@ package com.cpf.gateway.runtime;
 
 import com.cpf.platform.operations.observability.api.logging.policy.CpfLogPolicyResolver;
 import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;

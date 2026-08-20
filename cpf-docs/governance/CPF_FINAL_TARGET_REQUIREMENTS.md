@@ -10,7 +10,7 @@
 
 ## 0.0 2026-08-19 Superseding Architecture Amendment
 
-이 절은 2026-08-19 최신 Steering과 현재 Source 재검증을 반영한 **최우선 Current Target**이다. 같은 문서의 과거 전환 문구, SHA 고정 문구, Channel-based 거래 Header, embedded BZA Frontend, `cpf-biz-admin`을 필수 관리 Application으로 보는 설명이 이 절과 충돌하면 해당 문구는 stale이며 이 절을 우선한다. 과거 Runtime/Evidence PASS를 현재 Source에 승계하지 않는다.
+이 절은 2026-08-19 최신 Steering과 현재 Source 재검증을 반영한 **최우선 Current Target**이다. 같은 문서의 과거 전환 문구, SHA 고정 문구, Channel-based 거래 Header, 구 BZA 3모듈 구조, `cpf-backoffice`을 필수 관리 Application으로 보는 설명이 이 절과 충돌하면 해당 문구는 stale이며 이 절을 우선한다. 과거 Runtime/Evidence PASS를 현재 Source에 승계하지 않는다.
 
 ### Canonical Transaction / System Identity
 
@@ -25,29 +25,43 @@
 
 `X-Original-System-Code`는 해당 transactionId를 최초 생성·기동한 System으로 생성 시 확정 후 불변이다. `X-System-Code`는 현재 요청을 실제 처리하는 Receiver System이 자신의 trusted runtime metadata로 확정한다. `X-Caller-System-Code`는 직전 호출 System, `X-Target-System-Code`는 현재 호출 대상 System이다. 업무 개발자는 Canonical 6종을 직접 조립·변경하지 않는다. Channel identity는 인증·정책·유입 경로를 위한 별도 optional context이며 Canonical System identity를 대체하거나 System Header로 변환하지 않는다.
 
-외부 Channel이 Business Domain Public HTTP Contract를 호출할 때 Receiver-owned `X-System-Code`를 신뢰값으로 작성하지 않는다. Direct HTTP는 Gateway 보안 우회 경로가 아니라 endpoint만 다른 동일 Public HTTP Contract이며 인증·인가·Channel Policy·Audit·Canonical Header/Context 검증을 동일하게 충족해야 한다.
+외부 Channel/BFF가 Business Domain Public HTTP Contract를 호출할 때도 Canonical 6 Header를 모두 전송한다. 다만 Header 값 자체를 인증 근거로 신뢰하지 않으며 Receiver는 자신의 trusted runtime metadata, 인증된 service/channel identity, target operation registry와 대조해 System/Target/Operation 불일치를 fail-closed로 거부한다. Direct HTTP는 Gateway 보안 우회 경로가 아니라 endpoint만 다른 동일 Public HTTP Contract이며 인증·인가·Channel Policy·Audit·Canonical Header/Context 검증을 동일하게 충족해야 한다.
 
-### BZA Final Architecture
+### Backoffice(MBW) Final Architecture
 
-`cpf-biz-admin`은 CPF 내부의 **Optional Prebuilt Business Administration Domain**이다. Generator 생성 대상은 아니지만 Generated Business Domain과 동일한 Public Starter/API, Canonical transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3, Runtime/Test 계약을 사용한다.
+`cpf-backoffice`는 CPF 내부의 **Optional Prebuilt Business Domain**이다. Generator가 매번 새로 생성하는 Domain은 아니지만 Generated Business Domain과 동일한 Feature-First package, Public Starter/API, Canonical transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3, Runtime Registry, Operation/OpenAPI, Test 계약을 사용한다. 차이는 업무 기능이 미리 구현되어 선택형으로 제공된다는 점뿐이다.
 
-- BZA Domain은 Backoffice 업무 자체의 승인 상태, BZA 업무권한, Backoffice 설정 등 **BZA-owned data**만 소유한다. Member/Customer/Account 등 Business Master는 각 Business Domain이 exactly-one Owner이며 `cpf-biz-admin`이 원장을 복제하거나 해당 Domain DB를 직접 접근하지 않는다.
-- BZA를 사용하지 않으면 `cpf-biz-admin` Source와 BZA-owned DB migration/seed bundle을 제외할 수 있다. 이 부재가 Root settings/configuration/build/test/publication/installer/verifier, `cpf-core`, Common, ADM, Gateway, Batch, 다른 Business Domain을 깨뜨리면 Optionality 실패다. 존재할 때는 aggregate regression에 자동 참여한다.
-- 외부 `cpf-biz-channel`은 **DB-less Pure Spring Boot Channel/BFF**다. CPF BOM/Starter/Java API/Annotation/Internal API에 의존하지 않고 HTTP/HTTPS Public Contract만 사용한다. 로그인/Session을 이유로 업무 상태·권한 원장을 저장하는 영속 DB를 추가하지 않는다. Stateless Token, 외부 인증체계 또는 공식 Session 정책을 사용한다.
-- 외부 `cpf-biz-frontend`는 Channel Server만 호출하는 선택형 Reference Frontend다. CPF가 제공하는 기본 외부 UI는 검색/Paging·상세/변경·승인·권한 등 대표 흐름을 보여주는 소수의 실제 Reference Page로 유지하며, 고객 전체 Backoffice를 제품 UI에 고정하지 않는다.
-- `cpf-biz-admin`, `cpf-biz-channel`, `cpf-biz-frontend`는 각각 역할이 다르며 한 모듈로 다시 결합하지 않는다.
+- Backoffice Domain의 논리 System Code는 `MBW`다. Java/Package/Class 이름은 Generated Domain과 동일하게 도메인 명칭 기반 `Backoffice*`를 사용하고 System/Runtime/Operation identity에는 `MBW`를 사용한다.
+- Backoffice Domain은 Backoffice 업무 자체의 승인 상태, 업무 관리자 권한, 설정, 조직/직원 등 **Backoffice-owned data**만 소유한다. Member/Customer/Account 등 Business Master는 각 Business Domain이 exactly-one Owner이며 `cpf-backoffice`가 원장을 복제하거나 해당 Domain DB를 직접 접근하지 않는다.
+- Backoffice를 사용하지 않으면 `cpf-backoffice` Source와 Backoffice-owned DB migration/seed bundle을 제외할 수 있다. 이 부재가 Root settings/configuration/build/test/publication/installer/verifier, `cpf-core`, Common, ADM, Gateway, Batch, 다른 Business Domain을 깨뜨리면 Optionality 실패다. 존재할 때는 aggregate regression에 자동 참여한다.
+- `cpf-backoffice-web`은 **Frontend SPA + DB-less Pure Spring Boot Channel/BFF를 하나의 Deployable Application으로 제공하는 공식 외부 Channel Reference**다. CPF Java/BOM/Starter/Internal API에 의존하지 않고 HTTP/HTTPS Public Contract만 사용하며, Browser는 보호 Header를 임의 생성하지 않고 BFF가 Canonical 6 Header와 인증 credential을 서버측에서 안전하게 구성한다.
+- Browser Session/Cookie/CSRF/SameSite, Channel Authentication, HTTP timeout/error mapping은 `cpf-backoffice-web`이 소유하고, 업무 승인/권한/정책/DB는 `cpf-backoffice`가 소유한다. Web은 Backoffice 또는 다른 Business Domain 구현 Bean/Repository/DB를 직접 참조하지 않는다.
+- 최종 Root Backoffice Product Module은 `cpf-backoffice`, `cpf-backoffice-web` 두 개다. 구 `cpf-biz-admin`, `cpf-biz-channel`, `cpf-biz-frontend`는 공식 Current Source/Config/Route/Catalog에서 사용하지 않는다.
+
+### Generated Domain Setup / DB Binding / Capability / Integration
+
+Generated Business Domain의 일반 개발자 진입점은 Canonical `cpf domain setup`/Public `cpf-domain-new` workflow 하나로 수렴한다. Domain identity/modules, Domain별 DB Binding, Capability/Preset, Operation 단위 Domain Dependency, External Integration을 한 번 정의하고 CPF가 Public BOM/Starter, Feature-First Source, Config, Public Domain Client, Workspace 등록, Bootstrap binding, DB3 renderer 연결, Operation/Runtime discovery 준비를 자동 계산한다. Starter Artifact명, JDBC URL, Canonical Header, Root settings를 일반 개발자가 수기 연결하지 않는다.
+
+- `cpf-domain.yaml`은 source-controlled logical definition이며 host/IP/password를 저장하지 않는다.
+- `cpf-db-profile.local.json`은 local/generated 환경 binding이며 Git 정본이 아니다. Migration 계정과 Runtime 계정은 분리하고 Secret 원문 대신 env/provider reference를 사용한다.
+- Domain마다 Oracle/PostgreSQL/MariaDB Vendor가 달라도 된다. DB Vendor 차이는 Canonical DB3 Renderer/Installer가 처리한다.
+- `persistence=none`이면 DB Binding/Connection/Health가 활성화되지 않고, persistence 사용인데 DB Binding이 없으면 setup/bootstrap이 fail-closed한다.
+- Preset은 실질적으로 다른 Capability matrix를 제공하고 Developer override와 Integration requirement를 합쳐 Public Starter set을 계산한다.
+- `domainDependencies`는 target System + Public Operation 단위로 검증하며 Same JVM/Remote 모두 CPF Logical Domain Invocation을 사용한다. self-HTTP, Service/Repository 직접참조, Header 수기 조립을 금지한다.
+- `externalClients`는 Metadata만 생성하지 않고 지원 Public Integration capability의 Client/Config/Error/Trace/Test consumer skeleton과 실제 wiring을 만든다.
+- Source Setup 성공과 Local DB/Runtime 성공은 별도 상태다. 실행하지 않은 Runtime은 `미검증`이다.
 
 ### Optional Surface Common Contract
 
-Canonical Catalog/Architecture에서 optional/user-selectable로 분류된 Module/Application/Capability는 BZA와 동일한 Optionality 원칙을 따른다. 물리 Source 부재나 미선택 상태가 필수 Build/Runtime/Publication/Install/Verification을 실패시키지 않아야 하며, 선택 시에만 Bean/외부 연결/listener/scheduler/health ACTIVE 등록/DB migration/deploy asset가 활성화된다. 다른 Module의 역의존과 무조건 `dependsOn`을 금지한다. `cpf-core` 등 필수 Foundation은 이 규칙의 대상이 아니다.
+Canonical Catalog/Architecture에서 optional/user-selectable로 분류된 Module/Application/Capability는 Backoffice와 동일한 Optionality 원칙을 따른다. 물리 Source 부재나 미선택 상태가 필수 Build/Runtime/Publication/Install/Verification을 실패시키지 않아야 하며, 선택 시에만 Bean/외부 연결/listener/scheduler/health ACTIVE 등록/DB migration/deploy asset가 활성화된다. 다른 Module의 역의존과 무조건 `dependsOn`을 금지한다. `cpf-core` 등 필수 Foundation은 이 규칙의 대상이 아니다.
 
 ### Source Maintainability / Operability Quality
 
-기능 동작만으로 완료 처리하지 않는다. 모든 Backend/Frontend Source는 Architecture/Ownership, 패키지와 의존 방향, 개발자 탐색성, 변경 영향 범위, 장애 분석, 운영·유지보수 비용을 품질 기준으로 검수한다. 기능 중심 package 아래 필요한 `controller/service/repository/client/dto/model` 등 역할 경계를 두되 파일 크기만으로 기계적으로 분할하거나 의미 없는 초소형 계층을 양산하지 않는다. `CommonUtil`, `Helper`, `Manager`, `V2` 같은 모호한 책임 은닉과 대형 통파일/static inner 기반 업무 구현을 피한다. ADM/BZA를 포함한 Frontend도 기능별 `pages/components/api/model(or types)/composables/store`를 필요한 수준으로 분리하고 화면·API·상태·모델을 하나의 거대 파일에 혼합하지 않는다.
+기능 동작만으로 완료 처리하지 않는다. 모든 Backend/Frontend Source는 Architecture/Ownership, 패키지와 의존 방향, 개발자 탐색성, 변경 영향 범위, 장애 분석, 운영·유지보수 비용을 품질 기준으로 검수한다. 기능 중심 package 아래 필요한 `controller/service/repository/client/dto/model` 등 역할 경계를 두되 파일 크기만으로 기계적으로 분할하거나 의미 없는 초소형 계층을 양산하지 않는다. `CommonUtil`, `Helper`, `Manager`, `V2` 같은 모호한 책임 은닉과 대형 통파일/static inner 기반 업무 구현을 피한다. ADM/Backoffice를 포함한 Frontend도 기능별 `pages/components/api/model(or types)/composables/store`를 필요한 수준으로 분리하고 화면·API·상태·모델을 하나의 거대 파일에 혼합하지 않는다.
 
 ### Public Distribution / Public Git
 
-Private Repository에서 Public Repository를 만들 때는 **Default-Deny**다. 빈 staging에서 explicit allowlist/classification에 포함된 Public User Doc/Script/Config, Generated Source, Bootstrap, Deploy Asset, Release Metadata만 생성한다. `cpf-core`, `cpf-starters` 구현, `cpf-admin`, `cpf-biz-admin`, governance/work/evidence/internal release implementation 등 Private Source가 staging에 유입되면 FAIL한다. 외부 BZA Channel/Reference Frontend는 명시적 Public Reference classification으로 포함할 수 있다.
+Private Repository에서 Public Repository를 만들 때는 **Default-Deny**다. 빈 staging에서 explicit allowlist/classification에 포함된 Public User Doc/Script/Config, Generated Source, Bootstrap, Deploy Asset, Release Metadata만 생성한다. `cpf-core`, `cpf-starters` 구현, `cpf-admin`, `cpf-backoffice` Domain 구현, governance/work/evidence/internal release implementation 등 Private Source가 staging에 유입되면 FAIL한다. 외부 `cpf-backoffice-web` Channel/Reference Frontend는 명시적 Public Reference classification으로 포함할 수 있다.
 
 Public Git publish entrypoint는 staging/classification → secret/private/internal leakage → manifest/hash/SBOM/provenance → clean public consumer/generated sample build/test → staged diff/whitespace 검증을 모두 PASS한 뒤에만 commit/push 단계에 도달해야 한다. 중간 Gate 하나라도 실패하면 push는 실행되지 않는다. 실제 remote push는 사용자/승인된 release trigger가 수행한다.
 
@@ -101,9 +115,9 @@ old/new duplicate, stale reference, moved-source residue, empty migrated directo
 - `10_06` 기준 독립 `cpf-common` Product Root는 제거되어 있다. CPF Common Product Services의 Canonical Owner는 `cpf-starters/common` + `cpf-starter-common`이며 구 Root 재등장을 금지한다.
 - `cpf-starter`는 Base + Common의 기본 개발 진입점이다. `base`와 `common`은 내부 Owner는 분리한다.
 - `cpf-starter-common` Full Runtime은 Data JDBC 기반과 `cpfDB`를 필수로 사용하며 silent memory fallback을 금지한다.
-- CPF 관계형 Platform State는 `CPF_PLATFORM_DB(cpfDB)`로 통합한다. `cmnDB`, `admDB`, `batDB`를 별도 Target Physical DB로 유지하지 않는다. BZA와 Customer Business DB는 분리한다.
+- CPF 관계형 Platform State는 `CPF_PLATFORM_DB(cpfDB)`로 통합한다. `cmnDB`, `admDB`, `batDB`를 별도 Target Physical DB로 유지하지 않는다. Backoffice(MBW)와 Customer Business DB는 Generated Business Domain과 동일한 `CUSTOMER_BUSINESS_DB` 역할 계약을 따르되, Domain별 physical binding/schema는 각 Domain Setup이 소유한다.
 - Ownership은 단일 Schema 안에서도 `CMN_*`, `ADM_*`, `BAT_*`, `GW_*`, `SEC_*`, `OPS_*` Prefix와 Canonical Metadata/Migration Owner로 보존한다.
-- Generated Domain별 `mbrDB/accDB/...` 생성은 금지하고 Customer Business DB + Domain Table Prefix를 사용한다.
+- Generated Domain의 Domain Source Tree에는 Vendor별 DB 폴더를 생성하지 않는다. 각 Domain은 환경 Binding에서 Oracle/PostgreSQL/MariaDB를 독립 선택할 수 있고, Canonical logical DB/schema identity는 `<systemCode lower>DB`(`mbrDB`, `accDB`, `mbwDB` 등)를 기본으로 하며 실제 host/database/service/schema/account는 `cpf-db-profile.local` 등 환경 Profile이 소유한다. DB3 SQL은 Canonical DB Renderer/Installer가 외부 lifecycle 자산으로 생성·적용한다.
 - Generated Customer Business Domain의 물리 Project Root는 `cpf-<domain>/` naming을 사용한다. CPF 개발 Repository의 공식 회귀 Generated Root는 `cpf-member/`(MBR)와 `cpf-external/`(EXS) 두 개이며 **둘 다 동일 Canonical Generator로 실제 생성·유지하고 최종 결과물에 포함**한다. `cpf-` Prefix는 Generated Project naming convention일 뿐 CPF Product Module/Public BOM/Publication 등록을 의미하지 않는다. 모든 다른 Domain도 동일 설정 Schema로 생성 가능해야 하며 member/MBR/external/EXS 특수 하드코딩을 금지한다.
 - `cpf-core` 외 Capability `*/core` Module을 금지한다. `10_06` 기준 `cpf-starters/foundation/**` 물리 Root는 이미 제거되어 있으므로 `base`/실제 Owner 상태를 유지하고 `foundation` physical owner 재도입을 금지한다.
 - Web Base/Context/Error mapping은 Profile이 아니라 `cpf-starters/web` Capability가 소유한다.
@@ -234,7 +248,7 @@ CPF는 금융권을 포함한 다양한 업무 시스템을 구축·운영·감�
 - idempotency, async, outbox/inbox, DLQ, compensation, unknown-result recovery
 - Gateway, 외부 REST/전문/파일, Kafka messaging
 - Spring Batch, Scheduler, Agent, Runner, Worker와 Center-Cut
-- ADM/BZA 운영 조회·제어·승인·감사·통계·incident
+- ADM/Backoffice 운영 조회·제어·승인·감사·통계·incident
 - 표준 Generator와 신규 업무 Domain lifecycle
 - OpenAPI, JavaDoc, Test Kit, EDU와 실제 Reference Runtime
 - install, migration, upgrade, rollback/forward recovery, backup/restore, deploy와 artifact trust
@@ -252,7 +266,7 @@ CPF는 금융권을 포함한 다양한 업무 시스템을 구축·운영·감�
 - 독립 Microservice
 - 동일 JVM Local Facade
 - 분리 WAS Remote Facade
-- ADM 독립 Frontend Artifact + Web Server, BZA는 외부 `cpf-biz-channel` + `cpf-biz-frontend` 선택형 배포
+- ADM 독립 Frontend Artifact + Web Server, Backoffice는 `cpf-backoffice` Domain + 외부 `cpf-backoffice-web` 선택형 배포
 - Gateway 독립 Runtime
 - Agent/Runner/Worker 독립 Process
 - Multi-instance와 Multi-zone
@@ -278,9 +292,9 @@ Local 구현이 Remote보다 기능이 적거나, Remote 전환을 위해 업무
 | 기술 공통 Framework | `cpf-core` | `com.cpf.core` | CPF | CPF 전역 Kernel: topology-independent Contract/Semantics/Value와 최소 순수 Logic. 특정 Owner/Optional Capability API·SPI와 Runtime 구현은 소유하지 않음 |
 | CPF Common Product Capability | `cpf-starters/common` (`cpf-starter-common`) | `com.cpf.common` | CMN | CPF가 소유·버전관리하며 고객 업무가 직접 사용하는 Code/Parameter/Message/Calendar/Template. 고객 특화 공통은 `<customer>-common` |
 | 플랫폼 관리자 | `cpf-admin` | `com.cpf.admin` | ADM | 플랫폼 운영 Control Plane, 플랫폼 위험조치 승인과 운영자 감사 |
-| 고객 업무 관리자 Domain | `cpf-biz-admin` | `com.cpf.bizadmin` | BZA | Optional Prebuilt Business Administration Domain. Backoffice 업무/승인/권한/설정 Owner이며 다른 Business Master/DB를 소유하지 않음 |
-| BZA 외부 Channel | `cpf-biz-channel` | 독립 Spring Boot package | 외부 Channel | DB-less Pure Spring Boot BFF. CPF Java dependency 0, HTTP/HTTPS Public Contract only |
-| BZA Reference Frontend | `cpf-biz-frontend` | Vue/TypeScript | Browser | Channel Server만 호출하는 선택형 대표 Reference UI |
+| 고객 업무 Backoffice Domain | `cpf-backoffice` | `com.cpf.backoffice` | MBW | Optional Prebuilt Business Administration Domain. Backoffice 업무/승인/권한/설정 Owner이며 다른 Business Master/DB를 소유하지 않음 |
+| Backoffice 외부 Channel | `cpf-backoffice-web` | 독립 Spring Boot package | 외부 Channel | DB-less Pure Spring Boot BFF. CPF Java dependency 0, HTTP/HTTPS Public Contract only |
+| Backoffice Reference Frontend | `cpf-backoffice-web` | Vue/TypeScript | Browser | Channel Server만 호출하는 선택형 대표 Reference UI |
 | Batch 실행 기반 | `cpf-batch` | `com.cpf.batch` | BAT | Spring Batch, Scheduler, Center-Cut, Agent, Runner, Worker |
 | Gateway Runtime | `cpf-gateway` | `com.cpf.gateway` | GWY | 외부 진입, trust boundary, route/load balance/resilience와 attempt ledger |
 | Generated Customer Domain Verification — Member | `cpf-member` | `member` | MBR | Root-level 실제 Generator Output. `online/`을 필수 생성하고 `modules.batch=true` 회귀로 `batch/`도 선택 생성한다. MBR_* Sample Transaction과 Public `cpf-starter-batch` 소비를 검증한다. CPF Product/Public Artifact 아님 |
@@ -297,7 +311,7 @@ Generated/Business Domain → Public Starter/Common Capability → cpf-core
 cpf-gateway → cpf-core Public Contract + 선택 Starter
 cpf-batch → cpf-core Public Contract + Business Public Contract
 cpf-admin → Operations Command/Query Contract
-cpf-biz-channel → HTTP/HTTPS Public Contract → cpf-biz-admin → Business Public Contract
+cpf-backoffice-web → HTTP/HTTPS Public Contract → cpf-backoffice → Business Public Contract
 Customer Adapter/Plugin → Capability Public SPI / `<customer>-common`; Core SPI는 genuine Kernel extension에 한정
 ```
 
@@ -306,7 +320,7 @@ Customer Adapter/Plugin → Capability Public SPI / `<customer>-common`; Core SP
 - `cpf-core`의 Common/Admin/Batch/업무 역방향 의존
 - 선택 기능 Runtime(Kafka, Redis, OTel exporter 등)의 Core 강제 포함
 - 업무 Domain 간 DB 직접 접근
-- ADM의 Owner DB 직접 갱신 및 `cpf-biz-admin`의 다른 Business Domain DB 직접 접근
+- ADM의 Owner DB 직접 갱신 및 `cpf-backoffice`의 다른 Business Domain DB 직접 접근
 - 내부 호출의 Gateway 재경유
 - 순환 의존과 Internal Package 직접 참조
 - 실제 Product Consumer 없는 Interface/Adapter/Starter
@@ -357,11 +371,11 @@ com.cpf.<owner>.internal
 CPF가 제품으로 제공하는 Runtime/Application 자체와 CPF 도입 개발자가 직접 개발해야 하는 영역을 구분한다.
 
 - `cpf-admin`의 ADM은 플랫폼 운영 Control Plane **제품**이다. CPF 도입 개발자가 ADM 자체를 다시 개발하는 교육 대상이 아니다.
-- `cpf-biz-admin`의 BZA도 고객 업무 관리 제품/확장 Surface이며, 제품 본체의 내부 기능을 EDU에 복제하지 않는다.
+- `cpf-backoffice`의 Backoffice도 고객 업무 관리 제품/확장 Surface이며, 제품 본체의 내부 기능을 EDU에 복제하지 않는다.
 - `cpf-education`은 CPF 도입 개발자가 실제로 사용해야 하는 **Public API, Public SPI, 공식 Extension Point, Integration Contract, Generator 산출물 사용법**을 실행 가능한 예제로 교육하는 영역이다.
-- ADM/BZA/Gateway/Batch 내부 구현을 이름만 바꾼 Generic Handler/JDBC 예제로 EDU에 중복 구현하지 않는다.
-- ADM/BZA 제품 기능의 완전성은 해당 Product Source/API/Frontend/SQL/Test/Runtime/Manual에서 검증한다.
-- ADM/BZA와 관련된 EDU는 외부 Consumer가 실제로 구현·호출하는 공식 Public Extension/Integration 시나리오일 때만 유지한다.
+- ADM/Backoffice/Gateway/Batch 내부 구현을 이름만 바꾼 Generic Handler/JDBC 예제로 EDU에 중복 구현하지 않는다.
+- ADM/Backoffice 제품 기능의 완전성은 해당 Product Source/API/Frontend/SQL/Test/Runtime/Manual에서 검증한다.
+- ADM/Backoffice와 관련된 EDU는 외부 Consumer가 실제로 구현·호출하는 공식 Public Extension/Integration 시나리오일 때만 유지한다.
 - EDU 수량은 그 자체가 목표가 아니다. Canonical EDU Catalog의 수량은 Public Consumer 교육 필요성과 Architecture Ownership에 의해 결정한다.
 - 기존 EDU ID를 축소·통합·재분류해야 할 경우 QA가 Source/Consumer/Generator/Manual/Test 영향도를 검토하고 정본 Requirement를 먼저 갱신한다. 개발GPT가 QA 원장을 임의 삭제하거나 완료 처리하지 않는다.
 
@@ -612,26 +626,26 @@ TCP Starter는 연결 수명주기, framing, encoding, heartbeat, reconnect, bac
 - Center-Cut은 immutable parameter, item claim/lease/fencing, global rate, failed-only reprocess와 unknown reconciliation을 제공한다.
 - Agent는 승인 Script/Artifact만 실행하고 process tree, output budget, timeout, drain, takeover, artifact trust를 제공한다.
 
-## 13. ADM·BZA·Frontend·BFF
+## 13. ADM·Backoffice·Frontend·BFF
 
 ADM은 플랫폼 운영 Control Plane이며 Owner DB를 직접 수정하지 않는다. 위험조치는 Owner Command API로 수행한다.
 
-`cpf-biz-admin`은 Optional Prebuilt Business Administration Domain이다. Backoffice 업무규칙·승인·업무권한·BZA-owned data를 소유하되 Member/Customer/Account 등 다른 Business Master를 중복 소유하거나 타 Domain DB를 직접 접근하지 않는다. 다른 업무 데이터는 공식 Business Domain Invocation/Public Contract를 사용한다.
+`cpf-backoffice`는 Optional Prebuilt Business Domain이다. Backoffice 업무규칙·승인·업무권한·Backoffice-owned data를 소유하되 Member/Customer/Account 등 다른 Business Master를 중복 소유하거나 타 Domain DB를 직접 접근하지 않는다. 다른 업무 데이터는 공식 Business Domain Invocation/Public Contract를 사용한다.
 
-BZA 외부 배포는 다음처럼 분리한다.
+Backoffice 외부 배포는 다음처럼 단순화한다.
 
 ```text
-Browser → cpf-biz-frontend → cpf-biz-channel → Gateway 또는 허용된 Direct Public HTTP → cpf-biz-admin → Business Domain
+Browser → cpf-backoffice-web(Frontend+BFF) → Gateway 또는 허용된 Direct Public HTTP → cpf-backoffice → Business Domain
 ```
 
-- `cpf-biz-channel`: Pure Spring Boot, DB-less, CPF Java/BOM/Starter/Internal dependency 0, HTTP/HTTPS only.
-- `cpf-biz-frontend`: Channel만 호출하는 선택형 Vue/TypeScript Reference Frontend. 기본 Public Reference는 대표 흐름의 소수 Page로 유지한다.
+- `cpf-backoffice-web`: Frontend SPA + Pure Spring Boot BFF 통합 Deployable. BFF는 DB-less, CPF Java/BOM/Starter/Internal dependency 0, HTTP/HTTPS Public Contract only.
+- `cpf-backoffice-web/frontend`: 동일 Deployable 내부의 Vue/TypeScript Reference Frontend이며 BFF same-origin API만 호출한다. 기본 Public Reference는 실제 업무 Channel 연동 Golden Path를 보여준다.
 - Direct HTTP는 Gateway 보안 우회가 아니며 인증·인가·Channel Policy·Audit·Canonical System Header 검증을 동일하게 수행한다.
-- BZA Channel/Frontend를 제거해도 내부 CPF Business Runtime은 정상이어야 하고, `cpf-biz-admin`까지 제거한 BZA 미사용 구성도 필수 Framework/Domain Build와 Runtime을 깨뜨리지 않아야 한다.
+- Backoffice Web를 제거해도 내부 CPF Business Runtime은 정상이어야 하고, `cpf-backoffice`까지 제거한 Backoffice 미사용 구성도 필수 Framework/Domain Build와 Runtime을 깨뜨리지 않아야 한다.
 
 Frontend 공통 기준:
 
-- ADM/BZA Frontend는 독립 Vue 3 + TypeScript + Vite Application/Artifact로 배포하되 BZA Frontend는 외부 Channel만 호출한다.
+- ADM/Backoffice Frontend는 독립 Vue 3 + TypeScript + Vite Application/Artifact로 배포하되 Backoffice Frontend는 외부 Channel만 호출한다.
 - feature-first 구조를 사용하고 기능별 `pages/components/api/model/composables/store`를 필요한 수준으로 분리한다.
 - OpenAPI generated client와 source contract drift gate를 유지한다.
 - package.json/package-lock exact 일치와 clean `npm ci`를 검증한다.
@@ -796,7 +810,7 @@ Generator 완료는 **생성 직후 개발자가 Application 실행 → API 호�
 
 EDU는 Product 완성도를 대신하는 우회 구현이 아니다.
 
-- 제품 ADM/BZA/Gateway/Batch 자체의 CRUD·운영·승인·Incident·Topology·Log/Trace·Session 기능은 제품 Module에서 완성한다.
+- 제품 ADM/Backoffice/Gateway/Batch 자체의 CRUD·운영·승인·Incident·Topology·Log/Trace·Session 기능은 제품 Module에서 완성한다.
 - EDU는 도입 개발자가 직접 작성해야 하는 Consumer/Extension/Integration 개발 예제에 집중한다.
 - EDU ID별로 `교육 대상 사용자`, `공개 계약`, `실제 Consumer`, `왜 EDU가 필요한지`를 설명할 수 없으면 Architecture 재분류 대상으로 본다.
 - 기존 `EDU-ADM-*`를 포함한 EDU 항목은 숫자를 유지하기 위해 Product 기능을 복제하지 않는다.
@@ -1168,7 +1182,7 @@ Catalog에 존재하는 Capability가 Function Catalog에서 빠지면 완료가
 - `cpf-education`은 개발자가 복사 가능한 Online/Batch 예제에서 새 API를 실제 사용한다.
 - representative Golden Path에 직접 raw CompletableFuture/paging/logging/cache/transaction/integration boilerplate가 남으면 migration 미완료다.
 - Advanced/Native Sample은 의도적 Escape Hatch 예제로 명확히 구분한다.
-- ADM/BZA/OpenAPI/Generated Client가 해당 운영 Capability의 Consumer라면 함께 currentize한다.
+- ADM/Backoffice/OpenAPI/Generated Client가 해당 운영 Capability의 Consumer라면 함께 currentize한다.
 
 #### 16.3.14 EDU/Testkit False-Green 금지
 
@@ -1214,7 +1228,7 @@ Logical Definition
 → Public Bean / Registry / Client
 → Business Source Invocation
 → Health / Diagnostics
-→ ADM/BZA Operations where applicable
+→ ADM/Backoffice Operations where applicable
 → Audit / Drift / Rollback
 → Generator / EDU
 → Runtime / Fault Evidence
@@ -1477,7 +1491,7 @@ Source API는 raw Map/string mutation보다 Typed Customizer/Builder/SPI를 우�
 이 Configuration closure는 Gateway/Integration 몇 개만 검수하고 종료하지 않는다.
 
 최소 Scope:
-`cpf-core`, `cpf-starters/**`, `cpf-gateway`, `cpf-batch/**`, `cpf-admin`, `cpf-biz-admin`,
+`cpf-core`, `cpf-starters/**`, `cpf-gateway`, `cpf-batch/**`, `cpf-admin`, `cpf-backoffice`,
 `cpf-member`, `cpf-external`, `cpf-education`, `cpf-tools/generator`, `cpf-tools/environment/**`, `deploy/**`.
 
 전 Repository의:
@@ -1913,7 +1927,7 @@ Build 필수:
 - Published POM/BOM/source/javadoc
 - deterministic/reproducible artifact
 - final JAR/WAR/static artifact dependency inclusion
-- ADM/BZA package lock와 generated client
+- ADM/Backoffice package lock와 generated client
 - unsupported stack fail-closed
 
 Artifact/Deploy 필수:
@@ -2023,7 +2037,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 7. 실제 Kafka, 외부 failure, response loss와 unknown-result reconciliation
 8. Spring Batch, Scheduler, Center-Cut, Agent/Runner/Worker
 9. Gateway streaming/disconnect/retry/failover와 ledger
-10. ADM Server Authorization/Production Build와 외부 BZA Reference Frontend의 Browser E2E; 내부 `cpf-biz-admin`은 Domain/API/권한/DB 계약을 별도 검증
+10. ADM Server Authorization/Production Build와 외부 Backoffice Reference Frontend의 Browser E2E; 내부 `cpf-backoffice`은 Domain/API/권한/DB 계약을 별도 검증
 11. Session/BFF, Security, Approval, Audit, Privacy와 Masking
 12. Generator create→runtime→remove→regenerate lifecycle
 13. Final Artifact signature, deploy, selective rollback와 supply-chain scan
@@ -2197,10 +2211,10 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | `ADM-INCIDENT` | cpf-admin | alert→incident→severity/owner→runbook/action→postmortem/closure 흐름과 관련 transaction/evidence를 연결한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
 | `ADM-UX` | cpf-admin | 대량 검색·paging·sort·filter·saved condition·status·empty/error/loading·responsive·keyboard·accessibility·safe download UX를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
 | `ADM-APPROVAL` | cpf-admin | 플랫폼 위험조치의 versioned policy, ALL/ANY/N_OF_M, SoD, expiry, break-glass, immutable command hash와 owner-command execution을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
-| `BZA-BUSINESS` | cpf-biz-admin | 고객 업무 관리자 메뉴·권한·업무 조회·등록·변경·download·approval을 업무 Domain Public Contract로 수행한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
-| `BZA-ORG` | cpf-biz-admin | 조직 hierarchy, 직원, 사번, 직급/직책, 유효기간 assignment, 겸직/파견/대행, masked profile과 결재 snapshot을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
-| `BZA-APPROVAL` | cpf-biz-admin | 순차/병렬/개인/role/조직/ALL/ANY/N_OF_M/위임/대결/회수/재상신/만료/동시승인과 policy/instance 분리를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
-| `BZA-SEQUENCE-SAMPLE` | cpf-biz-admin | 업무 채번을 선택형 Customization Sample로 제공하되 기본 Runtime 의존을 만들지 않고 규칙·시험·승인·audit를 교육한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `MBW-BUSINESS` | cpf-backoffice | 고객 업무 관리자 메뉴·권한·업무 조회·등록·변경·download·approval을 업무 Domain Public Contract로 수행한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `MBW-ORG` | cpf-backoffice | 조직 hierarchy, 직원, 사번, 직급/직책, 유효기간 assignment, 겸직/파견/대행, masked profile과 결재 snapshot을 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `MBW-APPROVAL` | cpf-backoffice | 순차/병렬/개인/role/조직/ALL/ANY/N_OF_M/위임/대결/회수/재상신/만료/동시승인과 policy/instance 분리를 제공한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
+| `MBW-SEQUENCE-SAMPLE` | cpf-backoffice | 업무 채번을 선택형 Customization Sample로 제공하되 기본 Runtime 의존을 만들지 않고 규칙·시험·승인·audit를 교육한다. | Server 권한 Test, API/OpenAPI, DB migration, Chromium·Firefox·WebKit E2E, 위험조치 audit Evidence |
 | `SEC-AUTHN` | cpf-core security contract + product owner | 사용자·운영자·service의 MFA/OIDC/OAuth2/JWT/API key/mTLS 인증, credential lifecycle, session/token replay 방어를 제공한다. Resource Server뿐 아니라 OIDC/OAuth2 Login 기반 SSO를 Keycloak·Microsoft Entra ID·Okta 등 외부 IdP와 연동하고 user/tenant/role/group/scope/claim을 CPF Security Context로 안전하게 매핑하며 login/logout/session/token 만료·갱신과 Frontend/BFF 연결을 제공한다. SAML2는 필요 시 Optional 확장으로 둔다. | 보안 Negative Corpus, credential/PII leak scan, issuer/audience/expiry/claim mapping, login/logout/session/refresh, IdP failure, rotation/revocation, 권한·audit와 침해경계 Evidence |
 | `SEC-AUTHZ` | cpf-core security contract + product owner | RBAC/ABAC, least privilege, server-side resource/action authorization, SoD, permission version과 즉시 회수를 제공한다. | 보안 Negative Corpus, credential/PII leak scan, rotation/revocation, 권한·audit와 침해경계 Evidence |
 | `SEC-SECRET` | cpf-core security contract + product owner | Secret Provider SPI, 외부 Vault/file/env 및 KMS/HSM Provider integration, key version/rotation/revocation/provider health/failure-timeout, 필요 시 PKCS#11 연계, zeroization와 log/config/ADM/evidence의 key·secret 원문 금지를 제공한다. Local/JCE와 외부 KMS/HSM은 동일 계약을 따르되 Provider 고유 기능을 불필요하게 가두지 않는다. | 보안 Negative Corpus, credential/PII leak scan, KMS/HSM/provider failover·health, key version/rotation/revocation, 권한·audit와 침해경계 Evidence |
@@ -2241,7 +2255,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | `SAMPLE-ACC` | cpf-education / generated reference | 범용 계정/업무 흐름을 과도한 제품 원장 없이 Local/Remote·validation·transaction·error 사용법을 보여주는 선택형 Sample로 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `SAMPLE-MBR` | Generator verification + root generated domains | `member`(MBR)와 `external`(EXS)을 동일 Generator/Template으로 각각 `cpf-member/`, `cpf-external/` Root에 실제 생성·유지한다. 둘 다 필수 Online 회귀, 기본 Public Starter, CUSTOMER_BUSINESS_DB, `<PREFIX>_SAMPLE_TX` 실제 거래, 3단 Base, CPF Runtime Consumer를 갖는다. member는 `modules.batch=true`로 선택형 `batch/` 생성과 Public `cpf-starter-batch` 소비를 검증하고 external은 `modules.batch=false`로 batch 미생성 조합을 검증한다. 이후 모든 Domain은 설정만 바꿔 같은 품질로 생성 가능해야 한다. | fresh generation→member/external normalized parity→sample DB transaction→Online compile/test/runtime→DB3→Batch capability include/exclude 독립 회귀→hardcoding scan→dry-run/diff/regenerate/idempotency/upgrade/remove/restore→user-owned 보호→최종 Root 보존 Evidence |
 | `SAMPLE-REF` | cpf-education / generated reference | cpf-education에서 제품 Public API의 정상·오류·경계·복구·권한·운영 사용법을 실제 Runtime으로 교육한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
-| `SAMPLE-BIZADM` | cpf-education / generated reference | BZA 선택형 업무관리/채번/결재 Customization Sample을 기본 활성화 없이 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
+| `SAMPLE-BIZADM` | cpf-education / generated reference | Backoffice 선택형 업무관리/채번/결재 Customization Sample을 기본 활성화 없이 제공한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `SAMPLE-EDU` | cpf-education / generated reference | 교육 시나리오가 장난감 계약을 만들지 않고 실제 Header/API/DB/Event/Batch/Security 표준을 사용한다. | fresh clone에서 생성→build→runtime→remove→regenerate, normalized parity와 사용자 코드 보호 Evidence |
 | `API-CONTRACT` | cpf-core API contract + endpoint owner | HTTP/Local/Remote API의 header, auth, success/error, version, idempotency, permission, content type, example과 consumer compatibility를 정의한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
 | `API-PAGING` | cpf-core API contract + endpoint owner | offset page, slice, keyset/signed cursor, sort/filter allowlist, stable ordering, max size와 count 비용 정책을 제공한다. | OpenAPI/Generated Client/Consumer Contract, 정상·오류·경계·호환성·streaming Runtime Evidence |
@@ -2253,7 +2267,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | `TEST-UNIT` | repository-wide test ownership | 순수 로직·validation·state transition·error mapping·serialization·security utility를 deterministic unit test로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-CONTRACT` | repository-wide test ownership | Public API/SPI, Local/Remote, OpenAPI, message schema, DB query, generated client와 published artifact compatibility를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-RUNTIME` | repository-wide test ownership | 실제 Java25/WAS/DB/Process 환경에서 startup, endpoint, transaction, shutdown, recovery와 resource leak를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
-| `TEST-BROWSER` | repository-wide test ownership | ADM/BZA의 Chromium/Firefox/WebKit, route/deep link/session/permission/error/a11y/keyboard/responsive를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
+| `TEST-BROWSER` | repository-wide test ownership | ADM/Backoffice의 Chromium/Firefox/WebKit, route/deep link/session/permission/error/a11y/keyboard/responsive를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-BROKER` | repository-wide test ownership | 실제 Kafka·JMS/IBM MQ·RabbitMQ 지원 Matrix에서 ACK, transaction, duplicate, ordering, redelivery/rebalance, retry/DLQ, broker outage와 consumer crash를 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-FAULT` | repository-wide test ownership | DB/network/broker/disk/process/time/response loss를 side-effect 전후에 주입해 idempotency·unknown·recovery·compensation을 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
 | `TEST-EVIDENCE` | repository-wide test ownership | 모든 검증의 exact SHA, command, environment, time, exit code, report/artifact hash, sanitized 여부를 schema로 검증한다. | exact SHA·명령·환경·exit code·report hash가 있는 직접 실행 Evidence |
@@ -2262,7 +2276,7 @@ CPF는 기능 개수보다 **업무 개발 표준화, 낮은 boilerplate, 운영
 | `REL-MIG` | cpf-tools release/deploy | 제품/DB/config/API/message/file schema의 install/upgrade/downgrade/forward recovery, compatibility window와 migration guide를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
 | `REL-COMPAT` | cpf-tools release/deploy | semantic version, compatibility range, deprecation, consumer matrix, rolling mixed-version, rollback와 unsupported combination fail-closed를 제공한다. | fresh clean build, signed final artifact, install/upgrade/rollback, mixed-version와 final-artifact SBOM Evidence |
 | `DOC-GOV` | cpf-docs + source owner | Final Target, ADR, Requirement Continuity, Current Request, Review, Handover의 역할·정본·폐기·변경 승인 규칙을 제공한다. | Source/API/SQL/Test와 문서의 링크·예제·명령을 현재 exact SHA에서 검증한 Evidence |
-| `DOC-PRODUCT` | cpf-docs + source owner | 개발자·운영자·ADM/BZA·Gateway·Batch·설치·Migration·복구 Guide, OpenAPI, JavaDoc가 실제 Source와 일치하게 한다. | Source/API/SQL/Test와 문서의 링크·예제·명령을 현재 exact SHA에서 검증한 Evidence |
+| `DOC-PRODUCT` | cpf-docs + source owner | 개발자·운영자·ADM/Backoffice·Gateway·Batch·설치·Migration·복구 Guide, OpenAPI, JavaDoc가 실제 Source와 일치하게 한다. | Source/API/SQL/Test와 문서의 링크·예제·명령을 현재 exact SHA에서 검증한 Evidence |
 | `PROD-EDITION` | product governance | Edition/License/Capability packaging을 기술 Runtime과 분리하고 미결정 정책을 GA 완료처럼 노출하지 않는다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
 | `PROD-MULTITENANT` | product governance | tenant context, data/config/permission/secret/quota/audit isolation과 tenant lifecycle을 선택 기능으로 설계한다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
 | `PROD-PLUGIN` | product governance | 고객/기관 Plugin·Adapter의 SPI, package, signature, compatibility, isolation, lifecycle, permission와 marketplace 후보 정책을 제공한다. | ADR, capability boundary, packaging/compatibility/security prototype와 명시적 지원 상태 |
@@ -2328,7 +2342,7 @@ P0/P1/P2는 수행 우선순위일 뿐 Developer GPT 전달물을 분할하는 �
 | 2 | 다중 인스턴스 / 분리 WAS / MSA 일관성 | `ARCH-MSA`, `CPF-LOCK`, `CPF-HEALTH`, `TEST-RUNTIME` |
 | 3 | Transaction / Outbox / Inbox / Idempotency 통합 | `TX-LOCAL`, `TX-INBOX`, `TX-E2E`, `EVENT-OUTBOX`, `TEST-FAULT` |
 | 4 | Security / Identity 통합 모델 | `SEC-AUTHN`, `SEC-AUTHZ`, `SEC-APP`, `SEC-AUDIT`, `SEC-SECRET` |
-| 5 | 위험 운영조치 승인 / SoD / Break-glass | `SEC-APPROVAL`, `ADM-APPROVAL`, `ADM-AUDIT`, `BZA-APPROVAL` |
+| 5 | 위험 운영조치 승인 / SoD / Break-glass | `SEC-APPROVAL`, `ADM-APPROVAL`, `ADM-AUDIT`, `MBW-APPROVAL` |
 | 6 | Starter/API Developer Experience 전수 Audit | `STARTER-DX`, `DEVEX-LAYER`, `DEVEX-QUICK`, `DEVEX-UTILITY` |
 | 7 | Public API / SPI / Internal 경계 최종 정리 | `ARCH-BOUNDARY`, `ARCH-LAYER`, `PROD-PLUGIN`, `RULE-ARCH` |
 | 8 | Starter Canonical Catalog 단일화 | `ARCH-STARTER`, `STARTER-DX`, `RULE-ARCH` |
@@ -2348,7 +2362,7 @@ P0/P1/P2는 수행 우선순위일 뿐 Developer GPT 전달물을 분할하는 �
 | 22 | Messaging 장애대응 표준화 | `EVENT-BROKER`, `EVENT-OUTBOX`, `EVENT-DLQ`, `EVENT-SCHEMA`, `TEST-BROKER` |
 | 23 | Integration 장애대응 표준화 | `ARCH-MSA`, `API-CONTRACT`, `TEST-FAULT` |
 | 24 | ADM Commercial Control Plane 완성 | `ADM-AUTH`, `ADM-TX`, `ADM-BATCH`, `ADM-CENTER`, `ADM-LOG`, `ADM-AUDIT`, `ADM-RECOVERY`, `ADM-INCIDENT`, `ADM-UX` |
-| 25 | BZA Business Admin 완성 | `BZA-BUSINESS`, `BZA-ORG`, `BZA-APPROVAL`, `BZA-SEQUENCE-SAMPLE` |
+| 25 | MBW Backoffice Business Domain 완성 | `MBW-BUSINESS`, `MBW-ORG`, `MBW-APPROVAL`, `MBW-SEQUENCE-SAMPLE` |
 | 26 | Common Code / Message / Parameter Runtime화 | `CMN-CODE`, `CMN-MSG`, `CMN-CALENDAR`, `CMN-TEMPLATE`, `CMN-SAMPLE-DB` |
 | 27 | Config / Profile / Secret Governance | `OPS-CONFIG`, `SEC-SECRET`, `ARCH-STARTER`, `RULE-SEC` |
 | 28 | API / Event / DB Schema Versioning & Compatibility | `API-CONTRACT`, `EVENT-SCHEMA`, `REL-COMPAT`, `DB-MIGRATION` |
@@ -2356,7 +2370,7 @@ P0/P1/P2는 수행 우선순위일 뿐 Developer GPT 전달물을 분할하는 �
 | 30 | Testkit / Contract Test / Fault Injection Harness | `DEVEX-TESTKIT`, `TEST-CONTRACT`, `TEST-FAULT`, `TEST-BROKER` |
 | 31 | 성능·확장성 Engineering | `DB-PERF`, `OPS-CAPACITY`, `TEST-RUNTIME`, `RULE-QUALITY` |
 | 32 | Upgrade / Rollback / Publication / Supply Chain | `REL-BUILD`, `REL-DEPLOY`, `REL-MIG`, `REL-COMPAT`, `RULE-SEC` |
-| 33 | Time / Clock / Timezone / Sequence 표준 | `CMN-CALENDAR`, `BZA-SEQUENCE-SAMPLE`, `DEVEX-TESTKIT` |
+| 33 | Time / Clock / Timezone / Sequence 표준 | `CMN-CALENDAR`, `MBW-SEQUENCE-SAMPLE`, `DEVEX-TESTKIT` |
 | 34 | Resource Exhaustion / Backpressure / Overload Protection | `API-LIMIT`, `OPS-CAPACITY`, `TEST-FAULT`, `TEST-RUNTIME` |
 | 35 | Backup / Restore / DR / Rebuildability | `DB-BACKUP`, `OPS-DR`, `REL-MIG`, `TEST-RUNTIME` |
 | 36 | Data Privacy / Retention / Masking / Audit Lifecycle | `SEC-PRIVACY`, `SEC-AUDIT`, `CPF-LOGDB`, `DEVEX-LOGGING` |
@@ -2375,7 +2389,7 @@ P0/P1/P2는 수행 우선순위일 뿐 Developer GPT 전달물을 분할하는 �
 |---|---|
 | `FACADE-LOCAL` | `ARCH-MSA + CPF-CALL` |
 | `FACADE-REMOTE` | `ARCH-MSA + CPF-CALL` |
-| `CMN-ID` | `CPF-TXID + BZA-SEQUENCE-SAMPLE/업무 Domain` |
+| `CMN-ID` | `CPF-TXID + MBW-SEQUENCE-SAMPLE/업무 Domain` |
 | `CMN-FILE` | `CORE-FILE` |
 | `CMN-FIXED` | `CORE-FIXED` |
 | `ADM-COMP` | `ADM-RECOVERY` |
@@ -2679,11 +2693,11 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 - 내부 Domain Client는 Original System을 유지하고 현재 System을 다음 hop Caller로 전환하며 Target Contract에서 Target System과 Target Operation을 확정해 Canonical 6종을 자동 serialize한다. 동일 JVM은 self-HTTP를 만들지 않고 동일한 논리 Context 전환을 수행한다.
 - 외부 Channel이 Business Domain Public HTTP Contract를 호출할 때 `X-Transaction-Id`, `X-Original-System-Code`, `X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id`를 공식 ingress 정책에 따라 전달하고 Receiver-owned `X-System-Code`는 Receiver가 확정한다. 외부 입력의 `X-System-Code`를 trust source로 사용하지 않는다.
 - 수신은 Controller 실행 전에 누락·형식, Target System과 Receiver System, trusted caller/channel policy, 실제 Canonical operationId와 `X-Target-Operation-Id`의 일치를 검증한다. protocol/security failure도 transaction/log/ADM correlation에 durable evidence로 남긴다.
-- Channel identity는 Web/Mobile/BZA/Partner 등 유입·인증·정책 문맥을 위한 별도 optional context다. `originalChannel/currentChannel/callerChannel/targetChannel`을 Canonical System Header의 alias로 사용하거나 System Code로 기계 변환하지 않는다.
+- Channel identity는 Web/Mobile/Backoffice Web/Partner 등 유입·인증·정책 문맥을 위한 별도 optional context다. `originalChannel/currentChannel/callerChannel/targetChannel`을 Canonical System Header의 alias로 사용하거나 System Code로 기계 변환하지 않는다.
 - 업무 개발자 Public Surface는 Framework 보호 Canonical Header를 read-only로 조회하고 일반 custom header API로 변경할 수 없게 한다. Web 전용 client/locale, Security identity, Runtime instance/hostname은 각 Owner API에서 제공한다.
 - transactionId 내부 issuer token은 `X-Original-System-Code`와 다른 발급 metadata이며 두 값을 동일 개념으로 비교하지 않는다.
 
-- Operation ID는 업무 Domain의 `@CpfOnlineTransaction.operationId`, 해당 OpenAPI `operationId`, Domain Client Target Contract, `X-Target-Operation-Id`, ADM Operation Catalog, Log/Trace에서 하나의 Canonical ID를 사용한다. ADM/BZA/Gateway/Health/Framework 관리 Endpoint의 OpenAPI operationId는 그 사실만으로 업무 Online Operation이 되지 않는다. 실행 건 `executionId`는 별도 의미다.
+- Operation ID는 업무 Domain의 `@CpfOnlineTransaction.operationId`, 해당 OpenAPI `operationId`, Domain Client Target Contract, `X-Target-Operation-Id`, ADM Operation Catalog, Log/Trace에서 하나의 Canonical ID를 사용한다. ADM/Backoffice/Gateway/Health/Framework 관리 Endpoint의 OpenAPI operationId는 그 사실만으로 업무 Online Operation이 되지 않는다. 실행 건 `executionId`는 별도 의미다.
 - Header Catalog, Policy, Context adapter, Domain call, Gateway, Logging/DB/ADM, Generator/Generated Domain/EDU/Test/문서는 동일 계약과 동일 이름을 사용한다. 구 System 거래 Header와 신규 Channel Header를 이중 Canonical로 남기지 않는다.
 
 ### 16.3.16H Fixed-Length 전문 Starter 실제 사용 계약
@@ -2706,7 +2720,7 @@ JTA를 사용하지 않는 MSA/외부 연동 Boundary는 `CpfResult` 4-state를 
 2. **Catalog와 Policy Ownership 분리**: Source/Framework는 Operation 사실·Handler/OpenAPI·발견상태·배포 Metadata를 소유한다. YML은 신규 Operation의 최초 Policy Seed만 제공하고, 최초 등록 뒤 enabled/Caller Channel/Operation/Channel/ALL/override/version은 ADM Policy가 최종 정본이다. `ALL`은 등록·활성 Caller Channel 전체를 평가 시점에 의미하는 symbolic policy이며 unknown/disabled/spoofed caller까지 허용하지 않는다. Source 미발견은 자동 삭제·자동 비활성화가 아니라 활성 Instance/Deployment 전체의 discovery evidence를 근거로 발견상태만 변경한다.
 3. **호출 통제와 장애 기본값**: trusted Caller Channel 등록·활성 확인, Target Channel과 Runtime Current Channel 정합, 실제 Handler operationId 검증 후 Operation Policy와 필요한 거래의 Channel Policy(`operationId + callerChannel`)를 Controller invocation 전에 적용한다. 독립 System/Domain 정책이 필요한 경우 Header Channel을 System 값으로 변환하지 않고 trusted Runtime/Registry metadata로 판정한다. Policy Store 장애는 유효 LKG와 maxStale 범위에서만 허용하고 LKG 부재·만료 시 fail-close한다. wildcard local fallback으로 호출을 허용하지 않는다.
 4. **Runtime Identity**: `instanceId`는 명시 `cpf.runtime.instance-id`, 환경변수 `CPF_RUNTIME_INSTANCE_ID`, 실제 Runtime Hostname 순으로 기동 시 한 번 확정한다. `local/dev/test/prod`, localhost, Domain명 등을 합성 fallback으로 사용하지 않는다.
-5. **관리/업무 경계**: ADM과 Gateway 관리 API는 업무 Domain Online Transaction Runtime이 아니므로 자체 관리 Controller에 `@CpfOnlineTransaction`이나 업무 거래 Header 6개를 강제하지 않는다. `cpf-biz-admin`은 이와 달리 **Optional Prebuilt Business Administration Domain**으로 업무 Domain Public 계약을 따른다. 외부 `cpf-biz-channel`은 DB-less HTTP Channel이며 CPF Java API를 사용하지 않는다. BZA Domain이 다른 Business Domain Operation을 호출할 때는 공식 Domain Invocation/Public Contract를 사용하고 타 Domain DB에 직접 접근하지 않는다.
+5. **관리/업무 경계**: ADM과 Gateway 관리 API는 업무 Domain Online Transaction Runtime이 아니므로 자체 관리 Controller에 `@CpfOnlineTransaction`이나 업무 거래 Header 6개를 강제하지 않는다. `cpf-backoffice`는 이와 달리 **Optional Prebuilt Business Domain**으로 업무 Domain Public 계약을 따른다. 외부 `cpf-backoffice-web`은 DB-less Pure Spring Boot BFF + Frontend Reference이며 CPF Java API를 사용하지 않는다. Backoffice Domain이 다른 Business Domain Operation을 호출할 때는 공식 Domain Invocation/Public Contract를 사용하고 타 Domain DB에 직접 접근하지 않는다.
 6. **Generated Domain IA**: `cpf-<domain>/online/`은 필수, `modules.batch=true`이면 `cpf-<domain>/batch/`를 선택 생성한다. Batch 실행 계약 Owner는 `cpf-batch`이며 Public Starter를 소비한다. 공유 `domain/`은 둘 이상의 Runtime에서 실제 공유 Consumer가 있을 때만 생성한다.
-7. **EDU Canonical**: `cpf-education/src/main/java/com/cpf/education/online` 20개와 `.../batch` 15개, 총 35개만 Canonical 업무 예제로 유지한다. ADM/BZA/Gateway/OPS/Legacy/Compatibility/Micro Sample 체계는 병행 유지하지 않는다. EDU는 최신 Public API/Golden Path를 사용하고 Internal/raw API 우회를 두지 않는다.
+7. **EDU Canonical**: `cpf-education/src/main/java/com/cpf/education/online` 20개와 `.../batch` 15개, 총 35개만 Canonical 업무 예제로 유지한다. ADM/Backoffice/Gateway/OPS/Legacy/Compatibility/Micro Sample 체계는 병행 유지하지 않는다. EDU는 최신 Public API/Golden Path를 사용하고 Internal/raw API 우회를 두지 않는다.
 8. **OSS/Spring Naming**: Spring/공식 OSS를 감싸거나 확장하는 CPF 공개 타입은 `Cpf + 공식 타입명`을 사용하고 메서드명은 공식 API 이름을 따른다. 동일 역할 Alias를 병행하지 않으며 Spring/OSS의 의미·기본값·예외 규칙을 CPF가 임의 변경하지 않는다.

@@ -25,7 +25,7 @@ class CpfTrustedOriginFilterTest {
 
     @Test
     void acceptsConfiguredOriginForMutationRequest() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/users");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/users");
         request.addHeader("Origin", "https://console.example.com");
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
@@ -53,7 +53,7 @@ class CpfTrustedOriginFilterTest {
 
     @Test
     void rejectsMissingOriginAndRefererForMutationRequest() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("DELETE", "/api/bza/users/1");
+        MockHttpServletRequest request = new MockHttpServletRequest("DELETE", "/adm/api/users/1");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilter(request, response, new MockFilterChain());

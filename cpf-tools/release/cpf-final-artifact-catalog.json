@@ -33,7 +33,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "repository-module-or-deployment"
+      "consumer": "repository-module-or-deployment",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.core",
+      "publicProjectPath": ":framework:core"
     },
     {
       "artifactId": "cpf-admin",
@@ -49,17 +54,21 @@
       "consumer": "repository-module-or-deployment"
     },
     {
-      "artifactId": "cpf-biz-admin",
-      "ownerPath": "cpf-biz-admin",
+      "artifactId": "cpf-backoffice",
+      "ownerPath": "cpf-backoffice/online",
       "kind": "runtime",
-      "producer": "gradle:assemble",
-      "outputPattern": "cpf-biz-admin/build/libs/*.jar",
+      "producer": "gradle:bootJar",
+      "outputPattern": "cpf-backoffice/online/build/libs/*.jar",
       "requiredAttestations": [
         "sha256",
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "repository-module-or-deployment"
+      "consumer": "optional-prebuilt-business-domain-deployment",
+      "publicationClass": "PRIVATE_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "documentationArtifactException": "Backoffice implementation is a private optional prebuilt business-domain runtime; external compile-time consumers use public CPF contracts, not this implementation JAR."
     },
     {
       "artifactId": "cpf-gateway",
@@ -137,7 +146,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "repository-module-or-deployment"
+      "consumer": "repository-module-or-deployment",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.batch",
+      "publicProjectPath": ":runtime:batch:api"
     },
     {
       "artifactId": "cpf-batch-runtime-support",
@@ -163,7 +177,13 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "repository-module-or-deployment"
+      "consumer": "repository-module-or-deployment",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":runtime:batch:runtime",
+      "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
       "artifactId": "cpf-batch-control-plane",
@@ -257,17 +277,23 @@
       "consumer": "cpf-admin-runtime"
     },
     {
-      "artifactId": "cpf-biz-frontend",
-      "ownerPath": "cpf-biz-frontend",
-      "kind": "frontend",
-      "producer": "npm run build",
-      "outputPattern": "cpf-biz-frontend/dist/**",
+      "artifactId": "cpf-backoffice-web",
+      "ownerPath": "cpf-backoffice-web",
+      "kind": "reference-runtime",
+      "producer": "gradle:bootJar",
+      "outputPattern": "cpf-backoffice-web/build/libs/*.jar",
       "requiredAttestations": [
         "sha256",
         "npm-lock",
-        "browser-test"
+        "browser-test",
+        "cyclonedx-sbom",
+        "license-review"
       ],
-      "consumer": "external-bza-channel-users"
+      "consumer": "external-backoffice-channel-users",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "documentationArtifactException": "Deployable reference application; external compile-time Java API is not its contract. Source is distributed through the default-deny Public Developer Workspace."
     },
     {
       "artifactId": "cpf-db-oracle-pack",
@@ -319,7 +345,12 @@
         "pom-validation",
         "publication-test"
       ],
-      "consumer": "external-cpf-consumers"
+      "consumer": "external-cpf-consumers",
+      "publicationClass": "PUBLIC_BOM",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf",
+      "documentationArtifactException": "BOM is POM-only dependency alignment metadata; Java sources/Javadoc are not applicable."
     },
     {
       "artifactId": "cpf-gradle-plugin",
@@ -332,7 +363,33 @@
         "plugin-marker",
         "fresh-cache-test"
       ],
-      "consumer": "cpf-builds-and-generated-domains"
+      "consumer": "cpf-builds-and-generated-domains",
+      "visibility": "public-tooling",
+      "publicationClass": "PUBLIC_TOOLING",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.build",
+      "publicProjectPath": ":",
+      "documentationArtifactException": "Gradle tooling is consumed as a plugin/bootstrap tool; Java compile-time source/Javadoc publication is not the supported API surface."
+    },
+    {
+      "artifactId": "cpf-generator-cli",
+      "ownerPath": "cpf-tools/generator/distribution",
+      "kind": "developer-tooling",
+      "producer": "build-cpf-generator-binary.py + CI classifier aggregation",
+      "outputPattern": "<public-release-root>/binary-repository/com/cpf/tooling/cpf-generator-cli/<version>/**",
+      "requiredAttestations": [
+        "sha256",
+        "classifier-manifest",
+        "clean-public-consumer"
+      ],
+      "consumer": "public-developer-workspace-domain-new-sync",
+      "visibility": "public-tooling",
+      "publicationClass": "PUBLIC_TOOLING",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.tooling",
+      "documentationArtifactException": "Self-contained OS tooling binary; source/Javadoc publication is not the supported user contract. Canonical source remains private and the public workspace resolves signed/checksummed distributions."
     },
     {
       "artifactId": "cpf-testkit",
@@ -345,7 +402,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "repository-module-or-deployment"
+      "consumer": "repository-module-or-deployment",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.testkit",
+      "publicProjectPath": ":internal:testing:testkit"
     },
     {
       "artifactId": "cpf-starter",
@@ -362,7 +424,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:base"
     },
     {
       "artifactId": "cpf-starter-cache-caffeine",
@@ -379,7 +446,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:cache:caffeine"
     },
     {
       "artifactId": "cpf-cache-spring-data-redis",
@@ -396,7 +468,13 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":internal:data:cache:spring-data-redis",
+      "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
       "artifactId": "cpf-starter-cache-redis",
@@ -413,7 +491,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:cache:redis"
     },
     {
       "artifactId": "cpf-starter-cache-valkey",
@@ -430,7 +513,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:cache:valkey"
     },
     {
       "artifactId": "cpf-starter-data-jdbc",
@@ -447,7 +535,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:data:jdbc"
     },
     {
       "artifactId": "cpf-starter-data-mybatis",
@@ -464,7 +557,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:data:mybatis"
     },
     {
       "artifactId": "cpf-starter-data-jpa",
@@ -481,7 +579,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:data:jpa"
     },
     {
       "artifactId": "cpf-starter-file-archive",
@@ -498,7 +601,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-file-attachment",
@@ -515,7 +621,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-file-sftp",
@@ -532,7 +641,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-file-tabular-poi",
@@ -549,7 +661,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-ai",
@@ -566,7 +681,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-fixed-length",
@@ -583,7 +701,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-starter-consumer"
+      "consumer": "application-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:integration:fixed-length"
     },
     {
       "artifactId": "cpf-starter-integration-http",
@@ -600,7 +723,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-iso8583",
@@ -617,7 +743,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-resilience",
@@ -634,7 +763,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-soap",
@@ -651,7 +783,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-tcp",
@@ -668,7 +803,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-integration-webhook",
@@ -685,7 +823,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-messaging-ibm-mq",
@@ -702,7 +843,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:messaging:ibm-mq"
     },
     {
       "artifactId": "cpf-starter-messaging-jms",
@@ -719,7 +865,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:messaging:jms"
     },
     {
       "artifactId": "cpf-starter-messaging-kafka",
@@ -736,7 +887,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:messaging:kafka"
     },
     {
       "artifactId": "cpf-starter-messaging-rabbitmq",
@@ -753,7 +909,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:messaging:rabbitmq"
     },
     {
       "artifactId": "cpf-starter-messaging-reliability-jdbc",
@@ -770,7 +931,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-notification-dispatch",
@@ -787,7 +951,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-notification-email",
@@ -804,7 +971,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-notification-sms",
@@ -821,7 +991,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-platform-operations-channel-registry-jdbc",
@@ -838,7 +1011,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-platform-operations-feature-flag-openfeature",
@@ -855,7 +1031,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-platform-operations-observability-otlp",
@@ -872,7 +1051,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-platform-operations-runtime-control",
@@ -889,7 +1071,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-batch",
@@ -906,7 +1091,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-profile-consumer"
+      "consumer": "application-profile-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:profiles:batch"
     },
     {
       "artifactId": "cpf-starter-bff",
@@ -923,7 +1113,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-profile-consumer"
+      "consumer": "application-profile-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:profiles:bff"
     },
     {
       "artifactId": "cpf-starter-event",
@@ -940,7 +1135,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-profile-consumer"
+      "consumer": "application-profile-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:profiles:event"
     },
     {
       "artifactId": "cpf-starter-secure-api",
@@ -957,7 +1157,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-profile-consumer"
+      "consumer": "application-profile-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:profiles:secure-api"
     },
     {
       "artifactId": "cpf-starter-web-api",
@@ -974,7 +1179,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "application-profile-consumer"
+      "consumer": "application-profile-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:profiles:web-api"
     },
     {
       "artifactId": "cpf-starter-security-audit-jdbc",
@@ -991,7 +1201,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-oidc",
@@ -1008,7 +1221,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:security:oidc"
     },
     {
       "artifactId": "cpf-starter-security-resource-server",
@@ -1025,7 +1243,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-security-secret",
@@ -1042,7 +1263,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-security-service-identity",
@@ -1059,7 +1283,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-session-jdbc",
@@ -1076,7 +1303,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:security:session:jdbc"
     },
     {
       "artifactId": "cpf-starter-lock-valkey",
@@ -1093,7 +1325,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:data:lock:valkey"
     },
     {
       "artifactId": "cpf-starter-messaging-schema",
@@ -1110,7 +1347,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-graphql",
@@ -1127,7 +1367,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:integration:graphql"
     },
     {
       "artifactId": "cpf-starter-realtime",
@@ -1144,7 +1389,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:integration:realtime"
     },
     {
       "artifactId": "cpf-starter-object-storage-s3",
@@ -1161,7 +1411,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:file:object-storage:s3"
     },
     {
       "artifactId": "cpf-starter-session-valkey",
@@ -1178,7 +1433,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:security:session:valkey"
     },
     {
       "artifactId": "cpf-starter-platform-operations-health",
@@ -1195,7 +1455,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-starter-platform-operations-runtime-health-jdbc",
@@ -1212,7 +1475,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "profile-or-resolved-provider-binding"
+      "consumer": "profile-or-resolved-provider-binding",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
       "artifactId": "cpf-base-runtime",
@@ -1229,7 +1495,13 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:base-runtime",
+      "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
       "artifactId": "cpf-starter-common",
@@ -1246,7 +1518,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "framework-starter-consumer"
+      "consumer": "framework-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:common"
     },
     {
       "artifactId": "cpf-web-runtime",
@@ -1263,7 +1540,13 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:web",
+      "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
       "artifactId": "cpf-data-transaction-jta",
@@ -1280,23 +1563,256 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition"
+      "consumer": "internal-starter-composition",
+      "publicationClass": "PRIVATE_INTERNAL",
+      "publishSources": false,
+      "publishJavadoc": false
     },
     {
-      "artifactId": "cpf-biz-channel",
-      "ownerPath": "cpf-biz-channel",
-      "kind": "runtime",
-      "producer": "gradle:bootJar",
-      "outputPattern": "cpf-biz-channel/build/libs/*.jar",
+      "artifactId": "cpf-data",
+      "ownerPath": "cpf-starters/data",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/data/build/libs/*.jar",
       "requiredAttestations": [
         "sha256",
-        "cyclonedx-sbom",
-        "license-review"
+        "pom-validation",
+        "publication-test"
       ],
-      "consumer": "external-bza-channel-deployment"
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:data",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-data-persistence",
+      "ownerPath": "cpf-starters/data/persistence",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/data/persistence/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:data:persistence",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-file",
+      "ownerPath": "cpf-starters/file",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/file/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:file",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-integration",
+      "ownerPath": "cpf-starters/integration",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/integration/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:integration",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-messaging",
+      "ownerPath": "cpf-starters/messaging",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/messaging/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:messaging",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-platform-operations",
+      "ownerPath": "cpf-starters/platform-operations",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/platform-operations/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:operations",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-platform-operations-observability",
+      "ownerPath": "cpf-starters/platform-operations/observability",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/platform-operations/observability/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:operations:observability",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-security",
+      "ownerPath": "cpf-starters/security",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/security/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":framework:security",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-integration-http-runtime",
+      "ownerPath": "cpf-starters/integration/http",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/integration/http/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":internal:integration:http",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-integration-resilience-runtime",
+      "ownerPath": "cpf-starters/integration/resilience",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/integration/resilience/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":internal:integration:resilience",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-platform-operations-runtime-control",
+      "ownerPath": "cpf-starters/platform-operations/runtime-control",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/platform-operations/runtime-control/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":internal:platform-operations:runtime-control",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
+    },
+    {
+      "artifactId": "cpf-security-resource-server-runtime",
+      "ownerPath": "cpf-starters/security/resource-server",
+      "kind": "runtime-support",
+      "visibility": "public-runtime-support",
+      "producer": "gradle:publish",
+      "outputPattern": "cpf-starters/security/resource-server/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "pom-validation",
+        "publication-test"
+      ],
+      "consumer": "transitive-public-starter-runtime",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.runtime",
+      "publicProjectPath": ":internal:security:resource-server",
+      "documentationArtifactException": "Runtime support is a transitive/deployment implementation surface and is not a supported external compile-time Java API."
     }
   ],
   "removedArtifactIds": [
+    "cpf-biz-admin",
+    "cpf-biz-channel",
+    "cpf-biz-frontend",
     "cpf-integration-fixedlength-core",
     "cpf-notification-sms-spi",
     "cpf-starter-aop-service-access",
@@ -1358,6 +1874,9 @@
     "cpf-starter-validation"
   ],
   "removedRepositoryRoots": [
+    "cpf-biz-admin",
+    "cpf-biz-channel",
+    "cpf-biz-frontend",
     "cpf-starters/aop-service-access",
     "cpf-starters/cache-aggregate",
     "cpf-starters/data/cache-caffeine",
@@ -1687,5 +2206,18 @@
     }
   },
   "baselinePolicy": "GIT_HEAD_RUNTIME",
-  "retainedInactiveRoots": []
+  "retainedInactiveRoots": [],
+  "publicJavaPublicationPolicy": {
+    "classificationOwner": "cpf-tools/release/cpf-final-artifact-catalog.json",
+    "compileTimeClass": "PUBLIC_COMPILE_TIME_JAVA",
+    "requiredPublicationSet": [
+      "main-jar",
+      "pom",
+      "sources-jar",
+      "javadoc-jar"
+    ],
+    "versionParity": "main=pom=sources=javadoc=public-bom-reference",
+    "javadocFailurePolicy": "fail-closed",
+    "sourceLeakagePolicy": "internal/private implementation is release-blocker"
+  }
 }

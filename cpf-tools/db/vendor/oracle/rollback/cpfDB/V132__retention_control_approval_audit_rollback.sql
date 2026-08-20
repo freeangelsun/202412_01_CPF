@@ -1,0 +1,3 @@
+-- Rollback CPF V132.
+DROP TABLE OPS_RETENTION_CONTROL_AUDIT;
+ALTER TABLE OPS_RETENTION_RUN DROP (control_reason, control_actor_id);

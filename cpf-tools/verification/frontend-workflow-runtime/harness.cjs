@@ -4,8 +4,8 @@ const root=process.argv[2];
 function req(rel){return require(path.join(root,rel));}
 const bg=req('cpf-admin/frontend/src/features/break-glass/breakGlassWorkflow.js');
 const mt=req('cpf-admin/frontend/src/features/maintenance/maintenanceWorkflow.js');
-const employee=req('cpf-biz-frontend/src/features/employees/model/employeeModel.js');
-const approval=req('cpf-biz-frontend/src/features/approvals/model/approvalModel.js');
+const employee=req('cpf-backoffice-web/frontend/src/features/employees/model/employeeModel.js');
+const approval=req('cpf-backoffice-web/frontend/src/features/approvals/model/approvalModel.js');
 let checks=0; const eq=(a,b,msg)=>{checks++;assert.deepEqual(a,b,msg)}; const throws=(fn,re,msg)=>{checks++;assert.throws(fn,re,msg)};
 eq(bg.validateBreakGlassRequest(' MBR-01 ','긴급 장애 복구',15),{scopeValue:'MBR-01',reason:'긴급 장애 복구',ttlMinutes:15},'break-glass normalized');
 throws(()=>bg.validateBreakGlassRequest('','긴급 장애 복구',15),/대상/,'break-glass target');

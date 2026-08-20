@@ -1,0 +1,74 @@
+﻿path,classification,reason
+cpf-docs/guides/03_ADM_BZA_#Uac1c#Ubc1c_#Uac00#Uc774#Ub4dc.pdf,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/guides/03_ADM_BZA_#Uac1c#Ubc1c_#Uac00#Uc774#Ub4dc.docx,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/guides/03_ADM_BZA_#Uc774#Uc6a9_#Uc548#Ub0b4.docx,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/guides/03_ADM_BZA_#Uc774#Uc6a9_#Uc548#Ub0b4.pdf,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/cpf-bza-screen-anatomy.svg,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/cpf-bza-authorization.svg,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/cpf-bza-book-journey.svg,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/bza-approval.png,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/bza-permissions.png,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/bza-login.png,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/cpf-bza-screen-anatomy.png,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/assets/manuals/bza-dashboard.png,PRESERVE_ROLE_NAMING,BZA is retained as business-administrator role terminology; file is not a retired cpf-biz-* product root.
+cpf-docs/deliverables/evidence/CPF_BZA_ROUTE_OPERATION_MATRIX.csv,PRESERVE_HISTORICAL_EVIDENCE,Historical evidence only; current product/source identity is Backoffice(MBW).
+cpf-tools/db/vendor/mariadb/rollback/V63__bza_login_atomic_operation_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/V29__bza_backoffice_baseline_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/R53__bza_governance_operability_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/R85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/V62__bza_admin_create_idempotency_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/R91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/R70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/R65__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/V60__bza_employee_safe_defaults_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/rollback/V43__bza_approval_lifecycle_resubmit_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V29__bza_backoffice_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V38__transaction_id_unification_and_bza_governance.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V63__bza_login_atomic_operation.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V65__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V43__bza_approval_lifecycle_resubmit.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V60__bza_employee_safe_defaults.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V53__bza_governance_operability_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V62__bza_admin_create_idempotency.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V31__bza_operation_support.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/migration/flyway/V85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/V63__bza_login_atomic_operation_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/V29__bza_backoffice_baseline_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/R53__bza_governance_operability_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/V62__bza_admin_create_idempotency_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/R70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/R65__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/V60__bza_employee_safe_defaults_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/rollback/V43__bza_approval_lifecycle_resubmit_rollback.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V29__bza_backoffice_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V63__bza_login_atomic_operation.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V65__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V43__bza_approval_lifecycle_resubmit.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V60__bza_employee_safe_defaults.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V53__bza_governance_operability_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/mariadb/source/migration/flyway/V62__bza_admin_create_idempotency.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/checksums.sha256,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V63__cpf_vendor_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/migration/flyway/bzaDB/V64__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/rollback/bzaDB/R63__cpf_vendor_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/rollback/bzaDB/R85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/rollback/bzaDB/R64__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/rollback/bzaDB/R91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/oracle/rollback/bzaDB/R70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/checksums.sha256,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V63__cpf_vendor_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/migration/flyway/bzaDB/V64__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/rollback/bzaDB/R63__cpf_vendor_baseline.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/rollback/bzaDB/R85__bza_bootstrap_approval.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/rollback/bzaDB/R64__bza_login_idempotent_result.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/rollback/bzaDB/R91__bza_bootstrap_claim_recovery.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.
+cpf-tools/db/vendor/postgresql/rollback/bzaDB/R70__bza_action_permission_hardening.sql,PRESERVE_IMMUTABLE_DB_HISTORY,Flyway/rollback historical identity; renaming can break upgrade/checksum continuity.

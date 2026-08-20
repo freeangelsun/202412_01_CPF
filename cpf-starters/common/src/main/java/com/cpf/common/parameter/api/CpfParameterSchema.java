@@ -22,6 +22,7 @@ public record CpfParameterSchema(
         String description,
         List<ParameterDefinition> parameters) {
 
+    /** CPF Parameter 값의 허용 자료형과 검증/변환 규칙을 선택하는 유형입니다. */
     public enum ValueType {
         STRING, INTEGER, LONG, DECIMAL, BOOLEAN, DATE, DATETIME, ENUM, JSON_OBJECT,
         SECRET_REFERENCE, PATH_ALIAS, SERVICE_REFERENCE, FILE_REFERENCE, CODE_REFERENCE
@@ -183,6 +184,7 @@ public record CpfParameterSchema(
         }
     }
 
+    /** 다른 Parameter 값에 따라 특정 Field를 노출할지 결정하는 조건 계약입니다. */
     public record VisibilityCondition(String parameterName, String operator, List<String> values) {
         public VisibilityCondition {
             parameterName = clean(parameterName);
@@ -208,8 +210,11 @@ public record CpfParameterSchema(
     public record ValueLayer(ValueSource source, Map<String, ?> values) {
         public ValueLayer { source = Objects.requireNonNull(source, "source"); values = values == null ? Map.of() : Map.copyOf(values); }
     }
+    /** Parameter validation 실패 Field와 오류코드/메시지를 전달하는 결과 계약입니다. */
     public record FieldError(String field, String code, String message) {}
+    /** Schema validation 전체 결과와 Field 오류 목록을 함께 전달하는 결과 계약입니다. */
     public record ValidationReport(boolean valid, List<FieldError> errors, Map<String, Object> normalizedValues) {}
+    /** Parameter 참조와 기본값을 해석한 뒤 Runtime에 전달하는 불변 Snapshot입니다. */
     public record ResolvedSnapshot(String schemaId, long schemaVersion, Map<String, Object> values, Map<String, ValueSource> sources, String valueHash, OffsetDateTime resolvedAt) {}
     private record FieldValidation(boolean valid, String code, String message, Object normalizedValue) {
         static FieldValidation valid(Object value) { return new FieldValidation(true, "OK", "", value); }

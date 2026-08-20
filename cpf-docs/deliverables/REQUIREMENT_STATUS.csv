@@ -1,0 +1,10 @@
+﻿requirement_id,development_status,verification_status,개발GPT_상태,개발GPT_내용,개발GPT_Evidence
+DEV20-FINAL-REGRESSION,완료,완료,완료,Generator/DB/Public/Runtime/Security/Verification/Testing Tools 전수 회귀 PASS,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-BACKOFFICE,완료,완료,완료,Backoffice MBW boundary/Web BFF/route/Canonical6 현행화 및 검증,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-SYSTEM6,완료,완료,완료,"구 Channel6 검증 잔재 제거, Canonical System6 검증으로 현행화",cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-DB3,완료,완료,완료,"DB tests 157 PASS, canonical DB3 render PASS",cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-GENERATOR,완료,완료,완료,Generator 29 PASS/10 SKIP/6 subtests,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-PUBLIC-WORKSPACE,완료,완료,완료,"Default-deny empty staging PASS, public tests 28 PASS",cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-BATCH-FENCING,완료,완료,완료,Batch fencing sources=7 checks=22 PASS,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-PERMISSION,완료,완료,완료,Controller permission operations=425 mutations=196 warnings=0,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+DEV20-JAVA25-LOCAL,완료,미검증,미완료,Source/independent gates complete; Java25/live runtime requires user local environment,cpf-docs/deliverables/TEST_AND_EVIDENCE.md

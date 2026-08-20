@@ -43,6 +43,7 @@ public final class CpfConnectionPoolRuntimeController {
         }
     }
 
+    /** Connection Pool Runtime 변경 시 검증·적용할 목표 값을 고정하는 정책 record입니다. */
     public record Policy(
             int maximumPoolSize,
             int minimumIdle,
@@ -61,6 +62,7 @@ public final class CpfConnectionPoolRuntimeController {
         }
     }
 
+    /** Connection Pool Runtime 변경 결과와 실제 적용된 정책을 반환하는 결과 record입니다. */
     public record Result(int controlledPoolCount, Policy appliedPolicy) {}
 
     private record Previous(

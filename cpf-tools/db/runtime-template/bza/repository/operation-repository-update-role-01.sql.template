@@ -1,3 +1,0 @@
-UPDATE bza_role SET role_name=:roleName,write_allowed_yn=:writeAllowedYn,data_scope=:dataScope,use_yn=:useYn,
-       version_no=version_no+1,updated_by=:requestUser,updated_at=@NOW@
- WHERE role_code=:roleCode AND version_no=:expectedVersion

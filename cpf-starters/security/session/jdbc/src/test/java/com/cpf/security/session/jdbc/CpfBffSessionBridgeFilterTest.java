@@ -40,7 +40,7 @@ class CpfBffSessionBridgeFilterTest {
         CpfBffCredentialVault vault = fixed(new CpfBffCredential(
                 "h1", "expired-access", "refresh-token",
                 Instant.now().minusSeconds(1), Instant.now().plusSeconds(120), 1));
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/refresh");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/refresh");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
         request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "BZA001");
         AtomicBoolean called = new AtomicBoolean();
@@ -111,7 +111,7 @@ class CpfBffSessionBridgeFilterTest {
             @Override public void revoke(String h) { revoked.set(true); }
             @Override public int purgeExpired(Instant n) { return 0; }
         };
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/refresh");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/refresh");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "h1");
         request.getSession(false).setAttribute(CpfBffSessionBridgeFilter.PRINCIPAL_ID, "BZA001");
         MockHttpServletResponse response = new MockHttpServletResponse();

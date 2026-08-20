@@ -105,13 +105,13 @@ public class CpfOpenApiAutoConfiguration {
         return (operation, handlerMethod) -> {
             OnlineTransactionMetadata online = findOnlineTransaction(handlerMethod);
             if (online != null) {
-                // External channel callers provide five transport values. X-System-Code is receiver-owned.
+                // External Channel을 포함한 모든 업무 HTTP 경계는 Canonical 6을 함께 전달합니다.
                 addHeader(operation, CpfHttpHeaderNames.TRANSACTION_ID, true,
                         "Required end-to-end CPF transaction ID. Internal CPF hops propagate it automatically.");
                 addHeader(operation, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE, true,
                         "Required System Code that first created/started this transaction. Immutable for the transaction lifetime.");
-                addHeader(operation, CpfHttpHeaderNames.SYSTEM_CODE, false,
-                        "Receiver-owned current processing System Code. External callers must not assert it.");
+                addHeader(operation, CpfHttpHeaderNames.SYSTEM_CODE, true,
+                        "Required current processing System Code for this hop. Runtime validates it against the receiver System Code.");
                 addHeader(operation, CpfHttpHeaderNames.CALLER_SYSTEM_CODE, true,
                         "Required immediate caller System Code for this hop.");
                 addHeader(operation, CpfHttpHeaderNames.TARGET_SYSTEM_CODE, true,

@@ -163,6 +163,7 @@ public final class CpfFixedLengthLayoutRegistry {
     /** Compatibility 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
     public enum Compatibility { NONE, BACKWARD, FORWARD, FULL }
 
+    /** Fixed-length Layout Registry의 현재 Layout 집합과 version을 전달하는 불변 Snapshot입니다. */
     public record Snapshot(long version, String hash, Map<LayoutKey, CpfFixedLengthLayout> layouts) {
         public Snapshot {
             hash = hash == null ? "" : hash;
@@ -173,6 +174,7 @@ public final class CpfFixedLengthLayoutRegistry {
         public Collection<CpfFixedLengthLayout> values() { return layouts.values(); }
     }
 
+    /** 전문 Layout을 message type과 version 조합으로 유일하게 식별하는 Registry key입니다. */
     public record LayoutKey(String layoutId, String version) implements Comparable<LayoutKey> {
         public LayoutKey {
             if (layoutId == null || layoutId.isBlank()) throw new IllegalArgumentException("layout ID는 필수입니다.");

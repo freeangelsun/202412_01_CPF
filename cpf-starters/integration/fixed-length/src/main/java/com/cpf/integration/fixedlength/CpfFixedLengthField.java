@@ -18,6 +18,7 @@ public record CpfFixedLengthField(
         alignment = Objects.requireNonNull(alignment, "alignment");
     }
 
+    /** 고정길이 전문 Field의 좌/우 정렬 방식을 나타내는 계약 값입니다. */
     public enum Alignment {
         LEFT,
         RIGHT

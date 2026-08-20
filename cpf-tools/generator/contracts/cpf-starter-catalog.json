@@ -3891,5 +3891,242 @@
     "cpf-starter-security-secret",
     "cpf-starter-security-service-identity",
     "cpf-web-runtime"
+  ],
+  "profiles": {
+    "web-api": {
+      "artifactId": "cpf-starter-web-api",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":framework:web"
+      ],
+      "requiredCapabilities": [
+        "web"
+      ],
+      "providerSlots": []
+    },
+    "secure-api": {
+      "artifactId": "cpf-starter-secure-api",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security",
+        ":internal:security:resource-server",
+        ":framework:integration",
+        ":internal:integration:http",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api",
+        ":framework:integration",
+        ":framework:security"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": []
+    },
+    "bff": {
+      "artifactId": "cpf-starter-bff",
+      "runtimeProjects": [
+        ":starters:profiles:web-api",
+        ":framework:security"
+      ],
+      "apiProjects": [
+        ":starters:profiles:web-api"
+      ],
+      "requiredCapabilities": [
+        "web",
+        "security"
+      ],
+      "providerSlots": [
+        "security-mode"
+      ]
+    },
+    "event": {
+      "artifactId": "cpf-starter-event",
+      "runtimeProjects": [
+        ":starters:base",
+        ":framework:messaging",
+        ":framework:integration",
+        ":internal:integration:resilience"
+      ],
+      "apiProjects": [
+        ":starters:base"
+      ],
+      "requiredCapabilities": [
+        "messaging"
+      ],
+      "providerSlots": [
+        "messaging"
+      ]
+    },
+    "batch": {
+      "artifactId": "cpf-starter-batch",
+      "runtimeProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":runtime:batch:runtime",
+        ":framework:integration",
+        ":internal:integration:resilience",
+        ":internal:integration:http"
+      ],
+      "apiProjects": [
+        ":starters:base",
+        ":runtime:batch:api",
+        ":framework:integration"
+      ],
+      "requiredCapabilities": [],
+      "providerSlots": []
+    }
+  },
+  "providerCatalog": {
+    "messaging": {
+      "kafka": {
+        "projectPath": ":starters:messaging:kafka",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-kafka"
+      },
+      "rabbitmq": {
+        "projectPath": ":starters:messaging:rabbitmq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-rabbitmq"
+      },
+      "jms": {
+        "projectPath": ":starters:messaging:jms",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-jms"
+      },
+      "ibm-mq": {
+        "projectPath": ":starters:messaging:ibm-mq",
+        "coordinate": "com.cpf.starter:cpf-starter-messaging-ibm-mq"
+      }
+    },
+    "data": {
+      "jdbc": {
+        "projectPath": ":starters:data:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jdbc"
+      },
+      "mybatis": {
+        "projectPath": ":starters:data:mybatis",
+        "coordinate": "com.cpf.starter:cpf-starter-data-mybatis"
+      },
+      "jpa": {
+        "projectPath": ":starters:data:jpa",
+        "coordinate": "com.cpf.starter:cpf-starter-data-jpa"
+      }
+    },
+    "cache": {
+      "caffeine": {
+        "projectPath": ":starters:cache:caffeine",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-caffeine"
+      },
+      "valkey": {
+        "projectPath": ":starters:cache:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-valkey"
+      },
+      "redis": {
+        "projectPath": ":starters:cache:redis",
+        "coordinate": "com.cpf.starter:cpf-starter-cache-redis"
+      }
+    },
+    "integration-transport": {
+      "http": {
+        "projectPath": ":internal:integration:http",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-http"
+      },
+      "tcp": {
+        "projectPath": ":internal:integration:tcp",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-tcp"
+      },
+      "soap": {
+        "projectPath": ":internal:integration:soap",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-soap"
+      }
+    },
+    "integration-codec": {
+      "fixed-length": {
+        "projectPath": ":starters:integration:fixed-length",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-fixed-length"
+      },
+      "iso8583": {
+        "projectPath": ":internal:integration:iso8583",
+        "coordinate": "com.cpf.starter:cpf-starter-integration-iso8583"
+      }
+    },
+    "file": {
+      "sftp": {
+        "projectPath": ":internal:file:sftp",
+        "coordinate": "com.cpf.starter:cpf-starter-file-sftp"
+      }
+    },
+    "notification": {
+      "email": {
+        "projectPath": ":internal:notification:email",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-email"
+      },
+      "sms": {
+        "projectPath": ":internal:notification:sms",
+        "coordinate": "com.cpf.starter:cpf-starter-notification-sms"
+      }
+    },
+    "observability": {
+      "otlp": {
+        "projectPath": ":internal:platform-operations:observability:otlp",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-observability-otlp"
+      }
+    },
+    "security-mode": {
+      "resource-server": {
+        "projectPath": ":internal:security:resource-server",
+        "coordinate": "com.cpf.starter:cpf-starter-security-resource-server"
+      },
+      "browser-session": {
+        "projectPath": ":starters:security:session:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-session-jdbc"
+      },
+      "service-identity": {
+        "projectPath": ":internal:security:service-identity",
+        "coordinate": "com.cpf.starter:cpf-starter-security-service-identity"
+      },
+      "browser-session-valkey": {
+        "projectPath": ":starters:security:session:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-session-valkey"
+      }
+    },
+    "locking": {
+      "valkey": {
+        "projectPath": ":starters:data:lock:valkey",
+        "coordinate": "com.cpf.starter:cpf-starter-lock-valkey"
+      }
+    },
+    "object-storage": {
+      "s3-compatible": {
+        "projectPath": ":starters:file:object-storage:s3",
+        "coordinate": "com.cpf.starter:cpf-starter-object-storage-s3"
+      }
+    },
+    "graphql": {
+      "spring-graphql": {
+        "projectPath": ":starters:integration:graphql",
+        "coordinate": "com.cpf.starter:cpf-starter-graphql"
+      }
+    },
+    "realtime": {
+      "sse": {
+        "projectPath": ":starters:integration:realtime",
+        "coordinate": "com.cpf.starter:cpf-starter-realtime"
+      }
+    },
+    "health-registry": {
+      "jdbc": {
+        "projectPath": ":internal:platform-operations:runtime-health:jdbc",
+        "coordinate": "com.cpf.starter:cpf-starter-platform-operations-runtime-health-jdbc"
+      }
+    }
+  },
+  "canonicalOwner": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
+  "deprecatedAliases": [
+    "cpf-tools/generator/config/application-starters.yml"
   ]
 }

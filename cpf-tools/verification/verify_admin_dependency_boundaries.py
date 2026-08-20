@@ -8,7 +8,7 @@ else:
  with contract.open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
 by={}
 for r in rows: by.setdefault(r['module'],set()).add(r['dependency'])
-for module in ['cpf-admin','cpf-biz-admin']:
+for module in ['cpf-admin','cpf-backoffice/online']:
  p=root/module/'build.gradle'
  if not p.is_file(): fail.append('BUILD_MISSING:'+module);continue
  text=p.read_text(encoding='utf-8')

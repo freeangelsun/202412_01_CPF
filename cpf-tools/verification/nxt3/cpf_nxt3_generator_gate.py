@@ -56,7 +56,7 @@ def main(argv=None) -> int:
     with tempfile.TemporaryDirectory(prefix='cpf-gen-gate-') as td:
         stage=Path(td); repo=stage/'repo'; repo.mkdir()
         # Engine이 Catalog/Stack을 읽을 수 있도록 정본 파일만 동일 경로로 복사한다.
-        for rel in ['cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-tools/generator/config/application-starters.yml','gradle/cpf-stack.properties']:
+        for rel in ['cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-tools/generator/contracts/cpf-starter-catalog.json','gradle/cpf-stack.properties']:
             src=root/rel; dst=repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
         # Arbitrary Domain은 Canonical DB renderer까지 실제 소비하므로 DB3 template pack도 격리 Repository에 복사한다.
         db_templates = root/'cpf-tools/db/generated/domain-template'
@@ -71,7 +71,7 @@ def main(argv=None) -> int:
             idem=eng.generate(repo,definition,out); ck('ARBITRARY_IDEMPOTENT',idem.get('status')=='IDEMPOTENT',json.dumps(idem,ensure_ascii=False)[:4000])
             plan=eng.remove_owned(repo,definition,out,apply=False); ck('REMOVE_PLAN_SAFE',plan.get('status')=='PLANNED' and plan.get('safeToRemove') is True,json.dumps(plan,ensure_ascii=False)[:4000])
             # Generator-owned Source 사용자 변경 시 regenerate/remove가 fail-closed여야 한다.
-            target=out/'online/src/main/java/ledger/online/controller/SampleTransactionController.java'
+            target=out/'online/src/main/java/ledger/online/ledger/controller/SampleTransactionController.java'
             target.write_text(target.read_text(encoding='utf-8')+'\n// 사용자 소유 변경 검증\n',encoding='utf-8')
             try: eng.regenerate(repo,definition,out); protected=False
             except Exception: protected=True

@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /** DB3-portable retention policy/run/lease repository. Time comparisons use caller-provided UTC instants. */
@@ -43,8 +44,15 @@ public class BatRetentionExecutionRepository {
     }
 
     public boolean claim(String policyId,String owner,Instant now,Instant until) {
-        return jdbc.update("UPDATE ops_retention_policy SET lease_owner=?,lease_until=?,fencing_token=fencing_token+1,updated_at=CURRENT_TIMESTAMP WHERE policy_id=? AND enabled_yn='Y' AND paused_yn='N' AND (lease_until IS NULL OR lease_until<? OR lease_owner=?)",
-                owner,Timestamp.from(until),policyId,Timestamp.from(now),owner)==1;
+        return claim(policyId, owner, now, until, null);
+    }
+    public boolean claim(String policyId,String owner,Instant now,Instant until,Long expectedVersion) {
+        if(expectedVersion==null) {
+            return jdbc.update("UPDATE ops_retention_policy SET lease_owner=?,lease_until=?,fencing_token=fencing_token+1,updated_at=CURRENT_TIMESTAMP WHERE policy_id=? AND enabled_yn='Y' AND paused_yn='N' AND (lease_until IS NULL OR lease_until<? OR lease_owner=?)",
+                    owner,Timestamp.from(until),policyId,Timestamp.from(now),owner)==1;
+        }
+        return jdbc.update("UPDATE ops_retention_policy SET lease_owner=?,lease_until=?,fencing_token=fencing_token+1,updated_at=CURRENT_TIMESTAMP WHERE policy_id=? AND row_version=? AND enabled_yn='Y' AND paused_yn='N' AND (lease_until IS NULL OR lease_until<? OR lease_owner=?)",
+                owner,Timestamp.from(until),policyId,expectedVersion,Timestamp.from(now),owner)==1;
     }
     /** Extend the current owner's lease only while the lease is still valid. Losing the lease is fail-close. */
     public boolean renewLease(String policyId,String owner,Instant now,Instant until) {
@@ -54,8 +62,10 @@ public class BatRetentionExecutionRepository {
     public void release(String policyId,String owner,Instant nextRunAt) {
         jdbc.update("UPDATE ops_retention_policy SET lease_owner=NULL,lease_until=NULL,last_run_at=CURRENT_TIMESTAMP,next_run_at=?,updated_at=CURRENT_TIMESTAMP WHERE policy_id=? AND lease_owner=?", ts(nextRunAt),policyId,owner);
     }
-    public void setPolicyPaused(String policyId, boolean paused, String actor) {
-        jdbc.update("UPDATE ops_retention_policy SET paused_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE policy_id=?",yn(paused),actor,policyId);
+    public void setPolicyPaused(String policyId, boolean paused, String actor, long expectedVersion) {
+        int updated=jdbc.update("UPDATE ops_retention_policy SET paused_yn=?,row_version=row_version+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE policy_id=? AND row_version=?",
+                yn(paused),actor,policyId,expectedVersion);
+        if(updated!=1) throw new IllegalStateException("RETENTION_POLICY_VERSION_CONFLICT");
     }
 
     public void createRun(BatRetentionRunSnapshot r) {
@@ -72,21 +82,39 @@ public class BatRetentionExecutionRepository {
         }
         return jdbc.query(con->{var ps=con.prepareStatement("SELECT * FROM ops_retention_run WHERE policy_id=? ORDER BY started_at DESC,run_id DESC");ps.setString(1,policyId);ps.setMaxRows(limit);return ps;},(rs,n)->run(rs));
     }
-    public void requestPause(String runId,String actor) {
-        jdbc.update("UPDATE ops_retention_run SET pause_requested_yn='Y',updated_at=CURRENT_TIMESTAMP WHERE run_id=? AND status='RUNNING'",runId);
+    public void requestPause(String runId,String actor,String reason) {
+        int updated=jdbc.update("UPDATE ops_retention_run SET pause_requested_yn='Y',control_actor_id=?,control_reason=?,updated_at=CURRENT_TIMESTAMP WHERE run_id=? AND status='RUNNING'",
+                actor,safe(reason),runId);
+        if(updated!=1) throw new IllegalStateException("RETENTION_RUN_NOT_RUNNING");
     }
     public boolean pauseRequested(String runId) {
         Boolean v=jdbc.queryForObject("SELECT CASE WHEN pause_requested_yn='Y' THEN 1 ELSE 0 END FROM ops_retention_run WHERE run_id=?",(rs,n)->rs.getInt(1)==1,runId);
         return Boolean.TRUE.equals(v);
     }
     public void markRunning(String runId,String runtime,String actor) {
-        jdbc.update("UPDATE ops_retention_run SET status='RUNNING',runtime_instance_id=?,actor_id=?,pause_requested_yn='N',completed_at=NULL,error_code=NULL,error_summary=NULL,updated_at=CURRENT_TIMESTAMP WHERE run_id=?",runtime,actor,runId);
+        jdbc.update("UPDATE ops_retention_run SET status='RUNNING',runtime_instance_id=?,actor_id=?,control_actor_id=?,pause_requested_yn='N',completed_at=NULL,error_code=NULL,error_summary=NULL,updated_at=CURRENT_TIMESTAMP WHERE run_id=?",runtime,actor,actor,runId);
     }
     public void progress(String runId,long matched,long archived,long deleted,long processed,long compressed,long freed) {
         jdbc.update("UPDATE ops_retention_run SET matched_count=?,archived_count=?,deleted_count=?,processed_count=?,compressed_count=?,freed_bytes=?,updated_at=CURRENT_TIMESTAMP WHERE run_id=?",matched,archived,deleted,processed,compressed,freed,runId);
     }
     public void finish(String runId,String status,String errorCode,String summary) {
         jdbc.update("UPDATE ops_retention_run SET status=?,completed_at=CURRENT_TIMESTAMP,error_code=?,error_summary=?,updated_at=CURRENT_TIMESTAMP WHERE run_id=?",status,errorCode,safe(summary),runId);
+    }
+
+    public void audit(String operation,String targetType,String targetId,String requestedBy,String approvedBy,
+                      String approvalRequestId,String reason,Long expectedVersion,String resultState) {
+        jdbc.update("INSERT INTO ops_retention_control_audit(audit_id,operation_type,target_type,target_id,requested_by,approved_by,approval_request_id,reason_text,expected_version,result_state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)",
+                java.util.UUID.randomUUID().toString(),operation,targetType,targetId,requestedBy,approvedBy,approvalRequestId,
+                safe(reason),expectedVersion,resultState);
+    }
+
+    public List<Map<String,Object>> findAuditsByApprovalRequestId(String approvalRequestId) {
+        if (approvalRequestId == null || approvalRequestId.isBlank()) return List.of();
+        return jdbc.queryForList("SELECT audit_id AS auditId,operation_type AS operationType,target_type AS targetType," +
+                "target_id AS targetId,requested_by AS requestedBy,approved_by AS approvedBy," +
+                "approval_request_id AS approvalRequestId,reason_text AS reason,expected_version AS expectedVersion," +
+                "result_state AS resultState,created_at AS createdAt FROM ops_retention_control_audit " +
+                "WHERE approval_request_id=? ORDER BY created_at,audit_id", approvalRequestId.trim());
     }
 
     private static BatRetentionPolicyDefinition policy(java.sql.ResultSet rs) throws java.sql.SQLException {

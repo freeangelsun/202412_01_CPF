@@ -259,7 +259,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 value(request.headers().firstHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE), ""),
                 sourceIp(request),
                 sourcePort(request),
-                com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),
+                com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(),
                 route.routeId(),
                 route.routeId(),
                 route.routeVersion(),
@@ -351,7 +351,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     principal.authenticated(), principal.authenticated() ? principal.principalId() : null,
                     principal.attributes().get("actorId"), principal.attributes().get("authenticationContextId"),
                     contextTenantId.isBlank() ? null : contextTenantId, route.standardExecutionId(), route.routeId(), route.routeVersion(),
-                    route.serverGroupId(), com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(), CpfContexts.requireCurrent().execution().deadline());
+                    route.serverGroupId(), com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(), CpfContexts.requireCurrent().execution().deadline());
             try (AutoCloseable ignoredGatewayContext = CpfContexts.bind(gatewayContext.snapshot())) {
 
             trusted.put("cpf.principal.id", principal.principalId());
@@ -601,7 +601,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     null,
                     "ENTRY",
                     "DENIED",
-                    com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),
+                    com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(),
                     decision.httpStatus(),
                     clock.instant(),
                     Map.of(
@@ -803,7 +803,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                     headers.set(CpfGatewayHeaderNames.GATEWAY_TRANSACTION_ID, gatewayTransactionId);
                     headers.set(CpfGatewayHeaderNames.GATEWAY_ROUTE_ID, route.routeId());
                     headers.set(CpfGatewayHeaderNames.GATEWAY_ROUTE_VERSION, route.routeVersion());
-                    headers.set(CpfGatewayHeaderNames.GATEWAY_INSTANCE_ID, com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId());
+                    headers.set(CpfGatewayHeaderNames.GATEWAY_INSTANCE_ID, com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId());
                     headers.set(CpfGatewayHeaderNames.INGRESS_TYPE, "CPF_GATEWAY");
                 })
                 .cookies(cookies -> cookies.clear())

@@ -47,9 +47,9 @@ for root_name in ('cpf-education','cpf-member','cpf-external'):
   s=p.read_text(encoding='utf-8-sig',errors='replace')
   if re.search(r'import\s+com\.cpf\.common\.(?:runtime|code\.service|parameter\.service|template\.service)\.',s):
    errors.append(f'customer-facing consumer bypasses Common public API: {p.relative_to(ROOT)}')
-bza=txt('cpf-biz-admin/src/main/java/com/cpf/bizadmin/commoncatalog/BzaCommonCatalogController.java')
-if 'CpfCommonCatalogManagementService' not in bza: errors.append('Internal cpf-biz-admin Common management must use public management API')
-for external in ('cpf-biz-channel','cpf-biz-frontend'):
+bza=txt('cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/catalog/controller/BackofficeCommonCatalogController.java')
+if 'CpfCommonCatalogManagementService' not in bza: errors.append('Backoffice Domain Common management must use public management API')
+for external in ('cpf-backoffice-web','cpf-backoffice-web/frontend'):
  rp=ROOT/external
  if not rp.exists(): continue
  for p in rp.rglob('*'):

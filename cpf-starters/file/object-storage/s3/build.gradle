@@ -1,5 +1,9 @@
 plugins { id 'java-library'; id 'maven-publish' }
 group='com.cpf.starter'
+
+dependencyManagement {
+    imports { mavenBom "software.amazon.awssdk:bom:${rootProject.ext.cpfAwsSdkVersion}" }
+}
 dependencies {
     api project(':framework:file')
     implementation project(':framework:core')

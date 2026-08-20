@@ -1,6 +1,6 @@
 package com.cpf.batch.worker;
 
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.runtime.RuntimeStateProvider;

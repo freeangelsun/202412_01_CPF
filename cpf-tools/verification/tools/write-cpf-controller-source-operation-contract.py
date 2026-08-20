@@ -38,7 +38,8 @@ SERVER_DERIVED_REQUEST_FIELDS = {
 }
 MODULES = {
     "ADM": ("cpf-admin/src/main/java", "/adm/api/", "CPF ADM"),
-    "BZA": ("cpf-biz-admin/src/main/java", "/api/bza/", "CPF BZA"),
+    "BZA": ("cpf-backoffice/online/src/main/java", "/api/v1/backoffice/", "CPF BZA (retired compatibility only)"),
+    "MBW": ("cpf-backoffice/online/src/main/java", "/api/v1/backoffice/", "CPF Backoffice (MBW)"),
 }
 
 
@@ -90,7 +91,7 @@ def standard_error_statuses(module: str, method: str, template: str) -> list[str
         statuses.append("404")
     if method in MUTATION_METHODS:
         statuses.append("409")
-        if module == "BZA":
+        if module in {"BZA", "MBW"}:
             statuses.append("422")
     return statuses
 
@@ -508,7 +509,7 @@ def discover_schemas(source: Path) -> dict[str, dict[str, Any]]:
     for file in sorted(source.rglob("*.java")):
         text = file.read_text(encoding="utf-8", errors="ignore")
         relative_parts = set(file.relative_to(source).parts)
-        is_controller = "@RestController" in text or "@CpfController" in text
+        is_controller = "@RestController" in text or "@CpfController" in text or "@CpfRestController" in text
         if "dto" in relative_parts or file.stem.endswith(dto_suffixes):
             request_contract = file.stem.endswith(("Request", "Command"))
             schemas.update(class_field_schemas(text, strip_server_derived=request_contract))
@@ -543,7 +544,7 @@ def discover(root: Path, module: str) -> tuple[list[dict[str, Any]], dict[str, d
     referenced_schemas: set[str] = set()
     for file in sorted(source.rglob("*.java")):
         text = file.read_text(encoding="utf-8", errors="ignore")
-        if "@RestController" not in text and "@CpfController" not in text:
+        if "@RestController" not in text and "@CpfController" not in text and "@CpfRestController" not in text:
             continue
         base = class_base(text)
         class_index = text.find("class ")
@@ -747,7 +748,7 @@ def build_openapi_spec(module: str, records: list[dict[str, Any]], schemas: dict
         "paths": paths,
         "components": components,
         "x-cpf-export-origin": "CONTROLLER_SOURCE_PRE_RUNTIME",
-        "x-cpf-product-module": module,
+        "x-cpf-product-module": ("Backoffice" if module == "MBW" else module),
         "x-cpf-openapi-operation-count": len(records),
         "x-cpf-public-operation-count": len(records),
         "x-cpf-canonical-schema-version": 5,
@@ -863,11 +864,11 @@ def main() -> int:
     parser.add_argument("--check-openapi", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    default_output = Path("cpf-admin/frontend/src/generated" if args.module == "ADM" else "cpf-biz-frontend/src/generated")
+    default_output = Path("cpf-admin/frontend/src/generated" if args.module == "ADM" else ("cpf-backoffice-web/frontend/src/generated" if args.module == "MBW" else "cpf-backoffice-web/frontend/src/generated"))
     raw_output = args.output or default_output
     output = raw_output if raw_output.is_absolute() else root / raw_output
     records, schemas = discover(root, args.module)
-    default_openapi = Path("cpf-admin/frontend/openapi/cpf-openapi.json" if args.module == "ADM" else "cpf-biz-admin/openapi/cpf-openapi.json")
+    default_openapi = Path("cpf-admin/frontend/openapi/cpf-openapi.json" if args.module == "ADM" else ("cpf-backoffice/online/openapi/cpf-openapi.json" if args.module == "MBW" else "cpf-backoffice/online/openapi/cpf-openapi.json"))
     openapi_output = (args.openapi_output or default_openapi)
     openapi_output = openapi_output if openapi_output.is_absolute() else root / openapi_output
     if args.check_openapi:

@@ -14,9 +14,9 @@ ARTIFACT_ID = re.compile(r"\bartifactId\s*=\s*['\"]([^'\"]+)['\"]")
 
 NON_STARTER_EXPECTED = {
     ':framework:core': 'cpf-core',
-    ':framework:testkit': 'cpf-tools/testing/cpf-testkit',
+    ':internal:testing:testkit': 'cpf-tools/testing/cpf-testkit',
     ':apps:admin': 'cpf-admin',
-    ':apps:biz-admin': 'cpf-biz-admin',
+    ':apps:backoffice': 'cpf-backoffice/online',
     ':apps:education': 'cpf-education',
     ':runtime:gateway': 'cpf-gateway',
     ':runtime:local': 'cpf-tools/runtime/cpf-local-runtime',
@@ -70,9 +70,17 @@ def main() -> int:
         owner = str(module.get('ownerPath') or '').replace('\\', '/').rstrip('/')
         artifact = str(module.get('artifactId') or '')
         visibility = str(module.get('visibility') or '')
-        expected_prefix = ':starters:' if visibility == 'public' else ':internal:' if visibility == 'internal' else ''
-        if not expected_prefix or not project_path.startswith(expected_prefix):
-            errors.append(f'logical starter partition mismatch {artifact}: {project_path} visibility={visibility}')
+        role = str(module.get('role') or '')
+        if visibility == 'public':
+            partition_ok = project_path.startswith(':starters:')
+        elif visibility == 'internal':
+            # Internal modules are split between topology-independent framework
+            # foundations/capability parents and implementation/provider leaves.
+            partition_ok = project_path.startswith((':framework:', ':internal:'))
+        else:
+            partition_ok = False
+        if not partition_ok:
+            errors.append(f'logical starter partition mismatch {artifact}: {project_path} visibility={visibility} role={role}')
         if project_path in logical_paths:
             errors.append(f'duplicate logical project path: {project_path}')
         logical_paths.add(project_path)

@@ -183,9 +183,12 @@ import type {
   AdmResponseCodeCreateParams,
   AdmResponseCodeDeleteParams,
   AdmResponseCodeUpdateParams,
+  AdmRetentionPolicyPauseRequest,
+  AdmRetentionPolicyResumeRequest,
   AdmRetentionPolicySaveRequest,
   AdmRetentionPreviewRequest,
   AdmRetentionRunNowRequest,
+  AdmRetentionRunPauseRequest,
   AdmRetentionRunResumeRequest,
   AdmRetentionRunsParams,
   AdmRole,
@@ -1023,7 +1026,6 @@ export const getAdmAuthLogoutMutationOptions = <TError = unknown, TContext = unk
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admAuthLogout>>, void> = () => {
-    
     return admAuthLogout(requestOptions);
   };
   return { mutationFn, ...mutationOptions };
@@ -1656,38 +1658,39 @@ export type admRetentionPolicyPauseResponse = (admRetentionPolicyPauseResponseSu
 
 export const getAdmRetentionPolicyPauseUrl = (policyId: string) => `/adm/api/batch-runtime/retention/policies/${encodeURIComponent(String(policyId))}/pause`;
 
-export const admRetentionPolicyPause = async (policyId: string, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyPauseResponse> => {
+export const admRetentionPolicyPause = async (policyId: string, data: AdmRetentionPolicyPauseRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyPauseResponse> => {
   return cpfOrvalRequest<admRetentionPolicyPauseResponse>(getAdmRetentionPolicyPauseUrl(policyId), {
     ...options,
     method: 'POST',
-
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
   });
 };
 
 export const getAdmRetentionPolicyPauseMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext> => {
   const mutationKey = ['admRetentionPolicyPause'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyPause>>, {policyId: string}> = (props) => {
-    const { policyId } = props;
-    return admRetentionPolicyPause(policyId, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyPause>>, {policyId: string; data: AdmRetentionPolicyPauseRequest}> = (props) => {
+    const { policyId, data } = props;
+    return admRetentionPolicyPause(policyId, data, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
 
 export type AdmRetentionPolicyPauseMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPolicyPause>>>;
-export type AdmRetentionPolicyPauseMutationBody = never;
+export type AdmRetentionPolicyPauseMutationBody = AdmRetentionPolicyPauseRequest;
 export type AdmRetentionPolicyPauseMutationError = unknown;
 
 export const useAdmRetentionPolicyPause = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext> => {
   return useMutation(getAdmRetentionPolicyPauseMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPolicyPause
@@ -1707,38 +1710,39 @@ export type admRetentionPolicyResumeResponse = (admRetentionPolicyResumeResponse
 
 export const getAdmRetentionPolicyResumeUrl = (policyId: string) => `/adm/api/batch-runtime/retention/policies/${encodeURIComponent(String(policyId))}/resume`;
 
-export const admRetentionPolicyResume = async (policyId: string, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyResumeResponse> => {
+export const admRetentionPolicyResume = async (policyId: string, data: AdmRetentionPolicyResumeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyResumeResponse> => {
   return cpfOrvalRequest<admRetentionPolicyResumeResponse>(getAdmRetentionPolicyResumeUrl(policyId), {
     ...options,
     method: 'POST',
-
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
   });
 };
 
 export const getAdmRetentionPolicyResumeMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext> => {
   const mutationKey = ['admRetentionPolicyResume'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyResume>>, {policyId: string}> = (props) => {
-    const { policyId } = props;
-    return admRetentionPolicyResume(policyId, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyResume>>, {policyId: string; data: AdmRetentionPolicyResumeRequest}> = (props) => {
+    const { policyId, data } = props;
+    return admRetentionPolicyResume(policyId, data, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
 
 export type AdmRetentionPolicyResumeMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPolicyResume>>>;
-export type AdmRetentionPolicyResumeMutationBody = never;
+export type AdmRetentionPolicyResumeMutationBody = AdmRetentionPolicyResumeRequest;
 export type AdmRetentionPolicyResumeMutationError = unknown;
 
 export const useAdmRetentionPolicyResume = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext> => {
   return useMutation(getAdmRetentionPolicyResumeMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPolicyResume
@@ -1910,38 +1914,39 @@ export type admRetentionRunPauseResponse = (admRetentionRunPauseResponseSuccess)
 
 export const getAdmRetentionRunPauseUrl = (runId: string) => `/adm/api/batch-runtime/retention/runs/${encodeURIComponent(String(runId))}/pause`;
 
-export const admRetentionRunPause = async (runId: string, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunPauseResponse> => {
+export const admRetentionRunPause = async (runId: string, data: AdmRetentionRunPauseRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunPauseResponse> => {
   return cpfOrvalRequest<admRetentionRunPauseResponse>(getAdmRetentionRunPauseUrl(runId), {
     ...options,
     method: 'POST',
-
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    data,
   });
 };
 
 export const getAdmRetentionRunPauseMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext> => {
   const mutationKey = ['admRetentionRunPause'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunPause>>, {runId: string}> = (props) => {
-    const { runId } = props;
-    return admRetentionRunPause(runId, requestOptions);
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunPause>>, {runId: string; data: AdmRetentionRunPauseRequest}> = (props) => {
+    const { runId, data } = props;
+    return admRetentionRunPause(runId, data, requestOptions);
   };
   return { mutationFn, ...mutationOptions };
 };
 
 export type AdmRetentionRunPauseMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionRunPause>>>;
-export type AdmRetentionRunPauseMutationBody = never;
+export type AdmRetentionRunPauseMutationBody = AdmRetentionRunPauseRequest;
 export type AdmRetentionRunPauseMutationError = unknown;
 
 export const useAdmRetentionRunPause = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext> => {
   return useMutation(getAdmRetentionRunPauseMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionRunPause
@@ -4839,7 +4844,6 @@ export const getAdmChannelRefreshSnapshotMutationOptions = <TError = unknown, TC
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof admChannelRefreshSnapshot>>, void> = () => {
-    
     return admChannelRefreshSnapshot(requestOptions);
   };
   return { mutationFn, ...mutationOptions };
@@ -9027,7 +9031,7 @@ export const admLogFindLogs = async (params?: AdmLogFindLogsParams, options?: Cp
   return cpfOrvalRequest<admLogFindLogsResponse>(getAdmLogFindLogsUrl(), {
     ...options,
     method: 'GET',
-    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, clientId: params?.clientId, originalChannel: params?.originalChannel, currentChannel: params?.currentChannel, callerChannel: params?.callerChannel, targetChannel: params?.targetChannel, targetOperationId: params?.targetOperationId, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, instanceId: params?.instanceId, hostName: params?.hostName, domainCode: params?.domainCode, application: params?.application, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, capabilityOperation: params?.capabilityOperation, beforeLogIdx: params?.beforeLogIdx, size: params?.size },
+    params: { transactionId: params?.transactionId, traceId: params?.traceId, businessTransactionId: params?.businessTransactionId, memberNo: params?.memberNo, customerNo: params?.customerNo, uri: params?.uri, responseCode: params?.responseCode, httpStatus: params?.httpStatus, clientId: params?.clientId, originalSystemCode: params?.originalSystemCode, systemCode: params?.systemCode, callerSystemCode: params?.callerSystemCode, targetSystemCode: params?.targetSystemCode, originalChannel: params?.originalChannel, currentChannel: params?.currentChannel, callerChannel: params?.callerChannel, targetChannel: params?.targetChannel, targetOperationId: params?.targetOperationId, logType: params?.logType, moduleId: params?.moduleId, wasId: params?.wasId, instanceId: params?.instanceId, hostName: params?.hostName, domainCode: params?.domainCode, application: params?.application, starterId: params?.starterId, capabilityId: params?.capabilityId, provider: params?.provider, capabilityOperation: params?.capabilityOperation, beforeLogIdx: params?.beforeLogIdx, size: params?.size },
   });
 };
 

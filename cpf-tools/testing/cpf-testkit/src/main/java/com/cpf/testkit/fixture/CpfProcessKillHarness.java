@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 /** 별도 JVM/worker process를 실제 종료해 recovery 검증에 사용하는 harness. */
 public final class CpfProcessKillHarness {
+    /** Process kill/restart 검증에서 종료코드와 관측 결과를 함께 전달하는 Test 결과입니다. */
     public record Result(long pid, boolean aliveBeforeKill, boolean terminated, int exitValue) { }
 
     public Result launchAndKill(List<String> command, Duration startupWait, Duration killWait)

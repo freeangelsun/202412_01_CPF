@@ -26,25 +26,25 @@ $baseProfile.policy.allowMixedHostConfiguration=$false
 $service=@{mariadb='mariadb';postgresql='postgresql';oracle='oracle'}[$Vendor]
 $port=@{mariadb=3306;postgresql=5432;oracle=1521}[$Vendor]
 $adminUser=@{mariadb='root';postgresql='postgres';oracle='system'}[$Vendor]
-$platformDb="cpf_verify_${runId}_platform";$bzaDb="cpf_verify_${runId}_bza"
-$platformMig="cpfv_${runId}_pm";$platformRun="cpfv_${runId}_pr";$bzaMig="cpfv_${runId}_bm";$bzaRun="cpfv_${runId}_br"
-if($Vendor -eq 'oracle'){$platformMig=$platformMig.ToUpperInvariant();$platformRun=$platformRun.ToUpperInvariant();$bzaMig=$bzaMig.ToUpperInvariant();$bzaRun=$bzaRun.ToUpperInvariant()}
+$platformDb="cpf_verify_${runId}_platform";$backofficeDb="cpf_verify_${runId}_mbw"
+$platformMig="cpfv_${runId}_pm";$platformRun="cpfv_${runId}_pr";$backofficeMig="cpfv_${runId}_bm";$backofficeRun="cpfv_${runId}_br"
+if($Vendor -eq 'oracle'){$platformMig=$platformMig.ToUpperInvariant();$platformRun=$platformRun.ToUpperInvariant();$backofficeMig=$backofficeMig.ToUpperInvariant();$backofficeRun=$backofficeRun.ToUpperInvariant()}
 foreach($prop in @($baseProfile.modules.PSObject.Properties)){
     $key=[string]$prop.Name;$m=$prop.Value
-    $m.enabled=($key -in @('core','common','admin','bizAdmin','batch'))
+    $m.enabled=($key -in @('core','common','admin','backoffice','batch'))
     $m.required=($key -eq 'core')
     $m.vendor=$Vendor;$m.host=$service;$m.port=$port;$m.clientPath='';$m.sslMode='disabled'
-    $isBza=($key -eq 'bizAdmin')
+    $isBackoffice=($key -eq 'backoffice')
     if($Vendor -eq 'oracle'){
         $m.databaseName='FREEPDB1'
-        $m.schemaName=if($isBza){$bzaMig}else{$platformMig}
+        $m.schemaName=if($isBackoffice){$backofficeMig}else{$platformMig}
     }else{
-        $m.databaseName=if($isBza){$bzaDb}else{$platformDb}
-        $m.schemaName=if($Vendor -eq 'postgresql'){if($isBza){"cpfv_${runId}_bs"}else{"cpfv_${runId}_ps"}}else{$m.databaseName}
+        $m.databaseName=if($isBackoffice){$backofficeDb}else{$platformDb}
+        $m.schemaName=if($Vendor -eq 'postgresql'){if($isBackoffice){"cpfv_${runId}_ms"}else{"cpfv_${runId}_ps"}}else{$m.databaseName}
     }
     $m.admin.username=$adminUser;$m.admin.userHost='%';$m.admin.password=[pscustomobject]@{env='CPF_VERIFY_DB_ADMIN_PASSWORD'}
-    $m.migration.username=if($isBza){$bzaMig}else{$platformMig};$m.migration.userHost='%';$m.migration.password=[pscustomobject]@{env='CPF_VERIFY_DB_MIGRATION_PASSWORD'}
-    $m.runtime.username=if($isBza){$bzaRun}else{$platformRun};$m.runtime.userHost='%';$m.runtime.password=[pscustomobject]@{env='CPF_VERIFY_DB_RUNTIME_PASSWORD'}
+    $m.migration.username=if($isBackoffice){$backofficeMig}else{$platformMig};$m.migration.userHost='%';$m.migration.password=[pscustomobject]@{env='CPF_VERIFY_DB_MIGRATION_PASSWORD'}
+    $m.runtime.username=if($isBackoffice){$backofficeRun}else{$platformRun};$m.runtime.userHost='%';$m.runtime.password=[pscustomobject]@{env='CPF_VERIFY_DB_RUNTIME_PASSWORD'}
     $m.seed.product=$true;$m.seed.optionalSample=$false;$m.seed.test=$false
 }
 $baseProfile|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $profilePath -Encoding UTF8

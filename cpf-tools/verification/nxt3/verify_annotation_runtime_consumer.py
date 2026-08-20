@@ -27,10 +27,12 @@ def main():
  for dom in ['cpf-member','cpf-external']:
   joined='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (root/dom).rglob('*.java')) if (root/dom).exists() else ''
   c(f'{dom}-generated-oss-consumer','@CpfTransactional' in joined and '@CpfRepository' in joined and '@CpfRestController' in joined and '@CpfOnlineTransaction' in joined and '@CpfTx' not in joined and '@CpfController' not in joined)
- for label,rel in [('ADM','cpf-admin/src/main/java'),('BZA','cpf-biz-admin/src/main/java'),('GATEWAY','cpf-gateway/src/main/java')]:
-  joined='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (root/rel).rglob('*.java')) if (root/rel).exists() else ''
+ for label,rel in [('ADM','cpf-admin/src/main/java'),('GATEWAY','cpf-gateway/src/main/java')]:
   controllers='\n'.join(t for p in (root/rel).rglob('*Controller.java') for t in [p.read_text(encoding='utf-8',errors='ignore')]) if (root/rel).exists() else ''
   c(f'{label}-management-not-business-transaction',re.search(r'(?m)^\s*@CpfOnlineTransaction\b',controllers) is None)
+ backoffice_root=root/'cpf-backoffice/online/src/main/java'
+ backoffice='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in backoffice_root.rglob('*.java')) if backoffice_root.exists() else ''
+ c('BACKOFFICE-generated-domain-contract', all(token in backoffice for token in ('@CpfRestController','@CpfOnlineTransaction','@Operation')) and 'MBW' in backoffice)
  fail=[x for x in checks if x['status']=='FAIL'];result={'requirementId':REQ,'status':'PASS' if not fail else 'FAIL','failedCount':len(fail),'checks':checks}
  out=Path(ns.evidence) if ns.evidence else root/'cpf-docs/work/evidence/current/ANNOTATION_RUNTIME_CONSUMER.json';out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print(json.dumps({'status':result['status'],'failedCount':len(fail),'checkCount':len(checks)},ensure_ascii=False));

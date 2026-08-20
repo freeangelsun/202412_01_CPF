@@ -26,7 +26,7 @@ $gradle=Join-Path $rootPath 'gradlew.bat';$ort=Tool'ort';$syft=Tool'syft';$grype
 try{
  Run'CycloneDX'$gradle @('cyclonedxBom','--no-daemon','--stacktrace')
  if($ArtifactPaths.Count-eq0){
-  $ArtifactPaths=@(Get-ChildItem -Recurse -File -Path @((Join-Path $rootPath 'cpf-*/build/libs/*.jar'),(Join-Path $rootPath 'cpf-*/build/libs/*.war'),(Join-Path $rootPath 'cpf-*/build/distributions/*.zip')) -ErrorAction SilentlyContinue|Where-Object{$_.Name-notmatch'(-plain|-sources|-javadoc)\.'}|ForEach-Object{$_.FullName};Get-ChildItem -Directory -Path @((Join-Path $rootPath 'cpf-admin/frontend/dist'),(Join-Path $rootPath 'cpf-biz-frontend/dist')) -ErrorAction SilentlyContinue|ForEach-Object{$_.FullName})
+  $ArtifactPaths=@(Get-ChildItem -Recurse -File -Path @((Join-Path $rootPath 'cpf-*/build/libs/*.jar'),(Join-Path $rootPath 'cpf-*/build/libs/*.war'),(Join-Path $rootPath 'cpf-*/build/distributions/*.zip')) -ErrorAction SilentlyContinue|Where-Object{$_.Name-notmatch'(-plain|-sources|-javadoc)\.'}|ForEach-Object{$_.FullName};Get-ChildItem -Directory -Path @((Join-Path $rootPath 'cpf-admin/frontend/dist'),(Join-Path $rootPath 'cpf-backoffice-web/frontend/dist')) -ErrorAction SilentlyContinue|ForEach-Object{$_.FullName})
  }
  $ArtifactPaths=@($ArtifactPaths|ForEach-Object{(Resolve-Path $_).Path}|Sort-Object -Unique);if($ArtifactPaths.Count-eq0){throw'No final deployable artifact found'}
  $ortDir=Join-Path $stage 'ort';Run'ORT analyze'$ort @('analyze','-i',$rootPath,'-o',$ortDir)

@@ -83,6 +83,10 @@ public class TransactionSegmentService {
         record.setMemberNoMasked(maskIdentity(TransactionContext.memberNo()));
         record.setUserIdMasked(maskIdentity(TransactionContext.userId()));
         record.setOperatorIdMasked(maskIdentity(TransactionContext.operatorId()));
+        record.setSystemCode(CpfMaskingRuntime.truncate(TransactionContext.currentSystemCode(), 30));
+        record.setOriginalSystemCode(CpfMaskingRuntime.truncate(TransactionContext.originalSystemCode(), 30));
+        record.setCallerSystemCode(CpfMaskingRuntime.truncate(TransactionContext.callerSystemCode(), 100));
+        record.setTargetSystemCode(CpfMaskingRuntime.truncate(TransactionContext.targetSystemCode(), 32));
         record.setCurrentChannel(TransactionContext.currentChannel());
         record.setOriginalChannel(TransactionContext.originalChannel());
         record.setClientId(CpfMaskingRuntime.truncate(TransactionContext.clientId(), 100));

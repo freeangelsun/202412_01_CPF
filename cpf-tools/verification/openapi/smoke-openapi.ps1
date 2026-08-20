@@ -92,22 +92,25 @@ function Get-PlatformOpenApiContract {
                 )
             }
         }
-        "BZA" {
+        "MBW" {
             return [ordered]@{
-                tags = @("BZA-Auth", "BZA-Operations", "BZA-Backoffice", "BZA-Support")
+                # Backoffice Domain은 Generated Business Domain과 같은 업무 API 계약을 사용하며,
+                # runtime smoke에서는 핵심 업무 경로의 존재를 확인합니다. Tag는 Source OpenAPI가
+                # top-level tag catalog를 사용하지 않아 강제하지 않습니다.
+                tags = @()
                 paths = @(
-                    "/api/bza/auth/login",
-                    "/api/bza/backoffice/organizations",
-                    "/api/bza/backoffice/employees",
-                    "/api/bza/backoffice/approvals",
-                    "/api/bza/admin-users",
-                    "/api/bza/roles",
-                    "/api/bza/menus",
-                    "/api/bza/permissions",
-                    "/api/bza/notifications",
-                    "/api/bza/attachments",
-                    "/api/bza/saved-searches",
-                    "/api/bza/permissions/simulate"
+                    "/api/v1/backoffice/auth/login",
+                    "/api/v1/backoffice/backoffice/organizations",
+                    "/api/v1/backoffice/backoffice/employees",
+                    "/api/v1/backoffice/approvals/inbox",
+                    "/api/v1/backoffice/admin-users",
+                    "/api/v1/backoffice/roles",
+                    "/api/v1/backoffice/menus",
+                    "/api/v1/backoffice/permissions",
+                    "/api/v1/backoffice/notifications",
+                    "/api/v1/backoffice/attachments",
+                    "/api/v1/backoffice/saved-searches",
+                    "/api/v1/backoffice/permissions/simulate"
                 )
             }
         }

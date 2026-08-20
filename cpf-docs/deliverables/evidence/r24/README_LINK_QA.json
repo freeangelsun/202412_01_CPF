@@ -1,0 +1,213 @@
+{
+  "pdf_links_total": 41,
+  "unique_pdf_targets": 13,
+  "broken": 0,
+  "links": [
+    {
+      "raw": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "target": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "target": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "target": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "target": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "target": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "target": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "target": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/기술사양서.pdf",
+      "target": "cpf-docs/deliverables/기술사양서.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "target": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "target": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "target": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "target": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "target": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "target": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "target": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "target": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "target": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "target": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "target": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "target": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "target": "cpf-docs/guides/00_프레임워크안내.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/01_개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "target": "cpf-docs/guides/02_배치개발매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "target": "cpf-docs/guides/03_ADM개발자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "target": "cpf-docs/guides/04_ADM운영자매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "target": "cpf-docs/guides/05_플랫폼운영매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "target": "cpf-docs/guides/90_BZA매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "target": "cpf-docs/guides/91_Gateway매뉴얼.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/산출물목록.pdf",
+      "target": "cpf-docs/deliverables/산출물목록.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "target": "cpf-docs/deliverables/아키텍처설계서.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/기술사양서.pdf",
+      "target": "cpf-docs/deliverables/기술사양서.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/기술표준서.pdf",
+      "target": "cpf-docs/deliverables/기술표준서.pdf",
+      "exists": true
+    },
+    {
+      "raw": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "target": "cpf-docs/deliverables/데이터베이스표준서.pdf",
+      "exists": true
+    }
+  ],
+  "broken_links": []
+}

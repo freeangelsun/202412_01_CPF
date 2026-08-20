@@ -1,0 +1,12 @@
+DROP INDEX ix_cpf_transaction_log_system_time ON CPF_TRANSACTION_LOG;
+DROP INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG;
+CREATE INDEX ix_cpf_transaction_log_channel_time ON CPF_TRANSACTION_LOG (CURRENT_CHANNEL, START_TIME);
+CREATE INDEX ix_cpf_transaction_log_target_operation ON CPF_TRANSACTION_LOG (TARGET_CHANNEL, TARGET_OPERATION_ID, START_TIME);
+ALTER TABLE CPF_TRANSACTION_LOG DROP COLUMN CALLER_SYSTEM_CODE, DROP COLUMN TARGET_SYSTEM_CODE, DROP COLUMN ORIGINAL_SYSTEM_CODE, DROP COLUMN SYSTEM_CODE;
+DROP INDEX ix_cpf_transaction_segment_client_system ON CPF_TRANSACTION_SEGMENT;
+DROP INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT;
+CREATE INDEX ix_cpf_transaction_segment_client_channel ON CPF_TRANSACTION_SEGMENT (client_id, caller_channel, started_at);
+CREATE INDEX ix_cpf_transaction_segment_target_operation ON CPF_TRANSACTION_SEGMENT (target_channel, target_operation_id, started_at);
+ALTER TABLE CPF_TRANSACTION_SEGMENT DROP COLUMN system_code, DROP COLUMN original_system_code, DROP COLUMN caller_system_code, DROP COLUMN target_system_code;
+ALTER TABLE CPF_TRANSACTION_LINEAGE DROP COLUMN system_code, DROP COLUMN target_system_code;
+ALTER TABLE CPF_TRANSACTION_LINEAGE_ARCHIVE DROP COLUMN system_code, DROP COLUMN target_system_code;

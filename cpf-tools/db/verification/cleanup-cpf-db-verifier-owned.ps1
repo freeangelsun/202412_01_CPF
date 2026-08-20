@@ -42,11 +42,13 @@ if($Vendor -eq 'mariadb'){
     try{
         foreach($db in @($targets.databaseName|Sort-Object -Unique)){
             & psql -X -v ON_ERROR_STOP=1 -h $first.host -p $first.port -U $first.adminUsername -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$db' AND pid<>pg_backend_pid();" *> $null
-            & psql -X -v ON_ERROR_STOP=1 -h $first.host -p $first.port -U $first.adminUsername -d postgres -c "DROP DATABASE IF EXISTS \"$db\";"
+            $dropDatabaseSql = 'DROP DATABASE IF EXISTS "{0}";' -f $db.Replace('"','""')
+            & psql -X -v ON_ERROR_STOP=1 -h $first.host -p $first.port -U $first.adminUsername -d postgres -c $dropDatabaseSql
             if($LASTEXITCODE -ne 0){throw "PostgreSQL verifier database cleanup failed database=$db exit=$LASTEXITCODE"}
         }
         foreach($u in @($targets|ForEach-Object{$_.migrationUsername;$_.runtimeUsername}|Sort-Object -Unique)){
-            & psql -X -v ON_ERROR_STOP=1 -h $first.host -p $first.port -U $first.adminUsername -d postgres -c "DROP ROLE IF EXISTS \"$u\";"
+            $dropRoleSql = 'DROP ROLE IF EXISTS "{0}";' -f $u.Replace('"','""')
+            & psql -X -v ON_ERROR_STOP=1 -h $first.host -p $first.port -U $first.adminUsername -d postgres -c $dropRoleSql
             if($LASTEXITCODE -ne 0){throw "PostgreSQL verifier role cleanup failed role=$u exit=$LASTEXITCODE"}
         }
     }finally{$env:PGPASSWORD=$old}

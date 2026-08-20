@@ -21,7 +21,7 @@ def main() -> int:
         print(f"CPF_FRONTEND_FULL_COMPILE_FAIL exit={proc.returncode}", file=sys.stderr)
         return proc.returncode
     adm = sum(1 for _ in (root / "cpf-admin/frontend/src").rglob("*.ts"))
-    bza = sum(1 for _ in (root / "cpf-biz-frontend/src").rglob("*.ts"))
+    bza = sum(1 for _ in (root / "cpf-backoffice-web/frontend/src").rglob("*.ts"))
     print(f"CPF_FRONTEND_FULL_COMPILE_PASS adm_ts={adm} bza_ts={bza}")
     return 0
 

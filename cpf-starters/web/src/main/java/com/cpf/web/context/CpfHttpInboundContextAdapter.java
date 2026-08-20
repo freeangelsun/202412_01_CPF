@@ -78,32 +78,21 @@ public final class CpfHttpInboundContextAdapter {
                         "X-Caller-System-Code does not match the authenticated internal caller identity.");
             }
         } else {
-            // External channel callers provide five transport values; X-System-Code remains receiver-owned.
+            // 외부 Channel도 Canonical 6을 모두 전달한다. 값의 존재와 receiver 일치 여부는
+            // Runtime이 검증하며, Header 자체를 caller 인증의 근거로 신뢰하지 않는다.
             requireExternal(rawTx, CpfHttpHeaderNames.TRANSACTION_ID);
             requireExternal(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+            requireExternal(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
             requireExternal(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
             requireExternal(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
             requireExternal(targetOperation, CpfHttpHeaderNames.TARGET_OPERATION_ID);
             inboundTransactionId = canonicalTransactionId(rawTx);
 
             originalSystem = normalizeSystemRequired(originalSystem, CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE);
+            inboundSystem = normalizeSystemRequired(inboundSystem, CpfHttpHeaderNames.SYSTEM_CODE);
             callerSystem = normalizeSystemRequired(callerSystem, CpfHttpHeaderNames.CALLER_SYSTEM_CODE);
             targetSystem = normalizeSystemRequired(targetSystem, CpfHttpHeaderNames.TARGET_SYSTEM_CODE);
-            if (runtimeSystem == null) {
-                throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
-                        CpfHttpHeaderNames.SYSTEM_CODE,
-                        "Receiver runtime System Code is required before Controller invocation.",
-                        503, "RUNTIME_SYSTEM_UNAVAILABLE");
-            }
-            if (!runtimeSystem.equals(targetSystem)) {
-                throw protocolMismatch(CpfHttpHeaderNames.TARGET_SYSTEM_CODE,
-                        "X-Target-System-Code does not identify this receiver runtime.", "TARGET_SYSTEM_CODE_MISMATCH");
-            }
-            if (inboundSystem != null) {
-                throw trustViolation(CpfHttpHeaderNames.SYSTEM_CODE,
-                        "External ingress cannot assert receiver-owned X-System-Code.");
-            }
-            inboundSystem = runtimeSystem;
+            validateReceiverSystem(runtimeSystem, inboundSystem, targetSystem);
         }
 
         originalChannel = normalizeChannel(originalChannel);
@@ -115,6 +104,12 @@ public final class CpfHttpInboundContextAdapter {
         String correlation = safe(values.get(lower(CpfHttpHeaderNames.CORRELATION_ID)), 160);
         String tx = inboundTransactionId == null ? requireGeneratedTransactionId(transactionIds.newTransactionId()) : inboundTransactionId;
         String issuerCode = CpfTransactionIds.issuerCode(tx);
+        if (originalSystem != null && !originalSystem.equals(issuerCode)) {
+            throw new CpfHeaderValidationException(CpfFrameworkErrorCode.INVALID_TRANSACTION_METADATA,
+                    CpfHttpHeaderNames.ORIGINAL_SYSTEM_CODE,
+                    "X-Original-System-Code must match the immutable issuer encoded in X-Transaction-Id.",
+                    400, "ORIGINAL_SYSTEM_CODE_MISMATCH");
+        }
 
         String traceparent = validatedTraceParent(values.get(lower(CpfHttpHeaderNames.TRACEPARENT)));
         String traceId = traceparent == null ? null : traceparent.substring(3, 35);

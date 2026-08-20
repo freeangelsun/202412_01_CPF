@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 
 /**
@@ -53,7 +54,7 @@ public class CpfPasswordAutoConfiguration {
     @ConditionalOnMissingBean(CpfPasswordEncoder.class)
     CpfPasswordEncoder cpfPasswordEncoder(
             CpfPasswordHashingPort hashingPort,
-            CpfPasswordRuntimePolicy runtimePolicy) {
-        return new CpfPasswordEncoderAdapter(hashingPort, () -> runtimePolicy);
+            ObjectProvider<CpfPasswordRuntimePolicy> runtimePolicyProvider) {
+        return new CpfPasswordEncoderAdapter(hashingPort, runtimePolicyProvider);
     }
 }

@@ -186,7 +186,7 @@ foreach ($generatedModule in @($selectedModules | Where-Object {
         environmentNames = @($bindingNames.Values)
     }
 }
-$databaseEnvironment["CPF_BZA_DB_ENABLED"] = "true"
+$databaseEnvironment["CPF_MBW_DB_ENABLED"] = "true"
 
 $resultPath = Join-Path $ResultDir "runtime-start-services-result.json"
 $statePath = Join-Path $ResultDir "runtime-services.json"
@@ -353,9 +353,7 @@ try {
         if (Test-Path -LiteralPath $stderr) { Remove-Item -LiteralPath $stderr -Force }
 
         $previousPort = [Environment]::GetEnvironmentVariable($module.portEnv, "Process")
-        $previousWasId = [Environment]::GetEnvironmentVariable("WAS_ID", "Process")
-        $previousModuleId = [Environment]::GetEnvironmentVariable("CPF_MODULE_ID", "Process")
-        $previousCpfModuleCode = [Environment]::GetEnvironmentVariable("CPF_MODULE_CODE", "Process")
+        $previousCpfSystemCode = [Environment]::GetEnvironmentVariable("CPF_SYSTEM_CODE", "Process")
         $previousCpfInstanceId = [Environment]::GetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", "Process")
         $previousCpfEnvironment = [Environment]::GetEnvironmentVariable("CPF_ENV", "Process")
         $previousLogRoot = [Environment]::GetEnvironmentVariable("CPF_LOG_ROOT", "Process")
@@ -365,10 +363,13 @@ try {
         $previousDatabaseEnvironment = [ordered]@{}
         try {
             [Environment]::SetEnvironmentVariable($module.portEnv, [string] $module.port, "Process")
-            [Environment]::SetEnvironmentVariable("WAS_ID", $module.wasId, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", $module.wasId, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_MODULE_ID", $module.module, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_MODULE_CODE", $module.module, "Process")
+            # Do not synthesize <SYSTEM>01. Explicit CPF_RUNTIME_INSTANCE_ID is preserved when supplied;
+            # otherwise the Runtime resolves its canonical identity from the real Runtime hostname.
+            $launchInstanceId = [Environment]::GetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", "Process")
+            if ([string]::IsNullOrWhiteSpace($launchInstanceId)) {
+                [Environment]::SetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", $null, "Process")
+            }
+            [Environment]::SetEnvironmentVariable("CPF_SYSTEM_CODE", $module.module, "Process")
             [Environment]::SetEnvironmentVariable("CPF_ENV", "local", "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", (Join-Path $Root "logs"), "Process")
             [Environment]::SetEnvironmentVariable("SPRING_PROFILES_ACTIVE", "local", "Process")
@@ -393,9 +394,7 @@ try {
                 -PassThru
         } finally {
             [Environment]::SetEnvironmentVariable($module.portEnv, $previousPort, "Process")
-            [Environment]::SetEnvironmentVariable("WAS_ID", $previousWasId, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_MODULE_ID", $previousModuleId, "Process")
-            [Environment]::SetEnvironmentVariable("CPF_MODULE_CODE", $previousCpfModuleCode, "Process")
+            [Environment]::SetEnvironmentVariable("CPF_SYSTEM_CODE", $previousCpfSystemCode, "Process")
             [Environment]::SetEnvironmentVariable("CPF_RUNTIME_INSTANCE_ID", $previousCpfInstanceId, "Process")
             [Environment]::SetEnvironmentVariable("CPF_ENV", $previousCpfEnvironment, "Process")
             [Environment]::SetEnvironmentVariable("CPF_LOG_ROOT", $previousLogRoot, "Process")

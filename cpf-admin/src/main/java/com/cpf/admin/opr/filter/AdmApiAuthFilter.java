@@ -108,6 +108,9 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
         BUTTON_BY_METHOD_PATH_PREFIX.put("PUT /adm/api/business-calendars", "BUSINESS_CALENDAR_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("DELETE /adm/api/business-calendars", "BUSINESS_CALENDAR_DELETE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch-runtime", "BATCH_RUNTIME_READ");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("GET /adm/api/batch-runtime/retention", "BAT_RETENTION_VIEW");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/retention/preview", "BAT_RETENTION_PREVIEW");
+        BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/retention/policies", "BAT_RETENTION_POLICY_REQUEST");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions/validate", "BATCH_DEFINITION_VALIDATE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions/drafts", "BATCH_DEFINITION_WRITE");
         BUTTON_BY_METHOD_PATH_PREFIX.put("POST /adm/api/batch-runtime/job-definitions", "BATCH_DEFINITION_TRANSITION");
@@ -463,6 +466,24 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
     }
 
     private String resolveButtonId(String method, String path) {
+        if (HttpMethod.GET.matches(method) && path.startsWith("/adm/api/batch-runtime/retention/")) {
+            return "BAT_RETENTION_VIEW";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/batch-runtime/retention/preview")) {
+            return "BAT_RETENTION_PREVIEW";
+        }
+        if (HttpMethod.POST.matches(method) && path.equals("/adm/api/batch-runtime/retention/policies")) {
+            return "BAT_RETENTION_POLICY_REQUEST";
+        }
+        if (HttpMethod.POST.matches(method) && path.startsWith("/adm/api/batch-runtime/retention/policies/")) {
+            if (path.endsWith("/run")) return "BAT_RETENTION_RUN_REQUEST";
+            if (path.endsWith("/pause")) return "BAT_RETENTION_POLICY_PAUSE";
+            if (path.endsWith("/resume")) return "BAT_RETENTION_POLICY_RESUME";
+        }
+        if (HttpMethod.POST.matches(method) && path.startsWith("/adm/api/batch-runtime/retention/runs/")) {
+            if (path.endsWith("/pause")) return "BAT_RETENTION_RUN_PAUSE";
+            if (path.endsWith("/resume")) return "BAT_RETENTION_RUN_RESUME";
+        }
         if (HttpMethod.GET.matches(method) && path.startsWith("/adm/api/file-jobs/")) {
             return path.endsWith("/artifact") ? "FILE_JOB_DOWNLOAD" : "FILE_JOB_READ";
         }

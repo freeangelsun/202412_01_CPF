@@ -14,7 +14,7 @@ def main():
     publisher=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshPublisher.java')
     listener=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshListener.java')
     event_repo=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshEventRepository.java')
-    bza=read(root,'cpf-biz-admin/src/main/java/com/cpf/bizadmin/common/management/BzaCommonManagementService.java')
+    backoffice=read(root,'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/reference/BackofficeCommonManagementService.java')
     test_pub=read(root,'cpf-starters/common/src/test/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshPublisherTest.java')
     test_listener=read(root,'cpf-starters/common/src/test/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshListenerTest.java')
     checks={
@@ -24,7 +24,7 @@ def main():
       'durable_event_same_tx': 'Propagation.MANDATORY' in publisher and 'repository.insertEvent' in publisher,
       'checkpoint_reconcile': all(x in listener for x in ['checkpoint(', 'findAfter(', 'advanceCheckpoint(', 'refreshAll()']),
       'checkpoint_monotonic': 'last_event_id<?' in event_repo,
-      'bza_public_api_consumer': 'CpfCommonManagementApi' in bza,
+      'backoffice_public_api_consumer': 'CpfCommonManagementApi' in backoffice,
       'rollback_no_refresh_test': 'rollbackNeverRefreshesLocalCache' in test_pub,
       'event_gap_test': 'eventGapIsReplayedAndDuplicateEventIdIsIgnored' in test_listener,
       'cache_outage_retry_test': 'cacheFailureDoesNotAdvanceCheckpointAndNextPollRetriesSameEvent' in test_listener,

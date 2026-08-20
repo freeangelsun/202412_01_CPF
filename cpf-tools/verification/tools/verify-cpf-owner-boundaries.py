@@ -11,8 +11,8 @@ PACKAGE=re.compile(r'(?m)^\s*package\s+([A-Za-z_][A-Za-z0-9_.]*)\s*;')
 INTERNAL_IMPORT=re.compile(r'(?m)^\s*import\s+(?:static\s+)?(com\.cpf\.[A-Za-z0-9_.]+\.internal(?:\.[A-Za-z0-9_.*]+)?)\s*;')
 INTERNAL_FQCN=re.compile(r'\b(com\.cpf\.[A-Za-z0-9_.]+\.internal(?:\.[A-Za-z0-9_]+)+)\b')
 FORBIDDEN_DEP={
- ('cpf-core','cpf-admin'),('cpf-core','cpf-biz-admin'),('cpf-core','cpf-batch'),('cpf-core','cpf-gateway'),('cpf-core','cpf-member'),('cpf-core','cpf-education'),('cpf-core','cpf-starters'),
- ('cpf-admin','cpf-biz-admin'),
+ ('cpf-core','cpf-admin'),('cpf-core','cpf-backoffice/online'),('cpf-core','cpf-batch'),('cpf-core','cpf-gateway'),('cpf-core','cpf-member'),('cpf-core','cpf-education'),('cpf-core','cpf-starters'),
+ ('cpf-admin','cpf-backoffice/online'),
 }
 SKIP={'build','.gradle','node_modules','generated','.git','__pycache__'}
 

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "policyId": "CPF-PUBLIC-JAVA-PUBLICATION",
+  "artifactCatalog": "cpf-tools/release/cpf-final-artifact-catalog.json",
+  "compileTimePublicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+  "runtimePublicationClasses": [
+    "PUBLIC_RUNTIME",
+    "PUBLIC_BOM",
+    "PUBLIC_TOOLING"
+  ],
+  "javadocPolicy": {
+    "encoding": "UTF-8",
+    "doclint": "all,-missing",
+    "warningsAsErrors": true,
+    "generatedHtmlInPublicGit": false
+  },
+  "sourceArtifactPolicy": {
+    "include": "classified public compile-time Java source",
+    "excludePatterns": [
+      "**/internal/**"
+    ],
+    "privateImplementationLeakage": "release-blocker"
+  },
+  "signatureLeakagePolicy": "Public Javadoc/API signature must not expose com.cpf.*.internal types."
+}

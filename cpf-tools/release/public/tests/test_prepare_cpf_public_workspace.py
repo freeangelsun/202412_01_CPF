@@ -22,3 +22,12 @@ def test_unclassified_file_fails():
         try: m.verify_staging(stage,policy,{})
         except m.PublicSurfaceError as e: assert 'unclassified' in str(e)
         else: raise AssertionError('expected failure')
+
+
+def test_single_file_target_without_suffix_is_not_nested():
+    with tempfile.TemporaryDirectory() as d:
+        root,pp=fixture(Path(d)); stage=Path(d)/'stage'
+        result=m.prepare(root,stage,pp,'sha',False,False)
+        assert result['status']=='PASS'
+        assert (stage/'gradlew').is_file()
+        assert not (stage/'gradlew/gradlew').exists()

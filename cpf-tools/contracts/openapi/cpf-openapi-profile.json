@@ -34,14 +34,14 @@
       ]
     },
     {
-      "generator": "cpf-biz-reference-client",
+      "generator": "cpf-backoffice-reference-client",
       "status": "SUPPORTED",
       "openapi_profiles": [
         "3.1.*"
       ],
       "evidence_paths": [
-        "cpf-biz-frontend/scripts/generate-reference-client.mjs",
-        "cpf-biz-frontend/openapi/cpf-openapi.json"
+        "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs",
+        "cpf-backoffice-web/frontend/openapi/cpf-openapi.json"
       ]
     }
   ],
@@ -63,12 +63,12 @@
       ]
     },
     {
-      "path": "cpf-biz-admin/openapi/cpf-openapi.json",
-      "owner": "cpf-biz-admin",
+      "path": "cpf-backoffice/online/openapi/cpf-openapi.json",
+      "owner": "cpf-backoffice",
       "consumers": [
-        "cpf-biz-channel/src/main/resources/bza-routes.tsv",
-        "cpf-biz-frontend/openapi/cpf-openapi.json",
-        "cpf-biz-frontend/scripts/generate-reference-client.mjs"
+        "cpf-backoffice-web/src/main/resources/backoffice-routes.tsv",
+        "cpf-backoffice-web/frontend/openapi/cpf-openapi.json",
+        "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs"
       ]
     }
   ]

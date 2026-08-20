@@ -26,11 +26,11 @@
     "cpf": "cpf-core",
     "common": "cpf-starter-common",
     "admin": "cpf-admin",
-    "bza": "cpf-biz-admin",
     "batch": "cpf-batch",
     "gateway": "cpf-gateway",
     "security": "cpf-starter-security",
-    "platform-operations": "cpf-starter-platform-operations"
+    "platform-operations": "cpf-starter-platform-operations",
+    "backoffice": "cpf-backoffice"
   },
   "generatedDomainRegistration": {
     "metadataDriven": true,

@@ -1,0 +1,57 @@
+{
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "checks": {
+    "@CpfController": {
+      "path": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfService": {
+      "path": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfService.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfRepository": {
+      "path": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/CpfRepository.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfTx": {
+      "path": "cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTx.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfClient": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfTimeLimiter": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "@CpfRetry": {
+      "path": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "CpfDomainClient.execute": {
+      "path": "cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "Generated Domain Client example": {
+      "path": "cpf-member/online/src/main/java/member/online/domaincall/ExternalDomainClient.java",
+      "exists": true,
+      "contract_found": true
+    },
+    "cpf-dev.ps1": {
+      "path": "cpf-tools/build/tools/cpf-dev.ps1",
+      "exists": true,
+      "contract_found": true
+    }
+  },
+  "all_pass": true
+}

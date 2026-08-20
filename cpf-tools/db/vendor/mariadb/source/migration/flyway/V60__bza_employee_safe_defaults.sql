@@ -1,7 +1,7 @@
--- BZA employee safe default alignment.
+-- MBW employee safe default alignment.
 -- Existing rows are preserved; only the default for newly inserted employees changes.
 
-USE bzaDB;
+USE backofficeDB;
 
-ALTER TABLE bza_employee
+ALTER TABLE mbw_employee
     ALTER COLUMN employment_status SET DEFAULT 'EMPLOYED';

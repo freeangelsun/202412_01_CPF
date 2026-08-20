@@ -5,1505 +5,8 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 223,
+  "tableCount": 234,
   "tables": [
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_ADMIN_USER",
-      "columns": [
-        "admin_user_id",
-        "admin_login_id",
-        "admin_name",
-        "password_hash",
-        "role_code",
-        "account_status",
-        "version_no",
-        "create_operation_id",
-        "use_yn",
-        "lock_yn",
-        "login_fail_count",
-        "password_change_required_yn",
-        "password_expire_at",
-        "last_login_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_admin_user_login",
-          "unique": true,
-          "columns": [
-            "admin_login_id"
-          ]
-        },
-        {
-          "name": "uk_bza_admin_user_create_operation",
-          "unique": true,
-          "columns": [
-            "create_operation_id"
-          ]
-        },
-        {
-          "name": "ix_bza_admin_user_role",
-          "unique": false,
-          "columns": [
-            "role_code",
-            "use_yn"
-          ]
-        },
-        {
-          "name": "ix_bza_admin_user_status",
-          "unique": false,
-          "columns": [
-            "account_status",
-            "use_yn"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_DELEGATION",
-      "columns": [
-        "delegation_id",
-        "delegator_employee_no",
-        "delegate_employee_no",
-        "business_domain",
-        "approval_type",
-        "valid_from",
-        "valid_to",
-        "reason",
-        "use_yn",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_approval_delegation_active",
-          "unique": false,
-          "columns": [
-            "delegator_employee_no",
-            "use_yn",
-            "valid_from",
-            "valid_to"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_delegation_from",
-          "columns": [
-            "delegator_employee_no"
-          ],
-          "referencedTable": "BZA_EMPLOYEE",
-          "referencedColumns": [
-            "employee_no"
-          ]
-        },
-        {
-          "name": "fk_bza_approval_delegation_to",
-          "columns": [
-            "delegate_employee_no"
-          ],
-          "referencedTable": "BZA_EMPLOYEE",
-          "referencedColumns": [
-            "employee_no"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_DOCUMENT",
-      "columns": [
-        "approval_id",
-        "approval_no",
-        "approval_type",
-        "business_domain",
-        "policy_code",
-        "policy_version",
-        "policy_snapshot_json",
-        "title",
-        "requester_employee_no",
-        "requester_organization_code",
-        "requester_position_code",
-        "requester_job_title_code",
-        "approval_status",
-        "approval_mode",
-        "current_step_no",
-        "due_at",
-        "payload_json",
-        "payload_hash",
-        "request_idempotency_key",
-        "attachment_group_id",
-        "resubmitted_from_approval_id",
-        "version_no",
-        "transaction_id",
-        "submitted_at",
-        "completed_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_approval_document_no",
-          "unique": true,
-          "columns": [
-            "approval_no"
-          ]
-        },
-        {
-          "name": "uk_bza_approval_document_idempotency",
-          "unique": true,
-          "columns": [
-            "request_idempotency_key"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_document_status",
-          "unique": false,
-          "columns": [
-            "approval_status",
-            "due_at"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_document_requester",
-          "unique": false,
-          "columns": [
-            "requester_employee_no",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_document_transaction",
-          "unique": false,
-          "columns": [
-            "transaction_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_document_resubmit",
-          "unique": false,
-          "columns": [
-            "resubmitted_from_approval_id"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_document_policy",
-          "columns": [
-            "policy_code",
-            "policy_version"
-          ],
-          "referencedTable": "BZA_APPROVAL_POLICY",
-          "referencedColumns": [
-            "policy_code",
-            "policy_version"
-          ]
-        },
-        {
-          "name": "fk_bza_approval_document_resubmit",
-          "columns": [
-            "resubmitted_from_approval_id"
-          ],
-          "referencedTable": "BZA_APPROVAL_DOCUMENT",
-          "referencedColumns": [
-            "approval_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_HISTORY",
-      "columns": [
-        "approval_history_id",
-        "approval_id",
-        "action_type",
-        "actor_employee_no",
-        "idempotency_key",
-        "reason",
-        "before_status",
-        "after_status",
-        "comment_text",
-        "transaction_id",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_approval_history_idempotency",
-          "unique": true,
-          "columns": [
-            "idempotency_key"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_history_document",
-          "unique": false,
-          "columns": [
-            "approval_id",
-            "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_history_document",
-          "columns": [
-            "approval_id"
-          ],
-          "referencedTable": "BZA_APPROVAL_DOCUMENT",
-          "referencedColumns": [
-            "approval_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_LINE",
-      "columns": [
-        "approval_line_id",
-        "approval_id",
-        "step_no",
-        "approver_employee_no",
-        "step_type",
-        "target_type",
-        "target_code",
-        "target_name_snapshot",
-        "decision_rule",
-        "required_count",
-        "required_yn",
-        "decision_status",
-        "decision_comment",
-        "decided_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_approval_line",
-          "unique": true,
-          "columns": [
-            "approval_id",
-            "step_no",
-            "target_type",
-            "target_code"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_line_approver",
-          "unique": false,
-          "columns": [
-            "approver_employee_no",
-            "decision_status"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_line_document",
-          "columns": [
-            "approval_id"
-          ],
-          "referencedTable": "BZA_APPROVAL_DOCUMENT",
-          "referencedColumns": [
-            "approval_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_PARTICIPANT",
-      "columns": [
-        "approval_participant_id",
-        "approval_id",
-        "approval_line_id",
-        "step_no",
-        "approver_employee_no",
-        "approver_name_snapshot",
-        "organization_code_snapshot",
-        "position_code_snapshot",
-        "job_title_code_snapshot",
-        "delegated_from_employee_no",
-        "resolution_source",
-        "decision_status",
-        "idempotency_key",
-        "decision_comment",
-        "decided_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_approval_participant",
-          "unique": true,
-          "columns": [
-            "approval_line_id",
-            "approver_employee_no"
-          ]
-        },
-        {
-          "name": "uk_bza_approval_participant_idem",
-          "unique": true,
-          "columns": [
-            "idempotency_key"
-          ]
-        },
-        {
-          "name": "ix_bza_approval_participant_inbox",
-          "unique": false,
-          "columns": [
-            "approver_employee_no",
-            "decision_status",
-            "approval_id"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_participant_document",
-          "columns": [
-            "approval_id"
-          ],
-          "referencedTable": "BZA_APPROVAL_DOCUMENT",
-          "referencedColumns": [
-            "approval_id"
-          ]
-        },
-        {
-          "name": "fk_bza_approval_participant_line",
-          "columns": [
-            "approval_line_id"
-          ],
-          "referencedTable": "BZA_APPROVAL_LINE",
-          "referencedColumns": [
-            "approval_line_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_POLICY",
-      "columns": [
-        "policy_code",
-        "policy_version",
-        "policy_name",
-        "business_domain",
-        "approval_type",
-        "effective_from",
-        "effective_to",
-        "enabled_yn",
-        "self_approval_allowed_yn",
-        "description",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_approval_policy_lookup",
-          "unique": false,
-          "columns": [
-            "business_domain",
-            "approval_type",
-            "enabled_yn",
-            "effective_from",
-            "effective_to"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_APPROVAL_POLICY_STEP",
-      "columns": [
-        "policy_code",
-        "policy_version",
-        "step_no",
-        "step_type",
-        "target_type",
-        "target_code",
-        "decision_rule",
-        "required_count",
-        "required_yn",
-        "sort_order",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_approval_policy_step_policy",
-          "columns": [
-            "policy_code",
-            "policy_version"
-          ],
-          "referencedTable": "BZA_APPROVAL_POLICY",
-          "referencedColumns": [
-            "policy_code",
-            "policy_version"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_ATTACHMENT",
-      "columns": [
-        "attachment_id",
-        "attachment_group_id",
-        "original_file_name",
-        "stored_file_name",
-        "storage_key",
-        "content_type",
-        "file_size",
-        "checksum_sha256",
-        "scan_status",
-        "data_classification",
-        "retention_until",
-        "quarantine_yn",
-        "use_yn",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_attachment_storage_key",
-          "unique": true,
-          "columns": [
-            "storage_key"
-          ]
-        },
-        {
-          "name": "ix_bza_attachment_group",
-          "unique": false,
-          "columns": [
-            "attachment_group_id",
-            "use_yn",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_attachment_checksum",
-          "unique": false,
-          "columns": [
-            "checksum_sha256"
-          ]
-        },
-        {
-          "name": "ix_bza_attachment_retention",
-          "unique": false,
-          "columns": [
-            "retention_until",
-            "use_yn"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_AUDIT_CHAIN_LOCK",
-      "columns": [
-        "chain_id",
-        "current_hash",
-        "last_audit_id",
-        "version_no",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_BOOTSTRAP_APPROVAL",
-      "columns": [
-        "token_hash",
-        "env_fingerprint",
-        "status",
-        "operation_id",
-        "expires_at",
-        "claimed_at",
-        "claim_owner_id",
-        "claim_expires_at",
-        "completed_at",
-        "admin_user_id",
-        "failure_code",
-        "cleanup_status",
-        "cleanup_failure_code",
-        "cleanup_updated_at",
-        "requested_by",
-        "approved_by",
-        "approval_reason",
-        "created_at",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ux_bza_bootstrap_operation",
-          "unique": true,
-          "columns": [
-            "operation_id"
-          ]
-        },
-        {
-          "name": "ix_bza_bootstrap_expiry",
-          "unique": false,
-          "columns": [
-            "status",
-            "expires_at"
-          ]
-        },
-        {
-          "name": "ix_bza_bootstrap_claim_lease",
-          "unique": false,
-          "columns": [
-            "status",
-            "claim_expires_at"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_BUSINESS_AUDIT",
-      "columns": [
-        "audit_id",
-        "transaction_id",
-        "actor_id",
-        "action_type",
-        "target_type",
-        "target_id",
-        "reason",
-        "before_data",
-        "after_data",
-        "previous_record_hash",
-        "record_hash",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_business_audit_target",
-          "unique": false,
-          "columns": [
-            "target_type",
-            "target_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_business_audit_actor",
-          "unique": false,
-          "columns": [
-            "actor_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_business_audit_transaction",
-          "unique": false,
-          "columns": [
-            "transaction_id"
-          ]
-        },
-        {
-          "name": "ix_bza_business_audit_hash",
-          "unique": false,
-          "columns": [
-            "record_hash"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_DOWNLOAD_AUDIT",
-      "columns": [
-        "download_audit_id",
-        "actor_id",
-        "download_code",
-        "reason",
-        "filter_json",
-        "row_count",
-        "result_status",
-        "file_name",
-        "masking_applied_yn",
-        "transaction_id",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_download_audit_actor",
-          "unique": false,
-          "columns": [
-            "actor_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_download_audit_transaction",
-          "unique": false,
-          "columns": [
-            "transaction_id"
-          ]
-        },
-        {
-          "name": "ix_bza_download_audit_status",
-          "unique": false,
-          "columns": [
-            "result_status",
-            "created_at"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_EMPLOYEE",
-      "columns": [
-        "employee_id",
-        "employee_no",
-        "admin_user_id",
-        "organization_code",
-        "employee_name",
-        "position_code",
-        "job_title_code",
-        "manager_employee_no",
-        "employment_status",
-        "join_date",
-        "leave_date",
-        "email",
-        "mobile_no",
-        "office_phone_no",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_employee_no",
-          "unique": true,
-          "columns": [
-            "employee_no"
-          ]
-        },
-        {
-          "name": "uk_bza_employee_admin_user",
-          "unique": true,
-          "columns": [
-            "admin_user_id"
-          ]
-        },
-        {
-          "name": "ix_bza_employee_organization",
-          "unique": false,
-          "columns": [
-            "organization_code",
-            "employment_status"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_employee_admin_user",
-          "columns": [
-            "admin_user_id"
-          ],
-          "referencedTable": "BZA_ADMIN_USER",
-          "referencedColumns": [
-            "admin_user_id"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_organization",
-          "columns": [
-            "organization_code"
-          ],
-          "referencedTable": "BZA_ORGANIZATION",
-          "referencedColumns": [
-            "organization_code"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_position",
-          "columns": [
-            "position_code"
-          ],
-          "referencedTable": "BZA_POSITION",
-          "referencedColumns": [
-            "position_code"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_job_title",
-          "columns": [
-            "job_title_code"
-          ],
-          "referencedTable": "BZA_JOB_TITLE",
-          "referencedColumns": [
-            "job_title_code"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_EMPLOYEE_ASSIGNMENT",
-      "columns": [
-        "assignment_id",
-        "employee_no",
-        "organization_code",
-        "position_code",
-        "job_title_code",
-        "assignment_type",
-        "primary_yn",
-        "effective_from",
-        "effective_to",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_employee_assignment_current",
-          "unique": false,
-          "columns": [
-            "employee_no",
-            "effective_to",
-            "primary_yn"
-          ]
-        },
-        {
-          "name": "ix_bza_employee_assignment_org",
-          "unique": false,
-          "columns": [
-            "organization_code",
-            "effective_to",
-            "job_title_code"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_employee_assignment_employee",
-          "columns": [
-            "employee_no"
-          ],
-          "referencedTable": "BZA_EMPLOYEE",
-          "referencedColumns": [
-            "employee_no"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_assignment_org",
-          "columns": [
-            "organization_code"
-          ],
-          "referencedTable": "BZA_ORGANIZATION",
-          "referencedColumns": [
-            "organization_code"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_assignment_position",
-          "columns": [
-            "position_code"
-          ],
-          "referencedTable": "BZA_POSITION",
-          "referencedColumns": [
-            "position_code"
-          ]
-        },
-        {
-          "name": "fk_bza_employee_assignment_job_title",
-          "columns": [
-            "job_title_code"
-          ],
-          "referencedTable": "BZA_JOB_TITLE",
-          "referencedColumns": [
-            "job_title_code"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_JOB_TITLE",
-      "columns": [
-        "job_title_code",
-        "job_title_name",
-        "manager_yn",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_LOGIN_HISTORY",
-      "columns": [
-        "login_history_id",
-        "admin_user_id",
-        "login_domain",
-        "admin_login_id",
-        "login_result",
-        "failure_reason",
-        "client_ip",
-        "user_agent",
-        "transaction_id",
-        "module_id",
-        "was_id",
-        "instance_id",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_login_history_user_time",
-          "unique": false,
-          "columns": [
-            "admin_user_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_login_history_result_time",
-          "unique": false,
-          "columns": [
-            "login_result",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_login_history_global",
-          "unique": false,
-          "columns": [
-            "transaction_id"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_login_history_user",
-          "columns": [
-            "admin_user_id"
-          ],
-          "referencedTable": "BZA_ADMIN_USER",
-          "referencedColumns": [
-            "admin_user_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_LOGIN_OPERATION",
-      "columns": [
-        "operation_id",
-        "admin_user_id",
-        "admin_login_id",
-        "operation_status",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at",
-        "request_hash",
-        "result_access_token_enc",
-        "result_refresh_token_enc",
-        "result_refresh_expires_at",
-        "result_expires_at",
-        "failure_code",
-        "failure_message"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_login_operation_user_time",
-          "unique": false,
-          "columns": [
-            "admin_user_id",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_login_operation_expiry",
-          "unique": false,
-          "columns": [
-            "operation_status",
-            "result_expires_at"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_login_operation_user",
-          "columns": [
-            "admin_user_id"
-          ],
-          "referencedTable": "BZA_ADMIN_USER",
-          "referencedColumns": [
-            "admin_user_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_MENU",
-      "columns": [
-        "menu_id",
-        "menu_code",
-        "menu_name",
-        "parent_menu_code",
-        "module_code",
-        "route_path",
-        "icon_code",
-        "environment_code",
-        "api_path",
-        "sort_order",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_menu_code",
-          "unique": true,
-          "columns": [
-            "menu_code"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_NOTIFICATION",
-      "columns": [
-        "notification_id",
-        "recipient_login_id",
-        "notification_type",
-        "title",
-        "message_body",
-        "reference_type",
-        "reference_id",
-        "read_yn",
-        "read_at",
-        "use_yn",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_notification_recipient",
-          "unique": false,
-          "columns": [
-            "recipient_login_id",
-            "read_yn",
-            "use_yn",
-            "created_at"
-          ]
-        },
-        {
-          "name": "ix_bza_notification_reference",
-          "unique": false,
-          "columns": [
-            "reference_type",
-            "reference_id"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_ORGANIZATION",
-      "columns": [
-        "organization_id",
-        "organization_code",
-        "parent_organization_code",
-        "organization_name",
-        "organization_type",
-        "sort_order",
-        "effective_from",
-        "effective_to",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_organization_code",
-          "unique": true,
-          "columns": [
-            "organization_code"
-          ]
-        },
-        {
-          "name": "ix_bza_organization_parent",
-          "unique": false,
-          "columns": [
-            "parent_organization_code",
-            "sort_order"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_ORGANIZATION_RESPONSIBILITY",
-      "columns": [
-        "responsibility_id",
-        "organization_code",
-        "responsibility_type",
-        "employee_no",
-        "effective_from",
-        "effective_to",
-        "priority_no",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_org_responsibility_active",
-          "unique": false,
-          "columns": [
-            "organization_code",
-            "responsibility_type",
-            "use_yn",
-            "effective_to",
-            "priority_no"
-          ]
-        },
-        {
-          "name": "ix_bza_org_responsibility_employee",
-          "unique": false,
-          "columns": [
-            "employee_no",
-            "use_yn",
-            "effective_to"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_org_responsibility_org",
-          "columns": [
-            "organization_code"
-          ],
-          "referencedTable": "BZA_ORGANIZATION",
-          "referencedColumns": [
-            "organization_code"
-          ]
-        },
-        {
-          "name": "fk_bza_org_responsibility_employee",
-          "columns": [
-            "employee_no"
-          ],
-          "referencedTable": "BZA_EMPLOYEE",
-          "referencedColumns": [
-            "employee_no"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_PERMISSION",
-      "columns": [
-        "permission_id",
-        "role_code",
-        "menu_code",
-        "button_code",
-        "permission_type",
-        "http_method",
-        "api_pattern",
-        "domain_code",
-        "environment_code",
-        "data_scope",
-        "allow_yn",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_bza_permission_scope",
-          "unique": false,
-          "columns": [
-            "role_code",
-            "menu_code",
-            "button_code",
-            "environment_code",
-            "domain_code",
-            "http_method"
-          ]
-        },
-        {
-          "name": "ix_bza_permission_menu",
-          "unique": false,
-          "columns": [
-            "menu_code"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_POSITION",
-      "columns": [
-        "position_code",
-        "position_name",
-        "rank_order",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_PROJECT_SETTING",
-      "columns": [
-        "setting_id",
-        "setting_key",
-        "setting_value",
-        "description",
-        "use_yn",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_project_setting_key",
-          "unique": true,
-          "columns": [
-            "setting_key"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_REFRESH_TOKEN",
-      "columns": [
-        "refresh_token_id",
-        "admin_user_id",
-        "login_domain",
-        "refresh_token_hash",
-        "transaction_id",
-        "login_operation_id",
-        "expire_at",
-        "revoked_yn",
-        "revoked_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_refresh_token_hash",
-          "unique": true,
-          "columns": [
-            "refresh_token_hash"
-          ]
-        },
-        {
-          "name": "ix_bza_refresh_token_user",
-          "unique": false,
-          "columns": [
-            "admin_user_id",
-            "revoked_yn",
-            "expire_at"
-          ]
-        },
-        {
-          "name": "ix_bza_refresh_token_login_operation",
-          "unique": false,
-          "columns": [
-            "login_operation_id",
-            "revoked_yn"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_refresh_token_user",
-          "columns": [
-            "admin_user_id"
-          ],
-          "referencedTable": "BZA_ADMIN_USER",
-          "referencedColumns": [
-            "admin_user_id"
-          ]
-        }
-      ]
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_ROLE",
-      "columns": [
-        "role_id",
-        "role_code",
-        "role_name",
-        "write_allowed_yn",
-        "data_scope",
-        "use_yn",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_role_code",
-          "unique": true,
-          "columns": [
-            "role_code"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_SAVED_SEARCH",
-      "columns": [
-        "saved_search_id",
-        "owner_login_id",
-        "screen_code",
-        "search_name",
-        "criteria_json",
-        "shared_yn",
-        "use_yn",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_saved_search_owner",
-          "unique": true,
-          "columns": [
-            "owner_login_id",
-            "screen_code",
-            "search_name"
-          ]
-        },
-        {
-          "name": "ix_bza_saved_search_screen",
-          "unique": false,
-          "columns": [
-            "screen_code",
-            "shared_yn",
-            "use_yn"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "bzaDB",
-      "sourceFile": "bza-schema.sql",
-      "tableName": "BZA_USER_ROLE",
-      "columns": [
-        "user_role_id",
-        "admin_user_id",
-        "role_code",
-        "valid_from",
-        "valid_to",
-        "primary_yn",
-        "grant_reason",
-        "operation_id",
-        "version_no",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "uk_bza_user_role_operation",
-          "unique": true,
-          "columns": [
-            "operation_id"
-          ]
-        },
-        {
-          "name": "ix_bza_user_role_user",
-          "unique": false,
-          "columns": [
-            "admin_user_id",
-            "valid_to",
-            "primary_yn",
-            "user_role_id"
-          ]
-        },
-        {
-          "name": "ix_bza_user_role_role",
-          "unique": false,
-          "columns": [
-            "role_code",
-            "valid_to",
-            "admin_user_id"
-          ]
-        }
-      ],
-      "foreignKeys": [
-        {
-          "name": "fk_bza_user_role_user",
-          "columns": [
-            "admin_user_id"
-          ],
-          "referencedTable": "BZA_ADMIN_USER",
-          "referencedColumns": [
-            "admin_user_id"
-          ]
-        },
-        {
-          "name": "fk_bza_user_role_role",
-          "columns": [
-            "role_code"
-          ],
-          "referencedTable": "BZA_ROLE",
-          "referencedColumns": [
-            "role_code"
-          ]
-        }
-      ]
-    },
     {
       "vendor": "mariadb",
       "logicalDatabase": "cpfDB",
@@ -7369,12 +5872,14 @@
         "idempotency_key",
         "tenant_id",
         "system_code",
+        "target_system_code",
+        "current_channel",
         "actor_id_masked",
         "instance_id",
         "was_id",
         "agent_id",
         "worker_id",
-        "remote_system",
+        "target_channel",
         "operation_id",
         "message_id",
         "consumer_group",
@@ -7494,12 +5999,14 @@
         "idempotency_key",
         "tenant_id",
         "system_code",
+        "target_system_code",
+        "current_channel",
         "actor_id_masked",
         "instance_id",
         "was_id",
         "agent_id",
         "worker_id",
-        "remote_system",
+        "target_channel",
         "operation_id",
         "message_id",
         "consumer_group",
@@ -7558,6 +6065,10 @@
         "CLIENT_VERSION",
         "CALLER_SYSTEM_CODE",
         "TARGET_SYSTEM_CODE",
+        "ORIGINAL_SYSTEM_CODE",
+        "SYSTEM_CODE",
+        "CALLER_CHANNEL",
+        "TARGET_CHANNEL",
         "TARGET_OPERATION_ID",
         "CALLER_INSTANCE_ID",
         "CORRELATION_ID",
@@ -7565,8 +6076,8 @@
         "LOCALE",
         "TIMEZONE",
         "REQUEST_TYPE",
-        "ORIGINAL_SYSTEM_CODE",
-        "SYSTEM_CODE",
+        "ORIGINAL_CHANNEL",
+        "CURRENT_CHANNEL",
         "MEMBER_NO",
         "CUSTOMER_NO",
         "SCREEN_ID",
@@ -7575,6 +6086,7 @@
         "WAS_ID",
         "INSTANCE_ID",
         "HOST_NAME",
+        "HOST_IP",
         "PROCESS_ID",
         "THREAD_NAME",
         "RESERVED_FIELD_1",
@@ -7812,70 +6324,6 @@
       "vendor": "mariadb",
       "logicalDatabase": "cpfDB",
       "sourceFile": "cpf-platform-schema.sql",
-      "tableName": "CPF_TRANSACTION_META",
-      "columns": [
-        "transaction_id",
-        "transaction_name",
-        "module_code",
-        "domain_code",
-        "http_method",
-        "api_path",
-        "controller_class",
-        "handler_method",
-        "swagger_operation_id",
-        "log_policy_key",
-        "sensitive_yn",
-        "masking_policy_key",
-        "active_yn",
-        "first_detected_at",
-        "last_detected_at",
-        "last_scanned_at",
-        "created_by",
-        "created_at",
-        "updated_by",
-        "updated_at"
-      ],
-      "indexes": [
-        {
-          "name": "ix_cpf_transaction_meta_module",
-          "unique": false,
-          "columns": [
-            "module_code",
-            "domain_code",
-            "active_yn"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_path",
-          "unique": false,
-          "columns": [
-            "http_method",
-            "api_path"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_policy",
-          "unique": false,
-          "columns": [
-            "log_policy_key",
-            "active_yn"
-          ]
-        },
-        {
-          "name": "ix_cpf_transaction_meta_scan",
-          "unique": false,
-          "columns": [
-            "active_yn",
-            "last_scanned_at"
-          ]
-        }
-      ],
-      "foreignKeys": []
-    },
-    {
-      "vendor": "mariadb",
-      "logicalDatabase": "cpfDB",
-      "sourceFile": "cpf-platform-schema.sql",
       "tableName": "CPF_TRANSACTION_SEGMENT",
       "columns": [
         "segment_id",
@@ -7907,9 +6355,13 @@
         "operator_id_masked",
         "system_code",
         "original_system_code",
-        "client_id",
         "caller_system_code",
         "target_system_code",
+        "current_channel",
+        "original_channel",
+        "client_id",
+        "caller_channel",
+        "target_channel",
         "target_operation_id",
         "external_institution_code",
         "external_transaction_id",
@@ -8922,13 +7374,87 @@
       "vendor": "mariadb",
       "logicalDatabase": "cpfDB",
       "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_ASYNC_OPERATION",
+      "columns": [
+        "execution_id",
+        "operation_id",
+        "transaction_id",
+        "idempotency_key",
+        "command_type",
+        "command_payload",
+        "context_payload",
+        "result_type",
+        "result_payload",
+        "state",
+        "result_status",
+        "error_code",
+        "error_message",
+        "recovery_id",
+        "recovery_action",
+        "submitted_at",
+        "started_at",
+        "updated_at",
+        "completed_at",
+        "expires_at",
+        "heartbeat_at",
+        "lease_owner",
+        "lease_until",
+        "cancellation_reason",
+        "version"
+      ],
+      "indexes": [
+        {
+          "name": "uk_ops_async_operation_idempotency",
+          "unique": true,
+          "columns": [
+            "operation_id",
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_state",
+          "unique": false,
+          "columns": [
+            "state",
+            "submitted_at"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_tx",
+          "unique": false,
+          "columns": [
+            "transaction_id",
+            "submitted_at"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_lease",
+          "unique": false,
+          "columns": [
+            "state",
+            "lease_until"
+          ]
+        },
+        {
+          "name": "ix_ops_async_operation_expiry",
+          "unique": false,
+          "columns": [
+            "expires_at",
+            "state"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
       "tableName": "OPS_CHANNEL_EXECUTION_POLICY",
       "columns": [
         "policy_key",
-        "standard_execution_id",
-        "original_channel_code",
-        "caller_channel_code",
-        "request_type",
+        "operation_id",
+        "caller_channel",
         "allowed_yn",
         "authentication_required_yn",
         "signature_required_yn",
@@ -8944,18 +7470,24 @@
       ],
       "indexes": [
         {
-          "name": "ix_cpf_channel_execution_policy_lookup",
+          "name": "uk_ops_channel_execution_policy_operation_caller",
+          "unique": true,
+          "columns": [
+            "operation_id",
+            "caller_channel"
+          ]
+        },
+        {
+          "name": "ix_ops_channel_execution_policy_lookup",
           "unique": false,
           "columns": [
-            "standard_execution_id",
-            "original_channel_code",
-            "caller_channel_code",
-            "request_type",
+            "operation_id",
+            "caller_channel",
             "active_yn"
           ]
         },
         {
-          "name": "ix_cpf_channel_execution_policy_effective",
+          "name": "ix_ops_channel_execution_policy_effective",
           "unique": false,
           "columns": [
             "active_yn",
@@ -8964,28 +7496,7 @@
           ]
         }
       ],
-      "foreignKeys": [
-        {
-          "name": "fk_cpf_channel_execution_policy_original",
-          "columns": [
-            "original_channel_code"
-          ],
-          "referencedTable": "OPS_CHANNEL_REGISTRY",
-          "referencedColumns": [
-            "channel_code"
-          ]
-        },
-        {
-          "name": "fk_cpf_channel_execution_policy_caller",
-          "columns": [
-            "caller_channel_code"
-          ],
-          "referencedTable": "OPS_CHANNEL_REGISTRY",
-          "referencedColumns": [
-            "channel_code"
-          ]
-        }
-      ]
+      "foreignKeys": []
     },
     {
       "vendor": "mariadb",
@@ -9445,6 +7956,283 @@
       "vendor": "mariadb",
       "logicalDatabase": "cpfDB",
       "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_MANAGED_SERVER",
+      "columns": [
+        "managed_server_id",
+        "server_name",
+        "display_name",
+        "hostname",
+        "management_identity",
+        "environment_code",
+        "server_group",
+        "zone_code",
+        "location",
+        "description",
+        "enabled_yn",
+        "status",
+        "tags_json",
+        "registered_at",
+        "registered_by",
+        "row_version",
+        "created_at",
+        "updated_at",
+        "updated_by"
+      ],
+      "indexes": [
+        {
+          "name": "uk_ops_managed_server_management_identity",
+          "unique": true,
+          "columns": [
+            "management_identity"
+          ]
+        },
+        {
+          "name": "ix_ops_managed_server_name",
+          "unique": false,
+          "columns": [
+            "server_name"
+          ]
+        },
+        {
+          "name": "ix_ops_managed_server_env_status",
+          "unique": false,
+          "columns": [
+            "environment_code",
+            "status",
+            "enabled_yn"
+          ]
+        },
+        {
+          "name": "ix_ops_managed_server_group",
+          "unique": false,
+          "columns": [
+            "server_group",
+            "environment_code"
+          ]
+        },
+        {
+          "name": "ix_ops_managed_server_hostname",
+          "unique": false,
+          "columns": [
+            "hostname",
+            "environment_code"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_OPERATION_CALLER_POLICY",
+      "columns": [
+        "operation_id",
+        "caller_system_code",
+        "allowed_yn",
+        "policy_version",
+        "seed_source",
+        "seed_revision",
+        "seeded_at",
+        "change_reason",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_caller_caller",
+          "unique": false,
+          "columns": [
+            "caller_system_code",
+            "allowed_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_caller_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "referencedTable": "OPS_OPERATION_CATALOG",
+          "referencedColumns": [
+            "operation_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_OPERATION_CATALOG",
+      "columns": [
+        "operation_id",
+        "operation_name",
+        "description",
+        "system_code",
+        "domain_code",
+        "application_code",
+        "http_method",
+        "api_path",
+        "controller_class",
+        "handler_method",
+        "openapi_operation_id",
+        "source_fingerprint",
+        "discovery_status",
+        "first_seen_at",
+        "last_seen_at",
+        "last_instance_id",
+        "metadata_version",
+        "log_policy_key",
+        "sensitive_yn",
+        "masking_policy_key",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_catalog_system",
+          "unique": false,
+          "columns": [
+            "system_code",
+            "domain_code",
+            "discovery_status"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_catalog_path",
+          "unique": false,
+          "columns": [
+            "http_method",
+            "api_path"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_catalog_seen",
+          "unique": false,
+          "columns": [
+            "last_seen_at",
+            "discovery_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_catalog_system",
+          "columns": [
+            "system_code"
+          ],
+          "referencedTable": "OPS_SYSTEM_REGISTRY",
+          "referencedColumns": [
+            "system_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_OPERATION_DISCOVERY_INSTANCE",
+      "columns": [
+        "operation_id",
+        "instance_id",
+        "system_code",
+        "application_code",
+        "artifact_version",
+        "artifact_commit",
+        "discovered_yn",
+        "last_reported_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_discovery_instance",
+          "unique": false,
+          "columns": [
+            "instance_id",
+            "discovered_yn",
+            "last_reported_at"
+          ]
+        },
+        {
+          "name": "ix_ops_operation_discovery_scope",
+          "unique": false,
+          "columns": [
+            "system_code",
+            "application_code",
+            "discovered_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_discovery_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "referencedTable": "OPS_OPERATION_CATALOG",
+          "referencedColumns": [
+            "operation_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_OPERATION_POLICY",
+      "columns": [
+        "operation_id",
+        "enabled_yn",
+        "all_callers_yn",
+        "channel_policy_required_yn",
+        "policy_version",
+        "seed_source",
+        "seed_revision",
+        "seeded_at",
+        "change_reason",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_operation_policy_enabled",
+          "unique": false,
+          "columns": [
+            "enabled_yn",
+            "policy_version"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_operation_policy_catalog",
+          "columns": [
+            "operation_id"
+          ],
+          "referencedTable": "OPS_OPERATION_CATALOG",
+          "referencedColumns": [
+            "operation_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
       "tableName": "OPS_RESILIENCE_AUDIT",
       "columns": [
         "audit_id",
@@ -9555,6 +8343,177 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_RETENTION_CONTROL_AUDIT",
+      "columns": [
+        "audit_id",
+        "operation_type",
+        "target_type",
+        "target_id",
+        "requested_by",
+        "approved_by",
+        "approval_request_id",
+        "reason_text",
+        "expected_version",
+        "result_state",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_retention_audit_target",
+          "unique": false,
+          "columns": [
+            "target_type",
+            "target_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_audit_approval",
+          "unique": false,
+          "columns": [
+            "approval_request_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_RETENTION_POLICY",
+      "columns": [
+        "policy_id",
+        "target_name",
+        "action_name",
+        "retention_days",
+        "schedule_expression",
+        "maintenance_start",
+        "maintenance_end",
+        "enabled_yn",
+        "paused_yn",
+        "legal_hold_yn",
+        "chunk_size",
+        "throttle_millis",
+        "max_rows_per_run",
+        "max_runtime_seconds",
+        "lease_seconds",
+        "policy_version",
+        "next_run_at",
+        "last_run_at",
+        "lease_owner",
+        "lease_until",
+        "fencing_token",
+        "row_version",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_retention_policy_due",
+          "unique": false,
+          "columns": [
+            "enabled_yn",
+            "paused_yn",
+            "next_run_at"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_policy_lease",
+          "unique": false,
+          "columns": [
+            "lease_until",
+            "lease_owner"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_policy_target",
+          "unique": false,
+          "columns": [
+            "target_name",
+            "action_name"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_RETENTION_RUN",
+      "columns": [
+        "run_id",
+        "policy_id",
+        "trigger_type",
+        "status",
+        "runtime_instance_id",
+        "actor_id",
+        "reason",
+        "policy_version",
+        "cutoff_at",
+        "started_at",
+        "completed_at",
+        "matched_count",
+        "archived_count",
+        "deleted_count",
+        "processed_count",
+        "compressed_count",
+        "freed_bytes",
+        "pause_requested_yn",
+        "control_actor_id",
+        "control_reason",
+        "error_code",
+        "error_summary",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_retention_run_policy_time",
+          "unique": false,
+          "columns": [
+            "policy_id",
+            "started_at"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_run_status_time",
+          "unique": false,
+          "columns": [
+            "status",
+            "started_at"
+          ]
+        },
+        {
+          "name": "ix_ops_retention_run_runtime",
+          "unique": false,
+          "columns": [
+            "runtime_instance_id",
+            "started_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_retention_run_policy",
+          "columns": [
+            "policy_id"
+          ],
+          "referencedTable": "OPS_RETENTION_POLICY",
+          "referencedColumns": [
+            "policy_id"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",
@@ -10495,6 +9454,7 @@
       "tableName": "OPS_SERVICE_INSTANCE",
       "columns": [
         "instance_id",
+        "managed_server_id",
         "service_id",
         "endpoint_code",
         "instance_name",
@@ -10516,6 +9476,15 @@
         "maintenance_yn",
         "drain_yn",
         "drain_deadline_at",
+        "system_code",
+        "application_name",
+        "application_role",
+        "runtime_hostname",
+        "process_id",
+        "java_version",
+        "cpf_version",
+        "application_version",
+        "started_at",
         "row_version"
       ],
       "indexes": [
@@ -10559,6 +9528,15 @@
             "active_yn",
             "instance_status"
           ]
+        },
+        {
+          "name": "ix_cpf_service_instance_managed_server",
+          "unique": false,
+          "columns": [
+            "managed_server_id",
+            "instance_status",
+            "last_heartbeat_at"
+          ]
         }
       ],
       "foreignKeys": [
@@ -10580,6 +9558,16 @@
           "referencedTable": "OPS_SERVICE_ENDPOINT",
           "referencedColumns": [
             "endpoint_code"
+          ]
+        },
+        {
+          "name": "fk_cpf_service_instance_managed_server",
+          "columns": [
+            "managed_server_id"
+          ],
+          "referencedTable": "OPS_MANAGED_SERVER",
+          "referencedColumns": [
+            "managed_server_id"
           ]
         }
       ]
@@ -10647,6 +9635,144 @@
           ]
         }
       ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_SYSTEM_DOMAIN_ACCESS",
+      "columns": [
+        "caller_system_code",
+        "target_system_code",
+        "allowed_yn",
+        "policy_version",
+        "change_reason",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_system_domain_access_target",
+          "unique": false,
+          "columns": [
+            "target_system_code",
+            "allowed_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_ops_sys_domain_caller",
+          "columns": [
+            "caller_system_code"
+          ],
+          "referencedTable": "OPS_SYSTEM_REGISTRY",
+          "referencedColumns": [
+            "system_code"
+          ]
+        },
+        {
+          "name": "fk_ops_sys_domain_target",
+          "columns": [
+            "target_system_code"
+          ],
+          "referencedTable": "OPS_SYSTEM_REGISTRY",
+          "referencedColumns": [
+            "system_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_SYSTEM_REGISTRY",
+      "columns": [
+        "system_code",
+        "system_name",
+        "domain_code",
+        "enabled_yn",
+        "description",
+        "policy_version",
+        "first_seen_at",
+        "last_seen_at",
+        "last_instance_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_system_registry_domain",
+          "unique": false,
+          "columns": [
+            "domain_code",
+            "enabled_yn"
+          ]
+        },
+        {
+          "name": "ix_ops_system_registry_seen",
+          "unique": false,
+          "columns": [
+            "last_seen_at",
+            "enabled_yn"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "OPS_TRANSACTION_SUBJECT",
+      "columns": [
+        "transaction_id",
+        "subject_role",
+        "subject_type",
+        "subject_search_key",
+        "subject_masked_value",
+        "source_type",
+        "trust_level",
+        "search_key_version",
+        "first_seen_at",
+        "last_seen_at",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_ops_transaction_subject_search",
+          "unique": false,
+          "columns": [
+            "subject_role",
+            "subject_type",
+            "subject_search_key",
+            "first_seen_at"
+          ]
+        },
+        {
+          "name": "ix_ops_transaction_subject_transaction",
+          "unique": false,
+          "columns": [
+            "transaction_id",
+            "first_seen_at"
+          ]
+        },
+        {
+          "name": "ix_ops_transaction_subject_retention",
+          "unique": false,
+          "columns": [
+            "last_seen_at",
+            "transaction_id"
+          ]
+        }
+      ],
+      "foreignKeys": []
     },
     {
       "vendor": "mariadb",
@@ -10762,6 +9888,1503 @@
         }
       ],
       "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_ADMIN_USER",
+      "columns": [
+        "admin_user_id",
+        "admin_login_id",
+        "admin_name",
+        "password_hash",
+        "role_code",
+        "account_status",
+        "version_no",
+        "create_operation_id",
+        "use_yn",
+        "lock_yn",
+        "login_fail_count",
+        "password_change_required_yn",
+        "password_expire_at",
+        "last_login_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_admin_user_login",
+          "unique": true,
+          "columns": [
+            "admin_login_id"
+          ]
+        },
+        {
+          "name": "uk_mbw_admin_user_create_operation",
+          "unique": true,
+          "columns": [
+            "create_operation_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_admin_user_role",
+          "unique": false,
+          "columns": [
+            "role_code",
+            "use_yn"
+          ]
+        },
+        {
+          "name": "ix_mbw_admin_user_status",
+          "unique": false,
+          "columns": [
+            "account_status",
+            "use_yn"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_DELEGATION",
+      "columns": [
+        "delegation_id",
+        "delegator_employee_no",
+        "delegate_employee_no",
+        "business_domain",
+        "approval_type",
+        "valid_from",
+        "valid_to",
+        "reason",
+        "use_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_approval_delegation_active",
+          "unique": false,
+          "columns": [
+            "delegator_employee_no",
+            "use_yn",
+            "valid_from",
+            "valid_to"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_delegation_from",
+          "columns": [
+            "delegator_employee_no"
+          ],
+          "referencedTable": "MBW_EMPLOYEE",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        },
+        {
+          "name": "fk_mbw_approval_delegation_to",
+          "columns": [
+            "delegate_employee_no"
+          ],
+          "referencedTable": "MBW_EMPLOYEE",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_DOCUMENT",
+      "columns": [
+        "approval_id",
+        "approval_no",
+        "approval_type",
+        "business_domain",
+        "policy_code",
+        "policy_version",
+        "policy_snapshot_json",
+        "title",
+        "requester_employee_no",
+        "requester_organization_code",
+        "requester_position_code",
+        "requester_job_title_code",
+        "approval_status",
+        "approval_mode",
+        "current_step_no",
+        "due_at",
+        "payload_json",
+        "payload_hash",
+        "request_idempotency_key",
+        "attachment_group_id",
+        "resubmitted_from_approval_id",
+        "version_no",
+        "transaction_id",
+        "submitted_at",
+        "completed_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_approval_document_no",
+          "unique": true,
+          "columns": [
+            "approval_no"
+          ]
+        },
+        {
+          "name": "uk_mbw_approval_document_idempotency",
+          "unique": true,
+          "columns": [
+            "request_idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_document_status",
+          "unique": false,
+          "columns": [
+            "approval_status",
+            "due_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_document_requester",
+          "unique": false,
+          "columns": [
+            "requester_employee_no",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_document_transaction",
+          "unique": false,
+          "columns": [
+            "transaction_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_document_resubmit",
+          "unique": false,
+          "columns": [
+            "resubmitted_from_approval_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_document_policy",
+          "columns": [
+            "policy_code",
+            "policy_version"
+          ],
+          "referencedTable": "MBW_APPROVAL_POLICY",
+          "referencedColumns": [
+            "policy_code",
+            "policy_version"
+          ]
+        },
+        {
+          "name": "fk_mbw_approval_document_resubmit",
+          "columns": [
+            "resubmitted_from_approval_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_DOCUMENT",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_HISTORY",
+      "columns": [
+        "approval_history_id",
+        "approval_id",
+        "action_type",
+        "actor_employee_no",
+        "idempotency_key",
+        "reason",
+        "before_status",
+        "after_status",
+        "comment_text",
+        "transaction_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_approval_history_idempotency",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_history_document",
+          "unique": false,
+          "columns": [
+            "approval_id",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_history_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_DOCUMENT",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_LINE",
+      "columns": [
+        "approval_line_id",
+        "approval_id",
+        "step_no",
+        "approver_employee_no",
+        "step_type",
+        "target_type",
+        "target_code",
+        "target_name_snapshot",
+        "decision_rule",
+        "required_count",
+        "required_yn",
+        "decision_status",
+        "decision_comment",
+        "decided_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_approval_line",
+          "unique": true,
+          "columns": [
+            "approval_id",
+            "step_no",
+            "target_type",
+            "target_code"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_line_approver",
+          "unique": false,
+          "columns": [
+            "approver_employee_no",
+            "decision_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_line_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_DOCUMENT",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_PARTICIPANT",
+      "columns": [
+        "approval_participant_id",
+        "approval_id",
+        "approval_line_id",
+        "step_no",
+        "approver_employee_no",
+        "approver_name_snapshot",
+        "organization_code_snapshot",
+        "position_code_snapshot",
+        "job_title_code_snapshot",
+        "delegated_from_employee_no",
+        "resolution_source",
+        "decision_status",
+        "idempotency_key",
+        "decision_comment",
+        "decided_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_approval_participant",
+          "unique": true,
+          "columns": [
+            "approval_line_id",
+            "approver_employee_no"
+          ]
+        },
+        {
+          "name": "uk_mbw_approval_participant_idem",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_participant_inbox",
+          "unique": false,
+          "columns": [
+            "approver_employee_no",
+            "decision_status",
+            "approval_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_participant_document",
+          "columns": [
+            "approval_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_DOCUMENT",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        },
+        {
+          "name": "fk_mbw_approval_participant_line",
+          "columns": [
+            "approval_line_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_LINE",
+          "referencedColumns": [
+            "approval_line_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_POLICY",
+      "columns": [
+        "policy_code",
+        "policy_version",
+        "policy_name",
+        "business_domain",
+        "approval_type",
+        "effective_from",
+        "effective_to",
+        "enabled_yn",
+        "self_approval_allowed_yn",
+        "description",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_approval_policy_lookup",
+          "unique": false,
+          "columns": [
+            "business_domain",
+            "approval_type",
+            "enabled_yn",
+            "effective_from",
+            "effective_to"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_POLICY_STEP",
+      "columns": [
+        "policy_code",
+        "policy_version",
+        "step_no",
+        "step_type",
+        "target_type",
+        "target_code",
+        "decision_rule",
+        "required_count",
+        "required_yn",
+        "sort_order",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_policy_step_policy",
+          "columns": [
+            "policy_code",
+            "policy_version"
+          ],
+          "referencedTable": "MBW_APPROVAL_POLICY",
+          "referencedColumns": [
+            "policy_code",
+            "policy_version"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_ATTACHMENT",
+      "columns": [
+        "attachment_id",
+        "attachment_group_id",
+        "original_file_name",
+        "stored_file_name",
+        "storage_key",
+        "content_type",
+        "file_size",
+        "checksum_sha256",
+        "scan_status",
+        "data_classification",
+        "retention_until",
+        "quarantine_yn",
+        "use_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_attachment_storage_key",
+          "unique": true,
+          "columns": [
+            "storage_key"
+          ]
+        },
+        {
+          "name": "ix_mbw_attachment_group",
+          "unique": false,
+          "columns": [
+            "attachment_group_id",
+            "use_yn",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_attachment_checksum",
+          "unique": false,
+          "columns": [
+            "checksum_sha256"
+          ]
+        },
+        {
+          "name": "ix_mbw_attachment_retention",
+          "unique": false,
+          "columns": [
+            "retention_until",
+            "use_yn"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_AUDIT_CHAIN_LOCK",
+      "columns": [
+        "chain_id",
+        "current_hash",
+        "last_audit_id",
+        "version_no",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_BOOTSTRAP_APPROVAL",
+      "columns": [
+        "token_hash",
+        "env_fingerprint",
+        "status",
+        "operation_id",
+        "expires_at",
+        "claimed_at",
+        "claim_owner_id",
+        "claim_expires_at",
+        "completed_at",
+        "admin_user_id",
+        "failure_code",
+        "cleanup_status",
+        "cleanup_failure_code",
+        "cleanup_updated_at",
+        "requested_by",
+        "approved_by",
+        "approval_reason",
+        "created_at",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ux_mbw_bootstrap_operation",
+          "unique": true,
+          "columns": [
+            "operation_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_bootstrap_expiry",
+          "unique": false,
+          "columns": [
+            "status",
+            "expires_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_bootstrap_claim_lease",
+          "unique": false,
+          "columns": [
+            "status",
+            "claim_expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_BUSINESS_AUDIT",
+      "columns": [
+        "audit_id",
+        "transaction_id",
+        "actor_id",
+        "action_type",
+        "target_type",
+        "target_id",
+        "reason",
+        "before_data",
+        "after_data",
+        "previous_record_hash",
+        "record_hash",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_business_audit_target",
+          "unique": false,
+          "columns": [
+            "target_type",
+            "target_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_business_audit_actor",
+          "unique": false,
+          "columns": [
+            "actor_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_business_audit_transaction",
+          "unique": false,
+          "columns": [
+            "transaction_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_business_audit_hash",
+          "unique": false,
+          "columns": [
+            "record_hash"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_DOWNLOAD_AUDIT",
+      "columns": [
+        "download_audit_id",
+        "actor_id",
+        "download_code",
+        "reason",
+        "filter_json",
+        "row_count",
+        "result_status",
+        "file_name",
+        "masking_applied_yn",
+        "transaction_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_download_audit_actor",
+          "unique": false,
+          "columns": [
+            "actor_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_download_audit_transaction",
+          "unique": false,
+          "columns": [
+            "transaction_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_download_audit_status",
+          "unique": false,
+          "columns": [
+            "result_status",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_EMPLOYEE",
+      "columns": [
+        "employee_id",
+        "employee_no",
+        "admin_user_id",
+        "organization_code",
+        "employee_name",
+        "position_code",
+        "job_title_code",
+        "manager_employee_no",
+        "employment_status",
+        "join_date",
+        "leave_date",
+        "email",
+        "mobile_no",
+        "office_phone_no",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_employee_no",
+          "unique": true,
+          "columns": [
+            "employee_no"
+          ]
+        },
+        {
+          "name": "uk_mbw_employee_admin_user",
+          "unique": true,
+          "columns": [
+            "admin_user_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_employee_organization",
+          "unique": false,
+          "columns": [
+            "organization_code",
+            "employment_status"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_employee_admin_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "MBW_ADMIN_USER",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_organization",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "MBW_ORGANIZATION",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_position",
+          "columns": [
+            "position_code"
+          ],
+          "referencedTable": "MBW_POSITION",
+          "referencedColumns": [
+            "position_code"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_job_title",
+          "columns": [
+            "job_title_code"
+          ],
+          "referencedTable": "MBW_JOB_TITLE",
+          "referencedColumns": [
+            "job_title_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_EMPLOYEE_ASSIGNMENT",
+      "columns": [
+        "assignment_id",
+        "employee_no",
+        "organization_code",
+        "position_code",
+        "job_title_code",
+        "assignment_type",
+        "primary_yn",
+        "effective_from",
+        "effective_to",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_employee_assignment_current",
+          "unique": false,
+          "columns": [
+            "employee_no",
+            "effective_to",
+            "primary_yn"
+          ]
+        },
+        {
+          "name": "ix_mbw_employee_assignment_org",
+          "unique": false,
+          "columns": [
+            "organization_code",
+            "effective_to",
+            "job_title_code"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_employee_assignment_employee",
+          "columns": [
+            "employee_no"
+          ],
+          "referencedTable": "MBW_EMPLOYEE",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_assignment_org",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "MBW_ORGANIZATION",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_assignment_position",
+          "columns": [
+            "position_code"
+          ],
+          "referencedTable": "MBW_POSITION",
+          "referencedColumns": [
+            "position_code"
+          ]
+        },
+        {
+          "name": "fk_mbw_employee_assignment_job_title",
+          "columns": [
+            "job_title_code"
+          ],
+          "referencedTable": "MBW_JOB_TITLE",
+          "referencedColumns": [
+            "job_title_code"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_JOB_TITLE",
+      "columns": [
+        "job_title_code",
+        "job_title_name",
+        "manager_yn",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_LOGIN_HISTORY",
+      "columns": [
+        "login_history_id",
+        "admin_user_id",
+        "login_domain",
+        "admin_login_id",
+        "login_result",
+        "failure_reason",
+        "client_ip",
+        "user_agent",
+        "transaction_id",
+        "system_code",
+        "application_name",
+        "instance_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_login_history_user_time",
+          "unique": false,
+          "columns": [
+            "admin_user_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_login_history_result_time",
+          "unique": false,
+          "columns": [
+            "login_result",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_login_history_global",
+          "unique": false,
+          "columns": [
+            "transaction_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_login_history_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "MBW_ADMIN_USER",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_LOGIN_OPERATION",
+      "columns": [
+        "operation_id",
+        "admin_user_id",
+        "admin_login_id",
+        "operation_status",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at",
+        "request_hash",
+        "result_access_token_enc",
+        "result_refresh_token_enc",
+        "result_refresh_expires_at",
+        "result_expires_at",
+        "failure_code",
+        "failure_message"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_login_operation_user_time",
+          "unique": false,
+          "columns": [
+            "admin_user_id",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_login_operation_expiry",
+          "unique": false,
+          "columns": [
+            "operation_status",
+            "result_expires_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_login_operation_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "MBW_ADMIN_USER",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_MENU",
+      "columns": [
+        "menu_id",
+        "menu_code",
+        "menu_name",
+        "parent_menu_code",
+        "module_code",
+        "route_path",
+        "icon_code",
+        "environment_code",
+        "api_path",
+        "sort_order",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_menu_code",
+          "unique": true,
+          "columns": [
+            "menu_code"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_NOTIFICATION",
+      "columns": [
+        "notification_id",
+        "recipient_login_id",
+        "notification_type",
+        "title",
+        "message_body",
+        "reference_type",
+        "reference_id",
+        "read_yn",
+        "read_at",
+        "use_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_notification_recipient",
+          "unique": false,
+          "columns": [
+            "recipient_login_id",
+            "read_yn",
+            "use_yn",
+            "created_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_notification_reference",
+          "unique": false,
+          "columns": [
+            "reference_type",
+            "reference_id"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_ORGANIZATION",
+      "columns": [
+        "organization_id",
+        "organization_code",
+        "parent_organization_code",
+        "organization_name",
+        "organization_type",
+        "sort_order",
+        "effective_from",
+        "effective_to",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_organization_code",
+          "unique": true,
+          "columns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "ix_mbw_organization_parent",
+          "unique": false,
+          "columns": [
+            "parent_organization_code",
+            "sort_order"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_ORGANIZATION_RESPONSIBILITY",
+      "columns": [
+        "responsibility_id",
+        "organization_code",
+        "responsibility_type",
+        "employee_no",
+        "effective_from",
+        "effective_to",
+        "priority_no",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_org_responsibility_active",
+          "unique": false,
+          "columns": [
+            "organization_code",
+            "responsibility_type",
+            "use_yn",
+            "effective_to",
+            "priority_no"
+          ]
+        },
+        {
+          "name": "ix_mbw_org_responsibility_employee",
+          "unique": false,
+          "columns": [
+            "employee_no",
+            "use_yn",
+            "effective_to"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_org_responsibility_org",
+          "columns": [
+            "organization_code"
+          ],
+          "referencedTable": "MBW_ORGANIZATION",
+          "referencedColumns": [
+            "organization_code"
+          ]
+        },
+        {
+          "name": "fk_mbw_org_responsibility_employee",
+          "columns": [
+            "employee_no"
+          ],
+          "referencedTable": "MBW_EMPLOYEE",
+          "referencedColumns": [
+            "employee_no"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_PERMISSION",
+      "columns": [
+        "permission_id",
+        "role_code",
+        "menu_code",
+        "button_code",
+        "permission_type",
+        "http_method",
+        "api_pattern",
+        "domain_code",
+        "environment_code",
+        "data_scope",
+        "allow_yn",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_permission_scope",
+          "unique": false,
+          "columns": [
+            "role_code",
+            "menu_code",
+            "button_code",
+            "environment_code",
+            "domain_code",
+            "http_method"
+          ]
+        },
+        {
+          "name": "ix_mbw_permission_menu",
+          "unique": false,
+          "columns": [
+            "menu_code"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_POSITION",
+      "columns": [
+        "position_code",
+        "position_name",
+        "rank_order",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_PROJECT_SETTING",
+      "columns": [
+        "setting_id",
+        "setting_key",
+        "setting_value",
+        "description",
+        "use_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_project_setting_key",
+          "unique": true,
+          "columns": [
+            "setting_key"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_REFRESH_TOKEN",
+      "columns": [
+        "refresh_token_id",
+        "admin_user_id",
+        "login_domain",
+        "refresh_token_hash",
+        "transaction_id",
+        "login_operation_id",
+        "expire_at",
+        "revoked_yn",
+        "revoked_at",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_refresh_token_hash",
+          "unique": true,
+          "columns": [
+            "refresh_token_hash"
+          ]
+        },
+        {
+          "name": "ix_mbw_refresh_token_user",
+          "unique": false,
+          "columns": [
+            "admin_user_id",
+            "revoked_yn",
+            "expire_at"
+          ]
+        },
+        {
+          "name": "ix_mbw_refresh_token_login_operation",
+          "unique": false,
+          "columns": [
+            "login_operation_id",
+            "revoked_yn"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_refresh_token_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "MBW_ADMIN_USER",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_ROLE",
+      "columns": [
+        "role_id",
+        "role_code",
+        "role_name",
+        "write_allowed_yn",
+        "data_scope",
+        "use_yn",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_role_code",
+          "unique": true,
+          "columns": [
+            "role_code"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_SAVED_SEARCH",
+      "columns": [
+        "saved_search_id",
+        "owner_login_id",
+        "screen_code",
+        "search_name",
+        "criteria_json",
+        "shared_yn",
+        "use_yn",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_saved_search_owner",
+          "unique": true,
+          "columns": [
+            "owner_login_id",
+            "screen_code",
+            "search_name"
+          ]
+        },
+        {
+          "name": "ix_mbw_saved_search_screen",
+          "unique": false,
+          "columns": [
+            "screen_code",
+            "shared_yn",
+            "use_yn"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_USER_ROLE",
+      "columns": [
+        "user_role_id",
+        "admin_user_id",
+        "role_code",
+        "valid_from",
+        "valid_to",
+        "primary_yn",
+        "grant_reason",
+        "operation_id",
+        "version_no",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_user_role_operation",
+          "unique": true,
+          "columns": [
+            "operation_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_user_role_user",
+          "unique": false,
+          "columns": [
+            "admin_user_id",
+            "valid_to",
+            "primary_yn",
+            "user_role_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_user_role_role",
+          "unique": false,
+          "columns": [
+            "role_code",
+            "valid_to",
+            "admin_user_id"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_user_role_user",
+          "columns": [
+            "admin_user_id"
+          ],
+          "referencedTable": "MBW_ADMIN_USER",
+          "referencedColumns": [
+            "admin_user_id"
+          ]
+        },
+        {
+          "name": "fk_mbw_user_role_role",
+          "columns": [
+            "role_code"
+          ],
+          "referencedTable": "MBW_ROLE",
+          "referencedColumns": [
+            "role_code"
+          ]
+        }
+      ]
     },
     {
       "vendor": "mariadb",

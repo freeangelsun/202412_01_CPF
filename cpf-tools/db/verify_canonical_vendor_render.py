@@ -5,7 +5,7 @@ import argparse, hashlib, json, re, subprocess, sys
 from pathlib import Path, PurePosixPath
 
 OFFICIAL={'mariadb','postgresql','oracle'}
-OWNER_PREFIX={'common':'CMN_','admin':'ADM_','batch':'BAT_','gateway':'GW_','security':'SEC_','platform-operations':'OPS_','cpf':'CPF_','bza':'BZA_'}
+OWNER_PREFIX={'common':'CMN_','admin':'ADM_','batch':'BAT_','gateway':'GW_','security':'SEC_','platform-operations':'OPS_','cpf':'CPF_','backoffice':'MBW_'}
 
 
 def load(path:Path): return json.loads(path.read_text(encoding='utf-8-sig'))
@@ -171,7 +171,7 @@ def main():
         prefix=OWNER_PREFIX.get(t.get('logicalOwner'))
         if prefix and not target.upper().startswith(prefix): fail(f'{target}: owner prefix mismatch for {t.get("logicalOwner")}')
     if len(names)!=len(set(names)): fail('duplicate target table name')
-    # Foreign keys may not cross physical database roles after cpfDB/bzaDB/reference consolidation.
+    # Foreign keys may not cross physical database roles after cpfDB/mbwDB/reference consolidation.
     by_source={t.get('name'):t for t in schema['tables']}
     by_source.update({t.get('currentName'):t for t in schema['tables'] if t.get('currentName')})
     by_source.update({t.get('targetTableName'):t for t in schema['tables'] if t.get('targetTableName')})
@@ -211,10 +211,10 @@ def main():
     for v in OFFICIAL:
         m=load(generated/v/'manifest.json')
         if m.get('vendor')!=v or not m.get('generated'): fail(f'{v}: invalid generated manifest')
-        for a in ('cpf-platform-schema.sql','cpf-platform-seed.sql','cpf-platform-verify.sql','cpf-platform-rollback.sql','bza-schema.sql','bza-seed.sql','bza-verify.sql','bza-rollback.sql','reference-fixture-schema.sql','reference-fixture-seed.sql','reference-fixture-verify.sql','reference-fixture-rollback.sql','non-table-objects.sql'):
+        for a in ('cpf-platform-schema.sql','cpf-platform-seed.sql','cpf-platform-verify.sql','cpf-platform-rollback.sql','backoffice-schema.sql','backoffice-seed.sql','backoffice-verify.sql','backoffice-rollback.sql','reference-fixture-schema.sql','reference-fixture-seed.sql','reference-fixture-verify.sql','reference-fixture-rollback.sql','non-table-objects.sql'):
             if not (generated/v/a).is_file(): fail(f'{v}: missing {a}')
     # Generated role boundaries must preserve the three canonical database roles.
-    role_expected={'CPF_PLATFORM_DB','BZA_DB','REFERENCE_FIXTURE'}
+    role_expected={'CPF_PLATFORM_DB','CUSTOMER_BUSINESS_DB','REFERENCE_FIXTURE'}
     actual={t.get('targetDatabaseRole') for t in schema['tables']}
     if actual != role_expected: fail(f'canonical role set mismatch: {sorted(actual)}')
     forbidden={
@@ -227,7 +227,7 @@ def main():
             txt=f.read_text(encoding='utf-8-sig',errors='replace')
             for pat in forbidden[v]:
                 if re.search(pat,txt,flags=re.I): fail(f'{v}: forbidden dialect syntax {pat}: {f.name}')
-        seed_text='\n'.join((generated/v/n).read_text(encoding='utf-8-sig') for n in ('cpf-platform-seed.sql','bza-seed.sql','reference-fixture-seed.sql'))
+        seed_text='\n'.join((generated/v/n).read_text(encoding='utf-8-sig') for n in ('cpf-platform-seed.sql','backoffice-seed.sql','reference-fixture-seed.sql'))
         for marker in ('CPF_SEED_VARIABLE_DEPENDENT','CPF_SEED_CANONICAL_UPSERT','TODO','UNVERIFIED'):
             if marker in seed_text: fail(f'{v}: non-executable seed marker remains: {marker}')
     # Generated Domain has one canonical schema and three rendered lifecycle templates; runtime dialect is Data-owned.
@@ -256,7 +256,7 @@ def main():
     for s in scenarios.get('scenarios') or []:
         if not s.get('sameScenarioForAllVendors') or not s.get('id') or not s.get('steps'): fail(f'invalid lifecycle scenario: {s}')
     # Raw vendor branch ban in business/control/generated source. SQL/tooling dialect owners are excluded intentionally.
-    scan_roots=['cpf-starters/common','cpf-admin','cpf-biz-admin','cpf-batch','cpf-gateway','cpf-education','cpf-tools/generator/golden']
+    scan_roots=['cpf-starters/common','cpf-admin','cpf-backoffice/online','cpf-batch','cpf-gateway','cpf-education','cpf-tools/generator/golden']
     branch=re.compile(r'(?i)(?:if|else\s+if|switch|case|equals|contains|startswith)[^\n]{0,120}\b(?:mariadb|postgresql|oracle)\b|\b(?:mariadb|postgresql|oracle)\b[^\n]{0,120}(?:if|switch|case|equals|contains)')
     for rr in scan_roots:
         rp=root/rr

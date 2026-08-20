@@ -1,0 +1,21 @@
+{
+  "input": "CPF_FULL_SOURCE_FOR_NEXT_QA(20260816-065707).zip",
+  "input_sha256": "60cb6e25fdef5d92d930a505f407acc17569fe77cfb70e53283bc1fb1e762064",
+  "canonical_first_impression_6": {
+    "1. CPF가 무엇인가": true,
+    "2. 어떤 문제를 해결하는가": true,
+    "3. Spring Boot와 어떤 관계인가": true,
+    "4. 개발자가 실제 쓰는 Golden Path": true,
+    "5. 어떤 규모의 시스템에 적합한가": true,
+    "6. 5분 안에 실행해 보는 방법": true
+  },
+  "public_internal_boundary": true,
+  "quick_overview_role_separated": true,
+  "relative_links_checked": 15,
+  "broken_relative_links": [],
+  "sections": [
+    "CPF 핵심 6가지",
+    "CPF 구조 한눈에 보기",
+    "1. CPF 전체 구조"
+  ]
+}

@@ -1,2 +1,0 @@
-SELECT job_title_code AS jobTitleCode,job_title_name AS jobTitleName,manager_yn AS managerYn,use_yn AS useYn,version_no AS versionNo,updated_at AS updatedAt
-FROM bza_job_title ORDER BY job_title_code OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY

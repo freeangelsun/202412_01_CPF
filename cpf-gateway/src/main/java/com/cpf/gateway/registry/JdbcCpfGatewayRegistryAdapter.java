@@ -707,7 +707,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         double successRate=total==0?0d:(success*100d/total);
         double errorRate=total==0?0d:((failed+unknown)*100d/total);
         return new OperationsSnapshot(warnings.isEmpty()?"AVAILABLE":"PARTIAL",now,
-                com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),60,total,success,failed,unknown,
+                com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(),60,total,success,failed,unknown,
                 total/60d,round(successRate),round(errorRate),percentile(durations,0.95d),percentile(durations,0.99d),
                 openCircuit,expiring,backlog,backlogBytes,drift,failedTests,lastEvent,List.copyOf(warnings));
     }
@@ -761,7 +761,7 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
                 (event_id,event_type,aggregate_type,aggregate_id,event_status,source_instance_id,payload_json,occurred_at)
                 VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
                 """,id,type,aggregateType,aggregateId,status,
-                com.cpf.platform.operations.api.runtime.CpfInstanceIdentity.current().instanceId(),payloadJson);
+                com.cpf.foundation.runtime.CpfInstanceIdentity.current().instanceId(),payloadJson);
         // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
         }catch(org.springframework.dao.DuplicateKeyException duplicate){
             // operationId 기반 Event는 동일 Command 재실행 시 멱등 처리합니다.

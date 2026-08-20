@@ -2,7 +2,7 @@ package com.cpf.batch.runtime;
 
 import com.cpf.batch.api.RuntimeRegistration;
 import com.cpf.batch.api.RuntimeRole;
-import com.cpf.platform.operations.api.runtime.CpfInstanceIdentity;
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.springframework.core.env.Environment;
 
 import java.time.Instant;

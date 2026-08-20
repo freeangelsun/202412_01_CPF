@@ -13,7 +13,7 @@ $ErrorActionPreference = "Stop"
 
 $moduleRules = [ordered]@{
     "cpf-admin" = [ordered]@{ controller = "AdmBaseController"; service = "AdmBaseService" }
-    "cpf-biz-admin" = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
+    "cpf-backoffice/online" = [ordered]@{ controller = "BzaBaseController"; service = "BzaBaseService" }
     "cpf-common" = [ordered]@{ controller = $null; service = "CmnBaseService" }
     "cpf-education" = [ordered]@{ controller = "EducationBaseController"; service = "EducationBaseService" }
 }
@@ -39,7 +39,7 @@ Get-ChildItem -LiteralPath $Root -Directory -Filter "cpf-*" | ForEach-Object {
 # Domain Base 자체가 삭제된 Core Runtime Base를 다시 참조하지 않는지 검증합니다.
 $baseParentRules = [ordered]@{
     "cpf-admin" = [ordered]@{ controller = "com.cpf.starter.profile.webapi.api.CpfControllerExtension"; service = "com.cpf.foundation.api.CpfServiceExtension" }
-    "cpf-biz-admin" = [ordered]@{ controller = "com.cpf.starter.profile.webapi.api.CpfControllerExtension"; service = "com.cpf.foundation.api.CpfServiceExtension" }
+    "cpf-backoffice/online" = [ordered]@{ controller = "com.cpf.starter.profile.webapi.api.CpfControllerExtension"; service = "com.cpf.foundation.api.CpfServiceExtension" }
     "cpf-common" = [ordered]@{ controller = $null; service = "com.cpf.foundation.api.CpfServiceExtension" }
     "cpf-education" = [ordered]@{ controller = "com.cpf.starter.profile.webapi.api.CpfControllerExtension"; service = "com.cpf.foundation.api.CpfServiceExtension" }
 }

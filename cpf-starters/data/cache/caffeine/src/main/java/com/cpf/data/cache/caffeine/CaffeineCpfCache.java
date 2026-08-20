@@ -59,5 +59,6 @@ public final class CaffeineCpfCache implements CpfCache {
     @Override public CpfCacheHealth health() {
         return new CpfCacheHealth(true, "CAFFEINE", "LOCAL_L1", false, false, System.currentTimeMillis(), List.of(), Instant.now());
     }
+    /** Caffeine cache에서 값과 만료시각을 함께 보관하는 내부 공개 record입니다. */
     public record Entry(CpfCacheValue value, Instant expiresAt) { }
 }

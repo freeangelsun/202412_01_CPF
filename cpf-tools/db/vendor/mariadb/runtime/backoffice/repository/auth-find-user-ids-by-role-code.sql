@@ -1,0 +1,1 @@
+SELECT DISTINCT admin_user_id FROM mbw_user_role WHERE role_code=:roleCode AND use_yn='Y' AND valid_from <= CURRENT_TIMESTAMP AND (valid_to IS NULL OR valid_to > CURRENT_TIMESTAMP) UNION SELECT admin_user_id FROM mbw_admin_user WHERE role_code=:roleCode AND use_yn='Y'

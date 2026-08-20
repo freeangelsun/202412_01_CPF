@@ -89,10 +89,10 @@ pluginManagement {
 rootProject.name = 'cpf-core-platform-framework'
 
 include ':framework:core', ':apps:admin', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
-// Optional Prebuilt Business Domain: present => aggregate regression participant, absent => normal CPF configuration.
-def cpfBizAdminPresent = file('cpf-biz-admin/build.gradle').isFile()
-if (cpfBizAdminPresent) {
-    include ':apps:biz-admin'
+// Optional Prebuilt Business Domain: Backoffice(MBW)는 Generated Business Domain과 동일한 Online 계약을 사용합니다.
+def cpfBackofficePresent = file('cpf-backoffice/online/build.gradle').isFile()
+if (cpfBackofficePresent) {
+    include ':apps:backoffice'
 }
 include ':internal:verification:core-only-consumer'
 include ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime', ':runtime:batch:control-plane', ':runtime:batch:scheduler', ':runtime:batch:worker', ':runtime:batch:center-cut', ':runtime:batch:agent', ':runtime:batch:testkit'
@@ -101,8 +101,8 @@ project(':framework:core').projectDir = file('cpf-core')
 project(':apps:education').projectDir = file('cpf-education')
 project(':internal:testing:testkit').projectDir = file('cpf-tools/testing/cpf-testkit')
 project(':apps:admin').projectDir = file('cpf-admin')
-if (cpfBizAdminPresent) {
-    project(':apps:biz-admin').projectDir = file('cpf-biz-admin')
+if (cpfBackofficePresent) {
+    project(':apps:backoffice').projectDir = file('cpf-backoffice/online')
 }
 project(':runtime:gateway').projectDir = file('cpf-gateway')
 project(':runtime:local').projectDir = file('cpf-tools/runtime/cpf-local-runtime')

@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM mbw_employee_assignment WHERE (:employeeNo IS NULL OR employee_no=:employeeNo) AND (:organizationCode IS NULL OR organization_code=:organizationCode) AND effective_from<=:effectiveAt AND (effective_to IS NULL OR effective_to>:effectiveAt)

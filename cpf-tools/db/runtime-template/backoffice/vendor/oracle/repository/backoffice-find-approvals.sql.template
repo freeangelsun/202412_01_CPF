@@ -1,0 +1,13 @@
+SELECT approval_id AS approvalId, approval_no AS approvalNo, approval_type AS approvalType,
+       business_domain AS businessDomain, title, requester_employee_no AS requesterEmployeeNo,
+       approval_status AS approvalStatus, approval_mode AS approvalMode,
+       current_step_no AS currentStepNo, due_at AS dueAt, version_no AS versionNo,
+       transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
+FROM mbw_approval_document
+WHERE (:status IS NULL OR approval_status = :status)
+  AND (:employeeNo IS NULL OR requester_employee_no = :employeeNo
+       OR EXISTS (SELECT 1 FROM mbw_approval_line l
+                  WHERE l.approval_id = mbw_approval_document.approval_id
+                    AND l.approver_employee_no = :employeeNo))
+ORDER BY approval_id DESC
+FETCH FIRST :limit ROWS ONLY

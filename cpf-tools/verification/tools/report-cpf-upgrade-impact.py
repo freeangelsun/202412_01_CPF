@@ -44,7 +44,7 @@ def public_api(root: Path, modules: list[dict]) -> list[str]:
 
 def config_prefixes(root: Path) -> list[str]:
     values=set()
-    for base_name in ('cpf-starters','cpf-admin','cpf-biz-admin','cpf-batch'):
+    for base_name in ('cpf-starters','cpf-admin','cpf-backoffice/online','cpf-batch'):
         base=root/base_name
         if not base.exists(): continue
         for f in base.rglob('*.java'):
@@ -55,7 +55,7 @@ def config_prefixes(root: Path) -> list[str]:
 
 def openapi_operations(root: Path) -> dict[str,list[str]]:
     result={}
-    for key,rel in {'ADM':'cpf-admin/frontend/openapi/cpf-openapi.json','BZA':'cpf-biz-admin/openapi/cpf-openapi.json'}.items():
+    for key,rel in {'ADM':'cpf-admin/frontend/openapi/cpf-openapi.json','BZA':'cpf-backoffice/online/openapi/cpf-openapi.json'}.items():
         path=root/rel; ops=[]
         if path.is_file():
             doc=json.loads(path.read_text(encoding='utf-8'))

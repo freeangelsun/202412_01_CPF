@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json,re,sys,subprocess
+import csv,json,re,sys,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
 FAIL=[]; INFO={}
@@ -22,7 +22,7 @@ def _fallback_product_file(p:Path)->bool:
         return False
     if 'build' in parts and not (len(parts)>=2 and parts[0]=='cpf-tools' and parts[1]=='build'):
         return False
-    if 'dist' in parts and parts[0] in {'cpf-admin','cpf-biz-admin'}:
+    if 'dist' in parts and parts[0] in {'cpf-admin','cpf-backoffice-web'}:
         return False
     return True
 
@@ -56,22 +56,19 @@ def product_files(base:Path, pattern:str='*'):
     return [p for p in base.rglob(pattern) if product_file(p)]
 manifest=ROOT/'cpf-docs/deliverables/DELETE_MANIFEST.csv'
 entries=[]
-if not manifest.is_file():
-    fail(f'DELETE_MANIFEST missing:{manifest.relative_to(ROOT).as_posix()}')
+if not manifest.is_file(): fail('DELETE_MANIFEST missing')
 else:
-    import csv
     try:
-        with manifest.open('r', encoding='utf-8-sig', newline='') as fh:
-            reader=csv.DictReader(fh)
-            if not reader.fieldnames or 'path' not in reader.fieldnames:
-                fail('DELETE_MANIFEST missing required path column')
-            else:
-                for n,row in enumerate(reader,2):
-                    s=(row.get('path') or '').strip().replace('\\','/')
-                    if not s: continue
-                    if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
-                    if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
-                    entries.append(s)
+        with manifest.open(encoding='utf-8-sig', newline='') as h:
+            rows=list(csv.DictReader(h))
+        if not rows or 'path' not in (rows[0].keys() if rows else []):
+            fail('DELETE_MANIFEST schema requires path column')
+        for n,row in enumerate(rows,2):
+            s=(row.get('path') or '').strip()
+            if not s: continue
+            if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
+            if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
+            entries.append(s)
     except Exception as e:
         fail(f'DELETE_MANIFEST parse:{e}')
     if len(entries)!=len(set(entries)): fail('DELETE_MANIFEST duplicate path')
@@ -166,7 +163,7 @@ if len(pair_ids)!=len(set(pair_ids)):
     fail('duplicate paired operationId:'+str(dup[:20]))
 if mism: fail('operationId/OpenAPI mismatch:'+str(mism[:20]))
 # management boundary
-for mod in ('cpf-admin','cpf-biz-admin','cpf-gateway'):
+for mod in ('cpf-admin','cpf-gateway'):
     tx=[]; internal=[]
     for p in product_files(ROOT/mod,'*.java'):
         if not survives(p): continue

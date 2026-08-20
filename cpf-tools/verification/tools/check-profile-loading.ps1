@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 $profiles = @("local", "dev", "stg", "prod")
 $fixedModules = @(
     [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM"; generated = $false; productionProfile = $true },
-    [ordered]@{ project = "cpf-biz-admin"; config = "bza"; code = "BZA"; generated = $false; productionProfile = $true },
+    [ordered]@{ project = "cpf-backoffice/online"; config = "bza"; code = "BZA"; generated = $false; productionProfile = $true },
     [ordered]@{ project = "cpf-education"; config = "edu"; code = "EDU"; generated = $false; productionProfile = $true }
 )
 $batchRuntimes = @(
@@ -138,7 +138,7 @@ $modules = @($fixedModules + $generatedModules)
 
 # Public Starter Profile의 물리/조합 정본은 canonical application-starters.yml입니다.
 # cpf-core/cpf-common은 더 이상 application-cpf/application-cmn profile resource를 소유하지 않습니다.
-$starterCatalogRelative = 'cpf-tools/generator/config/application-starters.yml'
+$starterCatalogRelative = 'cpf-tools/generator/contracts/cpf-starter-catalog.json'
 $starterCatalogPath = Join-Path $Root $starterCatalogRelative
 if (Test-File $starterCatalogRelative 'STARTER_PROFILE_CATALOG') {
     try {

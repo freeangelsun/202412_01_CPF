@@ -8,10 +8,10 @@ export const defaultHeaders: Readonly<Record<string, string>> = Object.freeze({
 /** Framework-protected canonical transaction headers must never be authored by browser code. */
 export const protectedCpfTransactionHeaders = Object.freeze([
   "X-Transaction-Id",
-  "X-Original-Channel",
-  "X-Current-Channel",
-  "X-Caller-Channel",
-  "X-Target-Channel",
+  "X-Original-System-Code",
+  "X-System-Code",
+  "X-Caller-System-Code",
+  "X-Target-System-Code",
   "X-Target-Operation-Id"
 ] as const);
 

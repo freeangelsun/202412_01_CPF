@@ -177,9 +177,9 @@ Generator Template/Generated build.gradle의 Internal Artifact 직접 참조는 
 
 ADM(`cpf-admin`)과 Gateway 관리 API는 생성형 업무 Domain의 Online Transaction Runtime이 아니다. 자체 관리 Controller에는 업무 `@CpfOnlineTransaction`과 업무 거래 Header 계약을 강제하지 않고 각 Owner의 Public API를 사용한다.
 
-`cpf-biz-admin`은 관리 Application 예외가 아니라 **Optional Prebuilt Business Administration Domain**이다. Generator가 생성하지는 않지만 Generated Business Domain과 동일한 Public Starter/API, Canonical System transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3/Test 계약을 따른다. BZA-owned data만 소유하며 다른 Business Domain 원장/DB를 직접 소유·접근하지 않는다.
+`cpf-backoffice`는 관리 Application 예외가 아니라 **Optional Prebuilt Business Domain**이다. Generator가 매번 생성하지는 않지만 Generated Business Domain과 동일한 Feature-First IA, Public Starter/API, Canonical System transaction/context, Domain Invocation, Security, Logging/Audit/Trace, DB3/Runtime/Operation/Test 계약을 따른다. 논리 System Code는 `MBW`이며 Backoffice-owned data만 소유하고 다른 Business Domain 원장/DB를 직접 소유·접근하지 않는다.
 
-외부 `cpf-biz-channel`은 DB-less Pure Spring Boot Channel이고 CPF Java/Starter/Internal API에 의존하지 않는다. `cpf-biz-frontend`는 Channel만 호출하는 선택형 Reference UI다. Direct Public HTTP도 Gateway 보안 우회가 아니며 동일 인증·인가·Channel Policy·Audit·Canonical Header 검증을 충족한다.
+외부 `cpf-backoffice-web`은 Frontend SPA + DB-less Pure Spring Boot Channel/BFF를 하나의 Deployable로 제공하는 선택형 Reference Application이다. CPF Java/Starter/Internal API에 의존하지 않고 HTTP/HTTPS Public Contract만 사용한다. Direct Public HTTP도 Gateway 보안 우회가 아니며 동일 인증·인가·Channel Policy·Audit·Canonical 6 Header 검증을 충족한다.
 
 관리/업무 Source가 `cpf-core` internal 구현이나 다른 업무 Domain internal package를 직접 import하는 것은 금지한다. Public Starter가 topology-independent Core Public Contract를 transitive하게 소비하는 것은 허용한다.
 

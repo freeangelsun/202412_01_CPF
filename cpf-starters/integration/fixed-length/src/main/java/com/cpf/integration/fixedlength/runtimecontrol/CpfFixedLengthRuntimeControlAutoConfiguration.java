@@ -7,6 +7,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * Fixed-length integration capability를 CPF Runtime 운영 제어/상태 관리 체계에 등록합니다.
+ * <p>전문 codec의 업무 사용법과 분리된 운영 자동구성이며, capability가 선택되지 않으면 활성화되지 않습니다.
+ */
 @AutoConfiguration
 public class CpfFixedLengthRuntimeControlAutoConfiguration {
     @Bean

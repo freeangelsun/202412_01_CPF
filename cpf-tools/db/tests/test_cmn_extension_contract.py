@@ -7,8 +7,8 @@ from pathlib import Path
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
 BASE = ROOT / "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/CpfBaseService.java"
 COMMON = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
-MEMBER_DOMAIN_BASE = ROOT / "cpf-member/online/src/main/java/member/domain/base/MemberBaseService.java"
-MEMBER_SERVICE = ROOT / "cpf-member/online/src/main/java/member/online/service/SampleTransactionService.java"
+MEMBER_DOMAIN_BASE = ROOT / "cpf-member/online/src/main/java/member/online/base/MemberBaseService.java"
+MEMBER_SERVICE = ROOT / "cpf-member/online/src/main/java/member/online/member/service/SampleTransactionService.java"
 
 
 class CmnExtensionContractTest(unittest.TestCase):

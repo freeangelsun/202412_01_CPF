@@ -9,7 +9,7 @@
 | `cpf-core` | topology-independent 최소 Kernel Contract/Semantics | 유지. `api/context`, `api/error`, 필요한 `api/transaction`, `api/version`, genuine `spi`만 허용 |
 | `cpf-starters` | Base/Common/Web/Data/Messaging/Integration/File/Notification/Security/Platform-Ops/Profile/Provider | 정식 Framework Capability Container |
 | `cpf-admin` | CPF Platform Control Plane | 유지 |
-| `cpf-biz-admin` | Customer Business Management Plane | 유지, CPF Platform DB와 별도 `bzaDB` |
+| `cpf-backoffice` | Customer Business Management Plane | 유지, CPF Platform DB와 별도 `bzaDB` |
 | `cpf-batch` | Batch/Scheduler/Center-Cut/Worker 독립 Runtime | 유지. 관계형 상태의 기본 Physical Target은 `cpfDB` |
 | `cpf-gateway` | 독립 Gateway Runtime | 유지. 별도 gatewayDB를 만들지 않음 |
 | `cpf-education` | Public API/Starter/Education/Golden Runtime Verification | Target Canonical Root. System Code `EDU`; Production Business Domain/DB Owner가 아님 |

@@ -81,9 +81,9 @@ CPF는 실행 엔진과 기반 기능을 새로 만들기 위해 Framework의 �
 
 CPF는 **외부 요청 진입 → 업무 Domain → 공통 실행 기반 → 선택 Runtime → 데이터·외부 시스템**을 하나의 구조로 연결합니다.
 
-<img src="cpf-docs/assets/readme/cpf-architecture-overview.png" alt="CPF 전체 Architecture - 업무 Domain, Public Starter/Profile, Core/Common 계약, Gateway/Batch Runtime, ADM/BZA, Generator, DB·Messaging·외부 시스템의 경계" width="100%" />
+<img src="cpf-docs/assets/readme/cpf-architecture-overview.png" alt="CPF 전체 Architecture - 업무 Domain, Public Starter/Profile, Core/Common 계약, Gateway/Batch Runtime, ADM/Backoffice, Generator, DB·Messaging·외부 시스템의 경계" width="100%" />
 
-> **핵심 해석** — `cpf-core`는 Topology와 무관한 핵심 계약을 소유하고, 업무 코드는 `cpf-<domain>`에 둡니다. 일반 업무 개발 Surface는 Public Profile/Starter/API이며, Internal Module은 Framework 구현 세부사항입니다. ADM은 플랫폼 Control Plane이고, `cpf-biz-admin`은 제거 가능한 Optional Prebuilt Business Administration Domain입니다. 외부 BZA는 DB-less `cpf-biz-channel`과 `cpf-biz-frontend`로 분리되며 HTTP/HTTPS로만 CPF와 통신합니다.
+> **핵심 해석** — `cpf-core`는 Topology와 무관한 핵심 계약을 소유하고, 업무 코드는 `cpf-<domain>`에 둡니다. 일반 업무 개발 Surface는 Public Profile/Starter/API이며, Internal Module은 Framework 구현 세부사항입니다. ADM은 플랫폼 Control Plane이고, `cpf-backoffice`는 생성형 업무 Domain과 동일한 거래·Starter·DB3·Runtime 계약을 따르는 Optional Prebuilt Backoffice Business Domain입니다. 외부 채널 Reference는 DB-less `cpf-backoffice-web` 하나의 Frontend+BFF 배포 단위로 제공되며 HTTP/HTTPS로만 업무 Domain과 통신합니다.
 >
 > **이 구조의 장점** — 업무 코드와 기술 Provider·운영 Runtime의 책임을 분리해 Provider 교체나 배포 Topology 변경이 업무 Source 전체의 재작성으로 번지는 것을 줄입니다. 동시에 Spring 기반의 Native 기능을 사용할 수 있는 여지를 남겨 과도한 Framework 종속을 피합니다.
 
@@ -181,7 +181,7 @@ CPF는 모든 기술을 한 프로젝트에 강제하지 않습니다. 개발 �
 
 CPF는 업무 Domain 생성부터 개발·검증·실행·관측·운영까지 서로 다른 도구가 같은 계약을 바라보도록 구성합니다.
 
-<img src="cpf-docs/assets/readme/cpf-development-operation-lifecycle.png" alt="CPF Development Operation Lifecycle - Generator, 업무 개발, Test/Verification, Runtime, ADM/BZA 운영과 Evidence가 이어지는 흐름" width="100%" />
+<img src="cpf-docs/assets/readme/cpf-development-operation-lifecycle.png" alt="CPF Development Operation Lifecycle - Generator, 업무 개발, Test/Verification, Runtime, ADM/Backoffice 운영과 Evidence가 이어지는 흐름" width="100%" />
 
 > **핵심 해석** — Generator가 생성한 Domain은 Public Starter/API를 사용하고, Build/Test/Verification은 같은 Catalog·계약을 검증합니다. 운영 단계에서는 Transaction/Execution Context를 기준으로 Log·Metric·Trace·Audit와 Runtime 상태를 연결합니다.
 >
@@ -199,7 +199,7 @@ CPF는 **기능이 존재하는 것과 Runtime에서 검증된 것을 구분**�
 | Database | Oracle·PostgreSQL·MariaDB, Install/Migration/Seed/Upgrade/Rollback/Reapply | `cpf-tools/db/verification/` |
 | Cache / Messaging / Integration | 연결, Retry, Idempotency, 재기동, 중복·실패·결과 미확정 처리 | Verification / FullLocal Evidence |
 | Batch / Gateway | Worker·Process Kill·UNKNOWN/Reconcile, Route·Policy·실패 경계 | Runtime / FullLocal Evidence |
-| ADM / BZA | ADM Control Plane, 내부 BZA Domain API, 외부 DB-less Channel/Reference Frontend, Generated Client, 오류 상태, E2E·접근성 | Frontend / FullLocal Evidence |
+| ADM / Backoffice | ADM Control Plane, 내부 Backoffice Domain API, 외부 DB-less `cpf-backoffice-web` Channel/Reference Frontend, Generated Client, 오류 상태, E2E·접근성 | Frontend / FullLocal Evidence |
 | Evidence Integrity | Source identity, Manifest, SHA-256, 실행 결과, Corruption negative test | `cpf-docs/work/TEST_AND_EVIDENCE.md` |
 
 > **상태 해석** — `IMPLEMENTED`, `STATIC_VERIFIED`, `RUNTIME_VERIFIED`, `VERIFIED_WITH_EVIDENCE`, `PENDING_RUNTIME`를 구분합니다. **실행하지 않은 항목을 PASS로 올리지 않는 것**이 검증 원칙입니다.
@@ -242,9 +242,8 @@ pwsh .\cpf-tools\build\tools\cpf-dev.ps1 verify-fast
 - `cpf-core/` - Topology와 무관한 핵심 계약
 - `cpf-starters/` - Public Profile/Starter, Capability, Provider, AutoConfiguration
 - `cpf-admin/` - 플랫폼 운영·관리
-- `cpf-biz-admin/` - 선택형 Prebuilt Business Administration Domain; BZA-owned 업무 상태/권한/설정 Owner
-- `cpf-biz-channel/` - 외부 DB-less Pure Spring Boot BZA Channel/BFF; CPF Java dependency 없음
-- `cpf-biz-frontend/` - 외부 선택형 BZA Reference Frontend; Channel만 호출
+- `cpf-backoffice/` - 선택형 Prebuilt Backoffice Business Domain; 생성형 업무 Domain과 동일한 CPF 표준 거래/Starter/DB3/Runtime 계약을 사용
+- `cpf-backoffice-web/` - 외부 DB-less Pure Spring Boot Channel/BFF + Frontend Reference; CPF Java dependency 없이 HTTP/HTTPS로 업무 Domain을 호출
 - `cpf-batch/` - Batch Scheduler·Control Plane·Worker·Agent·Center-Cut Runtime
 - `cpf-gateway/` - Spring Cloud Gateway 기반 선택형 외부 진입 Runtime
 - `cpf-tools/` - Generator·DB Lifecycle·Build·Verification
@@ -265,7 +264,7 @@ pwsh .\cpf-tools\build\tools\cpf-dev.ps1 verify-fast
 |:---:|---|---|
 | **02** | [프레임워크 개발자 가이드](cpf-docs/guides/02_프레임워크_개발자_가이드.pdf) | Online/API/DB/Transaction/Domain Call/공통 기능 개발 |
 | **03** | [배치 개발자 가이드](cpf-docs/guides/03_배치_개발자_가이드.pdf) | Job/Step/Chunk/Partition/Worker/Scheduler 개발 |
-| **04** | [운영자 매뉴얼](cpf-docs/guides/04_운영자_매뉴얼.pdf) | ADM·BZA·Runtime·Config·Gateway를 포함한 일반 운영 |
+| **04** | [운영자 매뉴얼](cpf-docs/guides/04_운영자_매뉴얼.pdf) | ADM·Backoffice·Runtime·Config·Gateway를 포함한 일반 운영 |
 | **05** | [배치 운영 가이드](cpf-docs/guides/05_배치_운영_가이드.pdf) | Job 실행·중지·Restart·Reprocess·Reconcile·Worker 운영 |
 | **06** | [Gateway 개발·사용 가이드](cpf-docs/guides/06_Gateway_개발_사용_가이드.pdf) | Gateway Route·Policy·Security·Resilience 개발과 적용 |
 | **07** | [Specification / 기술 명세](cpf-docs/guides/07_Specification_기술_명세.pdf) | Public API·SPI·Annotation·Config·State·DB·기술 계약 확인 |

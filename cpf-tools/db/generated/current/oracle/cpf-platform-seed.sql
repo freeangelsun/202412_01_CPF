@@ -50,7 +50,7 @@ SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'ADM' AS code_value, '관리자 운영 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BZA' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'MBW' AS code_value, '업무 백오피스 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT (SELECT code_id FROM (SELECT code_id FROM CMN_CODE WHERE code_key = 'CODE_GROUP' AND code_value = 'MODULE') p) AS parent_id, 'MODULE' AS code_key, 'BAT' AS code_value, '선택 배치 실행 서비스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -144,11 +144,11 @@ SELECT 'MCPF990000' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format
 UNION ALL
 SELECT 'MCPF990001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '데이터베이스 오류가 발생했습니다.' AS external_message, '데이터베이스 처리 오류가 발생했습니다. sqlState={0}' AS internal_message, 1 AS parameter_count, '["HY000"]' AS parameter_sample, 'CPF 데이터베이스 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'BZA 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'MBW 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'BZA 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'BZA 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'MBW 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'MBW 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'BZA 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'BZA 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'MBW 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MEDU010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '이미 등록된 {0}입니다.' AS external_message, '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE' AS internal_message, 2 AS parameter_count, '["샘플키","SAMPLE-0001"]' AS parameter_sample, 'EDU 동적 중복 교육 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -192,11 +192,11 @@ SELECT 'ECPF990000' AS response_code, 'MCPF990000' AS message_code, 'E' AS resul
 UNION ALL
 SELECT 'ECPF990001' AS response_code, 'MCPF990001' AS message_code, 'E' AS result_type, 'CPF' AS module_id, '99' AS response_group, '0001' AS sequence_no, 500 AS http_status, '데이터베이스 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'BZA' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'BZA 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'SMBW000000' AS response_code, 'MMBW000000' AS message_code, 'S' AS result_type, 'MBW' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'MBW 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'BZA 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EMBW010001' AS response_code, 'MMBW010001' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'MBW 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'BZA' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'BZA 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EMBW010002' AS response_code, 'MMBW010002' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'MBW 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EEDU010001' AS response_code, 'MEDU010001' AS message_code, 'E' AS result_type, 'EDU' AS module_id, '01' AS response_group, '0001' AS sequence_no, 409 AS http_status, 'EDU 샘플 중복 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.response_code=src.response_code)
@@ -406,11 +406,11 @@ WHEN MATCHED THEN UPDATE SET tgt.message_code=src.message_code, tgt.result_type=
 WHEN NOT MATCHED THEN INSERT (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES (src.response_code, src.message_code, src.result_type, src.module_id, src.response_group, src.sequence_no, src.http_status, src.description, src.created_by, src.updated_by);
 
 MERGE INTO CMN_PARAMETER tgt
-USING (SELECT 'CPF.BZA.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'BZA 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'CPF.MBW.SECURITY.MAX_LOGIN_FAIL_COUNT' AS config_key, '5' AS config_value, 'NUMBER' AS config_type, 'MBW 로그인 실패 잠금 기준' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'BZA Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.ACCESS_TOKEN_TTL_SECONDS' AS config_key, '600' AS config_value, 'NUMBER' AS config_type, 'MBW Access Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'CPF.BZA.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'BZA Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'CPF.MBW.SECURITY.REFRESH_TOKEN_TTL_SECONDS' AS config_key, '7200' AS config_value, 'NUMBER' AS config_type, 'MBW Refresh Token TTL' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'CPF.RETENTION.EXECUTE_ENABLED' AS config_key, 'N' AS config_value, 'BOOLEAN' AS config_type, '실제 Archive/Purge 실행 Kill Switch 기본 OFF' AS description, 'N' AS encrypted_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -926,99 +926,99 @@ SELECT 'OBAT-OPR-01-0003' AS legacy_execution_id, 'OBATOP0003' AS standard_execu
 UNION ALL
 SELECT 'OBAT-OPR-02-0002' AS legacy_execution_id, 'OBATOP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ADM-01-1001' AS legacy_execution_id, 'OBZAAD1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ADM-01-1001' AS legacy_execution_id, 'OMBWAD1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ADM-03-1002' AS legacy_execution_id, 'OBZAAD1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ADM-03-1002' AS legacy_execution_id, 'OMBWAD1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-01-0001' AS legacy_execution_id, 'OBZAAP0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-01-0001' AS legacy_execution_id, 'OMBWAP0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-01-0003' AS legacy_execution_id, 'OBZAAP0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-01-0003' AS legacy_execution_id, 'OMBWAP0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-02-0002' AS legacy_execution_id, 'OBZAAP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-02-0002' AS legacy_execution_id, 'OMBWAP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-05-0004' AS legacy_execution_id, 'OBZAAP0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-05-0004' AS legacy_execution_id, 'OMBWAP0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-01-0001' AS legacy_execution_id, 'OBZAAT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-01-0001' AS legacy_execution_id, 'OMBWAT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-02-0002' AS legacy_execution_id, 'OBZAAT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-02-0002' AS legacy_execution_id, 'OMBWAT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-DL-0003' AS legacy_execution_id, 'OBZAAT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-DL-0003' AS legacy_execution_id, 'OMBWAT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUD-01-0001' AS legacy_execution_id, 'OBZAUD0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUD-01-0001' AS legacy_execution_id, 'OMBWUD0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0004' AS legacy_execution_id, 'OBZAAU0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0004' AS legacy_execution_id, 'OMBWAU0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0005' AS legacy_execution_id, 'OBZAAU0005' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0005' AS legacy_execution_id, 'OMBWAU0005' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0007' AS legacy_execution_id, 'OBZAAU0007' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0007' AS legacy_execution_id, 'OMBWAU0007' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0001' AS legacy_execution_id, 'OBZAAU0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0001' AS legacy_execution_id, 'OMBWAU0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0002' AS legacy_execution_id, 'OBZAAU0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0002' AS legacy_execution_id, 'OMBWAU0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0003' AS legacy_execution_id, 'OBZAAU0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0003' AS legacy_execution_id, 'OMBWAU0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-03-0006' AS legacy_execution_id, 'OBZAAU0006' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-03-0006' AS legacy_execution_id, 'OMBWAU0006' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-04-0008' AS legacy_execution_id, 'OBZAAU0008' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-04-0008' AS legacy_execution_id, 'OMBWAU0008' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-CUS-01-1001' AS legacy_execution_id, 'OBZACU1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-CUS-01-1001' AS legacy_execution_id, 'OMBWCU1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DSH-01-0001' AS legacy_execution_id, 'OBZADS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DSH-01-0001' AS legacy_execution_id, 'OMBWDS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DWN-01-0002' AS legacy_execution_id, 'OBZADW0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DWN-01-0002' AS legacy_execution_id, 'OMBWDW0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DWN-01-1001' AS legacy_execution_id, 'OBZADW1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DWN-01-1001' AS legacy_execution_id, 'OMBWDW1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-EMP-01-0001' AS legacy_execution_id, 'OBZAEM0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-EMP-01-0001' AS legacy_execution_id, 'OMBWEM0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-EMP-03-0002' AS legacy_execution_id, 'OBZAEM0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-EMP-03-0002' AS legacy_execution_id, 'OMBWEM0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MNU-01-1001' AS legacy_execution_id, 'OBZAMN1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MNU-01-1001' AS legacy_execution_id, 'OMBWMN1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MNU-03-1002' AS legacy_execution_id, 'OBZAMN1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MNU-03-1002' AS legacy_execution_id, 'OMBWMN1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MSK-02-1001' AS legacy_execution_id, 'OBZAMS1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MSK-02-1001' AS legacy_execution_id, 'OMBWMS1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-01-0001' AS legacy_execution_id, 'OBZANT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-01-0001' AS legacy_execution_id, 'OMBWNT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-02-0002' AS legacy_execution_id, 'OBZANT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-02-0002' AS legacy_execution_id, 'OMBWNT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-03-0003' AS legacy_execution_id, 'OBZANT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-03-0003' AS legacy_execution_id, 'OMBWNT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORD-01-1001' AS legacy_execution_id, 'OBZAOR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORD-01-1001' AS legacy_execution_id, 'OMBWOR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORG-01-0001' AS legacy_execution_id, 'OBZAOR0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORG-01-0001' AS legacy_execution_id, 'OMBWOR0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORG-03-0002' AS legacy_execution_id, 'OBZAOR0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORG-03-0002' AS legacy_execution_id, 'OMBWOR0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-0002' AS legacy_execution_id, 'OBZAPE0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-0002' AS legacy_execution_id, 'OMBWPE0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-0003' AS legacy_execution_id, 'OBZAPE0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-0003' AS legacy_execution_id, 'OMBWPE0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-1001' AS legacy_execution_id, 'OBZAPE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-1001' AS legacy_execution_id, 'OMBWPE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-02-0004' AS legacy_execution_id, 'OBZAPE0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-02-0004' AS legacy_execution_id, 'OMBWPE0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-03-1002' AS legacy_execution_id, 'OBZAPE1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-03-1002' AS legacy_execution_id, 'OMBWPE1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PRD-01-1001' AS legacy_execution_id, 'OBZAPR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PRD-01-1001' AS legacy_execution_id, 'OMBWPR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ROL-01-1001' AS legacy_execution_id, 'OBZARO1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ROL-01-1001' AS legacy_execution_id, 'OMBWRO1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ROL-03-1002' AS legacy_execution_id, 'OBZARO1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ROL-03-1002' AS legacy_execution_id, 'OMBWRO1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-01-0001' AS legacy_execution_id, 'OBZASC0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-01-0001' AS legacy_execution_id, 'OMBWSC0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-03-0002' AS legacy_execution_id, 'OBZASC0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-03-0002' AS legacy_execution_id, 'OMBWSC0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-04-0003' AS legacy_execution_id, 'OBZASC0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-04-0003' AS legacy_execution_id, 'OMBWSC0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SET-01-1001' AS legacy_execution_id, 'OBZASE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SET-01-1001' AS legacy_execution_id, 'OMBWSE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-USR-QY-0000' AS legacy_execution_id, 'OBZAUS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-USR-QY-0000' AS legacy_execution_id, 'OMBWUS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-USR-QY-0001' AS legacy_execution_id, 'OBZAUS0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-USR-QY-0001' AS legacy_execution_id, 'OMBWUS0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
 SELECT 'OREF-EDU-01-0001' AS legacy_execution_id, 'OEDUAA0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
@@ -1681,7 +1681,23 @@ SELECT 'BAT_RECOVERY_OPERATE' AS BUTTON_ID, 'BATCH_RECOVERY' AS MENU_ID, 'RECOVE
 UNION ALL
 SELECT 'BAT_SECURITY_AUDIT' AS BUTTON_ID, 'BATCH_AUDIT' AS MENU_ID, 'SECURITY_AUDIT' AS ACTION_CODE, 'BAT 보안·감사 조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/batch-runtime/views/audit' AS API_PATTERN, 130 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT_EVIDENCE_DOWNLOAD' AS BUTTON_ID, 'BATCH_AUDIT' AS MENU_ID, 'EVIDENCE_DOWNLOAD' AS ACTION_CODE, 'BAT Evidence 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/downloads/**' AS API_PATTERN, 140 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'BAT_EVIDENCE_DOWNLOAD' AS BUTTON_ID, 'BATCH_AUDIT' AS MENU_ID, 'EVIDENCE_DOWNLOAD' AS ACTION_CODE, 'BAT Evidence 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/downloads/**' AS API_PATTERN, 140 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_VIEW' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_VIEW' AS ACTION_CODE, 'Retention 조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/**' AS API_PATTERN, 150 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_PREVIEW' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_PREVIEW' AS ACTION_CODE, 'Retention Preview' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/preview' AS API_PATTERN, 160 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_POLICY_REQUEST' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_POLICY_REQUEST' AS ACTION_CODE, 'Retention 정책 변경 승인요청' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/policies' AS API_PATTERN, 170 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_RUN_REQUEST' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_RUN_REQUEST' AS ACTION_CODE, 'Retention 수동 실행 승인요청' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/policies/*/run' AS API_PATTERN, 180 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_RUN_PAUSE' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_RUN_PAUSE' AS ACTION_CODE, 'Retention Run 안전 일시정지' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/runs/*/pause' AS API_PATTERN, 190 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_RUN_RESUME' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_RUN_RESUME' AS ACTION_CODE, 'Retention Run 재개 승인요청' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/runs/*/resume' AS API_PATTERN, 200 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_POLICY_PAUSE' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_POLICY_PAUSE' AS ACTION_CODE, 'Retention 정책 안전 일시정지' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/policies/*/pause' AS API_PATTERN, 210 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_RETENTION_POLICY_RESUME' AS BUTTON_ID, 'BATCH_RUNTIME' AS MENU_ID, 'RETENTION_POLICY_RESUME' AS ACTION_CODE, 'Retention 정책 재개 승인요청' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/batch-runtime/retention/policies/*/resume' AS API_PATTERN, 220 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.BUTTON_ID=src.BUTTON_ID)
 WHEN MATCHED THEN UPDATE SET tgt.MENU_ID=src.MENU_ID, tgt.ACTION_CODE=src.ACTION_CODE, tgt.BUTTON_NAME=src.BUTTON_NAME, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATTERN=src.API_PATTERN, tgt.SORT_ORDER=src.SORT_ORDER, tgt.USE_YN='Y', tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by) VALUES (src.BUTTON_ID, src.MENU_ID, src.ACTION_CODE, src.BUTTON_NAME, src.HTTP_METHOD, src.API_PATTERN, src.SORT_ORDER, src.USE_YN, src.created_by, src.updated_by);
@@ -1920,7 +1936,7 @@ WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encryp
 WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE tgt
-USING (SELECT 'BZA' AS service_id, '업무 백오피스 서비스' AS service_name, 'INTERNAL' AS service_type, 'BZA' AS owner_module_code, 'CPF 업무 운영 백오피스 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW' AS service_id, '업무 백오피스 서비스' AS service_name, 'INTERNAL' AS service_type, 'MBW' AS owner_module_code, 'CPF 업무 운영 백오피스 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU' AS service_id, '온라인 교육 서비스' AS service_name, 'INTERNAL' AS service_type, 'EDU' AS owner_module_code, 'CPF 온라인 교육 및 검증 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1932,7 +1948,7 @@ WHEN MATCHED THEN UPDATE SET tgt.service_name=src.service_name, tgt.service_type
 WHEN NOT MATCHED THEN INSERT (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by) VALUES (src.service_id, src.service_name, src.service_type, src.owner_module_code, src.description, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_ENDPOINT tgt
-USING (SELECT 'BZA_API' AS endpoint_code, 'BZA' AS service_id, 'BZA API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/bza' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8099' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1944,7 +1960,7 @@ WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_name=sr
 WHEN NOT MATCHED THEN INSERT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by) VALUES (src.endpoint_code, src.service_id, src.endpoint_name, src.endpoint_type, src.base_url, src.context_path, src.default_timeout_ms, src.default_retry_count, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_INSTANCE tgt
-USING (SELECT 'BZA-local-01' AS instance_id, 'BZA' AS service_id, 'BZA_API' AS endpoint_code, 'BZA local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW-local-01' AS instance_id, 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU-local-01' AS instance_id, 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU local instance' AS instance_name, 'http://localhost:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1956,7 +1972,7 @@ WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_code=sr
 WHEN NOT MATCHED THEN INSERT (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by) VALUES (src.instance_id, src.service_id, src.endpoint_code, src.instance_name, src.base_url, src.host_name, src.port_no, src.instance_status, src.weight, src.active_yn, src.last_heartbeat_at, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_ROUTING_POLICY tgt
-USING (SELECT 'BZA' AS service_id, 'BZA_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1968,7 +1984,7 @@ WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_CIRCUIT_STATE tgt
-USING (SELECT 'BZA' AS service_id, 'BZA_API' AS endpoint_code, 'BZA-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1980,10 +1996,10 @@ WHEN MATCHED THEN UPDATE SET tgt.circuit_state=src.circuit_state, tgt.failure_co
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.instance_id, src.circuit_state, src.failure_count, src.success_count, src.closed_at, src.created_by, src.updated_by);
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'BZA', 'BZA_API', 'BZA-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
-    WHERE service_id = 'BZA' AND endpoint_code = 'BZA_API' AND instance_id = 'BZA-local-01' AND created_by = 'SYSTEM'
+    WHERE service_id = 'MBW' AND endpoint_code = 'MBW_API' AND instance_id = 'MBW-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)

@@ -13,8 +13,8 @@ ANNOTATION = ROOT / 'cpf-docs/work/evidence/current/ANNOTATION_RUNTIME_CONSUMER.
 REDIS = ROOT / 'cpf-docs/work/evidence/current/REDIS_VALKEY_PROVIDER.json'
 
 
-def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _sha_or_missing(path: Path) -> str | None:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
 def test_query_db3_ignores_transient_module_build_but_keeps_cpf_tools_build(tmp_path: Path) -> None:
@@ -47,7 +47,7 @@ def test_nxt3_runner_redirects_child_evidence_and_children_respect_external_outp
     assert "verify_redis_valkey_provider_currentization.py" in runner and "child_evidence/'REDIS_VALKEY_PROVIDER.json'" in runner
     assert "verify_annotation_runtime_consumer.py" in runner and "child_evidence/'ANNOTATION_RUNTIME_CONSUMER.json'" in runner
 
-    before = {_sha(ANNOTATION), _sha(REDIS)}
+    before = {ANNOTATION: _sha_or_missing(ANNOTATION), REDIS: _sha_or_missing(REDIS)}
     annotation_out = tmp_path / 'annotation.json'
     redis_out = tmp_path / 'redis.json'
     commands = [
@@ -58,5 +58,5 @@ def test_nxt3_runner_redirects_child_evidence_and_children_respect_external_outp
         cp = subprocess.run(cmd, text=True, capture_output=True)
         assert cp.returncode == 0, cp.stdout + cp.stderr
     assert annotation_out.is_file() and redis_out.is_file()
-    after = {_sha(ANNOTATION), _sha(REDIS)}
+    after = {ANNOTATION: _sha_or_missing(ANNOTATION), REDIS: _sha_or_missing(REDIS)}
     assert after == before

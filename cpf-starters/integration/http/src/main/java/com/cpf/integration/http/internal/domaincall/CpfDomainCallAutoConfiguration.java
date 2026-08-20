@@ -29,6 +29,11 @@ public class CpfDomainCallAutoConfiguration {
             List<CpfDomainOperation<?, ?>> operations, List<CpfOperationAccessPolicy> policies) {
         return new CpfDefaultDomainOperationRegistry(operations, policies);
     }
+    @Bean @ConditionalOnMissingBean(CpfDomainRequestOperationResolver.class)
+    CpfDomainRequestOperationResolver cpfDomainRequestOperationResolver(CpfDefaultDomainOperationRegistry registry) {
+        return new CpfDomainRequestOperationResolver(registry);
+    }
+
     @Bean @ConditionalOnMissingBean(CpfDomainRemoteTransport.class)
     CpfDomainRemoteTransport cpfDomainRemoteTransport(CpfWebClient webClient, ObjectMapper objectMapper,
                                                        CpfHttpOutboundContextAdapter outboundHeaders) {

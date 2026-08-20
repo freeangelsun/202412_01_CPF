@@ -62,7 +62,7 @@ def main() -> int:
 
     # Current runtime code must not query the pre-consolidation service/runtime table names.
     legacy=[]
-    for base in ('cpf-admin','cpf-biz-admin','cpf-gateway','cpf-batch','cpf-starters','cpf-core'):
+    for base in ('cpf-admin','cpf-backoffice/online','cpf-gateway','cpf-batch','cpf-starters','cpf-core'):
         for p in (root/base).rglob('*.java'):
             if '/build/' in p.as_posix(): continue
             t=read(p)

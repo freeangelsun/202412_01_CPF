@@ -1,1 +1,0 @@
-UPDATE bza_position SET position_name=:positionName,rank_order=:rankOrder,use_yn=:useYn,version_no=version_no+1,updated_by=:operatorId,updated_at=CURRENT_TIMESTAMP(3) WHERE position_code=:positionCode AND version_no=:expectedVersion

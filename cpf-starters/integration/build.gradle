@@ -4,6 +4,9 @@ group = 'com.cpf.internal'
 dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     api project(':framework:core')
+    // Public API exposes Spring's UriBuilder/ParameterizedTypeReference, so consumers need these API types.
+    api 'org.springframework:spring-core'
+    api 'org.springframework:spring-web'
     implementation project(':framework:base-runtime')
 }
 

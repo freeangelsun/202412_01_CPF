@@ -23,6 +23,9 @@ class AdmRouteRegistryParserTest(unittest.TestCase):
     def test_current_registry_is_fully_parsed_without_a_stale_fixed_count(self) -> None:
         route_path = self.root / "cpf-admin/frontend/src/app/routes.ts"
         source = route_path.read_text(encoding="utf-8")
+        feature_dir = route_path.parent / "routes"
+        if feature_dir.is_dir():
+            source += "\n" + "\n".join(p.read_text(encoding="utf-8") for p in sorted(feature_dir.glob("*.ts")) if p.name != "types.ts")
         declared = {match.group("id") for match in self.gate.ROUTE_REGISTRY_ENTRY.finditer(source)}
         routes = self.gate.read_routes(route_path)
         self.assertTrue(declared)

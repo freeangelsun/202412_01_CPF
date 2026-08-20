@@ -46,11 +46,18 @@ public class JdbcRuntimeRegistry {
     public long updateDesiredState(String instanceId,DesiredState desired,long expectedVersion) {
         Long current=jdbc.queryForObject(sql.required("runtime-row-version"),Long.class,instanceId);
         if(current==null) throw new IllegalArgumentException("Runtime instance not found: "+instanceId);
-        long version=expectedVersion>0?expectedVersion:current;
+        if (expectedVersion < 0) {
+            throw new IllegalArgumentException("expectedVersion must be non-negative: " + expectedVersion);
+        }
+        if (current.longValue() != expectedVersion) {
+            throw new IllegalStateException(
+                    "Runtime state changed since approval: " + instanceId
+                            + " approvedVersion=" + expectedVersion + " currentVersion=" + current);
+        }
         int changed=jdbc.update(
-                sql.required("runtime-desired-state-update"),desired.name(),instanceId,version);
+                sql.required("runtime-desired-state-update"),desired.name(),instanceId,expectedVersion);
         if(changed!=1) throw new IllegalStateException("Runtime state changed concurrently: "+instanceId);
-        return version+1;
+        return expectedVersion+1;
     }
 
     public Map<String,Object> snapshot(String instanceId) {

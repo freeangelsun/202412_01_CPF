@@ -1,0 +1,197 @@
+[
+  {
+    "file": "cpf-docs/guides/00_프레임워크안내.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 16,
+    "rows": 168,
+    "table_header_rows": 16,
+    "cant_split_rows": 168,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/01_개발자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 31,
+    "rows": 266,
+    "table_header_rows": 31,
+    "cant_split_rows": 266,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/02_배치개발매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 28,
+    "rows": 215,
+    "table_header_rows": 28,
+    "cant_split_rows": 215,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/03_ADM개발자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 23,
+    "rows": 177,
+    "table_header_rows": 23,
+    "cant_split_rows": 177,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/04_ADM운영자매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 11,
+    "rows": 153,
+    "table_header_rows": 11,
+    "cant_split_rows": 153,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/05_플랫폼운영매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 35,
+    "rows": 260,
+    "table_header_rows": 35,
+    "cant_split_rows": 260,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/90_BZA매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 19,
+    "rows": 170,
+    "table_header_rows": 19,
+    "cant_split_rows": 170,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/guides/91_Gateway매뉴얼.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 24,
+    "rows": 190,
+    "table_header_rows": 24,
+    "cant_split_rows": 190,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/deliverables/기술사양서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 20,
+    "rows": 150,
+    "table_header_rows": 20,
+    "cant_split_rows": 150,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/deliverables/기술표준서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 14,
+    "rows": 106,
+    "table_header_rows": 14,
+    "cant_split_rows": 106,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/deliverables/데이터베이스표준서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 15,
+    "rows": 109,
+    "table_header_rows": 15,
+    "cant_split_rows": 109,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/deliverables/산출물목록.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 13,
+    "rows": 125,
+    "table_header_rows": 13,
+    "cant_split_rows": 125,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  {
+    "file": "cpf-docs/deliverables/아키텍처설계서.docx",
+    "comments": 0,
+    "tracked_insertions": 0,
+    "tracked_deletions": 0,
+    "tables": 18,
+    "rows": 126,
+    "table_header_rows": 18,
+    "cant_split_rows": 126,
+    "a11y": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  }
+]

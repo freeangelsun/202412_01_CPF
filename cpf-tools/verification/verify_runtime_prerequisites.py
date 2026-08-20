@@ -9,7 +9,7 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',default=str(ROOT));a=ap.parse_args();root=Path(a.root).resolve();fail=[]
  wrapper=(root/'gradlew.bat' if (root/'gradlew.bat').is_file() else root/'gradlew')
  if not wrapper.is_file():fail.append('GRADLE_WRAPPER_MISSING')
- for rel in ['cpf-admin/frontend/package.json','cpf-admin/frontend/package-lock.json','cpf-biz-frontend/package.json','cpf-biz-frontend/package-lock.json']:
+ for rel in ['cpf-admin/frontend/package.json','cpf-admin/frontend/package-lock.json','cpf-backoffice-web/frontend/package.json','cpf-backoffice-web/frontend/package-lock.json']:
   if not (root/rel).is_file():fail.append('FULL_FRONTEND_FILE_MISSING:'+rel)
  node=shutil.which('node');npm=shutil.which('npm')
  if not node:fail.append('NODE_MISSING')

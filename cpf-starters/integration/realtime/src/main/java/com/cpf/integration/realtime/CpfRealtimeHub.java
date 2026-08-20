@@ -15,6 +15,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+/**
+ * Realtime connection과 message fan-out을 관리하는 CPF Public Runtime 계약입니다.
+ * <p>연결 생명주기와 전송 상태를 한 곳에서 관리하며 Controller나 업무 Service가 세션 저장소를 직접 조작하지 않게 합니다.
+ */
 public final class CpfRealtimeHub implements AutoCloseable {
     private record Client(String tenant, String user, SseEmitter emitter) {}
     private record Event(long sequence, String id, String tenant, Object data) {}

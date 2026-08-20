@@ -1,0 +1,20 @@
+﻿feature,owner_document,owner_section,completion_contract
+제품 가치·도입 판단,00,11/14/15/16,도입 적합성·범위·완료 수용
+Architecture·Topology,아키텍처설계서,3~7/13~21,Owner/Topology/Consistency/Security/Operations
+Starter·Capability Profile,01,18/23/29,Profile/Leaf/Provider/Conflict/Config
+Generator·신규 Domain,01,5/14/24/29,DryRun/Apply/Manifest/DB/OpenAPI/Test/인계
+공통 Utility API,01,2/22/29,입력/예외/사용 경계/Test
+Query·Paging·Export,01,3/14.2/29,Page/Slice/Cursor/Sort/Export/오류
+온라인 Transaction,01,6~9/14.3/29,Local TX/Remote/UNKNOWN/Compensation/Reconcile
+Messaging·Outbox·Inbox,01,10/25/29,publish/duplicate/DLQ/replay/reconcile
+HTTP/TCP/전문 외부연계,01,4/11/19~25/29,timeout/retry/attempt/UNKNOWN/security
+File·Attachment·SFTP,01,11/19/25/29,checksum/lifecycle/partial/retry/audit
+Security·Audit·Secret,기술표준서,9/17/19,identity/permission/masking/approval/audit/rotation
+DB·Migration·Restore,데이터베이스표준서,6~19,install/migrate/drift/backup/restore/DR
+Batch,02,1~24,Job/Chunk/Restart/Partition/Worker/Scheduler/Reconcile
+ADM 연동 개발,03,2~22,Owner Query/Command/OpenAPI/Route/Browser/UNKNOWN
+ADM 운영,04,2~17,63 Route/permission/state/action/recovery/audit
+플랫폼 설치·운영,05,2~30,artifact/secret/db/runtime/observability/deploy/DR
+BZA,90,2~24,org/permission/approval/attachment/audit/backup
+Gateway,91,2~30,route/security/resilience/publish/LKG/drift/recovery
+Artifact·Evidence·인수,산출물목록,2~13,artifact/source/test/config/docs/evidence/rollback

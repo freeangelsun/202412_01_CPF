@@ -15,7 +15,7 @@ class CpfBffLogoutFilterTest {
     void invalidatesSessionEvenWhenVaultRevokeFails() {
         CpfBffCredentialVault vault = new FailingRevokeVault();
         CpfBffLogoutFilter filter = new CpfBffLogoutFilter(vault);
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/bza/auth/logout");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/adm/api/auth/logout");
         request.getSession(true).setAttribute(CpfBffSessionBridgeFilter.CREDENTIAL_HANDLE, "handle-1");
         MockHttpServletResponse response = new MockHttpServletResponse();
 

@@ -22,6 +22,7 @@ public record JobPackManifest(
         metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     }
 
+    /** Job Pack에 포함된 개별 Job의 artifact/checksum/실행 metadata를 정의합니다. */
     public record JobDefinition(
             String jobId,
             String jobName,

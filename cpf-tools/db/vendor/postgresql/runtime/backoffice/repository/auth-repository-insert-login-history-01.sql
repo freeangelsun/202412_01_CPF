@@ -1,0 +1,30 @@
+INSERT INTO mbw_login_history (
+    admin_user_id,
+    login_domain,
+    admin_login_id,
+    login_result,
+    failure_reason,
+    client_ip,
+    user_agent,
+    transaction_id,
+    system_code,
+    application_name,
+    instance_id,
+    created_by,
+    updated_by
+)
+VALUES (
+    :adminUserId,
+    :loginDomain,
+    :adminLoginId,
+    :loginResult,
+    :failureReason,
+    :clientIp,
+    :userAgent,
+    :transactionId,
+    :moduleId,
+    :wasId,
+    :instanceId,
+    'MBW_AUTH',
+    'MBW_AUTH'
+)

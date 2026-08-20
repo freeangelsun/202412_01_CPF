@@ -106,9 +106,10 @@ public class RuntimeCommandExecutor {
         }
 
         DesiredState desired = desired(type);
+        Long fencedVersion = null;
         if (desired != null) {
             try {
-                registry.updateDesiredState(target, desired, command.expectedVersion());
+                fencedVersion = registry.updateDesiredState(target, desired, command.expectedVersion());
             } catch (RuntimeException failure) {
                 return deterministicFailure(command, target, attempt, "DESIRED_STATE_UPDATE", failure);
             }
@@ -158,7 +159,10 @@ public class RuntimeCommandExecutor {
 
         if (resultState == CommandState.SUCCEEDED && "ROLLBACK".equals(type)) {
             try {
-                registry.updateDesiredState(target, DesiredState.RUNNING, 0L);
+                if (fencedVersion == null) {
+                    throw new IllegalStateException("Rollback fencing version is unavailable");
+                }
+                registry.updateDesiredState(target, DesiredState.RUNNING, fencedVersion);
             } catch (RuntimeException failure) {
                 String detail = safe(failure);
                 boolean postRollbackEvidencePersisted = recordAttemptBestEffort(

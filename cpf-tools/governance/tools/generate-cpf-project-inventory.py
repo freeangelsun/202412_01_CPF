@@ -22,7 +22,7 @@ TEXT_EXTENSIONS = {
     ".json", ".csv", ".md", ".ps1", ".py", ".sh", ".sql", ".vue", ".ts", ".tsx",
     ".js", ".mjs", ".css", ".scss", ".html", ".toml",
 }
-SKIP_PARTS = {".git", ".gradle", "build", "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__"}
+SKIP_PARTS = {".git", ".gradle", ".pytest_cache", "build", "node_modules", "dist", "coverage", "test-results", "playwright-report", "__pycache__"}
 JAVA_PACKAGE = re.compile(r"^\s*package\s+([\w.]+)\s*;", re.MULTILINE)
 JAVA_PUBLIC_TYPE = re.compile(r"\bpublic\s+(?:sealed\s+|non-sealed\s+|abstract\s+|final\s+)?(?:class|interface|record|enum|@interface)\s+(\w+)")
 IMPORT = re.compile(r"\bimport\s+(?:static\s+)?([\w.]+)")

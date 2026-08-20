@@ -12,7 +12,7 @@ ROOT_GROUPS = {"apps", "runtime", "framework", "starters", "internal"}
 EXPLICIT_LEAVES = {
     ":framework:core": "cpf-core",
     ":apps:admin": "cpf-admin",
-    ":apps:biz-admin": "cpf-biz-admin",
+    ":apps:backoffice": "cpf-backoffice/online",
     ":runtime:gateway": "cpf-gateway",
     ":apps:education": "cpf-education",
     ":internal:testing:testkit": "cpf-tools/testing/cpf-testkit",
@@ -32,7 +32,7 @@ EXPLICIT_LEAVES = {
 RUN_ALIASES = {
     "cpfRunLocal": ":runtime:local:bootRun",
     "cpfRunAdm": ":apps:admin:bootRun",
-    "cpfRunBza": ":apps:biz-admin:bootRun",
+    "cpfRunBackoffice": ":apps:backoffice:bootRun",
     "cpfRunGateway": ":runtime:gateway:bootRun",
     "cpfRunBatch": ":runtime:local-batch:bootRun",
     "cpfRunEducation": ":apps:education:bootRun",
@@ -83,7 +83,7 @@ def main() -> int:
     if 'Gradle Projects는 apps / runtime / framework / starters / internal 계층' not in convention:
         fail(errors,'cpfHelp does not describe canonical IDE hierarchy')
     # Only concrete Gradle project/task references are forbidden from using retired top-level paths.
-    retired=re.compile(r"['\"]:(cpf-core|cpf-admin|cpf-biz-admin|cpf-gateway|cpf-education|cpf-local-runtime|cpf-local-batch-runtime|cpf-batch(?::(?:api|runtime-support|runtime|control-plane|scheduler|worker|center-cut|agent|testkit))?)(?::[^'\"]*)?['\"]")
+    retired=re.compile(r"['\"]:(cpf-core|cpf-admin|cpf-backoffice|cpf-gateway|cpf-education|cpf-local-runtime|cpf-local-batch-runtime|cpf-batch(?::(?:api|runtime-support|runtime|control-plane|scheduler|worker|center-cut|agent|testkit))?)(?::[^'\"]*)?['\"]")
     scan_ext={'.gradle','.kts','.ps1','.sh','.bat','.cmd'}
     for p in root.rglob('*'):
         if not p.is_file() or p.suffix.lower() not in scan_ext or 'cpf-docs' in p.parts: continue

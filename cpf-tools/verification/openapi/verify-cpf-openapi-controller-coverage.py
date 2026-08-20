@@ -12,7 +12,7 @@ OPERATION=re.compile(r'@Operation\s*\((.*?)\)',re.S)
 OP_ID=re.compile(r'operationId\s*=\s*"([^"]+)"')
 QUOTED=re.compile(r'"([^"]*)"')
 METHOD_DECL=re.compile(r'(?m)^\s*(?:(?:public|protected|private)\s+)?(?:static\s+)?(?:final\s+)?(?:<[^>]+>\s*)?[\w<>, ?\[\].]+\s+(\w+)\s*\(')
-MODULES={'cpf-admin':('/adm/api/','cpf-admin/src/main/java'),'cpf-biz-admin':('/api/bza/','cpf-biz-admin/src/main/java')}
+MODULES={'cpf-admin':('/adm/api/','cpf-admin/src/main/java'),'cpf-backoffice':('/api/v1/backoffice/','cpf-backoffice/online/src/main/java')}
 class CoverageError(RuntimeError):pass
 
 def annotation_path(arguments:str|None)->str:
@@ -34,7 +34,7 @@ def source_contracts(root:Path,module:str)->list[dict]:
     records=[]
     for file in sorted(source.rglob('*.java')):
         text=file.read_text(encoding='utf-8',errors='ignore')
-        if '@RestController' not in text and '@CpfController' not in text:continue
+        if not any(annotation in text for annotation in ('@RestController', '@CpfController', '@CpfRestController')):continue
         base=class_base(text)
         for mapping in HTTP_MAPPING.finditer(text):
             verb={'Get':'GET','Post':'POST','Put':'PUT','Patch':'PATCH','Delete':'DELETE'}[mapping.group(1)]

@@ -19,16 +19,16 @@ SELECT 'cpfDB.product_seed' AS check_name,
            AND (SELECT COUNT(*) FROM cpf_config) >= 20
        THEN 1 ELSE 0 END AS passed FROM dual;
 
--- CPF_LOGICAL_DATABASE=bzaDB
-SELECT 'bzaDB.table_count' AS check_name,
+-- CPF_LOGICAL_DATABASE=mbwDB
+SELECT 'mbwDB.table_count' AS check_name,
        CASE WHEN COUNT(*) = 29 THEN 1 ELSE 0 END AS passed
 FROM user_tables;
 
-SELECT 'bzaDB.product_seed' AS check_name,
+SELECT 'mbwDB.product_seed' AS check_name,
        CASE WHEN
-           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4
-           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8
-           AND (SELECT COUNT(*) FROM bza_permission WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8
+           (SELECT COUNT(*) FROM mbw_role WHERE use_yn = 'Y') >= 4
+           AND (SELECT COUNT(*) FROM mbw_menu WHERE use_yn = 'Y') >= 8
+           AND (SELECT COUNT(*) FROM mbw_permission WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8
        THEN 1 ELSE 0 END AS passed FROM dual;
 
 -- CPF_LOGICAL_DATABASE=referenceFixture

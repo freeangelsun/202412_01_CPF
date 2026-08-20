@@ -1,1 +1,0 @@
-UPDATE bza_job_title SET job_title_name=:jobTitleName,manager_yn=:managerYn,use_yn=:useYn,version_no=version_no+1,updated_by=:operatorId,updated_at=CURRENT_TIMESTAMP(3) WHERE job_title_code=:jobTitleCode AND version_no=:expectedVersion

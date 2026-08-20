@@ -29,10 +29,15 @@ public record BatchJobDefinition(
         OffsetDateTime effectiveUntil,
         long expectedRowVersion) {
 
+    /** Batch Job이 사용할 승인된 실행기 유형을 선택하는 Canonical 값입니다. */
     public enum ExecutorType { SPRING_BATCH, APPROVED_SHELL, FILE_WATCH, FILE_PROCESS, FILE_TRANSFER, SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER }
+    /** Batch Job Definition의 Draft부터 Retired까지 lifecycle 상태를 나타냅니다. */
     public enum State { DRAFT, VALIDATED, APPROVAL, PUBLISHED, RETIRED }
+    /** Batch Job 기동 조건이 일정/파일/메시지/수동 등 어떤 유형인지 나타냅니다. */
     public enum TriggerType { CRON, CALENDAR, BUSINESS_DAY, FILE, MESSAGE, MANUAL, DEPENDENCY }
+    /** 예정된 Batch Trigger가 누락됐을 때 수행할 fail-closed 정책을 나타냅니다. */
     public enum MisfirePolicy { FIRE_NOW, SKIP, NEXT_SCHEDULE, FAIL_CLOSED }
+    /** Batch 실행 결과가 UNKNOWN일 때 Reconcile/수동검토 등 후속 정책을 나타냅니다. */
     public enum UnknownResultPolicy { RECONCILE, MANUAL_REVIEW, COMPENSATE, FAIL_CLOSED }
 
     public BatchJobDefinition {
@@ -61,21 +66,26 @@ public record BatchJobDefinition(
         validateDependencies(jobId, dependencies);
     }
 
+    /** Batch Job Trigger의 유형, 표현식, timezone, misfire 정책을 고정하는 계약입니다. */
     public record Trigger(TriggerType type, String expression, String timezone, MisfirePolicy misfirePolicy, boolean enabled) {
         public Trigger { type=Objects.requireNonNull(type,"trigger.type"); expression=clean(expression); timezone=blank(timezone)?"Asia/Seoul":timezone.trim(); misfirePolicy=misfirePolicy==null?MisfirePolicy.FAIL_CLOSED:misfirePolicy;
             if (type != TriggerType.MANUAL && type != TriggerType.DEPENDENCY && blank(expression)) throw new IllegalArgumentException("trigger expression required"); }
     }
+    /** 다른 Job 완료조건과 timeout을 표현하는 Batch Job dependency 계약입니다. */
     public record Dependency(String relatedJobId, String condition, long timeoutSeconds, boolean required) {
         public Dependency { relatedJobId=BatchJobDefinition.required(relatedJobId,"relatedJobId");condition=blank(condition)?"SUCCESS":condition.trim().toUpperCase(Locale.ROOT);if(timeoutSeconds<0)throw new IllegalArgumentException("dependency timeout cannot be negative"); }
     }
+    /** Agent pool, 동시성, timeout, CPU/Memory 한도를 정의하는 Batch resource 정책입니다. */
     public record ResourcePolicy(String agentPool, String zone, int maxConcurrency, long timeoutSeconds, long memoryLimitMb, int cpuLimitMillicores) {
         public ResourcePolicy { agentPool=required(agentPool,"agentPool");zone=clean(zone);if(maxConcurrency<=0)maxConcurrency=1;if(timeoutSeconds<=0)timeoutSeconds=3600;if(memoryLimitMb<0||cpuLimitMillicores<0)throw new IllegalArgumentException("resource limit cannot be negative"); }
         public static ResourcePolicy defaults(){return new ResourcePolicy("DEFAULT","",1,3600,0,0);}
     }
+    /** Retry/backoff/restart/UNKNOWN 처리와 compensation을 정의하는 Batch recovery 정책입니다. */
     public record RecoveryPolicy(int maxAttempts, long initialBackoffSeconds, double multiplier, long maxBackoffSeconds, int skipLimit, boolean restartable, UnknownResultPolicy unknownResultPolicy, String compensationReference) {
         public RecoveryPolicy { if(maxAttempts<1)maxAttempts=1;if(initialBackoffSeconds<0)initialBackoffSeconds=0;if(multiplier<1)multiplier=1;if(maxBackoffSeconds<initialBackoffSeconds)maxBackoffSeconds=initialBackoffSeconds;if(skipLimit<0)skipLimit=0;unknownResultPolicy=unknownResultPolicy==null?UnknownResultPolicy.FAIL_CLOSED:unknownResultPolicy;compensationReference=clean(compensationReference); }
         public static RecoveryPolicy defaults(){return new RecoveryPolicy(1,0,1,0,0,true,UnknownResultPolicy.FAIL_CLOSED,"");}
     }
+    /** 지연/SLA/실패/누락 조건에 따른 Batch 알림 정책을 정의합니다. */
     public record AlertPolicy(long delayThresholdSeconds, long slaSeconds, boolean notifyOnFailure, boolean notifyOnMissed, List<String> providerKeys) {
         public AlertPolicy { if(delayThresholdSeconds<0||slaSeconds<0)throw new IllegalArgumentException("alert threshold cannot be negative");providerKeys=providerKeys==null?List.of():List.copyOf(providerKeys); }
         public static AlertPolicy defaults(){return new AlertPolicy(0,0,true,true,List.of());}

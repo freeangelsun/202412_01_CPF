@@ -67,7 +67,7 @@ checks = []
 def check(axis, check_id, ok, detail, severity="P0"):
     checks.append({"axis": axis, "checkId": check_id, "status": "PASS" if ok else "FAIL", "severity": severity, "detail": detail})
 
-java_main = [p for top in ["cpf-core", "cpf-starters", "cpf-admin", "cpf-biz-admin", "cpf-gateway", "cpf-batch", "cpf-education", "cpf-member", "cpf-external"] for p in files_under(top, ".java") if "/src/test/" not in p.as_posix()]
+java_main = [p for top in ["cpf-core", "cpf-starters", "cpf-admin", "cpf-backoffice/online", "cpf-gateway", "cpf-batch", "cpf-education", "cpf-member", "cpf-external"] for p in files_under(top, ".java") if "/src/test/" not in p.as_posix()]
 active_docs = []
 for top in ["cpf-docs/governance", "cpf-docs/architecture", "cpf-docs/development", "cpf-docs/work/current"]:
     active_docs += [p for p in files_under(top) if p.suffix.lower() in {".md", ".csv", ".json", ".yml", ".yaml"}]

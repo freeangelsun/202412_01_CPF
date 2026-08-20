@@ -40,7 +40,7 @@ SELECT 'admDB.table_count' AS check_name,
 FROM information_schema.tables
 WHERE LOWER(table_schema) = 'admdb' AND table_type = 'BASE TABLE';
 
-SELECT 'bzaDB.table_count' AS check_name,
+SELECT 'mbwDB.table_count' AS check_name,
        IF(COUNT(*) = 28, 1, 0) AS passed
 FROM information_schema.tables
 WHERE LOWER(table_schema) = 'bzadb' AND table_type = 'BASE TABLE';
@@ -89,7 +89,7 @@ SELECT 'cpfDB.platform_baseline_identity' AS check_name,
        IF(COUNT(*) = 6, 1, 0) AS passed
 FROM cpfDB.cpf_schema_installation
 WHERE (LOWER(schema_name), system_code) IN (
-    ('cpfdb', 'CPF'), ('cmndb', 'CMN'), ('admdb', 'ADM'), ('bzadb', 'BZA'),
+    ('cpfdb', 'CPF'), ('cmndb', 'CMN'), ('admdb', 'ADM'), ('bzadb', 'MBW'),
     ('batdb', 'BAT'), ('refdb', 'REF')
 )
   AND database_vendor = 'MARIADB'
@@ -132,12 +132,12 @@ SELECT 'admDB.product_seed' AS check_name,
            1, 0
        ) AS passed;
 
-SELECT 'bzaDB.product_seed' AS check_name,
+SELECT 'mbwDB.product_seed' AS check_name,
        IF(
-           (SELECT COUNT(*) FROM bzaDB.bza_role WHERE use_yn = 'Y') >= 4
-           AND (SELECT COUNT(*) FROM bzaDB.bza_menu WHERE use_yn = 'Y') >= 8
-           AND (SELECT COUNT(*) FROM bzaDB.bza_permission
-                WHERE role_code = 'BZA_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8,
+           (SELECT COUNT(*) FROM mbwDB.mbw_role WHERE use_yn = 'Y') >= 4
+           AND (SELECT COUNT(*) FROM mbwDB.mbw_menu WHERE use_yn = 'Y') >= 8
+           AND (SELECT COUNT(*) FROM mbwDB.mbw_permission
+                WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8,
            1, 0
        ) AS passed;
 
@@ -150,7 +150,7 @@ WHERE
     OR (
         LOWER(table_schema) = 'bzadb'
         AND LOWER(table_name) IN (
-            'bza_customer', 'bza_product', 'bza_order', 'bza_masking_audit'
+            'mbw_customer', 'mbw_product', 'mbw_order', 'mbw_masking_audit'
         )
     );
 
@@ -161,16 +161,16 @@ SELECT 'VERIFY adm_operator account safety columns' AS check_name,
  WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator'
    AND UPPER(column_name) IN ('ACCOUNT_STATUS','VERSION_NO','CREATE_OPERATION_ID');
 
-SELECT 'VERIFY bza_admin_user account safety columns' AS check_name,
+SELECT 'VERIFY mbw_admin_user account safety columns' AS check_name,
        IF(COUNT(*) = 2, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user'
    AND LOWER(column_name) IN ('account_status','version_no');
 
-SELECT 'VERIFY BZA employee status default' AS check_name,
+SELECT 'VERIFY MBW employee status default' AS check_name,
        IF(MAX(UPPER(TRIM(BOTH '\'' FROM COALESCE(column_default,'')))) = 'EMPLOYED', 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND LOWER(column_name)='employment_status';
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_employee' AND LOWER(column_name)='employment_status';
 
 SELECT 'VERIFY ADM contact ownership' AS check_name,
        IF(
@@ -184,29 +184,29 @@ SELECT 'VERIFY V61 status catalog constraints' AS check_name,
        IF(
          (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='admdb' AND LOWER(table_name)='adm_operator' AND constraint_name='ck_adm_operator_status') = 1
          AND
-         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user' AND constraint_name='ck_bza_admin_user_status') = 1
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user' AND constraint_name='ck_mbw_admin_user_status') = 1
          AND
-         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_employee' AND constraint_name='ck_bza_employee_status') = 1,
+         (SELECT COUNT(*) FROM information_schema.table_constraints WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_employee' AND constraint_name='ck_mbw_employee_status') = 1,
          1, 0
        ) AS passed;
 
--- V62/V63 BZA idempotency and login-operation verification
+-- V62/V63 MBW idempotency and login-operation verification
 SELECT 'VERIFY V62 bootstrap operation id' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_admin_user'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_admin_user'
    AND LOWER(column_name)='create_operation_id';
 
 SELECT 'VERIFY V63 login operation table' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.tables
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_login_operation'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_login_operation'
    AND table_type='BASE TABLE';
 
 SELECT 'VERIFY V63 refresh login operation link' AS check_name,
        IF(COUNT(*) = 1, 1, 0) AS passed
   FROM information_schema.columns
- WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='bza_refresh_token'
+ WHERE LOWER(table_schema)='bzadb' AND LOWER(table_name)='mbw_refresh_token'
    AND LOWER(column_name)='login_operation_id';
 
 -- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences

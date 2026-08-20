@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;import jakarta.servlet.ServletException;impor
 /** SameSite Cookie와 Session을 결합한 Double-submit CSRF 방어입니다. */
 public final class CpfBffCsrfFilter extends OncePerRequestFilter {
  private static final String ATTR="CPF_CSRF_TOKEN";private static final SecureRandom RNG=new SecureRandom();
- @Override protected boolean shouldNotFilter(HttpServletRequest r){String p=r.getRequestURI();return !(p.startsWith("/adm/")||p.startsWith("/api/bza/")||p.startsWith("/bza/"));}
+ @Override protected boolean shouldNotFilter(HttpServletRequest r){String p=r.getRequestURI();return !(p.startsWith("/adm/"));}
  @Override protected void doFilterInternal(HttpServletRequest r,HttpServletResponse s,FilterChain c)throws ServletException,IOException{
   HttpSession session=r.getSession(true);String token=(String)session.getAttribute(ATTR);if(token==null){byte[] b=new byte[32];RNG.nextBytes(b);token=Base64.getUrlEncoder().withoutPadding().encodeToString(b);session.setAttribute(ATTR,token);}
   s.addHeader("Set-Cookie","XSRF-TOKEN="+token+"; Path=/; Secure; SameSite=Strict");

@@ -1,2 +1,2 @@
-/** Controller-source pre-runtime placeholder; runtime OpenAPI must supply validation details. */
-export type CommonCodeRequest = Record<string, unknown>;
+/** Code create/update input; operator is server-derived. */
+export interface CommonCodeRequest { codeId?: number; parentId?: number; codeKey: string; codeValue: string; description?: string; useYn?: "Y" | "N"; reason: string; }

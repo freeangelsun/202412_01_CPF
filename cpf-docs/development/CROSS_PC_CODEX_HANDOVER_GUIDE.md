@@ -16,10 +16,10 @@ Git은 Source 공유 수단이고, Continuity/Decision/Review 문서는 **작업
 1. git status
 2. git rev-parse HEAD / origin/master
 3. cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
-4. cpf-docs/governance/CPF_REQUIREMENT_CONTINUITY_LEDGER.md
+4. cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md
 5. cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md
-6. cpf-docs/work/state/CPF_CODEX_DECISION_LOG.md
-7. cpf-docs/work/state/CPF_CODEX_CONTINUITY_STATE.md
+6. cpf-docs/work/REQUIREMENT_STATUS.csv
+7. cpf-docs/deliverables/TEST_AND_EVIDENCE.md / OPEN_ISSUES.md
 8. cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md
 9. 최신 cpf-docs/work/review/* Handover
 10. 실제 Source/Diff/Evidence

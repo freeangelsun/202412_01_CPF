@@ -1,20 +1,18 @@
-﻿path,size,sha256,action
-cpf-admin/frontend/src/features/transaction-groups/TransactionGroupsPage.vue,8024,3e5a823f1862e33bfaf3ff51ed4f54a45630535ee74cf8e9ce7abad5f0cfba1a,UPDATE
-cpf-docs/deliverables/CHANGE_MANIFEST.csv,1971,,DELETE
-cpf-docs/deliverables/CODEX_REVALIDATION_REQUEST.md,567,56685b196116aa6b60b8ad149e45920d871b68a1fe286446da5c347830fe296d,ADD
-cpf-docs/deliverables/CONTINUITY.md,545,9e57e8802ae436caddd9fa203946ef556ed2a2a848085bdaa2bf6cc2d4bfa0e3,UPDATE
-cpf-docs/deliverables/HANDOVER.md,588,a5568f4b05baca79041d8af7e0567693019ba0b4bec571490e21d8124e21721d,ADD
-cpf-docs/deliverables/OPEN_ISSUES.md,792,c9bf2aaec102ba41575295b010fa953ce9693609c2e2c09c635392d05711ac1f,UPDATE
-cpf-docs/deliverables/PACKAGE_MANIFEST.json,2003,5000d0bb2370ebddec319cb2f9ed9270518528ef9db96420cb5f72503cac0f4b,UPDATE
-cpf-docs/deliverables/QA_REWORK_REQUEST.md,503,d9fbcb0703bd584fb4715bf41b8cc3639edd0aed754d9b2734638ba61cd5772d,UPDATE
-cpf-docs/deliverables/REQUIREMENT_STATUS.csv,1420,4d06dd83980c7660053f5df8056c788a4ba094636994f7e1a3c09055abb580dc,UPDATE
-cpf-docs/deliverables/SHA256SUMS.txt,1270217,986f24f8322d98ed8bfd8107fc6d458a7cf505af76de9a0d3312747970389ce1,UPDATE
-cpf-docs/deliverables/TEST_AND_EVIDENCE.md,2961,aa0f11e396b9a35244b4b3cd6df39b0a960294f48e46e6cbee92758ebe4f40da,UPDATE
-cpf-docs/deliverables/evidence/DEV20_BZA_STALE_CLASSIFICATION.csv,14421,39644cf6aa43a2bbd6b19d4dc7d5f414ab0a8a5a37d5d8be22e6e47b5921cad7,ADD
-cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,242215,07e112d34100507ec95c1c12d5aeace16332b109fe6bce54d66eba84fad0aaed,UPDATE
-cpf-education/build.gradle,6624,da233254aee63c8b537ba445b2e47f041cac68e833c09977415ee682f8ec2565,UPDATE
-cpf-tools/db/__pycache__/render_vendor_pack.cpython-313.pyc,42160,7a50641352960fd53f7524d9c545bb30ebb382b613f66cea3cadd04a351437f5,ADD
-cpf-tools/verification/frontend-api-runtime/harness.cjs,3096,247e6a58d3d09a46b974656d8cbdcd2cd801875ea9b8befbc0a6dcc13fedbbb4,UPDATE
-cpf-tools/verification/frontend-api-runtime/run-frontend-api-runtime-harness.py,2660,0db27aea2917305b2f8e3e585674c04872fe1713b70b751fef331d78574afb21,UPDATE
-cpf-tools/verification/tools/smoke-standard-header-e2e.ps1,19965,bf851711db79c5dbf83608cc8f72c8ff5d33cbbd40f5510a900c2940359fd82c,UPDATE
-cpf-tools/verification/tools/verify-cpf-frontend-substitute-validation.py,18045,af7c9d0a8117b6d59813b52ad72cae2eccd64033e32e835a2c9b82c3f6d31422,UPDATE
+﻿path,action,reason
+cpf-docs/deliverables/CANONICAL_CURRENTIZATION_REVIEW.md,ADD,Currentization design/review summary.
+cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv,ADD,Target-to-source/QA alignment gaps without weakening target.
+cpf-docs/deliverables/CODEX_REVALIDATION_REQUEST.md,REPLACE,Independent canonical/source-gap/delete-safety review request.
+cpf-docs/deliverables/DELETE_MANIFEST.csv,REPLACE,User-approved stale source/history/duplicate canon deletion manifest.
+cpf-docs/deliverables/OPEN_ISSUES.md,REPLACE,13 target alignment gaps.
+cpf-docs/deliverables/QA_REWORK_REQUEST.md,REPLACE,Requests QA reopen/add affected requirement statuses; no QA state fabrication.
+cpf-docs/deliverables/TEST_AND_EVIDENCE.md,REPLACE,Current canonicalization verification; product runtime is not falsely marked PASS.
+cpf-docs/development/CROSS_PC_CODEX_HANDOVER_GUIDE.md,REPLACE,Current-only document/status/evidence entrypoints.
+cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md,REPLACE,"Continuous development/QA workflow, local source identity, progress/log/final-report rules currentized."
+cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,REPLACE,Navigation-only owner/path map; no duplicate architecture policy.
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,REPLACE,Current document role/index only; historical supersession removed.
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,REPLACE,Current-only 205 Requirement target; all latest Steering integrated; ambiguity/conflicts removed.
+cpf-docs/governance/CPF_NO_PARTIAL_IMPLEMENTATION_COMPLETION_STANDARD.md,REPLACE,No-partial/false-green completion rules aligned to Final Target.
+cpf-docs/governance/CPF_VERIFICATION_GATE_LIFECYCLE_POLICY.md,REPLACE,Stable gate/current evidence/false-green rules currentized.
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,ADD,Single current implementation request derived from canonical target gaps.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030589.csv,REPLACE,Broken references to deleted duplicate canon removed; full dataset regeneration remains a QA gap.
+cpf-tools/verification/tools/check-work-context.ps1,REPLACE,Stale history/handover prerequisites removed; current-only entrypoints validated.

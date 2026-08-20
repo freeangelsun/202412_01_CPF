@@ -1,5 +1,9 @@
-# CPF DEV20 QA REVALIDATION REQUEST
+# QA 재개발·재검수 요청 — Canonical Target Currentization
 
-DEV19 99.82% checkpoint 이후 DEV20에서 남은 회귀 검증과 stale verifier currentization을 완료했다. 개발 GPT는 QA 상태 컬럼을 임의 수정하지 않았다.
+최상위 Target이 Current-only 205 Requirement로 현행화되었다. 개발 GPT가 QA 상태를 임의 변경하지 않는다. QA는 기존 상태 중 아래 영향 Requirement를 재개발/재검수 대상으로 재개방할지 판정한다.
 
-QA 재검수 시 `TEST_AND_EVIDENCE.md`, `REQUIREMENT_STATUS.csv`, `CHANGE_MANIFEST.csv`, `DEV20_BZA_STALE_CLASSIFICATION.csv`와 최종 Package/SHA를 기준으로 확인한다. Java 25/live environment 항목은 실행 Evidence가 추가되기 전까지 미검증으로 유지한다.
+주요 영향: `ARCH-BOUNDARY`, `ARCH-STARTER`, `CMN-*`, `CPF-HEADER`, `CPF-CONTEXT`, `CPF-TXID`, `ONBOARD-DOMAIN`, `SAMPLE-MBR`, `REL-BUILD` 및 신규 `CPF-SYSTEM6`, `CPF-INSTANCE`, `CPF-OPERATION`, `GEN-DOMAIN`, `GEN-SETUP`, `DB-BINDING`, `MBW-WEB`, `REL-PUBLIC-WORKSPACE`, `REL-PUBLIC-BINARY`, `DEVEX-BOOTSTRAP`, `EDU-CANONICAL`.
+
+세부 Source Gap은 `CANONICAL_SOURCE_GAP_BACKLOG.csv`를 사용한다.
+
+현재 `cpf-docs/work/REQUIREMENT_STATUS.csv`에는 신규 11 Canonical ID가 없으므로 QA/중앙 관리가 원장 구조와 상태를 갱신해야 한다. Developer GPT는 QA 상태를 임의 생성하지 않는다.

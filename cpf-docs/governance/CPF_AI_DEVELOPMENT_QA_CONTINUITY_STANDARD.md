@@ -1,94 +1,59 @@
-# CPF AI 개발·QA·세션 연속성 표준
+# CPF AI 개발·QA 연속 실행 표준
 
-- Currentization source/basis SHA: `d50b8468094a412923ab4a3d63013216eeb88e31` (`10_13`)
-- 목적: Developer GPT, Codex, QA와 후속 세션이 같은 정본·같은 Source Closure 기준으로 작업하게 한다.
+> 역할: Developer GPT/Codex/QA의 **현재 실행 방식**만 정의한다. 제품 Architecture/Requirement는 `CPF_FINAL_TARGET_REQUIREMENTS.md`를 유일한 상위 정본으로 사용한다.
 
-## 1. 시작 기준
+## 1. Source Identity
 
-모든 개발/검수 세션은 최신 `origin/master` exact SHA와 Working Tree를 먼저 확인하고 `CPF_FINAL_TARGET_REQUIREMENTS.md → CPF_DOCUMENT_CANONICAL_INDEX.md → CPF_CURRENT_WORK_REQUEST.md → 역할별 지침 → 실제 Source` 순서로 읽는다. 과거 대화·완료·Evidence를 자동 승계하지 않는다.
+- 공식 Repository 작업이면 최신 승인 baseline과 실제 Local Working Tree를 함께 확인한다.
+- uncommitted/untracked Source가 있으면 실제 Local Working Tree가 실행 대상이며 commit 기준 Source로 덮어쓰지 않는다.
+- ZIP 작업이면 ZIP SHA-256과 Content Tree를 기록한다.
+- 과거 대화의 완료율/PASS/Evidence를 새 Source의 PASS로 자동 승계하지 않는다.
 
-## 2. Requirement-by-Requirement Source Review 강제
+## 2. 작업 시작
 
-각 Requirement는 반드시 다음 순서로 직접 확인한다.
+사용자가 명시적으로 개발 시작을 요청하기 전에는 자료 취합·분석만 한다. 개발 시작 시:
 
-`Requirement → Owner → Source/FQCN → Public API/SPI/Internal → Consumer → 호출 경로 → Config/SQL → 정상/오류/경계/UNKNOWN → 동시성/재시도/복구 → Security/Audit → Generator/Frontend 영향 → Test → exact-SHA Evidence`
+1. Final Target과 Current Work Request를 읽는다.
+2. 실제 Source/SQL/API/Test/Config/Frontend/Generator를 확인한다.
+3. 개발 목록, 영향범위, 우선순위, 작업순서를 정리한다.
+4. 사용자 리뷰가 필요한 최초 계획을 제시한 뒤 개발을 시작한다.
 
-Interface/DTO/Sample/Test 파일 존재만으로 완료하지 않는다. 첫 오류만 수정하지 않고 동일 원인의 잠복 결함을 Repository 전체에서 찾아 일괄 수정한다.
+새 QA/로컬 테스트/Steering은 기존 요구에 병합하여 중복 개발을 피한다. Architecture가 잘못됐거나 더 나은 방향이 보이면 Source에 맞추지 말고 Target 품질을 기준으로 의견을 제시한다.
 
-## 3. Developer GPT 진행률
+## 3. 지속 실행
 
-Developer GPT는 작업 시작 후 완료까지 **최소 5분 간격**으로 화면에 `전체 진행률 %, 현재 Requirement, 완료/미완료 건수, 현재 Gate`를 표시한다. 진행률은 파일 수가 아니라 Requirement의 Source/Consumer/Test/Evidence 완료율로 계산한다. 진행 보고 직후 작업을 계속하며 보고는 중단점이 아니다.
+개발 시작 후 특별한 중지/변경 요청이나 안전상 필수 판단이 없으면 구현→저비용 Gate→실패 집계→보정→Build/Test/Runtime→자체검수→Evidence→패키징까지 연속 진행한다.
 
-## 4. 역할
+진행 보고는 중단점이 아니다. 화면에는 전체 기준 진행률, 현재 작업, 완료 항목, 잔여 항목을 주기적으로 표시한다.
 
-- Developer GPT: Source/SQL/API/Test/Config/Frontend/Generator 구현, 자체검수, `개발GPT_*` 상태/Evidence. Canonical Requirement/Architecture/Current Instruction은 수정 금지.
-- Codex: 최신 SHA 독립 검수·보완·실환경 재실행.
-- QA: 최종 전체 상태와 QA 판정.
+## 4. 오류 처리
 
-자기 역할 밖의 판정 컬럼을 임의 변경하지 않는다.
+첫 오류 하나만 고치지 않는다.
 
-## 5. 완료 판정
+1. 가능한 독립 Gate를 계속 실행한다.
+2. 실패를 Root Cause별로 묶는다.
+3. Repository 전체에서 같은 패턴의 잠복 결함을 찾는다.
+4. Source/Test/Generator/Catalog/Verifier/문서를 일괄 보정한다.
+5. 최소 검증 묶음부터 재실행하고 전체 회귀로 확장한다.
 
-Source 구현과 Runtime 검증 상태를 분리한다. 실제 실행되지 않은 DB3/Redis/Valkey/Broker/S3/Browser/Process-kill 등의 항목은 `미검증`이고 PASS가 아니다. QA 통과 전 Release 완료라고 표현하지 않는다.
+Verifier가 대상 0건, stale path, old policy를 검사하면서 PASS하는 False Green을 별도 결함으로 본다.
 
-## 6. Architecture 결정권
+## 5. Local 통합 테스트 UX
 
-정본이 Owner/Path/Artifact/DB/Provider를 확정했으면 Developer GPT가 A/B를 다시 선택하지 않는다. 충돌이 발견되면 기능 Acceptance를 약화하지 않고 정본 우선순위와 명시적 Supersession을 적용한다. 기술/보안상 불가능한 경우 근거와 영향을 기록하되 임의 대안을 정본처럼 확정하지 않는다.
+장시간 명령은 콘솔에 진행상황을 보이면서 로그에도 저장한다. `Out-File`만 사용해 화면을 완전히 무응답으로 만드는 명령을 기본으로 제공하지 않는다.
 
-## 7. Current Target 핵심
+Gradle 기본 예:
 
-- `cpf-core` = 최소 Kernel. Capability `*/core` 금지.
-- Common Product Service = `cpf-starters/common` + `cpf-starter-common`.
-- CPF Platform 관계형 DB = `CPF_PLATFORM_DB(cpfDB)` 기본. BZA/Customer Business DB 분리.
-- Generated Domain = Customer Repository + Business DB Role + Domain Table Prefix.
-- Public Starter = 직관적 `cpf-starter-...` 명칭; Internal leaf 직접 소비 금지.
-- Error = Business/Validation/System 최소 taxonomy + DB-driven Error/Response/Message Catalog.
-- Redis와 Valkey는 명시적 공식 Provider로 병존.
-
-## 8. Git·삭제 안전
-
-사용자 승인 없이 Commit/Push/Branch/Tag/PR/Reset/Restore/Stash/Clean/Delete를 수행하지 않는다. 삭제는 exact-path Manifest와 사용자 실행 one-line을 사용하며 보호 경로를 fail-closed한다.
-
-
-## Developer GPT Canonical Write Protection — 영구 규칙
-
-Developer GPT는 **개발요건 정본·Architecture 정본·Current 실행지침 자체를 수정하지 않는다.**
-
-Developer GPT 쓰기 금지 대상은 최소 다음을 포함한다.
-
-```text
-cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
-cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md
-cpf-docs/governance/CPF_DOCUMENT_CONTROL_POLICY.md
-cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md
-cpf-docs/governance/CPF_STARTER_ARCHITECTURE_AND_LIFECYCLE_POLICY.md
-cpf-docs/governance/CPF_GENERATED_DOMAIN_LIFECYCLE_POLICY.md
-cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md
-cpf-docs/governance/CPF_REPOSITORY_SURFACE_INDEX.md
-cpf-docs/architecture/ARCHITECTURE_GUIDE.md
-cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md
-cpf-docs/work/current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md
-cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv
-cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/**
-cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv
-cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/**
-cpf-docs/work/current/CPF_REQUIREMENT_CONTROL_REGISTER.xlsx
+```powershell
+$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradlew clean build --continue --stacktrace 2>&1 | Tee-Object -FilePath $log; $code=$LASTEXITCODE; Write-Host "`n========== FINAL REPORT =========="; Write-Host "Result   : $(if($code -eq 0){'PASS'}else{'FAIL'})"; Write-Host "ExitCode : $code"; Write-Host "Started  : $start"; Write-Host "Finished : $(Get-Date)"; Write-Host "Log      : $log"; Write-Host "=================================="
 ```
 
-정본 오류·충돌·stale를 발견한 Developer GPT는 정본을 직접 고치지 않고 다음을 수행한다.
+세션 인수인계에는 최신 통합 테스트 한 줄, 로그 위치, 정상 기대 결과, 실패 시 전달할 로그 파일명을 포함한다.
 
-1. 최신 `origin/master`와 실제 Source/Catalog/settings를 재확인한다.
-2. 충돌 경로, 원문, 영향, 필요한 정정안을 `cpf-docs/work/OPEN_ISSUES.md` 및 해당 Evidence에 기록한다.
-3. 자신의 구현 Source/Test/Config/Generator와 `REQUIREMENT_STATUS.csv`의 `개발GPT_*` 컬럼 범위 작업은 계속한다.
-4. 정본 변경 필요를 작업 중단 사유로 사용하지 않는다.
-5. 사용자/중앙관리/QA가 정본을 현행화한 successor master를 받은 뒤 다시 읽고 계속한다.
+## 6. Git / 삭제 안전
 
-Developer GPT가 정본을 편의상 고쳐 자신의 구현과 맞추는 행위는 **False Green 및 정본 오염**으로 간주한다.
+사용자 승인 없이 commit/push/branch/tag/reset/restore/stash/clean/history 변경을 하지 않는다. 삭제는 Root-relative Delete Manifest로 관리하고 보호경로와 제품 Source를 broad delete하지 않는다.
 
-## Currentization SHA 의미
+## 7. 완료
 
-- `currentization_source_sha`: `d50b8468094a412923ab4a3d63013216eeb88e31` (`10_13`) — 본 문서 현행화 시 비교 기준으로 사용한 Source.
-- `execution_source_sha`: 각 Developer/Codex/QA 세션 시작 시 최신 `origin/master`에서 동적으로 확인한다.
-- `verified_sha`: Build/Test/Runtime/Evidence를 실제 실행한 exact SHA다.
-
-`currentization_source_sha`를 이후 세션의 영구적인 "현재 master"로 해석하지 않는다. 완료 판정과 Evidence는 `verified_sha`를 기준으로 한다.
+완료 판정은 Final Target의 공통 완료축을 따른다. 미실행 Runtime은 `미검증`이며 PASS가 아니다. 최종 패키지에는 변경/검증/Gap/Delete/Manifest/Hash와 다음 검수 요청을 포함한다.

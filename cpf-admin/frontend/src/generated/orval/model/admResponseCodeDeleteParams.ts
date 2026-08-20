@@ -1,4 +1,2 @@
-/** Generated from OpenAPI query/header parameters. */
-export interface AdmResponseCodeDeleteParams {
-  reason: string;
-}
+/** Audited response-code delete query. */
+export interface AdmResponseCodeDeleteParams { reason: string; }

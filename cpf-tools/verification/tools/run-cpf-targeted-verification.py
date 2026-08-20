@@ -11,6 +11,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 BASE_GATES = (
@@ -80,15 +81,32 @@ def main() -> int:
             rows.append({"gate": relative, "status": "FAIL", "rc": 127, "reason": "missing gate"})
             failed = True
             continue
-        command = [sys.executable, "-B", str(script), "--root", str(root)]
-        # A few canonical gates intentionally have no --root argument.
-        probe = subprocess.run(command, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if probe.returncode != 0 and "unrecognized arguments: --root" in probe.stdout:
-            command = [sys.executable, "-B", str(script)]
+        commands: list[list[str]] = []
+        if relative.endswith("verify-cpf-cache-durable-lifecycle.py"):
+            report = Path(tempfile.gettempdir()) / "cpf-targeted-cache-durable.json"
+            commands.append([sys.executable, "-B", str(script), "--repo-root", str(root), "--report-json", str(report)])
+        elif relative.endswith("verify-cpf-openapi-controller-coverage.py"):
+            commands.extend([
+                [sys.executable, "-B", str(script), "--root", str(root), "--module", "cpf-admin", "--openapi", str(root / "cpf-admin/frontend/openapi/cpf-openapi.json")],
+                [sys.executable, "-B", str(script), "--root", str(root), "--module", "cpf-backoffice", "--openapi", str(root / "cpf-backoffice/openapi/cpf-openapi.json")],
+            ])
+        else:
+            commands.append([sys.executable, "-B", str(script), "--root", str(root)])
+
+        outputs: list[str] = []
+        returncode = 0
+        for command in commands:
             probe = subprocess.run(command, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        status = "PASS" if probe.returncode == 0 else "FAIL"
-        rows.append({"gate": relative, "status": status, "rc": probe.returncode, "output": probe.stdout[-8000:]})
-        failed |= probe.returncode != 0
+            if probe.returncode != 0 and "unrecognized arguments: --root" in probe.stdout and len(commands) == 1:
+                command = [sys.executable, "-B", str(script)]
+                probe = subprocess.run(command, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            outputs.append(probe.stdout)
+            if probe.returncode != 0:
+                returncode = probe.returncode
+        combined = "\n".join(outputs)
+        status = "PASS" if returncode == 0 else "FAIL"
+        rows.append({"gate": relative, "status": status, "rc": returncode, "output": combined[-8000:]})
+        failed |= returncode != 0
         print(f"[{status}] {relative}")
     result = {"status": "FAIL" if failed else "PASS", "capabilities": capabilities, "gates": rows}
     if args.output_json:

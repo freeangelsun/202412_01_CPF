@@ -27,6 +27,12 @@
   ],
   "explicitVendorOverrides": [
     {
+      "pattern": "cpf-tools/runtime/cli/cpf.py",
+      "owner": "CPF_PUBLIC_DB3_CLI_SELECTOR",
+      "reason": "Public CPF CLI가 Canonical DB3 renderer에 Oracle/PostgreSQL/MariaDB 선택값을 전달하는 Tooling 경계",
+      "testId": "NXT3-QUERY-001-PUBLIC-CLI"
+    },
+    {
       "pattern": "cpf-tools/runtime/tools/**",
       "owner": "CPF_RUNTIME_DB_VENDOR_SELECTOR",
       "reason": "Runtime harness가 공식 DB3 외부 Vendor Pack과 JDBC Driver를 선택하는 Tooling Owner",
@@ -135,22 +141,28 @@
       "testId": "NXT3-QUERY-001-TESTING-HARNESS"
     },
     {
-      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-oracle.sql",
+      "pattern": "cpf-common/src/main/resources/cpf-sql/cmn/sample/*-oracle.sql",
       "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
       "reason": "Common sample query pack의 oracle 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
       "testId": "NXT3-CMN-SAMPLE-DB3"
     },
     {
-      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-postgresql.sql",
+      "pattern": "cpf-common/src/main/resources/cpf-sql/cmn/sample/*-postgresql.sql",
       "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
       "reason": "Common sample query pack의 postgresql 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
       "testId": "NXT3-CMN-SAMPLE-DB3"
     },
     {
-      "pattern": "cpf-starters/common/src/main/resources/cpf-sql/cmn/sample/*-mariadb.sql",
+      "pattern": "cpf-common/src/main/resources/cpf-sql/cmn/sample/*-mariadb.sql",
       "owner": "CPF_COMMON_SAMPLE_DB3_RESOURCE_ADAPTER",
       "reason": "Common sample query pack의 mariadb 전용 paging/cursor SQL Resource이며 CmnSampleSqlDialect가 공식 DB3 계약으로 선택",
       "testId": "NXT3-CMN-SAMPLE-DB3"
+    },
+    {
+      "pattern": "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
+      "owner": "CPF_SHARED_LOCAL_BOOTSTRAP_DB3_SELECTOR",
+      "reason": "Canonical local/public bootstrap engine selects and provisions only the official Oracle/PostgreSQL/MariaDB runtime packs",
+      "testId": "DEVEX-BOOTSTRAP-DB3"
     }
   ],
   "unsupportedVendorNegativeContractAllow": [
@@ -176,5 +188,13 @@
     "cpf-tools/db/tools/reset-cpf-databases.ps1",
     "cpf-tools/db/tools/initialize-cpf-database.ps1",
     "cpf-tools/runtime/tools/check-platform-runtime-query-packs.ps1"
+  ],
+  "unsupportedVendorTechnicalTokenAllow": [
+    {
+      "pattern": "cpf-tools/runtime/bootstrap/compose.yaml",
+      "owner": "CPF_SHARED_LOCAL_BOOTSTRAP_DB3_COMPOSE",
+      "reason": "MariaDB official container uses /var/lib/mysql as its internal data path; token is not a supported MySQL vendor surface",
+      "testId": "DEVEX-BOOTSTRAP-DB3-COMPOSE"
+    }
   ]
 }

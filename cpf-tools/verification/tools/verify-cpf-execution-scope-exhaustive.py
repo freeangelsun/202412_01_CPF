@@ -45,7 +45,7 @@ SCENARIO_REQUIRED = (
 
 GROUP_SOURCE_MAP = {
     "ADM_UI": ["cpf-admin/frontend/src/app/routes.ts", "cpf-admin/frontend/src/generated/cpf-operation-contract.ts", "cpf-admin/frontend/src/features", "cpf-admin/src/main/java/com/cpf/admin", "cpf-admin/src/test"],
-    "BZA_UI": ["cpf-backoffice-web/frontend/src/router/index.ts", "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs", "cpf-backoffice-web/frontend/src/features", "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online", "cpf-backoffice/online/src/test"],
+    "MBW_WEB": ["cpf-backoffice-web/frontend/src/router/index.ts", "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs", "cpf-backoffice-web/frontend/src/features", "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online", "cpf-backoffice/online/src/test"],
     "FRONTEND": ["cpf-admin/frontend", "cpf-backoffice-web/frontend"],
     "TEST": ["cpf-tools/testing", "cpf-tools/verification"],
     "QUALITY": ["cpf-tools/testing", "cpf-tools/verification", "cpf-docs/work/qa"],
@@ -265,7 +265,7 @@ def verify(args: argparse.Namespace) -> dict:
         ui_contract = "N/A"
         if group == "ADM_UI":
             ui_contract = "PASS" if adm_route_ids and adm_components and adm_expected else "FAIL"
-        elif group == "BZA_UI":
+        elif group == "MBW_WEB":
             ui_contract = "PASS" if bza_route_ids and bza_components and bza_expected else "FAIL"
         metadata_status = "PASS"
         scenario_status = "PASS"

@@ -55,7 +55,7 @@ const maint = reactive({
 });
 
 const selectedIncidentId = computed(() => Number(selectedIncident.value?.incidentId ?? selectedIncident.value?.incident_id ?? 0));
-const can = (operationId: string) => session.hasButton(operationId);
+const can = (operationId: string) => session.hasOperation(operationId);
 const content = (value: unknown): Row[] => {
   if (Array.isArray(value)) return value as Row[];
   const page = value as PageResult | null;

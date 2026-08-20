@@ -2,6 +2,7 @@ plugins { id 'java-library'; id 'maven-publish'; id 'io.spring.dependency-manage
 group = 'com.cpf.starter'
 
 dependencies {
+    api project(':cpf-common')
     api project(':framework:core')
     api project(':framework:base-runtime')
     api project(':starters:data:jdbc')
@@ -24,6 +25,25 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.hibernate.validator:hibernate-validator'
+}
+
+// Product implementation은 cpf-common의 단일 Owner입니다. 이 Starter는 runtime/wiring만 compile합니다.
+sourceSets {
+    main {
+        java.setSrcDirs([
+            'src/main/java/com/cpf/common/runtime',
+            'src/main/java/com/cpf/common/calendar/runtime',
+            'src/main/java/com/cpf/common/code/reference/service'
+        ])
+        java.include 'com/cpf/common/runtime/**'
+        java.include 'com/cpf/common/calendar/runtime/**'
+        java.include 'com/cpf/common/code/reference/service/CmnCacheRuntimeApplier.java'
+        resources.setSrcDirs(['src/main/resources'])
+        resources.exclude 'cpf-sql/**'
+    }
+    test {
+        java.setSrcDirs(['src/test/java/com/cpf/common/runtime'])
+    }
 }
 
 tasks.named('test') { useJUnitPlatform() }

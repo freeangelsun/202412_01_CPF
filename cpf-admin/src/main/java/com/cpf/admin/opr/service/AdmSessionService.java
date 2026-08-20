@@ -75,7 +75,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
      *
      * @throws CpfBusinessException DATABASE 모드에서 세션 저장에 실패한 경우. 이 경우 token은 응답되지 않습니다.
      */
-    public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus, List<String> buttonIds) {
+    public AdmLoginResponse issue(AdmOperator operator, List<AdmMenu> menus, List<String> buttonIds, List<String> allowedOperationIds) {
         String token = newToken();
         LocalDateTime issuedAt = LocalDateTime.now();
         LocalDateTime expiresAt = issuedAt.plusSeconds(properties.getSessionTtlSeconds());
@@ -92,7 +92,7 @@ public class AdmSessionService extends com.cpf.admin.common.base.AdmBaseService 
         } else {
             persistSession(session);
         }
-        return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus, buttonIds);
+        return new AdmLoginResponse(token, "Bearer", properties.getSessionTtlSeconds(), operator, menus, buttonIds, allowedOperationIds);
     }
 
     /**

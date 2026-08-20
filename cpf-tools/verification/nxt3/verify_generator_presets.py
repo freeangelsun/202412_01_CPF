@@ -54,8 +54,13 @@ def main():
           if forbidden_misc: failures.append(f'forbidden generated surface present: {forbidden_misc}')
           persistence = (features or {}).get('persistence') if features is not None else None
           expects_db = persistence not in {None, 'none'} or preset in {'standard-enterprise','full-enterprise'}
-          db_exists = (out/'db').is_dir() and any(p.is_file() for p in (out/'db').rglob('*'))
-          if db_exists != expects_db: failures.append(f'db selection mismatch expected={expects_db} actual={db_exists}')
+          if (out/'db').exists(): failures.append('Generated Domain root db/ is forbidden; DB3 is owned by canonical renderer')
+          try:
+            generated_payload=json.loads(r['stdout']); renderer=generated_payload.get('verify',{}).get('db3Renderer')
+          except Exception:
+            renderer=None
+          expected_renderer='EXTERNAL_CANONICAL_RENDERER' if expects_db else 'NOT_APPLICABLE'
+          if renderer != expected_renderer: failures.append(f'db renderer mismatch expected={expected_renderer} actual={renderer}')
           if preset in {'minimal','custom'} and not sample:
             app=(out/'online/src/main/resources/application.yml').read_text(encoding='utf-8')
             if 'datasource:' in app or 'mybatis:' in app: failures.append('minimal/custom application.yml contains persistence config')

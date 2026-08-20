@@ -5,7 +5,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-/** Resilience4j @TimeLimiter naming semantics에 맞춘 CPF annotation. timeout 값은 canonical resilience config에서 관리한다. */
+/** @deprecated canonical 계약은 {@link CpfTimeout}입니다. 기존 Consumer의 단계적 migration만 지원합니다. */
+@Deprecated(forRemoval = false)
 @Documented @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE,ElementType.METHOD})
 public @interface CpfTimeLimiter {
     String name();

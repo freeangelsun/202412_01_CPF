@@ -64,7 +64,7 @@ public class BatRetentionController {
     @PostMapping("/runs/{runId}/pause")
     public ResponseEntity<?> pauseRun(@PathVariable String runId,@RequestBody PauseRequest r,HttpServletRequest http){
         String actor=actorResolver.actor(http,null,"requestedBy");
-        return ResponseEntity.ok(execution.requestPause(runId,actor,reason(r.reason())));
+        return ResponseEntity.ok(execution.requestPause(runId,r.expectedVersion(),actor,reason(r.reason())));
     }
 
     @PostMapping("/runs/{runId}/resume")

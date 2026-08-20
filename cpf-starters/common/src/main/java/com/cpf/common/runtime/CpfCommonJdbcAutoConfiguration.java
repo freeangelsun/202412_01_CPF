@@ -1,6 +1,7 @@
 package com.cpf.common.runtime;
 
 import com.cpf.common.management.CpfCommonManagementAuditSink;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
 import com.cpf.common.message.service.CmnLoggingCommonManagementAuditSink;
 import com.cpf.data.persistence.api.CpfDataSourceRegistry;
 import com.cpf.data.persistence.api.CpfDatabaseRole;
@@ -39,8 +40,8 @@ import java.sql.Connection;
 @ConditionalOnClass({DataSource.class, JdbcTemplate.class})
 @ConditionalOnProperty(prefix = "cpf.common", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CpfCommonJdbcAutoConfiguration {
-    public static final String DATA_SOURCE_BEAN = "cpfCommonDataSource";
-    public static final String TX_MANAGER_BEAN = "cpfCommonTransactionManager";
+    public static final String DATA_SOURCE_BEAN = CpfCommonPersistenceNames.DATA_SOURCE_BEAN;
+    public static final String TX_MANAGER_BEAN = CpfCommonPersistenceNames.TX_MANAGER_BEAN;
 
     @Bean(name = DATA_SOURCE_BEAN)
     DataSource cpfCommonDataSource(CpfDataSourceRegistry dataSources, Environment environment) {

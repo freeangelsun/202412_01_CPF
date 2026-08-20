@@ -5,13 +5,14 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
-COMMON = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
-CODE = COMMON / "code/service/JdbcCpfCodeService.java"
-CATALOG = COMMON / "message/service/CmnErrorCatalogCache.java"
-MANAGEMENT = COMMON / "message/service/CmnCommonCatalogManagementService.java"
-PUBLISHER = COMMON / "runtime/cache/CpfCommonCacheRefreshPublisher.java"
-REPOSITORY = COMMON / "runtime/cache/CpfCommonCacheRefreshEventRepository.java"
-LISTENER = COMMON / "runtime/cache/CpfCommonCacheRefreshListener.java"
+PRODUCT = ROOT / "cpf-common/src/main/java/com/cpf/common"
+RUNTIME = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
+CODE = PRODUCT / "code/service/JdbcCpfCodeService.java"
+CATALOG = PRODUCT / "message/service/CmnErrorCatalogCache.java"
+MANAGEMENT = PRODUCT / "message/service/CmnCommonCatalogManagementService.java"
+PUBLISHER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshPublisher.java"
+REPOSITORY = RUNTIME / "runtime/cache/CpfCommonCacheRefreshEventRepository.java"
+LISTENER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshListener.java"
 
 
 class CmnCodeMessageDurableCacheContractTest(unittest.TestCase):

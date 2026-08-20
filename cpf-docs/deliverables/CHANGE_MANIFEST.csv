@@ -1,49 +1,520 @@
 ﻿path,action,reason
-README.md,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/deliverables/CANONICAL_CURRENTIZATION_REVIEW.md,REPLACE,"Detailed governance cleanup rationale, semantic absorption check, deletion scope and non-false-green closure."
-cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv,MODIFY,CANON-GAP-010 refined after current-role cleanup while broader history cleanup remains open.
-cpf-docs/deliverables/CHANGE_MANIFEST.csv,MODIFY,Exact current cleanup modified/deleted file manifest.
-cpf-docs/deliverables/DELETE_MANIFEST.csv,MODIFY,Nine user-approved GOVERNANCE-CURRENT-ONLY stale/duplicate work documents recorded; unrelated existing candidates not auto-applied.
-cpf-docs/deliverables/OPEN_ISSUES.md,MODIFY,False-green document-conflict-zero wording removed; scoped current-role cleanup separated from broader CANON-GAP-010.
-cpf-docs/deliverables/PACKAGE_MANIFEST.json,MODIFY,Current governance cleanup package identity and exact modified/deleted set.
-cpf-docs/deliverables/SHA256SUMS.txt,MODIFY,Hashes regenerated for current cleanup overlay payload.
-cpf-docs/deliverables/TEST_AND_EVIDENCE.md,REPLACE,Current source SHA/file count and latest user-local Gradle FAIL/9-task evidence replace stale prior PASS narrative.
-cpf-docs/development/CROSS_PC_CODEX_HANDOVER_GUIDE.md,REPLACE,Current-only entrypoints and Tee-Object handover/evidence rules; stale continuity references removed.
-cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,MODIFY,Governance navigation aligned to single canonical current paths.
-cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,REPLACE,Exactly-one current role policy; work vs deliverables vs handover responsibilities made explicit.
-cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,Canonical Evidence/Open-Issue/Handover paths unified; operationId/executionId separation and Gateway/Direct no-bypass/no-auto-fallback semantics absorbed before Steering deletion.
-cpf-docs/work/CPF_SOURCE_FINDINGS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/work/REQUIREMENT_STATUS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,MODIFY,Documentation closure distinguishes completed role-collision cleanup from broader remaining history cleanup.
-cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md,REPLACE,"Current source identity, latest 9 failed Gradle tasks, Tee-Object one-line validation command and continuation rules."
-cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030589.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/contracts/openapi/export-cpf-backend-openapi.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/generator/config/application-starters.yml,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/generator/contracts/cpf-starter-catalog.json,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/governance/tools/export-cpf-inventory.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/release/cpf-final-artifact-catalog.json,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/testing/tools/tests/test_invoke_cpf_codex_preflight.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/apply_delete_manifest.ps1,MODIFY,"Canonical CSV Delete Manifest parser added with approved filtering, optional scoped ReasonTag and safe empty-directory handling."
-cpf-tools/verification/tools/build-cpf-development-package-metadata.py,MODIFY,Current Evidence/Work Request/QA finding paths currentized to canonical locations.
-cpf-tools/verification/tools/check-current-requirement-evidence-consistency.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/tools/check-evidence-path-existence.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/tools/invoke-cpf-codex-preflight.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/tools/run-cpf-final-local-validation.ps1,MODIFY,Canonical CSV Delete Manifest path/parser currentized.
-cpf-tools/verification/tools/run-cpf-local-full-validation.ps1,MODIFY,Package Manifest lookup currentized to canonical deliverables path.
-cpf-tools/verification/tools/verify-cpf-education-active-surface.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/tools/verify-cpf-protected-doc-boundary.py,MODIFY,Handover protection tokens currentized to current handover contract rather than stale text.
-cpf-tools/verification/verify_business_framework_crosscut.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-tools/verification/verify_current_document_consolidation.py,MODIFY,Gate rewritten for new canonical entrypoints and forbidden duplicate-current-role paths.
-cpf-tools/verification/verify_no_partial_implementation.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
-cpf-docs/work/CHANGE_MANIFEST.csv,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/HANDOVER.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/OPEN_ISSUES.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/PACKAGE_MANIFEST.json,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/QA_REWORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/SHA256SUMS.txt,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/TEST_AND_EVIDENCE.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
-cpf-docs/work/current/STEERING_INTERPRETATION.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-admin/frontend/scripts/test-adm-bff-session-contract.mjs,ADD,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/scripts/test-adm-permission-identity-contract.mjs,ADD,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/scripts/test-adm-system6-contract.mjs,ADD,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/model/operationRoute.ts,ADD,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/model/rule.ts,ADD,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/runtime/build.gradle,ADD,Product-internal ADM runtime composition owner for selected providers; direct application internal-leaf dependency removed.
+cpf-admin/src/main/java/com/cpf/admin/opr/security/AdmApiPermissionPolicy.java,ADD,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmOperationPermissionProjectionService.java,ADD,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-common/build.gradle,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarChangeEvent.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarChangePublisher.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarConflictException.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarDay.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnDurableCalendarChangePublisher.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnInMemoryCalendarStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnWeekendCalendar.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/CmnWeekendCalendarStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/api/CpfCode.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/api/CpfCodeService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/dto/CommonCodeRequest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/mapper/CodeMapper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/reference/mapper/CacheRefreshEventMapper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventListener.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventPublisher.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/service/CodeCacheService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/code/service/JdbcCpfCodeService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/CpfCommonManagementApi.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/CpfCommonManagementAuditSink.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/CpfCommonMutation.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/CpfCommonPage.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/CpfCommonResource.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/management/JdbcCpfCommonManagementService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfCatalogPage.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfCommonCatalogManagementService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfErrorCatalogResolver.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfErrorCatalogSignalSink.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfMessageRecord.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfResolvedError.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/api/CpfResponseCodeRecord.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/dto/CommonMessageRequest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/dto/CommonResponseCodeRequest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/mapper/MessageMapper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/mapper/ResponseCodeMapper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCommonCatalogManagementService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfErrorCatalogResolver.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfErrorCatalogSignalSink.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfMessageResolver.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfMessageSource.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfResponseCodeResolver.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogCache.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogRepository.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnJdbcErrorCatalogRepository.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnLoggingCommonManagementAuditSink.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/CmnMessageArgumentPolicy.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/MessageCacheService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/message/service/ResponseCodeCacheService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameter.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterReferenceCatalogPort.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterSchema.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterValueCodec.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterValueDecoder.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/dto/CommonConfigRequest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/mapper/ConfigMapper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/service/ConfigCacheService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/parameter/service/JdbcCpfParameterService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/persistence/CpfCommonSqlResourceLoader.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/spi/CpfCommonCacheChangePublisher.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/spi/CpfCommonPersistenceNames.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnJdbcTemplateRepository.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateAuditEntry.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateConflictException.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateDefinition.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateLifecycleStatus.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateManagementService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateProvider.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateRecord.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateRenderer.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateRepository.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateStore.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateValueEscaper.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/CmnTemplateVersion.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/java/com/cpf/common/template/api/CpfTemplateService.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/calendar/delete.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/calendar/find-range.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/calendar/find.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/calendar/insert.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/calendar/update.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/approve.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/insert-audit.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/insert-draft.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/lock-history.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/retire.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/select-active.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/select-audit.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/select-version.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/main/resources/cpf-sql/cmn/template/supersede.sql,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CmnCalendarChangeEventTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CmnCalendarServiceProductModeTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CmnCalendarServiceTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CmnDurableCalendarChangePublisherTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CmnWeekendCalendarTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/calendar/CpfCalendarServiceApiTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/message/service/CmnCpfErrorCatalogResolverTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/message/service/CmnCpfMessageServiceTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/message/service/CmnErrorCatalogCacheTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/message/service/CmnMessageArgumentPolicyTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/parameter/CpfParameterServiceTypedValueTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/template/CmnTemplateDefinitionTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/template/CmnTemplateManagementServiceTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-common/src/test/java/com/cpf/common/template/CmnTemplateRendererTest.java,ADD,Canonical cpf-common Product Owner implementation for business-common contracts/services/SQL/tests and stable public SPI boundaries.
+cpf-docs/work/current/CPF_BACKOFFICE_MBW_UI_IA_REQUIREMENTS.md,ADD,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.csv,ADD,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.md,ADD,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-external/cpf-domain.yaml,ADD,Generated EXS root-definition/ownership/build/runtime consumer currentization.
+cpf-external/cpf-generator.lock.json,ADD,Generated EXS root-definition/ownership/build/runtime consumer currentization.
+cpf-member/cpf-domain.yaml,ADD,Generated MBR root-definition/ownership/build/runtime consumer currentization.
+cpf-member/cpf-generator.lock.json,ADD,Generated MBR root-definition/ownership/build/runtime consumer currentization.
+cpf-starters/file/attachment/src/main/resources/META-INF/cpf/runtime-capability.properties,ADD,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeout.java,ADD,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/platform-operations/runtime-control/src/test/java/com/cpf/platform/operations/runtimecontrol/internal/CpfRuntimeInstanceIdentityContractTest.java,ADD,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfPermission.java,ADD,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/db/canonical/adm-menu-catalog.json,ADD,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tools/sync-canonical-seed-bundles.py,ADD,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tools/sync_adm_menu_catalog.py,ADD,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/release/public/templates/bin/CpfGeneratorLauncher.java,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-bootstrap.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-bootstrap.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-build.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-build.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-domain-new.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-domain-new.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-domain-sync.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-domain-sync.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-reset.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-reset.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-stop.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-stop.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-test.ps1,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/templates/bin/cpf-test.sh,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/tests/test_verify_cpf_public_binary_consumer.py,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/verify-cpf-public-binary-consumer.py,ADD,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/runtime/bootstrap/CpfBootstrap.java,ADD,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/runtime/bootstrap/compose.yaml,ADD,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/verification/tools/currentize-cpf-derived-requirement-datasets.py,ADD,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_spring_java_hygiene.py,ADD,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+.gitignore,MODIFY,Product-source ignore policy corrected so tracked Public templates/cpf-tools/build are not lost while generated garbage remains excluded.
+README.md,MODIFY,Top-level current documentation/navigation/reference paths aligned to Current-only canonical roles.
+cpf-admin/build.gradle,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/frontend/openapi/cpf-openapi.json,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/package.json,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/scripts/generate-checked-client.mjs,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/scripts/test-reference-backend-contract.mjs,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/scripts/verify-operation-consumer.mjs,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/components/RouteOperationWorkbench.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/approvals/ApprovalsPage.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/batch-deployment/DeploymentPlanCreatePanel.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/batch-runtime-control/RetentionWorkbench.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/integration-closure/IntegrationClosurePage.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/logs/LogsPage.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/operations/IncidentLifecyclePanel.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/features/transaction-groups/TransactionGroupsPage.vue,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/.cpf-openapi-source.json,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/cpf-api.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/cpf-api.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/model/admCurrentSessionResponse.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/model/admLoginResponse.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/generated/orval/model/index.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/state/createAdmState.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/stores/admConsoleStore.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/frontend/src/stores/admSessionStore.ts,MODIFY,"ADM generated OpenAPI client, Session/RBAC/System6/Commercial-page/consumer contract and UI integration currentization."
+cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmAuthController.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmPlatformVersionController.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmCurrentSessionResponse.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmLoginResponse.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/filter/AdmApiAuthFilter.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmSessionService.java,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-admin/src/main/resources/application.yml,MODIFY,ADM authentication/session/RBAC/permission/System6/runtime management contract currentization.
+cpf-backoffice/online/build.gradle,MODIFY,MBW Backoffice Public API/provider/retention/runtime boundary currentization.
+cpf-batch/control-plane/src/main/java/com/cpf/batch/control/retention/BatRetentionController.java,MODIFY,Batch retention/versioning/runtime/control contracts currentized.
+cpf-batch/control-plane/src/main/java/com/cpf/batch/control/retention/BatRetentionExecutionService.java,MODIFY,Batch retention/versioning/runtime/control contracts currentized.
+cpf-docs/deliverables/CANONICAL_CURRENTIZATION_REVIEW.md,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/CHANGE_MANIFEST.csv,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/DELETE_MANIFEST.csv,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/OPEN_ISSUES.md,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/PACKAGE_MANIFEST.json,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/QA_REWORK_REQUEST.md,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/SHA256SUMS.txt,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/deliverables/TEST_AND_EVIDENCE.md,MODIFY,Final QA/evidence/change/delete/package/open-issue lifecycle currentized to exact final snapshot.
+cpf-docs/development/CPF_PUBLIC_FUNCTION_TOP_100.md,MODIFY,Developer quick-select/public-function/current usage guidance aligned with current Product/API ownership.
+cpf-docs/development/CPF_STARTER_QUICK_SELECT.md,MODIFY,Developer quick-select/public-function/current usage guidance aligned with current Product/API ownership.
+cpf-docs/development/CROSS_PC_CODEX_HANDOVER_GUIDE.md,MODIFY,Developer quick-select/public-function/current usage guidance aligned with current Product/API ownership.
+cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,MODIFY,Canonical Current-only governance/target/path-role clarification and absorbed Steering currentization.
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,MODIFY,Canonical Current-only governance/target/path-role clarification and absorbed Steering currentization.
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,Canonical Current-only governance/target/path-role clarification and absorbed Steering currentization.
+cpf-docs/work/CPF_SOURCE_FINDINGS.csv,MODIFY,"Canonical 205 Developer ledger, garbage/source findings and Current identity evidence currentized."
+cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv,MODIFY,"Canonical 205 Developer ledger, garbage/source findings and Current identity evidence currentized."
+cpf-docs/work/REQUIREMENT_STATUS.csv,MODIFY,"Canonical 205 Developer ledger, garbage/source findings and Current identity evidence currentized."
+cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_001_00-00010066__07-00015128.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_002_07-00015129__15-99999999.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_001_CPF-FR-000001__CPF-FR-001616.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_002_CPF-FR-001617__CPF-FR-003236.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_003_CPF-FR-003237__CPF-FR-004847.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_004_CPF-FR-004848__CPF-FR-006465.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_005_CPF-FR-006466__CPF-FR-008079.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_006_CPF-FR-008080__CPF-FR-009696.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_007_CPF-FR-009697__CPF-FR-011306.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_008_CPF-FR-011307__CPF-FR-013018.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_010_CPF-FR-014810__CPF-FR-016605.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_011_CPF-FR-016606__CPF-FR-018347.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_012_CPF-FR-018348__CPF-FR-020080.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_013_CPF-FR-020081__CPF-FR-021936.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_014_CPF-FR-021937__CPF-FR-023551.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_017_CPF-FR-026494__CPF-FR-027972.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_018_CPF-FR-027973__CPF-FR-029453.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030589.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_001_CPF-SC-000001__CPF-SC-009526.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_002_CPF-SC-009527__CPF-SC-015274.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_003_CPF-SC-015275__CPF-SC-020085.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_004_CPF-SC-020086__CPF-SC-024985.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_005_CPF-SC-024986__CPF-SC-030164.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_006_CPF-SC-030165__CPF-SC-035766.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_007_CPF-SC-035767__CPF-SC-040789.csv,MODIFY,Current work/derived dataset/review/handover/Codex request currentized to final source/static closure and remaining runtime acceptance.
+cpf-education/src/main/java/com/cpf/education/online/centercut/controller/SettlementCutController.java,MODIFY,EDU canonical Online20/Batch15 physical/executable Golden Path and current API alignment.
+cpf-education/src/main/java/com/cpf/education/online/ondemandbatch/controller/MemberExportController.java,MODIFY,EDU canonical Online20/Batch15 physical/executable Golden Path and current API alignment.
+cpf-education/src/main/java/com/cpf/education/online/securityaudit/controller/MemberSecurityController.java,MODIFY,EDU canonical Online20/Batch15 physical/executable Golden Path and current API alignment.
+cpf-starters/common/build.gradle,MODIFY,cpf-starter-common reduced/currentized to Runtime/AutoConfiguration composition consuming canonical cpf-common Product contracts.
+cpf-starters/common/src/main/java/com/cpf/common/runtime/CpfCommonJdbcAutoConfiguration.java,MODIFY,cpf-starter-common reduced/currentized to Runtime/AutoConfiguration composition consuming canonical cpf-common Product contracts.
+cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshPublisher.java,MODIFY,cpf-starter-common reduced/currentized to Runtime/AutoConfiguration composition consuming canonical cpf-common Product contracts.
+cpf-starters/integration/ai/src/test/java/com/cpf/integration/ai/CpfAiRouterTest.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/iso8583/src/test/java/com/cpf/integration/iso8583/CpfIso8583CodecTest.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/runtime/CpfIntegrationAnnotationPolicyFactory.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/runtime/CpfIntegrationClientAspect.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/runtime/CpfIntegrationClientCoordinator.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/integration/src/test/java/com/cpf/integration/api/domaincall/CpfDomainClientRouterTest.java,MODIFY,Integration/Domain Call/Retry/Timeout/AI/ISO8583 contract and regression correction.
+cpf-starters/messaging/jms/src/main/java/com/cpf/messaging/jms/JmsCpfBrokerBridgeAdapter.java,MODIFY,Messaging provider-neutral validation/context/checked-exception contract correction.
+cpf-starters/messaging/src/main/java/com/cpf/messaging/api/CpfBrokerPublishRequest.java,MODIFY,Messaging provider-neutral validation/context/checked-exception contract correction.
+cpf-starters/platform-operations/health/src/test/java/com/cpf/platform/operations/health/CpfDrainManagerTest.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/file/TransactionFileLogListener.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/observability/src/main/java/com/cpf/platform/operations/observability/internal/logging/segment/CpfTransactionTimelineQueryFacade.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/CpfJdbcOperationAccessPolicy.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/CpfJdbcOperationCatalogRegistry.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/internal/CpfRuntimeControlPlaneRepository.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/internal/CpfRuntimeControlReconciler.java,MODIFY,Runtime instance/operation/reconcile/drain/logging/System6 platform-operations contract correction.
+cpf-starters/web/src/main/java/com/cpf/web/runtime/CpfControllerPolicyAutoConfiguration.java,MODIFY,Spring Web policy configuration and IDE/Spring hygiene correction.
+cpf-starters/web/src/main/java/com/cpf/web/runtime/CpfControllerPolicyWebMvcConfigurer.java,MODIFY,Spring Web policy configuration and IDE/Spring hygiene correction.
+cpf-tools/build/cpf-root-conventions.gradle,MODIFY,Tracked CPF build convention/BOM source currentized; cpf-tools/build is product source and intentionally retained.
+cpf-tools/build/platform-bom/public-bom/build.gradle,MODIFY,Tracked CPF build convention/BOM source currentized; cpf-tools/build is product source and intentionally retained.
+cpf-tools/contracts/openapi/export-cpf-backend-openapi.ps1,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/db/canonical/platform-db-consolidation-map.csv,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/canonical/seed-model.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/config/database-source-plan.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/contracts/query-db3-policy.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/mariadb/cpf-platform-seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/mariadb/manifest.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/oracle/cpf-platform-seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/oracle/manifest.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/postgresql/cpf-platform-seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/generated/current/postgresql/manifest.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/metadata/platform-runtime-query-contract.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tests/test_cmn_calendar_durable_outbox.py,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tests/test_cmn_code_message_durable_cache.py,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tests/test_cmn_extension_contract.py,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/tests/test_cmn_template_persistence.py,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor-pack-manifest.json,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/seed/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/seed/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/50_framework_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/52_standard_execution_alias_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/56_backoffice_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/58_reference_runtime_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/60_adm_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/61_adm_gateway_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/mariadb/source/70_test_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/seed/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/seed/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/seed/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/50_framework_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/52_standard_execution_alias_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/56_backoffice_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/58_reference_runtime_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/60_adm_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/61_adm_gateway_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/oracle/source/70_test_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/seed/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/seed/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/seed/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/00_optional_sample_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/00_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/00_test_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/50_framework_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/52_standard_execution_alias_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/56_backoffice_product_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/58_reference_runtime_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/60_adm_seed_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/61_adm_gateway_seed.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/vendor/postgresql/source/70_test_data.sql,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/verification/prepare-cpf-local-bza-bootstrap.ps1,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/db/verification/tests/test_seed_bundle_runtime_contract.py,MODIFY,Canonical Oracle/PostgreSQL/MariaDB seed/source/bundle/renderer lifecycle and DB3 verification currentization.
+cpf-tools/generator/config/application-starters.yml,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/contracts/cpf-developer-adoption-contract.json,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/contracts/cpf-starter-catalog.json,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/contracts/generator-lifecycle-contract.json,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/engine/cpf_domain_generator.py,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/tools/generated_domain_inventory.py,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/verification/verify-cpf-generator-lifecycle.py,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/generator/verification/verify-cpf-generator-upgrade-ownership.py,MODIFY,Generated Domain canonical root definition/ownership/stale-generated/externalClients/DB-binding lifecycle and verification currentization.
+cpf-tools/governance/cpf-product-surface-policy.json,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/governance/tools/export-cpf-inventory.ps1,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/release/cpf-final-artifact-catalog.json,MODIFY,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/release/public/cpf-public-surface-policy.json,MODIFY,Public Workspace/Public Binary isolated-consumer/release/catalog/hygiene currentization.
+cpf-tools/runtime/cli/cpf.py,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/runtime/tools/check-runtime-config-standard.ps1,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/runtime/tools/smoke-platform-runtime-query-packs-mariadb.ps1,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/runtime/tools/tests/test_cmn_runtime_query_contract.py,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/runtime/tools/verify-cpf-cmn-runtime-query-contract.py,MODIFY,Current source/static QA closure: canonical owner/consumer/config/test/verifier/evidence alignment.
+cpf-tools/testing/tools/tests/test_bza_ui_runtime_smoke_contract.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_invoke_cpf_codex_preflight.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_verify_cpf_bza_route_contract.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_verify_cpf_cache_capability.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_verify_cpf_frontend_consumer_closure.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_verify_cpf_owner_boundaries.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/testing/tools/tests/test_write_cpf_controller_source_operation_contract.py,MODIFY,Verification fixtures/tests currentized to canonical Product owners and current contracts.
+cpf-tools/verification/admin-dependency-contract.csv,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/apply_delete_manifest.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_generated_customer_domain_minimal_ia.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_generator_cross_platform.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_generator_presets.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_nxt3_hygiene.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_nxt3_query_db3.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_nxt3_repository_garbage.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/nxt3/verify_root_generated_domain_prefix.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/build-cpf-development-package-metadata.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/check-backoffice-safe-defaults.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/check-bza-safe-defaults.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/check-current-requirement-evidence-consistency.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/check-evidence-path-existence.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/check-profile-loading.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/invoke-cpf-codex-preflight.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/report-cpf-upgrade-impact.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/run-cpf-final-local-validation.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/run-cpf-local-full-validation.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/run-cpf-targeted-verification.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/smoke-bza-ui.ps1,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-bza-route-contract.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-cache-capability.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-calendar-contract.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-current-final.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-education-active-surface.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-execution-scope-exhaustive.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-protected-doc-boundary.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-cpf-requirement-projection-consistency.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/tools/verify-event-dlq-contract.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_admin_dependency_boundaries.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_business_framework_crosscut.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_common_product_service_dx.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_current_document_consolidation.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_frontend_golden_path.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_gateway_closure.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_gradle_project_dependency_closure.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_no_partial_implementation.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+cpf-tools/verification/verify_starter_catalog.py,MODIFY,"Current-target verifier, False-Green prevention, Java/Spring/ownership/dependency/garbage/evidence gate currentization."
+settings.gradle,MODIFY,Canonical module/catalog/generated-domain/Public provider project registration currentization.
+cpf-docs/work/CHANGE_MANIFEST.csv,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Change Manifest; canonical owner is cpf-docs/deliverables/CHANGE_MANIFEST.csv.
+cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate current work request; canonical owner is cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md.
+cpf-docs/work/HANDOVER.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Stale duplicate handover with historical source identity; current owner is cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md.
+cpf-docs/work/OPEN_ISSUES.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Open Issues; canonical owner is cpf-docs/deliverables/OPEN_ISSUES.md.
+cpf-docs/work/PACKAGE_MANIFEST.json,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Package Manifest; canonical owner is cpf-docs/deliverables/PACKAGE_MANIFEST.json.
+cpf-docs/work/QA_REWORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale QA rework deliverable; canonical owner is cpf-docs/deliverables/QA_REWORK_REQUEST.md.
+cpf-docs/work/SHA256SUMS.txt,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale package hash index; canonical current package hashes are cpf-docs/deliverables/SHA256SUMS.txt.
+cpf-docs/work/TEST_AND_EVIDENCE.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Current Evidence; canonical owner is cpf-docs/deliverables/TEST_AND_EVIDENCE.md.
+cpf-docs/work/current/CODEX_FINAL_VALIDATION_RESULT.md,DELETE,[CURRENT-ONLY] Stale Codex validation result from a pre-current source identity; current Codex revalidation request/evidence supersedes it.
+cpf-docs/work/current/CPF_BZA_BUSINESS_ADMIN_UI_IA_REQUIREMENTS.md,DELETE,[CURRENT-ONLY] Retired BZA current IA document superseded by the canonical MBW/Backoffice current architecture and requirement target.
+cpf-docs/work/current/STEERING_INTERPRETATION.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Steering meaning absorbed into CPF_FINAL_TARGET_REQUIREMENTS.md; remove competing policy summary.
+cpf-member/online/src/main/java/member/online/member/service/DomainDependencySampleService.java,DELETE,[GENERATOR-STALE-OWNERSHIP] Current member cpf-domain.yaml has no domainDependencies; file is previous generator-owned output and must not survive current generation.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarChangeEvent.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarChangePublisher.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarConflictException.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarDay.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnDurableCalendarChangePublisher.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnInMemoryCalendarStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnWeekendCalendar.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnWeekendCalendarStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCode.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/dto/CommonCodeRequest.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/mapper/CodeMapper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/reference/mapper/CacheRefreshEventMapper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventListener.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventPublisher.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/reference/service/CacheRefreshEventStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/service/CodeCacheService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/code/service/JdbcCpfCodeService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/CpfCommonManagementApi.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/CpfCommonManagementAuditSink.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/CpfCommonMutation.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/CpfCommonPage.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/CpfCommonResource.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/management/JdbcCpfCommonManagementService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfCatalogPage.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfCommonCatalogManagementService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfErrorCatalogResolver.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfErrorCatalogSignalSink.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageRecord.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfResolvedError.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfResponseCodeRecord.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/dto/CommonMessageRequest.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/dto/CommonResponseCodeRequest.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/mapper/MessageMapper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/mapper/ResponseCodeMapper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCommonCatalogManagementService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCpfErrorCatalogResolver.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCpfErrorCatalogSignalSink.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCpfMessageResolver.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCpfMessageSource.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnCpfResponseCodeResolver.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogCache.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogRepository.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnErrorCatalogStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnJdbcErrorCatalogRepository.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnLoggingCommonManagementAuditSink.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnMessageArgumentPolicy.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/MessageCacheService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/message/service/ResponseCodeCacheService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameter.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterReferenceCatalogPort.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterSchema.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterValueCodec.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterValueDecoder.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/dto/CommonConfigRequest.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/mapper/ConfigMapper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/service/ConfigCacheService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/parameter/service/JdbcCpfParameterService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateRepository.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateAuditEntry.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateConflictException.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateDefinition.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateLifecycleStatus.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateManagementService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateProvider.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateRecord.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateRenderer.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateRepository.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateStore.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateValueEscaper.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/CmnTemplateVersion.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/java/com/cpf/common/template/api/CpfTemplateService.java,DELETE,[CPF-COMMON-OWNER] Product source moved to canonical cpf-common owner; cpf-starter-common retains runtime/wiring only.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/delete.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/find-range.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/find.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/insert.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/update.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/approve.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/insert-audit.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/insert-draft.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/lock-history.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/retire.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/select-active.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/select-audit.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/select-version.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/main/resources/cpf-sql/cmn/template/supersede.sql,DELETE,[CPF-COMMON-OWNER] Product SQL resource moved to canonical cpf-common owner.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CmnCalendarChangeEventTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CmnCalendarServiceProductModeTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CmnCalendarServiceTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CmnDurableCalendarChangePublisherTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CmnWeekendCalendarTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/calendar/CpfCalendarServiceApiTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/message/service/CmnCpfErrorCatalogResolverTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/message/service/CmnCpfMessageServiceTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/message/service/CmnErrorCatalogCacheTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/message/service/CmnMessageArgumentPolicyTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/parameter/CpfParameterServiceTypedValueTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/template/CmnTemplateDefinitionTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/template/CmnTemplateManagementServiceTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/common/src/test/java/com/cpf/common/template/CmnTemplateRendererTest.java,DELETE,[CPF-COMMON-OWNER] Product test moved with its canonical cpf-common owner; starter retains runtime wiring tests only.
+cpf-starters/integration/ai/src/main/java/com/cpf/integration/ai/CpfAiUnknownResultException.java,DELETE,[AI-PUBLIC-CONTRACT] Legacy duplicate UNKNOWN exception superseded by public com.cpf.integration.ai.api.CpfAiUnknownResultException contract.

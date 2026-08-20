@@ -169,9 +169,10 @@ public class BatchRuntimeControlClient {
                 approval(approvalRequestId, approvalRequesterId)));
     }
 
-    public CpfDataRow pauseRetentionRun(String runId, String reason) {
+    public CpfDataRow pauseRetentionRun(String runId, long expectedVersion, String reason) {
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion must be non-negative");
         return row(invoke(HttpMethod.POST, "/bat/api/retention/runs/" + encode(runId) + "/pause",
-                Map.of("reason", required(reason,"reason"))));
+                Map.of("expectedVersion", expectedVersion, "reason", required(reason,"reason"))));
     }
 
     public CpfDataRow resumeRetentionRun(String runId, long expectedVersion, String reason) {

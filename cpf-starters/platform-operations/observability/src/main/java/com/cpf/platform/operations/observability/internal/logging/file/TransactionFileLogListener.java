@@ -22,7 +22,6 @@ public class TransactionFileLogListener {
     private volatile CpfTelemetry telemetry = CpfTelemetry.noop();
     private volatile CpfTraceSamplingPolicy traceSamplingPolicy = new CpfTraceSamplingPolicy();
 
-    @Autowired
     public TransactionFileLogListener(CpfAsyncFileLogWriter fileLogWriter) {
         this.fileLogWriter = fileLogWriter;
     }

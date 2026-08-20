@@ -14,7 +14,7 @@ def all_java(base):return '\n'.join(read(p) for p in base.rglob('*.java'))
 main=all_java(G/'src/main/java'); tests=all_java(G/'src/test/java')
 yml=read(G/'src/main/resources/application.yml')
 profiles={n:read(G/f'src/main/resources/application-{n}.yml') for n in ('local','test','dev','stg','prod')}
-adm=read(ROOT/'cpf-admin/frontend/src/app/routes.ts')
+adm=read(ROOT/'cpf-admin/frontend/src/app/routes/gateway.ts')
 checks={
  'data_control_plane_separation': all(t in main for t in ('CpfGatewayPlaneBoundaryFilter','CpfGatewayControlListenerConfiguration','Control/Data Plane listener ports must differ')),
  'graceful_shutdown': 'shutdown: graceful' in yml and 'timeout-per-shutdown-phase' in yml,

@@ -17,30 +17,6 @@
       "required": true
     },
     {
-      "pattern": "cpf-tools/generator/definitions/member/cpf-domain.yaml",
-      "target": "domains/member/cpf-domain.yaml",
-      "classification": "PUBLIC_USER_CONFIG",
-      "required": true
-    },
-    {
-      "pattern": "cpf-tools/generator/definitions/member/cpf-generator.lock.json",
-      "target": "domains/member/cpf-generator.lock.json",
-      "classification": "PUBLIC_USER_CONFIG",
-      "required": true
-    },
-    {
-      "pattern": "cpf-tools/generator/definitions/external/cpf-domain.yaml",
-      "target": "domains/external/cpf-domain.yaml",
-      "classification": "PUBLIC_USER_CONFIG",
-      "required": true
-    },
-    {
-      "pattern": "cpf-tools/generator/definitions/external/cpf-generator.lock.json",
-      "target": "domains/external/cpf-generator.lock.json",
-      "classification": "PUBLIC_USER_CONFIG",
-      "required": true
-    },
-    {
       "pattern": "cpf-backoffice-web/**",
       "target": "cpf-backoffice-web",
       "classification": "PUBLIC_BOOTSTRAP",
@@ -98,12 +74,12 @@
       "classification": "PUBLIC_USER_CONFIG"
     },
     {
-      "source": "cpf-tools/release/public/templates/deploy/local/compose.yaml",
+      "source": "cpf-tools/runtime/bootstrap/compose.yaml",
       "target": "deploy/local/compose.yaml",
       "classification": "PUBLIC_DEPLOY_ASSET"
     },
     {
-      "source": "cpf-tools/release/public/templates/bin/CpfBootstrap.java",
+      "source": "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
       "target": "bin/CpfBootstrap.java",
       "classification": "PUBLIC_USER_SCRIPT"
     },

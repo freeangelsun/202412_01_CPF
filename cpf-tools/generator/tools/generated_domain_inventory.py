@@ -32,7 +32,6 @@ def main() -> int:
     )
 
     settings = (root / "settings.gradle").read_text(encoding="utf-8") if (root / "settings.gradle").is_file() else ""
-    definitions = root / "cpf-tools/generator/definitions"
     result = []
     seen_system: set[str] = set()
     seen_package: set[str] = set()
@@ -40,7 +39,7 @@ def main() -> int:
     if args.file:
         selected = [Path(args.file).resolve()]
     else:
-        selected = sorted(definitions.glob("*/cpf-domain.yaml"))
+        selected = sorted(root.glob("cpf-*/cpf-domain.yaml"))
         if args.domain:
             normalized = args.domain.strip().lower()
             selected = [path for path in selected if path.parent.name.lower() == normalized]
@@ -72,7 +71,6 @@ def main() -> int:
         if exists:
             for rel in (
                 ".cpf",
-                "cpf-domain.yaml",
                 "generator.lock",
                 "manifest/domain-manifest.json",
                 "manifest/generator-ownership.json",

@@ -4,11 +4,11 @@ import argparse, json
 from pathlib import Path
 
 FILES = {
-    "service": "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnCalendarService.java",
-    "jdbc": "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
-    "insertSql": "cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/insert.sql",
-    "updateSql": "cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/update.sql",
-    "deleteSql": "cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/delete.sql",
+    "service": "cpf-common/src/main/java/com/cpf/common/calendar/CmnCalendarService.java",
+    "jdbc": "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
+    "insertSql": "cpf-common/src/main/resources/cpf-sql/cmn/calendar/insert.sql",
+    "updateSql": "cpf-common/src/main/resources/cpf-sql/cmn/calendar/update.sql",
+    "deleteSql": "cpf-common/src/main/resources/cpf-sql/cmn/calendar/delete.sql",
     "controller": "cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBusinessCalendarController.java",
     "frontend": "cpf-admin/frontend/src/features/business-calendar/BusinessCalendarPage.vue",
 }
@@ -26,7 +26,7 @@ def verify(root: Path) -> dict[str, object]:
     compact_ctl="".join(ctl.split())
     compact_ui="".join(ui.split())
     checks={
-      "canonicalOwner": all("cpf-common/" not in rel for rel in FILES.values()),
+      "canonicalOwner": all(FILES[key].startswith("cpf-common/") for key in ("service","jdbc","insertSql","updateSql","deleteSql")),
       "productActorRequired": "if(productMode)thrownewIllegalStateException(\"ProductCalendarmutation은operatorIdoverload가필수입니다.\")" in compact_svc,
       "findDayAvailable": "findDay(StringcalendarId,LocalDatedate)" in compact_svc,
       "jdbcNoSystemFallback": "save(day,expectedVersion,\"SYSTEM\")" not in compact_jdbc and "delete(calendarId,businessDate,expectedVersion,\"SYSTEM\")" not in compact_jdbc,

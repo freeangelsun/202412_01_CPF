@@ -26,6 +26,11 @@ spring:
       enabled: false
     jdbc:
       initialize-schema: never
+  session:
+    store-type: jdbc
+    timeout: ${CPF_ADM_SESSION_TIMEOUT:30m}
+    jdbc:
+      initialize-schema: never
 
 server:
   port: ${ADM_SERVER_PORT:8090}
@@ -52,6 +57,22 @@ cpf:
       connect-timeout-millis: ${CPF_ADMIN_GATEWAY_CONTROL_CONNECT_TIMEOUT_MILLIS:3000}
       response-timeout-millis: ${CPF_ADMIN_GATEWAY_CONTROL_RESPONSE_TIMEOUT_MILLIS:10000}
       overall-timeout-millis: ${CPF_ADMIN_GATEWAY_CONTROL_OVERALL_TIMEOUT_MILLIS:15000}
+  security:
+    session:
+      enabled: ${CPF_SECURITY_SESSION_ENABLED:true}
+      cookie-name: ${CPF_ADM_SESSION_COOKIE:CPFSESSION}
+      timeout: ${CPF_ADM_SESSION_TIMEOUT:30m}
+      secure: ${CPF_ADM_SESSION_COOKIE_SECURE:true}
+      same-site: ${CPF_ADM_SESSION_SAME_SITE:Strict}
+      cookie-path: /adm
+      allowed-origins: ${CPF_ADM_ALLOWED_ORIGINS:}
+      credential-key-base64: ${CPF_BFF_CREDENTIAL_KEY_BASE64:}
+      credential-key-id: ${CPF_BFF_CREDENTIAL_KEY_ID:cpf-bff-v1}
+      access-token-ttl: ${CPF_ADM_BFF_ACCESS_TTL:5m}
+      refresh-token-ttl: ${CPF_ADM_BFF_REFRESH_TTL:30m}
+      max-sessions: ${CPF_ADM_MAX_SESSIONS:1}
+      fail-closed: ${CPF_ADM_SESSION_FAIL_CLOSED:true}
+      content-security-policy: ${CPF_ADM_CSP:default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'}
   adm:
     persistence:
       mode: ${CPF_ADM_PERSISTENCE_MODE:DATABASE}

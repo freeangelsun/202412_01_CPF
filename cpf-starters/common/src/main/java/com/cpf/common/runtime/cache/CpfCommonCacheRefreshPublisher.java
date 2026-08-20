@@ -1,7 +1,8 @@
 package com.cpf.common.runtime.cache;
 
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
-import com.cpf.common.runtime.CpfCommonJdbcAutoConfiguration;
+import com.cpf.common.spi.CpfCommonCacheChangePublisher;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +13,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * Common 변경과 같은 transaction에 durable event를 기록하고 local invalidation은 commit 이후 수행합니다.
  */
 @Service
-public class CpfCommonCacheRefreshPublisher {
+public class CpfCommonCacheRefreshPublisher implements CpfCommonCacheChangePublisher {
     private final CpfCommonCacheRefreshEventRepository repository;
     private final CpfCommonCacheRefresher refresher;
 
@@ -23,7 +24,8 @@ public class CpfCommonCacheRefreshPublisher {
     }
 
     /** 업무 변경 transaction 안에서 event를 기록하고 commit 이후에만 local cache를 갱신합니다. */
-    @Transactional(transactionManager = CpfCommonJdbcAutoConfiguration.TX_MANAGER_BEAN, propagation = Propagation.MANDATORY)
+    @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN, propagation = Propagation.MANDATORY)
+    @Override
     public long publishRequired(String cacheName, String eventType, String eventKey, String actor) {
         long id = repository.insertEvent(cacheName, eventType, eventKey, normalizedInstance(), normalizeActor(actor));
         if (!TransactionSynchronizationManager.isSynchronizationActive()) throw new IllegalStateException("Common cache invalidation requires transaction synchronization");
@@ -34,7 +36,8 @@ public class CpfCommonCacheRefreshPublisher {
     }
 
     /** 복구/운영 경로는 별도 transaction으로 event를 남기되 commit 성공 후에만 local cache를 갱신합니다. */
-    @Transactional(transactionManager = CpfCommonJdbcAutoConfiguration.TX_MANAGER_BEAN, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN, propagation = Propagation.REQUIRES_NEW)
+    @Override
     public long publishOutOfBand(String cacheName, String eventType, String eventKey, String actor) {
         long id = repository.insertEvent(cacheName, eventType, eventKey, normalizedInstance(), normalizeActor(actor));
         if (TransactionSynchronizationManager.isSynchronizationActive()) {

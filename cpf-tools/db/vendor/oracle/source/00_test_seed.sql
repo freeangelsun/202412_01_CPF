@@ -224,19 +224,19 @@ WHEN MATCHED THEN UPDATE SET tgt.BUSINESS_TRANSACTION_ID=src.BUSINESS_TRANSACTIO
 WHEN NOT MATCHED THEN INSERT (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL, EXPIRE_AT, REASON, USE_YN, created_by, updated_by) VALUES (src.RULE_ID, src.TRANSACTION_ID, src.BUSINESS_TRANSACTION_ID, src.MODULE_ID, src.LOG_LEVEL, src.EXPIRE_AT, src.REASON, src.USE_YN, src.created_by, src.updated_by);
 -- CPF_LOGICAL_DATABASE=mbwDB
 MERGE INTO MBW_ADMIN_USER tgt
-USING (SELECT 'backoffice-admin' AS admin_login_id, '업무 관리자 샘플' AS admin_name, NULL AS password_hash, 'MBW_MANAGER' AS role_code, 'Y' AS use_yn, 'N' AS lock_yn, 0 AS login_fail_count, 'Y' AS password_change_required_yn, NULL AS password_expire_at, NULL AS last_login_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'mbw-admin' AS admin_login_id, '업무 관리자 샘플' AS admin_name, NULL AS password_hash, 'MBW_MANAGER' AS role_code, 'Y' AS use_yn, 'N' AS lock_yn, 0 AS login_fail_count, 'Y' AS password_change_required_yn, NULL AS password_expire_at, NULL AS last_login_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.admin_login_id=src.admin_login_id)
 WHEN MATCHED THEN UPDATE SET tgt.admin_name=src.admin_name, tgt.role_code=src.role_code, tgt.use_yn=src.use_yn, tgt.lock_yn=src.lock_yn, tgt.login_fail_count=src.login_fail_count, tgt.password_change_required_yn=src.password_change_required_yn, tgt.password_expire_at=src.password_expire_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (admin_login_id, admin_name, password_hash, role_code, use_yn, lock_yn, login_fail_count, password_change_required_yn, password_expire_at, last_login_at, created_by, updated_by) VALUES (src.admin_login_id, src.admin_name, src.password_hash, src.role_code, src.use_yn, src.lock_yn, src.login_fail_count, src.password_change_required_yn, src.password_expire_at, src.last_login_at, src.created_by, src.updated_by);
 INSERT INTO MBW_LOGIN_HISTORY (admin_user_id, login_domain, admin_login_id, login_result, failure_reason, client_ip, user_agent, transaction_id, system_code, application_name, instance_id, created_by, updated_by)
-SELECT admin_user_id, 'MBW', 'backoffice-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
-       '20260715120000000MBWmbwAP010000001', 'MBW', 'cpf-backoffice', 'MBW-SEED-01', 'SYSTEM', 'SYSTEM'
+SELECT admin_user_id, 'MBW', 'mbw-admin', 'SUCCESS', NULL, '127.0.0.1', 'SQL-SEED',
+       '20260715120000000MBWmbwAP010000001', 'MBW', 'mbwAP01', 'MBW-SEED-01', 'SYSTEM', 'SYSTEM'
 FROM MBW_ADMIN_USER
-WHERE admin_login_id = 'backoffice-admin'
+WHERE admin_login_id = 'mbw-admin'
   AND NOT EXISTS (
       SELECT 1
       FROM MBW_LOGIN_HISTORY
-      WHERE admin_login_id = 'backoffice-admin'
+      WHERE admin_login_id = 'mbw-admin'
         AND transaction_id = '20260715120000000MBWmbwAP010000001'
   );
 MERGE INTO MBW_MENU tgt
@@ -244,9 +244,9 @@ USING (SELECT 'DASHBOARD' AS menu_code, '업무 대시보드' AS menu_name, 'MBW
 UNION ALL
 SELECT 'USER' AS menu_code, '백오피스 사용자' AS menu_name, 'MBW' AS module_code, '/backoffice#users' AS route_path, '/api/v1/backoffice/admin-users' AS api_path, 20 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#organizations' AS route_path, '/api/v1/backoffice/backoffice/organizations' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'ORGANIZATION' AS menu_code, '조직 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#organizations' AS route_path, '/api/v1/backoffice/organizations' AS api_path, 30 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EMPLOYEE' AS menu_code, '직원 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#employees' AS route_path, '/api/v1/backoffice/backoffice/employees' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EMPLOYEE' AS menu_code, '직원 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#employees' AS route_path, '/api/v1/backoffice/employees' AS api_path, 40 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'ROLE' AS menu_code, '역할 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#roles' AS route_path, '/api/v1/backoffice/roles' AS api_path, 50 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -254,13 +254,13 @@ SELECT 'MENU' AS menu_code, '메뉴 관리' AS menu_name, 'MBW' AS module_code, 
 UNION ALL
 SELECT 'PERMISSION' AS menu_code, '권한 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#permissions' AS route_path, '/api/v1/backoffice/permissions' AS api_path, 70 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'APPROVAL' AS menu_code, '결재 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#approvals' AS route_path, '/api/v1/backoffice/backoffice/approvals' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'APPROVAL' AS menu_code, '결재 관리' AS menu_name, 'MBW' AS module_code, '/backoffice#approvals' AS route_path, '/api/v1/backoffice/approvals' AS api_path, 80 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'SETTING' AS menu_code, '업무 설정' AS menu_name, 'MBW' AS module_code, '/backoffice#settings' AS route_path, '/api/v1/backoffice/settings' AS api_path, 120 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'DOWNLOAD' AS menu_code, '다운로드 감사' AS menu_name, 'MBW' AS module_code, '/backoffice#downloads' AS route_path, '/api/v1/backoffice/downloads' AS api_path, 130 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'AUDIT' AS menu_code, '업무 감사' AS menu_name, 'MBW' AS module_code, '/backoffice#audits' AS route_path, '/api/v1/backoffice/backoffice/audits' AS api_path, 140 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'AUDIT' AS menu_code, '업무 감사' AS menu_name, 'MBW' AS module_code, '/backoffice#audits' AS route_path, '/api/v1/backoffice/audits' AS api_path, 140 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'NOTIFICATION' AS menu_code, '업무 알림' AS menu_name, 'MBW' AS module_code, '/backoffice#notifications' AS route_path, '/api/v1/backoffice/notifications' AS api_path, 150 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -277,7 +277,7 @@ WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=s
 WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_USER_ROLE tgt
 USING (SELECT admin_user_id AS admin_user_id, 'MBW_MANAGER' AS role_code, CURRENT_TIMESTAMP(3) AS valid_from, NULL AS valid_to, 'Y' AS primary_yn, 'CPF_TEST_SEED' AS grant_reason, 'CPF-TEST-MBW-ROLE-MANAGER-0001' AS operation_id, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER
-WHERE admin_login_id = 'backoffice-admin') src
+WHERE admin_login_id = 'mbw-admin') src
 ON (tgt.operation_id=src.operation_id)
 WHEN MATCHED THEN UPDATE SET tgt.valid_to=NULL, tgt.primary_yn='Y', tgt.grant_reason=src.grant_reason, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (admin_user_id, role_code, valid_from, valid_to, primary_yn, grant_reason, operation_id, created_by, updated_by) VALUES (src.admin_user_id, src.role_code, src.valid_from, src.valid_to, src.primary_yn, src.grant_reason, src.operation_id, src.created_by, src.updated_by);
@@ -288,13 +288,13 @@ SELECT 'MBW_MANAGER' AS role_code, 'USER' AS menu_code, 'READ' AS button_code, '
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'USER' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/admin-users' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/organizations/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/organizations/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/backoffice/organizations' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'ORGANIZATION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/organizations' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/employees/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/employees/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/backoffice/employees' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'EMPLOYEE' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/employees' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'ROLE' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/roles/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -308,15 +308,15 @@ SELECT 'MBW_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'READ' AS button_c
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'PERMISSION' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/permissions/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'APPROVAL' AS menu_code, 'WRITE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/approvals/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'SETTING' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/settings/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'DOWNLOAD' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/downloads/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBW_MANAGER' AS role_code, 'AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/backoffice/audits/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MBW_MANAGER' AS role_code, 'AUDIT' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/audits/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_MANAGER' AS role_code, 'NOTIFICATION' AS menu_code, 'READ' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/notifications/**' AS api_pattern, 'ALL' AS data_scope, 'Y' AS allow_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -357,7 +357,7 @@ ON (tgt.job_title_code=src.job_title_code)
 WHEN MATCHED THEN UPDATE SET tgt.job_title_name=src.job_title_name, tgt.manager_yn=src.manager_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (job_title_code, job_title_name, manager_yn, use_yn, created_by, updated_by) VALUES (src.job_title_code, src.job_title_name, src.manager_yn, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_EMPLOYEE tgt
-USING (SELECT 'EMP001' AS employee_no, admin_user_id AS admin_user_id, 'OPS' AS organization_code, '업무 담당자' AS employee_name, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, 'operator@example.com' AS email, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER WHERE admin_login_id = 'backoffice-admin') src
+USING (SELECT 'EMP001' AS employee_no, admin_user_id AS admin_user_id, 'OPS' AS organization_code, '업무 담당자' AS employee_name, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'ACTIVE' AS employment_status, CURRENT_DATE AS join_date, 'operator@example.com' AS email, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER WHERE admin_login_id = 'mbw-admin') src
 ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.admin_user_id=src.admin_user_id, tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.employment_status=src.employment_status, tgt.email=src.email, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.employment_status, src.join_date, src.email, src.use_yn, src.created_by, src.updated_by);
@@ -367,16 +367,16 @@ ON (tgt.employee_no=src.employee_no AND tgt.assignment_type=src.assignment_type 
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.primary_yn=src.primary_yn, tgt.effective_to=NULL, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by) VALUES (src.employee_no, src.organization_code, src.position_code, src.job_title_code, src.assignment_type, src.primary_yn, src.effective_from, src.effective_to, src.created_by, src.updated_by);
 INSERT INTO MBW_NOTIFICATION (recipient_login_id, notification_type, title, message_body, reference_type, reference_id, read_yn, use_yn, created_by, updated_by)
-SELECT 'backoffice-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
+SELECT 'mbw-admin', 'APPROVAL', '결재 대기 알림', '기준정보 변경 요청 결재를 확인하세요.',
        'APPROVAL', 'MBW-SAMPLE-001', 'N', 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM MBW_NOTIFICATION
-     WHERE recipient_login_id = 'backoffice-admin'
+     WHERE recipient_login_id = 'mbw-admin'
        AND reference_type = 'APPROVAL'
        AND reference_id = 'MBW-SAMPLE-001'
 );
 MERGE INTO MBW_SAVED_SEARCH tgt
-USING (SELECT 'backoffice-admin' AS owner_login_id, 'APPROVAL' AS screen_code, '진행 중 결재' AS search_name, '{"approvalStatus":"IN_REVIEW"}' AS criteria_json, 'N' AS shared_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'mbw-admin' AS owner_login_id, 'APPROVAL' AS screen_code, '진행 중 결재' AS search_name, '{"approvalStatus":"IN_REVIEW"}' AS criteria_json, 'N' AS shared_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.owner_login_id=src.owner_login_id AND tgt.screen_code=src.screen_code AND tgt.search_name=src.search_name)
 WHEN MATCHED THEN UPDATE SET tgt.criteria_json=src.criteria_json, tgt.shared_yn=src.shared_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (owner_login_id, screen_code, search_name, criteria_json, shared_yn, use_yn, created_by, updated_by) VALUES (src.owner_login_id, src.screen_code, src.search_name, src.criteria_json, src.shared_yn, src.use_yn, src.created_by, src.updated_by);

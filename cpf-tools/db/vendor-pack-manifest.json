@@ -24,7 +24,7 @@
   "referenceVendor": "postgresql",
   "platformModuleOwnership": {
     "cpf": "cpf-core",
-    "common": "cpf-starter-common",
+    "common": "cpf-common",
     "admin": "cpf-admin",
     "batch": "cpf-batch",
     "gateway": "cpf-gateway",

@@ -44,7 +44,7 @@ class CpfAiRouterTest {
         var props = new CpfAiProperties(); props.setTimeout(Duration.ofMillis(10));
         withContext(TX, factory -> {
             try (var router = new CpfAiRouter(List.of(p), noopPolicy(), props, factory)) {
-                assertThatThrownBy(() -> router.execute(req(false))).isInstanceOf(CpfAiUnknownResultException.class);
+                assertThatThrownBy(() -> router.execute(req(false))).isInstanceOf(com.cpf.integration.ai.api.CpfAiUnknownResultException.class);
             }
         });
     }

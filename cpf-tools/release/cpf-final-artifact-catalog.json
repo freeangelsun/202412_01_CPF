@@ -609,11 +609,11 @@
     {
       "artifactId": "cpf-starter-file-attachment",
       "ownerPath": "cpf-starters/file/attachment",
-      "kind": "internal-starter",
-      "visibility": "internal",
-      "role": "capability-runtime",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
       "ownerGroup": "file",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-starters/file/attachment/build/libs/*.jar",
       "requiredAttestations": [
@@ -621,10 +621,10 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition",
-      "publicationClass": "PRIVATE_INTERNAL",
-      "publishSources": false,
-      "publishJavadoc": false
+      "consumer": "customer-domain-public-starter",
+      "publicationClass": "PUBLIC_STARTER",
+      "publishSources": true,
+      "publishJavadoc": true
     },
     {
       "artifactId": "cpf-starter-file-sftp",
@@ -1504,13 +1504,35 @@
       "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
+      "artifactId": "cpf-common",
+      "ownerPath": "cpf-common",
+      "kind": "product-common",
+      "visibility": "public",
+      "role": "customer-business-common-product",
+      "ownerGroup": "common",
+      "internalRole": "public-contract-product",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-common/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "cpf-starter-common-and-business-domain",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.common",
+      "publicProjectPath": ":cpf-common"
+    },
+    {
       "artifactId": "cpf-starter-common",
       "ownerPath": "cpf-starters/common",
       "kind": "starter-common",
       "visibility": "public",
-      "role": "product-service",
+      "role": "runtime-composition",
       "ownerGroup": "common",
-      "internalRole": "public-common",
+      "internalRole": "public-common-runtime",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-starters/common/build/libs/*.jar",
       "requiredAttestations": [

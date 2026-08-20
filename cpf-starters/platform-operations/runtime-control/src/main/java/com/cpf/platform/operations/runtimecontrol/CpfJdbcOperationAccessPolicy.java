@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /** Canonical Operation Policy를 LKG로 캐시하고 Controller 전 fail-close로 평가합니다. */
 public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPolicy {
@@ -156,24 +157,24 @@ public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPol
         Map<String, SystemEntry> systems = new HashMap<>();
         jdbc.query(
                 "SELECT system_code,domain_code,enabled_yn FROM OPS_SYSTEM_REGISTRY",
-                rs -> systems.put(code(rs.getString(1)), new SystemEntry(code(rs.getString(2)), yes(rs.getString(3)))));
+                (RowCallbackHandler) rs -> systems.put(code(rs.getString(1)), new SystemEntry(code(rs.getString(2)), yes(rs.getString(3)))));
         if (systems.isEmpty()) throw new IllegalStateException("OPS_SYSTEM_REGISTRY has no catalog data");
 
         Map<String, Boolean> domain = new HashMap<>();
         jdbc.query(
                 "SELECT caller_system_code,target_system_code,allowed_yn FROM OPS_SYSTEM_DOMAIN_ACCESS",
-                rs -> domain.put(code(rs.getString(1)) + "->" + code(rs.getString(2)), yes(rs.getString(3))));
+                (RowCallbackHandler) rs -> domain.put(code(rs.getString(1)) + "->" + code(rs.getString(2)), yes(rs.getString(3))));
 
         Map<String, OperationEntry> operations = new HashMap<>();
         jdbc.query(
                 "SELECT operation_id,enabled_yn,all_callers_yn,channel_policy_required_yn,policy_version FROM OPS_OPERATION_POLICY",
-                rs -> operations.put(rs.getString(1), new OperationEntry(
+                (RowCallbackHandler) rs -> operations.put(rs.getString(1), new OperationEntry(
                         yes(rs.getString(2)), yes(rs.getString(3)), yes(rs.getString(4)), rs.getLong(5))));
 
         Map<String, Boolean> callers = new HashMap<>();
         jdbc.query(
                 "SELECT operation_id,caller_system_code,allowed_yn FROM OPS_OPERATION_CALLER_POLICY",
-                rs -> callers.put(rs.getString(1) + "|" + code(rs.getString(2)), yes(rs.getString(3))));
+                (RowCallbackHandler) rs -> callers.put(rs.getString(1) + "|" + code(rs.getString(2)), yes(rs.getString(3))));
 
         Long version = jdbc.queryForObject("SELECT COALESCE(MAX(policy_version),0) FROM OPS_OPERATION_POLICY", Long.class);
         Snapshot loaded = new Snapshot(

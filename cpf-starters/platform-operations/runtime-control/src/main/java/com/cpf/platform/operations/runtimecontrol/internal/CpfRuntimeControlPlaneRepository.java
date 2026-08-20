@@ -498,11 +498,12 @@ public class CpfRuntimeControlPlaneRepository {
             Map<String,Object> current = existing.getFirst();
             Instant currentLease = toInstant(current.get("lease_until"));
             String source = nullable(current.get("registration_source"));
-            if (currentLease != null && currentLease.isAfter(Instant.now())
-                    && source != null && !source.isBlank()
-                    && !source.equals(r.registrationSource())) {
-                throw new CpfRuntimeFenceException(
-                        "살아 있는 동일 instanceId에 다른 registrationSource가 등록될 수 없습니다: " + r.instanceId());
+            if (currentLease != null && currentLease.isAfter(Instant.now())) {
+                if (source != null && !source.isBlank() && !source.equals(r.registrationSource())) {
+                    throw new CpfRuntimeFenceException(
+                            "살아 있는 동일 instanceId에 다른 registrationSource가 등록될 수 없습니다: " + r.instanceId());
+                }
+                assertSameActiveProcess(r);
             }
         }
 
@@ -1008,6 +1009,55 @@ public class CpfRuntimeControlPlaneRepository {
         if(endpointCount==null || endpointCount!=1) throw new IllegalStateException("Runtime Agent endpoint가 중앙 Registry에 등록되어 있지 않습니다: "+r.serviceId()+"/"+r.endpointCode());
     }
 
+    /**
+     * 활성 lease의 instanceId를 다른 OS process가 재사용하지 못하게 합니다.
+     *
+     * <p>hostname fallback instanceId는 단일 host/단일 process에서는 편리하지만, 같은 host에서 동일
+     * systemCode를 여러 process로 띄우면 충돌합니다. 이 경우 운영자는 MBR01/MBR02처럼 명시 instanceId를
+     * 부여해야 합니다. 단순 registrationSource 비교만으로는 AUTO_CONFIGURATION끼리의 충돌을 구분할 수
+     * 없으므로 processId와 process 시작시각을 함께 fencing identity로 사용합니다.</p>
+     */
+    private void assertSameActiveProcess(CpfRuntimeInstanceRegistration r) {
+        List<Map<String,Object>> rows = jdbc.queryForList(
+                "SELECT system_code,runtime_hostname,application_name,process_id,started_at " +
+                        "FROM OPS_SERVICE_INSTANCE WHERE instance_id=?", r.instanceId());
+        if (rows.isEmpty()) return;
+        Map<String,Object> current = rows.getFirst();
+        if (sameProcessIdentity(current, r)) return;
+        throw new CpfRuntimeFenceException(
+                "살아 있는 동일 instanceId가 다른 Runtime process에서 이미 사용 중입니다. " +
+                        "같은 Host의 다중 Process는 cpf.runtime.instance-id/CPF_RUNTIME_INSTANCE_ID를 " +
+                        "각 Process에 고유하게 지정해야 합니다: " + r.instanceId());
+    }
+
+    static boolean sameProcessIdentity(Map<String,Object> current, CpfRuntimeInstanceRegistration incoming) {
+        String currentPid = nullable(current.get("process_id"));
+        String incomingPid = incoming.processId() == null ? null : String.valueOf(incoming.processId());
+        Instant currentStarted = toInstant(current.get("started_at"));
+        Instant incomingStarted = incoming.startedAt();
+
+        boolean pidMatches = currentPid != null && incomingPid != null
+                ? currentPid.equals(incomingPid)
+                : currentPid == null && incomingPid == null;
+        boolean startedMatches = sameProcessStart(currentStarted, incomingStarted);
+        return pidMatches && startedMatches
+                && sameNullableIdentity(nullable(current.get("system_code")), incoming.systemCode())
+                && sameNullableIdentity(nullable(current.get("runtime_hostname")), incoming.runtimeHostname())
+                && sameNullableIdentity(nullable(current.get("application_name")), incoming.applicationName());
+    }
+
+    private static boolean sameProcessStart(Instant left, Instant right) {
+        if (left == null || right == null) return left == null && right == null;
+        // DB vendor별 TIMESTAMP fractional precision 차이를 허용하되 다른 process start는 구분합니다.
+        return Math.abs(java.time.Duration.between(left, right).toMillis()) < 1_000L;
+    }
+
+    private static boolean sameNullableIdentity(String left, String right) {
+        String a = left == null || left.isBlank() ? null : left.trim();
+        String b = right == null || right.isBlank() ? null : right.trim();
+        return java.util.Objects.equals(a, b);
+    }
+
     private void upsertServiceInstance(CpfRuntimeInstanceRegistration r) {
         String managedServerId = resolveManagedServer(r);
         int updated = jdbc.update(
@@ -1232,10 +1282,10 @@ public class CpfRuntimeControlPlaneRepository {
     public String json(Object value){return write(value);}
     private Map<String,Object> jsonMap(String value){return readMap(value);}
     private Timestamp ts(Instant value){return value==null?null:Timestamp.from(value);}
-    private Instant toInstant(Object value){if(value==null)return null;if(value instanceof Timestamp t)return t.toInstant();if(value instanceof java.util.Date d)return d.toInstant();try{return Instant
+    private static Instant toInstant(Object value){if(value==null)return null;if(value instanceof Timestamp t)return t.toInstant();if(value instanceof java.util.Date d)return d.toInstant();try{return Instant
             .parse(String.valueOf(value));}catch(Exception ignored){return null;}}
     private long number(Object value){return value==null?0L:((Number)value).longValue();}
-    private String nullable(Object value){return value==null?null:String.valueOf(value);}
+    private static String nullable(Object value){return value==null?null:String.valueOf(value);}
     private String baseChangeType(String value) {
         String type = blank(value).trim().toUpperCase();
         return type.startsWith("ROLLBACK:") ? type.substring("ROLLBACK:".length()) : type;

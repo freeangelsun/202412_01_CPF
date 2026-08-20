@@ -68,7 +68,7 @@ public class CpfRuntimeControlReconciler {
                     .map(CpfRuntimeCapabilityCatalog.Capability::code).orElse(changeType);
             if (!selfHealingAllowlist.contains(capability) && !selfHealingAllowlist.contains(changeType)) continue;
             String commandId = "AUTO_ROLLBACK:" + changeId;
-            if (repository.findOperation(operationId).isPresent()) continue; // change당 최대 1회 시도
+            if (repository.findCommand(commandId).isPresent()) continue; // change당 최대 1회 시도
             if (repository.acknowledgedTargets(changeId).isEmpty()) continue;
             try {
                 repository.consumeRateLimit("CPF_SELF_HEALING", selfHealingRateLimitPerMinute);

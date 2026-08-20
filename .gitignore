@@ -128,3 +128,7 @@ Thumbs.db
 !/cpf-tools/build/**
 /cpf-tools/build/**/build/
 /cpf-tools/build/**/.gradle/
+
+# CPF Public Developer Workspace의 제품 template은 root bin/ ignore의 예외입니다.
+!cpf-tools/release/public/templates/bin/
+!cpf-tools/release/public/templates/bin/**

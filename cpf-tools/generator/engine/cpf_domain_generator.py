@@ -49,17 +49,22 @@ def _generator_resource_root(workspace_root: Path) -> Path:
     return workspace_root.resolve()
 
 
-def _workspace_definition_root(workspace_root: Path) -> Path:
-    """Source-controlled Canonical Domain Definition Root를 반환합니다.
+def _canonical_domain_root(workspace_root: Path, domain_name: str) -> Path:
+    """Generated Business Domain의 source-controlled canonical root를 반환합니다.
 
-    Public Workspace는 domains/<domain>/cpf-domain.yaml을 정본으로 사용하고 Private
-    Repository는 기존 cpf-tools/generator/definitions를 유지합니다. Local hidden state는
-    정본으로 사용하지 않습니다.
+    Logical definition, ownership lock, generated source는 모두 ``cpf-<domain>/`` 아래에서
+    하나의 lifecycle을 이룹니다. Tool-side definitions는 migration input일 수는 있지만
+    current truth가 될 수 없습니다.
     """
-    public_root = workspace_root / "domains"
-    if public_root.is_dir():
-        return public_root
-    return workspace_root / "cpf-tools" / "generator" / "definitions"
+    return workspace_root / f"cpf-{domain_name}"
+
+
+def _workspace_definition_paths(workspace_root: Path) -> list[Path]:
+    """Repository에 실제 존재하는 canonical root definitions를 이름순으로 반환합니다."""
+    return sorted(
+        (p for p in workspace_root.glob("cpf-*/cpf-domain.yaml") if p.is_file()),
+        key=lambda p: p.parent.name,
+    )
 
 
 class DomainError(RuntimeError):
@@ -189,6 +194,10 @@ class ExternalClientDefinition:
     name: str
     client_id: str
     capability: str
+
+    @property
+    def class_name(self) -> str:
+        return "".join(part[:1].upper() + part[1:] for part in re.split(r"[-_]", self.name) if part)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -411,16 +420,14 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
 
 def _load_workspace_definitions(root: Path, current: DomainDefinition | None = None) -> dict[str,DomainDefinition]:
     definitions: dict[str,DomainDefinition] = {}
-    definition_root=_workspace_definition_root(root)
-    if definition_root.is_dir():
-        for definition in sorted(definition_root.glob('*/cpf-domain.yaml')):
-            try:
-                item=validate_definition(load_yaml_subset(definition))
-            except DomainError as exc:
-                raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
-            if item.name in definitions:
-                raise DomainError(f"Generated Domain definition 이름 중복: {item.name}")
-            definitions[item.name]=item
+    for definition in _workspace_definition_paths(root):
+        try:
+            item=validate_definition(load_yaml_subset(definition))
+        except DomainError as exc:
+            raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
+        if item.name in definitions:
+            raise DomainError(f"Generated Domain definition 이름 중복: {item.name}")
+        definitions[item.name]=item
     if current is not None:
         definitions[current.name]=current
     return definitions
@@ -469,8 +476,7 @@ def validate_repository_uniqueness(root: Path, d: DomainDefinition, output: Path
     if not root.is_dir(): return
     attrs=(("domain.name","name"),("domain.systemCode","system_code"),("domain.packageName(derived)","package_name"),("database.tablePrefix","table_prefix"))
     requested_ports={d.local_online_port} if d.online else set()
-    definitions=_workspace_definition_root(root)
-    candidates=sorted(definitions.glob('*/cpf-domain.yaml')) if definitions.is_dir() else []
+    candidates=_workspace_definition_paths(root)
     for definition in candidates:
         try: other=validate_definition(load_yaml_subset(definition))
         except DomainError as exc: raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
@@ -1830,6 +1836,219 @@ def _transient_root(root: Path, d: DomainDefinition) -> Path:
     return root/"build"/"domain-generator"/"verification"/f"cpf-{d.name}"
 
 
+def _external_client_properties(d: DomainDefinition, client: ExternalClientDefinition) -> str:
+    c=client.class_name
+    prefix=f"cpf.domain.{d.system_code.lower()}.external.{client.client_id}"
+    return f'''package {d.feature_package}.client;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+/** {client.name} 외부연계의 환경 Binding입니다. Secret 원문은 이 객체에 저장하지 않습니다. */
+@Component
+@ConfigurationProperties(prefix="{prefix}")
+public class {c}ExternalClientProperties {{
+    private String endpoint="";
+    private String destination="";
+    private String bucket="";
+    private String layoutId="";
+    private String layoutVersion="";
+    public String getEndpoint(){{return endpoint;}} public void setEndpoint(String v){{endpoint=safe(v);}}
+    public String getDestination(){{return destination;}} public void setDestination(String v){{destination=safe(v);}}
+    public String getBucket(){{return bucket;}} public void setBucket(String v){{bucket=safe(v);}}
+    public String getLayoutId(){{return layoutId;}} public void setLayoutId(String v){{layoutId=safe(v);}}
+    public String getLayoutVersion(){{return layoutVersion;}} public void setLayoutVersion(String v){{layoutVersion=safe(v);}}
+    private static String safe(String v){{return v==null?"":v.trim();}}
+}}
+'''
+
+
+def _external_client_exception(d: DomainDefinition, client: ExternalClientDefinition) -> str:
+    c=client.class_name
+    return f'''package {d.feature_package}.client;
+
+/** Provider 예외를 업무 Domain에 직접 노출하지 않는 {client.name} 외부연계 오류 경계입니다. */
+public final class {c}ExternalClientException extends RuntimeException {{
+    public {c}ExternalClientException(String message, Throwable cause) {{ super(message, cause); }}
+}}
+'''
+
+
+def _external_client_contract(d: DomainDefinition, client: ExternalClientDefinition) -> str:
+    c=client.class_name
+    if client.capability=='http':
+        return f'''package {d.feature_package}.client;
+
+import com.cpf.core.api.base.CpfRequest;
+import com.cpf.core.api.base.CpfResponse;
+
+/** {client.name} HTTP 외부계약의 generated typed Client입니다. */
+public interface {c}ExternalClient {{ {c}Response execute({c}Request request); }}
+record {c}Request(String payload) implements CpfRequest {{ }}
+record {c}Response(String payload) implements CpfResponse {{ }}
+'''
+    if client.capability=='messaging':
+        return f'''package {d.feature_package}.client;
+
+import com.cpf.messaging.api.CpfBrokerPublishResult;
+
+/** {client.name} Messaging 외부계약의 generated typed Client입니다. */
+public interface {c}ExternalClient {{ CpfBrokerPublishResult publish(String messageId, byte[] payload); }}
+'''
+    if client.capability=='object-storage':
+        return f'''package {d.feature_package}.client;
+
+import com.cpf.file.objectstorage.api.CpfObjectStorageMetadata;
+import java.util.Optional;
+
+/** {client.name} Object Storage 외부계약의 generated typed Client입니다. */
+public interface {c}ExternalClient {{ Optional<CpfObjectStorageMetadata> head(String tenantId, String objectKey); }}
+'''
+    return f'''package {d.feature_package}.client;
+
+import com.cpf.integration.fixedlength.api.CpfFixedLengthParseResult;
+import java.util.Map;
+
+/** {client.name} 고정길이 외부계약의 generated typed Client입니다. */
+public interface {c}ExternalClient {{ CpfFixedLengthParseResult exchange(Map<String,?> fields); }}
+'''
+
+
+def _external_client_adapter(d: DomainDefinition, client: ExternalClientDefinition) -> str:
+    c=client.class_name; cid=client.client_id
+    action=(f"EXTERNAL_{cid}_{client.capability}").upper().replace('-','_')
+    annotations=f'''@CpfClient(system="{cid}", operation="{client.capability}", sideEffecting=true, contextRequired=true)\n@CpfLogging(operation="external.{cid}.{client.capability}")\n@CpfAudit(action="{action}")'''
+    imports='''import com.cpf.foundation.annotation.CpfLogging;\nimport com.cpf.integration.api.annotation.CpfClient;\nimport com.cpf.integration.api.annotation.CpfRetry;\nimport com.cpf.integration.api.annotation.CpfTimeout;\nimport com.cpf.platform.operations.api.annotation.CpfAudit;\nimport org.springframework.stereotype.Component;'''
+    resilience=f'''    @CpfRetry(name="external-{cid}", maxAttempts=1, delayMillis=0, reconcileUnknownOutcome=false)\n    @CpfTimeout(name="external-{cid}")'''
+    if client.capability=='http':
+        return f'''package {d.feature_package}.client;
+
+{imports}
+import com.cpf.integration.http.api.CpfServiceClient;
+
+/** CPF Context/Timeout/Logging/Audit를 적용하는 {client.name} HTTP generated adapter입니다. */
+@Component
+{annotations}
+public final class Default{c}ExternalClient implements {c}ExternalClient {{
+    private final CpfServiceClient<{c}Request,{c}Response> transport;
+    public Default{c}ExternalClient(CpfServiceClient<{c}Request,{c}Response> transport) {{ this.transport=transport; }}
+{resilience}
+    @Override public {c}Response execute({c}Request request) {{
+        try {{ return transport.execute(request); }} catch(RuntimeException ex) {{ throw new {c}ExternalClientException("{cid} HTTP call failed",ex); }}
+    }}
+}}
+'''
+    if client.capability=='messaging':
+        return f'''package {d.feature_package}.client;
+
+{imports}
+import com.cpf.messaging.api.CpfBrokerPublishRequest;
+import com.cpf.messaging.api.CpfBrokerPublishResult;
+import com.cpf.messaging.api.CpfMessagingTemplate;
+import java.util.Map;
+
+/** CPF Context/Timeout/Logging/Audit를 적용하는 {client.name} Messaging generated adapter입니다. */
+@Component
+{annotations}
+public final class Default{c}ExternalClient implements {c}ExternalClient {{
+    private final CpfMessagingTemplate messaging; private final {c}ExternalClientProperties properties;
+    public Default{c}ExternalClient(CpfMessagingTemplate messaging,{c}ExternalClientProperties properties){{this.messaging=messaging;this.properties=properties;}}
+{resilience}
+    @Override public CpfBrokerPublishResult publish(String messageId,byte[] payload){{
+        if(properties.getDestination().isBlank()) throw new IllegalStateException("{cid} destination binding required");
+        try {{ return messaging.send(new CpfBrokerPublishRequest(messageId,properties.getDestination(),messageId,payload,"application/octet-stream","{d.system_code}","{cid}",messageId,Map.of(),Map.of())); }}
+        catch(RuntimeException ex) {{ throw new {c}ExternalClientException("{cid} messaging call failed",ex); }}
+    }}
+}}
+'''
+    if client.capability=='object-storage':
+        return f'''package {d.feature_package}.client;
+
+{imports}
+import com.cpf.file.objectstorage.api.CpfObjectStorageMetadata;
+import com.cpf.file.objectstorage.api.CpfObjectStorageOperations;
+import java.util.Optional;
+
+/** CPF Context/Timeout/Logging/Audit를 적용하는 {client.name} Object Storage generated adapter입니다. */
+@Component
+{annotations}
+public final class Default{c}ExternalClient implements {c}ExternalClient {{
+    private final CpfObjectStorageOperations storage; private final {c}ExternalClientProperties properties;
+    public Default{c}ExternalClient(CpfObjectStorageOperations storage,{c}ExternalClientProperties properties){{this.storage=storage;this.properties=properties;}}
+{resilience}
+    @Override public Optional<CpfObjectStorageMetadata> head(String tenantId,String objectKey){{
+        if(properties.getBucket().isBlank()) throw new IllegalStateException("{cid} bucket binding required");
+        try {{ return storage.head(tenantId,properties.getBucket(),objectKey); }} catch(RuntimeException ex) {{ throw new {c}ExternalClientException("{cid} object-storage call failed",ex); }}
+    }}
+}}
+'''
+    return f'''package {d.feature_package}.client;
+
+{imports}
+import com.cpf.integration.fixedlength.api.CpfFixedLengthOperations;
+import com.cpf.integration.fixedlength.api.CpfFixedLengthParseResult;
+import java.util.Map;
+
+/** 실제 Transport는 기관별 Provider가 구현하고 CPF fixed-length codec 계약은 generated adapter가 소비합니다. */
+interface {c}FixedLengthTransport {{ String exchange(String requestMessage); }}
+
+/** CPF Context/Timeout/Logging/Audit와 fixed-length codec을 적용하는 {client.name} generated adapter입니다. */
+@Component
+{annotations}
+public final class Default{c}ExternalClient implements {c}ExternalClient {{
+    private final CpfFixedLengthOperations codec; private final {c}FixedLengthTransport transport; private final {c}ExternalClientProperties properties;
+    public Default{c}ExternalClient(CpfFixedLengthOperations codec,{c}FixedLengthTransport transport,{c}ExternalClientProperties properties){{this.codec=codec;this.transport=transport;this.properties=properties;}}
+{resilience}
+    @Override public CpfFixedLengthParseResult exchange(Map<String,?> fields){{
+        if(properties.getLayoutId().isBlank()||properties.getLayoutVersion().isBlank()) throw new IllegalStateException("{cid} fixed-length layout binding required");
+        try {{ String request=codec.write(fields,properties.getLayoutId(),properties.getLayoutVersion()).message(); String response=transport.exchange(request); return codec.parse(response,properties.getLayoutId(),properties.getLayoutVersion()); }}
+        catch(RuntimeException ex) {{ throw new {c}ExternalClientException("{cid} fixed-length call failed",ex); }}
+    }}
+}}
+'''
+
+
+def _external_client_contract_test(d: DomainDefinition, client: ExternalClientDefinition) -> str:
+    c=client.class_name
+    method='execute' if client.capability=='http' else ('publish' if client.capability=='messaging' else ('head' if client.capability=='object-storage' else 'exchange'))
+    return f'''package {d.feature_package}.client;
+
+import com.cpf.foundation.annotation.CpfLogging;
+import com.cpf.integration.api.annotation.CpfClient;
+import com.cpf.integration.api.annotation.CpfRetry;
+import com.cpf.integration.api.annotation.CpfTimeout;
+import com.cpf.platform.operations.api.annotation.CpfAudit;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+
+/** Generated external client가 CPF의 필수 운영 경계를 실제 소비하는지 검증합니다. */
+class {c}ExternalClientContractTest {{
+    @Test void exposesCpfOperationalContracts() throws Exception {{
+        Class<?> type=Default{c}ExternalClient.class;
+        assertThat(type.getAnnotation(CpfClient.class)).isNotNull();
+        assertThat(type.getAnnotation(CpfLogging.class)).isNotNull();
+        assertThat(type.getAnnotation(CpfAudit.class)).isNotNull();
+        var method=java.util.Arrays.stream(type.getDeclaredMethods()).filter(m->m.getName().equals("{method}")).findFirst().orElseThrow();
+        assertThat(method.getAnnotation(CpfRetry.class)).isNotNull();
+        assertThat(method.getAnnotation(CpfTimeout.class)).isNotNull();
+    }}
+}}
+'''
+
+
+def render_external_client_files(d: DomainDefinition, client: ExternalClientDefinition) -> dict[str,str]:
+    base=f"online/src/main/java/{d.feature_path.as_posix()}/client"
+    test=f"online/src/test/java/{d.feature_path.as_posix()}/client"
+    c=client.class_name
+    return {
+        f"{base}/{c}ExternalClient.java": _external_client_contract(d,client),
+        f"{base}/{c}ExternalClientProperties.java": _external_client_properties(d,client),
+        f"{base}/{c}ExternalClientException.java": _external_client_exception(d,client),
+        f"{base}/Default{c}ExternalClient.java": _external_client_adapter(d,client),
+        f"{test}/{c}ExternalClientContractTest.java": _external_client_contract_test(d,client),
+    }
+
+
 def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tuple[dict[str,str],dict[str,list[str]]]:
     """개발자가 실제 수정/사용할 Feature-First 최소 Source Surface만 생성한다."""
     stack=read_stack(root)
@@ -1864,6 +2083,8 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
             files[f"online/src/main/java/{fp}/client/Default{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_adapter(d,"online",dependency),d,"client")
         if d.domain_dependencies:
             files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=_feature_java(render_domain_dependency_consumer(d,"online"),d,"client").replace(f"package {d.feature_package}.client;",f"package {d.feature_package}.service;")
+        for external_client in d.external_clients:
+            files.update(render_external_client_files(d, external_client))
 
         if d.sample_transaction:
             files[f"online/src/main/java/{fp}/model/SampleItem.java"]=_feature_java(render_model(d),d)
@@ -1969,6 +2190,10 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     load_catalog(root)
     if not definition_path.is_file(): raise DomainError(f"Generator 입력 정의가 없습니다: {definition_path}")
     if output.name != f"cpf-{d.name}": raise DomainError(f"Generated Root naming 위반: {output.name}")
+    canonical_definition = output / 'cpf-domain.yaml'
+    if not canonical_definition.is_file(): raise DomainError('Generated Root canonical cpf-domain.yaml 누락')
+    canonical = validate_definition(load_yaml_subset(canonical_definition))
+    if canonical != d: raise DomainError('Generated Root cpf-domain.yaml과 실행 Definition 불일치')
     forbidden_roots=['.cpf','README.md','verification','canonical','vendors','db',d.name+'-api',d.name+'-common',d.name+'-online',d.name+'-batch']
     bad=[x for x in forbidden_roots if (output/x).exists()]
     if bad: raise DomainError(f"Generated Customer Domain 최소 IA 위반: {bad}")
@@ -2029,6 +2254,14 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
         for dependency in d.domain_dependencies:
             for token in (f"interface {dependency.class_name}DomainClient", f"class Default{dependency.class_name}DomainClient", f"probe{dependency.class_name}"):
                 if token not in java: raise DomainError(f"Generated Typed Domain Client/Consumer 누락: {token}")
+    for client in d.external_clients:
+        for token in (f"interface {client.class_name}ExternalClient", f"class Default{client.class_name}ExternalClient", "@CpfClient", "@CpfRetry", "@CpfTimeout", "@CpfLogging", "@CpfAudit"):
+            if token not in java: raise DomainError(f"Generated External Client runtime contract 누락: {client.name}:{token}")
+        props=output/'online'/'src/main/java'/d.feature_path/'client'/f"{client.class_name}ExternalClientProperties.java"
+        if not props.is_file() or '@ConfigurationProperties' not in props.read_text(encoding='utf-8-sig'):
+            raise DomainError(f"Generated External Client config binding 누락: {client.name}")
+        test=output/'online'/'src/test/java'/d.feature_path/'client'/f"{client.class_name}ExternalClientContractTest.java"
+        if not test.is_file(): raise DomainError(f"Generated External Client test skeleton 누락: {client.name}")
         for profile in ("local","test","dev","stg","prod"):
             for runtime in (["online"] + (["batch"] if d.batch else [])):
                 profile_text=(output/runtime/'src/main/resources'/f'application-{profile}.yml').read_text(encoding='utf-8-sig')
@@ -2045,6 +2278,10 @@ def _materialize(root: Path, definition_path: Path, output: Path, d: DomainDefin
                  *, persist_state: bool = True) -> dict[str,Any]:
     files,deps=_expected_files(root,d)
     output.mkdir(parents=True,exist_ok=True)
+    canonical_definition = output / "cpf-domain.yaml"
+    if definition_path.resolve() != canonical_definition.resolve():
+        write_text(canonical_definition, definition_path.read_text(encoding="utf-8-sig"))
+        definition_path = canonical_definition
     for rel,content in files.items(): write_text(output/rel,content)
     result=verify_generated(root,definition_path,output,d,persist_evidence=persist_state)
     if persist_state:
@@ -2060,12 +2297,12 @@ def _workspace_lock_path(root: Path, d: DomainDefinition) -> Path:
     Lock은 업무 의미 정본이 아니라 안전한 sync/upgrade를 위한 ownership hash입니다.
     Generated Project 내부나 숨김 .cpf state를 사용하지 않습니다.
     """
-    return _workspace_definition_root(root) / d.name / "cpf-generator.lock.json"
+    return _canonical_domain_root(root, d.name) / "cpf-generator.lock.json"
 
 
 def _definition_is_canonical(root: Path, definition_path: Path, d: DomainDefinition) -> bool:
     try:
-        return definition_path.resolve() == (_workspace_definition_root(root) / d.name / "cpf-domain.yaml").resolve()
+        return definition_path.resolve() == (_canonical_domain_root(root, d.name) / "cpf-domain.yaml").resolve()
     except OSError:
         return False
 
@@ -2121,6 +2358,16 @@ def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
     return data
 
 
+ROOT_METADATA_FILES = {"cpf-domain.yaml", "cpf-generator.lock.json"}
+
+
+def _has_materialized_generated_content(output: Path) -> bool:
+    """Canonical definition/ownership lock만 있는 Root는 fresh generation target으로 취급합니다."""
+    if not output.is_dir():
+        return False
+    return any(entry.name not in ROOT_METADATA_FILES for entry in output.iterdir())
+
+
 def preflight(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     """쓰기 전에 입력/Starter 조합/식별자/Target collision을 검증한다."""
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
@@ -2135,11 +2382,13 @@ def preflight(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     if resolved_output==resolved_root or resolved_root not in resolved_output.parents:
         raise DomainError(f"Generated Root는 repository root 내부여야 합니다: {output}")
     target_state='ABSENT'
-    if output.exists() and any(output.iterdir()):
+    if output.exists() and _has_materialized_generated_content(output):
         dr=diff(root,definition_path,output)
         if not dr['clean']:
-            raise DomainError(f"Generated target path collision 또는 사용자 변경이 감지되었습니다: {output}; changed={dr['changed']}; extra={dr['extraUserFiles']}")
+            raise DomainError(f"Generated target path collision 또는 변경이 감지되었습니다: {output}; changed={dr['changed']}; staleGenerated={dr.get('staleGeneratedFiles', [])}; userFiles={dr['extraUserFiles']}")
         target_state='EXISTING_GENERATED'
+    elif output.exists():
+        target_state='CANONICAL_DEFINITION_ONLY'
     return {
       'status':'PREFLIGHT_PASS','domain':d.name,'target':str(output),'targetState':target_state,
       'definitionSha256':definition_hash(definition_path),'schema':'cpf-domain.schema.json',
@@ -2160,6 +2409,55 @@ def dry_run(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
                 'selectionSummary':_developer_selection_summary(d,catalog),'verify':verify}
 
 
+def _legacy_generated_stale_candidate(d: DomainDefinition, rel: str, path: Path) -> bool:
+    """Recover ownership only for an exact, reproducible legacy Generator artifact.
+
+    Older Generator versions could overwrite the workspace lock after a Definition
+    removed ``domainDependencies``.  That made the orphaned generated consumer look
+    like a user file.  We must not classify files by filename alone: reconstruct the
+    historical generated body from dependency identity encoded in the generated
+    source and require an exact content match.  Any user edit therefore remains
+    ``extraUserFiles`` and is never auto-owned/deleted.
+    """
+    expected_rel=(
+        f"online/src/main/java/{d.package_path.as_posix()}/online/"
+        f"{d.primary_feature}/service/DomainDependencySampleService.java"
+    )
+    if rel != expected_rel or d.domain_dependencies or not path.is_file():
+        return False
+    try:
+        actual=path.read_text(encoding='utf-8-sig')
+    except OSError:
+        return False
+    if "Generated Domain dependency Client를 실제 업무 Bean 주입 경로에서 소비하는 Sample Service입니다." not in actual:
+        return False
+    field_rows=re.findall(
+        r"private\s+final\s+(\w+)DomainClient\s+([a-zA-Z][A-Za-z0-9_]*)DomainClient\s*;",
+        actual,
+    )
+    method_rows=re.findall(
+        r"/\*\*\s*([A-Z][A-Z0-9]{2})\s+Domain의 Local/Remote 동일 호출을 실제 Consumer로 검증합니다\.\s*\*/\s*"
+        r"public\s+CpfResult<CpfDomainPingResponse>\s+probe(\w+)\(",
+        actual,
+        re.S,
+    )
+    if not field_rows or len(field_rows) != len(method_rows):
+        return False
+    codes_by_class={class_name: system_code for system_code,class_name in method_rows}
+    dependencies=[]
+    for class_name,var_prefix in field_rows:
+        system_code=codes_by_class.get(class_name)
+        if not system_code:
+            return False
+        dependency_name=var_prefix.replace('_','-')
+        dependencies.append(DomainDependency(dependency_name,system_code,("ping",)))
+    legacy=dataclasses.replace(d,domain_dependencies=tuple(dependencies))
+    rendered=_feature_java(render_domain_dependency_consumer(legacy,"online"),legacy,"client").replace(
+        f"package {legacy.feature_package}.client;",f"package {legacy.feature_package}.service;"
+    )
+    return actual == rendered
+
+
 def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
     validate_repository_uniqueness(root,d,output)
@@ -2169,26 +2467,39 @@ def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
         if not p.is_file(): missing.append(rel)
         elif sha256_file(p)!=digest: changed.append(rel)
     expected_set=set(expected)
-    extra=[]
+    previous_expected: set[str] = set()
+    try:
+        state = _read_ownership_state(root, d)
+        previous_expected = {str(row['path']) for row in state.get('expectedFiles', [])}
+    except DomainError:
+        previous_expected = set()
+    stale_generated=[]; extra_user=[]
+    metadata_files={'cpf-domain.yaml','cpf-generator.lock.json'}
     if output.exists():
         for p in output.rglob('*'):
             if not p.is_file(): continue
             rel=p.relative_to(output).as_posix()
-            if rel not in expected_set and not rel.startswith('build/') and '/build/' not in rel and not rel.startswith('.gradle/'):
-                extra.append(rel)
-    clean=not missing and not changed
-    return {'domain':d.name,'missing':missing,'changed':changed,'extraUserFiles':sorted(extra),'clean':clean,'metadataRequired':False}
+            if rel in expected_set or rel in metadata_files or rel.startswith('build/') or '/build/' in rel or rel.startswith('.gradle/'):
+                continue
+            if rel in previous_expected or _legacy_generated_stale_candidate(d, rel, p):
+                stale_generated.append(rel)
+            else:
+                extra_user.append(rel)
+    clean=not missing and not changed and not stale_generated
+    return {'domain':d.name,'missing':missing,'changed':changed,'staleGeneratedFiles':sorted(stale_generated),
+            'extraUserFiles':sorted(extra_user),'clean':clean,'metadataRequired':False}
 
 
 def generate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
-    # 실제 파일 쓰기 전에 모든 입력/Target/Public Starter 검증을 끝낸다.
-    if not (output.exists() and any(output.iterdir())):
+    materialized=_has_materialized_generated_content(output)
+    # canonical cpf-domain.yaml/ownership lock만 존재하는 fresh Root도 정상 generation target입니다.
+    if not materialized:
         preflight(root,definition_path,output)
     else:
         validate_repository_uniqueness(root,d,output)
     if output.name!=f"cpf-{d.name}": raise DomainError(f"Generated Root는 cpf-<domain>이어야 합니다: {output}")
-    if output.exists() and any(output.iterdir()):
+    if materialized:
         dr=diff(root,definition_path,output)
         if dr['clean']:
             vr=verify_generated(root,definition_path,output,d)
@@ -2274,7 +2585,9 @@ def restore(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     """
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
     state=_read_ownership_state(root,d)
-    if output.exists() and any(output.iterdir()): raise DomainError(f"restore target이 비어 있지 않습니다: {output}")
+    if output.exists():
+        remaining=[p.name for p in output.iterdir() if p.name not in {'cpf-domain.yaml','cpf-generator.lock.json'}]
+        if remaining: raise DomainError(f"restore target에 canonical definition/lock 외 파일이 남아 있습니다: {output}:{sorted(remaining)}")
     expected=_expected_hashes(root,d)
     previous={str(x['path']):str(x['sha256']) for x in state['expectedFiles']}
     if previous!=expected:
@@ -2321,9 +2634,9 @@ def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=Fa
     except OSError: pass
     purged_definition=False
     if purge_definition:
-        canonical_definition_root=(root/'cpf-tools'/'generator'/'definitions').resolve()
-        if canonical_definition_root not in definition_path.parents:
-            raise DomainError(f'Canonical definitions 밖 파일 purge 금지: {definition_path}')
+        canonical_definition=(_canonical_domain_root(root,d.name)/'cpf-domain.yaml').resolve()
+        if definition_path != canonical_definition:
+            raise DomainError(f'Canonical Domain root definition 외 파일 purge 금지: {definition_path}')
         if definition_path.is_file():
             definition_path.unlink(); purged_definition=True
         try: definition_path.parent.rmdir()

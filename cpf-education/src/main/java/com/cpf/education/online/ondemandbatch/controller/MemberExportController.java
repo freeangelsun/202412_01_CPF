@@ -5,7 +5,7 @@ import com.cpf.core.api.async.CpfAsyncSubmission;
 import com.cpf.education.online.ondemandbatch.dto.MemberExportCommand;
 import com.cpf.education.online.ondemandbatch.service.MemberExportService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.security.api.annotation.CpfPreAuthorize;
+import com.cpf.security.api.annotation.CpfPermission;
 import com.cpf.web.api.CpfRestController;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +25,7 @@ public final class MemberExportController {
     }
 
     @PostMapping
-    @CpfPreAuthorize("hasAuthority('BATCH_EXECUTE')")
+    @CpfPermission("hasAuthority('BATCH_EXECUTE')")
     @Operation(operationId = "MBR_MEMBER_EXPORT", summary = "회원 Export 비동기 접수")
     @CpfOnlineTransaction(
             operationId = "MBR_MEMBER_EXPORT",
@@ -37,7 +37,7 @@ public final class MemberExportController {
     }
 
     @GetMapping("/{executionId}")
-    @CpfPreAuthorize("hasAuthority('BATCH_READ')")
+    @CpfPermission("hasAuthority('BATCH_READ')")
     /** On-Demand Batch 예제에서 status 요청을 표준 호출 흐름으로 처리합니다. */
     public CpfAsyncOperationStatus status(@PathVariable String executionId) {
         return service.status(executionId);

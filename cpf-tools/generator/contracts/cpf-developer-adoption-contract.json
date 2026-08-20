@@ -270,7 +270,7 @@
     },
     {
       "name": "CpfCalendarService.nextBusinessDay",
-      "source": "cpf-starters/common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java",
+      "source": "cpf-common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java",
       "when": "영업일 계산"
     },
     {

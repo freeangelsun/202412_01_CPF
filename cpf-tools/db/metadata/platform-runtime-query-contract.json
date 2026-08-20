@@ -2285,14 +2285,14 @@
     },
     {
       "module": "cmn",
-      "ownerArtifact": "cpf-starter-common",
+      "ownerArtifact": "cpf-common",
       "profileModuleKey": "common",
       "parameterStyle": "JDBC_POSITIONAL",
       "templateRoot": "cpf-tools/db/runtime-template/cmn",
-      "generatedPackPath": "cpf-starters/common/src/main/resources/cpf-sql/cmn",
+      "generatedPackPath": "cpf-common/src/main/resources/cpf-sql/cmn",
       "sourceScopes": [
-        "cpf-starters/common/src/main/java/com/cpf/common/calendar",
-        "cpf-starters/common/src/main/java/com/cpf/common/template",
+        "cpf-common/src/main/java/com/cpf/common/calendar",
+        "cpf-common/src/main/java/com/cpf/common/template",
         "cpf-education/src/main/java/com/cpf/education/common/sample"
       ],
       "status": "완료",

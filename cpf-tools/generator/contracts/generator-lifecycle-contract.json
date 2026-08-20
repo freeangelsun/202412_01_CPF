@@ -34,7 +34,6 @@
     "verification",
     "canonical",
     "vendors",
-    "cpf-domain.yaml",
     "generator.lock",
     "manifest"
   ],
@@ -84,8 +83,8 @@
     "canonical definition only when --purge-definition is explicit"
   ],
   "generatedDatabaseAssets": {
-    "owner": "CPF_GENERATOR_MANAGED",
-    "root": "db/<vendor>",
+    "owner": "CPF_DB_RENDERER",
+    "root": "build/domain-generator/verification/cpf-<domain>/db3/<vendor>",
     "vendors": [
       "mariadb",
       "postgresql",
@@ -98,11 +97,12 @@
       "verify",
       "rollback"
     ],
-    "sourceControlled": true,
-    "purpose": "Public Workspace DB lifecycle without Private CPF source"
+    "sourceControlled": false,
+    "generatedDomainRoot": false,
+    "purpose": "cpf-domain.yaml logical model + environment binding에서 transient/release DB3 pack을 render하며 Generated Domain source root에는 vendor/db directory를 두지 않는다."
   },
   "workspaceOwnershipLock": {
-    "directory": "<definition-root>/<domain>/cpf-generator.lock.json",
+    "directory": "cpf-<domain>/cpf-generator.lock.json",
     "sourceControlled": true,
     "semanticSourceOfTruth": false,
     "freshCloneRecovery": true,

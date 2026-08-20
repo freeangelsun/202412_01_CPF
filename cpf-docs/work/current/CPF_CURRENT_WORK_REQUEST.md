@@ -1,24 +1,48 @@
-# CPF Current Work Request — Canonical Target Alignment
+# CPF Current Work Request — Final Environment Revalidation
 
-> 상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`
-> 원칙: Source를 Target에 맞춘다. Source와 다르다는 이유로 Target을 되돌리지 않는다.
+> 상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`  
+> Source/static 기준: C 개발/QA 관리_21 final-applied snapshot  
+> 원칙: 이미 닫힌 Source Gap을 다시 개발하지 않는다. 미실행 Runtime을 PASS로 만들지 않는다.
 
-## 현재 개발 우선순위
+## 1. Source/static closure
 
-1. **P0 Ownership** — `cpf-common` 고객 업무 공통 Owner를 제품 구조/API/Starter/DB/Consumer까지 구현하고 기술 `cpf-starter-common`과 분리한다.
-2. **P0 Generated Domain** — `cpf-<domain>/cpf-domain.yaml` source-controlled logical definition으로 create/setup/sync/diff를 currentize하고 environment DB binding을 분리한다.
-3. **P0 EDU 35** — Online 정확히 20개(Required/Requires-New 분리 포함) + Batch 15개를 목적별 Canonical 그룹으로 구현한다.
-4. **P1 System6/Operation** — Remote all-six serialization, receiver validation, Caller System Policy, separate optional Channel Policy, multi-instance discovery lifecycle을 전수 재검증한다.
-5. **P1 Runtime Instance** — same-host/same-system multi-process explicit instanceId 및 duplicate READY rejection을 검증한다.
-6. **P1 Public Distribution** — Public Workspace + Public Binary Repository를 isolated cache/no mavenLocal/private repo 조건에서 닫는다.
-7. **P1 Local Bootstrap** — shared engine, progress/timeout, selected DB lifecycle, stop≠reset, domain rediscovery를 닫는다.
-8. **P1 Documentation Closure** — Current 역할 충돌(`work/`의 중복 Work Request/Evidence/Open Issues/Manifest/Handover 및 흡수 완료 Steering)은 이번 Governance cleanup에서 제거한다. 기존 `DELETE_MANIFEST.csv`에 남은 더 넓은 historical/source 후보는 별도 영향 검증 후 적용하고 stale link/verifier reference 0을 확인한다.
-9. **P0 Requirement Ledger** — QA가 신규 11 Canonical ID/영향 ID를 상태 원장에 재개방·추가하도록 요청하고 Developer는 자기 역할 컬럼만 갱신한다.
-10. **P1 Derived Dataset** — 205 Canonical 기준 Requirement/Scenario/Execution dataset을 지정 Pipeline으로 재생성·검증한다.
-11. **P1 Official Guides** — Generator/Developer/EDU/Architecture Guide를 구현 완료 Target과 동일하게 currentize한다.
+이번 개발 사이클에서 다음 Current Target을 구현·재검증했다.
 
-상세 Gap과 Acceptance는 `cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv` 및 Final Target의 연결 Requirement를 사용한다.
+1. `cpf-common` 고객 업무 공통 Product Owner 및 `cpf-starter-common` Runtime/AutoConfiguration 분리.
+2. Generated Domain root `cpf-domain.yaml`, ownership/stale-generated, externalClients 실제 Consumer, DB Binding 분리.
+3. EDU physical/executable `Online 20 + Batch 15 = 35`.
+4. System6/Operation/Runtime Instance source contracts 및 same-host collision fencing.
+5. Public Workspace/Shared Bootstrap/Public Binary isolated-consumer contracts.
+6. ADM HttpOnly JDBC BFF Session/CSRF, Menu 64↔Route 68, permission identity, System6 UI, Commercial Page, Generated Consumer 337/337.
+7. Backoffice/MBW currentization 및 Backend 96↔Web 96 contract.
+8. DB3 Canonical Seed/Bundle/Renderer Oracle/PostgreSQL/MariaDB parity.
+9. 205 Canonical Requirement developer ledger ↔ 30,605 derived logical requirements.
+10. Current-only governance, Delete/Garbage lifecycle, repository-wide Java/Spring/ownership/dependency/hygiene gates.
 
-## 완료 방식
+상세 변경 및 205개 Requirement별 리뷰는:
+- `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.md`
+- `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.csv`
+- `cpf-docs/deliverables/TEST_AND_EVIDENCE.md`
 
-각 항목은 Source/API/SQL/Config/Frontend/Generator/Test/Evidence를 필요한 범위에서 함께 구현한다. 미실행 Runtime은 `미검증`으로 남기고 QA만 최종 상태를 변경한다.
+## 2. Remaining work — environment acceptance only
+
+Source 재개발이 아니라 다음 환경 실행 Evidence가 남아 있다.
+
+1. Java25 final `./gradlew clean build --continue --stacktrace`.
+2. Oracle/PostgreSQL/MariaDB live install → migration → seed → runtime query → upgrade → rollback.
+3. Multi-WAS / same-host multi-process / process-kill / lease-expiry / restart/reconcile.
+4. ADM/Backoffice Browser E2E (Chromium/Firefox/WebKit, responsive, 401/403/404/409/429/500/503).
+5. Reachable Public Binary Repository 기반 isolated consumer.
+6. Windows PowerShell 5.1 apply/delete/verification runtime.
+7. Commercial GA/edition/license/support Product/Legal/QA decision.
+
+이 항목은 실행되지 않았다면 `미검증`으로 유지한다. 실패가 발생하면 같은 Requirement ID에서 Root Cause 단위로 Source/Test/Verifier/Config/Evidence를 재개발한다.
+
+## 3. Canonical local integration command
+
+```powershell
+$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradlew clean build --continue --stacktrace 2>&1 | Tee-Object -FilePath $log; $code=$LASTEXITCODE; $failed=@(Select-String -Path $log -Pattern '^> Task .* FAILED$'); $testFailed=@(Select-String -Path $log -Pattern '^\s*\d+ tests? completed, \d+ failed'); Write-Host "`n========== FINAL REPORT =========="; Write-Host "Result        : $(if($code -eq 0){'PASS'}else{'FAIL'})"; Write-Host "ExitCode      : $code"; Write-Host "Failed Tasks  : $($failed.Count)"; Write-Host "Test Failures : $($testFailed.Count)"; if($failed.Count -gt 0){$failed | Select-Object -First 20 | ForEach-Object { Write-Host "  $($_.Line)" }}; Write-Host "Started       : $start"; Write-Host "Finished      : $(Get-Date)"; Write-Host "Log           : $([IO.Path]::GetFullPath($log))"; Write-Host "=================================="
+```
+
+정상 기대: `Result=PASS`, `ExitCode=0`, `Failed Tasks=0`, `BUILD SUCCESSFUL`.  
+실패 전달 파일: `%USERPROFILE%\Downloads\gradle-problems.txt`.

@@ -29,13 +29,24 @@ public record CpfBrokerPublishRequest(
         contentType = contentType == null || contentType.isBlank()
                 ? "application/octet-stream"
                 : contentType.trim();
-        headers = headers == null ? Map.of() : Map.copyOf(headers);
-        attributes = attributes == null ? Map.of() : Map.copyOf(attributes);
+        headers = validatedMap(headers, "headers");
+        attributes = validatedMap(attributes, "attributes");
     }
 
     @Override
     public byte[] payload() {
         return Arrays.copyOf(payload, payload.length);
+    }
+
+    private static Map<String, String> validatedMap(Map<String, String> values, String label) {
+        if (values == null || values.isEmpty()) return Map.of();
+        java.util.LinkedHashMap<String, String> copy = new java.util.LinkedHashMap<>();
+        for (var entry : values.entrySet()) {
+            String name = require(entry.getKey(), label + " key");
+            String value = require(entry.getValue(), label + "[" + name + "]");
+            if (copy.put(name, value) != null) throw new IllegalArgumentException(label + " contains duplicate key: " + name);
+        }
+        return Map.copyOf(copy);
     }
 
     private static String require(String value, String label) {

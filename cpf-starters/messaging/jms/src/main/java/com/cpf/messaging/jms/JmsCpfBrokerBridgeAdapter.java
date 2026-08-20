@@ -220,7 +220,7 @@ public final class JmsCpfBrokerBridgeAdapter implements CpfBrokerBridgePort, Aut
                 .toList();
     }
 
-    private static void writeContextProperties(Message message, Map<String,String> headers) throws Exception {
+    private static void writeContextProperties(Message message, Map<String,String> headers) throws jakarta.jms.JMSException {
         for (var e : headers.entrySet()) message.setStringProperty(jmsProperty(e.getKey()), e.getValue());
     }
 

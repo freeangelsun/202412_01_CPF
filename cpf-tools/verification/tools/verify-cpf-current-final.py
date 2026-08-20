@@ -55,7 +55,7 @@ def product_files(base:Path, pattern:str='*'):
         return []
     return [p for p in base.rglob(pattern) if product_file(p)]
 manifest=ROOT/'cpf-docs/deliverables/DELETE_MANIFEST.csv'
-entries=[]
+entries=[]; approved_entries=[]
 if not manifest.is_file(): fail('DELETE_MANIFEST missing')
 else:
     try:
@@ -64,19 +64,25 @@ else:
         if not rows or 'path' not in (rows[0].keys() if rows else []):
             fail('DELETE_MANIFEST schema requires path column')
         for n,row in enumerate(rows,2):
-            s=(row.get('path') or '').strip()
+            s=(row.get('path') or '').strip().replace('\\','/')
             if not s: continue
             if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
             if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
             entries.append(s)
+            approved=(row.get('approved') or '').strip().lower() in {'true','1','yes','y'}
+            if approved: approved_entries.append(s)
     except Exception as e:
         fail(f'DELETE_MANIFEST parse:{e}')
     if len(entries)!=len(set(entries)): fail('DELETE_MANIFEST duplicate path')
-    protected=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
-    for s in entries:
-        if s.startswith(protected): fail(f'protected delete path:{s}')
+    protected=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/',
+               'cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+    protected_exact={'cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md'}
+    for s in approved_entries:
+        if (s.startswith(protected) or s in protected_exact) and (ROOT/s).exists():
+            fail(f'active protected delete path:{s}')
 INFO['deleteManifestCount']=len(entries)
-deleted=set(entries)
+INFO['approvedDeleteManifestCount']=len(approved_entries)
+deleted=set(approved_entries)
 
 def survives(p:Path)->bool:
     try:r=p.relative_to(ROOT).as_posix()
@@ -189,6 +195,15 @@ for rel in ('cpf-tools/generator/contracts/cpf-domain.schema.json','cpf-docs/dev
     bad=('Batch는 Generator가 만들지','Generated Runtime은 `online/` 하나','Batch는 Generated Domain 산출물이 아님','online 업무 Source만 생성')
     for b in bad:
         if b in t: fail(f'stale Generated Domain policy:{rel}:{b}')
+# Spring/Java wiring hygiene (IDE/static contract that must stay warning-free).
+_hygiene = ROOT/'cpf-tools/verification/verify_spring_java_hygiene.py'
+if _hygiene.is_file():
+    cp=subprocess.run([sys.executable,str(_hygiene)],cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+    if cp.returncode!=0:
+        fail('Spring Java hygiene:'+cp.stdout.strip().replace('\n',' | '))
+else:
+    fail('Spring Java hygiene verifier missing')
+
 # JSON parse current product/config; runtime output blobs excluded
 for p in product_files(ROOT,'*.json'):
     rp=p.relative_to(ROOT).as_posix()

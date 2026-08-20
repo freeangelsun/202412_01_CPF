@@ -30,9 +30,9 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
         for relative in [
             "cpf-tools/db/metadata/platform-runtime-query-contract.json",
             "cpf-tools/db/runtime-template/cmn",
-            "cpf-starters/common/src/main/resources/cpf-sql/cmn",
-            "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
-            "cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
+            "cpf-common/src/main/resources/cpf-sql/cmn",
+            "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
+            "cpf-common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
         ]:
             src = ROOT / relative
             dst = tmp / relative
@@ -44,7 +44,7 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
 
     def test_hash_drift_fails(self):
         root = self.copy_fixture()
-        path = root / "cpf-starters/common/src/main/resources/cpf-sql/cmn/calendar/find.sql"
+        path = root / "cpf-common/src/main/resources/cpf-sql/cmn/calendar/find.sql"
         path.write_text(path.read_text() + "\n-- drift\n")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
@@ -65,13 +65,13 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
 
     def test_consumer_reference_is_required(self):
         root = self.copy_fixture()
-        path = root / "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
+        path = root / "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
         path.write_text(path.read_text().replace("calendar/find.sql", "calendar/not-declared.sql"))
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
     def test_inline_sql_fails(self):
         root = self.copy_fixture()
-        path = root / "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
+        path = root / "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
         path.write_text(path.read_text() + '\nclass BadSql { String sql = "SELECT * FROM forbidden"; }\n')
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 

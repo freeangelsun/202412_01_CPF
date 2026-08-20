@@ -20,11 +20,11 @@ public final class CpfIntegrationClientCoordinator {
             CpfAnnotationResiliencePolicyRegistry annotationPolicies,CpfResilienceExecutor executor,Clock clock){
         this.properties=properties;this.policyFactory=policyFactory;this.annotationPolicies=annotationPolicies;this.executor=executor;this.clock=clock;
     }
-    public Object execute(Method method,Object[] args,CpfClient client,CpfRetry retry,CpfTimeLimiter timeout,Callable<Object> action) throws Exception{
+    public Object execute(Method method,Object[] args,CpfClient client,CpfRetry retry,CpfTimeout timeout,CpfTimeLimiter legacyTimeout,Callable<Object> action) throws Exception{
         if(!properties.isEnabled())return action.call();
         CpfContext current=client.contextRequired()?CpfContexts.requireCurrent():CpfContexts.current();
         if(current==null)return action.call();
-        CpfResiliencePolicy policy=policyFactory.create(method,client,retry,timeout); annotationPolicies.register(policy);
+        CpfResiliencePolicy policy=policyFactory.create(method,client,retry,timeout,legacyTimeout); annotationPolicies.register(policy);
         String key=current.idempotencyKey();
         Map<String,String> attrs=Map.of(
                 CpfResilienceCallContext.OPERATION_KIND_ATTRIBUTE,client.sideEffecting()?"WRITE":"READ",

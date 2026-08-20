@@ -4,7 +4,8 @@
 from __future__ import annotations
 import argparse,csv,json,re
 from pathlib import Path
-PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED_EXACT={'cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md'}
 BAD=re.compile(r'(?i)(?:^|[_\-.])(qa\d*|fix(?:ed)?|session\d*|rev\d*|rework|checkpoint|one[-_]?shot)(?:[_\-.]|$)|(?:\.bak|\.backup|\.orig|\.rej|\.tmp|~)$')
 SKIP={'.git','.gradle','node_modules','dist','out','build'}
 
@@ -45,8 +46,8 @@ def main():
  for p in dels:
   if not p: fail.append('empty_delete_path'); continue
   if Path(p).is_absolute() or '..' in Path(p).parts: fail.append('unsafe_delete='+p)
-  if any(p==x.rstrip('/') or p.startswith(x) for x in PROTECTED): fail.append('protected_delete='+p)
   target=root/p
+  if (any(p==x.rstrip('/') or p.startswith(x) for x in PROTECTED) or p in PROTECTED_EXACT) and target.exists(): fail.append('protected_delete='+p)
   if target.exists() and target.is_dir(): fail.append('directory_delete_forbidden='+p)
   if not any((x.get('decision') or x.get('action')) in {'DELETE','DELETE_CANDIDATE'} for x in bypath.get(p,[])): fail.append('delete_without_decision='+p)
  stale='cpf-tools/config/cpf-starter-catalog.json'

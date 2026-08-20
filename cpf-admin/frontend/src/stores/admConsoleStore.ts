@@ -19,7 +19,7 @@ const sessionActions = {
     try {
       const data: any = await admAuthMe<any>();
       const session = useAdmSessionStore();
-      session.replace({ operator: data.operator || (data.operatorId ? data : {}), menus: data.menus || [], buttonIds: data.buttonIds || [] });
+      session.replace({ operator: data.operator || (data.operatorId ? data : {}), menus: data.menus || [], buttonIds: data.buttonIds || [], allowedOperationIds: data.allowedOperationIds || [] });
       this.currentOperator = session.operator;
       this.authorizedMenus = session.menus;
       this.authorizedButtons = session.buttonIds;

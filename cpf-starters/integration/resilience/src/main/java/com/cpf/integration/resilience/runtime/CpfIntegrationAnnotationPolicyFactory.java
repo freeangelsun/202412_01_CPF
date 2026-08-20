@@ -2,6 +2,7 @@ package com.cpf.integration.resilience.runtime;
 
 import com.cpf.integration.api.annotation.CpfClient;
 import com.cpf.integration.api.annotation.CpfRetry;
+import com.cpf.integration.api.annotation.CpfTimeout;
 import com.cpf.integration.api.annotation.CpfTimeLimiter;
 import com.cpf.integration.resilience.api.CpfResiliencePolicy;
 import java.lang.reflect.Method;
@@ -13,10 +14,14 @@ import java.time.Duration;
 public final class CpfIntegrationAnnotationPolicyFactory {
     private final CpfIntegrationAnnotationProperties properties;
     public CpfIntegrationAnnotationPolicyFactory(CpfIntegrationAnnotationProperties properties){this.properties=properties;}
-    public CpfResiliencePolicy create(Method method,CpfClient client,CpfRetry retry,CpfTimeLimiter timeout){
+    public CpfResiliencePolicy create(Method method,CpfClient client,CpfRetry retry,CpfTimeout timeout,CpfTimeLimiter legacyTimeout){
         if(client==null)throw new IllegalArgumentException("CpfClient is required");
         String operation=operationId(method,client);
-        long timeoutMs=timeout==null?properties.getDefaultTimeoutMillis():positive(0L,"timeout.millis");
+        long timeoutMs=properties.getDefaultTimeoutMillis();
+        if(timeout!=null && timeout.timeoutMillis()>0) timeoutMs=positive(timeout.timeoutMillis(),"timeout.timeoutMillis");
+        // Legacy @CpfTimeLimiter는 값 override가 없으므로 canonical config timeout을 그대로 사용합니다.
+        if(timeout==null && legacyTimeout!=null && (legacyTimeout.name()==null || legacyTimeout.name().isBlank()))
+            throw new IllegalArgumentException("legacy timeout.name is required");
         int attempts=retry==null?1:positive(retry.maxAttempts(),"retry.maxAttempts");
         long delay=retry==null?0:nonNegative(retry.delayMillis(),"retry.delayMillis");
         long revision=revision(operation,timeoutMs,attempts,delay,retry!=null&&retry.reconcileUnknownOutcome());

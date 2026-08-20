@@ -16,13 +16,13 @@ class GateTest(unittest.TestCase):
         (adm / "generated/cpf-operation-contract.ts").write_text('export type CpfOperationId = "admGood";', encoding="utf-8")
         (adm / "features/helper.ts").write_text("export const value=1;", encoding="utf-8")
         (adm / "features/Page.ts").write_text('import {value} from "./helper"; admInvokeOperation("admGood");', encoding="utf-8")
-        bza = root / "cpf-biz-frontend/src"
+        bza = root / "cpf-backoffice-web/frontend/src"
         (bza / "generated").mkdir(parents=True)
         (bza / "shared/api").mkdir(parents=True)
         (bza / "features").mkdir()
-        (bza / "generated/bza-api.ts").write_text('/* AUTO-GENERATED */ import { invokeBza } from "../shared/api/channelHttpClient";', encoding="utf-8")
-        (bza / "shared/api/channelHttpClient.ts").write_text('const x="VITE_BZA_CHANNEL_BASE_URL"; export function invokeBza(){}', encoding="utf-8")
-        (bza / "features/Page.ts").write_text('import { invokeBza } from "../shared/api/channelHttpClient";', encoding="utf-8")
+        (bza / "generated/backoffice-api.ts").write_text('/* AUTO-GENERATED */ import { invokeBackoffice } from "../shared/api/channelHttpClient";', encoding="utf-8")
+        (bza / "shared/api/channelHttpClient.ts").write_text('const x="VITE_MBW_WEB_BASE_URL"; export function invokeBackoffice(){}', encoding="utf-8")
+        (bza / "features/Page.ts").write_text('import { invokeBackoffice } from "../generated/backoffice-api"; invokeBackoffice();', encoding="utf-8")
         return root
 
     def test_positive(self):

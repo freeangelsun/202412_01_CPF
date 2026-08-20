@@ -4,6 +4,7 @@ import com.cpf.admin.config.AdmPersistencePolicy;
 import com.cpf.admin.config.AdmSecurityProperties;
 import com.cpf.admin.opr.dto.AdmSession;
 import com.cpf.admin.opr.service.AdmSessionService;
+import com.cpf.admin.opr.security.AdmApiPermissionPolicy;
 import com.cpf.core.api.error.CpfBusinessException;
 import com.cpf.core.api.error.CpfErrorCode;
 import jakarta.servlet.FilterChain;
@@ -348,32 +349,13 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
                      WHERE a.USE_YN = 'Y'
                        AND a.HTTP_METHOD IN (?, ?)
                     """.formatted(placeholders), args.toArray());
-            int highestSpecificity = -1;
-            boolean allowAtHighest = false;
-            boolean denyAtHighest = false;
-            for (Map<String, Object> permission : permissions) {
-                String apiPath = String.valueOf(permission.get("API_PATH"));
-                if (!matchesApiPattern(apiPath, path)) {
-                    continue;
-                }
-                String permissionMethod = String.valueOf(permission.get("HTTP_METHOD"));
-                int specificity = apiPath.replace("*", "").length()
-                        + (method.equalsIgnoreCase(permissionMethod) ? 10_000 : 0);
-                String allowYn = permission.get("ALLOW_YN") == null ? "N" : String.valueOf(permission.get("ALLOW_YN"));
-                if (specificity > highestSpecificity) {
-                    highestSpecificity = specificity;
-                    allowAtHighest = "Y".equals(allowYn);
-                    denyAtHighest = !"Y".equals(allowYn);
-                } else if (specificity == highestSpecificity) {
-                    allowAtHighest |= "Y".equals(allowYn);
-                    denyAtHighest |= !"Y".equals(allowYn);
-                }
-            }
-            if (highestSpecificity < 0) {
-                return Optional.empty();
-            }
-            // 동일 specificity에서는 명시적 Deny가 Allow보다 우선합니다.
-            return Optional.of(allowAtHighest && !denyAtHighest);
+            List<AdmApiPermissionPolicy.Rule> rules = permissions.stream()
+                    .map(permission -> new AdmApiPermissionPolicy.Rule(
+                            String.valueOf(permission.get("HTTP_METHOD")),
+                            String.valueOf(permission.get("API_PATH")),
+                            permission.get("ALLOW_YN") == null ? "N" : String.valueOf(permission.get("ALLOW_YN"))))
+                    .toList();
+            return AdmApiPermissionPolicy.evaluate(rules, method, path);
         } catch (DataAccessException ex) {
             return onPermissionDataAccess("adm_api_permission", ex);
         }
@@ -575,41 +557,6 @@ public class AdmApiAuthFilter extends OncePerRequestFilter {
             }
         }
         return null;
-    }
-
-    private boolean matchesApiPattern(String pattern, String path) {
-        if (pattern == null || pattern.isBlank()) {
-            return false;
-        }
-        String normalizedPattern = pattern.trim();
-        if (normalizedPattern.equals(path)) {
-            return true;
-        }
-        if (normalizedPattern.endsWith("/**")) {
-            String prefix = normalizedPattern.substring(0, normalizedPattern.length() - 3);
-            return path.equals(prefix) || path.startsWith(prefix + "/");
-        }
-        if (!normalizedPattern.contains("*")) {
-            return false;
-        }
-        String[] parts = normalizedPattern.split("\\*", -1);
-        int index = 0;
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
-            if (part.isEmpty()) {
-                continue;
-            }
-            int found = path.indexOf(part, index);
-            if (found < 0) {
-                return false;
-            }
-            if (i == 0 && found != 0) {
-                return false;
-            }
-            index = found + part.length();
-        }
-        String last = parts[parts.length - 1];
-        return last.isEmpty() || path.endsWith(last);
     }
 
     private String resolveBearerToken(HttpServletRequest request) {

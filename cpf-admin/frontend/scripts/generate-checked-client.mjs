@@ -3,11 +3,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 const root = process.cwd();
 const orvalCli = path.join(root, "node_modules", "orval", "dist", "bin", "orval.mjs");
-if (!fs.existsSync(orvalCli)) throw new Error("Orval local CLI가 없습니다. 먼저 clean npm ci를 실행하세요.");
 const generatedDir = path.join(root, "src/generated");
 const openApiPath = path.join(root, process.env.CPF_OPENAPI_FILE || "openapi/cpf-openapi.json");
 const openApi = JSON.parse(fs.readFileSync(openApiPath, "utf8"));
 const preRuntime = openApi["x-cpf-export-origin"] === "CONTROLLER_SOURCE_PRE_RUNTIME";
+if (!preRuntime && !fs.existsSync(orvalCli)) throw new Error("Runtime OpenAPI 생성에는 Orval local CLI가 필요합니다. 먼저 clean npm ci를 실행하세요.");
 if (fs.existsSync(generatedDir)) fs.rmSync(generatedDir, { recursive: true, force: true });
 const generationSteps = [
   ["validate-canonical-openapi", process.execPath, ["scripts/validate-openapi.mjs", "--scope=source"]],

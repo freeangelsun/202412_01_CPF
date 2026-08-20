@@ -17,10 +17,10 @@ class T(unittest.TestCase):
     def fixture(self):
         temp = tempfile.TemporaryDirectory()
         root = Path(temp.name)
-        modules = ('cpf-core', 'cpf-common', 'cpf-admin', 'cpf-biz-admin', 'cpf-batch', 'cpf-gateway', 'cpf-starters')
+        modules = ('cpf-core', 'cpf-common', 'cpf-admin', 'cpf-backoffice/online', 'cpf-batch', 'cpf-gateway', 'cpf-starters')
         logical = {
             'cpf-core': ':framework:core', 'cpf-common': ':starters:common',
-            'cpf-admin': ':apps:admin', 'cpf-biz-admin': ':apps:biz-admin',
+            'cpf-admin': ':apps:admin', 'cpf-backoffice/online': ':apps:backoffice',
             'cpf-batch': ':runtime:batch', 'cpf-gateway': ':runtime:gateway',
             'cpf-starters': ':starters:test-fixture',
         }
@@ -34,8 +34,8 @@ class T(unittest.TestCase):
         (root / 'cpf-core/src/main/java/x/A.java').write_text('package x;\n', encoding='utf-8')
         (root / 'cpf-gateway/src/main/java/com/cpf/gateway/internal').mkdir(parents=True, exist_ok=True)
         (root / 'cpf-gateway/src/main/java/com/cpf/gateway/internal/Route.java').write_text('package com.cpf.gateway.internal; public class Route {}\n', encoding='utf-8')
-        (root / 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/internal').mkdir(parents=True, exist_ok=True)
-        (root / 'cpf-biz-admin/src/main/java/com/cpf/bizadmin/internal/Secret.java').write_text('package com.cpf.bizadmin.internal; public class Secret {}\n', encoding='utf-8')
+        (root / 'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/internal').mkdir(parents=True, exist_ok=True)
+        (root / 'cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/internal/Secret.java').write_text('package com.cpf.backoffice.online.internal; public class Secret {}\n', encoding='utf-8')
         return temp, root
 
     def test_pass(self):
@@ -59,7 +59,7 @@ class T(unittest.TestCase):
         temp, root = self.fixture()
         self.addCleanup(temp.cleanup)
         (root / 'cpf-admin/src/main/java/x/Admin.java').write_text(
-            'package x;\nimport com.cpf.bizadmin.internal.Secret;\n', encoding='utf-8'
+            'package x;\nimport com.cpf.backoffice.online.internal.Secret;\n', encoding='utf-8'
         )
         with self.assertRaises(Exception) as failure:
             load().verify(root)

@@ -26,9 +26,12 @@ def generated_root_name(domain_name:str)->str:
     # Generated Customer Domain의 물리 Root는 CPF Root naming 표준에 따라 cpf-<domain>을 사용한다.
     return domain_name if domain_name.startswith('cpf-') else f'cpf-{domain_name}'
 
-def workspace_definition_root(root:Path)->Path:
-    public_root=root/'domains'
-    return public_root if public_root.is_dir() else root/'cpf-tools/generator/definitions'
+def canonical_domain_root(root:Path, domain_name:str)->Path:
+    """Logical definition과 Generated Source가 함께 사는 cpf-<domain> canonical root입니다."""
+    return root/generated_root_name(domain_name)
+
+def workspace_definitions(root:Path)->list[Path]:
+    return sorted(p for p in root.glob('cpf-*/cpf-domain.yaml') if p.is_file())
 
 
 def _golden_domain_definition(name:str, system_code:str, batch:bool)->str:
@@ -61,36 +64,33 @@ def _golden_domain_definition(name:str, system_code:str, batch:bool)->str:
 def create_workspace_domain(root:Path,name:str,system_code:str,batch:bool)->dict:
     name=name.strip().lower(); system_code=system_code.strip().upper()
     if not name or not system_code: raise DomainError('domain name/systemCode가 필요합니다.')
-    definitions=workspace_definition_root(root); definitions.mkdir(parents=True,exist_ok=True)
-    canonical=definitions/name/'cpf-domain.yaml'
-    final_output=root/generated_root_name(name)
+    final_output=canonical_domain_root(root,name)
+    canonical=final_output/'cpf-domain.yaml'
     if canonical.exists(): raise DomainError(f'Domain definition이 이미 존재합니다: {canonical}')
     if final_output.exists(): raise DomainError(f'Generated Domain project가 이미 존재합니다: {final_output}')
     body=_golden_domain_definition(name,system_code,batch)
     temp_parent=root/'build'/'domain-generator'/'new'; temp_parent.mkdir(parents=True,exist_ok=True)
+    # 먼저 외부 staging definition으로 dry-run하여 validation을 끝내고, 성공한 경우에만 canonical root를 생성합니다.
     with tempfile.TemporaryDirectory(prefix='cpf-domain-new-',dir=temp_parent) as td:
         stage=Path(td); definition=stage/'cpf-domain.yaml'; definition.write_text(body,encoding='utf-8',newline='\n')
-        stage_output=stage/generated_root_name(name)
-        generated=generate(root,definition,stage_output)
-        if generated.get('verify',{}).get('status')!='PASS': raise DomainError(f'Generated Domain verification failed: {name}')
-        canonical.parent.mkdir(parents=True,exist_ok=True); canonical.write_text(body,encoding='utf-8',newline='\n')
-        try:
-            shutil.move(str(stage_output),str(final_output))
-            verified=generate(root,canonical,final_output)
-        except Exception:
-            if final_output.exists(): shutil.rmtree(final_output,ignore_errors=True)
-            if canonical.exists(): canonical.unlink()
-            try: canonical.parent.rmdir()
-            except OSError: pass
-            raise
+        planned=dry_run(root,definition,final_output)
+        if planned.get('status')!='DRY_RUN_PASS': raise DomainError(f'Generated Domain preflight failed: {name}')
+    canonical.parent.mkdir(parents=True,exist_ok=False)
+    canonical.write_text(body,encoding='utf-8',newline='\n')
+    try:
+        verified=generate(root,canonical,final_output)
+        if verified.get('verify',{}).get('status')!='PASS': raise DomainError(f'Generated Domain verification failed: {name}')
+    except Exception:
+        if final_output.exists(): shutil.rmtree(final_output,ignore_errors=True)
+        raise
     return {'status':'PASS','action':'DOMAIN_NEW','domain':name,'systemCode':system_code,'batch':batch,'definition':str(canonical),'project':str(final_output),'generator':verified}
 
 
 def sync_workspace_domains(root:Path)->dict:
-    definitions=workspace_definition_root(root)
-    if not definitions.is_dir(): raise DomainError(f'Workspace Domain Catalog가 없습니다: {definitions}')
+    definitions=workspace_definitions(root)
+    if not definitions: raise DomainError(f'Canonical cpf-<domain>/cpf-domain.yaml이 없습니다: {root}')
     results=[]
-    for definition in sorted(definitions.glob('*/cpf-domain.yaml')):
+    for definition in definitions:
         d=validate_definition(load_yaml_subset(definition)); output=root/generated_root_name(d.name)
         if not output.is_dir():
             result=generate(root,definition,output)
@@ -107,7 +107,7 @@ def resolve_definition(root:Path, domain_name:str, file_value:str|None=None)->Pa
         p=Path(file_value)
         p=p if p.is_absolute() else root/p
     else:
-        p=root/'cpf-tools/generator/definitions'/domain_name/'cpf-domain.yaml'
+        p=canonical_domain_root(root,domain_name)/'cpf-domain.yaml'
     p=p.resolve()
     if not p.is_file(): raise DomainError(f'Generator definition이 없습니다. --file을 지정하세요: {p}')
     d=validate_definition(load_yaml_subset(p))
@@ -240,9 +240,8 @@ def setup_workspace_domain(root:Path, ns) -> dict:
         selected['persistence'],selected['http_client'],selected['resilience'],selected['cache'],selected['messaging'],selected['object_storage'],selected['security_profile'],selected['sample_transaction'],ns.local_online_port,
         dependencies,external_clients)
 
-    definition_root=workspace_definition_root(root)
-    canonical=Path(ns.definition_output).resolve() if ns.definition_output else definition_root/name/'cpf-domain.yaml'
-    output=Path(ns.output).resolve() if ns.output else root/generated_root_name(name)
+    output=Path(ns.output).resolve() if ns.output else canonical_domain_root(root,name)
+    canonical=Path(ns.definition_output).resolve() if ns.definition_output else output/'cpf-domain.yaml'
     if canonical.exists() and not ns.sync:
         raise DomainError(f"Domain definition이 이미 존재합니다: {canonical}; 변경은 --sync 또는 domain sync를 사용하세요.")
     if output.exists() and not ns.sync:
@@ -292,7 +291,9 @@ def setup_workspace_domain(root:Path, ns) -> dict:
             profile.parent.mkdir(parents=True,exist_ok=True)
             profile.write_text(json.dumps(profile_payload,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
         try:
-            if output.exists():
+            # fresh setup은 canonical definition 때문에 Root directory가 이미 존재할 수 있습니다.
+            # ownership lock이 있는 기존 Domain만 upgrade하고, definition-only Root는 generate합니다.
+            if (output / 'cpf-generator.lock.json').is_file():
                 generated=upgrade(root,canonical,output)
             else:
                 generated=generate(root,canonical,output)
@@ -370,9 +371,13 @@ def main()->int:
             if ns.command=='diff': print_json(diff(root,definition,output)); return 0
             print_json(preflight(root,definition,output)); return 0
         if ns.command=='generate-all':
-            definitions_root=Path(ns.definitions_root).resolve() if ns.definitions_root else root/'cpf-tools/generator/definitions'
             output_root=Path(ns.output_root).resolve() if ns.output_root else root
-            defs=sorted(p for p in definitions_root.glob('*/cpf-domain.yaml') if p.is_file())
+            if ns.definitions_root:
+                definitions_root=Path(ns.definitions_root).resolve()
+                defs=sorted(p for p in definitions_root.glob('cpf-*/cpf-domain.yaml') if p.is_file())
+            else:
+                definitions_root=root
+                defs=workspace_definitions(root)
             if not defs: raise DomainError(f'생성할 Generated Domain definition이 없습니다: {definitions_root}')
             results=[]
             for definition in defs:
@@ -408,8 +413,7 @@ def main()->int:
             definition,output=definition_output(root,ns.file,ns.output); d=validate_definition(load_yaml_subset(definition)); print_json(verify_generated(root,definition,output,d)); return 0
         if ns.command=='all':
             generic=verify_genericity(root/'cpf-tools/generator'); results={'generator':generic,'domains':[]}
-            definitions_root=root/'cpf-tools/generator/definitions'
-            for definition in sorted(definitions_root.glob('*/cpf-domain.yaml')):
+            for definition in workspace_definitions(root):
                 d=validate_definition(load_yaml_subset(definition)); child=root/generated_root_name(d.name)
                 if not child.is_dir(): continue
                 results['domains'].append(verify_generated(root,definition,child,d))

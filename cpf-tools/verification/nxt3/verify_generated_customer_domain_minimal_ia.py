@@ -15,11 +15,11 @@ def main()->int:
     def ck(name,ok,detail=''): checks.append({'name':name,'status':'PASS' if ok else 'FAIL','detail':detail})
     domains=[]
     for out in sorted(root.glob('cpf-*')):
-        definition=root/'cpf-tools/generator/definitions'/out.name.removeprefix('cpf-')/'cpf-domain.yaml'
+        definition=out/'cpf-domain.yaml'
         if not out.is_dir() or not definition.is_file(): continue
         d=eng.validate_definition(eng.load_yaml_subset(definition)); domains.append(d.name)
         ck(f'{d.name}-root-prefix',out.name==f'cpf-{d.name}',out.name)
-        expected={'online'}|({'batch'} if d.batch else set())|({'db'} if d.persistence!='none' else set())
+        expected={'online'}|({'batch'} if d.batch else set())
         actual=domain_surface_dirs(out); ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})
         forbidden=['README.md','verification','canonical','vendors',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
         bad=[x for x in forbidden if (out/x).exists()]; ck(f'{d.name}-forbidden-surface-zero',not bad,bad)

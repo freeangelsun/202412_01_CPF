@@ -137,7 +137,7 @@ export type AdmAuthLoginBody = { operatorId?: string; otpCode?: string; password
 export type AdmAuthLoginPath = Record<string, never>;
 export type AdmAuthLoginQuery = Record<string, never>;
 export type AdmAuthLoginHeaders = Record<string, never>;
-export type AdmAuthLoginResponse = { accessToken?: string; buttonIds?: Array<string>; expiresInSeconds: number; menus?: Array<{ deleteAllowed: boolean; menuId?: string; menuName?: string; parentMenuId?: string; path?: string; readAllowed: boolean; sortOrder: number; writeAllowed: boolean }>; operator?: { accountStatus?: string; createdAt?: string; locked: boolean; mobileNo?: string; officePhoneNo?: string; operatorId?: string; operatorName?: string; passwordChangeRequired: boolean; passwordExpired: boolean; rawViewAllowed: boolean; roleIds?: Array<string>; updatedAt?: string; versionNo: number }; tokenType?: string };
+export type AdmAuthLoginResponse = { accessToken?: string; allowedOperationIds?: Array<string>; buttonIds?: Array<string>; expiresInSeconds: number; menus?: Array<{ deleteAllowed: boolean; menuId?: string; menuName?: string; parentMenuId?: string; path?: string; readAllowed: boolean; sortOrder: number; writeAllowed: boolean }>; operator?: { accountStatus?: string; createdAt?: string; locked: boolean; mobileNo?: string; officePhoneNo?: string; operatorId?: string; operatorName?: string; passwordChangeRequired: boolean; passwordExpired: boolean; rawViewAllowed: boolean; roleIds?: Array<string>; updatedAt?: string; versionNo: number }; tokenType?: string };
 export type AdmAuthLoginOptions = CpfGeneratedBaseOptions & { data: AdmAuthLoginBody; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
 export async function admAuthLogin<T = AdmAuthLoginResponse>(options: AdmAuthLoginOptions): Promise<T> {
   const response = await orvalAdmAuthLogin(options.data as unknown as Parameters<typeof orvalAdmAuthLogin>[0], { signal: options.signal, headers: options.headers } as Parameters<typeof orvalAdmAuthLogin>[1]);
@@ -159,7 +159,7 @@ export type AdmAuthMeBody = never;
 export type AdmAuthMePath = Record<string, never>;
 export type AdmAuthMeQuery = Record<string, never>;
 export type AdmAuthMeHeaders = Record<string, never>;
-export type AdmAuthMeResponse = { buttonIds?: Array<string>; menus?: Array<{ deleteAllowed: boolean; menuId?: string; menuName?: string; parentMenuId?: string; path?: string; readAllowed: boolean; sortOrder: number; writeAllowed: boolean }>; operatorId?: string; passwordChangeRequired: boolean; roleIds?: Array<string> };
+export type AdmAuthMeResponse = { allowedOperationIds?: Array<string>; buttonIds?: Array<string>; menus?: Array<{ deleteAllowed: boolean; menuId?: string; menuName?: string; parentMenuId?: string; path?: string; readAllowed: boolean; sortOrder: number; writeAllowed: boolean }>; operatorId?: string; passwordChangeRequired: boolean; roleIds?: Array<string> };
 export type AdmAuthMeOptions = CpfGeneratedBaseOptions & { data?: never; path?: never; query?: never; headers?: CpfGeneratedHeaders; };
 export async function admAuthMe<T = AdmAuthMeResponse>(options: AdmAuthMeOptions = {} as AdmAuthMeOptions): Promise<T> {
   const response = await orvalAdmAuthMe({ signal: options.signal, headers: options.headers } as Parameters<typeof orvalAdmAuthMe>[0]);

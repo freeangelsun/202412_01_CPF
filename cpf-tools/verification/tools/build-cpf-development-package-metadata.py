@@ -281,7 +281,7 @@ def main() -> int:
             "live Oracle/PostgreSQL/MariaDB lifecycle",
             "Redis/Valkey live reconnect/failover",
             "Multi-WAS/process-kill/restart/redeploy",
-            "external BZA live HTTP/browser E2E",
+            "Backoffice/MBW live HTTP/browser E2E",
             "PowerShell runtime execution",
             "real public Git remote clone/commit/push",
         ],

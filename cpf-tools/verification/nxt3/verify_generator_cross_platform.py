@@ -68,20 +68,20 @@ def main()->int:
 
     # 두 공식 Root는 한 번의 Public CLI verify-all로 검증하여 중복 Python startup을 제거한다.
     for name in ('cpf-member','cpf-external'):
-        logical=name.removeprefix('cpf-'); definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'; check(f'{name}-definition',definition.is_file(),str(definition)); check(f'{name}-customer-metadata-zero',not (root/name/'.cpf').exists(),str(root/name/'.cpf'))
+        logical=name.removeprefix('cpf-'); definition=root/name/'cpf-domain.yaml'; check(f'{name}-definition',definition.is_file(),str(definition)); check(f'{name}-customer-metadata-zero',not (root/name/'.cpf').exists(),str(root/name/'.cpf'))
     all_verify=run([*launcher,'verify','all'],root,10)
     check('retained-member-external-verify-all',all_verify['rc']==0 and '"status": "PASS"' in all_verify['stdout'],all_verify)
     for name in ('cpf-member','cpf-external'):
         d=root/name; dirs=domain_surface_dirs(d)
         logical=name.removeprefix('cpf-')
-        definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'
+        definition=root/name/'cpf-domain.yaml'
         dd=engine.validate_definition(engine.load_yaml_subset(definition))
         expected={'online'} | ({'batch'} if dd.batch else set())
         check(f'{name}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})
         check(f'{name}-no-readme-verification-db',not any((d/x).exists() for x in ['README.md','verification','db']),str(d))
     for name in ('cpf-member','cpf-external'):
         try:
-            logical=name.removeprefix('cpf-'); dr=engine.diff(root,root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml',root/name)
+            logical=name.removeprefix('cpf-'); dr=engine.diff(root,root/name/'cpf-domain.yaml',root/name)
             check(f'{name}-idempotent-diff',dr.get('clean') is True,dr)
         except Exception as e: add(f'{name}-idempotent-diff','FAIL',repr(e))
 
@@ -121,16 +121,16 @@ def main()->int:
         try:
             gen=engine.generate(root,lifedef,life)
             rem=engine.remove_owned(root,lifedef,life,apply=True)
-            restore=engine.generate(root,lifedef,life)
+            restore=engine.restore(root,lifedef,life)
             clean=engine.diff(root,lifedef,life)
-            ok=gen.get('status')=='GENERATED' and rem.get('status')=='REMOVED' and restore.get('status')=='GENERATED' and clean.get('clean') is True and not (life/'.cpf').exists()
+            ok=gen.get('status')=='GENERATED' and rem.get('status')=='REMOVED' and restore.get('status')=='RESTORED' and clean.get('clean') is True and not (life/'.cpf').exists()
             add('remove-restore-isolated-lifecycle','PASS' if ok else 'FAIL',{'generate':gen.get('status'),'remove':rem.get('status'),'restore':restore.get('status'),'diffClean':clean.get('clean')})
         except Exception as e: add('remove-restore-isolated-lifecycle','FAIL',repr(e))
         finally:
             if life.exists(): shutil.rmtree(life)
 
         # generate-all Public CLI를 실제 실행한다.
-        defs=troot/'definitions'; write_def(defs/'alpha'/'cpf-domain.yaml','alpha','ALP','ALP'); write_def(defs/'beta'/'cpf-domain.yaml','beta','BET','BET')
+        defs=troot/'definitions'; write_def(defs/'cpf-alpha'/'cpf-domain.yaml','alpha','ALP','ALP'); write_def(defs/'cpf-beta'/'cpf-domain.yaml','beta','BET','BET')
         outs=troot/'all outputs'; allr=run([*launcher,'domain','generate-all','--definitions-root',str(defs),'--output-root',str(outs)],root,12)
         allok=allr['rc']==0 and (outs/'cpf-alpha/online').is_dir() and (outs/'cpf-beta/online').is_dir() and not (outs/'cpf-alpha/.cpf').exists() and not (outs/'cpf-beta/.cpf').exists()
         add('generate-all-two-domains','PASS' if allok else 'FAIL',allr)
@@ -140,7 +140,7 @@ def main()->int:
     for command in ('generate','add','dry-run','diff','regenerate','upgrade','remove','restore','generate-all'):
         check('cli-surface-'+command,command in py_text,command)
 
-    text_files=[p for p in [cli,py,root/'cpf-tools/generator/definitions/member/cpf-domain.yaml',root/'cpf-tools/generator/definitions/external/cpf-domain.yaml'] if p.is_file()]
+    text_files=[p for p in [cli,py,root/'cpf-member/cpf-domain.yaml',root/'cpf-external/cpf-domain.yaml'] if p.is_file()]
     lf_ok=True; utf_ok=True
     for p in text_files:
         raw=p.read_bytes(); lf_ok &= b'\r\n' not in raw

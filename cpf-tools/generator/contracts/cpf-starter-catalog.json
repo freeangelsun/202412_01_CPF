@@ -511,24 +511,24 @@
       }
     },
     {
-      "projectPath": ":internal:file:attachment",
+      "projectPath": ":starters:file:attachment",
       "ownerPath": "cpf-starters/file/attachment",
       "groupId": "com.cpf.starter",
       "artifactId": "cpf-starter-file-attachment",
-      "kind": "internal-starter",
-      "visibility": "internal",
+      "kind": "starter-provider",
+      "visibility": "public",
       "publicationRequired": true,
-      "role": "capability-runtime",
+      "role": "provider",
       "ownerGroup": "file",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "packageBase": "com.cpf.file.attachment",
       "configPrefix": "cpf.file.attachment",
-      "displayNameKo": "[내부] File · file attachment",
+      "displayNameKo": "File · Attachment",
       "selectionGroup": "File",
-      "usageHintKo": "Runtime 구현은 내부 조립용이며, 업무 코드는 framework integration의 Public Webhook API 계약만 사용합니다.",
-      "userSelectable": false,
+      "usageHintKo": "업무 첨부파일 업로드·다운로드·검사·보관 정책을 사용하는 Public Provider Starter",
+      "userSelectable": true,
       "runtimeRequired": true,
-      "usageLevel": "internal",
+      "usageLevel": "capability",
       "recommended": false,
       "management": {
         "id": "file.attachment",
@@ -3389,6 +3389,9 @@
     }
   },
   "removedArtifactIds": [
+    "cpf-biz-admin",
+    "cpf-biz-channel",
+    "cpf-biz-frontend",
     "cpf-integration-fixedlength-core",
     "cpf-notification-sms-spi",
     "cpf-starter-aop-service-access",
@@ -3586,6 +3589,9 @@
     }
   },
   "removedRepositoryRoots": [
+    "cpf-biz-admin",
+    "cpf-biz-channel",
+    "cpf-biz-frontend",
     "cpf-starters/aop-service-access",
     "cpf-starters/cache-aggregate",
     "cpf-starters/data/cache-caffeine",

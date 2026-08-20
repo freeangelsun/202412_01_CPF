@@ -18,6 +18,8 @@ dto=(root/'cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmReliabilityActionReq
 spec=json.loads((root/'cpf-admin/frontend/openapi/cpf-openapi.json').read_text(encoding='utf-8'))
 generated=(root/'cpf-admin/frontend/src/generated/cpf-api.ts').read_text(encoding='utf-8')
 orval_generated=(root/'cpf-admin/frontend/src/generated/orval/cpf-api.ts').read_text(encoding='utf-8')
+operations_api=(root/'cpf-admin/frontend/src/features/operations/api.ts').read_text(encoding='utf-8')
+recovery_methods=(root/'cpf-admin/frontend/src/app/methods/routeClosureMethods.ts').read_text(encoding='utf-8')
 # Owner mutation must be atomic/CAS and require operator+reason.
 assert '@Transactional(transactionManager="cpfTransactionManager")\n    public ChangeResult requestDlqReplay' in op
 assert 'required(operatorId,"operatorId")' in op and 'required(reason,"reason")' in op
@@ -39,8 +41,17 @@ assert operation['requestBody']['required'] is True
 assert operation['requestBody']['content']['application/json']['schema']['$ref'].endswith('AdmReliabilityActionRequest')
 schema=spec['components']['schemas']['AdmReliabilityActionRequest']
 assert 'reason' in schema.get('required',[]) and schema['properties']['reason'].get('minLength',0) >= 1
-assert 'function requestAdmBrokerDlqReplay' in generated
-assert 'export async function requestAdmBrokerDlqReplay' in generated and 'url:renderPath("/adm/api/reliability/broker/dlq/{messageId}/replay",options.path)' in generated and 'method:"POST"' in generated and 'data:options.data' in generated
+# Current frontend contract is OpenAPI -> Orval generated client -> CPF generated facade -> real consumer.
+assert operation.get('operationId') == 'requestAdmBrokerDlqReplay'
+assert 'export async function requestAdmBrokerDlqReplay' in generated
+generated_start=generated.index('export async function requestAdmBrokerDlqReplay')
+generated_end=generated.find('\nexport ', generated_start + 1)
+if generated_end < 0:
+    generated_end=len(generated)
+generated_block=generated[generated_start:generated_end]
+assert 'orvalRequestAdmBrokerDlqReplay(' in generated_block
+assert 'options.path["messageId"]' in generated_block
+assert 'options.data' in generated_block
 assert 'export const requestAdmBrokerDlqReplay' in orval_generated
 orval_start=orval_generated.index('export const requestAdmBrokerDlqReplay')
 orval_end=orval_generated.find('// CPF PRE-RUNTIME FALLBACK END requestAdmBrokerDlqReplay', orval_start)
@@ -50,4 +61,7 @@ if orval_end < 0:
     orval_end=len(orval_generated)
 orval_block=orval_generated[orval_start:orval_end]
 assert "method: 'POST'" in orval_block and 'data,' in orval_block
-print('PASS EVENT-DLQ approval/owner contract')
+# At least one real operations/recovery consumer must call the generated replay operation with a reason.
+assert 'requestAdmBrokerDlqReplay' in operations_api and 'reason' in operations_api
+assert 'requestAdmBrokerDlqReplay' in recovery_methods and 'reason' in recovery_methods
+print('PASS EVENT-DLQ approval/owner/generated-consumer contract')

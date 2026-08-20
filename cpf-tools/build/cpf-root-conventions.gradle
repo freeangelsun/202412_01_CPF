@@ -544,3 +544,26 @@ tasks.register('cpfModulesAll') {
         }
     }
 }
+
+// CPF root regression must compile optional prebuilt Business Domains against the current Source Tree
+// while the Business Domain build itself declares Public GAVs only. This prevents stale local publications
+// without introducing project()/internal dependencies into the standalone Domain contract.
+gradle.projectsEvaluated {
+    def backoffice = rootProject.findProject(':apps:backoffice')
+    if (backoffice != null) {
+        def substitutions = [
+                'com.cpf.starter:cpf-starter-secure-api': ':starters:profiles:secure-api',
+                'com.cpf.starter:cpf-starter-data-mybatis': ':starters:data:mybatis',
+                'com.cpf.starter:cpf-starter-common': ':starters:common',
+                'com.cpf.starter:cpf-starter-file-attachment': ':starters:file:attachment'
+        ]
+        backoffice.configurations.configureEach { configuration ->
+            configuration.resolutionStrategy.dependencySubstitution { rules ->
+                substitutions.each { gav, projectPath ->
+                    rules.substitute rules.module(gav) using rules.project(projectPath) because 'CPF root regression uses current Public Starter Source'
+                }
+            }
+        }
+    }
+}
+

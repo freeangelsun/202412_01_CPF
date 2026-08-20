@@ -3,7 +3,7 @@ package com.cpf.admin.opr.controller;
 import com.cpf.core.api.version.CpfPlatformVersion;
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.foundation.version.CpfPlatformVersionLoader;
-import com.cpf.security.api.annotation.CpfPreAuthorize;
+import com.cpf.security.api.annotation.CpfPermission;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +22,7 @@ public final class AdmPlatformVersionController extends AdmBaseController {
     }
 
     @GetMapping("/version")
-    @CpfPreAuthorize("hasAuthority('ADM_PLATFORM_READ')")
+    @CpfPermission("hasAuthority('ADM_PLATFORM_READ')")
     @CpfTransactional(readOnly = true)
     @Operation(operationId = "admPlatformVersion", summary = "CPF Platform 버전 조회")
     public CpfPlatformVersion version() {

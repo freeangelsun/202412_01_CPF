@@ -33,10 +33,18 @@ foreach($row in $rows){
     if($seen.ContainsKey($rel)){throw "DELETE_MANIFEST_DUPLICATE_PATH: $rel"}
     $seen[$rel]=$true
     if([IO.Path]::IsPathRooted($rel) -or $rel -match '(^|/)\.\.(/|$)' -or $rel.IndexOfAny([char[]]'*?[]') -ge 0){throw "DELETE_MANIFEST_UNSAFE_PATH: $rel"}
-    foreach($prefix in $protectedPrefixes){if($rel.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){throw "DELETE_MANIFEST_PROTECTED_PATH: $rel"}}
-    foreach($exact in $protectedExact){if($rel.Equals($exact,[StringComparison]::OrdinalIgnoreCase)){throw "DELETE_MANIFEST_PROTECTED_PATH: $rel"}}
     $target=[IO.Path]::GetFullPath((Join-Path $root ($rel.Replace('/',[IO.Path]::DirectorySeparatorChar))))
     if(-not $target.StartsWith($rootPrefix,[StringComparison]::OrdinalIgnoreCase)){throw "DELETE_MANIFEST_PATH_ESCAPE: $rel"}
+    $isProtected=$false
+    foreach($prefix in $protectedPrefixes){if($rel.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){$isProtected=$true;break}}
+    if(-not $isProtected){foreach($exact in $protectedExact){if($rel.Equals($exact,[StringComparison]::OrdinalIgnoreCase)){$isProtected=$true;break}}}
+    # Historical protected-path evidence is allowed only when the path is already absent.
+    # A currently existing protected path remains fail-closed and is never removed by this utility.
+    if($isProtected -and -not(Test-Path -LiteralPath $target)){
+        $alreadyAbsent++
+        continue
+    }
+    if($isProtected){throw "DELETE_MANIFEST_PROTECTED_PATH: $rel"}
     if(Test-Path -LiteralPath $target -PathType Container){
         if(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue | Select-Object -First 1){throw "DELETE_MANIFEST_NONEMPTY_DIRECTORY_FORBIDDEN: $rel"}
         Remove-Item -LiteralPath $target -Force

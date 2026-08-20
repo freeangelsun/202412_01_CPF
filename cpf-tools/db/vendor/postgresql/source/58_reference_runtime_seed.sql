@@ -211,7 +211,7 @@ VALUES ('MBW', '업무 백오피스 서비스', 'INTERNAL', 'MBW', 'CPF 업무 �
     ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
 ON CONFLICT (service_id) DO UPDATE SET service_name=EXCLUDED.service_name, service_type=EXCLUDED.service_type, owner_module_code=EXCLUDED.owner_module_code, description=EXCLUDED.description, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 INSERT INTO OPS_SERVICE_ENDPOINT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by)
-VALUES ('MBW_API', 'MBW', 'MBW API Endpoint', 'HTTP', 'http://localhost:8091', '/api/backoffice', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+VALUES ('MBW_API', 'MBW', 'MBW API Endpoint', 'HTTP', 'http://localhost:8091', '/api/v1/backoffice', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('EDU_API', 'EDU', 'EDU API Endpoint', 'HTTP', 'http://localhost:8099', '/education', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://localhost:8093', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
     ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://localhost:8090', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')

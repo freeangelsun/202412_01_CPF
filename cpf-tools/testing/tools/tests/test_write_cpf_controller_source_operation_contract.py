@@ -225,7 +225,7 @@ class FixtureController {
     def test_bza_mutation_standard_error_policy_includes_422(self) -> None:
         self.assertEqual(
             ["400", "401", "403", "429", "500", "503", "404", "409", "422"],
-            MODULE.standard_error_statuses("BZA", "POST", "/api/bza/items/{id}"),
+            MODULE.standard_error_statuses("MBW", "POST", "/api/bza/items/{id}"),
         )
         self.assertNotIn("422", MODULE.standard_error_statuses("ADM", "POST", "/adm/api/items/{id}"))
 

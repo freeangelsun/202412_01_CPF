@@ -3,7 +3,8 @@
 from __future__ import annotations
 import argparse,csv,json
 from pathlib import Path
-PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED_EXACT={'cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md'}
 APPROVED_TOOLS={'build','contracts','db','environment','generator','governance','release','runtime','security','supply-chain','testing','verification'}
 LEGACY_TOOLS={'config','performance','product-governance','promotion','runtime-alternatives','scripts','analysis'}
 
@@ -46,8 +47,9 @@ def main():
   if path in seen: fail.append('delete_manifest_duplicate='+path)
   seen.add(path)
   if Path(path).is_absolute() or '..' in Path(path).parts: fail.append('unsafe_delete='+path)
-  if any(path==x.rstrip('/') or path.startswith(x) for x in PROTECTED): fail.append('protected_delete='+path)
-  if (r/path).exists() and (r/path).is_dir(): fail.append('directory_delete_forbidden='+path)
+  target=r/path
+  if (any(path==x.rstrip('/') or path.startswith(x) for x in PROTECTED) or path in PROTECTED_EXACT) and target.exists(): fail.append('protected_delete='+path)
+  if target.exists() and target.is_dir(): fail.append('directory_delete_forbidden='+path)
   if not ({'DELETE','DELETE_CANDIDATE'} & decided.get(path,set())): fail.append('delete_without_garbage_decision='+path)
  tools=r/'cpf-tools'
  if tools.exists():

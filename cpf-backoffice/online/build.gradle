@@ -8,11 +8,13 @@ plugins {
 group = 'com.cpf.backoffice'
 
 dependencies {
+    // 업무 Domain은 항상 Public Binary 좌표만 선언합니다. CPF root regression에서는
+    // root convention의 dependency substitution이 같은 Source Tree Public Starter로 치환합니다.
     implementation platform("com.cpf:cpf-platform-bom:${cpfPlatformVersion}")
-    implementation "com.cpf.starter:cpf-starter:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-secure-api:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-data-mybatis:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-common:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-file-attachment:${cpfPlatformVersion}"
 
     // MBW는 공식 DB3 Vendor만 지원합니다. Version은 CPF BOM이 정렬합니다.
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'

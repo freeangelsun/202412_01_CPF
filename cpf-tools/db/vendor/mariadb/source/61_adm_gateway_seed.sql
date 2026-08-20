@@ -5,17 +5,6 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 USE cpfDB;
-INSERT INTO ADM_MENU (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('GATEWAY_DASHBOARD',NULL,'Gateway 대시보드','/adm#gateway-dashboard',300,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_SERVERS','GATEWAY_DASHBOARD','Gateway 연동 서버','/adm#gateway-servers',301,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_GROUPS','GATEWAY_DASHBOARD','Gateway 서버 그룹','/adm#gateway-groups',302,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_ROUTES','GATEWAY_DASHBOARD','Gateway 경로·라우팅','/adm#gateway-routes',303,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_SECURITY','GATEWAY_DASHBOARD','Gateway 보안·제한','/adm#gateway-security',304,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_HEALTH','GATEWAY_DASHBOARD','Gateway Health·연결시험','/adm#gateway-health',305,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_TRANSACTIONS','GATEWAY_DASHBOARD','Gateway 거래 조회','/adm#gateway-transactions',306,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_LOG_POLICY','GATEWAY_DASHBOARD','Gateway 로그 정책','/adm#gateway-log-policies',307,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_APPLY_STATUS','GATEWAY_DASHBOARD','Gateway 적용 상태·이력','/adm#gateway-apply-status',308,'Y','SYSTEM','SYSTEM')
-ON DUPLICATE KEY UPDATE parent_menu_id=VALUES(parent_menu_id), menu_name=VALUES(menu_name), menu_path=VALUES(menu_path), sort_order=VALUES(sort_order), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=VALUES(updated_at);
 INSERT INTO ADM_BUTTON (button_id, menu_id, action_code, button_name, http_method, api_pattern, sort_order, use_yn, created_by, updated_by)
 VALUES ('GATEWAY_READ','GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET','/adm/api/gateway-registry/**',10,'Y','SYSTEM','SYSTEM'),
 ('GATEWAY_GROUP_WRITE','GATEWAY_GROUPS','WRITE','Server Group 저장','POST','/adm/api/gateway-registry/server-groups',20,'Y','SYSTEM','SYSTEM'),

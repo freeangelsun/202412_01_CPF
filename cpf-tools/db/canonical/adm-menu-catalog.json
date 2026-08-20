@@ -1,0 +1,1129 @@
+{
+  "schemaVersion": 1,
+  "owner": "cpf-admin",
+  "policy": {
+    "routeCount": 68,
+    "uniqueMenuCount": 64,
+    "oneMenuMayOwnMultipleRoutes": true,
+    "frontendRegistry": "cpf-admin/frontend/src/app/routes",
+    "dbSeedModel": "cpf-tools/db/canonical/seed-model.json"
+  },
+  "menus": [
+    {
+      "menuId": "DASHBOARD",
+      "parentMenuId": null,
+      "menuName": "대시보드",
+      "menuPath": "/adm",
+      "sortOrder": 10,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "dashboard",
+          "path": "/",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "통합 운영 Dashboard"
+        }
+      ]
+    },
+    {
+      "menuId": "CAPABILITY_FLEET",
+      "parentMenuId": null,
+      "menuName": "CPF Capability",
+      "menuPath": "/adm#capabilities",
+      "sortOrder": 15,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "capabilities",
+          "path": "/capabilities",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "CPF Capability"
+        }
+      ]
+    },
+    {
+      "menuId": "LOG_LIST",
+      "parentMenuId": null,
+      "menuName": "온라인 거래 로그",
+      "menuPath": "/adm#logs",
+      "sortOrder": 20,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "logs",
+          "path": "/logs",
+          "group": "traceLog",
+          "riskLevel": "MEDIUM",
+          "label": "거래 로그"
+        },
+        {
+          "routeId": "transactionGroups",
+          "path": "/transactionGroups",
+          "group": "traceLog",
+          "riskLevel": "MEDIUM",
+          "label": "Online·Batch 통합 Trace"
+        }
+      ]
+    },
+    {
+      "menuId": "STANDARD_EXECUTION",
+      "parentMenuId": null,
+      "menuName": "표준 실행 카탈로그",
+      "menuPath": "/adm#standard-executions",
+      "sortOrder": 23,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "standardExecutions",
+          "path": "/standardExecutions",
+          "group": "traceLog",
+          "riskLevel": "MEDIUM",
+          "label": "표준 실행"
+        }
+      ]
+    },
+    {
+      "menuId": "CHANNEL_POLICY",
+      "parentMenuId": null,
+      "menuName": "채널 정책",
+      "menuPath": "/adm#channel-policy",
+      "sortOrder": 24,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "channelPolicy",
+          "path": "/channelPolicy",
+          "group": "configPolicy",
+          "riskLevel": "HIGH",
+          "label": "채널 정책"
+        }
+      ]
+    },
+    {
+      "menuId": "REMOTE_LOG",
+      "parentMenuId": null,
+      "menuName": "원격 로그 관리",
+      "menuPath": "/adm#remote-logs",
+      "sortOrder": 25,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "remoteLogs",
+          "path": "/remoteLogs",
+          "group": "traceLog",
+          "riskLevel": "MEDIUM",
+          "label": "원격 로그"
+        }
+      ]
+    },
+    {
+      "menuId": "TRANSACTION_META",
+      "parentMenuId": null,
+      "menuName": "거래 메타",
+      "menuPath": "/adm#transactions",
+      "sortOrder": 25,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "transactions",
+          "path": "/transactions",
+          "group": "traceLog",
+          "riskLevel": "HIGH",
+          "label": "온라인 거래 정의"
+        }
+      ]
+    },
+    {
+      "menuId": "AUDIT_LOG",
+      "parentMenuId": null,
+      "menuName": "감사 로그",
+      "menuPath": "/adm#audit-logs",
+      "sortOrder": 30,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "auditLogs",
+          "path": "/auditLogs",
+          "group": "auditChange",
+          "riskLevel": "MEDIUM",
+          "label": "감사 로그"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH",
+      "parentMenuId": null,
+      "menuName": "배치 관제",
+      "menuPath": "/adm#batch",
+      "sortOrder": 50,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch",
+          "path": "/batch",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Batch / Center-Cut"
+        }
+      ]
+    },
+    {
+      "menuId": "RELIABILITY",
+      "parentMenuId": null,
+      "menuName": "신뢰성 처리 관제",
+      "menuPath": "/adm#reliability",
+      "sortOrder": 52,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "reliability",
+          "path": "/reliability",
+          "group": "failureRecovery",
+          "riskLevel": "MEDIUM",
+          "label": "Analysis Center"
+        }
+      ]
+    },
+    {
+      "menuId": "NOTIFICATION",
+      "parentMenuId": null,
+      "menuName": "알림 관리",
+      "menuPath": "/adm#notifications",
+      "sortOrder": 55,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "notifications",
+          "path": "/notifications",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "알림"
+        }
+      ]
+    },
+    {
+      "menuId": "DOWNLOAD",
+      "parentMenuId": null,
+      "menuName": "다운로드 감사",
+      "menuPath": "/adm#downloads",
+      "sortOrder": 58,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "downloads",
+          "path": "/downloads",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "다운로드"
+        }
+      ]
+    },
+    {
+      "menuId": "CACHE",
+      "parentMenuId": null,
+      "menuName": "캐시 관리",
+      "menuPath": "/adm#cache",
+      "sortOrder": 60,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "cache",
+          "path": "/cache",
+          "group": "configPolicy",
+          "riskLevel": "HIGH",
+          "label": "캐시"
+        }
+      ]
+    },
+    {
+      "menuId": "FILE_JOB",
+      "parentMenuId": null,
+      "menuName": "대량파일 Job",
+      "menuPath": "/adm#file-jobs",
+      "sortOrder": 61,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "file-jobs",
+          "path": "/file-jobs",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "대량파일 Job"
+        }
+      ]
+    },
+    {
+      "menuId": "MESSAGE",
+      "parentMenuId": null,
+      "menuName": "메시지 관리",
+      "menuPath": "/adm#messages",
+      "sortOrder": 70,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "messages",
+          "path": "/messages",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "전문·Protocol Message"
+        }
+      ]
+    },
+    {
+      "menuId": "CODE",
+      "parentMenuId": null,
+      "menuName": "코드 관리",
+      "menuPath": "/adm#codes",
+      "sortOrder": 80,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "codes",
+          "path": "/codes",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "코드"
+        }
+      ]
+    },
+    {
+      "menuId": "RESPONSE_CODE",
+      "parentMenuId": null,
+      "menuName": "응답코드 관리",
+      "menuPath": "/adm#response-codes",
+      "sortOrder": 90,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "responseCodes",
+          "path": "/responseCodes",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "응답코드"
+        }
+      ]
+    },
+    {
+      "menuId": "CONFIG",
+      "parentMenuId": null,
+      "menuName": "설정 관리",
+      "menuPath": "/adm#configs",
+      "sortOrder": 100,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "configs",
+          "path": "/configs",
+          "group": "configPolicy",
+          "riskLevel": "HIGH",
+          "label": "설정"
+        }
+      ]
+    },
+    {
+      "menuId": "DYNAMIC_LOG",
+      "parentMenuId": null,
+      "menuName": "동적 로그 레벨",
+      "menuPath": "/adm#log-level",
+      "sortOrder": 110,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "logLevel",
+          "path": "/logLevel",
+          "group": "configPolicy",
+          "riskLevel": "HIGH",
+          "label": "동적 로그"
+        }
+      ]
+    },
+    {
+      "menuId": "LOG_POLICY",
+      "parentMenuId": null,
+      "menuName": "로그 정책",
+      "menuPath": "/adm#log-policies",
+      "sortOrder": 115,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-retention",
+          "path": "/batch-retention",
+          "group": "batch",
+          "riskLevel": "HIGH",
+          "label": "Logging / Retention"
+        },
+        {
+          "routeId": "logPolicies",
+          "path": "/logPolicies",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "로그 정책"
+        }
+      ]
+    },
+    {
+      "menuId": "PASSWORD",
+      "parentMenuId": null,
+      "menuName": "비밀번호 관리",
+      "menuPath": "/adm#password",
+      "sortOrder": 120,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "password",
+          "path": "/password",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "비밀번호"
+        }
+      ]
+    },
+    {
+      "menuId": "SECURITY",
+      "parentMenuId": null,
+      "menuName": "보안 운영",
+      "menuPath": "/adm#security",
+      "sortOrder": 130,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "security",
+          "path": "/security",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "보안"
+        }
+      ]
+    },
+    {
+      "menuId": "PERMISSION",
+      "parentMenuId": null,
+      "menuName": "권한 관리",
+      "menuPath": "/adm#permissions",
+      "sortOrder": 140,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "permissions",
+          "path": "/permissions",
+          "group": "security",
+          "riskLevel": "MEDIUM",
+          "label": "권한"
+        }
+      ]
+    },
+    {
+      "menuId": "SECRET",
+      "parentMenuId": null,
+      "menuName": "Secret / Key 관리",
+      "menuPath": "/adm#secrets",
+      "sortOrder": 145,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "secrets",
+          "path": "/secrets",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "Secret / Key"
+        }
+      ]
+    },
+    {
+      "menuId": "OPERATOR",
+      "parentMenuId": null,
+      "menuName": "운영자 관리",
+      "menuPath": "/adm#operators",
+      "sortOrder": 150,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "operators",
+          "path": "/operators",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "운영자"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_DASHBOARD",
+      "parentMenuId": null,
+      "menuName": "Gateway 대시보드",
+      "menuPath": "/adm#gateway-dashboard",
+      "sortOrder": 300,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-dashboard",
+          "path": "/gateway-dashboard",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 대시보드"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_SERVERS",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 연동 서버",
+      "menuPath": "/adm#gateway-servers",
+      "sortOrder": 301,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-servers",
+          "path": "/gateway-servers",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 연동 서버"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_GROUPS",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 서버 그룹",
+      "menuPath": "/adm#gateway-groups",
+      "sortOrder": 302,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-groups",
+          "path": "/gateway-groups",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 서버 그룹"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_ROUTES",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 경로·라우팅",
+      "menuPath": "/adm#gateway-routes",
+      "sortOrder": 303,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-routes",
+          "path": "/gateway-routes",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 경로·라우팅"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_SECURITY",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 보안·제한",
+      "menuPath": "/adm#gateway-security",
+      "sortOrder": 304,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-security",
+          "path": "/gateway-security",
+          "group": "gateway",
+          "riskLevel": "HIGH",
+          "label": "Gateway 보안·제한"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_HEALTH",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway Health·연결시험",
+      "menuPath": "/adm#gateway-health",
+      "sortOrder": 305,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-health",
+          "path": "/gateway-health",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway Health·연결시험"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_TRANSACTIONS",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 거래 조회",
+      "menuPath": "/adm#gateway-transactions",
+      "sortOrder": 306,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-transactions",
+          "path": "/gateway-transactions",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 거래 조회"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_LOG_POLICY",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 로그 정책",
+      "menuPath": "/adm#gateway-log-policies",
+      "sortOrder": 307,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-log-policies",
+          "path": "/gateway-log-policies",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 로그 정책"
+        }
+      ]
+    },
+    {
+      "menuId": "GATEWAY_APPLY_STATUS",
+      "parentMenuId": "GATEWAY_DASHBOARD",
+      "menuName": "Gateway 적용 상태·이력",
+      "menuPath": "/adm#gateway-apply-status",
+      "sortOrder": 308,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "gateway-apply-status",
+          "path": "/gateway-apply-status",
+          "group": "gateway",
+          "riskLevel": "MEDIUM",
+          "label": "Gateway 적용 상태·이력"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_OVERVIEW",
+      "parentMenuId": "BATCH",
+      "menuName": "Batch Overview",
+      "menuPath": "/adm#batch-overview",
+      "sortOrder": 501,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-overview",
+          "path": "/batch-overview",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Batch Overview"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_RUNTIME",
+      "parentMenuId": "BATCH",
+      "menuName": "Runtime Topology",
+      "menuPath": "/adm#batch-runtime",
+      "sortOrder": 502,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-runtime",
+          "path": "/batch-runtime",
+          "group": "batch",
+          "riskLevel": "HIGH",
+          "label": "Runtime Topology"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_INSTANCES",
+      "parentMenuId": "BATCH",
+      "menuName": "Runtime Instances",
+      "menuPath": "/adm#batch-instances",
+      "sortOrder": 503,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-instances",
+          "path": "/batch-instances",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Runtime Instances"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_SCHEDULER",
+      "parentMenuId": "BATCH",
+      "menuName": "Scheduler HA",
+      "menuPath": "/adm#batch-scheduler",
+      "sortOrder": 504,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-scheduler",
+          "path": "/batch-scheduler",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Scheduler HA"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_WORKER_POOLS",
+      "parentMenuId": "BATCH",
+      "menuName": "Worker Pools",
+      "menuPath": "/adm#batch-worker-pools",
+      "sortOrder": 505,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-worker-pools",
+          "path": "/batch-worker-pools",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Worker Pools"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_CENTER_CUT",
+      "parentMenuId": "BATCH",
+      "menuName": "Center-Cut",
+      "menuPath": "/adm#batch-center-cut",
+      "sortOrder": 506,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-center-cut",
+          "path": "/batch-center-cut",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Center-Cut"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_AGENTS",
+      "parentMenuId": "BATCH",
+      "menuName": "Host Agents",
+      "menuPath": "/adm#batch-agents",
+      "sortOrder": 507,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-agents",
+          "path": "/batch-agents",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Host Agents"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_JOB_PACKS",
+      "parentMenuId": "BATCH",
+      "menuName": "Job Packs",
+      "menuPath": "/adm#batch-job-packs",
+      "sortOrder": 508,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-job-packs",
+          "path": "/batch-job-packs",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Job Packs"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_EXECUTIONS",
+      "parentMenuId": "BATCH",
+      "menuName": "Executions",
+      "menuPath": "/adm#batch-executions",
+      "sortOrder": 509,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-executions",
+          "path": "/batch-executions",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Executions"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_DEPLOYMENT",
+      "parentMenuId": "BATCH",
+      "menuName": "Deployment / Rollback",
+      "menuPath": "/adm#batch-deployment",
+      "sortOrder": 510,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-deployment",
+          "path": "/batch-deployment",
+          "group": "batch",
+          "riskLevel": "HIGH",
+          "label": "Deployment / Rollback"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_RECOVERY",
+      "parentMenuId": "BATCH",
+      "menuName": "Recovery / Unknown",
+      "menuPath": "/adm#batch-recovery",
+      "sortOrder": 511,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-recovery",
+          "path": "/batch-recovery",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Recovery / Unknown"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_LEASES",
+      "parentMenuId": "BATCH",
+      "menuName": "Lease / Fencing",
+      "menuPath": "/adm#batch-leases",
+      "sortOrder": 512,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-leases",
+          "path": "/batch-leases",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Lease / Fencing"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_ALERTS",
+      "parentMenuId": "BATCH",
+      "menuName": "Batch Alerts",
+      "menuPath": "/adm#batch-alerts",
+      "sortOrder": 513,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-alerts",
+          "path": "/batch-alerts",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Batch Alerts"
+        }
+      ]
+    },
+    {
+      "menuId": "BATCH_AUDIT",
+      "parentMenuId": "BATCH",
+      "menuName": "Audit / Evidence",
+      "menuPath": "/adm#batch-audit",
+      "sortOrder": 514,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "batch-audit",
+          "path": "/batch-audit",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Audit / Evidence"
+        }
+      ]
+    },
+    {
+      "menuId": "APPROVAL",
+      "parentMenuId": null,
+      "menuName": "위험조치 승인",
+      "menuPath": "/adm#approvals",
+      "sortOrder": 524,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "approvals",
+          "path": "/approvals",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "위험조치 승인"
+        }
+      ]
+    },
+    {
+      "menuId": "BREAK_GLASS",
+      "parentMenuId": null,
+      "menuName": "Break-glass",
+      "menuPath": "/adm#breakGlass",
+      "sortOrder": 534,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "breakGlass",
+          "path": "/breakGlass",
+          "group": "security",
+          "riskLevel": "HIGH",
+          "label": "Break-glass"
+        }
+      ]
+    },
+    {
+      "menuId": "BUSINESS_CALENDAR",
+      "parentMenuId": null,
+      "menuName": "영업일 · 휴일",
+      "menuPath": "/adm#businessCalendar",
+      "sortOrder": 544,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "businessCalendar",
+          "path": "/businessCalendar",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "영업일 · 휴일"
+        }
+      ]
+    },
+    {
+      "menuId": "CAPACITY",
+      "parentMenuId": null,
+      "menuName": "Online Runtime Diagnostics",
+      "menuPath": "/adm#capacity",
+      "sortOrder": 554,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "capacity",
+          "path": "/capacity",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "Online Runtime Diagnostics"
+        }
+      ]
+    },
+    {
+      "menuId": "FEATURE_FLAG",
+      "parentMenuId": null,
+      "menuName": "Feature Flag",
+      "menuPath": "/adm#featureFlags",
+      "sortOrder": 564,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "featureFlags",
+          "path": "/featureFlags",
+          "group": "configPolicy",
+          "riskLevel": "CRITICAL",
+          "label": "Feature Flag"
+        }
+      ]
+    },
+    {
+      "menuId": "TOPOLOGY",
+      "parentMenuId": null,
+      "menuName": "서비스 토폴로지",
+      "menuPath": "/adm#topology",
+      "sortOrder": 574,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "topology",
+          "path": "/topology",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "서비스 토폴로지"
+        },
+        {
+          "routeId": "health-instances",
+          "path": "/health-instances",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "Runtime Instance Health"
+        }
+      ]
+    },
+    {
+      "menuId": "INCIDENT",
+      "parentMenuId": null,
+      "menuName": "Error·Unknown Result",
+      "menuPath": "/adm#incidents",
+      "sortOrder": 584,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "incidents",
+          "path": "/incidents",
+          "group": "failureRecovery",
+          "riskLevel": "HIGH",
+          "label": "Error·Unknown Result"
+        }
+      ]
+    },
+    {
+      "menuId": "INTEGRATION_CLOSURE",
+      "parentMenuId": null,
+      "menuName": "통합 운영 정정 승인",
+      "menuPath": "/adm#integrationClosure",
+      "sortOrder": 594,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "integrationClosure",
+          "path": "/integrationClosure",
+          "group": "failureRecovery",
+          "riskLevel": "CRITICAL",
+          "label": "통합 운영 정정 승인"
+        }
+      ]
+    },
+    {
+      "menuId": "MAINTENANCE",
+      "parentMenuId": null,
+      "menuName": "점검·Drain",
+      "menuPath": "/adm#maintenance",
+      "sortOrder": 604,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "maintenance",
+          "path": "/maintenance",
+          "group": "deployment",
+          "riskLevel": "HIGH",
+          "label": "점검·Drain"
+        }
+      ]
+    },
+    {
+      "menuId": "OPENAPI_OPERATIONS",
+      "parentMenuId": null,
+      "menuName": "OpenAPI 운영",
+      "menuPath": "/adm#openApiOperations",
+      "sortOrder": 614,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "openApiOperations",
+          "path": "/openApiOperations",
+          "group": "configPolicy",
+          "riskLevel": "HIGH",
+          "label": "OpenAPI 운영"
+        }
+      ]
+    },
+    {
+      "menuId": "OPS_GOVERNANCE",
+      "parentMenuId": null,
+      "menuName": "운영 정책·SLO",
+      "menuPath": "/adm#operations-governance",
+      "sortOrder": 624,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "operations-governance",
+          "path": "/operations-governance",
+          "group": "configPolicy",
+          "riskLevel": "MEDIUM",
+          "label": "운영 정책·SLO"
+        }
+      ]
+    },
+    {
+      "menuId": "RECOVERY_CENTER",
+      "parentMenuId": null,
+      "menuName": "복구 센터",
+      "menuPath": "/adm#recoveryCenter",
+      "sortOrder": 634,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "recoveryCenter",
+          "path": "/recoveryCenter",
+          "group": "failureRecovery",
+          "riskLevel": "MEDIUM",
+          "label": "복구 센터"
+        }
+      ]
+    },
+    {
+      "menuId": "RESILIENCE_POLICY",
+      "parentMenuId": null,
+      "menuName": "Resilience 정책",
+      "menuPath": "/adm#resiliencePolicies",
+      "sortOrder": 644,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "resiliencePolicies",
+          "path": "/resiliencePolicies",
+          "group": "configPolicy",
+          "riskLevel": "CRITICAL",
+          "label": "Resilience 정책"
+        }
+      ]
+    },
+    {
+      "menuId": "RUNTIME_CONTROL",
+      "parentMenuId": null,
+      "menuName": "Deployment·Promotion·Rollback",
+      "menuPath": "/adm#runtimeControl",
+      "sortOrder": 654,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "runtimeControl",
+          "path": "/runtimeControl",
+          "group": "deployment",
+          "riskLevel": "HIGH",
+          "label": "Deployment·Promotion·Rollback"
+        },
+        {
+          "routeId": "servers",
+          "path": "/servers",
+          "group": "operations",
+          "riskLevel": "HIGH",
+          "label": "서버 관리"
+        }
+      ]
+    },
+    {
+      "menuId": "SERVICE_REGISTRY",
+      "parentMenuId": null,
+      "menuName": "서비스 레지스트리",
+      "menuPath": "/adm#serviceRegistry",
+      "sortOrder": 664,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "serviceRegistry",
+          "path": "/serviceRegistry",
+          "group": "operations",
+          "riskLevel": "MEDIUM",
+          "label": "서비스 레지스트리"
+        }
+      ]
+    },
+    {
+      "menuId": "WORKER",
+      "parentMenuId": null,
+      "menuName": "Agent / Worker",
+      "menuPath": "/adm#workers",
+      "sortOrder": 674,
+      "useYn": "Y",
+      "routes": [
+        {
+          "routeId": "workers",
+          "path": "/workers",
+          "group": "batch",
+          "riskLevel": "MEDIUM",
+          "label": "Agent / Worker"
+        }
+      ]
+    }
+  ]
+}

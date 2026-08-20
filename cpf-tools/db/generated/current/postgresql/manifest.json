@@ -10,7 +10,7 @@
   },
   "artifacts": {
     "cpf-platform-schema.sql": "e2f6b40f65628805f27ef61defb824abea8338dc8863e23a2086bbf47c98e65c",
-    "cpf-platform-seed.sql": "115dd5cb993fa694d96f1d9dd0eac0d7211795a312eaeb368a0c3c935e440a2d",
+    "cpf-platform-seed.sql": "3efab45843ec6e2ffd790226f406225697ad81fe5943262c18d709850973e418",
     "cpf-platform-verify.sql": "17c4bd5de7f598501aa0d84d8b7ff75b99c2b1f7fbe67c16078420c02ea12f5a",
     "cpf-platform-rollback.sql": "d5c4e1ffd1a70bcb53ff42685497bd86f089f4dc9f97c6729289680e7053e4de",
     "backoffice-schema.sql": "77d7ae54d5f2ceacdb4cedbdf85bb1c7f9f4cbf753208ec7f09e41d686358b82",

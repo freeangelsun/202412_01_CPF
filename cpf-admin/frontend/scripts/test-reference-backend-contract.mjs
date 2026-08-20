@@ -24,12 +24,16 @@ for (const [name, source, servicePattern] of [
     assert.ok(auth >= 0 && auth < reason && reason < sideEffect, `${name}: auth/reason must precede side effect`);
   }
 }
-assert.match(code, /request\.setRequestUser\(operator\)/);
-assert.match(config, /request\.setRequestUser\(operator\)/);
-assert.match(response, /request\.setRequestUser\(operator\)/);
-assert.match(config, /"\*\*\*\*\*\*\*\*"/);
+// Canonical Common Management API는 request DTO에 actor를 주입하지 않습니다.
+// 인증된 actor는 Controller가 별도 method argument로 전달하며 client requestUser spoof field는 금지합니다.
+for (const [name, source] of [["code", code], ["config", config], ["response", response]]) {
+  assert.doesNotMatch(source, /setRequestUser\(|requestUser/);
+  assert.match(source, /requireOperator\((?:request|servletRequest|r)\)/, `${name}: authenticated actor required`);
+  assert.match(source, /common\.(?:create\w*|update\w*|delete\w*)\([\s\S]*?\b(?:actor|operator)\b/, `${name}: actor must cross canonical management boundary`);
+}
+assert.match(config, /"\[MASKED\]"/);
 assert.doesNotMatch(response, /getMostSpecificCause|detail/);
-assert.match(response, /HttpStatus\.SERVICE_UNAVAILABLE/);
+// 503 mapping은 공통 CpfBusinessException/Error Handler 계약에서 검증하며 Controller에 중복 구현하지 않습니다.
 assert.match(test, /never\(\)\)\.requireReason/);
-assert.match(test, /doesNotContain\("secret-host"\)/);
+assert.match(test, /doesNotContain\("plain-secret"\)/);
 console.log("[CPF][BACKEND][PASS] reference catalogs auth-before-side-effect, server actor, audit reason, secret masking, 503 boundary");

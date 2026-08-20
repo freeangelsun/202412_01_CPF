@@ -12,7 +12,8 @@
     "vendorSourceRole": "DERIVED_COMPATIBILITY_INPUT",
     "vendorSourceGeneratedBy": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
     "directVendorSourceEditing": "FORBIDDEN",
-    "platformConsolidatedFreshInstall": "cpfDB+mbwDB; legacy split platform/business database packs are not current fresh-install inputs"
+    "platformConsolidatedFreshInstall": "cpfDB+mbwDB; legacy split platform/business database packs are not current fresh-install inputs",
+    "vendorSeedSourceGeneratedBy": "cpf-tools/db/tools/sync-canonical-seed-bundles.py"
   },
   "mariadb": {
     "provisionFiles": [

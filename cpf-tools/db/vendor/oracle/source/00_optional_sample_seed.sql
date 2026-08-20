@@ -228,7 +228,7 @@ ON (tgt.service_id=src.service_id)
 WHEN MATCHED THEN UPDATE SET tgt.service_name=src.service_name, tgt.service_type=src.service_type, tgt.owner_module_code=src.owner_module_code, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by) VALUES (src.service_id, src.service_name, src.service_type, src.owner_module_code, src.description, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO OPS_SERVICE_ENDPOINT tgt
-USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8099' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL

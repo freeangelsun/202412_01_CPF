@@ -79,7 +79,7 @@ def _load_policy(path: Path) -> dict:
     vendors = tuple(str(x).lower() for x in data.get("officialVendors", []))
     if vendors != OFFICIAL:
         raise ValueError(f"officialVendors는 정확히 {OFFICIAL} 이어야 합니다: {vendors}")
-    for section in ("rendererOwners", "explicitVendorOverrides"):
+    for section in ("rendererOwners", "explicitVendorOverrides", "unsupportedVendorTechnicalTokenAllow"):
         for row in data.get(section, []):
             if not row.get("pattern") or not row.get("owner") or not row.get("reason") or not row.get("testId"):
                 raise ValueError(f"{section} entry는 pattern/owner/reason/testId가 모두 필요합니다: {row}")
@@ -220,6 +220,7 @@ def audit(root: Path, policy_path: Path) -> tuple[list[Finding], list[Inventory]
             inventory.append(Inventory(rel, owner, classification, True, vendor, test_id))
 
         negative_contract = any(_match(rel, pattern) for pattern in neg_allow)
+        technical_token_allow = any(_match(rel, row.get("pattern", "")) for row in policy.get("unsupportedVendorTechnicalTokenAllow", []))
 
         # Application/Generated/Education/Runtime source의 vendor branch는 등록된 owner가 아니면 금지한다.
         if p.suffix.lower() in {".java", ".kt", ".groovy", ".py", ".ps1", ".sh"} and RAW_BRANCH.search(semantic):
@@ -229,7 +230,7 @@ def audit(root: Path, policy_path: Path) -> tuple[list[Finding], list[Inventory]
 
         # 지원 종료 Vendor 명칭은 negative contract allowlist에서만 허용한다.
         unsupported = sorted({m.group(1).lower() for m in UNSUPPORTED.finditer(semantic)})
-        if unsupported and not negative_contract:
+        if unsupported and not negative_contract and not technical_token_allow:
             # 제품/운영 Source가 비공식 Vendor를 실제 지원하는 경로는 금지한다.
             # 단, unsupported Vendor reject test와 MariaDB image 내부 기술 식별자는 Policy에 근거를 둔 negative contract로 분리한다.
             findings.append(Finding("UNSUPPORTED_VENDOR", rel, ",".join(unsupported)))

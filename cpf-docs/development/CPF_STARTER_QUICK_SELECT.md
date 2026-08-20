@@ -32,12 +32,14 @@
 
 | Level | Artifact | 언제 선택 | 기본 선택? |
 |---|---|---|---|
+| capability | `cpf-starter-file-attachment` | 첨부파일 저장·조회·다운로드 기능 | 아니오 |
 | capability | `cpf-starter-object-storage-s3` | S3 호환 Object Storage 사용 | 아니오 |
 
 ### Integration
 
 | Level | Artifact | 언제 선택 | 기본 선택? |
 |---|---|---|---|
+| capability | `cpf-starter-integration-fixed-length` | 대외 고정길이 전문 송수신 | 아니오 |
 | capability | `cpf-starter-graphql` | GraphQL Endpoint/Client 사용 | 아니오 |
 | capability | `cpf-starter-realtime` | 실시간 SSE 통신 | 아니오 |
 

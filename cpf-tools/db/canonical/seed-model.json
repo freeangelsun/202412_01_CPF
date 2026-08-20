@@ -42,7 +42,7 @@
     "productionSeedPolicy": "seed.sql includes productionDefault=true only; reference-fixture-seed.sql is separate and never production default",
     "backofficeDatabaseTarget": "mbwDB"
   },
-  "statementCount": 156,
+  "statementCount": 153,
   "statements": [
     {
       "sourceFile": "50_framework_seed_data.sql",
@@ -1965,7 +1965,7 @@
         "updated_by"
       ],
       "sourceKind": "values",
-      "source": "('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CAPABILITY_FLEET', NULL, 'CPF Capability', '/adm#capabilities', 15, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 25, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RELIABILITY', NULL, '신뢰성 처리 관제', '/adm#reliability', 52, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('NOTIFICATION', NULL, '알림 관리', '/adm#notifications', 55, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('DOWNLOAD', NULL, '다운로드 감사', '/adm#downloads', 58, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('FILE_JOB', NULL, '대량파일 Job', '/adm#file-jobs', 61, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('MESSAGE', NULL, '메시지 관리', '/adm#messages', 70, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CODE', NULL, '코드 관리', '/adm#codes', 80, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CONFIG', NULL, '설정 관리', '/adm#configs', 100, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('DYNAMIC_LOG', NULL, '동적 로그 레벨', '/adm#log-level', 110, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('LOG_POLICY', NULL, '로그 정책', '/adm#log-policies', 115, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM')",
+      "source": "('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CAPABILITY_FLEET', NULL, 'CPF Capability', '/adm#capabilities', 15, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('LOG_LIST', NULL, '온라인 거래 로그', '/adm#logs', 20, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('STANDARD_EXECUTION', NULL, '표준 실행 카탈로그', '/adm#standard-executions', 23, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CHANNEL_POLICY', NULL, '채널 정책', '/adm#channel-policy', 24, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('REMOTE_LOG', NULL, '원격 로그 관리', '/adm#remote-logs', 25, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('TRANSACTION_META', NULL, '거래 메타', '/adm#transactions', 25, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('AUDIT_LOG', NULL, '감사 로그', '/adm#audit-logs', 30, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH', NULL, '배치 관제', '/adm#batch', 50, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RELIABILITY', NULL, '신뢰성 처리 관제', '/adm#reliability', 52, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('NOTIFICATION', NULL, '알림 관리', '/adm#notifications', 55, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('DOWNLOAD', NULL, '다운로드 감사', '/adm#downloads', 58, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CACHE', NULL, '캐시 관리', '/adm#cache', 60, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('FILE_JOB', NULL, '대량파일 Job', '/adm#file-jobs', 61, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('MESSAGE', NULL, '메시지 관리', '/adm#messages', 70, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CODE', NULL, '코드 관리', '/adm#codes', 80, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RESPONSE_CODE', NULL, '응답코드 관리', '/adm#response-codes', 90, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CONFIG', NULL, '설정 관리', '/adm#configs', 100, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('DYNAMIC_LOG', NULL, '동적 로그 레벨', '/adm#log-level', 110, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('LOG_POLICY', NULL, '로그 정책', '/adm#log-policies', 115, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SECRET', NULL, 'Secret / Key 관리', '/adm#secrets', 145, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_DASHBOARD', NULL, 'Gateway 대시보드', '/adm#gateway-dashboard', 300, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_SERVERS', 'GATEWAY_DASHBOARD', 'Gateway 연동 서버', '/adm#gateway-servers', 301, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_GROUPS', 'GATEWAY_DASHBOARD', 'Gateway 서버 그룹', '/adm#gateway-groups', 302, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_ROUTES', 'GATEWAY_DASHBOARD', 'Gateway 경로·라우팅', '/adm#gateway-routes', 303, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_SECURITY', 'GATEWAY_DASHBOARD', 'Gateway 보안·제한', '/adm#gateway-security', 304, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_HEALTH', 'GATEWAY_DASHBOARD', 'Gateway Health·연결시험', '/adm#gateway-health', 305, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_TRANSACTIONS', 'GATEWAY_DASHBOARD', 'Gateway 거래 조회', '/adm#gateway-transactions', 306, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_LOG_POLICY', 'GATEWAY_DASHBOARD', 'Gateway 로그 정책', '/adm#gateway-log-policies', 307, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('GATEWAY_APPLY_STATUS', 'GATEWAY_DASHBOARD', 'Gateway 적용 상태·이력', '/adm#gateway-apply-status', 308, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_OVERVIEW', 'BATCH', 'Batch Overview', '/adm#batch-overview', 501, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_RUNTIME', 'BATCH', 'Runtime Topology', '/adm#batch-runtime', 502, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_INSTANCES', 'BATCH', 'Runtime Instances', '/adm#batch-instances', 503, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_SCHEDULER', 'BATCH', 'Scheduler HA', '/adm#batch-scheduler', 504, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_WORKER_POOLS', 'BATCH', 'Worker Pools', '/adm#batch-worker-pools', 505, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_CENTER_CUT', 'BATCH', 'Center-Cut', '/adm#batch-center-cut', 506, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_AGENTS', 'BATCH', 'Host Agents', '/adm#batch-agents', 507, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_JOB_PACKS', 'BATCH', 'Job Packs', '/adm#batch-job-packs', 508, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_EXECUTIONS', 'BATCH', 'Executions', '/adm#batch-executions', 509, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_DEPLOYMENT', 'BATCH', 'Deployment / Rollback', '/adm#batch-deployment', 510, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_RECOVERY', 'BATCH', 'Recovery / Unknown', '/adm#batch-recovery', 511, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_LEASES', 'BATCH', 'Lease / Fencing', '/adm#batch-leases', 512, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_ALERTS', 'BATCH', 'Batch Alerts', '/adm#batch-alerts', 513, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BATCH_AUDIT', 'BATCH', 'Audit / Evidence', '/adm#batch-audit', 514, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('APPROVAL', NULL, '위험조치 승인', '/adm#approvals', 524, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BREAK_GLASS', NULL, 'Break-glass', '/adm#breakGlass', 534, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('BUSINESS_CALENDAR', NULL, '영업일 · 휴일', '/adm#businessCalendar', 544, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('CAPACITY', NULL, 'Online Runtime Diagnostics', '/adm#capacity', 554, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('FEATURE_FLAG', NULL, 'Feature Flag', '/adm#featureFlags', 564, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('TOPOLOGY', NULL, '서비스 토폴로지', '/adm#topology', 574, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('INCIDENT', NULL, 'Error·Unknown Result', '/adm#incidents', 584, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('INTEGRATION_CLOSURE', NULL, '통합 운영 정정 승인', '/adm#integrationClosure', 594, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('MAINTENANCE', NULL, '점검·Drain', '/adm#maintenance', 604, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('OPENAPI_OPERATIONS', NULL, 'OpenAPI 운영', '/adm#openApiOperations', 614, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('OPS_GOVERNANCE', NULL, '운영 정책·SLO', '/adm#operations-governance', 624, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RECOVERY_CENTER', NULL, '복구 센터', '/adm#recoveryCenter', 634, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RESILIENCE_POLICY', NULL, 'Resilience 정책', '/adm#resiliencePolicies', 644, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('RUNTIME_CONTROL', NULL, 'Deployment·Promotion·Rollback', '/adm#runtimeControl', 654, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('SERVICE_REGISTRY', NULL, '서비스 레지스트리', '/adm#serviceRegistry', 664, 'Y', 'SYSTEM', 'SYSTEM'),\n    ('WORKER', NULL, 'Agent / Worker', '/adm#workers', 674, 'Y', 'SYSTEM', 'SYSTEM')",
       "conflictKey": "PRIMARY",
       "conflictColumns": [
         "MENU_ID"
@@ -3021,61 +3021,6 @@
       "sourceFile": "60_adm_seed_data.sql",
       "logicalDatabase": "cpfDB",
       "statementKind": "insert",
-      "table": "ADM_MENU",
-      "tableName": "ADM_MENU",
-      "columns": [
-        "MENU_ID",
-        "PARENT_MENU_ID",
-        "MENU_NAME",
-        "MENU_PATH",
-        "SORT_ORDER",
-        "USE_YN",
-        "created_by",
-        "updated_by"
-      ],
-      "sourceKind": "values",
-      "source": "('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM')",
-      "conflictKey": "PRIMARY",
-      "conflictColumns": [
-        "MENU_ID"
-      ],
-      "updates": [
-        {
-          "column": "MENU_NAME",
-          "expression": "VALUES(MENU_NAME)"
-        },
-        {
-          "column": "MENU_PATH",
-          "expression": "VALUES(MENU_PATH)"
-        },
-        {
-          "column": "SORT_ORDER",
-          "expression": "VALUES(SORT_ORDER)"
-        },
-        {
-          "column": "USE_YN",
-          "expression": "'Y'"
-        },
-        {
-          "column": "updated_by",
-          "expression": "'SYSTEM'"
-        },
-        {
-          "column": "updated_at",
-          "expression": "CURRENT_TIMESTAMP"
-        }
-      ],
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true,
-      "currentTable": "ADM_MENU",
-      "currentTableName": "ADM_MENU",
-      "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
-    },
-    {
-      "sourceFile": "60_adm_seed_data.sql",
-      "logicalDatabase": "cpfDB",
-      "statementKind": "insert",
       "table": "ADM_BUTTON",
       "tableName": "ADM_BUTTON",
       "columns": [
@@ -3325,65 +3270,6 @@
       "productionDefault": true,
       "currentTable": "ADM_ROLE_API_PERMISSION",
       "currentTableName": "ADM_ROLE_API_PERMISSION",
-      "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
-    },
-    {
-      "sourceFile": "60_adm_seed_data.sql",
-      "logicalDatabase": "cpfDB",
-      "statementKind": "insert",
-      "table": "ADM_MENU",
-      "tableName": "ADM_MENU",
-      "columns": [
-        "MENU_ID",
-        "PARENT_MENU_ID",
-        "MENU_NAME",
-        "MENU_PATH",
-        "SORT_ORDER",
-        "USE_YN",
-        "created_by",
-        "updated_by"
-      ],
-      "sourceKind": "values",
-      "source": "('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),\n ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),\n ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),\n ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),\n ('BATCH_WORKER_POOLS','BATCH','Worker Pools','/adm#batch-worker-pools',505,'Y','SYSTEM','SYSTEM'),\n ('BATCH_CENTER_CUT','BATCH','Center-Cut','/adm#batch-center-cut',506,'Y','SYSTEM','SYSTEM'),\n ('BATCH_AGENTS','BATCH','Host Agents','/adm#batch-agents',507,'Y','SYSTEM','SYSTEM'),\n ('BATCH_JOB_PACKS','BATCH','Job Packs','/adm#batch-job-packs',508,'Y','SYSTEM','SYSTEM'),\n ('BATCH_EXECUTIONS','BATCH','Executions','/adm#batch-executions',509,'Y','SYSTEM','SYSTEM'),\n ('BATCH_DEPLOYMENT','BATCH','Deployment / Rollback','/adm#batch-deployment',510,'Y','SYSTEM','SYSTEM'),\n ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),\n ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),\n ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),\n ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')",
-      "conflictKey": "PRIMARY",
-      "conflictColumns": [
-        "MENU_ID"
-      ],
-      "updates": [
-        {
-          "column": "PARENT_MENU_ID",
-          "expression": "VALUES(PARENT_MENU_ID)"
-        },
-        {
-          "column": "MENU_NAME",
-          "expression": "VALUES(MENU_NAME)"
-        },
-        {
-          "column": "MENU_PATH",
-          "expression": "VALUES(MENU_PATH)"
-        },
-        {
-          "column": "SORT_ORDER",
-          "expression": "VALUES(SORT_ORDER)"
-        },
-        {
-          "column": "USE_YN",
-          "expression": "'Y'"
-        },
-        {
-          "column": "updated_by",
-          "expression": "'SYSTEM'"
-        },
-        {
-          "column": "updated_at",
-          "expression": "CURRENT_TIMESTAMP"
-        }
-      ],
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true,
-      "currentTable": "ADM_MENU",
-      "currentTableName": "ADM_MENU",
       "targetDatabaseRole": "CPF_PLATFORM_DB",
       "logicalOwner": "admin"
     },
@@ -7179,65 +7065,6 @@
       "currentTableName": "MBW_SAVED_SEARCH",
       "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
       "logicalOwner": "backoffice"
-    },
-    {
-      "sourceFile": "61_adm_gateway_seed.sql",
-      "logicalDatabase": "cpfDB",
-      "statementKind": "insert",
-      "table": "ADM_MENU",
-      "tableName": "ADM_MENU",
-      "columns": [
-        "menu_id",
-        "parent_menu_id",
-        "menu_name",
-        "menu_path",
-        "sort_order",
-        "use_yn",
-        "created_by",
-        "updated_by"
-      ],
-      "sourceKind": "values",
-      "source": "('GATEWAY_DASHBOARD',NULL,'Gateway 대시보드','/adm#gateway-dashboard',300,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_SERVERS','GATEWAY_DASHBOARD','Gateway 연동 서버','/adm#gateway-servers',301,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_GROUPS','GATEWAY_DASHBOARD','Gateway 서버 그룹','/adm#gateway-groups',302,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_ROUTES','GATEWAY_DASHBOARD','Gateway 경로·라우팅','/adm#gateway-routes',303,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_SECURITY','GATEWAY_DASHBOARD','Gateway 보안·제한','/adm#gateway-security',304,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_HEALTH','GATEWAY_DASHBOARD','Gateway Health·연결시험','/adm#gateway-health',305,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_TRANSACTIONS','GATEWAY_DASHBOARD','Gateway 거래 조회','/adm#gateway-transactions',306,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_LOG_POLICY','GATEWAY_DASHBOARD','Gateway 로그 정책','/adm#gateway-log-policies',307,'Y','SYSTEM','SYSTEM'),\n('GATEWAY_APPLY_STATUS','GATEWAY_DASHBOARD','Gateway 적용 상태·이력','/adm#gateway-apply-status',308,'Y','SYSTEM','SYSTEM')",
-      "conflictKey": "PRIMARY",
-      "conflictColumns": [
-        "menu_id"
-      ],
-      "updates": [
-        {
-          "column": "parent_menu_id",
-          "expression": "VALUES(parent_menu_id)"
-        },
-        {
-          "column": "menu_name",
-          "expression": "VALUES(menu_name)"
-        },
-        {
-          "column": "menu_path",
-          "expression": "VALUES(menu_path)"
-        },
-        {
-          "column": "sort_order",
-          "expression": "VALUES(sort_order)"
-        },
-        {
-          "column": "use_yn",
-          "expression": "VALUES(use_yn)"
-        },
-        {
-          "column": "updated_by",
-          "expression": "VALUES(updated_by)"
-        },
-        {
-          "column": "updated_at",
-          "expression": "VALUES(updated_at)"
-        }
-      ],
-      "currentLogicalDatabase": "admDB",
-      "productionDefault": true,
-      "currentTable": "ADM_MENU",
-      "currentTableName": "ADM_MENU",
-      "targetDatabaseRole": "CPF_PLATFORM_DB",
-      "logicalOwner": "admin"
     },
     {
       "sourceFile": "61_adm_gateway_seed.sql",

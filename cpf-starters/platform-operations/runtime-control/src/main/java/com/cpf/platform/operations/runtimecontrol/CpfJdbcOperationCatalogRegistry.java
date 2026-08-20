@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -244,7 +245,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
         Map<String,Boolean> result = new java.util.LinkedHashMap<>();
         jdbc.query("SELECT instance_id,discovered_yn FROM " + DISCOVERY_TABLE
                         + " WHERE operation_id=? AND instance_id IN (" + placeholders + ")",
-                rs -> result.put(rs.getString(1), "Y".equalsIgnoreCase(rs.getString(2))), args.toArray());
+                (RowCallbackHandler) rs -> result.put(rs.getString(1), "Y".equalsIgnoreCase(rs.getString(2))), args.toArray());
         return Map.copyOf(result);
     }
 

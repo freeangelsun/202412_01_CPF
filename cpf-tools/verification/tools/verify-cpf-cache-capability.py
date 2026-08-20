@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 
 PUBLIC_API = [
-    "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfCachePort.java",
+    "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfCache.java",
     "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfCacheKey.java",
     "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfCacheValue.java",
     "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfCacheMetricsSnapshot.java",
@@ -24,19 +24,19 @@ PUBLIC_API = [
     "cpf-starters/data/src/main/java/com/cpf/data/cache/api/CpfDistributedLockPort.java",
 ]
 SHARED_RUNTIME = [
-    "cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCachePort.java",
+    "cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/SpringDataRedisCpfCache.java",
     "cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/CpfCacheInvalidationCoordinator.java",
     "cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/JdbcCpfCacheInvalidationStore.java",
     "cpf-starters/data/cache/spring-data-redis/src/main/java/com/cpf/data/cache/rediscommon/CpfRedisProtocolProviderSelection.java",
 ]
 REDIS_PROVIDER = [
     "cpf-starters/data/cache/redis/src/main/java/com/cpf/data/cache/redis/CpfRedisCacheAutoConfiguration.java",
-    "cpf-starters/data/cache/redis/src/main/java/com/cpf/data/cache/redis/RedisCpfCachePort.java",
+    "cpf-starters/data/cache/redis/src/main/java/com/cpf/data/cache/redis/RedisCpfCache.java",
     "cpf-starters/data/cache/redis/src/main/java/com/cpf/data/cache/redis/CpfRedisCacheProperties.java",
 ]
 VALKEY_PROVIDER = [
     "cpf-starters/data/cache/valkey/src/main/java/com/cpf/data/cache/valkey/CpfValkeyAutoConfiguration.java",
-    "cpf-starters/data/cache/valkey/src/main/java/com/cpf/data/cache/valkey/ValkeyCpfCachePort.java",
+    "cpf-starters/data/cache/valkey/src/main/java/com/cpf/data/cache/valkey/ValkeyCpfCache.java",
     "cpf-starters/data/cache/valkey/src/main/java/com/cpf/data/cache/valkey/CpfValkeyProperties.java",
 ]
 ADM_CONSUMER = "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmCacheOperationService.java"
@@ -70,9 +70,9 @@ def run(repo_root: Path, report_json: Path | None = None) -> dict:
         if not condition:
             findings.append({"severity": "P0", "id": finding_id, "message": message, "paths": paths})
 
-    require("implements CpfCachePort, CpfDistributedLockPort" in shared_port,
+    require("implements CpfCache, CpfDistributedLockPort" in shared_port,
             "CACHE-SHARED-PORT-CONTRACT-MISSING",
-            "Shared Redis-protocol runtime must own CpfCachePort and distributed-lock semantics.", [SHARED_RUNTIME[0]])
+            "Shared Redis-protocol runtime must own CpfCache and distributed-lock semantics.", [SHARED_RUNTIME[0]])
     require("durable.version(" in coordinator and "durable.advanceVersion(" in coordinator
             and "reconcileNow()" in coordinator,
             "CACHE-SHARED-INVALIDATION-FENCE-MISSING",
@@ -80,18 +80,18 @@ def run(repo_root: Path, report_json: Path | None = None) -> dict:
     require("long version(String consumerId" in store and "void advanceVersion(" in store and "String consumerId, String tenantId" in store,
             "CACHE-JDBC-VERSION-FENCE-MISSING",
             "Durable invalidation store must implement per-consumer version fencing.", [SHARED_RUNTIME[2]])
-    require("new RedisCpfCachePort" in redis_auto and "CpfCacheInvalidationCoordinator" in redis_auto
+    require("new RedisCpfCache" in redis_auto and "CpfCacheInvalidationCoordinator" in redis_auto
             and "JdbcCpfCacheInvalidationStore" in redis_auto,
             "CACHE-REDIS-PROVIDER-WIRING-MISSING",
             "Redis provider must compose the canonical shared runtime rather than a provider-local duplicate.", [REDIS_PROVIDER[0]])
-    require("extends SpringDataRedisCpfCachePort" in redis_port,
+    require("extends SpringDataRedisCpfCache" in redis_port,
             "CACHE-REDIS-SHARED-RUNTIME-NOT-USED",
             "Redis adapter must delegate protocol behavior to the internal shared runtime.", [REDIS_PROVIDER[1]])
-    require("new ValkeyCpfCachePort" in valkey_auto and "CpfCacheInvalidationCoordinator" in valkey_auto
+    require("new ValkeyCpfCache" in valkey_auto and "CpfCacheInvalidationCoordinator" in valkey_auto
             and "JdbcCpfCacheInvalidationStore" in valkey_auto,
             "CACHE-VALKEY-PROVIDER-WIRING-MISSING",
             "Valkey provider must compose the canonical shared runtime rather than a provider-local duplicate.", [VALKEY_PROVIDER[0]])
-    require("extends SpringDataRedisCpfCachePort" in valkey_port,
+    require("extends SpringDataRedisCpfCache" in valkey_port,
             "CACHE-VALKEY-SHARED-RUNTIME-NOT-USED",
             "Valkey adapter must delegate protocol behavior to the internal shared runtime.", [VALKEY_PROVIDER[1]])
     require("import com.cpf.data.cache.rediscommon.CpfCacheInvalidationCoordinator;" in adm

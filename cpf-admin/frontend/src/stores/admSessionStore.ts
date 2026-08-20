@@ -17,6 +17,7 @@ export interface AdmOperatorSession {
   operator: Record<string, any>;
   menus: AdmMenuProjection[];
   buttonIds: string[];
+  allowedOperationIds?: string[];
 }
 
 function normalized(value: unknown): string {
@@ -29,6 +30,7 @@ export const useAdmSessionStore = defineStore("adm-session", {
     operator: {} as Record<string, any>,
     menus: [] as AdmMenuProjection[],
     buttonIds: [] as string[],
+    allowedOperationIds: [] as string[],
     causalContext: {} as CpfCausalContext,
     causalContextHydrated: false
   }),
@@ -51,6 +53,7 @@ export const useAdmSessionStore = defineStore("adm-session", {
       this.operator = session.operator || {};
       this.menus = Array.isArray(session.menus) ? session.menus : [];
       this.buttonIds = Array.isArray(session.buttonIds) ? session.buttonIds : [];
+      this.allowedOperationIds = Array.isArray(session.allowedOperationIds) ? session.allowedOperationIds : [];
       this.loaded = Boolean(this.operator?.operatorId);
     },
     hydrateCausalContext() {
@@ -110,6 +113,9 @@ export const useAdmSessionStore = defineStore("adm-session", {
     hasButton(buttonId: string): boolean {
       return this.buttonIds.includes(buttonId);
     },
+    hasOperation(operationId: string): boolean {
+      return this.allowedOperationIds.includes(operationId);
+    },
     isFeatureEnabled(routeId: string, menuId: string, path: string): boolean {
       const match = this.menus.find(menu => {
         const keys = [menu.menuId, menu.id, menu.path].map(normalized);
@@ -122,6 +128,7 @@ export const useAdmSessionStore = defineStore("adm-session", {
       this.operator = {};
       this.menus = [];
       this.buttonIds = [];
+      this.allowedOperationIds = [];
       this.clearCausalContext();
     }
   }

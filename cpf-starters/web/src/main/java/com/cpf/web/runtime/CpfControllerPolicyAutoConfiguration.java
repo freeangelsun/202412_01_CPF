@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.core.env.Environment;
@@ -19,6 +20,7 @@ import org.springframework.core.env.Environment;
 @AutoConfiguration
 @ConditionalOnClass(HandlerInterceptor.class)
 @EnableConfigurationProperties({CpfControllerPolicyProperties.class, CpfDtoValidationProperties.class})
+@Import(CpfControllerPolicyWebMvcConfigurer.class)
 public class CpfControllerPolicyAutoConfiguration {
     @Bean CpfOnlineTransactionBeanPostProcessor cpfOnlineTransactionBeanPostProcessor() { return new CpfOnlineTransactionBeanPostProcessor(); }
     @Bean CpfOnlineTransactionAspect cpfOnlineTransactionAspect() { return new CpfOnlineTransactionAspect(); }
@@ -38,9 +40,6 @@ public class CpfControllerPolicyAutoConfiguration {
         return new CpfOperationCatalogBootstrap(mappings, runtime, environment, registries.orderedStream().toList());
     }
 
-    @Bean CpfControllerPolicyWebMvcConfigurer cpfControllerPolicyWebMvcConfigurer(CpfControllerContextInterceptor interceptor) {
-        return new CpfControllerPolicyWebMvcConfigurer(interceptor);
-    }
     @Bean @ConditionalOnBean(jakarta.validation.Validator.class)
     CpfDtoValidationAspect cpfDtoValidationAspect(jakarta.validation.Validator validator, CpfDtoValidationProperties properties) {
         return new CpfDtoValidationAspect(validator, properties);

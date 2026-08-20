@@ -41,7 +41,7 @@ type DangerousAction = "APPROVAL_EXECUTE" | "QUALITY_REPLAY" | "WEBHOOK_REPLAY";
 const dangerousAction = ref<DangerousAction | "">("");
 const dangerousConfirmed = ref(false);
 const sessionStore = useAdmSessionStore();
-const can = (operationId: string) => sessionStore.hasButton(operationId);
+const can = (operationId: string) => sessionStore.hasOperation(operationId);
 const canAll = (...operationIds: string[]) => operationIds.every(operationId => can(operationId));
 const permissionReason = (...operationIds: string[]) => {
   const missing = operationIds.filter(operationId => !can(operationId));

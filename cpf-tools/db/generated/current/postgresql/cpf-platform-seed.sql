@@ -663,7 +663,47 @@ VALUES ('DASHBOARD', NULL, '대시보드', '/adm', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PASSWORD', NULL, '비밀번호 관리', '/adm#password', 120, 'Y', 'SYSTEM', 'SYSTEM'),
     ('SECURITY', NULL, '보안 운영', '/adm#security', 130, 'Y', 'SYSTEM', 'SYSTEM'),
     ('PERMISSION', NULL, '권한 관리', '/adm#permissions', 140, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM')
+    ('SECRET', NULL, 'Secret / Key 관리', '/adm#secrets', 145, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPERATOR', NULL, '운영자 관리', '/adm#operators', 150, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_DASHBOARD', NULL, 'Gateway 대시보드', '/adm#gateway-dashboard', 300, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_SERVERS', 'GATEWAY_DASHBOARD', 'Gateway 연동 서버', '/adm#gateway-servers', 301, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_GROUPS', 'GATEWAY_DASHBOARD', 'Gateway 서버 그룹', '/adm#gateway-groups', 302, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_ROUTES', 'GATEWAY_DASHBOARD', 'Gateway 경로·라우팅', '/adm#gateway-routes', 303, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_SECURITY', 'GATEWAY_DASHBOARD', 'Gateway 보안·제한', '/adm#gateway-security', 304, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_HEALTH', 'GATEWAY_DASHBOARD', 'Gateway Health·연결시험', '/adm#gateway-health', 305, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_TRANSACTIONS', 'GATEWAY_DASHBOARD', 'Gateway 거래 조회', '/adm#gateway-transactions', 306, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_LOG_POLICY', 'GATEWAY_DASHBOARD', 'Gateway 로그 정책', '/adm#gateway-log-policies', 307, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('GATEWAY_APPLY_STATUS', 'GATEWAY_DASHBOARD', 'Gateway 적용 상태·이력', '/adm#gateway-apply-status', 308, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_OVERVIEW', 'BATCH', 'Batch Overview', '/adm#batch-overview', 501, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_RUNTIME', 'BATCH', 'Runtime Topology', '/adm#batch-runtime', 502, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_INSTANCES', 'BATCH', 'Runtime Instances', '/adm#batch-instances', 503, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_SCHEDULER', 'BATCH', 'Scheduler HA', '/adm#batch-scheduler', 504, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_WORKER_POOLS', 'BATCH', 'Worker Pools', '/adm#batch-worker-pools', 505, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_CENTER_CUT', 'BATCH', 'Center-Cut', '/adm#batch-center-cut', 506, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_AGENTS', 'BATCH', 'Host Agents', '/adm#batch-agents', 507, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_JOB_PACKS', 'BATCH', 'Job Packs', '/adm#batch-job-packs', 508, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_EXECUTIONS', 'BATCH', 'Executions', '/adm#batch-executions', 509, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_DEPLOYMENT', 'BATCH', 'Deployment / Rollback', '/adm#batch-deployment', 510, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_RECOVERY', 'BATCH', 'Recovery / Unknown', '/adm#batch-recovery', 511, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_LEASES', 'BATCH', 'Lease / Fencing', '/adm#batch-leases', 512, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_ALERTS', 'BATCH', 'Batch Alerts', '/adm#batch-alerts', 513, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BATCH_AUDIT', 'BATCH', 'Audit / Evidence', '/adm#batch-audit', 514, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('APPROVAL', NULL, '위험조치 승인', '/adm#approvals', 524, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BREAK_GLASS', NULL, 'Break-glass', '/adm#breakGlass', 534, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BUSINESS_CALENDAR', NULL, '영업일 · 휴일', '/adm#businessCalendar', 544, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('CAPACITY', NULL, 'Online Runtime Diagnostics', '/adm#capacity', 554, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('FEATURE_FLAG', NULL, 'Feature Flag', '/adm#featureFlags', 564, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('TOPOLOGY', NULL, '서비스 토폴로지', '/adm#topology', 574, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('INCIDENT', NULL, 'Error·Unknown Result', '/adm#incidents', 584, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('INTEGRATION_CLOSURE', NULL, '통합 운영 정정 승인', '/adm#integrationClosure', 594, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('MAINTENANCE', NULL, '점검·Drain', '/adm#maintenance', 604, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPENAPI_OPERATIONS', NULL, 'OpenAPI 운영', '/adm#openApiOperations', 614, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('OPS_GOVERNANCE', NULL, '운영 정책·SLO', '/adm#operations-governance', 624, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RECOVERY_CENTER', NULL, '복구 센터', '/adm#recoveryCenter', 634, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RESILIENCE_POLICY', NULL, 'Resilience 정책', '/adm#resiliencePolicies', 644, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('RUNTIME_CONTROL', NULL, 'Deployment·Promotion·Rollback', '/adm#runtimeControl', 654, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('SERVICE_REGISTRY', NULL, '서비스 레지스트리', '/adm#serviceRegistry', 664, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('WORKER', NULL, 'Agent / Worker', '/adm#workers', 674, 'Y', 'SYSTEM', 'SYSTEM')
 ON CONFLICT (MENU_ID) DO UPDATE SET PARENT_MENU_ID=EXCLUDED.PARENT_MENU_ID, MENU_NAME=EXCLUDED.MENU_NAME, MENU_PATH=EXCLUDED.MENU_PATH, SORT_ORDER=EXCLUDED.SORT_ORDER, USE_YN=EXCLUDED.USE_YN, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_BUTTON (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
@@ -887,10 +927,6 @@ INSERT INTO ADM_ROLE_API_PERMISSION (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, creat
 SELECT ROLE_ID,'API_AUDIT_LOG_RETRY','Y','SYSTEM','SYSTEM' FROM ADM_ROLE WHERE ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR')
 ON CONFLICT (ROLE_ID, API_PERMISSION_ID) DO UPDATE SET ALLOW_YN='Y', updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
 
-INSERT INTO ADM_MENU (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES ('SECRET',NULL,'Secret / Key 관리','/adm#secrets',145,'Y','SYSTEM','SYSTEM')
-ON CONFLICT (MENU_ID) DO UPDATE SET MENU_NAME=EXCLUDED.MENU_NAME, MENU_PATH=EXCLUDED.MENU_PATH, SORT_ORDER=EXCLUDED.SORT_ORDER, USE_YN='Y', updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
-
 INSERT INTO ADM_BUTTON (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES ('SECRET_READ','SECRET','READ','Secret Metadata 조회','GET','/adm/api/secrets/**',10,'Y','SYSTEM','SYSTEM'),
  ('SECRET_ROTATE','SECRET','ROTATE','Secret Rotation','POST','/adm/api/secrets/rotate',20,'Y','SYSTEM','SYSTEM')
@@ -920,23 +956,6 @@ VALUES ('ADM_ADMIN','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_ADMIN','API_S
  ('ADM_DEV_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_DEV_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM'),
  ('ADM_OPERATOR','API_SECRET_READ','Y','SYSTEM','SYSTEM'),('ADM_OPERATOR','API_SECRET_ROTATE','N','SYSTEM','SYSTEM')
 ON CONFLICT (ROLE_ID, API_PERMISSION_ID) DO UPDATE SET ALLOW_YN=EXCLUDED.ALLOW_YN, updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO ADM_MENU (MENU_ID, PARENT_MENU_ID, MENU_NAME, MENU_PATH, SORT_ORDER, USE_YN, created_by, updated_by)
-VALUES ('BATCH_OVERVIEW','BATCH','Batch Overview','/adm#batch-overview',501,'Y','SYSTEM','SYSTEM'),
- ('BATCH_RUNTIME','BATCH','Runtime Topology','/adm#batch-runtime',502,'Y','SYSTEM','SYSTEM'),
- ('BATCH_INSTANCES','BATCH','Runtime Instances','/adm#batch-instances',503,'Y','SYSTEM','SYSTEM'),
- ('BATCH_SCHEDULER','BATCH','Scheduler HA','/adm#batch-scheduler',504,'Y','SYSTEM','SYSTEM'),
- ('BATCH_WORKER_POOLS','BATCH','Worker Pools','/adm#batch-worker-pools',505,'Y','SYSTEM','SYSTEM'),
- ('BATCH_CENTER_CUT','BATCH','Center-Cut','/adm#batch-center-cut',506,'Y','SYSTEM','SYSTEM'),
- ('BATCH_AGENTS','BATCH','Host Agents','/adm#batch-agents',507,'Y','SYSTEM','SYSTEM'),
- ('BATCH_JOB_PACKS','BATCH','Job Packs','/adm#batch-job-packs',508,'Y','SYSTEM','SYSTEM'),
- ('BATCH_EXECUTIONS','BATCH','Executions','/adm#batch-executions',509,'Y','SYSTEM','SYSTEM'),
- ('BATCH_DEPLOYMENT','BATCH','Deployment / Rollback','/adm#batch-deployment',510,'Y','SYSTEM','SYSTEM'),
- ('BATCH_RECOVERY','BATCH','Recovery / Unknown','/adm#batch-recovery',511,'Y','SYSTEM','SYSTEM'),
- ('BATCH_LEASES','BATCH','Lease / Fencing','/adm#batch-leases',512,'Y','SYSTEM','SYSTEM'),
- ('BATCH_ALERTS','BATCH','Batch Alerts','/adm#batch-alerts',513,'Y','SYSTEM','SYSTEM'),
- ('BATCH_AUDIT','BATCH','Audit / Evidence','/adm#batch-audit',514,'Y','SYSTEM','SYSTEM')
-ON CONFLICT (MENU_ID) DO UPDATE SET PARENT_MENU_ID=EXCLUDED.PARENT_MENU_ID, MENU_NAME=EXCLUDED.MENU_NAME, MENU_PATH=EXCLUDED.MENU_PATH, SORT_ORDER=EXCLUDED.SORT_ORDER, USE_YN='Y', updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
 
 INSERT INTO ADM_BUTTON (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES ('BAT_RUNTIME_VIEW','BATCH_RUNTIME','RUNTIME_VIEW','Runtime 조회','GET','/adm/api/batch-runtime/**',10,'Y','SYSTEM','SYSTEM'),
@@ -1511,18 +1530,6 @@ VALUES (
     'SYSTEM'
 )
 ON CONFLICT (RULE_ID) DO UPDATE SET BUSINESS_TRANSACTION_ID=EXCLUDED.BUSINESS_TRANSACTION_ID, MODULE_ID=EXCLUDED.MODULE_ID, LOG_LEVEL=EXCLUDED.LOG_LEVEL, EXPIRE_AT=EXCLUDED.EXPIRE_AT, REASON=EXCLUDED.REASON, USE_YN=EXCLUDED.USE_YN, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP;
-
-INSERT INTO ADM_MENU (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by)
-VALUES ('GATEWAY_DASHBOARD',NULL,'Gateway 대시보드','/adm#gateway-dashboard',300,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_SERVERS','GATEWAY_DASHBOARD','Gateway 연동 서버','/adm#gateway-servers',301,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_GROUPS','GATEWAY_DASHBOARD','Gateway 서버 그룹','/adm#gateway-groups',302,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_ROUTES','GATEWAY_DASHBOARD','Gateway 경로·라우팅','/adm#gateway-routes',303,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_SECURITY','GATEWAY_DASHBOARD','Gateway 보안·제한','/adm#gateway-security',304,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_HEALTH','GATEWAY_DASHBOARD','Gateway Health·연결시험','/adm#gateway-health',305,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_TRANSACTIONS','GATEWAY_DASHBOARD','Gateway 거래 조회','/adm#gateway-transactions',306,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_LOG_POLICY','GATEWAY_DASHBOARD','Gateway 로그 정책','/adm#gateway-log-policies',307,'Y','SYSTEM','SYSTEM'),
-('GATEWAY_APPLY_STATUS','GATEWAY_DASHBOARD','Gateway 적용 상태·이력','/adm#gateway-apply-status',308,'Y','SYSTEM','SYSTEM')
-ON CONFLICT (menu_id) DO UPDATE SET parent_menu_id=EXCLUDED.parent_menu_id, menu_name=EXCLUDED.menu_name, menu_path=EXCLUDED.menu_path, sort_order=EXCLUDED.sort_order, use_yn=EXCLUDED.use_yn, updated_by=EXCLUDED.updated_by, updated_at=EXCLUDED.updated_at;
 
 INSERT INTO ADM_BUTTON (button_id, menu_id, action_code, button_name, http_method, api_pattern, sort_order, use_yn, created_by, updated_by)
 VALUES ('GATEWAY_READ','GATEWAY_DASHBOARD','READ','Gateway 운영 조회','GET','/adm/api/gateway-registry/**',10,'Y','SYSTEM','SYSTEM'),

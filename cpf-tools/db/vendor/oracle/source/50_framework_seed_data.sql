@@ -141,11 +141,11 @@ SELECT 'MCPF990000' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format
 UNION ALL
 SELECT 'MCPF990001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '데이터베이스 오류가 발생했습니다.' AS external_message, '데이터베이스 처리 오류가 발생했습니다. sqlState={0}' AS internal_message, 1 AS parameter_count, '["HY000"]' AS parameter_sample, 'CPF 데이터베이스 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'MBW 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW000000' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '성공' AS external_message, 'MBW 요청이 정상 처리되었습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 성공 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'MBW 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'MBW 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '업무 요청 값이 올바르지 않습니다.' AS external_message, 'MBW 입력값 검증에 실패했습니다. field={0}' AS internal_message, 1 AS parameter_count, '["field"]' AS parameter_sample, 'MBW 입력값 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'MBZA010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'MBW 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'MMBW010002' AS message_code, 'ko' AS locale, 'FIXED' AS message_format_type, '처리 권한이 없습니다.' AS external_message, 'MBW 서버 권한 검사에 실패했습니다.' AS internal_message, 0 AS parameter_count, NULL AS parameter_sample, 'MBW 권한 오류 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MEDU010001' AS message_code, 'ko' AS locale, 'INDEXED' AS message_format_type, '이미 등록된 {0}입니다.' AS external_message, '{0}={1} 값이 이미 존재합니다. duplicateCheck=EDU_SAMPLE' AS internal_message, 2 AS parameter_count, '["샘플키","SAMPLE-0001"]' AS parameter_sample, 'EDU 동적 중복 교육 메시지' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -188,11 +188,11 @@ SELECT 'ECPF990000' AS response_code, 'MCPF990000' AS message_code, 'E' AS resul
 UNION ALL
 SELECT 'ECPF990001' AS response_code, 'MCPF990001' AS message_code, 'E' AS result_type, 'CPF' AS module_id, '99' AS response_group, '0001' AS sequence_no, 500 AS http_status, '데이터베이스 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'SBZA000000' AS response_code, 'MBZA000000' AS message_code, 'S' AS result_type, 'MBW' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'MBW 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'SMBW000000' AS response_code, 'MMBW000000' AS message_code, 'S' AS result_type, 'MBW' AS module_id, '00' AS response_group, '0000' AS sequence_no, 200 AS http_status, 'MBW 성공' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010001' AS response_code, 'MBZA010001' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'MBW 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EMBW010001' AS response_code, 'MMBW010001' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0001' AS sequence_no, 400 AS http_status, 'MBW 입력값 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EBZA010002' AS response_code, 'MBZA010002' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'MBW 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EMBW010002' AS response_code, 'MMBW010002' AS message_code, 'E' AS result_type, 'MBW' AS module_id, '01' AS response_group, '0002' AS sequence_no, 403 AS http_status, 'MBW 권한 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'EEDU010001' AS response_code, 'MEDU010001' AS message_code, 'E' AS result_type, 'EDU' AS module_id, '01' AS response_group, '0001' AS sequence_no, 409 AS http_status, 'EDU 샘플 중복 오류' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.response_code=src.response_code)

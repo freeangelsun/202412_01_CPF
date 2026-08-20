@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
 BASE = ROOT / "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/CpfBaseService.java"
-COMMON = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
+COMMON = ROOT / "cpf-common/src/main/java/com/cpf/common"
 MEMBER_DOMAIN_BASE = ROOT / "cpf-member/online/src/main/java/member/online/base/MemberBaseService.java"
 MEMBER_SERVICE = ROOT / "cpf-member/online/src/main/java/member/online/member/service/SampleTransactionService.java"
 
@@ -37,8 +37,8 @@ class CmnExtensionContractTest(unittest.TestCase):
 
     def test_no_active_java_consumer_references_retired_cmn_base_service(self):
         offenders = []
-        for root in [ROOT / "cpf-starters", ROOT / "cpf-education", ROOT / "cpf-admin",
-                     ROOT / "cpf-biz-admin", ROOT / "cpf-batch", ROOT / "cpf-gateway"]:
+        for root in [ROOT / "cpf-common", ROOT / "cpf-starters", ROOT / "cpf-education", ROOT / "cpf-admin",
+                     ROOT / "cpf-backoffice", ROOT / "cpf-batch", ROOT / "cpf-gateway"]:
             if not root.exists():
                 continue
             for path in root.rglob("*.java"):

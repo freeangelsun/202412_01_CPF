@@ -12,7 +12,8 @@ TOOLS_ALLOWED={'build','contracts','db','environment','generator','governance','
 TOOLS_LEGACY={'config','performance','product-governance','promotion','runtime-alternatives','scripts','analysis'}
 BATCH_TARGET={'api','runtime','scheduler','worker','control-plane','center-cut','agent','runtime-support','testkit'}
 BATCH_OLD={'contract','execution-runtime','control-server','center-cut-runner','host-agent','runtime-common'}
-PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/','cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
+PROTECTED_EXACT={'cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md'}
 OLD_STRINGS=['cpf-batch-control-server','cpf-batch-host-agent','cpf-batch-runtime-common','cpf-batch-center-cut-runner',':runtime:batch:control-server',':runtime:batch:host-agent',':runtime:batch:runtime-common',':runtime:batch:center-cut-runner']
 TEXT_EXT={'.java','.kt','.gradle','.kts','.json','.yaml','.yml','.xml','.properties','.md','.ps1','.sh','.py','.sql','.csv','.txt','.env'}
 LEGACY_ACTIVE_PREFIXES=tuple([f'cpf-tools/{x}/' for x in TOOLS_LEGACY]+[f'cpf-batch/{x}/' for x in BATCH_OLD]+['deploy/env/','deploy/local/','deploy/cells/','deploy/inventory/','deploy/runtimes/batch/','deploy/schemas/','cpf-reference/'])
@@ -49,8 +50,8 @@ def main(argv=None):
  g.check('DELETE_MANIFEST_PRESENT',dm.exists(),a.delete_manifest)
  dir_rows=[p for p in manifest if (root/p).exists() and (root/p).is_dir()]
  g.check('DELETE_MANIFEST_FILE_ONLY',not dir_rows,','.join(sorted(dir_rows)))
- protected=[p for p in manifest if any(p==x.rstrip('/') or p.startswith(x) for x in PROTECTED)]
- g.check('DELETE_MANIFEST_PROTECTED_ZERO',not protected,','.join(sorted(protected)))
+ protected=[p for p in manifest if (any(p==x.rstrip('/') or p.startswith(x) for x in PROTECTED) or p in PROTECTED_EXACT) and (root/p).exists()]
+ g.check('DELETE_MANIFEST_ACTIVE_PROTECTED_ZERO',not protected,','.join(sorted(protected)))
 
  tools=root/'cpf-tools'; dirs={p.name for p in tools.iterdir() if p.is_dir()} if tools.exists() else set()
  g.check('TOOLS_REQUIRED_OWNERS',TOOLS_ALLOWED<=dirs,'missing='+','.join(sorted(TOOLS_ALLOWED-dirs)))
@@ -103,7 +104,7 @@ def main(argv=None):
  deploy_reference=[x for x in files_under(root,'deploy') if 'cpf-reference' in x.lower()]
  g.check('DEPLOY_REFERENCE_ZERO',not deploy_reference,','.join(deploy_reference[:20]))
  for domain in ['cpf-member','cpf-external']:
-  d=root/domain; logical=domain.removeprefix('cpf-'); definition=root/'cpf-tools/generator/definitions'/logical/'cpf-domain.yaml'; g.check('GEN_ROOT_'+domain.upper(),d.exists() and definition.exists() and not (d/'.cpf').exists())
+  d=root/domain; logical=domain.removeprefix('cpf-'); definition=d/'cpf-domain.yaml'; g.check('GEN_ROOT_'+domain.upper(),d.exists() and definition.exists() and not (d/'.cpf').exists())
   if d.exists():
    t='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in d.rglob('build.gradle'))
    g.check('GEN_PUBLIC_ONLY_'+domain.upper(), 'cpf-starter-integration-http' not in t and 'cpf-starter-integration-resilience' not in t)

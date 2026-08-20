@@ -16,19 +16,18 @@ dependencies {
     // ADM 기능 Source가 직접 소비하는 Owner Contract입니다. Provider 구현과 구분해 명시합니다.
     implementation project(':framework:integration')
     implementation project(':framework:operations')
-    implementation project(':internal:platform-operations:runtime-control')
-    implementation project(':internal:messaging:reliability:jdbc')
+    // ADM-specific Provider selection is centralized in one product-internal composition module.
+    implementation project(':apps:admin-runtime')
     implementation project(':starters:integration:fixed-length')
     implementation project(':framework:file')
     implementation project(':runtime:gateway')
     // ADM Dynamic Log/Trace 운영 화면이 실제 runtime bean을 제어하므로 선택 Observability 구현을 명시합니다.
     implementation project(':framework:operations:observability')
-    implementation project(':internal:platform-operations:runtime-health:jdbc')
     implementation project(':starters:profiles:bff')
-    implementation project(':internal:integration:webhook')
+    // Browser Credential은 Public JDBC Session Starter가 HttpOnly Cookie/CSRF/암호화 Vault로 소유합니다.
+    implementation project(':starters:security:session:jdbc')
     implementation project(':starters:data:mybatis')
-    implementation project(':internal:file:attachment')
-    implementation project(':internal:file:tabular:poi')
+    implementation project(':starters:file:attachment')
     // ADM은 browser-bff Profile의 CPF 공통 Runtime과 CMN 공통 기능을 사용합니다.
     implementation project(':starters:common')
     // ADM은 BAT 내부 구현/DB가 아니라 버전된 Owner Contract에만 의존합니다.

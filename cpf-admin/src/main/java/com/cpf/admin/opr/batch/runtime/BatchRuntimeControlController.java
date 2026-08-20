@@ -278,7 +278,10 @@ public class BatchRuntimeControlController extends AdmBaseController {
                                                           @RequestBody Map<String,Object> request) {
         try {
             requireCommandField(request,"reason");
-            return ResponseEntity.ok(client.pauseRetentionRun(runId, String.valueOf(request.get("reason"))));
+            CpfDataRow run = client.retentionRun(runId);
+            String policyId = rowText(run, "policyId", "policy_id");
+            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            return ResponseEntity.ok(client.pauseRetentionRun(runId, expectedVersion, String.valueOf(request.get("reason"))));
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_PAUSE_INVALID",failure); }
     }

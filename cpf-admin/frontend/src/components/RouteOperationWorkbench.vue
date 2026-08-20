@@ -22,7 +22,7 @@ const descriptors=computed(()=>props.operationIds
  .filter(item=>item.method === "GET"));
 const selected=computed(()=>descriptors.value.find(item=>item.operationId===selectedId.value));
 const pathNames=computed(()=>Array.from(selected.value?.template.matchAll(/\{([^}]+)\}/g)||[],item=>item[1]));
-const canExecute = computed(() => Boolean(selected.value && sessionStore.hasButton(selected.value.operationId)));
+const canExecute = computed(() => Boolean(selected.value && sessionStore.hasOperation(selected.value.operationId)));
 function resetInputs(){for(const key of Object.keys(pathValues))delete pathValues[key];queryText.value="{}";result.value=null;error.value="";}
 watch(()=>props.operationIds,()=>{selectedId.value=descriptors.value[0]?.operationId||"";resetInputs();},{immediate:true});
 watch(selectedId,resetInputs);
@@ -32,7 +32,7 @@ async function execute(){
  loading.value=true;error.value="";result.value=null;
  try{
   if(descriptor.method!=="GET")throw new Error("상태 변경 작업은 전용 화면에서만 실행할 수 있습니다.");
-  if(!sessionStore.hasButton(descriptor.operationId))throw new Error(`권한 없음: ${descriptor.operationId}`);
+  if(!sessionStore.hasOperation(descriptor.operationId))throw new Error(`권한 없음: ${descriptor.operationId}`);
   const path=Object.fromEntries(pathNames.value.map(name=>[name,pathValues[name]]));
   const query=parseObject(queryText.value,"Query");
   result.value=await admInvokeOperation(descriptor.operationId,{path,query});

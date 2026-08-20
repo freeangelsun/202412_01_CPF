@@ -126,8 +126,8 @@ mbwDB,mbw_role,backoffice,CUSTOMER_BUSINESS_DB,mbwDB,MBW_ROLE,MBW_,backoffice,ba
 mbwDB,mbw_saved_search,backoffice,CUSTOMER_BUSINESS_DB,mbwDB,MBW_SAVED_SEARCH,MBW_,backoffice,backoffice,MBW_OWNER_LOCAL,True
 mbwDB,mbw_user_role,backoffice,CUSTOMER_BUSINESS_DB,mbwDB,MBW_USER_ROLE,MBW_,backoffice,backoffice,MBW_OWNER_LOCAL,True
 cmnDB,cmn_business_calendar_day,common,CPF_PLATFORM_DB,cpfDB,CMN_BUSINESS_CALENDAR_DAY,CMN_,common,common,PLATFORM_OWNER_LOCAL,True
-cpfDB,cpf_cache_refresh_checkpoint,common,CPF_PLATFORM_DB,cpfDB,CMN_CACHE_REFRESH_CHECKPOINT,CMN_,common,cpf-starter-common,OWNER_LOCAL,True
-cpfDB,cpf_cache_refresh_event,common,CPF_PLATFORM_DB,cpfDB,CMN_CACHE_REFRESH_EVENT,CMN_,common,cpf-starter-common,OWNER_LOCAL,True
+cpfDB,cpf_cache_refresh_checkpoint,common,CPF_PLATFORM_DB,cpfDB,CMN_CACHE_REFRESH_CHECKPOINT,CMN_,common,cpf-common,OWNER_LOCAL,True
+cpfDB,cpf_cache_refresh_event,common,CPF_PLATFORM_DB,cpfDB,CMN_CACHE_REFRESH_EVENT,CMN_,common,cpf-common,OWNER_LOCAL,True
 cpfDB,cpf_code,common,CPF_PLATFORM_DB,cpfDB,CMN_CODE,CMN_,common,common,PLATFORM_OWNER_LOCAL,True
 cpfDB,cpf_message,common,CPF_PLATFORM_DB,cpfDB,CMN_MESSAGE,CMN_,common,common,PLATFORM_OWNER_LOCAL,True
 cpfDB,cpf_config,common,CPF_PLATFORM_DB,cpfDB,CMN_PARAMETER,CMN_,common,common,PLATFORM_OWNER_LOCAL,True

@@ -6,12 +6,13 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
-COMMON = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
-CALENDAR = COMMON / "calendar/CmnCalendarService.java"
-ADAPTER = COMMON / "calendar/CmnDurableCalendarChangePublisher.java"
-EVENT = COMMON / "calendar/CmnCalendarChangeEvent.java"
-PUBLISHER = COMMON / "runtime/cache/CpfCommonCacheRefreshPublisher.java"
-LISTENER = COMMON / "runtime/cache/CpfCommonCacheRefreshListener.java"
+PRODUCT = ROOT / "cpf-common/src/main/java/com/cpf/common"
+RUNTIME = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
+CALENDAR = PRODUCT / "calendar/CmnCalendarService.java"
+ADAPTER = PRODUCT / "calendar/CmnDurableCalendarChangePublisher.java"
+EVENT = PRODUCT / "calendar/CmnCalendarChangeEvent.java"
+PUBLISHER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshPublisher.java"
+LISTENER = RUNTIME / "runtime/cache/CpfCommonCacheRefreshListener.java"
 
 
 class CmnCalendarDurableOutboxTest(unittest.TestCase):

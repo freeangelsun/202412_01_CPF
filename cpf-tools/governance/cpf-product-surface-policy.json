@@ -58,9 +58,14 @@
       "responsibility": "generated business domain"
     },
     {
-      "prefix": "cpf-starters/common/",
+      "prefix": "cpf-common/",
       "owner": "cpf-common",
-      "responsibility": "customer business common capabilities hosted by cpf-starter-common"
+      "responsibility": "customer business common product contracts, services, policies, repositories and canonical SQL resources"
+    },
+    {
+      "prefix": "cpf-starters/common/",
+      "owner": "cpf-starters",
+      "responsibility": "cpf-common runtime auto-configuration, durable cache refresh wiring and provider composition"
     },
     {
       "prefix": "cpf-starters/",

@@ -11,8 +11,8 @@ api={
  'CpfCodeService':'cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java',
  'CpfMessageSource':'cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java',
  'CpfParameterService':'cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java',
- 'CpfCalendarService':'cpf-starters/common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java',
- 'CpfTemplateService':'cpf-starters/common/src/main/java/com/cpf/common/template/api/CpfTemplateService.java',
+ 'CpfCalendarService':'cpf-common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java',
+ 'CpfTemplateService':'cpf-common/src/main/java/com/cpf/common/template/api/CpfTemplateService.java',
 }
 required={
  'CpfCodeService':['values(','find(','required('],
@@ -32,7 +32,7 @@ for name in ('CpfCodeService','CpfParameterService'):
  if 'void refresh();' in s and '@Deprecated' not in s: errors.append(f'{name}: refresh must not be Golden Path')
 mgmt=txt('cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfCommonCatalogManagementService.java')
 if 'refreshCaches(String actor, String reason)' not in mgmt: errors.append('Common management refresh contract missing')
-compat=txt('cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java')
+compat=txt('cpf-common/src/main/java/com/cpf/common/calendar/CmnBusinessCalendar.java')
 if 'extends CpfCalendarService' not in compat or '@Deprecated' not in compat: errors.append('Calendar compatibility alias must delegate/deprecate')
 edu_paths=list((ROOT/'cpf-education/src/main/java/com/cpf/education/online').rglob('*.java'))+list((ROOT/'cpf-education/src/main/java/com/cpf/education/batch').rglob('*.java'))
 edu='\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in edu_paths)

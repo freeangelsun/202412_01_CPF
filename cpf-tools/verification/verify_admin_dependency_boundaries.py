@@ -18,7 +18,8 @@ for module in ['cpf-admin','cpf-backoffice/online']:
  if undocumented: fail.extend('UNCLASSIFIED_DEPENDENCY:'+module+':'+x for x in undocumented)
  stale=sorted(by.get(module,set())-deps)
  if stale: fail.extend('CONTRACT_DEPENDENCY_MISSING:'+module+':'+x for x in stale)
- if ':starters:profiles:bff' not in deps: fail.append('PROFILE_MISSING:'+module)
+ if module == 'cpf-admin' and ':starters:profiles:bff' not in deps: fail.append('PROFILE_MISSING:'+module)
+ if module == 'cpf-backoffice/online' and 'cpf-starter-secure-api' not in text: fail.append('PUBLIC_PROFILE_GAV_MISSING:'+module)
  for dup in [':framework:core',':cpf-foundation',':cpf-security-core',':cpf-starter-foundation-base',':cpf-starter-profile-minimal-domain']:
   if dup in deps: fail.append('COMMON_SUBSTRATE_DUPLICATE:'+module+':'+dup)
  # Provider leaves that ADM/BZA do not own or consume must never enter admin apps implicitly.
@@ -27,6 +28,23 @@ for module in ['cpf-admin','cpf-backoffice/online']:
   if d in deps: fail.append('UNAPPROVED_PROVIDER_PIN:'+module+':'+d)
  # Applications must not expose capability dependencies through api.
  if re.search(r'\bapi\s+project\(',text): fail.append('ADMIN_API_PROJECT_DEPENDENCY:'+module)
+# ADM application must never pin internal provider leaves directly. One product-internal composition owns the exact provider set.
+admin_build=(root/'cpf-admin/build.gradle').read_text(encoding='utf-8')
+if re.search(r"project\('(:internal:[^']+)'\)", admin_build): fail.append('ADM_DIRECT_INTERNAL_PROVIDER')
+composition=root/'cpf-admin/runtime/build.gradle'
+expected_internal={
+ ':internal:platform-operations:runtime-control',
+ ':internal:messaging:reliability:jdbc',
+ ':internal:platform-operations:runtime-health:jdbc',
+ ':internal:integration:webhook',
+ ':internal:file:tabular:poi',
+}
+if not composition.is_file(): fail.append('ADM_RUNTIME_COMPOSITION_MISSING')
+else:
+ composition_text=composition.read_text(encoding='utf-8')
+ actual=set(re.findall(r"project\('(:internal:[^']+)'\)",composition_text))
+ if actual!=expected_internal:
+  fail.append('ADM_RUNTIME_COMPOSITION_DRIFT:expected='+','.join(sorted(expected_internal))+':actual='+','.join(sorted(actual)))
 # Contract rows need concrete rationale, not label-only allowlist.
 for r in rows:
  if not r.get('consumer_path','').strip() or not r.get('evidence','').strip(): fail.append('EVIDENCE_INCOMPLETE:'+r.get('module','')+':'+r.get('dependency',''))

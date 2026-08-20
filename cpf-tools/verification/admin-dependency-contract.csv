@@ -2,21 +2,13 @@ module,dependency,kind,consumer_path,evidence
 cpf-admin,:starters:profiles:bff,profile,cpf-admin/src/main/java/com/cpf/admin/AdmApplication.java,ADM browser BFF security/session assembly
 cpf-admin,:framework:integration,capability-parent,cpf-admin/src/main/java/com/cpf/admin/config/AdmIntegrationClosureConfiguration.java,Service registry and integration operations API consumers
 cpf-admin,:framework:operations,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,Reliability/approval/runtime policy public operation consumers
-cpf-admin,:internal:platform-operations:runtime-control,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmRuntimeControlController.java,Approved runtime control owner command execution
-cpf-admin,:internal:messaging:reliability:jdbc,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmReliabilityService.java,JDBC reliability runtime provider for ADM reliability operations
 cpf-admin,:starters:integration:fixed-length,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmLogQueryService.java,Fixed-length layout registry/log decoder/parser consumer
 cpf-admin,:framework:file,capability-parent,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,File attachment/tabular operation contracts
 cpf-admin,:runtime:gateway,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/gateway/AdmGatewayRegistryController.java,Gateway registry/control direct consumer
 cpf-admin,:framework:operations:observability,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmTransactionGroupService.java,Transaction timeline/logging/remote-log runtime consumers
-cpf-admin,:internal:platform-operations:runtime-health:jdbc,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/health/CpfRuntimeHealthAdminQueryService.java,JDBC runtime health read model provider
-cpf-admin,:internal:integration:webhook,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/integration/AdmIntegrationClosureService.java,Webhook operations runtime provider
 cpf-admin,:starters:data:mybatis,provider,cpf-admin/src/main/java/com/cpf/admin/opr/repository/AdmControlPlaneRepository.java,ADM owned persistence provider
-cpf-admin,:internal:file:attachment,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,ADM attachment/file job runtime
-cpf-admin,:internal:file:tabular:poi,capability-runtime,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,Tabular API runtime provider
 cpf-admin,:starters:common,business-common,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmMessageController.java,Common message/code/parameter/calendar product services
 cpf-admin,:runtime:batch:api,owner-contract,cpf-admin/src/main/java/com/cpf/admin/opr/controller/AdmBatchController.java,Batch approved command/query contract consumer
-cpf-backoffice/online,:starters:profiles:bff,profile,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/BzaApplication.java,BZA browser BFF security/session assembly
-cpf-backoffice/online,:starters:data:mybatis,provider,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/operation/repository/BzaOperationRepository.java,BZA owned persistence provider
-cpf-backoffice/online,:internal:file:attachment,capability-runtime,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/support/service/BzaSupportService.java,BZA attachment storage runtime
-cpf-backoffice/online,:starters:common,business-common,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/common/management/BzaCommonManagementService.java,Customer common management/message product services
-cpf-backoffice/online,:starters:security:session:jdbc,capability-runtime,cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/auth/controller/BzaAuthController.java,BZA BFF session bridge filter direct consumer
+cpf-admin,:apps:admin-runtime,product-runtime-composition,cpf-admin/build.gradle,ADM internal provider selection is isolated in cpf-admin/runtime and exact-allowlisted by dependency gate
+cpf-admin,:starters:file:attachment,public-provider,cpf-admin/src/main/java/com/cpf/admin/opr/filejob/AdmFileJobService.java,Public file attachment Provider Starter; ADM no longer pins internal attachment leaf
+cpf-admin,:starters:security:session:jdbc,public-provider,cpf-admin/src/main/java/com/cpf/admin/auth,"Public JDBC Session Starter owns HttpOnly BFF session, CSRF and encrypted credential bridge"

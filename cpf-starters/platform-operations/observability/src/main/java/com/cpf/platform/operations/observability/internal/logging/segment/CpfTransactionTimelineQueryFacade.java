@@ -86,6 +86,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        user_id_masked AS userIdMasked,
                        operator_id_masked AS operatorIdMasked,
                        client_id AS clientId,
+                       original_system_code AS originalSystemCode,
+                       system_code AS systemCode,
+                       caller_system_code AS callerSystemCode,
+                       target_system_code AS targetSystemCode,
                        caller_channel AS callerChannel,
                        current_channel AS currentChannel,
                        original_channel AS originalChannel,
@@ -484,6 +488,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        MAX(user_id_masked) AS userIdMasked,
                        MAX(operator_id_masked) AS operatorIdMasked,
                        MAX(client_id) AS clientId,
+                       MAX(original_system_code) AS originalSystemCode,
+                       MAX(system_code) AS systemCode,
+                       MAX(caller_system_code) AS callerSystemCode,
+                       MAX(target_system_code) AS targetSystemCode,
                        MAX(caller_channel) AS callerChannel,
                        MAX(current_channel) AS currentChannel,
                        MAX(original_channel) AS originalChannel,
@@ -531,6 +539,10 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         appendLike(sql, args, "user_id_masked", criteria.get("userId"));
         appendLike(sql, args, "operator_id_masked", criteria.get("operatorId"));
         appendLike(sql, args, "client_id", criteria.get("clientId"));
+        appendEquals(sql, args, "original_system_code", criteria.get("originalSystemCode"));
+        appendEquals(sql, args, "system_code", criteria.get("systemCode"));
+        appendEquals(sql, args, "caller_system_code", criteria.get("callerSystemCode"));
+        appendEquals(sql, args, "target_system_code", criteria.get("targetSystemCode"));
         appendEquals(sql, args, "caller_channel", criteria.get("callerChannel"));
         appendEquals(sql, args, "current_channel", criteria.get("currentChannel"));
         appendEquals(sql, args, "original_channel", criteria.get("originalChannel"));

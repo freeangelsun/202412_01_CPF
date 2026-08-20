@@ -174,7 +174,7 @@ def verify_bza_reference_live(root: Path, fail: list[str]) -> bool:
     if not frontend.is_dir():
         return False
     required = [
-        frontend / "src/generated/bza-api.ts",
+        frontend / "src/generated/backoffice-api.ts",
         frontend / "src/shared/api/channelHttpClient.ts",
         frontend / "src/router/index.ts",
         frontend / "index.html",
@@ -190,13 +190,13 @@ def verify_bza_reference_live(root: Path, fail: list[str]) -> bool:
         for p in features.rglob("*"):
             if not p.is_file() or p.suffix.lower() not in {".ts", ".vue", ".tsx"}: continue
             s=read_text(p)
-            if "generated/bza-api" in s: consumers.append(p)
+            if "generated/backoffice-api" in s: consumers.append(p)
             if "fetch(" in s: fail.append(f"BZA_FEATURE_RAW_FETCH_FORBIDDEN:{p.relative_to(root).as_posix()}")
     if not consumers: fail.append("BZA_REFERENCE_GENERATED_CLIENT_CONSUMER_MISSING")
     transport=frontend / "src/shared/api/channelHttpClient.ts"
     if transport.is_file():
         s=read_text(transport)
-        for token in ("VITE_BZA_CHANNEL_BASE_URL", "credentials: 'include'", "fetch("):
+        for token in ("VITE_MBW_WEB_BASE_URL", "credentials: 'include'", "fetch("):
             if token not in s: fail.append(f"BZA_CHANNEL_TRANSPORT_TOKEN_MISSING:{token}")
         for token in ("localStorage", "sessionStorage", "X-System-Code", "X-Transaction-Id"):
             if token in s: fail.append(f"BZA_BROWSER_PROTOCOL_OWNERSHIP_FORBIDDEN:{token}")

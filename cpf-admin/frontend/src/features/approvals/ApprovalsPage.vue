@@ -121,7 +121,7 @@ export default defineComponent({components:{CpfModal},
   }},
   mounted(){this.loadApprovalPolicies();void this.listApprovalEnginePolicies();},
   methods:{
-    canAction(operationId:string){return this.admSession.hasButton(operationId);},
+    canAction(operationId:string){return this.admSession.hasOperation(operationId);},
     actionTitle(operationId:string){return this.canAction(operationId)?"":`권한 없음: ${operationId}`;},
     async runApprovalEngine(task:()=>Promise<unknown>){this.approvalEngineError="";try{this.approvalEngineResult=await task();}catch(error){this.approvalEngineError=error instanceof Error?error.message:String(error);}},
     async listApprovalEnginePolicies(){await this.runApprovalEngine(async()=>unwrapGeneratedResponse(await admApprovalPolicies({actionType:this.approvalEngine.actionType||undefined})));},

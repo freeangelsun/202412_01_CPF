@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
 DB = ROOT / "cpf-tools/db"
-JAVA = ROOT / "cpf-starters/common/src/main/java/com/cpf/common/template"
+JAVA = ROOT / "cpf-common/src/main/java/com/cpf/common/template"
 CACHE = ROOT / "cpf-starters/common/src/main/java/com/cpf/common/runtime/cache"
 VENDORS = ("mariadb", "postgresql", "oracle")
 
@@ -51,7 +51,8 @@ class CmnTemplatePersistenceTest(unittest.TestCase):
 
     def test_management_mutations_and_audit_query_use_cpf_common_transaction(self):
         source = (JAVA / "CmnTemplateManagementService.java").read_text(encoding="utf-8")
-        self.assertGreaterEqual(source.count('transactionManager = "cpfCommonTransactionManager"'), 4)
+        self.assertIn('CpfCommonPersistenceNames.TX_MANAGER_BEAN', source)
+        self.assertGreaterEqual(source.count('transactionManager = CpfCommonPersistenceNames.TX_MANAGER_BEAN'), 4)
         self.assertIn('readOnly = true', source)
         self.assertIn("store.approve", source)
         self.assertIn("store.retire", source)

@@ -10,8 +10,8 @@ from pathlib import Path
 
 OFFICIAL_VENDORS = {"mariadb", "postgresql", "oracle"}
 CONSUMER_PATHS = {
-    "CmnJdbcCalendarStore": "cpf-starters/common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
-    "CmnJdbcTemplateStore": "cpf-starters/common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
+    "CmnJdbcCalendarStore": "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java",
+    "CmnJdbcTemplateStore": "cpf-common/src/main/java/com/cpf/common/template/CmnJdbcTemplateStore.java",
 }
 JAVA_STRING = re.compile(r'(?s)"""(.*?)"""|"((?:\\.|[^"\\])*)"')
 
@@ -33,8 +33,8 @@ def evaluate(root: Path) -> dict:
     if len(modules) != 1:
         return {"status": "FAIL", "findings": [f"cmn module count must be 1, actual={len(modules)}"]}
     module = modules[0]
-    if module.get("ownerArtifact") != "cpf-starter-common":
-        findings.append("cmn ownerArtifact must be cpf-starter-common")
+    if module.get("ownerArtifact") != "cpf-common":
+        findings.append("cmn ownerArtifact must be cpf-common")
     if module.get("inlineSqlPolicy") != "FORBIDDEN":
         findings.append("cmn inlineSqlPolicy must be FORBIDDEN")
     if set(contract.get("vendors", [])) != OFFICIAL_VENDORS:

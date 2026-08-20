@@ -1,0 +1,14 @@
+plugins { id 'java-library' }
+
+group = 'com.cpf.admin.internal'
+
+description = 'CPF ADM product-internal runtime provider composition. The ADM application consumes this group instead of pinning internal leaves.'
+
+dependencies {
+    // These providers are intentionally composed only here. Public/owner contracts remain on cpf-admin/build.gradle.
+    api project(':internal:platform-operations:runtime-control')
+    api project(':internal:messaging:reliability:jdbc')
+    api project(':internal:platform-operations:runtime-health:jdbc')
+    api project(':internal:integration:webhook')
+    api project(':internal:file:tabular:poi')
+}

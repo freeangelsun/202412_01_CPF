@@ -271,7 +271,7 @@ def main() -> int:
         errors.append("settings.gradle lacks active/retained/removed physical closure gate")
     if "cpf-tools/generator/contracts/cpf-starter-catalog.json" not in settings_text:
         errors.append("settings.gradle does not load the canonical Starter Catalog")
-    if "cpf-tools/generator/contracts/cpf-starter-catalog.json" in settings_text:
+    if "cpf-tools/generator/config/application-starters.yml" in settings_text:
         errors.append("settings.gradle loads Generator application config instead of the canonical Starter Catalog")
     build_text = (root / "build.gradle").read_text(encoding="utf-8") if (root / "build.gradle").is_file() else ""
     convention = root / "cpf-tools/build/cpf-root-conventions.gradle"

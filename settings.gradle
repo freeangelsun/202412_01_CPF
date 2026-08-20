@@ -88,7 +88,8 @@ pluginManagement {
 
 rootProject.name = 'cpf-core-platform-framework'
 
-include ':framework:core', ':apps:admin', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
+include ':cpf-common'
+include ':framework:core', ':apps:admin', ':apps:admin-runtime', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
 // Optional Prebuilt Business Domain: Backoffice(MBW)는 Generated Business Domain과 동일한 Online 계약을 사용합니다.
 def cpfBackofficePresent = file('cpf-backoffice/online/build.gradle').isFile()
 if (cpfBackofficePresent) {
@@ -97,10 +98,12 @@ if (cpfBackofficePresent) {
 include ':internal:verification:core-only-consumer'
 include ':runtime:batch:api', ':runtime:batch:runtime-support', ':runtime:batch:runtime', ':runtime:batch:control-plane', ':runtime:batch:scheduler', ':runtime:batch:worker', ':runtime:batch:center-cut', ':runtime:batch:agent', ':runtime:batch:testkit'
 
+project(':cpf-common').projectDir = file('cpf-common')
 project(':framework:core').projectDir = file('cpf-core')
 project(':apps:education').projectDir = file('cpf-education')
 project(':internal:testing:testkit').projectDir = file('cpf-tools/testing/cpf-testkit')
 project(':apps:admin').projectDir = file('cpf-admin')
+project(':apps:admin-runtime').projectDir = file('cpf-admin/runtime')
 if (cpfBackofficePresent) {
     project(':apps:backoffice').projectDir = file('cpf-backoffice/online')
 }
@@ -313,14 +316,11 @@ if (includeLocalDomains) {
 // Repository-tracked Generated Customer Domain은 Product Module/BOM 대상이 아니며 opt-in Composite Build로만 연결합니다.
 // Generated Project 내부 metadata를 읽지 않고 Framework canonical definition과 실제 settings.gradle만 사용합니다.
 def includeGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(false).get()
-def generatedDefinitionRoot = file('cpf-tools/generator/definitions')
-def generatedDomainRoots = generatedDefinitionRoot.isDirectory()
-        ? (generatedDefinitionRoot.listFiles() ?: [] as File[])
-            .findAll { definitionDir -> definitionDir.isDirectory() && new File(definitionDir, 'cpf-domain.yaml').isFile() }
-            .collect { definitionDir -> file("cpf-${definitionDir.name}") }
-            .findAll { candidate -> candidate.isDirectory() && new File(candidate, 'settings.gradle').isFile() }
-            .sort { a, b -> a.name <=> b.name }
-        : []
+def generatedDomainRoots = (rootDir.listFiles() ?: [] as File[])
+        .findAll { candidate -> candidate.isDirectory() && candidate.name.startsWith('cpf-')
+                && new File(candidate, 'cpf-domain.yaml').isFile()
+                && new File(candidate, 'settings.gradle').isFile() }
+        .sort { a, b -> a.name <=> b.name }
 if (includeGeneratedDomains) {
     generatedDomainRoots.each { candidate ->
         def canonical = candidate.canonicalFile
@@ -328,7 +328,7 @@ if (includeGeneratedDomains) {
             throw new GradleException("Generated Domain path escapes root: ${candidate}")
         }
         def domainName = candidate.name.substring('cpf-'.length())
-        def definition = new File(generatedDefinitionRoot, domainName + '/cpf-domain.yaml')
+        def definition = new File(candidate, 'cpf-domain.yaml')
         def definitionText = definition.getText('UTF-8')
         def packageMatch = (definitionText =~ /(?m)^\s*packageName:\s*([A-Za-z0-9_.-]+)\s*$/)
         def domainMatch = (definitionText =~ /(?m)^\s{2}name:\s*([A-Za-z0-9_-]+)\s*$/)

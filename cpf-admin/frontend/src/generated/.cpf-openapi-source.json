@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "identityPolicy": "TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE",
   "openApiPath": "openapi/cpf-openapi.json",
-  "openApiSha256": "65de688eeb62c43b6ec0fcb97bcfc29bb53140d3bdf5dfbefdc3c75d7ed9acac",
+  "openApiSha256": "dbce19e4e0ad2328ab71cb4819f7665a56e369385fd89a32fc7f9c6035d9daab",
   "openApiOperationCount": 337,
   "openApiOperationIdsSha256": "1aa78e54517bf0f1f70fbb84ad900354d47aab28f8a0a9c62b48875f7f2eb3da",
   "generator": {
@@ -22,7 +22,7 @@
     },
     {
       "path": "src/generated/cpf-api.ts",
-      "sha256": "5dbd3050b2045cf7730d1f2a0058f8904c0d1fe164b572ef8b7581581c8dd666"
+      "sha256": "3b16efa2a57f170aa83d081c7bd73a94686f8a7c533e905decfcd076c90c862e"
     },
     {
       "path": "src/generated/cpf-operation-contract.ts",
@@ -30,7 +30,7 @@
     },
     {
       "path": "src/generated/orval/cpf-api.ts",
-      "sha256": "ff03da3ee5764ce72e56fa7de27ce5eb605b0b7a1f2af650213d498e23e495cb"
+      "sha256": "3dc7a52d0386634fc400e5d066adde8f315e8bd67a21fb595c8880e61af4128e"
     },
     {
       "path": "src/generated/orval/model/admApiErrorResponse.ts",
@@ -282,7 +282,7 @@
     },
     {
       "path": "src/generated/orval/model/admCurrentSessionResponse.ts",
-      "sha256": "eb624473e08ea4996ae07239255798f7360a780b7c4d78f5fb180e2bd23d09ab"
+      "sha256": "1b3d7dcf80b5cd6e1f849dd2446a8f05b6777e96b8448537470ef7c9f2e76b60"
     },
     {
       "path": "src/generated/orval/model/admDownloadFindDownloadAuditLogsParams.ts",
@@ -446,7 +446,7 @@
     },
     {
       "path": "src/generated/orval/model/admLoginResponse.ts",
-      "sha256": "bd000854fae2a14cebee74f285909b592e0f9b4c245bf9393d38a3998a9ad390"
+      "sha256": "1bdcf5e7cf7048206f3acb5574906c8d0e3ab9e20e18d096e2de5f4d26c9e434"
     },
     {
       "path": "src/generated/orval/model/admLogoutResponse.ts",
@@ -1314,7 +1314,7 @@
     },
     {
       "path": "src/generated/orval/model/index.ts",
-      "sha256": "53a693b4a7fb26ac020868dad6d3a444d2fb1b7f0468ef214337cb62b6dee678"
+      "sha256": "0077b68bfef7d125708065f17c16e8ededcd0c2fa3874012bdc4b645af785375"
     },
     {
       "path": "src/generated/orval/model/inputStreamResource.ts",
@@ -1359,6 +1359,10 @@
     {
       "path": "src/generated/orval/model/notificationSendResult.ts",
       "sha256": "e00bc5cf18dbb6ec408728c0788a3bd419ee3451a05c27229fde9aa99c47eff4"
+    },
+    {
+      "path": "src/generated/orval/model/operationRoute.ts",
+      "sha256": "2e5d64ee0c8f3bee0cc7a5211aaef042cbb7411bd95c8a718c282f67b4c15121"
     },
     {
       "path": "src/generated/orval/model/operationsEvent.ts",
@@ -1455,6 +1459,10 @@
     {
       "path": "src/generated/orval/model/row.ts",
       "sha256": "79188fe10e9eca77ef9915e0b7afd006cbe0315d18acd3c0ed1473637e9cddad"
+    },
+    {
+      "path": "src/generated/orval/model/rule.ts",
+      "sha256": "3e7f97d3ce3bfc0126587059f85eaa42be65d7d8f33aa6518cc6a7417c8c94ae"
     },
     {
       "path": "src/generated/orval/model/serverGroup.ts",
@@ -1557,6 +1565,6 @@
       "sha256": "ce1b8128b05e5809c52aec16e30fedde187e3a58408c0b6e891670c554f5ab2f"
     }
   ],
-  "generatedFileSetSha256": "dd6f357d113ceddbff764d2133532d0bbd264f5d21d89fdaf71bb6f84ae3687c",
+  "generatedFileSetSha256": "fa6327384f1ee9a0ce663f383ac16871641ec3d9b49dfbcc98a4122ec9da615a",
   "sanitized": true
 }

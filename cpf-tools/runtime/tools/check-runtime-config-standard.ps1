@@ -12,7 +12,7 @@ $OutputEncoding = $CpfUtf8ConsoleEncoding
 $ErrorActionPreference = "Stop"
 
 $modules = @("cpf-admin", "cpf-batch", "cpf-backoffice/online", "cpf-education", "cpf-gateway")
-$moduleCodes = @("ADM", "BAT", "BZA", "EDU", "GWY")
+$moduleCodes = @("ADM", "BAT", "MBW", "EDU", "GWY")
 $profiles = @("local", "dev", "stg", "prod")
 $batRuntimeRoles = [ordered]@{
     CONTROL_PLANE = [ordered]@{
@@ -49,33 +49,33 @@ $batRuntimeRoles = [ordered]@{
 $prefixByModule = @{
     "cpf-admin" = "ADM"
     "cpf-batch" = "BAT"
-    "cpf-backoffice/online" = "BZA"
+    "cpf-backoffice/online" = "MBW"
     "cpf-education" = "EDU"
     "cpf-gateway" = "GWY"
 }
 $expectedLocalPorts = @{
     ADM = 8090
-    BZA = 8091
+    MBW = 18091
     EDU = 8099
     GWY = 8070
 }
 $schemaByModule = @{
     ADM = "admDB"
-    BZA = "bzaDB"
+    MBW = "mbwDB"
     BAT = "batDB"
     EDU = "cpfDB"
     GWY = "cpfDB"
 }
 $usernameByModule = @{
     ADM = "cpf_adm_app"
-    BZA = "cpf_bza_app"
+    MBW = "cpf_mbw_app"
     BAT = "cpf_bat_app"
     EDU = "cpf_edu_app"
     GWY = "cpf_app"
 }
 $jndiByModule = @{
     ADM = "java:comp/env/jdbc/cpfAdminDataSource"
-    BZA = "java:comp/env/jdbc/cpfBizAdminDataSource"
+    MBW = "java:comp/env/jdbc/cpfBackofficeDataSource"
     BAT = "java:comp/env/jdbc/cpfBatchDataSource"
     EDU = "java:comp/env/jdbc/cpfEducationDataSource"
     GWY = "java:comp/env/jdbc/cpfGatewayDataSource"
@@ -252,11 +252,11 @@ foreach ($profile in $profiles) {
                 ("{0}_SERVER_PORT" -f $prefix)
             )
         }
-        if ($prefix -eq "BZA") {
+        if ($prefix -eq "MBW") {
             $requiredKeys += @(
-                "CPF_BZA_JWT_SECRET",
-                "CPF_BZA_ACCESS_TOKEN_TTL_SECONDS",
-                "CPF_BZA_REFRESH_TOKEN_TTL_SECONDS"
+                "CPF_MBW_JWT_SECRET",
+                "CPF_MBW_ACCESS_TOKEN_TTL_SECONDS",
+                "CPF_MBW_REFRESH_TOKEN_TTL_SECONDS"
             )
         }
 

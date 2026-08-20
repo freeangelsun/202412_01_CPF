@@ -4,27 +4,6 @@
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
-MERGE INTO ADM_MENU tgt
-USING (SELECT 'GATEWAY_DASHBOARD' AS menu_id, NULL AS parent_menu_id, 'Gateway 대시보드' AS menu_name, '/adm#gateway-dashboard' AS menu_path, 300 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_SERVERS' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 연동 서버' AS menu_name, '/adm#gateway-servers' AS menu_path, 301 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_GROUPS' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 서버 그룹' AS menu_name, '/adm#gateway-groups' AS menu_path, 302 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_ROUTES' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 경로·라우팅' AS menu_name, '/adm#gateway-routes' AS menu_path, 303 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_SECURITY' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 보안·제한' AS menu_name, '/adm#gateway-security' AS menu_path, 304 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_HEALTH' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway Health·연결시험' AS menu_name, '/adm#gateway-health' AS menu_path, 305 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_TRANSACTIONS' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 거래 조회' AS menu_name, '/adm#gateway-transactions' AS menu_path, 306 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_LOG_POLICY' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 로그 정책' AS menu_name, '/adm#gateway-log-policies' AS menu_path, 307 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'GATEWAY_APPLY_STATUS' AS menu_id, 'GATEWAY_DASHBOARD' AS parent_menu_id, 'Gateway 적용 상태·이력' AS menu_name, '/adm#gateway-apply-status' AS menu_path, 308 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.menu_id=src.menu_id)
-WHEN MATCHED THEN UPDATE SET tgt.parent_menu_id=src.parent_menu_id, tgt.menu_name=src.menu_name, tgt.menu_path=src.menu_path, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=src.updated_at
-WHEN NOT MATCHED THEN INSERT (menu_id, parent_menu_id, menu_name, menu_path, sort_order, use_yn, created_by, updated_by) VALUES (src.menu_id, src.parent_menu_id, src.menu_name, src.menu_path, src.sort_order, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO ADM_BUTTON tgt
 USING (SELECT 'GATEWAY_READ' AS button_id, 'GATEWAY_DASHBOARD' AS menu_id, 'READ' AS action_code, 'Gateway 운영 조회' AS button_name, 'GET' AS http_method, '/adm/api/gateway-registry/**' AS api_pattern, 10 AS sort_order, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL

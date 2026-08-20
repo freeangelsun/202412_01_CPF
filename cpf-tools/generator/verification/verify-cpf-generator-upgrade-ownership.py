@@ -15,7 +15,7 @@ REQUIRED = (
     "def remove_owned(",
     "사용자 변경 파일이 있어 remove 중단",
     "def restore(",
-    "restore target이 비어 있지 않습니다",
+    "restore target에 canonical definition/lock 외 파일이 남아 있습니다",
     "현재 Generator Template이 remove 시점과 달라 restore할 수 없습니다",
     "metadataRequired':False",
 )

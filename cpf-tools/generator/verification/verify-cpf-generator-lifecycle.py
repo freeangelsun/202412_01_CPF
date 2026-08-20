@@ -53,8 +53,8 @@ def validate_contract(root: Path, contract: dict) -> None:
     if not isinstance(lock,dict) or lock.get("sourceControlled") is not True or lock.get("semanticSourceOfTruth") is not False or lock.get("freshCloneRecovery") is not True or lock.get("generatedProjectMetadata") is not False:
         raise ContractError("workspaceOwnershipLock must be source-controlled safety metadata outside Generated Project")
     forbidden=contract.get("forbiddenPermanentProjectEntries")
-    if not isinstance(forbidden,list) or len(forbidden)!=len(set(forbidden)) or not {".cpf","cpf-domain.yaml","manifest"}.issubset(set(forbidden)):
-        raise ContractError("forbiddenPermanentProjectEntries must block permanent generator metadata")
+    if not isinstance(forbidden,list) or len(forbidden)!=len(set(forbidden)) or not {".cpf","manifest"}.issubset(set(forbidden)) or "cpf-domain.yaml" in set(forbidden):
+        raise ContractError("forbiddenPermanentProjectEntries must block generator-only metadata while allowing canonical cpf-domain.yaml")
     protection=contract.get("userProtection")
     required={
       "generatedFileDriftBlocksRegenerate":True,"generatedFileDriftBlocksUpgrade":True,
@@ -64,8 +64,10 @@ def validate_contract(root: Path, contract: dict) -> None:
     }
     if protection != required: raise ContractError("userProtection must remain fail-closed")
     db_assets=contract.get("generatedDatabaseAssets")
-    if not isinstance(db_assets,dict) or db_assets.get("sourceControlled") is not True or db_assets.get("vendors") != VENDORS:
-        raise ContractError("generatedDatabaseAssets must expose source-controlled DB3 lifecycle assets")
+    if (not isinstance(db_assets,dict) or db_assets.get("sourceControlled") is not False
+            or db_assets.get("generatedDomainRoot") is not False or db_assets.get("vendors") != VENDORS
+            or "build/domain-generator/verification" not in str(db_assets.get("root", ""))):
+        raise ContractError("generatedDatabaseAssets must be externally rendered DB3 lifecycle assets outside Generated Domain source root")
 
 def _load_engine(root: Path, rel: str):
     path=root/rel
@@ -113,7 +115,8 @@ generation:
         d=engine.validate_definition(engine.load_yaml_subset(definition))
         vr=engine.verify_generated(repo,definition,output,d)
         if vr.get("status")!="PASS" or vr.get("customerMetadata")!="NONE": raise ContractError("generated project verification failed")
-        if any((output/name).exists() for name in contract["forbiddenPermanentProjectEntries"]): raise ContractError("permanent generator metadata leaked into customer project")
+        if not (output / "cpf-domain.yaml").is_file(): raise ContractError("canonical cpf-domain.yaml missing from Generated Root")
+        if any((output/name).exists() for name in contract["forbiddenPermanentProjectEntries"]): raise ContractError("generator-only metadata leaked into customer project")
         state=repo/"build/domain-generator/verification/cpf-ledger/generation-state.json"
         if not state.is_file(): raise ContractError("transient generation-state missing")
         target=next(output.rglob("SampleTransactionController.java")); original=target.read_text(encoding="utf-8")
@@ -129,7 +132,9 @@ generation:
         up=engine.upgrade(repo,definition,output)
         if up.get("status")!="UPGRADED": raise ContractError("upgrade did not pass on unchanged seed")
         rem=engine.remove_owned(repo,definition,output,apply=True)
-        if rem.get("status")!="REMOVED" or output.exists(): raise ContractError("safe remove did not remove generated-owned project")
+        remaining={p.name for p in output.iterdir()} if output.is_dir() else set()
+        if rem.get("status")!="REMOVED" or not remaining.issubset({"cpf-domain.yaml","cpf-generator.lock.json"}):
+            raise ContractError(f"safe remove left non-canonical generated content: {sorted(remaining)}")
         restored=engine.restore(repo,definition,output)
         if restored.get("status")!="RESTORED": raise ContractError("restore did not restore matching seed")
         if not engine.diff(repo,definition,output).get("clean"): raise ContractError("restore parity is not clean")
@@ -139,12 +144,12 @@ generation:
         for rel in [contract["canonicalInputSchema"],"cpf-tools/generator/contracts/cpf-starter-catalog.json","gradle/cpf-stack.properties"]:
             src=root/rel; dst=public_repo/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
         src=root/"cpf-tools/db/generated/domain-template"; dst=public_repo/"cpf-tools/db/generated/domain-template"; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst)
-        public_def=public_repo/"domains/ledger/cpf-domain.yaml"; public_def.parent.mkdir(parents=True)
+        public_output=public_repo/"cpf-ledger"; public_output.mkdir(parents=True)
+        public_def=public_output/"cpf-domain.yaml"
         public_def.write_text(definition.read_text(encoding="utf-8"),encoding="utf-8")
-        public_output=public_repo/"cpf-ledger"
         public_gen=engine.generate(public_repo,public_def,public_output)
         if public_gen.get("status")!="GENERATED": raise ContractError("public workspace generate did not pass")
-        lock=public_repo/"domains/ledger/cpf-generator.lock.json"
+        lock=public_output/"cpf-generator.lock.json"
         if not lock.is_file(): raise ContractError("source-controlled workspace ownership lock missing")
         transient_public=public_repo/"build/domain-generator/verification/cpf-ledger"
         if transient_public.exists(): shutil.rmtree(transient_public)

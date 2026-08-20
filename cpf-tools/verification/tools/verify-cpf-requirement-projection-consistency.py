@@ -2,8 +2,8 @@
 """Validate the split canonical requirement master and the current developer projection.
 
 This gate deliberately does not mutate or reinterpret QA/Codex status.  It proves that the
-small REQUIREMENT_STATUS.csv is a development projection and cannot be mistaken for the
-canonical completion ledger.
+REQUIREMENT_STATUS.csv is the 205-row Canonical Requirement development ledger.
+Only 개발GPT_* columns are owned here; QA/Codex status is never synthesized by this gate.
 """
 from __future__ import annotations
 import argparse,csv,hashlib,json,sys
@@ -53,13 +53,22 @@ def verify(root:Path)->dict:
   total+=len(pr)
  if total!=logical_count or len(seen)!=logical_count: raise GateError(f'logical assembly mismatch expected={logical_count} actual={total}/{len(seen)}')
  pf,prows=rows(projection)
- if len(prows)!=36: raise GateError(f'developer projection count drift: {len(prows)}')
+ if len(prows)!=205: raise GateError(f'canonical developer ledger count drift: {len(prows)}')
  required_projection={'exact_id','개발GPT_수행상태','개발GPT_개발상태','개발GPT_검증상태','개발GPT_전체상태','개발GPT_자체검수','개발GPT_검증내용','개발GPT_환경','개발GPT_Evidence','baseline_source_zip_sha256'}
  if required_projection-set(pf): raise GateError(f'developer projection columns missing: {sorted(required_projection-set(pf))}')
  forbidden=[c for c in pf if c.startswith('QA_') or c.startswith('Codex_')]
  if forbidden: raise GateError(f'developer projection must not own QA/Codex status columns: {forbidden}')
- if any(not (r.get('exact_id') or '').strip() for r in prows): raise GateError('developer projection has blank exact_id')
- return {'status':'PASS','canonicalParts':len(mrows),'canonicalLogicalRequirements':logical_count,'developerProjectionRows':len(prows),'projectionRole':'DEVELOPMENT_ONLY_NOT_CANONICAL_COMPLETION_LEDGER'}
+ if any(not (r.get('exact_id') or '').strip() for r in prows): raise GateError('developer ledger has blank exact_id')
+ canonical_doc=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+ import re
+ catalog_ids=[]
+ for line in canonical_doc.read_text(encoding='utf-8-sig').splitlines():
+  match=re.match(r'^\| `([A-Z0-9-]+)` \|',line)
+  if match: catalog_ids.append(match.group(1))
+ ledger_ids=[(r.get('exact_id') or '').strip() for r in prows]
+ if len(catalog_ids)!=205 or len(set(catalog_ids))!=205: raise GateError(f'canonical catalog count drift: {len(catalog_ids)}/{len(set(catalog_ids))}')
+ if ledger_ids!=catalog_ids: raise GateError('REQUIREMENT_STATUS exact_id order/set differs from Canonical 205 catalog')
+ return {'status':'PASS','canonicalParts':len(mrows),'canonicalLogicalRequirements':logical_count,'canonicalDeveloperLedgerRows':len(prows),'ledgerRole':'CANONICAL_205_DEVELOPMENT_STATUS_ONLY'}
 
 def main()->int:
  ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');ap.add_argument('--json-output');ns=ap.parse_args()

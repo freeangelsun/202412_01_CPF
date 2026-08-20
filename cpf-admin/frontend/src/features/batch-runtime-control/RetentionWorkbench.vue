@@ -141,7 +141,7 @@ async function togglePolicy(paused: boolean) {
 async function pauseRun() {
   if (!canRunPause.value || !runId.value || reason.value.trim().length < 5) return
   running.value = true; error.value = ''; notice.value = ''
-  try { await admRetentionRunPause({ path: { runId: runId.value }, data: { expectedVersion: 0, reason: reason.value.trim() } }); notice.value = 'Retention Run 일시정지를 요청했습니다.'; await refreshRuns() }
+  try { await admRetentionRunPause({ path: { runId: runId.value }, data: { expectedVersion: Number(value(selectedPolicy.value,'rowVersion','row_version')), reason: reason.value.trim() } }); notice.value = 'Retention Run 일시정지를 요청했습니다.'; await refreshRuns() }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }

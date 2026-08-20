@@ -376,99 +376,99 @@ SELECT 'OBAT-OPR-01-0003' AS legacy_execution_id, 'OBATOP0003' AS standard_execu
 UNION ALL
 SELECT 'OBAT-OPR-02-0002' AS legacy_execution_id, 'OBATOP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ADM-01-1001' AS legacy_execution_id, 'OBZAAD1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ADM-01-1001' AS legacy_execution_id, 'OMBWAD1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ADM-03-1002' AS legacy_execution_id, 'OBZAAD1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ADM-03-1002' AS legacy_execution_id, 'OMBWAD1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-01-0001' AS legacy_execution_id, 'OBZAAP0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-01-0001' AS legacy_execution_id, 'OMBWAP0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-01-0003' AS legacy_execution_id, 'OBZAAP0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-01-0003' AS legacy_execution_id, 'OMBWAP0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-02-0002' AS legacy_execution_id, 'OBZAAP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-02-0002' AS legacy_execution_id, 'OMBWAP0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-APR-05-0004' AS legacy_execution_id, 'OBZAAP0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-APR-05-0004' AS legacy_execution_id, 'OMBWAP0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-01-0001' AS legacy_execution_id, 'OBZAAT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-01-0001' AS legacy_execution_id, 'OMBWAT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-02-0002' AS legacy_execution_id, 'OBZAAT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-02-0002' AS legacy_execution_id, 'OMBWAT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ATC-DL-0003' AS legacy_execution_id, 'OBZAAT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ATC-DL-0003' AS legacy_execution_id, 'OMBWAT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUD-01-0001' AS legacy_execution_id, 'OBZAUD0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUD-01-0001' AS legacy_execution_id, 'OMBWUD0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0004' AS legacy_execution_id, 'OBZAAU0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0004' AS legacy_execution_id, 'OMBWAU0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0005' AS legacy_execution_id, 'OBZAAU0005' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0005' AS legacy_execution_id, 'OMBWAU0005' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-01-0007' AS legacy_execution_id, 'OBZAAU0007' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-01-0007' AS legacy_execution_id, 'OMBWAU0007' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0001' AS legacy_execution_id, 'OBZAAU0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0001' AS legacy_execution_id, 'OMBWAU0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0002' AS legacy_execution_id, 'OBZAAU0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0002' AS legacy_execution_id, 'OMBWAU0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-02-0003' AS legacy_execution_id, 'OBZAAU0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-02-0003' AS legacy_execution_id, 'OMBWAU0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-03-0006' AS legacy_execution_id, 'OBZAAU0006' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-03-0006' AS legacy_execution_id, 'OMBWAU0006' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-AUT-04-0008' AS legacy_execution_id, 'OBZAAU0008' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-AUT-04-0008' AS legacy_execution_id, 'OMBWAU0008' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-CUS-01-1001' AS legacy_execution_id, 'OBZACU1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-CUS-01-1001' AS legacy_execution_id, 'OMBWCU1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DSH-01-0001' AS legacy_execution_id, 'OBZADS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DSH-01-0001' AS legacy_execution_id, 'OMBWDS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DWN-01-0002' AS legacy_execution_id, 'OBZADW0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DWN-01-0002' AS legacy_execution_id, 'OMBWDW0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-DWN-01-1001' AS legacy_execution_id, 'OBZADW1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-DWN-01-1001' AS legacy_execution_id, 'OMBWDW1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-EMP-01-0001' AS legacy_execution_id, 'OBZAEM0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-EMP-01-0001' AS legacy_execution_id, 'OMBWEM0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-EMP-03-0002' AS legacy_execution_id, 'OBZAEM0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-EMP-03-0002' AS legacy_execution_id, 'OMBWEM0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MNU-01-1001' AS legacy_execution_id, 'OBZAMN1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MNU-01-1001' AS legacy_execution_id, 'OMBWMN1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MNU-03-1002' AS legacy_execution_id, 'OBZAMN1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MNU-03-1002' AS legacy_execution_id, 'OMBWMN1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-MSK-02-1001' AS legacy_execution_id, 'OBZAMS1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-MSK-02-1001' AS legacy_execution_id, 'OMBWMS1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-01-0001' AS legacy_execution_id, 'OBZANT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-01-0001' AS legacy_execution_id, 'OMBWNT0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-02-0002' AS legacy_execution_id, 'OBZANT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-02-0002' AS legacy_execution_id, 'OMBWNT0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-NTF-03-0003' AS legacy_execution_id, 'OBZANT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-NTF-03-0003' AS legacy_execution_id, 'OMBWNT0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORD-01-1001' AS legacy_execution_id, 'OBZAOR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORD-01-1001' AS legacy_execution_id, 'OMBWOR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORG-01-0001' AS legacy_execution_id, 'OBZAOR0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORG-01-0001' AS legacy_execution_id, 'OMBWOR0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ORG-03-0002' AS legacy_execution_id, 'OBZAOR0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ORG-03-0002' AS legacy_execution_id, 'OMBWOR0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-0002' AS legacy_execution_id, 'OBZAPE0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-0002' AS legacy_execution_id, 'OMBWPE0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-0003' AS legacy_execution_id, 'OBZAPE0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-0003' AS legacy_execution_id, 'OMBWPE0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-01-1001' AS legacy_execution_id, 'OBZAPE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-01-1001' AS legacy_execution_id, 'OMBWPE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-02-0004' AS legacy_execution_id, 'OBZAPE0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-02-0004' AS legacy_execution_id, 'OMBWPE0004' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PER-03-1002' AS legacy_execution_id, 'OBZAPE1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PER-03-1002' AS legacy_execution_id, 'OMBWPE1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-PRD-01-1001' AS legacy_execution_id, 'OBZAPR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-PRD-01-1001' AS legacy_execution_id, 'OMBWPR1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ROL-01-1001' AS legacy_execution_id, 'OBZARO1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ROL-01-1001' AS legacy_execution_id, 'OMBWRO1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-ROL-03-1002' AS legacy_execution_id, 'OBZARO1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-ROL-03-1002' AS legacy_execution_id, 'OMBWRO1002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-01-0001' AS legacy_execution_id, 'OBZASC0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-01-0001' AS legacy_execution_id, 'OMBWSC0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-03-0002' AS legacy_execution_id, 'OBZASC0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-03-0002' AS legacy_execution_id, 'OMBWSC0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SCH-04-0003' AS legacy_execution_id, 'OBZASC0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SCH-04-0003' AS legacy_execution_id, 'OMBWSC0003' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-SET-01-1001' AS legacy_execution_id, 'OBZASE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-SET-01-1001' AS legacy_execution_id, 'OMBWSE1001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-USR-QY-0000' AS legacy_execution_id, 'OBZAUS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-USR-QY-0000' AS legacy_execution_id, 'OMBWUS0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
-SELECT 'OBZA-USR-QY-0001' AS legacy_execution_id, 'OBZAUS0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
+SELECT 'OMBW-USR-QY-0001' AS legacy_execution_id, 'OMBWUS0002' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL
 SELECT 'OREF-EDU-01-0001' AS legacy_execution_id, 'OEDUAA0001' AS standard_execution_id, 'CPF O/S/B 10자리 표준 전환' AS migration_reason, 'CPF_SEED' AS created_by, 'CPF_SEED' AS updated_by FROM dual
 UNION ALL

@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
  *
  * <p>CPF/CMN 공통 모듈을 함께 스캔하고 ADM 운영 화면과 BAT/업무 Owner Control Plane 연동을 제공합니다.</p>
  */
-@SecurityScheme(name = "admSessionCookie", type = SecuritySchemeType.APIKEY, in = SecuritySchemeIn.COOKIE, paramName = "JSESSIONID", description = "ADM Browser BFF same-origin session cookie; state-changing requests also require X-XSRF-TOKEN")
+@SecurityScheme(name = "admSessionCookie", type = SecuritySchemeType.APIKEY, in = SecuritySchemeIn.COOKIE, paramName = "CPFSESSION", description = "ADM Browser BFF HttpOnly same-origin session cookie; state-changing requests also require X-XSRF-TOKEN")
 @SecurityScheme(name = "admCsrfHeader", type = SecuritySchemeType.APIKEY, in = SecuritySchemeIn.HEADER, paramName = "X-XSRF-TOKEN", description = "CSRF token paired with the same-origin XSRF-TOKEN cookie for state-changing ADM requests")
 @SpringBootApplication(scanBasePackages = {"com.cpf.core", "com.cpf.common", "com.cpf.admin"})
 @EnableConfigurationProperties({AdmBootstrapProperties.class, AdmPasswordPolicyProperties.class, AdmSecurityProperties.class, AdmParameterReferenceProperties.class})

@@ -14,11 +14,11 @@ $targets = [ordered]@{
 function Require-Pattern([string] $RelativePath, [string] $Pattern) {
     $path = Join-Path $Root $RelativePath
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-        throw "BZA safe default 필수 파일이 없습니다: $path"
+        throw "Backoffice/MBW safe default 필수 파일이 없습니다: $path"
     }
     $content = Get-Content -LiteralPath $path -Raw -Encoding UTF8
     if ($content -notmatch $Pattern) {
-        throw "BZA safe default parity 실패: file=$RelativePath pattern=$Pattern"
+        throw "Backoffice/MBW safe default parity 실패: file=$RelativePath pattern=$Pattern"
     }
 }
 
@@ -27,4 +27,4 @@ Require-Pattern $targets.schema "employment_status VARCHAR\(30\) NOT NULL DEFAUL
 Require-Pattern $targets.migration "SET DEFAULT 'EMPLOYED'"
 Require-Pattern $targets.rollback "SET DEFAULT 'ACTIVE'"
 
-Write-Host "[PASS] BZA employee safe default source/canonical/migration parity"
+Write-Host "[PASS] Backoffice/MBW employee safe default source/canonical/migration parity"

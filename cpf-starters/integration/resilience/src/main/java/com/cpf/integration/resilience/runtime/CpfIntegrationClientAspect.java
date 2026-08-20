@@ -19,8 +19,10 @@ public final class CpfIntegrationClientAspect {
         CpfClient client=AnnotatedElementUtils.findMergedAnnotation(m,CpfClient.class);
         if(client==null)client=AnnotatedElementUtils.findMergedAnnotation(m.getDeclaringClass(),CpfClient.class);
         CpfRetry retry=AnnotatedElementUtils.findMergedAnnotation(m,CpfRetry.class); if(retry==null)retry=AnnotatedElementUtils.findMergedAnnotation(m.getDeclaringClass(),CpfRetry.class);
-        CpfTimeLimiter timeout=AnnotatedElementUtils.findMergedAnnotation(m,CpfTimeLimiter.class); if(timeout==null)timeout=AnnotatedElementUtils.findMergedAnnotation(m.getDeclaringClass(),CpfTimeLimiter.class);
-        try{return coordinator.execute(m,jp.getArgs(),client,retry,timeout,()->{try{return jp.proceed();}catch(RuntimeException e){throw e;}catch(Exception e){throw e;}catch(Throwable t){throw new Wrapped(t);}});}
+        CpfTimeout timeout=AnnotatedElementUtils.findMergedAnnotation(m,CpfTimeout.class); if(timeout==null)timeout=AnnotatedElementUtils.findMergedAnnotation(m.getDeclaringClass(),CpfTimeout.class);
+        CpfTimeLimiter legacyTimeout=timeout==null?AnnotatedElementUtils.findMergedAnnotation(m,CpfTimeLimiter.class):null;
+        if(timeout==null && legacyTimeout==null)legacyTimeout=AnnotatedElementUtils.findMergedAnnotation(m.getDeclaringClass(),CpfTimeLimiter.class);
+        try{return coordinator.execute(m,jp.getArgs(),client,retry,timeout,legacyTimeout,()->{try{return jp.proceed();}catch(RuntimeException e){throw e;}catch(Exception e){throw e;}catch(Throwable t){throw new Wrapped(t);}});}
         catch(Wrapped w){throw w.getCause();}
     }
     private static final class Wrapped extends Exception{Wrapped(Throwable t){super(t);}}

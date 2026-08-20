@@ -261,7 +261,7 @@ def main() -> int:
     for build_root, graph in graph_by_root.items():
         owner = build_root.relative_to(root).as_posix() or "."
         for component in strongly_connected_components(graph):
-            if len(component) > 1 or (len(component) == 1 and component[0] in graph[component[0]]):
+            if len(component) > 1 or (len(component) == 1 and component[0] in graph.get(component[0], set())):
                 cycles.append(f"build={owner} scc={' -> '.join(component)}")
     findings.extend(f"project dependency cycle: {cycle}" for cycle in cycles)
 

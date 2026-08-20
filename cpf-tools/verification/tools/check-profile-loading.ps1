@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 $profiles = @("local", "dev", "stg", "prod")
 $fixedModules = @(
     [ordered]@{ project = "cpf-admin"; config = "adm"; code = "ADM"; generated = $false; productionProfile = $true },
-    [ordered]@{ project = "cpf-backoffice/online"; config = "bza"; code = "BZA"; generated = $false; productionProfile = $true },
+    [ordered]@{ project = "cpf-backoffice/online"; config = "mbw"; code = "MBW"; generated = $false; productionProfile = $true; flatProfile = $true },
     [ordered]@{ project = "cpf-education"; config = "edu"; code = "EDU"; generated = $false; productionProfile = $true }
 )
 $batchRuntimes = @(
@@ -198,26 +198,28 @@ foreach ($module in $modules) {
         continue
     }
     $applicationText = Read-Text $applicationPath
-    $requiredBaseImport = "application-$moduleConfig.yml"
-    if ($applicationText -notlike "*$requiredBaseImport*") {
-        Add-Failure "CONFIG_IMPORT_$moduleUpper" "Missing module base config import [$requiredBaseImport] in $resourceRoot/application.yml"
-    }
-    $profileImportPrefix = "application-$moduleConfig-" + '${spring.profiles.active:'
-    if ($applicationText -notlike "*$profileImportPrefix*") {
-        Add-Failure "CONFIG_IMPORT_$moduleUpper" "Missing module environment config import [$profileImportPrefix...] in $resourceRoot/application.yml"
-    }
-
-    Test-File "$resourceRoot/application-$moduleConfig.yml" "MODULE_PROFILE_BASE_$moduleUpper" | Out-Null
-    if (-not $module.generated -or $module.productionProfile) {
+    $flatProfile = $module.PSObject.Properties.Name -contains 'flatProfile' -and $module.flatProfile -eq $true
+    if ($flatProfile) {
+        Add-Check "MODULE_PROFILE_BASE_$moduleUpper" "DONE" "$resourceRoot/application.yml (canonical flat module config)"
         foreach ($profile in $profiles) {
-            Test-File "$resourceRoot/application-$moduleConfig-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
+            Test-File "$resourceRoot/application-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null
         }
     } else {
+        $requiredBaseImport = "application-$moduleConfig.yml"
+        if ($applicationText -notlike "*$requiredBaseImport*") { Add-Failure "CONFIG_IMPORT_$moduleUpper" "Missing module base config import [$requiredBaseImport] in $resourceRoot/application.yml" }
+        $profileImportPrefix = "application-$moduleConfig-" + '${spring.profiles.active:'
+        if ($applicationText -notlike "*$profileImportPrefix*") { Add-Failure "CONFIG_IMPORT_$moduleUpper" "Missing module environment config import [$profileImportPrefix...] in $resourceRoot/application.yml" }
+        Test-File "$resourceRoot/application-$moduleConfig.yml" "MODULE_PROFILE_BASE_$moduleUpper" | Out-Null
+        if (-not $module.generated -or $module.productionProfile) {
+            foreach ($profile in $profiles) { Test-File "$resourceRoot/application-$moduleConfig-$profile.yml" "MODULE_PROFILE_$($moduleUpper)_$($profile.ToUpperInvariant())" | Out-Null }
+        }
+    }
+    if (-not $flatProfile -and $module.generated -and -not $module.productionProfile) {
         Add-Check "MODULE_PROFILES_$moduleUpper" "DONE" `
                 "Generated Domain productionProfile=false; optional local/dev/stg/prod files are not required."
     }
 
-    $moduleFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root $resourceRoot) -File -Filter "application-$moduleConfig*.yml" -ErrorAction SilentlyContinue)
+    $moduleFiles = @(Get-ChildItem -LiteralPath (Join-Path $Root $resourceRoot) -File -Filter $(if($flatProfile){"application-*.yml"}else{"application-$moduleConfig*.yml"}) -ErrorAction SilentlyContinue)
     $joinedText = $applicationText + "`n" + (($moduleFiles | ForEach-Object { Read-Text $_.FullName }) -join "`n")
     $moduleIdPresent = $joinedText -match "\$\{$($moduleUpper)_MODULE_ID:"
     $serverPortRequired = -not $module.generated -or $module.productionProfile

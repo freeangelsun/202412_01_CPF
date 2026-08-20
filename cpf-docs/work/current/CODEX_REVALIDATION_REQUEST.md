@@ -1,35 +1,48 @@
-# CODEX REVALIDATION REQUEST
+# CODEX REVALIDATION REQUEST — C 개발/QA 관리_21 Final Applied Source
 
-Revalidate the latest CPF desired-state source independently. **Do not inherit any prior PASS, historical SHA, or embedded-BZA/Channel-header assumption.**
+Independently revalidate the **final applied DEV21 source**. Do not inherit historical PASS, pre-fix source identity, retired BZA assumptions, or the old 9-failure Gradle result as current success.
 
-## Basis
+## 1. Basis
 
-- Baseline input SHA-256: `b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850` / 8,440 files / `.git` absent in supplied ZIP.
-- Desired state excludes only the root-relative `approved=false` candidates in `cpf-docs/deliverables/DELETE_MANIFEST.csv`; validate protected-delete=0.
-- Runtime not executed in the review environment must remain `미검증`.
+- Development baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_122758(1).zip`
+- Baseline SHA-256: `f73988097aef77a1bcc795ba66394326dd5a9f875a2d1b530e2c99e315cf5ceb`
+- GitHub `master` observed at development start: `9922ca8c3c7dceeb18a9b41b2b923f564bbf29de`
+- Canonical target: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` (`205` Current Requirements)
+- Developer ledger: `cpf-docs/work/REQUIREMENT_STATUS.csv`
+- Requirement-by-requirement development review: `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.csv`
+- Current evidence: `cpf-docs/deliverables/TEST_AND_EVIDENCE.md`
+- Open environment acceptance: `cpf-docs/deliverables/OPEN_ISSUES.md`
+- Delete lifecycle: `cpf-docs/deliverables/DELETE_MANIFEST.csv`; current existing protected deletion must be `0`.
 
-## Priority rechecks
+Codex must not modify Developer-GPT or QA-owned columns. Runtime not executed remains `미검증`.
 
-1. Canonical transaction transport is System-based six: Transaction, Original System, Current/Receiver System, Caller System, Target System, Target Operation. Channel identity is a separate optional policy/security context.
-2. Receiver owns `X-System-Code`; external Channel cannot author it as trusted identity. Same-JVM/Remote semantics are equivalent without self-HTTP.
-3. `cpf-biz-admin` is an Optional Prebuilt Business Administration Domain, not the external Channel application. It owns only BZA/backoffice state and never duplicates other Business Domain masters or directly accesses their DB.
-4. `cpf-biz-channel` is standalone DB-less Pure Spring Boot with CPF Java/BOM/Starter/Internal dependency 0; `cpf-biz-frontend` calls Channel only. Direct HTTP must not bypass authN/authZ/Channel Policy/Audit/transaction contract.
-5. Physical-removal Optionality: BZA surfaces and all catalog optional/user-selectable surfaces must not be fixed dependencies of mandatory Build/Install/Publication/Verifier paths.
-6. Common runtime: canonical `cpfDB` / Common Management/Catalog path only; no active legacy CMN transaction-manager/runtime-mode/datasource consumer.
-7. Runtime identity single provider; invalid hostname/synthetic fallback fails closed.
-8. Subject tracking: late binding, trusted conflict behavior, original transaction time search, ADM timeline/lineage consumer and masked audit.
-9. Pre-controller Header/security reject creates sanitized durable transaction evidence.
-10. ADM Managed Server/Runtime Inventory: central owner, server-side paging, feature consumers, no duplicate server masters.
-11. Retention actual executor path: scheduled/manual/pause/resume, lease/chunk/throttle/history; no configuration-only false green.
-12. EDU Online20/Batch15: feature-first role packages, actual public Golden Path/consumer/test, nested dummy/static-inner compression 0, obsolete flat entries only in Delete Manifest.
-13. ADM/BZA Frontend maintainability: feature ownership, generated/OpenAPI client, no stale embedded BZA path, no native prompt/confirm or raw JSON operational UI.
-14. Public Distribution: empty default-deny staging, explicit classification, private/internal/secret leakage 0, clean consumer verification, and commit/push unreachable on any failed gate.
-15. Requirement Master index/projection/current evidence all bind to the same current baseline and preserve QA/Codex column ownership.
-16. Final verifier Git NUL parsing works in actual `.git` checkout mode and ZIP/fallback mode.
-17. Source structure review must include ownership/package/naming/dependency direction/maintainability/operability; functionality-only PASS is insufficient.
+## 2. Priority independent rechecks
 
-## Runtime revalidation
+1. **Ownership:** `cpf-common` is the Product Owner for business-common contracts/services/SQL/tests and `cpf-starter-common` is Runtime/AutoConfiguration only; duplicate FQCN and reverse dependency are zero.
+2. **Generated Domain:** MBR/EXS root `cpf-domain.yaml`, ownership lock, stale-generated handling, user-source preservation, externalClients actual generated consumers, DB Binding separation, same canonical schema/template across domains.
+3. **DB3:** Oracle/PostgreSQL/MariaDB only; canonical seed/source/runtime bundle parity, migration/seed/upgrade/rollback contracts and no vendor folder leakage into generated business source.
+4. **System6:** Transaction, Original System, Current System, Caller System, Target System, Target Operation remain canonical; Channel is separate optional ingress/policy/security context.
+5. **Operation:** `@CpfOnlineTransaction.operationId`/OpenAPI/Domain Client/ADM/Log/Trace identity remains aligned; operationId and executionId are not conflated.
+6. **Runtime Instance:** explicit instanceId→hostname fallback; invalid host fails closed; same-host same-system different active process collision is rejected before READY; explicit MBR01/MBR02 is allowed.
+7. **Runtime/Recovery:** UNKNOWN, Drain, Reconcile, Retry, lease/fencing, process failure/recovery paths retain fail-closed/idempotent semantics.
+8. **Messaging/Integration:** JMS checked exception boundary, IBM MQ invalid header provider-before-call rejection, Kafka/RabbitMQ regression, Domain Call InvocationMetadata, AI UNKNOWN public exception, ISO8583 explicit Charset, Retry/Timeout contracts.
+9. **Backoffice/MBW:** retired BZA product identity is absent from Current surfaces; Backend OpenAPI/controller `96/96`; web consumer/routes remain current; no business master ownership duplication.
+10. **ADM Session/Security:** Public JDBC Session Starter provides HttpOnly session cookie, CSRF, fixation rotation, encrypted internal credential bridge, multi-WAS capable store; browser-readable bearer primary path is absent.
+11. **ADM RBAC:** 68 routes / 64 canonical menus / missing 0; Menu/Button/API Permission/OpenAPI Operation identities are separated and Backend permission remains authoritative.
+12. **ADM System6/Commercial UI:** Logs/Trace/Transaction show System6 as primary identity and Channel as secondary context; Commercial Page capability/error handling and approval-gated dangerous actions are complete.
+13. **ADM Generated Consumer:** OpenAPI/controller `337/337`, generated consumer closure `337/337`, waiver `0`; raw REST is restricted to justified protocol cases.
+14. **EDU:** physical/executable Online `20` + Batch `15` = `35`, internal import `0`, no nested counting False Green or retired micro-sample duplication.
+15. **Public Distribution/Bootstrap:** empty staging, default-deny classification, Java shared bootstrap engine, thin Windows/Linux wrappers, stop≠reset, isolated Public Binary consumer/no `mavenLocal`/private source.
+16. **Requirement/Evidence:** 205 Developer ledger ↔ 30,605 logical requirement projection; Current-only doc roles are unique; Delete/Garbage lifecycle covers all current deletions; stale evidence is not current PASS.
+17. **Source quality:** Java syntax, Spring/IDE hygiene, request mapping uniqueness, dependency cycles/internal imports, secrets, cache/build garbage and protected delete remain zero-failure.
 
-Execute Java25 full Gradle/publication/SBOM, official Node frontend build/test, DB3 live lifecycle, Redis/Valkey, Multi-WAS/process-kill/redeploy and browser E2E when the environment supports them. Mark unexecuted stages `미검증`; do not substitute static PASS.
+## 3. Runtime revalidation required when environment supports it
 
-Do not modify Developer-GPT or QA-owned ledger columns. Record Codex-owned findings/evidence only.
+- Java25 full Gradle build/publication.
+- Oracle/PostgreSQL/MariaDB live install → migration → seed → runtime query → upgrade → rollback.
+- Same-host multi-process, Multi-WAS, process kill, lease expiry, restart/reconcile.
+- Public Binary Repository end-to-end isolated consumer.
+- Windows PowerShell 5.1 apply/delete/verification.
+- ADM/Backoffice Browser E2E in Chromium/Firefox/WebKit and responsive widths, including 401/403/404/409/429/500/503.
+
+Do not convert an unexecuted runtime stage to PASS. Record Codex findings/evidence only in Codex-owned areas and return any source defect to the same Canonical Requirement ID.

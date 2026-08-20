@@ -99,7 +99,7 @@ for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file
  }
  for(const stream of text.matchAll(/\bnew\s+EventSource\s*\(\s*([`"'])(\/adm\/api\/[^`"']+)\1/g))match("GET",stream[2],rel);
 }
-const routeRegistry=read("src/app/routes.ts");
+const routeRegistry=[read("src/app/routes.ts"), ...walk(path.join(root,"src/app/routes")).filter(file=>file.endsWith(".ts")).map(file=>fs.readFileSync(file,"utf8"))].join("\n");
 const appSource=read("src/App.vue");
 const workbenchSource=read("src/components/RouteOperationWorkbench.vue");
 const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&/(?:adm|bza)InvokeOperation/.test(workbenchSource)&&workbenchSource.includes("cpfOperationDescriptors");

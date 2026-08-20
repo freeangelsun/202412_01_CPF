@@ -9,9 +9,10 @@ import subprocess
 
 PROTECTED = re.compile(r"(^|/)(readme(?:\.[^/]*)?|[^/]*(?:manual|guide)[^/]*)$", re.IGNORECASE)
 REQUIRED_HANDOVER_TOKENS = (
-    "README와 README에서 연결되는 Manual·Guide는 이번 개발 Overlay의 수정 대상이 아니다.",
-    "개발 완료 판단의 Source of Truth로 사용하지 않는다.",
-    "실제 Source → SQL/Migration → Public API/OpenAPI → 실제 Consumer → Test/Gate → exact-SHA Runtime Evidence",
+    "Canonical Target:",
+    "Latest local integration one-line command",
+    "Tee-Object",
+    "사용자 승인 없는 commit/push",
 )
 
 def verify(root: Path, manifest: Path, handover: Path) -> None:
@@ -44,7 +45,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     parser.add_argument("--manifest")
-    parser.add_argument("--handover", default="cpf-docs/work/HANDOVER.md")
+    parser.add_argument("--handover", default="cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md")
     args = parser.parse_args()
     root = Path(args.root).resolve()
     try:

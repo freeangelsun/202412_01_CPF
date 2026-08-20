@@ -3669,7 +3669,7 @@
       "footprint-classification",
       "runtime-evidence-plan"
     ],
-    "evidenceIndex": "cpf-docs/work/TEST_AND_EVIDENCE.md"
+    "evidenceIndex": "cpf-docs/deliverables/TEST_AND_EVIDENCE.md"
   },
   "namingPolicy": {
     "publicProfilePrefixForbidden": "cpf-starter-profile-",

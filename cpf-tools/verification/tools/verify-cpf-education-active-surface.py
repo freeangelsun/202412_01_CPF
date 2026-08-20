@@ -29,7 +29,7 @@ FORBIDDEN_ALIAS = re.compile(r'@Cpf(?:Controller|Tx|Timeout|Permission|Dao)\b')
 FORBIDDEN_FILE_NAME = re.compile(r'^(?:Online|Batch)\d+|(?:Example|Sample|Demo)(?:\.java)?$', re.I)
 TYPE_DECL = re.compile(r'\b(?:public\s+|protected\s+|private\s+)?(?:static\s+)?(?:final\s+)?(?:class|record|interface|enum)\s+[A-Za-z_$][\w$]*')
 CATALOG = 'cpf-education/src/main/resources/education/cpf-education-canonical-35.json'
-DELETE_MANIFEST = 'cpf-docs/work/current/DELETE_MANIFEST.txt'
+DELETE_MANIFEST = 'cpf-docs/deliverables/DELETE_MANIFEST.csv'
 
 
 def deleted(root: Path) -> set[str]:

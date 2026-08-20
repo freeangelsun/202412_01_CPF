@@ -1,6 +1,6 @@
 # OPEN ISSUES — Canonical Target Alignment
 
-정본 현행화 자체의 미해결 문서 충돌은 0건이다. 아래 항목은 **정본을 기준으로 Source/QA 관리자산이 따라와야 할 Gap**이며 QA 완료로 처리하지 않는다.
+이번 Governance cleanup은 **Current 역할 충돌**(중복 Current Work Request, work/deliverables 이중 Evidence·Open Issues·Manifest, 과거 Handover, 흡수 완료 Steering)을 제거한다. 그러나 기존 Delete Manifest에 남아 있는 더 넓은 historical governance/review/evidence 정리는 `CANON-GAP-010`으로 계속 관리한다. 아래 항목은 **정본을 기준으로 Source/QA 관리자산이 따라와야 할 Gap**이며 QA 완료로 처리하지 않는다.
 
 ## CANON-GAP-001 — P0 — Ownership
 - Target: `cpf-common`
@@ -49,8 +49,8 @@
 
 ## CANON-GAP-010 — P1 — Documentation governance
 - Target: `cpf-docs`
-- Current Gap: Multiple historical governance/ADR/handover/review documents remain in current tree and can compete with current target.
-- Required Development: Apply canonical delete manifest after absorbing current requirements; update remaining links/gates so deleted history is not required.
+- Current Gap: 이번 cleanup으로 동명 Current Truth 경쟁은 제거하지만, 기존 canonical Delete Manifest에는 과거 governance/ADR/review/evidence 및 source cleanup 후보가 더 남아 있다. 이를 일괄 삭제하기 전 protected path, 실제 consumer, verifier/link 영향 검증이 필요하다.
+- Required Development: 남은 후보는 Requirement 의미를 Final Target/공식 Guide/Owner Test에 먼저 흡수했는지 검증한 뒤 단계적으로 적용한다. 삭제 후 stale link/gate/reference 0, protected-path 오삭제 0, 제품 Source/Guide 보존을 확인한다.
 
 ## CANON-GAP-011 — P0 — Requirement Status
 - Target: `cpf-docs/work/REQUIREMENT_STATUS.csv`

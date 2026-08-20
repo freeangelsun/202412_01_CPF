@@ -194,6 +194,8 @@ Canonical System6 업무 Transaction 강제 대상:
 
 `enabled`, caller allowlist, 운영 override 같은 Runtime Policy를 Source Annotation에 박지 않는다.
 
+`operationId`는 **안정적인 실행 정의/Handler 계약 ID**이고 `executionId`는 개별 실행 건 ID다. 두 값을 합치거나 매 실행마다 operationId를 새로 생성하지 않는다. Retry/Async/Batch 실행 식별자는 execution/attempt/segment 계층에서 관리하고 Canonical Operation Registry key는 안정적으로 유지한다.
+
 ### 5.2 Ownership 분리
 
 **Source/Framework Catalog 소유:**
@@ -660,6 +662,8 @@ Gateway는 외부 trust boundary, route, version, rate limit, resiliency, admiss
 
 Browser/Partner에서 넘어온 Protected Header는 인증된 identity와 route에 따라 normalize한다. 관리 API는 일반 Spring management contract를 사용하고 업무 `@CpfOnlineTransaction`을 강제하지 않는다.
 
+Gateway 경유와 허용된 Direct Public HTTP는 **endpoint 경로 선택의 차이**일 뿐 보안 우회 수단이 아니다. Direct 경로도 동일한 authN/authZ, Caller System/Channel Policy, Audit, Canonical System6/Operation 검증을 적용한다. Gateway 장애를 이유로 Framework가 자동으로 Direct 경로로 전환하는 fallback은 금지하고, 허용 경로와 전환은 명시적 배포/운영 정책으로 관리한다.
+
 ### 14.2 External Integration
 
 REST, fixed-length, TCP, file, webhook 등 외부연계는:
@@ -1024,8 +1028,9 @@ Current canonical 역할:
 3. `cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md` — 공식 문서 역할/진입점만 제공
 4. `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md` — 현재 개발 요청
 5. `cpf-docs/work/REQUIREMENT_STATUS.csv` — 현재 Requirement 상태
-6. `cpf-docs/work/TEST_AND_EVIDENCE.md` — 현재 Source 실행 Evidence
-7. `cpf-docs/work/OPEN_ISSUES.md` — 현재 미해결 문제
+6. `cpf-docs/deliverables/TEST_AND_EVIDENCE.md` — 현재 Source 실행 Evidence
+7. `cpf-docs/deliverables/OPEN_ISSUES.md` — 현재 미해결 문제
+8. `cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md` — 현재 세션/PC 인수인계
 
 정책이 이 문서에 흡수되면 별도 Starter/Generated Domain/ADR/Steering/Continuity History를 또 다른 정본으로 유지하지 않는다.
 

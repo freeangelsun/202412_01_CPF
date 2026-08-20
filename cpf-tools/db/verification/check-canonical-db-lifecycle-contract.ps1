@@ -30,7 +30,7 @@ function Get-CpfSourceSha {
         $value=(Get-Content -LiteralPath $base -Raw -Encoding UTF8).Trim()
         if($value -match '^[0-9a-fA-F]{40}$'){ return $value.ToLowerInvariant() }
     }
-    $manifestPath=Join-Path $Root 'cpf-docs/work/PACKAGE_MANIFEST.json'
+    $manifestPath=Join-Path $Root 'cpf-docs/deliverables/PACKAGE_MANIFEST.json'
     if(Test-Path -LiteralPath $manifestPath -PathType Leaf){
         $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
         foreach($name in @('gitExactSha','resultGitSha','baselineSha')){

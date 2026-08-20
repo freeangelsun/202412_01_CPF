@@ -1,18 +1,49 @@
 ﻿path,action,reason
-cpf-docs/deliverables/CANONICAL_CURRENTIZATION_REVIEW.md,ADD,Currentization design/review summary.
-cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv,ADD,Target-to-source/QA alignment gaps without weakening target.
-cpf-docs/deliverables/CODEX_REVALIDATION_REQUEST.md,REPLACE,Independent canonical/source-gap/delete-safety review request.
-cpf-docs/deliverables/DELETE_MANIFEST.csv,REPLACE,User-approved stale source/history/duplicate canon deletion manifest.
-cpf-docs/deliverables/OPEN_ISSUES.md,REPLACE,13 target alignment gaps.
-cpf-docs/deliverables/QA_REWORK_REQUEST.md,REPLACE,Requests QA reopen/add affected requirement statuses; no QA state fabrication.
-cpf-docs/deliverables/TEST_AND_EVIDENCE.md,REPLACE,Current canonicalization verification; product runtime is not falsely marked PASS.
-cpf-docs/development/CROSS_PC_CODEX_HANDOVER_GUIDE.md,REPLACE,Current-only document/status/evidence entrypoints.
-cpf-docs/governance/CPF_AI_DEVELOPMENT_QA_CONTINUITY_STANDARD.md,REPLACE,"Continuous development/QA workflow, local source identity, progress/log/final-report rules currentized."
-cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,REPLACE,Navigation-only owner/path map; no duplicate architecture policy.
-cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,REPLACE,Current document role/index only; historical supersession removed.
-cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,REPLACE,Current-only 205 Requirement target; all latest Steering integrated; ambiguity/conflicts removed.
-cpf-docs/governance/CPF_NO_PARTIAL_IMPLEMENTATION_COMPLETION_STANDARD.md,REPLACE,No-partial/false-green completion rules aligned to Final Target.
-cpf-docs/governance/CPF_VERIFICATION_GATE_LIFECYCLE_POLICY.md,REPLACE,Stable gate/current evidence/false-green rules currentized.
-cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,ADD,Single current implementation request derived from canonical target gaps.
-cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030589.csv,REPLACE,Broken references to deleted duplicate canon removed; full dataset regeneration remains a QA gap.
-cpf-tools/verification/tools/check-work-context.ps1,REPLACE,Stale history/handover prerequisites removed; current-only entrypoints validated.
+README.md,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/deliverables/CANONICAL_CURRENTIZATION_REVIEW.md,REPLACE,"Detailed governance cleanup rationale, semantic absorption check, deletion scope and non-false-green closure."
+cpf-docs/deliverables/CANONICAL_SOURCE_GAP_BACKLOG.csv,MODIFY,CANON-GAP-010 refined after current-role cleanup while broader history cleanup remains open.
+cpf-docs/deliverables/CHANGE_MANIFEST.csv,MODIFY,Exact current cleanup modified/deleted file manifest.
+cpf-docs/deliverables/DELETE_MANIFEST.csv,MODIFY,Nine user-approved GOVERNANCE-CURRENT-ONLY stale/duplicate work documents recorded; unrelated existing candidates not auto-applied.
+cpf-docs/deliverables/OPEN_ISSUES.md,MODIFY,False-green document-conflict-zero wording removed; scoped current-role cleanup separated from broader CANON-GAP-010.
+cpf-docs/deliverables/PACKAGE_MANIFEST.json,MODIFY,Current governance cleanup package identity and exact modified/deleted set.
+cpf-docs/deliverables/SHA256SUMS.txt,MODIFY,Hashes regenerated for current cleanup overlay payload.
+cpf-docs/deliverables/TEST_AND_EVIDENCE.md,REPLACE,Current source SHA/file count and latest user-local Gradle FAIL/9-task evidence replace stale prior PASS narrative.
+cpf-docs/development/CROSS_PC_CODEX_HANDOVER_GUIDE.md,REPLACE,Current-only entrypoints and Tee-Object handover/evidence rules; stale continuity references removed.
+cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md,MODIFY,Governance navigation aligned to single canonical current paths.
+cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md,REPLACE,Exactly-one current role policy; work vs deliverables vs handover responsibilities made explicit.
+cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md,MODIFY,Canonical Evidence/Open-Issue/Handover paths unified; operationId/executionId separation and Gateway/Direct no-bypass/no-auto-fallback semantics absorbed before Steering deletion.
+cpf-docs/work/CPF_SOURCE_FINDINGS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/work/REQUIREMENT_STATUS.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md,MODIFY,Documentation closure distinguishes completed role-collision cleanup from broader remaining history cleanup.
+cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md,REPLACE,"Current source identity, latest 9 failed Gradle tasks, Tee-Object one-line validation command and continuation rules."
+cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_019_CPF-FR-029454__CPF-FR-030589.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/work/current/CPF_REQUIREMENT_SOURCE_COVERAGE.csv,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/contracts/openapi/export-cpf-backend-openapi.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/db/verification/check-canonical-db-lifecycle-contract.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/generator/config/application-starters.yml,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/generator/contracts/cpf-starter-catalog.json,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/governance/tools/export-cpf-inventory.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/release/cpf-final-artifact-catalog.json,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/testing/tools/tests/test_invoke_cpf_codex_preflight.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/apply_delete_manifest.ps1,MODIFY,"Canonical CSV Delete Manifest parser added with approved filtering, optional scoped ReasonTag and safe empty-directory handling."
+cpf-tools/verification/tools/build-cpf-development-package-metadata.py,MODIFY,Current Evidence/Work Request/QA finding paths currentized to canonical locations.
+cpf-tools/verification/tools/check-current-requirement-evidence-consistency.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/tools/check-evidence-path-existence.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/tools/invoke-cpf-codex-preflight.ps1,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/tools/run-cpf-final-local-validation.ps1,MODIFY,Canonical CSV Delete Manifest path/parser currentized.
+cpf-tools/verification/tools/run-cpf-local-full-validation.ps1,MODIFY,Package Manifest lookup currentized to canonical deliverables path.
+cpf-tools/verification/tools/verify-cpf-education-active-surface.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/tools/verify-cpf-protected-doc-boundary.py,MODIFY,Handover protection tokens currentized to current handover contract rather than stale text.
+cpf-tools/verification/verify_business_framework_crosscut.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-tools/verification/verify_current_document_consolidation.py,MODIFY,Gate rewritten for new canonical entrypoints and forbidden duplicate-current-role paths.
+cpf-tools/verification/verify_no_partial_implementation.py,MODIFY,Deleted-document consumer/reference currentized to canonical current-only path; non-path behavior intentionally unchanged.
+cpf-docs/work/CHANGE_MANIFEST.csv,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/HANDOVER.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/OPEN_ISSUES.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/PACKAGE_MANIFEST.json,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/QA_REWORK_REQUEST.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/SHA256SUMS.txt,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/TEST_AND_EVIDENCE.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.
+cpf-docs/work/current/STEERING_INTERPRETATION.md,DELETE,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale current-role artifact removed after canonical replacement/semantic absorption verification.

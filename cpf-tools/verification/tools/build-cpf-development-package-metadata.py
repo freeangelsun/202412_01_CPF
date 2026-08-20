@@ -16,17 +16,19 @@ from pathlib import Path
 from zipfile import ZipFile
 
 BASELINE_EXPECTED_SHA256 = "b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850"
-REVIEW = Path("cpf-docs/work")
-PACKAGE_REL = "cpf-docs/work/PACKAGE_MANIFEST.json"
-CHANGE_REL = "cpf-docs/work/CHANGE_MANIFEST.csv"
-SUMS_REL = "cpf-docs/work/SHA256SUMS.txt"
+EVIDENCE_REL = Path("cpf-docs/deliverables/TEST_AND_EVIDENCE.md")
+CURRENT_WORK_REL = Path("cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md")
+QA_FINDING_REL = Path("cpf-docs/work/QA_FINDING_REVALIDATION.csv")
+PACKAGE_REL = "cpf-docs/deliverables/PACKAGE_MANIFEST.json"
+CHANGE_REL = "cpf-docs/deliverables/CHANGE_MANIFEST.csv"
+SUMS_REL = "cpf-docs/deliverables/SHA256SUMS.txt"
 SOURCE_IDENTITY_EXCLUSIONS = {
     PACKAGE_REL,
     CHANGE_REL,
     SUMS_REL,
     "cpf-docs/work/QA_FINDING_REVALIDATION.csv",
-    "cpf-docs/work/TEST_AND_EVIDENCE.md",
-    "cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md",
+    "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
+    "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
 }
 PACKAGE_METADATA_EXCLUSIONS = {PACKAGE_REL, CHANGE_REL, SUMS_REL}
 PROTECTED_PREFIXES = (
@@ -106,7 +108,7 @@ def read_delete_manifest(root: Path) -> tuple[list[dict], int]:
 
 
 def update_finding_identity(root: Path, source: dict) -> None:
-    path = root / REVIEW / "QA_FINDING_REVALIDATION.csv"
+    path = root / QA_FINDING_REL
     with path.open(encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
         fields = list(rows[0].keys()) if rows else []
@@ -126,7 +128,7 @@ def update_finding_identity(root: Path, source: dict) -> None:
 
 
 def update_dynamic_docs(root: Path, source: dict, full_count: int, delete_count: int) -> None:
-    test = root / REVIEW / "TEST_AND_EVIDENCE.md"
+    test = root / EVIDENCE_REL
     text = test.read_text(encoding="utf-8")
     text = re.sub(r"- Desired-state file count: `[^`]+`", f"- Desired-state file count: `{full_count:,}`", text)
     text = re.sub(
@@ -141,7 +143,7 @@ def update_dynamic_docs(root: Path, source: dict, full_count: int, delete_count:
         text = text.replace(marker, insertion + marker)
     test.write_text(text, encoding="utf-8")
 
-    current = root / REVIEW / "CPF_CURRENT_WORK_REQUEST.md"
+    current = root / CURRENT_WORK_REL
     text = current.read_text(encoding="utf-8")
     text = re.sub(
         r"> Desired-state content identity: `[^`]+`",
@@ -267,7 +269,7 @@ def main() -> int:
             "staticStaging": "PASS files=116",
             "realPush": "NOT_EXECUTED",
         },
-        "finalEvidence": "cpf-docs/work/TEST_AND_EVIDENCE.md",
+        "finalEvidence": "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
         "handover": "cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md",
         "codexRequest": "cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md",
         "workResultReviewGenerated": False,

@@ -5,7 +5,7 @@ from pathlib import Path
 
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',default='.');a=ap.parse_args();r=Path(a.root).resolve();fails=[]
- manifest=r/'cpf-docs/work/current/DELETE_MANIFEST.txt'; deleted=set()
+ manifest=r/'cpf-docs/deliverables/DELETE_MANIFEST.csv'; deleted=set()
  if manifest.is_file(): deleted={line.strip().replace('\\','/').strip('/') for line in manifest.read_text(encoding='utf-8-sig').splitlines() if line.strip() and not line.lstrip().startswith('#')}
  seen={}
  allowed_unsupported={

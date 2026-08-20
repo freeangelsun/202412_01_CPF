@@ -18,9 +18,9 @@ New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $sourceFiles = @(
-    "cpf-docs/work/TEST_AND_EVIDENCE.md",
+    "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
     "cpf-docs/work/QA_FINDING_REVALIDATION.csv",
-    "cpf-docs/work/OPEN_ISSUES.md",
+    "cpf-docs/deliverables/OPEN_ISSUES.md",
     "cpf-docs/work/current/CPF_CODEX_REVALIDATION_SCOPE.md"
 )
 

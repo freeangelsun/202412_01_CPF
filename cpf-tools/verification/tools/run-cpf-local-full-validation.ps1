@@ -354,7 +354,7 @@ function Get-CpfBaselineSha {
         $value=(Get-Content -LiteralPath $baseSha -Raw -Encoding UTF8).Trim()
         if($value -match '^[0-9a-fA-F]{40}$'){return $value.ToLowerInvariant()}
     }
-    $manifestPath=Join-Path $script:RepoRoot 'cpf-docs\work\PACKAGE_MANIFEST.json'
+    $manifestPath=Join-Path $script:RepoRoot 'cpf-docs\deliverables\PACKAGE_MANIFEST.json'
     if(Test-Path -LiteralPath $manifestPath -PathType Leaf){
         try{
             $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json

@@ -14,12 +14,12 @@ Set-Location $RepoRoot
 $stamp=Get-Date -Format 'yyyyMMdd_HHmmss'
 $preDir=Join-Path $OutputRoot "CPF_FINAL_PRECHECK_$stamp"
 New-Item -ItemType Directory -Force -Path $preDir | Out-Null
-$manifest=Join-Path $RepoRoot 'cpf-docs\work\current\DELETE_MANIFEST.txt'
+$manifest=Join-Path $RepoRoot 'cpf-docs\deliverables\DELETE_MANIFEST.csv'
 if(-not (Test-Path -LiteralPath $manifest -PathType Leaf)){ throw "DELETE_MANIFEST missing: $manifest" }
 $remaining=[Collections.Generic.List[string]]::new()
-Get-Content -LiteralPath $manifest | ForEach-Object {
-    $rel=$_.Trim()
-    if($rel -and -not $rel.StartsWith('#')){
+Import-Csv -LiteralPath $manifest -Encoding UTF8 | Where-Object {([string]$_.approved).Trim().ToLowerInvariant() -in @('true','1','yes','y')} | ForEach-Object {
+    $rel=([string]$_.path).Trim().Replace('\','/')
+    if($rel){
         $p=Join-Path $RepoRoot $rel
         if(Test-Path -LiteralPath $p){$remaining.Add($rel)}
     }

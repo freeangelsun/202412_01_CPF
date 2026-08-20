@@ -1,107 +1,47 @@
-# CPF Development Handover
+# CPF Development Handover — Current
 
 ## 1. Current basis
 
-- Baseline source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260819_003152.zip`
-- Baseline source ZIP SHA-256: `b5573c0ab545597563846d0fd31e8669e5b7fec6df73393fed70f17b5f0b6850`
-- Baseline files: `8,440`
-- Exact Git SHA: unavailable because the supplied ZIP has no `.git`; never substitute a historical SHA.
-- Git write operations: none performed. No commit/push/branch/tag/reset/restore/stash/clean/history rewrite was performed.
-- Physical source deletion: none performed. `cpf-docs/deliverables/DELETE_MANIFEST.csv` contains root-relative candidates with `approved=false`.
+- Current local full-source ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_122758(1).zip`
+- SHA-256: `f73988097aef77a1bcc795ba66394326dd5a9f875a2d1b530e2c99e315cf5ceb`
+- Files: `8,288`
+- Exact Git SHA: supplied ZIP에 `.git`이 없으므로 확인 불가. 과거 SHA를 대체값으로 사용하지 않는다.
+- Canonical Target: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md` (205 Current Requirement)
+- Current Work Request: `cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md`
+- Current Evidence/Open Issues: `cpf-docs/deliverables/TEST_AND_EVIDENCE.md`, `OPEN_ISSUES.md`
 
-## 2. Superseding architecture
+## 2. Governance current-only cleanup
 
-### Transaction / context
+이번 정리에서는 `deliverables/`를 Current Evidence/Issue/Package 산출물의 유일 Owner로 고정하고 `work/` 동명 복제본, 과거 Work Request/Handover, 의미 흡수 완료 Steering을 제거한다. 삭제 전에 Final Target에 `operationId != executionId`, Gateway/Direct 동일 보안과 자동 fallback 금지 의미를 보강했다.
 
-Canonical Business Domain transaction transport is System-based 6 headers:
+기존 canonical `DELETE_MANIFEST.csv`의 다른 historical/source 후보는 이번 범위에서 자동 일괄 삭제하지 않는다. 더 넓은 cleanup은 `CANON-GAP-010`으로 영향 검증 후 수행한다.
 
-1. `X-Transaction-Id`
-2. `X-Original-System-Code`
-3. `X-System-Code`
-4. `X-Caller-System-Code`
-5. `X-Target-System-Code`
-6. `X-Target-Operation-Id`
+## 3. Latest local integration result
 
-Channel identity is a separate optional security/policy/ingress context. `X-System-Code` is receiver-owned trusted runtime identity. Same-JVM and Remote calls preserve one logical System/Operation contract; same-JVM does not create self-HTTP.
+최신 사용자 로컬 Gradle 통합검증은 **FAIL**이다.
 
-### BZA
+- `BUILD FAILED in 7m 22s`
+- `355 actionable tasks: 354 executed, 1 up-to-date`
+- `Build completed with 9 failures`
+- 실패 Task는 Runtime Control compile, ADM frontend contract, Backoffice compile, Domain Call test compile, AI UNKNOWN test, ISO8583 test compile, Drain test, IBM MQ header test, JMS compile이다.
 
-- `cpf-biz-admin`: CPF-internal **Optional Prebuilt Business Administration Domain**. Not Generator-created, but follows generated-domain public contracts.
-- BZA-owned data only: Backoffice approval state, BZA business permission, Backoffice settings, etc. Member/Customer/Account masters remain exactly-one owned by their Business Domain. No cross-domain DB direct access.
-- `cpf-biz-channel`: external **DB-less Pure Spring Boot** BFF, CPF Java/BOM/Starter/Internal dependency 0, HTTP/HTTPS only.
-- `cpf-biz-frontend`: external optional Reference Frontend; browser calls Channel only. Current reference routes are four representative workflows, not a fixed full customer backoffice.
-- Direct Public HTTP is not a security bypass. It must preserve authN/authZ/Channel Policy/Audit/Canonical Header/Operation enforcement.
-- BZA source/DB/channel/frontend can be omitted for customers not using BZA without breaking mandatory CPF Build/Runtime.
+따라서 과거 Source/Static PASS를 현재 전체 PASS로 승계하지 않는다. 개발 시작 시 이 9개 실패를 Root Cause 묶음으로 처리한다.
 
-### Optionality
+## 4. Latest local integration one-line command
 
-All canonical optional/user-selectable modules/capabilities follow physical-removal semantics: absence must not break root settings/build/test/publication/installer/verifier; presence joins aggregate regression. Optional DB/deploy/listener/scheduler/external connection surfaces activate only when selected/present.
+```powershell
+$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; ./gradlew clean build --continue --stacktrace 2>&1 | Tee-Object -FilePath $log; $code=$LASTEXITCODE; $failed=@(Select-String -Path $log -Pattern '^> Task .* FAILED$'); Write-Host "`n========== FINAL REPORT =========="; Write-Host "Result       : $(if($code -eq 0){'PASS'}else{'FAIL'})"; Write-Host "ExitCode     : $code"; Write-Host "Failed Tasks : $($failed.Count)"; if($failed.Count -gt 0){$failed | Select-Object -First 20 | ForEach-Object { Write-Host "  $($_.Line)" }}; Write-Host "Started      : $start"; Write-Host "Finished     : $(Get-Date)"; Write-Host "Log          : $([IO.Path]::GetFullPath($log))"; Write-Host "=================================="
+```
 
-### Source quality
+- Log: `$env:USERPROFILE\Downloads\gradle-problems.txt`
+- 정상 기대 결과: `Result : PASS`, `ExitCode : 0`, `Failed Tasks : 0`, Gradle `BUILD SUCCESSFUL`
+- 실패 시 다음 세션/개발 GPT에 전달할 파일: `gradle-problems.txt`
+- 명령은 `Tee-Object`를 사용하므로 현재 Gradle Task가 콘솔에 계속 출력되고 로그에도 동시에 저장된다.
 
-CPF completion includes architecture/ownership/package/naming/dependency direction/discoverability/change isolation/operability. Do not split files mechanically by size; use feature-first + meaningful role boundaries. Frontend follows feature pages/components/api/model/composables where needed.
+## 5. Development continuation rule
 
-## 3. Implemented/closed source-static areas
+사용자가 전체 개발 시작을 지시하면 Final Target/Current Work Request/최신 Source/위 9개 실패를 함께 분석해 개발 목록·영향범위·우선순위·작업순서를 먼저 정리한다. QA/추가 Steering/새 로컬 로그는 기존 Backlog에 통합해 중복 개발을 피한다.
 
-- QA3 runtime-control/OpenAPI/header blockers repaired and related stale gates currentized.
-- Canonical System 6 header/context flow currentized through Core/Web/HTTP/Observability.
-- Runtime Instance identity consolidated to the Foundation provider with invalid fallback fail-close.
-- Subject late-enrichment search uses original transaction start time; firstSeen remains provenance.
-- Pre-controller header rejection is routed to sanitized durable Observability evidence.
-- Common active runtime converged to `cpfDB` + canonical Common Management/Catalog API; legacy CMN runtime has no active main-source consumer.
-- ADM Server Management separated by feature ownership and changed from client-side hard-cap paging to typed server-side paging.
-- ADM route registry split by meaningful operations domains and its generator/verifier currentized.
-- Education Online 20 / Batch 15 restructured to feature-first role packages; 29 superseded flat entries are Delete Manifest candidates.
-- BZA external Channel/Frontend implemented; internal Domain OpenAPI is canonical owner; legacy embedded Frontend is no longer active.
-- Optional Surface policy/gate covers source-removable applications and selectable Starters.
-- Public Distribution adds default-deny allowlist/classification staging and a fail-closed publish driver under existing release ownership.
-- Canonical/Current Markdown requirements currentized to the latest Architecture.
+## 6. Completion rule
 
-## 4. Delete / garbage management
-
-- Delete Manifest candidate count: 272 at this handover point.
-- Categories: 29 superseded Education flat sources, 239 legacy embedded BZA Frontend files, 4 stale BZA UI fixtures.
-- `approved=false` for every entry; no physical delete has been executed.
-- Protected delete count: 0 for `cpf-docs/deliverables/**`, `cpf-docs/guides/**`, `cpf-docs/environment/docker/**`, `cpf-tools/environment/docker-development-test/**`.
-- Desired-state verification excludes these candidates to prove the post-delete source surface before user approval.
-
-## 5. Current verified static/independent evidence
-
-Latest desired-state rerun includes PASS for requirement projection, BZA boundary, Frontend consumer/syntax/golden path, BZA/ADM workflow harness, Education active/executable coverage, Common DX, Optional Surface, Operator Trust, NXT3 ADM/BZA/Gateway, Publication Starter closure, ADM route-operation contract, Generated Client contract and Java source syntax. Public staging is default-deny. Final static rerun also records NXT3 23/23 and focused release/BZA/frontend/evidence Python tests 22/22. Exact counts are recorded in `TEST_AND_EVIDENCE.md`.
-
-## 6. Must remain unverified until user-local runtime
-
-- Java 25 Root Gradle full configuration/compile/test/build/publication/SBOM.
-- Standalone `cpf-biz-channel` Gradle build/test.
-- Official Node >=22.18 clean ADM/BZA frontend install/build/test.
-- Live Oracle/PostgreSQL/MariaDB fresh/upgrade/runtime/rollback.
-- Redis/Valkey reconnect/failover.
-- Multi-WAS policy/identity/lease/concurrency.
-- process-kill/restart/redeploy recovery.
-- latest external BZA Channel+Frontend and ADM real-browser E2E.
-- Windows PowerShell validation scripts in actual user environment.
-- real Public Git remote clone/commit/push.
-
-These are `미검증`, not PASS. Any failure reopens the same Requirement by root cause.
-
-## 7. Public Git release
-
-Canonical user-local entrypoint: `cpf-tools/release/public/publish-cpf-public-repository.ps1`. It requires a clean private Git worktree, runs private gates/build/publication, creates empty default-deny staging, verifies leakage/classification/clean public workspace, checks staged diff, and only reaches push when all gates PASS and the user explicitly supplies `-Push`. No gate-bypass push option exists.
-
-## 8. Continuation / QA rules
-
-1. Do not inherit prior PASS/Evidence or historical Git SHA.
-2. Final verifier must keep both real Git checkout and ZIP/fallback execution modes. `git ls-files -z` must split actual `b'\0'`.
-3. New QA findings must be re-reproduced against this exact source; solved/stale/environment items are not re-developed blindly.
-4. Do not alter QA/Codex-owned ledger judgments from Developer GPT.
-5. `WORK_RESULT_REVIEW` is **not generated automatically**. When the user explicitly asks after final packaging, produce a detailed 1:1 Requirement/QA/Steering → implementation/path/consumer/validation/remaining-condition report.
-
-## 9. Canonical evidence
-
-- `cpf-docs/work/TEST_AND_EVIDENCE.md`
-- `cpf-docs/work/REQUIREMENT_STATUS.csv`
-- `cpf-docs/work/CHANGE_MANIFEST.csv`
-- `cpf-docs/work/OPEN_ISSUES.md`
-- `cpf-docs/work/PACKAGE_MANIFEST.json`
-- `cpf-docs/deliverables/DELETE_MANIFEST.csv`
-- `cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md`
+Source/API/SQL/Config/Frontend/Generator/Test/Evidence를 필요한 범위에서 함께 닫고, 실패는 수정 후 재검증한다. Live DB3, Multi-WAS/process-kill/recovery, Browser E2E 등 미실행 항목은 `미검증`으로 유지한다. 사용자 승인 없는 commit/push/branch/reset/restore/stash/clean/history rewrite는 하지 않는다.

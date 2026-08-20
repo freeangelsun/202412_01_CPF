@@ -1,35 +1,27 @@
 # CPF 3-Way Handover Guide
 
-## 1. 대상
+## 1. 역할
 
-CPF는 다음 세 작업 주체가 같은 Repository를 이어서 작업한다.
+회사 PC Codex, 집 PC Codex, ChatGPT가 같은 Repository를 이어서 작업한다. Git은 Source 공유 수단이고 Current Handover는 **현재 Source identity와 실제 검증 상태를 연결**하는 수단이다. 과거 Handover/Review가 Current Target을 다시 정의하지 않는다.
 
-- 회사 PC Codex
-- 집 PC Codex
-- ChatGPT
-
-Git은 Source 공유 수단이고, Continuity/Decision/Review 문서는 **작업 문맥과 검증 상태 공유 수단**이다. Local DB, 미커밋 Worktree, IDE 상태는 자동 공유되지 않는다.
-
-## 2. 시작할 때 반드시 읽는 순서
+## 2. 시작 순서
 
 ```text
-1. git status
-2. git rev-parse HEAD / origin/master
-3. cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
-4. cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md
+1. git status / git rev-parse HEAD / origin/master
+2. cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md
+3. cpf-docs/governance/CPF_DOCUMENT_CANONICAL_INDEX.md
+4. cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md
 5. cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md
 6. cpf-docs/work/REQUIREMENT_STATUS.csv
-7. cpf-docs/deliverables/TEST_AND_EVIDENCE.md / OPEN_ISSUES.md
-8. cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md
-9. 최신 cpf-docs/work/review/* Handover
-10. 실제 Source/Diff/Evidence
+7. cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+8. cpf-docs/deliverables/OPEN_ISSUES.md
+9. cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md
+10. 실제 Source/Diff/Test/Runtime Evidence
 ```
 
-문서가 실제 Git과 다르면 실제 Git을 기준으로 판정하고 문서를 현행화한다.
+문서와 실제 Source가 다르면 Source Gap을 등록하며 Final Target을 Source 수준으로 낮추지 않는다.
 
 ## 3. 시작 Gate
-
-반드시 확인한다.
 
 ```powershell
 git status
@@ -39,92 +31,25 @@ git diff --check
 ```
 
 - dirty Worktree를 임의 reset/restore/clean하지 않는다.
-- 다른 PC에서 생성된 WIP라면 먼저 Continuity/Handover를 확인한다.
-- 사용자가 승인하지 않은 commit/push/branch를 만들지 않는다.
+- 사용자 승인 없는 commit/push/branch/tag/history rewrite를 하지 않는다.
+- 다른 PC WIP가 있으면 Current Handover와 실제 diff를 먼저 대조한다.
 
-## 4. Requirement 단위 기록
+## 4. Requirement 단위 인계
 
-주요 작업마다 다음을 남긴다.
+각 작업은 Requirement/Defect ID, Owner, 변경 Source/SQL/API/UI/Test/Config/Guide, Consumer/호출경로, 실패·복구·UNKNOWN, 실제 실행 명령, 개발 상태, 검증 상태, Evidence, 남은 조건을 기록한다. 개발 GPT/Codex/QA의 원장 컬럼 수정 권한을 섞지 않는다.
 
-- Requirement ID
-- 기존 구현 판정: 유지/보완/확장/교체/제거
-- Module/Package/Data Owner
-- 변경 Source/SQL/API/UI/Test/Guide
-- 설계 이유와 대안
-- 실제 실행 명령
-- 완료/부분 구현/미구현/미검증/실패/재확인 필요
-- Evidence 경로
-- 남은 Blocker
+## 5. Runtime Evidence
 
-## 5. DB 변경 인계
+한 PC의 PASS를 다른 PC나 다른 SHA에 자동 승계하지 않는다. Java/Node/npm, DB3, Redis/Valkey, Multi-WAS, Browser, Docker 등 환경을 함께 기록한다. 미실행은 `미검증`이고 READY/PLANNED는 PASS가 아니다.
 
-DB 변경은 반드시 Vendor/source 정본부터 시작한다.
+## 6. 로컬 통합 테스트 표준
 
-```text
-DB Source SSOT
-→ generated Vendor Pack
-→ new migration/rollback
-→ Java Mapper/Repository
-→ Service/API/UI
-→ fresh install/upgrade/runtime
-→ Evidence
-```
+기본 명령은 `Tee-Object`로 콘솔 진행상황과 로그 저장을 동시에 수행한다. 종료 시 PASS/FAIL, ExitCode, 시작/완료 시각, 로그 전체 경로와 가능한 실패 Task 수를 출력한다. Current Handover에 최신 한 줄 명령, 로그 경로, 정상 기대 결과, 실패 시 전달할 로그 파일명을 항상 유지한다.
 
-Historical Migration을 checksum 맞춤 목적으로 수정하지 않는다.
+## 7. 중단/세션 이동 전
 
-DB Credential은 문서/Evidence에 기록하지 않는다.
+`cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md` 하나를 현행화한다. 새 날짜/Session/Checkpoint Handover를 추가로 만들지 않는다. 다음 세션이 첫 번째로 실행할 명령과 현재 실패 조건을 반드시 남긴다.
 
-## 6. Generated Domain 인계
+## 8. 최종 종료
 
-다음 정보를 함께 남긴다.
-
-- DomainName/SystemCode
-- 생성 명령과 Capability
-- Manifest 경로
-- DB bootstrap 여부
-- CRUD/Build/Runtime 결과
-- 사용자 소유 파일 유무
-- 삭제 Dry-Run 결과
-- 재생성 parity 결과
-
-MBR/ACC/EXS 같은 이름을 Generator 고정 목록으로 사용하지 않는다.
-
-## 7. transactionId 정책
-
-- 동일 업무 흐름: transactionId 승계
-- 내부 독립 기동: Core가 신규 34자리 transactionId 생성
-- 호출 계층: segmentId/parentSegmentId
-- 실행 정의: standardExecutionId
-
-후속 작업자가 과거 별도 Global 거래 ID 개념을 다시 도입하지 않도록 Review/Handover에 검색 결과를 남긴다.
-
-## 8. PC별 환경
-
-HOME/COMPANY를 별도 기록한다.
-
-- JDK/Gradle/Node/npm
-- MariaDB Client/Server Version
-- DB Schema 설치 상태
-- 마지막 Fresh Install/Runtime
-- Browser/Frontend 검증 상태
-- Blocker
-
-한 PC의 Runtime 성공을 다른 PC의 성공으로 승계하지 않는다.
-
-## 9. 중단 전
-
-크레딧/세션/PC 이동 전에 새 범위를 시작하지 말고 다음부터 갱신한다.
-
-1. `CPF_CODEX_CONTINUITY_STATE.md`
-2. 최신 Review/Handover
-3. Requirement 상태
-4. 실제 실패/성공 명령
-5. 다음 작업자가 첫 번째로 실행할 명령
-
-## 10. 최종 종료
-
-- Build/Test/DB/Runtime/Browser 중 실행하지 않은 항목은 `미검증`
-- Stale Evidence/임시 로그/Generated smoke 잔재 제거
-- Canonical Path 위반 확인
-- Root 문서 `README.md` 외 잔존 확인
-- 사용자 승인 후에만 commit/push
+Build/Test/DB/Runtime/Browser 중 실행하지 않은 항목은 `미검증`으로 남긴다. Stale Evidence와 중복 Current 문서를 제거하고 Canonical Path/링크/Verifier가 삭제된 과거 문서를 요구하지 않는지 확인한다. commit/push는 사용자 승인 후에만 수행한다.

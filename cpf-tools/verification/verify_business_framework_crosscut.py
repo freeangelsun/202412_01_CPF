@@ -143,7 +143,7 @@ check("OPEN_EXTENSION", "EXT-PUBLIC-OBSERVABILITY-PORT", exists("cpf-starters/pl
 # 특정 비교 제품명 목록은 Repository Source에 보관하지 않는다. 외부명 검사는 Release sweep에서 입력값으로 수행한다.
 stale_current = [p for p in files_under("cpf-docs/work/current") if re.search(r"(?:SESSION\d+|CHECKPOINT|12_0[234]|NEXT31|_REV\d|FINAL_FINAL)", p.name, re.I)]
 check("DOCUMENT_GOVERNANCE", "DOC-NO-VERSIONED-CURRENT", not stale_current, f"version/session/checkpoint files in current={len(stale_current)}")
-canonical_required = ["cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md", "cpf-docs/work/REQUIREMENT_STATUS.csv", "cpf-docs/work/OPEN_ISSUES.md", "cpf-docs/work/current/DELETE_MANIFEST.txt"]
+canonical_required = ["cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md", "cpf-docs/work/REQUIREMENT_STATUS.csv", "cpf-docs/deliverables/OPEN_ISSUES.md", "cpf-docs/deliverables/DELETE_MANIFEST.csv"]
 check("DOCUMENT_GOVERNANCE", "DOC-CANONICAL-ENTRYPOINTS", all(exists(x) for x in canonical_required), "canonical current work/status/issues/delete manifest")
 
 axis_status = {}

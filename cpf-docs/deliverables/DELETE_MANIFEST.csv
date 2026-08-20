@@ -478,3 +478,12 @@ deploy/environments/dev/services/dev-cpf-biz-admin.env,Legacy BZA deployment env
 deploy/environments/local/services/local-cpf-biz-admin.env,Legacy BZA deployment environment replaced by deploy/environments/local/services/local-cpf-backoffice.env using MBW runtime identity.,true
 deploy/environments/prod/services/prod-cpf-biz-admin.env,Legacy BZA deployment environment replaced by deploy/environments/prod/services/prod-cpf-backoffice.env using MBW runtime identity.,true
 deploy/environments/stg/services/stg-cpf-biz-admin.env,Legacy BZA deployment environment replaced by deploy/environments/stg/services/stg-cpf-backoffice.env using MBW runtime identity.,true
+cpf-docs/work/CPF_CURRENT_WORK_REQUEST.md,[GOVERNANCE-CURRENT-ONLY] Duplicate current work request; canonical owner is cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md.,true
+cpf-docs/work/TEST_AND_EVIDENCE.md,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Current Evidence; canonical owner is cpf-docs/deliverables/TEST_AND_EVIDENCE.md.,true
+cpf-docs/work/OPEN_ISSUES.md,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Open Issues; canonical owner is cpf-docs/deliverables/OPEN_ISSUES.md.,true
+cpf-docs/work/QA_REWORK_REQUEST.md,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale QA rework deliverable; canonical owner is cpf-docs/deliverables/QA_REWORK_REQUEST.md.,true
+cpf-docs/work/CHANGE_MANIFEST.csv,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Change Manifest; canonical owner is cpf-docs/deliverables/CHANGE_MANIFEST.csv.,true
+cpf-docs/work/PACKAGE_MANIFEST.json,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale Package Manifest; canonical owner is cpf-docs/deliverables/PACKAGE_MANIFEST.json.,true
+cpf-docs/work/HANDOVER.md,[GOVERNANCE-CURRENT-ONLY] Stale duplicate handover with historical source identity; current owner is cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md.,true
+cpf-docs/work/current/STEERING_INTERPRETATION.md,[GOVERNANCE-CURRENT-ONLY] Steering meaning absorbed into CPF_FINAL_TARGET_REQUIREMENTS.md; remove competing policy summary.,true
+cpf-docs/work/SHA256SUMS.txt,[GOVERNANCE-CURRENT-ONLY] Duplicate/stale package hash index; canonical current package hashes are cpf-docs/deliverables/SHA256SUMS.txt.,true

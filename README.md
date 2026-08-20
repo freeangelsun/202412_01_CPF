@@ -200,11 +200,11 @@ CPF는 **기능이 존재하는 것과 Runtime에서 검증된 것을 구분**�
 | Cache / Messaging / Integration | 연결, Retry, Idempotency, 재기동, 중복·실패·결과 미확정 처리 | Verification / FullLocal Evidence |
 | Batch / Gateway | Worker·Process Kill·UNKNOWN/Reconcile, Route·Policy·실패 경계 | Runtime / FullLocal Evidence |
 | ADM / Backoffice | ADM Control Plane, 내부 Backoffice Domain API, 외부 DB-less `cpf-backoffice-web` Channel/Reference Frontend, Generated Client, 오류 상태, E2E·접근성 | Frontend / FullLocal Evidence |
-| Evidence Integrity | Source identity, Manifest, SHA-256, 실행 결과, Corruption negative test | `cpf-docs/work/TEST_AND_EVIDENCE.md` |
+| Evidence Integrity | Source identity, Manifest, SHA-256, 실행 결과, Corruption negative test | `cpf-docs/deliverables/TEST_AND_EVIDENCE.md` |
 
 > **상태 해석** — `IMPLEMENTED`, `STATIC_VERIFIED`, `RUNTIME_VERIFIED`, `VERIFIED_WITH_EVIDENCE`, `PENDING_RUNTIME`를 구분합니다. **실행하지 않은 항목을 PASS로 올리지 않는 것**이 검증 원칙입니다.
 >
-> **재현 가능한 진입점** — 빠른 검증은 `verify-fast`, 전체 로컬 검증은 [`run-cpf-local-full-validation.ps1`](cpf-tools/verification/tools/run-cpf-local-full-validation.ps1), 현재 수행 결과와 미검증 범위는 [`TEST_AND_EVIDENCE.md`](cpf-docs/work/TEST_AND_EVIDENCE.md)에서 확인할 수 있습니다.
+> **재현 가능한 진입점** — 빠른 검증은 `verify-fast`, 전체 로컬 검증은 [`run-cpf-local-full-validation.ps1`](cpf-tools/verification/tools/run-cpf-local-full-validation.ps1), 현재 수행 결과와 미검증 범위는 [`TEST_AND_EVIDENCE.md`](cpf-docs/deliverables/TEST_AND_EVIDENCE.md)에서 확인할 수 있습니다.
 
 <br>
 

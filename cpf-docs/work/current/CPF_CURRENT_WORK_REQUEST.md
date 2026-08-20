@@ -12,7 +12,7 @@
 5. **P1 Runtime Instance** — same-host/same-system multi-process explicit instanceId 및 duplicate READY rejection을 검증한다.
 6. **P1 Public Distribution** — Public Workspace + Public Binary Repository를 isolated cache/no mavenLocal/private repo 조건에서 닫는다.
 7. **P1 Local Bootstrap** — shared engine, progress/timeout, selected DB lifecycle, stop≠reset, domain rediscovery를 닫는다.
-8. **P1 Documentation Closure** — Delete Manifest 적용 후 stale canonical/history link와 verifier reference 0을 확인한다.
+8. **P1 Documentation Closure** — Current 역할 충돌(`work/`의 중복 Work Request/Evidence/Open Issues/Manifest/Handover 및 흡수 완료 Steering)은 이번 Governance cleanup에서 제거한다. 기존 `DELETE_MANIFEST.csv`에 남은 더 넓은 historical/source 후보는 별도 영향 검증 후 적용하고 stale link/verifier reference 0을 확인한다.
 9. **P0 Requirement Ledger** — QA가 신규 11 Canonical ID/영향 ID를 상태 원장에 재개방·추가하도록 요청하고 Developer는 자기 역할 컬럼만 갱신한다.
 10. **P1 Derived Dataset** — 205 Canonical 기준 Requirement/Scenario/Execution dataset을 지정 Pipeline으로 재생성·검증한다.
 11. **P1 Official Guides** — Generator/Developer/EDU/Architecture Guide를 구현 완료 Target과 동일하게 currentize한다.

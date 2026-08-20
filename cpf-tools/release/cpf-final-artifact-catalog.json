@@ -1960,7 +1960,7 @@
       "footprint-classification",
       "runtime-evidence-plan"
     ],
-    "evidenceIndex": "cpf-docs/work/TEST_AND_EVIDENCE.md"
+    "evidenceIndex": "cpf-docs/deliverables/TEST_AND_EVIDENCE.md"
   },
   "profileMode": {
     "rule": "EXACTLY_ONE_TOP_LEVEL_PROFILE_PER_DEPLOYABLE",

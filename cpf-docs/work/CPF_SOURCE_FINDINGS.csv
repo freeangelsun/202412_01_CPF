@@ -1,14 +1,14 @@
 ﻿finding_id,category,finding,status,resolution_or_next_action,evidence
-QA14-F-001,정본 충돌,legacy Channel/Execution Header contract vs new System/Operation contract,CLOSED,Canonical six + legacy cleanup + canonical governance currentization,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-002,중복 개발,CpfHeaders/CpfHttpHeaders duplicate public surface,CLOSED,CpfHttpHeaders retained; CpfHeaders deleted,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-003,False Green,ingress caller header could become its own verified caller source,CLOSED,verified security attribute or peer-system mapping only,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-004,기능 오류,target/system/operation mismatch was not uniformly fail-fast,CLOSED,pre-controller 400/403/409 enforcement,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-005,운영 오류,generic HTTP clients could propagate CPF internal headers externally,CLOSED,generic clients inject none; typed domain transport owns internal propagation,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-006,Ownership 오류,observability duplicated transaction/runtime identity,CLOSED,CpfContexts + CpfInstanceIdentity canonical ownership,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-007,정본 자체 오류,transaction logging DB/Java/ADM used semantically different column names,CLOSED,same meaning/same name currentization + DB3 V119/V120,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-008,Stale/Dead 구현,duplicate security.resourceserver and duplicate OpenAPI webmvc surface,CLOSED,unregistered duplicates deleted; registered canonical packages retained,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-009,사용성 문제,EDU taught raw ThreadLocal/JDBC/manual outbound CPF headers,CLOSED,Spring transaction + Public Context + typed external client Golden Path,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-010,정본 충돌,instanceId had local/domain/synthetic fallback paths,CLOSED,explicit CPF_RUNTIME_INSTANCE_ID else runtime hostname; startup-stable,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-011,False Green,DB schema manifest generated from stale split source,CLOSED,manifest generator uses generated/current; 223-table parity PASS,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-012,정본 자체 오류,EDU random UUID called operationId conflicted with stable canonical operationId,CLOSED,executionId separated + refDB V95/U95,cpf-docs/work/TEST_AND_EVIDENCE.md
-QA14-F-013,환경 미검증,project Java25 Gradle targeted build cannot execute in assistant Java21/offline environment,OPEN_RUNTIME,rerun minimal Java25 build/runtime locally; do not mark PASS,cpf-docs/work/TEST_AND_EVIDENCE.md
+QA14-F-001,정본 충돌,legacy Channel/Execution Header contract vs new System/Operation contract,CLOSED,Canonical six + legacy cleanup + canonical governance currentization,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-002,중복 개발,CpfHeaders/CpfHttpHeaders duplicate public surface,CLOSED,CpfHttpHeaders retained; CpfHeaders deleted,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-003,False Green,ingress caller header could become its own verified caller source,CLOSED,verified security attribute or peer-system mapping only,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-004,기능 오류,target/system/operation mismatch was not uniformly fail-fast,CLOSED,pre-controller 400/403/409 enforcement,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-005,운영 오류,generic HTTP clients could propagate CPF internal headers externally,CLOSED,generic clients inject none; typed domain transport owns internal propagation,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-006,Ownership 오류,observability duplicated transaction/runtime identity,CLOSED,CpfContexts + CpfInstanceIdentity canonical ownership,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-007,정본 자체 오류,transaction logging DB/Java/ADM used semantically different column names,CLOSED,same meaning/same name currentization + DB3 V119/V120,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-008,Stale/Dead 구현,duplicate security.resourceserver and duplicate OpenAPI webmvc surface,CLOSED,unregistered duplicates deleted; registered canonical packages retained,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-009,사용성 문제,EDU taught raw ThreadLocal/JDBC/manual outbound CPF headers,CLOSED,Spring transaction + Public Context + typed external client Golden Path,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-010,정본 충돌,instanceId had local/domain/synthetic fallback paths,CLOSED,explicit CPF_RUNTIME_INSTANCE_ID else runtime hostname; startup-stable,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-011,False Green,DB schema manifest generated from stale split source,CLOSED,manifest generator uses generated/current; 223-table parity PASS,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-012,정본 자체 오류,EDU random UUID called operationId conflicted with stable canonical operationId,CLOSED,executionId separated + refDB V95/U95,cpf-docs/deliverables/TEST_AND_EVIDENCE.md
+QA14-F-013,환경 미검증,project Java25 Gradle targeted build cannot execute in assistant Java21/offline environment,OPEN_RUNTIME,rerun minimal Java25 build/runtime locally; do not mark PASS,cpf-docs/deliverables/TEST_AND_EVIDENCE.md

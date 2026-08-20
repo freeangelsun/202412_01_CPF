@@ -40,6 +40,11 @@ cpf-<domain>/
 | Requirement 상태 | `cpf-docs/work/REQUIREMENT_STATUS.csv` |
 | Current Evidence | `cpf-docs/deliverables/TEST_AND_EVIDENCE.md` |
 | Open Issues | `cpf-docs/deliverables/OPEN_ISSUES.md` |
+| QA Rework Request | `cpf-docs/deliverables/QA_REWORK_REQUEST.md` |
+| Change/Delete/Package Manifest | `cpf-docs/deliverables/CHANGE_MANIFEST.csv`, `DELETE_MANIFEST.csv`, `PACKAGE_MANIFEST.json` |
+| 현재 세션/PC 인수인계 | `cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md` |
+
+`cpf-docs/work/`에는 위 Deliverable 파일의 동명 복제본을 두지 않는다. `work/current`의 보조 실행자료는 최상위 Target을 변경하지 않으며, 오래된 Source identity나 완료 판정을 Current Evidence로 승계하지 않는다.
 
 ## 4. Public Distribution Navigation
 

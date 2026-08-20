@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = '.',
-    [string]$ManifestPath = 'cpf-docs/work/current/DELETE_MANIFEST.txt'
+    [string]$ManifestPath = 'cpf-docs/deliverables/DELETE_MANIFEST.csv',
+    [string]$ReasonTag = ''
 )
 
 $ErrorActionPreference='Stop'
@@ -20,14 +21,14 @@ $protectedPrefixes=@(
 )
 $protectedExact=@('cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md')
 $rootPrefix=$root.TrimEnd([IO.Path]::DirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar
-$paths=@(
-    Get-Content -LiteralPath $manifest -Encoding UTF8 |
-        ForEach-Object {$_.Trim()} |
-        Where-Object {$_ -and -not $_.StartsWith('#')}
-)
-$seen=@{}; $deleted=0; $alreadyAbsent=0
-foreach($raw in $paths){
-    $rel=([string]$raw).Replace('\\','/').TrimStart('./')
+$rows=@(Import-Csv -LiteralPath $manifest -Encoding UTF8 | Where-Object {
+    $approved=([string]$_.approved).Trim().ToLowerInvariant()
+    $tagOk=[string]::IsNullOrWhiteSpace($ReasonTag) -or ([string]$_.reason).StartsWith($ReasonTag,[StringComparison]::Ordinal)
+    $approved -in @('true','1','yes','y') -and $tagOk
+})
+$seen=@{}; $deleted=0; $alreadyAbsent=0; $emptyManifestDirs=0
+foreach($row in $rows){
+    $rel=([string]$row.path).Replace('\','/').TrimStart('./')
     if([string]::IsNullOrWhiteSpace($rel)){continue}
     if($seen.ContainsKey($rel)){throw "DELETE_MANIFEST_DUPLICATE_PATH: $rel"}
     $seen[$rel]=$true
@@ -36,16 +37,23 @@ foreach($raw in $paths){
     foreach($exact in $protectedExact){if($rel.Equals($exact,[StringComparison]::OrdinalIgnoreCase)){throw "DELETE_MANIFEST_PROTECTED_PATH: $rel"}}
     $target=[IO.Path]::GetFullPath((Join-Path $root ($rel.Replace('/',[IO.Path]::DirectorySeparatorChar))))
     if(-not $target.StartsWith($rootPrefix,[StringComparison]::OrdinalIgnoreCase)){throw "DELETE_MANIFEST_PATH_ESCAPE: $rel"}
-    if(Test-Path -LiteralPath $target -PathType Container){throw "DELETE_MANIFEST_DIRECTORY_DELETE_FORBIDDEN: $rel"}
-    if(Test-Path -LiteralPath $target -PathType Leaf){Remove-Item -LiteralPath $target -Force; $deleted++}else{$alreadyAbsent++}
+    if(Test-Path -LiteralPath $target -PathType Container){
+        if(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue | Select-Object -First 1){throw "DELETE_MANIFEST_NONEMPTY_DIRECTORY_FORBIDDEN: $rel"}
+        Remove-Item -LiteralPath $target -Force
+        $emptyManifestDirs++
+    } elseif(Test-Path -LiteralPath $target -PathType Leaf){
+        Remove-Item -LiteralPath $target -Force
+        $deleted++
+    } else {
+        $alreadyAbsent++
+    }
 }
 
-# 파일 삭제 후 생긴 빈 폴더만 bottom-up으로 제거한다. 보호 경로는 유지한다.
 $emptyDeleted=0
 Get-ChildItem -LiteralPath $root -Directory -Recurse -Force |
     Sort-Object {$_.FullName.Length} -Descending |
     ForEach-Object {
-        $relDir=[IO.Path]::GetRelativePath($root,$_.FullName).Replace('\\','/')+'/'
+        $relDir=$_.FullName.Substring($rootPrefix.Length).Replace('\','/')+'/'
         $protected=$false
         foreach($prefix in $protectedPrefixes){if($relDir.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){$protected=$true;break}}
         if(-not $protected -and -not(Get-ChildItem -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue | Select-Object -First 1)){
@@ -54,5 +62,5 @@ Get-ChildItem -LiteralPath $root -Directory -Recurse -Force |
         }
     }
 
-Write-Host ("CPF_DELETE_MANIFEST_APPLIED rows={0} deleted={1} alreadyAbsent={2} emptyDirs={3}" -f $paths.Count,$deleted,$alreadyAbsent,$emptyDeleted)
+Write-Host ("CPF_DELETE_MANIFEST_APPLIED rows={0} filesDeleted={1} manifestEmptyDirs={2} alreadyAbsent={3} cleanupEmptyDirs={4} reasonTag={5}" -f $rows.Count,$deleted,$emptyManifestDirs,$alreadyAbsent,$emptyDeleted,$ReasonTag)
 git status --short

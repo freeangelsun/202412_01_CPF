@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "identityPolicy": "TRACKED_HASHES_RELEASE_SHA_IN_EVIDENCE",
   "openApiPath": "openapi/cpf-openapi.json",
-  "openApiSha256": "dbce19e4e0ad2328ab71cb4819f7665a56e369385fd89a32fc7f9c6035d9daab",
+  "openApiSha256": "7e5a1371777c8be40fd640ef0a0990860e27fb0f872ef66a5ad25141af8c360c",
   "openApiOperationCount": 337,
   "openApiOperationIdsSha256": "1aa78e54517bf0f1f70fbb84ad900354d47aab28f8a0a9c62b48875f7f2eb3da",
   "generator": {
@@ -22,7 +22,7 @@
     },
     {
       "path": "src/generated/cpf-api.ts",
-      "sha256": "3b16efa2a57f170aa83d081c7bd73a94686f8a7c533e905decfcd076c90c862e"
+      "sha256": "b3310c0695aa52fbbb11a7971a297e1cfe61bc8db59b0cadb307d49b01de8aaa"
     },
     {
       "path": "src/generated/cpf-operation-contract.ts",
@@ -30,7 +30,7 @@
     },
     {
       "path": "src/generated/orval/cpf-api.ts",
-      "sha256": "3dc7a52d0386634fc400e5d066adde8f315e8bd67a21fb595c8880e61af4128e"
+      "sha256": "85de9c7dba1bf5eebf3f085db06a698233bac73b3999648e1a481e7a4666f592"
     },
     {
       "path": "src/generated/orval/model/admApiErrorResponse.ts",
@@ -129,20 +129,8 @@
       "sha256": "2de2fdf87b780f3e5e452e24a9299b2088eecc3d8ed823ccc92f959dc54770f5"
     },
     {
-      "path": "src/generated/orval/model/admBatchJobDefinitionSaveRequest.ts",
-      "sha256": "0873333b964c3396b9c9623278986e1fe1646675fc1ccfd19ec7647b1c8784ac"
-    },
-    {
       "path": "src/generated/orval/model/admBatchJobDefinitionsParams.ts",
       "sha256": "167c7d445b8d5f3cc9bf72fa8166101cd814011fc38db68e100e7fed8b337faa"
-    },
-    {
-      "path": "src/generated/orval/model/admBatchJobDefinitionTransitionRequest.ts",
-      "sha256": "b545a20b9c31d2924ef4aba4e256f0e4f7f34a2554b86336187243bfbb3179af"
-    },
-    {
-      "path": "src/generated/orval/model/admBatchJobDefinitionValidateRequest.ts",
-      "sha256": "e1fc789c367361a61eec6ab1503eaad634999e31338eaef76b21658cbaad4e40"
     },
     {
       "path": "src/generated/orval/model/admBatchJobRegisterRequest.ts",
@@ -185,20 +173,16 @@
       "sha256": "aa3fea9af55bd0fcc4aaa34729046d69527088f76adf05f5ab572e6135681646"
     },
     {
-      "path": "src/generated/orval/model/admBreakGlassCloseSessionRequest.ts",
-      "sha256": "d015efee0b9587561200d614192956ef8ba007c95e48f5d5f259b8bf148c4813"
-    },
-    {
       "path": "src/generated/orval/model/admBreakGlassFindSessionsParams.ts",
       "sha256": "aed0b614c8434d2466ab251ff91f2f6f563bca761d26bb4e7685a1eeeb0b1403"
     },
     {
-      "path": "src/generated/orval/model/admBreakGlassOpenSessionRequest.ts",
-      "sha256": "63e44153d389a75ef1f14db2eef2f43f89b5e58d76bdeeb09a7c67b42eeb083f"
+      "path": "src/generated/orval/model/admBreakGlassOpenRequest.ts",
+      "sha256": "b965e5ed6c9703dad1c711b21873d955a73cca8a27d58cf9e7da32810de4dd96"
     },
     {
-      "path": "src/generated/orval/model/admBreakGlassReviewSessionRequest.ts",
-      "sha256": "8f29568cee0ebe29d4b5a99db81677798ed246318582593c9a2218d198443056"
+      "path": "src/generated/orval/model/admBreakGlassReviewRequest.ts",
+      "sha256": "3a3d40ab87106d9033783465ad8409b988290cc7e47beec04a208fa770a98f3e"
     },
     {
       "path": "src/generated/orval/model/admButton.ts",
@@ -283,6 +267,10 @@
     {
       "path": "src/generated/orval/model/admCurrentSessionResponse.ts",
       "sha256": "1b3d7dcf80b5cd6e1f849dd2446a8f05b6777e96b8448537470ef7c9f2e76b60"
+    },
+    {
+      "path": "src/generated/orval/model/admDataQualityValidationRequest.ts",
+      "sha256": "ac6f38a5b47969f76e0ee5f7beda42357fde6f1abc2dc00dd6fe932d1f74a951"
     },
     {
       "path": "src/generated/orval/model/admDownloadFindDownloadAuditLogsParams.ts",
@@ -377,8 +365,8 @@
       "sha256": "12510ca14d71ac0fd5e62a1527ed79c5df8b3da30de9e2894f805a4a94e4185a"
     },
     {
-      "path": "src/generated/orval/model/admIncidentCreateIncidentRequest.ts",
-      "sha256": "36fb96b69875e7580ae3ddaa847b8ca2700d6d0d8efde979cbd490e1db5fc11c"
+      "path": "src/generated/orval/model/admIncidentCreateRequest.ts",
+      "sha256": "78ab0fc0d6f7de4d3a5a0de16e0d56155d6dfbab6e31e84c154de89028bf4c27"
     },
     {
       "path": "src/generated/orval/model/admIncidentFindIncidentsParams.ts",
@@ -393,8 +381,8 @@
       "sha256": "8d21b394b2ecb71b92bad3a93018dc4c866e0bcb141d2e7237677c61956671e8"
     },
     {
-      "path": "src/generated/orval/model/admIncidentTransitionIncidentRequest.ts",
-      "sha256": "4f44da826c8077a164ba19ef3fd76c45d9b137b96952c8444bc923902437d007"
+      "path": "src/generated/orval/model/admIncidentTransitionRequest.ts",
+      "sha256": "1f8de9b2fdb90cff820896554dbd51e14901e8af7b0fa2f0eac129aa1c027549"
     },
     {
       "path": "src/generated/orval/model/admIntegrationDataQualityCorrectionApprovalRequestRequest.ts",
@@ -407,10 +395,6 @@
     {
       "path": "src/generated/orval/model/admIntegrationDataQualityReplayRequest.ts",
       "sha256": "29237587eeebe2d1702b28a83e1fc4bc80f0e0d455c19c6fc5d38afede3e9366"
-    },
-    {
-      "path": "src/generated/orval/model/admIntegrationDataQualityValidateRequest.ts",
-      "sha256": "27f4f3a76559eabc85c454245d381143070d72a8798288c5a2792a8db60c366d"
     },
     {
       "path": "src/generated/orval/model/admIntegrationTimeHealthParams.ts",
@@ -497,8 +481,8 @@
       "sha256": "6237f6435dbcf00f95fae562e0da06b38b5684ec7b806e1819455ed8d5988e80"
     },
     {
-      "path": "src/generated/orval/model/admMaintenanceExecuteActionRequest.ts",
-      "sha256": "00211b85389bc33e523ad5271cf06a2ec1526810aa19f7ae02064c8b57d0eb0b"
+      "path": "src/generated/orval/model/admMaintenanceApprovalRequiredRequest.ts",
+      "sha256": "f5a365e3f25d7e96aaf5d0848dd5389fa01021c92a2dccc185a229b8310a9127"
     },
     {
       "path": "src/generated/orval/model/admMaintenanceFindActionsParams.ts",
@@ -669,6 +653,10 @@
       "sha256": "500cd176b2a268fca9e1acbb60029e7e18e1dfe0a0393efd3f5a4f8733fe9d10"
     },
     {
+      "path": "src/generated/orval/model/admReasonRequest.ts",
+      "sha256": "d8fcea7cdeb39f24a297b3672f306007c0a8f2fb5e0c36e96c8a5d1f2b98d088"
+    },
+    {
       "path": "src/generated/orval/model/admReliabilityActionRequest.ts",
       "sha256": "bcf0ab72deaac3793ac00108aa3297f88d17dab1a61030c52be3b3df9dd32b18"
     },
@@ -735,34 +723,6 @@
     {
       "path": "src/generated/orval/model/admResponseCodeUpdateParams.ts",
       "sha256": "42b5b315a12395827f8c2690ca6db6db53242cf5796b941135e33213d4e8a816"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionPolicyPauseRequest.ts",
-      "sha256": "f52ab0bfbea6e2e66aa30854af82d447990d4ad4942898202e6b6fb96a476eb3"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionPolicyResumeRequest.ts",
-      "sha256": "31bdbd90ab70c38e52bcf3178cb16fa9f32ece3623c807c9e312345a9d18a064"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionPolicySaveRequest.ts",
-      "sha256": "180d7cc3c68f4fafcbfb62a4d4ff320b7ebc73e3f9acffd27aaaea38c09a04f6"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionPreviewRequest.ts",
-      "sha256": "dc09af7bc8ea46fb5cff51f3276f0a577ce0a7f1742cf9aaa2f04aa0e6fae2d5"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionRunNowRequest.ts",
-      "sha256": "e7d616e85d6d2d4c827718537ec8d3f8a1af853a3e9d5778514d28748bd9dd76"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionRunPauseRequest.ts",
-      "sha256": "e6c261b2b7353634d270ab229e5163cacf817ded557ec7d78ab26cdfe811e6ae"
-    },
-    {
-      "path": "src/generated/orval/model/admRetentionRunResumeRequest.ts",
-      "sha256": "67a994ba7b4287800945de2a885642f5733b03f565a71e65e2ca71a49af68c50"
     },
     {
       "path": "src/generated/orval/model/admRetentionRunsParams.ts",
@@ -947,6 +907,14 @@
     {
       "path": "src/generated/orval/model/auditCommand.ts",
       "sha256": "9d2a6d76aab0c5a4e0b8c2dc95686e0e583880ffb96112102008ac5e62e16332"
+    },
+    {
+      "path": "src/generated/orval/model/batchJobDefinitionRequest.ts",
+      "sha256": "6f2bafc7c7d43d7a6e3a565ee9f3147b8e87abdb8d4c0ee2b1085ac19fed71ee"
+    },
+    {
+      "path": "src/generated/orval/model/batchJobDefinitionTransitionRequest.ts",
+      "sha256": "738ced44118defb1aae1dfe8860404ab4f486a69861748202d01ecb9af7cf1fd"
     },
     {
       "path": "src/generated/orval/model/batchLineageResult.ts",
@@ -1314,7 +1282,7 @@
     },
     {
       "path": "src/generated/orval/model/index.ts",
-      "sha256": "0077b68bfef7d125708065f17c16e8ededcd0c2fa3874012bdc4b645af785375"
+      "sha256": "a755ebe53ae0bc5e2fd71197103c8f0e6384c6e91d8caacf6d80a6d8274b7cc3"
     },
     {
       "path": "src/generated/orval/model/inputStreamResource.ts",
@@ -1449,6 +1417,22 @@
       "sha256": "8ffa59447318eef7364a2853a705969cd066eda46b6c8b7801289a03b3b59616"
     },
     {
+      "path": "src/generated/orval/model/retentionPolicySaveRequest.ts",
+      "sha256": "c5255669cb03fd05b796a907efeabbe10dbcb8115570c6aa23118fe5f9befd7a"
+    },
+    {
+      "path": "src/generated/orval/model/retentionPreviewRequest.ts",
+      "sha256": "a0d03b749eda91f0939b27ecb073cdac237d64c5ad768379d6ec98bddf6b86d4"
+    },
+    {
+      "path": "src/generated/orval/model/retentionReasonRequest.ts",
+      "sha256": "705feca62a9a8cd534389b4f1f5ebf04431daaddc84f40bf366a6083518bf9f5"
+    },
+    {
+      "path": "src/generated/orval/model/retentionVersionedReasonRequest.ts",
+      "sha256": "ddb9c623225ae550596ffc5c240012d31d1e4664818890a957aa2f4140b9cdf2"
+    },
+    {
       "path": "src/generated/orval/model/rollbackCommand.ts",
       "sha256": "cf717c68999794e16ed4b531a03ae3b22559de1661eb48eaeac90af578f0950e"
     },
@@ -1503,6 +1487,10 @@
     {
       "path": "src/generated/orval/model/state.ts",
       "sha256": "9dbf581933292a43a348fecdb9f24e1804be822e296092b7c93d903cf0cca121"
+    },
+    {
+      "path": "src/generated/orval/model/staticfinalint.ts",
+      "sha256": "5b5c93756bed3687ac79427c2712dc454eb74595835182151876bb57ae8c3eee"
     },
     {
       "path": "src/generated/orval/model/status.ts",
@@ -1565,6 +1553,6 @@
       "sha256": "ce1b8128b05e5809c52aec16e30fedde187e3a58408c0b6e891670c554f5ab2f"
     }
   ],
-  "generatedFileSetSha256": "fa6327384f1ee9a0ce663f383ac16871641ec3d9b49dfbcc98a4122ec9da615a",
+  "generatedFileSetSha256": "61e39b8ed0e0fe44efcedc8ee4575b7c76fef69b6219f8341c96786cd043bb74",
   "sanitized": true
 }

@@ -1,53 +1,58 @@
 #!/usr/bin/env python3
-"""Verify CPF progress denominator and print deterministic current progress."""
+"""Verify the current CPF Developer-GPT requirement ledger without stale stage columns."""
 from __future__ import annotations
-import argparse, csv, sys
+import argparse,csv,json,sys
 from collections import Counter
 from pathlib import Path
 
-STAGES=("analysis","source_consumer","test_integration","gate_evidence")
-GROUPS={
- "Core Slimming":("NXT-ARCH-","NXT-PARITY-","NXT-CORE-FREEZE-"),
- "Utility/Foundation":("NXT-UTIL-","NXT-TXID-","NXT-EXEC-"),
- "Starter Portfolio":("NXT-OWN-","NXT-HEALTH-","NXT-OPS-","NXT-JPA-","NXT-PERSIST-","NXT-SEC-","NXT-SESSION-","NXT-STORE-","NXT-EVENT-","NXT-GQL-","NXT-RT-","NXT-LOCK-","NXT-AI-","NXT-DX-"),
- "Consumer":("NXT-FE-","NXT-GEN-002","NXT-CMN-007"),
- "Generator":("NXT-GEN-","NXT-CMN-008"),
- "Test/Harness":("NXT-TESTKIT-","NXT-EVD-002","NXT-QA-"),
- "Documentation":("NXT-DOC-","NXT-HYG-006"),
- "Hygiene/Delete Manifest":("NXT-HYG-",),
-}
+CURRENT_REQUIRED=("exact_id","requirement","개발GPT_수행상태","개발GPT_개발상태","개발GPT_검증상태","개발GPT_전체상태","개발GPT_자체검수","개발GPT_검증내용","개발GPT_환경","개발GPT_Evidence","baseline_source_zip_sha256")
+ROLE_STATES={"완료","미완료","재개발 요청","재검수 요청","해당 없음","미검증"}
+DEV_STATES={"완료","미완료","부분 구현","미구현","실패","재확인 필요","해당 없음"}
+VERIFY_STATES={"완료","미완료","미검증","실패","재확인 필요","해당 없음"}
+OVERALL_STATES={"완료","부분 구현","미구현","미검증","실패","재확인 필요","해당 없음"}
 
-def points(rows): return sum(int(r[s]) for r in rows for s in STAGES)
-def percent(n,d): return 0.0 if d==0 else n*100.0/d
+def load(path:Path):
+    if not path.is_file(): raise ValueError(f"ledger missing: {path}")
+    with path.open(encoding='utf-8-sig',newline='') as f:
+        reader=csv.DictReader(f); rows=list(reader); fields=tuple(reader.fieldnames or ())
+    missing=[c for c in CURRENT_REQUIRED if c not in fields]
+    if missing: raise ValueError("unsupported ledger schema; missing="+",".join(missing))
+    if not rows: raise ValueError("empty ledger")
+    ids=[(r.get('exact_id') or '').strip() for r in rows]
+    dup=sorted(k for k,v in Counter(ids).items() if k and v>1)
+    if any(not x for x in ids): raise ValueError('blank exact_id')
+    if dup: raise ValueError('duplicate exact_id='+','.join(dup))
+    failures=[]
+    for r in rows:
+        rid=r['exact_id']
+        checks=(("개발GPT_수행상태",ROLE_STATES),("개발GPT_개발상태",DEV_STATES),("개발GPT_검증상태",VERIFY_STATES),("개발GPT_전체상태",OVERALL_STATES))
+        for col,allowed in checks:
+            value=(r.get(col) or '').strip()
+            if value not in allowed: failures.append(f"{rid}:{col}={value!r}")
+        if (r.get('개발GPT_전체상태') or '').strip()=='완료' and (r.get('개발GPT_검증상태') or '').strip()!='완료':
+            failures.append(f"{rid}:overall_complete_without_verification_complete")
+    if failures: raise ValueError('; '.join(failures[:50]))
+    return rows
 
-def main():
- ap=argparse.ArgumentParser(); ap.add_argument('--csv',required=True); ap.add_argument('--expected-canonical',type=int,default=63); ns=ap.parse_args()
- p=Path(ns.csv); rows=list(csv.DictReader(p.open(encoding='utf-8-sig',newline='')))
- failures=[]
- ids=[r.get('requirement_id','').strip() for r in rows]
- dup=[x for x,c in Counter(ids).items() if x and c>1]
- if dup: failures.append('duplicate_ids='+','.join(sorted(dup)))
- if any(not x for x in ids): failures.append('blank_requirement_id')
- for r in rows:
-  for s in STAGES:
-   if r.get(s) not in {'0','1'}: failures.append(f"invalid_stage:{r.get('requirement_id')}:{s}:{r.get(s)!r}")
- canonical=[r for r in rows if r.get('category')=='CANONICAL']
- if len(canonical)!=ns.expected_canonical: failures.append(f'canonical_count={len(canonical)} expected={ns.expected_canonical}')
- allp,alld=points(rows),len(rows)*len(STAGES); cp,cd=points(canonical),len(canonical)*len(STAGES)
- print(f'PROGRESS_ROWS={len(rows)}')
- print(f'PROGRESS_CANONICAL_ROWS={len(canonical)}')
- print(f'PROGRESS_ALL={allp}/{alld} {percent(allp,alld):.2f}%')
- print(f'PROGRESS_CANONICAL={cp}/{cd} {percent(cp,cd):.2f}%')
- for name,prefixes in GROUPS.items():
-  rs=[r for r in canonical if any(r['requirement_id'].startswith(x) for x in prefixes)]
-  pnt,den=points(rs),len(rs)*len(STAGES)
-  print(f'PROGRESS_GROUP {name}={pnt}/{den} {percent(pnt,den):.2f}% requirements={len(rs)}')
- incomplete=sum(1 for r in canonical if any(r[s]=='0' for s in STAGES))
- completed=sum(1 for r in canonical if all(r[s]=='1' for s in STAGES))
- print(f'PROGRESS_CANONICAL_FULLY_COMPLETED={completed}')
- print(f'PROGRESS_CANONICAL_INCOMPLETE={incomplete}')
- if failures:
-  for f in failures: print('PROGRESS_FAILURE='+f)
-  print('REQUIREMENT_PROGRESS_GATE=FAIL'); return 1
- print('REQUIREMENT_PROGRESS_GATE=PASS'); return 0
+def main()->int:
+    ap=argparse.ArgumentParser()
+    ap.add_argument('--root',default='.')
+    ap.add_argument('--ledger'); ap.add_argument('--csv')
+    ap.add_argument('--expected-canonical',type=int,default=205)
+    ap.add_argument('--json-output')
+    ns=ap.parse_args()
+    root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/work/REQUIREMENT_STATUS.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
+    try: rows=load(path)
+    except Exception as e:
+        print('REQUIREMENT_PROGRESS_GATE=FAIL'); print('REQUIREMENT_PROGRESS_ERROR='+str(e)); return 1
+    if len(rows)!=ns.expected_canonical:
+        print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_count={len(rows)} expected={ns.expected_canonical}'); return 1
+    status=Counter((r.get('개발GPT_전체상태') or '').strip() for r in rows)
+    dev=Counter((r.get('개발GPT_개발상태') or '').strip() for r in rows)
+    verify=Counter((r.get('개발GPT_검증상태') or '').strip() for r in rows)
+    result={'schema':'CPF_REQUIREMENT_LEDGER_V2','rows':len(rows),'overall':dict(status),'development':dict(dev),'verification':dict(verify)}
+    print(json.dumps(result,ensure_ascii=False,sort_keys=True))
+    if ns.json_output:
+        out=Path(ns.json_output); out=out if out.is_absolute() else root/out; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    print('REQUIREMENT_PROGRESS_GATE=PASS'); return 0
 if __name__=='__main__': raise SystemExit(main())

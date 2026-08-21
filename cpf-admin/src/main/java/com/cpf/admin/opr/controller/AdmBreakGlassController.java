@@ -2,11 +2,15 @@ package com.cpf.admin.opr.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.service.AdmAuditLogService;
+import com.cpf.admin.opr.dto.AdmBreakGlassOpenRequest;
+import com.cpf.admin.opr.dto.AdmBreakGlassReviewRequest;
+import com.cpf.admin.opr.dto.AdmReasonRequest;
 import com.cpf.admin.opr.service.AdmBreakGlassService;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,21 +31,20 @@ public class AdmBreakGlassController extends com.cpf.admin.common.base.AdmBaseCo
 
     @PostMapping@Operation(operationId="admBreakGlassOpenSession", summary="Break-glass 세션 발급",
             description="scope와 TTL이 제한된 세션만 발급합니다. 전역 권한 우회는 제공하지 않습니다.")
-    public ResponseEntity<Map<String,Object>> open(@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);Map<String,Object> result=service.open(user,
-            String.valueOf(body.get("scopeType")),String.valueOf(body.get("scopeValue")),String.valueOf(body.get("reason")),number(body.get("ttlMinutes"),15));audit(request,user,
-            "BREAK_GLASS_OPEN","adm_break_glass_session",String.valueOf(result.get("sessionId")),String.valueOf(body.get("reason")),result);return ResponseEntity.ok(result);}
+    public ResponseEntity<Map<String,Object>> open(@Valid @RequestBody AdmBreakGlassOpenRequest body,HttpServletRequest request){String user=operator(request);Map<String,Object> result=service.open(user,
+            body.scopeType(),body.scopeValue(),body.reason(),body.ttlMinutes());audit(request,user,
+            "BREAK_GLASS_OPEN","adm_break_glass_session",String.valueOf(result.get("sessionId")),body.reason(),result);return ResponseEntity.ok(result);}
 
     @PostMapping("/{sessionId}/close")@Operation(operationId="admBreakGlassCloseSession", summary="Break-glass 세션 종료")
-    public ResponseEntity<Map<String,Object>> close(@PathVariable String sessionId,@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);Map<String,
-            Object> result=service.close(sessionId,user,String.valueOf(body.get("reason")));audit(request,user,"BREAK_GLASS_CLOSE","adm_break_glass_session",sessionId,
-            String.valueOf(body.get("reason")),result);return ResponseEntity.ok(result);}
+    public ResponseEntity<Map<String,Object>> close(@PathVariable String sessionId,@Valid @RequestBody AdmReasonRequest body,HttpServletRequest request){String user=operator(request);Map<String,
+            Object> result=service.close(sessionId,user,body.reason());audit(request,user,"BREAK_GLASS_CLOSE","adm_break_glass_session",sessionId,
+            body.reason(),result);return ResponseEntity.ok(result);}
 
     @PostMapping("/{sessionId}/review")@Operation(operationId="admBreakGlassReviewSession", summary="Break-glass 사후검토")
-    public ResponseEntity<Map<String,Object>> review(@PathVariable String sessionId,@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);Map<String,
-            Object> result=service.review(sessionId,user,String.valueOf(body.get("status")),String.valueOf(body.get("reason")));audit(request,user,"BREAK_GLASS_REVIEW",
-            "adm_break_glass_session",sessionId,String.valueOf(body.get("reason")),result);return ResponseEntity.ok(result);}
+    public ResponseEntity<Map<String,Object>> review(@PathVariable String sessionId,@Valid @RequestBody AdmBreakGlassReviewRequest body,HttpServletRequest request){String user=operator(request);Map<String,
+            Object> result=service.review(sessionId,user,body.status(),body.reason());audit(request,user,"BREAK_GLASS_REVIEW",
+            "adm_break_glass_session",sessionId,body.reason(),result);return ResponseEntity.ok(result);}
 
-    private static int number(Object value,int fallback){if(value instanceof Number n)return n.intValue();try{return value==null?fallback:Integer.parseInt(String.valueOf(value));}catch(Exception e){return fallback;}}
     private String operator(HttpServletRequest req){Object value=req.getAttribute("adm.operatorId");if(value instanceof String s&&!s.isBlank())return s;throw new IllegalStateException("ADM operator context가 필요합니다.");}
     private void audit(HttpServletRequest req,String user,String action,String type,String id,String reason,Object after){audit.record(CpfContexts.transactionId(),user,action,type,
             id,reason,"",String.valueOf(after),"break-glass 상태 변경",req.getRemoteAddr());}

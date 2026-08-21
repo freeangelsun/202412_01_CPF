@@ -1,7 +1,7 @@
 package external.online.external.controller;
 
 import external.online.base.ExternalBaseController;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;

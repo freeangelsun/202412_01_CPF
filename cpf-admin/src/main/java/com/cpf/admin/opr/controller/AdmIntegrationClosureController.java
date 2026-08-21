@@ -2,6 +2,7 @@ package com.cpf.admin.opr.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
+import com.cpf.admin.opr.dto.AdmDataQualityValidationRequest;
 import com.cpf.data.api.quality.CpfDataQualityDecision;
 import com.cpf.foundation.time.CpfTimeSnapshot;
 import com.cpf.integration.api.webhook.CpfWebhookDelivery;
@@ -54,8 +55,8 @@ public class AdmIntegrationClosureController extends com.cpf.admin.common.base.A
     @PostMapping("/data-quality/validate/{recordId}")    @Operation(operationId = "admIntegrationDataQualityValidate", summary = "데이터 품질 검증")
     public ResponseEntity<CpfDataQualityDecision> validate(
             @PathVariable String recordId,
-            @RequestBody Map<String, Object> record) {
-        return ResponseEntity.ok(service.validate(recordId, record));
+            @Valid @RequestBody AdmDataQualityValidationRequest record) {
+        return ResponseEntity.ok(service.validate(recordId, record.toMap()));
     }
 
     @PostMapping("/data-quality/quarantine/{id}/correction-approvals")    @Operation(operationId = "admIntegrationDataQualityCorrectionApprovalRequest", summary = "격리 데이터 정정 승인 요청")

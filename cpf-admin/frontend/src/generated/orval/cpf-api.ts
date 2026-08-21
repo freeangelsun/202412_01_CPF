@@ -31,9 +31,6 @@ import type {
   AdmBatchFindStepExecutionsParams,
   AdmBatchFindWorkersParams,
   AdmBatchGhostActionRequest,
-  AdmBatchJobDefinitionSaveRequest,
-  AdmBatchJobDefinitionTransitionRequest,
-  AdmBatchJobDefinitionValidateRequest,
   AdmBatchJobDefinitionsParams,
   AdmBatchJobRegisterRequest,
   AdmBatchLockReleaseRequest,
@@ -45,10 +42,9 @@ import type {
   AdmBatchWorkbenchJobsParams,
   AdmBatchWorkbenchRecoveryParams,
   AdmBatchWorkbenchSchedulesParams,
-  AdmBreakGlassCloseSessionRequest,
   AdmBreakGlassFindSessionsParams,
-  AdmBreakGlassOpenSessionRequest,
-  AdmBreakGlassReviewSessionRequest,
+  AdmBreakGlassOpenRequest,
+  AdmBreakGlassReviewRequest,
   AdmButton,
   AdmButtonPermissionUpdateRequest,
   AdmButtonSaveRequest,
@@ -70,6 +66,7 @@ import type {
   AdmCodeDeleteCodeParams,
   AdmConfigDeleteConfigParams,
   AdmCurrentSessionResponse,
+  AdmDataQualityValidationRequest,
   AdmDownloadFindDownloadAuditLogsParams,
   AdmFeatureFlagApproveOverrideParams,
   AdmFeatureFlagApproveOverrideRequest,
@@ -93,15 +90,14 @@ import type {
   AdmGatewayOperationsEventsParams,
   AdmGatewayOperationsStreamParams,
   AdmHealthInstanceListParams,
-  AdmIncidentCreateIncidentRequest,
+  AdmIncidentCreateRequest,
   AdmIncidentFindIncidentsParams,
   AdmIncidentFindMaintenanceParams,
   AdmIncidentFindPoliciesParams,
-  AdmIncidentTransitionIncidentRequest,
+  AdmIncidentTransitionRequest,
   AdmIntegrationDataQualityCorrectionApprovalRequestRequest,
   AdmIntegrationDataQualityCorrectionExecuteRequest,
   AdmIntegrationDataQualityReplayRequest,
-  AdmIntegrationDataQualityValidateRequest,
   AdmIntegrationTimeHealthParams,
   AdmIntegrationWebhookDlqParams,
   AdmIntegrationWebhookReplayParams,
@@ -123,7 +119,7 @@ import type {
   AdmLoginRequest,
   AdmLoginResponse,
   AdmLogoutResponse,
-  AdmMaintenanceExecuteActionRequest,
+  AdmMaintenanceApprovalRequiredRequest,
   AdmMaintenanceFindActionsParams,
   AdmManagedServerDisableRequest,
   AdmManagedServerFindAllParams,
@@ -166,6 +162,7 @@ import type {
   AdmPasswordPolicyResponse,
   AdmPasswordValidationResponse,
   AdmPermissionFindButtonsParams,
+  AdmReasonRequest,
   AdmReliabilityActionRequest,
   AdmRemoteLogBundleDownloadRequest,
   AdmRemoteLogBundleDownloadTokenIssueRequest,
@@ -183,13 +180,6 @@ import type {
   AdmResponseCodeCreateParams,
   AdmResponseCodeDeleteParams,
   AdmResponseCodeUpdateParams,
-  AdmRetentionPolicyPauseRequest,
-  AdmRetentionPolicyResumeRequest,
-  AdmRetentionPolicySaveRequest,
-  AdmRetentionPreviewRequest,
-  AdmRetentionRunNowRequest,
-  AdmRetentionRunPauseRequest,
-  AdmRetentionRunResumeRequest,
   AdmRetentionRunsParams,
   AdmRole,
   AdmRoleManagement,
@@ -236,6 +226,8 @@ import type {
   ApprovedExecution,
   Artifact,
   AuditCommand,
+  BatchJobDefinitionRequest,
+  BatchJobDefinitionTransitionRequest,
   BatchLineageResult,
   BatchRuntimeCommandRequest,
   BatchRuntimeDeploymentPlanRequest,
@@ -360,6 +352,10 @@ import type {
   RequestCommand,
   Reservation,
   Resolved,
+  RetentionPolicySaveRequest,
+  RetentionPreviewRequest,
+  RetentionReasonRequest,
+  RetentionVersionedReasonRequest,
   RollbackCommand,
   RoutingPolicy,
   Row,
@@ -388,7 +384,8 @@ import type {
   TraceRecoveryRunResult,
   TraceRecoveryStatus,
   TransactionMetaPage,
-  Verification
+  Verification,
+  staticfinalint
 } from './model';
 import { cpfOrvalRequest } from '../../shared/orval-mutator';
 import type { CpfOrvalGeneratedRequestOptions } from '../../shared/orval-mutator';
@@ -1356,7 +1353,7 @@ export type admBatchJobDefinitionSaveResponse = (admBatchJobDefinitionSaveRespon
 
 export const getAdmBatchJobDefinitionSaveUrl = () => `/adm/api/batch-runtime/job-definitions/drafts`;
 
-export const admBatchJobDefinitionSave = async (data: AdmBatchJobDefinitionSaveRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionSaveResponse> => {
+export const admBatchJobDefinitionSave = async (data: BatchJobDefinitionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionSaveResponse> => {
   return cpfOrvalRequest<admBatchJobDefinitionSaveResponse>(getAdmBatchJobDefinitionSaveUrl(), {
     ...options,
     method: 'POST',
@@ -1366,15 +1363,15 @@ export const admBatchJobDefinitionSave = async (data: AdmBatchJobDefinitionSaveR
 };
 
 export const getAdmBatchJobDefinitionSaveMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: AdmBatchJobDefinitionSaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: AdmBatchJobDefinitionSaveRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: BatchJobDefinitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: BatchJobDefinitionRequest}, TContext> => {
   const mutationKey = ['admBatchJobDefinitionSave'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, {data: AdmBatchJobDefinitionSaveRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, {data: BatchJobDefinitionRequest}> = (props) => {
     const { data } = props;
     return admBatchJobDefinitionSave(data, requestOptions);
   };
@@ -1382,13 +1379,13 @@ export const getAdmBatchJobDefinitionSaveMutationOptions = <TError = unknown, TC
 };
 
 export type AdmBatchJobDefinitionSaveMutationResult = NonNullable<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>>;
-export type AdmBatchJobDefinitionSaveMutationBody = AdmBatchJobDefinitionSaveRequest;
+export type AdmBatchJobDefinitionSaveMutationBody = BatchJobDefinitionRequest;
 export type AdmBatchJobDefinitionSaveMutationError = unknown;
 
 export const useAdmBatchJobDefinitionSave = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: AdmBatchJobDefinitionSaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: BatchJobDefinitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: AdmBatchJobDefinitionSaveRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionSave>>, TError, {data: BatchJobDefinitionRequest}, TContext> => {
   return useMutation(getAdmBatchJobDefinitionSaveMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBatchJobDefinitionSave
@@ -1408,7 +1405,7 @@ export type admBatchJobDefinitionValidateResponse = (admBatchJobDefinitionValida
 
 export const getAdmBatchJobDefinitionValidateUrl = () => `/adm/api/batch-runtime/job-definitions/validate`;
 
-export const admBatchJobDefinitionValidate = async (data: AdmBatchJobDefinitionValidateRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionValidateResponse> => {
+export const admBatchJobDefinitionValidate = async (data: BatchJobDefinitionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionValidateResponse> => {
   return cpfOrvalRequest<admBatchJobDefinitionValidateResponse>(getAdmBatchJobDefinitionValidateUrl(), {
     ...options,
     method: 'POST',
@@ -1418,15 +1415,15 @@ export const admBatchJobDefinitionValidate = async (data: AdmBatchJobDefinitionV
 };
 
 export const getAdmBatchJobDefinitionValidateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: AdmBatchJobDefinitionValidateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: AdmBatchJobDefinitionValidateRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: BatchJobDefinitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: BatchJobDefinitionRequest}, TContext> => {
   const mutationKey = ['admBatchJobDefinitionValidate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, {data: AdmBatchJobDefinitionValidateRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, {data: BatchJobDefinitionRequest}> = (props) => {
     const { data } = props;
     return admBatchJobDefinitionValidate(data, requestOptions);
   };
@@ -1434,13 +1431,13 @@ export const getAdmBatchJobDefinitionValidateMutationOptions = <TError = unknown
 };
 
 export type AdmBatchJobDefinitionValidateMutationResult = NonNullable<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>>;
-export type AdmBatchJobDefinitionValidateMutationBody = AdmBatchJobDefinitionValidateRequest;
+export type AdmBatchJobDefinitionValidateMutationBody = BatchJobDefinitionRequest;
 export type AdmBatchJobDefinitionValidateMutationError = unknown;
 
 export const useAdmBatchJobDefinitionValidate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: AdmBatchJobDefinitionValidateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: BatchJobDefinitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: AdmBatchJobDefinitionValidateRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionValidate>>, TError, {data: BatchJobDefinitionRequest}, TContext> => {
   return useMutation(getAdmBatchJobDefinitionValidateMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBatchJobDefinitionValidate
@@ -1508,7 +1505,7 @@ export type admBatchJobDefinitionTransitionResponse = (admBatchJobDefinitionTran
 
 export const getAdmBatchJobDefinitionTransitionUrl = (jobId: string, version: number) => `/adm/api/batch-runtime/job-definitions/${encodeURIComponent(String(jobId))}/versions/${encodeURIComponent(String(version))}/transition`;
 
-export const admBatchJobDefinitionTransition = async (jobId: string, version: number, data: AdmBatchJobDefinitionTransitionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionTransitionResponse> => {
+export const admBatchJobDefinitionTransition = async (jobId: string, version: number, data: BatchJobDefinitionTransitionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBatchJobDefinitionTransitionResponse> => {
   return cpfOrvalRequest<admBatchJobDefinitionTransitionResponse>(getAdmBatchJobDefinitionTransitionUrl(jobId, version), {
     ...options,
     method: 'POST',
@@ -1518,15 +1515,15 @@ export const admBatchJobDefinitionTransition = async (jobId: string, version: nu
 };
 
 export const getAdmBatchJobDefinitionTransitionMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: AdmBatchJobDefinitionTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: AdmBatchJobDefinitionTransitionRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: BatchJobDefinitionTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: BatchJobDefinitionTransitionRequest}, TContext> => {
   const mutationKey = ['admBatchJobDefinitionTransition'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, {jobId: string; version: number; data: AdmBatchJobDefinitionTransitionRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, {jobId: string; version: number; data: BatchJobDefinitionTransitionRequest}> = (props) => {
     const { jobId, version, data } = props;
     return admBatchJobDefinitionTransition(jobId, version, data, requestOptions);
   };
@@ -1534,13 +1531,13 @@ export const getAdmBatchJobDefinitionTransitionMutationOptions = <TError = unkno
 };
 
 export type AdmBatchJobDefinitionTransitionMutationResult = NonNullable<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>>;
-export type AdmBatchJobDefinitionTransitionMutationBody = AdmBatchJobDefinitionTransitionRequest;
+export type AdmBatchJobDefinitionTransitionMutationBody = BatchJobDefinitionTransitionRequest;
 export type AdmBatchJobDefinitionTransitionMutationError = unknown;
 
 export const useAdmBatchJobDefinitionTransition = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: AdmBatchJobDefinitionTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: BatchJobDefinitionTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: AdmBatchJobDefinitionTransitionRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBatchJobDefinitionTransition>>, TError, {jobId: string; version: number; data: BatchJobDefinitionTransitionRequest}, TContext> => {
   return useMutation(getAdmBatchJobDefinitionTransitionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBatchJobDefinitionTransition
@@ -1608,7 +1605,7 @@ export type admRetentionPolicySaveResponse = (admRetentionPolicySaveResponseSucc
 
 export const getAdmRetentionPolicySaveUrl = () => `/adm/api/batch-runtime/retention/policies`;
 
-export const admRetentionPolicySave = async (data: AdmRetentionPolicySaveRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicySaveResponse> => {
+export const admRetentionPolicySave = async (data: RetentionPolicySaveRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicySaveResponse> => {
   return cpfOrvalRequest<admRetentionPolicySaveResponse>(getAdmRetentionPolicySaveUrl(), {
     ...options,
     method: 'POST',
@@ -1618,15 +1615,15 @@ export const admRetentionPolicySave = async (data: AdmRetentionPolicySaveRequest
 };
 
 export const getAdmRetentionPolicySaveMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: AdmRetentionPolicySaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: AdmRetentionPolicySaveRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: RetentionPolicySaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: RetentionPolicySaveRequest}, TContext> => {
   const mutationKey = ['admRetentionPolicySave'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicySave>>, {data: AdmRetentionPolicySaveRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicySave>>, {data: RetentionPolicySaveRequest}> = (props) => {
     const { data } = props;
     return admRetentionPolicySave(data, requestOptions);
   };
@@ -1634,13 +1631,13 @@ export const getAdmRetentionPolicySaveMutationOptions = <TError = unknown, TCont
 };
 
 export type AdmRetentionPolicySaveMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPolicySave>>>;
-export type AdmRetentionPolicySaveMutationBody = AdmRetentionPolicySaveRequest;
+export type AdmRetentionPolicySaveMutationBody = RetentionPolicySaveRequest;
 export type AdmRetentionPolicySaveMutationError = unknown;
 
 export const useAdmRetentionPolicySave = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: AdmRetentionPolicySaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: RetentionPolicySaveRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: AdmRetentionPolicySaveRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicySave>>, TError, {data: RetentionPolicySaveRequest}, TContext> => {
   return useMutation(getAdmRetentionPolicySaveMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPolicySave
@@ -1660,7 +1657,7 @@ export type admRetentionPolicyPauseResponse = (admRetentionPolicyPauseResponseSu
 
 export const getAdmRetentionPolicyPauseUrl = (policyId: string) => `/adm/api/batch-runtime/retention/policies/${encodeURIComponent(String(policyId))}/pause`;
 
-export const admRetentionPolicyPause = async (policyId: string, data: AdmRetentionPolicyPauseRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyPauseResponse> => {
+export const admRetentionPolicyPause = async (policyId: string, data: RetentionVersionedReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyPauseResponse> => {
   return cpfOrvalRequest<admRetentionPolicyPauseResponse>(getAdmRetentionPolicyPauseUrl(policyId), {
     ...options,
     method: 'POST',
@@ -1670,15 +1667,15 @@ export const admRetentionPolicyPause = async (policyId: string, data: AdmRetenti
 };
 
 export const getAdmRetentionPolicyPauseMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   const mutationKey = ['admRetentionPolicyPause'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyPause>>, {policyId: string; data: AdmRetentionPolicyPauseRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyPause>>, {policyId: string; data: RetentionVersionedReasonRequest}> = (props) => {
     const { policyId, data } = props;
     return admRetentionPolicyPause(policyId, data, requestOptions);
   };
@@ -1686,13 +1683,13 @@ export const getAdmRetentionPolicyPauseMutationOptions = <TError = unknown, TCon
 };
 
 export type AdmRetentionPolicyPauseMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPolicyPause>>>;
-export type AdmRetentionPolicyPauseMutationBody = AdmRetentionPolicyPauseRequest;
+export type AdmRetentionPolicyPauseMutationBody = RetentionVersionedReasonRequest;
 export type AdmRetentionPolicyPauseMutationError = unknown;
 
 export const useAdmRetentionPolicyPause = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: AdmRetentionPolicyPauseRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyPause>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   return useMutation(getAdmRetentionPolicyPauseMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPolicyPause
@@ -1712,7 +1709,7 @@ export type admRetentionPolicyResumeResponse = (admRetentionPolicyResumeResponse
 
 export const getAdmRetentionPolicyResumeUrl = (policyId: string) => `/adm/api/batch-runtime/retention/policies/${encodeURIComponent(String(policyId))}/resume`;
 
-export const admRetentionPolicyResume = async (policyId: string, data: AdmRetentionPolicyResumeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyResumeResponse> => {
+export const admRetentionPolicyResume = async (policyId: string, data: RetentionVersionedReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPolicyResumeResponse> => {
   return cpfOrvalRequest<admRetentionPolicyResumeResponse>(getAdmRetentionPolicyResumeUrl(policyId), {
     ...options,
     method: 'POST',
@@ -1722,15 +1719,15 @@ export const admRetentionPolicyResume = async (policyId: string, data: AdmRetent
 };
 
 export const getAdmRetentionPolicyResumeMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   const mutationKey = ['admRetentionPolicyResume'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyResume>>, {policyId: string; data: AdmRetentionPolicyResumeRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPolicyResume>>, {policyId: string; data: RetentionVersionedReasonRequest}> = (props) => {
     const { policyId, data } = props;
     return admRetentionPolicyResume(policyId, data, requestOptions);
   };
@@ -1738,13 +1735,13 @@ export const getAdmRetentionPolicyResumeMutationOptions = <TError = unknown, TCo
 };
 
 export type AdmRetentionPolicyResumeMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPolicyResume>>>;
-export type AdmRetentionPolicyResumeMutationBody = AdmRetentionPolicyResumeRequest;
+export type AdmRetentionPolicyResumeMutationBody = RetentionVersionedReasonRequest;
 export type AdmRetentionPolicyResumeMutationError = unknown;
 
 export const useAdmRetentionPolicyResume = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: AdmRetentionPolicyResumeRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPolicyResume>>, TError, {policyId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   return useMutation(getAdmRetentionPolicyResumeMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPolicyResume
@@ -1764,7 +1761,7 @@ export type admRetentionRunNowResponse = (admRetentionRunNowResponseSuccess)
 
 export const getAdmRetentionRunNowUrl = (policyId: string) => `/adm/api/batch-runtime/retention/policies/${encodeURIComponent(String(policyId))}/run`;
 
-export const admRetentionRunNow = async (policyId: string, data: AdmRetentionRunNowRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunNowResponse> => {
+export const admRetentionRunNow = async (policyId: string, data: RetentionReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunNowResponse> => {
   return cpfOrvalRequest<admRetentionRunNowResponse>(getAdmRetentionRunNowUrl(policyId), {
     ...options,
     method: 'POST',
@@ -1774,15 +1771,15 @@ export const admRetentionRunNow = async (policyId: string, data: AdmRetentionRun
 };
 
 export const getAdmRetentionRunNowMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: AdmRetentionRunNowRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: AdmRetentionRunNowRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: RetentionReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: RetentionReasonRequest}, TContext> => {
   const mutationKey = ['admRetentionRunNow'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunNow>>, {policyId: string; data: AdmRetentionRunNowRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunNow>>, {policyId: string; data: RetentionReasonRequest}> = (props) => {
     const { policyId, data } = props;
     return admRetentionRunNow(policyId, data, requestOptions);
   };
@@ -1790,13 +1787,13 @@ export const getAdmRetentionRunNowMutationOptions = <TError = unknown, TContext 
 };
 
 export type AdmRetentionRunNowMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionRunNow>>>;
-export type AdmRetentionRunNowMutationBody = AdmRetentionRunNowRequest;
+export type AdmRetentionRunNowMutationBody = RetentionReasonRequest;
 export type AdmRetentionRunNowMutationError = unknown;
 
 export const useAdmRetentionRunNow = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: AdmRetentionRunNowRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: RetentionReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: AdmRetentionRunNowRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunNow>>, TError, {policyId: string; data: RetentionReasonRequest}, TContext> => {
   return useMutation(getAdmRetentionRunNowMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionRunNow
@@ -1816,7 +1813,7 @@ export type admRetentionPreviewResponse = (admRetentionPreviewResponseSuccess)
 
 export const getAdmRetentionPreviewUrl = () => `/adm/api/batch-runtime/retention/preview`;
 
-export const admRetentionPreview = async (data: AdmRetentionPreviewRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPreviewResponse> => {
+export const admRetentionPreview = async (data: RetentionPreviewRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionPreviewResponse> => {
   return cpfOrvalRequest<admRetentionPreviewResponse>(getAdmRetentionPreviewUrl(), {
     ...options,
     method: 'POST',
@@ -1826,15 +1823,15 @@ export const admRetentionPreview = async (data: AdmRetentionPreviewRequest, opti
 };
 
 export const getAdmRetentionPreviewMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: AdmRetentionPreviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: AdmRetentionPreviewRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: RetentionPreviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: RetentionPreviewRequest}, TContext> => {
   const mutationKey = ['admRetentionPreview'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPreview>>, {data: AdmRetentionPreviewRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionPreview>>, {data: RetentionPreviewRequest}> = (props) => {
     const { data } = props;
     return admRetentionPreview(data, requestOptions);
   };
@@ -1842,13 +1839,13 @@ export const getAdmRetentionPreviewMutationOptions = <TError = unknown, TContext
 };
 
 export type AdmRetentionPreviewMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionPreview>>>;
-export type AdmRetentionPreviewMutationBody = AdmRetentionPreviewRequest;
+export type AdmRetentionPreviewMutationBody = RetentionPreviewRequest;
 export type AdmRetentionPreviewMutationError = unknown;
 
 export const useAdmRetentionPreview = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: AdmRetentionPreviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: RetentionPreviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: AdmRetentionPreviewRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionPreview>>, TError, {data: RetentionPreviewRequest}, TContext> => {
   return useMutation(getAdmRetentionPreviewMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionPreview
@@ -1916,7 +1913,7 @@ export type admRetentionRunPauseResponse = (admRetentionRunPauseResponseSuccess)
 
 export const getAdmRetentionRunPauseUrl = (runId: string) => `/adm/api/batch-runtime/retention/runs/${encodeURIComponent(String(runId))}/pause`;
 
-export const admRetentionRunPause = async (runId: string, data: AdmRetentionRunPauseRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunPauseResponse> => {
+export const admRetentionRunPause = async (runId: string, data: RetentionVersionedReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunPauseResponse> => {
   return cpfOrvalRequest<admRetentionRunPauseResponse>(getAdmRetentionRunPauseUrl(runId), {
     ...options,
     method: 'POST',
@@ -1926,15 +1923,15 @@ export const admRetentionRunPause = async (runId: string, data: AdmRetentionRunP
 };
 
 export const getAdmRetentionRunPauseMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   const mutationKey = ['admRetentionRunPause'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunPause>>, {runId: string; data: AdmRetentionRunPauseRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunPause>>, {runId: string; data: RetentionVersionedReasonRequest}> = (props) => {
     const { runId, data } = props;
     return admRetentionRunPause(runId, data, requestOptions);
   };
@@ -1942,13 +1939,13 @@ export const getAdmRetentionRunPauseMutationOptions = <TError = unknown, TContex
 };
 
 export type AdmRetentionRunPauseMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionRunPause>>>;
-export type AdmRetentionRunPauseMutationBody = AdmRetentionRunPauseRequest;
+export type AdmRetentionRunPauseMutationBody = RetentionVersionedReasonRequest;
 export type AdmRetentionRunPauseMutationError = unknown;
 
 export const useAdmRetentionRunPause = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: AdmRetentionRunPauseRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunPause>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   return useMutation(getAdmRetentionRunPauseMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionRunPause
@@ -1968,7 +1965,7 @@ export type admRetentionRunResumeResponse = (admRetentionRunResumeResponseSucces
 
 export const getAdmRetentionRunResumeUrl = (runId: string) => `/adm/api/batch-runtime/retention/runs/${encodeURIComponent(String(runId))}/resume`;
 
-export const admRetentionRunResume = async (runId: string, data: AdmRetentionRunResumeRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunResumeResponse> => {
+export const admRetentionRunResume = async (runId: string, data: RetentionVersionedReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admRetentionRunResumeResponse> => {
   return cpfOrvalRequest<admRetentionRunResumeResponse>(getAdmRetentionRunResumeUrl(runId), {
     ...options,
     method: 'POST',
@@ -1978,15 +1975,15 @@ export const admRetentionRunResume = async (runId: string, data: AdmRetentionRun
 };
 
 export const getAdmRetentionRunResumeMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: AdmRetentionRunResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: AdmRetentionRunResumeRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   const mutationKey = ['admRetentionRunResume'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunResume>>, {runId: string; data: AdmRetentionRunResumeRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admRetentionRunResume>>, {runId: string; data: RetentionVersionedReasonRequest}> = (props) => {
     const { runId, data } = props;
     return admRetentionRunResume(runId, data, requestOptions);
   };
@@ -1994,13 +1991,13 @@ export const getAdmRetentionRunResumeMutationOptions = <TError = unknown, TConte
 };
 
 export type AdmRetentionRunResumeMutationResult = NonNullable<Awaited<ReturnType<typeof admRetentionRunResume>>>;
-export type AdmRetentionRunResumeMutationBody = AdmRetentionRunResumeRequest;
+export type AdmRetentionRunResumeMutationBody = RetentionVersionedReasonRequest;
 export type AdmRetentionRunResumeMutationError = unknown;
 
 export const useAdmRetentionRunResume = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: AdmRetentionRunResumeRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: AdmRetentionRunResumeRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admRetentionRunResume>>, TError, {runId: string; data: RetentionVersionedReasonRequest}, TContext> => {
   return useMutation(getAdmRetentionRunResumeMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admRetentionRunResume
@@ -3688,7 +3685,7 @@ export type admBreakGlassOpenSessionResponse = (admBreakGlassOpenSessionResponse
 
 export const getAdmBreakGlassOpenSessionUrl = () => `/adm/api/break-glass`;
 
-export const admBreakGlassOpenSession = async (data: AdmBreakGlassOpenSessionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassOpenSessionResponse> => {
+export const admBreakGlassOpenSession = async (data: AdmBreakGlassOpenRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassOpenSessionResponse> => {
   return cpfOrvalRequest<admBreakGlassOpenSessionResponse>(getAdmBreakGlassOpenSessionUrl(), {
     ...options,
     method: 'POST',
@@ -3698,15 +3695,15 @@ export const admBreakGlassOpenSession = async (data: AdmBreakGlassOpenSessionReq
 };
 
 export const getAdmBreakGlassOpenSessionMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenSessionRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenRequest}, TContext> => {
   const mutationKey = ['admBreakGlassOpenSession'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, {data: AdmBreakGlassOpenSessionRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, {data: AdmBreakGlassOpenRequest}> = (props) => {
     const { data } = props;
     return admBreakGlassOpenSession(data, requestOptions);
   };
@@ -3714,13 +3711,13 @@ export const getAdmBreakGlassOpenSessionMutationOptions = <TError = unknown, TCo
 };
 
 export type AdmBreakGlassOpenSessionMutationResult = NonNullable<Awaited<ReturnType<typeof admBreakGlassOpenSession>>>;
-export type AdmBreakGlassOpenSessionMutationBody = AdmBreakGlassOpenSessionRequest;
+export type AdmBreakGlassOpenSessionMutationBody = AdmBreakGlassOpenRequest;
 export type AdmBreakGlassOpenSessionMutationError = unknown;
 
 export const useAdmBreakGlassOpenSession = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenSessionRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassOpenSession>>, TError, {data: AdmBreakGlassOpenRequest}, TContext> => {
   return useMutation(getAdmBreakGlassOpenSessionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBreakGlassOpenSession
@@ -3740,7 +3737,7 @@ export type admBreakGlassCloseSessionResponse = (admBreakGlassCloseSessionRespon
 
 export const getAdmBreakGlassCloseSessionUrl = (sessionId: string) => `/adm/api/break-glass/${encodeURIComponent(String(sessionId))}/close`;
 
-export const admBreakGlassCloseSession = async (sessionId: string, data: AdmBreakGlassCloseSessionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassCloseSessionResponse> => {
+export const admBreakGlassCloseSession = async (sessionId: string, data: AdmReasonRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassCloseSessionResponse> => {
   return cpfOrvalRequest<admBreakGlassCloseSessionResponse>(getAdmBreakGlassCloseSessionUrl(sessionId), {
     ...options,
     method: 'POST',
@@ -3750,15 +3747,15 @@ export const admBreakGlassCloseSession = async (sessionId: string, data: AdmBrea
 };
 
 export const getAdmBreakGlassCloseSessionMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmBreakGlassCloseSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmBreakGlassCloseSessionRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmReasonRequest}, TContext> => {
   const mutationKey = ['admBreakGlassCloseSession'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, {sessionId: string; data: AdmBreakGlassCloseSessionRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, {sessionId: string; data: AdmReasonRequest}> = (props) => {
     const { sessionId, data } = props;
     return admBreakGlassCloseSession(sessionId, data, requestOptions);
   };
@@ -3766,13 +3763,13 @@ export const getAdmBreakGlassCloseSessionMutationOptions = <TError = unknown, TC
 };
 
 export type AdmBreakGlassCloseSessionMutationResult = NonNullable<Awaited<ReturnType<typeof admBreakGlassCloseSession>>>;
-export type AdmBreakGlassCloseSessionMutationBody = AdmBreakGlassCloseSessionRequest;
+export type AdmBreakGlassCloseSessionMutationBody = AdmReasonRequest;
 export type AdmBreakGlassCloseSessionMutationError = unknown;
 
 export const useAdmBreakGlassCloseSession = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmBreakGlassCloseSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmReasonRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmBreakGlassCloseSessionRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassCloseSession>>, TError, {sessionId: string; data: AdmReasonRequest}, TContext> => {
   return useMutation(getAdmBreakGlassCloseSessionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBreakGlassCloseSession
@@ -3792,7 +3789,7 @@ export type admBreakGlassReviewSessionResponse = (admBreakGlassReviewSessionResp
 
 export const getAdmBreakGlassReviewSessionUrl = (sessionId: string) => `/adm/api/break-glass/${encodeURIComponent(String(sessionId))}/review`;
 
-export const admBreakGlassReviewSession = async (sessionId: string, data: AdmBreakGlassReviewSessionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassReviewSessionResponse> => {
+export const admBreakGlassReviewSession = async (sessionId: string, data: AdmBreakGlassReviewRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admBreakGlassReviewSessionResponse> => {
   return cpfOrvalRequest<admBreakGlassReviewSessionResponse>(getAdmBreakGlassReviewSessionUrl(sessionId), {
     ...options,
     method: 'POST',
@@ -3802,15 +3799,15 @@ export const admBreakGlassReviewSession = async (sessionId: string, data: AdmBre
 };
 
 export const getAdmBreakGlassReviewSessionMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewSessionRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewRequest}, TContext> => {
   const mutationKey = ['admBreakGlassReviewSession'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, {sessionId: string; data: AdmBreakGlassReviewSessionRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, {sessionId: string; data: AdmBreakGlassReviewRequest}> = (props) => {
     const { sessionId, data } = props;
     return admBreakGlassReviewSession(sessionId, data, requestOptions);
   };
@@ -3818,13 +3815,13 @@ export const getAdmBreakGlassReviewSessionMutationOptions = <TError = unknown, T
 };
 
 export type AdmBreakGlassReviewSessionMutationResult = NonNullable<Awaited<ReturnType<typeof admBreakGlassReviewSession>>>;
-export type AdmBreakGlassReviewSessionMutationBody = AdmBreakGlassReviewSessionRequest;
+export type AdmBreakGlassReviewSessionMutationBody = AdmBreakGlassReviewRequest;
 export type AdmBreakGlassReviewSessionMutationError = unknown;
 
 export const useAdmBreakGlassReviewSession = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewSessionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewSessionRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admBreakGlassReviewSession>>, TError, {sessionId: string; data: AdmBreakGlassReviewRequest}, TContext> => {
   return useMutation(getAdmBreakGlassReviewSessionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admBreakGlassReviewSession
@@ -6914,7 +6911,7 @@ export type admIncidentCreateIncidentResponse = (admIncidentCreateIncidentRespon
 
 export const getAdmIncidentCreateIncidentUrl = () => `/adm/api/incidents`;
 
-export const admIncidentCreateIncident = async (data: AdmIncidentCreateIncidentRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIncidentCreateIncidentResponse> => {
+export const admIncidentCreateIncident = async (data: AdmIncidentCreateRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIncidentCreateIncidentResponse> => {
   return cpfOrvalRequest<admIncidentCreateIncidentResponse>(getAdmIncidentCreateIncidentUrl(), {
     ...options,
     method: 'POST',
@@ -6924,15 +6921,15 @@ export const admIncidentCreateIncident = async (data: AdmIncidentCreateIncidentR
 };
 
 export const getAdmIncidentCreateIncidentMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateIncidentRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateIncidentRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateRequest}, TContext> => {
   const mutationKey = ['admIncidentCreateIncident'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIncidentCreateIncident>>, {data: AdmIncidentCreateIncidentRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIncidentCreateIncident>>, {data: AdmIncidentCreateRequest}> = (props) => {
     const { data } = props;
     return admIncidentCreateIncident(data, requestOptions);
   };
@@ -6940,13 +6937,13 @@ export const getAdmIncidentCreateIncidentMutationOptions = <TError = unknown, TC
 };
 
 export type AdmIncidentCreateIncidentMutationResult = NonNullable<Awaited<ReturnType<typeof admIncidentCreateIncident>>>;
-export type AdmIncidentCreateIncidentMutationBody = AdmIncidentCreateIncidentRequest;
+export type AdmIncidentCreateIncidentMutationBody = AdmIncidentCreateRequest;
 export type AdmIncidentCreateIncidentMutationError = unknown;
 
 export const useAdmIncidentCreateIncident = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateIncidentRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateIncidentRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admIncidentCreateIncident>>, TError, {data: AdmIncidentCreateRequest}, TContext> => {
   return useMutation(getAdmIncidentCreateIncidentMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admIncidentCreateIncident
@@ -7630,7 +7627,7 @@ export type admIncidentTransitionIncidentResponse = (admIncidentTransitionIncide
 
 export const getAdmIncidentTransitionIncidentUrl = (incidentId: number) => `/adm/api/incidents/${encodeURIComponent(String(incidentId))}/status`;
 
-export const admIncidentTransitionIncident = async (incidentId: number, data: AdmIncidentTransitionIncidentRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIncidentTransitionIncidentResponse> => {
+export const admIncidentTransitionIncident = async (incidentId: number, data: AdmIncidentTransitionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIncidentTransitionIncidentResponse> => {
   return cpfOrvalRequest<admIncidentTransitionIncidentResponse>(getAdmIncidentTransitionIncidentUrl(incidentId), {
     ...options,
     method: 'POST',
@@ -7640,15 +7637,15 @@ export const admIncidentTransitionIncident = async (incidentId: number, data: Ad
 };
 
 export const getAdmIncidentTransitionIncidentMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionIncidentRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionIncidentRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionRequest}, TContext> => {
   const mutationKey = ['admIncidentTransitionIncident'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, {incidentId: number; data: AdmIncidentTransitionIncidentRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, {incidentId: number; data: AdmIncidentTransitionRequest}> = (props) => {
     const { incidentId, data } = props;
     return admIncidentTransitionIncident(incidentId, data, requestOptions);
   };
@@ -7656,13 +7653,13 @@ export const getAdmIncidentTransitionIncidentMutationOptions = <TError = unknown
 };
 
 export type AdmIncidentTransitionIncidentMutationResult = NonNullable<Awaited<ReturnType<typeof admIncidentTransitionIncident>>>;
-export type AdmIncidentTransitionIncidentMutationBody = AdmIncidentTransitionIncidentRequest;
+export type AdmIncidentTransitionIncidentMutationBody = AdmIncidentTransitionRequest;
 export type AdmIncidentTransitionIncidentMutationError = unknown;
 
 export const useAdmIncidentTransitionIncident = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionIncidentRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionIncidentRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admIncidentTransitionIncident>>, TError, {incidentId: number; data: AdmIncidentTransitionRequest}, TContext> => {
   return useMutation(getAdmIncidentTransitionIncidentMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admIncidentTransitionIncident
@@ -7934,7 +7931,7 @@ export type admIntegrationDataQualityValidateResponse = (admIntegrationDataQuali
 
 export const getAdmIntegrationDataQualityValidateUrl = (recordId: string) => `/adm/api/integration-closure/data-quality/validate/${encodeURIComponent(String(recordId))}`;
 
-export const admIntegrationDataQualityValidate = async (recordId: string, data: AdmIntegrationDataQualityValidateRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIntegrationDataQualityValidateResponse> => {
+export const admIntegrationDataQualityValidate = async (recordId: string, data: AdmDataQualityValidationRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admIntegrationDataQualityValidateResponse> => {
   return cpfOrvalRequest<admIntegrationDataQualityValidateResponse>(getAdmIntegrationDataQualityValidateUrl(recordId), {
     ...options,
     method: 'POST',
@@ -7944,15 +7941,15 @@ export const admIntegrationDataQualityValidate = async (recordId: string, data: 
 };
 
 export const getAdmIntegrationDataQualityValidateMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmIntegrationDataQualityValidateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmIntegrationDataQualityValidateRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmDataQualityValidationRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmDataQualityValidationRequest}, TContext> => {
   const mutationKey = ['admIntegrationDataQualityValidate'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, {recordId: string; data: AdmIntegrationDataQualityValidateRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, {recordId: string; data: AdmDataQualityValidationRequest}> = (props) => {
     const { recordId, data } = props;
     return admIntegrationDataQualityValidate(recordId, data, requestOptions);
   };
@@ -7960,13 +7957,13 @@ export const getAdmIntegrationDataQualityValidateMutationOptions = <TError = unk
 };
 
 export type AdmIntegrationDataQualityValidateMutationResult = NonNullable<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>>;
-export type AdmIntegrationDataQualityValidateMutationBody = AdmIntegrationDataQualityValidateRequest;
+export type AdmIntegrationDataQualityValidateMutationBody = AdmDataQualityValidationRequest;
 export type AdmIntegrationDataQualityValidateMutationError = unknown;
 
 export const useAdmIntegrationDataQualityValidate = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmIntegrationDataQualityValidateRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmDataQualityValidationRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmIntegrationDataQualityValidateRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admIntegrationDataQualityValidate>>, TError, {recordId: string; data: AdmDataQualityValidationRequest}, TContext> => {
   return useMutation(getAdmIntegrationDataQualityValidateMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admIntegrationDataQualityValidate
@@ -9125,7 +9122,7 @@ export type admMaintenanceExecuteActionResponse = (admMaintenanceExecuteActionRe
 
 export const getAdmMaintenanceExecuteActionUrl = () => `/adm/api/maintenance/actions`;
 
-export const admMaintenanceExecuteAction = async (data: AdmMaintenanceExecuteActionRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMaintenanceExecuteActionResponse> => {
+export const admMaintenanceExecuteAction = async (data: AdmMaintenanceApprovalRequiredRequest, options?: CpfOrvalGeneratedRequestOptions): Promise<admMaintenanceExecuteActionResponse> => {
   return cpfOrvalRequest<admMaintenanceExecuteActionResponse>(getAdmMaintenanceExecuteActionUrl(), {
     ...options,
     method: 'POST',
@@ -9135,15 +9132,15 @@ export const admMaintenanceExecuteAction = async (data: AdmMaintenanceExecuteAct
 };
 
 export const getAdmMaintenanceExecuteActionMutationOptions = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceExecuteActionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
-): UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceExecuteActionRequest}, TContext> => {
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceApprovalRequiredRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> }
+): UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceApprovalRequiredRequest}, TContext> => {
   const mutationKey = ['admMaintenanceExecuteAction'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined };
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, {data: AdmMaintenanceExecuteActionRequest}> = (props) => {
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, {data: AdmMaintenanceApprovalRequiredRequest}> = (props) => {
     const { data } = props;
     return admMaintenanceExecuteAction(data, requestOptions);
   };
@@ -9151,13 +9148,13 @@ export const getAdmMaintenanceExecuteActionMutationOptions = <TError = unknown, 
 };
 
 export type AdmMaintenanceExecuteActionMutationResult = NonNullable<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>>;
-export type AdmMaintenanceExecuteActionMutationBody = AdmMaintenanceExecuteActionRequest;
+export type AdmMaintenanceExecuteActionMutationBody = AdmMaintenanceApprovalRequiredRequest;
 export type AdmMaintenanceExecuteActionMutationError = unknown;
 
 export const useAdmMaintenanceExecuteAction = <TError = unknown, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceExecuteActionRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceApprovalRequiredRequest}, TContext>, request?: SecondParameter<typeof cpfOrvalRequest> },
   queryClient?: QueryClient
-): UseMutationReturnType<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceExecuteActionRequest}, TContext> => {
+): UseMutationReturnType<Awaited<ReturnType<typeof admMaintenanceExecuteAction>>, TError, {data: AdmMaintenanceApprovalRequiredRequest}, TContext> => {
   return useMutation(getAdmMaintenanceExecuteActionMutationOptions(options), queryClient);
 };
 // CPF PRE-RUNTIME FALLBACK END admMaintenanceExecuteAction

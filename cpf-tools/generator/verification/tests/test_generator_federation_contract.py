@@ -148,7 +148,10 @@ class GeneratorFederationContractTest(unittest.TestCase):
         self.assertNotIn("runtimeAgentContract", central)
         final_gate = (ROOT / "cpf-tools" / "verification" / "tools" / "verify-cpf-final-completion.ps1").read_text(encoding="utf-8")
         self.assertNotIn("manifest/domain-manifest.json", final_gate)
-        self.assertIn("Get-CpfGeneratedDomainInventory", final_gate)
+        self.assertIn("run-cpf-local-full-validation.ps1", final_gate)
+        canonical_gate = (ROOT / "cpf-tools" / "verification" / "tools" / "run-cpf-local-full-validation.ps1").read_text(encoding="utf-8")
+        self.assertIn("GENERATOR_FULL_CONTRACT", canonical_gate)
+        self.assertIn("GENERATOR_LIFECYCLE", canonical_gate)
 
 
 if __name__ == "__main__":

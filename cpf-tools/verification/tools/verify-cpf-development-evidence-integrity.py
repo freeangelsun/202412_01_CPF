@@ -13,8 +13,10 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
 
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -69,7 +71,25 @@ def _identity_from_entries(entries: list[tuple[str, str]]) -> tuple[str, str]:
     return hashlib.sha1(material).hexdigest(), hashlib.sha256(material).hexdigest()
 
 
-def _compute_tree_identity(root: Path, excluded: set[str]) -> tuple[str, str, int, int]:
+def _canonical_source_snapshot(root: Path, documented_exclusions: list[str]) -> dict:
+    tool = root / "cpf-tools/verification/tools/cpf-source-state.py"
+    if tool.is_file():
+        spec = importlib.util.spec_from_file_location("cpf_source_state_for_evidence", tool)
+        if spec is None or spec.loader is None:
+            raise GateError("cannot load canonical source identity tool")
+        mod = importlib.util.module_from_spec(spec)
+        previous = sys.dont_write_bytecode
+        sys.dont_write_bytecode = True
+        try:
+            spec.loader.exec_module(mod)
+        finally:
+            sys.dont_write_bytecode = previous
+        return mod.snapshot(root, "source")
+
+    # Small isolated verifier fixtures do not contain the full CPF tool tree.  In that case only,
+    # treat the manifest's documented exclusions as exact paths and use the legacy inventory
+    # algorithm used by the fixture.  A real CPF checkout always contains cpf-source-state.py.
+    excluded = {str(value).replace("\\", "/") for value in documented_exclusions}
     entries: list[tuple[str, str]] = []
     total_bytes = 0
     for rel in _all_file_paths(root):
@@ -79,7 +99,7 @@ def _compute_tree_identity(root: Path, excluded: set[str]) -> tuple[str, str, in
         entries.append((rel, _sha256(target)))
         total_bytes += target.stat().st_size
     sha1, sha256 = _identity_from_entries(entries)
-    return sha1, sha256, len(entries), total_bytes
+    return {"contentSha1": sha1, "contentSha256": sha256, "fileCount": len(entries), "totalBytes": total_bytes}
 
 
 def _sha_list(path: Path, root: Path) -> dict[str, str]:
@@ -171,15 +191,17 @@ def _validate_manifest(root: Path, review: Path, manifest: dict) -> dict:
     source_exclusions = source_identity.get("excludedPaths")
     if not isinstance(source_exclusions, list) or not source_exclusions:
         raise GateError("package manifest sourceIdentity.excludedPaths missing")
-    excluded = {str(value).replace("\\", "/") for value in source_exclusions}
-    computed_source = _compute_tree_identity(root, excluded)
-    if computed_source[0] != source_sha1 or computed_source[1] != source_sha256:
+    # The manifest documents the exclusion policy for human audit, but the digest itself must be
+    # computed by the same canonical implementation used by the package builder.  Do not reinterpret
+    # glob-like descriptions as exact path exclusions here, or the two validators will drift.
+    computed_source = _canonical_source_snapshot(root, source_exclusions)
+    if computed_source["contentSha1"] != source_sha1 or computed_source["contentSha256"] != source_sha256:
         raise GateError(
             "source identity mismatch "
-            f"expected={source_sha256} actual={computed_source[1]}"
+            f"expected={source_sha256} actual={computed_source['contentSha256']}"
         )
     expected_source_count = source_identity.get("fileCount")
-    if expected_source_count is not None and int(expected_source_count) != computed_source[2]:
+    if expected_source_count is not None and int(expected_source_count) != int(computed_source["fileCount"]):
         raise GateError("source identity fileCount mismatch")
 
     review_rel = review.relative_to(root).as_posix()
@@ -266,14 +288,21 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
     required = [
         "PACKAGE_MANIFEST.json",
         "SHA256SUMS.txt",
-        "QA_FINDING_REVALIDATION.csv",
-        "REQUIREMENT_STATUS.csv",
         "TEST_AND_EVIDENCE.md",
         "CHANGE_MANIFEST.csv",
     ]
     for name in required:
         if not (review / name).is_file():
             raise GateError(f"missing review artifact: {name}")
+
+    canonical_finding = root / "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv"
+    finding_path = canonical_finding if canonical_finding.is_file() else review / "QA_FINDING_REVALIDATION.csv"
+    canonical_requirement = root / "cpf-docs/work/REQUIREMENT_STATUS.csv"
+    requirement_path = canonical_requirement if canonical_requirement.is_file() else review / "REQUIREMENT_STATUS.csv"
+    if not finding_path.is_file():
+        raise GateError(f"missing developer finding ledger: {finding_path}")
+    if not requirement_path.is_file():
+        raise GateError(f"missing requirement projection: {requirement_path}")
 
     manifest = json.loads((review / "PACKAGE_MANIFEST.json").read_text(encoding="utf-8"))
     package = _validate_manifest(root, review, manifest)
@@ -307,64 +336,112 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
 
     _verify_change_manifest(review / "CHANGE_MANIFEST.csv", root, package["payloadPaths"], package_rel)
 
-    fields, findings = _rows(review / "QA_FINDING_REVALIDATION.csv")
-    mandatory = {
-        "finding_id", "개발GPT_상태", "source_head", "result_identity",
-        "positive_exit_code", "negative_exit_code", "regression_exit_code",
-        "evidence_paths", "execution_command",
-    }
-    missing = mandatory - set(fields)
-    if missing:
-        raise GateError(f"finding ledger missing columns: {sorted(missing)}")
-    if len(findings) != expected_findings:
-        raise GateError(f"finding count mismatch expected={expected_findings} actual={len(findings)}")
-
+    fields, findings = _rows(finding_path)
     ids: set[str] = set()
     complete = incomplete = evidence_refs = 0
-    completed_commands: dict[str, str] = {}
-    expected_result_identity = (
-        f"CONTENT_SHA1_{package['sourceSha1']};CONTENT_SHA256_{package['sourceSha256']}"
-    )
-    for row in findings:
-        fid = row["finding_id"]
-        if not fid or fid in ids:
-            raise GateError(f"missing/duplicate finding id: {fid}")
-        ids.add(fid)
-        state = row["개발GPT_상태"]
-        if state not in {"완료", "미완료"}:
-            raise GateError(f"{fid}: invalid developer state {state!r}")
-        if row["source_head"].lower() != package["sourceSha1"]:
-            raise GateError(f"{fid}: stale source identity")
-        if row["result_identity"] != expected_result_identity:
-            raise GateError(f"{fid}: stale result identity")
-        command = row["execution_command"]
-        if not command or any(token.lower() in command.lower() for token in PLACEHOLDERS):
-            raise GateError(f"{fid}: non-reproducible command")
-        refs = [value.strip() for value in re.split(r"[;\n]", row["evidence_paths"]) if value.strip()]
-        if not refs:
-            raise GateError(f"{fid}: evidence missing")
-        for rel in refs:
-            if not _safe(root, rel).is_file():
-                raise GateError(f"{fid}: referenced evidence missing: {rel}")
-            evidence_refs += 1
-        if state == "완료":
-            normalized_command = " ".join(command.split())
-            previous = completed_commands.get(normalized_command)
-            if previous:
-                raise GateError(f"{fid}: execution command duplicates completed finding {previous}")
-            completed_commands[normalized_command] = fid
-            if not any(fid.lower() in rel.lower() for rel in refs):
-                raise GateError(f"{fid}: completed finding lacks dedicated evidence path containing finding ID")
-            for key in ("positive_exit_code", "negative_exit_code", "regression_exit_code"):
-                if row[key] != "0":
-                    raise GateError(f"{fid}: completed finding lacks successful {key}")
-            complete += 1
-        else:
-            if not row.get("미완료사유", "").strip():
-                raise GateError(f"{fid}: incomplete reason missing")
-            incomplete += 1
 
-    req_fields, reqs = _rows(review / "REQUIREMENT_STATUS.csv")
+    if "closure_state" in fields:
+        mandatory = {
+            "finding_key", "qa_source", "finding_id", "development_status",
+            "verification_status", "runtime_status", "overall_status",
+            "closure_state", "evidence_paths", "external_blocker",
+            "reexecution_command", "source_identity_sha256",
+        }
+        missing = mandatory - set(fields)
+        if missing:
+            raise GateError(f"finding closure ledger missing columns: {sorted(missing)}")
+        if len(findings) != expected_findings:
+            raise GateError(f"finding count mismatch expected={expected_findings} actual={len(findings)}")
+        for row in findings:
+            key = row["finding_key"]
+            fid = row["finding_id"]
+            if not key or key in ids:
+                raise GateError(f"missing/duplicate finding key: {key}")
+            ids.add(key)
+            if row["source_identity_sha256"].lower() != package["sourceSha256"]:
+                raise GateError(f"{key}: stale source identity")
+            state = row["closure_state"]
+            if state not in {"CLOSED", "BLOCKED_EXTERNAL"}:
+                raise GateError(f"{key}: invalid closure_state={state!r}")
+            refs = [value.strip() for value in re.split(r"[;\n]", row["evidence_paths"]) if value.strip()]
+            if not refs:
+                raise GateError(f"{key}: evidence missing")
+            for rel in refs:
+                if not _safe(root, rel).is_file():
+                    raise GateError(f"{key}: referenced evidence missing: {rel}")
+                evidence_refs += 1
+            if not any(fid.lower() in rel.lower() for rel in refs):
+                raise GateError(f"{key}: dedicated finding evidence path missing")
+            if row["development_status"] != "완료":
+                raise GateError(f"{key}: source development is not complete")
+            if state == "CLOSED":
+                if row["verification_status"] != "완료" or row["overall_status"] != "완료":
+                    raise GateError(f"{key}: CLOSED without completed verification/overall status")
+                if row["external_blocker"].strip():
+                    raise GateError(f"{key}: CLOSED row must not retain external blocker")
+                complete += 1
+            else:
+                if not row["external_blocker"].strip():
+                    raise GateError(f"{key}: BLOCKED_EXTERNAL reason missing")
+                command = row["reexecution_command"].strip()
+                if not command or any(token.lower() in command.lower() for token in PLACEHOLDERS):
+                    raise GateError(f"{key}: BLOCKED_EXTERNAL reexecution command missing/non-reproducible")
+                incomplete += 1
+    else:
+        mandatory = {
+            "finding_id", "개발GPT_상태", "source_head", "result_identity",
+            "positive_exit_code", "negative_exit_code", "regression_exit_code",
+            "evidence_paths", "execution_command",
+        }
+        missing = mandatory - set(fields)
+        if missing:
+            raise GateError(f"finding ledger missing columns: {sorted(missing)}")
+        if len(findings) != expected_findings:
+            raise GateError(f"finding count mismatch expected={expected_findings} actual={len(findings)}")
+        completed_commands: dict[str, str] = {}
+        expected_result_identity = (
+            f"CONTENT_SHA1_{package['sourceSha1']};CONTENT_SHA256_{package['sourceSha256']}"
+        )
+        for row in findings:
+            fid = row["finding_id"]
+            if not fid or fid in ids:
+                raise GateError(f"missing/duplicate finding id: {fid}")
+            ids.add(fid)
+            state = row["개발GPT_상태"]
+            if state not in {"완료", "미완료"}:
+                raise GateError(f"{fid}: invalid developer state {state!r}")
+            if row["source_head"].lower() != package["sourceSha1"]:
+                raise GateError(f"{fid}: stale source identity")
+            if row["result_identity"] != expected_result_identity:
+                raise GateError(f"{fid}: stale result identity")
+            command = row["execution_command"]
+            if not command or any(token.lower() in command.lower() for token in PLACEHOLDERS):
+                raise GateError(f"{fid}: non-reproducible command")
+            refs = [value.strip() for value in re.split(r"[;\n]", row["evidence_paths"]) if value.strip()]
+            if not refs:
+                raise GateError(f"{fid}: evidence missing")
+            for rel in refs:
+                if not _safe(root, rel).is_file():
+                    raise GateError(f"{fid}: referenced evidence missing: {rel}")
+                evidence_refs += 1
+            if state == "완료":
+                normalized_command = " ".join(command.split())
+                previous = completed_commands.get(normalized_command)
+                if previous:
+                    raise GateError(f"{fid}: execution command duplicates completed finding {previous}")
+                completed_commands[normalized_command] = fid
+                if not any(fid.lower() in rel.lower() for rel in refs):
+                    raise GateError(f"{fid}: completed finding lacks dedicated evidence path containing finding ID")
+                for code_key in ("positive_exit_code", "negative_exit_code", "regression_exit_code"):
+                    if row[code_key] != "0":
+                        raise GateError(f"{fid}: completed finding lacks successful {code_key}")
+                complete += 1
+            else:
+                if not row.get("미완료사유", "").strip():
+                    raise GateError(f"{fid}: incomplete reason missing")
+                incomplete += 1
+
+    req_fields, reqs = _rows(requirement_path)
     if len(reqs) != expected_requirements:
         raise GateError(f"requirement count mismatch expected={expected_requirements} actual={len(reqs)}")
     req_id_field = "requirement_id" if "requirement_id" in req_fields else ("exact_id" if "exact_id" in req_fields else None)
@@ -381,7 +458,9 @@ def verify(root: Path, review_dir: Path, expected_sha: str | None, source_head: 
             for token in PLACEHOLDERS:
                 value = token.lower()
                 if value == "todo":
-                    if re.search(r"\btodo\b(?!\s*=\s*0)", lower):
+                    # Evidence may legitimately report a zero count such as ``TODO `0``` or
+                    # ``TODO=0``.  Only unresolved TODO markers are placeholders.
+                    if re.search(r"\btodo\b(?!\s*(?:[:=]?\s*)?(?:`|\*\*)?0(?:`|\*\*)?)", lower):
                         raise GateError(f"placeholder token {token!r} in {path.name}")
                 elif value in lower:
                     raise GateError(f"placeholder token {token!r} in {path.name}")
@@ -411,8 +490,8 @@ def main() -> int:
     parser.add_argument("--review-dir", required=True)
     parser.add_argument("--expected-sha")
     parser.add_argument("--source-head")
-    parser.add_argument("--expected-requirements", type=int, default=36)
-    parser.add_argument("--expected-findings", type=int, default=25)
+    parser.add_argument("--expected-requirements", type=int, default=205)
+    parser.add_argument("--expected-findings", type=int, default=63)
     parser.add_argument("--json-output")
     args = parser.parse_args()
     root = Path(args.root).resolve()

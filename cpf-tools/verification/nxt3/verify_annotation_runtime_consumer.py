@@ -13,11 +13,14 @@ def main():
  ann=t('cpf-starters/base/runtime/src/main/java/com/cpf/foundation/execution/api/CpfOnlineTransaction.java')
  c('single-operation-metadata-contract',all(x in ann for x in ['String operationId();','String name();','String description();']))
  for rel,token in [
-  ('cpf-starters/web/src/main/java/com/cpf/web/api/CpfRestController.java','public @interface CpfRestController'),
+  ('cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java','public @interface CpfController'),
   ('cpf-starters/data/persistence/src/main/java/com/cpf/data/persistence/api/annotation/CpfTransactional.java','public @interface CpfTransactional'),
   ('cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfPreAuthorize.java','public @interface CpfPreAuthorize'),
-  ('cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfTimed.java','public @interface CpfTimed'),
+  ('cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfPerformance.java','public @interface CpfPerformance'),
   ('cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java','public @interface CpfTimeLimiter')]: c('canonical-'+token.split()[-1],token in t(rel),rel)
+ 
+ c('legacy-controller-alias-deprecated','@Deprecated(forRemoval = false)' in t('cpf-starters/web/src/main/java/com/cpf/web/api/CpfRestController.java'))
+ c('legacy-performance-alias-deprecated','@Deprecated(forRemoval = false)' in t('cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfTimed.java'))
  resolver=t('cpf-starters/web/src/main/java/com/cpf/web/context/CpfOperationIdResolver.java')
  c('operation-id-resolver','operationId()' in resolver and 'Operation.class' in resolver)
  interceptor=t('cpf-starters/web/src/main/java/com/cpf/web/runtime/CpfControllerContextInterceptor.java')
@@ -26,13 +29,13 @@ def main():
  c('runtime-operation-bootstrap','CpfOperationCatalogRegistry' in bootstrap and 'synchronize(' in bootstrap and 'ApplicationReadyEvent' in bootstrap)
  for dom in ['cpf-member','cpf-external']:
   joined='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in (root/dom).rglob('*.java')) if (root/dom).exists() else ''
-  c(f'{dom}-generated-oss-consumer','@CpfTransactional' in joined and '@CpfRepository' in joined and '@CpfRestController' in joined and '@CpfOnlineTransaction' in joined and '@CpfTx' not in joined and '@CpfController' not in joined)
+  c(f'{dom}-generated-oss-consumer','@CpfTransactional' in joined and '@CpfRepository' in joined and '@CpfController' in joined and '@CpfOnlineTransaction' in joined and '@CpfTx' not in joined)
  for label,rel in [('ADM','cpf-admin/src/main/java'),('GATEWAY','cpf-gateway/src/main/java')]:
   controllers='\n'.join(t for p in (root/rel).rglob('*Controller.java') for t in [p.read_text(encoding='utf-8',errors='ignore')]) if (root/rel).exists() else ''
   c(f'{label}-management-not-business-transaction',re.search(r'(?m)^\s*@CpfOnlineTransaction\b',controllers) is None)
  backoffice_root=root/'cpf-backoffice/online/src/main/java'
  backoffice='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in backoffice_root.rglob('*.java')) if backoffice_root.exists() else ''
- c('BACKOFFICE-generated-domain-contract', all(token in backoffice for token in ('@CpfRestController','@CpfOnlineTransaction','@Operation')) and 'MBW' in backoffice)
+ c('BACKOFFICE-generated-domain-contract', all(token in backoffice for token in ('@CpfController','@CpfOnlineTransaction','@Operation')) and 'MBW' in backoffice)
  fail=[x for x in checks if x['status']=='FAIL'];result={'requirementId':REQ,'status':'PASS' if not fail else 'FAIL','failedCount':len(fail),'checks':checks}
  out=Path(ns.evidence) if ns.evidence else root/'cpf-docs/work/evidence/current/ANNOTATION_RUNTIME_CONSUMER.json';out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print(json.dumps({'status':result['status'],'failedCount':len(fail),'checkCount':len(checks)},ensure_ascii=False));

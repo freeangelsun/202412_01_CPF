@@ -10,8 +10,6 @@ dependencies {
     implementation 'org.springframework:spring-tx'
     implementation 'org.springframework:spring-jdbc'
     implementation 'org.springframework:spring-context-support'
-    implementation 'org.springframework.boot:spring-boot-autoconfigure'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'io.micrometer:micrometer-core'
     compileOnly "org.mybatis:mybatis:${rootProject.ext.cpfMybatisVersion}"
     compileOnly 'org.projectlombok:lombok'

@@ -2,10 +2,14 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.admin.opr.service.AdmControlPlaneService;
+import com.cpf.admin.opr.dto.AdmIncidentCreateRequest;
+import com.cpf.admin.opr.dto.AdmIncidentTransitionRequest;
+import com.cpf.admin.opr.dto.AdmMaintenanceApprovalRequiredRequest;
 import com.cpf.core.api.context.CpfContexts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,12 +24,12 @@ public class AdmControlPlaneController extends com.cpf.admin.common.base.AdmBase
 
     @PostMapping("/adm/api/incidents")@Operation(operationId="admIncidentCreateIncident", summary="Incident 생성")
     /** createIncident 작업을 CPF 표준 계약에 따라 수행한다. */
-    public ResponseEntity<Map<String,Object>> createIncident(@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);Map<String,Object>
-            result=service.createIncident(body,user);audit(request,user,"INCIDENT_CREATE","adm_incident",String.valueOf(result.get("INCIDENT_ID")),String.valueOf(body.get("reason")),result);
+    public ResponseEntity<Map<String,Object>> createIncident(@Valid @RequestBody AdmIncidentCreateRequest body,HttpServletRequest request){String user=operator(request);Map<String,Object>
+            result=service.createIncident(body.toMap(),user);audit(request,user,"INCIDENT_CREATE","adm_incident",String.valueOf(result.get("INCIDENT_ID")),body.reason(),result);
             return ResponseEntity.ok(result);}
     @PostMapping("/adm/api/incidents/{incidentId}/status")@Operation(operationId="admIncidentTransitionIncident", summary="Incident 상태 전이")
-    public ResponseEntity<Map<String,Object>> transition(@PathVariable long incidentId,@RequestBody Map<String,Object> body,HttpServletRequest request){String user=operator(request);String
-            reason=String.valueOf(body.getOrDefault("reason",""));Map<String,Object> result=service.transitionIncident(incidentId,String.valueOf(body.get("status")),reason,user);
+    public ResponseEntity<Map<String,Object>> transition(@PathVariable long incidentId,@Valid @RequestBody AdmIncidentTransitionRequest body,HttpServletRequest request){String user=operator(request);String
+            reason=body.reason();Map<String,Object> result=service.transitionIncident(incidentId,body.status(),reason,user);
             audit(request,user,"INCIDENT_TRANSITION","adm_incident",String.valueOf(incidentId),reason,result);return ResponseEntity.ok(result);}
     @GetMapping("/adm/api/maintenance/actions")@Operation(operationId="admMaintenanceFindActions", summary="Maintenance 명령 이력")
     /** maintenance 작업을 CPF 표준 계약에 따라 수행한다. */
@@ -36,11 +40,11 @@ public class AdmControlPlaneController extends com.cpf.admin.common.base.AdmBase
      * ServiceRegistryApprovalOwnerCommandAdapter를 통해 Owner Port로 실행합니다.
      */
     @PostMapping("/adm/api/maintenance/actions")    @Operation(operationId="admMaintenanceExecuteAction", summary="Service instance 변경 승인 경로 안내")
-    public ResponseEntity<Map<String,Object>> executeMaintenance(@RequestBody Map<String,Object> body,HttpServletRequest request){
+    public ResponseEntity<Map<String,Object>> executeMaintenance(@Valid @RequestBody AdmMaintenanceApprovalRequiredRequest body,HttpServletRequest request){
         String user=operator(request);
-        String reason=String.valueOf(body.getOrDefault("reason",""));
+        String reason=body.reason();
         audit(request,user,"SERVICE_INSTANCE_CONTROL_APPROVAL_REQUIRED","OPS_SERVICE_INSTANCE",
-                String.valueOf(body.get("instanceId")),reason,Map.of("status","APPROVAL_REQUIRED"));
+                body.instanceId(),reason,Map.of("status","APPROVAL_REQUIRED"));
         return ResponseEntity.status(409).body(Map.of(
                 "status","APPROVAL_REQUIRED",
                 "message","Service instance 변경은 ADM 승인 요청/승인/실행 경로를 사용해야 합니다.",

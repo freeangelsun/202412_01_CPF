@@ -88,8 +88,8 @@ check("EXECUTION_LIFECYCLE", "EXEC-AUTOCONFIG", exists("cpf-starters/integration
 
 # 3) Common Product Service
 for family, symbol in [("CODE", "CpfCodeService"),("MESSAGE", "CpfMessageSource"),("PARAMETER", "CpfParameterService"),("CALENDAR", "CpfCalendarService"),("TEMPLATE", "CpfTemplateService")]:
-    check("COMMON_PRODUCT_SERVICE", f"COMMON-{family}", any_text(files_under("cpf-starters/common", ".java"), rf"\b{re.escape(symbol)}\b"), f"{family} product service/source exists")
-common_main = [p for p in files_under("cpf-starters/common", ".java") if "/src/main/" in p.as_posix()]
+    check("COMMON_PRODUCT_SERVICE", f"COMMON-{family}", any_text(files_under("cpf-common", ".java"), rf"\b{re.escape(symbol)}\b"), f"{family} product service/source exists")
+common_main = [p for p in files_under("cpf-common", ".java") if "/src/main/" in p.as_posix()]
 direct_time = count_text(common_main, r"(?:Instant|LocalDate|LocalDateTime|OffsetDateTime|ZonedDateTime)\.now\(\)|System\.currentTimeMillis\(\)")
 check("COMMON_PRODUCT_SERVICE", "COMMON-DETERMINISTIC-TIME", direct_time == 0, f"common production direct system-time calls={direct_time}", "P1")
 edu_files = files_under("cpf-education/src/main/java/com/cpf/education/online", ".java") + files_under("cpf-education/src/main/java/com/cpf/education/batch", ".java")

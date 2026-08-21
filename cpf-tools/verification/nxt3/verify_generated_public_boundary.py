@@ -38,7 +38,7 @@ def main()->int:
         forbidden=sorted(direct & INTERNAL_REQUIRED)
         missing=sorted(PUBLIC_DIRECT_REQUIRED_API-direct)
         add(f'{root_name}-online-public-direct-boundary',not forbidden and not missing,{'file':str(path),'direct':sorted(direct),'forbiddenInternal':forbidden,'missingRequiredPublic':missing})
-        definition=root/'cpf-tools/generator/definitions'/root_name.removeprefix('cpf-')/'cpf-domain.yaml'
+        definition=root/root_name/'cpf-domain.yaml'
         batch_selected='batch: true' in definition.read_text(encoding='utf-8',errors='replace').lower()
         batch_dir=root/root_name/'batch'
         batch_exists=batch_dir.is_dir() and any(y.is_file() for y in batch_dir.rglob('*'))

@@ -3,10 +3,10 @@ import com.cpf.core.api.result.CpfResult;
 import com.cpf.education.online.externalrest.dto.InstitutionInquiryResponse;
 import com.cpf.education.online.externalrest.service.InstitutionInquiryService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
-@CpfRestController @RequestMapping("/edu/online/institution-inquiry")
+@CpfController @RequestMapping("/edu/online/institution-inquiry")
 /** InstitutionInquiryController는 기관 REST 응답을 CPF 공통 Outcome으로 변환하는 External REST Golden Path입니다. */
 public class InstitutionInquiryController {
  private final InstitutionInquiryService service; public InstitutionInquiryController(InstitutionInquiryService service){this.service=service;}

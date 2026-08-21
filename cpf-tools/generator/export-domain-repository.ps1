@@ -40,7 +40,7 @@ if (-not (Test-Path -LiteralPath $source -PathType Container)) {
 }
 $domainName = $DomainModule.Substring(4).ToLowerInvariant()
 if ([string]::IsNullOrWhiteSpace($DefinitionFile)) {
-    $DefinitionFile = Join-Path $frameworkRoot "cpf-tools/generator/definitions/$domainName/cpf-domain.yaml"
+    $DefinitionFile = Join-Path $frameworkRoot "cpf-$domainName/cpf-domain.yaml"
 } elseif (-not [IO.Path]::IsPathRooted($DefinitionFile)) {
     $DefinitionFile = Join-Path $frameworkRoot $DefinitionFile
 }

@@ -64,12 +64,10 @@ public class BatRetentionExecutionService {
     }
     public BatRetentionRunSnapshot runScheduled(String policyId){ return startNew(policyId,"SCHEDULED","CPF_RETENTION_SCHEDULER","scheduled retention"); }
     public BatRetentionRunSnapshot requestPause(String runId,long expectedVersion,String actor,String reason){
-        BatRetentionRunSnapshot run=repository.findRun(runId)
-                .orElseThrow(()->new IllegalArgumentException("Retention run 없음: "+runId));
-        policyAtVersion(run.policyId(), expectedVersion);
-        repository.requestPause(runId,actor,reason);
+        repository.requestPause(runId,actor,reason,expectedVersion);
         repository.audit("RUN_PAUSE","RUN",runId,actor,null,null,reason,expectedVersion,"SUCCEEDED");
-        return repository.findRun(runId).orElseThrow();
+        return repository.findRun(runId)
+                .orElseThrow(()->new IllegalArgumentException("Retention run 없음: "+runId));
     }
     public BatRetentionPolicyDefinition pausePolicy(String policyId,boolean paused,long expectedVersion,String requestedBy,
                                                      String reason,String approvedBy,String approvalRequestId){

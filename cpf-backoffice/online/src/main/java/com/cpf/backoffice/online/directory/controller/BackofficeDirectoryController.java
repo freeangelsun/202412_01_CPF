@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.directory.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.directory.service.BackofficeDirectoryService;
@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /** 업무 관리자용 조직·직원·직급·직책 Directory 조회·변경 API를 제공합니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/directory")
 public class BackofficeDirectoryController extends com.cpf.backoffice.online.base.BackofficeBaseController {
   private final BackofficeDirectoryService s;

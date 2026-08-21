@@ -6,7 +6,7 @@ import com.cpf.education.online.ondemandbatch.dto.MemberExportCommand;
 import com.cpf.education.online.ondemandbatch.service.MemberExportService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.security.api.annotation.CpfPermission;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /** 온라인 On-Demand Batch: 업무 요청은 Async executionId로 접수하고 Batch 실행 ID와 분리합니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/edu/online/member-export")
 public final class MemberExportController {
     private final MemberExportService service;

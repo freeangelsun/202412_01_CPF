@@ -3,6 +3,7 @@ import com.cpf.core.api.async.*; import com.cpf.core.api.data.encryption.CpfFiel
 import org.springframework.boot.autoconfigure.AutoConfiguration; import org.springframework.boot.autoconfigure.condition.*; import org.springframework.context.annotation.Bean; import org.springframework.core.task.AsyncTaskExecutor; import org.springframework.scheduling.annotation.EnableScheduling; import org.springframework.scheduling.annotation.Scheduled; import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @AutoConfiguration @EnableScheduling
 @ConditionalOnBean({CpfAsyncOperationStore.class,CpfFieldEncryptionOperations.class})
+/** CPF 비동기 Operation 저장소와 Worker를 자동 조립하는 Spring Boot AutoConfiguration입니다. */
 public class CpfAsyncOperationAutoConfiguration {
  @Bean @ConditionalOnMissingBean CpfAsyncPayloadCodec cpfAsyncPayloadCodec(CpfFieldEncryptionOperations encryption,ObjectMapper json){return new CpfAsyncPayloadCodec(encryption,json);}
  @Bean @ConditionalOnMissingBean(CpfAsyncOperations.class) DefaultCpfAsyncOperations cpfAsyncOperations(CpfAsyncOperationStore store,List<CpfAsyncHandler<?,?>> handlers,ObjectMapper json,CpfAsyncPayloadCodec payloads,CpfExecutionIdGenerator ids,Clock cpfStarterClock){return new DefaultCpfAsyncOperations(store,handlers,json,payloads,ids,cpfStarterClock);}

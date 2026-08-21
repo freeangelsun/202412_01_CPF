@@ -131,10 +131,22 @@ generation:
         target.write_text(original,encoding="utf-8",newline="\n")
         up=engine.upgrade(repo,definition,output)
         if up.get("status")!="UPGRADED": raise ContractError("upgrade did not pass on unchanged seed")
-        rem=engine.remove_owned(repo,definition,output,apply=True)
+        rem=engine.remove_owned(repo,definition,output,apply=False)
+        if rem.get("status")!="PLANNED_DELETE_MANIFEST" or rem.get("applied") is not False:
+            raise ContractError("safe remove must produce a user-executed Delete Manifest plan")
+        candidates=rem.get("deleteCandidates") or []
+        if not candidates:
+            raise ContractError("safe remove produced no delete candidates")
+        # 실제 제품 CLI는 삭제하지 않는다. 여기서는 disposable fixture에서 사용자 Delete Manifest 실행만 시뮬레이션한다.
+        for rel in candidates:
+            candidate=output/rel
+            if candidate.is_file(): candidate.unlink()
+        for directory in sorted([p for p in output.rglob('*') if p.is_dir()],key=lambda p:len(p.parts),reverse=True):
+            try: directory.rmdir()
+            except OSError: pass
         remaining={p.name for p in output.iterdir()} if output.is_dir() else set()
-        if rem.get("status")!="REMOVED" or not remaining.issubset({"cpf-domain.yaml","cpf-generator.lock.json"}):
-            raise ContractError(f"safe remove left non-canonical generated content: {sorted(remaining)}")
+        if not remaining.issubset({"cpf-domain.yaml","cpf-generator.lock.json"}):
+            raise ContractError(f"safe remove replay left non-canonical generated content: {sorted(remaining)}")
         restored=engine.restore(repo,definition,output)
         if restored.get("status")!="RESTORED": raise ContractError("restore did not restore matching seed")
         if not engine.diff(repo,definition,output).get("clean"): raise ContractError("restore parity is not clean")

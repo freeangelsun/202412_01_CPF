@@ -4,6 +4,7 @@ import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.error.CpfFrameworkErrorCode;
+import com.cpf.web.api.CpfController;
 import com.cpf.web.api.CpfRestController;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import java.util.List;
@@ -46,17 +47,18 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!properties.isEnabled() || !(handler instanceof HandlerMethod method)) return true;
-        CpfRestController annotation = AnnotatedElementUtils.findMergedAnnotation(method.getBeanType(), CpfRestController.class);
+        boolean managed = AnnotatedElementUtils.hasAnnotation(method.getBeanType(), CpfController.class)
+                || AnnotatedElementUtils.hasAnnotation(method.getBeanType(), CpfRestController.class);
         CpfContext currentContext = CpfContexts.current();
-        if (annotation != null && currentContext == null) {
-            throw new IllegalStateException("Managed @CpfRestController request has no bound CPF Context: " + method.getBeanType().getName());
+        if (managed && currentContext == null) {
+            throw new IllegalStateException("Managed @CpfController request has no bound CPF Context: " + method.getBeanType().getName());
         }
         if (currentContext == null) return true;
 
         String resolvedOperation = resolvedTargetOperation(request, method);
         Object trust = request.getAttribute(CpfWebContextFilter.INGRESS_TRUST_ATTRIBUTE);
         boolean trustedInternal = trust == CpfHttpIngressTrust.TRUSTED_INTERNAL;
-        if (annotation != null) {
+        if (managed) {
             Object raw = request.getAttribute(CpfWebContextFilter.RECEIVED_HEADERS_ATTRIBUTE);
             if (!(raw instanceof CpfHttpHeaders headers)) {
                 throw new IllegalStateException("Managed CPF request has no captured CPF headers");
@@ -76,7 +78,7 @@ public final class CpfControllerContextInterceptor implements HandlerInterceptor
             }
         }
 
-        if (annotation != null) enforceOperationPolicy(request, currentContext, resolvedOperation, trustedInternal);
+        if (managed) enforceOperationPolicy(request, currentContext, resolvedOperation, trustedInternal);
 
         CpfContext resolvedContext = currentContext.withResolvedOperation(resolvedOperation, method.getMethod().getName());
         AutoCloseable scope = CpfContexts.bind(CpfContextSnapshot.capture(resolvedContext));

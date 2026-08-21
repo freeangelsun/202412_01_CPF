@@ -230,7 +230,7 @@ if ($root -eq $frameworkRootResolved) {
         $DomainName = $Matches[1]
     }
     if ([string]::IsNullOrWhiteSpace($DefinitionFile)) {
-        $DefinitionFile = Join-Path $frameworkRootResolved "cpf-tools/generator/definitions/$DomainName/cpf-domain.yaml"
+        $DefinitionFile = Join-Path $frameworkRootResolved "cpf-$DomainName/cpf-domain.yaml"
     }
     $definition = Get-CpfGeneratedDomainDefinition `
             -Root $frameworkRootResolved `

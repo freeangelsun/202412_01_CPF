@@ -50,7 +50,10 @@ def _include(rel: str, scope: str) -> bool:
         # the product-byte identity to avoid a circular digest. Managed scope still protects it.
         if rel.startswith("cpf-docs/work/"):
             return False
-        if rel.startswith("cpf-docs/deliverables/evidence/"):
+        # Deliverables are review/evidence/package metadata. They can embed the computed source
+        # identity and package hashes, so including them would make the source digest circular.
+        # Product documentation lives outside cpf-docs/deliverables and remains part of source scope.
+        if rel.startswith("cpf-docs/deliverables/"):
             return False
     return True
 

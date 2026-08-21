@@ -24,7 +24,7 @@ class FinalPlanExecutorTest(unittest.TestCase):
         data=json.loads((evidence/'cpf-final-verification-result.sanitized.json').read_text(encoding="utf-8"));self.assertEqual(1,data['executedCommandCount']);self.assertEqual('PASS',data['steps'][0]['status'])
     def test_source_mutation_fails(self):
         root,evidence,sha=self.fixture(mutates=True);cp=self.execute(root,evidence,sha);self.assertNotEqual(0,cp.returncode)
-        data=json.loads((evidence/'cpf-final-verification-result.sanitized.json').read_text(encoding="utf-8"));self.assertIn('dirty',json.dumps(data))
+        data=json.loads((evidence/'cpf-final-verification-result.sanitized.json').read_text(encoding="utf-8"));self.assertIn('source bytes',json.dumps(data))
     def test_environment_blocker_fails_by_default(self):
         root,evidence,sha=self.fixture(required_env=True);cp=self.execute(root,evidence,sha);self.assertNotEqual(0,cp.returncode)
         data=json.loads((evidence/'cpf-final-verification-result.sanitized.json').read_text(encoding="utf-8"));self.assertEqual(1,data['environmentBlockerCount'])

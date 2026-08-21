@@ -4,7 +4,7 @@ import member.online.base.MemberBaseController;
 import member.online.member.service.SampleTransactionService;
 import member.online.member.model.SampleItem;
 import member.online.member.dto.*;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /** CRUD/Search(Page·Slice·Cursor)를 제공하는 실제 Generated Business Controller입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/member/samples")
 public class SampleTransactionController extends MemberBaseController {
     private final SampleTransactionService service;

@@ -17,7 +17,8 @@ param(
     [switch] $SkipOneWas,
     [switch] $SkipDocker,
     [switch] $KeepDockerStarted,
-    [switch] $StrictExit
+    [switch] $StrictExit,
+    [string] $BaselineSourceZipSha256 = $env:CPF_BASELINE_SOURCE_ZIP_SHA256
 )
 
 # 목적:
@@ -30,6 +31,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'CPF FullLocal은 PowerShell 7 이상(pwsh)이 필요합니다. Windows PowerShell 5.1 fallback은 지원하지 않습니다.' }
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
 Set-Location $RepoRoot
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = Join-Path $HOME 'Downloads' }
@@ -75,7 +77,6 @@ function Find-CpfCommand([string] $Name) {
 $hostPython = Find-CpfCommand 'python'
 $python = $hostPython
 $pwsh = Find-CpfCommand 'pwsh'
-if (-not $pwsh) { $pwsh = Find-CpfCommand 'powershell' }
 $node = Find-CpfCommand 'node'
 $npm = Find-CpfCommand 'npm.cmd'
 if (-not $npm) { $npm = Find-CpfCommand 'npm' }
@@ -420,6 +421,7 @@ function New-CpfFrontendSandbox([string]$FrontendRelative,[string]$Name) {
 $java25Ready=Initialize-CpfJava25
 $python=Initialize-CpfPythonEnvironment
 $baselineSha=Get-CpfBaselineSha
+$baselineSourceZipSha256=if($BaselineSourceZipSha256 -match '^[0-9a-fA-F]{64}$'){$BaselineSourceZipSha256.ToLowerInvariant()}else{'UNKNOWN_BASELINE_SOURCE_ZIP_SHA256'}
 $sourceStateBefore=Get-CpfTreeState 'source' (Join-Path $evidenceDir 'source-state-before.json')
 $managedStateBefore=Get-CpfTreeState 'managed' (Join-Path $evidenceDir 'managed-state-before.json')
 $sourceIdentity=[string]$sourceStateBefore.contentSha1
@@ -437,6 +439,7 @@ $environment=[ordered]@{
     generatedAt=(Get-Date).ToString('o')
     repoRoot=$RepoRoot
     baselineSha=$baselineSha
+    baselineSourceZipSha256=$baselineSourceZipSha256
     resultContentSha1=$sourceIdentity
     resultContentSha256=$sourceContentSha256
     resultSourceIdentity=$env:CPF_SOURCE_IDENTITY
@@ -461,7 +464,7 @@ $environment=[ordered]@{
 if($python){
     Invoke-CpfStage 'RESOURCE_POLICY' $python @('.\cpf-tools\verification\verify-cpf-resource-policy.py','--root','.')
     Invoke-CpfStage 'NXT3_22' $python @('.\cpf-tools\verification\nxt3\run_nxt3_final_all.py','--root','.', '--evidence',(Join-Path $evidenceDir 'nxt3.json'),'--log',(Join-Path $evidenceDir 'nxt3.log'))
-    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/work','--expected-requirements','36','--expected-findings','25')
+    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/deliverables','--expected-requirements','205','--expected-findings','63')
     $inventory=Join-Path $evidenceDir 'inventory'
     Invoke-CpfStage 'ARCH_INVENTORY_GENERATE' $python @('.\cpf-tools\governance\tools\generate-cpf-project-inventory.py','--root','.', '--output-dir',$inventory)
     Invoke-CpfStage 'ARCH_INVENTORY_VERIFY' $python @('.\cpf-tools\governance\tools\verify-cpf-project-inventory.py','--inventory-dir',$inventory,'--policy','.\cpf-tools\governance\cpf-product-surface-policy.json','--waivers','.\cpf-tools\governance\cpf-project-inventory-waivers.csv','--release')
@@ -581,7 +584,7 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     Invoke-CpfStage 'GRADLE_FULL_BUILD_QUALITY' $gradle (@('clean','cpfBuild','qualityGate','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_QA34_INTEGRATION' $gradle (@('qa34IntegrationTest','--continue')+$gradleBase)
-    Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','publishToMavenLocal','--continue')+$gradleBase)
+    Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','cpfPublishToIsolatedLocal','--continue')+$gradleBase)
     if($python){
         Invoke-CpfStage 'DEPLOYMENT_FULL_DISTRIBUTED_ARTIFACT_PACK' $python @('.\deploy\tools\prepare-distribution.py','--root','.', '--env','local','--topology','full-distributed','--output',(Join-Path $evidenceDir 'deployment-artifact\full-distributed'))
     }
@@ -936,6 +939,7 @@ $lines.Add("RESOURCE_PROFILE=$ResourceProfile")
 $lines.Add("FULL_LOCAL=$([bool]$FullLocal)")
 $lines.Add("DESTRUCTIVE_DB_ROLLBACK=$([bool]$AllowDestructiveDbRollback)")
 $lines.Add("BASELINE_SHA=$baselineSha")
+$lines.Add("BASELINE_SOURCE_ZIP_SHA256=$baselineSourceZipSha256")
 $lines.Add("RESULT_CONTENT_SHA1=$sourceIdentity")
 $lines.Add("RESULT_CONTENT_SHA256=$sourceContentSha256")
 $lines.Add("RESULT_SOURCE_IDENTITY=$env:CPF_SOURCE_IDENTITY")
@@ -960,4 +964,4 @@ Write-Host "CPF_LOCAL_VALIDATION_ZIP=$zip"
 Write-Host "ZIP_SHA256=$zipSha"
 # Collect every stage and ZIP first; automation-safe mode reports failure only after evidence is preserved.
 $strictExitEffective=[bool]$StrictExit -or [bool]$FullLocal
-if($strictExitEffective -and $fail -gt 0){exit 1}
+if($strictExitEffective -and ($fail -gt 0 -or $skip -gt 0 -or $notExecuted -gt 0)){exit 1}

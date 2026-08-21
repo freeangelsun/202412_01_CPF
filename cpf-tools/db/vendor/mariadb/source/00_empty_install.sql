@@ -2939,10 +2939,10 @@ ALTER TABLE BAT_RUNTIME_COMMAND_ATTEMPT COMMENT = 'BAT runtime command execution
 CREATE INDEX ix_bat_runtime_command_attempt_instance ON BAT_RUNTIME_COMMAND_ATTEMPT (instance_id, started_at);
 
 CREATE TABLE BAT_RUNTIME_CAPABILITY (
-    instance_id VARCHAR(160) NOT NULL,
+    instance_id VARCHAR(120) NOT NULL,
     capability_code VARCHAR(80) NOT NULL,
     CONSTRAINT PK_BAT_RUNTIME_CAPABILITY PRIMARY KEY (instance_id, capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 ALTER TABLE BAT_RUNTIME_CAPABILITY COMMENT = 'BAT runtime capability projection';
 
@@ -2959,7 +2959,7 @@ CREATE TABLE BAT_RUNTIME_HEARTBEAT (
     last_error_code VARCHAR(80) NULL,
     deployment_version VARCHAR(80) NULL,
     CONSTRAINT PK_BAT_RUNTIME_HEARTBEAT PRIMARY KEY (heartbeat_id),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 ALTER TABLE BAT_RUNTIME_HEARTBEAT COMMENT = 'BAT runtime heartbeat event';
 CREATE INDEX ix_bat_runtime_heartbeat_instance ON BAT_RUNTIME_HEARTBEAT (instance_id, heartbeat_at);
@@ -4498,6 +4498,9 @@ CREATE TABLE OPS_RUNTIME_INSTANCE_STATE (
     schema_version VARCHAR(100) NULL,
     config_hash VARCHAR(64) NULL,
     clock_skew_ms BIGINT DEFAULT 0 NOT NULL,
+    desired_runtime_state VARCHAR(32) DEFAULT 'RUNNING' NOT NULL,
+    actual_runtime_state VARCHAR(32) DEFAULT 'UNKNOWN' NOT NULL,
+    control_row_version BIGINT DEFAULT 0 NOT NULL,
     last_ack_change_id VARCHAR(80) NULL,
     last_ack_at DATETIME(3) NULL,
     heartbeat_at DATETIME(3) NULL,

@@ -80,7 +80,7 @@
       "id": "EDU-ONLINE-09",
       "category": "online",
       "title": "Transaction REQUIRED",
-      "package": "com.cpf.education.online.transaction.required",
+      "package": "com.cpf.education.online.transactionrequired",
       "primaryClass": "MemberRegistrationController",
       "primaryPublicApi": "CpfTransactional",
       "testClass": "RequiredTransactionIntegrationTest"
@@ -89,7 +89,7 @@
       "id": "EDU-ONLINE-10",
       "category": "online",
       "title": "Transaction REQUIRES_NEW",
-      "package": "com.cpf.education.online.transaction.requiresnew",
+      "package": "com.cpf.education.online.transactionrequiresnew",
       "primaryClass": "OrderProcessingController",
       "primaryPublicApi": "CpfTransactional",
       "testClass": "RequiresNewTransactionIntegrationTest"

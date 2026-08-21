@@ -43,14 +43,12 @@ tasks.named('bootJar') {
 def cpfRunLocalRequested = gradle.startParameter.taskNames.any { it == 'cpfRunLocal' || it.endsWith(':cpfRunLocal') }
 def cpfMountGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(cpfRunLocalRequested).get()
 if (cpfMountGeneratedDomains) {
-    def definitionRoot = rootProject.file('cpf-tools/generator/definitions')
-    (definitionRoot.listFiles() ?: [] as File[])
-            .findAll { it.isDirectory() && new File(it, 'cpf-domain.yaml').isFile() }
+    (rootProject.rootDir.listFiles() ?: [] as File[])
+            .findAll { it.isDirectory() && it.name.startsWith('cpf-') && new File(it, 'cpf-domain.yaml').isFile() }
             .sort { a, b -> a.name <=> b.name }
-            .each { definitionDir ->
-                def generatedRoot = rootProject.file("cpf-${definitionDir.name}")
-                if (!generatedRoot.isDirectory() || !new File(generatedRoot, 'settings.gradle').isFile()) return
-                def text = new File(definitionDir, 'cpf-domain.yaml').getText('UTF-8')
+            .each { generatedRoot ->
+                if (!new File(generatedRoot, 'settings.gradle').isFile()) return
+                def text = new File(generatedRoot, 'cpf-domain.yaml').getText('UTF-8')
                 def packageMatch = (text =~ /(?m)^\s*packageName:\s*([A-Za-z0-9_.-]+)\s*$/)
                 def domainNameMatch = (text =~ /(?m)^\s{2}name:\s*([A-Za-z0-9_-]+)\s*$/)
                 def packageName
@@ -61,7 +59,7 @@ if (cpfMountGeneratedDomains) {
                     // Keep Local Runtime aligned with cpf_domain_generator.py's deterministic default.
                     packageName = "com.cpf.${domainNameMatch.group(1).replace('-', '_')}"
                 } else {
-                    throw new GradleException("Generated Domain name/packageName missing: ${definitionDir}")
+                    throw new GradleException("Generated Domain name/packageName missing: ${generatedRoot}")
                 }
                 def online = (text =~ /(?m)^\s*online:\s*true\s*$/).find()
                 if (online) dependencies.add('implementation', "${packageName}:online:1.0.0-SNAPSHOT")

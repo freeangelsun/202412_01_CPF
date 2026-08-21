@@ -1,0 +1,6 @@
+package com.cpf.education.online.transactionrequiresnew.service;
+import com.cpf.data.persistence.api.CpfCrudRepository; import com.cpf.data.persistence.api.annotation.CpfTransactional; import com.cpf.education.online.transactionrequiresnew.repository.OrderTransactionRecord; import com.cpf.foundation.annotation.CpfService; import org.springframework.beans.factory.ObjectProvider; import org.springframework.transaction.annotation.Propagation;
+@CpfService
+/** IndependentAuditService는 Outer REQUIRED와 독립 REQUIRES_NEW 경계를 서로 다른 Service Bean으로 보여주는 Transaction Golden Path입니다. */
+public class IndependentAuditService { private final ObjectProvider<CpfCrudRepository<OrderTransactionRecord,String>> repositories; public IndependentAuditService(ObjectProvider<CpfCrudRepository<OrderTransactionRecord,String>> repositories){this.repositories=repositories;}
+ @CpfTransactional(propagation=Propagation.REQUIRES_NEW) public void record(String auditId){repository().save(new OrderTransactionRecord(auditId,"AUDIT","independent-commit"));} private CpfCrudRepository<OrderTransactionRecord,String> repository(){var r=repositories.getIfAvailable();if(r==null)throw new IllegalStateException("CPF transaction repository is not configured");return r;} }

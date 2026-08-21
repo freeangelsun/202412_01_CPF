@@ -1,22 +1,14 @@
 package com.cpf.integration.http.api;
 
-/**
- * transport 세부정보를 업무 코드에서 숨기는 typed 서비스 Client 계약입니다.
- *
- * @param <I> 요청 형식
- * @param <O> 응답 형식
- * @since 1.0.0
- */
-@FunctionalInterface
-public interface CpfServiceClient<
-        I extends com.cpf.core.api.base.CpfRequest,
-        O extends com.cpf.core.api.base.CpfResponse> {
+import com.cpf.core.api.base.CpfRequest;
+import com.cpf.core.api.base.CpfResponse;
 
-    /**
-     * 중앙 policy와 실행 context를 사용해 계약을 실행합니다.
-     *
-     * @param request 업무 요청
-     * @return typed 업무 응답
-     */
-    O execute(I request);
+/**
+ * @deprecated Public 업무 계약은 {@link com.cpf.integration.api.http.CpfServiceClient}를 사용합니다.
+ * 이 Alias는 기존 Provider/Consumer 이전 기간에만 유지하며 신규 Source에서 직접 사용하지 않습니다.
+ */
+@Deprecated(forRemoval = true)
+@FunctionalInterface
+public interface CpfServiceClient<I extends CpfRequest, O extends CpfResponse>
+        extends com.cpf.integration.api.http.CpfServiceClient<I, O> {
 }

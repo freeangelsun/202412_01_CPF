@@ -2,7 +2,7 @@
 """CPF 배포 JAR을 한 artifacts 디렉터리에 모으고 topology-aware manifest를 생성합니다.
 
 빌드 자체는 각 Gradle/Jenkins 단계가 담당하고 이 도구는 배포 산출물 수집·해시·배치 계획만 소유합니다.
-Generated Domain은 cpf-tools/generator/definitions와 실제 cpf-<domain> Root를 함께 확인해 자동 편입합니다.
+Generated Domain은 실제 cpf-<domain>/cpf-domain.yaml Root 정본만 확인해 자동 편입합니다.
 """
 from __future__ import annotations
 import argparse, hashlib, json, re, shutil
@@ -59,12 +59,11 @@ def platform_candidates(root: Path, service: dict) -> list[Path]:
 
 
 def generated_entries(root: Path, env: str) -> list[dict]:
-    rows=[]; defs=root/'cpf-tools/generator/definitions'
-    if not defs.is_dir(): return rows
-    for definition in sorted(defs.glob('*/cpf-domain.yaml')):
+    rows=[]
+    for definition in sorted(root.glob('cpf-*/cpf-domain.yaml')):
         text=definition.read_text(encoding='utf-8-sig')
         name=yaml_scalar(text,'name'); system=yaml_scalar(text,'systemCode')
-        project=root/f'cpf-{name}'
+        project=definition.parent
         if not name or not project.is_dir(): continue
         online=bool(re.search(r'(?m)^\s*online:\s*true\s*$',text))
         batch=bool(re.search(r'(?m)^\s*batch:\s*true\s*$',text))

@@ -9,6 +9,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
+if ($PSVersionTable.PSVersion.Major -lt 7) { throw 'CPF Final Local Validation은 PowerShell 7 이상(pwsh)이 필요합니다.' }
 $RepoRoot=(Resolve-Path -LiteralPath $RepoRoot).Path
 Set-Location $RepoRoot
 $stamp=Get-Date -Format 'yyyyMMdd_HHmmss'
@@ -41,8 +42,8 @@ if($SkipBrowserE2E){
     # FullLocal은 Browser E2E를 켜므로 Browser만 건너뛰고 싶으면 기존 orchestrator의 One-WAS/Frontend 결과를 유지하되 E2E는 환경상 SKIP으로 남긴다.
     $env:CPF_SKIP_BROWSER_E2E='true'
 }
-$pwsh=(Get-Command pwsh -ErrorAction SilentlyContinue | Select-Object -First 1)
-if($pwsh){ & $pwsh.Source @args } else { & powershell @args }
+$pwsh=(Get-Command pwsh -ErrorAction Stop | Select-Object -First 1)
+& $pwsh.Source @args
 $rc=$LASTEXITCODE
 "FINAL_LOCAL_VALIDATION_EXIT_CODE=$rc" | Set-Content -LiteralPath (Join-Path $preDir 'RESULT.txt') -Encoding UTF8
 if($rc -ne 0){ throw "CPF final local validation failed. Downloads의 최신 CPF_LOCAL_VALIDATION_* 결과를 확인하세요." }

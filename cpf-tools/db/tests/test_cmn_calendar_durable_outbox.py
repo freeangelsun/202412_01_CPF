@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])).resolve()
 PRODUCT = ROOT / "cpf-common/src/main/java/com/cpf/common"
 RUNTIME = ROOT / "cpf-starters/common/src/main/java/com/cpf/common"
+AUTOCONFIG = RUNTIME / "runtime/CpfCommonJdbcAutoConfiguration.java"
 CALENDAR = PRODUCT / "calendar/CmnCalendarService.java"
 ADAPTER = PRODUCT / "calendar/CmnDurableCalendarChangePublisher.java"
 EVENT = PRODUCT / "calendar/CmnCalendarChangeEvent.java"
@@ -34,7 +35,10 @@ class CmnCalendarDurableOutboxTest(unittest.TestCase):
         source = ADAPTER.read_text(encoding="utf-8")
         self.assertIn("publishRequired", source)
         self.assertIn('CACHE_NAME = "businessCalendar"', source)
-        self.assertIn("@ConditionalOnMissingBean(CmnCalendarChangePublisher.class)", source)
+        wiring = AUTOCONFIG.read_text(encoding="utf-8")
+        self.assertNotIn("@ConditionalOnMissingBean", source)
+        self.assertIn("@ConditionalOnMissingBean(CmnCalendarChangePublisher.class)", wiring)
+        self.assertIn("return new CmnDurableCalendarChangePublisher(publisher);", wiring)
         self.assertNotIn("publishAfterCommit", source)
 
     def test_shared_publisher_is_mandatory_and_invalidates_after_commit(self):

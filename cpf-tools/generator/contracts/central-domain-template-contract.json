@@ -168,7 +168,7 @@
   "selection": {
     "metadataSource": "cpf-domain.yaml",
     "metadataLocations": [
-      "cpf-tools/generator/definitions/{domain}/cpf-domain.yaml",
+      "cpf-{domain}/cpf-domain.yaml",
       "explicit --file"
     ],
     "generatedProjectMetadata": "NONE",

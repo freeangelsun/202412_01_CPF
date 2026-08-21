@@ -1,2 +1,3 @@
 com.cpf.common.runtime.CpfCommonJdbcAutoConfiguration
 com.cpf.common.runtime.control.CpfCommonRuntimeControlAutoConfiguration
+com.cpf.common.message.service.CmnMessageProductAutoConfiguration

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  ADM/BZA Data Safety 정적 Gate를 실행합니다.
+  ADM/MBW Data Safety 정적 Gate를 실행합니다.
 .DESCRIPTION
   제품 DB fail-closed 구조, 운영자/관리자 상태 모델, Session revoke 결과불명 복구,
   PII masked/raw 경계, BZA Query Contract, MariaDB V61~V63 Canonical/Migration/Rollback parity를 검증합니다.
@@ -55,7 +55,7 @@ Require-Contains $admPermission 'readFailure\(' 'Permission DB read fail-closed 
 Require-Contains $admPermission 'throw unavailable\(' 'Permission DB 장애가 infra unavailable로 승격되지 않습니다.'
 Require-Contains $admService 'useMemoryFallbackOrThrow' 'ADM 메뉴/운영자 DB 오류 fail-closed 분기점이 없습니다.'
 
-# ADM/BZA 운영자 상태/멱등/원문 접근 경계.
+# ADM/MBW 운영자 상태/멱등/원문 접근 경계.
 Require-Contains $admService '@Transactional\(transactionManager = "admTransactionManager"\)' 'ADM 변경 메서드 Transaction 경계가 없습니다.'
 Require-Contains $admService 'PENDING_ACTIVATION' 'ADM 신규 운영자 PENDING_ACTIVATION 정책이 없습니다.'
 Require-Contains $admService 'CREATE_OPERATION_ID' 'ADM 생성 idempotency operationId 저장 계약이 없습니다.'
@@ -105,7 +105,7 @@ foreach ($version in @('V61__admin_data_safety_status','V62__bza_admin_create_id
 foreach ($version in @('V61__admin_data_safety_status_rollback','V62__bza_admin_create_idempotency_rollback','V63__bza_login_atomic_operation_rollback')) {
     Require-SameHash "cpf-tools/db/vendor/mariadb/source/migration/rollback/$version.sql" "cpf-tools/db/vendor/mariadb/rollback/$version.sql" "$version rollback source/mirror hash가 다릅니다."
 }
-Require-Contains 'cpf-tools/db/vendor/mariadb/source/migration/flyway/V61__admin_data_safety_status.sql' 'ACCOUNT_STATUS' 'V61 ADM/BZA account status migration이 없습니다.'
+Require-Contains 'cpf-tools/db/vendor/mariadb/source/migration/flyway/V61__admin_data_safety_status.sql' 'ACCOUNT_STATUS' 'V61 ADM/MBW account status migration이 없습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/migration/flyway/V61__admin_data_safety_status.sql' 'EMPLOYED' 'V61 legacy employee status 정규화가 없습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql' 'PENDING_ACTIVATION' 'ADM fresh schema safe default가 없습니다.'
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql' 'EMPLOYED' 'BZA fresh schema employment default가 없습니다.'
@@ -132,5 +132,5 @@ Require-Contains 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql' 'VERIFY
 & (Join-Path $PSScriptRoot 'check-query-contract-integrity.ps1') -Root $RootPath
 & (Join-Path $PSScriptRoot 'check-official-db-vendor-readiness.ps1') -Root $RootPath
 
-Write-Host '[PASS][STATIC_ONLY] CPF ADM/BZA data-safety structural gate'
+Write-Host '[PASS][STATIC_ONLY] CPF ADM/MBW data-safety structural gate'
 Write-Host '[INFO] Runtime DB outage, upgrade/rollback/reapply, Browser, multi-instance 행동 검증은 별도 Evidence가 필요합니다.'

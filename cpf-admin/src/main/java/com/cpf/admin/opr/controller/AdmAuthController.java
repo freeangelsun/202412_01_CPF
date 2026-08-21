@@ -13,11 +13,11 @@ import com.cpf.admin.opr.service.AdmSecurityOperationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,8 +52,8 @@ public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseControll
     }
 
     @GetMapping("/me")    @Operation(operationId = "admAuthMe", summary = "현재 운영자 조회", description = "현재 세션의 운영자와 권한 메뉴를 조회합니다.")
-    public ResponseEntity<AdmCurrentSessionResponse> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        String token = bearerToken(authorization);
+    public ResponseEntity<AdmCurrentSessionResponse> me(HttpServletRequest request) {
+        String token = bearerToken(request);
         var session = sessionService.findValidSession(token)
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.UNAUTHORIZED, "유효하지 않은 ADM 세션입니다."));
@@ -64,12 +64,13 @@ public class AdmAuthController extends com.cpf.admin.common.base.AdmBaseControll
     }
 
     @PostMapping("/logout")    @Operation(operationId = "admAuthLogout", summary = "ADM 로그아웃", description = "현재 HttpOnly BFF Session과 내부 인증 세션을 폐기합니다.")
-    public ResponseEntity<AdmLogoutResponse> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        sessionService.revoke(bearerToken(authorization));
+    public ResponseEntity<AdmLogoutResponse> logout(HttpServletRequest request) {
+        sessionService.revoke(bearerToken(request));
         return ResponseEntity.ok(new AdmLogoutResponse(true));
     }
 
-    private String bearerToken(String authorization) {
+    private String bearerToken(HttpServletRequest request) {
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             return "";
         }

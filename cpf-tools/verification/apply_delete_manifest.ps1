@@ -2,7 +2,8 @@
 param(
     [string]$RepositoryRoot = '.',
     [string]$ManifestPath = 'cpf-docs/deliverables/DELETE_MANIFEST.csv',
-    [string]$ReasonTag = ''
+    [string]$ReasonTag = '',
+    [string]$UserApprovalRef = ''
 )
 
 $ErrorActionPreference='Stop'
@@ -21,11 +22,36 @@ $protectedPrefixes=@(
 )
 $protectedExact=@('cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md')
 $rootPrefix=$root.TrimEnd([IO.Path]::DirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar
-$rows=@(Import-Csv -LiteralPath $manifest -Encoding UTF8 | Where-Object {
-    $approved=([string]$_.approved).Trim().ToLowerInvariant()
-    $tagOk=[string]::IsNullOrWhiteSpace($ReasonTag) -or ([string]$_.reason).StartsWith($ReasonTag,[StringComparison]::Ordinal)
-    $approved -in @('true','1','yes','y') -and $tagOk
-})
+$allRows=@(Import-Csv -LiteralPath $manifest -Encoding UTF8)
+$rows=@()
+$historicalEvidenceRows=0
+foreach($candidate in $allRows){
+    $approved=([string]$candidate.approved).Trim().ToLowerInvariant()
+    $precondition=([string]$candidate.precondition).Trim()
+    $lifecycle=([string]$candidate.lifecycle).Trim()
+
+    # HISTORICAL_ALREADY_ABSENT rows are evidence only. They describe paths that were absent
+    # in the development baseline and must never become executable deletion instructions.
+    # Local build outputs may legitimately recreate some historical paths (for example bin/).
+    if($lifecycle -eq 'HISTORICAL_ALREADY_ABSENT'){
+        $historicalEvidenceRows++
+        continue
+    }
+    if($lifecycle -ne 'PENDING_USER_EXECUTION'){
+        throw "DELETE_MANIFEST_UNSUPPORTED_LIFECYCLE: $lifecycle ($($candidate.path))"
+    }
+
+    $userRequired=([string]$candidate.user_execution_required).Trim().ToLowerInvariant() -in @('true','1','yes','y')
+    $tagOk=[string]::IsNullOrWhiteSpace($ReasonTag) -or ([string]$candidate.reason).StartsWith($ReasonTag,[StringComparison]::Ordinal)
+    $eligible=($approved -in @('true','1','yes','y')) -and $precondition -eq 'SATISFIED' -and $tagOk
+    if(-not $eligible){
+        continue
+    }
+    if($userRequired -and [string]::IsNullOrWhiteSpace($UserApprovalRef)){
+        throw "DELETE_MANIFEST_USER_APPROVAL_REQUIRED: $($candidate.path) (pass -UserApprovalRef with the user's current approval reference)"
+    }
+    $rows += $candidate
+}
 $seen=@{}; $deleted=0; $alreadyAbsent=0; $emptyManifestDirs=0
 foreach($row in $rows){
     $rel=([string]$row.path).Replace('\','/').TrimStart('./')
@@ -70,5 +96,5 @@ Get-ChildItem -LiteralPath $root -Directory -Recurse -Force |
         }
     }
 
-Write-Host ("CPF_DELETE_MANIFEST_APPLIED rows={0} filesDeleted={1} manifestEmptyDirs={2} alreadyAbsent={3} cleanupEmptyDirs={4} reasonTag={5}" -f $rows.Count,$deleted,$emptyManifestDirs,$alreadyAbsent,$emptyDeleted,$ReasonTag)
+Write-Host ("CPF_DELETE_MANIFEST_APPLIED pendingRows={0} historicalEvidenceRows={1} filesDeleted={2} manifestEmptyDirs={3} alreadyAbsent={4} cleanupEmptyDirs={5} reasonTag={6} userApprovalRef={7}" -f $rows.Count,$historicalEvidenceRows,$deleted,$emptyManifestDirs,$alreadyAbsent,$emptyDeleted,$ReasonTag,$UserApprovalRef)
 git status --short

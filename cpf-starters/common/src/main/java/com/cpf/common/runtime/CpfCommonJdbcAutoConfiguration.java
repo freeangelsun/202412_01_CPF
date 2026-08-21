@@ -1,12 +1,24 @@
 package com.cpf.common.runtime;
 
 import com.cpf.common.management.CpfCommonManagementAuditSink;
+import com.cpf.common.calendar.CmnCalendarChangePublisher;
+import com.cpf.common.calendar.CmnDurableCalendarChangePublisher;
+import com.cpf.common.calendar.CmnJdbcCalendarStore;
+import com.cpf.common.calendar.CmnCalendarStore;
+import com.cpf.common.spi.CpfCommonCacheChangePublisher;
+import com.cpf.common.template.CmnJdbcTemplateStore;
+import com.cpf.common.template.CmnTemplateManagementService;
+import com.cpf.common.template.CmnTemplateProvider;
+import com.cpf.common.template.CmnTemplateRenderer;
+import com.cpf.common.template.CmnTemplateService;
+import com.cpf.common.template.CmnTemplateStore;
 import com.cpf.common.spi.CpfCommonPersistenceNames;
 import com.cpf.common.message.service.CmnLoggingCommonManagementAuditSink;
 import com.cpf.data.persistence.api.CpfDataSourceRegistry;
 import com.cpf.data.persistence.api.CpfDatabaseRole;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
@@ -73,6 +85,40 @@ public class CpfCommonJdbcAutoConfiguration {
     @Bean(name = TX_MANAGER_BEAN)
     PlatformTransactionManager cpfCommonTransactionManager(@Qualifier(DATA_SOURCE_BEAN) DataSource cpfCommonDataSource) {
         return new DataSourceTransactionManager(cpfCommonDataSource);
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean(CmnCalendarChangePublisher.class)
+    CmnCalendarChangePublisher cmnCalendarChangePublisher(CpfCommonCacheChangePublisher publisher) {
+        return new CmnDurableCalendarChangePublisher(publisher);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "cpf.common.calendar.jdbc.enabled", havingValue = "true", matchIfMissing = true)
+    CmnCalendarStore cmnCalendarStore(@Qualifier(DATA_SOURCE_BEAN) DataSource dataSource) {
+        return new CmnJdbcCalendarStore(dataSource);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "cpf.common.template.jdbc.enabled", havingValue = "true", matchIfMissing = true)
+    CmnTemplateStore cmnTemplateStore(@Qualifier(DATA_SOURCE_BEAN) DataSource dataSource) {
+        return new CmnJdbcTemplateStore(dataSource);
+    }
+
+    @Bean
+    @ConditionalOnBean(CmnTemplateProvider.class)
+    @ConditionalOnMissingBean(CmnTemplateService.class)
+    CmnTemplateService cmnTemplateService(CmnTemplateProvider provider, CmnTemplateRenderer renderer) {
+        return new CmnTemplateService(provider, renderer);
+    }
+
+    @Bean
+    @ConditionalOnBean(CmnTemplateStore.class)
+    @ConditionalOnMissingBean(CmnTemplateManagementService.class)
+    CmnTemplateManagementService cmnTemplateManagementService(
+            CmnTemplateStore store, CpfCommonCacheChangePublisher publisher) {
+        return new CmnTemplateManagementService(store, publisher);
     }
 
     /** Common Product Service의 effective-time/audit/cache 시간을 하나의 override 가능한 Clock으로 통일합니다. */

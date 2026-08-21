@@ -2,7 +2,7 @@ package com.cpf.integration.http.internal.servicecall;
 
 import com.cpf.foundation.api.contract.CpfRequest;
 import com.cpf.foundation.api.contract.CpfResponse;
-import com.cpf.integration.http.api.CpfServiceClient;
+import com.cpf.integration.api.http.CpfServiceClient;
 
 /**
  * local facade와 remote adapter가 동일하게 구현하는 typed 서비스 Client 계약입니다.

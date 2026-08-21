@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** BZA와 고객 Application이 소비하는 Common Error/Message 관리 Product Service입니다. */
+/** MBW Backoffice와 고객 Application이 소비하는 Common Error/Message 관리 Product Service입니다. */
 @Service
 public final class CmnCommonCatalogManagementService implements CpfCommonCatalogManagementService {
     private static final String TX = "cpfCommonTransactionManager";

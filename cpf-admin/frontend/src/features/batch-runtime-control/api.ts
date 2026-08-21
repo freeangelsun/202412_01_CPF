@@ -16,6 +16,8 @@ import {
   type AdmBatchJobDefinitionSaveBody, type AdmBatchJobDefinitionTransitionBody,
   type AdmBatchRunSchedulerOnceBody, type AdmBatchRetryExecutionBody,
   type AdmBatchStopExecutionBody, type AdmBatchRunJobBody,
+  type AdmRetentionPolicySaveBody, type AdmRetentionPreviewBody, type AdmRetentionRunNowBody,
+  type AdmRetentionRunPauseBody, type AdmRetentionRunResumeBody, type AdmRetentionPolicyPauseBody, type AdmRetentionPolicyResumeBody,
   type AdmBatchReleaseLockBody, type AdmBatchActGhostExecutionBody,
   type ResolveAdmUnknownResultBody,
   type AdmCenterCutReconcileUnknownExecutionBody,
@@ -593,11 +595,11 @@ export async function fetchRetentionRuns(policyId = '', limit = 100): Promise<Re
   return envelopeItems<RetentionRunRow>(await admRetentionRuns<Record<string, unknown>>({ query }))
 }
 
-export async function saveRetentionPolicy(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function saveRetentionPolicy(data: AdmRetentionPolicySaveBody): Promise<Record<string, unknown>> {
   return admRetentionPolicySave<Record<string, unknown>>({ data })
 }
 
-export async function previewRetention(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+export async function previewRetention(data: AdmRetentionPreviewBody): Promise<Record<string, unknown>> {
   return admRetentionPreview<Record<string, unknown>>({ data })
 }
 
@@ -605,18 +607,18 @@ export async function runRetentionPolicy(policyId: string, reason: string): Prom
   return admRetentionRunNow<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') }, data: { reason: requiredReason(reason) } })
 }
 
-export async function pauseRetentionRun(runId: string): Promise<Record<string, unknown>> {
-  return admRetentionRunPause<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') } })
+export async function pauseRetentionRun(runId: string, expectedVersion: number, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionRunPause<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') }, data: { expectedVersion, reason: requiredReason(reason) } })
 }
 
-export async function resumeRetentionRun(runId: string, reason: string): Promise<Record<string, unknown>> {
-  return admRetentionRunResume<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') }, data: { reason: requiredReason(reason) } })
+export async function resumeRetentionRun(runId: string, expectedVersion: number, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionRunResume<Record<string, unknown>>({ path: { runId: requiredId(runId, 'runId') }, data: { expectedVersion, reason: requiredReason(reason) } })
 }
 
-export async function pauseRetentionPolicy(policyId: string): Promise<Record<string, unknown>> {
-  return admRetentionPolicyPause<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') } })
+export async function pauseRetentionPolicy(policyId: string, expectedVersion: number, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionPolicyPause<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') }, data: { expectedVersion, reason: requiredReason(reason) } })
 }
 
-export async function resumeRetentionPolicy(policyId: string): Promise<Record<string, unknown>> {
-  return admRetentionPolicyResume<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') } })
+export async function resumeRetentionPolicy(policyId: string, expectedVersion: number, reason: string): Promise<Record<string, unknown>> {
+  return admRetentionPolicyResume<Record<string, unknown>>({ path: { policyId: requiredId(policyId, 'policyId') }, data: { expectedVersion, reason: requiredReason(reason) } })
 }

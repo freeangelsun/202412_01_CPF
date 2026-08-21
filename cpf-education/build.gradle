@@ -50,6 +50,11 @@ tasks.register('verifyEducationCanonical35') {
         def flat=fileTree(canonicalRoot){include 'online/*.java','batch/*.java'}.files
         def bad=fileTree(canonicalRoot){include '**/*.java'}.files.findAll{it.name ==~ /(?:Online|Batch)\d+.*|.*(?:Example|Sample|Demo)\.java/}
         if(!flat.empty || !bad.empty) throw new GradleException("EDU flat/numeric/example source remains")
+        def physicalOnlineGroups = onlineRoot.listFiles()?.findAll { d -> d.isDirectory() && !fileTree(d){ include '**/*.java' }.files.empty }*.name?.toSet() ?: [] as Set
+        def physicalBatchGroups = batchRoot.listFiles()?.findAll { d -> d.isDirectory() && !fileTree(d){ include '**/*.java' }.files.empty }*.name?.toSet() ?: [] as Set
+        if (physicalOnlineGroups.size() != 20) throw new GradleException("EDU physical Online group count must be 20: ${physicalOnlineGroups.sort()}")
+        if (physicalBatchGroups.size() != 15) throw new GradleException("EDU physical Batch group count must be 15: ${physicalBatchGroups.sort()}")
+        if (!file('src/test/java/com/cpf/education/contract/BatchCanonical15ExecutableContractTest.java').isFile()) throw new GradleException('Batch executable contract test missing')
         catalog.examples.each { row ->
             def pkgDir=file('src/main/java/'+row.package.replace('.','/'))
             if(!pkgDir.isDirectory()) throw new GradleException("EDU package missing: ${row.package}")

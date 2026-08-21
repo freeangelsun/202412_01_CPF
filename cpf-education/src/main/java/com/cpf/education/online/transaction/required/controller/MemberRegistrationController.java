@@ -1,6 +1,0 @@
-package com.cpf.education.online.transaction.required.controller;
-import com.cpf.education.online.transaction.required.dto.MemberRegistrationCommand; import com.cpf.education.online.transaction.required.service.MemberRegistrationService; import com.cpf.foundation.execution.api.CpfOnlineTransaction; import com.cpf.web.api.CpfRestController; import io.swagger.v3.oas.annotations.Operation; import java.util.Map; import org.springframework.web.bind.annotation.*;
-@CpfRestController @RequestMapping("/edu/online/member-registration")
-/** MemberRegistrationController는 여러 Service가 하나의 REQUIRED Local Transaction에 참여하는 Transaction Golden Path입니다. */
-public class MemberRegistrationController { private final MemberRegistrationService service; public MemberRegistrationController(MemberRegistrationService service){this.service=service;}
- @PostMapping @Operation(operationId="EDU_MEMBER_REGISTER_REQUIRED",summary="REQUIRED Transaction") @CpfOnlineTransaction(operationId="EDU_MEMBER_REGISTER_REQUIRED",name="회원 등록",description="서로 다른 Service Bean이 동일 REQUIRED transaction에 참여한다.") public Map<String,String> register(@RequestBody MemberRegistrationCommand c){service.register(c);return Map.of("memberId",c.memberId(),"result","COMMITTED");} }

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -118,8 +119,8 @@ public class BatchRuntimeControlController extends AdmBaseController {
 
     @PostMapping("/job-definitions/validate")
     @Operation(operationId = "admBatchJobDefinitionValidate", summary = "Batch Job Definition 검증")
-    ResponseEntity<Map<String, Object>> validateJobDefinition(@RequestBody Map<String, Object> request) {
-        try { return ResponseEntity.ok(client.validateJobDefinition(request)); }
+    ResponseEntity<Map<String, Object>> validateJobDefinition(@Valid @RequestBody BatchJobDefinitionRequest request) {
+        try { return ResponseEntity.ok(client.validateJobDefinition(request.toMap())); }
         catch (BatchControlClientException failure) { Map<String,Object> body=new java.util.LinkedHashMap<>(errorBody(failure));body.put("valid",false);body.put("errors",
                 List.of(failure.getMessage()));return ResponseEntity.status(status(failure)).body(body); }
     }
@@ -128,11 +129,12 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admBatchJobDefinitionSave", summary = "Batch Job Definition Draft 저장")
     ResponseEntity<Map<String, Object>> saveJobDefinition(
             @RequestAttribute("adm.operatorId") String operatorId,
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody BatchJobDefinitionRequest request) {
         try {
-            requireCommandField(request, "jobId");
-            requireCommandField(request, "reason");
-            return ResponseEntity.status(201).body(client.saveJobDefinition(withServerActor(request, operatorId)));
+            Map<String,Object> payload = request.toMap();
+            requireCommandField(payload, "jobId");
+            requireCommandField(payload, "reason");
+            return ResponseEntity.status(201).body(client.saveJobDefinition(withServerActor(payload, operatorId)));
         }
         catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("BAT_JOB_DEFINITION_INVALID", failure); }
@@ -143,13 +145,14 @@ public class BatchRuntimeControlController extends AdmBaseController {
     ResponseEntity<Map<String, Object>> transitionJobDefinition(
             @RequestAttribute("adm.operatorId") String operatorId,
             @PathVariable String jobId, @PathVariable long version,
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody BatchJobDefinitionTransitionRequest request) {
         try {
-            requireCommandField(request, "targetState");
-            requireCommandField(request, "reason");
-            requireExpectedVersion(request);
-            requireApprovalForRiskState(request);
-            return ResponseEntity.ok(client.transitionJobDefinition(jobId, version, withServerActor(request, operatorId)));
+            Map<String,Object> payload = request.toMap();
+            requireCommandField(payload, "targetState");
+            requireCommandField(payload, "reason");
+            requireVersion(payload, "expectedRowVersion");
+            requireApprovalForRiskState(payload);
+            return ResponseEntity.ok(client.transitionJobDefinition(jobId, version, withServerActor(payload, operatorId)));
         }
         catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("BAT_JOB_TRANSITION_INVALID", failure); }
@@ -226,15 +229,15 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admRetentionPolicySave", summary = "DB Retention 정책 변경 승인 요청",
             description = "Retention 정책 변경은 현재 rowVersion을 immutable approval snapshot으로 고정한 뒤 독립 승인 후 BAT Owner에서 CAS 실행합니다.")
     ResponseEntity<Map<String,Object>> retentionPolicySave(@RequestAttribute("adm.operatorId") String operatorId,
-                                                            @RequestBody Map<String,Object> request) {
+                                                            @Valid @RequestBody RetentionPolicySaveRequest request) {
         try {
-            requireCommandField(request,"policyId"); requireCommandField(request,"target"); requireCommandField(request,"reason");
-            long expectedVersion = requireVersion(request, "rowVersion");
-            Map<String,Object> payload = new java.util.LinkedHashMap<>(withServerActor(request,operatorId));
+            Map<String,Object> requestMap = request.toMap();
+            long expectedVersion = request.rowVersion();
+            Map<String,Object> payload = new java.util.LinkedHashMap<>(withServerActor(requestMap,operatorId));
             payload.put("expectedVersion", expectedVersion);
             return approvalRequested("retentionPolicySave", "BATCH_RETENTION_POLICY_CHANGE",
-                    "bat_retention_policy", String.valueOf(request.get("policyId")), expectedVersion,
-                    payload, String.valueOf(request.get("reason")), operatorId);
+                    "bat_retention_policy", request.policyId(), expectedVersion,
+                    payload, request.reason(), operatorId);
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_INVALID",failure); }
     }
@@ -243,10 +246,9 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admRetentionPreview", summary = "DB Retention 실행 미리보기",
             description = "파괴 실행 전에 BAT Owner의 실제 Retention handler를 dry-run으로 호출하여 대상 건수와 legal hold 상태를 확인합니다.")
     ResponseEntity<Map<String,Object>> retentionPreview(@RequestAttribute("adm.operatorId") String operatorId,
-                                                        @RequestBody Map<String,Object> request) {
+                                                        @Valid @RequestBody RetentionPreviewRequest request) {
         try {
-            requireCommandField(request,"target"); requireCommandField(request,"cutoff"); requireCommandField(request,"reason");
-            return ResponseEntity.ok(client.previewRetention(withServerActor(request,operatorId)));
+            return ResponseEntity.ok(client.previewRetention(withServerActor(request.toMap(),operatorId)));
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_PREVIEW_INVALID",failure); }
     }
@@ -256,16 +258,15 @@ public class BatchRuntimeControlController extends AdmBaseController {
             description = "현재 policy rowVersion을 승인 Snapshot으로 고정하고 독립 승인 완료 후 BAT Owner가 동일 Version에서만 실행합니다.")
     ResponseEntity<Map<String,Object>> retentionRunNow(@PathVariable String policyId,
                                                         @RequestAttribute("adm.operatorId") String operatorId,
-                                                        @RequestBody Map<String,Object> request) {
+                                                        @Valid @RequestBody RetentionReasonRequest request) {
         try {
-            requireCommandField(request,"reason");
             CpfDataRow policy = client.retentionPolicy(policyId);
             long expectedVersion = rowVersion(policy);
             Map<String,Object> payload = new java.util.LinkedHashMap<>();
             payload.put("policyId", policyId); payload.put("expectedVersion", expectedVersion);
-            payload.put("reason", String.valueOf(request.get("reason")));
+            payload.put("reason", request.reason());
             return approvalRequested("retentionRunNow", "BATCH_RETENTION_EXECUTE", "bat_retention_policy",
-                    policyId, expectedVersion, payload, String.valueOf(request.get("reason")), operatorId);
+                    policyId, expectedVersion, payload, request.reason(), operatorId);
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_RUN_INVALID",failure); }
     }
@@ -275,13 +276,9 @@ public class BatchRuntimeControlController extends AdmBaseController {
             description = "삭제/보관을 더 진행하지 않게 하는 fail-safe 조치이며 승인 대신 권한·사유·인증 actor를 강제합니다.")
     ResponseEntity<Map<String,Object>> retentionRunPause(@PathVariable String runId,
                                                           @RequestAttribute("adm.operatorId") String operatorId,
-                                                          @RequestBody Map<String,Object> request) {
+                                                          @Valid @RequestBody RetentionVersionedReasonRequest request) {
         try {
-            requireCommandField(request,"reason");
-            CpfDataRow run = client.retentionRun(runId);
-            String policyId = rowText(run, "policyId", "policy_id");
-            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
-            return ResponseEntity.ok(client.pauseRetentionRun(runId, expectedVersion, String.valueOf(request.get("reason"))));
+            return ResponseEntity.ok(client.pauseRetentionRun(runId, request.expectedVersion(), request.reason()));
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_PAUSE_INVALID",failure); }
     }
@@ -290,16 +287,15 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admRetentionRunResume", summary = "Retention Run 재개 승인 요청")
     ResponseEntity<Map<String,Object>> retentionRunResume(@PathVariable String runId,
                                                            @RequestAttribute("adm.operatorId") String operatorId,
-                                                           @RequestBody Map<String,Object> request) {
+                                                           @Valid @RequestBody RetentionVersionedReasonRequest request) {
         try {
-            requireCommandField(request,"reason");
             CpfDataRow run = client.retentionRun(runId);
             String policyId = rowText(run, "policyId", "policy_id");
-            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            long expectedVersion = request.expectedVersion();
             Map<String,Object> payload = Map.of("runId",runId,"policyId",policyId,
-                    "expectedVersion",expectedVersion,"reason",String.valueOf(request.get("reason")));
+                    "expectedVersion",expectedVersion,"reason",request.reason());
             return approvalRequested("retentionRunResume", "BATCH_RETENTION_RESUME", "bat_retention_run",
-                    runId, expectedVersion, payload, String.valueOf(request.get("reason")), operatorId);
+                    runId, expectedVersion, payload, request.reason(), operatorId);
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_RESUME_INVALID",failure); }
     }
@@ -309,11 +305,9 @@ public class BatchRuntimeControlController extends AdmBaseController {
             description = "향후 실행을 막는 fail-safe 조치이며 현재 rowVersion CAS와 사유를 강제합니다.")
     ResponseEntity<Map<String,Object>> retentionPolicyPause(@PathVariable String policyId,
                                                              @RequestAttribute("adm.operatorId") String operatorId,
-                                                             @RequestBody Map<String,Object> request) {
+                                                             @Valid @RequestBody RetentionVersionedReasonRequest request) {
         try {
-            requireCommandField(request,"reason");
-            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
-            return ResponseEntity.ok(client.pauseRetentionPolicy(policyId, expectedVersion, String.valueOf(request.get("reason"))));
+            return ResponseEntity.ok(client.pauseRetentionPolicy(policyId, request.expectedVersion(), request.reason()));
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_PAUSE_INVALID",failure); }
     }
@@ -322,15 +316,14 @@ public class BatchRuntimeControlController extends AdmBaseController {
     @Operation(operationId = "admRetentionPolicyResume", summary = "Retention Schedule 재개 승인 요청")
     ResponseEntity<Map<String,Object>> retentionPolicyResume(@PathVariable String policyId,
                                                               @RequestAttribute("adm.operatorId") String operatorId,
-                                                              @RequestBody Map<String,Object> request) {
+                                                              @Valid @RequestBody RetentionVersionedReasonRequest request) {
         try {
-            requireCommandField(request,"reason");
-            long expectedVersion = rowVersion(client.retentionPolicy(policyId));
+            long expectedVersion = request.expectedVersion();
             Map<String,Object> payload = Map.of("policyId",policyId,"expectedVersion",expectedVersion,
-                    "reason",String.valueOf(request.get("reason")));
+                    "reason",request.reason());
             return approvalRequested("retentionPolicyResume", "BATCH_RETENTION_POLICY_RESUME",
                     "bat_retention_policy", policyId, expectedVersion, payload,
-                    String.valueOf(request.get("reason")), operatorId);
+                    request.reason(), operatorId);
         } catch (BatchControlClientException failure) { return error(failure); }
         catch (IllegalArgumentException failure) { return validation("RETENTION_POLICY_RESUME_INVALID",failure); }
     }

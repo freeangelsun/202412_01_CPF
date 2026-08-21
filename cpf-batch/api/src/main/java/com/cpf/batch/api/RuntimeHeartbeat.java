@@ -5,7 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/** Runtime liveness/capacity/fencing heartbeat contract. */
+/**
+ * Runtime liveness/capacity heartbeat contract.
+ *
+ * <p>{@code fencingToken}은 과거 Batch 독립 Runtime Registry 호환 필드이며 중앙 lifecycle authority에서는
+ * 사용하지 않습니다. Runtime registration fencing은 CPF Runtime Control Agent가 별도로 소유합니다.</p>
+ */
 public record RuntimeHeartbeat(
         String instanceId,
         Instant timestamp,

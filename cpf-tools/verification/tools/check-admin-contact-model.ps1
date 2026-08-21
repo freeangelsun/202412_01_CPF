@@ -82,4 +82,4 @@ foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
 Require-Text $checks.admUi @("연락처\(휴대폰\)", "내부 전화번호")
 Require-Text $checks.bzaUi @("연락처\(휴대폰\)", "내부 전화번호")
 
-Write-Host "[PASS] ADM/BZA contact model identity/profile ownership + API/UI/migration static parity"
+Write-Host "[PASS] ADM/MBW contact model identity/profile ownership + API/UI/migration static parity"

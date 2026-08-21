@@ -1,5 +1,6 @@
 package com.cpf.foundation.time;
 import java.time.*;
+/** 테스트에서 시간과 monotonic clock을 결정적으로 제어하기 위한 CpfTimeOperations 구현입니다. */
 public final class DeterministicCpfTimeOperations implements CpfTimeOperations {
     private Instant instant; private long monotonic; private Duration skew=Duration.ZERO;
     public DeterministicCpfTimeOperations(Instant instant){this.instant=instant;}

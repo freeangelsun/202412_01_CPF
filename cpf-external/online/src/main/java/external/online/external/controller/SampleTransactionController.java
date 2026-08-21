@@ -4,7 +4,7 @@ import external.online.base.ExternalBaseController;
 import external.online.external.service.SampleTransactionService;
 import external.online.external.model.SampleItem;
 import external.online.external.dto.*;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /** CRUD/Search(Page·Slice·Cursor)를 제공하는 실제 Generated Business Controller입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/external/samples")
 public class SampleTransactionController extends ExternalBaseController {
     private final SampleTransactionService service;

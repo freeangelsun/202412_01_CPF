@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.approval.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.approval.service.BackofficeApprovalPolicyService;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /** MBW Versioned Approval Policy/Simulation/Participant API. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/approvals")
 @Tag(name = "MBW-Approval-Policy", description = "Versioned 정책, Target 해석, 위임, Snapshot 결재 API")
 public class BackofficeApprovalPolicyController extends com.cpf.backoffice.online.base.BackofficeBaseController {

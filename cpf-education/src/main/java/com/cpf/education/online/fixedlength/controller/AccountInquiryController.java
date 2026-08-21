@@ -4,10 +4,10 @@ import com.cpf.education.online.fixedlength.dto.AccountInquiryRequest;
 import com.cpf.education.online.fixedlength.service.AccountInquiryService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.integration.fixedlength.api.CpfFixedLengthParseResult;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
-@CpfRestController @RequestMapping("/edu/online/account-inquiry")
+@CpfController @RequestMapping("/edu/online/account-inquiry")
 /** AccountInquiryController는 고정길이 전문 Public API와 기관 Outcome Adapter를 분리하는 Fixed-Length Golden Path입니다. */
 public final class AccountInquiryController {
  private final AccountInquiryService service; public AccountInquiryController(AccountInquiryService service){this.service=service;}

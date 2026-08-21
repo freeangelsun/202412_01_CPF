@@ -20,7 +20,7 @@
     "verify": "npm run verify:lock && npm run verify:installed && npm run verify:primary && npm run test:openapi:lifecycle && npm run generate:api && npm run verify:generated && npm run verify:consumer && npm run lint && npm run typecheck && npm run test && npm run build:prod",
     "verify:lock": "node scripts/verify-lockfile.mjs",
     "validate:openapi": "npm run validate:openapi:source",
-    "verify:consumer": "node scripts/verify-operation-consumer.mjs && node scripts/test-approval-consumer-contract.mjs && node scripts/test-adm-mfa-login-contract.mjs && node scripts/test-center-cut-execution-contract.mjs",
+    "verify:consumer": "node scripts/verify-operation-consumer.mjs && node scripts/test-retention-request-contract.mjs && node scripts/test-approval-consumer-contract.mjs && node scripts/test-adm-mfa-login-contract.mjs && node scripts/test-center-cut-execution-contract.mjs",
     "verify:installed": "node scripts/verify-installed-dependencies.mjs",
     "validate:openapi:source": "node scripts/validate-openapi.mjs --scope=source",
     "validate:openapi:release": "node scripts/validate-openapi.mjs --scope=release",

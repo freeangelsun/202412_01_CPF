@@ -16,7 +16,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 
 /**
- * ADM/BZA와 일반 BFF가 동일한 Public 비밀번호 서비스를 안전하게 조립합니다.
+ * ADM/MBW와 일반 BFF가 동일한 Public 비밀번호 서비스를 안전하게 조립합니다.
  * Secret pepper는 환경/Secret provider에서만 읽고 설정 객체나 로그/Evidence에 원문을 보관하지 않습니다.
  */
 @AutoConfiguration

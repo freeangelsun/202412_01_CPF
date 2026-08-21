@@ -53,7 +53,7 @@ generation:
 ### 1.2 생성 계획 확인
 
 ```console
-cpf domain dry-run --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+cpf domain dry-run --file cpf-member/cpf-domain.yaml
 ```
 
 Dry-run에서 다음을 확인합니다.
@@ -69,7 +69,7 @@ Dry-run에서 다음을 확인합니다.
 ### 1.3 Diff 확인
 
 ```console
-cpf domain diff --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
+cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
 ```
 
 Diff는 파일 단순 비교가 아니라 `Generated-owned`, `User-owned`, `Mergeable`, `Conflict`, `Obsolete`를 구분합니다.
@@ -77,7 +77,7 @@ Diff는 파일 단순 비교가 아니라 `Generated-owned`, `User-owned`, `Merg
 ### 1.4 생성
 
 ```console
-cpf domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+cpf domain generate --file cpf-member/cpf-domain.yaml
 ```
 
 `standard-enterprise` 기본 결과:
@@ -113,9 +113,9 @@ DTO/Validation
 사용자에게 노출되는 Generator의 Canonical 명령은 `cpf domain ...`입니다. 운영체제마다 별도 Generator Script나 Template을 유지하지 않습니다.
 
 ```console
-cpf domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
-cpf domain generate --file cpf-tools/generator/definitions/external/cpf-domain.yaml
-cpf domain diff --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
+cpf domain generate --file cpf-member/cpf-domain.yaml
+cpf domain generate --file cpf-external/cpf-domain.yaml
+cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
 cpf domain regenerate member
 cpf domain regenerate external
 ```
@@ -123,8 +123,8 @@ cpf domain regenerate external
 설치된 환경은 Windows/Linux 모두 `cpf ...`를 사용합니다. Repository-local 실행만 launcher가 다릅니다.
 
 ```text
-Windows CURRENT  .\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
-Linux CURRENT    ./cpf-tools/runtime/cli/cpf domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+Windows CURRENT  .\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-member/cpf-domain.yaml
+Linux CURRENT    ./cpf-tools/runtime/cli/cpf domain generate --file cpf-member/cpf-domain.yaml
 ```
 
 `cpf-tools/runtime/cli/cpf`와 `cpf-tools/runtime/cli/cpf.bat`는 Repository-local thin wrapper입니다. 설치 후 논리 명령은 `cpf ...`입니다. Schema validation, naming, template selection, DB intent, diff, lifecycle state와 exit-code 의미는 OS-neutral Engine이 소유합니다. 따라서 같은 `cpf-domain.yaml`을 Windows와 Linux에서 생성했을 때 line-ending 같은 비의미 차이를 normalize한 결과가 같아야 합니다.
@@ -521,7 +521,7 @@ build/domain-generator/verification/cpf-<domain>/generation-state.json
 ## 14. Dry-run
 
 ```console
-cpf domain dry-run --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+cpf domain dry-run --file cpf-member/cpf-domain.yaml
 ```
 
 Dry-run은 다음 변경 계획을 보여줍니다.
@@ -541,7 +541,7 @@ Dry-run은 다음 변경 계획을 보여줍니다.
 ## 15. Diff
 
 ```console
-cpf domain diff --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
+cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
 ```
 
 Diff는 다음 Ownership을 구분합니다.
@@ -604,7 +604,7 @@ Compatibility shim을 영구적으로 중첩하여 구 구조와 새 구조를 �
 ## 18. Remove
 
 ```console
-cpf domain remove member --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+cpf domain remove member --file cpf-member/cpf-domain.yaml
 ```
 
 삭제 계획은 먼저 다음을 확인합니다.
@@ -617,7 +617,7 @@ cpf domain remove member --file cpf-tools/generator/definitions/member/cpf-domai
 6. Config/Secret reference
 7. 실행 plan
 
-위 명령은 제거 계획만 출력합니다. 실제 제거는 계획을 검토한 뒤 `cpf domain remove member --file cpf-tools/generator/definitions/member/cpf-domain.yaml --apply`로 수행합니다. Generator는 자신이 소유한 안전한 범위만 제거하고 User-owned Source와 승인되지 않은 DB 상태는 보존합니다.
+위 명령은 제거 계획만 출력합니다. 실제 제거는 계획을 검토한 뒤 `cpf domain remove member --file cpf-member/cpf-domain.yaml --apply`로 수행합니다. Generator는 자신이 소유한 안전한 범위만 제거하고 User-owned Source와 승인되지 않은 DB 상태는 보존합니다.
 
 ---
 
@@ -670,7 +670,7 @@ cpf-external/
 Batch는 선택형 Generated Runtime입니다. 회귀 기준인 member는 `modules.batch=true`로 `cpf-member/batch/`를 생성하고, external은 `modules.batch=false`로 online-only 조합을 검증합니다.
 ```
 
-Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, lock, ownership/manifest, README, verification, DB Vendor tree를 영구 저장하지 않습니다. Fresh input은 `cpf-tools/generator/definitions/<domain>/cpf-domain.yaml` 또는 explicit `--file`, transient state/DB3 Evidence는 `build/domain-generator/verification/**`가 소유합니다.
+Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, lock, ownership/manifest, README, verification, DB Vendor tree를 영구 저장하지 않습니다. Fresh input은 `cpf-<domain>/cpf-domain.yaml` 또는 explicit `--file`, transient state/DB3 Evidence는 `build/domain-generator/verification/**`가 소유합니다.
 
 ### `cpf-member/` - MBR 회귀 Domain
 

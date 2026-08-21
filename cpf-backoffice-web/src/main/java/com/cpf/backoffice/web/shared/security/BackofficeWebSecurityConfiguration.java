@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import com.cpf.backoffice.web.shared.config.BackofficeWebProperties;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
@@ -15,13 +17,14 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @Configuration
 public class BackofficeWebSecurityConfiguration {
     @Bean
-    SecurityFilterChain backofficeWebSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain backofficeWebSecurityFilterChain(HttpSecurity http, BackofficeWebProperties properties) throws Exception {
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookiePath("/");
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health/**", "/actuator/info", "/assets/**", "/favicon.ico").permitAll()
-                        .anyRequest().permitAll())
+                        .requestMatchers("/actuator/health/**", "/actuator/info", "/assets/**", "/favicon.ico", "/api/v1/backoffice/auth/**").permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(new BackofficeCookieAuthenticationFilter(properties), AnonymousAuthenticationFilter.class)
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfRepository)
                         .ignoringRequestMatchers("/actuator/**"))

@@ -53,11 +53,9 @@ def main(argv=None):
   c.run('gradle_generated_projects',base+['-PcpfIncludeGeneratedDomains=true','projects'],600)
   # 각 Generated Build를 Product Source composite consumer로 직접 실행해야 CPF Artifact substitution,
   # 선택 Vendor Mapper overlay, Generated Online test가 모두 실제 task graph에 포함됩니다.
-  definition_root=root/'cpf-tools/generator/definitions'
   generated_roots=sorted(
-      root/f'cpf-{definition.parent.name}'
-      for definition in definition_root.glob('*/cpf-domain.yaml')
-      if (root/f'cpf-{definition.parent.name}').is_dir()
+      definition.parent for definition in root.glob('cpf-*/cpf-domain.yaml')
+      if definition.parent.is_dir()
   )
   for vendor in SUPPORTED_GENERATED_DB_VENDORS:
    for generated_root in generated_roots:

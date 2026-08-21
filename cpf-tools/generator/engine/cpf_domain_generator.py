@@ -201,6 +201,51 @@ class ExternalClientDefinition:
 
 
 @dataclasses.dataclass(frozen=True)
+class DomainOperationContract:
+    operation_id: str
+    request_type: str
+    response_type: str
+
+    @property
+    def method_name(self) -> str:
+        parts=[x.lower() for x in re.split(r"[^A-Za-z0-9]+", self.operation_id) if x]
+        if not parts: return "invoke"
+        return parts[0] + "".join(x[:1].upper()+x[1:] for x in parts[1:])
+
+
+def _resolve_java_type(package_name:str, imports:dict[str,str], token:str) -> str:
+    token=token.strip()
+    if "." in token: return token
+    if token in imports: return imports[token]
+    return f"{package_name}.{token}"
+
+
+def discover_domain_operation_contracts(root: Path, target: "DomainDefinition") -> dict[str,DomainOperationContract]:
+    """실제 CpfDomainOperation 구현의 Public request/response 계약만 사용합니다."""
+    target_root=root/f"cpf-{target.name}"
+    found:dict[str,DomainOperationContract]={}
+    if not target_root.is_dir(): return found
+    impl_re=re.compile(r"implements\s+CpfDomainOperation\s*<\s*([A-Za-z0-9_.$]+)\s*,\s*([A-Za-z0-9_.$]+)\s*>")
+    op_re=re.compile(r"operationId\s*\(\s*\)\s*\{\s*return\s+\"([^\"]+)\"\s*;",re.S)
+    package_re=re.compile(r"(?m)^package\s+([A-Za-z0-9_.]+)\s*;")
+    import_re=re.compile(r"(?m)^import\s+([A-Za-z0-9_.$]+)\s*;")
+    for source in target_root.rglob("*.java"):
+        try: text=source.read_text(encoding="utf-8-sig",errors="ignore")
+        except OSError: continue
+        impl=impl_re.search(text); op=op_re.search(text)
+        if not impl or not op: continue
+        pkg=package_re.search(text); package_name=pkg.group(1) if pkg else ""
+        imports={row.rsplit('.',1)[-1]:row for row in import_re.findall(text)}
+        req=_resolve_java_type(package_name,imports,impl.group(1)); resp=_resolve_java_type(package_name,imports,impl.group(2))
+        if not req.startswith("com.cpf.") or not resp.startswith("com.cpf."):
+            continue
+        oid=op.group(1)
+        if oid in found: raise DomainError(f"Domain Operation contract duplicate: {target.system_code}/{oid}")
+        found[oid]=DomainOperationContract(oid,req,resp)
+    return found
+
+
+@dataclasses.dataclass(frozen=True)
 class DomainDefinition:
     name: str
     module_name: str
@@ -219,6 +264,7 @@ class DomainDefinition:
     object_storage: str
     security_profile: str
     sample_transaction: bool
+    generation_mode: str
     local_online_port: int
     domain_dependencies: tuple[DomainDependency, ...]
     external_clients: tuple[ExternalClientDefinition, ...]
@@ -308,13 +354,13 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     _require_exact_keys(modules, {"online","batch"}, {"online"}, "$.modules")
     _require_exact_keys(database, {"role","tablePrefix"}, {"role","tablePrefix"}, "$.database")
     _require_exact_keys(features, {"persistence","httpClient","resilience","cache","messaging","objectStorage","securityProfile"}, set(), "$.features")
-    _require_exact_keys(generation, {"sampleTransaction"}, {"sampleTransaction"}, "$.generation")
+    _require_exact_keys(generation, {"sampleTransaction","mode"}, {"sampleTransaction"}, "$.generation")
     _require_exact_keys(runtime, {"localOnlinePort"}, set(), "$.runtime")
     name = str(domain["name"]); module = name; system = str(domain["systemCode"]); package = str(domain.get("packageName") or name); prefix = str(database["tablePrefix"])
     if not re.fullmatch(r"[a-z][a-z0-9-]{1,49}", name): raise DomainError("domain.name 형식이 올바르지 않습니다.")
     if not re.fullmatch(r"[A-Z][A-Z0-9]{2}", system): raise DomainError("domain.systemCode는 정확히 3자리 대문자/숫자여야 합니다.")
     if not re.fullmatch(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*", package): raise DomainError("domain.packageName 형식이 올바르지 않습니다.")
-    if package == "com.cpf" or package.startswith("com.cpf."): raise DomainError("Generated Customer Domain은 com.cpf.* namespace를 소유할 수 없습니다.")
+    if str(generation.get("mode","generated")) != "prebuilt" and (package == "com.cpf" or package.startswith("com.cpf.")): raise DomainError("Generated Customer Domain은 com.cpf.* namespace를 소유할 수 없습니다.")
     if database["role"] != "CUSTOMER_BUSINESS_DB": raise DomainError("database.role은 CUSTOMER_BUSINESS_DB여야 합니다.")
     if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,19}", prefix): raise DomainError("database.tablePrefix는 대문자로 시작하는 2~20자리여야 합니다.")
     preset = str(raw["preset"])
@@ -338,13 +384,16 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     if messaging not in {"none","kafka","rabbitmq","jms","ibm-mq"}: raise DomainError(f"지원하지 않는 messaging: {messaging}")
     if object_storage not in {"none","s3"}: raise DomainError(f"지원하지 않는 objectStorage: {object_storage}")
     if security_profile not in {"resource-server","browser-session-valkey","service-identity","oidc"}: raise DomainError(f"지원하지 않는 securityProfile: {security_profile}")
-    http_client=f["httpClient"]; resilience=f["resilience"]; sample_tx=generation["sampleTransaction"]
+    http_client=f["httpClient"]; resilience=f["resilience"]; sample_tx=generation["sampleTransaction"]; generation_mode=str(generation.get("mode","generated"))
     if not isinstance(http_client,bool) or not isinstance(resilience,bool): raise DomainError("features.httpClient/resilience는 boolean이어야 합니다.")
     if not isinstance(sample_tx,bool): raise DomainError("generation.sampleTransaction은 boolean이어야 합니다.")
-    if preset in {"standard-enterprise","full-enterprise"}:
+    if generation_mode not in {"generated","prebuilt"}: raise DomainError("generation.mode는 generated/prebuilt만 허용합니다.")
+    if generation_mode == "prebuilt" and sample_tx:
+        raise DomainError("generation.mode=prebuilt에서는 sampleTransaction=false여야 합니다.")
+    if generation_mode == "generated" and preset in {"standard-enterprise","full-enterprise"}:
         if persistence != "mybatis" or not http_client or not resilience or not sample_tx:
             raise DomainError(f"{preset}는 mybatis/httpClient/resilience/sampleTransaction=true Golden Path를 유지해야 합니다.")
-    if preset == "minimal":
+    if generation_mode == "generated" and preset == "minimal":
         minimal_expected = {
           "persistence":"none","httpClient":False,"resilience":False,"cache":"none",
           "messaging":"none","objectStorage":"none","securityProfile":"resource-server"
@@ -360,9 +409,9 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
                 "권장 조합=features 생략 또는 none/false + securityProfile=resource-server + generation.sampleTransaction=false; "
                 "수정 경로=$.features, $.generation.sampleTransaction"
             )
-    if sample_tx and not online:
+    if generation_mode == "generated" and sample_tx and not online:
         raise DomainError("generation.sampleTransaction=true는 modules.online=true가 필요합니다.")
-    if sample_tx and persistence != "mybatis":
+    if generation_mode == "generated" and sample_tx and persistence != "mybatis":
         raise DomainError("현재 Canonical Sample Transaction은 중앙 Vendor Mapper Pack을 소비하므로 persistence=mybatis가 필요합니다.")
     if persistence == "none" and (cache not in {"none","caffeine"} or messaging != "none" or object_storage != "none"):
         pass  # DB와 독립적인 Capability는 허용합니다.
@@ -416,7 +465,7 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     default_online_port = _stable_local_online_port(system)
     local_online_port = int(runtime.get("localOnlinePort", default_online_port))
     if not 18080 <= local_online_port <= 18999: raise DomainError(f"runtime.localOnlinePort는 18080~18999 범위여야 합니다: {local_online_port}")
-    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,local_online_port,tuple(domain_dependencies),tuple(external_clients))
+    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,generation_mode,local_online_port,tuple(domain_dependencies),tuple(external_clients))
 
 def _load_workspace_definitions(root: Path, current: DomainDefinition | None = None) -> dict[str,DomainDefinition]:
     definitions: dict[str,DomainDefinition] = {}
@@ -443,17 +492,8 @@ def validate_domain_dependency_graph(root: Path, d: DomainDefinition) -> None:
                 raise DomainError(f"{owner.system_code} dependency requires {dep.system_code}/{dep.name}, but target Domain definition is missing")
             if target.system_code != dep.system_code:
                 raise DomainError(f"{owner.system_code} dependency target SystemCode mismatch: declared={dep.system_code} actual={target.system_code} domain={dep.name}")
-            available = {"ping"}
-            if target.sample_transaction:
-                available.add(target.sample_tx_id)
-            target_root = root / f"cpf-{target.name}"
-            if target_root.is_dir():
-                pattern = re.compile(r'@CpfOnlineTransaction\s*\([^)]*operationId\s*=\s*"([^"]+)"', re.MULTILINE)
-                for source in target_root.rglob("*.java"):
-                    try:
-                        available.update(pattern.findall(source.read_text(encoding="utf-8-sig", errors="ignore")))
-                    except OSError:
-                        pass
+            contracts = discover_domain_operation_contracts(root,target)
+            available = set(contracts)
             missing_operations = sorted(set(dep.operations) - available)
             if missing_operations:
                 raise DomainError(f"{owner.system_code} dependency target operation 없음/미발견: {dep.system_code}/{dep.name} operations={missing_operations}")
@@ -1447,7 +1487,7 @@ import {d.package_name}.api.base.{c}BaseController;
 import {d.package_name}.api.service.SampleTransactionService;
 import {d.package_name}.common.model.SampleItem;
 import {d.package_name}.common.dto.*;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -1456,7 +1496,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 /** CRUD/Search(Page·Slice·Cursor)를 제공하는 실제 Generated Business Controller입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/{d.name}/samples")
 public class SampleTransactionController extends {c}BaseController {{
     private final SampleTransactionService service;
@@ -1545,7 +1585,7 @@ def render_api_contract_test(d: DomainDefinition) -> str:
     return f'''package {d.package_name}.api.controller;
 
 import {d.package_name}.api.base.{c}BaseController;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -1589,29 +1629,42 @@ public class {c}DomainPingOperation implements CpfDomainOperation<CpfDomainPingR
 '''
 
 
-def render_domain_dependency_client(d: DomainDefinition, runtime: str, dependency: DomainDependency) -> str:
+def render_domain_dependency_client(d: DomainDefinition, runtime: str, dependency: DomainDependency,
+                                    contracts: dict[str,DomainOperationContract]) -> str:
     package = f"{d.package_name}.{runtime}.domaincall"
     c = dependency.class_name
+    imports={contracts[op].request_type for op in dependency.operations}|{contracts[op].response_type for op in dependency.operations}
+    methods=[]
+    for op in dependency.operations:
+        contract=contracts[op]; req=contract.request_type.rsplit('.',1)[-1]; resp=contract.response_type.rsplit('.',1)[-1]
+        methods.append(f"    CpfResult<{resp}> {contract.method_name}({req} request);")
     return f'''package {package};
 
-import com.cpf.core.api.domain.CpfDomainClient;
-import com.cpf.core.api.domain.CpfDomainPingRequest;
-import com.cpf.core.api.domain.CpfDomainPingResponse;
+import com.cpf.core.api.result.CpfResult;
+{chr(10).join('import '+x+';' for x in sorted(imports))}
 
-/** {dependency.system_code} 논리 Domain을 배포 위치와 무관하게 호출하는 Generated Typed Client입니다. */
-public interface {c}DomainClient extends CpfDomainClient<CpfDomainPingRequest, CpfDomainPingResponse> {{
+/** {dependency.system_code} 논리 Domain의 선택 Operation을 배포 위치와 무관하게 호출하는 Generated Typed Client입니다. */
+public interface {c}DomainClient {{
+{chr(10).join(methods)}
 }}
 '''
 
 
-def render_domain_dependency_adapter(d: DomainDefinition, runtime: str, dependency: DomainDependency) -> str:
+def render_domain_dependency_adapter(d: DomainDefinition, runtime: str, dependency: DomainDependency,
+                                     contracts: dict[str,DomainOperationContract]) -> str:
     package = f"{d.package_name}.{runtime}.domaincall"
     c = dependency.class_name
+    imports={contracts[op].request_type for op in dependency.operations}|{contracts[op].response_type for op in dependency.operations}
+    methods=[]
+    for op in dependency.operations:
+        contract=contracts[op]; req=contract.request_type.rsplit('.',1)[-1]; resp=contract.response_type.rsplit('.',1)[-1]
+        methods.append(f'''    @Override public CpfResult<{resp}> {contract.method_name}({req} request) {{
+        return router.invoke("{dependency.system_code}", "{op}", request, {resp}.class);
+    }}''')
     return f'''package {package};
 
-import com.cpf.core.api.domain.CpfDomainPingRequest;
-import com.cpf.core.api.domain.CpfDomainPingResponse;
 import com.cpf.core.api.result.CpfResult;
+{chr(10).join('import '+x+';' for x in sorted(imports))}
 import com.cpf.integration.api.domaincall.CpfDomainClientRouter;
 import org.springframework.stereotype.Component;
 
@@ -1620,32 +1673,35 @@ import org.springframework.stereotype.Component;
 public final class Default{c}DomainClient implements {c}DomainClient {{
     private final CpfDomainClientRouter router;
     public Default{c}DomainClient(CpfDomainClientRouter router) {{ this.router = router; }}
-    @Override public CpfResult<CpfDomainPingResponse> execute(CpfDomainPingRequest request) {{
-        return router.invoke("{dependency.system_code}", "ping", request, CpfDomainPingResponse.class);
-    }}
+{chr(10).join(methods)}
 }}
 '''
 
 
-def render_domain_dependency_consumer(d: DomainDefinition, runtime: str) -> str:
+def render_domain_dependency_consumer(d: DomainDefinition, runtime: str,
+                                      contracts_by_dependency: dict[str,dict[str,DomainOperationContract]]) -> str:
     package = f"{d.package_name}.{runtime}.domaincall"
-    fields=[]; params=[]; assigns=[]; methods=[]; client_imports=[]
+    fields=[]; params=[]; assigns=[]; methods=[]; imports=set()
     for dep in d.domain_dependencies:
-        c=dep.class_name; var=dep.name.replace('-','_') + "DomainClient"
-        client_imports.append(f"import {package}.{c}DomainClient;")
+        c=dep.class_name; var=dep.name.replace('-','_') + "DomainClient"; contracts=contracts_by_dependency[dep.name]
         fields.append(f"    private final {c}DomainClient {var};")
         params.append(f"{c}DomainClient {var}")
         assigns.append(f"        this.{var} = {var};")
-        methods.append(f'''    /** {dep.system_code} Domain의 Local/Remote 동일 호출을 실제 Consumer로 검증합니다. */
-    public CpfResult<CpfDomainPingResponse> probe{c}(String requestId) {{
-        return {var}.execute(new CpfDomainPingRequest(requestId));
+        for op in dep.operations:
+            contract=contracts[op]; req=contract.request_type.rsplit('.',1)[-1]; resp=contract.response_type.rsplit('.',1)[-1]
+            imports.update((contract.request_type,contract.response_type))
+            if contract.request_type=='com.cpf.core.api.domain.CpfDomainPingRequest':
+                body=f"new {req}(requestId)"; arg='String requestId'
+            else:
+                body='request'; arg=f'{req} request'
+            methods.append(f'''    /** {dep.system_code}/{op} Domain Operation을 실제 Consumer 경로에서 호출합니다. */
+    public CpfResult<{resp}> {contract.method_name}{c}({arg}) {{
+        return {var}.{contract.method_name}({body});
     }}''')
     return f'''package {package};
 
-{chr(10).join(client_imports)}
-import com.cpf.core.api.domain.CpfDomainPingRequest;
-import com.cpf.core.api.domain.CpfDomainPingResponse;
 import com.cpf.core.api.result.CpfResult;
+{chr(10).join('import '+x+';' for x in sorted(imports))}
 import com.cpf.foundation.annotation.CpfService;
 
 /** Generated Domain dependency Client를 실제 업무 Bean 주입 경로에서 소비하는 Sample Service입니다. */
@@ -1924,7 +1980,7 @@ def _external_client_adapter(d: DomainDefinition, client: ExternalClientDefiniti
         return f'''package {d.feature_package}.client;
 
 {imports}
-import com.cpf.integration.http.api.CpfServiceClient;
+import com.cpf.integration.api.http.CpfServiceClient;
 
 /** CPF Context/Timeout/Logging/Audit를 적용하는 {client.name} HTTP generated adapter입니다. */
 @Component
@@ -2078,11 +2134,17 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
 
         # Runtime/Domain invocation 역시 해당 업무 Feature Owner 아래 둔다.
         files[f"online/src/main/java/{fp}/operation/{d.class_name}DomainPingOperation.java"]=_feature_java(render_domain_ping_operation(d,"online"),d,"operation")
+        dependency_contracts={}
+        workspace_defs=_load_workspace_definitions(root,d)
         for dependency in d.domain_dependencies:
-            files[f"online/src/main/java/{fp}/client/{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_client(d,"online",dependency),d,"client")
-            files[f"online/src/main/java/{fp}/client/Default{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_adapter(d,"online",dependency),d,"client")
+            target=workspace_defs.get(dependency.name)
+            if target is None: raise DomainError(f"Domain dependency target missing during render: {dependency.name}")
+            contracts=discover_domain_operation_contracts(root,target)
+            dependency_contracts[dependency.name]=contracts
+            files[f"online/src/main/java/{fp}/client/{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_client(d,"online",dependency,contracts),d,"client")
+            files[f"online/src/main/java/{fp}/client/Default{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_adapter(d,"online",dependency,contracts),d,"client")
         if d.domain_dependencies:
-            files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=_feature_java(render_domain_dependency_consumer(d,"online"),d,"client").replace(f"package {d.feature_package}.client;",f"package {d.feature_package}.service;")
+            files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=_feature_java(render_domain_dependency_consumer(d,"online",dependency_contracts),d,"client").replace(f"package {d.feature_package}.client;",f"package {d.feature_package}.service;")
         for external_client in d.external_clients:
             files.update(render_external_client_files(d, external_client))
 
@@ -2220,7 +2282,7 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     java='\n'.join(p.read_text(encoding='utf-8-sig',errors='ignore') for p in output.rglob('*.java'))
     required=[]
     if d.online: required += ['extends CpfBaseController']
-    if d.online and d.sample_transaction: required += ['@CpfRestController','@CpfOnlineTransaction','@Operation']
+    if d.online and d.sample_transaction: required += ['@CpfController','@CpfOnlineTransaction','@Operation']
     for token in required:
         if token not in java: raise DomainError(f"Generated Runtime Consumer 누락: {token}")
     if d.online:
@@ -2251,9 +2313,25 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
                 if table not in rendered: raise DomainError(f"DB3 canonical table 누락: {vendor}:{table}")
     if java and not re.search(r'[가-힣]',java): raise DomainError('Generated Source 한글 주석 누락')
     if d.domain_dependencies:
+        target_defs={x.system_code:x for x in _load_workspace_definitions(root,d).values()}
         for dependency in d.domain_dependencies:
-            for token in (f"interface {dependency.class_name}DomainClient", f"class Default{dependency.class_name}DomainClient", f"probe{dependency.class_name}"):
-                if token not in java: raise DomainError(f"Generated Typed Domain Client/Consumer 누락: {token}")
+            target=target_defs.get(dependency.system_code)
+            if target is None:
+                raise DomainError(f"Generated Domain dependency target definition 누락: {dependency.system_code}")
+            contracts=discover_domain_operation_contracts(root,target)
+            for token in (f"interface {dependency.class_name}DomainClient", f"class Default{dependency.class_name}DomainClient"):
+                if token not in java:
+                    raise DomainError(f"Generated Typed Domain Client/Consumer 누락: {token}")
+            for operation_id in dependency.operations:
+                contract=contracts.get(operation_id)
+                if contract is None:
+                    raise DomainError(f"Generated Typed Domain Operation contract 누락: {dependency.system_code}/{operation_id}")
+                method=contract.method_name
+                for token in (method, f'router.invoke("{dependency.system_code}", "{operation_id}"'):
+                    if token not in java:
+                        raise DomainError(f"Generated Typed Domain Client/Consumer 누락: {dependency.system_code}/{operation_id}:{token}")
+                if operation_id != 'ping' and f'router.invoke("{dependency.system_code}", "ping"' in java:
+                    raise DomainError(f"Generated Domain Operation ping fallback 금지: {dependency.system_code}/{operation_id}")
     for client in d.external_clients:
         for token in (f"interface {client.class_name}ExternalClient", f"class Default{client.class_name}ExternalClient", "@CpfClient", "@CpfRetry", "@CpfTimeout", "@CpfLogging", "@CpfAudit"):
             if token not in java: raise DomainError(f"Generated External Client runtime contract 누락: {client.name}:{token}")
@@ -2458,8 +2536,19 @@ def _legacy_generated_stale_candidate(d: DomainDefinition, rel: str, path: Path)
     return actual == rendered
 
 
+def verify_prebuilt_domain(root: Path, definition_path: Path, output: Path, d: DomainDefinition) -> dict[str,Any]:
+    if d.generation_mode != "prebuilt": raise DomainError("prebuilt verifier misuse")
+    required=[output/'build.gradle', output/'settings.gradle']
+    if d.online: required.append(output/'online'/'build.gradle')
+    missing=[str(p.relative_to(root)) for p in required if not p.is_file()]
+    java_count=sum(1 for p in (output/'online'/'src'/'main'/'java').rglob('*.java')) if d.online and (output/'online'/'src'/'main'/'java').exists() else 0
+    if missing or (d.online and java_count == 0):
+        raise DomainError(f"Prebuilt Domain physical contract 불완전: missing={missing}, javaCount={java_count}")
+    return {'domain':d.name,'status':'PREBUILT_VERIFIED','output':str(output),'javaCount':java_count,'definition':str(definition_path)}
+
 def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    if d.generation_mode == 'prebuilt': return verify_prebuilt_domain(root,definition_path,output,d)
     validate_repository_uniqueness(root,d,output)
     expected=_expected_hashes(root,d); missing=[]; changed=[]
     for rel,digest in sorted(expected.items()):
@@ -2492,6 +2581,7 @@ def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
 
 def generate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    if d.generation_mode == 'prebuilt': return verify_prebuilt_domain(root,definition_path,output,d)
     materialized=_has_materialized_generated_content(output)
     # canonical cpf-domain.yaml/ownership lock만 존재하는 fresh Root도 정상 generation target입니다.
     if not materialized:
@@ -2559,9 +2649,8 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     added=sorted(set(current_hashes)-set(previous))
     removed=sorted(set(previous)-set(current_hashes))
     changed=sorted(rel for rel in set(previous)&set(current_hashes) if previous[rel]!=current_hashes[rel])
-    for rel in removed:
-        p=output/rel
-        if p.is_file(): p.unlink()
+    # 삭제는 Generator가 직접 수행하지 않습니다. 사용자 승인 Delete Manifest에서만 실행합니다.
+    delete_candidates=[rel for rel in removed if (output/rel).is_file()]
     for rel in sorted(set(added)|set(changed)):
         write_text(output/rel,current_files[rel])
     for rel,content in current_files.items():
@@ -2570,11 +2659,16 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     for p in sorted((x for x in output.rglob('*') if x.is_dir()),key=lambda x:len(x.parts),reverse=True):
         try: p.rmdir()
         except OSError: pass
+    if delete_candidates:
+        return {'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
+                'fromGeneratorVersion':state.get('generatorVersion'),'toGeneratorVersion':GENERATOR_VERSION,
+                'added':added,'changed':changed,'deleteCandidates':delete_candidates,
+                'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST'}
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,current_hashes)
     _write_workspace_lock(root,definition_path,d,current_hashes)
     return {'domain':d.name,'status':'UPGRADED','output':str(output),'fromGeneratorVersion':state.get('generatorVersion'),
-            'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':removed,'verify':vr}
+            'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':[],'verify':vr}
 
 
 def restore(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
@@ -2615,36 +2709,20 @@ def remove_plan(root: Path, definition_path: Path, output: Path) -> dict[str,Any
 
 
 def remove_owned(root: Path, definition_path: Path, output: Path, apply: bool=False, purge_definition: bool=False) -> dict[str,Any]:
+    """Generated Domain 삭제 후보를 계산합니다. 실제 파일 삭제는 사용자 승인 Delete Manifest 전용입니다."""
     root=root.resolve(); output=output.resolve(); definition_path=definition_path.resolve()
     if output==root or root not in output.parents: raise DomainError(f"Repository Root 밖/자체 remove 금지: {output}")
     if not re.fullmatch(r"cpf-[a-z][a-z0-9-]{1,49}",output.name): raise DomainError(f"Generated Root naming 위반: {output.name}")
     plan=remove_plan(root,definition_path,output)
     if not plan['safeToRemove']:
         changed=[x['path'] for x in plan['files'] if x['state']=='USER_MODIFIED']; raise DomainError(f"사용자 변경 파일이 있어 remove 중단: {changed}")
-    if not apply: return {**plan,'status':'PLANNED','applied':False}
-    removed=[]
-    for row in sorted(plan['files'],key=lambda x:(x['path'].count('/'),x['path']),reverse=True):
-        if row['state']!='UNCHANGED': continue
-        p=output/row['path']
-        if p.is_file(): p.unlink(); removed.append(row['path'])
-    for p in sorted((x for x in output.rglob('*') if x.is_dir()),key=lambda x:len(x.parts),reverse=True):
-        try: p.rmdir()
-        except OSError: pass
-    try: output.rmdir()
-    except OSError: pass
-    purged_definition=False
-    if purge_definition:
-        canonical_definition=(_canonical_domain_root(root,d.name)/'cpf-domain.yaml').resolve()
-        if definition_path != canonical_definition:
-            raise DomainError(f'Canonical Domain root definition 외 파일 purge 금지: {definition_path}')
-        if definition_path.is_file():
-            definition_path.unlink(); purged_definition=True
-        try: definition_path.parent.rmdir()
-        except OSError: pass
-        transient=_transient_root(root,d)
-        if transient.is_dir(): shutil.rmtree(transient)
-    return {'root':str(output),'status':'REMOVED','applied':True,'removedCount':len(removed),'removed':sorted(removed),
-            'purgedDefinition':purged_definition,'metadataRequired':False}
+    candidates=[x['path'] for x in plan['files'] if x['state']=='UNCHANGED']
+    result={**plan,'status':'PLANNED_DELETE_MANIFEST','applied':False,'deleteCandidates':candidates,
+            'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST','purgeDefinitionRequested':bool(purge_definition)}
+    if apply:
+        raise DomainError('Generated Domain 실제 삭제는 사용자 승인 Delete Manifest 실행기로만 수행할 수 있습니다. --apply 직접 삭제는 금지됩니다.')
+    return result
+
 
 def verify_genericity(generator_root: Path) -> dict[str,Any]:
     """실제 생성 구현/Template에 특정 회귀 Domain 이름이 고정되지 않았는지 검증한다.

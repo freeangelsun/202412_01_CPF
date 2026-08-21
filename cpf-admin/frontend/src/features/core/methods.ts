@@ -61,22 +61,10 @@ export const coreMethods = {
           return;
         }
 
-        // Shell bootstrap is intentionally small. Feature data is loaded when its route is entered.
-        const required = [
-          { name: "permissions", run: () => this.loadPermissions() },
-          { name: "service-registry-summary", run: () => this.loadServiceRegistry() }
-        ];
-        for (const item of required) {
-          try {
-            await item.run();
-          } catch (error) {
-            const message = initialization.record(item.name, error, true);
-            this.initializationFailures = initialization.failures;
-            this.initializationStatus = initialization.status;
-            this.setMessage(`필수 운영 API 초기화 실패: ${item.name} - ${message}`);
-            throw error;
-          }
-        }
+        // Shell bootstrap must use only the least-privilege session projection returned by /auth/me.
+        // Permission master/catalog and service-registry data are route-owned and loaded lazily only
+        // after the server-projected menu/operation permission allows navigation to that feature.
+        // A normal operator therefore never needs permission-management master APIs just to enter ADM.
         try {
           const health = await getAdmReadiness<any>();
           this.shellHealth = health || { status: "UNKNOWN" };

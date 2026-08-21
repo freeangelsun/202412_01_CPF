@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.auth.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.auth.service.BackofficeAuthService;
@@ -27,7 +27,7 @@ import java.util.List;
  * <p>이 API는 sample 패키지가 아닌 MBW 인증 기능 그룹에 속합니다. 로그인 이력과 refresh token은
  * MBW_DB에 저장되며, datasource가 비활성화된 환경에서는 명확한 서비스 사용 불가 오류를 반환합니다.</p>
  */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/auth")
 @Tag(name = "MBW-Auth", description = "업무 관리자 로그인, refresh token, 현재 사용자, 로그인 이력 API")
 public class BackofficeAuthController extends com.cpf.backoffice.online.base.BackofficeBaseController {

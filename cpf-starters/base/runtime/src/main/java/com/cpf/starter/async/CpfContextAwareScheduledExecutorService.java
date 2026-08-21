@@ -1,5 +1,6 @@
 package com.cpf.starter.async;
 import java.util.*; import java.util.concurrent.*;
+/** CPF 거래 Context를 보존하면서 예약 작업을 실행하는 ScheduledExecutorService 구현입니다. */
 public final class CpfContextAwareScheduledExecutorService extends AbstractExecutorService implements ScheduledExecutorService {
  private final ScheduledExecutorService d; private final CpfAsyncContextPropagation p; public CpfContextAwareScheduledExecutorService(ScheduledExecutorService d,CpfAsyncContextPropagation p){this.d=d;this.p=p;}
  public void shutdown(){d.shutdown();}public List<Runnable> shutdownNow(){return d.shutdownNow();}public boolean isShutdown(){return d.isShutdown();}public boolean isTerminated(){return d.isTerminated();}public boolean awaitTermination(long t,TimeUnit u)throws InterruptedException{return d.awaitTermination(t,u);}public void execute(Runnable r){d.execute(p.wrap(r,CpfAsyncForkType.SCHEDULER));}

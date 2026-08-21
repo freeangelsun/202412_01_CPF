@@ -3,7 +3,7 @@ package com.cpf.common.message.api;
 import com.cpf.common.message.dto.CommonMessageRequest;
 import com.cpf.common.message.dto.CommonResponseCodeRequest;
 
-/** BZA가 Owner Table을 직접 갱신하지 않고 소비하는 Common Error/Message 관리 API입니다. */
+/** MBW Backoffice가 Owner Table을 직접 갱신하지 않고 소비하는 Common Error/Message 관리 API입니다. */
 public interface CpfCommonCatalogManagementService {
     CpfCatalogPage<CpfResponseCodeRecord> searchResponseCodes(String query, Boolean active, int page, int size);
     default CpfCatalogPage<CpfResponseCodeRecord> searchResponseCodes(String query, int page, int size) {

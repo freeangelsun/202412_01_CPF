@@ -385,7 +385,7 @@ export async function admBatchJobDefinitions<T = AdmBatchJobDefinitionsResponse>
   return response.data as T;
 }
 
-export type AdmBatchJobDefinitionSaveBody = Record<string, unknown>;
+export type AdmBatchJobDefinitionSaveBody = { alertPolicy?: Record<string, unknown>; checksum?: string; definitionVersion?: number; dependencies?: Array<Record<string, unknown>>; description?: string; effectiveFrom?: string; effectiveUntil?: string; executorReference?: string; executorType: string; expectedRowVersion?: number; jobId: string; jobName: string; ownerDomain: string; parameters?: Array<Record<string, unknown>>; reason: string; recoveryPolicy?: Record<string, unknown>; resourcePolicy?: Record<string, unknown>; state: string; trigger?: Record<string, unknown> };
 export type AdmBatchJobDefinitionSavePath = Record<string, never>;
 export type AdmBatchJobDefinitionSaveQuery = Record<string, never>;
 export type AdmBatchJobDefinitionSaveHeaders = Record<string, never>;
@@ -396,7 +396,7 @@ export async function admBatchJobDefinitionSave<T = AdmBatchJobDefinitionSaveRes
   return response.data as T;
 }
 
-export type AdmBatchJobDefinitionTransitionBody = Record<string, unknown>;
+export type AdmBatchJobDefinitionTransitionBody = { approvalRequestId?: string; expectedRowVersion: number; reason: string; targetState: string };
 export type AdmBatchJobDefinitionTransitionPath = { jobId: string; version: number };
 export type AdmBatchJobDefinitionTransitionQuery = Record<string, never>;
 export type AdmBatchJobDefinitionTransitionHeaders = Record<string, never>;
@@ -407,7 +407,7 @@ export async function admBatchJobDefinitionTransition<T = AdmBatchJobDefinitionT
   return response.data as T;
 }
 
-export type AdmBatchJobDefinitionValidateBody = Record<string, unknown>;
+export type AdmBatchJobDefinitionValidateBody = { alertPolicy?: Record<string, unknown>; checksum?: string; definitionVersion?: number; dependencies?: Array<Record<string, unknown>>; description?: string; effectiveFrom?: string; effectiveUntil?: string; executorReference?: string; executorType: string; expectedRowVersion?: number; jobId: string; jobName: string; ownerDomain: string; parameters?: Array<Record<string, unknown>>; reason: string; recoveryPolicy?: Record<string, unknown>; resourcePolicy?: Record<string, unknown>; state: string; trigger?: Record<string, unknown> };
 export type AdmBatchJobDefinitionValidatePath = Record<string, never>;
 export type AdmBatchJobDefinitionValidateQuery = Record<string, never>;
 export type AdmBatchJobDefinitionValidateHeaders = Record<string, never>;
@@ -645,7 +645,7 @@ export async function admBatchWorkbenchSchedules<T = AdmBatchWorkbenchSchedulesR
   return response.data as T;
 }
 
-export type AdmBreakGlassCloseSessionBody = Record<string, unknown>;
+export type AdmBreakGlassCloseSessionBody = { reason: string };
 export type AdmBreakGlassCloseSessionPath = { sessionId: string };
 export type AdmBreakGlassCloseSessionQuery = Record<string, never>;
 export type AdmBreakGlassCloseSessionHeaders = Record<string, never>;
@@ -668,7 +668,7 @@ export async function admBreakGlassFindSessions<T = AdmBreakGlassFindSessionsRes
   return response.data as T;
 }
 
-export type AdmBreakGlassOpenSessionBody = Record<string, unknown>;
+export type AdmBreakGlassOpenSessionBody = { reason: string; scopeType: string; scopeValue: string; ttlMinutes: number };
 export type AdmBreakGlassOpenSessionPath = Record<string, never>;
 export type AdmBreakGlassOpenSessionQuery = Record<string, never>;
 export type AdmBreakGlassOpenSessionHeaders = Record<string, never>;
@@ -679,7 +679,7 @@ export async function admBreakGlassOpenSession<T = AdmBreakGlassOpenSessionRespo
   return response.data as T;
 }
 
-export type AdmBreakGlassReviewSessionBody = Record<string, unknown>;
+export type AdmBreakGlassReviewSessionBody = { reason: string; status: string };
 export type AdmBreakGlassReviewSessionPath = { sessionId: string };
 export type AdmBreakGlassReviewSessionQuery = Record<string, never>;
 export type AdmBreakGlassReviewSessionHeaders = Record<string, never>;
@@ -1461,7 +1461,7 @@ export async function admIncidentAcknowledge<T = AdmIncidentAcknowledgeResponse>
   return response.data as T;
 }
 
-export type AdmIncidentCreateIncidentBody = Record<string, unknown>;
+export type AdmIncidentCreateIncidentBody = { reason: string; severity: string; sourceId?: string; sourceType?: string; summary?: string; title: string };
 export type AdmIncidentCreateIncidentPath = Record<string, never>;
 export type AdmIncidentCreateIncidentQuery = Record<string, never>;
 export type AdmIncidentCreateIncidentHeaders = Record<string, never>;
@@ -1607,7 +1607,7 @@ export async function admIncidentResolve<T = AdmIncidentResolveResponse>(options
   return response.data as T;
 }
 
-export type AdmIncidentTransitionIncidentBody = Record<string, unknown>;
+export type AdmIncidentTransitionIncidentBody = { reason: string; status: string };
 export type AdmIncidentTransitionIncidentPath = { incidentId: number };
 export type AdmIncidentTransitionIncidentQuery = Record<string, never>;
 export type AdmIncidentTransitionIncidentHeaders = Record<string, never>;
@@ -1684,7 +1684,7 @@ export async function admIntegrationDataQualityReplay<T = AdmIntegrationDataQual
   return response.data as T;
 }
 
-export type AdmIntegrationDataQualityValidateBody = Record<string, unknown>;
+export type AdmIntegrationDataQualityValidateBody = { MAX_FIELDS?: Record<string, unknown>; fields?: Record<string, unknown> };
 export type AdmIntegrationDataQualityValidatePath = { recordId: string };
 export type AdmIntegrationDataQualityValidateQuery = Record<string, never>;
 export type AdmIntegrationDataQualityValidateHeaders = Record<string, never>;
@@ -1939,7 +1939,7 @@ export async function admLogPolicyUpdatePolicy<T = AdmLogPolicyUpdatePolicyRespo
   return response.data as T;
 }
 
-export type AdmMaintenanceExecuteActionBody = Record<string, unknown>;
+export type AdmMaintenanceExecuteActionBody = { instanceId: string; reason: string };
 export type AdmMaintenanceExecuteActionPath = Record<string, never>;
 export type AdmMaintenanceExecuteActionQuery = Record<string, never>;
 export type AdmMaintenanceExecuteActionHeaders = Record<string, never>;
@@ -2954,7 +2954,7 @@ export async function admRetentionPolicies<T = AdmRetentionPoliciesResponse>(opt
   return response.data as T;
 }
 
-export type AdmRetentionPolicyPauseBody = Record<string, unknown>;
+export type AdmRetentionPolicyPauseBody = { expectedVersion: number; reason: string };
 export type AdmRetentionPolicyPausePath = { policyId: string };
 export type AdmRetentionPolicyPauseQuery = Record<string, never>;
 export type AdmRetentionPolicyPauseHeaders = Record<string, never>;
@@ -2965,7 +2965,7 @@ export async function admRetentionPolicyPause<T = AdmRetentionPolicyPauseRespons
   return response.data as T;
 }
 
-export type AdmRetentionPolicyResumeBody = Record<string, unknown>;
+export type AdmRetentionPolicyResumeBody = { expectedVersion: number; reason: string };
 export type AdmRetentionPolicyResumePath = { policyId: string };
 export type AdmRetentionPolicyResumeQuery = Record<string, never>;
 export type AdmRetentionPolicyResumeHeaders = Record<string, never>;
@@ -2976,7 +2976,7 @@ export async function admRetentionPolicyResume<T = AdmRetentionPolicyResumeRespo
   return response.data as T;
 }
 
-export type AdmRetentionPolicySaveBody = Record<string, unknown>;
+export type AdmRetentionPolicySaveBody = { action: string; chunkSize: number; enabled: boolean; leaseSeconds: number; legalHold: boolean; maintenanceEnd?: string; maintenanceStart?: string; maxRowsPerRun: number; maxRuntimeSeconds: number; nextRunAt?: string; policyId: string; policyVersion: number; reason: string; retentionDays: number; rowVersion: number; scheduleExpression?: string; target: string; throttleMillis: number };
 export type AdmRetentionPolicySavePath = Record<string, never>;
 export type AdmRetentionPolicySaveQuery = Record<string, never>;
 export type AdmRetentionPolicySaveHeaders = Record<string, never>;
@@ -2987,7 +2987,7 @@ export async function admRetentionPolicySave<T = AdmRetentionPolicySaveResponse>
   return response.data as T;
 }
 
-export type AdmRetentionPreviewBody = Record<string, unknown>;
+export type AdmRetentionPreviewBody = { action: string; cutoff: string; legalHold: boolean; limit: number; reason: string; target: string };
 export type AdmRetentionPreviewPath = Record<string, never>;
 export type AdmRetentionPreviewQuery = Record<string, never>;
 export type AdmRetentionPreviewHeaders = Record<string, never>;
@@ -2998,7 +2998,7 @@ export async function admRetentionPreview<T = AdmRetentionPreviewResponse>(optio
   return response.data as T;
 }
 
-export type AdmRetentionRunNowBody = Record<string, unknown>;
+export type AdmRetentionRunNowBody = { reason: string };
 export type AdmRetentionRunNowPath = { policyId: string };
 export type AdmRetentionRunNowQuery = Record<string, never>;
 export type AdmRetentionRunNowHeaders = Record<string, never>;
@@ -3009,7 +3009,7 @@ export async function admRetentionRunNow<T = AdmRetentionRunNowResponse>(options
   return response.data as T;
 }
 
-export type AdmRetentionRunPauseBody = Record<string, unknown>;
+export type AdmRetentionRunPauseBody = { expectedVersion: number; reason: string };
 export type AdmRetentionRunPausePath = { runId: string };
 export type AdmRetentionRunPauseQuery = Record<string, never>;
 export type AdmRetentionRunPauseHeaders = Record<string, never>;
@@ -3020,7 +3020,7 @@ export async function admRetentionRunPause<T = AdmRetentionRunPauseResponse>(opt
   return response.data as T;
 }
 
-export type AdmRetentionRunResumeBody = Record<string, unknown>;
+export type AdmRetentionRunResumeBody = { expectedVersion: number; reason: string };
 export type AdmRetentionRunResumePath = { runId: string };
 export type AdmRetentionRunResumeQuery = Record<string, never>;
 export type AdmRetentionRunResumeHeaders = Record<string, never>;

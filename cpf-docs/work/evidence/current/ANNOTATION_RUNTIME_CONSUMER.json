@@ -9,9 +9,9 @@
       "detail": ""
     },
     {
-      "name": "canonical-CpfRestController",
+      "name": "canonical-CpfController",
       "status": "PASS",
-      "detail": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfRestController.java"
+      "detail": "cpf-starters/web/src/main/java/com/cpf/web/api/CpfController.java"
     },
     {
       "name": "canonical-CpfTransactional",
@@ -24,14 +24,24 @@
       "detail": "cpf-starters/security/src/main/java/com/cpf/security/api/annotation/CpfPreAuthorize.java"
     },
     {
-      "name": "canonical-CpfTimed",
+      "name": "canonical-CpfPerformance",
       "status": "PASS",
-      "detail": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfTimed.java"
+      "detail": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfPerformance.java"
     },
     {
       "name": "canonical-CpfTimeLimiter",
       "status": "PASS",
       "detail": "cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java"
+    },
+    {
+      "name": "legacy-controller-alias-deprecated",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "legacy-performance-alias-deprecated",
+      "status": "PASS",
+      "detail": ""
     },
     {
       "name": "operation-id-resolver",
@@ -64,12 +74,12 @@
       "detail": ""
     },
     {
-      "name": "BZA-management-not-business-transaction",
+      "name": "GATEWAY-management-not-business-transaction",
       "status": "PASS",
       "detail": ""
     },
     {
-      "name": "GATEWAY-management-not-business-transaction",
+      "name": "BACKOFFICE-generated-domain-contract",
       "status": "PASS",
       "detail": ""
     }

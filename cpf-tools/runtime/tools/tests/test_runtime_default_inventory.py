@@ -42,7 +42,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
                         moduleName = 'payment'
                         databaseEnabled = $true
                         databaseRole = 'CUSTOMER_BUSINESS_DB'
-                        definitionPath = 'cpf-tools/generator/definitions/payment/cpf-domain.yaml'
+                        definitionPath = 'cpf-payment/cpf-domain.yaml'
                     })
                 }
                 """

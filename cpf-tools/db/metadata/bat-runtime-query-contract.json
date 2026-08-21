@@ -71,10 +71,6 @@
       "postgresql",
       "oracle"
     ],
-    "runtime-instances-list": [
-      "postgresql",
-      "oracle"
-    ],
     "centercut-operations-find-targets": [
       "oracle"
     ],
@@ -1434,46 +1430,6 @@
       ]
     },
     {
-      "key": "runtime-registry-update",
-      "consumer": "JdbcRuntimeRegistry.register",
-      "parameters": [
-        "runtimeRole",
-        "serviceId",
-        "wasId",
-        "hostAlias",
-        "zoneId",
-        "poolId",
-        "artifactVersion",
-        "gitSha",
-        "artifactChecksum",
-        "profileName",
-        "configVersion",
-        "schemaCompatibility",
-        "startedAt",
-        "instanceId"
-      ]
-    },
-    {
-      "key": "runtime-registry-insert",
-      "consumer": "JdbcRuntimeRegistry.register",
-      "parameters": [
-        "instanceId",
-        "runtimeRole",
-        "serviceId",
-        "wasId",
-        "hostAlias",
-        "zoneId",
-        "poolId",
-        "artifactVersion",
-        "gitSha",
-        "artifactChecksum",
-        "profileName",
-        "configVersion",
-        "schemaCompatibility",
-        "startedAt"
-      ]
-    },
-    {
       "key": "runtime-capabilities-delete",
       "consumer": "JdbcRuntimeRegistry.register",
       "parameters": [
@@ -1486,16 +1442,6 @@
       "parameters": [
         "instanceId",
         "capabilityCode"
-      ]
-    },
-    {
-      "key": "runtime-heartbeat-update",
-      "consumer": "JdbcRuntimeRegistry.heartbeat",
-      "parameters": [
-        "actualState",
-        "heartbeatAt",
-        "fencingToken",
-        "instanceId"
       ]
     },
     {
@@ -1512,36 +1458,6 @@
         "activeLeaseCount",
         "lastErrorCode",
         "deploymentVersion"
-      ]
-    },
-    {
-      "key": "runtime-row-version",
-      "consumer": "JdbcRuntimeRegistry.updateDesiredState",
-      "parameters": [
-        "instanceId"
-      ]
-    },
-    {
-      "key": "runtime-desired-state-update",
-      "consumer": "JdbcRuntimeRegistry.updateDesiredState",
-      "parameters": [
-        "desiredState",
-        "instanceId",
-        "rowVersion"
-      ]
-    },
-    {
-      "key": "runtime-instance-snapshot",
-      "consumer": "JdbcRuntimeRegistry.snapshot",
-      "parameters": [
-        "instanceId"
-      ]
-    },
-    {
-      "key": "runtime-instances-list",
-      "consumer": "JdbcRuntimeRegistry.list",
-      "parameters": [
-        "staleBefore"
       ]
     },
     {

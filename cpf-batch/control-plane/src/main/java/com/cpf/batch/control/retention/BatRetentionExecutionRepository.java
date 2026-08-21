@@ -82,10 +82,14 @@ public class BatRetentionExecutionRepository {
         }
         return jdbc.query(con->{var ps=con.prepareStatement("SELECT * FROM ops_retention_run WHERE policy_id=? ORDER BY started_at DESC,run_id DESC");ps.setString(1,policyId);ps.setMaxRows(limit);return ps;},(rs,n)->run(rs));
     }
-    public void requestPause(String runId,String actor,String reason) {
-        int updated=jdbc.update("UPDATE ops_retention_run SET pause_requested_yn='Y',control_actor_id=?,control_reason=?,updated_at=CURRENT_TIMESTAMP WHERE run_id=? AND status='RUNNING'",
-                actor,safe(reason),runId);
-        if(updated!=1) throw new IllegalStateException("RETENTION_RUN_NOT_RUNNING");
+    public void requestPause(String runId,String actor,String reason,long expectedVersion) {
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion은 0 이상이어야 합니다.");
+        int updated=jdbc.update(
+                "UPDATE ops_retention_run SET pause_requested_yn='Y',control_actor_id=?,control_reason=?,updated_at=CURRENT_TIMESTAMP " +
+                        "WHERE run_id=? AND status='RUNNING' AND EXISTS (" +
+                        "SELECT 1 FROM ops_retention_policy p WHERE p.policy_id=ops_retention_run.policy_id AND p.row_version=?)",
+                actor,safe(reason),runId,expectedVersion);
+        if(updated!=1) throw new IllegalStateException("RETENTION_RUN_STATE_OR_POLICY_VERSION_CONFLICT");
     }
     public boolean pauseRequested(String runId) {
         Boolean v=jdbc.queryForObject("SELECT CASE WHEN pause_requested_yn='Y' THEN 1 ELSE 0 END FROM ops_retention_run WHERE run_id=?",(rs,n)->rs.getInt(1)==1,runId);

@@ -3,6 +3,8 @@ package com.cpf.platform.operations.runtimecontrol;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeControlPlaneRepository;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeControlPlaneService;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeControlReconciler;
+import com.cpf.platform.operations.runtimecontrol.internal.CpfJdbcManagedRuntimeRegistry;
+import com.cpf.platform.operations.runtimecontrol.api.CpfManagedRuntimeRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -30,6 +32,13 @@ public class CpfRuntimeControlAutoConfiguration {
     @ConditionalOnMissingBean(CpfRuntimeControlPlane.class)
     CpfRuntimeControlPlane cpfRuntimeControlPlane(CpfRuntimeControlPlaneRepository repository) {
         return new CpfRuntimeControlPlaneService(repository);
+    }
+
+    @Bean
+    @ConditionalOnBean(CpfRuntimeControlPlaneRepository.class)
+    @ConditionalOnMissingBean(CpfManagedRuntimeRegistry.class)
+    CpfManagedRuntimeRegistry cpfManagedRuntimeRegistry(CpfRuntimeControlPlaneRepository repository) {
+        return new CpfJdbcManagedRuntimeRegistry(repository);
     }
 
     @Bean

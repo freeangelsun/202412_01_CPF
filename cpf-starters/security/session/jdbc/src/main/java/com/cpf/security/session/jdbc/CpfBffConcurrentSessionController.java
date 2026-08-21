@@ -8,7 +8,7 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 
 /**
- * Spring Session의 Principal Index를 이용해 ADM/BZA 동시 Session 상한을 다중 인스턴스에서 강제합니다.
+ * Spring Session의 Principal Index를 이용해 ADM/MBW 동시 Session 상한을 다중 인스턴스에서 강제합니다.
  */
 final class CpfBffConcurrentSessionController {
     private final FindByIndexNameSessionRepository<? extends Session> repository;

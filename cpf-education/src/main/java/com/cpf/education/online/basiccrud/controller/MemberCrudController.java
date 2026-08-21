@@ -2,12 +2,12 @@ package com.cpf.education.online.basiccrud.controller;
 import com.cpf.education.online.basiccrud.dto.CrudCommand;
 import com.cpf.education.online.basiccrud.service.MemberCrudService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
-@CpfRestController @RequestMapping("/edu/online/members")
+@CpfController @RequestMapping("/edu/online/members")
 /** 기본 CRUD 교육 예제의 Controller 역할과 CPF 표준 사용 경계를 보여줍니다. */
 public class MemberCrudController {
  private final MemberCrudService service; public MemberCrudController(MemberCrudService service){this.service=service;}

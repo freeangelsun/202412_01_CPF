@@ -1,5 +1,6 @@
 package com.cpf.foundation.attribute;
 import java.util.Collections; import java.util.LinkedHashMap; import java.util.Map; import java.util.Objects; import java.util.Optional;
+/** CPF 공통 확장 속성을 불변 Map 형태로 전달하기 위한 공개 값 객체입니다. */
 public final class CpfAttributes {
     private final Map<String,Object> values;
     private CpfAttributes(Map<String,Object> values) { this.values=Collections.unmodifiableMap(values); }

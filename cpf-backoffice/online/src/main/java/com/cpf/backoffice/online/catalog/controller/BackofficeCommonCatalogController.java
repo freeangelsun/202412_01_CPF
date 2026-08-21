@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.catalog.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Error/Response Code/Message Common Product Service의 MBW Consumer입니다.
  * MBW는 CMN owner table SQL을 직접 실행하지 않고 Common Management API만 호출합니다.
  */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/common-catalog")
 @Tag(name = "MBW-Common-Catalog", description = "응답코드·다국어 메시지 관리 API")
 public final class BackofficeCommonCatalogController extends com.cpf.backoffice.online.base.BackofficeBaseController {

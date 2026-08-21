@@ -135,7 +135,7 @@ $capabilities.Add([ordered]@{
     contractValid = $goldenReferenceFound
     contractMessage = if ($goldenReferenceFound) { $null } else { "cpf-member canonical definition/output missing" }
     paths = @(
-        "cpf-tools/generator/definitions/member/cpf-domain.yaml",
+        "cpf-member/cpf-domain.yaml",
         "cpf-member/build.gradle"
     )
 }) | Out-Null

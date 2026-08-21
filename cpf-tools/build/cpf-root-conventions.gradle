@@ -376,6 +376,25 @@ tasks.register('publicationGate') {
     dependsOn 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'managedDependencyGate', 'corePomPurityGate'
 }
 
+// FullLocal publication은 사용자 ~/.m2를 오염시키지 않고 repository-owned 격리 경로만 사용합니다.
+subprojects { subproject ->
+    subproject.plugins.withId('maven-publish') {
+        subproject.publishing {
+            repositories {
+                maven {
+                    name = 'CpfLocal'
+                    url = rootProject.layout.buildDirectory.dir('cpf-local-artifact-repository')
+                }
+            }
+        }
+    }
+}
+
+tasks.register('cpfPublishToIsolatedLocal') {
+    group = 'verification'
+    description = '모든 Maven publication을 build/cpf-local-artifact-repository에만 게시합니다.'
+}
+
 tasks.register('qa34IntegrationTest') {
     group = 'verification'
     description = 'QA34 Batch integration/fencing/recovery test aggregate입니다.'
@@ -390,6 +409,11 @@ gradle.projectsEvaluated {
         p.tasks.matching { t -> t.name.startsWith('generatePomFileFor') && t.name.endsWith('Publication') }.toList()
     }
     tasks.named('publicationGate') { dependsOn publicationChecks }
+
+    def isolatedPublicationTasks = subprojects.collectMany { p ->
+        p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfLocalRepository') }.toList()
+    }
+    tasks.named('cpfPublishToIsolatedLocal') { dependsOn isolatedPublicationTasks }
 
     def qa34 = project.findProject(':runtime:batch:testkit')?.tasks?.findByName('qa34IntegrationTest')
     if (qa34 != null) tasks.named('qa34IntegrationTest') { dependsOn qa34 }

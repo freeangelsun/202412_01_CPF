@@ -13,7 +13,7 @@ from pathlib import Path
 
 ONLINE = {
     'basiccrud','querypaging','common','validation','internalservice','domaincall','externalrest','fixedlength',
-    'transaction.required','transaction.requiresnew','externalsideeffect','ondemandbatch','centercut','cache','messaging',
+    'transactionrequired','transactionrequiresnew','externalsideeffect','ondemandbatch','centercut','cache','messaging',
     'file','securityaudit','recovery','concurrency','webhook'
 }
 BATCH = {
@@ -25,7 +25,7 @@ ROLE_NAMES = {
     'recovery','security','state','reader','processor','writer','step','job'
 }
 FORBIDDEN_IMPORT = re.compile(r'^import\s+.*(?:\.internal\.|\.impl\.|\.provider\.internal\.|runtime\.internal\.)', re.M)
-FORBIDDEN_ALIAS = re.compile(r'@Cpf(?:Controller|Tx|Timeout|Permission|Dao)\b')
+FORBIDDEN_ALIAS = re.compile(r'@Cpf(?:RestController|Timed|Tx|Dao)\b')
 FORBIDDEN_FILE_NAME = re.compile(r'^(?:Online|Batch)\d+|(?:Example|Sample|Demo)(?:\.java)?$', re.I)
 TYPE_DECL = re.compile(r'\b(?:public\s+|protected\s+|private\s+)?(?:static\s+)?(?:final\s+)?(?:class|record|interface|enum)\s+[A-Za-z_$][\w$]*')
 CATALOG = 'cpf-education/src/main/resources/education/cpf-education-canonical-35.json'
@@ -36,11 +36,18 @@ def deleted(root: Path) -> set[str]:
     p = root / DELETE_MANIFEST
     if not p.exists():
         return set()
-    return {
-        line.strip().replace('\\', '/')
-        for line in p.read_text(encoding='utf-8').splitlines()
-        if line.strip() and not line.lstrip().startswith('#')
-    }
+    import csv
+    rows = []
+    with p.open(encoding='utf-8-sig', newline='') as fh:
+        for row in csv.DictReader(fh):
+            path = (row.get('path') or '').strip().replace('\\', '/')
+            approved = (row.get('approved') or '').strip().lower() == 'true'
+            precondition = (row.get('precondition') or 'NONE').strip()
+            user_approved = (row.get('user_approved') or 'false').strip().lower() == 'true'
+            # Source-view verifier excludes only paths that are both internally approved and explicitly user-approved.
+            if path and approved and user_approved and precondition in {'NONE','SATISFIED'}:
+                rows.append(path)
+    return set(rows)
 
 
 def active_java(root: Path, base: Path, deleted_paths: set[str]) -> list[Path]:
@@ -54,10 +61,6 @@ def active_java(root: Path, base: Path, deleted_paths: set[str]) -> list[Path]:
 
 def feature_key_and_root(p: Path, category_root: Path, category: str) -> tuple[str, Path]:
     rel = p.relative_to(category_root).parts
-    if category == 'online' and rel and rel[0] == 'transaction':
-        if len(rel) < 3:
-            return 'transaction', category_root / 'transaction'
-        return 'transaction.' + rel[1], category_root / 'transaction' / rel[1]
     return (rel[0] if rel else ''), (category_root / rel[0] if rel else category_root)
 
 

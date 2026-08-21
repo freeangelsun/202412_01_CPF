@@ -227,6 +227,15 @@
       "properties": {
         "sampleTransaction": {
           "type": "boolean"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "generated",
+            "prebuilt"
+          ],
+          "default": "generated",
+          "description": "Generated Domain lifecycle owner. prebuilt는 Source를 재생성하지 않고 canonical identity/physical contract만 검증합니다."
         }
       }
     },

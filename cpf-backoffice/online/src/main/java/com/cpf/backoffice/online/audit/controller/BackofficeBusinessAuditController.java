@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.audit.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.audit.service.BackofficeBusinessAuditService;
@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /** MBW 감사 체인 무결성 운영 API. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/audits")
 public class BackofficeBusinessAuditController extends com.cpf.backoffice.online.base.BackofficeBaseController {
   private final BackofficeBusinessAuditService s;

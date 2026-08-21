@@ -1,6 +1,7 @@
 package com.cpf.platform.operations.runtimecontrol.internal;
 
 import com.cpf.platform.operations.runtimecontrol.*;
+import com.cpf.platform.operations.runtimecontrol.api.CpfManagedRuntimeSnapshot;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.ObjectProvider;
@@ -494,7 +495,12 @@ public class CpfRuntimeControlPlaneRepository {
                 "SELECT fencing_token,lease_until,registration_source FROM OPS_RUNTIME_INSTANCE_STATE " +
                         "WHERE instance_id=? FOR UPDATE", r.instanceId());
         long fence = existing.isEmpty() ? 1L : ((Number) existing.getFirst().get("fencing_token")).longValue() + 1L;
-        if (!existing.isEmpty()) {
+        if (existing.isEmpty()) {
+            // OPS_RUNTIME_INSTANCE_STATE가 OPS_SERVICE_INSTANCE를 FK로 참조하므로 최초 등록에는 identity row가 먼저 필요합니다.
+            // 이 row는 active projection이 아니며 authoritative fencing claim이 성공한 뒤에만 UP/Y로 승격합니다.
+            claimInactiveServiceInstanceIdentity(r);
+        } else {
+            requireServiceInstanceProjection(r.instanceId());
             Map<String,Object> current = existing.getFirst();
             Instant currentLease = toInstant(current.get("lease_until"));
             String source = nullable(current.get("registration_source"));
@@ -507,8 +513,6 @@ public class CpfRuntimeControlPlaneRepository {
             }
         }
 
-        // identity/fencing 검증이 완료된 뒤에만 Service Registry를 갱신합니다.
-        upsertServiceInstance(r);
         Instant lease = Instant.now().plusSeconds(r.leaseSeconds());
         String capabilities = write(r.capabilities());
         String labels = write(r.labels());
@@ -524,7 +528,8 @@ public class CpfRuntimeControlPlaneRepository {
                         blank(r.artifactCommit()), blank(r.runtimeRole()), blank(r.registrationSource()),
                         blank(r.schemaVersion()), blank(r.configHash()), skewMs);
             } catch (DuplicateKeyException duplicate) {
-                return register(r);
+                // 최초 동시 claim은 한 Process만 성공해야 합니다. 재귀 retry는 두 Process가 모두 등록되는 False Green을 만듭니다.
+                throw new CpfRuntimeFenceException("Runtime instance 최초 등록 fencing 충돌: " + r.instanceId());
             }
         } else {
             int updated = jdbc.update("UPDATE OPS_RUNTIME_INSTANCE_STATE SET fencing_token=?,lease_until=?," +
@@ -540,7 +545,91 @@ public class CpfRuntimeControlPlaneRepository {
                             "WHERE instance_id=? AND delivery_state='RESTART_REQUIRED'",
                     r.instanceId());
         }
+
+        // authoritative fencing claim이 확정된 같은 transaction에서만 Service Registry active projection을 공개합니다.
+        upsertServiceInstance(r);
         return lease(r.instanceId());
+    }
+
+    public CpfManagedRuntimeSnapshot managedRuntimeSnapshot(String instanceId) {
+        requireText(instanceId, "instanceId");
+        List<CpfManagedRuntimeSnapshot> rows = jdbc.query(
+                "SELECT s.instance_id,i.service_id,s.runtime_role,s.desired_runtime_state,s.actual_runtime_state," +
+                        "s.control_row_version,s.fencing_token,s.lease_until,s.heartbeat_at,i.environment_code," +
+                        "i.zone_code,i.cell_code,s.artifact_version " +
+                        "FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id " +
+                        "WHERE s.instance_id=?",
+                (rs,rowNum) -> new CpfManagedRuntimeSnapshot(
+                        rs.getString("instance_id"), rs.getString("service_id"), rs.getString("runtime_role"),
+                        rs.getString("desired_runtime_state"), rs.getString("actual_runtime_state"),
+                        rs.getLong("control_row_version"), rs.getLong("fencing_token"),
+                        toInstant(rs.getTimestamp("lease_until")), toInstant(rs.getTimestamp("heartbeat_at")),
+                        rs.getString("environment_code"), rs.getString("zone_code"), rs.getString("cell_code"),
+                        rs.getString("artifact_version")), instanceId);
+        if (rows.size() != 1) {
+            throw new IllegalArgumentException("중앙 Runtime Registry에 instance가 없습니다: " + instanceId);
+        }
+        return rows.getFirst();
+    }
+
+    public List<CpfManagedRuntimeSnapshot> managedRuntimeList(java.time.Duration staleAfter) {
+        long seconds = Math.max(5L, Math.min(86_400L, staleAfter == null ? 30L : staleAfter.toSeconds()));
+        Instant cutoff = Instant.now().minusSeconds(seconds);
+        return jdbc.query(
+                "SELECT s.instance_id,i.service_id,s.runtime_role,s.desired_runtime_state,s.actual_runtime_state," +
+                        "s.control_row_version,s.fencing_token,s.lease_until,s.heartbeat_at,i.environment_code," +
+                        "i.zone_code,i.cell_code,s.artifact_version " +
+                        "FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id " +
+                        "WHERE s.heartbeat_at IS NOT NULL AND s.heartbeat_at>=? ORDER BY s.instance_id",
+                (rs,rowNum) -> new CpfManagedRuntimeSnapshot(
+                        rs.getString("instance_id"), rs.getString("service_id"), rs.getString("runtime_role"),
+                        rs.getString("desired_runtime_state"), rs.getString("actual_runtime_state"),
+                        rs.getLong("control_row_version"), rs.getLong("fencing_token"),
+                        toInstant(rs.getTimestamp("lease_until")), toInstant(rs.getTimestamp("heartbeat_at")),
+                        rs.getString("environment_code"), rs.getString("zone_code"), rs.getString("cell_code"),
+                        rs.getString("artifact_version")), ts(cutoff));
+    }
+
+    public long updateManagedDesiredState(String instanceId, String desiredState, long expectedVersion) {
+        requireText(instanceId, "instanceId");
+        String desired = normalizeManagedDesiredState(desiredState);
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion must be non-negative: " + expectedVersion);
+        int updated = jdbc.update(
+                "UPDATE OPS_RUNTIME_INSTANCE_STATE SET desired_runtime_state=?,control_row_version=control_row_version+1," +
+                        "updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND control_row_version=?",
+                desired, instanceId, expectedVersion);
+        if (updated != 1) {
+            CpfManagedRuntimeSnapshot current = managedRuntimeSnapshot(instanceId);
+            throw new CpfRuntimeVersionConflictException(expectedVersion, current.controlVersion());
+        }
+        return expectedVersion + 1L;
+    }
+
+    public void reportManagedActualState(String instanceId, String actualState) {
+        requireText(instanceId, "instanceId");
+        String actual = normalizeManagedActualState(actualState);
+        int updated = jdbc.update(
+                "UPDATE OPS_RUNTIME_INSTANCE_STATE SET actual_runtime_state=?,updated_at=CURRENT_TIMESTAMP " +
+                        "WHERE instance_id=? AND lease_until>=CURRENT_TIMESTAMP", actual, instanceId);
+        if (updated != 1) {
+            throw new CpfRuntimeFenceException("활성 중앙 Runtime lease가 없어 actual state를 보고할 수 없습니다: " + instanceId);
+        }
+    }
+
+    private static String normalizeManagedDesiredState(String value) {
+        String state = blank(value).trim().toUpperCase(java.util.Locale.ROOT);
+        if (!Set.of("RUNNING","STOPPED","DRAINING","QUARANTINED","UPGRADING","ROLLING_BACK").contains(state)) {
+            throw new IllegalArgumentException("지원하지 않는 Runtime desiredState: " + value);
+        }
+        return state;
+    }
+
+    private static String normalizeManagedActualState(String value) {
+        String state = blank(value).trim().toUpperCase(java.util.Locale.ROOT);
+        if (!Set.of("STARTING","READY","BUSY","DRAINING","STOPPED","DEGRADED","STALE","UNREACHABLE","FAILED","UNKNOWN").contains(state)) {
+            throw new IllegalArgumentException("지원하지 않는 Runtime actualState: " + value);
+        }
+        return state;
     }
 
     public CpfRuntimeInstanceLease heartbeat(String instanceId, long fencingToken, String actualHash,
@@ -566,6 +655,87 @@ public class CpfRuntimeControlPlaneRepository {
     }
 
     /** 기존 호출 호환입니다. */
+    public CpfManagedRuntimeSnapshot managedRuntimeSnapshot(String instanceId) {
+        requireText(instanceId, "instanceId");
+        List<CpfManagedRuntimeSnapshot> rows = jdbc.query(
+                "SELECT s.instance_id,i.service_id,s.runtime_role,s.desired_runtime_state,s.actual_runtime_state," +
+                        "s.control_row_version,s.fencing_token,s.lease_until,s.heartbeat_at,i.environment_code," +
+                        "i.zone_code,i.cell_code,s.artifact_version " +
+                        "FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id " +
+                        "WHERE s.instance_id=?",
+                (rs,rowNum) -> new CpfManagedRuntimeSnapshot(
+                        rs.getString("instance_id"), rs.getString("service_id"), rs.getString("runtime_role"),
+                        rs.getString("desired_runtime_state"), rs.getString("actual_runtime_state"),
+                        rs.getLong("control_row_version"), rs.getLong("fencing_token"),
+                        toInstant(rs.getTimestamp("lease_until")), toInstant(rs.getTimestamp("heartbeat_at")),
+                        rs.getString("environment_code"), rs.getString("zone_code"), rs.getString("cell_code"),
+                        rs.getString("artifact_version")), instanceId);
+        if (rows.size() != 1) {
+            throw new IllegalArgumentException("중앙 Runtime Registry에 instance가 없습니다: " + instanceId);
+        }
+        return rows.getFirst();
+    }
+
+    public List<CpfManagedRuntimeSnapshot> managedRuntimeList(java.time.Duration staleAfter) {
+        long seconds = Math.max(5L, Math.min(86_400L, staleAfter == null ? 30L : staleAfter.toSeconds()));
+        Instant cutoff = Instant.now().minusSeconds(seconds);
+        return jdbc.query(
+                "SELECT s.instance_id,i.service_id,s.runtime_role,s.desired_runtime_state,s.actual_runtime_state," +
+                        "s.control_row_version,s.fencing_token,s.lease_until,s.heartbeat_at,i.environment_code," +
+                        "i.zone_code,i.cell_code,s.artifact_version " +
+                        "FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id " +
+                        "WHERE s.heartbeat_at IS NOT NULL AND s.heartbeat_at>=? ORDER BY s.instance_id",
+                (rs,rowNum) -> new CpfManagedRuntimeSnapshot(
+                        rs.getString("instance_id"), rs.getString("service_id"), rs.getString("runtime_role"),
+                        rs.getString("desired_runtime_state"), rs.getString("actual_runtime_state"),
+                        rs.getLong("control_row_version"), rs.getLong("fencing_token"),
+                        toInstant(rs.getTimestamp("lease_until")), toInstant(rs.getTimestamp("heartbeat_at")),
+                        rs.getString("environment_code"), rs.getString("zone_code"), rs.getString("cell_code"),
+                        rs.getString("artifact_version")), ts(cutoff));
+    }
+
+    public long updateManagedDesiredState(String instanceId, String desiredState, long expectedVersion) {
+        requireText(instanceId, "instanceId");
+        String desired = normalizeManagedDesiredState(desiredState);
+        if (expectedVersion < 0) throw new IllegalArgumentException("expectedVersion must be non-negative: " + expectedVersion);
+        int updated = jdbc.update(
+                "UPDATE OPS_RUNTIME_INSTANCE_STATE SET desired_runtime_state=?,control_row_version=control_row_version+1," +
+                        "updated_at=CURRENT_TIMESTAMP WHERE instance_id=? AND control_row_version=?",
+                desired, instanceId, expectedVersion);
+        if (updated != 1) {
+            CpfManagedRuntimeSnapshot current = managedRuntimeSnapshot(instanceId);
+            throw new CpfRuntimeVersionConflictException(expectedVersion, current.controlVersion());
+        }
+        return expectedVersion + 1L;
+    }
+
+    public void reportManagedActualState(String instanceId, String actualState) {
+        requireText(instanceId, "instanceId");
+        String actual = normalizeManagedActualState(actualState);
+        int updated = jdbc.update(
+                "UPDATE OPS_RUNTIME_INSTANCE_STATE SET actual_runtime_state=?,updated_at=CURRENT_TIMESTAMP " +
+                        "WHERE instance_id=? AND lease_until>=CURRENT_TIMESTAMP", actual, instanceId);
+        if (updated != 1) {
+            throw new CpfRuntimeFenceException("활성 중앙 Runtime lease가 없어 actual state를 보고할 수 없습니다: " + instanceId);
+        }
+    }
+
+    private static String normalizeManagedDesiredState(String value) {
+        String state = blank(value).trim().toUpperCase(java.util.Locale.ROOT);
+        if (!Set.of("RUNNING","STOPPED","DRAINING","QUARANTINED","UPGRADING","ROLLING_BACK").contains(state)) {
+            throw new IllegalArgumentException("지원하지 않는 Runtime desiredState: " + value);
+        }
+        return state;
+    }
+
+    private static String normalizeManagedActualState(String value) {
+        String state = blank(value).trim().toUpperCase(java.util.Locale.ROOT);
+        if (!Set.of("STARTING","READY","BUSY","DRAINING","STOPPED","DEGRADED","STALE","UNREACHABLE","FAILED","UNKNOWN").contains(state)) {
+            throw new IllegalArgumentException("지원하지 않는 Runtime actualState: " + value);
+        }
+        return state;
+    }
+
     public CpfRuntimeInstanceLease heartbeat(String instanceId, long fencingToken, String actualHash,
                                              long actualVersion, int leaseSeconds) {
         return heartbeat(instanceId, fencingToken, actualHash, actualVersion, leaseSeconds, Instant.now());
@@ -1017,6 +1187,36 @@ public class CpfRuntimeControlPlaneRepository {
      * 부여해야 합니다. 단순 registrationSource 비교만으로는 AUTO_CONFIGURATION끼리의 충돌을 구분할 수
      * 없으므로 processId와 process 시작시각을 함께 fencing identity로 사용합니다.</p>
      */
+    private void requireServiceInstanceProjection(String instanceId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM OPS_SERVICE_INSTANCE WHERE instance_id=?", Integer.class, instanceId);
+        if (count == null || count != 1) {
+            throw new CpfRuntimeFenceException(
+                    "Runtime authoritative state와 Service Registry projection이 불일치합니다. reconcile 후 재등록해야 합니다: "
+                            + instanceId);
+        }
+    }
+
+    private void claimInactiveServiceInstanceIdentity(CpfRuntimeInstanceRegistration r) {
+        String managedServerId = resolveManagedServer(r);
+        try {
+            jdbc.update(
+                    "INSERT INTO OPS_SERVICE_INSTANCE(instance_id,managed_server_id,service_id,endpoint_code,instance_name,base_url,host_name," +
+                            "environment_code,zone_code,cell_code,instance_status,weight,priority_no,active_yn,maintenance_yn,drain_yn," +
+                            "last_heartbeat_at,system_code,application_name,application_role,runtime_hostname,process_id,java_version,cpf_version," +
+                            "application_version,started_at,created_by,updated_by) " +
+                            "VALUES (?,?,?,?,?,?,?,?,?,?,'REGISTERING',100,100,'N','N','N',NULL,?,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
+                    r.instanceId(), managedServerId, r.serviceId(), r.endpointCode(), r.instanceId(), r.baseUrl(),
+                    emptyToNull(r.runtimeHostname()), blank(r.environment()), blank(r.zone()), blank(r.cell()),
+                    emptyToNull(r.systemCode()), emptyToNull(r.applicationName()), emptyToNull(r.applicationRole()),
+                    emptyToNull(r.runtimeHostname()), r.processId()==null?null:String.valueOf(r.processId()),
+                    emptyToNull(r.javaVersion()), emptyToNull(r.cpfVersion()), emptyToNull(r.applicationVersion()), ts(r.startedAt()));
+        } catch (DuplicateKeyException duplicate) {
+            throw new CpfRuntimeFenceException(
+                    "Runtime instance 최초 identity claim 충돌 또는 partial state가 존재합니다: " + r.instanceId());
+        }
+    }
+
     private void assertSameActiveProcess(CpfRuntimeInstanceRegistration r) {
         List<Map<String,Object>> rows = jdbc.queryForList(
                 "SELECT system_code,runtime_hostname,application_name,process_id,started_at " +

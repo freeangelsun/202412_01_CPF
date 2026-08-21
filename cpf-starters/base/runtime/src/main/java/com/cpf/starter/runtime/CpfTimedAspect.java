@@ -1,6 +1,7 @@
 package com.cpf.starter.runtime;
 
 import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.annotation.CpfPerformance;
 import com.cpf.foundation.annotation.CpfTimed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -26,17 +27,23 @@ public final class CpfTimedAspect {
         this.meterRegistry = meterRegistry;
     }
 
-    @Around("@annotation(com.cpf.foundation.annotation.CpfTimed) || @within(com.cpf.foundation.annotation.CpfTimed)")
+    @Around("@annotation(com.cpf.foundation.annotation.CpfPerformance) || @within(com.cpf.foundation.annotation.CpfPerformance) || @annotation(com.cpf.foundation.annotation.CpfTimed) || @within(com.cpf.foundation.annotation.CpfTimed)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!properties.isPerformanceAnnotationEnabled()) return joinPoint.proceed();
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
-        CpfTimed timed = AnnotatedElementUtils.findMergedAnnotation(method, CpfTimed.class);
-        if (timed == null) timed = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), CpfTimed.class);
-        if (timed == null) return joinPoint.proceed();
+        CpfPerformance performance = AnnotatedElementUtils.findMergedAnnotation(method, CpfPerformance.class);
+        if (performance == null) performance = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), CpfPerformance.class);
+        CpfTimed legacy = null;
+        if (performance == null) {
+            legacy = AnnotatedElementUtils.findMergedAnnotation(method, CpfTimed.class);
+            if (legacy == null) legacy = AnnotatedElementUtils.findMergedAnnotation(method.getDeclaringClass(), CpfTimed.class);
+        }
+        if (performance == null && legacy == null) return joinPoint.proceed();
 
-        String operation = timed.value().isBlank()
+        String configuredValue = performance != null ? performance.value() : legacy.value();
+        String operation = configuredValue.isBlank()
                 ? method.getDeclaringClass().getSimpleName() + "." + method.getName()
-                : timed.value();
+                : configuredValue;
         long started = System.nanoTime();
         String outcome = "SUCCESS";
         try {
@@ -49,12 +56,15 @@ public final class CpfTimedAspect {
             Timer.Builder builder = Timer.builder("cpf.method.duration")
                     .tag("operation", operation)
                     .tag("outcome", outcome);
-            if (!timed.description().isBlank()) builder.description(timed.description());
-            if (timed.percentiles().length > 0) builder.publishPercentiles(timed.percentiles());
-            if (timed.histogram()) builder.publishPercentileHistogram();
-            String[] tags = timed.extraTags();
+            String description = performance != null ? performance.description() : legacy.description();
+            double[] percentiles = performance != null ? performance.percentiles() : legacy.percentiles();
+            boolean histogram = performance != null ? performance.histogram() : legacy.histogram();
+            String[] tags = performance != null ? performance.extraTags() : legacy.extraTags();
+            if (!description.isBlank()) builder.description(description);
+            if (percentiles.length > 0) builder.publishPercentiles(percentiles);
+            if (histogram) builder.publishPercentileHistogram();
             if (tags.length % 2 != 0) {
-                throw new IllegalStateException("CpfTimed.extraTags must contain key/value pairs");
+                throw new IllegalStateException("CpfPerformance.extraTags must contain key/value pairs");
             }
             for (int i = 0; i < tags.length; i += 2) builder.tag(tags[i], tags[i + 1]);
             builder.register(meterRegistry).record(nanos, TimeUnit.NANOSECONDS);

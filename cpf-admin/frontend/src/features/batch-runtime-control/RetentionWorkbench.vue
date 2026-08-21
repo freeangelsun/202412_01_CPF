@@ -12,8 +12,8 @@ import {
   admRetentionPolicySave,
   admRetentionPreview,
 } from '../../generated/orval/cpf-api'
-import type { AdmRetentionPolicySaveRequest } from '../../generated/orval/model/admRetentionPolicySaveRequest'
-import type { AdmRetentionPreviewRequest } from '../../generated/orval/model/admRetentionPreviewRequest'
+import type { RetentionPolicySaveRequest } from '../../generated/orval/model/retentionPolicySaveRequest'
+import type { RetentionPreviewRequest } from '../../generated/orval/model/retentionPreviewRequest'
 import { useAdmSessionStore } from '../../stores/admSessionStore'
 
 const session = useAdmSessionStore()
@@ -77,7 +77,7 @@ async function doPreview() {
   try {
     const retentionDays = Number(value(selectedPolicy.value,'retentionDays','retention_days'))
     const cutoff = new Date(Date.now() - Math.max(1, retentionDays) * 86400000).toISOString()
-    const body: AdmRetentionPreviewRequest = {
+    const body: RetentionPreviewRequest = {
       target: value(selectedPolicy.value,'target','target_name'),
       action: value(selectedPolicy.value,'action','action_name'), cutoff,
       legalHold: String(value(selectedPolicy.value,'legalHold','legal_hold_yn')).toUpperCase() === 'Y' || value(selectedPolicy.value,'legalHold') === true,
@@ -101,16 +101,24 @@ async function savePolicy() {
   if (!canPolicyRequest.value || !selectedPolicy.value || reason.value.trim().length < 5) return
   running.value = true; error.value = ''; notice.value = ''
   try {
-    const body: AdmRetentionPolicySaveRequest = {
-      ...selectedPolicy.value,
+    const body: RetentionPolicySaveRequest = {
       policyId: policyId.value,
-      target: value(selectedPolicy.value,'target','target_name'),
-      action: value(selectedPolicy.value,'action','action_name'),
+      target: String(value(selectedPolicy.value,'target','target_name')),
+      action: String(value(selectedPolicy.value,'action','action_name')),
       retentionDays: Math.max(1, policyEditor.value.retentionDays),
+      scheduleExpression: String(value(selectedPolicy.value,'scheduleExpression','schedule_expression') === '-' ? '' : value(selectedPolicy.value,'scheduleExpression','schedule_expression')),
+      maintenanceStart: String(value(selectedPolicy.value,'maintenanceStart','maintenance_start') === '-' ? '' : value(selectedPolicy.value,'maintenanceStart','maintenance_start')),
+      maintenanceEnd: String(value(selectedPolicy.value,'maintenanceEnd','maintenance_end') === '-' ? '' : value(selectedPolicy.value,'maintenanceEnd','maintenance_end')),
+      enabled: ['Y','TRUE','1'].includes(String(value(selectedPolicy.value,'enabled','enabled_yn')).toUpperCase()),
+      legalHold: ['Y','TRUE','1'].includes(String(value(selectedPolicy.value,'legalHold','legal_hold_yn')).toUpperCase()),
       chunkSize: Math.max(1, policyEditor.value.chunkSize),
-      throttleMs: Math.max(0, policyEditor.value.throttleMs),
+      throttleMillis: Math.max(0, policyEditor.value.throttleMs),
       maxRowsPerRun: Math.max(1, policyEditor.value.maxRowsPerRun),
       maxRuntimeSeconds: Math.max(1, policyEditor.value.maxRuntimeSeconds),
+      leaseSeconds: Math.max(1, Number(value(selectedPolicy.value,'leaseSeconds','lease_seconds')) || 60),
+      policyVersion: Math.max(0, Number(value(selectedPolicy.value,'policyVersion','policy_version')) || 0),
+      nextRunAt: value(selectedPolicy.value,'nextRunAt','next_run_at') === '-' ? undefined : String(value(selectedPolicy.value,'nextRunAt','next_run_at')),
+      rowVersion: Math.max(0, Number(value(selectedPolicy.value,'rowVersion','row_version')) || 0),
       reason: reason.value.trim(),
     }
     await admRetentionPolicySave(body)
@@ -131,7 +139,7 @@ async function togglePolicy(paused: boolean) {
       notice.value = 'Retention Schedule을 안전 일시정지했습니다.'
       await load()
     } else {
-      await admRetentionPolicyResume({ path: { policyId: policyId.value }, data: { reason: reason.value.trim() } })
+      await admRetentionPolicyResume({ path: { policyId: policyId.value }, data: { expectedVersion, reason: reason.value.trim() } })
       notice.value = 'Retention Schedule 재개 승인 요청을 생성했습니다.'
     }
   }
@@ -148,7 +156,7 @@ async function pauseRun() {
 async function resumeRun() {
   if (!canRunResume.value || !runId.value || reason.value.trim().length < 5) return
   running.value = true; error.value = ''; notice.value = ''
-  try { await admRetentionRunResume({ path: { runId: runId.value }, data: { reason: reason.value.trim() } }); notice.value = 'Retention Run 재개 승인 요청을 생성했습니다.' }
+  try { await admRetentionRunResume({ path: { runId: runId.value }, data: { expectedVersion: Number(value(selectedPolicy.value,'rowVersion','row_version')), reason: reason.value.trim() } }); notice.value = 'Retention Run 재개 승인 요청을 생성했습니다.' }
   catch (e) { error.value = e instanceof Error ? e.message : String(e) }
   finally { running.value = false }
 }

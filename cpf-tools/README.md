@@ -21,24 +21,24 @@ cpf-tools/verification  안정된 통합/기능 Gate
 
 ## Generated Customer Domain
 
-Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 입력 정본은 Framework의 `cpf-tools/generator/definitions/<domain>/cpf-domain.yaml` 또는 명시적인 `--file`이며, 검증용 상태는 `build/domain-generator/verification/**`에만 일시 저장한다.
+Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 입력 정본은 Framework의 `cpf-<domain>/cpf-domain.yaml` 또는 명시적인 `--file`이며, 검증용 상태는 `build/domain-generator/verification/**`에만 일시 저장한다.
 
 Windows 프로젝트 루트 기준 대표 명령:
 
 ```powershell
 # 정의 검증 / Dry-run
-.\cpf-tools\runtime\cli\cpf.bat domain validate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
-.\cpf-tools\runtime\cli\cpf.bat domain dry-run --file cpf-tools/generator/definitions/member/cpf-domain.yaml
+.\cpf-tools\runtime\cli\cpf.bat domain validate --file cpf-member/cpf-domain.yaml
+.\cpf-tools\runtime\cli\cpf.bat domain dry-run --file cpf-member/cpf-domain.yaml
 
 # 생성 / 검증 / 차이 확인
-.\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-tools/generator/definitions/member/cpf-domain.yaml
-.\cpf-tools\runtime\cli\cpf.bat verify domain --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
-.\cpf-tools\runtime\cli\cpf.bat domain diff --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
+.\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-member/cpf-domain.yaml
+.\cpf-tools\runtime\cli\cpf.bat verify domain --file cpf-member/cpf-domain.yaml --output cpf-member
+.\cpf-tools\runtime\cli\cpf.bat domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
 
 # 사용자 변경 보호가 적용되는 upgrade/remove/restore
 .\cpf-tools\runtime\cli\cpf.bat domain upgrade member
 .\cpf-tools\runtime\cli\cpf.bat domain remove member
-.\cpf-tools\runtime\cli\cpf.bat domain restore --file cpf-tools/generator/definitions/member/cpf-domain.yaml --output cpf-member
+.\cpf-tools\runtime\cli\cpf.bat domain restore --file cpf-member/cpf-domain.yaml --output cpf-member
 
 # Generator 전체 정적 검증
 .\cpf-tools\runtime\cli\cpf.bat verify all

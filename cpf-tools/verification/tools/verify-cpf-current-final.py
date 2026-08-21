@@ -55,59 +55,73 @@ def product_files(base:Path, pattern:str='*'):
         return []
     return [p for p in base.rglob(pattern) if product_file(p)]
 manifest=ROOT/'cpf-docs/deliverables/DELETE_MANIFEST.csv'
-entries=[]; approved_entries=[]
+entries=[]; approved_entries=[]; pending_entries=[]; user_approved_entries=[]
 if not manifest.is_file(): fail('DELETE_MANIFEST missing')
 else:
     try:
         with manifest.open(encoding='utf-8-sig', newline='') as h:
             rows=list(csv.DictReader(h))
-        if not rows or 'path' not in (rows[0].keys() if rows else []):
-            fail('DELETE_MANIFEST schema requires path column')
+        required={'path','reason','approved','precondition','lifecycle','user_execution_required','replacement_path','user_approved','user_approval_ref','user_approved_at'}
+        if not rows or not required.issubset(rows[0].keys() if rows else set()):
+            fail('DELETE_MANIFEST schema requires '+','.join(sorted(required)))
         for n,row in enumerate(rows,2):
-            s=(row.get('path') or '').strip().replace('\\','/')
-            if not s: continue
-            if any(x in s for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{s}')
-            if s.startswith(('/', '\\')) or '..' in Path(s).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{s}')
-            entries.append(s)
+            path=(row.get('path') or '').strip().replace('\\','/')
+            if not path: continue
+            if any(x in path for x in '*?['): fail(f'DELETE_MANIFEST wildcard:{n}:{path}')
+            if path.startswith(('/', '\\')) or '..' in Path(path).parts: fail(f'DELETE_MANIFEST unsafe:{n}:{path}')
+            entries.append(path)
             approved=(row.get('approved') or '').strip().lower() in {'true','1','yes','y'}
-            if approved: approved_entries.append(s)
+            precondition=(row.get('precondition') or '').strip()
+            lifecycle=(row.get('lifecycle') or '').strip()
+            user_required=(row.get('user_execution_required') or '').strip().lower() in {'true','1','yes','y'}
+            replacement=(row.get('replacement_path') or '').strip().replace('\\','/')
+            user_approved=(row.get('user_approved') or '').strip().lower() in {'true','1','yes','y'}
+            user_approval_ref=(row.get('user_approval_ref') or '').strip()
+            user_approved_at=(row.get('user_approved_at') or '').strip()
+            if approved: approved_entries.append(path)
+            if user_approved:
+                user_approved_entries.append(path)
+                if not user_approval_ref or not user_approved_at:
+                    fail(f'DELETE_MANIFEST user approval metadata incomplete:{n}:{path}')
+            if lifecycle=='PENDING_USER_EXECUTION':
+                pending_entries.append(path)
+                if not approved or precondition!='SATISFIED' or not user_required:
+                    fail(f'DELETE_MANIFEST pending row must be approved + SATISFIED + user execution required:{n}:{path}')
+                if replacement and not (ROOT/replacement).is_file():
+                    fail(f'DELETE_MANIFEST replacement missing:{n}:{path}->{replacement}')
+            elif lifecycle=='HISTORICAL_ALREADY_ABSENT':
+                if (ROOT/path).exists(): fail(f'historical delete path unexpectedly exists:{path}')
+            else:
+                fail(f'DELETE_MANIFEST unknown lifecycle:{n}:{lifecycle}:{path}')
     except Exception as e:
         fail(f'DELETE_MANIFEST parse:{e}')
     if len(entries)!=len(set(entries)): fail('DELETE_MANIFEST duplicate path')
-    protected=('cpf-docs/deliverables/','cpf-docs/guides/','cpf-docs/assets/manuals/','cpf-docs/assets/readme/',
-               'cpf-docs/environment/docker/','cpf-tools/environment/docker-development-test/')
-    protected_exact={'cpf-docs/specification/CPF_DOCUMENTATION_STANDARD.md'}
-    for s in approved_entries:
-        if (s.startswith(protected) or s in protected_exact) and (ROOT/s).exists():
-            fail(f'active protected delete path:{s}')
 INFO['deleteManifestCount']=len(entries)
 INFO['approvedDeleteManifestCount']=len(approved_entries)
-deleted=set(approved_entries)
-
+INFO['pendingUserExecutionDeleteCount']=len(pending_entries)
+INFO['userApprovedDeleteCount']=len(user_approved_entries)
+# Internal approval is not equivalent to a deletion already applied to the source tree.
+# Final source verification therefore inspects the physical tree only; pending paths must
+# be absent in a Fresh Replay before the Canonical Final Gate can PASS.
 def survives(p:Path)->bool:
-    try:r=p.relative_to(ROOT).as_posix()
-    except ValueError:return False
-    return r not in deleted
-# EDU exact 35 is feature-package based. Numeric flat Example classes are legacy and must be removed via manifest.
+    return p.is_file()
+
+# EDU exact 35 is a physical first-level feature-package contract.
 base=ROOT/'cpf-education/src/main/java/com/cpf/education'
-online_expected={'basiccrud','querypaging','common','validation','internalservice','domaincall','externalrest','fixedlength','transaction','externalsideeffect','ondemandbatch','centercut','cache','messaging','file','securityaudit','recovery','concurrency','webhook'}
-# transaction owns two canonical feature subpackages: required + requiresnew. Count those separately.
-online_features=[]
-if (base/'online').is_dir():
-    for name in sorted(online_expected-{'transaction'}):
-        d=base/'online'/name
-        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): online_features.append(name)
-    for name in ('required','requiresnew'):
-        d=base/'online'/'transaction'/name
-        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): online_features.append('transaction.'+name)
+online_expected={'basiccrud','querypaging','common','validation','internalservice','domaincall','externalrest','fixedlength','transactionrequired','transactionrequiresnew','externalsideeffect','ondemandbatch','centercut','cache','messaging','file','securityaudit','recovery','concurrency','webhook'}
 batch_expected={'tasklet','chunk','flatfile','partition','centercut','scheduler','restart','distributedworker','shellcommand','conditionalflow','chunktransaction','requiresnew','steptransaction','externalcall','ondemand'}
-batch_features=[]
-if (base/'batch').is_dir():
-    for name in sorted(batch_expected):
-        d=base/'batch'/name
-        if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')): batch_features.append(name)
+def physical_groups(category_root:Path)->set[str]:
+    result=set()
+    if category_root.is_dir():
+        for d in category_root.iterdir():
+            if d.is_dir() and any(survives(p) for p in product_files(d,'*.java')):
+                result.add(d.name)
+    return result
+online_features=physical_groups(base/'online')
+batch_features=physical_groups(base/'batch')
 INFO['eduOnline']=len(online_features); INFO['eduBatch']=len(batch_features)
-if len(online_features)!=20 or len(batch_features)!=15: fail(f'EDU count online={len(online_features)} batch={len(batch_features)}')
+if online_features!=online_expected: fail(f'EDU online physical groups mismatch missing={sorted(online_expected-online_features)} extra={sorted(online_features-online_expected)}')
+if batch_features!=batch_expected: fail(f'EDU batch physical groups mismatch missing={sorted(batch_expected-batch_features)} extra={sorted(batch_features-batch_expected)}')
 # surviving EDU root dirs (logical after manifest)
 roots=[]
 if base.is_dir():

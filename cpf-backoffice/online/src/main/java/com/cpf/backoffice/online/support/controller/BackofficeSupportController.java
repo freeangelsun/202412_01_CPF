@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.support.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.support.service.BackofficeSupportService;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /** MBW 업무 운영 편의 기능과 권한 분석 API입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice")
 @Tag(name = "MBW-Support", description = "MBW 대시보드, 알림, 첨부, 저장 검색, 다운로드 감사, 권한 분석 API")
 public class BackofficeSupportController extends com.cpf.backoffice.online.base.BackofficeBaseController {

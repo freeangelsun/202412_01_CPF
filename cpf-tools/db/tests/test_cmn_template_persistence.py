@@ -10,6 +10,7 @@ ROOT = Path(os.environ.get("CPF_REPO_ROOT", Path(__file__).resolve().parents[3])
 DB = ROOT / "cpf-tools/db"
 JAVA = ROOT / "cpf-common/src/main/java/com/cpf/common/template"
 CACHE = ROOT / "cpf-starters/common/src/main/java/com/cpf/common/runtime/cache"
+AUTOCONFIG = ROOT / "cpf-starters/common/src/main/java/com/cpf/common/runtime/CpfCommonJdbcAutoConfiguration.java"
 VENDORS = ("mariadb", "postgresql", "oracle")
 
 
@@ -65,9 +66,14 @@ class CmnTemplatePersistenceTest(unittest.TestCase):
         store = (JAVA / "CmnJdbcTemplateStore.java").read_text(encoding="utf-8")
         management = (JAVA / "CmnTemplateManagementService.java").read_text(encoding="utf-8")
         listener = (CACHE / "CpfCommonCacheRefreshListener.java").read_text(encoding="utf-8")
+        wiring = AUTOCONFIG.read_text(encoding="utf-8")
         self.assertIn("@Component", renderer)
-        self.assertIn("@Service", service)
-        self.assertIn("@Repository", store)
+        self.assertNotIn("@Service", service)
+        self.assertNotIn("@Repository", store)
+        self.assertIn("@ConditionalOnMissingBean(CmnTemplateService.class)", wiring)
+        self.assertIn("return new CmnTemplateService(provider, renderer);", wiring)
+        self.assertIn("CmnTemplateStore cmnTemplateStore", wiring)
+        self.assertIn("return new CmnJdbcTemplateStore(dataSource);", wiring)
         self.assertIn("findActive", store)
         self.assertIn('CACHE_NAME = "commonTemplate"', management)
         self.assertIn("refresher.refresh(cache);", listener)
@@ -76,7 +82,10 @@ class CmnTemplatePersistenceTest(unittest.TestCase):
     def test_only_store_is_product_spring_persistence_provider(self):
         self.assertTrue((JAVA / "CmnTemplateStore.java").is_file())
         store = (JAVA / "CmnJdbcTemplateStore.java").read_text(encoding="utf-8")
-        self.assertIn("@Repository", store)
+        self.assertNotIn("@Repository", store)
+        wiring = AUTOCONFIG.read_text(encoding="utf-8")
+        self.assertIn("CmnTemplateStore cmnTemplateStore", wiring)
+        self.assertIn("return new CmnJdbcTemplateStore(dataSource);", wiring)
         legacy = (JAVA / "CmnJdbcTemplateRepository.java").read_text(encoding="utf-8")
         self.assertIn("@Deprecated", legacy)
         self.assertNotIn("@Repository", legacy)

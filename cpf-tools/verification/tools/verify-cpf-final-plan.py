@@ -12,7 +12,7 @@ REQUIRED_FLAGS={
   "cpf-tools/security/tools/verify-cpf-controller-permission-contract.py": {"--root","--strict"},
   "cpf-tools/verification/tools/verify-cpf-adm-e2e-contract.py": {"--root"},
 }
-TOKEN_RE=re.compile(r"\{(root|sha|evidence)\}")
+TOKEN_RE=re.compile(r"\{(root|sha|sourceSha256|baselineSourceZipSha256|evidence)\}")
 class PlanError(RuntimeError): pass
 
 def load(path:Path)->dict:

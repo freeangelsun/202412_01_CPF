@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "registryId": "cpf-current-canonical-static-verifiers",
+  "rootArgumentPolicy": "Every registered Python verifier receives --root <repositoryRoot> exactly once.",
+  "verifiers": [
+    {
+      "id": "current-final",
+      "path": "cpf-tools/verification/tools/verify-cpf-current-final.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "no-partial",
+      "path": "cpf-tools/verification/verify_no_partial_implementation.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "clean-source",
+      "path": "cpf-tools/verification/tools/verify-cpf-clean-source-tree.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "requirement-progress",
+      "path": "cpf-tools/verification/verify_requirement_progress.py",
+      "args": [
+        "--expected-canonical",
+        "205"
+      ],
+      "required": true
+    },
+    {
+      "id": "requirement-projection",
+      "path": "cpf-tools/verification/tools/verify-cpf-requirement-projection-consistency.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "public-function-top100",
+      "path": "cpf-tools/verification/tools/report-cpf-public-function-catalog.py",
+      "args": [
+        "--check"
+      ],
+      "required": true
+    },
+    {
+      "id": "public-javadoc",
+      "path": "cpf-tools/verification/tools/verify-cpf-javadoc-coverage.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "common-dx",
+      "path": "cpf-tools/verification/verify_common_product_service_dx.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "crosscut",
+      "path": "cpf-tools/verification/verify_business_framework_crosscut.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "annotation-runtime",
+      "path": "cpf-tools/verification/nxt3/verify_annotation_runtime_consumer.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "adm-e2e-contract",
+      "path": "cpf-tools/verification/tools/verify-cpf-adm-e2e-contract.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "backoffice-route",
+      "path": "cpf-tools/verification/tools/verify-cpf-backoffice-route-contract.py",
+      "args": [],
+      "required": true
+    }
+  ]
+}

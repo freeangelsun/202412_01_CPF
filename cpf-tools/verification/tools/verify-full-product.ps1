@@ -80,7 +80,7 @@ try{
         @('Offline DB resource pack','cpf-tools/db/verification/check-offline-db-resource-pack.ps1'),
         @('Official DB vendor readiness','cpf-tools/db/verification/check-official-db-vendor-readiness.ps1'),
         @('Runtime query contract integrity','cpf-tools/db/verification/check-query-contract-integrity.ps1'),
-        @('ADM/BZA data safety','cpf-tools/verification/tools/check-admin-data-safety.ps1'),
+        @('ADM/MBW data safety','cpf-tools/verification/tools/check-admin-data-safety.ps1'),
         @('Data-safety schema contract','cpf-tools/verification/tools/check-data-safety-schema-contract.ps1'),
         @('Enterprise QA closing','cpf-tools/verification/tools/check-enterprise-qa-closing.ps1'),
         @('Migration checksum immutable','cpf-tools/db/verification/check-migration-checksums.ps1'),
@@ -106,7 +106,7 @@ try{
         }
     }else{
         Skip 'Gradle clean test assemble' '-StaticOnly'
-        Skip 'ADM/BZA npm test/build' '-StaticOnly'
+        Skip 'ADM/MBW npm test/build' '-StaticOnly'
     }
 
     if($WithGeneratorLifecycle){
@@ -124,7 +124,7 @@ try{
                 if(-not(Pwsh "Browser smoke: $script" $script @('-Root',$Root))){$allOk=$false}
             }else{Result "Browser smoke: $script" 'FAIL' 'script missing';$allOk=$false}
         }
-    }else{Skip 'ADM/BZA browser smoke' 'use -WithBrowser'}
+    }else{Skip 'ADM/MBW browser smoke' 'use -WithBrowser'}
 
     # 실행으로 생성된 root garbage가 없는지 마지막에 재검증한다.
     foreach($post in @(

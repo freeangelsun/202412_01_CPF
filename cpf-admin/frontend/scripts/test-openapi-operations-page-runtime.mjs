@@ -9,7 +9,14 @@ const root = process.cwd();
 const pagePath = path.join(root, "src/features/openapi-operations/OpenApiOperationsPage.vue");
 const routePath = path.join(root, "src/app/routes.ts");
 const page = fs.readFileSync(pagePath, "utf8");
-const routes = fs.readFileSync(routePath, "utf8");
+const routeFiles = [routePath];
+const routeDir = path.join(root, "src/app/routes");
+if (fs.existsSync(routeDir)) {
+  for (const entry of fs.readdirSync(routeDir).filter(name => name.endsWith(".ts") && name !== "types.ts").sort()) {
+    routeFiles.push(path.join(routeDir, entry));
+  }
+}
+const routes = routeFiles.map(file => fs.readFileSync(file, "utf8")).join("\n");
 if (/(?:getJson|sendJson|rawResponse)\(\s*[`'"]\/adm\/api\/openapi/.test(page)) throw new Error("OpenAPI page raw URL bypass detected");
 for (const token of ["admOpenApiStatus", "admOpenApiRefresh", '"X-CPF-Risk-Confirmed": "confirmed"', 'role="alert"', 'aria-live="polite"']) {
   if (!page.includes(token)) throw new Error(`OpenAPI page contract missing: ${token}`);
@@ -40,8 +47,13 @@ export function setResponse(name:string, value:unknown):void { responses.set(nam
 export function admOpenApiStatus<T=unknown>():Promise<T> { calls.push({name:"admOpenApiStatus",args:[]}); return Promise.resolve(responses.get("admOpenApiStatus") as T); }
 export function admOpenApiRefresh<T=unknown>(options:unknown):Promise<T> { calls.push({name:"admOpenApiRefresh",args:[options]}); return Promise.resolve(responses.get("admOpenApiRefresh") as T); }
 `);
-const tsc = spawnSync(process.execPath, [
-  path.join(root,"node_modules","typescript","bin","tsc"), "--ignoreConfig", "page.ts", "mock-generated.ts", "mock-session.ts", "vue.d.ts",
+const localTsc = path.join(root,"node_modules","typescript","bin","tsc");
+const tscCommand = fs.existsSync(localTsc) ? process.execPath : "tsc";
+const tscArgs = fs.existsSync(localTsc)
+  ? [localTsc, "--ignoreConfig", "page.ts", "mock-generated.ts", "mock-session.ts", "vue.d.ts"]
+  : ["page.ts", "mock-generated.ts", "mock-session.ts", "vue.d.ts"];
+const tsc = spawnSync(tscCommand, [
+  ...tscArgs,
   "--target", "ES2022", "--module", "ES2022", "--moduleResolution", "Bundler",
   "--strict", "--noImplicitThis", "false", "--skipLibCheck", "--outDir", temp
 ], { cwd: temp, encoding: "utf8" });

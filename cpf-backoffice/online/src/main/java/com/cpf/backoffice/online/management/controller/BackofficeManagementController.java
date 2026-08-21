@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.management.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 import com.cpf.backoffice.online.management.dto.BackofficeEmployeeRawContactResponse;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /** MBW 범용 백오피스와 결재 capability API입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/backoffice")
 @Tag(name = "MBW-Backoffice", description = "MBW 조직·직원·실효 권한·결재·업무 감사 API")
 public class BackofficeManagementController extends com.cpf.backoffice.online.base.BackofficeBaseController {

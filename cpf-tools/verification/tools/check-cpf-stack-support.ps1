@@ -62,7 +62,7 @@ $forbiddenLiterals = @(
 foreach ($literal in $forbiddenLiterals) {
     if ($rootBuild.Contains($literal)) { throw "Root build contains duplicated stack version literal: $literal" }
 }
-$generatedDefinitionRoot = Join-Path $Root 'cpf-tools/generator/definitions'
+$generatedDefinitionRoot = $Root
 $generatedRootPrefixes = @(
     Get-ChildItem -LiteralPath $generatedDefinitionRoot -Directory -ErrorAction SilentlyContinue |
         ForEach-Object {

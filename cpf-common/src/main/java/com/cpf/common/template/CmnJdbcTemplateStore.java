@@ -2,11 +2,8 @@ package com.cpf.common.template;
 
 import com.cpf.common.persistence.CpfCommonSqlResourceLoader;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -20,13 +17,11 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 /** Official cpfDB JDBC implementation for versioned common-template lifecycle and append-only audit. */
-@Repository
-@ConditionalOnProperty(name = "cpf.common.template.jdbc.enabled", havingValue = "true", matchIfMissing = true)
 public final class CmnJdbcTemplateStore implements CmnTemplateStore {
     private static final int MAX_AUDIT_ROWS = 500;
     private final JdbcTemplate jdbc;
 
-    public CmnJdbcTemplateStore(@Qualifier("cpfCommonDataSource") DataSource dataSource) {
+    public CmnJdbcTemplateStore(DataSource dataSource) {
         this.jdbc = new JdbcTemplate(dataSource);
     }
 

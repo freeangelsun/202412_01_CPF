@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
-/** ADM/BZA privileged console의 Session·Credential·CSRF 정책입니다. */
+/** ADM/MBW privileged console의 Session·Credential·CSRF 정책입니다. */
 @ConfigurationProperties("cpf.security.session")
 public record CpfServerSessionProperties(
         boolean enabled,

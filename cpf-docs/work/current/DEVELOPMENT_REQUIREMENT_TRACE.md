@@ -1,7 +1,7 @@
 # CPF Header / Context / Public API Development Requirement Trace
 
-- Baseline: `4b6f96796c3bf26b1c3324cc4d9b701bd9415acd`
-- Result source SHA-256: `629bc777b66c46a8d79cce28e5f5a5a694655d3b145a90cfd50cf2b232c7b6a9`
+- Baseline ZIP SHA-256: `8b2e064accaead9e3b81bbf306c2197142621ffdc25aab6cba9a420ef613ad1f`
+- Result source SHA-256: `c927382e9bd2b559a306e3ccf33183492190a83fbf11255b3a81f0a72c131f3a`
 - 개발지침/Steering 충돌 시 이번 Header/Context 지침 + 관리팀 Public API Steering 의도를 최우선으로 정본에 현행화했다.
 
 ## Trace
@@ -12,7 +12,7 @@
 | HDR-002 | Internal Domain canonical six automatic propagation | Typed Domain transport owns propagation; generic HTTP injects none | 완료 | 완료 |
 | HDR-003 | External ingress generates/normalizes protected transaction/system context | Unverified external ingress defaults external; controller-before context creation | 완료 | 완료 |
 | HDR-004 | Inbound missing/malformed/forged/system-target-operation mismatch enforcement | 400/403/409 mapping and pre-controller enforcement source/static gates PASS | 완료 | 완료 |
-| HDR-005 | Canonical operationId parity across annotation/OpenAPI/domain header/ADM | ADM 323/323, BZA 96/96 exact OpenAPI/controller coverage PASS | 완료 | 완료 |
+| HDR-005 | Canonical operationId parity across annotation/OpenAPI/domain header/ADM | ADM 337/337, Backoffice 96/96 exact OpenAPI/controller coverage PASS | 완료 | 완료 |
 | HDR-006 | Dynamic custom Header Public API and protected mutation guard | Java21 actual-source header gate PASS 10 assertions | 완료 | 완료 |
 | HDR-007 | Header policy: required/type/pattern/masking/propagation boundary | policy registry/log sanitizer/runtime enforcement currentized | 완료 | 완료 |
 | HDR-008 | Trusted proxy clientIp normalization and untrusted forwarding rejection | trusted proxy resolver and ingress trust boundary implemented/tests added | 완료 | 완료 |
@@ -32,6 +32,6 @@
 | PUB-007 | EDU/Generated Domain use Public Golden Path, no Internal/raw context plumbing | static no-internal/no-raw-context gates PASS; EDU raw ThreadLocal/HttpClient patterns cleaned | 완료 | 완료 |
 | DB-001 | Same-meaning same-name transaction DB/Java/ADM fields + DB3 lifecycle | CLIENT_ID/ORIGINAL_SYSTEM_CODE/SYSTEM_CODE/CALLER_SYSTEM_CODE/TARGET_SYSTEM_CODE/TARGET_OPERATION_ID/INSTANCE_ID; DB3 gates PASS | 완료 | 완료 |
 | DB-002 | EDU canonical operationId vs executionId DB lifecycle | refDB V95/U95, lifecycle/checksum PASS | 완료 | 완료 |
-| OPENAPI-001 | Canonical OpenAPI profile + exact controller coverage | profile PASS; ADM 323/323, BZA 96/96 | 완료 | 완료 |
+| OPENAPI-001 | Canonical OpenAPI profile + exact controller coverage | profile PASS; ADM 337/337, Backoffice 96/96 | 완료 | 완료 |
 | HYGIENE-001 | Dead/duplicate/stale file and in-file garbage cleanup | 75 root-relative deletions; protected deletion 0; pyc 0 | 완료 | 완료 |
 | RUNTIME-001 | Minimal Java25/live runtime re-verification for current change impact | Gradle wrapper distribution blocked by services.gradle.org DNS in assistant environment; user local minimal runtime required | 미검증 | Runtime 재확인 |

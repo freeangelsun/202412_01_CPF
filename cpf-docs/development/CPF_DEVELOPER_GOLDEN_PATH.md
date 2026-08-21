@@ -110,7 +110,7 @@ Canonical Generator는 `dry-run`, `diff`, `regenerate`, `upgrade`, `remove`, `re
 3. Code / Message / Parameter / Calendar
 4. Domain Call / External Integration
 5. Cache / Messaging / Security
-6. Generator / ADM / BZA / Full Platform
+6. Generator / ADM / MBW Backoffice / Full Platform
 
 CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Extension을 먼저 사용합니다.
 
@@ -129,7 +129,7 @@ CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Ext
 
 - **Minimal 성격**: Web + Context + Validation + Logging + Transaction
 - **Standard 성격**: Minimal + Security + Domain Call + Common + Cache + Observability
-- **Full Platform 성격**: Standard + Messaging + Batch + ADM/BZA + Gateway + Advanced Recovery
+- **Full Platform 성격**: Standard + Messaging + Batch + ADM/MBW Backoffice + Gateway + Advanced Recovery
 
 실제 선택 가능한 Starter는 `CPF_STARTER_QUICK_SELECT.md`가 정본 Catalog와 함께 검증합니다.
 
@@ -146,7 +146,7 @@ CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Ext
 
 ## 관리 API와 업무 거래 API를 구분하는 기준
 
-- ADM/BZA/Gateway 자체 Controller는 업무 Domain Online Transaction이 아니므로 `@CpfOnlineTransaction`과 거래 Header 6개를 붙이지 않습니다.
+- ADM/MBW Backoffice/Gateway 자체 Controller는 업무 Domain Online Transaction이 아니므로 `@CpfOnlineTransaction`과 거래 Header 6개를 붙이지 않습니다.
 - 관리 기능은 Spring Web/Security/Validation/OpenAPI와 해당 Owner의 CPF Public API를 사용합니다. `cpf-core` internal package나 업무 Domain internal package를 직접 참조하지 않습니다.
 - 관리 화면에서 MBR/EXS 같은 실제 업무 Operation을 호출하는 경우에는 Controller가 아니라 **Domain Client outbound 경계**부터 거래 Context를 적용합니다. 개발자가 Header 6개를 직접 만들지 않습니다.
 - Generated Domain은 `online/` 필수, `modules.batch=true`일 때 `batch/` 선택 구조입니다. 업무 예제는 EDU `online` 20개와 `batch` 15개를 Canonical로 사용합니다.

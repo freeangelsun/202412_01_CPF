@@ -3,7 +3,7 @@ package com.cpf.common.management;
 import java.util.List;
 import java.util.Set;
 
-/** BZA가 Common Public Management API를 통해 관리할 수 있는 CPF Product Service 자원 allowlist입니다. */
+/** MBW Backoffice가 Common Public Management API를 통해 관리할 수 있는 CPF Product Service 자원 allowlist입니다. */
 public enum CpfCommonResource {
     CODE("CMN_CODE", List.of("code_id"), "code_id", "use_yn", null, null, null, "codeCache",
             Set.of("code_id","parent_id","code_key","code_value","description","use_yn"),

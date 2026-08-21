@@ -3,16 +3,12 @@ package com.cpf.common.template;
 import com.cpf.common.spi.CpfCommonPersistenceNames;
 import com.cpf.foundation.api.CpfBaseService;
 import com.cpf.common.spi.CpfCommonCacheChangePublisher;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
 
 /** Product administration service with audit, optimistic locking and durable multi-instance refresh. */
-@Service
-@ConditionalOnBean(CmnTemplateStore.class)
 public final class CmnTemplateManagementService extends CpfBaseService {
     private static final String CACHE_NAME = "commonTemplate";
     private final CmnTemplateStore store;

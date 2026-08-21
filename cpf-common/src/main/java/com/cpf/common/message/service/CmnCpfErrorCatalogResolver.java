@@ -7,9 +7,6 @@ import com.cpf.common.message.api.CpfResolvedError;
 import com.cpf.common.message.api.CpfResponseCodeRecord;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.error.CpfErrorDefinition;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -19,9 +16,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** CMN_RESPONSE_CODE → CMN_MESSAGE를 해석하는 Common Product Service입니다. */
-@Primary
-@Component
-@ConditionalOnProperty(prefix = "cpf.common", name = "runtime-mode", havingValue = "product", matchIfMissing = true)
 public final class CmnCpfErrorCatalogResolver implements CpfErrorCatalogResolver {
     private static final Locale DEFAULT_LOCALE = Locale.KOREAN;
     private static final Pattern TOKEN = Pattern.compile("\\{([A-Za-z0-9_.-]+)}");
@@ -35,7 +29,6 @@ public final class CmnCpfErrorCatalogResolver implements CpfErrorCatalogResolver
         this(cache, signals, argumentPolicy, Clock.systemUTC());
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
     public CmnCpfErrorCatalogResolver(CmnErrorCatalogStore cache, CpfErrorCatalogSignalSink signals, CmnMessageArgumentPolicy argumentPolicy, Clock clock) {
         this.cache = cache; this.signals = signals; this.argumentPolicy = argumentPolicy;
         this.clock = java.util.Objects.requireNonNull(clock, "clock");

@@ -1,4 +1,4 @@
-/* ADM/BZA 실제 Consumer가 CPF Framework Annotation을 사용하도록 currentize한다. */
+/* ADM/MBW 실제 Consumer가 CPF Framework Annotation을 사용하도록 currentize한다. */
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.health.AdmHealthInstanceRegistry;

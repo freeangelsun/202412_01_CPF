@@ -39,13 +39,68 @@
       "id": "requirement-traceability",
       "stage": "source",
       "runner": "python",
-      "path": "cpf-tools/governance/tools/verify-cpf-requirement-traceability.py",
+      "path": "cpf-tools/verification/verify_requirement_progress.py",
       "args": [
         "--root",
         "{root}",
-        "--expected-sha",
-        "{sha}",
-        "--require-clean"
+        "--expected-canonical",
+        "205"
+      ],
+      "required": true
+    },
+    {
+      "id": "current-final-source",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/tools/verify-cpf-current-final.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "no-partial-source",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/verify_no_partial_implementation.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "clean-source-tree",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/tools/verify-cpf-clean-source-tree.py",
+      "args": [
+        "--root",
+        "{root}"
+      ],
+      "required": true
+    },
+    {
+      "id": "public-function-top100",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/tools/report-cpf-public-function-catalog.py",
+      "args": [
+        "--root",
+        "{root}",
+        "--check"
+      ],
+      "required": true
+    },
+    {
+      "id": "public-javadoc-coverage",
+      "stage": "source",
+      "runner": "python",
+      "path": "cpf-tools/verification/tools/verify-cpf-javadoc-coverage.py",
+      "args": [
+        "--root",
+        "{root}"
       ],
       "required": true
     },
@@ -132,8 +187,8 @@
       "args": [
         "-RepoRoot",
         "{root}",
-        "-ExpectedSourceSha",
-        "{sha}"
+        "-BaselineSourceZipSha256",
+        "{baselineSourceZipSha256}"
       ],
       "required": true,
       "requiredTool": "java25"

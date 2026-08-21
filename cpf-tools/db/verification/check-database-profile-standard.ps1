@@ -350,7 +350,7 @@ if (Test-Path -LiteralPath $settingsPath) {
     $settingsText = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8
     foreach ($requiredSettingsToken in @(
             "cpfIncludeGeneratedDomains",
-            "cpf-tools/generator/definitions",
+            "cpf-domain.yaml",
             "includeBuild(canonical)")) {
         if (-not $settingsText.Contains($requiredSettingsToken)) {
             throw "settings.gradle에 canonical Generated Domain opt-in composite 계약이 없습니다: $requiredSettingsToken"

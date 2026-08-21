@@ -19,7 +19,7 @@ $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 $sourceFiles = @(
     "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
-    "cpf-docs/work/QA_FINDING_REVALIDATION.csv",
+    "cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv",
     "cpf-docs/deliverables/OPEN_ISSUES.md",
     "cpf-docs/work/current/CPF_CODEX_REVALIDATION_SCOPE.md"
 )
@@ -35,7 +35,7 @@ foreach ($sourceFile in $sourceFiles) {
         continue
     }
     $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
-    foreach ($match in [regex]::Matches($text, '`(?<path>cpf-docs/work/evidence/current/[^`<>]+)`')) {
+    foreach ($match in [regex]::Matches($text, '`(?<path>cpf-docs/work/evidence/[^`<>]+)`')) {
         $relative = $match.Groups['path'].Value.Replace('\', '/').TrimEnd('/')
         if ($relative -match '<[^>]+>' -or
                 $false) {

@@ -3,10 +3,10 @@ import com.cpf.core.api.result.CpfResult;
 import com.cpf.education.online.domaincall.dto.CreditCheckResponse;
 import com.cpf.education.online.domaincall.service.MemberCreditService;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
-@CpfRestController
+@CpfController
 @RequestMapping("/edu/online/member-credit")
 /** MemberCreditController는 현재 Operation과 Target Operation을 분리하고 CPF Domain Client를 사용하는 내부 Domain 호출 Golden Path입니다. */
 public class MemberCreditController {

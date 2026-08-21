@@ -5,465 +5,652 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.time.Duration;
-import java.time.Instant;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
-/**
- * CPF Local Bootstrap의 Windows/Linux 공용 엔진입니다.
- *
- * <p>OS wrapper에는 lifecycle 의미를 두지 않고 이 엔진만 다음 순서를 소유합니다.
- * prerequisite -> selected DB -> actual DB health -> DB3 render/migration/seed/verify
- * -> capability middleware -> domain discovery -> build/test -> runtime start/health.</p>
- */
+/** CPF Public Developer Workspace의 OS-neutral Local Bootstrap Engine. Java 25 source launcher로 실행합니다. */
 public final class CpfBootstrap {
-    private static final Set<String> DB3 = Set.of("postgresql", "mariadb", "oracle");
+    private static final Pattern DOMAIN_BLOCK = Pattern.compile("(?ms)^domain:\\s*\\n((?:^[ ]{2}.+\\n?)*)");
     private static final Pattern DOMAIN_NAME = Pattern.compile("(?m)^\\s{2}name:\\s*([a-z][a-z0-9-]*)\\s*$");
     private static final Pattern SYSTEM_CODE = Pattern.compile("(?m)^\\s{2}systemCode:\\s*([A-Z][A-Z0-9]{2})\\s*$");
-    private static final Pattern ONLINE_PORT = Pattern.compile("(?m)^\\s{2}localOnlinePort:\\s*(\\d+)\\s*$");
-    private static final Pattern PERSISTENCE = Pattern.compile("(?m)^\\s{2}persistence:\\s*([a-z0-9-]+)\\s*$");
-    private static final Pattern CACHE = Pattern.compile("(?m)^\\s{2}cache:\\s*([a-z0-9-]+)\\s*$");
-    private static final Pattern MESSAGING = Pattern.compile("(?m)^\\s{2}messaging:\\s*([a-z0-9-]+)\\s*$");
-    private static final String REGISTRY = "build/cpf-local/bootstrap/runtime-registry.properties";
-    private static final String STATE = "build/cpf-local/bootstrap/bootstrap-state.properties";
+    private static final Pattern FEATURE_VALUE = Pattern.compile("(?m)^\\s{2}(persistence|cache|messaging):\\s*([a-zA-Z0-9-]+)\\s*$");
+    private static final Pattern LOCAL_ONLINE_PORT = Pattern.compile("(?m)^\\s{2}localOnlinePort:\\s*(\\d+)\\s*$");
+    private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private final Path root;
+    private final Path logDir;
+    private final PrintWriter log;
+    private final int timeoutSeconds;
+    private final Map<String,String> baseEnv = new HashMap<>(System.getenv());
+    private final Properties workspace = new Properties();
+    private final List<Domain> domains = new ArrayList<>();
+    private String requestedDbVendor = "";
+    private String localDbPassword;
 
-    record Domain(String name, String systemCode, int port, String persistence, String cache, String messaging, Path definition, Path project) {}
-    record Options(Path workspace, String action, String db, int timeoutSeconds, boolean skipBuild, boolean skipTest, boolean startRuntime, boolean confirmReset) {}
+    private record DbBinding(String vendor, String host, int port, String databaseName, String serviceName, String schemaName,
+                             String migrationUser, String runtimeUser, String migrationSecretEnv, String runtimeSecretEnv, Path profile) {}
+    private record Domain(String name, String systemCode, Path definition, Path project, Map<String,String> features, int localOnlinePort, DbBinding db) {}
+    private record ExecResult(int exit, String output) {}
 
-    private final Options options;
-    private final Path workspace;
-    private final Path compose;
-    private final Map<String,String> env;
-
-    private CpfBootstrap(Options options) {
-        this.options = options;
-        this.workspace = options.workspace.toAbsolutePath().normalize();
-        this.compose = resolveCompose(workspace);
-        this.env = System.getenv();
+    private CpfBootstrap(Path root, int timeoutSeconds) throws Exception {
+        this.root = root.toAbsolutePath().normalize();
+        this.timeoutSeconds = timeoutSeconds;
+        this.logDir = this.root.resolve("build/cpf-bootstrap/CPF_BOOTSTRAP_" + TS.format(LocalDateTime.now()));
+        Files.createDirectories(logDir);
+        this.log = new PrintWriter(Files.newBufferedWriter(logDir.resolve("bootstrap.log"), StandardCharsets.UTF_8));
+        Path properties = root.resolve("config/cpf-workspace.properties");
+        if (Files.isRegularFile(properties)) try (Reader r = Files.newBufferedReader(properties, StandardCharsets.UTF_8)) { workspace.load(r); }
     }
 
     public static void main(String[] args) {
-        Instant started = Instant.now();
-        int code = 0;
-        String action = "bootstrap";
+        int code = 1;
+        CpfBootstrap app = null;
         try {
-            Options options = parse(args);
-            action = options.action;
-            new CpfBootstrap(options).execute();
-        } catch (Exception e) {
-            code = 1;
-            System.err.println("[CPF][BOOTSTRAP][FAIL] " + e.getMessage());
-            if (Boolean.parseBoolean(System.getenv().getOrDefault("CPF_BOOTSTRAP_DEBUG", "false"))) e.printStackTrace(System.err);
+            Path root = locateRoot();
+            Map<String,String> options = parseArgs(args);
+            int timeout = Integer.parseInt(options.getOrDefault("timeout", readDefaultTimeout(root)));
+            app = new CpfBootstrap(root, timeout);
+            code = app.execute(options);
+        } catch (Throwable e) {
+            System.err.println("[CPF][BOOTSTRAP] FAIL: " + sanitize(e.getMessage()));
+            if (app != null) app.logException(e);
         } finally {
-            System.out.printf(Locale.ROOT,
-                    "[CPF][BOOTSTRAP][FINAL] action=%s result=%s exitCode=%d started=%s finished=%s%n",
-                    action, code == 0 ? "PASS" : "FAIL", code, started, Instant.now());
+            if (app != null) app.close();
         }
-        if (code != 0) System.exit(code);
+        System.exit(code);
     }
 
-    private void execute() throws Exception {
-        requireWorkspace();
-        switch (options.action) {
-            case "bootstrap" -> bootstrap();
-            case "build" -> { prerequisite(false); build(discoverDomains()); }
-            case "test" -> { prerequisite(false); test(discoverDomains()); }
-            case "stop" -> stop(false);
-            case "reset" -> reset();
-            case "status" -> status();
-            default -> throw new IllegalArgumentException("지원하지 않는 action: " + options.action);
-        }
+    private int execute(Map<String,String> options) throws Exception {
+        String command = options.getOrDefault("command", "bootstrap");
+        step("00", "Workspace", "root=" + root);
+        if (command.equals("stop") || command.equals("reset")) prepareLocalSecret();
+        if (command.equals("stop")) return stop(options);
+        if (command.equals("reset")) return reset(options);
+        if (!command.equals("bootstrap")) throw new IllegalArgumentException("unsupported command=" + command);
+
+        checkPrerequisites();
+        resolveBinaryRepository();
+        String requestedDb = options.getOrDefault("db", "").trim();
+        if (!requestedDb.isBlank()) requestedDbVendor = normalizeDb(requestedDb);
+        prepareLocalSecret();
+        discoverDomains();
+        prepareDatabase();
+        prepareMiddleware();
+        applyDomainDatabases();
+        writeRuntimeEnvironment();
+        runWorkspaceVerification(options.containsKey("full"));
+        if (options.containsKey("run")) startRuntimes();
+        ready("CPF LOCAL DEVELOPMENT READY");
+        return 0;
     }
 
-    private void bootstrap() throws Exception {
-        stage("PREREQUISITE", () -> prerequisite(true));
-        List<Domain> domains = stageValue("DOMAIN_DISCOVERY", this::discoverDomains);
-        String db = selectedDb();
-        List<String> middleware = requiredMiddleware(domains);
-        if (domains.stream().anyMatch(d -> !"none".equals(d.persistence))) {
-            stage("DB_START", () -> composeUp(List.of(dbService(db))));
-            stage("DB_HEALTH", () -> waitHealthy(dbService(db)));
-            stage("DB_BINDING", () -> ensureLocalBindings(domains, db));
-            stage("DB_RENDER_MIGRATE_SEED_VERIFY", () -> prepareDomainDatabases(domains, db));
-        }
-        if (!middleware.isEmpty()) {
-            stage("MIDDLEWARE_START", () -> composeUp(middleware));
-            stage("MIDDLEWARE_HEALTH", () -> { for (String s : middleware) waitHealthy(s); });
-        }
-        if (!options.skipBuild) stage("BUILD", () -> build(domains));
-        if (!options.skipTest) stage("TEST", () -> test(domains));
-        if (options.startRuntime) {
-            stage("RUNTIME_START", () -> startRuntime(domains, db));
-            stage("RUNTIME_HEALTH", () -> waitRuntimeHealth(domains));
-        }
-        writeState(domains, db, middleware);
-        System.out.printf("[CPF][BOOTSTRAP][PASS] db=%s domains=%d middleware=%s runtime=%s%n", db, domains.size(), middleware, options.startRuntime);
-    }
-
-    private void prerequisite(boolean containerRequired) throws Exception {
-        requireCommand("git", "--version");
-        ProcessResult java = run(List.of(javaCommand(), "-version"), workspace, null, null, 30, false);
-        String javaText = java.output + "\n" + java.error;
-        Matcher version = Pattern.compile("version \\\"(\\d+)(?:[.][^\\\"]*)?\\\"").matcher(javaText);
-        if (!version.find() || Integer.parseInt(version.group(1)) != 25) {
-            throw new IllegalStateException("Java 25가 필요합니다. actual=" + oneLine(javaText));
-        }
-        if (containerRequired) {
-            requireCommand("docker", "version", "--format", "{{.Server.Version}}");
-            requireCommand("docker", "compose", "version");
-        }
-        if (Files.isDirectory(workspace.resolve("cpf-backoffice-web/frontend")) || Files.isDirectory(workspace.resolve("cpf-admin/frontend"))) {
-            requireCommand("node", "--version");
+    private void checkPrerequisites() throws Exception {
+        int feature = Runtime.version().feature();
+        if (feature != 25) throw new IllegalStateException("Java 25 required, actual=" + Runtime.version());
+        pass("01", "Java 25", Runtime.version().toString());
+        requireCommand("git", List.of("git", "--version"), false);
+        requireCommand("docker", List.of("docker", "version", "--format", "{{.Server.Version}}"), false);
+        ExecResult compose = run(List.of("docker", "compose", "version"), Map.of(), 30, null, false, true);
+        if (compose.exit != 0) throw new IllegalStateException("Docker Compose plugin is required");
+        pass("02", "Git/Docker", "docker-compose=PASS");
+        if (Files.isRegularFile(root.resolve("cpf-backoffice-web/frontend/package.json"))) {
+            requireCommand("node", List.of("node", "--version"), false);
+            pass("03", "Node", "required by cpf-backoffice-web frontend");
+        } else {
+            skip("03", "Node", "frontend reference not selected");
         }
     }
 
-    private List<Domain> discoverDomains() throws IOException {
-        List<Domain> domains = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(workspace, "cpf-*")) {
-            for (Path project : stream) {
-                Path definition = project.resolve("cpf-domain.yaml");
+    private void resolveBinaryRepository() throws Exception {
+        String version = envOrProperty("CPF_VERSION", "cpf.version", "").trim();
+        String repo = firstNonBlank(System.getenv("CPF_MAVEN_REPOSITORY_URL"), System.getenv("CPF_ARTIFACT_REPOSITORY_URL"), workspace.getProperty("cpf.maven.repository.url", ""));
+        if (repo.isBlank()) throw new IllegalStateException("CPF_MAVEN_REPOSITORY_URL is required for Public Workspace");
+        if (version.isBlank()) throw new IllegalStateException("CPF_VERSION is required for Public Workspace");
+        baseEnv.put("CPF_VERSION", version);
+        baseEnv.put("CPF_MAVEN_REPOSITORY_URL", repo);
+        URI uri = URI.create(repo.endsWith("/") ? repo : repo + "/");
+        String bomRel = "com/cpf/cpf-platform-bom/" + version + "/cpf-platform-bom-" + version + ".pom";
+        requireRepositoryArtifact(uri, bomRel, "com.cpf:cpf-platform-bom:" + version);
+        String classifier = publicBinaryClassifier();
+        String generatorRel = "com/cpf/tooling/cpf-generator-cli/" + version + "/cpf-generator-cli-" + version + "-" + classifier + ".zip";
+        requireRepositoryArtifact(uri, generatorRel, "com.cpf.tooling:cpf-generator-cli:" + version + ":" + classifier);
+        requireRepositoryArtifact(uri, generatorRel + ".sha256", "cpf-generator-cli checksum");
+        pass("04", "Binary Repository", "version=" + version + " generator=" + classifier + " repository=" + safeUri(repo));
+    }
+
+    private void requireRepositoryArtifact(URI repository, String relative, String label) throws Exception {
+        if ("file".equalsIgnoreCase(repository.getScheme())) {
+            Path file = Paths.get(repository).resolve(relative);
+            if (!Files.isRegularFile(file)) throw new IllegalStateException("CPF Binary Repository artifact missing: " + label + " path=" + file);
+            return;
+        }
+        if (repository.getScheme() == null || !(repository.getScheme().equals("http") || repository.getScheme().equals("https"))) {
+            throw new IllegalStateException("unsupported CPF_MAVEN_REPOSITORY_URL scheme: " + repository.getScheme());
+        }
+        URI target = repository.resolve(relative);
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(Math.min(30, timeoutSeconds))).build();
+        HttpRequest.Builder request = HttpRequest.newBuilder(target).timeout(Duration.ofSeconds(Math.min(60, timeoutSeconds))).GET();
+        String user = firstNonBlank(System.getenv("CPF_MAVEN_REPOSITORY_USER"), System.getenv("CPF_ARTIFACT_REPOSITORY_USER"));
+        if (!user.isBlank()) {
+            String password = firstNonBlank(System.getenv("CPF_MAVEN_REPOSITORY_PASSWORD"), System.getenv("CPF_ARTIFACT_REPOSITORY_PASSWORD"));
+            request.header("Authorization", "Basic " + Base64.getEncoder().encodeToString((user + ":" + password).getBytes(StandardCharsets.UTF_8)));
+        }
+        HttpResponse<Void> response = client.send(request.build(), HttpResponse.BodyHandlers.discarding());
+        if (response.statusCode() < 200 || response.statusCode() >= 400) {
+            throw new IllegalStateException("CPF Binary Repository resolution failed: artifact=" + label + " http=" + response.statusCode() + " repository=" + safeUri(repository.toString()));
+        }
+    }
+
+    private static String publicBinaryClassifier() {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
+        String osPart = os.contains("win") ? "windows" : os.contains("linux") ? "linux" : "";
+        String archPart = (arch.equals("amd64") || arch.equals("x86_64")) ? "x64" : (arch.equals("aarch64") || arch.equals("arm64")) ? "arm64" : "";
+        if (osPart.isBlank() || archPart.isBlank()) throw new IllegalStateException("unsupported Public Generator OS/arch=" + os + "/" + arch);
+        return osPart + "-" + archPart;
+    }
+
+    private void discoverDomains() throws Exception {
+        Path defs = root.resolve("domains");
+        if (!Files.isDirectory(defs)) throw new IllegalStateException("public domain catalog missing: " + defs);
+        Set<String> names = new HashSet<>(), codes = new HashSet<>();
+        try (DirectoryStream<Path> children = Files.newDirectoryStream(defs)) {
+            for (Path dir : children) {
+                Path definition = dir.resolve("cpf-domain.yaml");
                 if (!Files.isRegularFile(definition)) continue;
                 String text = Files.readString(definition, StandardCharsets.UTF_8);
-                String name = requiredMatch(text, DOMAIN_NAME, "domain.name", definition);
-                String code = requiredMatch(text, SYSTEM_CODE, "domain.systemCode", definition);
-                int port = optionalInt(text, ONLINE_PORT, 18080 + domains.size() * 10);
-                String persistence = optionalMatch(text, PERSISTENCE, "none");
-                String cache = optionalMatch(text, CACHE, "none");
-                String messaging = optionalMatch(text, MESSAGING, "none");
-                domains.add(new Domain(name, code, port, persistence, cache, messaging, definition, project));
+                Matcher block = DOMAIN_BLOCK.matcher(text);
+                if (!block.find()) throw new IllegalStateException("domain block missing: " + definition);
+                String body = block.group(1);
+                Matcher nm = DOMAIN_NAME.matcher(body), cm = SYSTEM_CODE.matcher(body);
+                if (!nm.find() || !cm.find()) throw new IllegalStateException("invalid domain name/systemCode: " + definition);
+                String name = nm.group(1), code = cm.group(1);
+                if (!names.add(name)) throw new IllegalStateException("duplicate domain name=" + name);
+                if (!codes.add(code)) throw new IllegalStateException("duplicate systemCode=" + code);
+                Path project = root.resolve("cpf-" + name);
+                if (!Files.isRegularFile(project.resolve("settings.gradle"))) throw new IllegalStateException("domain dependency requires physical project: " + name + " -> " + project);
+                Map<String,String> features = new HashMap<>();
+                Matcher fm = FEATURE_VALUE.matcher(text);
+                while (fm.find()) features.put(fm.group(1), fm.group(2));
+                Matcher pm = LOCAL_ONLINE_PORT.matcher(text);
+                if (!pm.find()) throw new IllegalStateException("runtime.localOnlinePort missing: " + definition);
+                int localOnlinePort = Integer.parseInt(pm.group(1));
+                if (localOnlinePort < 18080 || localOnlinePort > 18999) throw new IllegalStateException("runtime.localOnlinePort out of range: " + localOnlinePort + " file=" + definition);
+                DbBinding db = features.getOrDefault("persistence", "none").equals("none") ? null : loadDbBinding(name, code);
+                domains.add(new Domain(name, code, definition, project, features, localOnlinePort, db));
             }
         }
         domains.sort(Comparator.comparing(Domain::name));
-        if (domains.isEmpty()) throw new IllegalStateException("cpf-<domain>/cpf-domain.yaml을 찾지 못했습니다: " + workspace);
-        Set<String> names = new HashSet<>(), codes = new HashSet<>();
-        for (Domain d : domains) {
-            if (!names.add(d.name) || !codes.add(d.systemCode)) throw new IllegalStateException("Domain name/systemCode 중복: " + d);
-            if (!Files.isRegularFile(d.project.resolve("settings.gradle"))) throw new IllegalStateException("Generated Domain settings.gradle 누락: " + d.project);
+        if (domains.isEmpty()) throw new IllegalStateException("no generated/reference domain discovered");
+        Set<Integer> ports = new HashSet<>();
+        for (Domain d : domains) if (!ports.add(d.localOnlinePort)) throw new IllegalStateException("duplicate runtime.localOnlinePort=" + d.localOnlinePort);
+        pass("05", "Workspace Discovery", "domains=" + domains.stream().map(d -> d.systemCode + ":" + d.name).toList());
+    }
+
+    private DbBinding loadDbBinding(String name, String systemCode) throws Exception {
+        Path profile = root.resolve("build/cpf-local").resolve(name).resolve("cpf-db-profile.local.json");
+        if (!Files.isRegularFile(profile)) {
+            throw new IllegalStateException("persistent Domain DB profile missing; run cpf domain setup first: " + root.relativize(profile));
         }
-        System.out.println("[CPF][BOOTSTRAP][DOMAINS] " + domains.stream().map(d -> d.name + ":" + d.systemCode).toList());
-        return domains;
+        String text = Files.readString(profile, StandardCharsets.UTF_8);
+        if (!text.contains("\"profileVersion\": 2")) throw new IllegalStateException("unsupported DB profileVersion: " + profile);
+        if (!text.contains("\"name\": \""+name+"\"") || !text.contains("\"systemCode\": \""+systemCode+"\""))
+            throw new IllegalStateException("DB profile Domain identity mismatch: " + profile);
+        String vendor = normalizeDb(jsonString(text,"vendor"));
+        if (!requestedDbVendor.isBlank() && !requestedDbVendor.equals(vendor))
+            throw new IllegalStateException("--db is a compatibility constraint only and conflicts with Domain profile: domain="+systemCode+" requested="+requestedDbVendor+" profile="+vendor);
+        String host = jsonString(text,"host");
+        int port = jsonInt(text,"port");
+        if (port < 1 || port > 65535) throw new IllegalStateException("DB profile port out of range: " + profile);
+        String logicalDatabase = jsonString(text,"logicalDatabase");
+        String databaseName = jsonStringOptional(text,"databaseName");
+        String serviceName = jsonStringOptional(text,"serviceName");
+        String schemaName = jsonString(text,"schemaName");
+        List<String> users = jsonAllStrings(text,"username");
+        List<String> secrets = jsonAllStrings(text,"env");
+        if (users.size() != 2 || secrets.size() != 2) throw new IllegalStateException("DB profile requires exactly migration/runtime accounts and secret references: " + profile);
+        if (users.get(0).equals(users.get(1))) throw new IllegalStateException("migration/runtime DB accounts must differ: " + profile);
+        for (String secret : secrets) if (!secret.matches("[A-Z][A-Z0-9_]{2,127}"))
+            throw new IllegalStateException("DB profile secret must be ENV reference only: " + profile);
+        if (vendor.equals("oracle") && serviceName.isBlank()) throw new IllegalStateException("Oracle DB profile requires serviceName: " + profile);
+        if (!vendor.equals("oracle") && databaseName.isBlank()) throw new IllegalStateException(vendor + " DB profile requires databaseName: " + profile);
+        return new DbBinding(vendor, host, port, databaseName, serviceName, schemaName, users.get(0), users.get(1), secrets.get(0), secrets.get(1), profile);
     }
 
-    private String selectedDb() throws IOException {
-        String value = firstNonBlank(env.get("CPF_DB_VENDOR"), env.get("CPF_LOCAL_DB"), workspaceProperty("cpf.default-db"), options.db, "postgresql").toLowerCase(Locale.ROOT);
-        if (!DB3.contains(value)) throw new IllegalArgumentException("DB는 oracle/postgresql/mariadb만 지원합니다: " + value);
-        return value;
+    private static String jsonString(String text,String key){ String v=jsonStringOptional(text,key); if(v.isBlank()) throw new IllegalStateException("DB profile field missing="+key); return v; }
+    private static String jsonStringOptional(String text,String key){ Matcher m=Pattern.compile("\\\""+Pattern.quote(key)+"\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"").matcher(text); return m.find()?m.group(1).trim():""; }
+    private static int jsonInt(String text,String key){ Matcher m=Pattern.compile("\\\""+Pattern.quote(key)+"\\\"\\s*:\\s*(\\d+)").matcher(text); if(!m.find()) throw new IllegalStateException("DB profile field missing="+key); return Integer.parseInt(m.group(1)); }
+    private static List<String> jsonAllStrings(String text,String key){ List<String> out=new ArrayList<>(); Matcher m=Pattern.compile("\\\""+Pattern.quote(key)+"\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"").matcher(text); while(m.find())out.add(m.group(1).trim()); return out; }
+
+    private void prepareLocalSecret() throws Exception {
+        Path secretFile = root.resolve("build/cpf-bootstrap/local-secrets.properties");
+        Files.createDirectories(secretFile.getParent());
+        Properties p = new Properties();
+        if (Files.isRegularFile(secretFile)) try (Reader r = Files.newBufferedReader(secretFile, StandardCharsets.UTF_8)) { p.load(r); }
+        localDbPassword = p.getProperty("local.db.password", "").trim();
+        if (localDbPassword.isBlank()) {
+            byte[] bytes = new byte[24]; new SecureRandom().nextBytes(bytes);
+            localDbPassword = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+            p.setProperty("local.db.password", localDbPassword);
+            try (Writer w = Files.newBufferedWriter(secretFile, StandardCharsets.UTF_8)) { p.store(w, "Local-only generated secret. build/ is not source-controlled."); }
+        }
+        baseEnv.put("CPF_LOCAL_DB_ADMIN_PASSWORD", localDbPassword);
     }
 
-    private List<String> requiredMiddleware(List<Domain> domains) {
-        LinkedHashSet<String> services = new LinkedHashSet<>();
+    private void prepareDatabase() throws Exception {
+        Set<String> vendors = new TreeSet<>();
+        for (Domain d : domains) if (d.db != null) vendors.add(d.db.vendor);
+        if (vendors.isEmpty()) { skip("06", "Database", "no persistent domain selected"); return; }
+        Path compose = root.resolve("deploy/local/compose.yaml");
+        if (!Files.isRegularFile(compose)) throw new IllegalStateException("local compose asset missing: " + compose);
+        for (String vendor : vendors) {
+            String service = switch (vendor) { case "postgresql" -> "cpf-postgresql"; case "mariadb" -> "cpf-mariadb"; case "oracle" -> "cpf-oracle"; default -> throw new IllegalStateException(); };
+            String container = switch (vendor) { case "postgresql" -> "cpf-public-postgresql"; case "mariadb" -> "cpf-public-mariadb"; default -> "cpf-public-oracle"; };
+            step("06", "Database", "START vendor=" + vendor);
+            runChecked(List.of("docker", "compose", "-f", compose.toString(), "up", "-d", service), baseEnv, timeoutSeconds, null, true);
+            waitForHealthy(container);
+            pass("06", "Database", vendor + " HEALTH=PASS");
+        }
+    }
+
+    private void waitForHealthy(String container) throws Exception { waitForHealthy(container, "06", "Database Health"); }
+
+    private void waitForHealthy(String container, String stepNo, String label) throws Exception {
+        long start = System.nanoTime();
+        while (Duration.ofNanos(System.nanoTime() - start).toSeconds() < timeoutSeconds) {
+            ExecResult status = run(List.of("docker", "inspect", "--format={{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", container), Map.of(), 20, null, false, true);
+            String value = status.output.trim();
+            if (status.exit == 0 && (value.equals("healthy") || value.equals("running"))) return;
+            long elapsed = Duration.ofNanos(System.nanoTime() - start).toSeconds();
+            progress(stepNo, label, "container=" + container + " state=" + (value.isBlank() ? "unknown" : value) + " elapsed=" + elapsed + "s/" + timeoutSeconds + "s");
+            Thread.sleep(5000);
+        }
+        throw new IllegalStateException(label + " timeout container=" + container + " timeout=" + timeoutSeconds + "s");
+    }
+
+    private void prepareMiddleware() throws Exception {
+        Set<String> services = new TreeSet<>();
+        Set<String> capabilities = new TreeSet<>();
         for (Domain d : domains) {
-            switch (d.cache) {
-                case "redis" -> services.add("cpf-redis");
-                case "valkey" -> services.add("cpf-valkey");
+            String cache = d.features.getOrDefault("cache", "none");
+            String messaging = d.features.getOrDefault("messaging", "none");
+            switch (cache) {
+                case "none", "caffeine" -> { if (cache.equals("caffeine")) capabilities.add("cache:caffeine(in-process)"); }
+                case "redis" -> { services.add("cpf-redis"); capabilities.add("cache:redis"); }
+                case "valkey" -> { services.add("cpf-valkey"); capabilities.add("cache:valkey"); }
+                default -> throw new IllegalStateException("unsupported cache capability=" + cache + " domain=" + d.systemCode);
             }
-            switch (d.messaging) {
-                case "kafka" -> services.add("cpf-kafka");
-                case "rabbitmq" -> services.add("cpf-rabbitmq");
-                case "jms" -> services.add("cpf-artemis");
-                case "ibm-mq" -> services.add("cpf-ibm-mq");
+            switch (messaging) {
+                case "none" -> { }
+                case "kafka" -> { services.add("cpf-kafka"); capabilities.add("messaging:kafka"); }
+                case "rabbitmq" -> { services.add("cpf-rabbitmq"); capabilities.add("messaging:rabbitmq"); }
+                case "jms" -> { services.add("cpf-artemis"); capabilities.add("messaging:jms(artemis)"); }
+                case "ibm-mq" -> {
+                    if (!"true".equalsIgnoreCase(System.getenv("CPF_IBM_MQ_ACCEPT_LICENSE"))) {
+                        throw new IllegalStateException("IBM MQ local runtime requires explicit CPF_IBM_MQ_ACCEPT_LICENSE=true; license acceptance is never implicit");
+                    }
+                    services.add("cpf-ibm-mq"); capabilities.add("messaging:ibm-mq");
+                }
+                default -> throw new IllegalStateException("unsupported messaging capability=" + messaging + " domain=" + d.systemCode);
             }
         }
-        return List.copyOf(services);
+        if (services.isEmpty()) {
+            if (capabilities.isEmpty()) skip("07", "Middleware", "selected capabilities require none");
+            else pass("07", "Middleware", "external containers=none capabilities=" + capabilities);
+            return;
+        }
+        baseEnv.put("CPF_LOCAL_MIDDLEWARE_PASSWORD", localDbPassword);
+        Path compose = root.resolve("deploy/local/compose.yaml");
+        for (String service : services) {
+            List<String> command = new ArrayList<>(List.of("docker", "compose", "-f", compose.toString()));
+            if (service.equals("cpf-ibm-mq")) command.addAll(List.of("--profile", "ibm-mq"));
+            command.addAll(List.of("up", "-d", service));
+            runChecked(command, baseEnv, timeoutSeconds, null, true);
+            waitForHealthy(middlewareContainer(service), "07", "Middleware Health");
+        }
+        configureMiddlewareEnvironment(capabilities);
+        pass("07", "Middleware", "services=" + services + " capabilities=" + capabilities);
     }
 
-    private void composeUp(List<String> services) throws Exception {
-        if (services.isEmpty()) return;
-        if (!Files.isRegularFile(compose)) throw new IllegalStateException("Bootstrap compose asset 누락: " + compose);
-        List<String> cmd = new ArrayList<>(List.of("docker", "compose", "-f", compose.toString()));
-        if (services.contains("cpf-ibm-mq")) cmd.addAll(List.of("--profile", "ibm-mq"));
-        cmd.addAll(List.of("up", "-d")); cmd.addAll(services);
-        runChecked(cmd, workspace, null, null, options.timeoutSeconds);
+    private static String middlewareContainer(String service) {
+        return switch (service) {
+            case "cpf-redis" -> "cpf-public-redis";
+            case "cpf-valkey" -> "cpf-public-valkey";
+            case "cpf-kafka" -> "cpf-public-kafka";
+            case "cpf-rabbitmq" -> "cpf-public-rabbitmq";
+            case "cpf-artemis" -> "cpf-public-artemis";
+            case "cpf-ibm-mq" -> "cpf-public-ibm-mq";
+            default -> throw new IllegalArgumentException("unknown middleware service=" + service);
+        };
     }
 
-    private void waitHealthy(String service) throws Exception {
-        Instant deadline = Instant.now().plusSeconds(options.timeoutSeconds);
-        while (Instant.now().isBefore(deadline)) {
-            ProcessResult id = run(List.of("docker", "compose", "-f", compose.toString(), "ps", "-q", service), workspace, null, null, 30, false);
-            String containerId = id.output.trim();
-            if (!containerId.isBlank()) {
-                ProcessResult inspect = run(List.of("docker", "inspect", "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", containerId), workspace, null, null, 30, false);
-                String status = inspect.output.trim();
-                if ("healthy".equals(status) || "running".equals(status)) {
-                    System.out.printf("[CPF][BOOTSTRAP][HEALTHY] service=%s container=%s%n", service, containerId.substring(0, Math.min(12, containerId.length())));
+    private void configureMiddlewareEnvironment(Set<String> capabilities) {
+        if (capabilities.contains("cache:redis")) {
+            baseEnv.put("SPRING_DATA_REDIS_HOST", "127.0.0.1");
+            baseEnv.put("SPRING_DATA_REDIS_PORT", envOrDefault("CPF_REDIS_PORT", "6379"));
+            baseEnv.put("SPRING_DATA_REDIS_PASSWORD", localDbPassword);
+            baseEnv.put("CPF_DATA_CACHE_REDIS_ENABLED", "true");
+        }
+        if (capabilities.contains("cache:valkey")) {
+            baseEnv.put("SPRING_DATA_REDIS_HOST", "127.0.0.1");
+            baseEnv.put("SPRING_DATA_REDIS_PORT", envOrDefault("CPF_VALKEY_PORT", "6380"));
+            baseEnv.put("SPRING_DATA_REDIS_PASSWORD", localDbPassword);
+            baseEnv.put("CPF_DATA_CACHE_VALKEY_ENABLED", "true");
+        }
+        if (capabilities.contains("messaging:kafka")) baseEnv.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "127.0.0.1:" + envOrDefault("CPF_KAFKA_PORT", "9092"));
+        if (capabilities.contains("messaging:rabbitmq")) {
+            baseEnv.put("SPRING_RABBITMQ_HOST", "127.0.0.1");
+            baseEnv.put("SPRING_RABBITMQ_PORT", envOrDefault("CPF_RABBITMQ_PORT", "5672"));
+            baseEnv.put("SPRING_RABBITMQ_USERNAME", envOrDefault("CPF_RABBITMQ_USER", "cpf"));
+            baseEnv.put("SPRING_RABBITMQ_PASSWORD", localDbPassword);
+            baseEnv.put("SPRING_RABBITMQ_VIRTUAL_HOST", envOrDefault("CPF_RABBITMQ_VHOST", "/cpf"));
+        }
+        if (capabilities.contains("messaging:jms(artemis)")) {
+            baseEnv.put("SPRING_ARTEMIS_MODE", "native");
+            baseEnv.put("SPRING_ARTEMIS_BROKER_URL", "tcp://127.0.0.1:" + envOrDefault("CPF_ARTEMIS_PORT", "61616"));
+            baseEnv.put("SPRING_ARTEMIS_USER", envOrDefault("CPF_ARTEMIS_USER", "cpf"));
+            baseEnv.put("SPRING_ARTEMIS_PASSWORD", localDbPassword);
+        }
+        if (capabilities.contains("messaging:ibm-mq")) {
+            baseEnv.put("CPF_IBM_MQ_QUEUE_MANAGER", envOrDefault("CPF_IBM_MQ_QMGR", "QM1"));
+            baseEnv.put("CPF_IBM_MQ_CONNECTION_NAME", "127.0.0.1(" + envOrDefault("CPF_IBM_MQ_PORT", "1414") + ")");
+        }
+    }
+
+    private void applyDomainDatabases() throws Exception {
+        int applied=0;
+        for (Domain domain : domains) {
+            if (domain.db == null) continue;
+            applied++;
+            step("08", "DB Lifecycle", domain.systemCode + " " + domain.name + " vendor=" + domain.db.vendor);
+            switch (domain.db.vendor) {
+                case "postgresql" -> applyPostgresql(domain);
+                case "mariadb" -> applyMariaDb(domain);
+                case "oracle" -> applyOracle(domain);
+            }
+        }
+        if (applied==0) skip("08", "DB Lifecycle", "no persistent domain selected");
+        else pass("08", "DB Lifecycle", "persistentDomains=" + applied);
+    }
+
+    private String localSecret(String envName) {
+        String explicit=System.getenv(envName);
+        if (explicit!=null && !explicit.isBlank()) return explicit;
+        return localDbPassword;
+    }
+
+    private void applyPostgresql(Domain d) throws Exception {
+        DbBinding b=d.db; String db=b.databaseName; String migration=b.migrationUser; String runtime=b.runtimeUser;
+        String mp=localSecret(b.migrationSecretEnv), rp=localSecret(b.runtimeSecretEnv);
+        String setup = "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L','"+migration+"','"+mp+"') WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='"+migration+"')\\gexec\n" +
+                "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L','"+runtime+"','"+rp+"') WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='"+runtime+"')\\gexec\n" +
+                "SELECT format('CREATE DATABASE %I OWNER %I','"+db+"','"+migration+"') WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname='"+db+"')\\gexec\n";
+        runChecked(List.of("docker","exec","-i","cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U","postgres","-d","postgres"), baseEnv, 60, setup, true);
+        runChecked(List.of("docker","exec","-i","-e","PGPASSWORD="+mp,"cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U",migration,"-d",db), Map.of(), 60,
+                "CREATE SCHEMA IF NOT EXISTS \""+b.schemaName+"\" AUTHORIZATION \""+migration+"\"; CREATE TABLE IF NOT EXISTS cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP); GRANT USAGE ON SCHEMA \""+b.schemaName+"\" TO \""+runtime+"\";", true);
+        applyTrackedSql(d, db, migration, "cpf-public-postgresql", "postgresql", mp);
+    }
+
+    private void applyMariaDb(Domain d) throws Exception {
+        DbBinding b=d.db; String db=b.databaseName; String migration=b.migrationUser; String runtime=b.runtimeUser;
+        String mp=localSecret(b.migrationSecretEnv), rp=localSecret(b.runtimeSecretEnv);
+        String setup = "CREATE DATABASE IF NOT EXISTS `"+db+"`; CREATE USER IF NOT EXISTS '"+migration+"'@'%' IDENTIFIED BY '"+mp+"'; CREATE USER IF NOT EXISTS '"+runtime+"'@'%' IDENTIFIED BY '"+rp+"'; GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES ON `"+db+"`.* TO '"+migration+"'@'%'; GRANT SELECT,INSERT,UPDATE,DELETE,EXECUTE ON `"+db+"`.* TO '"+runtime+"'@'%'; FLUSH PRIVILEGES;";
+        runChecked(List.of("docker","exec","-i","-e","MYSQL_PWD="+localDbPassword,"cpf-public-mariadb","mariadb","-uroot"), Map.of(), 60, setup, true);
+        runChecked(List.of("docker","exec","-i","-e","MYSQL_PWD="+mp,"cpf-public-mariadb","mariadb","-u"+migration,db), Map.of(), 60,
+                "CREATE TABLE IF NOT EXISTS cpf_bootstrap_schema_history(script_name VARCHAR(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3));", true);
+        applyTrackedSql(d, db, migration, "cpf-public-mariadb", "mariadb", mp);
+    }
+
+    private void applyOracle(Domain d) throws Exception {
+        DbBinding b=d.db; String migration=b.migrationUser.toUpperCase(Locale.ROOT), runtime=b.runtimeUser.toUpperCase(Locale.ROOT);
+        String mp=localSecret(b.migrationSecretEnv), rp=localSecret(b.runtimeSecretEnv);
+        String service=b.serviceName;
+        String setup = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+service+";\n" +
+                "DECLARE n NUMBER; BEGIN SELECT COUNT(*) INTO n FROM dba_users WHERE username='"+migration+"'; IF n=0 THEN EXECUTE IMMEDIATE 'CREATE USER "+migration+" IDENTIFIED BY \\\""+mp+"\\\"'; EXECUTE IMMEDIATE 'GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE PROCEDURE TO "+migration+"'; EXECUTE IMMEDIATE 'ALTER USER "+migration+" QUOTA UNLIMITED ON USERS'; END IF; SELECT COUNT(*) INTO n FROM dba_users WHERE username='"+runtime+"'; IF n=0 THEN EXECUTE IMMEDIATE 'CREATE USER "+runtime+" IDENTIFIED BY \\\""+rp+"\\\"'; EXECUTE IMMEDIATE 'GRANT CREATE SESSION TO "+runtime+"'; END IF; END; /\n" +
+                "CONNECT "+migration+"/\\\""+mp+"\\\"@"+service+"\nBEGIN EXECUTE IMMEDIATE 'CREATE TABLE cpf_bootstrap_schema_history (script_name VARCHAR2(300) PRIMARY KEY, checksum CHAR(64) NOT NULL, applied_at TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END; /\nEXIT\n";
+        runChecked(List.of("docker","exec","-i","cpf-public-oracle","sqlplus","-s","/","as","sysdba"), Map.of(), 90, setup, true);
+        applyTrackedSql(d, service, migration, "cpf-public-oracle", "oracle", mp);
+    }
+
+    private void applyTrackedSql(Domain d, String db, String user, String container, String vendor, String password) throws Exception {
+        Path base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
+        Files.createDirectories(base);
+        List<String> render=List.of("java", root.resolve("bin/CpfGeneratorLauncher.java").toString(), "db", "render", "--file", root.relativize(d.definition).toString(), "--vendor", vendor, "--output", base.toString());
+        runChecked(render, baseEnv, Math.max(timeoutSeconds,120), null, true);
+        List<Path> migrations;
+        try(var stream=Files.list(base)){ migrations=stream.filter(p->p.getFileName().toString().startsWith("V")&&p.getFileName().toString().endsWith(".sql")).sorted().toList(); }
+        for (Path sql : migrations) applyOneTrackedSql(d, db, user, container, vendor, sql, password);
+        Path seed=base.resolve("20_product_seed.sql"); if(Files.isRegularFile(seed)) applyOneTrackedSql(d, db, user, container, vendor, seed, password);
+        Path verify=base.resolve("90_verify.sql"); if(Files.isRegularFile(verify)) executeSqlFile(db,user,container,vendor,Files.readString(verify,StandardCharsets.UTF_8),false,password);
+    }
+
+    private void applyOneTrackedSql(Domain d, String db, String user, String container, String vendor, Path sql, String password) throws Exception {
+        String name = root.relativize(sql).toString().replace('\\','/');
+        String checksum = sha256(sql);
+        String existing = queryHistory(db, user, container, vendor, name, password);
+        if (!existing.isBlank()) {
+            if (!existing.equalsIgnoreCase(checksum)) throw new IllegalStateException("immutable DB migration checksum mismatch: " + name);
+            progress("08", "DB Lifecycle", d.systemCode + " SKIP already-applied " + sql.getFileName());
+            return;
+        }
+        executeSqlFile(db, user, container, vendor, Files.readString(sql, StandardCharsets.UTF_8), true, password);
+        recordHistory(db, user, container, vendor, name, checksum, password);
+    }
+
+    private String queryHistory(String db, String user, String container, String vendor, String name, String password) throws Exception {
+        String safe = name.replace("'", "''");
+        if (vendor.equals("postgresql")) return run(List.of("docker","exec","-e","PGPASSWORD="+password,container,"psql","-At","-U",user,"-d",db,"-c","SELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
+        if (vendor.equals("mariadb")) return run(List.of("docker","exec","-e","MYSQL_PWD="+password,container,"mariadb","-N","-s","-u"+user,db,"-e","SELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"'"), Map.of(), 30, null, true, true).output.trim();
+        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+db+";\nCONNECT "+user+"/\""+password+"\"@"+db+"\nSET HEADING OFF FEEDBACK OFF PAGESIZE 0\nSELECT checksum FROM cpf_bootstrap_schema_history WHERE script_name='"+safe+"';\nEXIT\n";
+        return run(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"), Map.of(), 40, script, true, true).output.trim();
+    }
+
+    private void recordHistory(String db, String user, String container, String vendor, String name, String checksum, String password) throws Exception {
+        String sql = "INSERT INTO cpf_bootstrap_schema_history(script_name,checksum) VALUES ('"+name.replace("'","''")+"','"+checksum+"');";
+        executeSqlFile(db, user, container, vendor, sql, false, password);
+    }
+
+    private void executeSqlFile(String db, String user, String container, String vendor, String sql, boolean lifecycle, String password) throws Exception {
+        if (vendor.equals("postgresql")) {
+            runChecked(List.of("docker","exec","-i","-e","PGPASSWORD="+password,container,"psql","-v","ON_ERROR_STOP=1","-U",user,"-d",db), Map.of(), 90, sql, true); return;
+        }
+        if (vendor.equals("mariadb")) {
+            runChecked(List.of("docker","exec","-i","-e","MYSQL_PWD="+password,container,"mariadb","-u"+user,db), Map.of(), 90, sql, true); return;
+        }
+        String script = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nALTER SESSION SET CONTAINER="+db+";\nCONNECT "+user+"/\""+password+"\"@"+db+"\n" + sql + "\nEXIT\n";
+        runChecked(List.of("docker","exec","-i",container,"sqlplus","-s","/","as","sysdba"), Map.of(), 120, script, true);
+    }
+
+    private void writeRuntimeEnvironment() throws Exception {
+        Path env = logDir.resolve("runtime.env");
+        List<String> lines = new ArrayList<>();
+        lines.add("CPF_VERSION=" + baseEnv.get("CPF_VERSION"));
+        lines.add("CPF_MAVEN_REPOSITORY_URL=" + baseEnv.get("CPF_MAVEN_REPOSITORY_URL"));
+        for (Domain d : domains) {
+            if (d.db == null) { baseEnv.put(d.systemCode+"_ONLINE_PORT", Integer.toString(d.localOnlinePort)); continue; }
+            DbBinding b=d.db; String p=d.systemCode;
+            String runtimePassword=localSecret(b.runtimeSecretEnv);
+            String url,driver;
+            switch (b.vendor) {
+                case "postgresql" -> { url="jdbc:postgresql://"+b.host+":"+b.port+"/"+b.databaseName+"?currentSchema="+b.schemaName; driver="org.postgresql.Driver"; }
+                case "mariadb" -> { url="jdbc:mariadb://"+b.host+":"+b.port+"/"+b.databaseName; driver="org.mariadb.jdbc.Driver"; }
+                case "oracle" -> { url="jdbc:oracle:thin:@//"+b.host+":"+b.port+"/"+b.serviceName; driver="oracle.jdbc.OracleDriver"; }
+                default -> throw new IllegalStateException();
+            }
+            lines.add(p+"_DB_VENDOR="+b.vendor);
+            lines.add(p+"_DATASOURCE_URL="+url);
+            lines.add(p+"_DATASOURCE_DRIVER="+driver);
+            lines.add(p+"_DATASOURCE_USERNAME="+b.runtimeUser);
+            lines.add(p+"_DATASOURCE_PASSWORD=<secret:"+b.runtimeSecretEnv+">");
+            baseEnv.put(p+"_DB_VENDOR",b.vendor); baseEnv.put(p+"_DATASOURCE_URL",url); baseEnv.put(p+"_DATASOURCE_DRIVER",driver);
+            baseEnv.put(p+"_DATASOURCE_USERNAME",b.runtimeUser); baseEnv.put(p+"_DATASOURCE_PASSWORD",runtimePassword);
+            baseEnv.put(p+"_ONLINE_PORT", Integer.toString(d.localOnlinePort));
+        }
+        Files.write(env, lines, StandardCharsets.UTF_8);
+        pass("09", "Runtime Config", "generated=" + root.relativize(env) + " per-domain DB binding=PASS");
+    }
+
+    private void runWorkspaceVerification(boolean full) throws Exception {
+        Path gradlew = root.resolve(isWindows() ? "gradlew.bat" : "gradlew");
+        if (!Files.isRegularFile(gradlew)) throw new IllegalStateException("Gradle wrapper missing");
+        if (!isWindows()) gradlew.toFile().setExecutable(true);
+        List<String> command = new ArrayList<>(); command.add(gradlew.toString()); command.add("cpfVerify"); command.add("--no-daemon");
+        if (!full) command.add("--max-workers=2");
+        runChecked(command, baseEnv, Math.max(timeoutSeconds, 600), null, true);
+        pass("10", "Build/Test", full ? "FULL PASS" : "FAST PASS");
+    }
+
+    private void startRuntimes() throws Exception {
+        Path runDir = logDir.resolve("runtime"); Files.createDirectories(runDir);
+        Path state = root.resolve("build/cpf-bootstrap/current-runtime.properties");
+        if (Files.exists(state)) throw new IllegalStateException("runtime state already exists; run cpf-stop before starting another local runtime set: " + root.relativize(state));
+        Properties running = new Properties();
+        running.setProperty("workspace", root.toString());
+        running.setProperty("startedAt", Instant.now().toString());
+        Path gradlew = root.resolve(isWindows() ? "gradlew.bat" : "gradlew");
+        for (Domain d : domains) {
+            ProcessBuilder pb = new ProcessBuilder(gradlew.toString(), "-p", d.project.toString(), ":online:bootRun", "--no-daemon");
+            pb.environment().putAll(baseEnv);
+            pb.environment().put("SPRING_PROFILES_ACTIVE", "local");
+            pb.environment().put(d.systemCode + "_ONLINE_PORT", Integer.toString(d.localOnlinePort));
+            pb.redirectErrorStream(true);
+            Path runtimeLog = runDir.resolve(d.systemCode + "-online.log");
+            pb.redirectOutput(runtimeLog.toFile());
+            Process process = pb.start();
+            running.setProperty(d.systemCode + ".pid", Long.toString(process.pid()));
+            running.setProperty(d.systemCode + ".port", Integer.toString(d.localOnlinePort));
+            running.setProperty(d.systemCode + ".log", runtimeLog.toString());
+            storePropertiesAtomic(state, running, "CPF local runtime process state. Stop uses only this current state.");
+            waitForRuntimeHealth(d, process, runtimeLog);
+        }
+        pass("11", "Runtime", "started=" + domains.size() + " state=" + root.relativize(state));
+    }
+
+    private void waitForRuntimeHealth(Domain domain, Process process, Path runtimeLog) throws Exception {
+        URI health = URI.create("http://127.0.0.1:" + domain.localOnlinePort + "/actuator/health");
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
+        long started = System.nanoTime();
+        while (Duration.ofNanos(System.nanoTime() - started).toSeconds() < timeoutSeconds) {
+            if (!process.isAlive()) throw new IllegalStateException("runtime exited before READY: systemCode=" + domain.systemCode + " log=" + root.relativize(runtimeLog));
+            try {
+                HttpRequest req = HttpRequest.newBuilder(health).timeout(Duration.ofSeconds(5)).GET().build();
+                HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200 && response.body().contains("\"status\"") && response.body().toUpperCase(Locale.ROOT).contains("UP")) {
+                    verifyOperationManifestPresent(domain);
+                    pass("11", "Runtime Health", domain.systemCode + " port=" + domain.localOnlinePort + " health=UP operationManifest=PASS");
                     return;
                 }
-                if ("unhealthy".equals(status) || "exited".equals(status) || "dead".equals(status)) throw new IllegalStateException("Container health 실패 service=" + service + " status=" + status);
-            }
-            Thread.sleep(2000);
+            } catch (IOException ignored) { }
+            long elapsed = Duration.ofNanos(System.nanoTime() - started).toSeconds();
+            progress("11", "Runtime Health", "systemCode=" + domain.systemCode + " elapsed=" + elapsed + "s/" + timeoutSeconds + "s");
+            Thread.sleep(3000);
         }
-        throw new IllegalStateException("Container health timeout service=" + service + " seconds=" + options.timeoutSeconds);
+        throw new IllegalStateException("runtime health timeout systemCode=" + domain.systemCode + " port=" + domain.localOnlinePort + " log=" + root.relativize(runtimeLog));
     }
 
-    private void ensureLocalBindings(List<Domain> domains, String vendor) throws IOException {
-        for (Domain d : domains) {
-            if ("none".equals(d.persistence)) continue;
-            Path profile = workspace.resolve("build/cpf-local").resolve(d.name).resolve("cpf-db-profile.local.json");
-            if (Files.isRegularFile(profile)) {
-                String body = Files.readString(profile, StandardCharsets.UTF_8);
-                if (!body.contains("\"vendor\": \"" + vendor + "\"") && !body.contains("\"vendor\":\"" + vendor + "\"")) {
-                    throw new IllegalStateException("Domain DB Binding vendor와 selected DB가 다릅니다: " + profile + " selected=" + vendor);
+    private void verifyOperationManifestPresent(Domain domain) throws Exception {
+        Path manifest = domain.project.resolve("online/build/generated/cpf-operation-manifest/META-INF/cpf/business-operation-manifest.json");
+        if (!Files.isRegularFile(manifest)) throw new IllegalStateException("generated domain operation manifest missing: " + manifest);
+        String text = Files.readString(manifest, StandardCharsets.UTF_8);
+        if (!text.contains(domain.systemCode) || !text.contains("operationId")) throw new IllegalStateException("generated domain operation manifest is not canonical for " + domain.systemCode);
+    }
+
+    private int stop(Map<String,String> options) throws Exception {
+        Path compose = root.resolve("deploy/local/compose.yaml");
+        Path state = root.resolve("build/cpf-bootstrap/current-runtime.properties");
+        if (Files.isRegularFile(state)) {
+            Properties p = new Properties();
+            try (Reader r = Files.newBufferedReader(state, StandardCharsets.UTF_8)) { p.load(r); }
+            if (!root.toString().equals(p.getProperty("workspace"))) throw new IllegalStateException("runtime state workspace mismatch: " + state);
+            for (String key : p.stringPropertyNames()) {
+                if (!key.endsWith(".pid")) continue;
+                long pid = Long.parseLong(p.getProperty(key));
+                ProcessHandle.of(pid).ifPresent(handle -> {
+                    String command = handle.info().command().orElse("").toLowerCase(Locale.ROOT);
+                    if (command.contains("java") || command.contains("gradle")) handle.destroy();
+                    else throw new IllegalStateException("refusing to stop reused/non-CPF pid=" + pid + " command=" + command);
+                });
+            }
+            Files.delete(state);
+        }
+        if (Files.isRegularFile(compose)) runChecked(List.of("docker","compose","-f",compose.toString(),"stop"), baseEnv, timeoutSeconds, null, true);
+        ready("CPF LOCAL DEVELOPMENT STOPPED (volumes preserved)"); return 0;
+    }
+
+    private static void storePropertiesAtomic(Path target, Properties value, String comment) throws Exception {
+        Files.createDirectories(target.getParent());
+        Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+        try (Writer w = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) { value.store(w, comment); }
+        try { Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); }
+        catch (AtomicMoveNotSupportedException ex) { Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING); }
+    }
+
+    private int reset(Map<String,String> options) throws Exception {
+        if (!options.containsKey("confirm-local-reset")) throw new IllegalStateException("reset requires --confirm-local-reset; volumes/data are destructive");
+        Path compose = root.resolve("deploy/local/compose.yaml");
+        if (!Files.isRegularFile(compose)) throw new IllegalStateException("local compose asset missing");
+        runChecked(List.of("docker","compose","-f",compose.toString(),"down","-v"), baseEnv, timeoutSeconds, null, true);
+        ready("CPF LOCAL DEVELOPMENT RESET COMPLETED"); return 0;
+    }
+
+    private void requireCommand(String label, List<String> command, boolean sensitive) throws Exception {
+        ExecResult result = run(command, Map.of(), 30, null, sensitive, true);
+        if (result.exit != 0) throw new IllegalStateException(label + " prerequisite unavailable. Install/enable it, then re-run cpf-bootstrap.");
+    }
+
+    private ExecResult run(List<String> command, Map<String,String> env, int timeout, String input, boolean sensitive, boolean capture) throws Exception {
+        List<String> safeCommand = sensitive ? command.stream().map(x -> x.contains(localDbPassword == null ? "\u0000" : localDbPassword) ? x.replace(localDbPassword,"***") : x).toList() : command;
+        logLine("RUN " + String.join(" ", safeCommand));
+        ProcessBuilder pb = new ProcessBuilder(command); pb.directory(root.toFile()); pb.redirectErrorStream(true); pb.environment().putAll(env);
+        Process process = pb.start();
+        if (input != null) { try (Writer w = new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8)) { w.write(input); } }
+        else process.getOutputStream().close();
+        StringBuilder out = new StringBuilder();
+        Thread reader = Thread.ofPlatform().start(() -> {
+            try (BufferedReader br = process.inputReader(StandardCharsets.UTF_8)) {
+                for (String line; (line=br.readLine()) != null;) {
+                    String safe = sensitive && localDbPassword != null ? line.replace(localDbPassword,"***") : line;
+                    synchronized(out) { out.append(safe).append('\n'); }
+                    logLine(safe);
+                    if (!capture) System.out.println(safe);
                 }
-                continue;
-            }
-            Files.createDirectories(profile.getParent());
-            String code = d.systemCode.toLowerCase(Locale.ROOT);
-            String dbName = "cpf_" + code;
-            String schema = "postgresql".equals(vendor) ? "public" : ("oracle".equals(vendor) ? "CPF_" + d.systemCode + "_MIGRATION" : dbName);
-            int port = switch (vendor) { case "postgresql" -> 5432; case "mariadb" -> 3306; default -> 1521; };
-            String payload = """
-                    {
-                      "profileVersion": 2,
-                      "profileName": "%s-local",
-                      "environment": "local",
-                      "domain": {"name": "%s", "systemCode": "%s"},
-                      "database": {
-                        "vendor": "%s", "host": "127.0.0.1", "port": %d,
-                        %s
-                        "schemaName": "%s",
-                        "migration": {"username": "cpf_%s_migration", "password": {"env": "%s_DB_MIGRATION_PASSWORD"}},
-                        "runtime": {"username": "cpf_%s_runtime", "password": {"env": "%s_DB_RUNTIME_PASSWORD"}}
-                      }
-                    }
-                    """.formatted(d.name, d.name, d.systemCode, vendor, port,
-                    "oracle".equals(vendor) ? "\"serviceName\": \"FREEPDB1\"," : "\"databaseName\": \"" + dbName + "\",",
-                    schema, code, d.systemCode, code, d.systemCode);
-            Files.writeString(profile, payload, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
-            System.out.println("[CPF][BOOTSTRAP][BINDING_CREATED] " + workspace.relativize(profile));
-        }
+            } catch (IOException ignored) {}
+        });
+        boolean done = process.waitFor(timeout, TimeUnit.SECONDS);
+        if (!done) { process.destroyForcibly(); reader.join(3000); throw new IllegalStateException("command timeout=" + timeout + "s: " + String.join(" ",safeCommand)); }
+        reader.join(3000);
+        return new ExecResult(process.exitValue(), out.toString());
     }
 
-    private void prepareDomainDatabases(List<Domain> domains, String vendor) throws Exception {
-        requireEnv("CPF_LOCAL_DB_ADMIN_PASSWORD");
-        for (Domain d : domains) {
-            if ("none".equals(d.persistence)) continue;
-            requireEnv(d.systemCode + "_DB_MIGRATION_PASSWORD");
-            requireEnv(d.systemCode + "_DB_RUNTIME_PASSWORD");
-            Path out = workspace.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
-            Files.createDirectories(out);
-            invokeGenerator(List.of("db", "render", "--file", workspace.relativize(d.definition).toString(), "--vendor", vendor, "--output", out.toString()));
-            provisionDomainDatabase(d, vendor);
-            executeSql(d, vendor, out.resolve("10_empty_install.sql"));
-            executeSql(d, vendor, out.resolve("V1__" + d.name + "_domain.sql"));
-            executeSql(d, vendor, out.resolve("20_product_seed.sql"));
-            executeSql(d, vendor, out.resolve("90_verify.sql"));
-        }
+    private void runChecked(List<String> command, Map<String,String> env, int timeout, String input, boolean sensitive) throws Exception {
+        ExecResult r = run(command,env,timeout,input,sensitive,false);
+        if (r.exit != 0) throw new IllegalStateException("command failed exit="+r.exit+": "+String.join(" ",command.stream().map(x -> sensitive && localDbPassword != null ? x.replace(localDbPassword,"***") : x).toList()));
     }
 
-    private void provisionDomainDatabase(Domain d, String vendor) throws Exception {
-        String code = d.systemCode.toLowerCase(Locale.ROOT), db = "cpf_" + code;
-        String mig = "cpf_" + code + "_migration", run = "cpf_" + code + "_runtime";
-        String migPwd = requireEnv(d.systemCode + "_DB_MIGRATION_PASSWORD"), runPwd = requireEnv(d.systemCode + "_DB_RUNTIME_PASSWORD");
-        Path sqlRoot = workspace.resolve("build/cpf-local/bootstrap");
-        Files.createDirectories(sqlRoot);
-        Path sql = Files.createTempFile(sqlRoot, "provision-", ".sql");
-        try {
-            String body;
-            if ("postgresql".equals(vendor)) {
-                body = "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='"+mig+"') THEN CREATE ROLE "+mig+" LOGIN PASSWORD '"+sqlLiteral(migPwd)+"'; END IF; IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='"+run+"') THEN CREATE ROLE "+run+" LOGIN PASSWORD '"+sqlLiteral(runPwd)+"'; END IF; END $$;\n";
-                runSqlContainer(vendor, null, sqlWrite(sql, body), true);
-                ProcessResult exists = run(List.of("docker","exec","cpf-public-postgresql","psql","-U","postgres","-tAc","SELECT 1 FROM pg_database WHERE datname='"+db+"'"), workspace, null, null, 30, false);
-                if (!exists.output.trim().equals("1")) runChecked(List.of("docker","exec","cpf-public-postgresql","createdb","-U","postgres","-O",mig,db), workspace, null, null, 60);
-                runSqlContainer(vendor, db, sqlWrite(sql, "GRANT CONNECT ON DATABASE "+db+" TO "+run+";\n"), true);
-            } else if ("mariadb".equals(vendor)) {
-                body = "CREATE DATABASE IF NOT EXISTS `"+db+"`;\n"+
-                        "CREATE USER IF NOT EXISTS '"+mig+"'@'%' IDENTIFIED BY '"+sqlLiteral(migPwd)+"';\n"+
-                        "CREATE USER IF NOT EXISTS '"+run+"'@'%' IDENTIFIED BY '"+sqlLiteral(runPwd)+"';\n"+
-                        "GRANT ALL PRIVILEGES ON `"+db+"`.* TO '"+mig+"'@'%';\n"+
-                        "GRANT SELECT,INSERT,UPDATE,DELETE ON `"+db+"`.* TO '"+run+"'@'%'; FLUSH PRIVILEGES;\n";
-                runSqlContainer(vendor, null, sqlWrite(sql, body), true);
-            } else {
-                String schema = "CPF_" + d.systemCode + "_MIGRATION";
-                body = "WHENEVER SQLERROR EXIT SQL.SQLCODE\nDECLARE n NUMBER; BEGIN SELECT COUNT(*) INTO n FROM all_users WHERE username='"+schema+"'; IF n=0 THEN EXECUTE IMMEDIATE 'CREATE USER "+schema+" IDENTIFIED BY \""+sqlLiteral(migPwd)+"\"'; EXECUTE IMMEDIATE 'GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE TO "+schema+"'; EXECUTE IMMEDIATE 'ALTER USER "+schema+" QUOTA UNLIMITED ON USERS'; END IF; END; /\n";
-                runSqlContainer(vendor, null, sqlWrite(sql, body), true);
-            }
-        } finally { Files.deleteIfExists(sql); }
-    }
-
-    private void executeSql(Domain d, String vendor, Path sql) throws Exception {
-        if (!Files.isRegularFile(sql)) throw new IllegalStateException("Rendered SQL 누락: " + sql);
-        String db = "cpf_" + d.systemCode.toLowerCase(Locale.ROOT);
-        runSqlContainer(vendor, db, sql, false, d);
-    }
-
-    private void runSqlContainer(String vendor, String db, Path sql, boolean admin) throws Exception { runSqlContainer(vendor, db, sql, admin, null); }
-    private void runSqlContainer(String vendor, String db, Path sql, boolean admin, Domain domain) throws Exception {
-        List<String> cmd;
-        Map<String,String> childEnv = new HashMap<>(env);
-        if ("postgresql".equals(vendor)) {
-            String user = admin || domain == null ? "postgres" : "cpf_" + domain.systemCode.toLowerCase(Locale.ROOT) + "_migration";
-            if (!admin && domain != null) childEnv.put("PGPASSWORD", requireEnv(domain.systemCode + "_DB_MIGRATION_PASSWORD"));
-            cmd = new ArrayList<>(List.of("docker","exec","-i"));
-            if (!admin && domain != null) cmd.addAll(List.of("-e","PGPASSWORD"));
-            cmd.addAll(List.of("cpf-public-postgresql","psql","-v","ON_ERROR_STOP=1","-U",user));
-            if (db != null) cmd.addAll(List.of("-d",db));
-        } else if ("mariadb".equals(vendor)) {
-            String user = admin || domain == null ? "root" : "cpf_" + domain.systemCode.toLowerCase(Locale.ROOT) + "_migration";
-            String shell = admin || domain == null ? "exec mariadb -uroot -p\"$MARIADB_ROOT_PASSWORD\"" : "exec mariadb -u\"$CPF_DOMAIN_DB_USER\" -p\"$CPF_DOMAIN_DB_PASSWORD\"";
-            if (db != null) shell += " \"" + db + "\"";
-            cmd = new ArrayList<>(List.of("docker","exec","-i"));
-            if (!admin && domain != null) {
-                childEnv.put("CPF_DOMAIN_DB_USER", user); childEnv.put("CPF_DOMAIN_DB_PASSWORD", requireEnv(domain.systemCode + "_DB_MIGRATION_PASSWORD"));
-                cmd.addAll(List.of("-e","CPF_DOMAIN_DB_USER","-e","CPF_DOMAIN_DB_PASSWORD"));
-            }
-            cmd.addAll(List.of("cpf-public-mariadb","sh","-ec",shell));
-        } else {
-            String connect = admin || domain == null ? "system/$ORACLE_PWD@FREEPDB1" : "CPF_"+domain.systemCode+"_MIGRATION/$CPF_DOMAIN_DB_PASSWORD@FREEPDB1";
-            cmd = new ArrayList<>(List.of("docker","exec","-i"));
-            if (!admin && domain != null) { childEnv.put("CPF_DOMAIN_DB_PASSWORD", requireEnv(domain.systemCode + "_DB_MIGRATION_PASSWORD")); cmd.addAll(List.of("-e","CPF_DOMAIN_DB_PASSWORD")); }
-            cmd.addAll(List.of("cpf-public-oracle","bash","-ec","sqlplus -s '"+connect+"'"));
-        }
-        runChecked(cmd, workspace, childEnv, sql, options.timeoutSeconds);
-    }
-
-    private void build(List<Domain> domains) throws Exception {
-        if (isPublicWorkspace()) {
-            runChecked(List.of(gradleCommand(), "cpfBuild", "--no-daemon"), workspace, gradleEnv(), null, options.timeoutSeconds);
-        } else {
-            runChecked(List.of(gradleCommand(), "-PcpfIncludeGeneratedDomains=true", "assemble", "--continue", "--no-daemon"), workspace, gradleEnv(), null, options.timeoutSeconds);
-        }
-    }
-
-    private void test(List<Domain> domains) throws Exception {
-        if (isPublicWorkspace()) {
-            runChecked(List.of(gradleCommand(), "cpfTest", "--continue", "--no-daemon"), workspace, gradleEnv(), null, options.timeoutSeconds);
-        } else {
-            runChecked(List.of(gradleCommand(), "-PcpfIncludeGeneratedDomains=true", "test", "--continue", "--no-daemon"), workspace, gradleEnv(), null, options.timeoutSeconds);
-        }
-    }
-
-    private Map<String,String> gradleEnv() {
-        Map<String,String> result = new HashMap<>(env);
-        result.put("CPF_DB_VENDOR", options.db == null ? "postgresql" : options.db);
-        return result;
-    }
-
-    private void startRuntime(List<Domain> domains, String vendor) throws Exception {
-        Path registry = workspace.resolve(REGISTRY); Files.createDirectories(registry.getParent());
-        if (Files.exists(registry)) throw new IllegalStateException("Runtime registry가 이미 있습니다. stop 후 재실행하세요: " + registry);
-        Properties rows = new Properties();
-        for (Domain d : domains) {
-            Path libs = d.project.resolve("online/build/libs");
-            if (!Files.isDirectory(libs)) continue;
-            Path jar;
-            try (var files = Files.list(libs)) { jar = files.filter(p -> p.getFileName().toString().endsWith(".jar") && !p.getFileName().toString().contains("plain")).sorted().reduce((a,b)->b).orElse(null); }
-            if (jar == null) continue;
-            Path log = workspace.resolve("build/cpf-local/bootstrap/logs/" + d.name + ".log"); Files.createDirectories(log.getParent());
-            List<String> cmd = new ArrayList<>(List.of(javaCommand(), "-jar", jar.toString(), "--spring.profiles.active=local", "--server.port=" + d.port));
-            ProcessBuilder pb = new ProcessBuilder(cmd); pb.directory(workspace.toFile()); pb.redirectErrorStream(true); pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log.toFile()));
-            Map<String,String> pe = pb.environment(); applyDatasourceEnv(pe,d,vendor);
-            Process p = pb.start(); rows.setProperty(d.name + ".pid", Long.toString(p.pid())); rows.setProperty(d.name + ".port", Integer.toString(d.port)); rows.setProperty(d.name + ".log", workspace.relativize(log).toString().replace('\\','/'));
-            System.out.printf("[CPF][BOOTSTRAP][RUNTIME] domain=%s pid=%d port=%d%n", d.name,p.pid(),d.port);
-        }
-        try (Writer w = Files.newBufferedWriter(registry,StandardCharsets.UTF_8)) { rows.store(w,"CPF local runtime registry"); }
-    }
-
-    private void applyDatasourceEnv(Map<String,String> target, Domain d, String vendor) {
-        if ("none".equals(d.persistence)) return;
-        String code=d.systemCode, db="cpf_"+code.toLowerCase(Locale.ROOT), user="cpf_"+code.toLowerCase(Locale.ROOT)+"_runtime";
-        String url, driver;
-        if ("postgresql".equals(vendor)) { url="jdbc:postgresql://127.0.0.1:5432/"+db; driver="org.postgresql.Driver"; }
-        else if ("mariadb".equals(vendor)) { url="jdbc:mariadb://127.0.0.1:3306/"+db; driver="org.mariadb.jdbc.Driver"; }
-        else { url="jdbc:oracle:thin:@//127.0.0.1:1521/FREEPDB1"; driver="oracle.jdbc.OracleDriver"; user="CPF_"+code+"_RUNTIME"; }
-        target.put(code+"_DATASOURCE_URL",url); target.put(code+"_DATASOURCE_USERNAME",user); target.put(code+"_DATASOURCE_PASSWORD",requireEnv(code+"_DB_RUNTIME_PASSWORD")); target.put(code+"_DATASOURCE_DRIVER",driver);
-        target.put(code+"_ONLINE_PORT",Integer.toString(d.port));
-    }
-
-    private void waitRuntimeHealth(List<Domain> domains) throws Exception {
-        HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
-        for (Domain d:domains) {
-            if (!Files.isDirectory(d.project.resolve("online"))) continue;
-            URI uri=URI.create("http://127.0.0.1:"+d.port+"/actuator/health"); Instant deadline=Instant.now().plusSeconds(options.timeoutSeconds);
-            while (Instant.now().isBefore(deadline)) {
-                try { var r=client.send(HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(3)).GET().build(),HttpResponse.BodyHandlers.ofString()); if (r.statusCode()==200 && r.body().contains("UP")) { System.out.println("[CPF][BOOTSTRAP][RUNTIME_HEALTHY] "+d.name+" "+uri); break; } } catch (Exception ignored) {}
-                Thread.sleep(1500);
-                if (Instant.now().isAfter(deadline)) throw new IllegalStateException("Runtime health timeout domain="+d.name+" uri="+uri);
-            }
-        }
-    }
-
-    private void stop(boolean keepContainers) throws Exception {
-        Path registry=workspace.resolve(REGISTRY);
-        if (Files.isRegularFile(registry)) {
-            Properties p=new Properties(); try(Reader r=Files.newBufferedReader(registry,StandardCharsets.UTF_8)){p.load(r);} 
-            for(String key:p.stringPropertyNames()) if(key.endsWith(".pid")) { long pid=Long.parseLong(p.getProperty(key)); ProcessHandle.of(pid).ifPresent(h->{h.destroy(); try { if(!h.onExit().get(10,TimeUnit.SECONDS).isAlive()) return; } catch(Exception ignored){} h.destroyForcibly();}); }
-            Files.deleteIfExists(registry);
-        }
-        if (!keepContainers && Files.isRegularFile(compose)) runChecked(List.of("docker","compose","-f",compose.toString(),"stop"),workspace,null,null,options.timeoutSeconds);
-        System.out.println("[CPF][BOOTSTRAP][STOP] runtime stopped; Docker volumes preserved");
-    }
-
-    private void reset() throws Exception {
-        if (!options.confirmReset) throw new IllegalArgumentException("reset은 --confirm-local-reset 명시 승인이 필요합니다.");
-        stop(true);
-        if (Files.isRegularFile(compose)) runChecked(List.of("docker","compose","-f",compose.toString(),"down","--volumes","--remove-orphans"),workspace,null,null,options.timeoutSeconds);
-        Path local=workspace.resolve("build/cpf-local"); if(Files.exists(local)) deleteTree(local);
-        System.out.println("[CPF][BOOTSTRAP][RESET] local DB/middleware volumes and local binding outputs removed");
-    }
-
-    private void status() throws Exception {
-        List<Domain> domains=discoverDomains();
-        Path registry=workspace.resolve(REGISTRY); System.out.println("[CPF][BOOTSTRAP][STATUS] registry="+Files.exists(registry)+" domains="+domains.size());
-        if(Files.isRegularFile(compose)) {
-            if (findCommand(isWindows()?"docker.exe":"docker") == null) System.out.println("[CPF][BOOTSTRAP][STATUS] docker=UNAVAILABLE");
-            else run(List.of("docker","compose","-f",compose.toString(),"ps"),workspace,null,null,30,true);
-        }
-    }
-
-    private void writeState(List<Domain> domains,String db,List<String> middleware) throws IOException {
-        Properties p=new Properties(); p.setProperty("status","PASS"); p.setProperty("db",db); p.setProperty("domains",String.join(",",domains.stream().map(Domain::name).toList())); p.setProperty("middleware",String.join(",",middleware)); p.setProperty("updatedAt",Instant.now().toString());
-        Path state=workspace.resolve(STATE); Files.createDirectories(state.getParent()); try(Writer w=Files.newBufferedWriter(state,StandardCharsets.UTF_8)){p.store(w,"CPF bootstrap state");}
-    }
-
-    private void invokeGenerator(List<String> args) throws Exception {
-        Path privateCli=workspace.resolve("cpf-tools/runtime/cli/cpf.py"); List<String> cmd=new ArrayList<>();
-        if(Files.isRegularFile(privateCli)) { cmd.add(pythonCommand()); cmd.add(privateCli.toString()); cmd.add("--root"); cmd.add(workspace.toString()); }
-        else { Path launcher=workspace.resolve("bin/CpfGeneratorLauncher.java"); if(!Files.isRegularFile(launcher)) throw new IllegalStateException("Public Generator launcher 누락: "+launcher); cmd.add(javaCommand()); cmd.add(launcher.toString()); cmd.add("--root"); cmd.add(workspace.toString()); }
-        cmd.addAll(args); runChecked(cmd,workspace,null,null,options.timeoutSeconds);
-    }
-
-    private boolean isPublicWorkspace(){return Files.isDirectory(workspace.resolve(".cpf-public"));}
-    private String workspaceProperty(String key) throws IOException { Path p=workspace.resolve("config/cpf-workspace.properties"); if(!Files.isRegularFile(p)) return null; Properties props=new Properties(); try(Reader r=Files.newBufferedReader(p,StandardCharsets.UTF_8)){props.load(r);} return props.getProperty(key); }
-    private String dbService(String db){return switch(db){case "postgresql"->"cpf-postgresql";case "mariadb"->"cpf-mariadb";case "oracle"->"cpf-oracle";default->throw new IllegalArgumentException(db);};}
-    private Path resolveCompose(Path root){ Path privatePath=root.resolve("cpf-tools/runtime/bootstrap/compose.yaml"); return Files.isRegularFile(privatePath)?privatePath:root.resolve("deploy/local/compose.yaml"); }
-    private String gradleCommand(){return workspace.resolve(isWindows()?"gradlew.bat":"gradlew").toString();}
-    private String javaCommand(){return Optional.ofNullable(findCommand(isWindows()?"java.exe":"java")).orElse("java");}
-    private String pythonCommand(){String p=findCommand(isWindows()?"python.exe":"python3"); if(p==null)p=findCommand("python"); if(p==null)throw new IllegalStateException("Private generator 실행에 Python이 필요합니다."); return p;}
-    private static boolean isWindows(){return System.getProperty("os.name","").toLowerCase(Locale.ROOT).contains("win");}
-
-    private void requireWorkspace(){if(!Files.isDirectory(workspace))throw new IllegalArgumentException("Workspace가 없습니다: "+workspace); if(!Files.isRegularFile(workspace.resolve(isWindows()?"gradlew.bat":"gradlew")))throw new IllegalStateException("Gradle wrapper 누락: "+workspace);}
-    private void requireCommand(String... cmd)throws Exception{ProcessResult r=run(Arrays.asList(cmd),workspace,null,null,30,false);if(r.code!=0)throw new IllegalStateException("Prerequisite command 실패: "+String.join(" ",cmd)+" "+oneLine(r.error));System.out.println("[CPF][BOOTSTRAP][PREREQ] "+cmd[0]+"=PASS");}
-    private String requireEnv(String name){String v=env.get(name);if(v==null||v.isBlank())throw new IllegalStateException(name+" 환경변수가 필요합니다(Secret 원문은 로그에 출력하지 않습니다).");return v;}
-
-    private static Options parse(String[] args){Path workspace=Path.of(".");String action="bootstrap",db=null;int timeout=300;boolean skipBuild=false,skipTest=false,startRuntime=false,confirmReset=false;for(int i=0;i<args.length;i++){switch(args[i]){case "bootstrap","build","test","stop","reset","status"->action=args[i];case "--workspace","--root"->workspace=Path.of(requireArg(args,++i,"workspace"));case "--db"->db=requireArg(args,++i,"db");case "--timeout-seconds"->timeout=Integer.parseInt(requireArg(args,++i,"timeout"));case "--skip-build"->skipBuild=true;case "--skip-test"->skipTest=true;case "--start-runtime"->startRuntime=true;case "--confirm-local-reset"->confirmReset=true;default->throw new IllegalArgumentException("알 수 없는 인자: "+args[i]);}}if(timeout<10||timeout>3600)throw new IllegalArgumentException("timeout은 10~3600초 범위여야 합니다.");return new Options(workspace,action,db,timeout,skipBuild,skipTest,startRuntime,confirmReset);}
-    private static String requireArg(String[] args,int i,String name){if(i>=args.length)throw new IllegalArgumentException("--"+name+" 값이 필요합니다.");return args[i];}
-    private static String requiredMatch(String text,Pattern p,String field,Path file){Matcher m=p.matcher(text);if(!m.find())throw new IllegalStateException(field+" 누락: "+file);return m.group(1);}
-    private static String optionalMatch(String text,Pattern p,String def){Matcher m=p.matcher(text);return m.find()?m.group(1):def;}
-    private static int optionalInt(String text,Pattern p,int def){Matcher m=p.matcher(text);return m.find()?Integer.parseInt(m.group(1)):def;}
-    private static String firstNonBlank(String... values){for(String v:values)if(v!=null&&!v.isBlank())return v.trim();return "";}
-    private static String sqlLiteral(String v){return v.replace("'","''");}
-    private static Path sqlWrite(Path p,String body)throws IOException{Files.writeString(p,body,StandardCharsets.UTF_8,StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);return p;}
-    private static String oneLine(String v){return v==null?"":v.replace('\r',' ').replace('\n',' ').strip();}
-    private static String findCommand(String name){String path=System.getenv("PATH");if(path==null)return null;for(String part:path.split(Pattern.quote(File.pathSeparator))){Path p=Path.of(part,name);if(Files.isRegularFile(p)&&Files.isExecutable(p))return p.toString();}return null;}
-    private static void deleteTree(Path root)throws IOException{try(var paths=Files.walk(root)){for(Path p:paths.sorted(Comparator.reverseOrder()).toList())Files.deleteIfExists(p);}}
-
-    @FunctionalInterface interface CheckedRunnable{void run()throws Exception;}
-    @FunctionalInterface interface CheckedSupplier<T>{T get()throws Exception;}
-    private static void stage(String name,CheckedRunnable work)throws Exception{Instant s=Instant.now();System.out.println("[CPF][BOOTSTRAP][START] stage="+name+" at="+s);try{work.run();System.out.println("[CPF][BOOTSTRAP][PASS] stage="+name+" elapsedMs="+Duration.between(s,Instant.now()).toMillis());}catch(Exception e){System.err.println("[CPF][BOOTSTRAP][FAIL] stage="+name+" error="+e.getMessage());throw e;}}
-    private static <T>T stageValue(String name,CheckedSupplier<T> work)throws Exception{final Object[] v=new Object[1];stage(name,()->v[0]=work.get());@SuppressWarnings("unchecked")T result=(T)v[0];return result;}
-
-    record ProcessResult(int code,String output,String error){}
-    private static ProcessResult run(List<String> cmd,Path cwd,Map<String,String> environment,Path stdin,int timeoutSeconds,boolean inherit)throws Exception{
-        ProcessBuilder pb=new ProcessBuilder(cmd);pb.directory(cwd.toFile());if(environment!=null){pb.environment().clear();pb.environment().putAll(environment);}if(stdin!=null)pb.redirectInput(stdin.toFile());if(inherit){pb.inheritIO();Process p=pb.start();if(!p.waitFor(timeoutSeconds,TimeUnit.SECONDS)){p.destroyForcibly();throw new IllegalStateException("command timeout: "+cmd);}return new ProcessResult(p.exitValue(),"","");}
-        Process p=pb.start();
-        ByteArrayOutputStream out=new ByteArrayOutputStream(),err=new ByteArrayOutputStream();
-        Runnable stdout=()->p.inputReader(StandardCharsets.UTF_8).lines().forEachOrdered(line->{System.out.println(line);try{out.write((line+"\n").getBytes(StandardCharsets.UTF_8));}catch(IOException ignored){}});
-        Runnable stderr=()->p.errorReader(StandardCharsets.UTF_8).lines().forEachOrdered(line->{System.err.println(line);try{err.write((line+"\n").getBytes(StandardCharsets.UTF_8));}catch(IOException ignored){}});
-        Thread a=Thread.startVirtualThread(stdout),b=Thread.startVirtualThread(stderr);
-        if(!p.waitFor(timeoutSeconds,TimeUnit.SECONDS)){p.destroyForcibly();throw new IllegalStateException("command timeout: "+cmd);}
-        a.join();b.join();return new ProcessResult(p.exitValue(),out.toString(StandardCharsets.UTF_8),err.toString(StandardCharsets.UTF_8));}
-    private static void runChecked(List<String> cmd,Path cwd,Map<String,String> environment,Path stdin,int timeoutSeconds)throws Exception{ProcessResult r=run(cmd,cwd,environment,stdin,timeoutSeconds,true);if(r.code!=0)throw new IllegalStateException("command failed exit="+r.code+": "+String.join(" ",cmd));}
+    private static List<Path> listSql(Path dir) throws IOException { if (!Files.isDirectory(dir)) return List.of(); try (var s=Files.list(dir)) { return s.filter(p->p.getFileName().toString().endsWith(".sql")).sorted().toList(); } }
+    private static <T> List<T> concat(List<T> a,List<T> b){ List<T> x=new ArrayList<>(a);x.addAll(b);return x; }
+    private static String sha256(Path path) throws Exception { MessageDigest md=MessageDigest.getInstance("SHA-256"); md.update(Files.readAllBytes(path)); return HexFormat.of().formatHex(md.digest()); }
+    private static String normalizeDb(String db) { String v=db.trim().toLowerCase(Locale.ROOT); if (!Set.of("postgresql","mariadb","oracle").contains(v)) throw new IllegalArgumentException("unsupported local DB="+db); return v; }
+    private String envOrProperty(String env,String key,String fallback){ return firstNonBlank(System.getenv(env),workspace.getProperty(key,""),fallback); }
+    private static String envOrDefault(String env,String fallback){ return firstNonBlank(System.getenv(env),fallback); }
+    private static String firstNonBlank(String... values){ for(String v:values) if(v!=null&&!v.isBlank()) return v.trim(); return ""; }
+    private static boolean isWindows(){ return System.getProperty("os.name","").toLowerCase(Locale.ROOT).contains("win"); }
+    private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("domains"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
+    private static String readDefaultTimeout(Path root){ Properties p=new Properties(); Path f=root.resolve("config/cpf-workspace.properties"); try{ if(Files.isRegularFile(f)) try(Reader r=Files.newBufferedReader(f)){p.load(r);} }catch(Exception ignored){} return p.getProperty("cpf.bootstrap.timeout-seconds","300"); }
+    private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){command=a;continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else throw new IllegalArgumentException("unknown option="+a);} m.put("command",command); return m; }
+    private static String safeUri(String uri){ try{ URI u=URI.create(uri); return new URI(u.getScheme(),null,u.getHost(),u.getPort(),u.getPath(),null,null).toString(); }catch(Exception e){ return "<configured>"; } }
+    private static String sanitize(String s){ if(s==null)return "unknown error"; return s.replaceAll("(?i)(password|token|secret)=\\S+","$1=***"); }
+    private void step(String n,String label,String detail){ out("["+n+"] "+label+" .... "+detail); }
+    private void progress(String n,String label,String detail){ out("["+n+"] "+label+" .... "+detail); }
+    private void pass(String n,String label,String detail){ out("["+n+"] "+label+" .... PASS "+detail); }
+    private void skip(String n,String label,String detail){ out("["+n+"] "+label+" .... SKIP "+detail); }
+    private void ready(String text){ out("[CPF][BOOTSTRAP] "+text); out("[CPF][BOOTSTRAP] log="+root.relativize(logDir)); }
+    private void out(String s){ System.out.println(s); logLine(s); }
+    private synchronized void logLine(String s){ log.println(Instant.now()+" "+sanitize(s)); log.flush(); }
+    private void logException(Throwable e){ logLine("FAIL "+e); e.printStackTrace(log); log.flush(); }
+    private void close(){ log.close(); }
 }

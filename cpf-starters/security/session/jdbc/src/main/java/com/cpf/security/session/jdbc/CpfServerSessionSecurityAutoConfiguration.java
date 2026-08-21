@@ -27,7 +27,7 @@ import org.springframework.session.Session;
 import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
-/** ADM/BZA Browser Credential을 HttpOnly Session Handle + 암호화 JDBC Vault로 보호합니다. */
+/** ADM/MBW Browser Credential을 HttpOnly Session Handle + 암호화 JDBC Vault로 보호합니다. */
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass({DataSource.class, SecurityFilterChain.class, CookieSerializer.class})

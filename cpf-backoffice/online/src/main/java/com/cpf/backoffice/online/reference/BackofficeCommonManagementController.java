@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.reference;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 
@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.Map;
 
 /** Code/Parameter/Calendar/Template Common Product Service 운영 API입니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice/common")
 @Tag(name="MBW-Common",description="Common Product Service 관리 API")
 public final class BackofficeCommonManagementController extends com.cpf.backoffice.online.base.BackofficeBaseController {

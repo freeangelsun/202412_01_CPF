@@ -2,22 +2,17 @@ package com.cpf.common.calendar;
 
 import com.cpf.common.persistence.CpfCommonSqlResourceLoader;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 /** Product mode의 CMN canonical Calendar JDBC Adapter입니다. */
-@Component
-@ConditionalOnProperty(name="cpf.common.calendar.jdbc.enabled",havingValue="true",matchIfMissing=true)
 public class CmnJdbcCalendarStore implements CmnCalendarStore {
     private final JdbcTemplate jdbc;
-    public CmnJdbcCalendarStore(@Qualifier("cpfCommonDataSource") DataSource dataSource) { this.jdbc = new JdbcTemplate(dataSource); }
+    public CmnJdbcCalendarStore(DataSource dataSource) { this.jdbc = new JdbcTemplate(dataSource); }
     @Override public Optional<CmnCalendarDay> find(String calendarId, LocalDate businessDate) {
         return jdbc.query(CpfCommonSqlResourceLoader.load("calendar/find.sql"),
                 (rs,n)->map(rs), calendarId,businessDate).stream().findFirst();

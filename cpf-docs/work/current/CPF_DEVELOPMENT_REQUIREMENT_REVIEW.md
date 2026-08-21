@@ -1,11 +1,11 @@
-# CPF Development Requirement Review — C 개발/QA 관리_21
+# CPF Development Requirement Review — C 개발/QA 관리_22
 
 ## 1. Review basis
 
 - Canonical requirements: `205`
-- Baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_122758(1).zip`
-- Baseline SHA-256: `f73988097aef77a1bcc795ba66394326dd5a9f875a2d1b530e2c99e315cf5ceb`
-- GitHub master observed at development start: `9922ca8c3c7dceeb18a9b41b2b923f564bbf29de`
+- Baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_230143.zip`
+- Baseline SHA-256: `8b2e064accaead9e3b81bbf306c2197142621ffdc25aab6cba9a420ef613ad1f`
+- Current Source authority: user-provided Local Working Tree ZIP; GitHub/master not used as baseline.
 - Developer GPT changes QA/Codex status columns: `NO`
 - Important: `완료` Source development and `미검증` live acceptance are deliberately separated.
 

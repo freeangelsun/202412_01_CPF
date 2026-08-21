@@ -1,6 +1,6 @@
 package com.cpf.backoffice.online.operation.controller;
 
-import com.cpf.web.api.CpfRestController;
+import com.cpf.web.api.CpfController;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 
 
@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /** MBW 운영 API. 목록은 기존 호환 API와 서버 Paging API를 함께 제공합니다. */
-@CpfRestController
+@CpfController
 @RequestMapping("/api/v1/backoffice")
 public class BackofficeOperationController extends com.cpf.backoffice.online.base.BackofficeBaseController {
   private final BackofficeOperationService s;

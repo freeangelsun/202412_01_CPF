@@ -123,8 +123,16 @@ def validate(root: Path) -> dict[str, int | str]:
     if reference_routes < 4:
         raise ContractError(f"Backoffice reference frontend must expose representative routes, actual={reference_routes}")
     generator = read(frontend / "scripts/generate-reference-client.mjs")
-    if "cpf-openapi.json" not in generator or "OpenAPI operations missing" not in generator:
-        raise ContractError("Backoffice frontend is not OpenAPI-generated-client driven")
+    required_generator_contract = (
+        "cpf-openapi.json",
+        "Duplicate OpenAPI operationId",
+        "Generated function-name collision",
+        "rows.length",
+        "cpfBackofficeGeneratedOperations",
+    )
+    missing_generator_contract = [token for token in required_generator_contract if token not in generator]
+    if missing_generator_contract:
+        raise ContractError(f"Backoffice frontend OpenAPI generator contract missing: {missing_generator_contract}")
     frontend_source = "\n".join(
         read(path) for path in (frontend / "src").rglob("*") if path.is_file() and path.suffix in {".ts", ".vue"}
     )

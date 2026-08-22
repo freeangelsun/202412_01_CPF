@@ -765,20 +765,20 @@
       "ownerPath": "cpf-starters/integration/http",
       "groupId": "com.cpf.starter",
       "artifactId": "cpf-starter-integration-http",
-      "kind": "internal-starter",
-      "visibility": "internal",
+      "kind": "starter-provider",
+      "visibility": "public",
       "publicationRequired": true,
-      "role": "capability-runtime",
+      "role": "provider",
       "ownerGroup": "integration",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "packageBase": "com.cpf.integration.http",
       "configPrefix": "cpf.integration.http",
-      "displayNameKo": "[내부] Integration · integration http",
+      "displayNameKo": "Integration · integration http",
       "selectionGroup": "Integration",
-      "usageHintKo": "Runtime 구현은 내부 조립용이며, 업무 코드는 framework integration의 Public Webhook API 계약만 사용합니다.",
-      "userSelectable": false,
-      "runtimeRequired": true,
-      "usageLevel": "internal",
+      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다.",
+      "userSelectable": true,
+      "runtimeRequired": false,
+      "usageLevel": "capability",
       "recommended": false,
       "management": {
         "id": "integration.http",
@@ -865,20 +865,20 @@
       "ownerPath": "cpf-starters/integration/resilience",
       "groupId": "com.cpf.starter",
       "artifactId": "cpf-starter-integration-resilience",
-      "kind": "internal-starter",
-      "visibility": "internal",
+      "kind": "starter-provider",
+      "visibility": "public",
       "publicationRequired": true,
-      "role": "capability-runtime",
+      "role": "provider",
       "ownerGroup": "integration",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "packageBase": "com.cpf.integration.resilience",
       "configPrefix": "cpf.integration.resilience",
-      "displayNameKo": "[내부] Integration · integration resilience",
+      "displayNameKo": "Integration · integration resilience",
       "selectionGroup": "Integration",
-      "usageHintKo": "Runtime 구현은 내부 조립용이며, 업무 코드는 framework integration의 Public Webhook API 계약만 사용합니다.",
-      "userSelectable": false,
-      "runtimeRequired": true,
-      "usageLevel": "internal",
+      "usageHintKo": "선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다.",
+      "userSelectable": true,
+      "runtimeRequired": false,
+      "usageLevel": "capability",
       "recommended": false,
       "management": {
         "id": "integration.resilience",
@@ -3546,12 +3546,8 @@
     },
     "integration": {
       "requiresCapabilities": [],
-      "runtimeProjects": [
-        ":internal:integration:resilience"
-      ],
-      "runtimeCoordinates": [
-        "com.cpf.starter:cpf-starter-integration-resilience"
-      ],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
       "defaultProviderBindings": {},
       "requiredProviderSlots": []
     },
@@ -3738,9 +3734,7 @@
         ":starters:profiles:web-api",
         ":framework:security",
         ":internal:security:resource-server",
-        ":framework:integration",
-        ":internal:integration:http",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:profiles:web-api",
@@ -3775,8 +3769,7 @@
       "runtimeProjects": [
         ":starters:base",
         ":framework:messaging",
-        ":framework:integration",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base"
@@ -3794,9 +3787,7 @@
         ":starters:base",
         ":runtime:batch:api",
         ":runtime:batch:runtime",
-        ":framework:integration",
-        ":internal:integration:resilience",
-        ":internal:integration:http"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base",
@@ -3854,7 +3845,9 @@
     "cpf-starter-object-storage-s3",
     "cpf-starter-graphql",
     "cpf-starter-realtime",
-    "cpf-starter-oidc"
+    "cpf-starter-oidc",
+    "cpf-starter-integration-http",
+    "cpf-starter-integration-resilience"
   ],
   "internalOnlyArtifacts": [
     "cpf-base-runtime",
@@ -3875,9 +3868,7 @@
     "cpf-starter-file-tabular-poi",
     "cpf-starter-integration-ai",
     "cpf-starter-integration-fixed-length",
-    "cpf-starter-integration-http",
     "cpf-starter-integration-iso8583",
-    "cpf-starter-integration-resilience",
     "cpf-starter-integration-soap",
     "cpf-starter-integration-tcp",
     "cpf-starter-integration-webhook",
@@ -3920,9 +3911,7 @@
         ":starters:profiles:web-api",
         ":framework:security",
         ":internal:security:resource-server",
-        ":framework:integration",
-        ":internal:integration:http",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:profiles:web-api",
@@ -3957,8 +3946,7 @@
       "runtimeProjects": [
         ":starters:base",
         ":framework:messaging",
-        ":framework:integration",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base"
@@ -3976,9 +3964,7 @@
         ":starters:base",
         ":runtime:batch:api",
         ":runtime:batch:runtime",
-        ":framework:integration",
-        ":internal:integration:resilience",
-        ":internal:integration:http"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base",

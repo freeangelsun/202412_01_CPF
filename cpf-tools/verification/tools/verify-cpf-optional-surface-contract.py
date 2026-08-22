@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json, sys
+import argparse, json
 from pathlib import Path
 
-root = Path(sys.argv[1] if len(sys.argv) > 1 else '.').resolve()
+ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ns=ap.parse_args()
+root = Path(ns.root).resolve()
 policy_path = root / 'cpf-tools/governance/cpf-optional-surface-policy.json'
 fail: list[str] = []
 def require(cond: bool, msg: str) -> None:

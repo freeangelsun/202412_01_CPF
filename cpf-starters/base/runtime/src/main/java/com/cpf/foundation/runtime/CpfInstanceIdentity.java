@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public final class CpfInstanceIdentity {
     private static final Set<String> FORBIDDEN_INSTANCE_IDS = Set.of(
-            "localhost", "127.0.0.1", "::1", "unknown", "local");
+            "localhost", "127.0.0.1", "::1", "unknown", "local", "dev", "test", "prod");
     private static final String EXPLICIT_INSTANCE_ID = explicitInstanceId();
     private static final String HOST_NAME = resolveHostName();
     private static final String INSTANCE_ID = resolveInstanceId(EXPLICIT_INSTANCE_ID, HOST_NAME);

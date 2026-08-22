@@ -16,19 +16,26 @@ TYPE = re.compile(r"(?m)^public\s+(?:final\s+|abstract\s+|sealed\s+|non-sealed\s
 
 
 def has_javadoc(text: str, start: int) -> bool:
-    lines = text[:start].splitlines()
-    i = len(lines) - 1
-    while i >= 0 and (not lines[i].strip() or lines[i].strip().startswith("@")):
-        i -= 1
-    if i < 0 or "*/" not in lines[i]:
+    """Return true when the declaration is preceded by a Javadoc block.
+
+    Java annotations are declaration modifiers and may span multiple lines (for example
+    ``@EnableConfigurationProperties({ ... })``).  The previous line-based implementation
+    stopped at a continuation line such as ``})`` and produced a false negative even though
+    a valid class Javadoc was immediately before the annotation block.
+    """
+    prefix = text[:start]
+    end = prefix.rfind("*/")
+    if end < 0:
         return False
-    while i >= 0:
-        if "/**" in lines[i]:
-            return True
-        if "/*" in lines[i] and "/**" not in lines[i]:
-            return False
-        i -= 1
-    return False
+    begin = prefix.rfind("/**", 0, end + 2)
+    if begin < 0:
+        return False
+    between = prefix[end + 2 :].strip()
+    if not between:
+        return True
+    # Only annotations may occur between a type Javadoc and the type declaration.  Treat
+    # an entire multi-line annotation block as one modifier instead of inspecting each line.
+    return between.startswith("@") and ";" not in between
 
 
 def publication_roots(root: Path) -> list[tuple[str, Path]]:

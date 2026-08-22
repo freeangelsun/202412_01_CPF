@@ -90,10 +90,11 @@ def main() -> int:
         online_build = output / "online/build.gradle"
         if "cpf-starter-oidc" not in online_build.read_text(encoding="utf-8"):
             raise RuntimeError("OIDC 선택이 Public cpf-starter-oidc로 조립되지 않았습니다.")
-        if "cpf-starter-integration-http" in online_build.read_text(encoding="utf-8"):
-            raise RuntimeError("Generated Domain이 Internal integration-http leaf를 직접 참조합니다.")
-        if "cpf-starter-integration-resilience" in online_build.read_text(encoding="utf-8"):
-            raise RuntimeError("Generated Domain이 Internal resilience leaf를 직접 참조합니다.")
+        build_text = online_build.read_text(encoding="utf-8")
+        if "cpf-starter-integration-http" not in build_text:
+            raise RuntimeError("httpClient=true인데 Public integration-http Provider가 조립되지 않았습니다.")
+        if "cpf-starter-integration-resilience" not in build_text:
+            raise RuntimeError("resilience=true인데 Public resilience Provider가 조립되지 않았습니다.")
         evidence["checks"]["freshGenerate"] = generated_json
 
         # 2) 같은 입력 재실행은 byte-stable idempotent여야 한다.
@@ -120,21 +121,36 @@ def main() -> int:
         # 보호 검증용 수정만 되돌리고 동일 state에서 remove→restore byte parity를 확인한다.
         online_build.write_text(online_build.read_text(encoding="utf-8").replace("// 사용자 수정 보호 검증\n", ""), encoding="utf-8")
         tree_before = {p.relative_to(output).as_posix(): sha256(p) for p in output.rglob("*") if p.is_file()}
-        removed = run(base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output), "--apply"])
-        if output.exists():
-            raise RuntimeError("remove 후 Generated Root가 남았습니다.")
+        planned = run(base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output)])
+        plan_json = json.loads(planned.stdout)
+        if plan_json.get("status") != "PLANNED_DELETE_MANIFEST" or plan_json.get("applied") is not False:
+            raise RuntimeError("remove가 사용자 승인 Delete Manifest 계획으로 종료되지 않았습니다.")
+        direct_apply = run(base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output), "--apply"], expect=2)
+        if not output.exists():
+            raise RuntimeError("금지된 direct --apply가 Generated Root를 삭제했습니다.")
+        # Temp fixture에서는 사용자 승인 Delete Manifest 적용 결과를 exact candidates로 모사해 restore parity를 검증합니다.
+        for rel in plan_json.get("deleteCandidates", []):
+            candidate = output / rel
+            if candidate.is_file(): candidate.unlink()
+        for directory in sorted((x for x in output.rglob("*") if x.is_dir()), key=lambda x: len(x.parts), reverse=True):
+            try: directory.rmdir()
+            except OSError: pass
         restored = run(base + ["domain", "restore", "--file", str(definition), "--output", str(output)])
         tree_after = {p.relative_to(output).as_posix(): sha256(p) for p in output.rglob("*") if p.is_file()}
         if tree_before != tree_after:
-            raise RuntimeError("remove→restore Source hash parity가 깨졌습니다.")
-        evidence["checks"]["remove"] = json.loads(removed.stdout)
+            raise RuntimeError("Delete Manifest 모사 remove→restore Source hash parity가 깨졌습니다.")
+        evidence["checks"]["removePlan"] = plan_json
+        evidence["checks"]["directApplyRejected"] = {"status":"PASS","stderr":direct_apply.stderr.strip()}
         evidence["checks"]["restore"] = json.loads(restored.stdout)
 
         # 4) 정의 변경 upgrade는 user-owned extra 파일을 보존하면서 Generated-owned 변경만 반영한다.
         user_file = output / "USER_NOTE.txt"
         user_file.write_text("고객 소유 파일\n", encoding="utf-8")
-        definition.write_text(yaml_text("order", "ORD", "order", "ORD", security="resource-server"), encoding="utf-8")
-        upgraded = run(base + ["domain", "upgrade", "order", "--file", str(definition), "--output", str(output)])
+        changed_definition = yaml_text("order", "ORD", "order", "ORD", security="resource-server")
+        definition.write_text(changed_definition, encoding="utf-8")
+        canonical_definition = output / "cpf-domain.yaml"
+        canonical_definition.write_text(changed_definition, encoding="utf-8")
+        upgraded = run(base + ["domain", "upgrade", "order", "--file", str(canonical_definition), "--output", str(output)])
         if not user_file.is_file():
             raise RuntimeError("upgrade가 user-owned extra file을 삭제했습니다.")
         if "cpf-starter-oidc" in online_build.read_text(encoding="utf-8"):

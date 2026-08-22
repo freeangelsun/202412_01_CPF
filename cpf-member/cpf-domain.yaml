@@ -6,6 +6,8 @@ database:
   role: CUSTOMER_BUSINESS_DB
   tablePrefix: MBR
 preset: standard-enterprise
+businessFeatures:
+  - sample
 modules:
   online: true
   batch: true

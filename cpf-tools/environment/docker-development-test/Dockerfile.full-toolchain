@@ -1,5 +1,5 @@
 FROM eclipse-temurin:25.0.3_9-jdk AS java_runtime
-FROM node:22.16.0-bookworm AS node_runtime
+FROM node:22.18.0-bookworm AS node_runtime
 FROM mcr.microsoft.com/playwright:v1.62.0-noble
 
 ARG POWERSHELL_VERSION=7.6.4

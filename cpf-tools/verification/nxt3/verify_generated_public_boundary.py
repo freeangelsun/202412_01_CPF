@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# CPF 개발/검증 Source이며 최신 Requirement와 실패 누적 검증 계약을 따릅니다.
 from __future__ import annotations
 import argparse, json, re
 from pathlib import Path
 
-INTERNAL_REQUIRED={'cpf-starter-integration-http','cpf-starter-integration-resilience'}
-PUBLIC_DIRECT_REQUIRED_API={'cpf-starter','cpf-starter-secure-api','cpf-starter-data-mybatis'}
-BATCH_CAPABILITY_PUBLIC={'cpf-starter-batch'}
+PUBLIC_BASE={'cpf-starter','cpf-starter-secure-api'}
+OPTIONAL_PUBLIC={'cpf-starter-integration-http','cpf-starter-integration-resilience'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path)
@@ -14,44 +12,52 @@ def main()->int:
     def add(name,ok,detail): checks.append({'name':name,'status':'PASS' if ok else 'FAIL','detail':detail})
     catalog=json.loads((root/'cpf-tools/generator/contracts/cpf-starter-catalog.json').read_text(encoding='utf-8'))
     mods={m['artifactId']:m for m in catalog['modules']}
-    for aid in sorted(INTERNAL_REQUIRED):
-        m=mods.get(aid); add(f'catalog-{aid}-internal',bool(m and m.get('visibility')=='internal'),m or {})
-    for aid in sorted(PUBLIC_DIRECT_REQUIRED_API|BATCH_CAPABILITY_PUBLIC):
+    project_to_module={m.get('projectPath'):m for m in catalog['modules'] if m.get('projectPath')}
+    # HTTP/Resilience are explicit, independently selectable Public providers. They must never be silently hidden in a Profile.
+    for aid in sorted(OPTIONAL_PUBLIC|PUBLIC_BASE|{'cpf-starter-batch'}):
         m=mods.get(aid); add(f'catalog-{aid}-public',bool(m and m.get('visibility')=='public'),m or {})
     profile_defs=catalog.get('profileDefinitions',{})
-    for profile in ('secure-api','batch'):
+    optional_projects={mods[x]['projectPath'] for x in OPTIONAL_PUBLIC if x in mods}
+    for profile in ('secure-api','event','batch'):
         runtime=set(profile_defs.get(profile,{}).get('runtimeProjects',[]))
-        needed={mods[x]['projectPath'] for x in INTERNAL_REQUIRED if x in mods}
-        add(f'profile-{profile}-owns-integration-leaves',needed.issubset(runtime),sorted(runtime))
-    profile_files={
+        hidden=sorted(runtime & optional_projects)
+        add(f'profile-{profile}-optional-provider-zero',not hidden,{'runtimeProjects':sorted(runtime),'hiddenOptional':hidden})
+    # Physical profile Gradle composition must agree with the catalog and must not reintroduce optional providers.
+    for profile,path in {
         'secure-api':root/'cpf-starters/profiles/secure-api/build.gradle',
+        'event':root/'cpf-starters/profiles/event-service/build.gradle',
         'batch':root/'cpf-starters/profiles/batch-service/build.gradle',
-    }
-    for profile,path in profile_files.items():
-        text=path.read_text(encoding='utf-8')
-        missing=[x for x in INTERNAL_REQUIRED if x not in mods or f"implementation project('{mods[x]['projectPath']}')" not in text]
-        add(f'profile-{profile}-build-composes-internal',not missing,{'file':str(path),'missingImplementationComposition':missing})
-    # Generated Domain은 online을 필수 생성하고 definition에서 선택한 경우에만 batch를 생성한다. 두 Surface 모두 Public Starter/Profile만 직접 소비한다.
+    }.items():
+        text=path.read_text(encoding='utf-8') if path.is_file() else ''
+        actual=set(re.findall(r"project\(\s*['\"]([^'\"]+)['\"]\s*\)",text))
+        expected=set(profile_defs.get(profile,{}).get('runtimeProjects',[]))
+        hidden=sorted(actual & optional_projects)
+        add(f'profile-{profile}-physical-composition',path.is_file() and actual==expected and not hidden,
+            {'file':str(path),'expected':sorted(expected),'actual':sorted(actual),'hiddenOptional':hidden})
+    # Generated Customer Domain may directly consume only Public Starter artifacts; physical :internal:* project names are never exposed.
     for root_name in ('cpf-member','cpf-external'):
-        path=root/root_name/'online/build.gradle'; text=path.read_text(encoding='utf-8')
-        direct=set(re.findall(r'com\.cpf\.starter:([a-z0-9-]+):',text))
-        forbidden=sorted(direct & INTERNAL_REQUIRED)
-        missing=sorted(PUBLIC_DIRECT_REQUIRED_API-direct)
-        add(f'{root_name}-online-public-direct-boundary',not forbidden and not missing,{'file':str(path),'direct':sorted(direct),'forbiddenInternal':forbidden,'missingRequiredPublic':missing})
         definition=root/root_name/'cpf-domain.yaml'
-        batch_selected='batch: true' in definition.read_text(encoding='utf-8',errors='replace').lower()
-        batch_dir=root/root_name/'batch'
-        batch_exists=batch_dir.is_dir() and any(y.is_file() for y in batch_dir.rglob('*'))
-        unexpected=[x for x in ('domain','jobpack') if (root/root_name/x).is_dir() and any(y.is_file() for y in (root/root_name/x).rglob('*'))]
-        add(f'{root_name}-generated-optional-batch-selection',batch_exists==batch_selected,{'selected':batch_selected,'exists':batch_exists})
-        add(f'{root_name}-generated-domain-jobpack-zero',not unexpected,unexpected)
-        if batch_exists:
-            batch_build=batch_dir/'build.gradle'; batch_text=batch_build.read_text(encoding='utf-8') if batch_build.is_file() else ''
-            batch_direct=set(re.findall(r'com\.cpf\.starter:([a-z0-9-]+):',batch_text))
-            add(f'{root_name}-batch-public-direct-boundary',not (batch_direct & INTERNAL_REQUIRED) and 'cpf-starter-batch' in batch_direct,{'direct':sorted(batch_direct)})
-    batch_profile=root/'cpf-starters/profiles/batch-service/build.gradle'
-    batch_text=batch_profile.read_text(encoding='utf-8') if batch_profile.is_file() else ''
-    add('batch-capability-separate-public-profile',batch_profile.is_file() and 'cpf-starter-batch' in mods and mods['cpf-starter-batch'].get('visibility')=='public',str(batch_profile))
+        generation='generated'
+        if definition.is_file():
+            txt=definition.read_text(encoding='utf-8',errors='replace')
+            m=re.search(r'(?ms)^generation:\s*\n(?:^[ \t].*\n)*?^[ \t]+mode:\s*([A-Za-z0-9_-]+)',txt)
+            if m: generation=m.group(1).strip().lower()
+        if generation!='generated':
+            add(f'{root_name}-generated-mode',False,{'generation':generation}); continue
+        for module in ('online','batch'):
+            build=root/root_name/module/'build.gradle'
+            if not build.is_file():
+                if module=='online': add(f'{root_name}-{module}-exists',False,str(build))
+                continue
+            text=build.read_text(encoding='utf-8')
+            direct=set(re.findall(r'com\.cpf\.starter:([a-z0-9-]+):',text))
+            internal_project=sorted(set(re.findall(r"project\(\s*['\"]([^'\"]+)['\"]\s*\)",text)))
+            unknown=sorted(a for a in direct if a not in mods)
+            nonpublic=sorted(a for a in direct if a in mods and mods[a].get('visibility')!='public')
+            required={'cpf-starter','cpf-starter-secure-api'} if module=='online' else {'cpf-starter','cpf-starter-batch'}
+            missing=sorted(required-direct)
+            add(f'{root_name}-{module}-public-direct-boundary',not unknown and not nonpublic and not internal_project and not missing,
+                {'direct':sorted(direct),'unknown':unknown,'nonPublic':nonpublic,'projectDependencies':internal_project,'missingRequired':missing})
     failures=[c for c in checks if c['status']=='FAIL']
     result={'gate':'NXT3_GENERATED_PUBLIC_STARTER_BOUNDARY','status':'PASS' if not failures else 'FAIL','failedCount':len(failures),'checks':checks}
     if ns.evidence:

@@ -4,7 +4,6 @@ dependencies {
     api project(':starters:base')
     implementation project(':framework:messaging')
     implementation project(':framework:integration')
-    implementation project(':internal:integration:resilience')
     api 'org.springframework.boot:spring-boot-starter-actuator'
 }
 tasks.named('test'){useJUnitPlatform()}

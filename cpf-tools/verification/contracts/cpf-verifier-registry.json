@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryId": "cpf-current-canonical-static-verifiers",
+  "registryId": "cpf-current-canonical-static-verifiers-v2",
   "rootArgumentPolicy": "Every registered Python verifier receives --root <repositoryRoot> exactly once.",
   "verifiers": [
     {
@@ -78,6 +78,86 @@
       "id": "backoffice-route",
       "path": "cpf-tools/verification/tools/verify-cpf-backoffice-route-contract.py",
       "args": [],
+      "required": true
+    },
+    {
+      "id": "generated-minimal-ia",
+      "path": "cpf-tools/verification/nxt3/verify_generated_customer_domain_minimal_ia.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "generated-canonical-ia",
+      "path": "cpf-tools/verification/tools/verify-cpf-generated-domain-canonical-ia.py",
+      "args": [
+        "--mutation-self-test"
+      ],
+      "required": true
+    },
+    {
+      "id": "generated-javac",
+      "path": "cpf-tools/verification/nxt3/verify_generated_javac.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "starter-zero-footprint",
+      "path": "cpf-tools/verification/verify_nxt_zero_footprint.py",
+      "args": [
+        "--mutation-self-test"
+      ],
+      "required": true
+    },
+    {
+      "id": "backoffice-classification",
+      "path": "cpf-tools/verification/tools/verify-cpf-backoffice-classification.py",
+      "args": [
+        "--mutation-self-test"
+      ],
+      "required": true
+    },
+    {
+      "id": "backoffice-semantic-client",
+      "path": "cpf-tools/verification/verify_backoffice_openapi_client_consumer.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "runtime-instance-identity",
+      "path": "cpf-tools/verification/tools/verify-cpf-runtime-instance-identity.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "runtime-central-registry-retention",
+      "path": "cpf-tools/verification/nxt3/verify-cpf-central-registry-retention-closure.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "transaction-system6",
+      "path": "cpf-tools/verification/verify_transaction_id_contract.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "nxt3-layout",
+      "path": "cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "repository-garbage",
+      "path": "cpf-tools/verification/nxt3/verify_nxt3_repository_garbage.py",
+      "args": [],
+      "required": true
+    },
+    {
+      "id": "toolchain-contract",
+      "path": "cpf-tools/verification/tools/verify-cpf-toolchain-contract.py",
+      "args": [
+        "--mutation-self-test"
+      ],
       "required": true
     }
   ]

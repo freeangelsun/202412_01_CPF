@@ -11,6 +11,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * HTTP capability의 운영 중 변경값을 표준 Runtime Control Plane에 연결하는 자동 구성입니다.
+ *
+ * <p>API client 정책, 외부기관 endpoint, service route/circuit/maintenance 변경을
+ * {@link CpfRuntimeChangeApplier} Bean으로 노출하며 실제 관련 runtime Bean이 존재할 때만 활성화됩니다.</p>
+ */
 @AutoConfiguration
 public class CpfHttpRuntimeControlAutoConfiguration {
     @Bean(name="cpfApiClientRuntimeApplier") @ConditionalOnBean(CpfApiClientRuntimePolicy.class)

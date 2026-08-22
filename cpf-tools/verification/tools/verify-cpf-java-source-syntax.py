@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import subprocess
@@ -8,7 +9,10 @@ import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else '.').resolve()
+_parser = argparse.ArgumentParser()
+_parser.add_argument('--root', default='.')
+_args = _parser.parse_args()
+ROOT = Path(_args.root).resolve()
 
 def _skip_dir(root: Path, candidate: Path) -> bool:
     try:

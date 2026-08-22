@@ -103,11 +103,29 @@ def main(argv=None):
  g.check('REFERENCE_ROOT_ABSENT',not ref_files,','.join(ref_files[:20]))
  deploy_reference=[x for x in files_under(root,'deploy') if 'cpf-reference' in x.lower()]
  g.check('DEPLOY_REFERENCE_ZERO',not deploy_reference,','.join(deploy_reference[:20]))
+ # Generated Customer Domain은 public Starter만 참조해야 한다. 이름이 아니라 Canonical Catalog visibility로 판정한다.
+ catalog_path=root/'cpf-tools/generator/contracts/cpf-starter-catalog.json'
+ public_projects=set(); internal_projects=set()
+ if catalog_path.is_file():
+  try:
+   catalog=json.loads(catalog_path.read_text(encoding='utf-8'))
+   def walk(obj):
+    if isinstance(obj,dict):
+     pp=obj.get('projectPath')
+     if isinstance(pp,str) and pp.startswith(':'):
+      (public_projects if str(obj.get('visibility','')).lower()=='public' else internal_projects).add(pp)
+     for v in obj.values(): walk(v)
+    elif isinstance(obj,list):
+     for v in obj: walk(v)
+   walk(catalog)
+  except Exception: pass
  for domain in ['cpf-member','cpf-external']:
-  d=root/domain; logical=domain.removeprefix('cpf-'); definition=d/'cpf-domain.yaml'; g.check('GEN_ROOT_'+domain.upper(),d.exists() and definition.exists() and not (d/'.cpf').exists())
+  d=root/domain; definition=d/'cpf-domain.yaml'; g.check('GEN_ROOT_'+domain.upper(),d.exists() and definition.exists() and not (d/'.cpf').exists())
   if d.exists():
-   t='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in d.rglob('build.gradle'))
-   g.check('GEN_PUBLIC_ONLY_'+domain.upper(), 'cpf-starter-integration-http' not in t and 'cpf-starter-integration-resilience' not in t)
+   build_text='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in d.rglob('build.gradle'))
+   direct=set(re.findall(r"project\(['\"]([^'\"]+)['\"]\)", build_text))
+   bad=sorted(x for x in direct if x in internal_projects or (x.startswith(':') and x not in public_projects and x not in {':online',':batch'}))
+   g.check('GEN_PUBLIC_ONLY_'+domain.upper(),not bad,','.join(bad))
  ign=(root/'.gitignore').read_text(encoding='utf-8',errors='ignore') if (root/'.gitignore').exists() else ''
  g.check('GENERATED_BUILD_IGNORED','/cpf-*/**/build/' in ign and '/cpf-*/**/.gradle/' in ign)
  gl=root/a.garbage_ledger; g.check('GARBAGE_LEDGER_PRESENT',gl.exists(),a.garbage_ledger)

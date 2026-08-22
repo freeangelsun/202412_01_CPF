@@ -1,13 +1,14 @@
 package com.cpf.web.error;
 
-import com.cpf.common.message.api.CpfErrorCatalogResolver;
-import com.cpf.common.message.api.CpfResolvedError;
+import com.cpf.core.api.error.CpfErrorCatalogResolver;
+import com.cpf.core.api.error.CpfResolvedErrorView;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.error.CpfErrorCode;
 import com.cpf.core.api.error.CpfException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,14 +24,14 @@ public final class CpfGlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(CpfGlobalExceptionHandler.class);
     private final CpfErrorCatalogResolver catalogResolver;
 
-    public CpfGlobalExceptionHandler(CpfErrorCatalogResolver catalogResolver) {
-        this.catalogResolver = catalogResolver;
+    public CpfGlobalExceptionHandler(ObjectProvider<CpfErrorCatalogResolver> catalogResolver) {
+        this.catalogResolver = catalogResolver.getIfAvailable(CpfGlobalExceptionHandler::fallbackResolver);
     }
 
     @ExceptionHandler(CpfException.class)
     ResponseEntity<CpfHttpErrorResponse> handleCpf(CpfException error) {
         var fallback = error.getErrorCode() == null ? CpfErrorCode.INTERNAL_SERVER_ERROR : error.getErrorCode();
-        CpfResolvedError resolved = catalogResolver.resolve(
+        CpfResolvedErrorView resolved = catalogResolver.resolve(
                 error.getErrorReference(),
                 fallback,
                 LocaleContextHolder.getLocale(),
@@ -47,7 +48,7 @@ public final class CpfGlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<CpfHttpErrorResponse> handleValidation(MethodArgumentNotValidException error) {
         var fallback = CpfErrorCode.VALIDATION_FAILED;
-        CpfResolvedError resolved = catalogResolver.resolve(
+        CpfResolvedErrorView resolved = catalogResolver.resolve(
                 fallback.statusCode(), fallback, LocaleContextHolder.getLocale(), Map.of());
         Map<String, String> fields = new LinkedHashMap<>();
         for (FieldError fieldError : error.getBindingResult().getFieldErrors()) {
@@ -65,7 +66,7 @@ public final class CpfGlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     ResponseEntity<CpfHttpErrorResponse> handleUnknown(Throwable error) {
         var fallback = CpfErrorCode.INTERNAL_SERVER_ERROR;
-        CpfResolvedError resolved = catalogResolver.resolve(
+        CpfResolvedErrorView resolved = catalogResolver.resolve(
                 fallback.statusCode(), fallback, LocaleContextHolder.getLocale(), Map.of());
         // Raw exception message/SQL/secret는 boundary log에 기록하지 않습니다.
         boundarySignal(error.getClass().getSimpleName(), resolved.responseCode());
@@ -75,6 +76,19 @@ public final class CpfGlobalExceptionHandler {
                         resolved.externalMessage(),
                         CpfContexts.currentTransactionId(),
                         CpfContexts.currentExecutionId()));
+    }
+
+    private static CpfErrorCatalogResolver fallbackResolver() {
+        return (errorReference, fallback, locale, arguments) -> new CpfResolvedErrorView() {
+            private final CpfErrorDefinition safe = fallback == null ? CpfErrorCode.INTERNAL_SERVER_ERROR : fallback;
+            @Override public String responseCode() { return safe.statusCode(); }
+            @Override public String messageCode() { return safe.messageCode(); }
+            @Override public CpfErrorDefinition definition() { return safe; }
+            @Override public String externalMessage() { return safe.defaultExternalMessage(); }
+            @Override public String internalMessage() { return safe.defaultInternalMessage(); }
+            @Override public java.util.Locale locale() { return locale == null ? java.util.Locale.KOREAN : locale; }
+            @Override public boolean catalogHit() { return false; }
+        };
     }
 
     private String safeFieldMessage(FieldError error) {

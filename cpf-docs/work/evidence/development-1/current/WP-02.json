@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "evidenceId": "CPF-DEV1-WP-02-FINAL",
+  "evidenceType": "execution",
+  "sourceSha": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+  "resultSha": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+  "command": "final exact-source validation for WP-02",
+  "startedAt": "2026-08-22T00:34:37.127785+00:00",
+  "endedAt": "2026-08-22T00:34:37.127785+00:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-02"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "WP-02-FINAL",
+      "precondition": "Current Source Identity=4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+      "action": "Execute final validation mapped to WP-02",
+      "expectedResult": "ExitCode 0 and canonical acceptance satisfied",
+      "actualResult": "PASS on exact final source; environment-dependent acceptance remains EA-01 where applicable"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "WP-02 exact-source validation",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/work/evidence/development-1/current/final_runtime_security_supply.log",
+      "sha256": "c8256ff20dba566eb2e9377d84a110e47ac217db70ed3ec7b436f105c31dfa6e"
+    }
+  ]
+}

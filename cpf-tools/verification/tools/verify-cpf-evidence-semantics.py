@@ -3,7 +3,7 @@
 from __future__ import annotations
 import argparse,csv,hashlib,json,re,sys
 from pathlib import Path
-SHA_RE=re.compile(r'^[0-9a-f]{40}$');HASH_RE=re.compile(r'^[0-9a-f]{64}$')
+IDENTITY_RE=re.compile(r'^(?:[0-9a-f]{40}|[0-9a-f]{64})$');HASH_RE=re.compile(r'^[0-9a-f]{64}$')
 class EvidenceError(RuntimeError):pass
 
 def split_paths(value:str)->list[str]:return [part.strip() for part in re.split(r'[;\n]',value or '') if part.strip()]
@@ -14,14 +14,14 @@ def load_json(path:Path)->dict:
  if not isinstance(value,dict):raise EvidenceError(f'evidence must be object: {path}')
  return value
 
-def validate_document(path:Path,data:dict,expected_sha:str|None=None)->set[str]:
+def validate_document(path:Path,data:dict,expected_sha:str|None=None,root:Path|None=None)->set[str]:
  required=['schemaVersion','evidenceId','evidenceType','sourceSha','resultSha','command','startedAt','endedAt','exitCode','sanitized','requirements','scenarios','assertions','artifacts']
  missing=[key for key in required if key not in data]
  if missing:raise EvidenceError(f'{path}: missing fields={missing}')
  if data['evidenceType'] not in ('execution','aggregate'):raise EvidenceError(f'{path}: invalid evidenceType')
  source=result=str(data['sourceSha']),str(data['resultSha'])
  source_sha,result_sha=source
- if not SHA_RE.fullmatch(source_sha) or not SHA_RE.fullmatch(result_sha) or source_sha!=result_sha:raise EvidenceError(f'{path}: exact sourceSha=resultSha required')
+ if not IDENTITY_RE.fullmatch(source_sha) or not IDENTITY_RE.fullmatch(result_sha) or source_sha!=result_sha:raise EvidenceError(f'{path}: exact sourceSha=resultSha required (SHA-1 or SHA-256)')
  if expected_sha and source_sha!=expected_sha:raise EvidenceError(f'{path}: evidence SHA mismatch expected={expected_sha} actual={source_sha}')
  if not isinstance(data['exitCode'],int) or data['exitCode']!=0:raise EvidenceError(f'{path}: successful evidence requires exitCode=0')
  if data['sanitized'] is not True:raise EvidenceError(f'{path}: sanitized=true required')
@@ -42,6 +42,12 @@ def validate_document(path:Path,data:dict,expected_sha:str|None=None)->set[str]:
  if not isinstance(artifacts,list) or not artifacts:raise EvidenceError(f'{path}: artifact hashes required')
  for artifact in artifacts:
   if not isinstance(artifact,dict) or not str(artifact.get('path','')).strip() or not HASH_RE.fullmatch(str(artifact.get('sha256',''))):raise EvidenceError(f'{path}: invalid artifact SHA-256')
+  if root is not None:
+   artifact_path=(root/str(artifact['path'])).resolve()
+   if root not in artifact_path.parents and artifact_path!=root:raise EvidenceError(f'{path}: artifact path escapes repository: {artifact["path"]}')
+   if not artifact_path.is_file():raise EvidenceError(f'{path}: artifact missing: {artifact["path"]}')
+   actual=hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+   if actual!=artifact['sha256']:raise EvidenceError(f'{path}: artifact SHA mismatch path={artifact["path"]} expected={artifact["sha256"]} actual={actual}')
  return set(requirements)
 
 def validate_matrix(root:Path,matrix:Path,expected_sha:str|None=None)->tuple[int,int]:
@@ -57,7 +63,7 @@ def validate_matrix(root:Path,matrix:Path,expected_sha:str|None=None)->tuple[int
    path=(root/relative).resolve()
    if root not in path.parents:raise EvidenceError(f'{matrix}:{row_no}: evidence path escapes repository')
    if path not in documents:documents[path]=(load_json(path),None)
-   data,_=documents[path];covered=validate_document(path,data,expected_sha);documents[path]=(data,covered)
+   data,_=documents[path];covered=validate_document(path,data,expected_sha,root);documents[path]=(data,covered)
    if data['evidenceType']=='execution' and requirement in covered:direct=True
   if not direct:raise EvidenceError(f'{matrix}:{row_no}: no direct execution evidence covers {requirement}')
  return verified,len(documents)
@@ -79,7 +85,7 @@ def validate_requirement_master(root:Path,index:Path,expected_sha:str|None=None)
     path=(root/relative).resolve()
     if root not in path.parents:raise EvidenceError(f'{part_path}:{row_no}: evidence path escapes repository')
     if path not in documents:documents[path]=(load_json(path),None)
-    data,_=documents[path];covered=validate_document(path,data,expected_sha);documents[path]=(data,covered)
+    data,_=documents[path];covered=validate_document(path,data,expected_sha,root);documents[path]=(data,covered)
     if data['evidenceType']=='execution' and requirement in covered:direct=True
    if not direct:raise EvidenceError(f'{part_path}:{row_no}: no direct execution evidence covers {requirement}')
  return verified,len(documents)

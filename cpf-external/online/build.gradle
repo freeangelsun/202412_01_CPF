@@ -12,6 +12,8 @@ dependencies {
     implementation "com.cpf.starter:cpf-starter:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-secure-api:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-data-mybatis:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-integration-http:${cpfPlatformVersion}"
+    implementation "com.cpf.starter:cpf-starter-integration-resilience:${cpfPlatformVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -52,9 +54,9 @@ tasks.register('prepareCpfVendorResources') {
         }
         def rendered = candidates[0].getText('UTF-8')
         def replacements = [
-            '@CPF_MAPPER_NAMESPACE@': 'external.online.external.repository.SampleTransactionMapper',
-            '@CPF_RESULT_TYPE@': 'external.online.external.model.SampleItem',
-            '@CPF_IDEMPOTENCY_RESULT_TYPE@': 'external.online.external.model.SampleIdempotencyRecord',
+            '@CPF_MAPPER_NAMESPACE@': 'external.sample.repository.SampleTransactionMapper',
+            '@CPF_RESULT_TYPE@': 'external.sample.model.SampleItem',
+            '@CPF_IDEMPOTENCY_RESULT_TYPE@': 'external.sample.model.SampleIdempotencyRecord',
             '@CPF_TABLE_PREFIX@': 'EXS',
             '@CPF_SCHEMA_NAME@': ''
         ]

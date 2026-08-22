@@ -38,6 +38,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * CPF resilience capability의 정책 저장소, 실행 엔진, 분산 상태/잠금 Provider와
+ * UNKNOWN 결과 reconcile consumer를 구성하는 자동 구성입니다.
+ *
+ * <p>{@code cpf.integration.resilience.enabled=true}인 경우에만 활성화되며,
+ * JDBC/local provider는 각각의 명시적 속성이 켜진 경우에만 선택됩니다.</p>
+ */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "cpf.integration.resilience", name = "enabled", havingValue = "true")
 public class CpfResilienceAutoConfiguration {

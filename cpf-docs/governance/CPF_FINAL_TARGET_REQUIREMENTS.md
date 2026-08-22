@@ -366,28 +366,72 @@ cpf-starter-oidc
 
 ## 9. Generated Business Domain Architecture
 
-### 9.1 Golden Path
+### 9.1 Golden Path / Canonical Directory·Java Package IA
+
+Generated Business Domain의 물리 Project, Runtime Module, Java Namespace, Business Feature, Technical Role은 서로 다른 의미이며 다음처럼 분리한다.
 
 ```text
-cpf-<domain>/
-  cpf-domain.yaml
-  online/
-    <business-feature>/
-      controller/
-      service/
-      repository/
-      client/
-      dto/
-      model/
-      operation/
-  batch/                 # modules.batch=true일 때만
-    <business-feature>/
-      job/
-      step/              # 실제 필요할 때
-  domain/                # online+batch 등 2개 이상 Runtime이 실제 공유할 때만
+cpf-<domain>/                         # Domain Project / Gradle Project boundary
+  cpf-domain.yaml                    # 단일 Logical Definition 정본
+  cpf-generator.lock.json            # Generator ownership/diff lock
+  online/                            # Online Runtime Gradle Module
+    src/main/java/
+      <domain-package>/              # Java Namespace root
+        <Domain>OnlineApplication.java
+        base/                        # Generator-owned bootstrap/common contract만 허용
+        <business-feature>/          # 업무 Feature
+          controller/
+          service/
+          repository/                # 실제 persistence 선택 시
+          client/                    # 실제 dependency/integration 선택 시
+          dto/
+          model/
+          operation/
+    src/test/java/<domain-package>/<business-feature>/
+  batch/                             # modules.batch=true일 때만
+    src/main/java/<domain-package>/
+      <Domain>BatchApplication.java
+      <business-feature>/
+        job/
+        step/                        # 실제 필요할 때
+  domain/                            # online+batch 등 2개 이상 Runtime이 실제 공유할 때만
 ```
 
-핵심은 **Domain -> Business Feature -> Technical Role**이다.
+핵심은 **Domain Project -> Runtime Module -> Java Base Package -> Business Feature -> Technical Role**이다.
+
+- `cpf-<domain>/online`과 `cpf-<domain>/batch`는 물리 Runtime Module이며 제거하지 않는다.
+- `src/main/java/<domain-package>`는 Java Base Package이며 제거하지 않는다.
+- Runtime Module 이름 `online`/`batch`를 Java package 안에 다시 반복하지 않는다.
+- Domain 이름을 Business Feature 이름으로 자동 재사용하지 않는다.
+- `businessFeatures`는 `cpf-domain.yaml`의 명시적 업무 Feature 목록이며 Domain Identity/Capability와 분리한다.
+- Business Feature가 아직 지정되지 않은 최초 scaffold는 reserved `sample`을 사용한다. 실제 Feature가 지정되면 해당 Feature를 사용한다.
+- `base/`에는 Generator-owned bootstrap, 공통 infrastructure adapter, 공통 추상 contract만 둘 수 있고 실제 업무 Controller/Service/Repository를 몰아넣지 않는다.
+- 모든 Feature에 모든 Technical Role을 억지로 만들지 않는다. 선택 Capability/Dependency가 요구하는 Role만 생성한다.
+
+최종 Generated Source에서 다음 구조와 package는 **0건**이어야 한다.
+
+```text
+<domain-package>/online/<domain>/...
+<domain-package>/<domain>/...
+<domain>.online.<domain>.*
+<domain>.<domain>.*
+```
+
+예를 들어 MEMBER는 `member.customer.controller`, `member.profile.service` 형태가 정상이며 `member.online.member.controller`, `member.member.controller`는 금지한다. EXTERNAL도 `external.integration.client`가 정상이며 `external.online.external.*`, `external.external.*`는 금지한다.
+
+Generator가 이 구조의 Root Owner다. Existing Domain Source를 먼저 수동 이동해 맞추지 않는다. 변경 순서는 **Generator Model/Package·Directory Policy -> Renderer/Template -> Fresh Scratch Generate -> Existing Domain Clean Regenerate -> Diff -> Compile/Test/Runtime -> Legacy Reference 0 -> User-owned 보호 -> Exact Delete Manifest -> Fresh Workspace**다.
+
+Fresh Scratch Acceptance는 최소 다음을 포함한다.
+
+1. Online=true, Batch=false, Domain dependency 없음
+2. Online=true, Batch=false, 실제 Domain dependency/selected operation 있음
+3. Online=true, Batch=true
+4. Business Feature 2개 이상
+5. External Client 선택
+
+`create -> setup -> sync -> diff -> regenerate -> diff -> regenerate -> diff` 결과는 idempotent해야 하며 최종 `missing=[]`, `changed=[]`, `staleGeneratedFiles=[]`, `extraUserFiles=[]`, `clean=true`여야 한다. Existing `cpf-member`와 `cpf-external`도 같은 Generator 규칙으로 clean regenerate하고 Fresh Scratch와 동일한 IA rule을 따라야 한다.
+
+Generated 파일 삭제는 ownership을 `GENERATED_OWNED / USER_OWNED / UNKNOWN`으로 분리하며 `USER_OWNED`와 `UNKNOWN`은 자동 삭제하지 않는다. Legacy generated path는 새 구조 compile/runtime, reference 0, replacement 확인 후 Exact Delete Manifest로만 관리한다.
 
 기본 생성 금지:
 

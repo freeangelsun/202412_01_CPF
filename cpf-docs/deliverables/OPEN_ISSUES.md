@@ -1,19 +1,35 @@
-# OPEN ISSUES — C 개발/QA 관리_22 Final External Acceptance
+# OPEN ISSUES — C 개발/QA 관리_1 Final External Acceptance
 
-Source/static implementable work is closed on Fresh Replay V3. There are no remaining implementable source/static Findings. The following are mandatory external/live acceptance items and are deliberately not reported as PASS.
+Source-side development is closed (`13/13 CLOSED`) on Source Identity `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`. No implementable Source/static Finding is intentionally deferred. Overall product completion remains blocked by mandatory live/external acceptance.
 
-## BLOCKED-EXTERNAL-001 — Java25 full Gradle and Public Binary
+## EA-01 — Mandatory external/live acceptance
 
-- State: `BLOCKED_EXTERNAL / 미검증`
-- Required: final applied Source on Java25; root `clean build` with Generated Domains included; publication/isolated public consumer against reachable artifact repository.
-- Pass: `BUILD SUCCESSFUL`, ExitCode `0`, failed task `0`, failed test `0`, public consumer resolves without `mavenLocal` or private Source.
-- Re-run command: see `TEST_AND_EVIDENCE.md`.
+State: `BLOCKED_EXTERNAL / 미검증`
 
-## BLOCKED-EXTERNAL-002 — Live DB3 / Multi-instance / Browser Runtime
+### A. Java25 Root Gradle / Publication
+- Execute final applied Source with Java25.
+- `clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true`.
+- PASS: `BUILD SUCCESSFUL`, ExitCode 0, failed task 0, failed test 0.
+- Current assistant environment is Java 21.0.11 and cannot download Gradle 9.1.0 because `services.gradle.org` DNS is unavailable.
 
-- State: `BLOCKED_EXTERNAL / 미검증`
-- DB3: Oracle/PostgreSQL/MariaDB fresh install → migration → seed → runtime query → upgrade → rollback; include mixed-vendor Domain DB binding/Public Workspace provisioning.
-- Runtime: same-host two-process explicit instance identities, collision fail-close, process kill, lease expiry, restart/reconcile and UNKNOWN recovery.
-- Browser: ADM/Backoffice Chromium/Firefox/WebKit; responsive widths; login/session restore/RBAC/approval/audit/logout and 401/403/404/409/429/500/503 paths.
+### B. Public Binary isolated consumer
+- Resolve CPF artifacts from the intended reachable artifact repository.
+- No `mavenLocal`, private Source composite or accidental workspace leakage.
 
-No source implementation is deferred to these external items. If external execution exposes a source defect, reopen the same Root Cause Work Package or create a new Finding and re-run the Canonical Final Gate.
+### C. Live DB3
+- Oracle/PostgreSQL/MariaDB: fresh install → migration → seed → runtime query → upgrade → rollback.
+- Include mixed-vendor Domain DB binding/Public Workspace provisioning.
+
+### D. Multi-instance / process failure
+- Same-host two-process explicit identities.
+- collision fail-close, process kill, lease expiry, restart/reconcile and UNKNOWN recovery.
+
+### E. Browser
+- ADM/Backoffice Chromium/Firefox/WebKit.
+- responsive widths, login/session restore, RBAC, approval, audit, logout and 401/403/404/409/429/500/503.
+
+### F. Windows DX
+- PowerShell supported-version entrypoints.
+- VS Code fresh Gradle import, Java index, generated source index and Problems.
+
+If any external execution exposes a Source defect, reopen the same Root Cause Work Package (or create a new one), implement the fix, and repeat Development Final Gate + Fresh Replay.

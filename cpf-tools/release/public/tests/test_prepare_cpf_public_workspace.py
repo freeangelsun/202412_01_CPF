@@ -31,3 +31,20 @@ def test_single_file_target_without_suffix_is_not_nested():
         assert result['status']=='PASS'
         assert (stage/'gradlew').is_file()
         assert not (stage/'gradlew/gradlew').exists()
+
+def test_mandatory_domain_catalog_requires_physical_and_definition_identity():
+    with tempfile.TemporaryDirectory() as d:
+        root,pp=fixture(Path(d)); stage=Path(d)/'stage'
+        # Add a canonical Domain definition to the fixture and require a public catalog alias.
+        definition=root/'cpf-member/cpf-domain.yaml'; definition.write_text('domain:\n  name: member\n')
+        policy=m.load_json(pp)
+        policy['mandatoryDomainCatalogs']=[{'systemCode':'MBR','name':'member','source':'cpf-member/cpf-domain.yaml','target':'domains/member/cpf-domain.yaml','physicalProject':'cpf-member'}]
+        pp.write_text(json.dumps(policy))
+        result=m.prepare(root,stage,pp,'sha',False,False)
+        assert result['status']=='PASS'
+        assert (stage/'domains/member/cpf-domain.yaml').read_bytes()==(stage/'cpf-member/cpf-domain.yaml').read_bytes()
+        # A post-stage drift must be rejected before READY can be trusted by downstream verification.
+        (stage/'domains/member/cpf-domain.yaml').write_text('domain:\n  name: drift\n')
+        try: m.verify_domain_catalogs(stage,policy)
+        except m.PublicSurfaceError as e: assert 'drift' in str(e)
+        else: raise AssertionError('expected mandatory domain catalog drift failure')

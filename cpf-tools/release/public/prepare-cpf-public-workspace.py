@@ -64,6 +64,36 @@ def classify_and_copy(root:Path,staging:Path,policy:dict,include_backoffice:bool
         classifications[key]=str(rule['classification'])
     return classifications
 
+
+def materialize_domain_catalogs(root:Path, staging:Path, policy:dict, classifications:dict[str,str])->None:
+    """Publish canonical generated-domain definitions under a stable public catalog path.
+
+    Physical generated projects remain under ``cpf-<domain>``.  The ``domains/<name>``
+    catalog is a public bootstrap index, not a second source authority: every catalog
+    definition must be byte-identical to the physical project's root cpf-domain.yaml.
+    """
+    for row in policy.get('mandatoryDomainCatalogs',[]):
+        source_rel=str(row.get('source','')).strip(); target_rel=str(row.get('target','')).strip()
+        physical=str(row.get('physicalProject','')).strip()
+        if not source_rel or not target_rel or not physical:
+            raise PublicSurfaceError(f'invalid mandatoryDomainCatalogs row: {row}')
+        source=root/safe_target(source_rel); physical_root=root/safe_target(physical)
+        if not physical_root.is_dir(): raise PublicSurfaceError(f'mandatory physical domain project missing: {physical}')
+        if not source.is_file(): raise PublicSurfaceError(f'mandatory domain definition missing: {source_rel}')
+        target=safe_target(target_rel); key=target.as_posix(); dest=staging/target
+        if key in classifications: raise PublicSurfaceError(f'duplicate mandatory domain catalog target: {key}')
+        dest.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(source,dest)
+        classifications[key]='PUBLIC_GENERATED_SOURCE'
+
+def verify_domain_catalogs(staging:Path, policy:dict)->None:
+    for row in policy.get('mandatoryDomainCatalogs',[]):
+        target=str(row['target']).replace('\\','/'); physical=str(row['physicalProject']).replace('\\','/')
+        catalog=staging/target; physical_definition=staging/physical/'cpf-domain.yaml'
+        if not catalog.is_file(): raise PublicSurfaceError(f'mandatory public domain catalog missing: {target}')
+        if not physical_definition.is_file(): raise PublicSurfaceError(f'mandatory public physical domain missing: {physical}/cpf-domain.yaml')
+        if sha256(catalog)!=sha256(physical_definition):
+            raise PublicSurfaceError(f'public domain catalog drift: {target} != {physical}/cpf-domain.yaml')
+
 def verify_staging(staging:Path,policy:dict,classifications:dict[str,str])->list[dict]:
     allowed=set(map(str,policy.get('allowedClassifications',[])))
     forbidden_prefixes=tuple(map(str,policy.get('forbiddenPathPrefixes',[])))
@@ -122,6 +152,8 @@ def prepare(root:Path,staging:Path,policy_path:Path,source_identity:str,include_
     if staging.exists(): shutil.rmtree(staging)
     staging.mkdir(parents=True)
     classifications=classify_and_copy(root,staging,policy,include_backoffice)
+    materialize_domain_catalogs(root,staging,policy,classifications)
+    verify_domain_catalogs(staging,policy)
     rows=verify_staging(staging,policy,classifications)
     write_metadata(staging,rows,policy,source_identity,include_backoffice)
     # Re-scan metadata explicitly under release classification without weakening initial default-deny source copy.
@@ -130,6 +162,7 @@ def prepare(root:Path,staging:Path,policy_path:Path,source_identity:str,include_
     if verify_build: verify_builds(staging,include_backoffice)
     result={'status':'PASS','fileCount':len(final_rows),'includeBackoffice':include_backoffice,'staging':str(staging),'sourceIdentity':source_identity}
     (staging/'.cpf-public/READY.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    verify_domain_catalogs(staging,policy)
     verified=verify_staging(staging,policy,classifications)
     result['fileCount']=len(verified)
     return result

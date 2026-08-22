@@ -1,115 +1,130 @@
-# TEST AND EVIDENCE — C 개발/QA 관리_22 Final Development Closure
+# TEST AND EVIDENCE — C 개발/QA 관리_1 Final Development Closure
 
 ## 1. Source Identity
 
-- Development baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_230143.zip`
-- Baseline ZIP SHA-256: `8b2e064accaead9e3b81bbf306c2197142621ffdc25aab6cba9a420ef613ad1f`
-- Baseline ZIP file count: `8,323`
-- Final Fresh Replay V3 source identity SHA-1: `681e2a1943cf1cf3c50f196a5389b557a52d59ae`
-- Final Fresh Replay V3 source identity SHA-256: `c927382e9bd2b559a306e3ccf33183492190a83fbf11255b3a81f0a72c131f3a`
-- Final source-scope files: `8,146`
-- Source identity policy: Git-independent canonical path/size/SHA-256 inventory; `cpf-docs/work/**`, `cpf-docs/deliverables/**` and generated caches/build outputs are excluded to avoid circular Evidence hashes.
-- Final verification timestamp: `2026-08-21T13:17:58+09:00`
-- GitHub/master was not used as the development baseline. No Git write operation was performed.
+- Development baseline Local Working Tree ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip`
+- Baseline ZIP SHA-256: `324f5d8f33bd59925fcfe4cfcb24772a543cfbf9acbafebe0f6b4b88841a8583`
+- Baseline ZIP file count: `8,424`
+- Final source-scope SHA-256: `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
+- Final source-scope files: `8,173`
+- Source identity policy: sorted `path + size + SHA-256`; `cpf-tools/build/**` product source is included. Generated Gradle/module build output, caches/bytecode and circular final evidence/package metadata are excluded.
+- GitHub/master was not used as the current development baseline.
+- Git write operations performed by Developer GPT: `NONE`.
 
-## 2. QA / Finding closure
+## 2. Canonical Development/Closure Inventory
 
-- Consolidated QA findings: `63`
-- Developer `CLOSED`: `61`
-- `BLOCKED_EXTERNAL`: `2`
-- Open implementable source/static Finding: `0`
-- Canonical Requirements: `205`
-- Developer closure ledger: `cpf-docs/work/current/CPF_DEVELOPMENT_QA_CLOSURE.csv`
+- Source-side Work Packages: `13`
+- Developer `CLOSED`: `13 / 13` (`100%` development-environment closure)
+- External Acceptance: `EA-01 BLOCKED_EXTERNAL / 미검증`
+- Canonical Requirements reference: `205`
+- Inventory: `cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv`
 - `SOURCE_FIXED`, `VERIFICATION_PENDING`, `BLOCKED_EXTERNAL` are not counted as `CLOSED`.
 
-## 3. Major development closure
+## 3. Major implemented closure
 
-- Generated Domain setup uses preserve-by-default patch semantics, explicit destructive change approval, prebuilt MBW lifecycle, canonical root `cpf-domain.yaml`, typed selected-operation generation and Public HTTP API ownership.
-- Runtime instance first-registration fencing is fail-closed; Retention pause uses DB CAS; Batch Runtime registration/lifecycle authority is centralized in `OPS_RUNTIME_INSTANCE_STATE` while Batch keeps capacity/execution telemetry only.
-- `cpf-common` is the business-common Product Owner; Starter owns runtime/autoconfiguration composition.
-- Canonical `@CpfController` / `@CpfPerformance` are actual Runtime consumers; legacy aliases remain compatibility-only.
-- ADM Browser BFF uses HttpOnly Session/CSRF/encrypted internal credential bridge; Shell bootstrap is least-privilege; raw RequestBody Map contracts were removed; Retention and Batch optimistic-version DTOs are typed through Backend→OpenAPI→Generated Client→actual Frontend consumer.
-- Backoffice BFF no longer permits all protected paths and is part of the Root Gradle build.
-- EDU physical/executable surface is Online `20` + Batch `15`; legacy nested transaction source is a Delete Manifest candidate, not counted by the Final Gate.
-- Delete lifecycle separates development approval from explicit user execution approval. Generator upgrade/remove does not directly delete user-owned Source.
-- Final package/evidence tooling is Local Working Tree ZIP aware, non-vacuous, canonical-source-identity based and cache-safe.
+- Root/Backoffice classification: Generated Customer Domain (`MBR`,`EXS`) and prebuilt MBW Backoffice are physically and logically separated; the prior `cpf-backoffice/build.gradle:16` generated-domain misclassification path is source-side closed.
+- Runtime Central Authority: duplicate Runtime Control Plane repository blocks removed; first-registration fencing, Retention CAS, Batch exact-version delegation and UNKNOWN/reconcile contracts currentized.
+- Generated Domain IA: `cpf-<domain>/<runtime>/src/main/java/<domain-package>/<business-feature>/<technical-role>`; `<domain>.online.<domain>.*`, `<domain>.<domain>.*` and duplicate directory structures removed.
+- Generator Root Owner: explicit `businessFeatures`, reserved `sample`, typed Domain Operation discovery/client generation, generated test/import repair, lifecycle/idempotency/currentization of MBR/EXS.
+- Starter zero-footprint: persistence/http/resilience optional capabilities no longer leak through hidden transitive Starter edges; common Error Resolution contract moved to topology-independent Core API with Common as provider.
+- Backoffice: Backend OpenAPI `96` = BFF route `96` = generated descriptors/functions `96`; actual consumer and mutation contracts verified.
+- Public/Fresh Adoption: public staging/domain catalogs, artifact/catalog parity and false READY conditions currentized.
+- Runtime Identity: invalid implicit/explicit identities including `dev/test/prod` fail closed.
+- Source Hygiene: compiled `.class`, Python bytecode, old generated IA and stale lock mirrors handled through exact Delete Manifest; product `cpf-tools/build/**` source remains protected.
+- Toolchain: Node/npm/Docker and PowerShell contract currentized; unsupported API usage removed from active compatible entrypoints.
+- Evidence: Local Working Tree SHA-256 identity, direct execution Evidence and actual artifact SHA checks; vacuous evidence is forbidden.
 
-## 4. Final Fresh Replay V3 verification
+## 4. Exact final-source executed verification
 
-### Canonical static verifiers
+### Canonical Final Gate
 
-- Canonical verifier registry: `12 / 12 PASS`
-- `CPF_CURRENT_FINAL=PASS` — Online `20`, Batch `15`, operation pairs `115`
-- `CPF_NO_PARTIAL_IMPLEMENTATION=PASS`
-- `CPF_CLEAN_SOURCE_TREE=PASS`
-- Requirement progress / projection: `205` current requirements PASS
-- Public Function Top100: PASS
-- Public Javadoc catalog coverage: PASS
-- cpf-common DX / cross-cut ownership: PASS
-- Canonical Annotation Runtime consumer: PASS
-- ADM E2E source contract: PASS
-- Backoffice route/security contract: PASS
+- Canonical static registry: `24 / 24 PASS`
+- Post-clean source: `PASS`
+- Evidence semantics: `13 verified rows / 13 direct execution documents PASS`
+- `CPF_DEVELOPMENT_FINAL_GATE=PASS`
 
-### Python / contract suites
+### Python / contract regression on exact final source
 
-- DB: `157 passed / 0 failed` (`82` DB unit + `75` DB verification)
-- Generator: `34 passed / 10 skipped / 0 failed`, plus `6` subtests passed
-- Release/Public Distribution: `30 passed / 0 failed`
-- Runtime: `65 passed / 2 skipped / 0 failed`, plus `7` subtests passed
-- Security + Supply-chain + Verification: `88 passed / 0 failed`
-- Testing-tools: `381 passed / 22 skipped / 0 failed`
-- Docker-development-test contract fixtures: `6 passed / 0 failed`
-- Aggregate Python tests: **`761 passed / 34 skipped / 0 failed`**
+- DB: `157 passed / 0 failed`
+- Generator: `37 passed / 10 environment skips / 0 failed`, plus `6 subtests passed`
+- Release/Public: `31 passed / 0 failed`
+- Runtime + Security + Supply-chain: `76 passed / 2 environment skips / 0 failed`, plus `7 subtests passed`
+- Verification/OpenAPI: `77 passed / 0 failed`
+- Testing-tools: `381 passed / 22 environment skips / 0 failed`, plus `2 subtests passed`
+- Docker-development-test: `6 passed / 0 failed`
+- Aggregate Python tests: **`765 passed / 34 environment skips / 0 failed`**, plus **`15 subtests passed`**.
+- Environment skips are not promoted to live Runtime PASS.
 
-Skips are environment/fixture-specific and are not promoted to Runtime PASS.
+### Generated/semantic execution
 
-### Frontend actual-consumer contracts
+- Generated Java: MBR `32` + EXS `33` = `65` source `javac` PASS.
+- Generated IA mutation: legacy/duplicate package and directory mutations correctly FAIL.
+- Starter zero-footprint: minimal / persistence-only / http-only / resilience-only transitive graph PASS; hidden edge mutations correctly FAIL.
+- Backoffice semantic mutation: generated-client/route/method-path corruption correctly FAIL.
+- Runtime Instance Identity executable harness and Central Registry/Retention contracts PASS.
 
-`8 / 8 PASS`:
+## 5. Fresh Replay
 
-1. ADM BFF HttpOnly session/CSRF/fixation/credential bridge
-2. ADM Shell least-privilege bootstrap
-3. Retention/Job typed request and actual body call-shape
-4. Route/Operation registry contract
-5. Generated Client negative contract
-6. OpenAPI Operations Page generated-client workflow
-7. Permission identity separation
-8. System6 primary identity contract
+Input: exact baseline `CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip`.
 
-### Package / Evidence
+- Baseline managed files: `8,421`
+- Final managed files at replay preparation: `8,476`
+- Overlay copied: `173` files
+- Delete Manifest pending rows: `89`
+- Replay deletions actually present: `55`
+- Pending rows already absent in baseline/replay state: `34`
+- Replay source-scope SHA-256: `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
+- Replay source-scope files: `8,173`
+- Identity equals development Source: `YES`
+- Replay Canonical: `24/24 PASS`
+- Replay post-clean: `PASS`
+- Replay Evidence semantics: `13/13 PASS`
+- Replay `CPF_DEVELOPMENT_FINAL_GATE`: `PASS`
 
-- Fresh Replay input: exact baseline ZIP `CPF_FULL_SOURCE_FOR_NEXT_QA_20260820_230143.zip`
-- Overlay copy before Evidence regeneration: `335` files
-- Delete Manifest rows: `635` = `601 HISTORICAL_ALREADY_ABSENT` + `34 PENDING_USER_EXECUTION`
-- Replay pending delete application: `31` removed, `3` already absent
-- Final Change Manifest before the final Evidence regeneration: `126 ADD / 199 MODIFY / 31 DELETE` (self-referential package metadata excluded from product change comparison)
-- Package metadata builder: PASS
-- Development Evidence integrity: PASS — `63` findings, `205` Requirements, Source/Package identity verified
-- User Working Tree deletion performed by Developer GPT: `NO`
+## 6. Delete lifecycle
 
-## 5. Java25 user-local build status
+`cpf-docs/deliverables/DELETE_MANIFEST.csv`:
 
-The latest user-provided Java25 full Gradle log for the baseline showed `BUILD FAILED` with 7 failed tasks. All seven root-cause areas were reworked in this development cycle, but the final Fresh Replay V3 has **not** been executed through the user's Java25 full Gradle build. Therefore the Gradle status is `BLOCKED_EXTERNAL / 미검증`, not PASS.
+- Total rows: `689`
+- `HISTORICAL_ALREADY_ABSENT`: `600`
+- `PENDING_USER_EXECUTION`: `89`
+- Pending with `approved=true` and `precondition=SATISFIED`: `89`
+- `user_approved=true`: `0`
+- Developer GPT deletion against user's Working Tree: `NO`
+- `cpf-tools/verification/apply_delete_manifest.ps1` requires a non-empty `-UserApprovalRef` for user-execution-required pending rows.
 
-Final local integration command (run from the CPF Git root after overlay + Delete Manifest application):
+## 7. External acceptance still required
+
+The following are mandatory overall-product acceptance and remain `BLOCKED_EXTERNAL / 미검증` because the assistant environment cannot execute them faithfully:
+
+1. Java 25 root Gradle full build/test/publication including Generated Domains and Backoffice.
+2. Public Binary isolated consumer against a reachable artifact repository without private Source or `mavenLocal` dependency.
+3. Live Oracle/PostgreSQL/MariaDB install → migration → seed → runtime query → upgrade → rollback, including mixed-vendor domain binding.
+4. Same-host multi-process/Multi-WAS, process kill, lease expiry, restart/reconcile and UNKNOWN recovery.
+5. ADM/Backoffice real-browser E2E in Chromium/Firefox/WebKit and responsive widths.
+6. Windows PowerShell/VS Code fresh workspace actual UI/import/index validation.
+
+Current assistant environment evidence:
+
+- Java: `21.0.11` (not Java25).
+- Node: `22.16.0`; npm `10.9.2` (Source contract requires Node >=22.18.0 <25).
+- Gradle wrapper: attempts Gradle `9.1.0` download and fails with `UnknownHostException: services.gradle.org`.
+
+## 8. Final local integration command
+
+Run from the user's CPF Git root **after applying the Overlay and explicitly approving the Delete Manifest**:
 
 ```powershell
-$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; python .\cpf-tools\verification\tools\run-cpf-canonical-verifiers.py --root .; $static=$LASTEXITCODE; .\gradlew clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true 2>&1 | Tee-Object -FilePath $log; $gradle=$LASTEXITCODE; $failed=@(Select-String -Path $log -Pattern '^> Task .* FAILED$'); $testFailed=@(Select-String -Path $log -Pattern '^\s*\d+ tests? completed, \d+ failed'); Write-Host "`n========== CPF FINAL REPORT =========="; Write-Host "StaticGate     : $(if($static -eq 0){'PASS'}else{'FAIL'})"; Write-Host "Gradle         : $(if($gradle -eq 0){'PASS'}else{'FAIL'})"; Write-Host "GradleExitCode : $gradle"; Write-Host "Failed Tasks   : $($failed.Count)"; Write-Host "Test Failures  : $($testFailed.Count)"; if($failed.Count -gt 0){$failed | Select-Object -First 30 | ForEach-Object {Write-Host "  $($_.Line)"}}; Write-Host "Started        : $start"; Write-Host "Finished       : $(Get-Date)"; Write-Host "Log            : $([IO.Path]::GetFullPath($log))"; Write-Host "======================================"
+$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; python .\cpf-tools\verification\tools\run-cpf-canonical-verifiers.py --root .; $static=$LASTEXITCODE; .\gradlew.bat clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true 2>&1 | Tee-Object -FilePath $log; $gradle=$LASTEXITCODE; $failed=@(Select-String -Path $log -Pattern '^> Task .* FAILED$'); $testFailed=@(Select-String -Path $log -Pattern '^\s*\d+ tests? completed, \d+ failed'); Write-Host "`n========== CPF FINAL REPORT =========="; Write-Host "StaticGate     : $(if($static -eq 0){'PASS'}else{'FAIL'})"; Write-Host "Gradle         : $(if($gradle -eq 0){'PASS'}else{'FAIL'})"; Write-Host "GradleExitCode : $gradle"; Write-Host "Failed Tasks   : $($failed.Count)"; Write-Host "Test Failures  : $($testFailed.Count)"; Write-Host "Started        : $start"; Write-Host "Finished       : $(Get-Date)"; Write-Host "Log            : $([IO.Path]::GetFullPath($log))"; Write-Host "======================================"
 ```
 
-Expected final result: `StaticGate=PASS`, `Gradle=PASS`, `GradleExitCode=0`, `Failed Tasks=0`, `Test Failures=0`, Gradle `BUILD SUCCESSFUL`. If it fails, the only handoff log required is `$env:USERPROFILE\Downloads\gradle-problems.txt`.
+Expected external acceptance: Java25, `StaticGate=PASS`, Gradle `BUILD SUCCESSFUL`, ExitCode `0`, failed tasks `0`, failed tests `0`.
 
-## 6. External acceptance still required
+## 9. Completion judgment
 
-These items require the user's target/live environment and remain `BLOCKED_EXTERNAL` / `미검증`:
+- **Development-environment implementable scope:** `100% / 13 of 13 CLOSED`.
+- **Development Final Gate:** `PASS`.
+- **Fresh Replay:** `PASS` with identical Source Identity.
+- **Overall product QA completion:** `NOT COMPLETE` while `EA-01 BLOCKED_EXTERNAL` remains.
 
-- Java25 root Gradle full build/test/publication on the final applied Source.
-- Live Oracle/PostgreSQL/MariaDB install → migration → seed → runtime query → upgrade → rollback and mixed-vendor Public Workspace provisioning.
-- Multi-WAS / same-host multi-process / process-kill / lease-expiry / restart/reconcile.
-- Browser E2E against running ADM/Backoffice in Chromium/Firefox/WebKit and responsive widths.
-- Public Binary end-to-end resolution using a reachable repository and isolated Gradle cache.
-
-## 7. Completion judgement
-
-- **Development-environment implementable scope:** `100% complete` — all source/static/test/verifier/script/evidence work possible in this environment has been implemented and replay-verified.
-- **Overall product QA completion:** `NOT COMPLETE` because two mandatory live-environment Finding groups remain `BLOCKED_EXTERNAL`. They must not be converted to PASS without execution evidence.
+Any external execution that exposes a Source defect reopens the corresponding Root Cause Work Package and requires the Final Gate/Fresh Replay again.

@@ -303,6 +303,19 @@
           }
         }
       }
+    },
+    "businessFeatures": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{1,49}$"
+      },
+      "default": [
+        "sample"
+      ],
+      "description": "Java Base Package 바로 아래의 실제 업무 Feature. Domain/Runtime 이름을 Feature로 반복하지 않습니다."
     }
   }
 }

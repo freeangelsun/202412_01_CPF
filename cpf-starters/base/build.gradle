@@ -3,10 +3,8 @@ group = 'com.cpf.starter'
 
 dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // Public default entry = Base runtime + CPF Common Product Service (which owns mandatory Data JDBC wiring).
+    // Public default entry is intentionally lightweight. Optional Common/Persistence capabilities are explicit selections.
     api project(':framework:base-runtime')
-    api project(':starters:common')
-    api project(':starters:data:jdbc')
 }
 
 tasks.named('test') { useJUnitPlatform() }

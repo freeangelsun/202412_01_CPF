@@ -1,6 +1,6 @@
 package com.cpf.common.message.service;
 
-import com.cpf.common.message.api.CpfErrorCatalogResolver;
+import com.cpf.core.api.error.CpfErrorCatalogResolver;
 import com.cpf.common.message.api.CpfErrorCatalogSignalSink;
 import com.cpf.common.message.api.CpfMessageRecord;
 import com.cpf.common.message.api.CpfResolvedError;

@@ -87,50 +87,50 @@
 | 54 | capability | `CpfConfigCatalog` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/config/CpfConfigCatalog.java` |
 | 55 | capability | `CpfDomainBinding` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainBinding.java` |
 | 56 | capability | `CpfExecutionType` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/execution/api/CpfExecutionType.java` |
-| 57 | capability | `CpfSortDirection` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/page/CpfSortDirection.java` |
-| 58 | capability | `CpfXaTransaction` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaTransaction.java` |
-| 59 | capability | `CpfAsyncExecution` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncExecution.java` |
-| 60 | capability | `CpfEncryptedField` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/data/encryption/CpfEncryptedField.java` |
-| 61 | capability | `CpfErrorReference` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfErrorReference.java` |
-| 62 | capability | `CpfRepositoryPort` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/contract/CpfRepositoryPort.java` |
-| 63 | capability | `CpfTccParticipant` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfTccParticipant.java` |
-| 64 | capability | `CpfTransactionIds` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfTransactionIds.java` |
-| 65 | capability | `CpfAsyncOperations` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncOperations.java` |
-| 66 | capability | `CpfAsyncSubmission` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncSubmission.java` |
-| 67 | capability | `CpfContextSnapshot` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/context/CpfContextSnapshot.java` |
-| 68 | capability | `CpfErrorDefinition` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfErrorDefinition.java` |
-| 69 | capability | `CpfMessageResolver` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfMessageResolver.java` |
-| 70 | capability | `CpfPlatformVersion` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/version/CpfPlatformVersion.java` |
-| 71 | capability | `CpfRecoveryContext` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfRecoveryContext.java` |
-| 72 | capability | `CpfResolvedMessage` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedMessage.java` |
-| 73 | capability | `CpfSystemException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfSystemException.java` |
-| 74 | capability | `CpfConfigDescriptor` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/config/CpfConfigDescriptor.java` |
-| 75 | capability | `CpfConfigMutability` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/config/CpfConfigMutability.java` |
-| 76 | capability | `CpfCryptoOperations` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/security/crypto/CpfCryptoOperations.java` |
-| 77 | capability | `CpfDynamicErrorCode` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfDynamicErrorCode.java` |
-| 78 | capability | `CpfFixedLengthError` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthError.java` |
-| 79 | capability | `CpfFixedLengthField` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthField.java` |
-| 80 | capability | `CpfIdempotencyStore` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotencyStore.java` |
-| 81 | capability | `CpfMessageFormatter` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfMessageFormatter.java` |
-| 82 | capability | `CpfResolvedResponse` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedResponse.java` |
-| 83 | capability | `CpfSubjectCandidate` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/tracking/CpfSubjectCandidate.java` |
-| 84 | capability | `CpfXaRecoveryRecord` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaRecoveryRecord.java` |
-| 85 | capability | `CpfXaResourceHandle` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaResourceHandle.java` |
-| 86 | capability | `CpfApplicationFacade` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/contract/CpfApplicationFacade.java` |
-| 87 | capability | `CpfBusinessException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfBusinessException.java` |
-| 88 | capability | `CpfDomainBindingMode` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainBindingMode.java` |
-| 89 | capability | `CpfDomainPingRequest` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainPingRequest.java` |
-| 90 | capability | `CpfFixedLengthLayout` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthLayout.java` |
-| 91 | capability | `CpfFixedLengthParser` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthParser.java` |
-| 92 | capability | `CpfFixedLengthWriter` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthWriter.java` |
-| 93 | capability | `CpfNotFoundException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfNotFoundException.java` |
-| 94 | capability | `CpfOnlineTransaction` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/execution/api/CpfOnlineTransaction.java` |
-| 95 | capability | `CpfSubjectSourceType` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/tracking/CpfSubjectSourceType.java` |
-| 96 | capability | `CpfSubjectTrustLevel` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/tracking/CpfSubjectTrustLevel.java` |
-| 97 | capability | `CpfDomainPingResponse` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainPingResponse.java` |
-| 98 | capability | `CpfEnvelopeCiphertext` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/security/crypto/CpfEnvelopeCiphertext.java` |
-| 99 | capability | `CpfFixedLengthLogView` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthLogView.java` |
-| 100 | capability | `CpfFrameworkErrorCode` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfFrameworkErrorCode.java` |
+| 57 | capability | `CpfFaultInjector` | `cpf-starter-integration-resilience` | 선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다. | `cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/api/CpfFaultInjector.java` |
+| 58 | capability | `CpfServiceClient` | `cpf-starter-integration-http` | 선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다. | `cpf-starters/integration/http/src/main/java/com/cpf/integration/http/api/CpfServiceClient.java` |
+| 59 | capability | `CpfSortDirection` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/page/CpfSortDirection.java` |
+| 60 | capability | `CpfXaTransaction` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaTransaction.java` |
+| 61 | capability | `CpfAsyncExecution` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncExecution.java` |
+| 62 | capability | `CpfEncryptedField` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/data/encryption/CpfEncryptedField.java` |
+| 63 | capability | `CpfErrorReference` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfErrorReference.java` |
+| 64 | capability | `CpfRepositoryPort` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/contract/CpfRepositoryPort.java` |
+| 65 | capability | `CpfTccParticipant` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfTccParticipant.java` |
+| 66 | capability | `CpfTransactionIds` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfTransactionIds.java` |
+| 67 | capability | `CpfAsyncOperations` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncOperations.java` |
+| 68 | capability | `CpfAsyncSubmission` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/async/CpfAsyncSubmission.java` |
+| 69 | capability | `CpfContextSnapshot` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/context/CpfContextSnapshot.java` |
+| 70 | capability | `CpfErrorDefinition` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfErrorDefinition.java` |
+| 71 | capability | `CpfMessageResolver` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfMessageResolver.java` |
+| 72 | capability | `CpfPlatformVersion` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/version/CpfPlatformVersion.java` |
+| 73 | capability | `CpfRecoveryContext` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfRecoveryContext.java` |
+| 74 | capability | `CpfResolvedMessage` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedMessage.java` |
+| 75 | capability | `CpfSystemException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfSystemException.java` |
+| 76 | capability | `CpfConfigDescriptor` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/config/CpfConfigDescriptor.java` |
+| 77 | capability | `CpfConfigMutability` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/config/CpfConfigMutability.java` |
+| 78 | capability | `CpfCryptoOperations` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/security/crypto/CpfCryptoOperations.java` |
+| 79 | capability | `CpfDynamicErrorCode` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfDynamicErrorCode.java` |
+| 80 | capability | `CpfFixedLengthError` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthError.java` |
+| 81 | capability | `CpfFixedLengthField` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthField.java` |
+| 82 | capability | `CpfIdempotencyStore` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotencyStore.java` |
+| 83 | capability | `CpfMessageFormatter` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfMessageFormatter.java` |
+| 84 | capability | `CpfResiliencePolicy` | `cpf-starter-integration-resilience` | 선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다. | `cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/api/CpfResiliencePolicy.java` |
+| 85 | capability | `CpfResolvedResponse` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedResponse.java` |
+| 86 | capability | `CpfSubjectCandidate` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/tracking/CpfSubjectCandidate.java` |
+| 87 | capability | `CpfXaRecoveryRecord` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaRecoveryRecord.java` |
+| 88 | capability | `CpfXaResourceHandle` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/transaction/CpfXaResourceHandle.java` |
+| 89 | capability | `CpfApplicationFacade` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/api/contract/CpfApplicationFacade.java` |
+| 90 | capability | `CpfBusinessException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfBusinessException.java` |
+| 91 | capability | `CpfDomainBindingMode` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainBindingMode.java` |
+| 92 | capability | `CpfDomainPingRequest` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/domain/CpfDomainPingRequest.java` |
+| 93 | capability | `CpfFixedLengthLayout` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthLayout.java` |
+| 94 | capability | `CpfFixedLengthParser` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthParser.java` |
+| 95 | capability | `CpfFixedLengthWriter` | `cpf-starter-integration-fixed-length` | 고정길이 전문 송수신/파싱을 사용하는 업무에서 선택합니다. | `cpf-starters/integration/fixed-length/src/main/java/com/cpf/integration/fixedlength/api/CpfFixedLengthWriter.java` |
+| 96 | capability | `CpfNotFoundException` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfNotFoundException.java` |
+| 97 | capability | `CpfOnlineTransaction` | `cpf-starter` | 모든 CPF 애플리케이션의 공통 시작점 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/execution/api/CpfOnlineTransaction.java` |
+| 98 | capability | `CpfResilienceOutcome` | `cpf-starter-integration-resilience` | 선택한 Generated Domain/업무 Profile에서 명시적으로 추가하는 Public Integration Provider입니다. | `cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/api/CpfResilienceOutcome.java` |
+| 99 | capability | `CpfResolvedErrorView` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedErrorView.java` |
+| 100 | capability | `CpfSubjectSourceType` | `cpf-core` | Topology-independent CPF Public Contract | `cpf-core/src/main/java/com/cpf/core/api/tracking/CpfSubjectSourceType.java` |
 
 ## 선택 원칙
 

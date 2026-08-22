@@ -34,8 +34,27 @@ def workspace_definitions(root:Path)->list[Path]:
     return sorted(p for p in root.glob('cpf-*/cpf-domain.yaml') if p.is_file())
 
 
-def _golden_domain_definition(name:str, system_code:str, batch:bool)->str:
-    table_prefix=system_code
+def _normalize_business_features(values, *, domain_name:str, fallback=None) -> list[str]:
+    import re
+    raw=list(values or fallback or ['sample'])
+    result=[]
+    for value in raw:
+        feature=str(value).strip().lower().replace('-', '_')
+        if not re.fullmatch(r'[a-z][a-z0-9_]{1,49}',feature):
+            raise DomainError(f'Business Feature 형식 오류: {value}')
+        if feature==domain_name:
+            raise DomainError(f'Business Feature는 Domain 이름과 동일하게 사용할 수 없습니다: {feature}')
+        if feature in result:
+            raise DomainError(f'Business Feature 중복: {feature}')
+        result.append(feature)
+    if not result:
+        raise DomainError('Business Feature는 1개 이상 필요합니다.')
+    return result
+
+
+def _golden_domain_definition(name:str,system_code:str,batch:bool,business_features:list[str]|None=None)->str:
+    table_prefix=system_code.upper(); business_features=_normalize_business_features(business_features,domain_name=name)
+    feature_lines=''.join(f'  - {feature}\n' for feature in business_features)
     return (
         '# CPF Generated Business Domain의 source-controlled Canonical Definition입니다.\n'
         'domain:\n'
@@ -48,6 +67,8 @@ def _golden_domain_definition(name:str, system_code:str, batch:bool)->str:
         'modules:\n'
         '  online: true\n'
         f'  batch: {str(batch).lower()}\n'
+        'businessFeatures:\n'
+        + feature_lines +
         'features:\n'
         '  persistence: mybatis\n'
         '  httpClient: true\n'
@@ -61,14 +82,15 @@ def _golden_domain_definition(name:str, system_code:str, batch:bool)->str:
     )
 
 
-def create_workspace_domain(root:Path,name:str,system_code:str,batch:bool)->dict:
+def create_workspace_domain(root:Path,name:str,system_code:str,batch:bool,business_features:list[str]|None=None)->dict:
     name=name.strip().lower(); system_code=system_code.strip().upper()
     if not name or not system_code: raise DomainError('domain name/systemCode가 필요합니다.')
     final_output=canonical_domain_root(root,name)
     canonical=final_output/'cpf-domain.yaml'
     if canonical.exists(): raise DomainError(f'Domain definition이 이미 존재합니다: {canonical}')
     if final_output.exists(): raise DomainError(f'Generated Domain project가 이미 존재합니다: {final_output}')
-    body=_golden_domain_definition(name,system_code,batch)
+    business_features=_normalize_business_features(business_features,domain_name=name)
+    body=_golden_domain_definition(name,system_code,batch,business_features)
     temp_parent=root/'build'/'domain-generator'/'new'; temp_parent.mkdir(parents=True,exist_ok=True)
     # 먼저 외부 staging definition으로 dry-run하여 validation을 끝내고, 성공한 경우에만 canonical root를 생성합니다.
     with tempfile.TemporaryDirectory(prefix='cpf-domain-new-',dir=temp_parent) as td:
@@ -83,7 +105,7 @@ def create_workspace_domain(root:Path,name:str,system_code:str,batch:bool)->dict
     except Exception:
         if final_output.exists(): shutil.rmtree(final_output,ignore_errors=True)
         raise
-    return {'status':'PASS','action':'DOMAIN_NEW','domain':name,'systemCode':system_code,'batch':batch,'definition':str(canonical),'project':str(final_output),'generator':verified}
+    return {'status':'PASS','action':'DOMAIN_NEW','domain':name,'systemCode':system_code,'batch':batch,'businessFeatures':business_features,'definition':str(canonical),'project':str(final_output),'generator':verified}
 
 
 def sync_workspace_domains(root:Path)->dict:
@@ -149,7 +171,7 @@ def _domain_setup_definition(
         name:str, system_code:str, table_prefix:str, package_name:str|None, preset:str,
         online:bool, batch:bool, persistence:str, http_client:bool, resilience:bool,
         cache:str, messaging:str, object_storage:str, security_profile:str,
-        sample_transaction:bool, local_online_port:int|None,
+        sample_transaction:bool, local_online_port:int|None, business_features:list[str],
         dependencies:list[tuple[str,str,tuple[str,...]]], external_clients:list[tuple[str,str,str]]) -> str:
     package_line = f"  packageName: {package_name}\n" if package_name else ""
     lines=[
@@ -161,6 +183,7 @@ def _domain_setup_definition(
     lines += [
       "database:", "  role: CUSTOMER_BUSINESS_DB", f"  tablePrefix: {table_prefix}",
       f"preset: {preset}", "modules:", f"  online: {_yaml_bool(online)}", f"  batch: {_yaml_bool(batch)}",
+      "businessFeatures:", *[f"  - {feature}" for feature in business_features],
       "features:", f"  persistence: {persistence}", f"  httpClient: {_yaml_bool(http_client)}",
       f"  resilience: {_yaml_bool(resilience)}", f"  cache: {cache}", f"  messaging: {messaging}",
       f"  objectStorage: {object_storage}", f"  securityProfile: {security_profile}",
@@ -233,6 +256,7 @@ def _semantic_setup_snapshot(d) -> dict:
       'database':{'role':d.database_role,'tablePrefix':d.table_prefix},
       'preset':d.preset,
       'modules':{'online':d.online,'batch':d.batch},
+      'businessFeatures':list(d.business_features),
       'features':{'persistence':d.persistence,'httpClient':d.http_client,'resilience':d.resilience,
                   'cache':d.cache,'messaging':d.messaging,'objectStorage':d.object_storage,'securityProfile':d.security_profile},
       'generation':{'sampleTransaction':d.sample_transaction},
@@ -251,6 +275,8 @@ def _risky_setup_changes(before:dict|None, after:dict) -> list[str]:
     if before['modules'].get('batch') and not after['modules'].get('batch'): risks.append('modules.batch:disable')
     if before['features'].get('persistence')!=after['features'].get('persistence'): risks.append('features.persistence')
     if before['database'].get('tablePrefix')!=after['database'].get('tablePrefix'): risks.append('database.tablePrefix')
+    old_features=set(before.get('businessFeatures',[])); new_features=set(after.get('businessFeatures',[]))
+    risks += [f'businessFeatures.remove:{x}' for x in sorted(old_features-new_features)]
     old_deps=set(before['domainDependencies']); new_deps=set(after['domainDependencies'])
     old_clients=set(before['externalClients']); new_clients=set(after['externalClients'])
     risks += [f'domainDependencies.remove:{x}' for x in sorted(old_deps-new_deps)]
@@ -307,6 +333,11 @@ def setup_workspace_domain(root:Path, ns) -> dict:
     if ns.sample_transaction is not None: selected['sample_transaction']=ns.sample_transaction
     if selected['sample_transaction'] and not online: raise DomainError("sample transaction은 Online Runtime이 필요합니다.")
 
+    existing_features=list(existing.business_features) if existing else ['sample']
+    business_features=_normalize_business_features(
+        ns.business_feature if getattr(ns,'business_feature',None) is not None else existing_features,
+        domain_name=name)
+
     if ns.clear_domain_dependencies:
         dependencies=[]
     elif ns.domain_dependency is not None:
@@ -326,7 +357,7 @@ def setup_workspace_domain(root:Path, ns) -> dict:
 
     definition_body=_domain_setup_definition(
         name,system_code,table_prefix,package_name,preset,online,batch,
-        selected['persistence'],selected['http_client'],selected['resilience'],selected['cache'],selected['messaging'],selected['object_storage'],selected['security_profile'],selected['sample_transaction'],local_online_port,
+        selected['persistence'],selected['http_client'],selected['resilience'],selected['cache'],selected['messaging'],selected['object_storage'],selected['security_profile'],selected['sample_transaction'],local_online_port,business_features,
         dependencies,external_clients)
 
     profile=None; profile_payload=None
@@ -427,7 +458,7 @@ def main()->int:
         sp=dsub.add_parser(command, help=help_text); sp.add_argument('--file',required=True); sp.add_argument('--output')
     setup=dsub.add_parser('setup',help='Domain Identity + DB Binding + Capability + Integration을 한 번에 구성')
     setup.add_argument('--name'); setup.add_argument('--system-code'); setup.add_argument('--interactive',action='store_true',help='누락된 Setup 값을 대화형으로 입력'); setup.add_argument('--table-prefix')
-    setup.add_argument('--package-name'); setup.add_argument('--preset',default=None,choices=['minimal','standard-enterprise','full-enterprise','custom'])
+    setup.add_argument('--package-name'); setup.add_argument('--business-feature',action='append',default=None,help='업무 Feature 이름. 여러 개면 옵션을 반복 지정'); setup.add_argument('--preset',default=None,choices=['minimal','standard-enterprise','full-enterprise','custom'])
     setup.add_argument('--online',action=argparse.BooleanOptionalAction,default=None); setup.add_argument('--batch',action=argparse.BooleanOptionalAction,default=None); setup.add_argument('--local-online-port',type=int); setup.add_argument('--clear-local-online-port',action='store_true')
     setup.add_argument('--persistence',choices=['none','jdbc','mybatis','jpa']); setup.add_argument('--cache',choices=['none','caffeine','redis','valkey'])
     setup.add_argument('--messaging',choices=['none','kafka','rabbitmq','jms','ibm-mq']); setup.add_argument('--object-storage',choices=['none','s3'])
@@ -447,9 +478,9 @@ def main()->int:
     restore_parser=dsub.add_parser('restore',help=argparse.SUPPRESS); restore_parser.add_argument('--file',required=True); restore_parser.add_argument('--output')
     rem=dsub.add_parser('remove'); rem.add_argument('domain'); rem.add_argument('--file'); rem.add_argument('--output'); rem.add_argument('--apply',action='store_true',help='현재 Generator 입력과 동일한 Seed Source만 안전하게 제거'); rem.add_argument('--purge-definition',action='store_true',help='명시 승인 시 cpf-domain.yaml 정의까지 제거하여 선택 Domain을 완전히 해제')
     createp=dsub.add_parser('create',help='Public Workspace에 신규 Business Domain을 생성하고 자동 편입')
-    createp.add_argument('--name',required=True); createp.add_argument('--system-code',required=True); createp.add_argument('--batch',action='store_true')
+    createp.add_argument('--name',required=True); createp.add_argument('--system-code',required=True); createp.add_argument('--batch',action='store_true'); createp.add_argument('--business-feature',action='append',default=None,help='업무 Feature 이름. 여러 개면 옵션을 반복 지정')
     newp=dsub.add_parser('new',help=argparse.SUPPRESS)
-    newp.add_argument('--name',required=True); newp.add_argument('--system-code',required=True); newp.add_argument('--batch',action='store_true')
+    newp.add_argument('--name',required=True); newp.add_argument('--system-code',required=True); newp.add_argument('--batch',action='store_true'); newp.add_argument('--business-feature',action='append',default=None)
     dsub.add_parser('sync',help='Workspace Canonical Definition과 Generated Domain을 안전하게 동기화')
     # argparse keeps suppressed subcommands in the positional help list. Hide legacy/advanced aliases
     # from the Golden Path while keeping them callable for compatibility.
@@ -470,7 +501,7 @@ def main()->int:
     if ns.group=='domain':
         if ns.command in {'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}:
             print(f'[CPF][DEPRECATED] domain {ns.command} is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.', file=sys.stderr)
-        if ns.command in ('create','new'): print_json(create_workspace_domain(root,ns.name,ns.system_code,ns.batch)); return 0
+        if ns.command in ('create','new'): print_json(create_workspace_domain(root,ns.name,ns.system_code,ns.batch,getattr(ns,'business_feature',None))); return 0
         if ns.command=='sync': print_json(sync_workspace_domains(root)); return 0
         if ns.command=='setup':
             if ns.interactive:

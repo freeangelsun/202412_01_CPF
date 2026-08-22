@@ -17,7 +17,11 @@ def main()->int:
     for out in sorted(root.glob('cpf-*')):
         definition=out/'cpf-domain.yaml'
         if not out.is_dir() or not definition.is_file(): continue
-        d=eng.validate_definition(eng.load_yaml_subset(definition)); domains.append(d.name)
+        raw=eng.load_yaml_subset(definition)
+        generation=raw.get('generation') if isinstance(raw,dict) else None
+        if isinstance(generation,dict) and str(generation.get('mode','')).strip().lower()=='prebuilt':
+            continue
+        d=eng.validate_definition(raw); domains.append(d.name)
         ck(f'{d.name}-root-prefix',out.name==f'cpf-{d.name}',out.name)
         expected={'online'}|({'batch'} if d.batch else set())
         actual=domain_surface_dirs(out); ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})

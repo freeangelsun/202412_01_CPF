@@ -206,5 +206,21 @@
     "(?i)(?:password|secret|token)\\s*[:=]\\s*['\\\"][^'\\\"+${}\\r\\n]{12,}['\\\"]",
     "(?i)(?:C:|D:)[\\\\/]+Users[\\\\/]"
   ],
-  "gitRemoteEnvironment": "CPF_PUBLIC_GIT_REMOTE"
+  "gitRemoteEnvironment": "CPF_PUBLIC_GIT_REMOTE",
+  "mandatoryDomainCatalogs": [
+    {
+      "systemCode": "MBR",
+      "name": "member",
+      "source": "cpf-member/cpf-domain.yaml",
+      "target": "domains/member/cpf-domain.yaml",
+      "physicalProject": "cpf-member"
+    },
+    {
+      "systemCode": "EXS",
+      "name": "external",
+      "source": "cpf-external/cpf-domain.yaml",
+      "target": "domains/external/cpf-domain.yaml",
+      "physicalProject": "cpf-external"
+    }
+  ]
 }

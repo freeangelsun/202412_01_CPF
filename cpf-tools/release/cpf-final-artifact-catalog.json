@@ -54,6 +54,22 @@
       "consumer": "repository-module-or-deployment"
     },
     {
+      "artifactId": "cpf-admin-runtime",
+      "ownerPath": "cpf-admin/runtime",
+      "kind": "internal-runtime-composition",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-admin/runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "cpf-admin-application-only",
+      "publicationClass": "PRIVATE_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false
+    },
+    {
       "artifactId": "cpf-backoffice",
       "ownerPath": "cpf-backoffice/online",
       "kind": "runtime",
@@ -711,11 +727,11 @@
     {
       "artifactId": "cpf-starter-integration-http",
       "ownerPath": "cpf-starters/integration/http",
-      "kind": "internal-starter",
-      "visibility": "internal",
-      "role": "capability-runtime",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
       "ownerGroup": "integration",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-starters/integration/http/build/libs/*.jar",
       "requiredAttestations": [
@@ -723,10 +739,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition",
-      "publicationClass": "PRIVATE_INTERNAL",
-      "publishSources": false,
-      "publishJavadoc": false
+      "consumer": "application-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":internal:integration:http"
     },
     {
       "artifactId": "cpf-starter-integration-iso8583",
@@ -751,11 +769,11 @@
     {
       "artifactId": "cpf-starter-integration-resilience",
       "ownerPath": "cpf-starters/integration/resilience",
-      "kind": "internal-starter",
-      "visibility": "internal",
-      "role": "capability-runtime",
+      "kind": "starter-provider",
+      "visibility": "public",
+      "role": "provider",
       "ownerGroup": "integration",
-      "internalRole": "capability-runtime",
+      "internalRole": "public-provider",
       "producer": "gradle:assemble",
       "outputPattern": "cpf-starters/integration/resilience/build/libs/*.jar",
       "requiredAttestations": [
@@ -763,10 +781,12 @@
         "cyclonedx-sbom",
         "license-review"
       ],
-      "consumer": "internal-starter-composition",
-      "publicationClass": "PRIVATE_INTERNAL",
-      "publishSources": false,
-      "publishJavadoc": false
+      "consumer": "application-starter-consumer",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
+      "publishSources": true,
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":internal:integration:resilience"
     },
     {
       "artifactId": "cpf-starter-integration-soap",
@@ -2016,9 +2036,7 @@
         ":starters:profiles:web-api",
         ":framework:security",
         ":internal:security:resource-server",
-        ":framework:integration",
-        ":internal:integration:http",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:profiles:web-api",
@@ -2053,8 +2071,7 @@
       "runtimeProjects": [
         ":starters:base",
         ":framework:messaging",
-        ":framework:integration",
-        ":internal:integration:resilience"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base"
@@ -2072,9 +2089,7 @@
         ":starters:base",
         ":runtime:batch:api",
         ":runtime:batch:runtime",
-        ":framework:integration",
-        ":internal:integration:resilience",
-        ":internal:integration:http"
+        ":framework:integration"
       ],
       "apiProjects": [
         ":starters:base",

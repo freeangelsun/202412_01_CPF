@@ -456,14 +456,10 @@
         "security-mode": "resource-server"
       },
       "embeddedRuntimeProjects": [
-        ":internal:security:resource-server",
-        ":internal:integration:http",
-        ":internal:integration:resilience"
+        ":internal:security:resource-server"
       ],
       "embeddedRuntimeCoordinates": [
-        "com.cpf.starter:cpf-starter-security-resource-server",
-        "com.cpf.starter:cpf-starter-integration-http",
-        "com.cpf.starter:cpf-starter-integration-resilience"
+        "com.cpf.starter:cpf-starter-security-resource-server"
       ]
     },
     {
@@ -717,14 +713,8 @@
       ],
       "defaultProviderBindings": {},
       "embeddedProviderBindings": {},
-      "embeddedRuntimeProjects": [
-        ":internal:integration:http",
-        ":internal:integration:resilience"
-      ],
-      "embeddedRuntimeCoordinates": [
-        "com.cpf.starter:cpf-starter-integration-http",
-        "com.cpf.starter:cpf-starter-integration-resilience"
-      ]
+      "embeddedRuntimeProjects": [],
+      "embeddedRuntimeCoordinates": []
     }
   ],
   "standardInheritancePolicy": {
@@ -821,14 +811,8 @@
     },
     "integration": {
       "requiresCapabilities": [],
-      "runtimeProjects": [
-        ":internal:integration:resilience",
-        ":internal:integration:http"
-      ],
-      "runtimeCoordinates": [
-        "com.cpf.starter:cpf-starter-integration-resilience",
-        "com.cpf.starter:cpf-starter-integration-http"
-      ],
+      "runtimeProjects": [],
+      "runtimeCoordinates": [],
       "defaultProviderBindings": {},
       "requiredProviderSlots": []
     },

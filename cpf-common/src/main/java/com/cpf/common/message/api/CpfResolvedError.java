@@ -1,6 +1,7 @@
 package com.cpf.common.message.api;
 
 import com.cpf.core.api.error.CpfErrorDefinition;
+import com.cpf.core.api.error.CpfResolvedErrorView;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -12,7 +13,7 @@ public record CpfResolvedError(
         String externalMessage,
         String internalMessage,
         Locale locale,
-        boolean catalogHit) {
+        boolean catalogHit) implements CpfResolvedErrorView {
 
     public CpfResolvedError {
         responseCode = require(responseCode, "responseCode");

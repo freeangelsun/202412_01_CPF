@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 GENERATOR = ROOT / "cpf-tools" / "generator"
-MEMBER_DEFINITION = GENERATOR / "definitions" / "member" / "cpf-domain.yaml"
+MEMBER_DEFINITION = ROOT / "cpf-member" / "cpf-domain.yaml"
 
 
 def run_pwsh(script: Path, *arguments: str, expect: int = 0) -> subprocess.CompletedProcess[str]:
@@ -36,6 +36,11 @@ def run_pwsh(script: Path, *arguments: str, expect: int = 0) -> subprocess.Compl
 
 
 class GeneratorFederationContractTest(unittest.TestCase):
+    def test_member_definition_uses_root_canonical_owner(self) -> None:
+        self.assertEqual(ROOT / "cpf-member" / "cpf-domain.yaml", MEMBER_DEFINITION)
+        self.assertTrue(MEMBER_DEFINITION.is_file())
+        self.assertFalse((GENERATOR / "definitions" / "member" / "cpf-domain.yaml").exists())
+
     def setUp(self) -> None:
         (ROOT / "build").mkdir(exist_ok=True)
         self.work = Path(tempfile.mkdtemp(prefix="cpf-federation-test-", dir=ROOT / "build"))

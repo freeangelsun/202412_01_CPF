@@ -221,28 +221,45 @@ def _resolve_java_type(package_name:str, imports:dict[str,str], token:str) -> st
 
 
 def discover_domain_operation_contracts(root: Path, target: "DomainDefinition") -> dict[str,DomainOperationContract]:
-    """실제 CpfDomainOperation 구현의 Public request/response 계약만 사용합니다."""
+    """@CpfOnlineTransaction을 Operation ID authority로 사용하고 typed adapter를 contract binding으로 연결합니다."""
     target_root=root/f"cpf-{target.name}"
-    found:dict[str,DomainOperationContract]={}
-    if not target_root.is_dir(): return found
+    if not target_root.is_dir(): return {}
+    annotation_ids:set[str]=set()
+    sources=[]
+    tx_re=re.compile(r"@CpfOnlineTransaction\s*\((?P<body>.*?)\)",re.S)
+    id_re=re.compile(r"\boperationId\s*=\s*\"([^\"]+)\"")
+    canonical_java_root=target_root/"online"/"src"/"main"/"java"/target.package_path
+    canonical_feature_roots=[canonical_java_root/feature for feature in target.business_features]
+    for source in target_root.rglob("*.java"):
+        # old <domain>/online/<domain> dual tree가 Delete Manifest 적용 전 남아 있어도
+        # dependency discovery는 새 Canonical Business Feature tree만 authority로 사용합니다.
+        if canonical_java_root.is_dir() and not any(feature_root in source.parents for feature_root in canonical_feature_roots):
+            continue
+        try: text=source.read_text(encoding="utf-8-sig",errors="ignore")
+        except OSError: continue
+        sources.append((source,text))
+        for tx in tx_re.finditer(text):
+            mid=id_re.search(tx.group("body"))
+            if mid: annotation_ids.add(mid.group(1))
+    typed:dict[str,DomainOperationContract]={}
     impl_re=re.compile(r"implements\s+CpfDomainOperation\s*<\s*([A-Za-z0-9_.$]+)\s*,\s*([A-Za-z0-9_.$]+)\s*>")
     op_re=re.compile(r"operationId\s*\(\s*\)\s*\{\s*return\s+\"([^\"]+)\"\s*;",re.S)
     package_re=re.compile(r"(?m)^package\s+([A-Za-z0-9_.]+)\s*;")
     import_re=re.compile(r"(?m)^import\s+([A-Za-z0-9_.$]+)\s*;")
-    for source in target_root.rglob("*.java"):
-        try: text=source.read_text(encoding="utf-8-sig",errors="ignore")
-        except OSError: continue
+    for source,text in sources:
         impl=impl_re.search(text); op=op_re.search(text)
         if not impl or not op: continue
         pkg=package_re.search(text); package_name=pkg.group(1) if pkg else ""
         imports={row.rsplit('.',1)[-1]:row for row in import_re.findall(text)}
         req=_resolve_java_type(package_name,imports,impl.group(1)); resp=_resolve_java_type(package_name,imports,impl.group(2))
-        if not req.startswith("com.cpf.") or not resp.startswith("com.cpf."):
-            continue
         oid=op.group(1)
-        if oid in found: raise DomainError(f"Domain Operation contract duplicate: {target.system_code}/{oid}")
-        found[oid]=DomainOperationContract(oid,req,resp)
-    return found
+        if oid in typed: raise DomainError(f"Domain Operation contract duplicate: {target.system_code}/{oid}")
+        typed[oid]=DomainOperationContract(oid,req,resp)
+    missing=sorted(annotation_ids-set(typed))
+    if missing: raise DomainError(f"@CpfOnlineTransaction typed Domain Operation binding 누락: {target.system_code}/{missing}")
+    stale=sorted(set(typed)-annotation_ids-{'ping'})
+    if stale: raise DomainError(f"Annotation owner가 없는 stale typed Domain Operation: {target.system_code}/{stale}")
+    return {oid:contract for oid,contract in typed.items() if oid == 'ping' or oid in annotation_ids}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -251,6 +268,7 @@ class DomainDefinition:
     module_name: str
     system_code: str
     package_name: str
+    business_features: tuple[str, ...]
     database_role: str
     table_prefix: str
     preset: str
@@ -292,21 +310,16 @@ class DomainDefinition:
 
     @property
     def primary_feature(self) -> str:
-        """Generated Golden Path의 기본 Business Feature package 이름입니다.
-
-        Domain 이름을 그대로 업무 Feature Owner로 사용하되 Java package에 허용되지 않는
-        하이픈만 제거합니다. 실제 프로젝트의 추가 Feature는 업무 Capability 이름으로
-        별도 생성/추가하며 기술 Layer를 Feature보다 상위에 두지 않습니다.
-        """
-        return self.name.replace("-", "")
+        """실제 업무 Feature의 첫 항목입니다. Domain 이름을 Feature로 암묵 계산하지 않습니다."""
+        return self.business_features[0]
 
     @property
     def feature_package(self) -> str:
-        return f"{self.package_name}.online.{self.primary_feature}"
+        return f"{self.package_name}.{self.primary_feature}"
 
     @property
     def feature_path(self) -> Path:
-        return self.package_path / "online" / self.primary_feature
+        return self.package_path / self.primary_feature
 
 
 def _reject_plaintext_secrets(value: Any, path: str = "$") -> None:
@@ -336,16 +349,17 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     Preset은 안전한 기본값을 제공하지만 custom의 명시적 선택을 막지 않는다.
     """
     _reject_plaintext_secrets(raw)
-    allowed = {"domain","database","preset","modules","features","generation","runtime","domainDependencies","externalClients"}
+    allowed = {"domain","database","preset","modules","features","businessFeatures","generation","runtime","domainDependencies","externalClients"}
     required = {"domain","database","preset","modules","generation"}
     _require_exact_keys(raw, allowed, required, "$")
     domain = raw["domain"]; modules = raw["modules"]; database = raw["database"]
-    features = raw.get("features", {}); generation = raw["generation"]; runtime = raw.get("runtime", {})
+    features = raw.get("features", {}); business_features_raw = raw.get("businessFeatures", ["sample"]); generation = raw["generation"]; runtime = raw.get("runtime", {})
     domain_dependencies_raw = raw.get("domainDependencies", {}); external_clients_raw = raw.get("externalClients", {})
     if not isinstance(domain, dict): raise DomainError("$.domain은 object여야 합니다.")
     if not isinstance(modules, dict): raise DomainError("$.modules는 object여야 합니다.")
     if not isinstance(database, dict): raise DomainError("$.database는 object여야 합니다.")
     if not isinstance(features, dict): raise DomainError("$.features는 object여야 합니다.")
+    if not isinstance(business_features_raw, list) or not business_features_raw: raise DomainError("$.businessFeatures는 1개 이상의 문자열 list여야 합니다.")
     if not isinstance(generation, dict): raise DomainError("$.generation은 object여야 합니다.")
     if not isinstance(runtime, dict): raise DomainError("$.runtime은 object여야 합니다.")
     if not isinstance(domain_dependencies_raw, dict): raise DomainError("$.domainDependencies는 object여야 합니다.")
@@ -360,6 +374,14 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     if not re.fullmatch(r"[a-z][a-z0-9-]{1,49}", name): raise DomainError("domain.name 형식이 올바르지 않습니다.")
     if not re.fullmatch(r"[A-Z][A-Z0-9]{2}", system): raise DomainError("domain.systemCode는 정확히 3자리 대문자/숫자여야 합니다.")
     if not re.fullmatch(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*", package): raise DomainError("domain.packageName 형식이 올바르지 않습니다.")
+    business_features: list[str] = []
+    for raw_feature in business_features_raw:
+        feature = str(raw_feature).strip()
+        if not re.fullmatch(r"[a-z][a-z0-9_]{1,49}", feature): raise DomainError(f"businessFeatures 형식 오류: {feature}")
+        if feature == name.replace("-", ""): raise DomainError("Business Feature는 Domain 이름과 같은 값을 사용할 수 없습니다. 미지정 scaffold는 sample을 사용하세요.")
+        if feature in {"online","batch","base","controller","service","repository","client","dto","model","operation"}: raise DomainError(f"Business Feature 예약어 사용 금지: {feature}")
+        if feature in business_features: raise DomainError(f"businessFeatures 중복: {feature}")
+        business_features.append(feature)
     if str(generation.get("mode","generated")) != "prebuilt" and (package == "com.cpf" or package.startswith("com.cpf.")): raise DomainError("Generated Customer Domain은 com.cpf.* namespace를 소유할 수 없습니다.")
     if database["role"] != "CUSTOMER_BUSINESS_DB": raise DomainError("database.role은 CUSTOMER_BUSINESS_DB여야 합니다.")
     if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,19}", prefix): raise DomainError("database.tablePrefix는 대문자로 시작하는 2~20자리여야 합니다.")
@@ -465,7 +487,7 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     default_online_port = _stable_local_online_port(system)
     local_online_port = int(runtime.get("localOnlinePort", default_online_port))
     if not 18080 <= local_online_port <= 18999: raise DomainError(f"runtime.localOnlinePort는 18080~18999 범위여야 합니다: {local_online_port}")
-    return DomainDefinition(name,module,system,package,"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,generation_mode,local_online_port,tuple(domain_dependencies),tuple(external_clients))
+    return DomainDefinition(name,module,system,package,tuple(business_features),"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,generation_mode,local_online_port,tuple(domain_dependencies),tuple(external_clients))
 
 def _load_workspace_definitions(root: Path, current: DomainDefinition | None = None) -> dict[str,DomainDefinition]:
     definitions: dict[str,DomainDefinition] = {}
@@ -589,14 +611,14 @@ def direct_dependencies(d: DomainDefinition, kind: str, catalog: dict[str, Any])
     elif d.security_profile == "service-identity":
         # service-identity가 Internal-only이면 Generated Domain이 직접 뚫지 않고 Public Profile Composition에 맡긴다.
         if "cpf-starter-security-service-identity" in public: deps.append("cpf-starter-security-service-identity")
+    if d.http_client or d.domain_dependencies or any(client.capability == "http" for client in d.external_clients):
+        deps.append("cpf-starter-integration-http")
+    if d.resilience:
+        deps.append("cpf-starter-integration-resilience")
     if any(client.capability == "fixed-length" for client in d.external_clients): deps.append("cpf-starter-integration-fixed-length")
     for artifact in deps:
         if artifact not in public:
             raise DomainError(f"Generated Domain direct dependency가 Public Starter Catalog에 없습니다: {artifact}")
-    # Integration HTTP/Resilience는 Public Profile 내부 composition으로만 상속한다.
-    forbidden = {"cpf-starter-integration-http", "cpf-starter-integration-resilience"}
-    leaked = sorted(set(deps) & forbidden)
-    if leaked: raise DomainError(f"Internal integration leaf 직접 참조 금지: {leaked}")
     return list(dict.fromkeys(deps))
 
 
@@ -847,9 +869,9 @@ tasks.register('prepareCpfVendorResources') {{
         }}
         def rendered = candidates[0].getText('UTF-8')
         def replacements = [
-            '@CPF_MAPPER_NAMESPACE@': '{d.package_name}.online.{d.primary_feature}.repository.SampleTransactionMapper',
-            '@CPF_RESULT_TYPE@': '{d.package_name}.online.{d.primary_feature}.model.SampleItem',
-            '@CPF_IDEMPOTENCY_RESULT_TYPE@': '{d.package_name}.online.{d.primary_feature}.model.SampleIdempotencyRecord',
+            '@CPF_MAPPER_NAMESPACE@': '{d.feature_package}.repository.SampleTransactionMapper',
+            '@CPF_RESULT_TYPE@': '{d.feature_package}.model.SampleItem',
+            '@CPF_IDEMPOTENCY_RESULT_TYPE@': '{d.feature_package}.model.SampleIdempotencyRecord',
             '@CPF_TABLE_PREFIX@': '{d.table_prefix}',
             '@CPF_SCHEMA_NAME@': ''
         ]
@@ -996,9 +1018,10 @@ def render_model(d: DomainDefinition) -> str:
     return f'''package {d.package_name}.common.model;
 
 import java.time.Instant;
+import com.cpf.core.api.base.CpfResponse;
 
 /** 중앙 Generated Domain Schema와 1:1로 대응하는 Vendor-neutral Sample 모델입니다. */
-public final class SampleItem {{
+public final class SampleItem implements CpfResponse {{
     private long sampleItemId;
     private String sampleKey;
     private String itemName;
@@ -1064,41 +1087,46 @@ def render_requests(d: DomainDefinition) -> dict[str,str]:
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.cpf.core.api.base.CpfRequest;
 
 /** Sample Create 입력 계약입니다. */
 public record CreateSampleRequest(
         @NotBlank @Size(max=100) String sampleKey,
         @NotBlank @Size(max=200) String itemName,
-        @NotBlank @Size(max=180) String idempotencyKey) {{ }}
+        @NotBlank @Size(max=180) String idempotencyKey) implements CpfRequest {{ }}
 ''',
       "UpdateSampleRequest.java": f'''package {pkg};
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.cpf.core.api.base.CpfRequest;
 
 /** Optimistic Version을 포함하는 Sample Update 입력 계약입니다. */
 public record UpdateSampleRequest(
         @NotBlank @Size(max=200) String itemName,
         @NotBlank @Size(max=30) String statusCode,
         @NotBlank @Size(max=180) String idempotencyKey,
-        @Min(0) long expectedVersion) {{ }}
+        @Min(0) long expectedVersion) implements CpfRequest {{ }}
 ''',
       "DeleteSampleRequest.java": f'''package {pkg};
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.cpf.core.api.base.CpfRequest;
 
 /** Optimistic Version과 멱등키를 포함하는 논리 삭제 입력 계약입니다. */
 public record DeleteSampleRequest(
         @NotBlank @Size(max=180) String idempotencyKey,
-        @Min(0) long expectedVersion) {{ }}
+        @Min(0) long expectedVersion) implements CpfRequest {{ }}
 ''',
       "SampleSearchRequest.java": f'''package {pkg};
 
+import com.cpf.core.api.base.CpfRequest;
+
 /** Offset/Page와 Cursor/Slice가 공유하는 Search 입력 계약입니다. */
-public record SampleSearchRequest(String keyword, String statusCode, Integer page, Integer size, Long cursor) {{
+public record SampleSearchRequest(String keyword, String statusCode, Integer page, Integer size, Long cursor) implements CpfRequest {{
     public int safePage() {{ return page == null || page < 0 ? 0 : page; }}
     public int safeSize() {{ return size == null || size <= 0 ? 20 : Math.min(size, 200); }}
     public long safeCursor() {{ return cursor == null || cursor < 0 ? 0L : cursor; }}
@@ -1108,17 +1136,40 @@ public record SampleSearchRequest(String keyword, String statusCode, Integer pag
 
 import java.util.List;
 import {d.package_name}.common.model.SampleItem;
+import com.cpf.core.api.base.CpfResponse;
 
 /** Search/Page 표준 응답입니다. */
-public record SamplePage(List<SampleItem> items, long total, int page, int size) {{ }}
+public record SamplePage(List<SampleItem> items, long total, int page, int size) implements CpfResponse {{ }}
 ''',
       "SampleSlice.java": f'''package {pkg};
 
 import java.util.List;
 import {d.package_name}.common.model.SampleItem;
+import com.cpf.core.api.base.CpfResponse;
 
 /** Cursor/Slice 표준 응답입니다. */
-public record SampleSlice(List<SampleItem> items, boolean hasNext, Long nextCursor) {{ }}
+public record SampleSlice(List<SampleItem> items, boolean hasNext, Long nextCursor) implements CpfResponse {{ }}
+''',
+      "SampleIdRequest.java": f'''package {pkg};
+
+import com.cpf.core.api.base.CpfRequest;
+
+/** Path ID를 Typed Domain Call에서도 사용하는 명시적 요청 계약입니다. */
+public record SampleIdRequest(long id) implements CpfRequest {{ }}
+''',
+      "UpdateSampleCommand.java": f'''package {pkg};
+
+import com.cpf.core.api.base.CpfRequest;
+
+/** Update의 Path ID와 Body를 하나의 Typed Domain Call 요청으로 묶습니다. */
+public record UpdateSampleCommand(long id, UpdateSampleRequest request) implements CpfRequest {{ }}
+''',
+      "DeleteSampleCommand.java": f'''package {pkg};
+
+import com.cpf.core.api.base.CpfRequest;
+
+/** Delete의 Path ID와 Body를 하나의 Typed Domain Call 요청으로 묶습니다. */
+public record DeleteSampleCommand(long id, DeleteSampleRequest request) implements CpfRequest {{ }}
 ''',
       "SampleIdempotencyRecord.java": f'''package {pkg};
 
@@ -1544,7 +1595,7 @@ public class SampleTransactionController extends {c}BaseController {{
 
 def render_api_application(d: DomainDefinition) -> str:
     c=d.class_name
-    return f'''package {d.package_name}.api;
+    return f'''package {d.package_name};
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -1552,7 +1603,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** {d.name} Generated API 실행 진입점입니다. */
 @SpringBootApplication(scanBasePackages="{d.package_name}")
-@MapperScan("{d.package_name}.online.{d.primary_feature}.repository")
+@MapperScan("{d.feature_package}.repository")
 public class {c}ApiApplication {{
     public static void main(String[] args) {{ SpringApplication.run({c}ApiApplication.class,args); }}
 }}
@@ -1595,7 +1646,7 @@ class SampleTransactionControllerContractTest {{
     @Test void keepsThreeLayerControllerAndCpfAnnotation() {{
         assertThat({c}BaseController.class.getSuperclass().getSimpleName()).isEqualTo("CpfBaseController");
         assertThat(SampleTransactionController.class.getSuperclass()).isEqualTo({c}BaseController.class);
-        assertThat(SampleTransactionController.class.getAnnotation(CpfRestController.class)).isNotNull();
+        assertThat(SampleTransactionController.class.getAnnotation(CpfController.class)).isNotNull();
     }}
 }}
 '''
@@ -1716,6 +1767,45 @@ public class DomainDependencySampleService {{
 '''
 
 
+
+def render_sample_business_domain_operations(d: DomainDefinition) -> dict[str,str]:
+    """@CpfOnlineTransaction 6개 Sample 업무 Operation을 Same-JVM/Remote 공통 typed contract로 노출합니다."""
+    pkg=f"{d.feature_package}.operation"
+    service=f"{d.feature_package}.service.SampleTransactionService"
+    dto=f"{d.feature_package}.dto"
+    model=f"{d.feature_package}.model.SampleItem"
+    specs=[
+      ("Create","CREATE",f"{dto}.CreateSampleRequest",model,"service.create(request)"),
+      ("Detail","DETAIL",f"{dto}.SampleIdRequest",model,"service.detail(request.id())"),
+      ("Search","SEARCH",f"{dto}.SampleSearchRequest",f"{dto}.SamplePage","service.search(request)"),
+      ("Slice","SLICE",f"{dto}.SampleSearchRequest",f"{dto}.SampleSlice","service.slice(request)"),
+      ("Update","UPDATE",f"{dto}.UpdateSampleCommand",model,"service.update(request.id(), request.request())"),
+      ("Delete","DELETE",f"{dto}.DeleteSampleCommand",model,"service.delete(request.id(), request.request())"),
+    ]
+    out={}
+    for suffix,op,req_fq,resp_fq,invoke in specs:
+        req=req_fq.rsplit('.',1)[-1]; resp=resp_fq.rsplit('.',1)[-1]
+        cls=f"Sample{suffix}DomainOperation"
+        content=(
+            f"package {pkg};\n\n"
+            f"import com.cpf.core.api.result.CpfResult;\n"
+            f"import com.cpf.integration.api.domaincall.CpfDomainOperation;\n"
+            f"import {service};\nimport {req_fq};\nimport {resp_fq};\n"
+            f"import org.springframework.stereotype.Component;\n\n"
+            f"/** @CpfOnlineTransaction {d.sample_tx_id}_{op}의 typed Same-JVM/Remote 공통 adapter입니다. */\n"
+            f"@Component\npublic final class {cls} implements CpfDomainOperation<{req}, {resp}> {{\n"
+            f"    private final SampleTransactionService service;\n"
+            f"    public {cls}(SampleTransactionService service) {{ this.service=service; }}\n"
+            f"    @Override public String systemCode() {{ return \"{d.system_code}\"; }}\n"
+            f"    @Override public String operationId() {{ return \"{d.sample_tx_id}_{op}\"; }}\n"
+            f"    @Override public Class<{req}> requestType() {{ return {req}.class; }}\n"
+            f"    @Override public Class<{resp}> responseType() {{ return {resp}.class; }}\n"
+            f"    @Override public CpfResult<{resp}> invoke({req} request) {{ return CpfResult.success({invoke}); }}\n"
+            f"}}\n"
+        )
+        out[f"online/src/main/java/{d.feature_path.as_posix()}/operation/{cls}.java"]=content
+    return out
+
 def render_domain_binding_profile(d: DomainDefinition, profile: str) -> str:
     if not d.domain_dependencies: return ""
     lines=["cpf:", "  integration:", "    domain-call:", "      bindings:"]
@@ -1807,10 +1897,10 @@ def _render_db_template(root: Path, d: DomainDefinition, vendor: str, relative_p
         "@CPF_MODULE_NAME@": d.module_name,
         "@CPF_PACKAGE_NAME@": d.package_name,
         "@CPF_TABLE_PREFIX@": d.table_prefix,
-        "@CPF_MAPPER_NAMESPACE@": f"{d.package_name}.online.{d.primary_feature}.repository.SampleTransactionMapper",
+        "@CPF_MAPPER_NAMESPACE@": f"{d.feature_package}.repository.SampleTransactionMapper",
         "@CPF_MAPPER_NAME@": "SampleTransactionMapper",
-        "@CPF_RESULT_TYPE@": f"{d.package_name}.online.{d.primary_feature}.model.SampleItem",
-        "@CPF_IDEMPOTENCY_RESULT_TYPE@": f"{d.package_name}.online.{d.primary_feature}.model.SampleIdempotencyRecord",
+        "@CPF_RESULT_TYPE@": f"{d.feature_package}.model.SampleItem",
+        "@CPF_IDEMPOTENCY_RESULT_TYPE@": f"{d.feature_package}.model.SampleIdempotencyRecord",
     }
     for token, value in replacements.items():
         rendered = rendered.replace(token, value)
@@ -1866,10 +1956,10 @@ def _feature_java(content: str, d: DomainDefinition, role: str | None = None) ->
     Domain → Business Feature → Technical Role 순서를 강제합니다. Domain-wide Base와
     Application entry만 Feature 밖에 두고, 실제 업무 Source는 모두 primary feature 아래에 둡니다.
     """
-    feature=f"{d.package_name}.online.{d.primary_feature}"
+    feature=f"{d.package_name}.{d.primary_feature}"
     replacements = {
-        f"{d.package_name}.common.base": f"{d.package_name}.online.base",
-        f"{d.package_name}.api.base": f"{d.package_name}.online.base",
+        f"{d.package_name}.common.base": f"{d.package_name}.base",
+        f"{d.package_name}.api.base": f"{d.package_name}.base",
         f"{d.package_name}.common.model": f"{feature}.model",
         f"{d.package_name}.common.dto": f"{feature}.dto",
         f"{d.package_name}.common.policy": f"{feature}.service",
@@ -1881,7 +1971,7 @@ def _feature_java(content: str, d: DomainDefinition, role: str | None = None) ->
     }
     for source,target in replacements.items(): content=content.replace(source,target)
     if role is None:
-        content=content.replace(f"{d.package_name}.api",f"{d.package_name}.online")
+        content=content.replace(f"{d.package_name}.api",d.package_name)
     elif role in {"client","operation"}:
         content=content.replace(f"{d.package_name}.online.domaincall",f"{feature}.{role}")
     content=content.replace(f"{d.class_name}ApiApplication",f"{d.class_name}OnlineApplication")
@@ -2113,7 +2203,7 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
     deps={"online":online_deps, **({"batch":batch_deps} if d.batch else {})}
     p=d.package_path.as_posix()
     feature=d.primary_feature
-    fp=f"{p}/online/{feature}"
+    fp=f"{p}/{feature}"
     files: dict[str,str]={
       "settings.gradle":render_root_settings(d),
       "build.gradle":render_root_build(d,stack),
@@ -2121,11 +2211,11 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
     }
     if d.online:
         files["online/build.gradle"]=render_app_build(d,"online",online_deps,stack)
-        files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseController.java"]=_feature_java(render_domain_base_controller(d),d)
-        files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseService.java"]=_feature_java(render_domain_base_service(d),d)
+        files[f"online/src/main/java/{p}/base/{d.class_name}BaseController.java"]=_feature_java(render_domain_base_controller(d),d)
+        files[f"online/src/main/java/{p}/base/{d.class_name}BaseService.java"]=_feature_java(render_domain_base_service(d),d)
         if d.persistence != "none":
-            files[f"online/src/main/java/{p}/online/base/{d.class_name}BaseRepository.java"]=_feature_java(render_domain_base_repository(d),d)
-        files[f"online/src/main/java/{p}/online/{d.class_name}OnlineApplication.java"]=_feature_java(render_api_application(d),d)
+            files[f"online/src/main/java/{p}/base/{d.class_name}BaseRepository.java"]=_feature_java(render_domain_base_repository(d),d)
+        files[f"online/src/main/java/{p}/{d.class_name}OnlineApplication.java"]=_feature_java(render_api_application(d),d)
         files["online/src/main/resources/application.yml"]=render_application_yml(d,"api").replace(f"{d.name}-api",f"{d.name}-online")
         files["online/src/main/resources/META-INF/cpf/generated-domain.properties"]=(
             f"# CPF 생성 Domain의 Local Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=online\nscanPackage={d.package_name}\n")
@@ -2134,6 +2224,15 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
 
         # Runtime/Domain invocation 역시 해당 업무 Feature Owner 아래 둔다.
         files[f"online/src/main/java/{fp}/operation/{d.class_name}DomainPingOperation.java"]=_feature_java(render_domain_ping_operation(d,"online"),d,"operation")
+        # 첫 Feature 외에 명시된 Business Feature도 독립 package boundary를 실제 Source로 materialize합니다.
+        for extra_feature in d.business_features[1:]:
+            extra_path=f"{p}/{extra_feature}"
+            extra_class="".join(part[:1].upper()+part[1:] for part in re.split(r"[-_]", extra_feature) if part)
+            files[f"online/src/main/java/{extra_path}/operation/{extra_class}FeatureScaffold.java"]=(
+                f"package {d.package_name}.{extra_feature}.operation;\n\n"
+                f"/** {extra_feature} 업무 Feature의 Generator-owned 확장 시작점입니다. 실제 업무 코드는 이 Feature 아래 역할별로 추가합니다. */\n"
+                f"public interface {extra_class}FeatureScaffold {{ }}\n"
+            )
         dependency_contracts={}
         workspace_defs=_load_workspace_definitions(root,d)
         for dependency in d.domain_dependencies:
@@ -2144,7 +2243,12 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
             files[f"online/src/main/java/{fp}/client/{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_client(d,"online",dependency,contracts),d,"client")
             files[f"online/src/main/java/{fp}/client/Default{dependency.class_name}DomainClient.java"]=_feature_java(render_domain_dependency_adapter(d,"online",dependency,contracts),d,"client")
         if d.domain_dependencies:
-            files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=_feature_java(render_domain_dependency_consumer(d,"online",dependency_contracts),d,"client").replace(f"package {d.feature_package}.client;",f"package {d.feature_package}.service;")
+            consumer=_feature_java(render_domain_dependency_consumer(d,"online",dependency_contracts),d,"client").replace(
+                f"package {d.feature_package}.client;",f"package {d.feature_package}.service;"
+            )
+            client_imports="\n".join(f"import {d.feature_package}.client.{dep.class_name}DomainClient;" for dep in d.domain_dependencies)
+            consumer=consumer.replace("import com.cpf.core.api.result.CpfResult;", "import com.cpf.core.api.result.CpfResult;\n"+client_imports)
+            files[f"online/src/main/java/{fp}/service/DomainDependencySampleService.java"]=consumer
         for external_client in d.external_clients:
             files.update(render_external_client_files(d, external_client))
 
@@ -2164,6 +2268,7 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
             files[f"online/src/main/java/{fp}/controller/SampleTransactionController.java"]=_feature_java(render_controller(d),d)
             files[f"online/src/test/java/{fp}/service/SampleTransactionPolicyTest.java"]=_feature_java(render_policy_test(d),d)
             files[f"online/src/test/java/{fp}/controller/SampleTransactionControllerContractTest.java"]=_feature_java(render_api_contract_test(d),d)
+            files.update(render_sample_business_domain_operations(d))
 
     # DB3는 Generated Domain Source Tree가 아니라 Canonical DB Renderer/Installer가 소유합니다.
     # Domain별 Vendor/Host/Schema는 local/environment DB profile에 바인딩하고 Source에는 vendor 폴더를 생성하지 않습니다.
@@ -2177,10 +2282,10 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
             f"# CPF 생성 Domain Batch Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=batch\nscanPackage={d.package_name}\n")
         app_pkg=d.package_name
         app_path=d.package_path.as_posix()
-        files[f"batch/src/main/java/{app_path}/batch/{d.class_name}BatchApplication.java"]=(
-            f"package {app_pkg}.batch;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n/** {d.name} Generated Domain의 선택형 Batch Runtime 진입점입니다. */\n@SpringBootApplication(scanBasePackages=\"{app_pkg}\")\npublic class {d.class_name}BatchApplication {{ public static void main(String[] args) {{ SpringApplication.run({d.class_name}BatchApplication.class,args); }} }}\n")
-        files[f"batch/src/main/java/{app_path}/batch/{feature}/job/SampleBatchJob.java"]=(
-            f"package {app_pkg}.batch.{feature}.job;\n\nimport com.cpf.batch.api.annotation.CpfBatchJob;\nimport com.cpf.batch.api.annotation.CpfBatchStep;\n\n/** Generator가 생성하는 Feature-First Batch Golden Path. 실제 업무 Job은 같은 Feature Owner 아래 역할별로 확장합니다. */\n@CpfBatchJob(value=\"{d.system_code}_SAMPLE_BATCH\", restartable=true)\npublic class SampleBatchJob {{ @CpfBatchStep(value=\"sampleStep\",order=1,idempotent=true) public void execute() {{ }} }}\n")
+        files[f"batch/src/main/java/{app_path}/{d.class_name}BatchApplication.java"]=(
+            f"package {app_pkg};\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n/** {d.name} Generated Domain의 선택형 Batch Runtime 진입점입니다. */\n@SpringBootApplication(scanBasePackages=\"{app_pkg}\")\npublic class {d.class_name}BatchApplication {{ public static void main(String[] args) {{ SpringApplication.run({d.class_name}BatchApplication.class,args); }} }}\n")
+        files[f"batch/src/main/java/{app_path}/{feature}/job/SampleBatchJob.java"]=(
+            f"package {app_pkg}.{feature}.job;\n\nimport com.cpf.batch.api.annotation.CpfBatchJob;\nimport com.cpf.batch.api.annotation.CpfBatchStep;\n\n/** Generator가 생성하는 Feature-First Batch Golden Path. 실제 업무 Job은 같은 Feature Owner 아래 역할별로 확장합니다. */\n@CpfBatchJob(value=\"{d.system_code}_SAMPLE_BATCH\", restartable=true)\npublic class SampleBatchJob {{ @CpfBatchStep(value=\"sampleStep\",order=1,idempotent=true) public void execute() {{ }} }}\n")
 
     for rel in list(files):
         if rel.endswith((".java",".kt")):
@@ -2277,8 +2382,11 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
             if token not in text: raise DomainError(f"Generated 핵심 token 누락: {token}")
     for build in output.rglob('build.gradle'):
         bt=build.read_text(encoding='utf-8-sig')
-        for bad_dep in ('cpf-starter-integration-http','cpf-starter-integration-resilience'):
-            if bad_dep in bt: raise DomainError(f"Internal leaf direct dependency 발견: {build}:{bad_dep}")
+        # Generated Customer Domain은 Canonical Catalog에서 public으로 선언된 Starter만 직접 참조할 수 있습니다.
+        public_artifacts=set(public_module_map(load_catalog(root)).keys())
+        for match in re.findall(r"com\.cpf\.starter:([a-z0-9-]+)", bt):
+            if match not in public_artifacts:
+                raise DomainError(f"Internal/non-public direct dependency 발견: {build}:{match}")
     java='\n'.join(p.read_text(encoding='utf-8-sig',errors='ignore') for p in output.rglob('*.java'))
     required=[]
     if d.online: required += ['extends CpfBaseController']
@@ -2286,7 +2394,7 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     for token in required:
         if token not in java: raise DomainError(f"Generated Runtime Consumer 누락: {token}")
     if d.online:
-        java_root=output/'online'/'src/main/java'/d.package_path/'online'
+        java_root=output/'online'/'src/main/java'/d.package_path
         feature_root=java_root/d.primary_feature
         if not feature_root.is_dir(): raise DomainError(f'Feature-First 업무 Feature package 누락: {feature_root}')
         forbidden_layer_first=[java_root/name for name in ('controller','service','repository','client','dto','model','mapper','domaincall')]
@@ -2499,7 +2607,7 @@ def _legacy_generated_stale_candidate(d: DomainDefinition, rel: str, path: Path)
     """
     expected_rel=(
         f"online/src/main/java/{d.package_path.as_posix()}/online/"
-        f"{d.primary_feature}/service/DomainDependencySampleService.java"
+        f"{d.name.replace('-','')}/service/DomainDependencySampleService.java"
     )
     if rel != expected_rel or d.domain_dependencies or not path.is_file():
         return False

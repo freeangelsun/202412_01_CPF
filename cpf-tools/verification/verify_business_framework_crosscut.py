@@ -131,7 +131,13 @@ generator_schema = text("cpf-tools/generator/contracts/cpf-domain.schema.json")
 logical_binding = all(x in generator_engine and x in generator_schema for x in ["domainDependencies", "externalClients"])
 check("GENERATOR_FIRST_DX", "GEN-LOGICAL-BINDINGS", logical_binding, "generator schema/model materializes domainDependencies + externalClients")
 generated_domain_sources = member_java + external_java
-typed_domain_consumer = any_text(generated_domain_sources, r"interface\s+\w+DomainClient\s+extends\s+CpfDomainClient") and any_text(generated_domain_sources, r"class\s+DomainDependencySampleService") and any_text(generated_domain_sources, r"CpfDomainClientRouter")
+typed_domain_consumer = (
+    any_text(generated_domain_sources, r"interface\s+\w+DomainClient\s*\{")
+    and any_text(generated_domain_sources, r"class\s+Default\w+DomainClient")
+    and any_text(generated_domain_sources, r"CpfDomainClientRouter")
+    and any_text(generated_domain_sources, r"class\s+DomainDependencySampleService")
+    and any_text(generated_domain_sources, r"private\s+final\s+\w+DomainClient\s+\w+DomainClient")
+)
 check("GENERATOR_FIRST_DX", "GEN-TYPED-DOMAIN-CONSUMER", typed_domain_consumer, "generated MBR/EXS typed Domain Client + adapter + actual consumer")
 
 # 6) Open Extension / Native Escape

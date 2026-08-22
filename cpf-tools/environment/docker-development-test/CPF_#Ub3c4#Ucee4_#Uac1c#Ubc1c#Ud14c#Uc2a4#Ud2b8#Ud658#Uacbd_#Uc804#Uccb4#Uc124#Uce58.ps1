@@ -170,7 +170,7 @@ $baseImages = @(
     "redis:8.8.1-trixie",
     "apache/kafka:4.3.1",
     "eclipse-temurin:25.0.3_9-jdk",
-    "node:22.16.0-bookworm",
+    "node:22.18.0-bookworm",
     "mcr.microsoft.com/playwright:v1.62.0-noble"
 )
 foreach ($image in $baseImages) {
@@ -277,8 +277,8 @@ $requiredImages = @(
     $fullRunnerImage
 )
 $legacyImages = @(
-    "cpf-playwright:1.62.0-node22.16.0",
-    "cpf-playwright-runner:1.62.0-node22.16.0",
+    "cpf-playwright:1.62.0-node22.18.0",
+    "cpf-playwright-runner:1.62.0-node22.18.0",
     "cpf-validation-runner:java25-node22-pwsh7.6.4-playwright1.62.0"
 )
 $allImages = @($requiredImages)

@@ -318,9 +318,16 @@ if (includeLocalDomains) {
 // Generated Project 내부 metadata를 읽지 않고 Framework canonical definition과 실제 settings.gradle만 사용합니다.
 def includeGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(false).get()
 def generatedDomainRoots = (rootDir.listFiles() ?: [] as File[])
-        .findAll { candidate -> candidate.isDirectory() && candidate.name.startsWith('cpf-')
-                && new File(candidate, 'cpf-domain.yaml').isFile()
-                && new File(candidate, 'settings.gradle').isFile() }
+        .findAll { candidate ->
+            if (!(candidate.isDirectory() && candidate.name.startsWith('cpf-')
+                    && new File(candidate, 'cpf-domain.yaml').isFile()
+                    && new File(candidate, 'settings.gradle').isFile())) return false
+            // Optional Prebuilt Business Domain(MBW 등)은 Product Project로 exactly-once 포함하며
+            // Generated Customer Domain Composite Scanner에 다시 편입하지 않습니다.
+            def definitionText = new File(candidate, 'cpf-domain.yaml').getText('UTF-8')
+            def prebuilt = (definitionText =~ /(?m)^\s*mode:\s*prebuilt\s*$/).find()
+            return !prebuilt
+        }
         .sort { a, b -> a.name <=> b.name }
 if (includeGeneratedDomains) {
     generatedDomainRoots.each { candidate ->

@@ -20,9 +20,9 @@ $platformDb="cpf_verify_${VerifierRunId}_runtime";$backofficeDb="cpf_verify_${Ve
 $platformMig="cpfv_${VerifierRunId}_pm";$platformRun="cpfv_${VerifierRunId}_pr";$backofficeMig="cpfv_${VerifierRunId}_bm";$backofficeRun="cpfv_${VerifierRunId}_br"
 foreach($prop in @($profile.modules.PSObject.Properties)){
     $key=[string]$prop.Name;$m=$prop.Value
-    $m.enabled=($key -in @('core','common','admin','bizAdmin'))
+    $m.enabled=($key -in @('core','common','admin','batch','backoffice'))
     $m.required=($key -eq 'core');$m.vendor='mariadb';$m.host='mariadb';$m.port=3306;$m.clientPath='';$m.sslMode='disabled'
-    $isBackoffice=($key -eq 'bizAdmin')
+    $isBackoffice=($key -eq 'backoffice')
     $m.databaseName=if($isBackoffice){$backofficeDb}else{$platformDb};$m.schemaName=$m.databaseName
     $m.admin.username='root';$m.admin.userHost='%';$m.admin.password=[pscustomobject]@{env='CPF_ADMIN_PASSWORD'}
     $m.migration.username=if($isBackoffice){$backofficeMig}else{$platformMig};$m.migration.userHost='%';$m.migration.password=[pscustomobject]@{env='CPF_LOCAL_RUNTIME_DB_MIGRATION_PASSWORD'}

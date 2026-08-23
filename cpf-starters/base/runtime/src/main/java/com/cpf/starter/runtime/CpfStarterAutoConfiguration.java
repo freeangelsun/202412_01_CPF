@@ -1,6 +1,7 @@
 package com.cpf.starter.runtime;
 
 import com.cpf.foundation.execution.CpfContextExecutionFactory;
+import com.cpf.foundation.context.CpfContextProjectionRegistry;
 import com.cpf.foundation.tracking.CpfSubjectCollector;
 import com.cpf.core.api.tracking.CpfSubjectCandidateProvider;
 import com.cpf.core.api.tracking.CpfSubjectTrackingOperations;
@@ -36,6 +37,11 @@ import org.springframework.core.env.Environment;
 @AutoConfiguration
 @EnableConfigurationProperties(CpfStarterProperties.class)
 public class CpfStarterAutoConfiguration {
+    @Bean @ConditionalOnMissingBean
+    CpfContextProjectionRegistry cpfContextProjectionRegistry() {
+        return CpfContextProjectionRegistry.runtimeRegistry();
+    }
+
     @Bean @ConditionalOnMissingBean
     CpfCapabilityBindingRegistry cpfCapabilityBindingRegistry() { return new CpfCapabilityBindingRegistry(); }
 

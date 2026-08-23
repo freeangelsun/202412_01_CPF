@@ -1,0 +1,17 @@
+{
+  "track": "CX-02-DEVELOPER-CONTRACT-REGRESSION-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T22:45:11.0591302+09:00",
+  "finding": "CX-F-109",
+  "sourceIdentity": {
+    "sha256": "36268fe2f83ff221c69f362689405a8698e1740776e02f87cb0b45b199a3e6b4",
+    "sha1": "19c27b0a0b509d40030926acf0f6a92b024e2fd1",
+    "fileCount": 8228,
+    "totalBytes": 75801851
+  },
+  "changes": [
+    "Upgrade computes a deletion manifest without mutation unless explicit approval is passed.",
+    "Approved setup changes delete only exact Generator-owned candidates and verify the final output.",
+    "Setup regressions now assert gradle.properties semantics, forbidden metadata absence, external Gradle cache fallback, and build-generated runtime descriptor."
+  ],
+  "attempt2": {"passed": 4, "failed": 5, "classification": "TEST_ASSERTION_ERROR", "cause": "Stale self.definition fixture attribute"}
+}

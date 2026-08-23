@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F133-JDBC-DRIVER-FIX-IDENTITY",
+  "timestamp": "2026-08-23T03:30:00+09:00",
+  "finding": "CX-F-133",
+  "status": "SOURCE_FIXED",
+  "rootCause": "The canonical Generator application build template omitted the selected-Vendor JDBC runtime dependency required by its existing central buildRuntimeContract.",
+  "sourceChanges": [
+    "cpf-tools/generator/engine/cpf_domain_generator.py",
+    "cpf-tools/generator/verification/tests/test_generator_setup_contract.py"
+  ],
+  "implementation": [
+    "Persistence-enabled executable modules derive one runtimeOnly JDBC coordinate from cpfDbVendor/CPF_DB_VENDOR.",
+    "Vendor selection stays lazy so IDE project import is not disabled; processResources validates the required value before executable assembly.",
+    "Persistence-none output emits no driver map or validation task.",
+    "Regression values are checked against central-domain-template-contract.json."
+  ],
+  "sourceIdentity": {
+    "sha256": "eee6d9bbe1e60d5b8db02f4bcd6a8ea3850663328ce66f1f6159747c186fd458",
+    "sha1": "36b141f4ff481d018ba79dff1412e0b7e375e5af",
+    "fileCount": 8231,
+    "totalBytes": 75870806
+  },
+  "next": "Run exact Generator setup regressions, regenerate the disposable sample from the canonical Generator, then rebuild and relaunch against PostgreSQL."
+}

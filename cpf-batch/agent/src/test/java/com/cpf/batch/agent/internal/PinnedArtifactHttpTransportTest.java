@@ -15,7 +15,7 @@ class PinnedArtifactHttpTransportTest {
     void publicHostnameRequiresExplicitAddressPins() throws Exception {
         AgentProperties properties = base();
         PinnedArtifactHttpTransport transport = new PinnedArtifactHttpTransport(properties,
-                host -> List.of(InetAddress.getByName("203.0.113.10")));
+                host -> List.of(InetAddress.getByName("1.1.1.1")));
         assertThatThrownBy(() -> transport.resolveAndValidate(URI.create("https://repo.example.test/repository/")))
                 .isInstanceOf(SecurityException.class)
                 .hasMessageContaining("PIN_REQUIRED");
@@ -41,9 +41,9 @@ class PinnedArtifactHttpTransportTest {
     @Test
     void mismatchingPinAndMetadataAddressFailClosed() throws Exception {
         AgentProperties properties = base();
-        properties.setArtifactPinnedAddresses(List.of("203.0.113.10"));
+        properties.setArtifactPinnedAddresses(List.of("1.1.1.1"));
         PinnedArtifactHttpTransport mismatch = new PinnedArtifactHttpTransport(properties,
-                host -> List.of(InetAddress.getByName("203.0.113.11")));
+                host -> List.of(InetAddress.getByName("1.0.0.1")));
         assertThatThrownBy(() -> mismatch.resolveAndValidate(URI.create("https://repo.example.test/repository/")))
                 .isInstanceOf(SecurityException.class)
                 .hasMessageContaining("PIN_MISMATCH");
@@ -61,17 +61,17 @@ class PinnedArtifactHttpTransportTest {
     void mixedDnsCidrAndPortPoliciesFailClosed() throws Exception {
         AgentProperties properties = base();
         properties.setAllowPrivateRepositoryAddresses(true);
-        properties.setArtifactPinnedAddresses(List.of("10.0.0.10", "203.0.113.10"));
+        properties.setArtifactPinnedAddresses(List.of("10.0.0.10", "1.1.1.1"));
         PinnedArtifactHttpTransport mixed = new PinnedArtifactHttpTransport(properties,
-                host -> List.of(InetAddress.getByName("10.0.0.10"), InetAddress.getByName("203.0.113.10")));
+                host -> List.of(InetAddress.getByName("10.0.0.10"), InetAddress.getByName("1.1.1.1")));
         assertThatThrownBy(() -> mixed.resolveAndValidate(URI.create("https://repo.example.test/repository/")))
                 .isInstanceOf(SecurityException.class)
                 .hasMessageContaining("MIXED_DNS_RESPONSE_DENIED");
 
-        properties.setArtifactPinnedAddresses(List.of("203.0.113.10"));
-        properties.setArtifactAllowedCidrs(List.of("198.51.100.0/24"));
+        properties.setArtifactPinnedAddresses(List.of("1.1.1.1"));
+        properties.setArtifactAllowedCidrs(List.of("9.9.9.0/24"));
         PinnedArtifactHttpTransport cidr = new PinnedArtifactHttpTransport(properties,
-                host -> List.of(InetAddress.getByName("203.0.113.10")));
+                host -> List.of(InetAddress.getByName("1.1.1.1")));
         assertThatThrownBy(() -> cidr.resolveAndValidate(URI.create("https://repo.example.test/repository/")))
                 .isInstanceOf(SecurityException.class)
                 .hasMessageContaining("CIDR_DENIED");

@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-08-23T15:35:00+09:00",
+  "findingId": "CX-F-176",
+  "status": "CLOSED",
+  "sourceIdentity": "b24a9b258b4beb9ba18f04efe8ec58212c2eec0fb84e57bfe499eb9958494e27",
+  "title": "Verifier-owned migration apply assigns PowerShell's read-only Host automatic variable",
+  "actualRuntime": {
+    "runId": "fb68c6788b76",
+    "freshInstall": "PASS",
+    "v135RollbackDryRun": "PASS",
+    "failure": "Cannot overwrite variable Host because it is read-only or constant.",
+    "cleanup": "PASS"
+  },
+  "rootCause": "Assert-CpfVerifierOwnedDisposableTarget assigns local variable host, which aliases PowerShell automatic variable Host case-insensitively. The apply safety check therefore crashes before SQL execution.",
+  "repair": "The safety check now uses task-specific targetHost while retaining the exact Docker-host allowlist, prefix, operator, reason and approval verification; a regression forbids assignment to host.",
+  "verification": "Safety suite passes 8/8 and actual verifier-owned apply passes every lifecycle stage with cleanup PASS.",
+  "closed": true
+}

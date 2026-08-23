@@ -337,7 +337,7 @@ if (Test-Path -LiteralPath $generatedExternalDir -PathType Container) {
         [string]$externalDefinition.systemCode -eq "EXS" -and
         [string]$externalDefinition.projectName -eq "cpf-external" -and
         [string]$externalDefinition.databaseRole -eq "CUSTOMER_BUSINESS_DB" -and
-        [string]$externalDefinition.generatedProjectMetadata -eq "NONE" -and
+        [string]$externalDefinition.generatedProjectMetadata -eq "ABSENT" -and
         @($externalDefinition.forbiddenPermanentMetadata).Count -eq 0 -and
         (Test-Path -LiteralPath (Join-Path $generatedExternalDir "settings.gradle") -PathType Leaf)
     if (-not $generatedExternalValid) {
@@ -350,7 +350,7 @@ if (Test-Path -LiteralPath $settingsPath) {
     $settingsText = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8
     foreach ($requiredSettingsToken in @(
             "cpfIncludeGeneratedDomains",
-            "cpf-domain.yaml",
+            "gradle.properties",
             "includeBuild(canonical)")) {
         if (-not $settingsText.Contains($requiredSettingsToken)) {
             throw "settings.gradle에 canonical Generated Domain opt-in composite 계약이 없습니다: $requiredSettingsToken"

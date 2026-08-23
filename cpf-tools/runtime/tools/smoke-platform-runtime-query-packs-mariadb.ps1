@@ -1,8 +1,8 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $ProfilePath = "",
-    [ValidateSet("cpf", "bza", "ref")]
-    [string[]] $Module = @("cpf", "bza", "ref"),
+    [ValidateSet("cpf", "backoffice", "ref")]
+    [string[]] $Module = @("cpf", "backoffice", "ref"),
     [string] $EvidencePath = ""
 )
 

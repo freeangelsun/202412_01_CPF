@@ -10,8 +10,8 @@ param(
     [string] $ResultDir = ''
 )
 
-# Parity identity comes from the two canonical cpf-domain.yaml definitions. Generated
-# Projects are deliberately metadata-free and are verified by the same canonical Engine first.
+# Parity identity comes from the two Developer-Facing gradle.properties contracts. Generated
+# Projects expose no Generator bookkeeping and are verified by the same canonical Engine first.
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -80,7 +80,7 @@ function Get-ProjectContract([object] $Metadata, [string] $OutputDir) {
         throw "Generated Project 영구 metadata 금지 위반: project=$($Metadata.projectName) paths=$(@($Metadata.forbiddenPermanentMetadata) -join ',')"
     }
     [void](Invoke-CpfCanonicalCli -Root $Root -Arguments @(
-        'verify', 'domain', '--file', [string]$Metadata.definitionPath, '--output', $project
+        'verify', 'domain', '--file', [string]$Metadata.contractPath, '--output', $project
     ))
     $pairs = Get-Normalizers $Metadata
     $map = [ordered]@{}
@@ -142,7 +142,7 @@ foreach ($path in $allPaths) {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "build/reports/generated-domain-parity/$reference-vs-$candidate"
+    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/generated-domain-parity/$reference-vs-$candidate"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -152,8 +152,8 @@ $result = [ordered]@{
     status = if ($capabilityDiff.Count -eq 0 -and $diffs.Count -eq 0) { '완료' } else { '실패' }
     referenceDomain = $reference
     candidateDomain = $candidate
-    metadataSource = 'cpf-domain.yaml'
-    generatedProjectMetadata = 'NONE'
+    metadataSource = 'gradle.properties'
+    generatedProjectMetadata = 'ABSENT'
     capabilityDifferences = $capabilityDiff
     normalizedReferenceFileCount = $refContract.Count
     normalizedCandidateFileCount = $canContract.Count

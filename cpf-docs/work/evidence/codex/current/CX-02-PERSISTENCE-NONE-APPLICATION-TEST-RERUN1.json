@@ -1,0 +1,9 @@
+{
+  "executionId": "CX-02-PERSISTENCE-NONE-APPLICATION-TEST-RERUN1",
+  "timestamp": "2026-08-22T20:00:00+09:00",
+  "sourceIdentitySha256": "ad003b40615a2125c56a90b09b85f6ffdaf03144aabeb1c3a32d4335cf836d64",
+  "status": "PASS",
+  "tests": {"executed": 11, "passed": 11, "failed": 0},
+  "coverage": "Setup contract proves MapperScan present for MyBatis and absent for persistence-none; canonical source/resource regressions pass.",
+  "remaining": "Regenerate Case A from fixed engine and execute Java 25 compile"
+}

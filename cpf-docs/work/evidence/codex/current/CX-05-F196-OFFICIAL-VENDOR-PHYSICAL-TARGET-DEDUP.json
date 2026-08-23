@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-23T17:30:00+09:00",
+  "findingId": "CX-F-196",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": "4ff7659447e4e9cc107dec26963a5afc70b96eb9707ef700394b9b29a0cd7e67",
+  "runtime": {"vendor":"postgresql","version":"18.4","dockerEngine":"29.6.2","disposableRunId":"d06575700421","freshCore":"PASS","freshCommon":"FAIL","cleanup":"PASS"},
+  "actualError": "relation adm_approval_capability_nonce already exists; psql failed module=common exit=3",
+  "rootCause": "The official PostgreSQL/Oracle runner treats application ownership aliases as independent physical lifecycle targets. core/common/admin/batch all resolve to the same cpfDB database, schema, migration/runtime roles and full logical bundle, so the second alias replays identical DDL.",
+  "requiredRepair": "Select one first-declared owner per exact physical lifecycle identity before provision/install/seed/verify. Preserve backoffice mbwDB as a distinct target and keep all enabled modules in lifecycle planning/traceability.",
+  "forbidden": ["disable common/admin/batch", "narrow FreshInstall modules", "add IF NOT EXISTS to immutable/current DDL as duplicate masking", "change database/profile semantics"],
+  "falseGreen": false
+}

@@ -4,6 +4,7 @@ import com.cpf.data.lock.api.CpfLockManager;
 import com.cpf.core.api.context.CpfContext;
 import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.api.context.CpfContexts;
+import com.cpf.core.api.transaction.CpfTransactionIds;
 
 
 import com.cpf.platform.operations.observability.api.CpfTelemetry;
@@ -23,6 +24,8 @@ import com.cpf.foundation.execution.CpfContextExecutionFactory;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -270,7 +273,7 @@ public final class CpfResilienceEngine implements CpfResilienceExecutor, CpfResi
         }
 
         try {
-            return executeAttempts(context, action, base, runtime, guard, permit, deadline, traceContext);
+            return executeAttempts(context, action, base, runtime, guard, permit, deadline, traceContext, reconcile);
             } finally {
                 if (distributedProbe != null) {
                     lockManager.release(distributedProbe, "HALF_OPEN_PROBE_COMPLETED");
@@ -290,8 +293,9 @@ public final class CpfResilienceEngine implements CpfResilienceExecutor, CpfResi
             Guard guard,
             CircuitPermit permit,
             CpfResilienceDeadline deadline,
-            CpfTraceContext traceContext) {
-        CpfContextSnapshot caller = CpfContexts.requireSnapshot();
+            CpfTraceContext traceContext,
+            boolean reconcile) {
+        CpfContextSnapshot caller = callerSnapshot(context, reconcile);
         if (!caller.context().transactionId().equals(context.transactionId())) {
             throw new SecurityException("RESILIENCE_TRANSACTION_CONTEXT_MISMATCH");
         }
@@ -427,6 +431,36 @@ public final class CpfResilienceEngine implements CpfResilienceExecutor, CpfResi
             return CpfTraceContext.root(traceFallbackIdentifier(context.transactionId()),
                     kind, operation, Map.of("cpf.execution", safeTraceValue(context.operationId())));
         }
+    }
+
+    private CpfContextSnapshot callerSnapshot(CpfResilienceCallContext context, boolean reconcile) {
+        CpfContextSnapshot current = CpfContexts.snapshot();
+        if (current != null) return current;
+        if (!reconcile) return CpfContexts.requireSnapshot();
+
+        String transactionId = CpfTransactionIds.requireCanonical(context.transactionId());
+        Instant now = clock.instant();
+        CpfContext recovered = contextFactory.fromTrustedPropagation(
+                transactionId,
+                transactionId,
+                transactionId,
+                LocalDate.ofInstant(now, ZoneOffset.UTC),
+                context.requestedAt(),
+                CpfContext.CpfTransactionOriginKind.RECOVERY,
+                null,
+                transactionId,
+                "cpf.resilience.reconcile",
+                null,
+                null,
+                null,
+                CpfContext.CpfExecutionType.INTEGRATION,
+                1,
+                0,
+                null,
+                null,
+                null,
+                null);
+        return CpfContextSnapshot.capture(recovered, now);
     }
 
     private static String traceFallbackIdentifier(String value) {

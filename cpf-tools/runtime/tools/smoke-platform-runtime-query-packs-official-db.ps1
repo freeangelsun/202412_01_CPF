@@ -4,8 +4,8 @@ param(
     [ValidateSet('postgresql','oracle')]
     [string]$Vendor,
     [string]$ProfilePath = '',
-    [ValidateSet('cpf','bza','bat','ref')]
-    [string[]]$Module = @('cpf','bza','bat','ref'),
+    [ValidateSet('cpf','backoffice','bat','ref')]
+    [string[]]$Module = @('cpf','backoffice','bat','ref'),
     [string]$EvidencePath = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -20,7 +20,7 @@ $ProfilePath = (Resolve-Path -LiteralPath $ProfilePath).Path
 if ($LASTEXITCODE -ne 0) { throw 'Runtime Query Contract integrity failed before DB smoke.' }
 
 $profile = Get-CpfDatabaseProfile -Path $ProfilePath
-$moduleKeyMap = @{ cpf = 'core'; bza = 'bizAdmin'; bat = 'batch'; ref = 'reference' }
+$moduleKeyMap = @{ cpf = 'core'; backoffice = 'backoffice'; bat = 'batch'; ref = 'reference' }
 $startedAt = [DateTimeOffset]::Now
 $results = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[object]]::new()

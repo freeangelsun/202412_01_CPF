@@ -214,7 +214,7 @@ public class AdmObservabilityService extends com.cpf.admin.common.base.AdmBaseSe
                 cappedLimit(limit));
     }
 
-    private List<Map<String, Object>> queryBatchExecutions(String transactionId, int limit) {
+    private List<? extends Map<String, Object>> queryBatchExecutions(String transactionId, int limit) {
         if (!CpfStrings.hasText(transactionId)) {
             return List.of();
         }

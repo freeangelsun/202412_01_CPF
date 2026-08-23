@@ -335,11 +335,9 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                 throw new SecurityException("보호 Gateway route에는 검증된 Principal이 필요합니다.");
             }
 
-            CpfChannelPolicyDecision channelDecision = channelPolicies.evaluate(
+            CpfChannelPolicyDecision channelDecision = channelPolicies.evaluateCallerChannel(
                     route.standardExecutionId(),
-                    request.headers().firstHeader(CpfGatewayHeaderNames.ORIGINAL_CLIENT_CHANNEL_CODE),
-                    request.headers().firstHeader(CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE),
-                    request.headers().firstHeader(CpfHttpHeaderNames.REQUEST_TYPE),
+                    CpfContexts.callerChannel(),
                     principal.authenticated(),
                     requestSignatureVerified(principal));
             if (!channelDecision.allowed()) {
@@ -796,7 +794,7 @@ public final class CpfScgPrimaryHandler implements HandlerFunction<ServerRespons
                             null, null, null, null, null, null, null, null, null, null, null,
                             trusted.get(CpfHttpHeaderNames.TRACEPARENT.toLowerCase(Locale.ROOT)),
                             trusted.get(CpfHttpHeaderNames.TRACESTATE.toLowerCase(Locale.ROOT)),
-                            com.cpf.web.context.CpfHttpIngressTrust.INTERNAL_TRUSTED);
+                            com.cpf.web.context.CpfHttpIngressTrust.TRUSTED_INTERNAL);
                     httpContextOutbound.headers(CpfContexts.requireCurrent(), interaction,
                             new CpfHttpOutboundRequest(route.serviceId(), route.operationId(), route.routeVersion(), true))
                             .forEach(headers::set);

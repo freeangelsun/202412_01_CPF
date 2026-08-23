@@ -35,6 +35,16 @@ set APP_HOME=%DIRNAME%
 @rem Resolve any "." and ".." in APP_HOME to make it shorter.
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
+@rem Keep Gradle cache/build diagnostics and JVM crash/OOM artifacts out of the repository root.
+set "CPF_GENERATED_EVIDENCE=%APP_HOME%\cpf-docs\work\evidence\generated"
+set "CPF_GRADLE_PROJECT_CACHE=%CPF_GENERATED_EVIDENCE%\gradle\project-cache"
+set "CPF_MANAGED_GRADLE_ROOT=%CPF_GENERATED_EVIDENCE%\gradle\managed-builds"
+set "CPF_JVM_CRASH_DIR=%CPF_GENERATED_EVIDENCE%\jvm\crash"
+set "CPF_JVM_HEAP_DUMP_DIR=%CPF_GENERATED_EVIDENCE%\jvm\heap-dump"
+if not exist "%CPF_JVM_CRASH_DIR%" mkdir "%CPF_JVM_CRASH_DIR%" || goto fail
+if not exist "%CPF_JVM_HEAP_DUMP_DIR%" mkdir "%CPF_JVM_HEAP_DUMP_DIR%" || goto fail
+set "JAVA_TOOL_OPTIONS=%JAVA_TOOL_OPTIONS% -XX:+HeapDumpOnOutOfMemoryError "-XX:ErrorFile=%CPF_JVM_CRASH_DIR%\java-hs_err_pid%%p.log" "-XX:HeapDumpPath=%CPF_JVM_HEAP_DUMP_DIR%""
+
 @rem CPF project-local resource policy. This affects this repository wrapper only.
 if "%CPF_RESOURCE_PROFILE%"=="" set "CPF_RESOURCE_PROFILE=local"
 call :cpfParseResourceProfile %*
@@ -118,7 +128,7 @@ goto fail
 
 
 @rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" --project-cache-dir "%CPF_GRADLE_PROJECT_CACHE%" "-PcpfManagedGradleRoot=%CPF_MANAGED_GRADLE_ROOT%" %*
 
 :end
 @rem End local scope for the variables with windows NT shell

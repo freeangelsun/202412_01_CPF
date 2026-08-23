@@ -1,5 +1,6 @@
 package com.cpf.common.runtime.cache;
 
+import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -20,20 +21,21 @@ class CpfCommonCacheRefreshListenerTest {
     void eventGapIsReplayedAndDuplicateEventIdIsIgnored() throws Exception {
         var repository = mock(CpfCommonCacheRefreshEventRepository.class);
         var refresher = mock(CpfCommonCacheRefresher.class);
-        when(repository.checkpoint("CMN_CACHE:was-a")).thenReturn(3L);
+        String consumerId = consumerId();
+        when(repository.checkpoint(consumerId)).thenReturn(3L);
         when(repository.findAfter(3L, 256)).thenReturn(List.of(
                 event(5L, "codeCache"),
                 event(5L, "codeCache"),
                 event(8L, "messageCache")));
 
-        var listener = listener(repository, refresher, "was-a");
+        var listener = listener(repository, refresher);
         listener.initialize();
         listener.poll();
 
         verify(refresher).refresh("codeCache");
         verify(refresher).refresh("messageCache");
-        verify(repository).advanceCheckpoint("CMN_CACHE:was-a", 5L, "SYSTEM");
-        verify(repository).advanceCheckpoint("CMN_CACHE:was-a", 8L, "SYSTEM");
+        verify(repository).advanceCheckpoint(consumerId, 5L, "SYSTEM");
+        verify(repository).advanceCheckpoint(consumerId, 8L, "SYSTEM");
         assertThat(listener.status().lastEventId()).isEqualTo(8L);
     }
 
@@ -41,23 +43,24 @@ class CpfCommonCacheRefreshListenerTest {
     void cacheFailureDoesNotAdvanceCheckpointAndNextPollRetriesSameEvent() throws Exception {
         var repository = mock(CpfCommonCacheRefreshEventRepository.class);
         var refresher = mock(CpfCommonCacheRefresher.class);
-        when(repository.checkpoint("CMN_CACHE:was-b")).thenReturn(10L);
+        String consumerId = consumerId();
+        when(repository.checkpoint(consumerId)).thenReturn(10L);
         when(repository.findAfter(10L, 256)).thenReturn(List.of(event(11L, "parameterCache")));
         doThrow(new IllegalStateException("cache outage"))
                 .doNothing()
                 .when(refresher).refresh("parameterCache");
 
-        var listener = listener(repository, refresher, "was-b");
+        var listener = listener(repository, refresher);
         listener.initialize();
         listener.poll();
 
-        verify(repository, never()).advanceCheckpoint("CMN_CACHE:was-b", 11L, "SYSTEM");
+        verify(repository, never()).advanceCheckpoint(consumerId, 11L, "SYSTEM");
         assertThat(listener.status().lastEventId()).isEqualTo(10L);
         assertThat(listener.status().lastFailureType()).isEqualTo("IllegalStateException");
 
         listener.poll();
 
-        verify(repository).advanceCheckpoint("CMN_CACHE:was-b", 11L, "SYSTEM");
+        verify(repository).advanceCheckpoint(consumerId, 11L, "SYSTEM");
         verify(refresher, times(2)).refresh("parameterCache");
         assertThat(listener.status().lastEventId()).isEqualTo(11L);
         assertThat(listener.status().lastFailureType()).isNull();
@@ -67,27 +70,30 @@ class CpfCommonCacheRefreshListenerTest {
     void firstInstanceBootstrapsFromHighWaterAfterFullRefresh() throws Exception {
         var repository = mock(CpfCommonCacheRefreshEventRepository.class);
         var refresher = mock(CpfCommonCacheRefresher.class);
-        when(repository.checkpoint("CMN_CACHE:was-c")).thenReturn(null, 77L);
+        String consumerId = consumerId();
+        when(repository.checkpoint(consumerId)).thenReturn(null, 77L);
         when(repository.maxEventId()).thenReturn(77L);
 
-        var listener = listener(repository, refresher, "was-c");
+        var listener = listener(repository, refresher);
         listener.initialize();
 
         verify(refresher).refreshAll();
-        verify(repository).establishCheckpoint("CMN_CACHE:was-c", 77L, "SYSTEM");
+        verify(repository).establishCheckpoint(consumerId, 77L, "SYSTEM");
         assertThat(listener.status().lastEventId()).isEqualTo(77L);
         assertThat(listener.status().lastFailureType()).isNull();
     }
 
     private static CpfCommonCacheRefreshListener listener(
             CpfCommonCacheRefreshEventRepository repository,
-            CpfCommonCacheRefresher refresher,
-            String instanceId) throws Exception {
+            CpfCommonCacheRefresher refresher) throws Exception {
         var listener = new CpfCommonCacheRefreshListener(repository, refresher);
         set(listener, "enabled", true);
         set(listener, "pollLimit", 256);
-        set(listener, "instanceId", instanceId);
         return listener;
+    }
+
+    private static String consumerId() {
+        return "CMN_CACHE:" + CpfInstanceIdentity.instanceId();
     }
 
     private static Map<String, Object> event(long id, String cacheName) {

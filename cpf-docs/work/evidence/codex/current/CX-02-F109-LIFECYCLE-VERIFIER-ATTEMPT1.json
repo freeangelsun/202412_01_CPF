@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-F109-LIFECYCLE-VERIFIER-ATTEMPT1",
+  "finishedAt": "2026-08-22T23:38:20.4420374+09:00",
+  "status": "TEST_CONTRACT_AND_WINDOWS_ENCODING_DRIFT",
+  "sourceIdentity": "c7a6b9138c6741643979f181a2c0a42a3ca1524248bc753485ee40b0fff47462",
+  "compile": "PASS",
+  "schemaGateFailure": "stale customerMetadata=NONE token",
+  "runtimeGateFailure": "UnicodeDecodeError because child CLI UTF-8 was not forced on Windows",
+  "productMutation": false,
+  "next": "Assert generatorMetadata=ABSENT and run child Python with PYTHONUTF8/PYTHONIOENCODING."
+}

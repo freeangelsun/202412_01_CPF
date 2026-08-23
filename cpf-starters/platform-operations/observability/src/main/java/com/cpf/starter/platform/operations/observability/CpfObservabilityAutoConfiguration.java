@@ -20,6 +20,6 @@ public class CpfObservabilityAutoConfiguration {
     @Bean @ConditionalOnMissingBean CpfTraceContextProjection cpfTraceContextProjection(){return new CpfTraceContextProjection();}
     @Bean @ConditionalOnMissingBean CpfObservabilityContextProjection cpfObservabilityContextProjection(
             CpfMdcContextProjection mdc,CpfTraceContextProjection trace,CpfContextProjectionRegistry projections){
-        CpfObservabilityContextProjection p=new CpfObservabilityContextProjection(mdc,trace);projections.register(p);return p;
+        return new CpfObservabilityContextProjection(mdc, trace, projections);
     }
 }

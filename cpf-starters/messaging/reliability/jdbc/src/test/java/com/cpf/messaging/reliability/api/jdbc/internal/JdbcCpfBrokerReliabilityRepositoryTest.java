@@ -25,9 +25,19 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class JdbcCpfBrokerReliabilityRepositoryTest {
+    @Test
+    void advertisesOnlyTheFencedMutationsImplementedByThisAdapter() {
+        JdbcCpfBrokerReliabilityRepository repository =
+                new JdbcCpfBrokerReliabilityRepository(mock(JdbcTemplate.class));
+
+        assertThat(repository.supportsFencedUnknownMutation()).isTrue();
+        assertThat(repository.supportsFencedPublishMutation()).isTrue();
+    }
+
 
     @Test
     void saveOutboxWritesEnvelopeAsPersistentRecord() {
@@ -87,7 +97,8 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
     @Test
     void inboxDuplicateReturnsFalse() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        when(jdbcTemplate.update(anyString(), eq("msg-003"), eq("idem-003")))
+        when(jdbcTemplate.update(
+                anyString(), eq("CPF_DEFAULT_CONSUMER"), eq("msg-003"), eq("idem-003")))
                 .thenThrow(new DuplicateKeyException("duplicate"));
         JdbcCpfBrokerReliabilityRepository repository = new JdbcCpfBrokerReliabilityRepository(jdbcTemplate);
 
@@ -133,6 +144,43 @@ class JdbcCpfBrokerReliabilityRepositoryTest {
                 .isAnnotationPresent(org.springframework.transaction.annotation.Transactional.class))
                 .isTrue();
     }
+
+    @Test
+    void defaultDlqTransitionDelegatesToDefaultConsumerInsideTransactionBoundary() throws Exception {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        CpfBrokerEnvelope envelope = envelope("msg-default-dlq", "idem-default-dlq");
+        CpfBrokerResult expected = CpfBrokerResult.failed("msg-default-dlq", "CPF_DLQ", "failure");
+        class CapturingRepository extends JdbcCpfBrokerReliabilityRepository {
+            private String consumerIdentity;
+            private CpfBrokerEnvelope capturedEnvelope;
+            private String reason;
+
+            CapturingRepository() {
+                super(jdbcTemplate);
+            }
+
+            @Override
+            public CpfBrokerResult moveToDlq(
+                    String consumerIdentity, CpfBrokerEnvelope envelope, String reason) {
+                this.consumerIdentity = consumerIdentity;
+                this.capturedEnvelope = envelope;
+                this.reason = reason;
+                return expected;
+            }
+        }
+        CapturingRepository repository = new CapturingRepository();
+
+        assertThat(repository.moveToDlq(envelope, "failure")).isSameAs(expected);
+        assertThat(repository.consumerIdentity).isEqualTo("CPF_DEFAULT_CONSUMER");
+        assertThat(repository.capturedEnvelope).isSameAs(envelope);
+        assertThat(repository.reason).isEqualTo("failure");
+        assertThat(JdbcCpfBrokerReliabilityRepository.class
+                .getMethod("moveToDlq", CpfBrokerEnvelope.class, String.class)
+                .isAnnotationPresent(org.springframework.transaction.annotation.Transactional.class))
+                .isTrue();
+        verifyNoInteractions(jdbcTemplate);
+    }
+
     private Map<String, Object> claimedOutboxRow() {
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("messageId", "msg-002");

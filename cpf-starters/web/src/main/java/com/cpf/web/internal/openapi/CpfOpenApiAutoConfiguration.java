@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -136,13 +137,14 @@ public class CpfOpenApiAutoConfiguration {
     private OnlineTransactionMetadata findOnlineTransaction(HandlerMethod handlerMethod) {
         CpfOnlineTransaction standard = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getMethod(), CpfOnlineTransaction.class);
         if (standard == null) standard = AnnotatedElementUtils.findMergedAnnotation(handlerMethod.getBeanType(), CpfOnlineTransaction.class);
-        return standard == null ? null : new OnlineTransactionMetadata(standard.id(), standard.name());
+        return standard == null ? null : new OnlineTransactionMetadata(standard.operationId(), standard.name());
     }
 
 
     @Bean
     @ConditionalOnMissingBean(CpfOpenAPIOperations.class)
-    public CpfOpenAPIOperations cpfOpenApiOperations(CpfOpenApiProperties properties, RequestMappingHandlerMapping mappings) {
+    public CpfOpenAPIOperations cpfOpenApiOperations(CpfOpenApiProperties properties,
+            @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mappings) {
         return new DefaultCpfOpenAPIOperations(properties, mappings, Clock.systemUTC());
     }
 
@@ -283,6 +285,6 @@ public class CpfOpenApiAutoConfiguration {
         return value.substring(0, 1).toLowerCase(Locale.ROOT) + value.substring(1);
     }
 
-    private record OnlineTransactionMetadata(String id, String name) {
+    private record OnlineTransactionMetadata(String operationId, String name) {
     }
 }

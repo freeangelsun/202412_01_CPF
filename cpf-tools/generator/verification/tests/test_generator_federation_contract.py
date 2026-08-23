@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 GENERATOR = ROOT / "cpf-tools" / "generator"
-MEMBER_DEFINITION = ROOT / "cpf-member" / "cpf-domain.yaml"
+MEMBER_CONTRACT = ROOT / "cpf-member" / "gradle.properties"
 
 
 def run_pwsh(script: Path, *arguments: str, expect: int = 0) -> subprocess.CompletedProcess[str]:
@@ -36,26 +36,28 @@ def run_pwsh(script: Path, *arguments: str, expect: int = 0) -> subprocess.Compl
 
 
 class GeneratorFederationContractTest(unittest.TestCase):
-    def test_member_definition_uses_root_canonical_owner(self) -> None:
-        self.assertEqual(ROOT / "cpf-member" / "cpf-domain.yaml", MEMBER_DEFINITION)
-        self.assertTrue(MEMBER_DEFINITION.is_file())
+    def test_member_developer_contract_uses_root_canonical_owner(self) -> None:
+        self.assertEqual(ROOT / "cpf-member" / "gradle.properties", MEMBER_CONTRACT)
+        self.assertTrue(MEMBER_CONTRACT.is_file())
+        self.assertIn("cpf.domain.contractVersion=", MEMBER_CONTRACT.read_text(encoding="utf-8-sig"))
         self.assertFalse((GENERATOR / "definitions" / "member" / "cpf-domain.yaml").exists())
 
     def setUp(self) -> None:
-        (ROOT / "build").mkdir(exist_ok=True)
-        self.work = Path(tempfile.mkdtemp(prefix="cpf-federation-test-", dir=ROOT / "build"))
+        evidence_root = ROOT / "cpf-docs/work/evidence/generated/domain-generator/tests"
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        self.work = Path(tempfile.mkdtemp(prefix="cpf-federation-test-", dir=evidence_root))
 
     def tearDown(self) -> None:
         resolved = self.work.resolve()
-        build = (ROOT / "build").resolve()
-        self.assertIn(build, resolved.parents)
+        evidence_root = (ROOT / "cpf-docs/work/evidence/generated/domain-generator/tests").resolve()
+        self.assertIn(evidence_root, resolved.parents)
         self.assertTrue(resolved.name.startswith("cpf-federation-test-"))
         shutil.rmtree(resolved, ignore_errors=False)
 
     def export_member(self, vendor: str) -> Path:
         arguments = [
             "-DomainModule", "cpf-member",
-            "-DefinitionFile", str(MEMBER_DEFINITION),
+            "-DefinitionFile", str(MEMBER_CONTRACT),
             "-SystemCode", "MBR",
             "-DatabaseVendor", vendor,
             "-OutputRoot", str(self.work),
@@ -72,7 +74,7 @@ class GeneratorFederationContractTest(unittest.TestCase):
             "-FrameworkRoot", str(ROOT),
         )
         self.assertIn('"status": "PASS"', result.stdout)
-        self.assertIn('"generatedProjectMetadata": "NONE"', result.stdout)
+        self.assertIn('"generatedProjectMetadata": "ABSENT"', result.stdout)
 
     def test_export_selects_exactly_one_canonical_vendor_pack(self) -> None:
         repository = self.export_member("mariadb")
@@ -94,6 +96,9 @@ class GeneratorFederationContractTest(unittest.TestCase):
         self.assertIn('"batch"', schema)
         create_source = (GENERATOR / "create-domain-repository.ps1").read_text(encoding="utf-8")
         self.assertNotIn("IncludeJobPack", create_source)
+        verifier = (GENERATOR / "verify-domain-federation.ps1").read_text(encoding="utf-8")
+        self.assertIn("$Definition.batchEnabled", verifier)
+        self.assertNotIn("@('batch', 'domain', 'jobpack')", verifier)
 
     def test_arbitrary_domain_dry_run_uses_canonical_schema_without_writes(self) -> None:
         output = self.work / "output"
@@ -110,14 +115,14 @@ class GeneratorFederationContractTest(unittest.TestCase):
             "-DryRun",
         )
         self.assertIn('"canonicalSchema": "cpf-tools/generator/contracts/cpf-domain.schema.json"', result.stdout)
-        self.assertIn('"generatedProjectMetadata": "NONE"', result.stdout)
+        self.assertIn('"generatedProjectMetadata": "ABSENT"', result.stdout)
         self.assertFalse((output / "cpf-insurance").exists())
 
     def test_system_code_mismatch_fails_before_output(self) -> None:
         result = run_pwsh(
             GENERATOR / "export-domain-repository.ps1",
             "-DomainModule", "cpf-member",
-            "-DefinitionFile", str(MEMBER_DEFINITION),
+            "-DefinitionFile", str(MEMBER_CONTRACT),
             "-SystemCode", "BAD",
             "-DatabaseVendor", "mariadb",
             "-OutputRoot", str(self.work),
@@ -134,7 +139,7 @@ class GeneratorFederationContractTest(unittest.TestCase):
             GENERATOR / "verify-domain-federation.ps1",
             "-RepoRoot", str(repository),
             "-FrameworkRoot", str(ROOT),
-            "-DefinitionFile", str(MEMBER_DEFINITION),
+            "-DefinitionFile", str(MEMBER_CONTRACT),
             "-DomainName", "member",
             "-DatabaseVendor", "oracle",
             expect=1,

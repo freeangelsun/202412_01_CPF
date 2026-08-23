@@ -1,0 +1,17 @@
+{
+  "track": "CX-05-F210-CURRENT-OWNER-TEST-FIX-IDENTITY",
+  "timestamp": "2026-08-23T18:55:00+09:00",
+  "status": "SOURCE_FIXED_FIRST_PASS",
+  "sourceIdentity": {
+    "sha256": "9a31445e3fdb0a3e519a5bc1221b43e93a7d364ec1fca266877083d04ca9904a",
+    "sha1": "a46dbfcd64cbefb313fe0f3fb42a027a5634cfde",
+    "files": 8288,
+    "bytes": 75219859
+  },
+  "changes": [
+    "Shell truncation assertion uses canonical Result.truncated",
+    "Worker runtime-state tests use List<CpfBrokerConsumerControlPort> and canonical diagnostics",
+    "Kafka adapter owner now tests exact group filtering pause resume concurrency and missing-group fail-close"
+  ],
+  "next": "Correct exact repeated invocation cardinality, then execute affected Java 25 tests."
+}

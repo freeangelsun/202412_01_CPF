@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-08-23T17:02:00+09:00",
+  "sourceIdentityBefore": "6965c85c3c36374a6bad8921011684f9ddb8d26d8209d55bba2a1d3fba2e37cf",
+  "sourceIdentityAfter": {
+    "sha256": "0b5aa8ba137ff09c68e35632059eebb20a6deb1f1f01787101093e7a912b38e0",
+    "sha1": "f9091f8d28fbed78b5157503159c1f3071c2dd93",
+    "fileCount": 8252,
+    "totalBytes": 75040786
+  },
+  "status": {
+    "CX-F-191": "SOURCE_FIXED",
+    "CX-F-193": "SOURCE_FIXED",
+    "CX-F-194": "IN_PROGRESS"
+  },
+  "deletedAuthoringFileCount": 9,
+  "pending": "BAT canonical sync/check plus full query and Java/runtime verification"
+}

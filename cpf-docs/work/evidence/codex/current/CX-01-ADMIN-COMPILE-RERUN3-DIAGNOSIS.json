@@ -1,0 +1,21 @@
+{
+  "track": "CX-01-ADMIN-COMPILE-RERUN3-DIAGNOSIS",
+  "finishedAt": "2026-08-22T18:26:00+09:00",
+  "sourceIdentitySha256": "eb9319665174901a13ee2e9450be2fd8202e93e33f566deca6f7d41997bc156f",
+  "result": "DIAGNOSIS_COMPLETE",
+  "findings": [
+    {
+      "id": "CX-F-074",
+      "statusBeforeSourceEdit": "IN_PROGRESS",
+      "rootCause": "ADM retained the deprecated reference publisher's publishAfterCommit name while the canonical runtime publisher exposes publishRequired and publishOutOfBand. Approval owner execution is explicitly outside a DB transaction, so the correct canonical boundary is the SPI publishOutOfBand operation, whose REQUIRES_NEW transaction records the durable event and refreshes locally only after that event transaction commits.",
+      "fixBoundary": "Depend on CpfCommonCacheChangePublisher SPI and invoke publishOutOfBand; add exact service consumer tests."
+    },
+    {
+      "id": "CX-F-075",
+      "statusBeforeSourceEdit": "IN_PROGRESS",
+      "rootCause": "reconcile correctly parsed payload.commandId into operationId but passed a nonexistent commandId local to CpfRuntimeControlPlane.getByCommandId.",
+      "fixBoundary": "Use the parsed canonical operationId and add an exact lookup/result regression."
+    }
+  ],
+  "falseGreen": "No API shim, skipped task, allowlist or weakened Production state classification is proposed."
+}

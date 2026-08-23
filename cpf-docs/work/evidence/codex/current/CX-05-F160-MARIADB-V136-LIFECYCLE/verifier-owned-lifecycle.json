@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "runId": "20f07686562f",
+  "sourceSha": "14d2e2ad8e00fc2deee253432b8e2097fd4f7951",
+  "status": "FAIL",
+  "stages": [
+    {
+      "stage": "FreshInstall",
+      "status": "PASS",
+      "planSha256": "98fc8d7d090e16f51a79ed4a52773b54c3a26ca05577246f236409cbaff30c8d"
+    }
+  ],
+  "profile": "database-install.mariadb.20f07686562f.json",
+  "migrationSelection": {
+    "selectionMode": "CHECKSUM_MANIFEST_CURRENT_EDGE",
+    "version": 136,
+    "vendorEdges": {
+      "mariadb": 136,
+      "postgresql": 136,
+      "oracle": 136
+    }
+  },
+  "sanitized": true,
+  "startedAt": "2026-08-23T10:27:23.3533006+00:00",
+  "error": "MariaDB migration에는 명시적 USE logicalDatabase routing이 필요합니다: cpf-tools/db/vendor/mariadb/migration/flyway/V136__backoffice_permission_identity.sql",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T10:27:42.3140164+00:00"
+}

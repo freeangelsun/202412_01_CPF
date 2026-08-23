@@ -5,7 +5,10 @@ dependencies {
     implementation project(':framework:integration')
     implementation project(':framework:messaging')
     implementation project(':framework:data')
+    implementation project(':starters:data:jdbc')
     implementation project(':framework:file')
+ implementation project(':internal:platform-operations:runtime-control')
+ implementation project(':starters:messaging:kafka')
  implementation project(':runtime:batch:api')
  implementation project(':runtime:batch:runtime-support')
  implementation project(':runtime:batch:runtime')
@@ -21,8 +24,13 @@ dependencies {
  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
  implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
  implementation 'org.springframework.batch:spring-batch-integration'
+ runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+ runtimeOnly 'org.postgresql:postgresql'
+ runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+ implementation 'com.fasterxml.jackson.core:jackson-databind'
  testImplementation project(':runtime:batch:testkit')
  testImplementation 'org.springframework.batch:spring-batch-test'
+ testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('bootJar'){archiveFileName="cpf-batch-worker-${project.version}.jar"}
 tasks.named('test'){useJUnitPlatform()}

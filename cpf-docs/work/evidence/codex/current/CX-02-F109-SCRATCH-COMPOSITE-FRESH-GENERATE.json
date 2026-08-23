@@ -1,0 +1,14 @@
+{
+  "track": "CX-02-F109-SCRATCH-COMPOSITE-FRESH-GENERATE",
+  "finishedAt": "2026-08-22T23:03:13.0229167+09:00",
+  "sourceIdentity": "1957541445d3cfef12ff0af515aa16784b1704d3e9efffee3800d24e4597d0a2",
+  "domain": "f109orders",
+  "systemCode": "FOR",
+  "rootEntries": ["batch", "online", "build.gradle", "gradle.properties", "settings.gradle"],
+  "fileCount": 58,
+  "forbiddenMetadata": [],
+  "sourceRuntimeDescriptorCount": 0,
+  "businessFeatures": ["ordering", "settlement"],
+  "capabilities": {"online": true, "batch": true, "persistence": "mybatis", "domainDependency": "member:MBR:ping", "externalClient": "bank:bank-interface:fixed-length"},
+  "dbBinding": "EXTERNAL_LOCAL_PROFILE"
+}

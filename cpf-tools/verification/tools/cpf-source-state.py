@@ -9,16 +9,26 @@ file that validation is expected not to mutate, including review/evidence metada
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 import os
 from pathlib import Path
 
 GENERATED_PARTS = {
+    "cpf-release",
     ".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules",
     "dist", ".vite", "playwright-report", "test-results", "target", "out", "bin", "coverage",
 }
 GENERATED_FILES = {".coverage"}
+GENERATED_FILE_PATTERNS = (
+    "hs_err_pid*.log",
+    "replay_pid*.log",
+    "java_pid*.hprof",
+    "*.hprof",
+    "*.stackdump",
+)
+GENERATED_PATH_MARKERS = ("/cpf-docs/work/evidence/generated/",)
 GENERATED_ROOT_PREFIXES = {".vscode/"}
 
 
@@ -34,7 +44,12 @@ def _is_generated(rel: str) -> bool:
         return True
     if any(rel.startswith(prefix) for prefix in GENERATED_ROOT_PREFIXES):
         return True
+    normalized = f"/{rel.strip('/')}/"
+    if any(marker in normalized for marker in GENERATED_PATH_MARKERS):
+        return True
     if parts[-1] in GENERATED_FILES:
+        return True
+    if any(fnmatch.fnmatchcase(parts[-1], pattern) for pattern in GENERATED_FILE_PATTERNS):
         return True
     # Gradle/module build outputs are generated, but cpf-tools/build/** is checked-in product source.
     if "build" in parts and not rel.startswith("cpf-tools/build/"):

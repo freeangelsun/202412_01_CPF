@@ -4,7 +4,6 @@
   "description": "Canonical platform schema comments",
   "sourceFiles": [
     "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
-    "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql",
     "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
     "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
   ],

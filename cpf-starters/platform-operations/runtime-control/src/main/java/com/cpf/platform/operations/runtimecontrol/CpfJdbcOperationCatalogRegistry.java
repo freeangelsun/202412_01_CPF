@@ -1,9 +1,10 @@
 package com.cpf.platform.operations.runtimecontrol;
 
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import java.sql.Timestamp;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +13,6 @@ import java.util.Objects;
 import java.util.Set;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -21,14 +21,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  * newly discovered operation and is never overwritten by subsequent source scans.
  */
 public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalogRegistry {
-    private static final String SYSTEM_TABLE = "OPS_SYSTEM_REGISTRY";
-    private static final String CATALOG_TABLE = "OPS_OPERATION_CATALOG";
-    private static final String POLICY_TABLE = "OPS_OPERATION_POLICY";
-    private static final String CALLER_POLICY_TABLE = "OPS_OPERATION_CALLER_POLICY";
-    private static final String DISCOVERY_TABLE = "OPS_OPERATION_DISCOVERY_INSTANCE";
-
     private final JdbcTemplate jdbc;
     private final TransactionTemplate tx;
+    private final CpfVendorSqlCatalog sql;
     private final Clock clock;
     private final Set<String> defaultAllowedCallers;
     private final String seedSource;
@@ -37,12 +32,14 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
     public CpfJdbcOperationCatalogRegistry(
             JdbcTemplate jdbc,
             TransactionTemplate tx,
+            CpfVendorSqlCatalogProvider catalogs,
             Clock clock,
             List<String> defaultAllowedCallers,
             String seedSource,
             String seedRevision) {
         this.jdbc = Objects.requireNonNull(jdbc, "jdbc");
         this.tx = Objects.requireNonNull(tx, "tx");
+        this.sql = Objects.requireNonNull(catalogs, "catalogs").forModule("cpf");
         this.clock = Objects.requireNonNull(clock, "clock");
         LinkedHashSet<String> callers = new LinkedHashSet<>();
         if (defaultAllowedCallers != null) {
@@ -109,7 +106,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
 
     private boolean operationExists(String operationId) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM " + CATALOG_TABLE + " WHERE operation_id=?",
+                sql.required("operation-catalog-exists"),
                 Integer.class,
                 operationId);
         return count != null && count > 0;
@@ -117,11 +114,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
 
     private void insertOperation(Operation operation, String instanceId, Timestamp now) {
         jdbc.update(
-                "INSERT INTO " + CATALOG_TABLE
-                        + "(operation_id,operation_name,description,system_code,domain_code,application_code,http_method,api_path,"
-                        + "controller_class,handler_method,openapi_operation_id,source_fingerprint,discovery_status,first_seen_at,last_seen_at,"
-                        + "last_instance_id,metadata_version,created_by,created_at,updated_by,updated_at)"
-                        + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,'CPF_RUNTIME',?,'CPF_RUNTIME',?)",
+                sql.required("operation-catalog-insert"),
                 required(operation.operationId(), "operationId"),
                 required(operation.name(), "name"),
                 text(operation.description(), null),
@@ -144,10 +137,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
 
     private void updateOperation(Operation operation, String instanceId, Timestamp now) {
         jdbc.update(
-                "UPDATE " + CATALOG_TABLE
-                        + " SET operation_name=?,description=?,system_code=?,domain_code=?,application_code=?,http_method=?,api_path=?,"
-                        + "controller_class=?,handler_method=?,openapi_operation_id=?,source_fingerprint=?,discovery_status='ACTIVE',last_seen_at=?,"
-                        + "last_instance_id=?,metadata_version=metadata_version+1,updated_by='CPF_RUNTIME',updated_at=? WHERE operation_id=?",
+                sql.required("operation-catalog-update"),
                 required(operation.name(), "name"),
                 text(operation.description(), null),
                 requiredCode(operation.systemCode(), "systemCode"),
@@ -168,22 +158,18 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
 
     private void upsertDiscovery(String operationId, SyncRequest request, boolean discovered, Timestamp now) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM " + DISCOVERY_TABLE + " WHERE operation_id=? AND instance_id=?",
+                sql.required("operation-discovery-exists"),
                 Integer.class, operationId, request.instanceId());
         String yn = discovered ? "Y" : "N";
         if (count == null || count == 0) {
             jdbc.update(
-                    "INSERT INTO " + DISCOVERY_TABLE
-                            + "(operation_id,instance_id,system_code,application_code,artifact_version,artifact_commit,discovered_yn,last_reported_at,"
-                            + "created_by,created_at,updated_by,updated_at) VALUES (?,?,?,?,?,?,?,?,'CPF_RUNTIME',?,'CPF_RUNTIME',?)",
+                    sql.required("operation-discovery-insert"),
                     operationId, request.instanceId(), requiredCode(request.systemCode(), "systemCode"),
                     text(request.application(), null), text(request.artifactVersion(), null), text(request.artifactCommit(), null),
                     yn, now, now, now);
         } else {
             jdbc.update(
-                    "UPDATE " + DISCOVERY_TABLE
-                            + " SET system_code=?,application_code=?,artifact_version=?,artifact_commit=?,discovered_yn=?,last_reported_at=?,"
-                            + "updated_by='CPF_RUNTIME',updated_at=? WHERE operation_id=? AND instance_id=?",
+                    sql.required("operation-discovery-update"),
                     requiredCode(request.systemCode(), "systemCode"), text(request.application(), null),
                     text(request.artifactVersion(), null), text(request.artifactCommit(), null), yn, now, now,
                     operationId, request.instanceId());
@@ -204,9 +190,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
             boolean present = reports.values().stream().anyMatch(Boolean::booleanValue);
             String target = present ? "ACTIVE" : "NOT_DISCOVERED";
             changed += jdbc.update(
-                    "UPDATE " + CATALOG_TABLE
-                            + " SET discovery_status=?, metadata_version=metadata_version+1, updated_by='CPF_RUNTIME', updated_at=?"
-                            + " WHERE operation_id=? AND discovery_status<>?",
+                    sql.required("operation-catalog-update-discovery-status"),
                     target, now, operationId, target);
         }
         return changed;
@@ -215,21 +199,18 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
     private List<String> scopedOperationIds(String systemCode, String application) {
         if (application == null || application.isBlank()) {
             return jdbc.query(
-                    "SELECT operation_id FROM " + CATALOG_TABLE
-                            + " WHERE system_code=? AND application_code IS NULL",
+                    sql.required("operation-catalog-find-scoped-null-application"),
                     (rs, rowNum) -> rs.getString(1), systemCode);
         }
         return jdbc.query(
-                "SELECT operation_id FROM " + CATALOG_TABLE
-                        + " WHERE system_code=? AND application_code=?",
+                sql.required("operation-catalog-find-scoped-application"),
                 (rs, rowNum) -> rs.getString(1), systemCode, application);
     }
 
     private List<String> activeRuntimeInstances(String serviceId, Timestamp now) {
         try {
             return jdbc.query(
-                    "SELECT s.instance_id FROM OPS_RUNTIME_INSTANCE_STATE s JOIN OPS_SERVICE_INSTANCE i ON i.instance_id=s.instance_id"
-                            + " WHERE s.lease_until>? AND i.active_yn='Y' AND i.service_id=?",
+                    sql.required("operation-runtime-active-instance-find-by-service"),
                     (rs, rowNum) -> rs.getString(1), now, serviceId);
         } catch (DataAccessException unavailable) {
             return List.of();
@@ -238,27 +219,25 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
 
     private Map<String,Boolean> discoveryReports(String operationId, List<String> activeInstances) {
         if (activeInstances.isEmpty()) return Map.of();
-        String placeholders = String.join(",", java.util.Collections.nCopies(activeInstances.size(), "?"));
-        ArrayList<Object> args = new ArrayList<>();
-        args.add(operationId);
-        args.addAll(activeInstances);
+        Set<String> active = Set.copyOf(activeInstances);
         Map<String,Boolean> result = new java.util.LinkedHashMap<>();
-        jdbc.query("SELECT instance_id,discovered_yn FROM " + DISCOVERY_TABLE
-                        + " WHERE operation_id=? AND instance_id IN (" + placeholders + ")",
-                (RowCallbackHandler) rs -> result.put(rs.getString(1), "Y".equalsIgnoreCase(rs.getString(2))), args.toArray());
+        jdbc.query(sql.required("operation-discovery-find-by-operation"), rs -> {
+            String instanceId = rs.getString(1);
+            if (active.contains(instanceId)) {
+                result.put(instanceId, "Y".equalsIgnoreCase(rs.getString(2)));
+            }
+        }, operationId);
         return Map.copyOf(result);
     }
 
     private void ensureSystem(String systemCode, String domainCode, String instanceId, Timestamp now) {
         Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM " + SYSTEM_TABLE + " WHERE system_code=?",
+                sql.required("operation-system-registry-exists"),
                 Integer.class,
                 systemCode);
         if (count == null || count == 0) {
             jdbc.update(
-                    "INSERT INTO " + SYSTEM_TABLE
-                            + "(system_code,system_name,domain_code,enabled_yn,description,policy_version,first_seen_at,last_seen_at,last_instance_id,"
-                            + "created_by,created_at,updated_by,updated_at) VALUES (?,?,?,'Y',?,1,?,?,?,'CPF_RUNTIME',?,'CPF_RUNTIME',?)",
+                    sql.required("operation-system-registry-insert"),
                     systemCode,
                     systemCode,
                     code(domainCode),
@@ -270,8 +249,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
                     now);
         } else {
             jdbc.update(
-                    "UPDATE " + SYSTEM_TABLE
-                            + " SET domain_code=?,last_seen_at=?,last_instance_id=?,updated_by='CPF_RUNTIME',updated_at=? WHERE system_code=?",
+                    sql.required("operation-system-registry-update"),
                     code(domainCode), now, text(instanceId, null), now, systemCode);
         }
     }
@@ -279,9 +257,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
     private int seedPolicy(String operationId, Timestamp now) {
         boolean all = defaultAllowedCallers.contains("ALL");
         jdbc.update(
-                "INSERT INTO " + POLICY_TABLE
-                        + "(operation_id,enabled_yn,all_callers_yn,channel_policy_required_yn,policy_version,seed_source,seed_revision,seeded_at,"
-                        + "change_reason,created_by,created_at,updated_by,updated_at) VALUES (?,'Y',?,'N',1,?,?,?,?, 'CPF_SEED',?,'CPF_SEED',?)",
+                sql.required("operation-policy-insert-seed"),
                 operationId,
                 all ? "Y" : "N",
                 seedSource,
@@ -294,9 +270,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
         if (!all) {
             for (String caller : defaultAllowedCallers) {
                 jdbc.update(
-                        "INSERT INTO " + CALLER_POLICY_TABLE
-                                + "(operation_id,caller_system_code,allowed_yn,policy_version,seed_source,seed_revision,seeded_at,change_reason,"
-                                + "created_by,created_at,updated_by,updated_at) VALUES (?,?,'Y',1,?,?,?,?, 'CPF_SEED',?,'CPF_SEED',?)",
+                        sql.required("operation-caller-policy-insert-seed"),
                         operationId,
                         caller,
                         seedSource,

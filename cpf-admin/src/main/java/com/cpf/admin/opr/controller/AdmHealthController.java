@@ -1,8 +1,8 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.config.AdmPersistencePolicy;
-import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
+import com.cpf.platform.operations.observability.internal.logging.CpfTransactionContextAnomalyMonitor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,7 +63,7 @@ public class AdmHealthController extends com.cpf.admin.common.base.AdmBaseContro
         response.put("reasonCode", !sessionReady ? "ADM_SESSION_STORE_UNAVAILABLE"
                 : persistencePolicy.memoryEnabled() && !admDbUp ? "ADM_DB_UNAVAILABLE_MEMORY_MODE" : null);
         response.put("alertRequired", !sessionReady);
-        response.put("transactionContextMissingCount", CpfContexts.missingCount());
+        response.put("transactionContextMissingCount", CpfTransactionContextAnomalyMonitor.missingCount());
         return ResponseEntity.status(ready ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 

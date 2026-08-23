@@ -1,0 +1,34 @@
+{
+  "track": "CX-02-F109-CURRENT-EXACT-SYNC-APPLY",
+  "sourceIdentity": {
+    "sha1": "d71598fc375191274febe7641c25e80bc3f3c081",
+    "sha256": "9ba65a97bab27a41613f0c31817fbd03531d528092918aa28af62f5fda5f6be0",
+    "fileCount": 8220,
+    "totalBytes": 75801543
+  },
+  "preview": {
+    "exitCode": 0,
+    "status": "VERIFICATION_PENDING_DELETE",
+    "mutated": false,
+    "domains": 3,
+    "deleteCandidates": {
+      "cpf-backoffice": ["cpf-domain.yaml"],
+      "cpf-external": ["cpf-domain.yaml", "cpf-generator.lock.json", "online/src/main/resources/META-INF/cpf/generated-domain.properties"],
+      "cpf-member": ["batch/src/main/resources/META-INF/cpf/generated-domain.properties", "cpf-domain.yaml", "cpf-generator.lock.json", "online/src/main/resources/META-INF/cpf/generated-domain.properties"]
+    }
+  },
+  "apply": {
+    "command": "python cpf-tools/runtime/cli/cpf.py --root . domain sync --approve-generated-delete",
+    "exitCode": 0,
+    "status": "PASS",
+    "results": {
+      "cpf-backoffice": "PREBUILT_VERIFIED",
+      "cpf-external": "UPGRADED",
+      "cpf-member": "UPGRADED"
+    },
+    "exactCandidateCount": 8,
+    "postApplyExistingCandidateCount": 0
+  },
+  "recoverability": "Deleted files remain recoverable from Git history; no commit/reset/restore/clean was performed.",
+  "next": "Rerun Generator/IA consumers and Java 25 MBR/EXS compile/test before F109 closure."
+}

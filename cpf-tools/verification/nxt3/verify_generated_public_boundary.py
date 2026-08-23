@@ -6,6 +6,15 @@ from pathlib import Path
 PUBLIC_BASE={'cpf-starter','cpf-starter-secure-api'}
 OPTIONAL_PUBLIC={'cpf-starter-integration-http','cpf-starter-integration-resilience'}
 
+def properties(path:Path)->dict[str,str]:
+    values={}
+    if not path.is_file(): return values
+    for raw in path.read_text(encoding='utf-8-sig').splitlines():
+        line=raw.strip()
+        if line and not line.startswith(('#','!')) and '=' in line:
+            key,value=line.split('=',1); values[key.strip()]=value.strip()
+    return values
+
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path)
     ns=ap.parse_args(); root=ns.root.resolve(); checks=[]
@@ -36,12 +45,11 @@ def main()->int:
             {'file':str(path),'expected':sorted(expected),'actual':sorted(actual),'hiddenOptional':hidden})
     # Generated Customer Domain may directly consume only Public Starter artifacts; physical :internal:* project names are never exposed.
     for root_name in ('cpf-member','cpf-external'):
-        definition=root/root_name/'cpf-domain.yaml'
-        generation='generated'
-        if definition.is_file():
-            txt=definition.read_text(encoding='utf-8',errors='replace')
-            m=re.search(r'(?ms)^generation:\s*\n(?:^[ \t].*\n)*?^[ \t]+mode:\s*([A-Za-z0-9_-]+)',txt)
-            if m: generation=m.group(1).strip().lower()
+        domain_root=root/root_name; definition=domain_root/'gradle.properties'; contract=properties(definition)
+        generation=contract.get('cpf.domain.generationMode','')
+        add(f'{root_name}-developer-contract',contract.get('cpf.domain.contractVersion')=='1',str(definition))
+        forbidden=[name for name in ('cpf-domain.yaml','cpf-generator.lock.json','.cpf') if (domain_root/name).exists()]
+        add(f'{root_name}-generator-metadata-zero',not forbidden,forbidden)
         if generation!='generated':
             add(f'{root_name}-generated-mode',False,{'generation':generation}); continue
         for module in ('online','batch'):

@@ -1,0 +1,280 @@
+{
+  "profileVersion": 1,
+  "profileName": "full-local-postgresql-0ed27df87f98",
+  "environment": "test",
+  "description": "FullLocal verifier-owned isolated DB lifecycle profile. Contains env references only.",
+  "supportedVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "policy": {
+    "promptForMissingValues": false,
+    "allowInlineDevDefaults": false,
+    "failClosedOnMissingVendorPack": true,
+    "failClosedOnPartialDatabase": true,
+    "autoDropDatabase": false,
+    "autoResetDatabase": false,
+    "allowMixedVendorConfiguration": false,
+    "allowMixedHostConfiguration": false
+  },
+  "modules": {
+    "core": {
+      "domainName": "core",
+      "systemCode": "CPF",
+      "moduleName": "cpf-core",
+      "enabled": true,
+      "required": true,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_platform",
+      "schemaName": "cpfv_0ed27df87f98_ps",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "common": {
+      "domainName": "common",
+      "systemCode": "CMN",
+      "moduleName": "cpf-common",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_platform",
+      "schemaName": "cpfv_0ed27df87f98_ps",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "admin": {
+      "domainName": "admin",
+      "systemCode": "ADM",
+      "moduleName": "cpf-admin",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_platform",
+      "schemaName": "cpfv_0ed27df87f98_ps",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "batch": {
+      "domainName": "batch",
+      "systemCode": "BAT",
+      "moduleName": "cpf-batch",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_platform",
+      "schemaName": "cpfv_0ed27df87f98_ps",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "education": {
+      "domainName": "education",
+      "systemCode": "EDU",
+      "moduleName": "cpf-education",
+      "enabled": false,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "referenceFixture",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_platform",
+      "schemaName": "cpfv_0ed27df87f98_ps",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "backoffice": {
+      "domainName": "backoffice",
+      "systemCode": "MBW",
+      "moduleName": "cpf-backoffice",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "mbwDB",
+      "vendor": "postgresql",
+      "host": "postgresql",
+      "port": 5432,
+      "databaseName": "cpf_verify_0ed27df87f98_mbw",
+      "schemaName": "cpfv_0ed27df87f98_ms",
+      "clientPath": "psql",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "postgres",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_0ed27df87f98_bm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_0ed27df87f98_br",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sourceOptional": true,
+      "ownerPath": "cpf-backoffice"
+    }
+  }
+}

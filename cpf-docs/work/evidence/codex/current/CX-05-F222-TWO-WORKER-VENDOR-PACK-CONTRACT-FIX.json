@@ -1,0 +1,13 @@
+{
+  "finding": "CX-F-222",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-23T20:29:00+09:00",
+  "sourceIdentity": {
+    "sha256": "ce1a465164373c82f8627f4d940238e105ba278a62255b978f09de0588bcbb12",
+    "sha1": "bf28ea0d20224ca210ca372515d4c85907a6b517",
+    "fileCount": 8288,
+    "totalBytes": 75236954
+  },
+  "change": "The MariaDB-specific smoke accepts/validates only mariadb, resolves the central cpf-tools/db/vendor/mariadb Pack, requires pack.json, and injects JDBC Provider/vendor/resource-root into both Workers.",
+  "next": "Parse, run exact contract, and replay physical runtime."
+}

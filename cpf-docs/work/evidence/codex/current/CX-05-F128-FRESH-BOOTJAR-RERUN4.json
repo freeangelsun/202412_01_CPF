@@ -1,0 +1,32 @@
+{
+  "track": "CX-05-F128-FRESH-BOOTJAR-RERUN4",
+  "startedAt": "2026-08-23T02:35:10.5274014+09:00",
+  "finishedAt": "2026-08-23T02:36:37.5614963+09:00",
+  "sourceIdentity": "a8191f8e22a9e1f1734ad00ab9639f3dfa6f998cfc5e89ba86893d14a7aa3d33",
+  "command": ".\\gradlew.bat -p cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging :online:bootJar --no-daemon --max-workers=1 --console=plain -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "result": "PASS_BUILD",
+  "tasks": {
+    "evaluated": 45,
+    "executed": 3,
+    "upToDate": 42,
+    "requiredExecuted": [
+      ":cpf-product-source:framework:web:compileJava",
+      ":cpf-product-source:framework:web:jar",
+      ":online:bootJar"
+    ]
+  },
+  "artifact": {
+    "path": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/online/build/libs/cpf-f126logging-online-1.0.0-SNAPSHOT.jar",
+    "bytes": 39892525,
+    "sha256": "f132e864660525675bd6eadccb0a021dbd85f78cdd79292ca3b18a80b6f73a96",
+    "previousSha256": "468f979895c088bc6989f86c1ed6a5044c88ca0fab991294e18581d183fc50f2"
+  },
+  "falseGreenControl": "The changed Web compile and JAR plus dependent executable bootJar all executed. Only unaffected inputs were reused.",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F128-FRESH-BOOTJAR-RERUN4.log",
+  "resourceAfter": {
+    "freePhysicalGiB": 7.49,
+    "commitFreeGiB": 68.04
+  },
+  "next": "Launch this exact artifact with Actuator present and verify readiness, HTTP and generated Logging files."
+}

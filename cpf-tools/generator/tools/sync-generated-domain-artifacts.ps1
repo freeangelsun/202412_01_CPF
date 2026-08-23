@@ -50,12 +50,12 @@ foreach ($item in $catalog | Sort-Object systemCode, domainName) {
         if ($Apply) {
             $lifecycle = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
                 'domain', 'upgrade', [string]$item.domainName,
-                '--file', [string]$item.definitionPath,
+                '--file', [string]$item.contractPath,
                 '--output', $project
             )
         } else {
             $lifecycle = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
-                'domain', 'diff', '--file', [string]$item.definitionPath, '--output', $project
+                'domain', 'diff', '--file', [string]$item.contractPath, '--output', $project
             )
         }
         $rows += [ordered]@{
@@ -70,9 +70,9 @@ foreach ($item in $catalog | Sort-Object systemCode, domainName) {
 
     $vendorResults = @()
     foreach ($vendor in $DatabaseVendors) {
-        $output = Join-Path $Root "build/domain-generator/verification/$($item.projectName)/db3/$vendor"
+        $output = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/$($item.projectName)/db3/$vendor"
         $render = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
-            'db', 'render', '--file', [string]$item.definitionPath,
+            'db', 'render', '--file', [string]$item.contractPath,
             '--vendor', $vendor, '--output', $output
         )
         $vendorResults += $render
@@ -87,14 +87,14 @@ foreach ($item in $catalog | Sort-Object systemCode, domainName) {
     }
 }
 
-$resultDir = Join-Path $Root 'build/reports/generated-domain-sync'
+$resultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/reports/generated-domain-sync'
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-sync.sanitized.json'
 $result = [ordered]@{
     generatedAt = [DateTimeOffset]::Now.ToString('o')
     status = 'PASS'
     scope = $Scope
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     domainCount = $rows.Count
     domains = $rows
 }

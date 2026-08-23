@@ -28,25 +28,6 @@ function Publish-CentralFile([string] $SourcePath, [string] $TargetPath) {
     [System.IO.File]::Copy($SourcePath, $TargetPath, $true)
 }
 
-function Publish-CentralDirectory([string] $SourceDirectory, [string] $TargetDirectory) {
-    if (-not (Test-Path -LiteralPath $SourceDirectory -PathType Container)) {
-        throw "Central Vendor Pack source directory is missing: $SourceDirectory"
-    }
-    foreach ($sourceFile in Get-ChildItem -LiteralPath $SourceDirectory -Recurse -File) {
-        $relativePath = [System.IO.Path]::GetRelativePath($SourceDirectory, $sourceFile.FullName)
-        Publish-CentralFile $sourceFile.FullName (Join-Path $TargetDirectory $relativePath)
-    }
-}
-
-function Publish-CentralMigrationFiles([string] $SourceDirectory, [string] $TargetDirectory) {
-    if (-not (Test-Path -LiteralPath $SourceDirectory -PathType Container)) {
-        throw "Central Vendor Pack source directory is missing: $SourceDirectory"
-    }
-    foreach ($sourceFile in Get-ChildItem -LiteralPath $SourceDirectory -File -Filter "V*.sql") {
-        Publish-CentralFile $sourceFile.FullName (Join-Path $TargetDirectory $sourceFile.Name)
-    }
-}
-
 function Get-Section([string] $FileName) {
     $path = Join-Path $SqlRoot $FileName
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -59,6 +40,42 @@ function Get-Section([string] $FileName) {
 -- ============================================================================
 $(Read-Utf8 $path)
 "@
+}
+
+function Assert-BundlePolicy([string] $OutputName, [string] $Body) {
+    if ($OutputName -notin @("00_provision.sql") -and
+            $Body -match "(?im)^\s*(?:CREATE|ALTER|DROP)\s+USER\b") {
+        throw "Runtime/install bundle must not manage DB users: $OutputName"
+    }
+    if ($OutputName -notin @("00_test_seed.sql") -and
+            $Body -match "(?im)^\s*DROP\s+(?:DATABASE|TABLE)\b") {
+        throw "Non-destructive bundle contains DROP DATABASE/TABLE: $OutputName"
+    }
+
+    if ($OutputName -eq "00_product_seed.sql") {
+        $structuralBody = [regex]::Replace($Body, "'(?:''|[^'])*'", "''")
+        $structuralBody = [regex]::Replace($structuralBody, '(?m)--.*$', '')
+        $knownDatabaseNames = @(
+            [regex]::Matches($structuralBody, '(?im)^\s*USE\s+`?([A-Za-z][A-Za-z0-9_]*)`?\s*;') |
+                ForEach-Object { $_.Groups[1].Value } |
+                Sort-Object -Unique
+        )
+        $knownQualifierPattern = if ($knownDatabaseNames.Count -gt 0) {
+            '(?i)\b(?:' +
+                (($knownDatabaseNames | ForEach-Object { [regex]::Escape($_) }) -join '|') +
+                ')\s*\.'
+        } else {
+            '(?!)'
+        }
+        if ($structuralBody -match $knownQualifierPattern -or
+                $structuralBody -match '(?i)\b[A-Za-z][A-Za-z0-9_]*(?:DB|SCHEMA)\s*\.') {
+            throw "Product Seed는 다른 logical DB를 직접 참조할 수 없습니다. Owner별 USE section/source로 분리하세요."
+        }
+        if ($Body -match "(?i)https?://(?:localhost|127\.0\.0\.1)" -or
+            $Body -match "(?i)'(?:localhost|127\.0\.0\.1)'") {
+            throw "Product Seed에 local endpoint/host fixture가 포함되어 있습니다. Optional Seed로 이동하세요."
+        }
+    }
 }
 
 function New-Bundle(
@@ -77,40 +94,7 @@ function New-Bundle(
         $body += Get-Section $file
     }
 
-    if ($OutputName -notin @("00_provision.sql") -and
-            $body -match "(?im)^\s*(?:CREATE|ALTER|DROP)\s+USER\b") {
-        throw "Runtime/install bundle must not manage DB users: $OutputName"
-    }
-    if ($OutputName -notin @("00_test_seed.sql") -and
-            $body -match "(?im)^\s*DROP\s+(?:DATABASE|TABLE)\b") {
-        throw "Non-destructive bundle contains DROP DATABASE/TABLE: $OutputName"
-    }
-
-    if ($OutputName -eq "00_product_seed.sql") {
-        $structuralBody = [regex]::Replace($body, "'(?:''|[^'])*'", "''")
-        $structuralBody = [regex]::Replace($structuralBody, '(?m)--.*$', '')
-        $knownDatabaseNames = @(
-            [regex]::Matches($structuralBody, '(?im)^\s*USE\s+`?([A-Za-z][A-Za-z0-9_]*)`?\s*;') |
-                ForEach-Object { $_.Groups[1].Value } |
-                Sort-Object -Unique
-        )
-        $knownQualifierPattern = if ($knownDatabaseNames.Count -gt 0) {
-            '(?i)\b(?:' +
-                (($knownDatabaseNames | ForEach-Object { [regex]::Escape($_) }) -join '|') +
-                ')\s*\.'
-        } else {
-            '(?!)'
-        }
-        if ($structuralBody -match $knownQualifierPattern -or
-                $structuralBody -match '(?i)\b[A-Za-z][A-Za-z0-9_]*(?:DB|SCHEMA)\s*\.') {
-            throw "Product Seed는 다른 logical DB를 직접 참조할 수 없습니다. Owner별 USE section/source로 분리하세요."
-        }
-        if ($body -match "(?i)https?://(?:localhost|127\.0\.0\.1)" -or
-            $body -match "(?i)'(?:localhost|127\.0\.0\.1)'") {
-            throw "Product Seed에 local endpoint/host fixture가 포함되어 있습니다. Optional Seed로 이동하세요."
-        }
-    }
-
+    Assert-BundlePolicy $OutputName $body
     Write-Utf8 (Join-Path $SqlRoot $OutputName) $body
 }
 
@@ -144,21 +128,21 @@ foreach ($forbiddenFixedGeneratedSource in @("45_external_schema.sql", "57_exter
     }
 }
 
+$seedSync = Join-Path $Root 'cpf-tools/db/tools/sync-canonical-seed-bundles.py'
+& python $seedSync --root $Root --vendor mariadb --check
+if ($LASTEXITCODE -ne 0) {
+    throw 'Canonical MariaDB Seed bundles are missing or stale. Run sync-database-artifacts.ps1 before assembling aggregate SQL.'
+}
+foreach ($canonicalSeedBundle in @('00_product_seed.sql', '00_optional_sample_seed.sql', '00_test_seed.sql')) {
+    Assert-BundlePolicy $canonicalSeedBundle (Read-Utf8 (Join-Path $SqlRoot $canonicalSeedBundle))
+}
+
 New-Bundle "00_provision.sql" `
     "관리자 권한으로 Schema와 migration/runtime 최소 권한 계정을 명시적으로 Provision" `
     $provisionFiles
 New-Bundle "00_empty_install.sql" `
     "빈 Schema에 제품 Object만 비파괴 설치" `
     $emptyInstallFiles
-New-Bundle "00_product_seed.sql" `
-    "제품 필수 기준정보만 idempotent 반영" `
-    $productSeedFiles
-New-Bundle "00_optional_sample_seed.sql" `
-    "사용자가 선택한 CMN/REF/로컬 Runtime Sample 데이터만 반영" `
-    $optionalSampleSeedFiles
-New-Bundle "00_test_seed.sql" `
-    "격리된 Test 환경에서만 fixture 반영" `
-    $testSeedFiles
 New-Bundle "00_verify.sql" `
     "설치 Object와 제품 Seed를 변경 없이 검증" `
     $verifyFiles
@@ -175,9 +159,6 @@ $centralMariaRoot = Join-Path $Root "cpf-tools\db\vendor\mariadb"
 $centralLifecycleFiles = [ordered]@{
     "00_provision.sql" = "provision\00_provision.sql"
     "00_empty_install.sql" = "install\00_empty_install.sql"
-    "00_product_seed.sql" = "seed\00_product_seed.sql"
-    "00_optional_sample_seed.sql" = "seed\00_optional_sample_seed.sql"
-    "00_test_seed.sql" = "seed\00_test_seed.sql"
     "00_verify.sql" = "verify\00_verify.sql"
 }
 foreach ($entry in $centralLifecycleFiles.GetEnumerator()) {
@@ -185,12 +166,9 @@ foreach ($entry in $centralLifecycleFiles.GetEnumerator()) {
         (Join-Path $SqlRoot $entry.Key) `
         (Join-Path $centralMariaRoot $entry.Value)
 }
-Publish-CentralMigrationFiles `
-    (Join-Path $SqlRoot "migration\flyway") `
-    (Join-Path $centralMariaRoot "migration\flyway")
-Publish-CentralDirectory `
-    (Join-Path $SqlRoot "migration\rollback") `
-    (Join-Path $centralMariaRoot "rollback")
+# Versioned Migration/Rollback history is owned by the central lifecycle tree
+# and is append-only. Aggregate/current-state bundle generation must never
+# project the legacy source mirror over already published history.
 
 Write-Host "CPF SQL bundles rebuilt without implicit reset or test seed."
-Write-Host "MariaDB canonical vendor source and lifecycle pack synchronized under cpf-tools/db/vendor/mariadb."
+Write-Host "MariaDB current-state bundles synchronized; immutable Migration/Rollback history was not written."

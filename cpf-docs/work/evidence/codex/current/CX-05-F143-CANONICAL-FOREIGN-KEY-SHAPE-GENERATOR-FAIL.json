@@ -1,0 +1,16 @@
+{
+  "findingId": "CX-F-143",
+  "observedAt": "2026-08-23T10:57:00+09:00",
+  "status": "OPEN",
+  "command": "pwsh -NoProfile -File cpf-tools/db/generator/generate-official-db-vendor-source.ps1 -Root <workspace>",
+  "exitCode": 1,
+  "error": "The property 'onDelete' cannot be found on this object.",
+  "canonicalObject": "OPS_RETENTION_RUN.fk_ops_retention_run_policy",
+  "inventory": {
+    "foreignKeyCount": 154,
+    "completeForeignKeyShapeCount": 153,
+    "missingOnDeleteAndOnUpdateCount": 1
+  },
+  "rootCause": "One canonical foreign key omits the explicit onDelete/onUpdate fields present on every peer, and schema governance does not validate foreign-key object shape before the StrictMode renderer reads it.",
+  "stateAfterFailure": "Current vendor packs regenerated; official source/lifecycle outputs still not regenerated."
+}

@@ -1,0 +1,36 @@
+{
+  "findingId": "CX-F-230",
+  "status": "VERIFICATION_PENDING",
+  "observedAt": "2026-08-23T21:12:08+09:00",
+  "sourceIdentitySha256": "5280c2566536c5684d0493095540decb32164fb844fa3f70020fcdaa7e5fc47f",
+  "runId": "b4200823c014",
+  "scope": "Batch distributed Kafka transport executable dependency closure",
+  "result": "FAILED",
+  "rootCause": "Batch runtime activates cpf.batch.remote.transport=kafka but depends only on the Spring Kafka client libraries. The Worker bootJar contains spring-kafka and kafka-clients but not Spring Boot Kafka infrastructure auto-configuration, so no ConsumerFactory bean can be created.",
+  "actualError": "No qualifying bean of type org.springframework.kafka.core.ConsumerFactory<String,String>",
+  "requiredFix": "Make the Batch runtime dependency owner include the Spring Boot Kafka infrastructure starter, add a packaged-runtime dependency guard, rebuild the executable, and replay the real Fresh runtime.",
+  "sourceFix": {
+    "sourceIdentitySha256": "a8d43f5b3ef460bfd959db1c158d20a3c0447532a0d5b473b74e1c3f9f8f1766",
+    "sourceIdentitySha1": "5b829e3a888a67673822df61516b9572df86195f",
+    "fileCount": 8295,
+    "totalBytes": 75268354,
+    "dependencyOwner": "cpf-batch/runtime/build.gradle",
+    "dependency": "org.springframework.boot:spring-boot-starter-kafka",
+    "regression": "cpf-tools/verification/tests/test_batch_kafka_runtime_dependency_contract.py"
+  },
+  "targetedVerification": {
+    "dependencyGuard": "1/1 PASS",
+    "batchBindingContext": "1/1 PASS",
+    "workerBootJar": "PASS 85338955 bytes",
+    "packagedLibraries": [
+      "spring-boot-kafka-4.1.0.jar",
+      "spring-kafka-4.1.0.jar",
+      "kafka-clients-4.2.1.jar"
+    ]
+  },
+  "cleanup": {
+    "disposableDatabases": 0,
+    "disposableRoles": 0
+  },
+  "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F206-F208-F211-F216-F217-F219-F221-F224-F225-F226-F227-F228-F229-TWO-WORKER-RUNTIME-RERUN14/**"
+}

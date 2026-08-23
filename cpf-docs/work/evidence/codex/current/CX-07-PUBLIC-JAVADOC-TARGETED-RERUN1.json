@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-PUBLIC-JAVADOC-TARGETED-RERUN1",
+  "startedAt": "2026-08-22T22:24:32.5506865+09:00",
+  "finishedAt": "2026-08-22T22:25:24.1680848+09:00",
+  "sourceIdentitySha256": "e2b041bfbf74a112b05eeb08243bd32fa12eaff15c31c456c7f20578726953af",
+  "exitCode": 0,
+  "status": "PASS",
+  "regression": {"passed": 1, "failed": 0},
+  "gradleTask": ":internal:integration:resilience:javadoc --rerun-tasks",
+  "gradleTasksExecuted": 13,
+  "finding": "CX-F-108",
+  "nextAction": "Complete catalog-driven publication remains before closure.",
+  "externalLogs": [
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-javadoc-fix-pytest.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-javadoc-fix-pytest.stderr.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-javadoc-fix-gradle.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-javadoc-fix-gradle.stderr.log"
+  ]
+}

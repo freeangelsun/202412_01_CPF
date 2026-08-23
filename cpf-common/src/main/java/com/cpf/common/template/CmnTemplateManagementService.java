@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 /** Product administration service with audit, optimistic locking and durable multi-instance refresh. */
-public final class CmnTemplateManagementService extends CpfBaseService {
+public class CmnTemplateManagementService extends CpfBaseService {
     private static final String CACHE_NAME = "commonTemplate";
     private final CmnTemplateStore store;
     private final CpfCommonCacheChangePublisher refreshPublisher;

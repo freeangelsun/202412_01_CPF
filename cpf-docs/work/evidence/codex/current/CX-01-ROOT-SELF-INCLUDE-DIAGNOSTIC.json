@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-ROOT-SELF-INCLUDE-DIAGNOSTIC",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "SAMPLE-EXS"],
+  "timestamp": {
+    "started": "2026-08-22T11:59:11.8068043+09:00",
+    "finished": "2026-08-22T11:59:34.4687347+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon -I C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-codex-root-self-include.init.gradle :runtime:local:bootJar --dry-run -PcpfIncludeGeneratedDomains=true",
+  "diagnosticSetup": "External init script self-includes the Product Root and explicitly maps all canonical public Starter publication GAVs. Workspace Source is not modified by the diagnostic.",
+  "exitCode": 1,
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "actualResult": "All five Starter coordinates remain unresolved inside generated EXS; main-build self-inclusion does not make custom explicit rules transitive into the child build.",
+  "result": "FAIL_DIAGNOSTIC",
+  "failureSummary": "The self-include alternative cannot close Root-parent generated compile under Gradle's non-transitive substitution boundary.",
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-root-selfinclude-diagnostic-20260822-1159.log",
+    "sha256": "1a2a871a57c8370763225f48e11141e3c226c6f367f2fbd57d970321cecea217",
+    "bytes": 30482
+  },
+  "findingIds": ["CX-F-005"],
+  "sanitized": true
+}

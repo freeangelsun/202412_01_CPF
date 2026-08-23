@@ -1,0 +1,11 @@
+{
+  "startedAt": "2026-08-23T22:07:21.8840304+09:00",
+  "status": "FAILED",
+  "clientAdapter": "Docker",
+  "registration": {},
+  "distribution": {},
+  "drain": {},
+  "crashUnknown": {},
+  "mismatch": {},
+  "endedAt": "2026-08-23T22:07:34.7394406+09:00"
+}

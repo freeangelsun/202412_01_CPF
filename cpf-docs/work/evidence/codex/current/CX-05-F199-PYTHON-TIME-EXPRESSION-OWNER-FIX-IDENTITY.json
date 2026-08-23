@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-23T17:50:00+09:00",
+  "findingId": "CX-F-199",
+  "sourceIdentity": {
+    "sha256": "00d5b5ab1fd3a0c2f920cd088c053668f2c8335d671b1bbf7841d98cf6c97266",
+    "sha1": "88dc9977a78a0673713f76c6b76752c8356f42d1",
+    "files": 8279,
+    "bytes": 75123383
+  },
+  "status": "SOURCE_FIXED",
+  "owner": "cpf-tools/db/render_vendor_pack.py::convert_time_expr",
+  "changes": [
+    "Render canonical DATE_ADD and DATE_SUB for DAY/HOUR/MINUTE into PostgreSQL and Oracle native interval expressions",
+    "Normalize NOW(), NOW(3), and precision-qualified CURRENT_TIMESTAMP consistently",
+    "Add exact unit coverage for every canonical temporal form",
+    "Forbid residual DATE_ADD/DATE_SUB in PostgreSQL and Oracle generated/current packs"
+  ],
+  "next": "Run targeted renderer tests, regenerate every maintained projection, and repeat pack assembly.",
+  "falseGreen": false
+}

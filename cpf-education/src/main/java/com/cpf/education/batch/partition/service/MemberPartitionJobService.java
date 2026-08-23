@@ -4,6 +4,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import java.util.Map;
 
 /** 배치-04 대용량 Partition·Parallel: partition별 watermark/checkpoint와 부분 실패 재실행을 표현합니다. */
@@ -24,7 +25,7 @@ public class MemberPartitionJobService {
                 "fencingToken", command.fencingToken());
         if (failPartition) {
             return new BatchStepResult(
-                    BatchStepResult.Status.RETRYABLE_FAILURE,
+                    Status.RETRYABLE_FAILURE,
                     "PARTITION_RETRY",
                     "실패 partition만 checkpoint에서 재할당합니다.",
                     pageSize,

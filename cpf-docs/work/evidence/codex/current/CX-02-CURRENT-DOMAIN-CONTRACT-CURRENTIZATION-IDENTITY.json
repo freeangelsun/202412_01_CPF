@@ -1,0 +1,23 @@
+{
+  "track": "CX-02-CURRENT-DOMAIN-CONTRACT-CURRENTIZATION-IDENTITY",
+  "finishedAt": "2026-08-22T22:56:00.0474377+09:00",
+  "finding": "CX-F-109",
+  "result": "SOURCE_FIXED_PARTIAL",
+  "sourceIdentity": {
+    "sha256": "fe1e94431fab57144cfaab3d07aaf3fb232d193d9d085bc5b476aee00056249d",
+    "sha1": "1bb0b2ae98e29db9afdcabca6cd7a640b4667006",
+    "fileCount": 8228,
+    "totalBytes": 75800286
+  },
+  "checks": {"engineCliInventoryAst": "PASS", "lifecycleAndTemplateContractJson": "PASS"},
+  "currentContracts": ["cpf-member/gradle.properties", "cpf-external/gradle.properties", "cpf-backoffice/gradle.properties"],
+  "workspaceAuthority": "gradle.properties only",
+  "physicalDeletion": "NOT_PERFORMED",
+  "deleteCandidates": [
+    "cpf-member/cpf-domain.yaml",
+    "cpf-member/cpf-generator.lock.json",
+    "cpf-external/cpf-domain.yaml",
+    "cpf-external/cpf-generator.lock.json",
+    "cpf-backoffice/cpf-domain.yaml"
+  ]
+}

@@ -10,10 +10,10 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandidate;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -26,17 +26,20 @@ import org.springframework.transaction.support.TransactionTemplate;
 @AutoConfiguration(afterName = "com.cpf.core.config.CpfDataSourceConfig")
 @EnableConfigurationProperties(CpfJdbcStarterProperties.class)
 public class CpfJdbcStarterAutoConfiguration {
-    @Bean
-    @ConditionalOnBean({DataSource.class, PlatformTransactionManager.class})
+
+    @Configuration(proxyBeanMethods = false)
     @ConditionalOnSingleCandidate(DataSource.class)
-    @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
-    @ConditionalOnMissingBean(CpfNamedParameterJdbcOperations.class)
-    CpfNamedParameterJdbcOperations cpfJdbcOperations(
-            DataSource dataSource,
-            PlatformTransactionManager transactionManager) {
-        return new CpfSpringJdbcOperations(
-                new NamedParameterJdbcTemplate(dataSource),
-                new TransactionTemplate(transactionManager));
+    static class CpfJdbcOperationsConfiguration {
+        @Bean
+        @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
+        @ConditionalOnMissingBean(CpfNamedParameterJdbcOperations.class)
+        CpfNamedParameterJdbcOperations cpfJdbcOperations(
+                DataSource dataSource,
+                PlatformTransactionManager transactionManager) {
+            return new CpfSpringJdbcOperations(
+                    new NamedParameterJdbcTemplate(dataSource),
+                    new TransactionTemplate(transactionManager));
+        }
     }
 
     @Bean

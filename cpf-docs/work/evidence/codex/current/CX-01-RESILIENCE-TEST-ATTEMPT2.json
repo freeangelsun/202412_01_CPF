@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RESILIENCE-TEST-ATTEMPT2",
+  "requirementIds": ["REL-BUILD", "TEST-EVIDENCE", "PUBLIC-API", "INTEGRATION"],
+  "timestamp": {
+    "started": "2026-08-22T12:44:53.9996608+09:00",
+    "finished": "2026-08-22T12:45:18.8630625+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :internal:testing:testkit:compileJava :internal:integration:resilience:test",
+  "exitCode": 1,
+  "sourceIdentity": "04a9612e2050b15a1adc44fdd510b9dbbcb155241dc870a0ae4036fcb6005e4e",
+  "actualResult": "testkit main compile, resilience main compile, and resilience test compile all succeeded. The resilience suite ran 13 tests: 7 failed. Five engine/safety cases failed with IllegalStateException or AssertionError; two JDBC policy-store contract cases failed with ClassCastException.",
+  "result": "FAIL",
+  "failureSummary": "CX-F-013 is CLOSED for all four Environment harness compilation paths. CX-F-015 is VERIFICATION_PENDING after actual testkit compile. New distinct runtime-test failures are CX-F-016 and CX-F-017 IN_PROGRESS before diagnosis or Source changes.",
+  "findingIds": ["CX-F-013", "CX-F-015", "CX-F-016", "CX-F-017"],
+  "sanitized": true
+}

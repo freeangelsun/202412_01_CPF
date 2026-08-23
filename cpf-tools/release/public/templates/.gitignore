@@ -1,4 +1,5 @@
 .gradle/
+/.cpf/
 build/
 **/build/
 node_modules/

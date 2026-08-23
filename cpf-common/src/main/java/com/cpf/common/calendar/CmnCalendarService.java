@@ -3,6 +3,7 @@ package com.cpf.common.calendar;
 import com.cpf.foundation.api.CpfBaseService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
@@ -24,7 +25,7 @@ public class CmnCalendarService extends CpfBaseService implements CmnBusinessCal
     private final Clock clock;
 
     @Autowired
-    public CmnCalendarService(ObjectProvider<CmnCalendarStore> storeProvider,ObjectProvider<CmnCalendarChangePublisher> publisherProvider,Clock clock){
+    public CmnCalendarService(ObjectProvider<CmnCalendarStore> storeProvider,ObjectProvider<CmnCalendarChangePublisher> publisherProvider,@Qualifier(com.cpf.common.spi.CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock){
         this.productMode=true;
         CmnCalendarStore resolved=storeProvider.getIfAvailable();
         if(resolved==null||!resolved.writable()||!resolved.actorAwareMutations()){

@@ -1,0 +1,18 @@
+{
+  "executionId": "CX-02-FRESH-A-COMPILE-ATTEMPT2",
+  "started": "2026-08-22T19:51:39.8790242+09:00",
+  "status": "FAIL",
+  "exitCode": 1,
+  "sourceIdentitySha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+  "case": "A",
+  "command": "Java 25 Root wrapper -p disposable/cpf-cxalpha --no-daemon :online:compileJava --rerun-tasks -PcpfProductCompositeRoot=<Primary Workspace>",
+  "tasks": {"actionable": 9, "executed": 9},
+  "compilerErrors": 2,
+  "finding": "CX-F-088",
+  "rootCause": "render_api_application unconditionally imports and applies MyBatis MapperScan even when features.persistence=none and the Generated module correctly has no MyBatis starter dependency.",
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE.exit.txt"
+  ]
+}

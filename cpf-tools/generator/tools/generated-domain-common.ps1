@@ -99,7 +99,18 @@ function Invoke-CpfCanonicalCli {
     if ($exitCode -ne 0) {
         throw "CPF canonical CLI 실패: exitCode=$exitCode output=$($output -join ' ')"
     }
-    $json = $output -join [Environment]::NewLine
+    $jsonStart = -1
+    for ($index = 0; $index -lt $output.Count; $index++) {
+        $candidate = $output[$index].TrimStart()
+        if ($candidate.StartsWith('{')) {
+            $jsonStart = $index
+            break
+        }
+    }
+    if ($jsonStart -lt 0) {
+        throw "CPF canonical CLI 결과에 JSON document가 없습니다: $($output -join ' ')"
+    }
+    $json = @($output[$jsonStart..($output.Count - 1)]) -join [Environment]::NewLine
     try {
         return $json | ConvertFrom-Json -Depth 100 -ErrorAction Stop
     } catch {

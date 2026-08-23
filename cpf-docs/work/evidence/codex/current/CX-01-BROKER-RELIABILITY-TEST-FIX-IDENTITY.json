@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BROKER-RELIABILITY-TEST-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T16:39:35.5467305+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha256": "e17dcbae638e6b46ee7b962c52af02785872340d155e09adc47fe9af8d3687fb",
+    "contentSha1": "8fe51a76244dc0cf5973fdaa256541803e0df1cf",
+    "fileCount": 8206,
+    "totalBytes": 75712715
+  },
+  "changes": [
+    "Declare direct Mockito and Spring-test dependencies for maintained test imports",
+    "Replace obsolete replay facade tests with current requestDlqReplay CAS/audit/transaction regressions",
+    "Construct bridge tests with current Context support and managed Context cleanup; use accepted/transport accessors",
+    "Restore current publisher worker and deterministic publisher imports"
+  ],
+  "invariants": [
+    "Approval-bypassing replay methods remain absent",
+    "Repository low-level replay remains fail-closed",
+    "Bridge Production Context requirement remains strict",
+    "UNKNOWN, masking, fencing, and failure assertions remain"
+  ],
+  "findings": {"CX-F-044": "SOURCE_FIXED", "CX-F-045": "SOURCE_FIXED", "CX-F-046": "SOURCE_FIXED", "CX-F-047": "SOURCE_FIXED"},
+  "next": "Rerun complete JDBC reliability tests under Java 25"
+}

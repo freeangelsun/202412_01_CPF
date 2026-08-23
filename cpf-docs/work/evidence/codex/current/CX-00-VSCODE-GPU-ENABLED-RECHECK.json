@@ -1,0 +1,32 @@
+{
+  "track": "CX-00-VSCODE-GPU-ENABLED-RECHECK",
+  "checkedAt": "2026-08-22T20:20:07.8899421+09:00",
+  "result": "PASS_CONFIGURATION",
+  "vscode": {
+    "command": "C:\\dev\\apps\\Microsoft VS Code\\bin\\code.cmd",
+    "mainPid": 36204,
+    "mainStart": "2026-08-22T19:56:12.9844880+09:00",
+    "rendererOldSpaceMiB": 12288,
+    "jdtLanguageServerMaxHeapGiB": 8
+  },
+  "gpu": {
+    "hardwareAccelerationDisableSettingPresent": false,
+    "terminalGpuDisableSettingPresent": false,
+    "adapter": "Intel(R) Arc(TM) 140V GPU (16GB)",
+    "adapterActive": true,
+    "canvas2d": "enabled",
+    "gpuCompositing": "enabled",
+    "webgpu": "enabled",
+    "gpuProcessStatus": "normal"
+  },
+  "workspaceFunctions": {
+    "fileWatchingAndSearchReduced": false,
+    "javaAutomaticBuildConfigurationUpdate": true,
+    "terminalRenderingReduced": false,
+    "editorRetentionReduced": false
+  },
+  "hostPhysicalMemoryGiB": 31.5,
+  "rootBuildPresent": false,
+  "rootGradleCachePresent": false,
+  "conclusion": "GPU acceleration is intentionally enabled. Memory headroom is increased without reducing normal VS Code rendering, terminal, search, watching, Java synchronization, or editor behavior."
+}

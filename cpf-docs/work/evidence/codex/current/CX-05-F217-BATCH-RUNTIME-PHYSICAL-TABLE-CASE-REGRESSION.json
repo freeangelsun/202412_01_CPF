@@ -1,0 +1,12 @@
+{
+  "finding": "CX-F-217",
+  "recordedAt": "2026-08-23T20:05:00+09:00",
+  "sourceIdentitySha256": "f7cc698bb92390cf32b2aa3e706043fc39d701e475bbc0c119963a2abaa653af",
+  "checks": {
+    "powershellParseErrors": 0,
+    "maintainedShellContract": "PASS 3/3",
+    "canonicalTablesRequired": ["BAT_WORKER", "BAT_JOB", "BAT_EXECUTION", "BAT_EXECUTION_LEASE"]
+  },
+  "status": "VERIFICATION_PENDING",
+  "next": "Replay actual installed-asset FullLocal prepare, least-privilege two-worker runtime, Spring Batch repository persistence inspection, cleanup and independent leak-check."
+}

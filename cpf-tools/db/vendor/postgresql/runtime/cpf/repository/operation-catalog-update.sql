@@ -1,0 +1,19 @@
+UPDATE OPS_OPERATION_CATALOG
+SET operation_name = ?,
+    description = ?,
+    system_code = ?,
+    domain_code = ?,
+    application_code = ?,
+    http_method = ?,
+    api_path = ?,
+    controller_class = ?,
+    handler_method = ?,
+    openapi_operation_id = ?,
+    source_fingerprint = ?,
+    discovery_status = 'ACTIVE',
+    last_seen_at = ?,
+    last_instance_id = ?,
+    metadata_version = metadata_version + 1,
+    updated_by = 'CPF_RUNTIME',
+    updated_at = ?
+WHERE operation_id = ?

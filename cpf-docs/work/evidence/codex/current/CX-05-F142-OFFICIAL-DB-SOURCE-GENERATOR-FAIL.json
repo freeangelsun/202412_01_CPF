@@ -1,0 +1,26 @@
+{
+  "findingId": "CX-F-142",
+  "observedAt": "2026-08-23T10:52:00+09:00",
+  "status": "OPEN",
+  "command": "pwsh -NoProfile -File cpf-tools/db/generator/generate-official-db-vendor-source.ps1 -Root <workspace>",
+  "exitCode": 1,
+  "error": "The property 'autoIncrement' cannot be found on this object.",
+  "failureOwner": "Assert-CanonicalSchemaContract in generate-official-db-vendor-source.ps1",
+  "canonicalObject": "CPF_TRANSACTION_LOG.HOST_IP",
+  "inventory": {
+    "columnsMissingAutoIncrement": 1,
+    "missingColumn": {
+      "type": "VARCHAR(128)",
+      "nullable": true,
+      "default": null,
+      "comment": "Runtime host IP"
+    }
+  },
+  "rootCause": "The canonical column is the only column without the required explicit autoIncrement property, while schema governance does not validate the complete required column shape. PowerShell StrictMode therefore terminates official source regeneration.",
+  "stateAfterFailure": {
+    "currentPackRegeneration": "PASS for mariadb, postgresql and oracle before this command",
+    "officialSourceRegeneration": "FAIL before output writing",
+    "lifecycleBundleRegeneration": "NOT_RUN"
+  },
+  "falseGreenAvoidance": "Existing derived official-source/install files are not accepted as current because their generator did not complete."
+}

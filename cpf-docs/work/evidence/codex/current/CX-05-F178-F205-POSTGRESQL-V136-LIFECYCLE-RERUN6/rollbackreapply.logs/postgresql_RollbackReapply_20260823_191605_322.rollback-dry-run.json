@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "tool": "invoke-platform-database-migration.ps1",
+  "mode": "DRY_RUN",
+  "status": "미검증",
+  "generatedAt": "2026-08-23T19:16:05.4560871+09:00",
+  "profile": "database-install.postgresql.0ed27df87f98.json",
+  "plan": {
+    "schemaVersion": 1,
+    "direction": "rollback",
+    "vendor": "postgresql",
+    "selectionMode": "explicit",
+    "fromVersion": null,
+    "toVersion": null,
+    "versions": [
+      136
+    ],
+    "operations": [
+      {
+        "order": 1,
+        "version": 136,
+        "moduleKey": "backoffice",
+        "moduleName": "cpf-backoffice",
+        "systemCode": "MBW",
+        "logicalDatabase": "mbwDB",
+        "physicalDatabase": "cpf_verify_0ed27df87f98_mbw",
+        "physicalSchema": "cpfv_0ed27df87f98_ms",
+        "migrationPath": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V136__backoffice_permission_identity.sql",
+        "migrationSha256": "4e13bc3ea2c3eea85aab0a149391aacae6b226342a662f1859be399b57fafb63",
+        "rollbackPath": "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R136__backoffice_permission_identity.sql",
+        "rollbackSha256": "97910c9756972498a48f03d7560a8721d2b41f474f140e458d8e1851f975dfa7",
+        "selectedPath": "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R136__backoffice_permission_identity.sql",
+        "selectedSha256": "97910c9756972498a48f03d7560a8721d2b41f474f140e458d8e1851f975dfa7",
+        "renderedSha256": "b1746846d05d9d4d1aaefe7dfe391a0934a7739bdb5ff448b0b93a4d04d48f31"
+      }
+    ]
+  },
+  "planSha256": "c58c6a96762b78a213667f922884a80d81c2a7bc4da418f93878a7e46410af31",
+  "operations": [
+    {
+      "order": 1,
+      "version": 136,
+      "moduleKey": "backoffice",
+      "physicalDatabase": "cpf_verify_0ed27df87f98_mbw",
+      "status": "NOT_EXECUTED",
+      "startedAt": null,
+      "finishedAt": null,
+      "failureCode": ""
+    }
+  ],
+  "error": "",
+  "reconcileRequired": false,
+  "failureOperation": null,
+  "operator": "",
+  "reason": "",
+  "approvalReference": "",
+  "sanitized": true,
+  "finishedAt": "2026-08-23T19:16:05.5070185+09:00"
+}

@@ -1,0 +1,45 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'cpf-open-git-developer-workspace'
+
+def cpfManagedGradleRoot = new File(gradle.gradleUserHomeDir, "cpf/work/gradle/${rootProject.name}").canonicalFile
+gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
+if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
+    def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    propagatedProjectProperties.put('cpfManagedGradleRoot', cpfManagedGradleRoot.absolutePath)
+    gradle.startParameter.setProjectProperties(propagatedProjectProperties)
+}
+
+def domainRows = []
+def seenNames = new LinkedHashSet<String>()
+def seenCodes = new LinkedHashSet<String>()
+rootDir.eachDirMatch(~/cpf-.+/) { projectDir ->
+    def contract = new File(projectDir, 'gradle.properties')
+    if (!contract.isFile() || !new File(projectDir, 'settings.gradle').isFile()) return
+    def values = new Properties()
+    contract.withInputStream { values.load(it) }
+    if (values.getProperty('cpf.domain.contractVersion') != '1') return
+    def name = values.getProperty('cpf.domain.name')
+    def systemCode = values.getProperty('cpf.domain.systemCode')
+    if (!(name ==~ /[a-z][a-z0-9-]*/) || !(systemCode ==~ /[A-Z][A-Z0-9]{2}/))
+        throw new GradleException("domain Developer contract is invalid: ${contract}")
+    if (!seenNames.add(name)) throw new GradleException("duplicate domain name: ${name}")
+    if (!seenCodes.add(systemCode)) throw new GradleException("duplicate domain systemCode: ${systemCode}")
+    if (projectDir.name != "cpf-${name}") throw new GradleException("domain root/name mismatch: ${projectDir}")
+    domainRows << [name:name, systemCode:systemCode, projectDir:projectDir]
+}
+domainRows.sort { a,b -> a.name <=> b.name }.each { row ->
+    includeBuild(row.projectDir) { name = "cpf-${row.name}" }
+}
+
+if (file('cpf-backoffice-web/settings.gradle').isFile()) {
+    includeBuild('cpf-backoffice-web') { name = 'cpf-backoffice-web' }
+}
+if (file('cpf-education/settings.gradle').isFile()) {
+    includeBuild('cpf-education') { name = 'cpf-education' }
+}

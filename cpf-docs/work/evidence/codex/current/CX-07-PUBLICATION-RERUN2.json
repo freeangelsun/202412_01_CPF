@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-PUBLICATION-RERUN2",
+  "startedAt": "2026-08-22T22:08:33.9001411+09:00",
+  "finishedAt": "2026-08-22T22:09:04.9244936+09:00",
+  "sourceIdentitySha256": "7ec667b954c4144d93caa5e6f8b96845f5cca31c76aeee77a95061bf83ecf877",
+  "exitCode": 1,
+  "status": "FAIL_WITH_NEW_FINDING",
+  "finding": "CX-F-107",
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "tasksReached": 94,
+  "failedTask": ":starters:base:sourcesJar",
+  "actualError": "META-INF/cpf/runtime-capability.properties is included twice and sourcesJar has no duplicate strategy.",
+  "publicationRepository": "C:/Users/fly10/AppData/Local/CPF/validation/open-git-public-binary-20260822-2208",
+  "externalLogs": [
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-publication-rerun2.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-publication-rerun2.stderr.log"
+  ]
+}

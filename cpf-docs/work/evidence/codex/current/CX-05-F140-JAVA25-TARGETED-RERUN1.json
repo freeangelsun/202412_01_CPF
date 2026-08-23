@@ -1,0 +1,21 @@
+{
+  "findingId": "CX-F-140",
+  "status": "FAIL",
+  "command": ".\\gradlew.bat :starters:data:jdbc:test :starters:common:test :internal:platform-operations:runtime-control:test --tests <three F140 classes> --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 1,
+  "durationSeconds": 77,
+  "passed": {
+    "CpfJdbcDataSourceRegistryTest": "2/2",
+    "CpfCommonJdbcAutoConfigurationTest": "1/1"
+  },
+  "failed": {
+    "CpfOperationPolicyAutoConfigurationTest": "0/1",
+    "actualCause": "Independent CpfJdbcOperationAccessPolicy initialization rejected the test mock's empty OPS_SYSTEM_REGISTRY data before catalog-provider assertion"
+  },
+  "classification": "TEST_FIXTURE_SCOPE_OMISSION",
+  "guardsPreserved": [
+    "OPS_SYSTEM_REGISTRY initial load fail-close",
+    "exact CPF_PLATFORM_DB role mapping",
+    "exact-one catalog provider"
+  ]
+}

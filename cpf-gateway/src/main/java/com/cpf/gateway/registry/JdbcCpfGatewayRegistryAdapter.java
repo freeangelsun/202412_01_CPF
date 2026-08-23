@@ -218,20 +218,21 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
         Long current=version("GW_BINDING","binding_id",c.bindingId());
         long next;
         CpfGatewayRoute r=c.route();
+        String bindingKeyHash=bindingKeyHash(r);
         String bindingChecksum=bindingChecksum(c);
         if(current==null) {
             requireNew(c.expectedVersion());
             jdbc.update("""
                     INSERT INTO GW_BINDING
                     (binding_id,route_id,environment_code,host_pattern,path_pattern,target_path,http_method,api_version,
-                     ingress_protocol,target_protocol,service_id,server_group_id,route_version,tls_policy_id,
+                     ingress_protocol,target_protocol,service_id,server_group_id,route_version,binding_key_hash,tls_policy_id,
                      authentication_policy_id,authorization_policy_id,header_policy_id,rate_limit_policy_id,
                      health_policy_id,connect_timeout_ms,response_timeout_ms,overall_timeout_ms,max_retry_count,
                      idempotent_yn,failover_group_id,gateway_allowed_yn,direct_allowed_yn,binding_status,approval_id,
                      effective_from,effective_to,binding_checksum,created_by,created_at,updated_by,updated_at,row_version)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'DRAFT',?,?,?,?,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP,1)
+                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'DRAFT',?,?,?,?,?,CURRENT_TIMESTAMP,?,CURRENT_TIMESTAMP,1)
                     """,c.bindingId(),r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.targetPath(),r.httpMethod(),r.apiVersion(),
-                    r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),
+                     r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),bindingKeyHash,
                     clean(r.tlsPolicyId()),clean(r.authenticationPolicyId()),clean(r.authorizationPolicyId()),clean(r.headerPolicyId()),
                     clean(r.rateLimitPolicyId()),clean(r.healthPolicyId()),r.connectTimeoutMs(),r.responseTimeoutMs(),r.overallTimeoutMs(),
                     r.maxRetryCount(),yn(r.idempotent()),clean(r.failoverGroupId()),yn(c.gatewayAllowed()),yn(c.directAllowed()),
@@ -241,14 +242,14 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
             requireExpected(current,c.expectedVersion());
             int updated=jdbc.update("""
                     UPDATE GW_BINDING SET route_id=?,environment_code=?,host_pattern=?,path_pattern=?,target_path=?,http_method=?,
-                           api_version=?,ingress_protocol=?,target_protocol=?,service_id=?,server_group_id=?,route_version=?,
+                           api_version=?,ingress_protocol=?,target_protocol=?,service_id=?,server_group_id=?,route_version=?,binding_key_hash=?,
                            tls_policy_id=?,authentication_policy_id=?,authorization_policy_id=?,header_policy_id=?,
                            rate_limit_policy_id=?,health_policy_id=?,connect_timeout_ms=?,response_timeout_ms=?,overall_timeout_ms=?,
                            max_retry_count=?,idempotent_yn=?,failover_group_id=?,gateway_allowed_yn=?,direct_allowed_yn=?,approval_id=?,
                            effective_from=?,effective_to=?,binding_checksum=?,updated_by=?,updated_at=CURRENT_TIMESTAMP,row_version=row_version+1
                      WHERE binding_id=? AND row_version=?
                     """,r.routeId(),r.environmentCode(),r.hostPattern(),r.pathPattern(),r.targetPath(),r.httpMethod(),r.apiVersion(),
-                    r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),
+                     r.ingressProtocol().name(),r.targetProtocol().name(),r.serviceId(),c.serverGroupId(),r.routeVersion(),bindingKeyHash,
                     clean(r.tlsPolicyId()),clean(r.authenticationPolicyId()),clean(r.authorizationPolicyId()),clean(r.headerPolicyId()),
                     clean(r.rateLimitPolicyId()),clean(r.healthPolicyId()),r.connectTimeoutMs(),r.responseTimeoutMs(),r.overallTimeoutMs(),
                     r.maxRetryCount(),yn(r.idempotent()),clean(r.failoverGroupId()),yn(c.gatewayAllowed()),yn(c.directAllowed()),
@@ -859,8 +860,26 @@ public class JdbcCpfGatewayRegistryAdapter implements CpfGatewayRegistryPort {
                 String.valueOf(r.maxRetryCount()),yn(r.idempotent()),clean(r.failoverGroupId()),
                 yn(c.gatewayAllowed()),yn(c.directAllowed()),Objects.toString(c.effectiveFrom(),""),
                 Objects.toString(c.effectiveTo(),""));
-        try { return java.util.HexFormat.of().formatHex(
-                MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));
+        return sha256Hex(canonical);
+    }
+
+    /**
+     * 긴 Route Match Key 전체의 동등성을 Vendor 공통 64자 키로 보존합니다.
+     * 각 성분을 먼저 SHA-256으로 프레이밍하므로 구분자 충돌과 Vendor 문자열 길이 제한이 없습니다.
+     */
+    static String bindingKeyHash(CpfGatewayRoute route) {
+        Objects.requireNonNull(route, "route");
+        StringBuilder framed=new StringBuilder(64*6);
+        for(String component:List.of(route.environmentCode(),route.hostPattern(),route.pathPattern(),
+                route.httpMethod(),route.apiVersion(),route.routeVersion())) {
+            framed.append(sha256Hex(component));
+        }
+        return sha256Hex(framed.toString());
+    }
+
+    private static String sha256Hex(String value) {
+        try { return HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
         // 트랜잭션·재시도·복구 경계의 의미를 보존해 부분 실패에서도 일관성을 유지한다.
         } catch (java.security.NoSuchAlgorithmException ex) { throw new IllegalStateException("SHA-256 unavailable",ex); }
     }

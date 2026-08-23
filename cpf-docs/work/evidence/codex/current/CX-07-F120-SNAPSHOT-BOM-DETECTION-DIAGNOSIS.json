@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F120-SNAPSHOT-BOM-DETECTION-DIAGNOSIS",
+  "startedAt": "2026-08-23T00:34:20+09:00",
+  "finishedAt": "2026-08-23T00:35:30+09:00",
+  "sourceIdentitySha256": "11eca41954dfb53b706a5f3efe30907ce0f273c16da6626e82714ab8329f6fa4",
+  "result": "FINDING_REGISTERED",
+  "finding": "CX-F-120",
+  "repositoryVersion": "1.0.0-SNAPSHOT",
+  "backendExpected": "com/cpf/cpf-platform-bom/1.0.0-SNAPSHOT/cpf-platform-bom-1.0.0-SNAPSHOT.pom",
+  "actualPublishedExample": "com/cpf/cpf-platform-bom/1.0.0-SNAPSHOT/cpf-platform-bom-1.0.0-20260822.152610-1.pom",
+  "rootCause": "The release backend assumes a non-unique SNAPSHOT filename, while Gradle Maven publication writes timestamped snapshot files plus Maven metadata.",
+  "next": "Validate the version directory through Maven metadata and the resolved snapshotVersion POM, while retaining exact non-SNAPSHOT behavior and fail-closed artifact identity tests."
+}

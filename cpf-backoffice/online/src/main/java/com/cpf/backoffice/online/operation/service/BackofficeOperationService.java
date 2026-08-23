@@ -361,7 +361,7 @@ public class BackofficeOperationService extends com.cpf.backoffice.online.base.B
     if (raw.length() < 12) throw new CpfValidationException("비밀번호는 12자 이상이어야 합니다.");
     char[] c = raw.toCharArray();
     try {
-      return passwordHashingPort.hash(c);
+      return passwordHashingPort.encode(c);
     } finally {
       Arrays.fill(c, '\0');
     }

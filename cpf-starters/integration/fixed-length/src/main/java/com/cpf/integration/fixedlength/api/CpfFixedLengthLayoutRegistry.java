@@ -1,5 +1,7 @@
 package com.cpf.integration.fixedlength.api;
 
+import com.cpf.integration.api.message.CpfMessageLayoutValidator;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * layout ID와 version별 immutable layout snapshot을 보관하는 thread-safe registry입니다.
  * 같은 layout version은 immutable하며 전체 snapshot은 원자적으로 교체됩니다.
  */
-public final class CpfFixedLengthLayoutRegistry {
+public final class CpfFixedLengthLayoutRegistry implements CpfMessageLayoutValidator {
     private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.empty());
 
     public void register(CpfFixedLengthLayout layout) {
@@ -97,6 +99,11 @@ public final class CpfFixedLengthLayoutRegistry {
                         java.util.List.of(new CpfFixedLengthError(
                                 "layoutId", "CPF_FIXED_LAYOUT_NOT_FOUND",
                                 "요청한 layout ID와 version이 registry에 없습니다."))));
+    }
+
+    @Override
+    public void requireAvailable(String layoutId, String version) {
+        require(layoutId, version);
     }
 
     /** size 작업을 CPF 표준 계약에 따라 수행한다. */

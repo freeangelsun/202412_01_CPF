@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-23T18:27:00+09:00",
+  "sourceIdentity": {
+    "sha256": "45f7d408b73041ef742f1b947b17d7b7154cdeec0a8b14d5c7dfe90c0a214632",
+    "sha1": "7ae1d1499ab920ce1b4920790c8249214edeb529",
+    "files": 8279,
+    "bytes": 75201671
+  },
+  "findingId": "CX-F-202",
+  "result": "PASS_REGEN",
+  "verified": [
+    "Canonical Seed route-owner/role-aggregation structural tests 7/7 PASS",
+    "Nine affected official Seed source/lifecycle outputs regenerated",
+    "generated/current rendered for all official Vendors",
+    "Official and MariaDB lifecycle/aggregate builders PASS without Seed drift",
+    "Reference Fixture history remains excluded and immutable histories remain unwritten"
+  ],
+  "next": "Run exact full targeted suite and actual PostgreSQL lifecycle.",
+  "falseGreen": false
+}

@@ -1,0 +1,56 @@
+plugins { id 'java' }
+
+group = 'com.cpf.education'
+version = '1.0.0-SNAPSHOT'
+
+def cpfVersion = providers.environmentVariable('CPF_VERSION')
+        .orElse(providers.gradleProperty('cpfPlatformVersion'))
+        .get()
+def cpfRepositoryUrl = providers.environmentVariable('CPF_MAVEN_REPOSITORY_URL')
+        .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
+        .get()
+
+def dbVendor = (findProperty('cpfDbVendor') ?: System.getenv('EDU_DATABASE_VENDOR') ?: 'mariadb').toString().toLowerCase(Locale.ROOT)
+def supportedDbVendors = ['mariadb','oracle','postgresql'] as Set
+if (!supportedDbVendors.contains(dbVendor)) {
+    throw new GradleException("Unsupported cpfDbVendor for cpf-education: ${dbVendor}")
+}
+
+def jdbcDriverByVendor = [
+        mariadb:'org.mariadb.jdbc:mariadb-java-client',
+        oracle:'com.oracle.database.jdbc:ojdbc11',
+        postgresql:'org.postgresql:postgresql'
+]
+
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+repositories {
+    maven {
+        name = 'cpfPublicBinary'
+        url = uri(cpfRepositoryUrl)
+        content { includeGroupByRegex 'com[.]cpf([.].*)?' }
+    }
+    mavenCentral { content { excludeGroupByRegex 'com[.]cpf([.].*)?' } }
+}
+
+dependencies {
+    implementation platform("com.cpf:cpf-platform-bom:${cpfVersion}")
+    implementation 'com.cpf.starter:cpf-starter-secure-api'
+    implementation 'com.cpf.starter:cpf-starter-batch'
+    implementation 'com.cpf.starter:cpf-starter-data-jdbc'
+    implementation 'com.cpf.starter:cpf-starter-integration-fixed-length'
+    implementation 'com.cpf.starter:cpf-starter-messaging-kafka'
+    implementation 'com.cpf.starter:cpf-starter-cache-redis'
+    implementation 'com.cpf.starter:cpf-starter-object-storage-s3'
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework:spring-tx'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testRuntimeOnly jdbcDriverByVendor[dbVendor]
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    systemProperty 'cpf.db.vendor', dbVendor
+}

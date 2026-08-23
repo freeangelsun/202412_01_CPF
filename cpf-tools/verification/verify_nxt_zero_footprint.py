@@ -9,15 +9,33 @@ def main():
  mods={m['artifactId']:m for m in cat.get('modules',[]) if m.get('artifactId') and m.get('ownerPath')}
  project_to_artifact={m.get('projectPath'):aid for aid,m in mods.items() if m.get('projectPath')}
  coord_to_artifact={f"{m.get('groupId')}:{aid}":aid for aid,m in mods.items() if m.get('groupId')}
+ def runtime_declarations(text):
+  declarations=[]; current=[]; depth=0
+  for raw in text.splitlines():
+   line=re.sub(r'//.*$','',raw).rstrip()
+   match=re.match(r'^\s*(api|implementation|runtimeOnly)\b(.*)$',line)
+   if match:
+    if current: declarations.append('\n'.join(current))
+    current=[line]; depth=line.count('(')-line.count(')')
+    if depth<=0: declarations.append(current.pop())
+   elif current:
+    current.append(line); depth+=line.count('(')-line.count(')')
+    if depth<=0:
+     declarations.append('\n'.join(current));current=[]
+  if current: declarations.append('\n'.join(current))
+  return declarations
+ def dependency_artifacts(text):
+  out=set()
+  for declaration in runtime_declarations(text):
+   for pp in re.findall(r"project\(['\"]([^'\"]+)['\"]\)",declaration):
+    if pp in project_to_artifact: out.add(project_to_artifact[pp])
+   for g,ar in re.findall(r"['\"]([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):(?:\$\{[^}]+\}|[^'\"]+)['\"]",declaration):
+    k=f'{g}:{ar}'
+    if k in coord_to_artifact: out.add(coord_to_artifact[k])
+  return out
  def direct(aid):
   m=mods[aid]; p=root/m['ownerPath']/'build.gradle'; text=p.read_text(encoding='utf-8',errors='ignore') if p.is_file() else ''
-  out=set()
-  for pp in re.findall(r"project\(['\"]([^'\"]+)['\"]\)",text):
-   if pp in project_to_artifact: out.add(project_to_artifact[pp])
-  for g,ar in re.findall(r"['\"]([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+):(?:\$\{[^}]+\}|[^'\"]+)['\"]",text):
-   k=f'{g}:{ar}'
-   if k in coord_to_artifact: out.add(coord_to_artifact[k])
-  return out
+  return dependency_artifacts(text)
  def closure(roots):
   seen=set(); stack=list(roots)
   while stack:
@@ -50,7 +68,11 @@ def main():
   mutation.append('PASS' if 'cpf-starter-integration-http' in fake and 'cpf-starter-integration-http' not in results['minimal'] else 'FAIL')
   fake2=set(results['http-only'])|{'cpf-starter-data-jdbc'}
   mutation.append('PASS' if 'cpf-starter-data-jdbc' in fake2 and 'cpf-starter-data-jdbc' not in results['http-only'] else 'FAIL')
-  if mutation.count('PASS')!=2: findings.append('mutation-self-test-failed')
+  runtime_edge=dependency_artifacts("implementation project(':internal:integration:resilience')")
+  compile_only_edge=dependency_artifacts("compileOnly project(':internal:integration:resilience')")
+  mutation.append('PASS' if 'cpf-starter-integration-resilience' in runtime_edge else 'FAIL')
+  mutation.append('PASS' if 'cpf-starter-integration-resilience' not in compile_only_edge else 'FAIL')
+  if mutation.count('PASS')!=4: findings.append('mutation-self-test-failed')
  payload={'status':'PASS' if not findings else 'FAIL','results':results,'findings':findings,'mutation':mutation}
  print(json.dumps(payload,ensure_ascii=False,indent=2)); return 0 if not findings else 1
 if __name__=='__main__': raise SystemExit(main())

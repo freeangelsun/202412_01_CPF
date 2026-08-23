@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-248",
+  "recordedAt": "2026-08-23T22:26:00+09:00",
+  "sourceIdentitySha256": "fa706c823c9fb632251f2de71a49dd038d27e88062e938a4587b1f4d7363eacd",
+  "status": "OPEN",
+  "trigger": {
+    "runId": "b4200823c023",
+    "actualFailure": "Runtime Agent registration reaches the corrected 19/19 INSERT and MariaDB rejects null OPS_SERVICE_INSTANCE.base_url"
+  },
+  "rootCause": "CpfRuntimeControlAgentAutoConfiguration treats cpf.runtime.control.agent.runtime-base-url as optional but supplies no derived default, while the canonical OPS_SERVICE_INSTANCE base_url column is mandatory and the smoke uses a standard server.port without the optional override.",
+  "requiredFix": "Preserve explicit operator URL, otherwise derive a valid http(s) URL from server address/runtime hostname and effective configured port, with wildcard/IPv6 handling and focused tests.",
+  "cleanup": {"database": "PASS", "roles": "PASS"},
+  "prohibitedWorkarounds": ["Do not make canonical base_url nullable", "Do not inject a smoke-only URL", "Do not disable Runtime Agent registration"]
+}

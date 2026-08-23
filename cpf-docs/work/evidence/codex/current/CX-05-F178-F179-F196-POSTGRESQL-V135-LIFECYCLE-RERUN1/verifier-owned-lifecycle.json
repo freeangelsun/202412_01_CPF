@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "vendor": "postgresql",
+  "runId": "c273b2aee963",
+  "sourceSha": "bab7e9727c04e9c415fb5b318e004164e62955d2",
+  "status": "FAIL",
+  "stages": [],
+  "profile": "database-install.postgresql.c273b2aee963.json",
+  "migrationSelection": {
+    "selectionMode": "CHECKSUM_MANIFEST_CURRENT_EDGE",
+    "version": 135,
+    "vendorEdges": {
+      "mariadb": 135,
+      "postgresql": 135,
+      "oracle": 135
+    }
+  },
+  "sanitized": true,
+  "startedAt": "2026-08-23T08:32:35.4596131+00:00",
+  "error": "DB lifecycle execution failed mode=FreshInstall",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T08:32:44.3853326+00:00"
+}

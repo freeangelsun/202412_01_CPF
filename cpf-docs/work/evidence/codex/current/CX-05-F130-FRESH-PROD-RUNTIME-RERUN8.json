@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F130-FRESH-PROD-RUNTIME-RERUN8",
+  "startedAt": "2026-08-23T02:56:52+09:00",
+  "finishedAt": "2026-08-23T02:57:48+09:00",
+  "sourceIdentity": "3a5952ba0a4156bf0f27e27e831fd4019a81c83f935bf9c133f5f4448d3f0646",
+  "artifactSha256": "a8d2c30a976d001553732874f412092f885faf113312fcd6100c21b10faf87a7",
+  "runtime": {
+    "pid": 8108,
+    "started": true,
+    "healthWithCanonicalSix": {"status": 200, "bodyStatus": "UP"},
+    "stoppedExactPid": true
+  },
+  "logging": {
+    "duplicateTimeBasedRollingPolicyWarnings": 0,
+    "consoleBytesAfterStop": 8420,
+    "runtimeBytesAfterStop": 3275,
+    "errorBytesAfterStop": 0,
+    "runtimeContainsReady": true,
+    "runtimeContainsStarted": true,
+    "runtimeContainsRequestActivity": true,
+    "errorExplanation": "The successful scenario emitted no ERROR-level event; the exact targeted test independently proves ERROR threshold routing. Current-source actual ERROR evidence is still required before F130 closure."
+  },
+  "canonicalFinding": {
+    "finding": "CX-F-131",
+    "status": "IN_PROGRESS",
+    "observed": "GET /actuator/health without System6 returned 400 EXTERNAL_HEADER_REQUIRED",
+    "canonical": "CPF_FINAL_TARGET_REQUIREMENTS.md section 4.4 excludes general Health/Actuator endpoints from business System6 enforcement."
+  },
+  "files": {
+    "console": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/runtime-evidence-8/console.log",
+    "runtime": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/runtime-evidence-8/logs/f126logging-online/fresh-1/runtime.log",
+    "error": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/runtime-evidence-8/logs/f126logging-online/fresh-1/error.log"
+  }
+}

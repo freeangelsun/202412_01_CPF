@@ -12,12 +12,18 @@ def cpfPublicRepositoryUrl = providers.environmentVariable('CPF_MAVEN_REPOSITORY
         .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
         .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
         .orNull
+def cpfDomainName = providers.gradleProperty('cpf.domain.name').get()
+def cpfDomainSystemCode = providers.gradleProperty('cpf.domain.systemCode').get()
+def cpfDomainPackageName = providers.gradleProperty('cpf.domain.packageName').get()
+if (cpfDomainName != 'member' || cpfDomainSystemCode != 'MBR' || cpfDomainPackageName != 'member') {
+    throw new GradleException('Generated Domain 계약과 생성된 Build가 일치하지 않습니다. cpf domain sync를 실행하세요.')
+}
 if (!cpfProductCompositeRootValue && !cpfPublicRepositoryUrl) {
     throw new GradleException('Standalone Generated Domain은 CPF_MAVEN_REPOSITORY_URL 또는 cpfArtifactRepositoryUrl이 필요합니다. Private Source composite 회귀검증은 -PcpfProductCompositeRoot를 사용하세요.')
 }
 
 allprojects {
-    group = 'member'
+    group = cpfDomainPackageName
     version = '1.0.0-SNAPSHOT'
     ext.set('cpfPlatformVersion', cpfResolvedPlatformVersion)
     repositories {
@@ -64,6 +70,24 @@ subprojects {
         java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
         tasks.withType(Test).configureEach { useJUnitPlatform() }
 
+        // Runtime discovery descriptor는 업무 Source가 아니라 Build 산출물로만 생성합니다.
+        def generatedDomainDescriptorRoot = layout.buildDirectory.dir('generated/cpf-runtime-descriptor')
+        def generatedDomainDescriptor = generatedDomainDescriptorRoot.map { it.file('META-INF/cpf/generated-domain.properties') }
+        tasks.register('generateCpfDomainRuntimeDescriptor') {
+            inputs.property('domain', cpfDomainName)
+            inputs.property('systemCode', cpfDomainSystemCode)
+            inputs.property('kind', project.name)
+            inputs.property('scanPackage', cpfDomainPackageName)
+            outputs.file(generatedDomainDescriptor)
+            doLast {
+                def target = generatedDomainDescriptor.get().asFile
+                target.parentFile.mkdirs()
+                target.setText("domain=${cpfDomainName}\nsystemCode=${cpfDomainSystemCode}\nkind=${project.name}\nscanPackage=${cpfDomainPackageName}\n", 'UTF-8')
+            }
+        }
+        sourceSets.main.resources.srcDir(generatedDomainDescriptorRoot)
+        tasks.named('processResources').configure { dependsOn('generateCpfDomainRuntimeDescriptor') }
+
         if (project.name == 'online') {
             def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
             def manifestFile = manifestRoot.map { it.file('META-INF/cpf/business-operation-manifest.json') }
@@ -86,6 +110,9 @@ subprojects {
                         def classMappings = (classPrefix =~ /(?s)@RequestMapping\s*(?:\((.*?)\))?/) .collect { it }
                         def basePath = classMappings.isEmpty() ? '' : cpfFirstString(classMappings.last()[1] as String)
 
+                        def classBodyStart = text.indexOf('{', classMatcher.end())
+                        if (classBodyStart < 0) throw new GradleException("Business Operation class body를 찾을 수 없습니다: ${source}")
+                        def previousTransactionEnd = classBodyStart + 1
                         def txMatcher = text =~ /(?s)@CpfOnlineTransaction\s*\((.*?)\)/
                         while (txMatcher.find()) {
                             def txBody = txMatcher.group(1)
@@ -95,8 +122,12 @@ subprojects {
                             if (!operationId || !name || !description) {
                                 throw new GradleException("@CpfOnlineTransaction operationId/name/description가 필요합니다: ${source}")
                             }
-                            def previousBoundary = Math.max(text.lastIndexOf('}', txMatcher.start()), text.lastIndexOf(';', txMatcher.start()))
-                            def prefix = text.substring(Math.max(0, previousBoundary + 1), txMatcher.start())
+                            // HTTP path templates such as "/{id}" contain a literal closing brace.
+                            // A raw lastIndexOf('}') therefore truncates the annotation block and
+                            // incorrectly reports that the operation has no Spring mapping.  The
+                            // previous CPF transaction is the stable lower boundary: its mapping is
+                            // before that annotation, while the current operation annotations are after it.
+                            def prefix = text.substring(previousTransactionEnd, txMatcher.start())
                             def openApiMatches = (prefix =~ /(?s)@Operation\s*\((.*?)\)/).collect { it }
                             if (openApiMatches.isEmpty()) throw new GradleException("업무 Online Operation에는 @Operation(operationId=...)이 필요합니다: ${controllerClass}#${operationId}")
                             def openApiId = cpfTextAttribute(openApiMatches.last()[1] as String, 'operationId')
@@ -119,6 +150,7 @@ subprojects {
                                            controllerClass:controllerClass, handlerMethod:handlerMethod,
                                            sourceFingerprint:fingerprint,
                                            sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                            previousTransactionEnd = txMatcher.end()
                         }
                     }
                     def duplicateIds = operations.groupBy { it.operationId }.findAll { k,v -> v.size() > 1 }.keySet()

@@ -8,6 +8,8 @@ Set-StrictMode -Version Latest
 $Root = (Resolve-Path -LiteralPath $Root).Path
 $ContractPath = Join-Path $Root "cpf-tools/db/canonical/platform-non-table-objects.json"
 $Contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $ContractPath | ConvertFrom-Json -Depth 30
+$PlatformSchemaPath = Join-Path $Root "cpf-tools/db/canonical/platform-schema.json"
+$PlatformSchema = Get-Content -Raw -Encoding UTF8 -LiteralPath $PlatformSchemaPath | ConvertFrom-Json -Depth 100
 $OfficialVendors = @("mariadb", "postgresql", "oracle")
 $ExpectedNames = @($Contract.objects.name | ForEach-Object { [string] $_ })
 $ExpectedSorted = @($ExpectedNames | Sort-Object -CaseSensitive)
@@ -39,10 +41,30 @@ function Get-SequenceNames([string] $Sql) {
     return @(
         [regex]::Matches(
             $Sql,
-            "(?im)^\s*CREATE\s+SEQUENCE(?:\s+IF\s+NOT\s+EXISTS)?\s+(BATCH_[A-Z0-9_]*SEQ)\b"
+            "(?im)^\s*CREATE\s+SEQUENCE(?:\s+IF\s+NOT\s+EXISTS)?\s+([A-Z][A-Z0-9_]*SEQ)\b"
         ) |
             ForEach-Object { $_.Groups[1].Value.ToUpperInvariant() }
     )
+}
+
+function Get-CurrentSequenceNames([object[]] $Objects) {
+    $currentLogicalDatabase = [string] $Contract.canonicalPolicy.currentLogicalDatabase
+    return @($Objects | ForEach-Object {
+        $object = $_
+        $matches = @($PlatformSchema.tables | Where-Object {
+            [string] $_.currentName -ceq [string] $object.idTable
+        })
+        if ($matches.Count -ne 1) {
+            Add-Failure "Current Spring Batch table mapping must be exact: table=$($object.idTable) count=$($matches.Count)"
+            return
+        }
+        $mapped = $matches[0]
+        if ([string] $mapped.logicalDatabase -cne $currentLogicalDatabase) {
+            Add-Failure "Current Spring Batch table has wrong logical database: table=$($object.idTable) actual=$($mapped.logicalDatabase)"
+            return
+        }
+        "$([string] $mapped.targetTableName)_SEQ"
+    })
 }
 
 function Compare-ExactSet([string[]] $Actual, [string[]] $Expected) {
@@ -60,6 +82,17 @@ if (-not (Compare-ExactSet @($Contract.canonicalPolicy.officialVendors) $Officia
 if (-not (Compare-ExactSet $ExpectedSorted $ExpectedExact)) {
     Add-Failure "Canonical Spring Batch 6.0.4 sequence names are not exact."
 }
+$ExpectedCurrentNames = @(Get-CurrentSequenceNames @($Contract.objects))
+$ExpectedCurrentExact = @(
+    "BAT_SB_JOB_EXECUTION_SEQ",
+    "BAT_SB_JOB_INSTANCE_SEQ",
+    "BAT_SB_STEP_EXECUTION_SEQ"
+)
+if (-not (Compare-ExactSet $ExpectedCurrentNames $ExpectedCurrentExact) -or
+        $ExpectedCurrentNames.Count -ne $ExpectedCurrentExact.Count) {
+    Add-Failure "Current Spring Batch sequence names do not match the canonical BAT_SB table mapping."
+}
+$RetiredCurrentNames = @($ExpectedNames + $LegacyName | Sort-Object -CaseSensitive -Unique)
 if ($Version -ne 73 -or $Description -cne "spring_batch_6_sequence_contract") {
     Add-Failure "Spring Batch sequence migration must use the canonical new V73 contract."
 }
@@ -71,23 +104,32 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 foreach ($vendor in $OfficialVendors) {
-    $source = Read-Text "cpf-tools/db/vendor/$vendor/source/35_bat_schema.sql"
+    $source = Read-Text "cpf-tools/db/vendor/$vendor/source/$($Contract.canonicalPolicy.currentSourceFile)"
+    $retiredSource = Read-Text "cpf-tools/db/vendor/$vendor/source/35_bat_schema.sql"
     $install = Read-Text "cpf-tools/db/vendor/$vendor/install/00_empty_install.sql"
     $verify = Read-Text "cpf-tools/db/vendor/$vendor/verify/00_verify.sql"
     foreach ($pair in @(@("source", $source), @("install", $install))) {
         $location = [string] $pair[0]
         $sql = [string] $pair[1]
         $names = @(Get-SequenceNames $sql)
-        if (-not (Compare-ExactSet $names $ExpectedNames) -or $names.Count -ne $ExpectedNames.Count) {
+        if (-not (Compare-ExactSet $names $ExpectedCurrentNames) -or $names.Count -ne $ExpectedCurrentNames.Count) {
             Add-Failure "Spring Batch sequence name/count drift: vendor=$vendor location=$location actual=$($names -join ',')"
         }
-        if ($sql -match "(?im)^\s*CREATE\s+SEQUENCE(?:\s+IF\s+NOT\s+EXISTS)?\s+$LegacyName\b") {
-            Add-Failure "Legacy BATCH_JOB_SEQ remains in fresh install: vendor=$vendor location=$location"
+        foreach ($retiredName in $RetiredCurrentNames) {
+            if ($sql -match "(?im)^\s*CREATE\s+SEQUENCE(?:\s+IF\s+NOT\s+EXISTS)?\s+$([regex]::Escape($retiredName))\b") {
+                Add-Failure "Retired Spring Batch sequence remains in current projection: vendor=$vendor location=$location name=$retiredName"
+            }
         }
     }
+    $retiredManagedNames = @(Get-SequenceNames $retiredSource | Where-Object {
+        $_ -in @($ExpectedCurrentNames + $RetiredCurrentNames)
+    })
+    if ($retiredManagedNames.Count -gt 0) {
+        Add-Failure "Managed Spring Batch sequence remains in retired source: vendor=$vendor actual=$($retiredManagedNames -join ',')"
+    }
     if ($verify -notmatch "spring_batch_6_sequence_contract" -or
-            @($ExpectedNames | Where-Object { $verify -notmatch [regex]::Escape($_) }).Count -gt 0 -or
-            $verify -notmatch [regex]::Escape($LegacyName)) {
+            @($ExpectedCurrentNames | Where-Object { $verify -notmatch [regex]::Escape($_) }).Count -gt 0 -or
+            @($RetiredCurrentNames | Where-Object { $verify -notmatch [regex]::Escape($_) }).Count -gt 0) {
         Add-Failure "Fail-closed Spring Batch sequence verification is incomplete: vendor=$vendor"
     }
 
@@ -256,6 +298,7 @@ if ($Failures.Count -gt 0) {
     springBatchVersion = $batchVersion
     officialJarVerified = $JarVerified
     sequences = $ExpectedNames
+    currentSequences = $ExpectedCurrentNames
     vendors = $OfficialVendors
     migrationVersion = $Version
 } | ConvertTo-Json -Depth 5

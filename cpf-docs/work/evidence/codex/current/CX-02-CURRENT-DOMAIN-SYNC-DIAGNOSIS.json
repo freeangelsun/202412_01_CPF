@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-CURRENT-DOMAIN-SYNC-DIAGNOSIS",
+  "finishedAt": "2026-08-22T21:46:00+09:00",
+  "sourceIdentitySha256": "217c1cec3952c9cab5b83dd586eee2c2380d34dbdbe30bee0605d6841f7993ad",
+  "status": "FINDING_REGISTERED",
+  "finding": "CX-F-103",
+  "attempts": 3,
+  "actualError": "사용자 수정 Generated 파일이 있어 upgrade 중단: ['build.gradle', 'settings.gradle']",
+  "rootCause": "Current MBR/EXS generator locks were not refreshed after earlier generator-owned settings/manifest repairs. Exact current-engine comparison also proves EXS online omits its declared member:online dependency.",
+  "exactRenderComparison": {
+    "memberChanged": ["settings.gradle", "build.gradle"],
+    "externalChanged": ["settings.gradle", "build.gradle", "online/build.gradle"],
+    "missing": [],
+    "removedFromExpected": []
+  },
+  "repairRule": "Apply only the five exact current-engine render deltas, refresh their lock hashes, then require canonical sync/diff and Java 25 compile."
+}

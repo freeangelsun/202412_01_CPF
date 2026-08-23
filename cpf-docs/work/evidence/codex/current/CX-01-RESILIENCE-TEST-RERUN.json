@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RESILIENCE-TEST-RERUN",
+  "requirementIds": ["REL-BUILD", "INTEGRATION", "RECOVERY", "SEC-BOUNDARY", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:56:21.9363333+09:00",
+    "finished": "2026-08-22T12:56:43.2199605+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :internal:integration:resilience:test",
+  "exitCode": 0,
+  "sourceIdentity": "e1fb1ad12fae34d3bc29e87d711c9186d789b13bd314da1f411f0aef47404265",
+  "actualResult": "BUILD SUCCESSFUL. Main/test Java compilation passed and all 15 resilience tests passed. This includes normal execute context fail-close, contextless canonical reconciliation lineage restoration, retry/rate/unknown/audit behavior, JDBC lock, and JDBC policy-store binding/sanitization contracts.",
+  "result": "PASS",
+  "findingIds": ["CX-F-014", "CX-F-016", "CX-F-017", "CX-F-018"],
+  "sanitized": true
+}

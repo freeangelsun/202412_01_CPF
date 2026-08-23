@@ -1,0 +1,11 @@
+{
+  "track": "CX-02-DEVELOPER-CONTRACT-TARGETED-ATTEMPT1",
+  "finishedAt": "2026-08-22T22:43:20.0850237+09:00",
+  "sourceIdentity": "faa3451a134a2b86c0abc6c0ca69dee20fc886d8fa4c6a6f542f6a1408c96aaa",
+  "command": "python -B -m pytest -q test_generator_setup_contract.py test_generator_setup_sync_contract.py",
+  "exitCode": 1,
+  "tests": {"passed": 3, "failed": 6, "total": 9},
+  "classification": "TEST_CONTRACT_DRIFT",
+  "cause": "Every failure reads or hashes the deliberately removed persisted cpf-domain.yaml. Setup execution itself returned zero in the affected cases.",
+  "next": "Update tests to the developer-facing gradle.properties semantic contract and explicit forbidden-metadata assertions."
+}

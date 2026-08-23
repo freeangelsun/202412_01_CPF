@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F126-COMMON-POLICY-MAINTENANCE-FIX-IDENTITY",
+  "startedAt": "2026-08-23T01:35:00+09:00",
+  "finishedAt": "2026-08-23T01:43:00+09:00",
+  "beforeSourceIdentitySha256": "b27a9ef72c134f8914c10eb63a71984a365447a9746579f46362d6fb9f333d7e",
+  "afterSourceIdentitySha256": "b8deec6639414288687da7cb0c531a005a60ae9777a10e858fdd4ec5db4bc143",
+  "afterSourceIdentitySha1": "1eea161cf4d8433d7275c779e53bc12830817e2b",
+  "fileCount": 8222,
+  "totalBytes": 75829307,
+  "finding": "CX-F-126",
+  "findingState": "SOURCE_FIXED",
+  "scope": "cpf-common pure product policy foundation",
+  "changes": [
+    "Extensible logical-file model with DAILY rolling, level, 5/365 defaults supplied by applications and per-file overrides.",
+    "Fail-fast validation for traversal, invalid/duplicate filename, invalid level and retention relationship.",
+    "Application/instance path isolation under the configured root.",
+    "Lock-protected delayed gzip/delete maintenance with active-file exclusion, root containment and symlink rejection.",
+    "Clock-based exact five-day and 365-day boundary tests."
+  ],
+  "boundary": "This is ordinary Application Runtime logging only; existing CPF Transaction Evidence logging remains unchanged.",
+  "next": "Compile and test cpf-common before adding existing Starter runtime wiring."
+}

@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Durable SFTP state ledger. STARTED rows are recovered to UNKNOWN after a process-kill lease. */
-public final class JdbcCpfSftpTransferLedger {
+public class JdbcCpfSftpTransferLedger {
     private final JdbcTemplate jdbc;
 
     public JdbcCpfSftpTransferLedger(JdbcTemplate jdbc) {

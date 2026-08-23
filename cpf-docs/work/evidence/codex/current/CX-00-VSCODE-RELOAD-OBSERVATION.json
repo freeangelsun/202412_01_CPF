@@ -1,0 +1,40 @@
+{
+  "track": "CX-00-VSCODE-RELOAD-OBSERVATION",
+  "observedAt": "2026-08-22T18:53:02.4946587+09:00",
+  "reportedWindowFailure": {
+    "time": "2026-08-22T18:50:35.616+09:00",
+    "reason": "crashed",
+    "code": -36861
+  },
+  "mainProcessStartedAt": "2026-08-22T15:27:02.082+09:00",
+  "hardwareAccelerationSetting": {
+    "argvPath": "C:/Users/fly10/AppData/Roaming/Code/argv.json",
+    "configured": true,
+    "effective": false,
+    "evidence": "code --status still reports active GPU compositing because Reopen replaced only the renderer/window, not the long-lived main process"
+  },
+  "postReloadJavaImport": {
+    "extensionHostPid": 62968,
+    "jdtLanguageServerPid": 7636,
+    "gradleServerPid": 9396,
+    "gradleDaemonPid": 16788,
+    "gradleVersion": "9.1.0",
+    "gradleConfigureResult": "SUCCESS",
+    "taskCount": 3603,
+    "priorUnsupportedGradleVersion": "8.9",
+    "majorVersion69RootCauseRemovedForNewImport": true
+  },
+  "postReloadNestedCacheObservation": {
+    "existingNestedCacheCount": 82,
+    "modifiedAfterReload": 8,
+    "status": "CX-F-068 remains IN_PROGRESS"
+  },
+  "normalFunctionalityPreserved": [
+    "file watching",
+    "search",
+    "automatic Java synchronization",
+    "terminal scrollback",
+    "editor retention"
+  ],
+  "next": "Allow the Gradle 9.1 import to finish and remeasure Problems; a complete VS Code application exit/restart is still required before GPU disablement can be judged."
+}

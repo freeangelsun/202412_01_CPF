@@ -1123,7 +1123,7 @@ public class CpfRuntimeControlPlaneRepository {
                             "environment_code,zone_code,cell_code,instance_status,weight,priority_no,active_yn,maintenance_yn,drain_yn," +
                             "last_heartbeat_at,system_code,application_name,application_role,runtime_hostname,process_id,java_version,cpf_version," +
                             "application_version,started_at,created_by,updated_by) " +
-                            "VALUES (?,?,?,?,?,?,?,?,?,?,'REGISTERING',100,100,'N','N','N',NULL,?,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
+                            "VALUES (?,?,?,?,?,?,?,?,?,?,'REGISTERING',100,100,'N','N','N',NULL,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
                     r.instanceId(), managedServerId, r.serviceId(), r.endpointCode(), r.instanceId(), r.baseUrl(),
                     emptyToNull(r.runtimeHostname()), blank(r.environment()), blank(r.zone()), blank(r.cell()),
                     emptyToNull(r.systemCode()), emptyToNull(r.applicationName()), emptyToNull(r.applicationRole()),
@@ -1194,7 +1194,7 @@ public class CpfRuntimeControlPlaneRepository {
                                 "environment_code,zone_code,cell_code,instance_status,weight,priority_no,active_yn,maintenance_yn,drain_yn," +
                                 "last_heartbeat_at,system_code,application_name,application_role,runtime_hostname,process_id,java_version,cpf_version," +
                                 "application_version,started_at,created_by,updated_by) " +
-                                "VALUES (?,?,?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
+                                "VALUES (?,?,?,?,?,?,?,?,?,?,'UP',100,100,'Y','N','N',CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,'CPF','CPF')",
                         r.instanceId(),managedServerId,r.serviceId(),r.endpointCode(),r.instanceId(),r.baseUrl(),emptyToNull(r.runtimeHostname()),
                         blank(r.environment()),blank(r.zone()),blank(r.cell()),emptyToNull(r.systemCode()),emptyToNull(r.applicationName()),
                         emptyToNull(r.applicationRole()),emptyToNull(r.runtimeHostname()),r.processId()==null?null:String.valueOf(r.processId()),
@@ -1408,7 +1408,7 @@ public class CpfRuntimeControlPlaneRepository {
         String type = blank(value).trim().toUpperCase();
         return type.startsWith("ROLLBACK:") ? type.substring("ROLLBACK:".length()) : type;
     }
-    private String blank(String value){return value==null?"":value;}
+    private static String blank(String value){return value==null?"":value;}
     private String emptyToNull(String value){return value==null||value.isBlank()?null:value.trim();}
     private String truncate(String value,int max){if(value==null)return null;return value.length()>max?value.substring(0,max):value;}
     private void requireText(String value,String name){if(value==null||value.isBlank())throw new IllegalArgumentException(name+"가 필요합니다.");}

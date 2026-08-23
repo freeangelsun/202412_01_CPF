@@ -1,0 +1,31 @@
+{
+  "track": "CX-05-F129-FRESH-RUNTIME-OPERATION-CATALOG-DIAGNOSIS",
+  "startedAt": "2026-08-23T02:37:38.7714767+09:00",
+  "finishedAt": "2026-08-23T02:37:50.2459525+09:00",
+  "sourceIdentity": "a8191f8e22a9e1f1734ad00ab9639f3dfa6f998cfc5e89ba86893d14a7aa3d33",
+  "artifactSha256": "f132e864660525675bd6eadccb0a021dbd85f78cdd79292ca3b18a80b6f73a96",
+  "result": "FAIL_FINDING_REGISTERED_F127_F128_RUNTIME_PATH_PASS",
+  "finding": "CX-F-129",
+  "runtime": {
+    "profile": "prod",
+    "port": 18726,
+    "heapMiB": 384,
+    "processOnlyPepperSet": true,
+    "pepperValuePersisted": false,
+    "debugOverride": false,
+    "exitCode": 1,
+    "consoleLog": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/runtime-evidence-6/console.log",
+    "managedLogRoot": "cpf-docs/work/evidence/generated/domain-generator/cpf-f126logging/runtime-evidence-6/logs"
+  },
+  "passedBeforeFailure": [
+    "F127 former AOP infrastructure proxy exceptions are absent.",
+    "F128 OpenAPI/Actuator HandlerMapping ambiguity is absent with both mapping beans installed.",
+    "CPF_RUNTIME_LOGGING_READY appears with runtime and error file contracts.",
+    "Tomcat starts on port 18726 and Spring reports the application Started event."
+  ],
+  "actualError": "CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:0 during CpfOperationCatalogBootstrap ApplicationReady processing.",
+  "rootCauseHypothesis": "The generated business Runtime enforces the mandatory Operation Catalog publication contract, but the selected public Starter graph does not provide the required registry port implementation.",
+  "falseGreenControl": "Required publication remains enabled. No private artifact, Maven Local workaround or relaxed configuration is accepted.",
+  "additionalObservation": "Logback reports duplicate TimeBasedRollingPolicy setter warnings. This is retained under F126 Logging analysis and is not treated as a readiness PASS.",
+  "next": "Trace CpfOperationCatalogRegistry providers and canonical Starter ownership before changing Source."
+}

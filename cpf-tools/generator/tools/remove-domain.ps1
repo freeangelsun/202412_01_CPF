@@ -34,7 +34,7 @@ if (-not [string]::IsNullOrWhiteSpace($SystemCode) -and
     throw "요청 SystemCode와 canonical definition이 다릅니다: requested=$SystemCode canonical=$expectedCode"
 }
 
-$arguments = @('domain', 'remove', $domain, '--file', [string]$metadata.definitionPath)
+$arguments = @('domain', 'remove', $domain, '--file', [string]$metadata.contractPath)
 if (-not [string]::IsNullOrWhiteSpace($OutputDir)) {
     if (-not [IO.Path]::IsPathRooted($OutputDir)) { $OutputDir = Join-Path $Root $OutputDir }
     $arguments += @('--output', ([IO.Path]::GetFullPath($OutputDir)))
@@ -47,7 +47,7 @@ if ($PurgeDefinition) {
 $result = Invoke-CpfCanonicalCli -Root $Root -Arguments $arguments
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "build/reports/remove-domain/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/remove-domain/$domain"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -59,8 +59,8 @@ $evidence = [ordered]@{
     dryRun = [bool]$DryRun
     domainName = $domain
     systemCode = $expectedCode
-    definitionPath = [string]$metadata.definitionPath
-    generatedProjectMetadata = 'NONE'
+    contractPath = [string]$metadata.contractPath
+    generatedProjectMetadata = 'ABSENT'
     ownershipSource = [string]$result.ownershipSource
     result = $result
 }

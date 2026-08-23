@@ -1,0 +1,22 @@
+{
+  "executionId": "CX-02-FRESH-A-PREVIEW",
+  "timestamp": "2026-08-22T19:47:00+09:00",
+  "sourceIdentitySha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+  "status": "PREVIEW_PASS",
+  "case": "A",
+  "domain": "cxalpha",
+  "systemCode": "QAA",
+  "scratchRoot": "C:/Users/fly10/AppData/Local/CPF/validation/generated-domains/cx02-20260822-1947",
+  "selection": {
+    "online": true,
+    "batch": false,
+    "persistence": "none",
+    "httpClient": false,
+    "resilience": false,
+    "sampleTransaction": false,
+    "businessFeatures": ["alphaops"],
+    "domainDependencies": [],
+    "externalClients": []
+  },
+  "rootBuildPresentAfter": false
+}

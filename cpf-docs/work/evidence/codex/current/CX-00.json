@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-00",
+  "timestamp": {
+    "started": "2026-08-22T11:12:01.1562725+09:00",
+    "finished": "2026-08-22T11:12:08.8923841+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "git status --short; OS/PowerShell inventory; java -version; node --version; npm --version; docker version; python --version; optional command inventory; python .\\cpf-tools\\verification\\tools\\cpf-source-state.py --root . --scope source",
+  "environment": {
+    "os": "Microsoft Windows 10.0.26200",
+    "architecture": "X64",
+    "powershell": "7.6.5 Core",
+    "java": "Temurin OpenJDK 25.0.3+9 LTS",
+    "node": "24.11.0",
+    "npm": "11.6.1",
+    "python": "3.13.14",
+    "dockerClient": "29.6.2",
+    "dockerDaemon": "unavailable",
+    "dbClients": "sqlplus/psql/mariadb not found on PATH",
+    "browserCommands": "chromium/chrome/msedge/firefox not found on PATH",
+    "vscodeCli": "present"
+  },
+  "exitCode": 0,
+  "subcommandExitCodes": {
+    "gitStatus": 0,
+    "java": 0,
+    "node": 0,
+    "npm": 0,
+    "docker": 1,
+    "python": 0,
+    "sourceState": 0
+  },
+  "gitStatusShort": "clean",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "actualSha256": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+    "actualFileCount": 8204,
+    "actualTotalBytes": 75676540,
+    "expectedSha256": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
+    "expectedFileCount": 8173,
+    "expectedTotalBytes": 68339768,
+    "matchesExpected": false
+  },
+  "result": "FAIL",
+  "failureSummary": "Current clean Working Tree canonical source content differs from the instruction provenance identity. The Working Tree remains Primary Source and was not replaced or reverted.",
+  "findingIds": ["CX-F-001"],
+  "artifactSha256": null,
+  "sanitized": true
+}

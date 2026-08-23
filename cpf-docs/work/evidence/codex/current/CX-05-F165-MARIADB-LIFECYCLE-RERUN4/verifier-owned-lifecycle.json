@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "runId": "8e8167b021ed",
+  "sourceSha": "6ac3e0e6ccf9f53c4ea5f4f66580f0b4ea025749",
+  "status": "FAIL",
+  "stages": [],
+  "profile": "database-install.mariadb.8e8167b021ed.json",
+  "sanitized": true,
+  "startedAt": "2026-08-23T05:27:36.2429513+00:00",
+  "error": "DB lifecycle execution failed mode=FreshInstall",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T05:27:56.0748472+00:00"
+}

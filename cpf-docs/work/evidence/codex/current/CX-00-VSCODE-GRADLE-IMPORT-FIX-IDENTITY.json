@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-VSCODE-GRADLE-IMPORT-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:34:39.5610836+09:00",
+  "sourceIdentity": {
+    "contentSha1": "7782e15c6c6cc50557afa609a720f64e86873666",
+    "contentSha256": "88ad3d4c5e70b9bd63a1cbc41aa9c2c81027b32f1d4a12dcbe291f7695c8c5e4",
+    "fileCount": 8228,
+    "totalBytes": 75792835
+  },
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-101",
+  "changes": [
+    "restored the installed Gradle extension build server (default supported route)",
+    "uses installed JDK 21 for the Gradle synchronization daemon",
+    "retains installed JavaSE-25 as the default Product runtime/toolchain",
+    "retains automatic build configuration synchronization and limits only concurrent IDE builds to one"
+  ],
+  "featureReduction": false,
+  "reloadAndFreshSynchronizationPending": true
+}

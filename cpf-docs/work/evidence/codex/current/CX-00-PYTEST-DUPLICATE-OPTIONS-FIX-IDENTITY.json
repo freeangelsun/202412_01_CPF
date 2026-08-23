@@ -1,0 +1,13 @@
+{
+  "track": "CX-00-PYTEST-DUPLICATE-OPTIONS-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T18:14:43.4257072+09:00",
+  "beforeSourceIdentitySha256": "72932548c7a274e6bccc40fa7f0b518c71159ce77b5d48b35c14e7dd39b202ba",
+  "afterSourceIdentitySha1": "49d11933bb3ebbf75c820075d31a12cde4af57d9",
+  "afterSourceIdentitySha256": "c39d029c9f6033ee54626a102ee04bdb6ceef05d82396d206f4b47be84c0ad92",
+  "fileCount": 8209,
+  "totalBytes": 75654065,
+  "finding": "CX-F-072",
+  "findingStatus": "SOURCE_FIXED",
+  "change": "Removed duplicate PYTEST_ADDOPTS ownership from two non-test verifier orchestrators; bytecode suppression remains and pytest behavior is owned only by the Testing config/runner.",
+  "verification": "pending"
+}

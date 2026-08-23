@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-08-23T16:28:31+09:00",
+  "findingId": "CX-F-190",
+  "status": "IN_PROGRESS",
+  "sourceIdentityBefore": "f5f64570aba2abc5a14ebd60b06d51681e2f7873e1101534d275d8b72f9da779",
+  "title": "Current platform runtime query consumers remain partially inline outside the declared portable contract",
+  "actualInventory": {
+    "JdbcCpfReconciliationRepository": { "catalogKeys": 3, "inlineSqlFragments": 4 },
+    "CpfJdbcOperationCatalogRegistry": { "catalogKeys": 0, "inlineSqlFragments": 12 },
+    "CpfJdbcOperationAccessPolicy": { "catalogKeys": 0, "inlineSqlFragments": 5 }
+  },
+  "rootCause": "The central query contract and sourceScopes cover only a stale subset, so current OPS Operation Catalog/Policy and reconciliation lifecycle SQL bypass DB3 rendering despite PORTABLE_ONLY metadata.",
+  "repairOwner": "Exact Product repositories and platform-runtime-query-contract with DB3 portable templates",
+  "falseGreenForbidden": "Do not narrow sourceScopes around known inline fragments, exempt these current consumers, or claim DB3 parity from existing unrelated templates."
+}

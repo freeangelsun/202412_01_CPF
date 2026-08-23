@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F119-F120-TARGETED-VERIFICATION-RERUN1",
+  "startedAt": "2026-08-23T00:40:20+09:00",
+  "finishedAt": "2026-08-23T00:42:00.9283318+09:00",
+  "sourceIdentitySha256": "8e4594f672968e5eb8ac4e5e9677b1e33d70dd2bafe1dc0892bc61b89d7506ef",
+  "sourceIdentitySha1": "77d949bcd374a9e397a38c6123c3d79731d7af65",
+  "result": "PASS_TARGETED",
+  "checks": [
+    {"name": "developer adoption contract", "exitCode": 0, "detail": "64 modules; golden 8; capability 20; internal 36; TOP20 20"},
+    {"name": "NXT3 Common management propagation", "exitCode": 0, "detail": "15/15 checks pass; live multi-instance remains separately unverified"},
+    {"name": "NXT3 config contract", "exitCode": 0, "detail": "zero failures"},
+    {"name": "Public Function TOP100 generated report check", "exitCode": 0, "detail": "100 rows; 20 golden"},
+    {"name": "focused Python regressions", "exitCode": 0, "detail": "13/13 pass; cache provider disabled"},
+    {"name": "actual Rerun2 Maven snapshot repository resolution", "exitCode": 0, "detail": "resolved timestamped cpf-platform-bom-1.0.0-20260822.152610-1.pom through metadata"},
+    {"name": "post-test Source Identity", "exitCode": 0, "detail": "unchanged; 8220 files; 75809344 bytes"}
+  ],
+  "rootHygiene": {
+    "newRootGarbageFromThisRun": [],
+    "preExistingKnownPending": [".gradle (last modified 2026-08-22 22:29; tracked by F110 exact cleanup/no-regeneration work)"]
+  },
+  "findingState": {
+    "CX-F-119": "VERIFICATION_PENDING",
+    "CX-F-120": "VERIFICATION_PENDING"
+  },
+  "next": "Rerun the affected Gradle gates/publication backend from a clean compile state. Do not close either finding before publication impact succeeds."
+}

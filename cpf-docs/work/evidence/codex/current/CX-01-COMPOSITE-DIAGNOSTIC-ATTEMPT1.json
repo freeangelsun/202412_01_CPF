@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-COMPOSITE-DIAGNOSTIC-ATTEMPT1",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN"],
+  "timestamp": {
+    "started": "2026-08-22T11:24:19.2113295+09:00",
+    "finished": "2026-08-22T11:24:40.8395072+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :cpf-generated-cpf-external:tasks -PcpfIncludeGeneratedDomains=true -PcpfProductCompositeRoot=.",
+  "exitCode": 1,
+  "sourceIdentity": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+  "actualResult": "INVALID_DIAGNOSTIC",
+  "failureSummary": "Command echo proved that the property was received as '-PcpfProductCompositeRoot=' followed by a separate '.' argument. This invocation cannot test the intended composite-root path and is excluded from Source conclusions.",
+  "result": "INVALID_DIAGNOSTIC",
+  "findingIds": ["CX-F-002"],
+  "sanitized": true
+}

@@ -1,0 +1,4 @@
+SELECT COUNT(*)
+FROM OPS_OPERATION_DISCOVERY_INSTANCE
+WHERE operation_id = ?
+  AND instance_id = ?

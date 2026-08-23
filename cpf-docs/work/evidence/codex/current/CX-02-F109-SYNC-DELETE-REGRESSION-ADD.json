@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-F109-SYNC-DELETE-REGRESSION-ADD",
+  "finishedAt": "2026-08-22T23:27:13.1840302+09:00",
+  "status": "TEST_ADDED",
+  "sourceIdentity": "996ed1e2cf77521d4927de06efcc7afa1cc2ecefdc43f8952120cf7efad63d9a",
+  "scenario": [
+    "Fresh disposable workspace create",
+    "Inject exact two legacy root metadata files",
+    "Default sync returns VERIFICATION_PENDING_DELETE and preserves files",
+    "Approved sync deletes exact allowlist and returns PASS",
+    "Unapproved rerun is idempotent PASS"
+  ],
+  "verification": "PENDING_RERUN"
+}

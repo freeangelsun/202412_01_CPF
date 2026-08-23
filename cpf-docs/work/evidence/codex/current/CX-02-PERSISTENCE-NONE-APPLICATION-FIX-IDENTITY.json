@@ -1,0 +1,14 @@
+{
+  "executionId": "CX-02-PERSISTENCE-NONE-APPLICATION-FIX-IDENTITY",
+  "timestamp": "2026-08-22T19:54:00+09:00",
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-088",
+  "sourceIdentity": {
+    "sha256": "ad003b40615a2125c56a90b09b85f6ffdaf03144aabeb1c3a32d4335cf836d64",
+    "sha1": "2eee8921cb124dc3f3c88155d9fb66801df69fd1",
+    "fileCount": 8212,
+    "totalBytes": 75670769
+  },
+  "fix": "Emit MyBatis MapperScan import/annotation only when features.persistence=mybatis; preserve exact annotation for MyBatis cases; add both positive and negative setup assertions.",
+  "verificationRequired": "Focused Generator tests, Case A regenerate/diff and Java 25 compile, plus a MyBatis Fresh case"
+}

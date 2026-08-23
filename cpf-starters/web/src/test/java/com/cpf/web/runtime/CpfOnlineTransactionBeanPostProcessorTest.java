@@ -11,10 +11,12 @@ class CpfOnlineTransactionBeanPostProcessorTest {
         assertThrows(IllegalStateException.class,()->p.postProcessBeforeInitialization(new B(),"b"));
     }
     @Test void invalidVisibilityFailsAtStartup() {
-        assertThrows(IllegalStateException.class,()->new CpfOnlineTransactionBeanPostProcessor().postProcessBeforeInitialization(new Invalid(),"invalid"));
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> new CpfOnlineTransactionBeanPostProcessor().postProcessBeforeInitialization(new Invalid(), "invalid"));
+        assertTrue(failure.getMessage().startsWith("CPF_ONLINE_TRANSACTION_NOT_PUBLIC:"));
     }
-    static class A {@CpfOnlineTransaction(operationId = "MBR_DUP_TX", name = "a", description = "a 거래") void run(){}}
+    static class A {@CpfOnlineTransaction(operationId = "MBR_DUP_TX", name = "a", description = "a 거래") public void run(){}}
     /** B 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
-    static class B {@CpfOnlineTransaction(operationId = "MBR_DUP_TX", name = "b", description = "b 거래") void run(){}}
+    static class B {@CpfOnlineTransaction(operationId = "MBR_DUP_TX", name = "b", description = "b 거래") public void run(){}}
     static class Invalid {@CpfOnlineTransaction(operationId = "MBR_BAD_TX", name = "bad", description = "bad 거래") void run(){}}
 }

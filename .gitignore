@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+/.cpf/
 
 ### Gradle build outputs ###
 # `cpf-tools/build`는 제품 Build Tooling Source Owner이므로 전역 `build/` 패턴을 사용하지 않습니다.
@@ -109,6 +110,9 @@ cpf-docs/evidence/**
 *~
 hs_err_pid*.log
 replay_pid*.log
+# Managed location for automatic Gradle/JVM/Test/QA working artifacts.
+# Curated session evidence remains under cpf-docs/work/evidence/codex/current.
+/cpf-docs/work/evidence/generated/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -116,7 +120,7 @@ Thumbs.db
 .DS_Store
 
 # Generator concrete-domain snapshots are not canonical Source.
-# Generated verification output normally belongs under /build/domain-generator/verification or external Temp.
+# Generated verification output belongs under /cpf-docs/work/evidence/generated/domain-generator or explicit CPF_GENERATOR_WORK_ROOT.
 # Keep the old repo-local golden path ignored only as a safety net; it is not a Canonical Product/Fixture path.
 /cpf-tools/generator/golden/
 # Root Generated Customer Domain의 Build 산출물만 제외하고 Source/YAML/Lock은 추적합니다.
@@ -132,3 +136,6 @@ Thumbs.db
 # CPF Public Developer Workspace의 제품 template은 root bin/ ignore의 예외입니다.
 !cpf-tools/release/public/templates/bin/
 !cpf-tools/release/public/templates/bin/**
+
+# CPF Open Git release output (generated, never private-source tracked)
+/cpf-release/

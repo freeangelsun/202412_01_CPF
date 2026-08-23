@@ -1,0 +1,15 @@
+{
+  "track": "CX-02-F109-SCRATCH-MINIMAL-FRESH-GENERATE",
+  "finishedAt": "2026-08-22T23:00:43.4026503+09:00",
+  "sourceIdentity": "1957541445d3cfef12ff0af515aa16784b1704d3e9efffee3800d24e4597d0a2",
+  "domain": "f109minimal",
+  "systemCode": "FMI",
+  "exitCode": 0,
+  "status": "PASS",
+  "rootEntries": ["online", "build.gradle", "gradle.properties", "settings.gradle"],
+  "fileCount": 14,
+  "forbiddenMetadata": [],
+  "sourceRuntimeDescriptorCount": 0,
+  "databaseProfile": "ABSENT",
+  "databaseTree": "ABSENT"
+}

@@ -1,0 +1,31 @@
+{
+  "track": "CX-05-F126-GENERATOR-LOGGING-TARGETED-RERUN1",
+  "finding": "CX-F-126",
+  "sourceIdentitySha256": "31e07351282718a277b7f3a6350949e9bdb7075ff063c1bcf4aa888d334e38ff",
+  "commands": [
+    "python -m py_compile cpf-tools/generator/engine/cpf_domain_generator.py cpf-tools/generator/verification/tests/test_generator_setup_contract.py",
+    "python cpf-tools/generator/verification/tests/test_generator_setup_contract.py -k logging"
+  ],
+  "exitCode": 0,
+  "result": "PASS_TARGETED",
+  "tests": 1,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "durationSeconds": 1.647,
+  "actualAssertions": [
+    "real cpf domain setup generates both Online and Batch resource trees",
+    "each application.yml has exactly one cpf root and the consumed Logging schema",
+    "both modules contain runtime/error DAILY 5/365 configuration and Korean boundary comments",
+    "both modules contain local TRACE, dev DEBUG, test DEBUG, stg INFO and prod INFO profiles",
+    "Batch remains a non-web runtime",
+    "TemporaryDirectory cleanup leaves no test workspace"
+  ],
+  "resourceAfter": {
+    "freePhysicalGiB": 15.61,
+    "committedGiB": 18.72,
+    "commitLimitGiB": 95.51,
+    "javaProcessCount": 6
+  },
+  "next": "Fresh Scratch lifecycle, Java 25 compile/test and actual runtime file verification; finding is not closed."
+}

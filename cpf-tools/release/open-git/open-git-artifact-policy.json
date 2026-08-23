@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "policyId": "CPF-OPEN-GIT-ARTIFACT",
+  "artifactCatalog": "cpf-tools/release/cpf-final-artifact-catalog.json",
+  "defaultBinaryPolicy": "ALLOW_PUBLISHED_PUBLIC_ARTIFACT",
+  "sourceJarPolicy": {
+    "default": "DENY",
+    "allowOwnerPathPrefixes": [
+      "cpf-common",
+      "cpf-starters/"
+    ],
+    "denyOwnerPathPrefixes": [
+      "cpf-core",
+      "cpf-admin",
+      "cpf-gateway",
+      "cpf-batch",
+      "cpf-tools/runtime/"
+    ]
+  },
+  "javadocJarPolicy": {
+    "default": "DENY",
+    "allowOwnerPathPrefixes": [
+      "cpf-common",
+      "cpf-starters/"
+    ],
+    "denyOwnerPathPrefixes": [
+      "cpf-core",
+      "cpf-admin",
+      "cpf-gateway",
+      "cpf-batch",
+      "cpf-tools/runtime/"
+    ]
+  },
+  "sourceTreeForbiddenOwners": [
+    "cpf-core",
+    "cpf-common",
+    "cpf-admin",
+    "cpf-biz-admin",
+    "cpf-batch",
+    "cpf-gateway",
+    "cpf-starters"
+  ],
+  "requiredBinaryArtifactIdsWhenPublished": [
+    "cpf-core",
+    "cpf-common",
+    "cpf-platform-bom",
+    "cpf-generator-cli",
+    "cpf-batch-runtime"
+  ],
+  "binaryOnlyOwnerPrefixes": [
+    "cpf-core",
+    "cpf-admin",
+    "cpf-gateway",
+    "cpf-batch",
+    "cpf-tools/runtime/"
+  ],
+  "notes": [
+    "sources.jar and javadoc.jar are source disclosure and are denied by default.",
+    "Common and public Starter families are the only default source/javadoc disclosure families.",
+    "ADM/Gateway/Batch/Internal Runtime source trees and source/javadoc artifacts are never part of Open Git Release."
+  ],
+  "requiredBinaryContracts": [
+    {
+      "artifactId": "cpf-core",
+      "sourceDisclosure": "DENY"
+    },
+    {
+      "artifactId": "cpf-common",
+      "sourceDisclosure": "ALLOW"
+    },
+    {
+      "artifactId": "cpf-batch-runtime",
+      "sourceDisclosure": "DENY"
+    },
+    {
+      "artifactId": "cpf-platform-bom",
+      "sourceDisclosure": "NOT_APPLICABLE"
+    },
+    {
+      "artifactId": "cpf-generator-cli",
+      "sourceDisclosure": "NOT_APPLICABLE"
+    }
+  ]
+}

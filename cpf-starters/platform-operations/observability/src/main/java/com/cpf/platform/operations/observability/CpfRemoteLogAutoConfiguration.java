@@ -22,10 +22,10 @@ public class CpfRemoteLogAutoConfiguration {
             CpfRemoteLogArtifactPort artifactPort,
             ObjectProvider<Clock> clockProvider,
             Environment environment) {
-        Clock clock = clockProvider.getIfAvailable();
+        Clock clock = clockProvider.getIfUnique(Clock::systemUTC);
         return new DefaultCpfRemoteLogBundleJobManager(
                 artifactPort,
-                clock == null ? Clock.systemUTC() : clock,
+                clock,
                 settings(environment));
     }
 

@@ -1,0 +1,7 @@
+{
+  "track": "CX-02-PUBLIC-PROJECTION-REGRESSION-FIX",
+  "finding": "CX-F-109",
+  "attempt1": {"passed": 19, "failed": 2, "total": 21, "classification": "TEST_CONTRACT_DRIFT", "actualOpenGitProjection": "PASS"},
+  "fix": "Public fixture verifies physical gradle.properties identity/drift; Open Git projection requires three physical contracts and asserts domains/, cpf-domain.yaml and cpf-generator.lock.json are absent.",
+  "sourceIdentity": {"sha256": "6f7de360d8e5c3d4698d547b676d420515068d1bbacae43e182870dadfcb20c7", "sha1": "8af3c13968bd9646ffd8866bd8e70532a70ef173", "fileCount": 8228, "totalBytes": 75803126}
+}

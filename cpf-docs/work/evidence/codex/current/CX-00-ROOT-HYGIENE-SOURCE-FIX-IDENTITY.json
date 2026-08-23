@@ -1,0 +1,19 @@
+{
+  "track": "CX-00-ROOT-HYGIENE-SOURCE-FIX-IDENTITY",
+  "timestamp": "2026-08-22T17:47:00+09:00",
+  "sourceIdentity": {
+    "sha256": "bc8bdf60d92fbbe17736b8dbfe3486bdc6374ad2581ee4927f013d5b125eea56",
+    "sha1": "ce8b9cb740c3ffd4ba37d54662a8a885088ce05d",
+    "fileCount": 8207,
+    "totalBytes": 75724713
+  },
+  "changes": [
+    "Both wrappers force the Gradle project cache under cpf-docs/work/evidence/generated.",
+    "The Root Gradle build directory is redirected under managed generated Evidence.",
+    "Wrapper-launched Java plus Gradle Test/JavaExec processes bind ErrorFile and HeapDumpPath to managed Evidence.",
+    "The automatic generated Evidence tree is explicitly ignored.",
+    "The resource-policy contract test asserts the cross-platform wrapper/convention/ignore contract."
+  ],
+  "status": "SOURCE_FIXED",
+  "verificationRemaining": "Clean exact prior generated roots, run contract and detached Java 25 build/test/QA, prove root paths are not recreated."
+}

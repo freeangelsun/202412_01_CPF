@@ -25,7 +25,7 @@ export CPF_VERSION='<cpf-version>'
 ./bin/cpf-bootstrap.sh
 ```
 
-Bootstrap은 `domains/*/cpf-domain.yaml`과 각 Domain의 local DB binding(`build/cpf-local/<domain>/cpf-db-profile.local.json`)을 함께 발견합니다. Domain Setup에서 Oracle/PostgreSQL/MariaDB를 Domain별로 선택할 수 있으며, Profile이 아직 없는 Reference Domain만 `--db postgresql|mariadb|oracle` 값을 local-only 기본 Binding 생성에 사용합니다. DB3 SQL은 Domain Source Tree에 저장하지 않고 Published Generator의 Canonical DB3 Renderer가 Bootstrap 시 `build/cpf-local/<domain>/db3/<vendor>`에 생성하여 적용합니다.
+Bootstrap은 root `cpf-*/gradle.properties` 중 `cpf.domain.contractVersion`이 선언된 Developer Domain Contract와 각 Domain의 local DB binding(`build/cpf-local/<domain>/cpf-db-profile.local.json`)을 함께 발견합니다. Domain Setup에서 Oracle/PostgreSQL/MariaDB를 Domain별로 선택할 수 있으며, Profile이 아직 없는 Reference Domain만 `--db postgresql|mariadb|oracle` 값을 local-only 기본 Binding 생성에 사용합니다. DB3 SQL은 Domain Source Tree에 저장하지 않고 Published Generator의 Canonical DB3 Renderer가 Bootstrap 시 `build/cpf-local/<domain>/db3/<vendor>`에 생성하여 적용합니다.
 
 ## New Domain Setup
 
@@ -35,14 +35,13 @@ Bootstrap은 `domains/*/cpf-domain.yaml`과 각 Domain의 local DB binding(`buil
 .\bin\cpf-domain-new.ps1 -Name account -SystemCode ACC -Batch -SetupArgs @('--vendor','postgresql','--database-name','accDB','--schema-name','accDB')
 ```
 
-Linux/CI에서는 동일 Canonical `domain setup` 옵션을 그대로 전달합니다. Setup은 Domain Definition, Capability→Public Starter, Operation 단위 Domain Dependency, Local DB Profile, Generated Source, Workspace 등록을 한 번에 처리하며 DB/Runtime 실행은 Bootstrap에서 별도 검증합니다.
+Linux/CI에서는 동일 Canonical `domain setup` 옵션을 그대로 전달합니다. Setup은 root `gradle.properties` Developer Contract, Capability→Public Starter, Operation 단위 Domain Dependency, Local DB Profile, Generated Source, Workspace 등록을 한 번에 처리하며 DB/Runtime 실행은 Bootstrap에서 별도 검증합니다. Generator 입력/lock/state 파일은 Generated Root에 만들지 않습니다.
 
 ## Workspace
 
 - `cpf-member`: Batch 포함 Generated Business Domain Reference
 - `cpf-external`: Online-only Generated Business Domain Reference
 - `cpf-backoffice-web`: 선택형 외부 채널/BFF Reference. DB 없이 HTTP/HTTPS로 MBW Backoffice Domain을 호출합니다.
-- `domains/`: Source-controlled Canonical Domain Definition
 - `bin/`: Bootstrap/Build/Test/Stop/Reset 및 Domain lifecycle 진입점
 
 Generated Domain은 `Domain → Business Feature → Technical Role` 구조를 사용합니다. Domain 간 호출은 CPF Public Domain Client/Logical Invocation Boundary를 사용하며 다른 Domain Service/Repository/DB를 직접 참조하지 않습니다.

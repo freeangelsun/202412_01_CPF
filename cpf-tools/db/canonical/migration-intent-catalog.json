@@ -92,6 +92,18 @@
         "oracle"
       ],
       "lifecycleScenarioId": "CPF-DB3-BACKOFFICE-MBW-001"
+    },
+    {
+      "id": "D-012-BACKOFFICE-PERMISSION-IDENTITY",
+      "owner": "cpf-backoffice",
+      "description": "Enforce the environment-scoped MBW role/menu/action permission identity used by canonical Product Seed and runtime authorization without weakening deny-wins behavior.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "lifecycleScenarioId": "CPF-DB3-D012-BACKOFFICE-PERMISSION-001"
     }
   ]
 }

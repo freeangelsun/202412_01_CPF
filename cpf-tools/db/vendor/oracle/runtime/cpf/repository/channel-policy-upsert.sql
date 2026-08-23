@@ -1,12 +1,36 @@
-MERGE INTO OPS_CHANNEL_EXECUTION_POLICY t
-USING (SELECT ? policy_key, ? operation_id, ? caller_channel, ? allowed_yn, ? authentication_required_yn, ? signature_required_yn,
-              ? max_tps, ? effective_from, ? effective_to, ? active_yn, ? policy_version, ? created_by, ? updated_by FROM dual) s
-ON (t.policy_key = s.policy_key)
-WHEN MATCHED THEN UPDATE SET t.operation_id=s.operation_id, t.caller_channel=s.caller_channel, t.allowed_yn=s.allowed_yn,
-  t.authentication_required_yn=s.authentication_required_yn, t.signature_required_yn=s.signature_required_yn, t.max_tps=s.max_tps,
-  t.effective_from=s.effective_from, t.effective_to=s.effective_to, t.active_yn=s.active_yn, t.policy_version=s.policy_version,
-  t.updated_by=s.updated_by, t.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (policy_key, operation_id, caller_channel, allowed_yn, authentication_required_yn, signature_required_yn,
-  max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by)
-VALUES (s.policy_key, s.operation_id, s.caller_channel, s.allowed_yn, s.authentication_required_yn, s.signature_required_yn,
-  s.max_tps, s.effective_from, s.effective_to, s.active_yn, s.policy_version, s.created_by, s.updated_by)
+MERGE INTO OPS_CHANNEL_EXECUTION_POLICY target
+USING (
+    SELECT ? policy_key, ? operation_id, ? original_channel_code,
+           ? caller_channel_code, ? request_type, ? allowed_yn,
+           ? authentication_required_yn, ? signature_required_yn, ? max_tps,
+           ? effective_from, ? effective_to, ? active_yn, ? policy_version,
+           ? created_by, ? updated_by
+    FROM dual
+) source
+ON (target.policy_key = source.policy_key)
+WHEN MATCHED THEN UPDATE SET
+    target.operation_id = source.operation_id,
+    target.original_channel_code = source.original_channel_code,
+    target.caller_channel_code = source.caller_channel_code,
+    target.request_type = source.request_type,
+    target.allowed_yn = source.allowed_yn,
+    target.authentication_required_yn = source.authentication_required_yn,
+    target.signature_required_yn = source.signature_required_yn,
+    target.max_tps = source.max_tps,
+    target.effective_from = source.effective_from,
+    target.effective_to = source.effective_to,
+    target.active_yn = source.active_yn,
+    target.policy_version = source.policy_version,
+    target.updated_by = source.updated_by,
+    target.updated_at = CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (
+    policy_key, operation_id, original_channel_code, caller_channel_code,
+    request_type, allowed_yn, authentication_required_yn, signature_required_yn,
+    max_tps, effective_from, effective_to, active_yn, policy_version, created_by, updated_by
+) VALUES (
+    source.policy_key, source.operation_id, source.original_channel_code,
+    source.caller_channel_code, source.request_type, source.allowed_yn,
+    source.authentication_required_yn, source.signature_required_yn, source.max_tps,
+    source.effective_from, source.effective_to, source.active_yn, source.policy_version,
+    source.created_by, source.updated_by
+)

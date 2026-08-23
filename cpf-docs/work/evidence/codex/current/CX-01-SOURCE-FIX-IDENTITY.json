@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-SOURCE-FIX-IDENTITY",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T11:29:27.3761433+09:00",
+    "finished": "2026-08-22T11:29:37.6584129+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\verification\\tools\\cpf-source-state.py --root . --scope source",
+  "exitCode": 0,
+  "beforeSourceIdentity": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+  "sourceIdentity": "c335bed4283ce424d90b64951147ceb0dbc4a38956b57307c85f67a53a723602",
+  "fileCount": 8204,
+  "totalBytes": 75678443,
+  "changedProductSource": [
+    "settings.gradle",
+    "cpf-tools/testing/tools/tests/test_settings_composite_build_identity.py"
+  ],
+  "findingStatus": "SOURCE_FIXED",
+  "result": "PASS",
+  "findingIds": ["CX-F-002"],
+  "sanitized": true
+}

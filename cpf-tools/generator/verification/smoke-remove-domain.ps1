@@ -10,20 +10,20 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $Root 'cpf-tools/generator/tools/generated-domain-common.ps1')
 $remove = Join-Path $Root 'cpf-tools/generator/tools/remove-domain.ps1'
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'build/runtime-smoke'
+    $ResultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/runtime-smoke'
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir 'remove-domain-smoke.sanitized.json'
-$sandbox = Join-Path $Root 'build/domain-generator/remove-domain-smoke'
+$sandbox = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/remove-domain-smoke'
 $transientRoots = @(
-    (Join-Path $Root 'build/domain-generator/verification/cpf-removeguard'),
-    (Join-Path $Root 'build/domain-generator/verification/cpf-removeclean')
+    (Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/verification/cpf-removeguard'),
+    (Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/verification/cpf-removeclean')
 )
 function Assert-Safe([string] $Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
-    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'build/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolved.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
         throw "remove smoke path가 허용 경로 밖입니다: $resolved"
     }
@@ -65,7 +65,7 @@ generation:
 $result = [ordered]@{
     startedAt = [DateTimeOffset]::Now.ToString('o')
     status = 'FAILED'
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     cleanDryRun = $null
     changedFileBlocked = $false
     actualRemove = $null

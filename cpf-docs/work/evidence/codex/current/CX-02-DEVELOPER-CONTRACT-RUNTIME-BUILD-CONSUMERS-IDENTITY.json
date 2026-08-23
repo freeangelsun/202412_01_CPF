@@ -1,0 +1,19 @@
+{
+  "track": "CX-02-DEVELOPER-CONTRACT-RUNTIME-BUILD-CONSUMERS-IDENTITY",
+  "finishedAt": "2026-08-22T22:50:32.0099558+09:00",
+  "finding": "CX-F-109",
+  "result": "SOURCE_FIXED_PARTIAL",
+  "sourceIdentity": {
+    "sha256": "cf210433655014115074a108964596ff26d9193a9d210aa9ffb463e075bf798c",
+    "sha1": "22b335245936ca253385ed61248d64de5851e5ab",
+    "fileCount": 8228,
+    "totalBytes": 75800525
+  },
+  "owners": [
+    "Root Generated Domain composite discovery/substitution",
+    "Deployment artifact discovery",
+    "Private/public Java Bootstrap domain and DB-render discovery",
+    "Public and Open Git Gradle composite discovery"
+  ],
+  "checks": {"distributionPythonAst": "PASS", "javaCompile": "PENDING", "gradleTemplateExecution": "PENDING"}
+}

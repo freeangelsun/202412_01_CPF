@@ -4,6 +4,7 @@ import com.cpf.foundation.runtime.CpfRuntimeMetadata;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeControlAgent;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeHttpControlPlaneClient;
 import com.cpf.platform.operations.runtimecontrol.internal.CpfRuntimeInstanceInboxStore;
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -49,12 +50,12 @@ public class CpfRuntimeControlAgentAutoConfiguration {
         String environmentName = first(environment.getProperty("cpf.environment"), environment.getProperty("spring.profiles.active"));
         return new CpfRuntimeInstanceRegistration(
                 runtime.instanceId(),
-                first(environment.getProperty("cpf.runtime.control.agent.service-id"), runtime.application()),
-                first(environment.getProperty("cpf.runtime.control.agent.endpoint-code"), runtime.systemCode()),
+                first(environment.getProperty("cpf.runtime.control.agent.service-id"), runtime.systemCode()),
+                first(environment.getProperty("cpf.runtime.control.agent.endpoint-code"), runtime.systemCode() + "_API"),
                 environmentName,
                 environment.getProperty("cpf.runtime.zone"),
                 environment.getProperty("cpf.runtime.cell"),
-                environment.getProperty("cpf.runtime.control.agent.runtime-base-url"),
+                resolveRuntimeBaseUrl(runtime, environment),
                 environment.getProperty("cpf.runtime.artifact-version", "unknown"),
                 environment.getProperty("cpf.runtime.artifact-commit", "unknown"),
                 environment.getProperty("cpf.runtime.role", "APPLICATION"),
@@ -118,5 +119,42 @@ public class CpfRuntimeControlAgentAutoConfiguration {
     }
     private static String first(String first, String second) {
         return first != null && !first.isBlank() ? first.trim() : (second == null || second.isBlank() ? null : second.trim());
+    }
+
+    static String resolveRuntimeBaseUrl(CpfRuntimeMetadata runtime, Environment environment) {
+        String explicit = environment.getProperty("cpf.runtime.control.agent.runtime-base-url");
+        if (explicit != null && !explicit.isBlank()) return validateHttpUrl(explicit.trim());
+
+        String configuredAddress = environment.getProperty("server.address");
+        String host = isWildcard(configuredAddress) ? runtime.hostName() : configuredAddress.trim();
+        host = first(host, runtime.hostIp());
+        if (host == null) host = "127.0.0.1";
+        if (host.indexOf(':') >= 0 && !host.startsWith("[")) host = "[" + host + "]";
+
+        int port = environment.getProperty("server.port", Integer.class, 8080);
+        if (port < 1 || port > 65_535) {
+            throw new IllegalStateException("Runtime Agent server.port must be between 1 and 65535");
+        }
+        boolean ssl = environment.getProperty("server.ssl.enabled", Boolean.class, false);
+        return validateHttpUrl((ssl ? "https" : "http") + "://" + host + ":" + port);
+    }
+
+    private static boolean isWildcard(String value) {
+        return value == null || value.isBlank() || "0.0.0.0".equals(value.trim())
+                || "::".equals(value.trim()) || "[::]".equals(value.trim());
+    }
+
+    private static String validateHttpUrl(String value) {
+        try {
+            URI uri = URI.create(value);
+            String scheme = uri.getScheme();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || uri.getHost() == null || uri.getUserInfo() != null || uri.getFragment() != null) {
+                throw new IllegalArgumentException("invalid");
+            }
+            return value;
+        } catch (RuntimeException failure) {
+            throw new IllegalStateException("Runtime Agent base URL must be an http(s) URI without credentials or fragment");
+        }
     }
 }

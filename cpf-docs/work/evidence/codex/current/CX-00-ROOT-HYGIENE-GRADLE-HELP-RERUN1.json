@@ -1,0 +1,13 @@
+{
+  "track": "CX-00-ROOT-HYGIENE-GRADLE-HELP-RERUN1",
+  "started": "2026-08-22T17:59:02.8945562+09:00",
+  "sourceIdentity": "6321bb0848dd5540deb16e17a9d66385902857851561277c962b737be1e4f9c4",
+  "command": ".\\gradlew.bat --no-daemon help -PcpfIncludeGeneratedDomains=true",
+  "exit": 1,
+  "result": "FAIL",
+  "rootCause": "Windows batch percent/quote handling corrupts the managed ErrorFile option inside JAVA_TOOL_OPTIONS; Java rejects the unmatched quote before Gradle starts.",
+  "rootCleanAfterFailure": {"dotGradle": false, "build": false},
+  "finding": "CX-F-069",
+  "stdout": "cpf-docs/work/evidence/codex/current/CX-00-ROOT-HYGIENE-GRADLE-HELP-RERUN1.stdout.log",
+  "stderr": "cpf-docs/work/evidence/codex/current/CX-00-ROOT-HYGIENE-GRADLE-HELP-RERUN1.stderr.log"
+}

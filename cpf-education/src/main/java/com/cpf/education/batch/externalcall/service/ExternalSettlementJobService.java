@@ -2,6 +2,7 @@ package com.cpf.education.batch.externalcall.service;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import com.cpf.core.api.result.CpfResult;
 import com.cpf.core.api.result.CpfRecoveryInfo;
 import com.cpf.foundation.annotation.CpfService;
@@ -34,12 +35,12 @@ public class ExternalSettlementJobService {
                 },
                 business -> {
                     stateService.mark(requestKey, "BUSINESS_FAILURE", business.errorCode());
-                    return new BatchStepResult(BatchStepResult.Status.FAILED, business.errorCode(), business.errorMessage(), 1, 0, 0,
+                    return new BatchStepResult(Status.FAILED, business.errorCode(), business.errorMessage(), 1, 0, 0,
                             Map.of("idempotencyKey", requestKey));
                 },
                 technical -> {
                     stateService.mark(requestKey, "TECHNICAL_FAILURE", technical.errorCode());
-                    return new BatchStepResult(BatchStepResult.Status.FAILED, technical.errorCode(), technical.errorMessage(), 1, 0, 0,
+                    return new BatchStepResult(Status.FAILED, technical.errorCode(), technical.errorMessage(), 1, 0, 0,
                             Map.of("idempotencyKey", requestKey));
                 },
                 unknown -> unknownResult(command, requestKey, unknown.recoveryInfo()));
@@ -49,7 +50,7 @@ public class ExternalSettlementJobService {
         CpfRecoveryInfo effective = recovery == null ? new CpfRecoveryInfo("batch:" + requestKey, "PROBE_OR_RECONCILE") : recovery;
         stateService.mark(requestKey, "UNKNOWN", effective.recoveryId());
         return new BatchStepResult(
-                BatchStepResult.Status.UNKNOWN_RESULT,
+                Status.UNKNOWN_RESULT,
                 "UNKNOWN_RESULT",
                 "외부 결과가 불명하므로 blind retry하지 않고 Probe/Reconcile 후 재시작 여부를 결정합니다.",
                 1, 0, 0,

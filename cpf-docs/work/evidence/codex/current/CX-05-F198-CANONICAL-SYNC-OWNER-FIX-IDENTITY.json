@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-23T17:44:00+09:00",
+  "findingId": "CX-F-198",
+  "sourceIdentity": {
+    "sha256": "7eb26824b6ab2b62d76bb9410b44e5e776e519603d500440b447ed84dd64c710",
+    "sha1": "8dc6d27da70e8870f61a88ba6f95797fc6478c11",
+    "files": 8279,
+    "bytes": 75038324
+  },
+  "status": "SOURCE_FIXED",
+  "owner": "cpf-tools/db/tools/sync-database-artifacts.ps1",
+  "changes": [
+    "Canonical seed source/lifecycle bundle synchronization now runs after canonical source generation",
+    "generated/current rendering now runs before lifecycle bundle assembly",
+    "Both Python projection steps fail closed on a missing script or nonzero exit",
+    "An exact orchestration-order regression test prevents one-generation-behind bundles"
+  ],
+  "next": "Run the new test, project all current outputs, verify zero drift, then repeat actual PostgreSQL lifecycle.",
+  "falseGreen": false
+}

@@ -9,7 +9,9 @@ import static org.mockito.Mockito.mock;
 
 import com.cpf.integration.resilience.api.CpfResiliencePolicy;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+import org.mockito.invocation.InvocationOnMock;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,7 +26,7 @@ class JdbcCpfResiliencePolicyStoreContractTest {
         AtomicReference<Object[]> bound = new AtomicReference<>();
         doAnswer(invocation -> {
             sql.set(invocation.getArgument(0));
-            bound.set(invocation.getArgument(1));
+            bound.set(boundArguments(invocation));
             return 1;
         }).when(jdbc).update(anyString(), any(Object[].class));
         JdbcCpfResiliencePolicyStore store =
@@ -51,7 +53,7 @@ class JdbcCpfResiliencePolicyStoreContractTest {
         AtomicReference<Object[]> bound = new AtomicReference<>();
         doAnswer(invocation -> {
             sql.set(invocation.getArgument(0));
-            bound.set(invocation.getArgument(1));
+            bound.set(boundArguments(invocation));
             return 1;
         }).when(jdbc).update(anyString(), any(Object[].class));
         JdbcCpfResiliencePolicyStore store =
@@ -98,5 +100,11 @@ class JdbcCpfResiliencePolicyStoreContractTest {
                 Duration.ofMinutes(1),
                 true,
                 true);
+    }
+
+    private static Object[] boundArguments(InvocationOnMock invocation) {
+        Object[] arguments = invocation.getArguments();
+        if (arguments.length == 2 && arguments[1] instanceof Object[] nested) return nested;
+        return Arrays.copyOfRange(arguments, 1, arguments.length);
     }
 }

@@ -66,7 +66,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
 
         Long downloadId = null;
         try {
-            List<Map<String, Object>> rows = queryRows(policy.downloadType(), request);
+            List<? extends Map<String, Object>> rows = queryRows(policy.downloadType(), request);
             String csv = toCsv(rows, mask);
             String fileName = fileName(policy.downloadType());
             downloadId = recordDownloadAudit(
@@ -173,7 +173,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
                 .orElseThrow(() -> new CpfValidationException("지원하지 않는 다운로드 유형입니다."));
     }
 
-    private List<Map<String, Object>> queryRows(String downloadType, DownloadRequest request) {
+    private List<? extends Map<String, Object>> queryRows(String downloadType, DownloadRequest request) {
         if ("BATCH_EXECUTIONS".equals(downloadType)) {
             return batchOperations.findExecutions(
                     request.jobId(),
@@ -284,7 +284,7 @@ public class AdmDownloadService extends com.cpf.admin.common.base.AdmBaseService
         return key == null ? null : key.longValue();
     }
 
-    private String toCsv(List<Map<String, Object>> rows, boolean mask) {
+    private String toCsv(List<? extends Map<String, Object>> rows, boolean mask) {
         if (rows.isEmpty()) {
             return "\uFEFF";
         }

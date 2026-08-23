@@ -2,7 +2,7 @@ package com.cpf.starter.runtime;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/** @CpfService Runtime 정책 설정입니다. */
+/** {@code @CpfService} Runtime 정책 설정입니다. */
 @ConfigurationProperties("cpf.service-policy")
 public class CpfServicePolicyProperties {
     private boolean enabled = true;

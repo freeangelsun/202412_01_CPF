@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-BACKOFFICE-BEHAVIOR-DIAGNOSIS",
+  "requirementIds": ["TEST-EVIDENCE", "SEC-BOUNDARY", "PUBLIC-API"],
+  "timestamp": {
+    "started": "2026-08-22T15:41:30+09:00",
+    "finished": "2026-08-22T15:44:15.8373222+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "0ed3a1eb5fb698db0d89a76644a30370cc8ec550c7c79a09d7d661e7c353ad0b",
+  "actualResult": "F037 exact canonical property is cpf.system-code. F039 download failure audit correctly requires CpfContexts.transactionId; MBW should use the BOM-published com.cpf.testkit:cpf-testkit in test scope, with Root regression substitution to current :internal:testing:testkit. F040 Windows temp ACL includes CodexSandboxUsers and additional SID Modify/Read permissions, so the nominal owner-only positive fixture is not owner-only. Existing ArtifactStateStore.setOwnerOnly provides the canonical cross-platform owner-only ACL construction pattern. Production bootstrap ACL checks remain unchanged.",
+  "result": "DIAGNOSIS_COMPLETE",
+  "findingIds": ["CX-F-037", "CX-F-039", "CX-F-040"],
+  "artifacts": [
+    "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/runtime/CpfRuntimeSystemCode.java",
+    "cpf-tools/build/platform-bom/public-bom/build.gradle",
+    "cpf-batch/agent/src/main/java/com/cpf/batch/agent/internal/ArtifactStateStore.java",
+    "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/auth/service/BackofficeBootstrapRunner.java"
+  ],
+  "sanitized": true
+}

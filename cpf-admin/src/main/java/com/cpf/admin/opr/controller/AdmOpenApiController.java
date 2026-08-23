@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.admin.opr.service.AdmAuditLogService;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.web.api.openapi.CpfOpenAPIOperations;

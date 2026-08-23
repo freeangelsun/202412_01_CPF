@@ -75,21 +75,41 @@ $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("cpf-platform-migration-gate-"
 try {
     $defaultProfile = Get-Content -LiteralPath $defaultProfilePath -Raw -Encoding UTF8 |
         ConvertFrom-Json -Depth 50
+    $mariaProfilePath = ""
 
     foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
         $profile = $defaultProfile |
             ConvertTo-Json -Depth 50 |
             ConvertFrom-Json -Depth 50
+        # Historical migration packs retain their published logical DB names.
+        # Enable and separate only these disposable verifier targets; canonical
+        # Product defaults continue to share cpfDB and keep optional modules off.
+        $profile.modules.batch.enabled = $true
+        $profile.modules.batch.logicalDatabase = "batDB"
+        $profile.modules.batch.sharesDatabaseWith = ""
         $profile.modules.batch.vendor = $vendor
         $profile.modules.batch.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
         $profile.modules.batch.databaseName = "batToolFixture"
         $profile.modules.batch.schemaName = "batToolSchema"
         $profile.modules.batch.clientPath = ""
-        $profile.modules.reference.vendor = $vendor
-        $profile.modules.reference.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
-        $profile.modules.reference.databaseName = "refToolFixture"
-        $profile.modules.reference.schemaName = "refToolSchema"
-        $profile.modules.reference.clientPath = ""
+        $profile.modules.admin.enabled = $true
+        $profile.modules.admin.logicalDatabase = "admDB"
+        $profile.modules.admin.sharesDatabaseWith = ""
+        $profile.modules.admin.vendor = $vendor
+        $profile.modules.admin.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
+        $profile.modules.admin.databaseName = "admToolFixture"
+        $profile.modules.admin.schemaName = "admToolSchema"
+        $profile.modules.admin.clientPath = ""
+        # The developer-facing owner is education.  This isolated fixture uses
+        # the immutable historical refDB pack name while mapping it to a
+        # disposable physical database/schema; Product profiles remain on the
+        # canonical referenceFixture declaration.
+        $profile.modules.education.logicalDatabase = "refDB"
+        $profile.modules.education.vendor = $vendor
+        $profile.modules.education.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
+        $profile.modules.education.databaseName = "refToolFixture"
+        $profile.modules.education.schemaName = "refToolSchema"
+        $profile.modules.education.clientPath = ""
 
         $profilePath = Join-Path $tempRoot "$vendor-profile.json"
         $resultPath = Join-Path $tempRoot "$vendor-result.json"
@@ -97,6 +117,7 @@ try {
             $profilePath,
             ($profile | ConvertTo-Json -Depth 50) + "`n",
             $Utf8NoBom)
+        if ($vendor -eq "mariadb") { $mariaProfilePath = $profilePath }
 
         [void](Invoke-CpfFixtureRunner @(
                 "-Root", $Root,
@@ -127,7 +148,7 @@ try {
                     "-ProfilePath", $profilePath,
                     "-Direction", "upgrade",
                     "-MigrationVersion", "$referenceVersion",
-                    "-Modules", "reference",
+                    "-Modules", "education",
                     "-ResultPath", $referenceResultPath
                 ) 0)
             $referenceResult = Get-Content -LiteralPath $referenceResultPath -Raw -Encoding UTF8 |
@@ -144,7 +165,7 @@ try {
                 "-ProfilePath", $profilePath,
                 "-Direction", "rollback",
                 "-MigrationVersion", "94",
-                "-Modules", "reference",
+                "-Modules", "education",
                 "-ResultPath", $referenceRollbackPath
             ) 0)
         $referenceRollback = Get-Content -LiteralPath $referenceRollbackPath -Raw -Encoding UTF8 |
@@ -152,10 +173,12 @@ try {
         Assert-CpfGate ($referenceRollback.plan.operations[0].selectedPath -match "/rollback/refDB/U94__") "$vendor rollback plan은 U94를 선택한다."
     }
 
+    if ([string]::IsNullOrWhiteSpace($mariaProfilePath)) { throw "MariaDB fixture profile was not created." }
+
     $missingSelectionPath = Join-Path $tempRoot "missing-selection.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Modules", "batch",
             "-ResultPath", $missingSelectionPath
         ) 1)
@@ -167,7 +190,7 @@ try {
     $v64RoutingPath = Join-Path $tempRoot "v64-routing.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "64",
             "-Modules", "core",
@@ -181,7 +204,7 @@ try {
     $v69RoutingPath = Join-Path $tempRoot "v69-routing.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "69",
             "-Modules", "core,admin",
@@ -195,7 +218,7 @@ try {
     $partialV69Path = Join-Path $tempRoot "v69-partial-owner.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "69",
             "-Modules", "core",
@@ -208,7 +231,7 @@ try {
     $ambiguousRoutingPath = Join-Path $tempRoot "ambiguous-routing.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "58",
             "-Modules", "core",
@@ -222,7 +245,7 @@ try {
     $missingConfirmationPath = Join-Path $tempRoot "missing-confirmation.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "73",
             "-Modules", "batch",
@@ -236,7 +259,7 @@ try {
     $planMismatchPath = Join-Path $tempRoot "plan-mismatch.json"
     [void](Invoke-CpfFixtureRunner @(
             "-Root", $Root,
-            "-ProfilePath", $defaultProfilePath,
+            "-ProfilePath", $mariaProfilePath,
             "-Direction", "upgrade",
             "-MigrationVersion", "73",
             "-Modules", "batch",
@@ -244,6 +267,9 @@ try {
             "-ConfirmApply",
             "-ConfirmApplicationsStopped",
             "-ConfirmRollbackReady",
+            "-Operator", "CPF_VERIFIER",
+            "-Reason", "plan-hash-fail-closed-contract",
+            "-ApprovalReference", "CPF-STATIC-VERIFY",
             "-ExpectedPlanSha256", ("0" * 64),
             "-ResultPath", $planMismatchPath
         ) 1)
@@ -251,9 +277,9 @@ try {
         ConvertFrom-Json -Depth 30
     Assert-CpfGate ($planMismatch.error -match "ExpectedPlanSha256") "Apply는 검토한 plan checksum 불일치 시 DB 연결 전에 실패한다."
 
-    # Deleted duplicate tool guides are not recreated.  The release migration guide is the
-    # single product authority for destructive apply/rollback confirmation and backup policy.
-    foreach ($guide in @("cpf-docs/releases/MIGRATION_GUIDE.md")) {
+    # Deleted duplicate release guides are not recreated.  The Developer Golden
+    # Path is the single user-facing authority for migration safety and commands.
+    foreach ($guide in @("cpf-docs/development/CPF_DEVELOPER_GOLDEN_PATH.md")) {
         $guidePath = Join-Path $Root $guide
         Assert-CpfGate (Test-Path -LiteralPath $guidePath -PathType Leaf) "Migration 실행계약 Guide가 존재한다: $guide"
         $guideText = Get-Content -LiteralPath $guidePath -Raw -Encoding UTF8

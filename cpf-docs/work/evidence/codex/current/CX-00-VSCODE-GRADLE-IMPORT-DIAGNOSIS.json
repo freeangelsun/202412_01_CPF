@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-VSCODE-GRADLE-IMPORT-DIAGNOSIS",
+  "finishedAt": "2026-08-22T21:34:00+09:00",
+  "sourceIdentitySha256": "ed4250406658037c5c312487ab5b658371484fdc9087d8696688f76d0410976a",
+  "status": "FINDING_REGISTERED",
+  "finding": "CX-F-101",
+  "observations": [
+    "Problems contains more than 1000 cascading Java/Gradle diagnostics",
+    "Red Hat Java client log repeatedly records Buildship phased-action synchronization failures",
+    "diagnostic reports unsupported class file major version 69 while Java 25 is the Product toolchain",
+    "workspace setting explicitly forces java.gradle.buildServer.enabled=off although the installed Gradle extension default is on",
+    "Java 21 and Java 25 are both installed locally"
+  ],
+  "rootCause": "The workspace forced the legacy Buildship import route, producing repeated Java-25-incompatible Gradle script analysis and stale cascading project errors.",
+  "plannedRepair": "Restore the Gradle build server, run its daemon on installed JDK 21 while retaining JavaSE-25 as the default project runtime/toolchain, and keep automatic synchronization enabled.",
+  "externalDiagnostic": "C:/Users/fly10/AppData/Roaming/Code/User/workspaceStorage/11171a02e86f9fcea51ae68e9c28fbda/redhat.java/client.log.2026-08-22.9"
+}

@@ -32,6 +32,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,18 +55,39 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
     private final CpfHeaderFailureRecorder failures;
     private final CpfRuntimeIdentity runtime;
     private final CpfSubjectCollector subjectCollector;
+    private final String managementBasePath;
+    private final List<String> managementRootPaths;
 
     public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
             CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime) {
-        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures, runtime, (CpfSubjectCollector) null);
+        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures,
+                runtime, null, "/actuator");
     }
 
     public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
             CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime, CpfSubjectCollector subjectCollector) {
+        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures,
+                runtime, subjectCollector, "/actuator");
+    }
+
+    public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
+            CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
+            CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
+            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime, CpfSubjectCollector subjectCollector,
+            String managementBasePath) {
+        this(inbound, businessDates, transactionIds, trustResolver, clientIpResolver, headerPolicies, failures,
+                runtime, subjectCollector, managementBasePath, List.of());
+    }
+
+    public CpfWebContextFilter(CpfHttpInboundContextAdapter inbound, CpfBusinessDateProvider businessDates,
+            CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
+            CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry headerPolicies,
+            CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime, CpfSubjectCollector subjectCollector,
+            String managementBasePath, Collection<String> managementRootPaths) {
         this.inbound = inbound;
         this.businessDates = businessDates;
         this.transactionIds = transactionIds;
@@ -75,6 +97,36 @@ public final class CpfWebContextFilter extends OncePerRequestFilter {
         this.failures = failures;
         this.runtime = runtime;
         this.subjectCollector = subjectCollector;
+        this.managementBasePath = normalizeManagementBasePath(managementBasePath);
+        this.managementRootPaths = managementRootPaths == null ? List.of() : managementRootPaths.stream()
+                .filter(path -> path != null && !path.isBlank())
+                .map(CpfWebContextFilter::normalizeManagementBasePath)
+                .distinct()
+                .toList();
+    }
+
+    /** Management endpoints keep Spring Security/Validation/Trace but never inherit business System6. */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isBlank() && requestPath.startsWith(contextPath)) {
+            requestPath = requestPath.substring(contextPath.length());
+        }
+        String normalizedRequestPath = requestPath;
+        if (!"/".equals(managementBasePath) && matchesBoundary(normalizedRequestPath, managementBasePath)) return true;
+        return managementRootPaths.stream().anyMatch(path -> matchesBoundary(normalizedRequestPath, path));
+    }
+
+    private static String normalizeManagementBasePath(String value) {
+        String path = value == null || value.isBlank() ? "/actuator" : value.strip();
+        if (!path.startsWith("/")) path = "/" + path;
+        while (path.length() > 1 && path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return path;
+    }
+
+    private static boolean matchesBoundary(String requestPath, String boundary) {
+        return requestPath.equals(boundary) || (!"/".equals(boundary) && requestPath.startsWith(boundary + "/"));
     }
 
     @Override

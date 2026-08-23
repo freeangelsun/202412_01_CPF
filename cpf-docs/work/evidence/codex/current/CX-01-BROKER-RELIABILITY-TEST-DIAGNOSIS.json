@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BROKER-RELIABILITY-TEST-DIAGNOSIS",
+  "finishedAt": "2026-08-22T16:38:30+09:00",
+  "sourceIdentity": "d02f1f48be4384adf670793a5d88c0dd3290f1e891d905e8efae93f59cc398ac",
+  "result": "DIAGNOSIS_COMPLETE",
+  "classification": {
+    "CX-F-044": "build.gradle test scope lacks org.mockito:mockito-core and org.springframework:spring-test directly imported by maintained tests",
+    "CX-F-045": "CpfBrokerReliabilityOperationsTest targets removed replay/replayRange methods; current Public owner-command surface is requestDlqReplay and the repository low-level SPI remains fail-closed",
+    "CX-F-046": "CpfBrokerBridgeAdapterTest uses the removed one-argument constructor and success/broker accessors, and lacks the current managed outbound Context fixture",
+    "CX-F-047": "Four internal-package tests omit imports after CpfBrokerPublisherWorker and DeterministicCpfBrokerPublisher moved to their current Public/internal packages"
+  },
+  "invariants": [
+    "Do not restore approval-bypassing replay APIs",
+    "Do not weaken repository low-level replay fail-close",
+    "Do not bypass managed messaging Context",
+    "Keep dependencies direct to the source sets that import them"
+  ]
+}

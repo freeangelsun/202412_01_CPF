@@ -5,13 +5,14 @@ import com.cpf.security.api.CpfMaskingRuntime;
 
 import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
-import com.cpf.foundation.context.system.CpfCurrentChannels;
+import com.cpf.foundation.context.system.CpfSystemCodes;
 import com.cpf.core.api.error.DefaultCpfMessageResolver;
 import com.cpf.core.api.error.DefaultCpfResponseCodeResolver;
 import com.cpf.core.api.error.CpfException;
 import com.cpf.core.api.error.CpfMessageResolver;
 import com.cpf.core.api.error.CpfResolvedResponse;
 import com.cpf.core.api.error.CpfResponseCodeResolver;
+import com.cpf.core.api.transaction.CpfTransactionIds;
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import com.cpf.foundation.execution.api.CpfSharedApi;
 import com.cpf.foundation.context.header.CpfHeaderAuditLogger;
@@ -96,7 +97,7 @@ public class LoggingAspect {
         this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
         this.logPolicyResolverProvider = logPolicyResolverProvider;
-        this.clock = clockProvider.getIfAvailable(Clock::systemUTC);
+        this.clock = clockProvider.getIfUnique(Clock::systemUTC);
     }
 
     @Around("execution(* com.cpf..*Controller.*(..))")
@@ -642,11 +643,11 @@ public class LoggingAspect {
         com.cpf.foundation.execution.api.CpfOnlineTransaction publicStandard =
                 resolveAnnotation(joinPoint, com.cpf.foundation.execution.api.CpfOnlineTransaction.class);
         if (publicStandard != null) {
-            return new OnlineExecutionMetadata(publicStandard.id(), publicStandard.name());
+            return new OnlineExecutionMetadata(publicStandard.operationId(), publicStandard.name());
         }
         CpfOnlineTransaction standard = resolveAnnotation(joinPoint, CpfOnlineTransaction.class);
         if (standard != null) {
-            return new OnlineExecutionMetadata(standard.id(), standard.name());
+            return new OnlineExecutionMetadata(standard.operationId(), standard.name());
         }
         com.cpf.foundation.execution.api.CpfSharedApi publicShared =
                 resolveAnnotation(joinPoint, com.cpf.foundation.execution.api.CpfSharedApi.class);
@@ -844,7 +845,7 @@ public class LoggingAspect {
         putDetail(details, "runtime.application", application);
         putDetail(details, "runtime.module", module);
         putDetail(details, "runtime.instanceId", record != null ? record.getInstanceId() : null);
-        putDetail(details, "runtime.instanceToken", record != null ? record.getInstanceToken() : null);
+        putDetail(details, "runtime.instanceToken", transactionInstanceToken(record));
         putDetail(details, "capability.starters", MDC.get("cpf.used.starters"));
         putDetail(details, "capability.ids", MDC.get("cpf.used.capabilities"));
         putDetail(details, "capability.providers", MDC.get("cpf.used.providers"));
@@ -860,21 +861,28 @@ public class LoggingAspect {
         return null;
     }
 
+    private static String transactionInstanceToken(TransactionLogRecord record) {
+        if (record == null || !CpfTransactionIds.isCanonical(record.getTransactionId())) {
+            return null;
+        }
+        return CpfTransactionIds.instanceToken(record.getTransactionId());
+    }
+
     private String resolveModuleId(ProceedingJoinPoint joinPoint) {
         String configuredModuleId = environment.getProperty("cpf.framework.module-id");
         if (hasText(configuredModuleId)) {
-            return CpfCurrentChannels.normalize(configuredModuleId, CpfCurrentChannels.CORE);
+            return CpfSystemCodes.normalize(configuredModuleId, CpfSystemCodes.CORE);
         }
 
         String declaringType = joinPoint.getSignature().getDeclaringTypeName();
-        String inferredModuleId = CpfCurrentChannels.inferFromTypeName(declaringType);
+        String inferredModuleId = CpfSystemCodes.inferFromTypeName(declaringType);
         if (hasText(inferredModuleId)) {
             return inferredModuleId;
         }
 
         String appName = environment.getProperty("spring.application.name");
         if (hasText(appName)) {
-            return CpfCurrentChannels.normalize(appName, CpfCurrentChannels.CORE);
+            return CpfSystemCodes.normalize(appName, CpfSystemCodes.CORE);
         }
         return "N/A";
     }

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F117-PRIVATE-GATE-CLI-CONTRACT-DIAGNOSIS",
+  "startedAt": "2026-08-23T00:14:35+09:00",
+  "finishedAt": "2026-08-23T00:15:26.6210390+09:00",
+  "sourceIdentitySha256": "bb8fe6619b869ed900e57611271893ff2fe4722e14848b285a32e43db5329d73",
+  "result": "FINDING_REGISTERED",
+  "finding": "CX-F-117",
+  "command": "python cpf-tools/verification/verify_common_product_service_dx.py .",
+  "exitCode": 2,
+  "actual": "argparse: unrecognized arguments: .",
+  "rootCause": "The canonical Open Git private-gate driver passes a positional root although the maintained Common DX verifier exposes only --root.",
+  "unaffected": {
+    "educationActiveSurface": "PASS: online=20 batch=15 catalog=35",
+    "educationExecutableCoverage": "PASS: features=35 tests=35"
+  },
+  "next": "Repair the release owner argument contract, add exact command-shape coverage, and rerun every Private gate."
+}

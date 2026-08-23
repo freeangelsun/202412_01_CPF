@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RUNTIME-CONTROL-TEST-RERUN",
+  "requirementIds": ["REL-BUILD", "SEC-BOUNDARY", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:21:54.2926852+09:00",
+    "finished": "2026-08-22T12:22:11.1610262+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :internal:platform-operations:runtime-control:test",
+  "exitCode": 0,
+  "sourceIdentity": "baa3bddaa711ad9f4714e5dc3fd385af33aa2fccc9d25b7d3633320e7836e3ab",
+  "actualResult": "BUILD SUCCESSFUL; runtime-control main/test compilation and all six tests passed, including the unchanged failure-message length security boundary test.",
+  "result": "PASS",
+  "findingIds": ["CX-F-009", "CX-F-010"],
+  "sanitized": true
+}

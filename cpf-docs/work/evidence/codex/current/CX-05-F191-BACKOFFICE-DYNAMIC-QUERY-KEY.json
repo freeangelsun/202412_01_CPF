@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-08-23T16:51:43+09:00",
+  "findingId": "CX-F-191",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "6965c85c3c36374a6bad8921011684f9ddb8d26d8209d55bba2a1d3fba2e37cf",
+  "actual": "auth-bootstrap-approval-find-by-token-hash and auth-bootstrap-approval-find-by-operation-id are ACTIVE and executed, but BackofficeBootstrapApprovalRepository passes them through private findBy(String queryKey, ...) and calls sql.required(queryKey). Exact static ownership cannot prove either key.",
+  "rootCause": "A convenience helper moved catalog ownership from a compile-visible literal to an arbitrary runtime string.",
+  "repair": "Shared row mapping remains, while each public owner method resolves its exact literal statement before passing SQL to the helper.",
+  "sourceIdentityAfter": "0b5aa8ba137ff09c68e35632059eebb20a6deb1f1f01787101093e7a912b38e0",
+  "falseGreen": false
+}

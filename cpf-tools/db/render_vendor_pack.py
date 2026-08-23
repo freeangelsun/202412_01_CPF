@@ -118,6 +118,21 @@ def q_ident(vendor: str, name: str) -> str:
     return name
 
 
+def render_index_columns(vendor: str, index) -> str:
+    """Render portable index columns plus an explicit vendor-only override.
+
+    Prefix lengths such as ``column(255)`` are MariaDB syntax, not a portable
+    expression.  Keep canonical ``columns`` portable and require any vendor
+    specialization to be declared by the index owner.
+    """
+    columns = (index.get("vendorColumns") or {}).get(vendor, index["columns"])
+    pattern = r"[A-Za-z][A-Za-z0-9_]*(?:\(\d+\))?" if vendor == "mariadb" else r"[A-Za-z][A-Za-z0-9_]*"
+    for column in columns:
+        if not re.fullmatch(pattern, column):
+            raise ValueError(f"unsafe {vendor} index column: {column}")
+    return ", ".join(columns)
+
+
 def render_column(vendor, col):
     name = q_ident(vendor, col["name"])
     typ = render_type(vendor, col["type"])
@@ -165,7 +180,7 @@ def render_table(vendor, table):
             ddl += f"COMMENT ON COLUMN {name}.{c['name']} IS '{cc}';\n"
     for idx in table.get("indexes") or []:
         unique = "UNIQUE " if idx.get("unique") else ""
-        ddl += f"CREATE {unique}INDEX {idx['name']} ON {name} ({', '.join(idx['columns'])});\n"
+        ddl += f"CREATE {unique}INDEX {idx['name']} ON {name} ({render_index_columns(vendor, idx)});\n"
     return ddl
 
 
@@ -262,9 +277,40 @@ def remap_seed_text(text: str, name_map: dict[str,str]) -> str:
 
 def convert_time_expr(vendor: str, text: str) -> str:
     if vendor == "mariadb": return text
-    text=re.sub(r"DATE_SUB\(NOW\(3\),\s*INTERVAL\s+(\d+)\s+MINUTE\)",
-                lambda m: (f"CURRENT_TIMESTAMP - INTERVAL '{m.group(1)} minutes'" if vendor=='postgresql' else f"SYSTIMESTAMP - NUMTODSINTERVAL({m.group(1)}, 'MINUTE')"), text, flags=re.I)
-    text=re.sub(r"NOW\(3\)", "CURRENT_TIMESTAMP", text, flags=re.I)
+    temporal_base = r"(?:NOW\(\d*\)|CURRENT_TIMESTAMP(?:\(\d+\))?|CURRENT_DATE|[A-Za-z_][A-Za-z0-9_.]*)"
+    date_math = re.compile(
+        rf"DATE_(?P<direction>ADD|SUB)\(\s*(?P<base>{temporal_base})\s*,\s*"
+        r"INTERVAL\s+(?P<amount>\d+)\s+(?P<unit>MINUTE|HOUR|DAY)\s*\)",
+        re.I,
+    )
+
+    def render_date_math(match: re.Match[str]) -> str:
+        base = re.sub(
+            r"NOW\(\d*\)",
+            "CURRENT_TIMESTAMP" if vendor == "postgresql" else "SYSTIMESTAMP",
+            match.group("base"),
+            flags=re.I,
+        )
+        operator = "+" if match.group("direction").upper() == "ADD" else "-"
+        amount = match.group("amount")
+        unit = match.group("unit")
+        if vendor == "postgresql":
+            return f"({base} {operator} INTERVAL '{amount} {unit.lower()}')"
+        return f"({base} {operator} INTERVAL '{amount}' {unit.upper()})"
+
+    text=date_math.sub(render_date_math,text)
+    text=re.sub(
+        r"NOW\(\d*\)",
+        "CURRENT_TIMESTAMP" if vendor == "postgresql" else "SYSTIMESTAMP",
+        text,
+        flags=re.I,
+    )
+    text=re.sub(
+        r"CURRENT_TIMESTAMP\(\d+\)",
+        "CURRENT_TIMESTAMP" if vendor == "postgresql" else "SYSTIMESTAMP",
+        text,
+        flags=re.I,
+    )
     if vendor=='postgresql':
         text=re.sub(r"CAST\(CONCAT\(CURRENT_DATE,\s*' 02:00:00'\) AS DATETIME\)", "CURRENT_DATE + TIME '02:00:00'", text, flags=re.I)
         text=re.sub(r"\bLIMIT\s+1\b", "FETCH FIRST 1 ROW ONLY", text, flags=re.I)

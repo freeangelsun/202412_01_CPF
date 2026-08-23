@@ -1,0 +1,23 @@
+{
+  "executionId": "CX-00-VSCODE-FULL-RESTART-MEMORY-VERIFICATION",
+  "timestamp": "2026-08-22T19:58:38.4551033+09:00",
+  "status": "PASS_CONFIGURATION",
+  "vscode": {"version": "1.134.0", "mainPid": 36204, "mainStart": "2026-08-22T19:56:12.984488+09:00"},
+  "memory": {
+    "rendererOldSpaceMiB": 12288,
+    "javaLanguageServerMaxHeapMiB": 8192,
+    "freePhysicalGiB": 10.57,
+    "freeVirtualGiB": 34.99
+  },
+  "renderers": [
+    {"pid": 51440, "workingSetMiB": 350.7, "privateMiB": 270.3},
+    {"pid": 35096, "workingSetMiB": 338.5, "privateMiB": 237.7}
+  ],
+  "gpu": {
+    "status": "ENABLED",
+    "adapter": "Intel Arc 140V",
+    "policy": "Preserve normal VS Code/terminal GPU acceleration; remove both attempted disable settings at user request."
+  },
+  "normalFunctionsReduced": false,
+  "remaining": "Sustained build/test observation after this complete restart before closing CX-F-070"
+}

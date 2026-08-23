@@ -18,11 +18,16 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @AutoConfiguration
+@ConditionalOnProperty(
+        prefix = "cpf.notification.dispatch",
+        name = "enabled",
+        havingValue = "true")
 @EnableConfigurationProperties(CpfNotificationProperties.class)
 public class CpfNotificationAutoConfiguration {
     @Bean

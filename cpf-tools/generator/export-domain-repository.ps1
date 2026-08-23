@@ -40,7 +40,7 @@ if (-not (Test-Path -LiteralPath $source -PathType Container)) {
 }
 $domainName = $DomainModule.Substring(4).ToLowerInvariant()
 if ([string]::IsNullOrWhiteSpace($DefinitionFile)) {
-    $DefinitionFile = Join-Path $frameworkRoot "cpf-$domainName/cpf-domain.yaml"
+    $DefinitionFile = Join-Path $frameworkRoot "cpf-$domainName/gradle.properties"
 } elseif (-not [IO.Path]::IsPathRooted($DefinitionFile)) {
     $DefinitionFile = Join-Path $frameworkRoot $DefinitionFile
 }
@@ -58,7 +58,7 @@ if (-not [string]::IsNullOrWhiteSpace($SystemCode) -and
         [string]$definition.systemCode -cne $SystemCode) {
     throw "요청 SystemCode와 canonical definition이 다릅니다: requested=$SystemCode canonical=$($definition.systemCode)"
 }
-if ([string]$definition.generatedProjectMetadata -cne 'NONE' -or
+if ([string]$definition.generatedProjectMetadata -cne 'ABSENT' -or
         @($definition.forbiddenPermanentMetadata).Count -ne 0) {
     throw "Generated Project에 금지된 lifecycle metadata가 있습니다: $(@($definition.forbiddenPermanentMetadata) -join ',')"
 }
@@ -133,6 +133,7 @@ function Copy-CpfTree {
         if ($relative -match '^(?:build|\.gradle|logs?)(?:/|$)') { continue }
         if ($relative -in @(
                 'cpf-domain.yaml',
+                'cpf-generator.lock.json',
                 'manifest/domain-manifest.json',
                 'manifest/generator-ownership.json')) {
             throw "Generated Project lifecycle metadata 재도입을 거부합니다: $relative"
@@ -277,10 +278,10 @@ try {
         repository = $target
         domainName = $domainName
         systemCode = [string]$definition.systemCode
-        definitionSha256 = [string]$definition.definitionSha256
+        contractSha256 = [string]$definition.contractSha256
         databaseVendor = $DatabaseVendor
         artifactMode = $effectiveArtifactMode
-        generatedProjectMetadata = 'NONE'
+        generatedProjectMetadata = 'ABSENT'
         batchCapabilitySelection = 'PROJECT_SETUP'
         buildExecuted = -not [bool]$SkipBuild
     } | ConvertTo-Json -Depth 10

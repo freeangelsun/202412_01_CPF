@@ -22,7 +22,7 @@ if (verificationScope === "source" && spec["x-cpf-release-eligible"] !== false) 
 if (verificationScope === "release" && spec["x-cpf-release-eligible"] !== true) throw new Error("Runtime contract must be release-eligible");
 if (Number(spec["x-cpf-canonical-schema-version"]) !== 5) throw new Error("canonical OpenAPI schemaVersion 5 필요");
 const module = String(spec["x-cpf-product-module"] || "").toUpperCase();
-const publicPrefix = module === "ADM" ? "/adm/api/" : module === "BZA" ? "/api/v1/backoffice/" : null;
+const publicPrefix = module === "ADM" ? "/adm/api/" : null;
 if (!publicPrefix) throw new Error(`지원하지 않는 제품 Module: ${module}`);
 const requiredErrors = ["401","403","404","409","429","500","503"];
 const methods = new Set(["get","post","put","patch","delete","head","options","trace"]);

@@ -1,0 +1,33 @@
+{
+  "findingId": "CX-F-231",
+  "status": "VERIFICATION_PENDING",
+  "observedAt": "2026-08-23T21:16:59+09:00",
+  "sourceIdentitySha256": "a8d43f5b3ef460bfd959db1c158d20a3c0447532a0d5b473b74e1c3f9f8f1766",
+  "runId": "b4200823c015",
+  "scope": "Batch runtime class-based AOP compatibility",
+  "result": "FAILED",
+  "rootCause": "JdbcBatchExecutionControlPlaneAdapter is final while its bean is advised by the active class-based Spring AOP policy, so CGLIB cannot construct the production bean.",
+  "actualError": "Cannot subclass final class com.cpf.batch.execution.JdbcBatchExecutionControlPlaneAdapter",
+  "requiredFix": "Audit all actual Batch advised bean types, remove only incompatible final modifiers at the exact owners, add a class-based proxy regression, rebuild, and replay the Fresh runtime.",
+  "sourceFix": {
+    "sourceIdentitySha256": "a49918c5e29279a0fc93b3ffa39c6042f12fe937fe5064c491002e4121c928b5",
+    "sourceIdentitySha1": "333d08439fac7310ed8aacf56fe258fa7be5f0cd",
+    "fileCount": 8296,
+    "totalBytes": 75269075,
+    "auditResult": "JdbcBatchExecutionControlPlaneAdapter was the only final Batch main type declaring @Transactional methods.",
+    "ownerFix": "Removed only the final modifier; transaction annotations and class-based AOP policy are unchanged.",
+    "regression": "CpfBatchClassBasedAopContractTest"
+  },
+  "targetedVerification": {
+    "batchAopContract": "1/1 PASS",
+    "batchBindingContext": "1/1 PASS",
+    "workerBootJar": "PASS",
+    "failures": 0,
+    "skips": 0
+  },
+  "cleanup": {
+    "disposableDatabases": 0,
+    "disposableRoles": 0
+  },
+  "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F206-F208-F211-F216-F217-F219-F221-F224-F225-F226-F227-F228-F229-F230-TWO-WORKER-RUNTIME-RERUN15/**"
+}

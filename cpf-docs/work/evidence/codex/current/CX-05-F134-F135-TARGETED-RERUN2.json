@@ -1,0 +1,24 @@
+{
+  "executedAt": "2026-08-23T03:54:00+09:00",
+  "sourceIdentitySha256": "cdf033e2d600c45d1d271736bb3497b839d9d500c93c4a7bc2624333398e4360",
+  "python": {
+    "command": "python -m pytest -q cpf-tools/verification/tests/test_cpf_gradle_logical_tree.py",
+    "result": "PASS",
+    "tests": 8
+  },
+  "gradle": {
+    "command": "gradlew compositeModuleIdentityGate plus Data MyBatis/Data JDBC/Session JDBC POM generation --no-daemon --max-workers=1",
+    "result": "PASS",
+    "catalogModules": 64,
+    "collisionOwnersIsolated": 9,
+    "canonicalPoms": [
+      "com.cpf.starter:cpf-starter-data-mybatis:1.0.0-SNAPSHOT",
+      "com.cpf.starter:cpf-starter-data-jdbc:1.0.0-SNAPSHOT",
+      "com.cpf.starter:cpf-starter-session-jdbc:1.0.0-SNAPSHOT"
+    ]
+  },
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/CX-05-F134-F135-STATIC-TARGETED-RERUN2.log",
+    "cpf-docs/work/evidence/codex/current/CX-05-F134-GRADLE-GATE-RERUN2.log"
+  ]
+}

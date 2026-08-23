@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmCenterCutOperationService;
+import com.cpf.admin.opr.service.AdmAuditLogService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
@@ -15,7 +16,8 @@ import static org.mockito.Mockito.when;
 class AdmCenterCutControllerTest {
 
     private final AdmCenterCutOperationService service = mock(AdmCenterCutOperationService.class);
-    private final AdmCenterCutController controller = new AdmCenterCutController(service);
+    private final AdmCenterCutController controller =
+            new AdmCenterCutController(service, mock(AdmAuditLogService.class));
 
     @Test
     void findJobsDelegatesToOperationService() {

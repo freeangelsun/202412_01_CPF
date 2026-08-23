@@ -1,0 +1,107 @@
+{
+  "recordedAt": "2026-08-23T14:02:00+09:00",
+  "findingId": "CX-F-162",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "297008ffa32fd3d0db96d8c997a7931de4f0815a017e9182980d527fdeaec5b9",
+  "title": "Canonical MariaDB utf8mb4 search-token index exceeds InnoDB key budget",
+  "requirement": "DB-BINDING",
+  "actualExecution": {
+    "vendor": "mariadb",
+    "version": "12.3.2",
+    "mode": "verifier-owned FreshInstall",
+    "runId": "2368457819ec",
+    "status": "FAIL",
+    "errorCode": 1071,
+    "sqlState": "42000",
+    "error": "Specified key was too long; max key length is 3072 bytes",
+    "cleanup": "PASS",
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F160-MARIADB-LIFECYCLE/verifier-owned-lifecycle.json"
+  },
+  "failedObject": {
+    "table": "CPF_FIELD_ENCRYPTION_LEDGER",
+    "index": "IX_CPF_FIELD_ENC_TOKEN",
+    "columns": ["FIELD_NAME VARCHAR(64)", "SEARCH_TOKEN VARCHAR(1000)"],
+    "charset": "utf8mb4",
+    "maximumEncodedBytes": 4256,
+    "mariaDbLimitBytes": 3072
+  },
+  "rootCause": "The canonical schema did not model MariaDB utf8mb4 index byte budgets. The first actual failure was a full composite index over an HMAC-SHA256 search token using its generic 1000-character storage bound; after adding a generic fail-closed calculation, the gate exposed at least one additional oversized composite index. The defect is repository-wide canonical index sizing, not a single table exception.",
+  "runtimeContract": "JceCpfCryptoOperations.searchableToken emits lowercase HMAC-SHA256 hex (64 characters). Full column storage remains compatible; MariaDB may safely index a bounded prefix and the equality predicate still validates the complete token.",
+  "repair": "Add a MariaDB vendor index prefix within 3072 bytes at the canonical schema owner, add a generic fail-closed MariaDB index-budget gate, regenerate current DB3 source/install packs, and publish a new append-only V135/R135 repair for already-installed schemas without modifying V102 or any existing checksum.",
+  "sourceFixAttempt1": {
+    "sourceIdentity": {
+      "contentSha256": "afb8d77fcfc4049d23814ca19651cbd82ac28120d0f72b0ac9ae0fce8d96eca0",
+      "contentSha1": "d968df9e40cc6b6442d93d4ea90cfaf33caa8ac7",
+      "fileCount": 8222,
+      "totalBytes": 75023318
+    },
+    "searchTokenVendorColumns": ["FIELD_NAME", "SEARCH_TOKEN(64)"],
+    "gateAdded": "generic MariaDB utf8mb4 byte-budget calculation for canonical unique/index definitions",
+    "result": "INCOMPLETE_ADDITIONAL_FINDING",
+    "nextActualError": "GW_BINDING.uk_cpf_gwy_binding_key bytes=4080 columns=environment_code,host_pattern,path_pattern,http_method,api_version,route_version"
+  },
+  "sourceFixAttempt2": {
+    "sourceIdentity": {
+      "contentSha256": "92f35e35fb6d4e1737b2b5bbf5c6292c510aa94528958959b3dbff947a4f3114",
+      "contentSha1": "79430b7ed19d999feedd9edd631f254e1f6a1f79",
+      "fileCount": 8222,
+      "totalBytes": 75023336
+    },
+    "gateReporting": "Every collected canonical DDL safety error is emitted with ErrorAction Continue before the aggregate failure is raised.",
+    "actualInventory": [
+      "cpfDB.GW_BINDING.uk_cpf_gwy_binding_key bytes=4080 columns=environment_code,host_pattern,path_pattern,http_method,api_version,route_version"
+    ],
+    "result": "IN_PROGRESS_EXACT_OVERSIZE_INVENTORY_1"
+  },
+  "sourceFixAttempt3": {
+    "sourceIdentity": {
+      "contentSha256": "af63b80c31698fa641d5dd42f7faca8ee789ad241d7e1f2f8ee42341a3eb8b42",
+      "contentSha1": "1431a946d47f93159696dec3ad44c1a4d1f7d5a8",
+      "fileCount": 8223,
+      "totalBytes": 75027058
+    },
+    "canonicalDesign": "GW_BINDING stores one non-null CHAR(64) binding_key_hash and the unique constraint owns that bounded digest instead of a lossy prefix over six long fields.",
+    "digestContract": "SHA-256 over the concatenation of six per-component SHA-256 hexadecimal digests: environment, host pattern, path pattern, normalized HTTP method, API version, route version.",
+    "runtimeOwner": "JdbcCpfGatewayRegistryAdapter writes the digest on insert and update; CpfGatewayRoute normalizes blank HTTP method to the persisted wildcard.",
+    "regression": "Canonical cross-vendor renderer assertion plus Java deterministic/full-field/wildcard normalization tests added.",
+    "result": "SOURCE_FIXED_PENDING_EXECUTION_AND_APPEND_ONLY_MIGRATION"
+  },
+  "regenerationAttempt1": {
+    "sourceIdentity": {
+      "contentSha256": "8925f77fdcb71977626e09a5f70d7fc9199a13b383d4c78263793ca2002635b3",
+      "contentSha1": "48e0c5c100aaec99a3106da1f6172e3d6f460fd1",
+      "fileCount": 8223,
+      "totalBytes": 75027375
+    },
+    "commands": [
+      "python cpf-tools/db/render_vendor_pack.py",
+      "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+      "cpf-tools/db/tools/build-official-db-vendor-packs.ps1",
+      "cpf-tools/db/tools/build-all-install-sql.ps1"
+    ],
+    "result": "PASS",
+    "canonicalVendorRenderTests": "6/6 PASS",
+    "canonicalDdlSafety": "PASS",
+    "immutableHistory": {
+      "fileCount": 677,
+      "aggregateBefore": "bfc781c354fc2710a5c71f42b269b720e2188869022edb4d8248555cfa4cb7e6",
+      "aggregateAfter": "bfc781c354fc2710a5c71f42b269b720e2188869022edb4d8248555cfa4cb7e6",
+      "changed": false
+    }
+  },
+  "migrationAuthoring": {
+    "version": 135,
+    "description": "current_binding_and_response_contract",
+    "vendors": ["mariadb", "postgresql", "oracle"],
+    "forward": "six normalized full UTF-8 components -> per-component SHA-256 -> outer SHA-256; unique bounded CHAR(64)",
+    "rollback": "data-preserving nullable digest plus compatibility write trigger; no lossy prefix unique and no column/data deletion",
+    "manifestRegistration": "PENDING"
+  },
+  "passCriteria": [
+    "canonical safety gate rejects any MariaDB utf8mb4 index above 3072 encoded bytes",
+    "current MariaDB Fresh DDL uses a valid prefix index while PostgreSQL/Oracle retain full index semantics",
+    "V102 and all pre-existing Migration/Rollback bytes remain unchanged",
+    "new V135/R135 is append-only and registered without changing prior manifest prefixes",
+    "actual MariaDB Fresh Upgrade Rollback Reapply lifecycle passes and cleanup passes"
+  ]
+}

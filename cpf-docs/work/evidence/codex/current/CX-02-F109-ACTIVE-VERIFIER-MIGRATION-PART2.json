@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-F109-ACTIVE-VERIFIER-MIGRATION-PART2",
+  "finishedAt": "2026-08-22T23:37:11.8700086+09:00",
+  "status": "SOURCE_FIXED_PARTIAL",
+  "sourceIdentity": "c7a6b9138c6741643979f181a2c0a42a3ca1524248bc753485ee40b0fff47462",
+  "changes": [
+    "Lifecycle schema 5 and transientInputSchema/developerContract enforcement",
+    "Source-controlled ownership lock forbidden",
+    "Fresh clone recovery through exact Developer Contract parity and transient state reconstruction",
+    "Generated output metadata absence and empty remove replay",
+    "Upgrade uses external transient descriptor instead of writing YAML into output"
+  ],
+  "currentBackofficeOwner": "cpf-backoffice / MBW; cpf-biz-admin is retired and must not be restored"
+}

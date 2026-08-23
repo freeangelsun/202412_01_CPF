@@ -85,7 +85,7 @@ public class CpfServiceCallAutoConfiguration {
     CpfServiceCallLogWriter cpfServiceCallLogWriter(
             CpfServiceRegistryRepository repository,
             ObjectProvider<Clock> clocks) {
-        return new CpfServiceCallLogWriter(repository, clocks.getIfAvailable(Clock::systemUTC));
+        return new CpfServiceCallLogWriter(repository, clocks.getIfUnique(Clock::systemUTC));
     }
 
     /** 표준 4상태 결과와 UNKNOWN Recovery를 처리하는 Service Call Engine을 구성합니다. */
@@ -107,7 +107,7 @@ public class CpfServiceCallAutoConfiguration {
                 segments.getIfAvailable(),
                 reconciliations.getIfAvailable(),
                 lineageRecorders.getIfAvailable(),
-                clocks.getIfAvailable(Clock::systemUTC),
+                clocks.getIfUnique(Clock::systemUTC),
                 () -> {
                     CpfExecutionIdGenerator generator = executionIds.getIfAvailable();
                     return generator == null ? UUID.randomUUID().toString() : generator.newExecutionId();

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-TESTKIT-ACCESSOR-FIX-IDENTITY",
+  "requirementIds": ["PUBLIC-API", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:43:32.2501882+09:00",
+    "finished": "2026-08-22T12:43:41.3080946+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Replace the sole remaining CpfOnlineTransaction.id() use with operationId(); add regression assertion; recalculate Source Identity",
+  "exitCode": 0,
+  "sourceIdentity": "04a9612e2050b15a1adc44fdd510b9dbbcb155241dc870a0ae4036fcb6005e4e",
+  "sourceState": {
+    "contentSha1": "2179e81ac36bb3cb14a0ece60fd17b9620b01483",
+    "fileCount": 8204,
+    "totalBytes": 75684051
+  },
+  "actualResult": "CpfFaultInjectionAspect now supplies the annotation's canonical operationId to fault injection. A regression assertion rejects reintroduction of transaction.id().",
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-015"],
+  "sanitized": true
+}

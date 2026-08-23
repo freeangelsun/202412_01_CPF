@@ -1,10 +1,11 @@
 {
-  "schemaVersion": 4,
-  "contractId": "CPF-GENERATOR-LIFECYCLE-4",
+  "schemaVersion": 5,
+  "contractId": "CPF-GENERATOR-LIFECYCLE-5",
   "owner": "cpf-tools/generator",
   "canonicalEngine": "cpf-tools/generator/engine/cpf_domain_generator.py",
   "canonicalCli": "cpf-tools/runtime/cli/cpf.py",
-  "canonicalInputSchema": "cpf-tools/generator/contracts/cpf-domain.schema.json",
+  "transientInputSchema": "cpf-tools/generator/contracts/cpf-domain.schema.json",
+  "developerContract": "cpf-<domain>/gradle.properties",
   "supportedVendors": [
     "mariadb",
     "postgresql",
@@ -22,7 +23,7 @@
     "verify"
   ],
   "transientState": {
-    "directory": "build/domain-generator/verification/cpf-<domain>",
+    "directory": "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>",
     "stateFile": "generation-state.json",
     "verificationFile": "verify-result.json",
     "db3Directory": "db3/<vendor>",
@@ -36,6 +37,8 @@
     "vendors",
     "generator.lock",
     "manifest"
+    ,"cpf-domain.yaml"
+    ,"cpf-generator.lock.json"
   ],
   "userProtection": {
     "generatedFileDriftBlocksRegenerate": true,
@@ -43,8 +46,7 @@
     "generatedFileDriftBlocksRemove": true,
     "unmanagedFilesAreNeverRemoved": true,
     "databaseObjectsNeverAutoDropped": true,
-    "restoreRequiresMatchingDefinitionAndExpectedSeed": true,
-    "purgeDefinitionRequiresExplicitOption": true,
+    "restoreRequiresMatchingContractAndExpectedSeed": true,
     "frameworkIntegrationPointsRemovedWithDomain": true
   },
   "topology": {
@@ -53,7 +55,7 @@
       "cpf-member",
       "cpf-external"
     ],
-    "thirdDomainVerificationRoot": "build/domain-generator/verification/<scenario>"
+    "thirdDomainVerificationRoot": "cpf-docs/work/evidence/generated/domain-generator/verification/<scenario>"
   },
   "releaseEvidence": {
     "requiredVendors": [
@@ -66,7 +68,8 @@
     "runtimeSuccessNotInferredFromStaticGate": true
   },
   "localRuntimeIntegration": {
-    "descriptor": "<runtime>/src/main/resources/META-INF/cpf/generated-domain.properties",
+    "descriptor": "<runtime>/build/generated/cpf-runtime-descriptor/META-INF/cpf/generated-domain.properties",
+    "sourceControlled": false,
     "defaultMode": "local-integrated",
     "defaultPortPolicy": "single-http-port",
     "gatewayRequired": false,
@@ -77,14 +80,14 @@
     "generated runtime descriptor",
     "generated build outputs",
     "local integrated classpath discovery",
-    "distributed port/registry derived from definition",
-    "distribution manifest derived from definition",
+    "distributed port/registry derived from Developer contract",
+    "distribution manifest derived from Developer contract",
     "settings/includeBuild derived from physical root",
-    "canonical definition only when --purge-definition is explicit"
+    "Developer contract with the Generated project"
   ],
   "generatedDatabaseAssets": {
     "owner": "CPF_DB_RENDERER",
-    "root": "build/domain-generator/verification/cpf-<domain>/db3/<vendor>",
+    "root": "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>/db3/<vendor>",
     "vendors": [
       "mariadb",
       "postgresql",
@@ -99,13 +102,12 @@
     ],
     "sourceControlled": false,
     "generatedDomainRoot": false,
-    "purpose": "cpf-domain.yaml logical model + environment binding에서 transient/release DB3 pack을 render하며 Generated Domain source root에는 vendor/db directory를 두지 않는다."
+    "purpose": "Developer gradle.properties 계약 + environment binding에서 transient/release DB3 pack을 render하며 Generated Domain source root에는 vendor/db directory를 두지 않는다."
   },
   "workspaceOwnershipLock": {
-    "directory": "cpf-<domain>/cpf-generator.lock.json",
-    "sourceControlled": true,
-    "semanticSourceOfTruth": false,
-    "freshCloneRecovery": true,
+    "sourceControlled": false,
+    "status": "FORBIDDEN",
+    "freshCloneRecovery": "DETERMINISTIC_CONTRACT_PARITY_TO_TRANSIENT_STATE",
     "generatedProjectMetadata": false
   }
 }

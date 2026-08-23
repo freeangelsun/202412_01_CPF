@@ -538,9 +538,9 @@ function Assert-CpfVerifierOwnedDisposableTarget {
     $allowedHosts = @('mariadb','cpf-mariadb','postgresql','cpf-postgresql','oracle','cpf-oracle')
     foreach ($operation in @($Operations)) {
         $target = $operation.target
-        $host = ([string]$target.host).Trim().ToLowerInvariant()
-        if ($host -notin $allowedHosts) {
-            throw "Verifier-owned disposable migration forbids non-Docker target host: $host"
+        $targetHost = ([string]$target.host).Trim().ToLowerInvariant()
+        if ($targetHost -notin $allowedHosts) {
+            throw "Verifier-owned disposable migration forbids non-Docker target host: $targetHost"
         }
         if ($Vendor -in @('mariadb','postgresql')) {
             $expectedPrefix = "cpf_verify_${VerifierRunId}_"
@@ -795,15 +795,72 @@ try {
         throw "Vendor migration/rollback lifecycle path가 비어 있습니다: vendor=$vendor"
     }
 
-    $targetByLogicalDatabase = @{}
+    # Canonical consolidated profiles intentionally expose multiple product modules over
+    # one logical/physical lifecycle owner (for example core/common/admin/batch -> cpfDB).
+    # Plan one operation for that owner, but only after the declarations and connection
+    # identity prove that this is an explicit shared database rather than an accidental alias.
+    $moduleKeysByLogicalDatabase = @{}
+    $logicalDatabaseOrder = [System.Collections.Generic.List[string]]::new()
     foreach ($moduleKey in $platformKeys) {
         $target = $staticProfiles[$moduleKey]
         $logicalKey = ([string]$target.logicalDatabase).ToLowerInvariant()
-        if ([string]::IsNullOrWhiteSpace($logicalKey) -or
-            $targetByLogicalDatabase.ContainsKey($logicalKey)) {
-            throw "선택된 Module logicalDatabase가 비어 있거나 중복되었습니다: module=$moduleKey"
+        if ([string]::IsNullOrWhiteSpace($logicalKey)) {
+            throw "선택된 Module logicalDatabase가 비어 있습니다: module=$moduleKey"
         }
-        $targetByLogicalDatabase[$logicalKey] = $target
+        if (-not $moduleKeysByLogicalDatabase.ContainsKey($logicalKey)) {
+            $moduleKeysByLogicalDatabase[$logicalKey] = [System.Collections.Generic.List[string]]::new()
+            $logicalDatabaseOrder.Add($logicalKey)
+        }
+        $moduleKeysByLogicalDatabase[$logicalKey].Add($moduleKey)
+    }
+
+    $targetByLogicalDatabase = @{}
+    $migrationTargetKeys = [System.Collections.Generic.List[string]]::new()
+    foreach ($logicalKey in $logicalDatabaseOrder) {
+        $groupKeys = @($moduleKeysByLogicalDatabase[$logicalKey])
+        $selectedTargetKey = $groupKeys[0]
+        if ($groupKeys.Count -gt 1) {
+            $declaredOwners = @($groupKeys | ForEach-Object {
+                    $candidate = $staticProfiles[$_]
+                    if ([string]::IsNullOrWhiteSpace([string]$candidate.sharesDatabaseWith)) {
+                        [string]$candidate.moduleKey
+                    } else {
+                        [string]$candidate.sharesDatabaseWith
+                    }
+                } | Sort-Object -Unique)
+            if ($declaredOwners.Count -ne 1) {
+                throw "동일 logicalDatabase Module은 하나의 sharesDatabaseWith owner를 선언해야 합니다: logicalDatabase=$logicalKey modules=$($groupKeys -join ',') owners=$($declaredOwners -join ',')"
+            }
+            $declaredOwner = [string]$declaredOwners[0]
+            if (-not $staticProfiles.ContainsKey($declaredOwner) -or
+                    ([string]$staticProfiles[$declaredOwner].logicalDatabase).ToLowerInvariant() -cne $logicalKey) {
+                throw "sharesDatabaseWith owner가 동일 logicalDatabase를 소유하지 않습니다: logicalDatabase=$logicalKey owner=$declaredOwner"
+            }
+            $identityCandidates = @($groupKeys + @($declaredOwner) | Sort-Object -Unique)
+            $connectionIdentities = @($identityCandidates | ForEach-Object {
+                    $candidate = $staticProfiles[$_]
+                    @(
+                        [string]$candidate.vendor,
+                        [string]$candidate.host,
+                        [string]$candidate.port,
+                        [string]$candidate.databaseName,
+                        [string]$candidate.schemaName,
+                        [string]$candidate.migrationUsername,
+                        [string]$candidate.migrationUserHost,
+                        [string]$candidate.clientPath,
+                        [string]$candidate.sslMode,
+                        [string]$candidate.sslCaPath
+                    ) -join [char]0x1f
+                } | Sort-Object -Unique)
+            if ($connectionIdentities.Count -ne 1) {
+                throw "동일 logicalDatabase 공유 Module의 migration connection identity가 다릅니다: logicalDatabase=$logicalKey modules=$($identityCandidates -join ',')"
+            }
+            if ($declaredOwner -in $groupKeys) {
+                $selectedTargetKey = $declaredOwner
+            }
+        }
+        $targetByLogicalDatabase[$logicalKey] = $staticProfiles[$selectedTargetKey]
+        $migrationTargetKeys.Add($selectedTargetKey)
     }
 
     $availableVersions = [Collections.Generic.HashSet[int]]::new()
@@ -819,7 +876,7 @@ try {
             [void]$availableVersions.Add((Get-CpfMigrationVersion $file.Name))
         }
     } else {
-        foreach ($moduleKey in $platformKeys) {
+        foreach ($moduleKey in $migrationTargetKeys) {
             $target = $staticProfiles[$moduleKey]
             $migrationDirectory = Resolve-CpfLifecyclePath $migrationPattern $target.logicalDatabase
             if (-not (Test-Path -LiteralPath $migrationDirectory -PathType Container)) {
@@ -916,7 +973,7 @@ try {
                 if (($migrationLogical -join ",") -ne ($rollbackLogical -join ",")) {
                     throw "Migration/Rollback logical DB ownership이 다릅니다: version=$version migration=$($migrationLogical -join ',') rollback=$($rollbackLogical -join ',')"
                 }
-                foreach ($moduleKey in $platformKeys) {
+                foreach ($moduleKey in $migrationTargetKeys) {
                     $target = $staticProfiles[$moduleKey]
                     $logicalKey = $target.logicalDatabase.ToLowerInvariant()
                     $migrationGroup = @($migrationGroups | Where-Object {
@@ -950,7 +1007,7 @@ try {
         }
     } else {
         foreach ($version in $selectedVersions) {
-            foreach ($moduleKey in $platformKeys) {
+            foreach ($moduleKey in $migrationTargetKeys) {
                 $target = $staticProfiles[$moduleKey]
                 $migrationDirectory = Resolve-CpfLifecyclePath $migrationPattern $target.logicalDatabase
                 $rollbackDirectory = Resolve-CpfLifecyclePath $rollbackPattern $target.logicalDatabase
@@ -1037,7 +1094,7 @@ try {
         }
 
         $runtimeProfiles = @{}
-        foreach ($moduleKey in $platformKeys) {
+        foreach ($moduleKey in $migrationTargetKeys) {
             $runtimeProfiles[$moduleKey] = ConvertTo-CpfModuleProfile $profile $moduleKey
         }
 

@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-23T17:02:01+09:00",
+  "finishedAt": "2026-08-23T17:04:00+09:00",
+  "command": "pwsh -NoProfile -File .\\cpf-tools\\runtime\\tools\\sync-bat-runtime-query-pack.ps1 -Root .",
+  "exitCode": 0,
+  "status": "PASS_SYNC_SOURCE_FIXED",
+  "statementCount": 216,
+  "vendorCount": 3,
+  "renderedFileCount": 648,
+  "prunedFileCount": 21,
+  "sourceIdentityAfter": "ad80545586332cf110445456c27ff8c89975e02f1d6a0ee0cc8353a29a37e5ae",
+  "verificationPending": ["BAT sync CHECK", "full query integrity", "Java 25", "actual Batch runtime/recovery"]
+}

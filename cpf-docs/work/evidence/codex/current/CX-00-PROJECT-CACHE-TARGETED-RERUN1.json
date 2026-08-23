@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-PROJECT-CACHE-TARGETED-RERUN1",
+  "finishedAt": "2026-08-22T22:30:43.4667807+09:00",
+  "sourceIdentitySha256": "129db4f879f888825a13178e277e0f70a90dd0fb2a61eef9b29f63ca41fc4aab",
+  "exitCode": 1,
+  "status": "TEST_ASSERTION_ERROR",
+  "result": {"passed": 4, "failed": 1},
+  "actual": "The new assertion named a nonexistent cpfManagedGradleProjectCache variable; current settings correctly assigns new File(cpfManagedGradleRoot, 'project-cache').",
+  "productFinding": false,
+  "nextAction": "Correct the assertion to the exact current settings owner and rerun."
+}

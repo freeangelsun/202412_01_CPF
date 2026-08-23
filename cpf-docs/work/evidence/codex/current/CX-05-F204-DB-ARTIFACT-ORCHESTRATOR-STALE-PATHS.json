@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-08-23T18:26:00+09:00",
+  "sourceIdentity": {
+    "sha256": "fb1b84a895ecadc345e4af85307ba9aacd7993675d45f5c4bf5d83824e1d2a25",
+    "sha1": "5336d5a7009c23c8518ebd833a90e096d5190e92",
+    "files": 8286,
+    "bytes": 75210068
+  },
+  "findingId": "CX-F-204",
+  "status": "OPEN",
+  "command": "pwsh -NoProfile -File cpf-tools/db/tools/sync-database-artifacts.ps1 -Root .",
+  "exitCode": 1,
+  "error": "DB artifact step script is missing: cpf-tools/db/tools/generate-official-db-vendor-source.ps1",
+  "inventory": {
+    "generator": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+    "queryIntegrity": "cpf-tools/db/verification/check-query-contract-integrity.ps1",
+    "schemaDrift": "cpf-tools/db/verification/check-database-schema-drift.ps1",
+    "profileStandard": "cpf-tools/db/verification/check-database-profile-standard.ps1",
+    "springBatchSequence": "cpf-tools/verification/tools/check-spring-batch-sequence-contract.ps1",
+    "platformRuntimeQueries": "cpf-tools/runtime/tools/sync-platform-runtime-query-packs.ps1",
+    "batchRuntimeQueries": "cpf-tools/runtime/tools/sync-bat-runtime-query-pack.ps1",
+    "nullableRepair": "cpf-tools/verification/tools/sync-platform-nullable-empty-string-repair.ps1",
+    "generatedDomains": "cpf-tools/generator/tools/sync-generated-domain-artifacts.ps1"
+  },
+  "impact": "The advertised canonical one-command artifact synchronizer cannot execute its first step and silently omits Generated Domain drift/apply because every moved owner is resolved only under cpf-tools/db/tools.",
+  "next": "Make every step an explicit repository-relative owner path, fail closed when missing, and add an exact executable-inventory regression.",
+  "falseGreen": false
+}

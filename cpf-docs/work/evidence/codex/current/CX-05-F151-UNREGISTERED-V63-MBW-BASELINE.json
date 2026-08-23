@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-08-23T12:47:00+09:00",
+  "findingId": "CX-F-151",
+  "status": "IN_PROGRESS",
+  "sourceIdentityBeforeFix": "a5f0541169534255666bc9988cfacf66dc2595879d4a6cf5f25b128b46cd7e5c",
+  "trigger": {
+    "command": "pwsh -NoProfile -File cpf-tools/db/verification/check-migration-checksums.ps1",
+    "exitCode": 1,
+    "error": "versioned file missing from checksum manifest: postgresql/migration/flyway/mbwDB/V63__cpf_vendor_baseline.sql",
+    "log": "cpf-docs/work/evidence/codex/current/CX-05-F144-F150-CHECKSUM-SEMANTIC-RERUN3.log"
+  },
+  "generatedGarbage": [
+    "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V63__cpf_vendor_baseline.sql",
+    "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R63__cpf_vendor_baseline.sql",
+    "cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/V63__cpf_vendor_baseline.sql",
+    "cpf-tools/db/vendor/oracle/rollback/mbwDB/R63__cpf_vendor_baseline.sql"
+  ],
+  "proof": {
+    "allFourGitStatus": "untracked",
+    "postgresqlManifestOnlyVersion": 133,
+    "oracleManifestOnlyVersion": 133,
+    "v63Registered": false,
+    "appendOnlyRegistrationAllowed": false,
+    "freshInstallOwner": "cpf-tools/db/generated/current/<vendor>/backoffice-schema.sql",
+    "upgradeOwner": "published mbwDB V133 history"
+  },
+  "rootCause": "The lifecycle bundle builder backfills a hard-coded old V63 baseline whenever that filename is absent, even when the logical pack already has later published V133 history. This creates unregistered historical migration/rollback garbage and cannot be corrected by appending a lower version checksum.",
+  "repairDirection": "Allow V63/R63 bootstrap only for a truly empty, unpublished logical migration pack; never backfill them into an existing pack. Delete the exact four untracked generated files immediately and prove repeat generation does not recreate them."
+}

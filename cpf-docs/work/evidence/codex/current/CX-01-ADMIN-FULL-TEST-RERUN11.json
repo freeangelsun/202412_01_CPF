@@ -1,0 +1,27 @@
+{
+  "track": "CX-01-ADMIN-FULL-TEST-RERUN11",
+  "startedAt": "2026-08-22T19:22:28.5143290+09:00",
+  "finishedAt": "2026-08-22T19:26:06+09:00",
+  "exitCode": 0,
+  "result": "PASS",
+  "gradle": {"version": "9.1.0", "java": "25.0.3", "tasksExecuted": 116, "rerunTasks": true},
+  "adminTests": {"suites": 84, "tests": 266, "failures": 0, "skipped": 0},
+  "frontend": {"openApiOperations": 337, "openApiSchemas": 262, "generatedClient": "PASS", "viteBuild": "PASS"},
+  "sourceIdentity": {
+    "sha256": "09d065fef72f4a769a4a3b0fc465e3bd4058f6eb223d79d625f3a8df5d31b650",
+    "sha1": "21776bd1c3384bb2022d4330b73ed0a05175b24f",
+    "fileCount": 8212,
+    "totalBytes": 75667326
+  },
+  "rootGarbageCount": 0,
+  "newVsCodeRendererCrashesDuringRun": 0,
+  "closedFindings": [
+    "CX-F-074", "CX-F-075", "CX-F-076", "CX-F-077", "CX-F-078", "CX-F-079", "CX-F-080",
+    "CX-F-081", "CX-F-082", "CX-F-083", "CX-F-084", "CX-F-085", "CX-F-086"
+  ],
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-FULL-TEST-RERUN11.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-FULL-TEST-RERUN11.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-FULL-TEST-RERUN11.exit.txt"
+  ]
+}

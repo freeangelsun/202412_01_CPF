@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-23T16:28:31+09:00",
+  "findingId": "CX-F-189",
+  "status": "IN_PROGRESS",
+  "sourceIdentityBefore": "f5f64570aba2abc5a14ebd60b06d51681e2f7873e1101534d275d8b72f9da779",
+  "title": "Canonical Standard Execution catalog port has no Product provider",
+  "actual": "CpfExecutionCatalogPort has zero implementation/provider candidates while AdmStandardExecutionController requires it. Three ACTIVE DB3 query statements declare nonexistent CpfExecutionCatalogRepository as consumer.",
+  "rootCause": "The public port, canonical CPF_STANDARD_EXECUTION tables, DB3 templates and ADM endpoints were delivered without the runtime repository/AutoConfiguration wiring, leaving an interface-only/metadata-only feature.",
+  "affectedRuntime": "/adm/api/standard-executions list/detail and startup discovery upsert",
+  "repairOwner": "Platform Operations runtime-control JDBC repository and AutoConfiguration using CpfVendorSqlCatalog",
+  "falseGreenForbidden": "Do not add a no-op bean, in-memory fallback, optional controller injection, or mark the DB3 statements STAGED."
+}

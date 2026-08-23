@@ -15,17 +15,42 @@ import com.cpf.batch.centercut.runner.internal.JdbcCenterCutClaimRepository;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.spi.BatchStepHandler;
 import com.cpf.batch.spi.CenterCutHandler;
+import com.cpf.testkit.context.CpfContextTestSupport;
+import com.cpf.testkit.context.CpfTestContextRuntime;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class SpringBatchCenterCutStepHandlerTest {
+    private static CpfTestContextRuntime contextRuntime;
+    private final CpfContextTestSupport contexts =
+            new CpfContextTestSupport("CENTER-CUT", LocalDate.of(2026, 8, 22));
+
+    @BeforeAll
+    static void installContextRuntime() {
+        contextRuntime = CpfTestContextRuntime.install();
+    }
+
+    @AfterAll
+    static void closeContextRuntime() {
+        contextRuntime.close();
+    }
+
+    @AfterEach
+    void assertContextClear() {
+        contexts.assertClear();
+    }
+
     @Test
-    void processesApprovedItemInsideSpringBatchStepAndAggregatesCounts() {
+    void processesApprovedItemInsideSpringBatchStepAndAggregatesCounts() throws Exception {
         JdbcCenterCutClaimRepository repository = mock(JdbcCenterCutClaimRepository.class);
         CenterCutHandler business = handler("handler-a",
                 new CenterCutHandler.Result("COMPLETED", "result", "done", false, false));
@@ -35,7 +60,8 @@ class SpringBatchCenterCutStepHandlerTest {
         when(repository.renew(eq(claim), any())).thenReturn(true);
         when(repository.load(claim)).thenReturn(work("handler-a"));
 
-        try (SpringBatchCenterCutStepHandler consumer = consumer(repository, List.of(business))) {
+        try (AutoCloseable ignored = contexts.bindRoot("correlation-a", null, null);
+             SpringBatchCenterCutStepHandler consumer = consumer(repository, List.of(business))) {
             BatchStepHandler.BatchStepResult result = consumer.execute(command("handler-a", "cc-exec"));
 
             assertThat(result.status()).isEqualTo(BatchStepHandler.Status.COMPLETED);
@@ -68,7 +94,7 @@ class SpringBatchCenterCutStepHandlerTest {
     }
 
     @Test
-    void leaseLossBecomesUnknownWithoutStaleCompletion() {
+    void leaseLossBecomesUnknownWithoutStaleCompletion() throws Exception {
         JdbcCenterCutClaimRepository repository = mock(JdbcCenterCutClaimRepository.class);
         CenterCutHandler business = handler("handler-a",
                 new CenterCutHandler.Result("COMPLETED", "result", "done", false, false));
@@ -78,7 +104,8 @@ class SpringBatchCenterCutStepHandlerTest {
         when(repository.load(claim)).thenReturn(work("handler-a"));
         when(repository.renew(eq(claim), any())).thenReturn(false);
 
-        try (SpringBatchCenterCutStepHandler consumer = consumer(repository, List.of(business))) {
+        try (AutoCloseable ignored = contexts.bindRoot("correlation-a", null, null);
+             SpringBatchCenterCutStepHandler consumer = consumer(repository, List.of(business))) {
             BatchStepHandler.BatchStepResult result = consumer.execute(command("handler-a", "cc-exec"));
 
             assertThat(result.status()).isEqualTo(BatchStepHandler.Status.UNKNOWN_RESULT);

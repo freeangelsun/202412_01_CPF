@@ -22,8 +22,7 @@ class AdmBatchOperationsClientConfigurationTest {
         CpfBatchOperationsPort port = configuration.remoteCpfBatchOperationsPort(
                 mock(CpfServiceCaller.class),
                 WebClient.builder(),
-                mock(AdmAuthenticatedOperatorContext.class),
-                "adm-test-01");
+                mock(AdmAuthenticatedOperatorContext.class));
 
         assertThat(port).isInstanceOf(RemoteCpfBatchOperationsAdapter.class);
     }

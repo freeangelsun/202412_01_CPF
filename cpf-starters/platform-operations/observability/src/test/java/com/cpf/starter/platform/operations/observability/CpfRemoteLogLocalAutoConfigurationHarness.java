@@ -2,8 +2,8 @@ package com.cpf.starter.platform.operations.observability;
 
 import com.cpf.platform.operations.observability.api.remotelog.CpfRemoteLogArtifactSearch;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -76,21 +77,9 @@ public final class CpfRemoteLogLocalAutoConfigurationHarness {
         }
     }
 
-    private record MapEnvironment(Map<String, Object> values) implements Environment {
-        @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
-        @SuppressWarnings("deprecation")
-        @Override public boolean acceptsProfiles(String... profiles) { return false; }
-        @Override public String getProperty(String key) {
-            Object value = values.get(key);
-            return value == null ? null : String.valueOf(value);
-        }
-        @Override public String getProperty(String key, String defaultValue) {
-            String value = getProperty(key);
-            return value == null ? defaultValue : value;
-        }
-        @Override public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
-            Object value = values.get(key);
-            return value == null ? defaultValue : targetType.cast(value);
+    private static final class MapEnvironment extends MockEnvironment {
+        private MapEnvironment(Map<String, Object> values) {
+            getPropertySources().addFirst(new MapPropertySource("cpf-remote-log-test", new HashMap<>(values)));
         }
     }
 }

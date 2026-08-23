@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-136",
+  "status": "IN_PROGRESS",
+  "attempt": 2,
+  "jdbcOwnerTests": {"passed": 2, "failed": 0},
+  "mybatisScopeTests": {"passed": 2, "failed": 1},
+  "failure": "CpfDomainMyBatisAutoConfigurationTest positive path did not provide mandatory cpf.db.resource-root",
+  "classification": "TEST_FIXTURE_OMISSION",
+  "guardDisposition": "PRESERVED",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F136-DATASOURCE-OWNER-TARGETED-RERUN2.log"
+}

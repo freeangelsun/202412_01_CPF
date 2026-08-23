@@ -1,5 +1,7 @@
 package com.cpf.messaging.reliability.api.jdbc.internal;
 
+import com.cpf.messaging.internal.broker.DeterministicCpfBrokerPublisher;
+import com.cpf.messaging.reliability.api.jdbc.CpfBrokerPublisherWorker;
 import com.cpf.messaging.spi.broker.*;
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +91,17 @@ class CpfBrokerWorkerTest {
 
         @Override
         public void markPublished(String messageId, CpfBrokerResult result) {
+            throw new AssertionError("legacy unfenced completion must not be called");
+        }
+
+        @Override
+        public boolean supportsFencedPublishMutation() {
+            return true;
+        }
+
+        @Override
+        public void markPublished(String workerId, String messageId, CpfBrokerResult result) {
+            assertThat(workerId).isEqualTo("worker-1");
             savedResults.add(result);
         }
     }

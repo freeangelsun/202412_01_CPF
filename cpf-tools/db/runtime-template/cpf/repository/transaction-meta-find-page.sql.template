@@ -1,26 +1,30 @@
-SELECT transaction_id,
-       transaction_name,
-       module_code,
-       domain_code,
-       http_method,
-       api_path,
-       controller_class,
-       handler_method,
-       swagger_operation_id,
-       log_policy_key,
-       sensitive_yn,
-       masking_policy_key,
-       active_yn,
-       first_detected_at,
-       last_detected_at,
-       last_scanned_at,
-       created_by,
-       created_at,
-       updated_by,
-       updated_at
-  FROM cpf_transaction_meta
- WHERE (? IS NULL OR module_code = ?)
-   AND (? IS NULL OR active_yn = ?)
-   AND (? IS NULL OR transaction_id LIKE ?)
- ORDER BY module_code, transaction_id
+SELECT c.operation_id AS transactionId,
+       c.operation_name AS transactionName,
+       c.system_code AS moduleCode,
+       c.domain_code AS domainCode,
+       c.application_code AS applicationCode,
+       c.http_method AS httpMethod,
+       c.api_path AS apiPath,
+       c.controller_class AS controllerClass,
+       c.handler_method AS handlerMethod,
+       c.openapi_operation_id AS swaggerOperationId,
+       c.log_policy_key AS logPolicyKey,
+       c.sensitive_yn AS sensitiveYn,
+       c.masking_policy_key AS maskingPolicyKey,
+       p.enabled_yn AS activeYn,
+       c.discovery_status AS discoveryStatus,
+       c.first_seen_at AS firstDetectedAt,
+       c.last_seen_at AS lastDetectedAt,
+       c.last_seen_at AS lastScannedAt,
+       p.policy_version AS policyVersion,
+       c.created_by AS createdBy,
+       c.created_at AS createdAt,
+       c.updated_by AS updatedBy,
+       c.updated_at AS updatedAt
+  FROM OPS_OPERATION_CATALOG c
+  JOIN OPS_OPERATION_POLICY p ON p.operation_id = c.operation_id
+ WHERE (? IS NULL OR c.system_code = ?)
+   AND (? IS NULL OR p.enabled_yn = ?)
+   AND (? IS NULL OR c.operation_id LIKE ?)
+ ORDER BY c.system_code, c.operation_id
 @PAGE_POSITIONAL@

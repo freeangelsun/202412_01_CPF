@@ -13,8 +13,8 @@ import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 /** Executable fail-fast wiring contract for the shared log-policy JDBC provider. */
 public final class CpfLogPolicyVersionJdbcAutoConfigurationHarness {
@@ -102,15 +102,9 @@ public final class CpfLogPolicyVersionJdbcAutoConfigurationHarness {
         }
     }
 
-    private static final class MapEnvironment implements Environment {
-        private final Map<String, Object> values = new HashMap<>();
-        private MapEnvironment(Map<String, Object> values) { this.values.putAll(values); }
-        @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
-        @SuppressWarnings("deprecation")
-        @Override public boolean acceptsProfiles(String... profiles) { return false; }
-        @Override public <T> T getProperty(String key, Class<T> type, T defaultValue) {
-            Object value = values.get(key);
-            return value == null ? defaultValue : type.cast(value);
+    private static final class MapEnvironment extends MockEnvironment {
+        private MapEnvironment(Map<String, Object> values) {
+            getPropertySources().addFirst(new MapPropertySource("cpf-log-policy-test", new HashMap<>(values)));
         }
     }
 }

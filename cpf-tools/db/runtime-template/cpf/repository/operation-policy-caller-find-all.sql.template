@@ -1,0 +1,2 @@
+SELECT operation_id, caller_system_code, allowed_yn
+FROM OPS_OPERATION_CALLER_POLICY

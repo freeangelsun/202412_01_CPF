@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-GENERATOR-CANONICAL-TEST",
+  "requirementIds": ["GEN-DOMAIN", "REL-BUILD", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T11:52:07.1851536+09:00",
+    "finished": "2026-08-22T11:52:07.5387986+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\generator\\verification\\tests\\test_verify_cpf_generator_canonical_source.py",
+  "exitCode": 0,
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "actualResult": "Ran 6 tests in 0.209s; OK.",
+  "result": "PASS",
+  "failureSummary": null,
+  "findingIds": ["CX-F-005"],
+  "sanitized": true
+}

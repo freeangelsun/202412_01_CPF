@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /** 승인된 BROKER_DLQ_REPLAY 명령만 CPF reliability Owner에 전달하는 Adapter입니다. */
 @Component("cpfStartersMessagingReliabilityJdbcApprovalOwnerCommandPort")
@@ -194,6 +195,10 @@ public final class BrokerReliabilityApprovalOwnerCommandAdapter implements AdmAp
     private static String value(Map<String, ?> row, String key) {
         Object value = valueObject(row, key);
         return value == null ? "" : String.valueOf(value).trim();
+    }
+
+    private static String normalize(String value) {
+        return Objects.toString(value, "").replace("_", "").toLowerCase(Locale.ROOT);
     }
 
     private static Instant instant(Object value) {

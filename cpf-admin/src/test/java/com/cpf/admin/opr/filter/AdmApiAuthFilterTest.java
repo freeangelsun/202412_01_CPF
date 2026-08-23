@@ -13,6 +13,7 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,11 +165,14 @@ class AdmApiAuthFilterTest {
     @Test
     void batchRuntimeDoesNotInheritBroaderBatchPrefixPermission() throws Exception {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        List<String> resolvedPermissionIds = new ArrayList<>();
         when(jdbcTemplate.queryForList(anyString(), any(Object[].class))).thenReturn(List.of());
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), any(Object[].class)))
                 .thenAnswer(invocation -> {
                     Object[] arguments = invocation.getArguments();
-                    return "BATCH_RUNTIME".equals(arguments[arguments.length - 1]) ? 1 : 0;
+                    String permissionId = String.valueOf(arguments[arguments.length - 1]);
+                    resolvedPermissionIds.add(permissionId);
+                    return "BATCH_RUNTIME_READ".equals(permissionId) ? 1 : 0;
                 });
         AdmApiAuthFilter filter = filter(
                 normalSession("ADM_VIEWER"),
@@ -182,6 +186,9 @@ class AdmApiAuthFilterTest {
                 chain);
 
         assertThat(chain.getRequest()).isNotNull();
+        assertThat(resolvedPermissionIds)
+                .contains("BATCH_RUNTIME_READ")
+                .doesNotContain("BATCH_READ");
     }
 
     @Test

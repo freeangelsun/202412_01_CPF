@@ -31,7 +31,7 @@ public class CpfObservabilityRuntimeControlAutoConfiguration {
     CpfRuntimeChangeApplier dynamicLogLevelRuntimeApplier(
             DynamicTransactionLogLevelService service,
             org.springframework.beans.factory.ObjectProvider<Clock> clockProvider) {
-        return new CpfDynamicLogLevelRuntimeApplier(service, clockProvider.getIfAvailable(Clock::systemUTC));
+        return new CpfDynamicLogLevelRuntimeApplier(service, clockProvider.getIfUnique(Clock::systemUTC));
     }
 
     @Bean(name = "cpfMaskingPolicyRuntimeApplier")

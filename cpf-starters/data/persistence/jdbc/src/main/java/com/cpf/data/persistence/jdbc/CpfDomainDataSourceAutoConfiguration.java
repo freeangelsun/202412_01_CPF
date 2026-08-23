@@ -14,7 +14,9 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /** Generated Domain이 직접 DataSource/Transaction Bean을 만들지 않도록 하는 표준 Runtime. */
-@AutoConfiguration(before = CpfJdbcStarterAutoConfiguration.class)
+@AutoConfiguration(
+        before = CpfJdbcStarterAutoConfiguration.class,
+        beforeName = "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration")
 @EnableConfigurationProperties(CpfDomainPersistenceProperties.class)
 @ConditionalOnProperty(prefix = "cpf.domain.persistence", name = "enabled", havingValue = "true")
 public class CpfDomainDataSourceAutoConfiguration {

@@ -1,0 +1,9 @@
+{
+  "executionId": "CX-02-FRESH-A-COMPILE-ATTEMPT1",
+  "timestamp": "2026-08-22T19:49:19.2987445+09:00",
+  "sourceIdentitySha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+  "status": "FAIL_ORCHESTRATION",
+  "gradleStarted": false,
+  "rootCause": "The detached cmd.exe /s /c argument was consumed before redirection and exit-file creation; no Gradle or child Java process was launched.",
+  "recovery": "Use an evidence-owned fixed .cmd launcher with CALL, direct stdout/stderr redirection and explicit exit-code file."
+}

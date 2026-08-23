@@ -67,6 +67,33 @@ class CanonicalGeneratorVerifierTest(unittest.TestCase):
         self.assertIn('"artifactId": "cpf-starter-batch"', catalog)
         self.assertIn('"profileId": "batch"', catalog)
 
+    def test_product_composite_substitutes_every_catalog_public_starter(self) -> None:
+        self.assertIn("cpf-tools/generator/contracts/cpf-starter-catalog.json", self.engine)
+        self.assertIn("starterCatalog.modules instanceof List", self.engine)
+        self.assertIn("row.visibility?.toString() == 'public'", self.engine)
+        self.assertIn("dependencySubstitution", self.engine)
+        self.assertIn(
+            'substitute module(\\"${starter.groupId}:${starter.artifactId}\\") using project(starter.projectPath.toString())',
+            self.engine,
+        )
+
+    def test_generated_gradle_properties_bound_daemon_resources(self) -> None:
+        gate_path = self.root / "cpf-tools/generator/verification/verify-cpf-generator-java-template-compile.py"
+        spec = importlib.util.spec_from_file_location("cpf_java_compile_gate_resource_test", gate_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        gate = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = gate
+        spec.loader.exec_module(gate)
+        engine = gate.load_engine(self.root / gate.CANONICAL_ENGINE)
+        rendered = engine.render_gradle_properties({"cpfVersion": "1.0.0-SNAPSHOT"})
+        for token in (
+            "org.gradle.jvmargs=-Xms250m -Xmx1000m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8",
+            "org.gradle.workers.max=2",
+            "org.gradle.parallel=false",
+        ):
+            self.assertIn(token, rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

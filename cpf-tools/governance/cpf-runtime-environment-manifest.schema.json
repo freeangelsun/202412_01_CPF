@@ -133,7 +133,7 @@
               "batch-worker",
               "gateway",
               "adm",
-              "bza"
+              "backoffice"
             ]
           },
           "version": {

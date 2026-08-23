@@ -1,0 +1,17 @@
+{
+  "startedAt": "2026-08-23T16:40:25+09:00",
+  "finishedAt": "2026-08-23T16:41:35+09:00",
+  "command": "pwsh -NoProfile -File .\\cpf-tools\\runtime\\tools\\sync-platform-runtime-query-packs.ps1 -Root .",
+  "exitCode": 0,
+  "status": "PASS_SYNC_VERIFICATION_PENDING",
+  "modules": ["cpf", "backoffice", "education", "cmn"],
+  "vendorCount": 3,
+  "statementCount": 240,
+  "repositoryFileCount": 678,
+  "portableResourceFileCount": 14,
+  "managedMyBatisFileCount": 6,
+  "processedFileCount": 698,
+  "removedStaleProjectionCount": 9,
+  "sourceIdentityAfter": "6965c85c3c36374a6bad8921011684f9ddb8d26d8209d55bba2a1d3fba2e37cf",
+  "next": "Run byte-exact CHECK, independent contract gates, Java 25 tests, and actual runtime; do not close from generation alone."
+}

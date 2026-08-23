@@ -27,6 +27,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
+      "53_runtime_service_registry_seed.sql",
       "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"
@@ -76,6 +77,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
+      "53_runtime_service_registry_seed.sql",
       "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"
@@ -106,6 +108,7 @@
     "productSeedFiles": [
       "50_framework_seed_data.sql",
       "52_standard_execution_alias_seed.sql",
+      "53_runtime_service_registry_seed.sql",
       "56_backoffice_product_seed.sql",
       "60_adm_seed_data.sql",
       "61_adm_gateway_seed.sql"

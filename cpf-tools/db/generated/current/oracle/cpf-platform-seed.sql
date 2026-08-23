@@ -3,6 +3,22 @@
 -- Vendor: oracle
 -- Role: CPF_PLATFORM_DB
 
+MERGE INTO OPS_SYSTEM_REGISTRY tgt
+USING (SELECT 'CPF' AS system_code, 'CPF Core Platform' AS system_name, 'CPF' AS domain_code, 'Y' AS enabled_yn, 'CPF core platform system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'CMN' AS system_code, 'CPF Common' AS system_name, 'CMN' AS domain_code, 'Y' AS enabled_yn, 'CPF mandatory common system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM' AS system_code, 'CPF Administration' AS system_name, 'ADM' AS domain_code, 'Y' AS enabled_yn, 'CPF administration system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'MBW' AS system_code, 'CPF Backoffice' AS system_name, 'MBW' AS domain_code, 'Y' AS enabled_yn, 'CPF business backoffice system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT' AS system_code, 'CPF Batch' AS system_name, 'BAT' AS domain_code, 'Y' AS enabled_yn, 'CPF batch runtime system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU' AS system_code, 'CPF Education' AS system_name, 'EDU' AS domain_code, 'Y' AS enabled_yn, 'CPF education reference system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.system_code=src.system_code)
+WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
+
 MERGE INTO OPS_CHANNEL_REGISTRY tgt
 USING (SELECT 'WEB' AS channel_code, '웹' AS channel_name, 'CLIENT' AS channel_type, 'EXTERNAL' AS trust_level, 'Y' AS client_channel_yn, 'N' AS internal_channel_yn, 'Y' AS authentication_required_yn, 'N' AS signature_required_yn, 'Y' AS active_yn, '웹 브라우저 채널' AS description, 0 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1346,13 +1362,13 @@ SELECT 'REMOTE_LOG_READ' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'READ' AS ACTION
 UNION ALL
 SELECT 'REMOTE_LOG_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '로그 아티팩트 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/*/download' AS API_PATTERN, 20 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'REMOTE_LOG_BUNDLE_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundles' AS API_PATTERN, 30 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'REMOTE_LOG_BUNDLE_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'BUNDLE_DOWNLOAD' AS ACTION_CODE, '동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundles' AS API_PATTERN, 30 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'REMOTE_LOG_BUNDLE_CREATE' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'CREATE' AS ACTION_CODE, '비동기 로그 ZIP 작업 등록' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs' AS API_PATTERN, 40 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'REMOTE_LOG_BUNDLE_TOKEN' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'ISSUE' AS ACTION_CODE, '로그 ZIP 다운로드 token 발급' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download-tokens' AS API_PATTERN, 50 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'REMOTE_LOG_JOB_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '비동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download' AS API_PATTERN, 60 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'REMOTE_LOG_JOB_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'JOB_DOWNLOAD' AS ACTION_CODE, '비동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download' AS API_PATTERN, 60 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'TRANSACTION_META_READ' AS BUTTON_ID, 'TRANSACTION_META' AS MENU_ID, 'READ' AS ACTION_CODE, '거래 메타 조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/transactions/**' AS API_PATTERN, 10 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1589,8 +1605,16 @@ WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by=src.updat
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.BUTTON_ID, src.ALLOW_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_API_PERMISSION tgt
-USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, USE_YN AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_BUTTON
-WHERE API_PATTERN IS NOT NULL) src
+USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, USE_YN AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1) src
 ON (tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATH=src.API_PATH, tgt.API_NAME=src.API_NAME, tgt.PERMISSION_CODE=src.PERMISSION_CODE, tgt.MENU_ID=src.MENU_ID, tgt.BUTTON_ID=src.BUTTON_ID, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
@@ -1602,8 +1626,13 @@ WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_MET
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_ROLE_API_PERMISSION tgt
-USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, rb.ALLOW_YN AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
-JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID = rb.BUTTON_ID) src
+USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
+WHERE b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID) src
 ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.API_PERMISSION_ID, src.ALLOW_YN, src.created_by, src.updated_by);
@@ -1764,14 +1793,36 @@ WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by='SYSTEM',
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.BUTTON_ID, src.ALLOW_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_API_PERMISSION tgt
-USING (SELECT CONCAT('API_',BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD,'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_BUTTON WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL) src
+USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE BUTTON_ID LIKE 'BAT_%'
+      AND API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1
+  AND NOT EXISTS (
+      SELECT 1
+      FROM ADM_API_PERMISSION existing
+      WHERE existing.HTTP_METHOD = COALESCE(route_owner.HTTP_METHOD, 'ANY')
+        AND existing.API_PATH = route_owner.API_PATTERN
+  )) src
 ON (tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATH=src.API_PATH, tgt.API_NAME=src.API_NAME, tgt.PERMISSION_CODE=src.PERMISSION_CODE, tgt.MENU_ID=src.MENU_ID, tgt.BUTTON_ID=src.BUTTON_ID, tgt.USE_YN='Y', tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
 
 MERGE INTO ADM_ROLE_API_PERMISSION tgt
-USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, rb.ALLOW_YN AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID=rb.BUTTON_ID
-WHERE rb.BUTTON_ID LIKE 'BAT_%') src
+USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
+WHERE rb.BUTTON_ID LIKE 'BAT_%'
+  AND b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID) src
 ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.API_PERMISSION_ID, src.ALLOW_YN, src.created_by, src.updated_by);
@@ -1789,7 +1840,7 @@ WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_name=sr
 WHEN NOT MATCHED THEN INSERT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by) VALUES (src.endpoint_code, src.service_id, src.endpoint_name, src.endpoint_type, src.base_url, src.context_path, src.default_timeout_ms, src.default_retry_count, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_INSTANCE tgt
-USING (SELECT 'EDU-EXT-SIM-local-01' AS instance_id, 'EDU' AS service_id, 'EDU-EXTERNAL-SIMULATOR' AS endpoint_code, 'EDU 대외 시뮬레이터 인스턴스' AS instance_name, 'http://127.0.0.1:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SEED' AS created_by, 'SEED' AS updated_by FROM dual) src
+USING (SELECT 'EDU-EXT-SIM-local-01' AS instance_id, 'EDU' AS service_id, 'EDU-EXTERNAL-SIMULATOR' AS endpoint_code, 'EDU 대외 시뮬레이터 인스턴스' AS instance_name, 'http://127.0.0.1:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SEED' AS created_by, 'SEED' AS updated_by FROM dual) src
 ON (tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_code=src.endpoint_code, tgt.instance_name=src.instance_name, tgt.base_url=src.base_url, tgt.host_name=src.host_name, tgt.port_no=src.port_no, tgt.instance_status=src.instance_status, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by) VALUES (src.instance_id, src.service_id, src.endpoint_code, src.instance_name, src.base_url, src.host_name, src.port_no, src.instance_status, src.weight, src.active_yn, src.last_heartbeat_at, src.created_by, src.updated_by);
@@ -1801,13 +1852,13 @@ WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
 
 MERGE INTO BAT_INSTANCE tgt
-USING (SELECT 'local-batch-01' AS instance_id, '로컬 배치 인스턴스' AS instance_name, 'localhost' AS host_name, 8099 AS server_port, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, 'EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'local-batch-01' AS instance_id, '로컬 배치 인스턴스' AS instance_name, 'localhost' AS host_name, 8099 AS server_port, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.instance_name=src.instance_name, tgt.host_name=src.host_name, tgt.server_port=src.server_port, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by) VALUES (src.instance_id, src.instance_name, src.host_name, src.server_port, src.active_yn, src.last_heartbeat_at, src.description, src.created_by, src.updated_by);
 
 MERGE INTO BAT_WORKER tgt
-USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.worker_id=src.worker_id)
 WHEN MATCHED THEN UPDATE SET tgt.instance_id=src.instance_id, tgt.host_name=src.host_name, tgt.process_id=src.process_id, tgt.thread_name=src.thread_name, tgt.worker_status=src.worker_status, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.current_job_id=src.current_job_id, tgt.current_execution_id=src.current_execution_id, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (src.worker_id, src.instance_id, src.host_name, src.process_id, src.thread_name, src.worker_status, src.active_yn, src.last_heartbeat_at, src.current_job_id, src.current_execution_id, src.description, src.created_by, src.updated_by);
@@ -1848,8 +1899,8 @@ SELECT
     'local-batch-01',
     'local-batch-01',
     '20260615120000000REFlocal010000001',
-    SYSTIMESTAMP - NUMTODSINTERVAL(10, 'MINUTE'),
-    SYSTIMESTAMP - NUMTODSINTERVAL(9, 'MINUTE'),
+    (SYSTIMESTAMP - INTERVAL '10' MINUTE),
+    (SYSTIMESTAMP - INTERVAL '9' MINUTE),
     1,
     1,
     0,
@@ -1875,7 +1926,7 @@ SELECT (
       AND job_parameters = '{"edu":true}'
     ORDER BY execution_id
     FETCH FIRST 1 ROW ONLY
-), NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', SYSTIMESTAMP - NUMTODSINTERVAL(10, 'MINUTE'), SYSTIMESTAMP - NUMTODSINTERVAL(9, 'MINUTE'), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
+), NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', (SYSTIMESTAMP - INTERVAL '10' MINUTE), (SYSTIMESTAMP - INTERVAL '9' MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
 WHERE (
     SELECT execution_id
     FROM BAT_EXECUTION
@@ -1940,7 +1991,7 @@ WHERE (
 MERGE INTO CMN_BUSINESS_CALENDAR_DAY tgt
 USING (SELECT 'DEFAULT' AS calendar_id, CURRENT_DATE AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 기본 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'DEFAULT' AS calendar_id, DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY) AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 다음 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'DEFAULT' AS calendar_id, (CURRENT_DATE + INTERVAL '1' DAY) AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 다음 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.calendar_id=src.calendar_id AND tgt.business_date=src.business_date)
 WHEN MATCHED THEN UPDATE SET tgt.business_day_yn=src.business_day_yn, tgt.day_type=src.day_type, tgt.institution_code=src.institution_code, tgt.reason=src.reason, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (calendar_id, business_date, business_day_yn, day_type, institution_code, reason, created_by, updated_by) VALUES (src.calendar_id, src.business_date, src.business_day_yn, src.day_type, src.institution_code, src.reason, src.created_by, src.updated_by);
@@ -1990,25 +2041,25 @@ WHEN MATCHED THEN UPDATE SET tgt.service_name=src.service_name, tgt.service_type
 WHEN NOT MATCHED THEN INSERT (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by) VALUES (src.service_id, src.service_name, src.service_type, src.owner_module_code, src.description, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_ENDPOINT tgt
-USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-backoffice' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8099' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-education' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT_API' AS endpoint_code, 'BAT' AS service_id, 'BAT API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8093' AS base_url, '/bat' AS context_path, 5000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'BAT_API' AS endpoint_code, 'BAT' AS service_id, 'BAT API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-batch' AS base_url, '/bat' AS context_path, 5000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ADM_API' AS endpoint_code, 'ADM' AS service_id, 'ADM API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8090' AS base_url, '/adm' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'ADM_API' AS endpoint_code, 'ADM' AS service_id, 'ADM API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-admin' AS base_url, '/adm' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.endpoint_code=src.endpoint_code)
 WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_name=src.endpoint_name, tgt.endpoint_type=src.endpoint_type, tgt.base_url=src.base_url, tgt.context_path=src.context_path, tgt.default_timeout_ms=src.default_timeout_ms, tgt.default_retry_count=src.default_retry_count, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by) VALUES (src.endpoint_code, src.service_id, src.endpoint_name, src.endpoint_type, src.base_url, src.context_path, src.default_timeout_ms, src.default_retry_count, src.use_yn, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_INSTANCE tgt
-USING (SELECT 'MBW-local-01' AS instance_id, 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW-local-01' AS instance_id, 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EDU-local-01' AS instance_id, 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU local instance' AS instance_name, 'http://localhost:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EDU-local-01' AS instance_id, 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU local instance' AS instance_name, 'http://localhost:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT-local-01' AS instance_id, 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT local instance' AS instance_name, 'http://localhost:8093' AS base_url, 'localhost' AS host_name, 8093 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'BAT-local-01' AS instance_id, 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT local instance' AS instance_name, 'http://localhost:8093' AS base_url, 'localhost' AS host_name, 8093 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ADM-local-01' AS instance_id, 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM local instance' AS instance_name, 'http://localhost:8090' AS base_url, 'localhost' AS host_name, 8090 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'ADM-local-01' AS instance_id, 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM local instance' AS instance_name, 'http://localhost:8090' AS base_url, 'localhost' AS host_name, 8090 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_code=src.endpoint_code, tgt.instance_name=src.instance_name, tgt.base_url=src.base_url, tgt.host_name=src.host_name, tgt.port_no=src.port_no, tgt.instance_status=src.instance_status, tgt.weight=src.weight, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by) VALUES (src.instance_id, src.service_id, src.endpoint_code, src.instance_name, src.base_url, src.host_name, src.port_no, src.instance_status, src.weight, src.active_yn, src.last_heartbeat_at, src.created_by, src.updated_by);
@@ -2026,40 +2077,40 @@ WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
 
 MERGE INTO OPS_SERVICE_CIRCUIT_STATE tgt
-USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.service_id=src.service_id AND tgt.endpoint_code=src.endpoint_code AND tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.circuit_state=src.circuit_state, tgt.failure_count=src.failure_count, tgt.success_count=src.success_count, tgt.closed_at=src.closed_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.instance_id, src.circuit_state, src.failure_count, src.success_count, src.closed_at, src.created_by, src.updated_by);
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'MBW' AND endpoint_code = 'MBW_API' AND instance_id = 'MBW-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'EDU', 'EDU_API', 'EDU-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'EDU', 'EDU_API', 'EDU-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'EDU' AND endpoint_code = 'EDU_API' AND instance_id = 'EDU-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
 );
 
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
@@ -2271,7 +2322,7 @@ WHERE (
   );
 
 MERGE INTO ADM_DYNAMIC_LOG_LEVEL_RULE tgt
-USING (SELECT 'sample-rule-001' AS RULE_ID, NULL AS TRANSACTION_ID, 'OEDUAA0001' AS BUSINESS_TRANSACTION_ID, 'EDU' AS MODULE_ID, 'DEBUG' AS LOG_LEVEL, DATE_ADD(NOW(), INTERVAL 30 MINUTE) AS EXPIRE_AT, 'ADM 화면 smoke 검증용 동적 로그 규칙입니다.' AS REASON, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'sample-rule-001' AS RULE_ID, NULL AS TRANSACTION_ID, 'OEDUAA0001' AS BUSINESS_TRANSACTION_ID, 'EDU' AS MODULE_ID, 'DEBUG' AS LOG_LEVEL, (SYSTIMESTAMP + INTERVAL '30' MINUTE) AS EXPIRE_AT, 'ADM 화면 smoke 검증용 동적 로그 규칙입니다.' AS REASON, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.RULE_ID=src.RULE_ID)
 WHEN MATCHED THEN UPDATE SET tgt.BUSINESS_TRANSACTION_ID=src.BUSINESS_TRANSACTION_ID, tgt.MODULE_ID=src.MODULE_ID, tgt.LOG_LEVEL=src.LOG_LEVEL, tgt.EXPIRE_AT=src.EXPIRE_AT, tgt.REASON=src.REASON, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL, EXPIRE_AT, REASON, USE_YN, created_by, updated_by) VALUES (src.RULE_ID, src.TRANSACTION_ID, src.BUSINESS_TRANSACTION_ID, src.MODULE_ID, src.LOG_LEVEL, src.EXPIRE_AT, src.REASON, src.USE_YN, src.created_by, src.updated_by);

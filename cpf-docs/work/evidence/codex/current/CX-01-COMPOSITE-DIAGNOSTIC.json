@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-COMPOSITE-DIAGNOSTIC",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "SAMPLE-MBR"],
+  "timestamp": {
+    "started": "2026-08-22T11:25:17.5905208+09:00",
+    "finished": "2026-08-22T11:25:31.8965481+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :cpf-generated-cpf-external:tasks -PcpfIncludeGeneratedDomains=true -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF",
+  "environment": {
+    "os": "Microsoft Windows 10.0.26200",
+    "java": "Temurin OpenJDK 25.0.3+9 LTS",
+    "gradle": "9.1.0"
+  },
+  "exitCode": 0,
+  "sourceIdentity": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+  "actualResult": "Included EXS build configured and listed tasks; BUILD SUCCESSFUL in 13s.",
+  "rootCauseInference": "The explicit product-composite property is valid and non-cyclic. The required Root command fails because Root generated-domain inclusion does not automatically propagate this binding.",
+  "result": "PASS",
+  "failureSummary": null,
+  "findingIds": ["CX-F-002"],
+  "sanitized": true
+}

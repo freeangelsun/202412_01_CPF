@@ -5,12 +5,12 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 MERGE INTO BAT_INSTANCE tgt
-USING (SELECT 'local-batch-01' AS instance_id, '로컬 배치 인스턴스' AS instance_name, 'localhost' AS host_name, 8099 AS server_port, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, 'EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'local-batch-01' AS instance_id, '로컬 배치 인스턴스' AS instance_name, 'localhost' AS host_name, 8099 AS server_port, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'EDU 배치와 ADM 관제 연동을 확인하는 로컬 인스턴스' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.instance_name=src.instance_name, tgt.host_name=src.host_name, tgt.server_port=src.server_port, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (instance_id, instance_name, host_name, server_port, active_yn, last_heartbeat_at, description, created_by, updated_by) VALUES (src.instance_id, src.instance_name, src.host_name, src.server_port, src.active_yn, src.last_heartbeat_at, src.description, src.created_by, src.updated_by);
 MERGE INTO BAT_WORKER tgt
-USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, CURRENT_TIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'local-batch-01' AS worker_id, 'local-batch-01' AS instance_id, 'localhost' AS host_name, 'seed' AS process_id, 'seed-main' AS thread_name, 'IDLE' AS worker_status, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, NULL AS current_job_id, NULL AS current_execution_id, '로컬 smoke 검증용 배치 worker heartbeat' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.worker_id=src.worker_id)
 WHEN MATCHED THEN UPDATE SET tgt.instance_id=src.instance_id, tgt.host_name=src.host_name, tgt.process_id=src.process_id, tgt.thread_name=src.thread_name, tgt.worker_status=src.worker_status, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.current_job_id=src.current_job_id, tgt.current_execution_id=src.current_execution_id, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (worker_id, instance_id, host_name, process_id, thread_name, worker_status, active_yn, last_heartbeat_at, current_job_id, current_execution_id, description, created_by, updated_by) VALUES (src.worker_id, src.instance_id, src.host_name, src.process_id, src.thread_name, src.worker_status, src.active_yn, src.last_heartbeat_at, src.current_job_id, src.current_execution_id, src.description, src.created_by, src.updated_by);
@@ -47,8 +47,8 @@ SELECT
     'local-batch-01',
     'local-batch-01',
     '20260615120000000REFlocal010000001',
-    SYSTIMESTAMP - NUMTODSINTERVAL(10, 'MINUTE'),
-    SYSTIMESTAMP - NUMTODSINTERVAL(9, 'MINUTE'),
+    (SYSTIMESTAMP - INTERVAL '10' MINUTE),
+    (SYSTIMESTAMP - INTERVAL '9' MINUTE),
     1,
     1,
     0,
@@ -72,7 +72,7 @@ SELECT (
       AND job_parameters = '{"edu":true}'
     ORDER BY execution_id
     FETCH FIRST 1 ROW ONLY
-), NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', SYSTIMESTAMP - NUMTODSINTERVAL(10, 'MINUTE'), SYSTIMESTAMP - NUMTODSINTERVAL(9, 'MINUTE'), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
+), NULL, 'local-batch-01', 'CPF_EDU_TASKLET_STEP', 'COMPLETED', (SYSTIMESTAMP - INTERVAL '10' MINUTE), (SYSTIMESTAMP - INTERVAL '9' MINUTE), 1, 1, 0, 'Tasklet 교육 실행 정상 완료', 'SYSTEM', 'SYSTEM'
 WHERE (
     SELECT execution_id
     FROM BAT_EXECUTION
@@ -135,7 +135,7 @@ WHERE (
 MERGE INTO CMN_BUSINESS_CALENDAR_DAY tgt
 USING (SELECT 'DEFAULT' AS calendar_id, CURRENT_DATE AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 기본 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'DEFAULT' AS calendar_id, DATE_ADD(CURRENT_DATE, INTERVAL 1 DAY) AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 다음 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'DEFAULT' AS calendar_id, (CURRENT_DATE + INTERVAL '1' DAY) AS business_date, 'Y' AS business_day_yn, 'BUSINESS' AS day_type, NULL AS institution_code, '로컬 smoke 검증용 다음 영업일' AS reason, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.calendar_id=src.calendar_id AND tgt.business_date=src.business_date)
 WHEN MATCHED THEN UPDATE SET tgt.business_day_yn=src.business_day_yn, tgt.day_type=src.day_type, tgt.institution_code=src.institution_code, tgt.reason=src.reason, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (calendar_id, business_date, business_day_yn, day_type, institution_code, reason, created_by, updated_by) VALUES (src.calendar_id, src.business_date, src.business_day_yn, src.day_type, src.institution_code, src.reason, src.created_by, src.updated_by);
@@ -166,81 +166,48 @@ SELECT 'CPF_BAT_CENTER_CUT_JOB' AS center_cut_job_id, 'defaultLimit' AS paramete
 ON (tgt.center_cut_job_id=src.center_cut_job_id AND tgt.parameter_key=src.parameter_key)
 WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encrypted_yn=src.encrypted_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO OPS_SERVICE tgt
-USING (SELECT 'MBW' AS service_id, '업무 백오피스 서비스' AS service_name, 'INTERNAL' AS service_type, 'MBW' AS owner_module_code, 'CPF 업무 운영 백오피스 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'EDU' AS service_id, '온라인 교육 서비스' AS service_name, 'INTERNAL' AS service_type, 'EDU' AS owner_module_code, 'CPF 온라인 교육 및 검증 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'BAT' AS service_id, '배치 Worker 서비스' AS service_name, 'INTERNAL' AS service_type, 'BAT' AS owner_module_code, 'CPF 배치 Worker 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'ADM' AS service_id, '운영 콘솔 서비스' AS service_name, 'INTERNAL' AS service_type, 'ADM' AS owner_module_code, 'CPF 운영 콘솔 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.service_id=src.service_id)
-WHEN MATCHED THEN UPDATE SET tgt.service_name=src.service_name, tgt.service_type=src.service_type, tgt.owner_module_code=src.owner_module_code, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by) VALUES (src.service_id, src.service_name, src.service_type, src.owner_module_code, src.description, src.use_yn, src.created_by, src.updated_by);
-MERGE INTO OPS_SERVICE_ENDPOINT tgt
-USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8091' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8099' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'BAT_API' AS endpoint_code, 'BAT' AS service_id, 'BAT API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8093' AS base_url, '/bat' AS context_path, 5000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'ADM_API' AS endpoint_code, 'ADM' AS service_id, 'ADM API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://localhost:8090' AS base_url, '/adm' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.endpoint_code=src.endpoint_code)
-WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_name=src.endpoint_name, tgt.endpoint_type=src.endpoint_type, tgt.base_url=src.base_url, tgt.context_path=src.context_path, tgt.default_timeout_ms=src.default_timeout_ms, tgt.default_retry_count=src.default_retry_count, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by) VALUES (src.endpoint_code, src.service_id, src.endpoint_name, src.endpoint_type, src.base_url, src.context_path, src.default_timeout_ms, src.default_retry_count, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO OPS_SERVICE_INSTANCE tgt
-USING (SELECT 'MBW-local-01' AS instance_id, 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW-local-01' AS instance_id, 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW local instance' AS instance_name, 'http://localhost:8091' AS base_url, 'localhost' AS host_name, 8091 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EDU-local-01' AS instance_id, 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU local instance' AS instance_name, 'http://localhost:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EDU-local-01' AS instance_id, 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU local instance' AS instance_name, 'http://localhost:8099' AS base_url, 'localhost' AS host_name, 8099 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT-local-01' AS instance_id, 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT local instance' AS instance_name, 'http://localhost:8093' AS base_url, 'localhost' AS host_name, 8093 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'BAT-local-01' AS instance_id, 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT local instance' AS instance_name, 'http://localhost:8093' AS base_url, 'localhost' AS host_name, 8093 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ADM-local-01' AS instance_id, 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM local instance' AS instance_name, 'http://localhost:8090' AS base_url, 'localhost' AS host_name, 8090 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, CURRENT_TIMESTAMP(3) AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'ADM-local-01' AS instance_id, 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM local instance' AS instance_name, 'http://localhost:8090' AS base_url, 'localhost' AS host_name, 8090 AS port_no, 'UP' AS instance_status, 100 AS weight, 'Y' AS active_yn, SYSTIMESTAMP AS last_heartbeat_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_code=src.endpoint_code, tgt.instance_name=src.instance_name, tgt.base_url=src.base_url, tgt.host_name=src.host_name, tgt.port_no=src.port_no, tgt.instance_status=src.instance_status, tgt.weight=src.weight, tgt.active_yn=src.active_yn, tgt.last_heartbeat_at=src.last_heartbeat_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by) VALUES (src.instance_id, src.service_id, src.endpoint_code, src.instance_name, src.base_url, src.host_name, src.port_no, src.instance_status, src.weight, src.active_yn, src.last_heartbeat_at, src.created_by, src.updated_by);
-MERGE INTO OPS_SERVICE_ROUTING_POLICY tgt
-USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
-ON (tgt.service_id=src.service_id AND tgt.endpoint_code=src.endpoint_code AND tgt.priority=src.priority)
-WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance_type=src.load_balance_type, tgt.failover_enabled_yn=src.failover_enabled_yn, tgt.health_check_required_yn=src.health_check_required_yn, tgt.active_yn=src.active_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
 MERGE INTO OPS_SERVICE_CIRCUIT_STATE tgt
-USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'MBW-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'EDU-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'BAT-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, CURRENT_TIMESTAMP(3) AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'ADM-local-01' AS instance_id, 'CLOSED' AS circuit_state, 0 AS failure_count, 0 AS success_count, SYSTIMESTAMP AS closed_at, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.service_id=src.service_id AND tgt.endpoint_code=src.endpoint_code AND tgt.instance_id=src.instance_id)
 WHEN MATCHED THEN UPDATE SET tgt.circuit_state=src.circuit_state, tgt.failure_count=src.failure_count, tgt.success_count=src.success_count, tgt.closed_at=src.closed_at, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, instance_id, circuit_state, failure_count, success_count, closed_at, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.instance_id, src.circuit_state, src.failure_count, src.success_count, src.closed_at, src.created_by, src.updated_by);
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'MBW', 'MBW_API', 'MBW-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'MBW' AND endpoint_code = 'MBW_API' AND instance_id = 'MBW-local-01' AND created_by = 'SYSTEM'
 );
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'EDU', 'EDU_API', 'EDU-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'EDU', 'EDU_API', 'EDU-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'EDU' AND endpoint_code = 'EDU_API' AND instance_id = 'EDU-local-01' AND created_by = 'SYSTEM'
 );
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'BAT', 'BAT_API', 'BAT-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'BAT' AND endpoint_code = 'BAT_API' AND instance_id = 'BAT-local-01' AND created_by = 'SYSTEM'
 );
 INSERT INTO OPS_SERVICE_HEALTH_STATUS (service_id, endpoint_code, instance_id, health_status, http_status, response_time_ms, failure_message, checked_at, created_by, updated_by)
-SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, CURRENT_TIMESTAMP(3), 'SYSTEM', 'SYSTEM'
+SELECT 'ADM', 'ADM_API', 'ADM-local-01', 'UP', 200, 0, NULL, SYSTIMESTAMP, 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM OPS_SERVICE_HEALTH_STATUS
     WHERE service_id = 'ADM' AND endpoint_code = 'ADM_API' AND instance_id = 'ADM-local-01' AND created_by = 'SYSTEM'
@@ -258,9 +225,9 @@ WHEN MATCHED THEN UPDATE SET tgt.parameter_value=src.parameter_value, tgt.encryp
 WHEN NOT MATCHED THEN INSERT (center_cut_job_id, parameter_key, parameter_value, encrypted_yn, use_yn, created_by, updated_by) VALUES (src.center_cut_job_id, src.parameter_key, src.parameter_value, src.encrypted_yn, src.use_yn, src.created_by, src.updated_by);
 -- CPF_LOGICAL_DATABASE=mbwDB
 MERGE INTO MBW_ORGANIZATION tgt
-USING (SELECT 'SAMPLE_ROOT' AS organization_code, NULL AS parent_organization_code, '샘플 본부' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'SAMPLE_ROOT' AS organization_code, NULL AS parent_organization_code, '샘플 본부' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'SAMPLE_DEV' AS organization_code, 'SAMPLE_ROOT' AS parent_organization_code, '샘플 개발부' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'SAMPLE_DEV' AS organization_code, 'SAMPLE_ROOT' AS parent_organization_code, '샘플 개발부' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.organization_code=src.organization_code)
 WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);
@@ -286,7 +253,7 @@ ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.manager_employee_no=src.manager_employee_no, tgt.employment_status=src.employment_status, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, manager_employee_no, employment_status, join_date, leave_date, email, mobile_no, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.manager_employee_no, src.employment_status, src.join_date, src.leave_date, src.email, src.mobile_no, src.use_yn, src.created_by, src.updated_by);
 INSERT INTO MBW_EMPLOYEE_ASSIGNMENT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by)
-SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', CURRENT_TIMESTAMP(3), NULL, 'SYSTEM', 'SYSTEM'
+SELECT v.employee_no, v.organization_code, v.position_code, v.job_title_code, 'PRIMARY', 'Y', SYSTIMESTAMP, NULL, 'SYSTEM', 'SYSTEM'
 FROM (
     SELECT 'SAMPLE0001' employee_no, 'SAMPLE_DEV' organization_code, 'SAMPLE_P2' position_code, 'SAMPLE_MANAGER' job_title_code
     UNION ALL
@@ -298,14 +265,14 @@ WHERE NOT EXISTS (
       AND a.primary_yn = 'Y' AND a.effective_to IS NULL
 );
 INSERT INTO MBW_ORGANIZATION_RESPONSIBILITY (organization_code, responsibility_type, employee_no, effective_from, effective_to, priority_no, use_yn, created_by, updated_by)
-SELECT 'SAMPLE_DEV', 'MANAGER', 'SAMPLE0001', CURRENT_TIMESTAMP(3), NULL, 1, 'Y', 'SYSTEM', 'SYSTEM'
+SELECT 'SAMPLE_DEV', 'MANAGER', 'SAMPLE0001', SYSTIMESTAMP, NULL, 1, 'Y', 'SYSTEM', 'SYSTEM'
 WHERE NOT EXISTS (
     SELECT 1 FROM MBW_ORGANIZATION_RESPONSIBILITY
     WHERE organization_code = 'SAMPLE_DEV' AND responsibility_type = 'MANAGER'
       AND employee_no = 'SAMPLE0001' AND use_yn = 'Y' AND effective_to IS NULL
 );
 MERGE INTO MBW_APPROVAL_POLICY tgt
-USING (SELECT 'SAMPLE_STANDARD_APPROVAL' AS policy_code, 1 AS policy_version, '샘플 표준 결재' AS policy_name, 'SAMPLE' AS business_domain, 'STANDARD' AS approval_type, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS enabled_yn, 'N' AS self_approval_allowed_yn, 'Generator/업무관리자 결재 연동을 검증하기 위한 Optional Sample 정책' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'SAMPLE_STANDARD_APPROVAL' AS policy_code, 1 AS policy_version, '샘플 표준 결재' AS policy_name, 'SAMPLE' AS business_domain, 'STANDARD' AS approval_type, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS enabled_yn, 'N' AS self_approval_allowed_yn, 'Generator/업무관리자 결재 연동을 검증하기 위한 Optional Sample 정책' AS description, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.policy_code=src.policy_code AND tgt.policy_version=src.policy_version)
 WHEN MATCHED THEN UPDATE SET tgt.policy_name=src.policy_name, tgt.enabled_yn=src.enabled_yn, tgt.self_approval_allowed_yn=src.self_approval_allowed_yn, tgt.description=src.description, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (policy_code, policy_version, policy_name, business_domain, approval_type, effective_from, effective_to, enabled_yn, self_approval_allowed_yn, description, created_by, updated_by) VALUES (src.policy_code, src.policy_version, src.policy_name, src.business_domain, src.approval_type, src.effective_from, src.effective_to, src.enabled_yn, src.self_approval_allowed_yn, src.description, src.created_by, src.updated_by);

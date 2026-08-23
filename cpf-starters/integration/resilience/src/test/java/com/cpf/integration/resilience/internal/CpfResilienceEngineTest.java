@@ -1,7 +1,6 @@
 package com.cpf.integration.resilience.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cpf.integration.resilience.api.CpfResilienceCallContext;
 import com.cpf.integration.resilience.api.CpfResilienceOutcome;
@@ -19,11 +18,24 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CpfResilienceEngineTest {
     private static final Instant NOW = Instant.parse("2026-08-03T00:00:00Z");
     private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);
+    private AutoCloseable contextScope;
+
+    @BeforeEach
+    void bindContext() {
+        contextScope = CpfResilienceTestSupport.bindContext("tx-1", CLOCK);
+    }
+
+    @AfterEach
+    void closeContext() throws Exception {
+        contextScope.close();
+    }
 
     @Test
     void retriesIdempotentCallAndSucceeds() {
@@ -115,9 +127,13 @@ class CpfResilienceEngineTest {
 
         try (CpfResilienceEngine engine = engine(new StubStore(policy),
                 failure -> CpfResilienceFailureClassifier.Classification.NON_RETRYABLE, failingAudit)) {
-            assertThatThrownBy(() -> engine.execute(context("audit.required", "idem-1"), () -> "OK"))
-                    .isInstanceOf(CpfResilienceExecutionException.class)
-                    .hasMessageContaining("audit persistence failed");
+            CpfResilienceOutcome<String> result =
+                    engine.execute(context("audit.required", "idem-1"), () -> "OK");
+            assertThat(result.status()).isEqualTo(CpfResilienceOutcome.Status.UNKNOWN_RESULT);
+            assertThat(result.value()).isNull();
+            assertThat(result.reasonCode()).isEqualTo("AUDIT_PERSISTENCE_FAILED_AFTER_SUCCESS");
+            assertThat(result.attempts()).isEqualTo(1);
+            assertThat(result.policyRevision()).isEqualTo(1L);
         }
     }
 

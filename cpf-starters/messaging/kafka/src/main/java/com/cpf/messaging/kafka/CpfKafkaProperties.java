@@ -2,6 +2,7 @@ package com.cpf.messaging.kafka;
 
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("cpf.messaging.kafka")
 /** CpfKafkaProperties 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
@@ -17,6 +18,7 @@ public record CpfKafkaProperties(
         this(acknowledgementTimeout, maximumPayloadBytes, requireIdempotence, "kafka", false);
     }
 
+    @ConstructorBinding
     public CpfKafkaProperties {
         acknowledgementTimeout = acknowledgementTimeout == null ? Duration.ofSeconds(10) : acknowledgementTimeout;
         maximumPayloadBytes = maximumPayloadBytes <= 0 ? 1_048_576 : maximumPayloadBytes;

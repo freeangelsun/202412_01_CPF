@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "tool": "invoke-platform-database-migration.ps1",
+  "mode": "DRY_RUN",
+  "status": "실패",
+  "generatedAt": "2026-08-23T14:42:27.7994856+09:00",
+  "profile": "",
+  "plan": null,
+  "planSha256": "",
+  "operations": [],
+  "error": "자동 baseline/latest 추정은 금지됩니다. -MigrationVersion 또는 -FromVersion/-ToVersion을 명시하세요.",
+  "reconcileRequired": false,
+  "failureOperation": null,
+  "operator": "",
+  "reason": "",
+  "approvalReference": "",
+  "sanitized": true,
+  "finishedAt": "2026-08-23T14:42:27.8058350+09:00"
+}

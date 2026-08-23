@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-137",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "f446537f8de2725c04cb8e62233b7027e22814cdeedd8dc35d721c84c509371f",
+  "runtime": {
+    "container": "cpf-codex-f132-postgres",
+    "databaseHealth": "healthy",
+    "processExitCode": 1,
+    "domainDataSourceCondition": "MATCHED",
+    "domainMyBatisCondition": "MATCHED",
+    "failure": "cpf.db.resource-root is required"
+  },
+  "buildContract": {
+    "selectedVendor": "postgresql",
+    "generatedMapper": "online/build/generated-resources/cpf-vendor/db/mapper/SampleTransactionMapper.xml",
+    "bootJarEntry": "BOOT-INF/classes/db/mapper/SampleTransactionMapper.xml",
+    "runtimeProperty": "mybatis.mapper-locations=classpath*:db/mapper/*.xml"
+  },
+  "rootCause": "CpfDomainMyBatisAutoConfiguration ignores the Generated executable classpath contract and calls CpfSqlResources.mapperResources, whose distinct platform Vendor Pack contract requires an external filesystem root.",
+  "ownerDecision": "Resolve the Generated business mapper patterns in Domain MyBatis; preserve external Vendor Pack resolution in platform CpfMyBatisConfig.",
+  "falseGreenControls": [
+    "Do not inject cpf.db.resource-root to hide the mismatch.",
+    "Do not copy Mapper Source into the Generated developer tree.",
+    "Fail when the declared Generated mapper patterns resolve zero resources."
+  ]
+}

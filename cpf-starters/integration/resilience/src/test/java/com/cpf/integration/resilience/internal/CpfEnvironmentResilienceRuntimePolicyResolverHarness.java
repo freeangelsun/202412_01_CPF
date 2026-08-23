@@ -9,8 +9,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.mock.env.MockEnvironment;
 
 /** Verifies deterministic global/operation override resolution and fail-closed validation. */
 public final class CpfEnvironmentResilienceRuntimePolicyResolverHarness {
@@ -58,13 +58,12 @@ public final class CpfEnvironmentResilienceRuntimePolicyResolverHarness {
         if (!condition) throw new AssertionError(message);
     }
 
-    private static final class MapEnvironment implements Environment {
-        private final Map<String, String> values = new HashMap<>();
-        private MapEnvironment(Map<String, String> source) { values.putAll(source); }
+    private static final class MapEnvironment extends MockEnvironment {
+        private final Map<String, Object> values = new HashMap<>();
+        private MapEnvironment(Map<String, String> source) {
+            values.putAll(source);
+            getPropertySources().addFirst(new MapPropertySource("cpf-resilience-test", values));
+        }
         void put(String key, String value) { values.put(key, value); }
-        @Override public boolean acceptsProfiles(Profiles profiles) { return profiles.matches(profile -> false); }
-        @SuppressWarnings("deprecation")
-        @Override public boolean acceptsProfiles(String... profiles) { return false; }
-        @Override public String getProperty(String key) { return values.get(key); }
     }
 }

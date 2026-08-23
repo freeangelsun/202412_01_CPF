@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "runId": "bb2e129c4691",
+  "sourceSha": "7aff4402e8e830f63f3b26d836773afa033e6962",
+  "status": "FAIL",
+  "stages": [
+    {
+      "stage": "FreshInstall",
+      "status": "PASS",
+      "planSha256": "3dd62e27452acd06f492a17545ec5a92312e02e211d6b71b81b167464da37b45"
+    }
+  ],
+  "profile": "database-install.mariadb.bb2e129c4691.json",
+  "sanitized": true,
+  "startedAt": "2026-08-23T05:42:09.0533451+00:00",
+  "error": "자동 baseline/latest 추정은 금지됩니다. -MigrationVersion 또는 -FromVersion/-ToVersion을 명시하세요.",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T05:42:29.1072297+00:00"
+}

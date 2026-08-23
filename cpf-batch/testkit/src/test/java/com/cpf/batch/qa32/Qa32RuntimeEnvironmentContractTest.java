@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 @Tag("qa32-runtime")
 class Qa32RuntimeEnvironmentContractTest {
     @Test void springBatchRepositoryExistsOnAllOfficialVendors() throws Exception {
-        checkDatabase("ORACLE", "SELECT COUNT(*) FROM BATCH_JOB_INSTANCE");
-        checkDatabase("POSTGRESQL", "SELECT COUNT(*) FROM BATCH_JOB_INSTANCE");
-        checkDatabase("MARIADB", "SELECT COUNT(*) FROM BATCH_JOB_INSTANCE");
+        checkDatabase("ORACLE", "SELECT COUNT(*) FROM BAT_SB_JOB_INSTANCE");
+        checkDatabase("POSTGRESQL", "SELECT COUNT(*) FROM BAT_SB_JOB_INSTANCE");
+        checkDatabase("MARIADB", "SELECT COUNT(*) FROM BAT_SB_JOB_INSTANCE");
     }
 
     @Test void kafkaBrokerAndRemoteTopicsAreReachable() throws Exception {

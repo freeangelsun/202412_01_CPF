@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-08-23T16:51:43+09:00",
+  "findingId": "CX-F-194",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "6965c85c3c36374a6bad8921011684f9ddb8d26d8209d55bba2a1d3fba2e37cf",
+  "actual": {
+    "sourceWithoutDb3": ["on-demand-find-by-idempotency", "on-demand-find-by-request", "on-demand-insert", "on-demand-link-execution", "on-demand-mark-failed"],
+    "db3WithoutRegisteredSource": ["runtime-desired-state-update", "runtime-heartbeat-update", "runtime-instance-snapshot", "runtime-instances-list", "runtime-registry-insert", "runtime-registry-update", "runtime-row-version"]
+  },
+  "impact": "Current on-demand runtime fails resource lookup; runtime registry recovery queries have ambiguous ownership and cannot be deleted without call-graph proof.",
+  "repair": "The canonical contract already owned all five current on-demand statements; SYNC generated their DB3 outputs. Global call-graph proof found zero consumers for the seven unregistered runtime query families, so nine authoring files and 21 derived projections were deleted. Current runtime-heartbeat-insert and immutable history were retained.",
+  "sourceIdentityAfter": "ad80545586332cf110445456c27ff8c89975e02f1d6a0ee0cc8353a29a37e5ae",
+  "next": "Run BAT CHECK, full integrity, Java 25 and Batch runtime recovery flows.",
+  "falseGreen": false
+}

@@ -1,0 +1,8 @@
+{
+  "track": "CX-02-CURRENT-CONTRACT-SYNC-PREBUILT-DISPATCH-FIX",
+  "finding": "CX-F-109",
+  "attempt1": {"exitCode": 2, "classification": "FAIL_WITHIN_F109", "cause": "Prebuilt backoffice was incorrectly dispatched to generated upgrade/regenerate."},
+  "fix": "sync_workspace_domains now routes generationMode=prebuilt through generate/verify_prebuilt_domain.",
+  "sourceIdentity": {"sha256": "a6f6c561b3afb3fcfe80e0aa6ff1781474d9f92519675ed9c4c9708c93858347", "sha1": "6ae12b86019ebe97ae31cb395eb4543bc484c059", "fileCount": 8228, "totalBytes": 75801028},
+  "mutationOnFailure": "NONE"
+}

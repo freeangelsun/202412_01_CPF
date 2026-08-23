@@ -1,0 +1,36 @@
+{
+  "track": "CX-05-F206-F209-F210-COMPLETE-JAVA25-REGRESSION",
+  "startedAt": "2026-08-23T19:04:25+09:00",
+  "finishedAt": "2026-08-23T19:06:22+09:00",
+  "sourceIdentitySha256": "fc6d7714d1a39e2aaf7db38d3b3ad6255d9e1f504cf5fe395677d9d2e3f0874c",
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "sequentialExecution": true,
+  "worker": {
+    "command": ".\\gradlew.bat :runtime:batch:worker:test --no-daemon --max-workers=1 --no-watch-fs --console=plain",
+    "exitCode": 0,
+    "buildResult": "BUILD SUCCESSFUL",
+    "durationSeconds": 40,
+    "suiteCount": 14,
+    "tests": 43,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "messagingKafka": {
+    "command": ".\\gradlew.bat :starters:messaging:kafka:test --no-daemon --max-workers=1 --no-watch-fs --console=plain",
+    "exitCode": 0,
+    "buildResult": "BUILD SUCCESSFUL",
+    "durationSeconds": 21,
+    "suiteCount": 3,
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "closure": {
+    "CX-F-209": "CLOSED",
+    "CX-F-210": "CLOSED",
+    "CX-F-206": "VERIFICATION_PENDING: actual installed database required"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-GENERATED-COMPOSITE-STARTER-RESOLUTION-DIAGNOSIS",
+  "startedAt": "2026-08-22T22:05:40.9392638+09:00",
+  "finishedAt": "2026-08-22T22:05:59.8871636+09:00",
+  "sourceIdentitySha256": "7ec667b954c4144d93caa5e6f8b96845f5cca31c76aeee77a95061bf83ecf877",
+  "exitCode": 1,
+  "status": "FINDING_REGISTERED",
+  "finding": "CX-F-106",
+  "scope": "Root Java 25 composite test of current MBR online/batch and EXS online",
+  "actualError": "EXS testRuntimeClasspath resolves member and the public BOM as projects but cannot resolve five com.cpf.starter artifacts.",
+  "unresolved": [
+    "com.cpf.starter:cpf-starter:1.0.0-SNAPSHOT",
+    "com.cpf.starter:cpf-starter-secure-api:1.0.0-SNAPSHOT",
+    "com.cpf.starter:cpf-starter-data-mybatis:1.0.0-SNAPSHOT",
+    "com.cpf.starter:cpf-starter-integration-http:1.0.0-SNAPSHOT",
+    "com.cpf.starter:cpf-starter-integration-resilience:1.0.0-SNAPSHOT"
+  ],
+  "falseGreenPrevented": "Do not treat Generator sync/diff as compile success; repair exact current-source composite substitution and rerun all affected modules.",
+  "externalLogs": [
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx02-current-domains-java25-rerun2.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx02-current-domains-java25-rerun2.stderr.log"
+  ]
+}

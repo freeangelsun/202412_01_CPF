@@ -339,7 +339,10 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "mbw_refresh_token", S
     private CpfPasswordVerification verifyPassword(String rawPassword, String encodedPassword) {
         char[] chars = rawPassword.toCharArray();
         try {
-            return passwordHashingPort.verify(chars, encodedPassword);
+            boolean matched = passwordHashingPort.matches(chars, encodedPassword);
+            return new CpfPasswordVerification(
+                    matched,
+                    matched && passwordHashingPort.upgradeEncoding(encodedPassword));
         } finally {
             Arrays.fill(chars, '\0');
         }
@@ -348,7 +351,7 @@ auditService.record(operator.loginId(), "SESSION_REVOKE", "mbw_refresh_token", S
     private String hashPassword(String rawPassword) {
         char[] chars = rawPassword.toCharArray();
         try {
-            return passwordHashingPort.hash(chars);
+            return passwordHashingPort.encode(chars);
         } finally {
             Arrays.fill(chars, '\0');
         }

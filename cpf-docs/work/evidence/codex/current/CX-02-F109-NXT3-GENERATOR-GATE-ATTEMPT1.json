@@ -1,0 +1,17 @@
+{
+  "track": "CX-02-F109-NXT3-GENERATOR-GATE-ATTEMPT1",
+  "sourceIdentity": "faa9339a512fe3feb8c5e9f4bdd600df77c96f6107f8820b3ff46398f9920668",
+  "command": "python cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py --root .",
+  "exitCode": 1,
+  "status": "EXPECTED_CURRENT_METADATA_ONLY",
+  "passCount": 16,
+  "failCount": 4,
+  "failures": [
+    "cpf-member verify: cpf-domain.yaml and cpf-generator.lock.json pending approved deletion",
+    "cpf-member idempotent diff blocked by the same metadata",
+    "cpf-external verify: cpf-domain.yaml and cpf-generator.lock.json pending approved deletion",
+    "cpf-external idempotent diff blocked by the same metadata"
+  ],
+  "disposableLifecycle": "PASS",
+  "note": "Arbitrary dry-run/generate/verify/idempotent/remove-manifest replay/restore/invalid input and CLI surface checks all passed."
+}

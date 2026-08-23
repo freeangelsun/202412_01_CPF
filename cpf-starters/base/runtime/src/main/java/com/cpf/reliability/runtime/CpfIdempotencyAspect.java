@@ -8,7 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
-/** @CpfIdempotent를 durable Coordinator로 연결하는 AOP Consumer입니다. */
+/** {@code @CpfIdempotent}를 durable Coordinator로 연결하는 AOP Consumer입니다. */
 @Aspect
 public final class CpfIdempotencyAspect {
     private final CpfIdempotencyCoordinator coordinator;

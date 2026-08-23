@@ -1,6 +1,7 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.publish.maven.MavenPublication
 import groovy.json.JsonSlurper
 
 /*
@@ -17,6 +18,13 @@ def stackText = { String key -> stack.getProperty(key) }
 
 def cpfPython = providers.environmentVariable('CPF_PYTHON').orElse('python').get()
 
+// Repository-root generated state belongs under the managed Evidence workspace.
+// Module build outputs retain their catalog-owned conventional paths while final cleanup removes them.
+def cpfGeneratedEvidenceRoot = rootProject.layout.projectDirectory.dir('cpf-docs/work/evidence/generated')
+def cpfJvmCrashDir = cpfGeneratedEvidenceRoot.dir('jvm/crash').asFile
+def cpfJvmHeapDumpDir = cpfGeneratedEvidenceRoot.dir('jvm/heap-dump').asFile
+rootProject.layout.buildDirectory.set(cpfGeneratedEvidenceRoot.dir('gradle/root-build'))
+
 
 // All canonical Starter/runtime modules publish Runtime/ADM management metadata from one catalog.
 // Public Starters and operator-visible internal providers fail closed when the management contract is missing;
@@ -25,6 +33,61 @@ def cpfStarterCatalogFile = file('cpf-tools/generator/contracts/cpf-starter-cata
 def cpfStarterCatalog = new JsonSlurper().parse(cpfStarterCatalogFile)
 def cpfStarterManagementByProject = (cpfStarterCatalog.modules ?: [])
         .collectEntries { module -> [(module.projectPath.toString()): module] }
+
+// Composite Build의 자동 치환 좌표는 publication artifactId가 아니라
+// ${project.group}:${project.name}입니다. jdbc/valkey처럼 동일 leaf name을 가진
+// 여러 프로젝트는 서로를 잘못 치환할 수 있으므로, 충돌 Owner만 Source-build
+// 전용 group으로 분리합니다. Maven publication 좌표는 Catalog 정본을 그대로 유지합니다.
+def cpfCompositeIdentityCollisions = (cpfStarterCatalog.modules ?: []).groupBy { module ->
+    def leafName = module.projectPath.toString().tokenize(':').last()
+    "${module.groupId}:${leafName}".toString()
+}.findAll { coordinate, modules -> modules.size() > 1 }
+def cpfCompositeGroupByProject = cpfCompositeIdentityCollisions.values().flatten().collectEntries { module ->
+    def suffix = module.artifactId.toString().replaceAll('[^A-Za-z0-9_.]', '.')
+    [(module.projectPath.toString()): "${module.groupId}.composite.${suffix}".toString()]
+}
+
+gradle.afterProject { target, state ->
+    def module = cpfStarterManagementByProject[target.path]
+    def compositeGroup = cpfCompositeGroupByProject[target.path]
+    if (module != null) {
+        target.plugins.withId('base') {
+            // Executable archives embed project Jars by their local filename. The
+            // canonical artifactId is globally unique, while leaf project names
+            // such as jdbc/valkey are intentionally repeated across capabilities.
+            target.base.archivesName.set(module.artifactId.toString())
+        }
+    }
+    if (module != null && compositeGroup != null) {
+        target.group = compositeGroup
+        target.plugins.withId('maven-publish') {
+            target.publishing.publications.withType(MavenPublication).configureEach {
+                groupId = module.groupId.toString()
+            }
+        }
+    }
+}
+
+// The final artifact catalog owns documentation publication. Individual
+// modules must not independently drift sources/javadoc disclosure on or off.
+def cpfFinalArtifactCatalogFile = file('cpf-tools/release/cpf-final-artifact-catalog.json')
+def cpfFinalArtifactCatalog = new JsonSlurper().parse(cpfFinalArtifactCatalogFile)
+def cpfPublicationRows = (cpfFinalArtifactCatalog.artifacts ?: []) as List
+def cpfDocumentationByOwner = cpfPublicationRows.groupBy { row ->
+    row.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '')
+}.collectEntries { owner, rows ->
+    [(owner): [
+            publishSources: rows.any { it.publishSources == true },
+            publishJavadoc: rows.any { it.publishJavadoc == true }
+    ]]
+}
+def cpfPublicPublicationClasses = [
+        'PUBLIC_COMPILE_TIME_JAVA', 'PUBLIC_RUNTIME', 'PUBLIC_BOM', 'PUBLIC_TOOLING', 'PUBLIC_STARTER'
+] as Set
+def cpfPublicPublicationOwners = cpfPublicationRows.findAll { row ->
+    cpfPublicPublicationClasses.contains(row.publicationClass?.toString()) &&
+            !(row.publicGroupId?.toString() ?: '').trim().isEmpty()
+}.collect { row -> row.ownerPath?.toString()?.replace('\\', '/')?.replaceAll('/+$', '') }.findAll { it }.toSet()
 
 def capabilityPropertiesText = { Map module ->
     def management = module.management instanceof Map ? module.management : [:]
@@ -146,15 +209,32 @@ subprojects {
             }
         }
         plugins.withId('java') {
+            // 과거 정적 descriptor는 호환성 비교용 Source로 보존하되 Build 입력에서는 정확히 제외합니다.
+            // Catalog가 생성한 단일 descriptor만 resource/source archive에 들어가며 다른 중복은 FAIL합니다.
+            def compatibilityCapabilityFile = file('src/main/resources/META-INF/cpf/runtime-capability.properties').canonicalFile
+            sourceSets.main.resources.exclude { element ->
+                element.file.canonicalFile == compatibilityCapabilityFile
+            }
             sourceSets.main.resources.srcDir(generatedCapabilityDir)
             tasks.named('processResources') {
                 dependsOn 'generateCpfRuntimeCapabilityMetadata'
-                // Existing source descriptor is a compatibility fixture; canonical generated metadata wins.
-                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                duplicatesStrategy = DuplicatesStrategy.FAIL
+            }
+            tasks.matching { it.name == 'sourcesJar' }.configureEach {
+                dependsOn 'generateCpfRuntimeCapabilityMetadata'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
             }
         }
     }
     plugins.withId('java') {
+        def cpfOwnerPath = rootProject.relativePath(projectDir).replace('\\', '/').replaceAll('/+$', '')
+        def cpfDocumentation = cpfDocumentationByOwner[cpfOwnerPath]
+        if (cpfDocumentation?.publishSources == true) {
+            java.withSourcesJar()
+        }
+        if (cpfDocumentation?.publishJavadoc == true) {
+            java.withJavadocJar()
+        }
         // cpf-core를 제외한 Root Build Java Module은 동일한 기술 Stack BOM을 사용합니다.
         // cpf-core는 JDK-only public contract이므로 POM에 dependencyManagement를 노출하지 않습니다.
         // 개별 Module이 Boot application plugin을 적용하는지와 무관하게 versionless
@@ -176,6 +256,17 @@ subprojects {
         }
         tasks.withType(Test).configureEach {
             useJUnitPlatform()
+            doFirst {
+                if (!cpfJvmCrashDir.mkdirs() && !cpfJvmCrashDir.isDirectory()) {
+                    throw new GradleException("Cannot create CPF JVM crash Evidence directory: ${cpfJvmCrashDir}")
+                }
+                if (!cpfJvmHeapDumpDir.mkdirs() && !cpfJvmHeapDumpDir.isDirectory()) {
+                    throw new GradleException("Cannot create CPF JVM heap-dump Evidence directory: ${cpfJvmHeapDumpDir}")
+                }
+            }
+            jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
+                    "-XX:ErrorFile=${new File(cpfJvmCrashDir, 'test-hs_err_pid%p.log').absolutePath}",
+                    "-XX:HeapDumpPath=${cpfJvmHeapDumpDir.absolutePath}"
             def xms = cpfResourceValue(project, 'test.xms')
             def xmx = cpfResourceValue(project, 'test.xmx')
             def forksText = cpfResourceValue(project, 'test.maxParallelForks')
@@ -213,6 +304,19 @@ subprojects {
                     "-Xss${cpfResourceValue(project, 'runtime.jvm.threadStack')}"
             ]
         }
+    }
+    tasks.withType(JavaExec).configureEach {
+        doFirst {
+            if (!cpfJvmCrashDir.mkdirs() && !cpfJvmCrashDir.isDirectory()) {
+                throw new GradleException("Cannot create CPF JVM crash Evidence directory: ${cpfJvmCrashDir}")
+            }
+            if (!cpfJvmHeapDumpDir.mkdirs() && !cpfJvmHeapDumpDir.isDirectory()) {
+                throw new GradleException("Cannot create CPF JVM heap-dump Evidence directory: ${cpfJvmHeapDumpDir}")
+            }
+        }
+        jvmArgs '-XX:+HeapDumpOnOutOfMemoryError',
+                "-XX:ErrorFile=${new File(cpfJvmCrashDir, 'runtime-hs_err_pid%p.log').absolutePath}",
+                "-XX:HeapDumpPath=${cpfJvmHeapDumpDir.absolutePath}"
     }
     tasks.withType(Exec).matching { it.name.toLowerCase(Locale.ROOT).startsWith('frontend') }.configureEach {
         def nodeMb = cpfResourceValue(project, 'frontend.node.maxOldSpace.mb')
@@ -373,7 +477,55 @@ tasks.register('aggregateQualityBuild') {
 tasks.register('publicationGate') {
     group = 'verification'
     description = 'Canonical Starter Catalog parity와 공개 가능한 Maven publication의 POM 생성 가능성을 검증합니다.'
-    dependsOn 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'managedDependencyGate', 'corePomPurityGate'
+    dependsOn 'starterCatalogGate', 'gradleLogicalTreeGate', 'gradleProjectDependencyClosureGate', 'gradleProjectDependencyClosureTest', 'managedDependencyGate', 'corePomPurityGate', 'compositeModuleIdentityGate'
+}
+
+tasks.register('compositeModuleIdentityGate') {
+    group = 'verification'
+    description = 'Composite 자동 치환용 project group/name 충돌을 차단하고 Maven 공개 좌표 보존을 검증합니다.'
+    doLast {
+        def actualCoordinates = (cpfStarterCatalog.modules ?: []).collect { module ->
+            def target = project(module.projectPath.toString())
+            [module: module, target: target, coordinate: "${target.group}:${target.name}".toString()]
+        }
+        def duplicates = actualCoordinates.groupBy { it.coordinate }
+                .findAll { coordinate, rows -> rows.size() > 1 }
+                .collectEntries { coordinate, rows ->
+                    [(coordinate): rows.collect { it.target.path }.sort()]
+                }
+        def wrongCompositeGroups = actualCoordinates.findAll { row ->
+            def expected = cpfCompositeGroupByProject[row.target.path]
+            expected != null && row.target.group.toString() != expected
+        }.collect { row -> "${row.target.path}:${row.target.group}" }
+        def wrongPublicationGroups = actualCoordinates.findAll { row ->
+            cpfCompositeGroupByProject.containsKey(row.target.path)
+        }.collectMany { row ->
+            row.target.publishing.publications.withType(MavenPublication).findAll { publication ->
+                publication.groupId != row.module.groupId.toString()
+            }.collect { publication ->
+                "${row.target.path}:${publication.name}:${publication.groupId}"
+            }
+        }
+        def archiveRows = actualCoordinates.collect { row ->
+            def jarTask = row.target.tasks.named('jar').get()
+            [row: row, archiveBaseName: jarTask.archiveBaseName.get(), archiveFileName: jarTask.archiveFileName.get()]
+        }
+        def wrongArchiveBaseNames = archiveRows.findAll { archive ->
+            archive.archiveBaseName != archive.row.module.artifactId.toString()
+        }.collect { archive ->
+            "${archive.row.target.path}:${archive.archiveBaseName}->${archive.row.module.artifactId}"
+        }
+        def duplicateArchiveFileNames = archiveRows.groupBy { it.archiveFileName }
+                .findAll { archiveFileName, rows -> rows.size() > 1 }
+                .collectEntries { archiveFileName, rows ->
+                    [(archiveFileName): rows.collect { it.row.target.path }.sort()]
+                }
+        if (!duplicates.isEmpty() || !wrongCompositeGroups.isEmpty() || !wrongPublicationGroups.isEmpty()
+                || !wrongArchiveBaseNames.isEmpty() || !duplicateArchiveFileNames.isEmpty()) {
+            throw new GradleException("CPF composite/archive identity mismatch: duplicate=${duplicates}, group=${wrongCompositeGroups}, publication=${wrongPublicationGroups}, archiveBase=${wrongArchiveBaseNames}, archiveFile=${duplicateArchiveFileNames}")
+        }
+        println "CPF_COMPOSITE_IDENTITY_READY modules=${actualCoordinates.size()} collisionOwners=${cpfCompositeGroupByProject.size()} uniqueArchives=${archiveRows.size()}"
+    }
 }
 
 // FullLocal publication은 사용자 ~/.m2를 오염시키지 않고 repository-owned 격리 경로만 사용합니다.
@@ -385,6 +537,12 @@ subprojects { subproject ->
                     name = 'CpfLocal'
                     url = rootProject.layout.buildDirectory.dir('cpf-local-artifact-repository')
                 }
+                maven {
+                    name = 'CpfStaging'
+                    url = rootProject.providers.gradleProperty('cpfArtifactStagingRepository')
+                            .map { rootProject.uri(it) }
+                            .orElse(rootProject.layout.buildDirectory.dir('cpf-artifact-staging/repository'))
+                }
             }
         }
     }
@@ -393,6 +551,54 @@ subprojects { subproject ->
 tasks.register('cpfPublishToIsolatedLocal') {
     group = 'verification'
     description = '모든 Maven publication을 build/cpf-local-artifact-repository에만 게시합니다.'
+}
+
+tasks.register('cpfPublishPublicToArtifactStaging') {
+    group = 'verification'
+    description = 'Canonical Catalog에서 공개로 분류된 Maven publication만 격리 staging repository에 게시합니다.'
+}
+
+tasks.register('cpfPublishAllToArtifactStaging') {
+    group = 'verification'
+    description = 'Manifest promotion용 전체 CPF Maven publication을 격리 staging repository에 게시합니다.'
+}
+
+tasks.register('publishCpfVerifiedLocalPlatformArtifacts') {
+    group = 'verification'
+    description = 'Public release staging 또는 검증된 Local Maven Set을 생성하는 Canonical publication entrypoint입니다.'
+    doLast {
+        def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
+        def stagingRepository = providers.gradleProperty('cpfArtifactStagingRepository')
+                .map { file(it) }
+                .orElse(rootProject.layout.buildDirectory.dir('cpf-artifact-staging/repository').map { it.asFile })
+                .get().canonicalFile
+        if (!stagingRepository.isDirectory()) {
+            throw new GradleException("CPF artifact staging repository was not created: ${stagingRepository}")
+        }
+        if (publicReleaseMode) {
+            def requestedPublic = file(providers.gradleProperty('cpfPublicBinaryRepository').get()).canonicalFile
+            if (requestedPublic != stagingRepository) {
+                throw new GradleException("cpfPublicBinaryRepository and cpfArtifactStagingRepository must resolve to the same path: public=${requestedPublic} staging=${stagingRepository}")
+            }
+            println "CPF_PUBLIC_ARTIFACT_STAGING=${stagingRepository}"
+            return
+        }
+
+        def localRepository = providers.gradleProperty('cpfLocalArtifactRepository')
+                .orElse(providers.environmentVariable('CPF_LOCAL_ARTIFACT_REPOSITORY'))
+                .orElse(new File(System.getProperty('user.home'), '.cpf/repository').absolutePath)
+                .map { file(it).canonicalPath }.get()
+        def command = [
+                'pwsh', '-NoProfile', '-File',
+                file('cpf-tools/release/tools/promote-cpf-verified-local-artifacts.ps1').absolutePath,
+                '-Root', rootDir.absolutePath,
+                '-StagingRepository', stagingRepository.absolutePath,
+                '-LocalRepository', localRepository
+        ]
+        def process = new ProcessBuilder(command).directory(rootDir).inheritIO().start()
+        def exit = process.waitFor()
+        if (exit != 0) throw new GradleException("CPF verified local artifact promotion failed: exit=${exit}")
+    }
 }
 
 tasks.register('qa34IntegrationTest') {
@@ -414,6 +620,26 @@ gradle.projectsEvaluated {
         p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfLocalRepository') }.toList()
     }
     tasks.named('cpfPublishToIsolatedLocal') { dependsOn isolatedPublicationTasks }
+
+    def allStagingPublicationTasks = subprojects.collectMany { p ->
+        p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfStagingRepository') }.toList()
+    }
+    def publicStagingPublicationTasks = subprojects.findAll { p ->
+        cpfPublicPublicationOwners.contains(rootProject.relativePath(p.projectDir).replace('\\', '/').replaceAll('/+$', ''))
+    }.collectMany { p ->
+        p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfStagingRepository') }.toList()
+    }
+    tasks.named('cpfPublishAllToArtifactStaging') { dependsOn allStagingPublicationTasks }
+    tasks.named('cpfPublishPublicToArtifactStaging') { dependsOn publicStagingPublicationTasks }
+
+    def publicReleaseMode = providers.gradleProperty('cpfPublicBinaryRepository').isPresent()
+    tasks.named('publishCpfVerifiedLocalPlatformArtifacts') {
+        dependsOn publicReleaseMode ? tasks.named('cpfPublishPublicToArtifactStaging') : tasks.named('cpfPublishAllToArtifactStaging')
+        dependsOn gradle.includedBuild('cpf-gradle-plugin').task(':publishCpfPluginToStaging')
+        dependsOn publicReleaseMode
+                ? gradle.includedBuild('cpf-platform-bom').task(':public-bom:publishAllPublicationsToCpfStagingRepository')
+                : gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToStaging')
+    }
 
     def qa34 = project.findProject(':runtime:batch:testkit')?.tasks?.findByName('qa34IntegrationTest')
     if (qa34 != null) tasks.named('qa34IntegrationTest') { dependsOn qa34 }
@@ -579,7 +805,8 @@ gradle.projectsEvaluated {
                 'com.cpf.starter:cpf-starter-secure-api': ':starters:profiles:secure-api',
                 'com.cpf.starter:cpf-starter-data-mybatis': ':starters:data:mybatis',
                 'com.cpf.starter:cpf-starter-common': ':starters:common',
-                'com.cpf.starter:cpf-starter-file-attachment': ':starters:file:attachment'
+                'com.cpf.starter:cpf-starter-file-attachment': ':starters:file:attachment',
+                'com.cpf.testkit:cpf-testkit': ':internal:testing:testkit'
         ]
         backoffice.configurations.configureEach { configuration ->
             configuration.resolutionStrategy.dependencySubstitution { rules ->
@@ -590,4 +817,3 @@ gradle.projectsEvaluated {
         }
     }
 }
-

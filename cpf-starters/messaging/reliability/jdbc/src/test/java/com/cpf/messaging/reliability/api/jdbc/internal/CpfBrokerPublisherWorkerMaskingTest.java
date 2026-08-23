@@ -1,5 +1,6 @@
 package com.cpf.messaging.reliability.api.jdbc.internal;
 
+import com.cpf.messaging.reliability.api.jdbc.CpfBrokerPublisherWorker;
 import com.cpf.messaging.spi.broker.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,10 +64,33 @@ class CpfBrokerPublisherWorkerMaskingTest {
 
         @Override
         public void markPublished(String messageId, CpfBrokerResult result) {
+            throw new AssertionError("legacy unfenced completion must not be called");
+        }
+
+        @Override
+        public boolean supportsFencedPublishMutation() {
+            return true;
+        }
+
+        @Override
+        public void markPublished(String workerId, String messageId, CpfBrokerResult result) {
+            assertThat(workerId).isEqualTo("worker-1");
         }
 
         @Override
         public void markUnknown(String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
+            throw new AssertionError("legacy unfenced UNKNOWN mutation must not be called");
+        }
+
+        @Override
+        public boolean supportsFencedUnknownMutation() {
+            return true;
+        }
+
+        @Override
+        public void markUnknown(
+                String workerId, String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
+            assertThat(workerId).isEqualTo("worker-1");
             this.unknown = result;
             this.nextReconcileAt = nextReconcileAt;
         }

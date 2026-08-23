@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-23T23:10:55+09:00",
+  "sourceIdentitySha256": "d2c54fb72a692c935a44ab8dcc6ca923b0613728850fec8fa8fdfca215820cd6",
+  "freshRunId": "b4200823c029",
+  "cleanup": "PASS",
+  "findings": [
+    {"findingId": "CX-F-253", "status": "CLOSED", "businessSystem6HeaderErrors": 0, "passedBoundary": "authenticated Job Pack Controller and repository invocation"},
+    {"findingId": "CX-F-254", "status": "CLOSED", "retentionMissingTableErrors": 0, "passedBoundary": "scheduled Linux MariaDB Retention repository query"}
+  ]
+}

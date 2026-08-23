@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F118-POWERSHELL-GRADLE-PROPERTY-QUOTING-DIAGNOSIS",
+  "startedAt": "2026-08-23T00:24:21.3483099+09:00",
+  "finishedAt": "2026-08-23T00:26:00+09:00",
+  "sourceIdentitySha256": "11eca41954dfb53b706a5f3efe30907ce0f273c16da6626e82714ab8329f6fa4",
+  "result": "HARNESS_COMMAND_DEFECT",
+  "finding": "CX-F-118",
+  "publicationExitCode": 1,
+  "actualFailure": "Task '.0.0-SNAPSHOT' not found",
+  "rootCause": "PowerShell splits an unquoted native argument shaped -Pname=1.0.0-SNAPSHOT after the first numeric literal; the Gradle wrapper received two arguments.",
+  "argvProbe": {
+    "unquoted": ["-PcpfPlatformVersion=1", ".0.0-SNAPSHOT"],
+    "quoted": ["-PcpfPlatformVersion=1.0.0-SNAPSHOT"]
+  },
+  "productSourceDefect": false,
+  "productSourceChanged": false,
+  "next": "Rerun the identical Publication with the dotted property argument quoted; close only after the real build advances beyond command parsing."
+}

@@ -8,6 +8,13 @@ public record CpfRuntimeApplyResult(
         String actualHash,
         String errorCode,
         String message) {
+    private static final int MAX_FAILURE_MESSAGE_LENGTH = 1_000;
+
+    public CpfRuntimeApplyResult {
+        if (message != null && message.length() > MAX_FAILURE_MESSAGE_LENGTH) {
+            message = message.substring(0, MAX_FAILURE_MESSAGE_LENGTH);
+        }
+    }
 
     /** 기존 4-인자 생성자 호환입니다. */
     public CpfRuntimeApplyResult(boolean applied, String actualHash, String errorCode, String message) {

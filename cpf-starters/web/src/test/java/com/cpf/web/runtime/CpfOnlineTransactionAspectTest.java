@@ -36,7 +36,11 @@ class CpfOnlineTransactionAspectTest {
     }
     private static CpfContext context(String tx){
         Instant now=Instant.parse("2026-08-11T00:00:00Z");
-        return new CpfContext(new CpfContext.CpfTransactionContext(tx,tx,null,null,null,"API","TEST",LocalDate.of(2026,8,11),now,CpfContext.CpfTransactionOriginKind.HTTP,"TEST",tx),
+        return new CpfContext(new CpfContext.CpfTransactionContext(
+                tx,tx,null,null,null,
+                "TEST","TEST",null,null,
+                "API","API",null,null,
+                LocalDate.of(2026,8,11),now,CpfContext.CpfTransactionOriginKind.HTTP,"TEST",tx),
                 new CpfContext.CpfExecutionContext(null,"exec-1","exec-1",null,"seg-1",null,CpfContext.CpfExecutionType.API,1,0,now,null,CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),null,null,null);
     }
     static class Sample {

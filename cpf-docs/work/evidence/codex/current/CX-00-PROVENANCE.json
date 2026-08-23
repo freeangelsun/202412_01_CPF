@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-00-PROVENANCE",
+  "timestamp": {
+    "started": "2026-08-22T11:14:06.9435320+09:00",
+    "finished": "2026-08-22T11:14:07.6776616+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Locate named provenance ZIPs under C:\\Users\\fly10\\Downloads and run Get-FileHash -Algorithm SHA256",
+  "environment": {
+    "os": "Microsoft Windows 10.0.26200",
+    "powershell": "7.6.5 Core"
+  },
+  "exitCode": 0,
+  "sourceIdentity": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+  "artifacts": [
+    {
+      "path": "C:\\Users\\fly10\\Downloads\\CPF_FULL_SOURCE_FOR_NEXT_QA_20260822_102905.zip",
+      "bytes": 55168882,
+      "sha256": "3cfa4c25eff8381526f66f9865178e22bdff72f0c14cf40813ca943c77bd528d"
+    },
+    {
+      "path": "C:\\Users\\fly10\\Downloads\\CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542.zip",
+      "bytes": 55606117,
+      "sha256": "324f5d8f33bd59925fcfe4cfcb24772a543cfbf9acbafebe0f6b4b88841a8583"
+    },
+    {
+      "path": "C:\\Users\\fly10\\Downloads\\CPF_DEV1_FINAL_OVERLAY_20260822_FINAL.zip",
+      "bytes": 440060,
+      "sha256": "2180ba59cc0b04a6750b0835268c7ec0326d777f860cbba9115b208d004b0ba0"
+    }
+  ],
+  "result": "PASS",
+  "failureSummary": null,
+  "findingIds": ["CX-F-001"],
+  "sanitized": true
+}

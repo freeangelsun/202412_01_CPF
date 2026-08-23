@@ -1,0 +1,29 @@
+{
+  "track": "CX-00-ROOT-CANONICAL-OWNERSHIP-DIAGNOSIS",
+  "startedAt": "2026-08-22T18:06:50+09:00",
+  "finishedAt": "2026-08-22T18:10:00+09:00",
+  "sourceIdentitySha256": "dddb36f7cbe993e4b44a087a6a7e0ce100c4aa3b61145d5daeb5905dd8ef25dd",
+  "rootItems": 28,
+  "classificationCounts": {
+    "MUST_ROOT": 12,
+    "ROOT_ENTRYPOINT": 15,
+    "MOVE_TO_OWNER": 1,
+    "DELETE_GARBAGE": 0
+  },
+  "finding": "CX-F-072",
+  "findingStatusBeforeSourceEdit": "IN_PROGRESS",
+  "moveCandidate": {
+    "source": "pytest.ini",
+    "destination": "cpf-tools/testing/config/pytest.ini",
+    "owner": "CPF Testing",
+    "directConfigPathReferencesOutsideHistoricalEvidence": 0,
+    "semanticConsumerFiles": [
+      ".github/workflows/cpf-final-source-gates.yml",
+      "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+      ".vscode/settings.json"
+    ],
+    "canonicalRunnerPlanned": "cpf-tools/testing/tools/run-cpf-pytest.py"
+  },
+  "consumerSearch": "Repository-wide fixed-string and pytest invocation search excluded generated outputs, Current/Evidence and immutable historical deliverables. Root platform-discovery consumers were counted separately.",
+  "deletion": "NONE"
+}

@@ -1,0 +1,36 @@
+{
+  "recordedAt": "2026-08-23T16:40:24+09:00",
+  "sourceIdentityBefore": {
+    "sha256": "f5f64570aba2abc5a14ebd60b06d51681e2f7873e1101534d275d8b72f9da779",
+    "sha1": "adb96e4842dccee9f07fe7c1675eaa4db149faf2",
+    "fileCount": 8255,
+    "totalBytes": 75026574
+  },
+  "sourceIdentityAfter": {
+    "sha256": "2fbf0b076e845128e4b6d3dd272dceedad9ec875b0a79395b519774d05ef4e65",
+    "sha1": "748cc08c99c9f32b78f5e0e9e73d0e3866f664ed",
+    "fileCount": 8255,
+    "totalBytes": 75033254
+  },
+  "findingStatus": {
+    "CX-F-187": "IN_PROGRESS",
+    "CX-F-188": "IN_PROGRESS",
+    "CX-F-189": "IN_PROGRESS",
+    "CX-F-190": "IN_PROGRESS"
+  },
+  "changes": [
+    "Query gate scans exact current Starter/Admin consumer owners and emits all failures before its nonzero exit.",
+    "ADM transaction metadata is owned by a feature-first repository and current OPS_OPERATION_CATALOG plus OPS_OPERATION_POLICY queries.",
+    "Retired CPF_TRANSACTION_META availability/upsert/missing-scan authoring is removed; immutable V121 history is unchanged.",
+    "A concrete DB3 CpfExecutionCatalogPort repository and conditional AutoConfiguration bean replace the interface-only runtime.",
+    "Reconciliation claim/defer/manual-review SQL is moved into the canonical CPF query pack."
+  ],
+  "verificationPending": [
+    "canonical DB3 query sync and byte-exact check",
+    "query-contract integrity and pack verifier",
+    "Java 25 targeted and broader compile/test",
+    "actual Backoffice/runtime endpoint flow",
+    "remaining current OPS Operation Catalog/Policy inline SQL migration"
+  ],
+  "falseGreen": false
+}

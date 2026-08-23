@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-COMPOSITE-AND-WEB-DIAGNOSIS",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "TEST-EVIDENCE"],
+  "timestamp": {
+    "recorded": "2026-08-22T11:58:10.4218748+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "gradleDocumentation": {
+    "url": "https://docs.gradle.org/current/userguide/composite_builds.html",
+    "observations": [
+      "Included builds are isolated and explicit substitutions are not transitive across builds.",
+      "The main build is not registered for substitution by default; Gradle documents self-including includeBuild('.') to make main-build projects addressable.",
+      "Custom Maven publication coordinates require explicit dependency substitutions when they differ from project group/name."
+    ]
+  },
+  "localApi": "Gradle 9.1 DependencySubstitutions exposes project(String) only; no public build-qualified project selector overload is available.",
+  "cxF005RootCause": "PRODUCT_ROOT_NOT_SELF_INCLUDED_WITH_PUBLICATION_GAV_SUBSTITUTIONS",
+  "cxF006Facts": [
+    "CpfDto is owned by cpf-starters/data/src/main/java/com/cpf/data/api/CpfDto.java (:framework:data).",
+    "cpf-starters/web/build.gradle imports it from main Source but declares :framework:core and :framework:base-runtime only; :framework:data is absent."
+  ],
+  "cxF006RootCause": "FRAMEWORK_WEB_MISSING_DIRECT_FRAMEWORK_DATA_DEPENDENCY",
+  "result": "DIAGNOSED",
+  "findingIds": ["CX-F-005", "CX-F-006"],
+  "sanitized": true
+}

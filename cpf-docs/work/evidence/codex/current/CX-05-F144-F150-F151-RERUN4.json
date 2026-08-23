@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-08-23T12:51:00+09:00",
+  "findings": ["CX-F-144", "CX-F-150", "CX-F-151"],
+  "result": "PASS",
+  "steps": [
+    {"name": "official-pack-builder-run1", "exitCode": 0},
+    {"name": "official-pack-builder-run2", "exitCode": 0},
+    {"name": "immutable-owner-unit", "exitCode": 0, "passed": 9, "failed": 0},
+    {"name": "official-checksum-integrity", "exitCode": 0},
+    {"name": "three-vendor-semantic-parity", "exitCode": 0, "canonicalTableCount": 234}
+  ],
+  "f151ForbiddenFilesRecreatedAfterAnyStep": [],
+  "rollbackPublishedInventory": {
+    "sourceArchiveSql": 39,
+    "centralRuntimeSql": 96,
+    "missing": 0,
+    "drift": 0
+  },
+  "v134RegisteredExactlyOnceFor": ["mariadb", "postgresql", "oracle"],
+  "semantic": {
+    "officialVendors": ["mariadb", "postgresql", "oracle"],
+    "findings": [],
+    "currentSnapshotAuthority": "CANONICAL_JSON_RENDERER",
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F144-F150-F151-SEMANTIC-RERUN4.json"
+  },
+  "log": "cpf-docs/work/evidence/codex/current/CX-05-F144-F150-F151-RERUN4.log",
+  "sourceIdentity": "12fe068e8d9516df144b18b0938efbb6f937958c83194a0a97be6f1c883fb3c8"
+}

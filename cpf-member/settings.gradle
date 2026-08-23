@@ -1,15 +1,52 @@
 // Generated Customer Domain 최소 IA settings입니다.
-rootProject.name = 'cpf-member'
+def cpfDomainName = providers.gradleProperty('cpf.domain.name').get()
+rootProject.name = "cpf-${cpfDomainName}"
+if (rootDir.name != rootProject.name) {
+    throw new GradleException("Generated Domain Root/name 불일치: root=${rootDir.name} contract=${rootProject.name}")
+}
+
+def cpfManagedGradleBase = providers.gradleProperty('cpfManagedGradleRoot')
+        .orElse(providers.environmentVariable('CPF_MANAGED_GRADLE_ROOT'))
+        .orElse(new File(gradle.gradleUserHomeDir, 'cpf/work/gradle').absolutePath).get()
+def cpfManagedGradleRoot = new File(cpfManagedGradleBase, rootProject.name)
+gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
 include 'online'
 include 'batch'
 
 // CPF Product Source와 함께 하는 회귀검증에서만 명시적으로 Composite Build를 연결합니다.
 // 고객 Release Build는 이 속성을 지정하지 않고 배포된 CPF Artifact를 소비합니다.
 def cpfProductCompositeRoot = providers.gradleProperty('cpfProductCompositeRoot').orNull
+def cpfDomainWorkspaceRoot = cpfProductCompositeRoot ? file(cpfProductCompositeRoot).canonicalFile : rootDir.parentFile.canonicalFile
 if (cpfProductCompositeRoot) {
     def productRoot = file(cpfProductCompositeRoot).canonicalFile
     if (!new File(productRoot, 'settings.gradle').isFile()) {
         throw new GradleException("CPF Product composite root가 유효하지 않습니다: ${productRoot}")
     }
-    includeBuild(productRoot) { name = 'cpf-product-source' }
+    def starterCatalogFile = new File(productRoot, 'cpf-tools/generator/contracts/cpf-starter-catalog.json')
+    if (!starterCatalogFile.isFile()) {
+        throw new GradleException("CPF Public Starter catalog가 없습니다: ${starterCatalogFile}")
+    }
+    def starterCatalog = new groovy.json.JsonSlurper().parse(starterCatalogFile)
+    if (!(starterCatalog.modules instanceof List)) {
+        throw new GradleException("CPF Public Starter catalog modules가 유효하지 않습니다: ${starterCatalogFile}")
+    }
+    def publicStarterModules = starterCatalog.modules.findAll { row ->
+        row instanceof Map && row.visibility?.toString() == 'public'
+    }
+    if (publicStarterModules.isEmpty()) {
+        throw new GradleException("CPF Public Starter catalog에 public module이 없습니다: ${starterCatalogFile}")
+    }
+    publicStarterModules.each { row ->
+        if (!(row.groupId instanceof String) || !(row.artifactId instanceof String) || !(row.projectPath instanceof String)) {
+            throw new GradleException("CPF Public Starter catalog 좌표가 유효하지 않습니다: ${row}")
+        }
+    }
+    includeBuild(productRoot) {
+        name = 'cpf-product-source'
+        dependencySubstitution {
+            publicStarterModules.each { starter ->
+                substitute module("${starter.groupId}:${starter.artifactId}") using project(starter.projectPath.toString())
+            }
+        }
+    }
 }

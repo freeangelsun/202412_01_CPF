@@ -7,8 +7,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -133,7 +135,9 @@ class LocalCpfFileTransferAdapterTest {
                         "localBasePath", tempDir.toString()));
     }
 
-    private CpfFileTransferRequest request(Path source, String remotePath) {
+    private CpfFileTransferRequest request(Path source, String remotePath) throws Exception {
+        byte[] content = Files.readAllBytes(source);
+        String checksum = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
         return new CpfFileTransferRequest(
                 "TX-1",
                 "SEG-1",
@@ -141,8 +145,8 @@ class LocalCpfFileTransferAdapterTest {
                 "UPLOAD",
                 source.toString(),
                 remotePath,
-                null,
-                0,
+                checksum,
+                content.length,
                 Map.of("businessKey", "FILE-1"));
     }
 

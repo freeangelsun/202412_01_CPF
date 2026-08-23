@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-ROOT-BUILD-ATTEMPT3",
+  "requirementIds": ["REL-BUILD", "JAVA25", "ROOT-BUILD", "GENERATED-DOMAIN", "FRONTEND", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:29:59.5059189+09:00",
+    "finished": "2026-08-22T14:34:21.0316414+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon build --continue --stacktrace -PcpfIncludeGeneratedDomains=true",
+  "exitCode": 1,
+  "sourceIdentity": "494dfdaafc02bec8bb35b08aa957bc6bac784dfd36667d43d17f73e815f661fa",
+  "actualResult": "BUILD FAILED in 4m 20s without a native-memory crash. 393 actionable tasks: 231 executed and 162 up-to-date. The continued build reported 21 failed tasks spanning one frontend build, twelve main/test compilation tasks, and eight JUnit test tasks; detailed root-cause classification is in progress before any Source repair.",
+  "result": "FAIL",
+  "findingIds": ["CX-F-026"],
+  "artifacts": ["cpf-docs/work/evidence/codex/current/CX-01-ROOT-BUILD-ATTEMPT3.log"],
+  "sanitized": true
+}

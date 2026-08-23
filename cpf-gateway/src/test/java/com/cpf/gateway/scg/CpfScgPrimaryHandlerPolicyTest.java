@@ -11,6 +11,7 @@ import com.cpf.gateway.context.CpfGatewayHeaderNames;
 import com.cpf.gateway.api.CpfGatewayAuthorizationPort;
 import com.cpf.gateway.api.CpfGatewayPrincipal;
 import com.cpf.gateway.api.CpfGatewayRoute;
+import com.cpf.gateway.support.GatewayContextTestSupport;
 import com.cpf.foundation.context.header.CpfHeaderNames;
 import com.cpf.platform.operations.observability.api.logging.policy.LogPolicyDecision;
 import com.cpf.platform.operations.observability.api.logging.policy.LogPolicyTargetType;
@@ -24,6 +25,7 @@ import com.cpf.gateway.config.CpfGatewaySafetyProperties;
 import com.cpf.gateway.logging.CpfGatewayCaptureService;
 import com.cpf.gateway.route.CpfGatewayRouteSnapshot;
 import com.cpf.gateway.runtime.CpfGatewayRuntimePolicy;
+import com.cpf.web.context.CpfHttpHeaderNames;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -38,37 +40,60 @@ import org.springframework.web.servlet.function.ServerRequest;
 class CpfScgPrimaryHandlerPolicyTest {
 
     @Test
-    void channelPolicyDenialStopsBeforeScgTargetSelection() {
+    void channelPolicyDenialStopsBeforeScgTargetSelection() throws Exception {
         Fixture fixture = fixture(new PolicyPort(false, false));
 
-        assertThatThrownBy(() -> fixture.handler().handle(request(Map.of())))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("채널 정책");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-channel-deny", "WEB")) {
+            assertThatThrownBy(() -> fixture.handler().handle(request(Map.of())))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("채널 정책");
+        }
 
+        GatewayContextTestSupport.assertClear();
         verifyNoInteractions(fixture.targets(), fixture.circuitBreakers());
     }
 
     @Test
-    void callerSignatureHeaderAloneDoesNotSatisfyVerifiedSignaturePolicy() {
+    void callerSignatureHeaderAloneDoesNotSatisfyVerifiedSignaturePolicy() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, true));
 
-        assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
-                CpfHeaderNames.REQUEST_SIGNATURE, "attacker-supplied-value"))))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("요청 서명");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-signature-deny", "WEB")) {
+            assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
+                    CpfHeaderNames.REQUEST_SIGNATURE, "attacker-supplied-value"))))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("요청 서명");
+        }
 
+        GatewayContextTestSupport.assertClear();
         verifyNoInteractions(fixture.targets(), fixture.circuitBreakers());
     }
 
     @Test
-    void spoofedInternalCpfHeaderIsRejectedBeforeScgExchange() {
+    void spoofedInternalCpfHeaderIsRejectedBeforeScgExchange() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, false));
 
-        assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
-                CpfHeaderNames.GATEWAY_ROUTE_ID, "attacker-route"))))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("Untrusted internal");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-header-deny", "WEB")) {
+            assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
+                    CpfHeaderNames.GATEWAY_ROUTE_ID, "attacker-route"))))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("Untrusted internal");
+        }
 
+        GatewayContextTestSupport.assertClear();
+        verifyNoInteractions(fixture.targets(), fixture.circuitBreakers());
+    }
+
+    @Test
+    void rawWebHeadersCannotOverrideCanonicalMobileCallerChannel() throws Exception {
+        Fixture fixture = fixture(new PolicyPort(true, false));
+
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-caller-channel", "MOBILE")) {
+            assertThatThrownBy(() -> fixture.handler().handle(request(Map.of())))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("Caller Channel");
+        }
+
+        GatewayContextTestSupport.assertClear();
         verifyNoInteractions(fixture.targets(), fixture.circuitBreakers());
     }
 
@@ -77,7 +102,7 @@ class CpfScgPrimaryHandlerPolicyTest {
         Fixture fixture = fixture(new PolicyPort(true, false));
         ServerRequest request = request(
                 "/cpf/execute/OACCAC0002",
-                Map.of(CpfHeaderNames.STANDARD_EXECUTION_ID, "OACCAC0001"));
+                Map.of(CpfGatewayHeaderNames.EXECUTION_ROUTE_ID, "OACCAC0001"));
 
         assertThatThrownBy(() -> fixture.handler().handle(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -113,13 +138,13 @@ class CpfScgPrimaryHandlerPolicyTest {
         String first = ReflectionTestUtils.invokeMethod(
                 CpfScgPrimaryHandler.class,
                 "rateLimitRequestId",
-                Map.of(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
+                Map.of(CpfHttpHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
                 "route-A",
                 "tx-1");
         String second = ReflectionTestUtils.invokeMethod(
                 CpfScgPrimaryHandler.class,
                 "rateLimitRequestId",
-                Map.of(CpfHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
+                Map.of(CpfHttpHeaderNames.IDEMPOTENCY_KEY.toLowerCase(), "ORDER-20260805-0001"),
                 "route-A",
                 "tx-2");
 
@@ -158,18 +183,21 @@ class CpfScgPrimaryHandlerPolicyTest {
 
         assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(
                 fixture.handler(), "trustedHeaders", request))
-                .hasRootCauseInstanceOf(SecurityException.class)
-                .hasRootCauseMessage("Gateway trusted header must have exactly one value: "
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("Gateway trusted header must have exactly one value: "
                         + CpfGatewayHeaderNames.CLIENT_CHANNEL_CODE);
     }
 
     @Test
-    void forwardedHeaderSpoofIsRejectedBeforeDownstreamRegeneration() {
+    void forwardedHeaderSpoofIsRejectedBeforeDownstreamRegeneration() throws Exception {
         Fixture fixture = fixture(new PolicyPort(true, false));
-        assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
-                "X-Forwarded-For", "10.0.0.1"))))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("Untrusted internal/proxy header");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-forwarded-deny", "WEB")) {
+            assertThatThrownBy(() -> fixture.handler().handle(request(Map.of(
+                    "X-Forwarded-For", "10.0.0.1"))))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("Untrusted internal/proxy header");
+        }
+        GatewayContextTestSupport.assertClear();
     }
     private Fixture fixture(CpfChannelRegistryPort registryPort) {
         CpfGatewayRouteSnapshot snapshot = mock(CpfGatewayRouteSnapshot.class);

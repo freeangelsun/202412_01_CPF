@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-08-23T09:21:00+09:00",
+  "sourceIdentitySha256": "cdf033e2d600c45d1d271736bb3497b839d9d500c93c4a7bc2624333398e4360",
+  "finding": "CX-F-136",
+  "status": "OPEN",
+  "scope": "Generated MyBatis executable DataSource ownership from generated spring.datasource contract through CPF MyBatis configuration",
+  "runtime": {
+    "exitCode": 1,
+    "databaseContainerHealth": "healthy",
+    "driverMissing": false,
+    "sessionProviderPresent": false,
+    "actualFailure": "CpfMyBatisConfig constructor requires @Qualifier(\"cpfDataSource\") but no qualifying bean exists; Spring Boot condition report shows a single bean named dataSource"
+  },
+  "evidence": [
+    "cpf-docs/work/evidence/codex/current/runtime/F134-FRESH-RUNTIME-RERUN4/result.json",
+    "cpf-docs/work/evidence/codex/current/runtime/F134-FRESH-RUNTIME-RERUN4/stdout.log"
+  ],
+  "falseGreenProhibited": "Do not add a Generated-domain manual bean or bypass MyBatis. Repair the canonical Data JDBC/MyBatis owner while preserving multi-DataSource explicit selection."
+}

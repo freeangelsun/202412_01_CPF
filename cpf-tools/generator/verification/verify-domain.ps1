@@ -41,11 +41,11 @@ if (-not (Test-Path -LiteralPath $OutputDir -PathType Container)) {
 }
 
 $verify = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
-    'verify', 'domain', '--file', [string]$metadata.definitionPath, '--output', $OutputDir
+    'verify', 'domain', '--file', [string]$metadata.contractPath, '--output', $OutputDir
 )
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "build/reports/verify-domain/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/verify-domain/$domain"
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -84,10 +84,10 @@ $result = [ordered]@{
     domainName = $domain
     systemCode = $expectedCode
     projectName = [string]$metadata.projectName
-    definitionPath = [string]$metadata.definitionPath
-    definitionSha256 = [string]$metadata.definitionSha256
+    contractPath = [string]$metadata.contractPath
+    contractSha256 = [string]$metadata.contractSha256
     generatorVersion = [string]$metadata.generatorVersion
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     verification = $verify
     build = $build
 }

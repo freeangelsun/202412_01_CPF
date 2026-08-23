@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-08-23T03:25:00+09:00",
+  "sourceIdentitySha256": "07c293f1826cd6b81e8e3c561fa5eefd02536caaad599fe5bd71d95f52b78031",
+  "scenario": "Current Generator standard-enterprise PostgreSQL sample consumer -> Java 25 current-composite bootJar -> healthy isolated PostgreSQL 18.4 -> prod runtime",
+  "container": {"name": "cpf-codex-f132-postgres", "bind": "127.0.0.1:15432", "health": "healthy"},
+  "commandContract": "Process-only datasource URL/user/password/driver, CPF password pepper, managed log root, prod profile, system code FCS",
+  "exitCode": 1,
+  "status": "FAIL",
+  "rootCauseObserved": "The generated executable bootJar does not contain org.postgresql.Driver even though setup selected PostgreSQL and generated application.yml requires the driver class.",
+  "actualError": "Cannot load driver class: org.postgresql.Driver",
+  "failureBoundary": "DataSource creation while constructing the generated controller dependency graph; the real annotated controller was not yet instantiated, so F132 cannot close from this attempt.",
+  "loggingObservation": "The runtime failed before CPF managed logging readiness; console captured Application run failed but runtime.log/error.log were not created. F130 remains VERIFICATION_PENDING.",
+  "rawConsole": "cpf-docs/work/evidence/generated/domain-generator/cpf-f132consumer/runtime-evidence-1/console.log",
+  "replayCondition": "Fix the canonical Generator/Public dependency owner so the selected Vendor JDBC driver is in the executable runtime classpath; regenerate the Fresh domain, rebuild with Java 25, and rerun against the same healthy isolated DB."
+}

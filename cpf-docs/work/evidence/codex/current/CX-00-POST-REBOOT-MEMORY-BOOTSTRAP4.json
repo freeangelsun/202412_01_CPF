@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-POST-REBOOT-MEMORY-BOOTSTRAP4",
+  "recordedAt": "2026-08-23T01:11:22.3623334+09:00",
+  "sourceIdentitySha256": "7052fb32e78d467251cdd9a03065aef001948bfd4b6fbb4f0d7a1c2b2e9106ce",
+  "result": "EXECUTION_CAPACITY_RESTORED",
+  "memoryGiB": {
+    "freePhysical": 11.07,
+    "freeCommit": 41.80,
+    "totalCommit": 63.51,
+    "pagefileAllocated": 32.00,
+    "pagefileUsed": 0.05
+  },
+  "javaProcesses": [
+    {"pid": 25244, "owner": "VS Code Red Hat Java extension JRE"},
+    {"pid": 4976, "owner": "VS Code-import Gradle daemon child"},
+    {"pid": 21416, "owner": "VS Code Java Language Server"},
+    {"pid": 2608, "owner": "VS Code-import Gradle daemon child"}
+  ],
+  "previousFailureClassification": "The pre-reboot Scheduler rerun exited 6 before Gradle startup because Windows had only 0.08 GiB free Commit and the JVM could not map jvm.dll. This is environment failure, not Product verification.",
+  "executionPolicy": "Run one module/small affected group at a time with no-daemon/max-workers=1; after each execution confirm the command-owned JVM exited and Commit remains safe. Do not stop VS Code Java/Gradle processes or disable normal IDE functions.",
+  "next": "Rerun exact Scheduler compile at current Source Identity."
+}

@@ -1,0 +1,10 @@
+{
+  "evidenceId": "CX-05-F213-PLATFORM-FIXTURE-OPTIONAL-MODULE-DISABLED",
+  "finding": "CX-F-213",
+  "recordedAt": "2026-08-23T19:37:00+09:00",
+  "sourceIdentitySha256": "995e1be4fe5a2ec30f0ab5ce75c81740733178d9cd0517cd856393cfeb60cd06",
+  "command": "pwsh -NoProfile -File cpf-tools/db/verification/check-platform-database-migration-tool.ps1 -Root .",
+  "actualError": "Platform migration target module is not selectable: batch",
+  "rootCause": "The verifier currentized the module key but did not explicitly enable the optional batch/admin fixtures after their canonical Product defaults became disabled.",
+  "status": "IN_PROGRESS"
+}

@@ -1,0 +1,14 @@
+{
+  "executionId": "CX-07-OPEN-GIT-TEST-RERUN1",
+  "finishedAt": "2026-08-22T21:07:00+09:00",
+  "sourceIdentitySha256": "3c35e62a0954e00b2ef39596ff170e0db6c4122ae2fb4a584f04c4bd533fc30b",
+  "status": "FAIL_ENVIRONMENT_ASSUMPTION",
+  "tests": {"passed": 18, "failed": 1, "total": 19},
+  "confirmed": ["F091", "F092", "F093", "F094", "F095"],
+  "newFinding": {
+    "id": "CX-F-096",
+    "rootCause": "The cross-platform CLI regression always invoked the Windows WSL bash app alias. The alias exists but its Linux distribution has no /bin/bash, so the test never exercised the native Windows cpf.ps1 command.",
+    "productionSourceFailure": false
+  },
+  "next": "Execute cpf.ps1 help through PowerShell on Windows and cpf.sh help through Bash on non-Windows; retain static contract inspection for both scripts."
+}

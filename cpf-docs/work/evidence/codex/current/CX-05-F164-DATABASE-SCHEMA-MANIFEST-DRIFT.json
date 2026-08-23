@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-08-23T14:08:47.3447539+09:00",
+  "findingId": "CX-F-164",
+  "status": "CLOSED",
+  "sourceIdentity": "cb242aa27c34a50a1ccbc5abd634858a882e2671638dea58bbd71071f387174f",
+  "title": "Tracked database schema manifest remained one canonical regeneration step behind",
+  "requirement": "DB-BINDING",
+  "actualExecution": {
+    "vendor": "mariadb",
+    "runId": "55a0b76fb82e",
+    "stage": "FreshInstall schema-manifest parity",
+    "status": "FAIL",
+    "table": "CMN_RESPONSE_CODE",
+    "expectedMissingColumn": "http_status",
+    "actualInstalledColumn": "http_status",
+    "cleanup": "PASS",
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F163-MARIADB-LIFECYCLE-RERUN2/verifier-owned-lifecycle.json"
+  },
+  "rootCause": "The narrow canonical/vendor regeneration sequence did not invoke the separately owned generate-database-schema-manifest step. The official sync-database-artifacts orchestrator already orders that step after current vendor generation, so the repair is to regenerate the tracked manifest from its canonical owner and prove drift check/Fresh rather than hand-editing it.",
+  "sourceFix": {
+    "recordedAt": "2026-08-23T14:09:48.3201910+09:00",
+    "status": "SOURCE_FIXED",
+    "generator": "cpf-tools/db/tools/generate-database-schema-manifest.ps1",
+    "manifestTableCount": 234,
+    "responseCodeHttpStatusPosition": 7,
+    "driftGate": "PASS",
+    "immutableHistoryCount": 677,
+    "immutableHistorySha256BeforeAfter": "60c16597db67d22429b2a2560deaf8b7a39836a1fd4cc14d4050cfafcb920367",
+    "contentSha256": "f15e3f9d07ad2c2927fa36ef718e3988d0e556f8c5fd6d8baca6946c09af2fd1",
+    "contentSha1": "565aed77c19941fb9d2eea5abaebe0dcd6ba3237",
+    "fileCount": 8224,
+    "totalBytes": 75031677,
+    "freshVerification": "PENDING"
+  },
+  "closure": {
+    "status": "CLOSED",
+    "actualFreshRunId": "0dc63c822f03",
+    "actualSchemaManifest": "PASS platform=201 backoffice=29 for all five selected modules",
+    "driftGate": "PASS",
+    "immutableHistoryChanged": false,
+    "nextIndependentFailure": "CX-F-165 post-seed legacy physical verify identity"
+  },
+  "passCriteria": [
+    "tracked schema manifest is generated from canonical schema/current MariaDB source",
+    "CMN_RESPONSE_CODE manifest contains http_status in canonical order",
+    "database schema drift gate passes",
+    "actual verifier-owned MariaDB Fresh passes this parity point",
+    "immutable Migration/Rollback history remains unchanged"
+  ]
+}

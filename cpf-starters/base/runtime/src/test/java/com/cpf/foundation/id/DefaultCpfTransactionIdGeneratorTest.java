@@ -21,6 +21,8 @@ class DefaultCpfTransactionIdGeneratorTest {
         assertThat(first).hasSize(34).isEqualTo("20260815010203004MBRLOCAL010000001");
         assertThat(second).isEqualTo("20260815010203004MBRLOCAL010000002");
         assertThat(CpfTransactionIds.isCanonical(first)).isTrue();
+        assertThat(CpfTransactionIds.issuerCode(first)).isEqualTo("MBR");
+        assertThat(CpfTransactionIds.instanceToken(first)).isEqualTo("LOCAL01");
     }
 
     @Test

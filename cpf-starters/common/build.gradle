@@ -30,12 +30,7 @@ dependencies {
 // Product implementation은 cpf-common의 단일 Owner입니다. 이 Starter는 runtime/wiring만 compile합니다.
 sourceSets {
     main {
-        java.setSrcDirs([
-            'src/main/java/com/cpf/common/runtime',
-            'src/main/java/com/cpf/common/calendar/runtime',
-            'src/main/java/com/cpf/common/message/service',
-            'src/main/java/com/cpf/common/code/reference/service'
-        ])
+        java.setSrcDirs(['src/main/java'])
         java.include 'com/cpf/common/runtime/**'
         java.include 'com/cpf/common/calendar/runtime/**'
         java.include 'com/cpf/common/message/service/CmnMessageProductAutoConfiguration.java'

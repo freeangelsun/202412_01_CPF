@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-23T16:28:31+09:00",
+  "findingId": "CX-F-188",
+  "status": "IN_PROGRESS",
+  "sourceIdentityBefore": "f5f64570aba2abc5a14ebd60b06d51681e2f7873e1101534d275d8b72f9da779",
+  "title": "ADM transaction metadata uses invalid catalog keys and retired CPF_TRANSACTION_META storage",
+  "actual": "AdmTransactionMetaService calls CpfVendorSqlCatalog.required with six values ending in .sql. The public catalog accepts only safe statement keys and appends .sql itself, so every current ADM transaction metadata DB path fails before resource lookup. Removing only the suffix would still execute templates against CPF_TRANSACTION_META, which immutable V121 migrates into OPS_OPERATION_CATALOG/OPS_OPERATION_POLICY and then drops.",
+  "rootCause": "The ADM consumer and query pack were only partially migrated from the legacy filename-based CPF_TRANSACTION_META repository. Current runtime ownership is OPS_OPERATION_CATALOG plus ADM-owned OPS_OPERATION_POLICY, but the service, consumer metadata, parameter counts, table-availability fallback, and eight query templates retained the retired contract. Stale sourceScopes hid both the invalid keys and the missing current consumer.",
+  "affectedRuntime": "/adm/api/transactions, /page, /{operationId}, /inactive",
+  "repairOwner": "ADM feature repository/service plus canonical CPF query templates, exact consumer metadata, DB3 projection, and regression",
+  "falseGreenForbidden": "Do not broaden the catalog token to accept filenames, normalize .sql, query a table dropped by V121, or return an empty success when the mandatory canonical schema is unavailable."
+}

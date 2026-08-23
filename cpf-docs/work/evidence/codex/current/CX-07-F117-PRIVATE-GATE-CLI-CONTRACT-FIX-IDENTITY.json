@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F117-PRIVATE-GATE-CLI-CONTRACT-FIX-IDENTITY",
+  "startedAt": "2026-08-23T00:15:35+09:00",
+  "finishedAt": "2026-08-23T00:16:22.6858740+09:00",
+  "beforeSourceIdentitySha256": "bb8fe6619b869ed900e57611271893ff2fe4722e14848b285a32e43db5329d73",
+  "afterSourceIdentity": {
+    "sha256": "943cd0bb6d5b083b1598a77ec111732f99405d14ade81a1f364286c14daae523",
+    "sha1": "a9f778148bbe61f3803f4144e842e216c715c4a2",
+    "fileCount": 8220,
+    "totalBytes": 75803473
+  },
+  "result": "SOURCE_FIXED",
+  "finding": "CX-F-117",
+  "changes": [
+    "The Open Git Private-gate owner now calls verify_common_product_service_dx.py --root .",
+    "A focused regression captures all seven commands and asserts the exact Common verifier public CLI contract."
+  ],
+  "next": "Run the focused release-owner tests and all seven actual Private gates before closing the finding."
+}

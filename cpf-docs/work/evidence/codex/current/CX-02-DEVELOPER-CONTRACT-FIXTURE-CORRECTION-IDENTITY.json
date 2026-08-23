@@ -1,0 +1,11 @@
+{
+  "track": "CX-02-DEVELOPER-CONTRACT-FIXTURE-CORRECTION-IDENTITY",
+  "result": "TEST_FIXED",
+  "sourceIdentity": {
+    "sha256": "2f96b4976beed97e7bb1db9c528d6667295b8da7d91437766f6bd0474b6b0183",
+    "sha1": "188ea463fb3422e588c85d69432748eee74ed883",
+    "fileCount": 8228,
+    "totalBytes": 75801808
+  },
+  "change": "The setup-sync fixture now exercises the public developer-contract path without a legacy YAML output option."
+}

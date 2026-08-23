@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-EXS-STANDALONE-COMPILE-ATTEMPT5",
+  "requirementIds": ["REL-BUILD", "GENERATOR", "PUBLIC-API", "INTEGRATION", "DATA"],
+  "timestamp": {
+    "started": "2026-08-22T13:20:17.7519274+09:00",
+    "finished": "2026-08-22T13:20:38.0980818+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat -p .\\cpf-external --no-daemon :online:compileJava -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF",
+  "exitCode": 1,
+  "sourceIdentity": "646a8143b688176b1477cf0d3a0cdc502342588903a0224608fc62c829d8ff3c",
+  "actualResult": "Standalone EXS composite passes all previously failing Product layers, including framework integration/web/runtime-control/observability/resilience and internal integration:http compile. It next fails at starters:data:jdbc:compileJava because CpfJdbcStarterAutoConfiguration applies non-repeatable ConditionalOnSingleCandidate twice to one bean method.",
+  "result": "FAIL",
+  "failureSummary": "New CX-F-022 is IN_PROGRESS before inspecting the duplicate condition and intended multi-bean semantics. CX-F-019 remains VERIFICATION_PENDING until broader Root impact verification.",
+  "findingIds": ["CX-F-019", "CX-F-022"],
+  "sanitized": true
+}

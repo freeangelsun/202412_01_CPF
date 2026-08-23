@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-PUBLICATION-COMPILE-TARGETED-RERUN1",
+  "startedAt": "2026-08-23T00:42:20+09:00",
+  "finishedAt": "2026-08-23T00:47:17.3169997+09:00",
+  "sourceIdentitySha256": "8e4594f672968e5eb8ac4e5e9677b1e33d70dd2bafe1dc0892bc61b89d7506ef",
+  "command": ".\\gradlew.bat :apps:education:compileJava :framework:web:compileTestJava :runtime:batch:control-plane:compileJava :runtime:batch:scheduler:compileJava :runtime:batch:worker:compileJava :internal:notification:email:compileJava :internal:notification:sms:compileJava :internal:testing:testkit:compileTestJava :runtime:batch:agent:compileTestJava --continue --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test --stacktrace",
+  "exitCode": 1,
+  "result": "FINDINGS_REGISTERED_BEFORE_SOURCE_EDIT",
+  "tasks": {"actionable": 46, "executed": 11, "upToDate": 35, "requestedFailed": 9},
+  "findings": [
+    {
+      "id": "CX-F-121",
+      "owner": "cpf-education",
+      "rootCause": "EDU declares Public profiles/providers but omits the explicitly selected Common Starter and its Batch/Cache/Fixed-Length examples use obsolete nested-enum/accessor names instead of current Public contracts."
+    },
+    {
+      "id": "CX-F-122",
+      "owner": "cpf-batch control-plane/scheduler/worker",
+      "rootCause": "Executable Batch applications import Web header, Runtime Control, Kafka and Jackson types without declaring their direct owner dependencies; Scheduler also calls the obsolete three-argument nextBusinessDay overload."
+    },
+    {
+      "id": "CX-F-123",
+      "owner": "notification email/sms",
+      "rootCause": "Email and SMS wiring still import the retired com.cpf.notification.dispatch API. SMS additionally contains a duplicate legacy dispatch/sms/spi source and test tree while the catalog/resource owner is com.cpf.notification.sms."
+    },
+    {
+      "id": "CX-F-124",
+      "owner": "framework web and cpf-testkit maintained tests",
+      "rootCause": "Two maintained fixtures still invoke a removed 12-argument CpfTransactionContext shape after canonical System and Channel lineage became explicit."
+    },
+    {
+      "id": "CX-F-125",
+      "owner": "cpf-batch-agent tests",
+      "rootCause": "The module omits its direct Mockito test dependency and a validation fixture calls removed helper methods instead of exercising the installer public security boundary."
+    }
+  ],
+  "canonicalDecisions": [
+    "Do not add compatibility aliases to current Public APIs solely to preserve stale EDU/test call sites.",
+    "Declare direct executable-module dependencies at their actual owners; do not rely on accidental transitive classpaths.",
+    "Keep com.cpf.notification.sms as the single catalog-owned package and remove only the exact duplicate legacy tree after consumer-zero confirmation.",
+    "Retain full System/Channel lineage in Context fixtures.",
+    "Test ArtifactInstaller through its public install boundary rather than restoring internal parsing helpers."
+  ],
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/publication-compile-targeted-rerun1.log",
+    "cpf-docs/work/evidence/codex/current/publication-compile-targeted-rerun1.err.log"
+  ],
+  "next": "Apply canonical-owner fixes, recalculate Source Identity immediately, then rerun the same nine compile targets."
+}

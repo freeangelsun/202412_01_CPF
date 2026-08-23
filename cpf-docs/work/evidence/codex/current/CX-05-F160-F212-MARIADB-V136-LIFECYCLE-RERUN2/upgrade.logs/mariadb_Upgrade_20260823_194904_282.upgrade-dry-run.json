@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "tool": "invoke-platform-database-migration.ps1",
+  "mode": "DRY_RUN",
+  "status": "미검증",
+  "generatedAt": "2026-08-23T19:49:04.6877109+09:00",
+  "profile": "database-install.mariadb.109027fbe612.json",
+  "plan": {
+    "schemaVersion": 1,
+    "direction": "upgrade",
+    "vendor": "mariadb",
+    "selectionMode": "explicit",
+    "fromVersion": null,
+    "toVersion": null,
+    "versions": [
+      136
+    ],
+    "operations": [
+      {
+        "order": 1,
+        "version": 136,
+        "moduleKey": "backoffice",
+        "moduleName": "cpf-backoffice",
+        "systemCode": "MBW",
+        "logicalDatabase": "mbwDB",
+        "physicalDatabase": "cpf_verify_109027fbe612_mbw",
+        "physicalSchema": "cpf_verify_109027fbe612_mbw",
+        "migrationPath": "cpf-tools/db/vendor/mariadb/migration/flyway/V136__backoffice_permission_identity.sql",
+        "migrationSha256": "4e13bc3ea2c3eea85aab0a149391aacae6b226342a662f1859be399b57fafb63",
+        "rollbackPath": "cpf-tools/db/vendor/mariadb/rollback/R136__backoffice_permission_identity.sql",
+        "rollbackSha256": "fe5ff8ffd8f3dae24ee5bfe4d82f3637b0b0edb7747799917d79e8eebe536589",
+        "selectedPath": "cpf-tools/db/vendor/mariadb/migration/flyway/V136__backoffice_permission_identity.sql",
+        "selectedSha256": "4e13bc3ea2c3eea85aab0a149391aacae6b226342a662f1859be399b57fafb63",
+        "renderedSha256": "92cfb9509b7af52ae76497b3e14f72ffde4fcee8d83db4b39d2e735aaa91f1b7"
+      }
+    ]
+  },
+  "planSha256": "5effe37315120b56be1cb97f67074e71c10c4f41654ce893be85d6bb2d92cc11",
+  "operations": [
+    {
+      "order": 1,
+      "version": 136,
+      "moduleKey": "backoffice",
+      "physicalDatabase": "cpf_verify_109027fbe612_mbw",
+      "status": "NOT_EXECUTED",
+      "startedAt": null,
+      "finishedAt": null,
+      "failureCode": ""
+    }
+  ],
+  "error": "",
+  "reconcileRequired": false,
+  "failureOperation": null,
+  "operator": "",
+  "reason": "",
+  "approvalReference": "",
+  "sanitized": true,
+  "finishedAt": "2026-08-23T19:49:04.8572622+09:00"
+}

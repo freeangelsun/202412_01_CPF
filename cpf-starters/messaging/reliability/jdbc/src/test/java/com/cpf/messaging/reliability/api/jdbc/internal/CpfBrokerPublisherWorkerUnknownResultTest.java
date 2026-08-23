@@ -1,5 +1,6 @@
 package com.cpf.messaging.reliability.api.jdbc.internal;
 
+import com.cpf.messaging.reliability.api.jdbc.CpfBrokerPublisherWorker;
 import com.cpf.messaging.spi.broker.*;
 import static org.assertj.core.api.Assertions.assertThat;
 

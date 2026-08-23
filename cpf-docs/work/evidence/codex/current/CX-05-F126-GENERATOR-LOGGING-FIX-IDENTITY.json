@@ -1,0 +1,29 @@
+{
+  "track": "CX-05-F126-GENERATOR-LOGGING-FIX-IDENTITY",
+  "finding": "CX-F-126",
+  "status": "SOURCE_FIXED",
+  "sourceIdentityBeforeSha256": "48029ea8f76c1a5899f359a0dd209d476081d870407b76d72fc5783049e2a683",
+  "sourceIdentityAfter": {
+    "contentSha256": "31e07351282718a277b7f3a6350949e9bdb7075ff063c1bcf4aa888d334e38ff",
+    "contentSha1": "b68b1e1cd50486af8b50157b8f8688b0de39bd81",
+    "fileCount": 8227,
+    "totalBytes": 75850935
+  },
+  "changedOwnerFiles": [
+    "cpf-tools/generator/engine/cpf_domain_generator.py",
+    "cpf-tools/generator/verification/tests/test_generator_setup_contract.py"
+  ],
+  "implemented": [
+    "one visible cpf.logging block in generated application.yml for Online and Batch",
+    "application/instance path, hourly maintenance, separate runtime/error files, DAILY rolling, five-day compression and 365-day deletion",
+    "local TRACE, dev DEBUG, test DEBUG, stg INFO and prod INFO defaults with explicit CPF_LOG_LEVEL override",
+    "practical Korean comments preserving Console and Transaction Evidence boundaries",
+    "actual Fresh setup regression assertions for both generated executables"
+  ],
+  "verificationPending": [
+    "Python syntax and exact setup contract test",
+    "Fresh Scratch inventory/compile/test/runtime",
+    "MBR/EXS regenerate parity",
+    "fixed runtimes, MDC, masking and Open Git release"
+  ]
+}

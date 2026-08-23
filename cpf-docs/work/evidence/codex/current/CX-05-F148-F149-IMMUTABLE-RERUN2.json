@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-08-23T12:31:00+09:00",
+  "findings": ["CX-F-148", "CX-F-149"],
+  "result": "PASS",
+  "checks": {
+    "immutableOwnerUnit": {"passed": 8, "failed": 0, "durationSeconds": 0.009},
+    "nullableCheckRuns": 2,
+    "nullableColumns": 30,
+    "nullableVendors": 3,
+    "batchRoleCheckChanged": [],
+    "platformSeedCheckChanged": 0
+  },
+  "immutableFiles": {
+    "cpf-tools/db/vendor/mariadb/migration/flyway/V96__nullable_empty_string_standard.sql": "8df39043fcfd5e5b15eba3849f3b5a8f60c16a3d8c6b07ce064af6479571ab87",
+    "cpf-tools/db/vendor/mariadb/rollback/R96__nullable_empty_string_standard.sql": "eb5165e9ad9e7119d2c49e257a5746a56c360c72ad6ba9a50a9cab6ad0f5e086",
+    "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V96__nullable_empty_string_standard.sql": "6e28c1ac9efa3c7e8c4a17309a73b1c4f6d54ed57adf00afb6b309d565dfac47",
+    "cpf-tools/db/vendor/postgresql/rollback/cpfDB/R96__nullable_empty_string_standard.sql": "765123be9600a9d5a1d04d4319c7c2b0f05d4c24eb26a2a3ae767fce8f4c92ac",
+    "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V96__nullable_empty_string_standard.sql": "cd1764c377e18baf1709e821800a5208aba32d20f7268c6bdead73a7fefed181",
+    "cpf-tools/db/vendor/oracle/rollback/cpfDB/R96__nullable_empty_string_standard.sql": "efebbac128a2c82cfb41cac5a3330bc8a99315a9264a059066d0f9f0e43dc898"
+  },
+  "allHashesEqualBeforeAndAfter": true,
+  "deletedOwnerlessRollbackChecksumStayedAbsent": true,
+  "log": "cpf-docs/work/evidence/codex/current/CX-05-F148-F149-IMMUTABLE-RERUN2.log",
+  "sourceIdentity": "1a59cbd9a55bd19fe3397bb6856f6e6078c6edc4ff1dd5fef3cbce833f81fe21"
+}

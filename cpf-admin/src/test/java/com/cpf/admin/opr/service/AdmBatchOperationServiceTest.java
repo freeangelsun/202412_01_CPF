@@ -1,13 +1,15 @@
 package com.cpf.admin.opr.service;
 
 import com.cpf.batch.api.CpfBatchOperationsPort;
+import com.cpf.batch.api.CpfBatchRiskCommand;
+import com.cpf.data.api.CpfDataRow;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,11 +21,12 @@ import static org.mockito.Mockito.when;
 class AdmBatchOperationServiceTest {
 
     private final CpfBatchOperationsPort operations = mock(CpfBatchOperationsPort.class);
-    private final AdmBatchOperationService service = new AdmBatchOperationService(operations);
+    private final AdmBatchApprovalService approvals = mock(AdmBatchApprovalService.class);
+    private final AdmBatchOperationService service = new AdmBatchOperationService(operations, approvals);
 
     @Test
     void findWorkersDelegatesToBatOwnerPort() {
-        List<Map<String, Object>> expected = List.of(Map.of("workerId", "bat-worker-01"));
+        List<CpfDataRow> expected = List.of(CpfDataRow.of("workerId", "bat-worker-01"));
         when(operations.findWorkers(30)).thenReturn(expected);
 
         assertThat(service.findWorkers(30)).isSameAs(expected);
@@ -32,7 +35,7 @@ class AdmBatchOperationServiceTest {
 
     @Test
     void findGhostCandidatesDelegatesToBatOwnerPort() {
-        List<Map<String, Object>> expected = List.of(Map.of("executionId", 10L));
+        List<CpfDataRow> expected = List.of(CpfDataRow.of("executionId", 10L));
         when(operations.findGhostCandidates(30)).thenReturn(expected);
 
         assertThat(service.findGhostCandidates(30)).isSameAs(expected);
@@ -41,69 +44,56 @@ class AdmBatchOperationServiceTest {
 
     @Test
     void releaseLockDelegatesDangerousOperationWithAuditContext() {
-        Map<String, Object> expected = new LinkedHashMap<>();
-        expected.put("lockKey", "batch:job:CPF_EDU_TASKLET_JOB:test");
-        expected.put("released", true);
-        when(operations.releaseLock(
-                "batch:job:CPF_EDU_TASKLET_JOB:test",
-                "adm-operator",
-                "장애 복구 lock 해제"))
-                .thenReturn(expected);
+        String lockKey = "batch:job:CPF_EDU_TASKLET_JOB:test";
+        CpfBatchRiskCommand command = command("releaseLock", "bat_lock", lockKey, "BATCH_LOCK_RELEASE");
+        AdmBatchApprovalService.Reservation reservation = reservation();
+        CpfDataRow expected = CpfDataRow.of("lockKey", lockKey, "released", true);
+        when(approvals.reserve(command)).thenReturn(reservation);
+        when(operations.releaseLock(eq(lockKey), any(CpfBatchRiskCommand.class))).thenReturn(expected);
 
-        assertThat(service.releaseLock(
-                "batch:job:CPF_EDU_TASKLET_JOB:test",
-                "adm-operator",
-                "장애 복구 lock 해제"))
-                .isSameAs(expected);
-        verify(operations).releaseLock(
-                "batch:job:CPF_EDU_TASKLET_JOB:test",
-                "adm-operator",
-                "장애 복구 lock 해제");
+        assertThat(service.releaseLock(lockKey, command)).isSameAs(expected);
+        verify(operations).releaseLock(eq(lockKey), any(CpfBatchRiskCommand.class));
+        verify(approvals).complete(reservation, "approver-01");
     }
 
     @Test
     void actGhostDelegatesToBatOwnerPort() {
-        Map<String, Object> expected = Map.of("actionType", "FAIL", "executionId", 10L);
-        when(operations.actGhostExecution(
-                10L,
-                "FAIL",
-                "adm-operator",
-                "heartbeat 장기 미수신으로 실패 처리"))
+        CpfBatchRiskCommand command = command(
+                "actGhostExecution", "bat_execution", "10", "BATCH_GHOST_FAIL");
+        AdmBatchApprovalService.Reservation reservation = reservation();
+        CpfDataRow expected = CpfDataRow.of("actionType", "FAIL", "executionId", 10L);
+        when(approvals.reserve(command)).thenReturn(reservation);
+        when(operations.actGhostExecution(eq(10L), eq("FAIL"), any(CpfBatchRiskCommand.class)))
                 .thenReturn(expected);
 
-        assertThat(service.actGhostExecution(
-                10L,
-                "FAIL",
-                "adm-operator",
-                "heartbeat 장기 미수신으로 실패 처리"))
-                .isSameAs(expected);
-        verify(operations).actGhostExecution(
-                10L,
-                "FAIL",
-                "adm-operator",
-                "heartbeat 장기 미수신으로 실패 처리");
+        assertThat(service.actGhostExecution(10L, "FAIL", command)).isSameAs(expected);
+        verify(operations).actGhostExecution(eq(10L), eq("FAIL"), any(CpfBatchRiskCommand.class));
+        verify(approvals).complete(reservation, "approver-01");
     }
 
     @Test
     void requestRunDelegatesToBatOwnerPort() {
-        Map<String, Object> expected = Map.of("jobId", "CPF_EDU_TASKLET_JOB", "accepted", true);
-        when(operations.requestRun(
-                "CPF_EDU_TASKLET_JOB",
-                "businessDate=20260726",
-                "adm-operator",
-                "운영 재실행"))
+        String jobId = "CPF_EDU_TASKLET_JOB";
+        CpfBatchRiskCommand command = command("requestRun", "bat_job", jobId, "BATCH_RUN");
+        AdmBatchApprovalService.Reservation reservation = reservation();
+        CpfDataRow expected = CpfDataRow.of("jobId", jobId, "accepted", true);
+        when(approvals.reserve(command)).thenReturn(reservation);
+        when(operations.requestRun(eq(jobId), eq("businessDate=20260726"), any(CpfBatchRiskCommand.class)))
                 .thenReturn(expected);
 
-        assertThat(service.requestRun(
-                "CPF_EDU_TASKLET_JOB",
-                "businessDate=20260726",
-                "adm-operator",
-                "운영 재실행"))
-                .isSameAs(expected);
-        verify(operations).requestRun(
-                "CPF_EDU_TASKLET_JOB",
-                "businessDate=20260726",
-                "adm-operator",
-                "운영 재실행");
+        assertThat(service.requestRun(jobId, "businessDate=20260726", command)).isSameAs(expected);
+        verify(operations).requestRun(eq(jobId), eq("businessDate=20260726"), any(CpfBatchRiskCommand.class));
+        verify(approvals).complete(reservation, "approver-01");
+    }
+
+    private static CpfBatchRiskCommand command(
+            String operation, String targetType, String targetId, String actionType) {
+        return new CpfBatchRiskCommand(
+                operation, targetType, targetId, actionType,
+                "approver-01", "운영 복구", "41", "idem-41", 1L, "");
+    }
+
+    private static AdmBatchApprovalService.Reservation reservation() {
+        return new AdmBatchApprovalService.Reservation(41L, "idem-41", "RUNNING", false, "maker-01");
     }
 }

@@ -91,31 +91,16 @@ public class JdbcCpfReconciliationRepository implements CpfReconciliationPort, C
         if (!hasText(workerId)) throw new IllegalArgumentException("workerId는 필수입니다.");
         Instant now = Instant.now();
         Instant threshold = now.minusSeconds(Math.max(0, thresholdSeconds));
-        List<Map<String,Object>> rows = jdbcTemplate.queryForList("""
-                SELECT unknown_id AS unknownId, unknown_type AS unknownType, unknown_status AS unknownStatus,
-                       transaction_id AS transactionId, segment_id AS segmentId, external_key AS externalKey,
-                       failure_code AS failureCode, failure_message AS failureMessage, next_action AS nextAction,
-                       detected_at AS detectedAt, resolved_at AS resolvedAt,
-                       attempt_count AS attemptCount, row_version AS rowVersion
-                FROM cpf_unknown_result
-                WHERE unknown_status = 'CHECK_PENDING'
-                  AND (? IS NULL OR unknown_type = ?)
-                  AND detected_at <= ?
-                  AND (next_check_at IS NULL OR next_check_at <= ?)
-                  AND (lease_until IS NULL OR lease_until < ?)
-                ORDER BY detected_at, unknown_seq
-                """, unknownType, unknownType, Timestamp.from(threshold), Timestamp.from(now), Timestamp.from(now));
+        List<Map<String,Object>> rows = jdbcTemplate.queryForList(
+                sql.required("reconciliation-claim-candidates"),
+                unknownType, unknownType, Timestamp.from(threshold), Timestamp.from(now), Timestamp.from(now));
         List<WorkItem> claimed = new ArrayList<>();
         for (Map<String,Object> row : rows.stream().limit(safeLimit(limit)).toList()) {
             String id = string(row, "unknownId");
             long version = longValue(row.get("rowVersion"));
-            int updated = jdbcTemplate.update("""
-                    UPDATE cpf_unknown_result
-                       SET lease_owner = ?, lease_until = ?, attempt_count = attempt_count + 1,
-                           row_version = row_version + 1, updated_by = ?, updated_at = ?
-                     WHERE unknown_id = ? AND row_version = ? AND unknown_status = 'CHECK_PENDING'
-                       AND (lease_until IS NULL OR lease_until < ?)
-                    """, workerId, Timestamp.from(now.plusSeconds(Math.max(5, leaseSeconds))), workerId,
+            int updated = jdbcTemplate.update(
+                    sql.required("reconciliation-claim-update"),
+                    workerId, Timestamp.from(now.plusSeconds(Math.max(5, leaseSeconds))), workerId,
                     Timestamp.from(now), id, version, Timestamp.from(now));
             if (updated == 1) claimed.add(new WorkItem(mapRecord(row), intValue(row.get("attemptCount")) + 1, version + 1));
         }
@@ -124,25 +109,18 @@ public class JdbcCpfReconciliationRepository implements CpfReconciliationPort, C
 
     @Override
     public void defer(String unknownId, String workerId, Instant nextCheckAt, String nextAction) {
-        int updated = jdbcTemplate.update("""
-                UPDATE cpf_unknown_result
-                   SET lease_owner = NULL, lease_until = NULL, next_check_at = ?, next_action = ?,
-                       row_version = row_version + 1, updated_by = ?, updated_at = ?
-                 WHERE unknown_id = ? AND lease_owner = ? AND unknown_status = 'CHECK_PENDING'
-                """, nextCheckAt == null ? null : Timestamp.from(nextCheckAt), nextAction, workerId,
+        int updated = jdbcTemplate.update(
+                sql.required("reconciliation-defer"),
+                nextCheckAt == null ? null : Timestamp.from(nextCheckAt), nextAction, workerId,
                 Timestamp.from(Instant.now()), unknownId, workerId);
         if (updated != 1) throw new IllegalStateException("Reconciliation defer fencing 충돌");
     }
 
     @Override
     public void markManualReview(String unknownId, String workerId, String nextAction) {
-        int updated = jdbcTemplate.update("""
-                UPDATE cpf_unknown_result
-                   SET unknown_status = 'MANUAL_REVIEW', lease_owner = NULL, lease_until = NULL,
-                       next_check_at = NULL, next_action = ?, row_version = row_version + 1,
-                       updated_by = ?, updated_at = ?
-                 WHERE unknown_id = ? AND lease_owner = ? AND unknown_status = 'CHECK_PENDING'
-                """, nextAction, workerId, Timestamp.from(Instant.now()), unknownId, workerId);
+        int updated = jdbcTemplate.update(
+                sql.required("reconciliation-mark-manual-review"),
+                nextAction, workerId, Timestamp.from(Instant.now()), unknownId, workerId);
         if (updated != 1) throw new IllegalStateException("Reconciliation manual review fencing 충돌");
     }
 

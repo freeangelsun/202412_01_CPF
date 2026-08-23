@@ -39,8 +39,7 @@ final class CpfJdbcDataSourceRegistry implements CpfDataSourceRegistry {
             return beanFactory.getBean(conventional, DataSource.class);
         }
         Map<String, DataSource> candidates = beanFactory.getBeansOfType(DataSource.class, false, false);
-        if (candidates.size() == 1) return candidates.values().iterator().next();
         if (candidates.isEmpty()) throw new IllegalStateException("CPF DataSource is required for role: " + role);
-        throw new IllegalStateException("CPF DataSource role is ambiguous; configure " + key);
+        throw new IllegalStateException("CPF DataSource role is not mapped; configure " + key);
     }
 }

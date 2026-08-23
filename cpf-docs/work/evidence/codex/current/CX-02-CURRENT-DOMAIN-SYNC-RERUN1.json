@@ -1,0 +1,14 @@
+{
+  "track": "CX-02-CURRENT-DOMAIN-SYNC-RERUN1",
+  "startedAt": "2026-08-22T21:56:55+09:00",
+  "finishedAt": "2026-08-22T21:57:46.5927353+09:00",
+  "sourceIdentity": "594479c0636878167af816d35bdd37797d9102ad459325037c7bda179a1c3ba8",
+  "exitCode": 1,
+  "result": "HARNESS_INVOCATION_ERROR",
+  "observed": [
+    "The diagnostic used the wrong lock path .cpf/generator-lock.json; the canonical file is cpf-generator.lock.json.",
+    "The diagnostic used a nonexistent Root cpf.bat; the canonical private CLI is cpf-tools/runtime/cli/cpf.bat.",
+    "No Generator command executed and no Product Source was modified."
+  ],
+  "nextAction": "Repeat the same hash and sync verification through canonical paths."
+}

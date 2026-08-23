@@ -1,0 +1,18 @@
+{
+  "executedAt": "2026-08-23T10:02:13.6015426+09:00",
+  "pid": 25268,
+  "exitCode": 1,
+  "healthStatus": "NOT_REACHED",
+  "healthBody": "",
+  "driverMissing": false,
+  "sessionAutoConfiguration": false,
+  "credentialKeyMissing": false,
+  "domainDataSourceCreated": true,
+  "domainSqlSessionFactoryCreated": true,
+  "hikariStarted": true,
+  "operationCatalogRegistryUnavailable": true,
+  "started": true,
+  "loggingReady": false,
+  "stdout": "cpf-docs/work/evidence/codex/current/runtime/F139-FRESH-RUNTIME-RERUN8/stdout.log",
+  "stderr": "cpf-docs/work/evidence/codex/current/runtime/F139-FRESH-RUNTIME-RERUN8/stderr.log"
+}

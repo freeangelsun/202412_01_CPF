@@ -4,6 +4,7 @@ import com.cpf.admin.opr.dto.AdmLogPolicyOverrideRequest;
 import com.cpf.admin.opr.dto.AdmLogPolicyRequest;
 import com.cpf.core.api.error.CpfValidationException;
 import com.cpf.platform.operations.observability.api.logging.policy.CpfLogPolicyResolver;
+import com.cpf.platform.operations.api.runtime.CpfRuntimePolicyDistributionPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -27,7 +28,8 @@ class AdmLogPolicyServiceTest {
     @Test
     void createOverrideRejectsInvalidPeriodBeforeDbAccess() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
+        AdmLogPolicyService service = new AdmLogPolicyService(
+                jdbcTemplate, emptyResolverProvider(), mock(CpfRuntimePolicyDistributionPort.class));
         AdmLogPolicyOverrideRequest request = new AdmLogPolicyOverrideRequest(
                 1L,
                 "ONLINE_TRANSACTION",
@@ -55,7 +57,8 @@ class AdmLogPolicyServiceTest {
     @Test
     void createPolicyRejectsMissingReasonBeforeDbAccess() {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
+        AdmLogPolicyService service = new AdmLogPolicyService(
+                jdbcTemplate, emptyResolverProvider(), mock(CpfRuntimePolicyDistributionPort.class));
         AdmLogPolicyRequest request = new AdmLogPolicyRequest(
                 "ONLINE_DEFAULT",
                 "온라인 기본",
@@ -88,7 +91,8 @@ class AdmLogPolicyServiceTest {
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("OPS_LOG_POLICY")))
                 .thenThrow(new DataAccessResourceFailureException("cpfDB 미적용"));
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, emptyResolverProvider());
+        AdmLogPolicyService service = new AdmLogPolicyService(
+                jdbcTemplate, emptyResolverProvider(), mock(CpfRuntimePolicyDistributionPort.class));
 
         Map<String, Object> result = service.findPolicies("ONLINE_TRANSACTION", "*", "Y", 10);
 
@@ -105,7 +109,8 @@ class AdmLogPolicyServiceTest {
         CpfLogPolicyResolver resolver = mock(CpfLogPolicyResolver.class);
         when(resolverProvider.getIfAvailable()).thenReturn(resolver);
         when(resolver.cachedSize()).thenReturn(0);
-        AdmLogPolicyService service = new AdmLogPolicyService(jdbcTemplate, resolverProvider);
+        AdmLogPolicyService service = new AdmLogPolicyService(
+                jdbcTemplate, resolverProvider, mock(CpfRuntimePolicyDistributionPort.class));
 
         Map<String, Object> result = service.clearCache("운영 정책 재적용", "tester", "127.0.0.1");
 

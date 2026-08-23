@@ -24,7 +24,7 @@ class CpfRuntimeInstanceIdentityContractTest {
     @Test void differentSystemCannotReuseActiveInstanceIdEvenWithSamePid() {
         Map<String,Object> row = row(8123L, STARTED);
         CpfRuntimeInstanceRegistration incoming = new CpfRuntimeInstanceRegistration(
-                "HOST-A", "svc", "EXS", "local", null, null, null,
+                "HOST-A", "svc", "EXS", "local", null, null, "http://HOST-A:8080",
                 "1", "commit", "APPLICATION", "AUTO_CONFIGURATION", "1", "hash",
                 Map.of(), Map.of(), null, null, "HOST-A", "EXS", "app", "APPLICATION",
                 8123L, "25", "1", "1", STARTED, STARTED, 60);
@@ -42,7 +42,7 @@ class CpfRuntimeInstanceIdentityContractTest {
 
     private static CpfRuntimeInstanceRegistration registration(long pid, Instant started) {
         return new CpfRuntimeInstanceRegistration(
-                "HOST-A", "svc", "MBR", "local", null, null, null,
+                "HOST-A", "svc", "MBR", "local", null, null, "http://HOST-A:8080",
                 "1", "commit", "APPLICATION", "AUTO_CONFIGURATION", "1", "hash",
                 Map.of(), Map.of(), null, null, "HOST-A", "MBR", "app", "APPLICATION",
                 pid, "25", "1", "1", started, started, 60);

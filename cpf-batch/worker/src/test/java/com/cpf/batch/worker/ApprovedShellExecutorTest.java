@@ -98,7 +98,7 @@ class ApprovedShellExecutorTest {
 
         assertTrue(result.success(), result.output());
         assertEquals("SUCCESS", result.status());
-        assertTrue(result.outputTruncated());
+        assertTrue(result.truncated());
     }
 
     @Test

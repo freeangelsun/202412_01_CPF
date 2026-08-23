@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-MOUNT-ONLY-DIAGNOSTIC-ATTEMPT1",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN"],
+  "timestamp": {
+    "started": "2026-08-22T12:01:07.4071168+09:00",
+    "finished": "2026-08-22T12:01:57.7505061+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon -I C:\\Users\\fly10\\AppData\\Local\\Temp\\cpf-codex-root-mount-only.init.gradle :runtime:local:bootJar --dry-run -PcpfIncludeGeneratedDomains=true",
+  "diagnosticSetup": "External init script attempted to change cpfIncludeGeneratedDomains after Root settings evaluation.",
+  "exitCode": 1,
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "actualResult": "Generated compile remained in the graph and the same five coordinates failed; the Provider-backed property value was already fixed, so this did not simulate mount-only behavior.",
+  "result": "INVALID_DIAGNOSTIC",
+  "failureSummary": "Late StartParameter mutation did not alter the already-observed Provider value; no Source inference is made.",
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-root-mount-only-diagnostic-20260822-1201.log",
+    "sha256": "a0c9a298bba2046e917d329ee219afb0a1e8e66a30d78abbb3dbbfb2f149e9d6",
+    "bytes": 30472
+  },
+  "findingIds": ["CX-F-005"],
+  "sanitized": true
+}

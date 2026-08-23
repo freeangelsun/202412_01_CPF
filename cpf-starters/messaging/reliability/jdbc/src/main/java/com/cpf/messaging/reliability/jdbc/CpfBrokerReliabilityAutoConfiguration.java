@@ -12,6 +12,7 @@ import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.messaging.context.CpfMessageBridgeContextSupport;
 import com.cpf.messaging.reliability.api.jdbc.internal.CpfBrokerConsumerRuntimePolicy;
 import com.cpf.messaging.reliability.api.jdbc.internal.CpfBrokerConsumerWorker;
+import com.cpf.messaging.reliability.api.jdbc.runtimecontrol.CpfMessagingRuntimeControlAutoConfiguration;
 import com.cpf.messaging.spi.broker.CpfBrokerPublishResultProbe;
 import com.cpf.messaging.spi.broker.CpfBrokerPublisher;
 import com.cpf.messaging.reliability.api.jdbc.CpfBrokerPublisherWorker;
@@ -34,7 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@AutoConfiguration
+@AutoConfiguration(before = CpfMessagingRuntimeControlAutoConfiguration.class)
 @EnableConfigurationProperties(CpfMessagingReliabilityProperties.class)
 @ConditionalOnProperty(prefix = "cpf.messaging.reliability", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CpfBrokerReliabilityAutoConfiguration {
@@ -58,6 +59,7 @@ public class CpfBrokerReliabilityAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     CpfBrokerConsumerRuntimePolicy cpfBrokerConsumerRuntimePolicy() {
         return new CpfBrokerConsumerRuntimePolicy();
     }

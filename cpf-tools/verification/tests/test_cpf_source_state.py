@@ -64,3 +64,28 @@ def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
     assert "cpf-core/src/Core.java" in paths
     assert "cpf-core/bin/Core.class" not in paths
     assert ".vscode/settings.json" not in paths
+
+
+def test_jvm_crash_and_heap_dump_artifacts_do_not_change_any_identity_scope(tmp_path: Path):
+    product = tmp_path / "cpf-core" / "src"
+    product.mkdir(parents=True)
+    (product / "Core.java").write_text("class Core {}", encoding="utf-8")
+    before = {scope: module.snapshot(tmp_path, scope) for scope in ("source", "managed")}
+
+    for name in (
+        "hs_err_pid123.log",
+        "replay_pid123.log",
+        "java_pid123.hprof",
+        "manual.hprof",
+        "native.stackdump",
+    ):
+        (tmp_path / name).write_bytes(b"automatic-jvm-garbage")
+    nested_cache = tmp_path / "cpf-common" / "cpf-docs" / "work" / "evidence" / "generated" / "gradle"
+    nested_cache.mkdir(parents=True)
+    (nested_cache / "cache.bin").write_bytes(b"ide-tooling-api-cache")
+
+    after = {scope: module.snapshot(tmp_path, scope) for scope in ("source", "managed")}
+    for scope in ("source", "managed"):
+        assert before[scope]["contentSha256"] == after[scope]["contentSha256"]
+        assert before[scope]["fileCount"] == after[scope]["fileCount"]
+        assert before[scope]["totalBytes"] == after[scope]["totalBytes"]

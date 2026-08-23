@@ -1,0 +1,14 @@
+{
+  "executionId": "CX-02-GENERATOR-TRANSIENT-ROOT-FIX-IDENTITY-RERUN2",
+  "timestamp": "2026-08-22T19:45:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+    "sha1": "d1b0de0a4e901baaa5dfe1c849aeb093d6294d58",
+    "fileCount": 8212,
+    "totalBytes": 75670090
+  },
+  "additionalScope": "Generator tests, DB initialization, sync/parity/inventory reports and all maintained Generator smoke result/scratch roots",
+  "rootBuildPresent": false,
+  "activeLegacyGeneratorRootBuildReferences": 0
+}

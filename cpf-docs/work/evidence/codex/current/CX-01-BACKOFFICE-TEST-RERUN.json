@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-BACKOFFICE-TEST-RERUN",
+  "requirementIds": ["PUBLIC-API", "SEC-BOUNDARY", "REL-BUILD", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T15:35:22.7881065+09:00",
+    "finished": "2026-08-22T15:36:16.7639860+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "2b3c205c80f4121ef3bfb5500bd2dbab3d43d459d9d2fc93f37d99a5a7194341",
+  "command": ".\\gradlew.bat --no-daemon :framework:operations:test :apps:backoffice:test --rerun-tasks",
+  "exitCode": 1,
+  "result": "FAIL",
+  "actualResult": "Framework operations and MBW main Java compilation succeed, proving F035/F036 source repairs. MBW test compilation then fails at one obsolete BackofficeAuthService constructor and two obsolete attachment byte-array/read API stubs; no tests execute.",
+  "resourceObservation": {
+    "commitFreeGiBAfterRun": 37.11,
+    "largestHandleOwner": "Code.exe renderer PID 14756",
+    "largestHandleCountObserved": 64568,
+    "mitigation": "Subsequent Gradle output is redirected only to evidence logs; UI receives summaries only. Product verification requirements and Gradle resource policy are unchanged."
+  },
+  "log": {
+    "path": "cpf-docs/work/evidence/codex/current/CX-01-BACKOFFICE-TEST-RERUN.log",
+    "sha256": "0424e10d0ebb4c98c19a4a9212f58e99e81719dfa48774f8aa59d6bea836337e"
+  },
+  "findingIds": ["CX-F-035", "CX-F-036", "CX-F-037", "CX-F-038"],
+  "sanitized": true
+}

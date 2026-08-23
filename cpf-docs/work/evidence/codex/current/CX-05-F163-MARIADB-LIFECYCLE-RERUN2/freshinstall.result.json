@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "tool": "run-db-vendor-lifecycle.ps1",
+  "vendor": "mariadb",
+  "mode": "FreshInstall",
+  "status": "UNKNOWN",
+  "executionStarted": true,
+  "reconcileRequired": true,
+  "lifecyclePlan": "cpf-docs/work/evidence/codex/current/CX-05-F163-MARIADB-LIFECYCLE-RERUN2/freshinstall.plan.json",
+  "lifecyclePlanSha256": "675f5074763e3a90d7a22cd035b8bcd4b81bd445f7a81aac3022e9043499558b",
+  "profileSha256": "289074b6c02f73c03255476cb57eac29fe2152cf6debe86ece784d5fae72403a",
+  "adapter": {
+    "ready": true,
+    "mode": "Docker",
+    "client": "mariadb",
+    "image": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1",
+    "imageId": "sha256:7fcd59fe809e1b8862d316f1742aae07312c88d4a0fa496259d4251fd71f64b5",
+    "probeNetwork": "none"
+  },
+  "startedAt": "2026-08-23T05:08:13.8496948+00:00",
+  "finishedAt": "2026-08-23T05:08:19.8229992+00:00",
+  "approvalReference": "CPF-VERIFY-55a0b76fb82e",
+  "error": "Docker DB lifecycle adapter failed: exit=1",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "55a0b76fb82e"
+}

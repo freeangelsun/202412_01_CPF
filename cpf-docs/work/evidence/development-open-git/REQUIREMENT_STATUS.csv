@@ -1,0 +1,12 @@
+requirement_id,development_status,verification_status,development_gpt_status,detail
+WP-14-OPEN-GIT-IA,완료,완료,완료,cpf-release 가시성 중심 IA와 clean regeneration 구현
+WP-14-SURFACE,완료,완료,완료,Default-Deny Source Projection 434 files 실제 생성 PASS
+WP-14-ARTIFACT-POLICY,완료,완료,완료,sources/javadoc disclosure 정책 및 fail-closed 구현
+WP-14-SAFE-RECREATE,완료,완료,완료,정확 cpf-release 경로/symlink/tracked path 안전 Gate Test PASS
+WP-14-CLI-UX,완료,완료,완료,setup 통합본에서 cpf open-git/check/status parsing PASS
+WP-14-DEVELOPER-COMMAND-UX,완료,완료,완료,짧은 단일 Dispatcher/호환 Wrapper/진행 단계/실시간 로그/PASS-FAIL/ExitCode/다음 행동 및 reset 확인 Gate 실제 실행 PASS
+WP-14-CANONICAL-INTEGRATION,완료,완료,완료,setup의 좁은 Anchor/idempotent 정본 반영 Test PASS; Codex 종료 후 실제 Working Tree 적용 필요
+WP-14-FRESH-REPLAY,완료,완료,완료,Exact Baseline fresh extract + overlay replay; 28 passed; Projection 439; baseline changed/missing 0; leakage 0
+WP-14-BINARY-PUBLICATION,미완료,실패,미완료,cpf-core source 정책 및 cpf-admin/cpf-gateway Public Maven 계약 불일치로 fail-closed
+WP-14-JAVA25-RELEASE,미완료,미검증,미완료,현재 환경 Java21; Java25 실제 Release Build/Publication 미실행
+WP-14-OPEN-GIT-REMOTE,미완료,미검증,미완료,실제 Remote fresh clone/build/staged diff는 최종 통합 후 실행

@@ -3,61 +3,74 @@ package com.cpf.messaging.reliability.api.jdbc;
 import com.cpf.messaging.spi.broker.CpfBrokerReplayPort;
 import com.cpf.messaging.spi.broker.CpfBrokerResult;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class CpfBrokerReliabilityOperationsTest {
 
     @Test
-    void directReplayFailsClosedBeforePortSideEffect() throws Exception {
+    void approvedReplayUsesAtomicDatabaseStateTransitionWithoutLowLevelPort() throws Exception {
         RecordingReplayPort port = new RecordingReplayPort();
-        CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port);
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        Map<String, Object> before = dlq("WAITING", 0);
+        Map<String, Object> after = dlq("REQUESTED", 1);
+        when(jdbc.query(any(PreparedStatementCreator.class), any(ColumnMapRowMapper.class)))
+                .thenReturn(List.of(before), List.of(after));
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+        CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port, jdbc);
 
-        assertThatThrownBy(() -> operations.replay(" msg-1 ", " operator-1 ", " replay incident "))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("approved owner command");
+        var result = operations.requestDlqReplay(" msg-1 ", " operator-1 ", " replay incident ");
+
+        assertThat(result.before()).isEqualTo(before);
+        assertThat(result.after()).isEqualTo(after);
+        assertThat(result.reason()).isEqualTo("replay incident");
         assertThat(port.calls).isZero();
+        verify(jdbc, times(2)).update(anyString(), any(Object[].class));
         Method method = CpfBrokerReliabilityOperations.class.getMethod(
-                "replay", String.class, String.class, String.class);
+                "requestDlqReplay", String.class, String.class, String.class);
         assertThat(method.isAnnotationPresent(Transactional.class)).isTrue();
     }
 
     @Test
-    void invalidAuditOrMessageIsRejectedBeforeApprovalError() {
+    void invalidApprovedReplayInputIsRejectedBeforeDatabaseMutation() {
         RecordingReplayPort port = new RecordingReplayPort();
-        CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port);
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port, jdbc);
 
-        assertThatThrownBy(() -> operations.replay(" ", "operator", "reason"))
+        assertThatThrownBy(() -> operations.requestDlqReplay(" ", "operator", "reason"))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> operations.replay("msg", " ", "reason"))
-                .isInstanceOf(SecurityException.class);
-        assertThatThrownBy(() -> operations.replay("msg", "operator", " "))
+        assertThatThrownBy(() -> operations.requestDlqReplay("msg", " ", "reason"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> operations.requestDlqReplay("msg", "operator", " "))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(port.calls).isZero();
+        verifyNoInteractions(jdbc);
     }
 
-    @Test
-    void replayRangeValidatesBoundaryThenFailsClosed() {
-        RecordingReplayPort port = new RecordingReplayPort();
-        CpfBrokerReliabilityOperations operations = new CpfBrokerReliabilityOperations(port);
-        Instant now = Instant.parse("2026-08-04T00:00:00Z");
-
-        assertThatThrownBy(() -> operations.replayRange("topic", now, now.minusSeconds(1), 10, "op", "reason"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> operations.replayRange("topic", null, null, 0, "op", "reason"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> operations.replayRange("topic", null, null, 5001, "op", "reason"))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> operations.replayRange("topic", null, null, 100, "op", "reason"))
-                .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("per-target approval");
-        assertThat(port.calls).isZero();
+    private static Map<String, Object> dlq(String replayStatus, int replayCount) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("message_id", "msg-1");
+        row.put("replay_status", replayStatus);
+        row.put("replay_count", replayCount);
+        return row;
     }
 
     private static final class RecordingReplayPort implements CpfBrokerReplayPort {

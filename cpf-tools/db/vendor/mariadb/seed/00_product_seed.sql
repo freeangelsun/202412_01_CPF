@@ -9,6 +9,14 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 USE cpfDB;
+INSERT INTO OPS_SYSTEM_REGISTRY (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by)
+VALUES ('CPF', 'CPF Core Platform', 'CPF', 'Y', 'CPF core platform system', 1, 'SYSTEM', 'SYSTEM'),
+    ('CMN', 'CPF Common', 'CMN', 'Y', 'CPF mandatory common system', 1, 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'CPF Administration', 'ADM', 'Y', 'CPF administration system', 1, 'SYSTEM', 'SYSTEM'),
+    ('MBW', 'CPF Backoffice', 'MBW', 'Y', 'CPF business backoffice system', 1, 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'CPF Batch', 'BAT', 'Y', 'CPF batch runtime system', 1, 'SYSTEM', 'SYSTEM'),
+    ('EDU', 'CPF Education', 'EDU', 'Y', 'CPF education reference system', 1, 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE system_name=VALUES(system_name), domain_code=VALUES(domain_code), enabled_yn=VALUES(enabled_yn), description=VALUES(description), policy_version=VALUES(policy_version), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO OPS_CHANNEL_REGISTRY (channel_code, channel_name, channel_type, trust_level, client_channel_yn, internal_channel_yn, authentication_required_yn, signature_required_yn, active_yn, description, policy_version, created_by, updated_by)
 VALUES ('WEB', '웹', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '웹 브라우저 채널', 0, 'SYSTEM', 'SYSTEM'),
     ('MOBILE', '모바일', 'CLIENT', 'EXTERNAL', 'Y', 'N', 'Y', 'N', 'Y', '모바일 애플리케이션 채널', 0, 'SYSTEM', 'SYSTEM'),
@@ -625,6 +633,34 @@ VALUES ('BADM-RLG-EX-0001', 'BADMRL0001', 'CPF O/S/B 10자리 표준 전환', 'C
 ON DUPLICATE KEY UPDATE standard_execution_id=VALUES(standard_execution_id), migration_reason=VALUES(migration_reason), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- ===== END 52_standard_execution_alias_seed.sql =====
 
+-- ===== BEGIN 53_runtime_service_registry_seed.sql =====
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=mariadb; source=53_runtime_service_registry_seed.sql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
+-- DO NOT EDIT generated seed directly.
+
+-- CPF_LOGICAL_DATABASE=cpfDB
+USE cpfDB;
+INSERT INTO OPS_SERVICE (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by)
+VALUES ('MBW', '업무 백오피스 서비스', 'INTERNAL', 'MBW', 'CPF 업무 운영 백오피스 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EDU', '온라인 교육 서비스', 'INTERNAL', 'EDU', 'CPF 온라인 교육 및 검증 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT', '배치 Worker 서비스', 'INTERNAL', 'BAT', 'CPF 배치 Worker 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM', '운영 콘솔 서비스', 'INTERNAL', 'ADM', 'CPF 운영 콘솔 서비스 호출 대상', 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE service_name=VALUES(service_name), service_type=VALUES(service_type), owner_module_code=VALUES(owner_module_code), description=VALUES(description), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO OPS_SERVICE_ENDPOINT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by)
+VALUES ('MBW_API', 'MBW', 'MBW API Endpoint', 'HTTP', 'http://cpf-backoffice', '/api/v1/backoffice', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('EDU_API', 'EDU', 'EDU API Endpoint', 'HTTP', 'http://cpf-education', '/education', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('BAT_API', 'BAT', 'BAT API Endpoint', 'HTTP', 'http://cpf-batch', '/bat', 5000, 0, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('ADM_API', 'ADM', 'ADM API Endpoint', 'HTTP', 'http://cpf-admin', '/adm', 3000, 0, 'Y', 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE service_id=VALUES(service_id), endpoint_name=VALUES(endpoint_name), endpoint_type=VALUES(endpoint_type), base_url=VALUES(base_url), context_path=VALUES(context_path), default_timeout_ms=VALUES(default_timeout_ms), default_retry_count=VALUES(default_retry_count), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by)
+VALUES ('MBW', 'MBW_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('EDU', 'EDU_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('BAT', 'BAT_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM'),
+    ('ADM', 'ADM_API', 'PRIMARY', 'WEIGHT', 'Y', 'Y', 'Y', 100, 'SYSTEM', 'SYSTEM')
+ON DUPLICATE KEY UPDATE routing_mode=VALUES(routing_mode), load_balance_type=VALUES(load_balance_type), failover_enabled_yn=VALUES(failover_enabled_yn), health_check_required_yn=VALUES(health_check_required_yn), active_yn=VALUES(active_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
+-- ===== END 53_runtime_service_registry_seed.sql =====
+
 -- ===== BEGIN 56_backoffice_product_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
 -- vendor=mariadb; source=56_backoffice_product_seed.sql
@@ -676,7 +712,6 @@ INSERT INTO MBW_PERMISSION (role_code, menu_code, button_code, permission_type, 
 VALUES ('MBW_ADMIN', 'MBW_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/v1/backoffice/permissions/effective', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_ADMIN', 'MBW_EMPLOYEE', 'PII_RAW', 'API', 'POST', '/api/v1/backoffice/employees/*/contacts/raw', NULL, 'ALL', 'ALL', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_OPERATOR', 'MBW_AUTHORIZATION', 'SIMULATE', 'API', 'GET', '/api/v1/backoffice/permissions/effective', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
-    ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/actions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM'),
     ('MBW_APPROVER', 'MBW_APPROVAL', 'DECIDE', 'API', 'POST', '/api/v1/backoffice/approvals/*/decisions', NULL, 'ALL', 'ORGANIZATION', 'Y', 'Y', 'SYSTEM', 'SYSTEM')
 ON DUPLICATE KEY UPDATE http_method=VALUES(http_method), api_pattern=VALUES(api_pattern), domain_code=VALUES(domain_code), data_scope=VALUES(data_scope), allow_yn=VALUES(allow_yn), use_yn=VALUES(use_yn), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 -- ===== END 56_backoffice_product_seed.sql =====
@@ -774,10 +809,10 @@ VALUES ('CAPABILITY_FLEET_READ', 'CAPABILITY_FLEET', 'READ', 'CPF Capability 조
     ('CHANNEL_POLICY_IMPORT', 'CHANNEL_POLICY', 'IMPORT', '채널 정책 패키지 반입', 'POST', '/adm/api/channels/package/import', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG_READ', 'REMOTE_LOG', 'READ', '로그 아티팩트 조회', 'GET', '/adm/api/remote-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '로그 아티팩트 다운로드', 'GET', '/adm/api/remote-logs/*/download', 20, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('REMOTE_LOG_BUNDLE_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '동기 로그 ZIP 다운로드', 'POST', '/adm/api/remote-logs/bundles', 30, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_BUNDLE_DOWNLOAD', 'REMOTE_LOG', 'BUNDLE_DOWNLOAD', '동기 로그 ZIP 다운로드', 'POST', '/adm/api/remote-logs/bundles', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG_BUNDLE_CREATE', 'REMOTE_LOG', 'CREATE', '비동기 로그 ZIP 작업 등록', 'POST', '/adm/api/remote-logs/bundle-jobs', 40, 'Y', 'SYSTEM', 'SYSTEM'),
     ('REMOTE_LOG_BUNDLE_TOKEN', 'REMOTE_LOG', 'ISSUE', '로그 ZIP 다운로드 token 발급', 'POST', '/adm/api/remote-logs/bundle-jobs/*/download-tokens', 50, 'Y', 'SYSTEM', 'SYSTEM'),
-    ('REMOTE_LOG_JOB_DOWNLOAD', 'REMOTE_LOG', 'DOWNLOAD', '비동기 로그 ZIP 다운로드', 'GET', '/adm/api/remote-logs/bundle-jobs/*/download', 60, 'Y', 'SYSTEM', 'SYSTEM'),
+    ('REMOTE_LOG_JOB_DOWNLOAD', 'REMOTE_LOG', 'JOB_DOWNLOAD', '비동기 로그 ZIP 다운로드', 'GET', '/adm/api/remote-logs/bundle-jobs/*/download', 60, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_READ', 'TRANSACTION_META', 'READ', '거래 메타 조회', 'GET', '/adm/api/transactions/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
     ('TRANSACTION_META_WRITE', 'TRANSACTION_META', 'WRITE', '거래 메타 비활성화', 'POST', '/adm/api/transactions/*/inactive', 30, 'Y', 'SYSTEM', 'SYSTEM'),
     ('AUDIT_LOG_READ', 'AUDIT_LOG', 'READ', '조회', 'GET', '/adm/api/audit-logs/**', 10, 'Y', 'SYSTEM', 'SYSTEM'),
@@ -936,8 +971,16 @@ SELECT
     USE_YN,
     'SYSTEM',
     'SYSTEM'
-FROM ADM_BUTTON
-WHERE API_PATTERN IS NOT NULL
+FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1
 ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE), HTTP_METHOD=VALUES(HTTP_METHOD), API_PATH=VALUES(API_PATH), API_NAME=VALUES(API_NAME), PERMISSION_CODE=VALUES(PERMISSION_CODE), MENU_ID=VALUES(MENU_ID), BUTTON_ID=VALUES(BUTTON_ID), USE_YN=VALUES(USE_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_API_PERMISSION (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by)
 VALUES (
@@ -946,9 +989,18 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE), HTTP_METHOD=VALUES(HTTP_METHOD), API_PATH=VALUES(API_PATH), API_NAME=VALUES(API_NAME), PERMISSION_CODE=VALUES(PERMISSION_CODE), MENU_ID=VALUES(MENU_ID), BUTTON_ID=VALUES(BUTTON_ID), USE_YN=VALUES(USE_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_ROLE_API_PERMISSION (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT rb.ROLE_ID, ap.API_PERMISSION_ID, rb.ALLOW_YN, 'SYSTEM', 'SYSTEM'
+SELECT rb.ROLE_ID,
+       ap.API_PERMISSION_ID,
+       CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END,
+       'SYSTEM',
+       'SYSTEM'
 FROM ADM_ROLE_BUTTON rb
-JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
+WHERE b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID
 ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN), updated_by=VALUES(updated_by), updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_BUTTON (BUTTON_ID, MENU_ID, ACTION_CODE, BUTTON_NAME, HTTP_METHOD, API_PATTERN, SORT_ORDER, USE_YN, created_by, updated_by)
 VALUES ('AUDIT_LOG_RETRY','AUDIT_LOG','WRITE','감사 전달 재처리','POST','/adm/api/audit-logs/deliveries/*/retry',20,'Y','SYSTEM','SYSTEM')
@@ -1032,13 +1084,50 @@ FROM ADM_ROLE r JOIN ADM_BUTTON b ON b.BUTTON_ID LIKE 'BAT_%'
 WHERE r.ROLE_ID IN ('ADM_ADMIN','ADM_DEV_OPERATOR','ADM_OPERATOR','ADM_BIZ_OPERATOR','ADM_VIEWER')
 ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN), updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_API_PERMISSION (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by)
-SELECT CONCAT('API_',BUTTON_ID),MENU_ID,COALESCE(HTTP_METHOD,'ANY'),API_PATTERN,BUTTON_NAME,ACTION_CODE,MENU_ID,BUTTON_ID,'Y','SYSTEM','SYSTEM'
-FROM ADM_BUTTON WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL
+SELECT
+    CONCAT('API_', BUTTON_ID),
+    MENU_ID,
+    COALESCE(HTTP_METHOD, 'ANY'),
+    API_PATTERN,
+    BUTTON_NAME,
+    ACTION_CODE,
+    MENU_ID,
+    BUTTON_ID,
+    'Y',
+    'SYSTEM',
+    'SYSTEM'
+FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE BUTTON_ID LIKE 'BAT_%'
+      AND API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1
+  AND NOT EXISTS (
+      SELECT 1
+      FROM ADM_API_PERMISSION existing
+      WHERE existing.HTTP_METHOD = COALESCE(route_owner.HTTP_METHOD, 'ANY')
+        AND existing.API_PATH = route_owner.API_PATTERN
+  )
 ON DUPLICATE KEY UPDATE API_GROUP_CODE=VALUES(API_GROUP_CODE), HTTP_METHOD=VALUES(HTTP_METHOD), API_PATH=VALUES(API_PATH), API_NAME=VALUES(API_NAME), PERMISSION_CODE=VALUES(PERMISSION_CODE), MENU_ID=VALUES(MENU_ID), BUTTON_ID=VALUES(BUTTON_ID), USE_YN='Y', updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
 INSERT INTO ADM_ROLE_API_PERMISSION (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by)
-SELECT rb.ROLE_ID,ap.API_PERMISSION_ID,rb.ALLOW_YN,'SYSTEM','SYSTEM'
-FROM ADM_ROLE_BUTTON rb JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID=rb.BUTTON_ID
+SELECT rb.ROLE_ID,
+       ap.API_PERMISSION_ID,
+       CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END,
+       'SYSTEM',
+       'SYSTEM'
+FROM ADM_ROLE_BUTTON rb
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
 WHERE rb.BUTTON_ID LIKE 'BAT_%'
+  AND b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID
 ON DUPLICATE KEY UPDATE ALLOW_YN=VALUES(ALLOW_YN), updated_by='SYSTEM', updated_at=CURRENT_TIMESTAMP;
 -- ===== END 60_adm_seed_data.sql =====
 

@@ -1,0 +1,37 @@
+{
+  "track": "CX-05-F203-F205-FULL-DB-ARTIFACT-SYNC",
+  "startedAt": "2026-08-23T19:06:32+09:00",
+  "finishedAt": "2026-08-23T19:11:42+09:00",
+  "command": "pwsh -NoProfile -File .\\cpf-tools\\db\\tools\\sync-database-artifacts.ps1 -Root .",
+  "exitCode": 0,
+  "result": "PASS",
+  "sourceIdentityAfter": {
+    "contentSha256": "e7fd5f59441076a379b21e68f96dc4b852921df4f815ea25f763949ce9014ede",
+    "contentSha1": "a9e478825448a6897ee5513be8dc1e4a9694a0dc",
+    "fileCount": 8288,
+    "totalBytes": 75220829
+  },
+  "verified": {
+    "vendors": ["mariadb", "postgresql", "oracle"],
+    "springBatchOfficialJar": true,
+    "springBatchHistoricalSequences": ["BATCH_JOB_INSTANCE_SEQ", "BATCH_JOB_EXECUTION_SEQ", "BATCH_STEP_EXECUTION_SEQ"],
+    "springBatchCurrentSequences": ["BAT_SB_JOB_INSTANCE_SEQ", "BAT_SB_JOB_EXECUTION_SEQ", "BAT_SB_STEP_EXECUTION_SEQ"],
+    "springBatchMigrationVersion": 73,
+    "nonTableObjectsChecked": 15,
+    "platformBackofficeCommonStatements": 248,
+    "platformBackofficeCommonRepositoryFiles": 702,
+    "batchStatements": 216,
+    "batchRepositoryFiles": 648,
+    "portableResources": 14,
+    "managedMyBatisFiles": 6,
+    "canonicalTables": 234,
+    "generatedDomainsSynchronized": 3,
+    "queryIntegrity": "PASS",
+    "schemaManifestParity": "PASS"
+  },
+  "closure": {
+    "CX-F-204": "CLOSED",
+    "CX-F-203": "VERIFICATION_PENDING: actual database lifecycle",
+    "CX-F-205": "VERIFICATION_PENDING: actual database lifecycle"
+  }
+}

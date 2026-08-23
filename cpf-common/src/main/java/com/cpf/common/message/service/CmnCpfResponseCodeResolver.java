@@ -136,6 +136,7 @@ public class CmnCpfResponseCodeResolver implements CpfResponseCodeResolver {
                 Map.entry("responseCode", r.responseCode()), Map.entry("messageCode", r.messageCode()),
                 Map.entry("resultType", r.resultType()), Map.entry("moduleId", r.moduleId()),
                 Map.entry("responseGroup", r.responseGroup()), Map.entry("sequenceNo", r.sequenceNo()),
+                Map.entry("httpStatus", r.httpStatus()),
                 Map.entry("category", r.category()), Map.entry("retryDisposition", r.retryDisposition()),
                 Map.entry("exposure", r.exposure()), Map.entry("catalogVersion", r.catalogVersion()),
                 Map.entry("useYn", r.useYn()));

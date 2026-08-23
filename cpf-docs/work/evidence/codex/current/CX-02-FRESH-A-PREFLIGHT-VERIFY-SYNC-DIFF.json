@@ -1,0 +1,12 @@
+{
+  "executionId": "CX-02-FRESH-A-PREFLIGHT-VERIFY-SYNC-DIFF",
+  "timestamp": "2026-08-22T19:50:00+09:00",
+  "sourceIdentitySha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+  "status": "PASS",
+  "case": "A",
+  "dryRun": {"status": "DRY_RUN_PASS", "plannedFiles": 16, "verified": "PASS"},
+  "verify": {"status": "PASS", "generatedFiles": 17, "publicBoundary": "PASS", "runtimeConsumers": "PASS"},
+  "setupSync": {"status": "PASS", "sourceGeneration": "UPGRADED"},
+  "diff": {"missing": 0, "changed": 0, "staleGeneratedFiles": 0, "extraUserFiles": 0, "clean": true},
+  "productRootBuildPresentAfter": false
+}

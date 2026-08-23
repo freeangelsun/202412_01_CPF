@@ -15,6 +15,7 @@ class CpfParameterServiceTypedValueTest {
     private final CpfParameterService service = new CpfParameterService() {
         private final Map<String, String> values = Map.of(
                 "MAX_RETRY", "3",
+                "INVALID_INTEGER", "three",
                 "ENABLED", "true",
                 "TIMEOUT", "PT5S");
         @Override public Optional<CpfParameter> find(String key) {
@@ -35,5 +36,12 @@ class CpfParameterServiceTypedValueTest {
         assertThatThrownBy(() -> service.requiredValue("MAX_RETRY", Object.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Unsupported CPF Common parameter target type");
+    }
+
+    @Test void distinguishesMalformedSupportedValueFromUnsupportedTargetType() {
+        assertThatThrownBy(() -> service.requiredValue("INVALID_INTEGER", Integer.class))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("CPF Common parameter type conversion failed: key=INVALID_INTEGER, type=Integer")
+                .hasCauseInstanceOf(NumberFormatException.class);
     }
 }

@@ -16,6 +16,8 @@ import com.cpf.web.context.CpfHttpIngressTrustResolver;
 import com.cpf.web.context.CpfHttpOutboundContextAdapter;
 import com.cpf.web.context.CpfRuntimeIdentity;
 import com.cpf.web.context.CpfTrustedProxyClientIpResolver;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
+import org.springframework.boot.actuate.endpoint.web.PathMappedEndpoints;
 import jakarta.servlet.Filter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -28,9 +30,9 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 
 /** Installs the canonical HTTP context/trust boundary for the Web Profile. */
-@AutoConfiguration
+@AutoConfiguration(after = WebEndpointAutoConfiguration.class)
 @ConditionalOnClass(Filter.class)
-@EnableConfigurationProperties(CpfHeaderPolicyProperties.class)
+@EnableConfigurationProperties({CpfHeaderPolicyProperties.class, CpfWebContextProperties.class})
 public class CpfWebContextAutoConfiguration {
     @Bean @ConditionalOnMissingBean
     CpfRuntimeIdentity cpfRuntimeIdentity(CpfRuntimeMetadata runtime) { return CpfRuntimeIdentity.from(runtime); }
@@ -62,9 +64,17 @@ public class CpfWebContextAutoConfiguration {
             CpfTransactionIdGenerator transactionIds, CpfHttpIngressTrustResolver trustResolver,
             CpfTrustedProxyClientIpResolver clientIpResolver, CpfHeaderPolicyRegistry policies,
             CpfHeaderFailureRecorder failures, CpfRuntimeIdentity runtime,
-            ObjectProvider<CpfSubjectCollector> subjectCollector) {
+            ObjectProvider<CpfSubjectCollector> subjectCollector, Environment environment,
+            ObjectProvider<PathMappedEndpoints> pathMappedEndpoints,
+            CpfWebContextProperties webContextProperties) {
+        PathMappedEndpoints managementPaths = pathMappedEndpoints.getIfAvailable();
+        java.util.ArrayList<String> managementRoots = new java.util.ArrayList<>();
+        if (managementPaths != null) managementRoots.addAll(managementPaths.getAllRootPaths());
+        managementRoots.addAll(webContextProperties.getManagementRootPaths());
         return new CpfWebContextFilter(inbound, dates, transactionIds, trustResolver, clientIpResolver, policies, failures, runtime,
-                subjectCollector.getIfAvailable());
+                subjectCollector.getIfAvailable(),
+                environment.getProperty("management.endpoints.web.base-path", "/actuator"),
+                managementRoots);
     }
 
     @Bean

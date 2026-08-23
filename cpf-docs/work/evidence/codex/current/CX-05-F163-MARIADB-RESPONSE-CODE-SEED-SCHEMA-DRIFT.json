@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-08-23T14:06:00+09:00",
+  "findingId": "CX-F-163",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "297008ffa32fd3d0db96d8c997a7931de4f0815a017e9182980d527fdeaec5b9",
+  "title": "Canonical response-code seed writes a column absent from the Fresh schema",
+  "requirement": "DB-BINDING",
+  "actualExecution": {
+    "vendor": "mariadb",
+    "version": "12.3.2",
+    "mode": "verifier-owned FreshInstall",
+    "runId": "52d03afc23bd",
+    "status": "FAIL",
+    "errorCode": 1054,
+    "sqlState": "42S22",
+    "error": "Unknown column 'http_status' in 'INSERT INTO'",
+    "failedStatement": "INSERT INTO CMN_RESPONSE_CODE (... http_status ...)",
+    "cleanup": "PASS",
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F162-MARIADB-LIFECYCLE-RERUN1/verifier-owned-lifecycle.json"
+  },
+  "rootCause": "Canonical schema/current Common management were partially currentized by dropping http_status even though immutable V63/V124 history, canonical seed data, ADM frontend/OpenAPI and runtime response resolution still require it. The repair owner is the canonical schema plus Common public catalog persistence/projection; generated vendor SQL will only be regenerated from that owner.",
+  "sourceFix": {
+    "recordedAt": "2026-08-23T14:02:27.5649629+09:00",
+    "status": "SOURCE_FIXED",
+    "canonicalSchemaVersion": 56,
+    "contract": "CMN_RESPONSE_CODE.http_status INT NOT NULL / management input 100..599 / persistence and runtime projection",
+    "contentSha256": "7c4af1f4d1b30fbef3723896ae388198f72fea10817256e3c9e1836d206835db",
+    "contentSha1": "b9abd70256aeb899adac8b5786ff2527929dffb7",
+    "fileCount": 8224,
+    "totalBytes": 75030789,
+    "generatedVendorSqlRegenerated": true,
+    "verification": "TARGETED_PASS_FRESH_PENDING"
+  },
+  "targetedVerification": {
+    "recordedAt": "2026-08-23T14:06:45.4912049+09:00",
+    "java25CommonRuntimeResolver": "PASS",
+    "java25AdmAndFrontendContract": "PASS",
+    "canonicalVendorRenderTests": "7/7 PASS",
+    "canonicalDdlSafety": "PASS",
+    "vendorPackCheck": "PASS",
+    "canonicalSchemaVersion": 56,
+    "immutableHistory": {
+      "fileCount": 677,
+      "aggregateBefore": "60c16597db67d22429b2a2560deaf8b7a39836a1fd4cc14d4050cfafcb920367",
+      "aggregateAfter": "60c16597db67d22429b2a2560deaf8b7a39836a1fd4cc14d4050cfafcb920367",
+      "changed": false
+    },
+    "contentSha256": "9f40361cf8fe67a23134d7707346d926f527929165ef27674d11fb87f5c89c5e",
+    "contentSha1": "5a852e724c71d9fc8c7f848cc18ee34d68d63a9a",
+    "fileCount": 8224,
+    "totalBytes": 75031765
+  },
+  "migrationAuthoring": {
+    "version": 135,
+    "description": "current_binding_and_response_contract",
+    "canonicalMappedResponseCodes": 35,
+    "unknownFallback": "retain valid 100..599; otherwise success=200 and non-success=500",
+    "rollback": "data-preserving nullable compatibility for prior runtime",
+    "manifestRegistration": "PENDING"
+  },
+  "passCriteria": [
+    "canonical schema and seed agree on every response-code column",
+    "all three current vendor packs regenerate from the repaired owner",
+    "actual MariaDB Fresh install and product seed pass",
+    "runtime response-code consumer retains required HTTP status semantics",
+    "no immutable migration or prior checksum is rewritten"
+  ]
+}

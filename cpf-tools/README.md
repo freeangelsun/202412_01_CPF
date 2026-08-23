@@ -21,24 +21,18 @@ cpf-tools/verification  안정된 통합/기능 Gate
 
 ## Generated Customer Domain
 
-Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 입력 정본은 Framework의 `cpf-<domain>/cpf-domain.yaml` 또는 명시적인 `--file`이며, 검증용 상태는 `build/domain-generator/verification/**`에만 일시 저장한다.
+Generated Project 내부에는 lifecycle ownership/manifest/lock을 영구 저장하지 않는다. 생성 후 정본은 `cpf-<domain>/gradle.properties`의 `cpf.domain.*` Developer Contract다. CLI option 또는 Domain Root 밖의 명시적 `--file`은 transient 생성 입력일 뿐 결과 Root에 복사하지 않으며, 검증용 상태는 `cpf-docs/work/evidence/generated/domain-generator/verification/**`에만 일시 저장한다. `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 state/lock과 `.cpf/` 우회는 금지한다.
 
 Windows 프로젝트 루트 기준 대표 명령:
 
 ```powershell
-# 정의 검증 / Dry-run
-.\cpf-tools\runtime\cli\cpf.bat domain validate --file cpf-member/cpf-domain.yaml
-.\cpf-tools\runtime\cli\cpf.bat domain dry-run --file cpf-member/cpf-domain.yaml
+# 신규 생성 / Setup preview / Workspace 동기화
+.\cpf-tools\runtime\cli\cpf.bat domain create --name payment --system-code PAY --business-feature transfer
+.\cpf-tools\runtime\cli\cpf.bat domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment --preview
+.\cpf-tools\runtime\cli\cpf.bat domain sync
 
-# 생성 / 검증 / 차이 확인
-.\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-member/cpf-domain.yaml
-.\cpf-tools\runtime\cli\cpf.bat verify domain --file cpf-member/cpf-domain.yaml --output cpf-member
-.\cpf-tools\runtime\cli\cpf.bat domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
-
-# 사용자 변경 보호가 적용되는 upgrade/remove/restore
-.\cpf-tools\runtime\cli\cpf.bat domain upgrade member
+# 사용자 변경 보호가 적용되는 remove
 .\cpf-tools\runtime\cli\cpf.bat domain remove member
-.\cpf-tools\runtime\cli\cpf.bat domain restore --file cpf-member/cpf-domain.yaml --output cpf-member
 
 # Generator 전체 정적 검증
 .\cpf-tools\runtime\cli\cpf.bat verify all

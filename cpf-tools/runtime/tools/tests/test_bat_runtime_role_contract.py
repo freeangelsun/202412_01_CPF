@@ -82,6 +82,16 @@ class BatRuntimeRoleContractTest(unittest.TestCase):
             module.replacement_map(duplicate)
         module.verify_migration_version_lock(ROOT, contract)
 
+    def test_all_executables_publish_role_through_shared_runtime_namespace(self):
+        module = load_module()
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+        module.verify_application_runtime_role_properties(ROOT, contract)
+
+        broken = copy.deepcopy(contract)
+        broken["roles"][2]["name"] = "APPLICATION"
+        with self.assertRaisesRegex(module.ContractError, "shared cpf.runtime.role"):
+            module.verify_application_runtime_role_properties(ROOT, broken)
+
 
 if __name__ == "__main__":
     unittest.main()

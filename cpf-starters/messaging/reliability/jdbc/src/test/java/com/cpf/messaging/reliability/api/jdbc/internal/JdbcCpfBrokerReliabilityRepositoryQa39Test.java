@@ -82,7 +82,7 @@ class JdbcCpfBrokerReliabilityRepositoryQa39Test {
         jdbc.sequence.add(List.of());
         jdbc.updateResults.add(1);
 
-        repository(jdbc).markPublished("m1", new CpfBrokerResult(
+        repository(jdbc).markPublished("worker-1", "m1", new CpfBrokerResult(
                 "FAILED", "m1", "KAFKA", null, NOW, "rejected"));
 
         assertThat(jdbc.arguments.getFirst()[1]).isEqualTo("PENDING");

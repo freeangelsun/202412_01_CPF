@@ -15,17 +15,16 @@ def main()->int:
     def ck(name,ok,detail=''): checks.append({'name':name,'status':'PASS' if ok else 'FAIL','detail':detail})
     domains=[]
     for out in sorted(root.glob('cpf-*')):
-        definition=out/'cpf-domain.yaml'
+        definition=out/'gradle.properties'
         if not out.is_dir() or not definition.is_file(): continue
-        raw=eng.load_yaml_subset(definition)
-        generation=raw.get('generation') if isinstance(raw,dict) else None
-        if isinstance(generation,dict) and str(generation.get('mode','')).strip().lower()=='prebuilt':
-            continue
-        d=eng.validate_definition(raw); domains.append(d.name)
+        if 'cpf.domain.contractVersion=' not in definition.read_text(encoding='utf-8-sig'): continue
+        d=eng.load_domain_contract(definition)
+        if d.generation_mode=='prebuilt': continue
+        domains.append(d.name)
         ck(f'{d.name}-root-prefix',out.name==f'cpf-{d.name}',out.name)
         expected={'online'}|({'batch'} if d.batch else set())
         actual=domain_surface_dirs(out); ck(f'{d.name}-physical-ia',actual==expected,{'expected':sorted(expected),'actual':sorted(actual)})
-        forbidden=['README.md','verification','canonical','vendors',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
+        forbidden=['README.md','verification','canonical','vendors','cpf-domain.yaml','cpf-generator.lock.json','.cpf',f'{d.name}-api',f'{d.name}-common',f'{d.name}-online',f'{d.name}-batch']
         bad=[x for x in forbidden if (out/x).exists()]; ck(f'{d.name}-forbidden-surface-zero',not bad,bad)
         ck(f'{d.name}-customer-metadata-zero',not (out/'.cpf').exists(),str(out/'.cpf'))
         for cap in sorted(expected): ck(f'{d.name}-{cap}-non-empty',any(p.is_file() for p in (out/cap).rglob('*')),cap)

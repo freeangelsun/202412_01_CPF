@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -89,7 +90,9 @@ class ArtifactInstallerSecurityTest {
         AgentProperties properties = new AgentProperties();
         properties.setArtifactRepositoryBaseUrl("http://127.0.0.1:" + server.getAddress().getPort() + "/repo");
         properties.setArtifactAllowedHosts(List.of("127.0.0.1"));
+        properties.setArtifactAllowedPorts(Set.of(server.getAddress().getPort()));
         properties.setAllowPrivateRepositoryAddresses(true);
+        properties.setAllowHttpLoopback(true);
         properties.setArtifactStateMacKeyBase64(Base64.getEncoder().encodeToString(new byte[32]));
         AgentProperties.TrustedKey trusted = new AgentProperties.TrustedKey();
         trusted.setPublicKeyPath(publicKey.toString());

@@ -1,0 +1,14 @@
+{
+  "track": "CX-05-F209-WORKER-MOCKITO-OWNER-FIX-IDENTITY",
+  "timestamp": "2026-08-23T18:51:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "8a6567d6564690ca18c9803826eaddb1e54a963dffd1b9331096a7a9a6f53df8",
+    "sha1": "c473caed5cbfc81a835a85a28c639590b58daa06",
+    "files": 8287,
+    "bytes": 75217556
+  },
+  "change": "cpf-batch/worker directly declares the dependency used by five owned test classes: testImplementation org.mockito:mockito-core.",
+  "versionOwnership": "The existing dependency-management platform owns the Mockito version, matching sibling Batch modules.",
+  "next": "Rerun exact and complete Worker tests under Java 25."
+}

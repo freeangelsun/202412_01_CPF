@@ -2,6 +2,7 @@ package com.cpf.notification.api;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 /** Provider-neutral result with explicit UNKNOWN_RESULT support. */
@@ -27,6 +28,7 @@ public record CpfNotificationResult(
     /** sent 작업을 CPF 표준 계약에 따라 수행한다. */
     public static CpfNotificationResult sent(String id,String provider,String messageId){return new CpfNotificationResult(id,provider,"SENT",messageId,null,Instant.now());}
     public static CpfNotificationResult unknown(String id,String provider,String detail){return new CpfNotificationResult(id,provider,"UNKNOWN_RESULT",null,detail,Instant.now());}
+    public static CpfNotificationResult unknown(String id,String provider,String detail,Instant processedAt){return new CpfNotificationResult(id,provider,"UNKNOWN_RESULT",null,detail,Objects.requireNonNull(processedAt,"processedAt"));}
     private static String required(String v,String n){if(v==null||v.isBlank())throw new IllegalArgumentException(n+" is required");return v.trim();}
     private static String optional(String v){return v==null||v.isBlank()?null:v.trim();}
 }

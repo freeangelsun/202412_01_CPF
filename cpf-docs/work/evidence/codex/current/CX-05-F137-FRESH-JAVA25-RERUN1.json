@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-137",
+  "status": "PASS_BUILD_VERIFICATION_PENDING_RUNTIME",
+  "sourceIdentitySha256": "c656a8156da65f11c2cad69acd580a08b4dd80fe004712cc0084e607d63766c8",
+  "durationSeconds": 25,
+  "tasks": {"actionable": 81, "executed": 6, "upToDate": 75},
+  "tests": {"executed": 4, "failed": 0, "errors": 0, "skipped": 0},
+  "bootJar": {
+    "bytes": 78812465,
+    "sha256": "173c22423b85f0e21fbfbaa1c1e59194966a3c552011860ad8468435e5b8326d",
+    "selectedMapperEntry": "BOOT-INF/classes/db/mapper/SampleTransactionMapper.xml",
+    "selectedMapperEntryCount": 1
+  },
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F137-FRESH-JAVA25-RERUN1.log"
+}

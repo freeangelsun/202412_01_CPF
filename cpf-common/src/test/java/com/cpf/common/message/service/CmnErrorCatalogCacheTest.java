@@ -13,7 +13,7 @@ import static org.mockito.Mockito.*;
 class CmnErrorCatalogCacheTest {
     @Test void dbOutageKeepsPreloadedCacheHitAndFenceChangeInvalidates() {
         CmnErrorCatalogRepository repo=mock(CmnErrorCatalogRepository.class); CpfErrorCatalogSignalSink signals=mock(CpfErrorCatalogSignalSink.class);
-        var r=new CpfResponseCodeRecord("E1","M1","FAIL","M","G","1","BUSINESS","NEVER","SAFE_MESSAGE_ONLY",null,null,1,"","Y",Instant.now());
+        var r=new CpfResponseCodeRecord("E1","M1","FAIL","M","G","1",500,"BUSINESS","NEVER","SAFE_MESSAGE_ONLY",null,null,1,"","Y",Instant.now());
         var m=new CpfMessageRecord(1,"M1","ko","FIXED","safe","internal",0,"",null,"Y","Y",null,null,1,"","Y",Instant.now());
         var f1=new CmnErrorCatalogRepository.CatalogFence(new CmnErrorCatalogRepository.FencePart(1,1,Instant.EPOCH),new CmnErrorCatalogRepository.FencePart(1,1,Instant.EPOCH));
         var f2=new CmnErrorCatalogRepository.CatalogFence(new CmnErrorCatalogRepository.FencePart(1,2,Instant.now()),new CmnErrorCatalogRepository.FencePart(1,2,Instant.now()));

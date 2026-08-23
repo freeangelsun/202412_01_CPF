@@ -1,0 +1,18 @@
+{
+  "finding": "CX-F-220",
+  "runId": "b4200823c004",
+  "recordedAt": "2026-08-23T20:19:00+09:00",
+  "sourceIdentitySha256": "0f88208e68553a8d2800c3b43a880d4477394fe9688631417c85595200b54e55",
+  "actualFailure": {
+    "exitCode": 1,
+    "property": "cpf.batch.worker.operations.path-aliases",
+    "value": "empty scalar projected from YAML {}",
+    "targetType": "Map<String, WorkerOperationalProperties.PathAlias>",
+    "exception": "ConverterNotFoundException: String to Map",
+    "phase": "Spring Boot 4 ConfigurationProperties binding before Worker registration"
+  },
+  "rootCause": "The executable application.yml publishes empty YAML maps for scripts/path-aliases even though WorkerOperationalProperties already owns safe empty LinkedHashMap defaults. Spring Boot 4 exposes the empty YAML node as an empty scalar and attempts an invalid String-to-Map conversion.",
+  "cleanup": {"status": "PASS", "databaseLeaks": 0, "roleLeaks": 0},
+  "status": "OPEN",
+  "next": "Remove only the redundant empty-map YAML nodes, preserve Java fail-closed empty defaults and external dotted configuration, add exact regression, rebuild and replay."
+}

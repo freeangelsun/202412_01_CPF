@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "scope": "source",
+  "identityPolicy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+  "contentSha1": "7387f4b44a246ad03aa92cd4c5486fe224acd6b2",
+  "contentSha256": "320328107fafb45a0b046f7ecb910c93664ed68aa6eab53439d8e07369960bc4",
+  "fileCount": 8240,
+  "totalBytes": 75894207
+}

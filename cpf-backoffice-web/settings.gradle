@@ -1,1 +1,5 @@
 rootProject.name = 'cpf-backoffice-web'
+def cpfManagedGradleBase = providers.gradleProperty('cpfManagedGradleRoot')
+        .orElse(providers.environmentVariable('CPF_MANAGED_GRADLE_ROOT'))
+        .orElse(new File(rootDir, '.cpf/work/gradle').absolutePath).get()
+gradle.startParameter.projectCacheDir = new File(cpfManagedGradleBase, 'cpf-backoffice-web/project-cache')

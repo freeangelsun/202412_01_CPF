@@ -153,7 +153,7 @@ function Get-CpfGeneratedRuntimeModuleMap {
             moduleName = [string]$domain.moduleName
             databaseEnabled = [bool]$domain.databaseEnabled
             databaseRole = [string]$domain.databaseRole
-            definitionPath = [string]$domain.definitionPath
+            contractPath = [string]$domain.contractPath
         }
     }
     return @($generated)

@@ -1,0 +1,19 @@
+{
+  "evidenceId": "CX-05-F207-F208-TWO-WORKER-DISPOSABLE-DB-CONTRACT",
+  "recordedAt": "2026-08-23T19:58:00+09:00",
+  "sourceIdentity": {
+    "sha256": "59f5e18f645797cb1c14d1d13d53b7da8840bffc2eb3ff80baa0fd475ed1daf1",
+    "sha1": "4cca8a63308a6ebf110d1ce97a58cd2c8764ccb0",
+    "fileCount": 8288,
+    "totalBytes": 75230710
+  },
+  "changes": [
+    "Two-worker smoke accepts a safe DatabaseName with canonical cpfDB default",
+    "JDBC URL and every SQL read/write use the same validated physical target",
+    "Verifier-owned disposable CPF_PLATFORM_DB can now be consumed and cleaned without persistent local schema mutation",
+    "Maintained shell contract asserts parameter, identifier validation and JDBC propagation"
+  ],
+  "powershellParseErrors": 0,
+  "unittestDiscovery": "0 tests because this file uses pytest-style functions; direct maintained function execution follows",
+  "status": "VERIFICATION_PENDING"
+}

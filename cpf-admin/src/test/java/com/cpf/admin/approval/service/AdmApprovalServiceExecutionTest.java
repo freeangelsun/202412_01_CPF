@@ -244,7 +244,7 @@ class AdmApprovalServiceExecutionTest {
 
     private static AdmApprovalOwnerCommandPort supportedOwnerPort() {
         AdmApprovalOwnerCommandPort port = mock(AdmApprovalOwnerCommandPort.class);
-        when(port.supports("BAT", "DRAIN")).thenReturn(true);
+        when(port.supports("BAT", "DRAIN", "DRAIN", "INSTANCE")).thenReturn(true);
         return port;
     }
 

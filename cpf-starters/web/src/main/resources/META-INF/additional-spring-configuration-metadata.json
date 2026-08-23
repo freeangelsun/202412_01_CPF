@@ -22,6 +22,11 @@
       "name": "cpf.operation-catalog.manifest-required",
       "type": "java.lang.Boolean",
       "description": "Generated Business Domain에서 Build-time Operation Manifest와 실제 Handler Mapping의 exact 일치를 요구합니다. 기본값은 Generated Domain에서 true입니다."
+    },
+    {
+      "name": "cpf.web.context.management-root-paths",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Owner가 별도 인증·인가하는 비업무 관리 API Root 목록입니다. 해당 경계에는 업무 System6를 강제하지 않습니다."
     }
   ]
 }

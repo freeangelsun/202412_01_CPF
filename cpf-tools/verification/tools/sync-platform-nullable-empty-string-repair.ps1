@@ -9,15 +9,13 @@ Set-StrictMode -Version Latest
 function Write-CpfGeneratedFile {
     param([string] $Path, [string] $Content)
     $normalized = $Content.Replace("`r`n", "`n").TrimEnd() + "`n"
-    if ($Check) {
-        if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-            throw "Generated nullable repair is missing: $Path"
-        }
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
         $actual = [IO.File]::ReadAllText($Path, [Text.Encoding]::UTF8).Replace("`r`n", "`n")
-        if ($actual -cne $normalized) {
-            throw "Generated nullable repair drift: $Path"
-        }
-        return
+        if ($actual -ceq $normalized) { return }
+        throw "IMMUTABLE_MIGRATION_CONFLICT path=$Path"
+    }
+    if ($Check) {
+        throw "Generated nullable repair is missing: $Path"
     }
     $parent = Split-Path -Parent $Path
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
@@ -29,8 +27,15 @@ $schemaPath = Join-Path $Root 'cpf-tools/db/canonical/platform-schema.json'
 $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 20
 $schema = Get-Content -LiteralPath $schemaPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 100
 
-if ([int]$contract.sourceSchemaVersion -ne [int]$schema.schemaVersion) {
-    throw "Nullable repair sourceSchemaVersion drift: contract=$($contract.sourceSchemaVersion) canonical=$($schema.schemaVersion)"
+$sourceSchemaVersion = [int]$contract.sourceSchemaVersion
+$currentSchemaVersion = [int]$schema.schemaVersion
+# This contract owns already-published V96/R96 bytes. Its sourceSchemaVersion is
+# the immutable authoring identity, not a pointer that follows every later
+# canonical schema revision. Reject invalid/future history while the table and
+# column loop below validates that all repair targets still exist and retain
+# their required current shape.
+if ($sourceSchemaVersion -le 0 -or $sourceSchemaVersion -gt $currentSchemaVersion) {
+    throw "Nullable repair sourceSchemaVersion is invalid: contract=$sourceSchemaVersion canonical=$currentSchemaVersion"
 }
 if ([int]$contract.version -le 0 -or [string]::IsNullOrWhiteSpace([string]$contract.description)) {
     throw 'Nullable repair migration identity is invalid.'
@@ -38,7 +43,12 @@ if ([int]$contract.version -le 0 -or [string]::IsNullOrWhiteSpace([string]$contr
 
 $columns = [Collections.Generic.List[object]]::new()
 foreach ($item in @($contract.columns)) {
-    $table = @($schema.tables | Where-Object { $_.name -ceq [string]$item.table })
+    $historicalTableName = [string]$item.table
+    $table = @($schema.tables | Where-Object {
+        $_.name -ceq $historicalTableName -or
+            ($null -ne $_.PSObject.Properties['currentName'] -and
+                [string]$_.currentName -ceq $historicalTableName)
+    })
     if ($table.Count -ne 1) { throw "Nullable repair table is not canonical: $($item.table)" }
     if ([string]$table[0].logicalDatabase -cne [string]$contract.logicalDatabase) {
         throw "Nullable repair logical database drift: $($item.table)"
@@ -58,7 +68,7 @@ $version = [int]$contract.version
 $description = [string]$contract.description
 $header = @(
     '-- GENERATED FILE. DO NOT EDIT VENDOR SQL DIRECTLY.',
-    "-- Source: cpf-tools/db/metadata/platform-nullable-empty-string-repair.json + canonical schemaVersion $($schema.schemaVersion).",
+    "-- Source: cpf-tools/db/metadata/platform-nullable-empty-string-repair.json + canonical schemaVersion $sourceSchemaVersion.",
     "-- Repair: $($contract.repairId); historical migrations remain immutable."
 )
 

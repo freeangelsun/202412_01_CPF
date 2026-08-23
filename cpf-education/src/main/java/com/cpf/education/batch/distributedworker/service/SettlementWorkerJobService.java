@@ -4,6 +4,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import java.util.Map;
 
 /** 배치-08 분산 Worker·재할당: fencing token으로 stale worker의 중복 effect를 차단합니다. */
@@ -16,7 +17,7 @@ public class SettlementWorkerJobService {
 
         if (command.fencingToken() < expectedFencing) {
             return new BatchStepResult(
-                    BatchStepResult.Status.FAILED,
+                    Status.FAILED,
                     "STALE_WORKER_FENCED",
                     "재할당 이후 stale worker의 write를 차단합니다.",
                     0, 0, 0,

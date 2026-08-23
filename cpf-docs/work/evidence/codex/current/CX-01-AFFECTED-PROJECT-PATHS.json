@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-AFFECTED-PROJECT-PATHS",
+  "requirementIds": ["TEST-EVIDENCE", "ARCH-BOUNDARY"],
+  "timestamp": {
+    "observed": "2026-08-22T12:32:22.6388189+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon projects; filter secret/resilience/observability",
+  "exitCode": 0,
+  "sourceIdentity": "c4806d36e4661acf114c634e067936d363af6f41e33b8bfba6679f53144d08d7",
+  "actualResult": "Confirmed affected executable test project paths: :framework:operations:observability, :internal:security:secret, and :internal:integration:resilience.",
+  "result": "PASS",
+  "findingIds": ["CX-F-013"],
+  "sanitized": true
+}

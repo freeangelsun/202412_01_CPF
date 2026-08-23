@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 /** Fixed table/column allowlist 기반 Common 관리 JDBC 구현입니다. */
 @Service
-public final class JdbcCpfCommonManagementService implements CpfCommonManagementApi {
+public class JdbcCpfCommonManagementService implements CpfCommonManagementApi {
     private static final Set<String> AUDIT_COLUMNS = Set.of("created_by","created_at","updated_by","updated_at");
     private final JdbcTemplate jdbc;
     private final CpfCommonCacheChangePublisher invalidation;
@@ -35,7 +35,7 @@ public final class JdbcCpfCommonManagementService implements CpfCommonManagement
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    public JdbcCpfCommonManagementService(@Qualifier("cpfCommonJdbcTemplate") JdbcTemplate cpfCommonJdbcTemplate, CpfCommonCacheChangePublisher invalidation, CpfCommonManagementAuditSink audit, ObjectProvider<CpfParameterValueCodec> parameterCodec, Clock clock) {
+    public JdbcCpfCommonManagementService(@Qualifier("cpfCommonJdbcTemplate") JdbcTemplate cpfCommonJdbcTemplate, CpfCommonCacheChangePublisher invalidation, CpfCommonManagementAuditSink audit, ObjectProvider<CpfParameterValueCodec> parameterCodec, @Qualifier(CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock) {
         this.jdbc=cpfCommonJdbcTemplate; this.invalidation=invalidation; this.audit=audit; this.parameterCodec=parameterCodec; this.clock=Objects.requireNonNull(clock,"clock");
     }
 

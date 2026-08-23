@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-DOMAIN-ROUTER-HARNESS-FIX-IDENTITY",
+  "requirementIds": ["INTEGRATION", "SECURITY", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:11:44.9820641+09:00",
+    "finished": "2026-08-22T13:12:54.3886447+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Bind deterministic canonical CPF Context in the positive local-router harness; add explicit no-context fail-close regression; recalculate official Source Identity",
+  "exitCode": 0,
+  "sourceIdentity": "ca248b411fafed1df26eb46f7f712da692b412534786ec5caa270a845138fc11",
+  "sourceFileCount": 8205,
+  "sourceTotalBytes": 75694733,
+  "actualResult": "The positive harness now exercises the intended same-JVM context lineage and verifies scope cleanup. A separate test preserves and asserts the production CPF-DOMAIN-CONTEXT-MISSING fail-close contract. Production router behavior was not weakened.",
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-020"],
+  "sanitized": true
+}

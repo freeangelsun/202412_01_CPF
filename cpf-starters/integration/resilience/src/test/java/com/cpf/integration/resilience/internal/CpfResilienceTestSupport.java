@@ -1,6 +1,9 @@
 package com.cpf.integration.resilience.internal;
 
 import com.cpf.data.lock.api.CpfLockManager;
+import com.cpf.core.api.context.CpfContext;
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.execution.CpfContextExecutionFactory;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.integration.resilience.spi.CpfResilienceAuditSink;
@@ -10,6 +13,9 @@ import com.cpf.integration.resilience.spi.CpfResilienceRuntimePolicyResolver;
 import com.cpf.platform.operations.observability.api.CpfTelemetry;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleSupplier;
@@ -21,6 +27,31 @@ final class CpfResilienceTestSupport {
     private static final Duration DEFAULT_GUARD_IDLE_TTL = Duration.ofMinutes(30);
 
     private CpfResilienceTestSupport() { }
+
+    static AutoCloseable bindContext(String transactionId, Clock clock) {
+        Instant now = clock.instant();
+        CpfContext context = contextFactory(clock).fromTrustedPropagation(
+                transactionId,
+                transactionId,
+                transactionId,
+                LocalDate.ofInstant(now, ZoneOffset.UTC),
+                now,
+                CpfContext.CpfTransactionOriginKind.INTERNAL,
+                null,
+                null,
+                "cpf.resilience.test",
+                null,
+                null,
+                null,
+                CpfContext.CpfExecutionType.INTEGRATION,
+                1,
+                0,
+                null,
+                null,
+                null,
+                null);
+        return CpfContexts.bind(CpfContextSnapshot.capture(context, now));
+    }
 
     static CpfResilienceEngine engine(
             CpfResiliencePolicyResolver policies, CpfResilienceFailureClassifier classifier,

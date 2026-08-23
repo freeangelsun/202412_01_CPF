@@ -8,7 +8,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
-/** @CpfService의 3단 Base Class 구조를 시작 시 검증합니다. */
+/** {@code @CpfService}의 3단 Base Class 구조를 시작 시 검증합니다. */
 public final class CpfServicePolicyBeanPostProcessor implements BeanPostProcessor {
     private final CpfServicePolicyProperties properties;
 

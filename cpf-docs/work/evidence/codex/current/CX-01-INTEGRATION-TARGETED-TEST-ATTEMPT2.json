@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-INTEGRATION-TARGETED-TEST-ATTEMPT2",
+  "requirementIds": ["REL-BUILD", "INTEGRATION", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:13:39.4016984+09:00",
+    "finished": "2026-08-22T13:14:09.0032823+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :framework:integration:test :starters:integration:fixed-length:test :internal:integration:http:test",
+  "exitCode": 1,
+  "sourceIdentity": "ca248b411fafed1df26eb46f7f712da692b412534786ec5caa270a845138fc11",
+  "actualResult": "framework:integration all 6 tests PASS, including positive canonical local routing and explicit no-context fail-close. fixed-length main/test compile and all tests PASS. HTTP advanced through resilience/fixed-length/JDBC/TX/ClientRequest resolution, then failed on one remaining missing java.util.Map import in CpfWebClientConfig line 202.",
+  "result": "FAIL",
+  "failureSummary": "CX-F-020 is CLOSED by full affected module verification. CX-F-019 returns to IN_PROGRESS before the remaining import repair.",
+  "findingIds": ["CX-F-019", "CX-F-020"],
+  "sanitized": true
+}

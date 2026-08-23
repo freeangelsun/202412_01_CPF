@@ -8,6 +8,21 @@
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
+MERGE INTO OPS_SYSTEM_REGISTRY tgt
+USING (SELECT 'CPF' AS system_code, 'CPF Core Platform' AS system_name, 'CPF' AS domain_code, 'Y' AS enabled_yn, 'CPF core platform system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'CMN' AS system_code, 'CPF Common' AS system_name, 'CMN' AS domain_code, 'Y' AS enabled_yn, 'CPF mandatory common system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM' AS system_code, 'CPF Administration' AS system_name, 'ADM' AS domain_code, 'Y' AS enabled_yn, 'CPF administration system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'MBW' AS system_code, 'CPF Backoffice' AS system_name, 'MBW' AS domain_code, 'Y' AS enabled_yn, 'CPF business backoffice system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT' AS system_code, 'CPF Batch' AS system_name, 'BAT' AS domain_code, 'Y' AS enabled_yn, 'CPF batch runtime system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU' AS system_code, 'CPF Education' AS system_name, 'EDU' AS domain_code, 'Y' AS enabled_yn, 'CPF education reference system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.system_code=src.system_code)
+WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
 MERGE INTO OPS_CHANNEL_REGISTRY tgt
 USING (SELECT 'WEB' AS channel_code, '웹' AS channel_name, 'CLIENT' AS channel_type, 'EXTERNAL' AS trust_level, 'Y' AS client_channel_yn, 'N' AS internal_channel_yn, 'Y' AS authentication_required_yn, 'N' AS signature_required_yn, 'Y' AS active_yn, '웹 브라우저 채널' AS description, 0 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1169,6 +1184,48 @@ WHEN MATCHED THEN UPDATE SET tgt.standard_execution_id=src.standard_execution_id
 WHEN NOT MATCHED THEN INSERT (legacy_execution_id, standard_execution_id, migration_reason, created_by, updated_by) VALUES (src.legacy_execution_id, src.standard_execution_id, src.migration_reason, src.created_by, src.updated_by);
 -- ===== END 52_standard_execution_alias_seed.sql =====
 
+-- ===== BEGIN 53_runtime_service_registry_seed.sql =====
+-- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
+-- vendor=oracle; source=53_runtime_service_registry_seed.sql
+-- DERIVED compatibility input; canonical authority is cpf-tools/db/canonical/**.
+-- DO NOT EDIT generated seed directly.
+
+-- CPF_LOGICAL_DATABASE=cpfDB
+MERGE INTO OPS_SERVICE tgt
+USING (SELECT 'MBW' AS service_id, '업무 백오피스 서비스' AS service_name, 'INTERNAL' AS service_type, 'MBW' AS owner_module_code, 'CPF 업무 운영 백오피스 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU' AS service_id, '온라인 교육 서비스' AS service_name, 'INTERNAL' AS service_type, 'EDU' AS owner_module_code, 'CPF 온라인 교육 및 검증 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT' AS service_id, '배치 Worker 서비스' AS service_name, 'INTERNAL' AS service_type, 'BAT' AS owner_module_code, 'CPF 배치 Worker 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM' AS service_id, '운영 콘솔 서비스' AS service_name, 'INTERNAL' AS service_type, 'ADM' AS owner_module_code, 'CPF 운영 콘솔 서비스 호출 대상' AS description, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.service_id=src.service_id)
+WHEN MATCHED THEN UPDATE SET tgt.service_name=src.service_name, tgt.service_type=src.service_type, tgt.owner_module_code=src.owner_module_code, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (service_id, service_name, service_type, owner_module_code, description, use_yn, created_by, updated_by) VALUES (src.service_id, src.service_name, src.service_type, src.owner_module_code, src.description, src.use_yn, src.created_by, src.updated_by);
+MERGE INTO OPS_SERVICE_ENDPOINT tgt
+USING (SELECT 'MBW_API' AS endpoint_code, 'MBW' AS service_id, 'MBW API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-backoffice' AS base_url, '/api/v1/backoffice' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU_API' AS endpoint_code, 'EDU' AS service_id, 'EDU API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-education' AS base_url, '/education' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT_API' AS endpoint_code, 'BAT' AS service_id, 'BAT API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-batch' AS base_url, '/bat' AS context_path, 5000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM_API' AS endpoint_code, 'ADM' AS service_id, 'ADM API Endpoint' AS endpoint_name, 'HTTP' AS endpoint_type, 'http://cpf-admin' AS base_url, '/adm' AS context_path, 3000 AS default_timeout_ms, 0 AS default_retry_count, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.endpoint_code=src.endpoint_code)
+WHEN MATCHED THEN UPDATE SET tgt.service_id=src.service_id, tgt.endpoint_name=src.endpoint_name, tgt.endpoint_type=src.endpoint_type, tgt.base_url=src.base_url, tgt.context_path=src.context_path, tgt.default_timeout_ms=src.default_timeout_ms, tgt.default_retry_count=src.default_retry_count, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (endpoint_code, service_id, endpoint_name, endpoint_type, base_url, context_path, default_timeout_ms, default_retry_count, use_yn, created_by, updated_by) VALUES (src.endpoint_code, src.service_id, src.endpoint_name, src.endpoint_type, src.base_url, src.context_path, src.default_timeout_ms, src.default_retry_count, src.use_yn, src.created_by, src.updated_by);
+MERGE INTO OPS_SERVICE_ROUTING_POLICY tgt
+USING (SELECT 'MBW' AS service_id, 'MBW_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU' AS service_id, 'EDU_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT' AS service_id, 'BAT_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM' AS service_id, 'ADM_API' AS endpoint_code, 'PRIMARY' AS routing_mode, 'WEIGHT' AS load_balance_type, 'Y' AS failover_enabled_yn, 'Y' AS health_check_required_yn, 'Y' AS active_yn, 100 AS priority, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.service_id=src.service_id AND tgt.endpoint_code=src.endpoint_code AND tgt.priority=src.priority)
+WHEN MATCHED THEN UPDATE SET tgt.routing_mode=src.routing_mode, tgt.load_balance_type=src.load_balance_type, tgt.failover_enabled_yn=src.failover_enabled_yn, tgt.health_check_required_yn=src.health_check_required_yn, tgt.active_yn=src.active_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by) VALUES (src.service_id, src.endpoint_code, src.routing_mode, src.load_balance_type, src.failover_enabled_yn, src.health_check_required_yn, src.active_yn, src.priority, src.created_by, src.updated_by);
+-- ===== END 53_runtime_service_registry_seed.sql =====
+
 -- ===== BEGIN 56_backoffice_product_seed.sql =====
 -- AUTO-GENERATED from cpf-tools/db/canonical/seed-model.json
 -- vendor=oracle; source=56_backoffice_product_seed.sql
@@ -1250,8 +1307,6 @@ UNION ALL
 SELECT 'MBW_ADMIN' AS role_code, 'MBW_EMPLOYEE' AS menu_code, 'PII_RAW' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/employees/*/contacts/raw' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ALL' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_OPERATOR' AS role_code, 'MBW_AUTHORIZATION' AS menu_code, 'SIMULATE' AS button_code, 'API' AS permission_type, 'GET' AS http_method, '/api/v1/backoffice/permissions/effective' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
-UNION ALL
-SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/approvals/*/actions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'MBW_APPROVER' AS role_code, 'MBW_APPROVAL' AS menu_code, 'DECIDE' AS button_code, 'API' AS permission_type, 'POST' AS http_method, '/api/v1/backoffice/approvals/*/decisions' AS api_pattern, NULL AS domain_code, 'ALL' AS environment_code, 'ORGANIZATION' AS data_scope, 'Y' AS allow_yn, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.role_code=src.role_code AND tgt.menu_code=src.menu_code AND tgt.button_code=src.button_code AND tgt.permission_type=src.permission_type AND tgt.environment_code=src.environment_code)
@@ -1433,13 +1488,13 @@ SELECT 'REMOTE_LOG_READ' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'READ' AS ACTION
 UNION ALL
 SELECT 'REMOTE_LOG_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '로그 아티팩트 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/*/download' AS API_PATTERN, 20 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'REMOTE_LOG_BUNDLE_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundles' AS API_PATTERN, 30 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'REMOTE_LOG_BUNDLE_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'BUNDLE_DOWNLOAD' AS ACTION_CODE, '동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundles' AS API_PATTERN, 30 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'REMOTE_LOG_BUNDLE_CREATE' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'CREATE' AS ACTION_CODE, '비동기 로그 ZIP 작업 등록' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs' AS API_PATTERN, 40 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'REMOTE_LOG_BUNDLE_TOKEN' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'ISSUE' AS ACTION_CODE, '로그 ZIP 다운로드 token 발급' AS BUTTON_NAME, 'POST' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download-tokens' AS API_PATTERN, 50 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'REMOTE_LOG_JOB_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'DOWNLOAD' AS ACTION_CODE, '비동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download' AS API_PATTERN, 60 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+SELECT 'REMOTE_LOG_JOB_DOWNLOAD' AS BUTTON_ID, 'REMOTE_LOG' AS MENU_ID, 'JOB_DOWNLOAD' AS ACTION_CODE, '비동기 로그 ZIP 다운로드' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/remote-logs/bundle-jobs/*/download' AS API_PATTERN, 60 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
 SELECT 'TRANSACTION_META_READ' AS BUTTON_ID, 'TRANSACTION_META' AS MENU_ID, 'READ' AS ACTION_CODE, '거래 메타 조회' AS BUTTON_NAME, 'GET' AS HTTP_METHOD, '/adm/api/transactions/**' AS API_PATTERN, 10 AS SORT_ORDER, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
@@ -1664,8 +1719,16 @@ ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.BUTTON_ID=src.BUTTON_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.BUTTON_ID, src.ALLOW_YN, src.created_by, src.updated_by);
 MERGE INTO ADM_API_PERMISSION tgt
-USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, USE_YN AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_BUTTON
-WHERE API_PATTERN IS NOT NULL) src
+USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, USE_YN AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1) src
 ON (tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATH=src.API_PATH, tgt.API_NAME=src.API_NAME, tgt.PERMISSION_CODE=src.PERMISSION_CODE, tgt.MENU_ID=src.MENU_ID, tgt.BUTTON_ID=src.BUTTON_ID, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
@@ -1675,8 +1738,13 @@ ON (tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATH=src.API_PATH, tgt.API_NAME=src.API_NAME, tgt.PERMISSION_CODE=src.PERMISSION_CODE, tgt.MENU_ID=src.MENU_ID, tgt.BUTTON_ID=src.BUTTON_ID, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
 MERGE INTO ADM_ROLE_API_PERMISSION tgt
-USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, rb.ALLOW_YN AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
-JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID = rb.BUTTON_ID) src
+USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
+WHERE b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID) src
 ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.API_PERMISSION_ID, src.ALLOW_YN, src.created_by, src.updated_by);
@@ -1823,13 +1891,35 @@ ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.BUTTON_ID=src.BUTTON_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, BUTTON_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.BUTTON_ID, src.ALLOW_YN, src.created_by, src.updated_by);
 MERGE INTO ADM_API_PERMISSION tgt
-USING (SELECT CONCAT('API_',BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD,'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_BUTTON WHERE BUTTON_ID LIKE 'BAT_%' AND API_PATTERN IS NOT NULL) src
+USING (SELECT CONCAT('API_', BUTTON_ID) AS API_PERMISSION_ID, MENU_ID AS API_GROUP_CODE, COALESCE(HTTP_METHOD, 'ANY') AS HTTP_METHOD, API_PATTERN AS API_PATH, BUTTON_NAME AS API_NAME, ACTION_CODE AS PERMISSION_CODE, MENU_ID AS MENU_ID, BUTTON_ID AS BUTTON_ID, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM (
+    SELECT b.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY COALESCE(HTTP_METHOD, 'ANY'), API_PATTERN
+               ORDER BY SORT_ORDER, BUTTON_ID
+           ) AS CPF_ROUTE_OWNER_RANK
+    FROM ADM_BUTTON b
+    WHERE BUTTON_ID LIKE 'BAT_%'
+      AND API_PATTERN IS NOT NULL
+) route_owner
+WHERE CPF_ROUTE_OWNER_RANK = 1
+  AND NOT EXISTS (
+      SELECT 1
+      FROM ADM_API_PERMISSION existing
+      WHERE existing.HTTP_METHOD = COALESCE(route_owner.HTTP_METHOD, 'ANY')
+        AND existing.API_PATH = route_owner.API_PATTERN
+  )) src
 ON (tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.API_GROUP_CODE=src.API_GROUP_CODE, tgt.HTTP_METHOD=src.HTTP_METHOD, tgt.API_PATH=src.API_PATH, tgt.API_NAME=src.API_NAME, tgt.PERMISSION_CODE=src.PERMISSION_CODE, tgt.MENU_ID=src.MENU_ID, tgt.BUTTON_ID=src.BUTTON_ID, tgt.USE_YN='Y', tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (API_PERMISSION_ID, API_GROUP_CODE, HTTP_METHOD, API_PATH, API_NAME, PERMISSION_CODE, MENU_ID, BUTTON_ID, USE_YN, created_by, updated_by) VALUES (src.API_PERMISSION_ID, src.API_GROUP_CODE, src.HTTP_METHOD, src.API_PATH, src.API_NAME, src.PERMISSION_CODE, src.MENU_ID, src.BUTTON_ID, src.USE_YN, src.created_by, src.updated_by);
 MERGE INTO ADM_ROLE_API_PERMISSION tgt
-USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, rb.ALLOW_YN AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb JOIN ADM_API_PERMISSION ap ON ap.BUTTON_ID=rb.BUTTON_ID
-WHERE rb.BUTTON_ID LIKE 'BAT_%') src
+USING (SELECT rb.ROLE_ID AS ROLE_ID, ap.API_PERMISSION_ID AS API_PERMISSION_ID, CASE WHEN MAX(rb.ALLOW_YN) = 'Y' THEN 'Y' ELSE 'N' END AS ALLOW_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM ADM_ROLE_BUTTON rb
+JOIN ADM_BUTTON b ON b.BUTTON_ID = rb.BUTTON_ID
+JOIN ADM_API_PERMISSION ap
+  ON ap.HTTP_METHOD = COALESCE(b.HTTP_METHOD, 'ANY')
+ AND ap.API_PATH = b.API_PATTERN
+WHERE rb.BUTTON_ID LIKE 'BAT_%'
+  AND b.API_PATTERN IS NOT NULL
+GROUP BY rb.ROLE_ID, ap.API_PERMISSION_ID) src
 ON (tgt.ROLE_ID=src.ROLE_ID AND tgt.API_PERMISSION_ID=src.API_PERMISSION_ID)
 WHEN MATCHED THEN UPDATE SET tgt.ALLOW_YN=src.ALLOW_YN, tgt.updated_by='SYSTEM', tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (ROLE_ID, API_PERMISSION_ID, ALLOW_YN, created_by, updated_by) VALUES (src.ROLE_ID, src.API_PERMISSION_ID, src.ALLOW_YN, src.created_by, src.updated_by);

@@ -1,5 +1,7 @@
 package com.cpf.platform.operations.runtimecontrol;
 
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import com.cpf.platform.operations.channelregistry.application.CpfChannelPolicyService;
 import com.cpf.platform.operations.channelregistry.model.CpfChannelPolicyDecision;
@@ -37,6 +39,7 @@ public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPol
             Map<String, Boolean> callerAccess) {}
 
     private final JdbcTemplate jdbc;
+    private final CpfVendorSqlCatalog sql;
     private final Duration refreshInterval;
     private final Duration maxStale;
     private final Clock clock;
@@ -46,11 +49,13 @@ public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPol
 
     public CpfJdbcOperationAccessPolicy(
             JdbcTemplate jdbc,
+            CpfVendorSqlCatalogProvider catalogs,
             Duration refreshInterval,
             Duration maxStale,
             Clock clock,
             CpfChannelPolicyService channelPolicies) {
         this.jdbc = Objects.requireNonNull(jdbc, "jdbc");
+        this.sql = Objects.requireNonNull(catalogs, "catalogs").forModule("cpf");
         this.refreshInterval = positive(refreshInterval, "refreshInterval");
         this.maxStale = positive(maxStale, "maxStale");
         this.clock = Objects.requireNonNull(clock, "clock");
@@ -60,8 +65,9 @@ public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPol
 
     /** Channel Registry가 선택되지 않은 구성과의 호환 생성자입니다. Required Channel은 fail-close됩니다. */
     public CpfJdbcOperationAccessPolicy(
-            JdbcTemplate jdbc, Duration refreshInterval, Duration maxStale, Clock clock) {
-        this(jdbc, refreshInterval, maxStale, clock, null);
+            JdbcTemplate jdbc, CpfVendorSqlCatalogProvider catalogs,
+            Duration refreshInterval, Duration maxStale, Clock clock) {
+        this(jdbc, catalogs, refreshInterval, maxStale, clock, null);
     }
 
     @Override
@@ -156,27 +162,27 @@ public final class CpfJdbcOperationAccessPolicy implements CpfOperationAccessPol
         Instant now = clock.instant();
         Map<String, SystemEntry> systems = new HashMap<>();
         jdbc.query(
-                "SELECT system_code,domain_code,enabled_yn FROM OPS_SYSTEM_REGISTRY",
+                sql.required("operation-policy-system-find-all"),
                 (RowCallbackHandler) rs -> systems.put(code(rs.getString(1)), new SystemEntry(code(rs.getString(2)), yes(rs.getString(3)))));
         if (systems.isEmpty()) throw new IllegalStateException("OPS_SYSTEM_REGISTRY has no catalog data");
 
         Map<String, Boolean> domain = new HashMap<>();
         jdbc.query(
-                "SELECT caller_system_code,target_system_code,allowed_yn FROM OPS_SYSTEM_DOMAIN_ACCESS",
+                sql.required("operation-policy-domain-access-find-all"),
                 (RowCallbackHandler) rs -> domain.put(code(rs.getString(1)) + "->" + code(rs.getString(2)), yes(rs.getString(3))));
 
         Map<String, OperationEntry> operations = new HashMap<>();
         jdbc.query(
-                "SELECT operation_id,enabled_yn,all_callers_yn,channel_policy_required_yn,policy_version FROM OPS_OPERATION_POLICY",
+                sql.required("operation-policy-find-all"),
                 (RowCallbackHandler) rs -> operations.put(rs.getString(1), new OperationEntry(
                         yes(rs.getString(2)), yes(rs.getString(3)), yes(rs.getString(4)), rs.getLong(5))));
 
         Map<String, Boolean> callers = new HashMap<>();
         jdbc.query(
-                "SELECT operation_id,caller_system_code,allowed_yn FROM OPS_OPERATION_CALLER_POLICY",
+                sql.required("operation-policy-caller-find-all"),
                 (RowCallbackHandler) rs -> callers.put(rs.getString(1) + "|" + code(rs.getString(2)), yes(rs.getString(3))));
 
-        Long version = jdbc.queryForObject("SELECT COALESCE(MAX(policy_version),0) FROM OPS_OPERATION_POLICY", Long.class);
+        Long version = jdbc.queryForObject(sql.required("operation-policy-version-current"), Long.class);
         Snapshot loaded = new Snapshot(
                 version == null ? 0 : version,
                 now,

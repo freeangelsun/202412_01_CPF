@@ -51,3 +51,37 @@ def test_gradle_convention_applies_central_policy_to_all_tests_and_boot_runs():
     assert "tasks.named('bootRun')" not in text
     assert "tasks.register('cpfResourcePolicy')" in text
     assert "tasks.register('cpfModules')" in text
+
+def test_generated_runtime_capability_is_the_only_archive_input_and_other_duplicates_fail():
+    text = (ROOT / 'cpf-tools/build/cpf-root-conventions.gradle').read_text(encoding='utf-8')
+    assert "compatibilityCapabilityFile = file('src/main/resources/META-INF/cpf/runtime-capability.properties').canonicalFile" in text
+    assert 'element.file.canonicalFile == compatibilityCapabilityFile' in text
+    assert "sourceSets.main.resources.srcDir(generatedCapabilityDir)" in text
+    assert text.count('duplicatesStrategy = DuplicatesStrategy.FAIL') >= 2
+    assert 'duplicatesStrategy = DuplicatesStrategy.EXCLUDE' not in text
+
+def test_root_generated_and_jvm_failure_artifacts_use_managed_evidence_paths():
+    convention = (ROOT / 'cpf-tools/build/cpf-root-conventions.gradle').read_text(encoding='utf-8')
+    gradle_properties = (ROOT / 'gradle.properties').read_text(encoding='utf-8')
+    wrapper_bat = (ROOT / 'gradlew.bat').read_text(encoding='utf-8')
+    wrapper_sh = (ROOT / 'gradlew').read_text(encoding='utf-8')
+    ignore = (ROOT / '.gitignore').read_text(encoding='utf-8')
+
+    managed = 'cpf-docs/work/evidence/generated'
+    assert managed in convention
+    assert "rootProject.layout.buildDirectory.set" in convention
+    assert 'org.gradle.projectcachedir=' not in gradle_properties
+    root_settings = (ROOT / 'settings.gradle').read_text(encoding='utf-8')
+    assert "gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')" in root_settings
+    assert '-XX:ErrorFile=' in convention
+    assert '-XX:HeapDumpPath=' in convention
+    for wrapper in (wrapper_bat, wrapper_sh):
+        assert managed.replace('/', '\\') in wrapper or managed in wrapper
+        assert '--project-cache-dir' in wrapper
+        assert 'cpfManagedGradleRoot' in wrapper
+        assert 'JAVA_TOOL_OPTIONS' in wrapper
+        assert '-XX:ErrorFile=' in wrapper
+        assert '-XX:HeapDumpPath=' in wrapper
+    assert 'java-hs_err_pid%%p.log' in wrapper_bat
+    assert '-XX:ErrorFile=\\"' not in wrapper_bat
+    assert '/cpf-docs/work/evidence/generated/' in ignore

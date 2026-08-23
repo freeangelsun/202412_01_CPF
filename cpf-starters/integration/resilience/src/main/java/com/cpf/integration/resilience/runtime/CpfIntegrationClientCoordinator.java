@@ -9,7 +9,7 @@ import java.time.Clock;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/** @CpfClient/@CpfRetry/@CpfTimeout를 기존 Resilience Engine과 Core Context에 연결하는 순수 Runtime Coordinator입니다. */
+/** {@code @CpfClient}/{@code @CpfRetry}/{@code @CpfTimeout}를 기존 Resilience Engine과 Core Context에 연결하는 순수 Runtime Coordinator입니다. */
 public final class CpfIntegrationClientCoordinator {
     private final CpfIntegrationAnnotationProperties properties;
     private final CpfIntegrationAnnotationPolicyFactory policyFactory;

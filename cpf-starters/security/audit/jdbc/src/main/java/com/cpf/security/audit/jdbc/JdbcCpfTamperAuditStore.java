@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Append-only tamper-audit JDBC store. Head CAS + record insert run in one local transaction. */
-public final class JdbcCpfTamperAuditStore implements CpfTamperAuditStore {
+public class JdbcCpfTamperAuditStore implements CpfTamperAuditStore {
     private static final String SELECT_RECORD = "SELECT sequence_no,transaction_id,actor_id,action_code,payload_hash,previous_hash,current_hash,key_id,key_version,algorithm,certificate_id,signature_value,occurred_at FROM cpf_tamper_audit";
     private final JdbcTemplate jdbc;
 

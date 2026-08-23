@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-08-23T12:21:00+09:00",
+  "findingId": "CX-F-147",
+  "status": "SOURCE_FIXED",
+  "rootCause": "build-official-db-vendor-packs.ps1 used source/00_verify.sql as both Build-Bundle input and output after the canonical non-table renderer had enriched it. The self-wrap moved the managed block inside a lifecycle wrapper, so the canonical renderer's next -Check deterministically drifted.",
+  "sourceFix": [
+    "Keep source/00_verify.sql under generate-official-db-vendor-source.ps1 plus sync-platform-non-table-objects.ps1 ownership.",
+    "Publish the wrapped lifecycle consumer only to verify/00_verify.sql.",
+    "Add a regression that forbids self-wrapping source/00_verify.sql and requires the dedicated non-table owner."
+  ],
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "64c0ee070d661d519393e17fd5a4a860957f52611968b04803eacc00bbf0828f",
+    "sha1": "da2881bbf0797e1c516a1eece4ad9e89a9ea4a38",
+    "fileCount": 8248,
+    "totalBytes": 76636845
+  },
+  "verificationPending": "Workspace regeneration, unit suite, repeated non-table -Check, and lifecycle output parity."
+}

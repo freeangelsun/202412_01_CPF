@@ -1,0 +1,21 @@
+{
+  "findingId": "CX-F-233",
+  "status": "CLOSED",
+  "observedAt": "2026-08-23T21:24:00+09:00",
+  "sourceIdentitySha256": "2e93eab82625b54f0f19ed40b9310f6c6ac0686956546547990a4cc1a666fb5a",
+  "scope": "SFTP full targeted regression",
+  "result": "FAILED",
+  "rootCause": "LocalCpfFileTransferAdapterTest constructs its engine-level request without checksum or physical size even though the canonical runtime policy is fail-closed with checksumRequired=true. The direct adapter can calculate a result checksum, but the engine must validate its request before dispatch.",
+  "actualError": "IllegalArgumentException: FILE_CHECKSUM_REQUIRED",
+  "requiredFix": "Currentize the test request factory to provide the actual SHA-256 and byte size, preserving the strict production policy, then rerun the complete affected module set.",
+  "sourceFix": {
+    "sourceIdentitySha256": "a191d288671aa03f1493811b81f83beed34091b4c21a30ba313e7be431f76ac4",
+    "sourceIdentitySha1": "5d265fe204a5e7e4d5fc590b215a1ca417029095",
+    "fileCount": 8297,
+    "totalBytes": 75270188,
+    "testInput": "Reads the physical source bytes once, supplies their SHA-256 and exact length.",
+    "productionPolicyChanged": false
+  },
+  "verification": "Complete SFTP suite PASS 20/20 with zero failures/errors/skips in the affected-module regression.",
+  "evidence": "cpf-starters/file/sftp/build/test-results/test/TEST-com.cpf.file.common.filetransfer.LocalCpfFileTransferAdapterTest.xml"
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RUNTIME-LOCAL-DRYRUN-ATTEMPT2",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "SAMPLE-MBW", "SAMPLE-EXS"],
+  "timestamp": {
+    "started": "2026-08-22T11:52:44.5841306+09:00",
+    "finished": "2026-08-22T11:53:09.3448362+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :runtime:local:bootJar --dry-run -PcpfIncludeGeneratedDomains=true",
+  "exitCode": 1,
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "actualResult": "MBW external-coordinate matches remain zero, but the same five EXS Public Starter coordinates remain unresolved; catalog-driven substitutions in nested generated settings were ineffective in the Root-parent build tree.",
+  "result": "FAIL",
+  "failureSummary": "The first CX-F-005 implementation did not affect Root-parent composite dependency resolution.",
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-runtime-local-dryrun-20260822-1152-rerun.log",
+    "sha256": "4cd4619cc75a98aa53149986f3b2d3f69e6cfda03e7f87d8d0fb4cd7e91a70fb",
+    "bytes": 29185
+  },
+  "findingIds": ["CX-F-003", "CX-F-005"],
+  "sanitized": true
+}

@@ -1,0 +1,40 @@
+{
+  "executionId": "CX-02-FRESH-E-TEST-RERUN1",
+  "startedAt": "2026-08-22T20:47:52.4423614+09:00",
+  "finishedAt": "2026-08-22T20:48:47.1123332+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS",
+  "exitCode": 0,
+  "runtime": {
+    "java": "25.0.3",
+    "gradle": "9.1.0",
+    "os": "Windows x64"
+  },
+  "tasks": {
+    "actionable": 65,
+    "executed": 65,
+    "onlineCompileJava": "PASS",
+    "onlineTest": "PASS"
+  },
+  "tests": {
+    "suites": 1,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "compiled": {
+    "BankExternalClient": true,
+    "DefaultBankExternalClient": true,
+    "BankExternalClientProperties": true,
+    "BankExternalClientException": true,
+    "userOwnedExtension": true
+  },
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "evidence": [
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-E-TEST-RERUN1.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-E-TEST-RERUN1.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-E-TEST-RERUN1.exit.txt"
+  ]
+}

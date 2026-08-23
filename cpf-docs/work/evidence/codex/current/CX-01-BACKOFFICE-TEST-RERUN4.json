@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BACKOFFICE-TEST-RERUN4",
+  "startedAt": "2026-08-22T16:28:04.6035295+09:00",
+  "finishedAt": "2026-08-22T16:28:56.8376683+09:00",
+  "durationSeconds": 52.234,
+  "sourceIdentity": "26c6cade3f6588bbdfdf3f56199cd9798d7b74297b11cddd78830a38955a7c49",
+  "command": ".\\gradlew.bat --no-daemon :framework:operations:test :apps:backoffice:test --rerun-tasks",
+  "execution": "Hidden cmd child process with stdout/stderr redirected directly to evidence files",
+  "exitCode": 0,
+  "result": "PASS",
+  "junit": {
+    "suites": 15,
+    "tests": 55,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "logs": {
+    "stdout": {
+      "path": "cpf-docs/work/evidence/codex/current/CX-01-BACKOFFICE-TEST-RERUN4.stdout.log",
+      "sha256": "ae78cc37053d8b51a9f21c2181f4732d4f2628ccf15d2f96457f11cd7eccda34",
+      "bytes": 32664
+    },
+    "stderr": {
+      "path": "cpf-docs/work/evidence/codex/current/CX-01-BACKOFFICE-TEST-RERUN4.stderr.log",
+      "sha256": "3b18a17450c1247156ebc2bdd9bfd3d407f62a54bf494060d3dfdf3563b41334",
+      "bytes": 21418
+    }
+  },
+  "resourceCheck": {
+    "codeMaxHandlesBefore": 1191,
+    "codeMaxHandlesAfter": 2189,
+    "priorFailureModeReproduced": false
+  },
+  "closures": ["CX-F-035", "CX-F-036", "CX-F-037", "CX-F-041"],
+  "alreadyClosedValidated": ["CX-F-038", "CX-F-039", "CX-F-040"]
+}

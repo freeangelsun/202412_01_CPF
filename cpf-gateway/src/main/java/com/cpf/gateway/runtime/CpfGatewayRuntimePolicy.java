@@ -53,7 +53,8 @@ public final class CpfGatewayRuntimePolicy implements CpfGatewayRateLimitPort {
         for (;;) {
             HeaderPolicy current = headers.get();
             validateVersion("GATEWAY_HEADER", current.version(), next.version(), current.equals(next));
-            if (current.equals(next) || headers.compareAndSet(current, next)) return next;
+            if (current.equals(next)) return current;
+            if (headers.compareAndSet(current, next)) return next;
         }
     }
 
@@ -71,7 +72,8 @@ public final class CpfGatewayRuntimePolicy implements CpfGatewayRateLimitPort {
         for (;;) {
             CorsPolicy current = cors.get();
             validateVersion("GATEWAY_CORS", current.version(), next.version(), current.equals(next));
-            if (current.equals(next) || cors.compareAndSet(current, next)) return next;
+            if (current.equals(next)) return current;
+            if (cors.compareAndSet(current, next)) return next;
         }
     }
 
@@ -101,7 +103,8 @@ public final class CpfGatewayRuntimePolicy implements CpfGatewayRateLimitPort {
         for (;;) {
             RateSnapshot current = rates.get();
             validateVersion("RATE_LIMIT", current.version(), next.version(), current.equals(next));
-            if (current.equals(next) || rates.compareAndSet(current, next)) return next;
+            if (current.equals(next)) return current;
+            if (rates.compareAndSet(current, next)) return next;
         }
     }
 

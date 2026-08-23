@@ -1,0 +1,19 @@
+{
+  "track": "CX-05-F127-ADVISOR-TEST-FIXTURE-FIX-IDENTITY",
+  "startedAt": "2026-08-23T02:22:33+09:00",
+  "finishedAt": "2026-08-23T02:23:33+09:00",
+  "result": "SOURCE_FIXED",
+  "finding": "CX-F-127",
+  "sourceIdentity": {
+    "sha256": "6ba59387194cb4d9b5c710397d214ae375ce92a60fd038c71298f84f0224fdaa",
+    "sha1": "5b48c4ef55de8ae5d8bb43071c0684d7b8883c88",
+    "fileCount": 8228,
+    "totalBytes": 75855463
+  },
+  "modifiedFiles": [
+    "cpf-starters/base/runtime/src/test/java/com/cpf/capability/CpfCapabilityUsageAspectPointcutTest.java"
+  ],
+  "change": "The descriptor now owns only BusinessCapabilityConsumer by its exact binary class name. UnownedConsumer remains in the same test source but is no longer inside the registered ownership scope.",
+  "falseGreenControl": "No matcher relaxation, skip, allowlist, or runtime exclusion was added. This change corrects only the contradictory negative fixture before execution.",
+  "next": "Run the exact Java 25 Advisor regression with no daemon and one worker."
+}

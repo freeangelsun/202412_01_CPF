@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-252",
+  "recordedAt": "2026-08-23T22:52:00+09:00",
+  "sourceIdentitySha256": "ebe9f4f93ca4b9a04e33cc55eb9b5558a02032b4b960e6b9eb2280b386b336bb",
+  "status": "IN_PROGRESS",
+  "freshRunId": "b4200823c027",
+  "failedBoundary": "Spring bean creation for BatRetentionExecutionService",
+  "actualError": "NoSuchMethodException: BatRetentionExecutionService.<init>()",
+  "rootCause": "production and Clock-injecting constructors exist without explicit Spring injection selection",
+  "cleanup": "PASS",
+  "prohibitedWorkaround": "fake default constructor or Retention disablement"
+}

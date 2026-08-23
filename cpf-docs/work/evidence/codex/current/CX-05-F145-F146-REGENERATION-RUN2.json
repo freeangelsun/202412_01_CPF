@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-08-23T12:17:00+09:00",
+  "findings": ["CX-F-145", "CX-F-146"],
+  "workspacePrimarySource": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "result": "FAIL",
+      "exitCode": 64,
+      "reason": "The first command used the wrong repository-relative script path cpf-tools/db/tools/generate-official-db-vendor-source.ps1; no Product file was executed or changed.",
+      "log": "cpf-docs/work/evidence/codex/current/CX-05-F145-F146-REGENERATION-RUN2.log"
+    },
+    {
+      "attempt": 2,
+      "result": "PASS",
+      "commands": [
+        "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+        "cpf-tools/db/tools/build-official-db-vendor-packs.ps1",
+        "cpf-tools/db/tools/build-all-install-sql.ps1"
+      ],
+      "exitCodes": [0, 0, 0],
+      "log": "cpf-docs/work/evidence/codex/current/CX-05-F145-F146-REGENERATION-RUN2-RERUN1.log"
+    }
+  ],
+  "immutableHistory": {
+    "scopedFileCountBefore": 552,
+    "scopedFileCountAfter": 552,
+    "aggregateSha256Before": "e9f9a38370933ff3093cb9a89e27765984c7e5ee378dbe7e36c0398767eab564",
+    "aggregateSha256After": "e9f9a38370933ff3093cb9a89e27765984c7e5ee378dbe7e36c0398767eab564",
+    "unchanged": true
+  },
+  "currentOutputs": {
+    "scopedFileCountBefore": 322,
+    "scopedFileCountAfter": 322,
+    "aggregateSha256Before": "f0e48b2501351356ba4a18384de123ce1a0daadec18d57ba8ea71fd5748a7492",
+    "aggregateSha256After": "f0e48b2501351356ba4a18384de123ce1a0daadec18d57ba8ea71fd5748a7492",
+    "byteIdempotent": true
+  },
+  "deletedOwnerlessRollbackChecksumStayedAbsent": true,
+  "sourceIdentityUnchanged": {
+    "sha256": "f60ae4cf0e16e27fce6d4b73897276cb1f2e87ee04585252ae40f30c2a062021",
+    "sha1": "86ba97b8e262b6b1e7c6955130ce121634d6318f",
+    "fileCount": 8248,
+    "totalBytes": 76635855
+  },
+  "next": "Execute maintained immutable guard tests and all check-mode renderers, then append V134 checksums through the exact owner directories."
+}

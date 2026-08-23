@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
-/** @CpfTimed를 Micrometer Timer semantics로 계측하고 CPF context correlation을 추가합니다. */
+/** {@code @CpfTimed}를 Micrometer Timer semantics로 계측하고 CPF context correlation을 추가합니다. */
 @Aspect
 public final class CpfTimedAspect {
     private static final Logger log = LoggerFactory.getLogger(CpfTimedAspect.class);

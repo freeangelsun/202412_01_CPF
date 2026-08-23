@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -100,6 +101,15 @@ class CpfGatewayRuntimePolicyRateLimitTest {
         var limit = new CpfGatewayRuntimePolicy.Limit(10, 60_000L);
         var first = policy.replaceRates(5L, limit, Map.of());
         assertSame(first, policy.replaceRates(5L, limit, Map.of()));
+        var headers = policy.replaceHeaders(5L, Set.of("x-request"), Set.of("x-response"));
+        assertSame(headers, policy.replaceHeaders(
+                5L, Set.of("x-request"), Set.of("x-response")));
+        var cors = policy.replaceCors(
+                5L, true, Set.of("https://example.test"), Set.of("GET"),
+                Set.of("x-request"), Set.of("x-response"), false, 60L);
+        assertSame(cors, policy.replaceCors(
+                5L, true, Set.of("https://example.test"), Set.of("GET"),
+                Set.of("x-request"), Set.of("x-response"), false, 60L));
         assertThrows(IllegalStateException.class,
                 () -> policy.replaceRates(5L, new CpfGatewayRuntimePolicy.Limit(11, 60_000L), Map.of()));
         assertThrows(IllegalStateException.class,

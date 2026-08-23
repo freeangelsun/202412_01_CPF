@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-169",
+  "title": "Immutable suite expects MBW verify generation for only two of three official vendors",
+  "status": "CLOSED",
+  "sourceIdentitySha256": "602103261c5860f4cd1bc6af1286a95fa26dd5f218f30e043b29ea1e657dccab",
+  "sourceIdentitySha1": "1b046f5bf6e47c074ddf708b8a4f4ca826bacbfb",
+  "actual": "generate-official-db-vendor-source.ps1 emits current MBW_ROLE/MBW_MENU product-seed verification once for each of MariaDB, PostgreSQL, and Oracle (3 total).",
+  "staleExpectation": "test_immutable_migration_generation.py requires only 2 occurrences.",
+  "scope": "Verifier assertion only; immutable Migration/Rollback SQL is not modified.",
+  "sourceFix": "The assertion requires exactly three current MBW_ROLE and MBW_MENU verifier clauses, one per official vendor, while every immutable history guard remains unchanged.",
+  "verification": "Combined immutable/verifier/profile suite PASS 19/19.",
+  "isClosed": true,
+  "statusAfterDiagnosis": "CLOSED"
+}

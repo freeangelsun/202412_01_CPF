@@ -1,0 +1,39 @@
+{
+  "findingId": "CX-F-232",
+  "status": "VERIFICATION_PENDING",
+  "observedAt": "2026-08-23T21:20:38+09:00",
+  "sourceIdentitySha256": "a49918c5e29279a0fc93b3ffa39c6042f12fe937fe5064c491002e4121c928b5",
+  "runId": "b4200823c016",
+  "scope": "Repository-wide production bean compatibility with canonical class-based AOP",
+  "result": "FAILED",
+  "rootCause": "The earlier owner-limited Common/Batch audits did not enforce a repository-wide source contract. CmnTemplateManagementService remains final while the actual Worker context advises it through class-based AOP.",
+  "actualError": "Cannot subclass final class com.cpf.common.template.CmnTemplateManagementService",
+  "requiredFix": "Inventory every production final bean type that declares transactional/advised methods, fix every incompatible owner in one pass, and add a repository-wide guard before another physical replay.",
+  "sourceFix": {
+    "sourceIdentitySha256": "2e93eab82625b54f0f19ed40b9310f6c6ac0686956546547990a4cc1a666fb5a",
+    "sourceIdentitySha1": "8fce96331bb16ec7a97a4baffdd05207ef19f70c",
+    "fileCount": 8297,
+    "totalBytes": 75269931,
+    "auditedProductionTypes": 6,
+    "correctedOwners": [
+      "CmnTemplateManagementService",
+      "JdbcCpfGatewayControlSecurityAuditAdapter",
+      "JdbcCpfXaRecoveryStore",
+      "JdbcCpfSftpTransferLedger",
+      "JdbcCpfNotificationOutbox",
+      "JdbcCpfTamperAuditStore"
+    ],
+    "policy": "Removed only final modifiers; transactional annotations and class-based AOP remain unchanged.",
+    "regression": "cpf-tools/verification/tests/test_class_based_aop_final_type_contract.py"
+  },
+  "cleanup": {
+    "disposableDatabases": 0,
+    "disposableRoles": 0
+  },
+  "verification": {
+    "repositoryGuard": "PASS 1/1",
+    "affectedModules": "Common, Gateway, JTA, SFTP 20/20, Notification 10/10, Security Audit compile, Worker bootJar PASS",
+    "remainingGate": "Physical Fresh Worker context and two-Worker runtime replay"
+  },
+  "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F206-F208-F211-F216-F217-F219-F221-F224-F225-F226-F227-F228-F229-F230-F231-TWO-WORKER-RUNTIME-RERUN16/**; affected module Gradle test results; cpf-batch/worker/build/libs/**"
+}

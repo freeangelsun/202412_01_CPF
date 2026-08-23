@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-08-23T18:24:00+09:00",
+  "findingId": "CX-F-203",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": {
+    "sha256": "9a0d79c477f45570fbc9a7e85ebb6510d9e2c730c9b8b2446240ebcf7208c425",
+    "sha1": "4f8a4f40ec8a0e953bb6dfe0b2f8bbe3d88c3eaa",
+    "files": 8286,
+    "bytes": 75209747
+  },
+  "published": [
+    "MariaDB V136/R136 mbwDB permission identity",
+    "PostgreSQL V136/R136 mbwDB permission identity",
+    "Oracle V136/R136 mbwDB permission identity",
+    "D-012 migration intent and lifecycle scenario",
+    "exact three-Vendor structural migration regression"
+  ],
+  "immutability": "V135 and earlier migration/rollback files were not edited.",
+  "remainingBeforeSourceFixed": "Generate checksum manifests and maintained current/runtime/Seed projections, then run exact tests.",
+  "falseGreen": false
+}

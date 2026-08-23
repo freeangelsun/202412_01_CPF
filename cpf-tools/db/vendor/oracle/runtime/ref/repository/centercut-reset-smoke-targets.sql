@@ -1,9 +1,0 @@
-UPDATE ref_center_cut_sample_target
-   SET status_code = 'READY',
-       transaction_segment_id = NULL,
-       started_at = NULL,
-       completed_at = NULL,
-       last_error_message = NULL,
-       updated_by = 'REF_CENTER_CUT',
-       updated_at = CURRENT_TIMESTAMP
- WHERE center_cut_job_id = ?

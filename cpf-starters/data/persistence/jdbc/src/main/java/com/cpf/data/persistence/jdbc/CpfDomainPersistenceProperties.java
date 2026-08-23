@@ -1,6 +1,7 @@
 package com.cpf.data.persistence.jdbc;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("cpf.domain.persistence")
 /** CpfDomainPersistenceProperties 타입의 역할과 책임을 정의하며 CPF 계약 경계를 명확히 유지한다. */
@@ -10,6 +11,7 @@ public record CpfDomainPersistenceProperties(
         this(enabled, required, enabled ? "mybatis" : "", dataSourcePrefix);
     }
 
+    @ConstructorBinding
     public CpfDomainPersistenceProperties {
         provider = provider == null ? "" : provider.trim().toLowerCase(java.util.Locale.ROOT);
         dataSourcePrefix = dataSourcePrefix == null ? "" : dataSourcePrefix.trim();

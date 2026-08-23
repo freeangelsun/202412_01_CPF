@@ -12,13 +12,19 @@ import com.cpf.security.common.token.CmnJwtCreateRequest;
 import com.cpf.security.common.token.CmnJwtService;
 import com.cpf.security.common.token.CmnJwtValidationResult;
 import com.cpf.security.api.password.CpfPasswordEncoder;
-import com.cpf.security.api.password.CpfPasswordVerification;
+import com.cpf.testkit.context.CpfContextTestSupport;
+import com.cpf.testkit.context.CpfTestContextRuntime;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +42,10 @@ class BackofficeAuthServiceTest {
 
     private static final String RAW_REFRESH_TOKEN = "raw-backoffice-refresh-token-value";
     private static final String REFRESH_TOKEN_HASH = "hash-backoffice-refresh-token-value";
+    private static CpfTestContextRuntime contextRuntime;
+
+    private final CpfContextTestSupport contexts =
+            new CpfContextTestSupport("MBW-AUTH", LocalDate.of(2026, 8, 22));
 
     private final CmnJwtService jwtService = mock(CmnJwtService.class);
     private final CmnCryptoService cryptoService = mock(CmnCryptoService.class);
@@ -53,16 +63,32 @@ class BackofficeAuthServiceTest {
             "backoffice-test-secret-must-be-at-least-32-characters",
             600,
             7200,
-            "MBW",
-            "MBW_AP01");
+            new MockEnvironment()
+                    .withProperty("cpf.system-code", "MBW")
+                    .withProperty("spring.application.name", "MBW_AP01"));
+
+    @BeforeAll
+    static void installContextRuntime() {
+        contextRuntime = CpfTestContextRuntime.install();
+    }
+
+    @AfterAll
+    static void closeContextRuntime() {
+        contextRuntime.close();
+    }
+
+    @AfterEach
+    void assertContextClear() {
+        contexts.assertClear();
+    }
 
     @Test
-    void loginStoresRefreshTokenHashAndSuccessHistory() {
+    void loginStoresRefreshTokenHashAndSuccessHistory() throws Exception {
         // 로그인 성공 시 refresh token 원문은 응답으로만 전달하고 DB에는 hash만 저장해야 합니다.
         BackofficeOperatorRow operator = operator("Y", "N", 0);
         when(authRepository.findOperatorByLoginId("biz-admin")).thenReturn(Optional.of(operator));
-        when(passwordHashingPort.verify(any(char[].class), org.mockito.ArgumentMatchers.eq("password-hash")))
-                .thenReturn(new CpfPasswordVerification(true, false));
+        when(passwordHashingPort.matches(any(char[].class), org.mockito.ArgumentMatchers.eq("password-hash")))
+                .thenReturn(true);
         when(jwtService.createHs256Token(any(CmnJwtCreateRequest.class))).thenReturn("access-token");
         when(cryptoService.secureRandomToken(48)).thenReturn(RAW_REFRESH_TOKEN);
         when(cryptoService.sha256Base64Url(RAW_REFRESH_TOKEN)).thenReturn(REFRESH_TOKEN_HASH);
@@ -99,10 +125,13 @@ class BackofficeAuthServiceTest {
                 "backoffice-test-secret-must-be-at-least-32-characters:MBW_LOGIN_RESULT"))
                 .thenReturn(RAW_REFRESH_TOKEN);
 
-        BackofficeAuthService.LoginResult result = service.login(
-                new BackofficeAuthService.LoginRequest("biz-admin", "password", "login-op-1"),
-                "127.0.0.1",
-                "unit-test");
+        BackofficeAuthService.LoginResult result;
+        try (AutoCloseable ignored = contexts.bindRoot("correlation-login-success", null, "biz-admin")) {
+            result = service.login(
+                    new BackofficeAuthService.LoginRequest("biz-admin", "password", "login-op-1"),
+                    "127.0.0.1",
+                    "unit-test");
+        }
 
         verify(loginTransactionService).commitSuccess(any(BackofficeLoginTransactionService.LoginSuccessCommand.class));
         assertThat(result.accessToken()).isEqualTo("access-token");
@@ -110,19 +139,21 @@ class BackofficeAuthServiceTest {
     }
 
     @Test
-    void loginFailureIncreasesFailCountAndDoesNotStoreToken() {
+    void loginFailureIncreasesFailCountAndDoesNotStoreToken() throws Exception {
         // 비밀번호 실패 시 실패 횟수와 로그인 실패 이력만 남기고 refresh token은 만들지 않습니다.
         BackofficeOperatorRow operator = operator("Y", "N", 1);
         when(authRepository.findOperatorByLoginId("biz-admin")).thenReturn(Optional.of(operator));
-        when(passwordHashingPort.verify(any(char[].class), org.mockito.ArgumentMatchers.eq("password-hash")))
-                .thenReturn(CpfPasswordVerification.rejected());
+        when(passwordHashingPort.matches(any(char[].class), org.mockito.ArgumentMatchers.eq("password-hash")))
+                .thenReturn(false);
 
-        assertThatThrownBy(() -> service.login(
-                new BackofficeAuthService.LoginRequest("biz-admin", "wrong", "login-op-2"),
-                "127.0.0.1",
-                "unit-test"))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("401");
+        try (AutoCloseable ignored = contexts.bindRoot("correlation-login-failure", null, "biz-admin")) {
+            assertThatThrownBy(() -> service.login(
+                    new BackofficeAuthService.LoginRequest("biz-admin", "wrong", "login-op-2"),
+                    "127.0.0.1",
+                    "unit-test"))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .hasMessageContaining("401");
+        }
 
         verify(loginTransactionService).recordFailure(any(BackofficeLoginTransactionService.LoginFailureCommand.class));
         verify(loginTransactionService, never()).commitSuccess(any(BackofficeLoginTransactionService.LoginSuccessCommand.class));

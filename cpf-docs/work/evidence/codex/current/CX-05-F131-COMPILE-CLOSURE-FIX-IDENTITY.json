@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F131-COMPILE-CLOSURE-FIX-IDENTITY",
+  "startedAt": "2026-08-23T03:04:10+09:00",
+  "finishedAt": "2026-08-23T03:04:45.8695491+09:00",
+  "finding": "CX-F-131",
+  "status": "SOURCE_FIXED",
+  "priorFailure": "Java rejected a reassigned requestPath local captured by the endpoint-root stream lambda; tests did not execute.",
+  "change": "Assign the completed request path normalization to an effectively-final normalizedRequestPath before predicates.",
+  "semanticsChanged": false,
+  "sourceIdentity": {
+    "sha256": "a07140b7efc0bf9256764b5385e4a05406062e8ebb7b49207b1c26e8f1027158",
+    "sha1": "ea6f7588fa4dc122d20df55bbe1b774de625f7db",
+    "fileCount": 8231,
+    "totalBytes": 75867720
+  },
+  "next": "Repeat the exact Java 25 boundary test command."
+}

@@ -2,6 +2,7 @@ package com.cpf.backoffice.online.auth.service;
 
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
 import com.cpf.backoffice.online.auth.repository.BackofficeAuthRepository;
+import com.cpf.backoffice.online.auth.repository.BackofficeBootstrapApprovalRepository;
 import com.cpf.security.api.password.CpfPasswordEncoder;
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,7 +114,7 @@ public final class BackofficeBootstrapRunner implements ApplicationRunner {
 
             try {
                 BackofficeAuthRepository.BootstrapResult result = authRepository.bootstrapOperator(
-                        loginId, operatorName, passwordService.hash(password), roleCode, operationId,
+                        loginId, operatorName, passwordService.encode(password), roleCode, operationId,
                         now.plusSeconds(90L * 24L * 60L * 60L));
                 approvals.complete(tokenHash, operationId, claimOwnerId, result.adminUserId(), Instant.now());
                 log.info("MBW bootstrap completed. operationId={}, adminUserId={}", operationId, result.adminUserId());

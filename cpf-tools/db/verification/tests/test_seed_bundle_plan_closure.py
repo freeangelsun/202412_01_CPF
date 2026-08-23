@@ -30,6 +30,26 @@ class SeedBundlePlanClosureTest(unittest.TestCase):
         for vendor in OFFICIAL:
             self.assertIn("61_adm_gateway_seed.sql", self.plan[vendor]["productSeedFiles"])
 
+    def test_product_seed_defines_complete_operation_system_registry_baseline(self) -> None:
+        statements = [
+            statement
+            for statement in self.seed["statements"]
+            if statement.get("tableName") == "OPS_SYSTEM_REGISTRY"
+            and statement.get("productionDefault") is True
+        ]
+        self.assertEqual(1, len(statements), "canonical Product seed must have one registry owner")
+        statement = statements[0]
+        self.assertEqual(["system_code"], statement["conflictColumns"])
+        for system_code in ("CPF", "CMN", "ADM", "MBW", "BAT", "EDU"):
+            self.assertIn(f"('{system_code}',", statement["source"])
+
+        for vendor in OFFICIAL:
+            generated = ROOT / f"cpf-tools/db/generated/current/{vendor}/cpf-platform-seed.sql"
+            text = generated.read_text(encoding="utf-8")
+            self.assertIn("OPS_SYSTEM_REGISTRY", text, str(generated))
+            for system_code in ("CPF", "CMN", "ADM", "MBW", "BAT", "EDU"):
+                self.assertIn(f"'{system_code}'", text, str(generated))
+
     def test_generated_product_bundles_contain_gateway_seed(self) -> None:
         for vendor in OFFICIAL:
             for area in ("source", "seed"):

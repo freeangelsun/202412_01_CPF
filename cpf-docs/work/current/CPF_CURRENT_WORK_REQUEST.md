@@ -9,7 +9,7 @@
 이번 개발 사이클에서 다음 Current Target을 구현·재검증했다.
 
 1. `cpf-common` 고객 업무 공통 Product Owner 및 `cpf-starter-common` Runtime/AutoConfiguration 분리.
-2. Generated Domain root `cpf-domain.yaml`, ownership/stale-generated, externalClients 실제 Consumer, DB Binding 분리.
+2. Generated Domain root `gradle.properties` Developer Contract, stateless ownership/stale-generated, 불필요한 YAML/lock/state 미생성, externalClients 실제 Consumer, DB Binding 분리.
 3. EDU physical/executable `Online 20 + Batch 15 = 35`.
 4. System6/Operation/Runtime Instance source contracts 및 same-host collision fencing.
 5. Public Workspace/Shared Bootstrap/Public Binary isolated-consumer contracts.
@@ -24,19 +24,19 @@
 - `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.csv`
 - `cpf-docs/deliverables/TEST_AND_EVIDENCE.md`
 
-## 2. Remaining work — environment acceptance only
+## 2. Current accepted Steering and remaining work
 
-Source 재개발이 아니라 다음 환경 실행 Evidence가 남아 있다.
+Current VS Code Working Tree 자체가 Primary Source다. Baseline/Overlay/ZIP을 다시 적용하지 않으며, Fresh Replay는 마지막에 별도 disposable workspace에서만 수행한다. 현재 추가 수용된 실행 범위는 다음과 같다.
 
-1. Java25 final `./gradlew clean build --continue --stacktrace`.
-2. Oracle/PostgreSQL/MariaDB live install → migration → seed → runtime query → upgrade → rollback.
-3. Multi-WAS / same-host multi-process / process-kill / lease-expiry / restart/reconcile.
-4. ADM/Backoffice Browser E2E (Chromium/Firefox/WebKit, responsive, 401/403/404/409/429/500/503).
-5. Reachable Public Binary Repository 기반 isolated consumer.
-6. Windows PowerShell 5.1 apply/delete/verification runtime.
-7. Commercial GA/edition/license/support Product/Legal/QA decision.
+1. Generated Domain: root `gradle.properties` Developer Contract, YAML/lock/hidden bookkeeping 0, Generator-owned Scratch/MBR/EXS regenerate 및 Java 25 build/test/runtime, Open Git/Source package hygiene.
+2. Open Git: 실제 Fresh release 생성, public command 전수 실행, Framework publication, 신규 Domain generate/compile/test, authored ADM/Backoffice/UI/EDU Fresh build/runtime. Private Source와 Maven Local false green 금지.
+3. Backoffice: retired `cpf-biz-admin` 복원 금지. 최신 `cpf-backoffice`/MBW와 실제 UI/Channel/BFF/Gateway optional topology를 역추적한 뒤 used/unused runtime 및 Header6→공식 Domain Invocation→Owner DB E2E.
+4. ADM UI: menu/route/component/generated-client/backend inventory, fresh frontend/backend, 실제 Browser menu traversal, screenshots, permission/error/responsive/accessibility/console/network 검증.
+5. Starter/Common: physical catalog/BOM/publication, AutoConfiguration actual consumer와 zero-footprint, Common owner/public API/consumer/Core·ADM 경계를 runtime으로 검증.
+6. Java25 Root build/test, Public Binary isolated consumer, DB3 live lifecycle, Multi-WAS/recovery, Windows PowerShell 실행, root garbage no-regeneration Final Gate.
+7. Batch Runtime Deep-Dive: `cpf-batch` owner/Public-Internal 경계, Tasklet/Chunk/Local·Remote modes, Scheduler/Worker/Agent, Restart·Retry·Recovery·Reconcile·Reprocess, UNKNOWN, multi-instance/process-kill, DB3, ADM/EDU/Generated/Open Git impact을 실제 Runtime 기준으로 검증한다. 30개 실행단위의 정본은 `CPF_BATCH_RUNTIME_DEEP_DIVE_WORK_PACKAGE.md`다.
 
-이 항목은 실행되지 않았다면 `미검증`으로 유지한다. 실패가 발생하면 같은 Requirement ID에서 Root Cause 단위로 Source/Test/Verifier/Config/Evidence를 재개발한다.
+실행되지 않은 항목은 `미검증`으로 유지한다. 결함은 Finding을 먼저 기록하고 실제 Owner Source/Test/Verifier/Canonical Requirement를 수정한 후 전체 영향범위 재검증으로만 닫는다. 역할별 상태 컬럼 ownership은 변경하지 않는다.
 
 ## 3. Canonical local integration command
 

@@ -1,0 +1,30 @@
+{
+  "track": "CX-05-F127-CAPABILITY-ADVISOR-TARGETED-RERUN2",
+  "startedAt": "2026-08-23T02:24:20.7881007+09:00",
+  "finishedAt": "2026-08-23T02:25:09.0617752+09:00",
+  "sourceIdentity": "6ba59387194cb4d9b5c710397d214ae375ce92a60fd038c71298f84f0224fdaa",
+  "command": ".\\gradlew.bat :framework:base-runtime:test --tests com.cpf.capability.CpfCapabilityUsageAspectPointcutTest --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "result": "PASS_TARGETED",
+  "junit": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "xml": "cpf-starters/base/runtime/build/test-results/test/TEST-com.cpf.capability.CpfCapabilityUsageAspectPointcutTest.xml"
+  },
+  "gradle": {
+    "version": "9.1.0",
+    "java": "25.0.3",
+    "tasksExecuted": 7,
+    "daemon": "single-use and stopped",
+    "maxWorkers": 1
+  },
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F127-CAPABILITY-ADVISOR-TARGETED-RERUN2.log",
+  "resourceAfter": {
+    "freePhysicalGiB": 10.56,
+    "commitFreeGiB": 71.18,
+    "javaProcesses": 6
+  },
+  "closureDecision": "F127 is VERIFICATION_PENDING. The actual Fresh bootJar must start to readiness and the broader base-runtime regression must pass before CLOSED."
+}

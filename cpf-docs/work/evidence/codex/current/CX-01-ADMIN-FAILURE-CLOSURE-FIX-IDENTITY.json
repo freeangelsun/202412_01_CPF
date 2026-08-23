@@ -1,0 +1,25 @@
+{
+  "track": "CX-01-ADMIN-FAILURE-CLOSURE-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T19:09:35.1036368+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "1282536c8080e02f1bbcbc1a5eb9af0542ae50b6a4ed3697f25318d79c3e509a",
+    "sha1": "aa8975373ef8eb0dde6dbcbbf99e67fabaeed0c2",
+    "fileCount": 8212,
+    "totalBytes": 75665604
+  },
+  "findings": ["CX-F-081", "CX-F-082", "CX-F-083", "CX-F-084", "CX-F-085", "CX-F-086"],
+  "changes": [
+    "Approval fixtures now use durable nonce issuance, deterministic clocks, bounded nonce/idempotency values and exact four-axis owner routing.",
+    "Integration Closure fixture activates local ephemeral providers and supplies nonce, approval repository and snapshot integrity dependencies.",
+    "Remote Batch fixture uses canonical fenced risk command and asserts distinct executor/requester identity headers.",
+    "Direct Message/Reference controller tests bind and close a canonical managed CPF execution Context.",
+    "Permission fixture decodes Mockito JDBC varargs and asserts BATCH_RUNTIME_READ is independent from BATCH_READ.",
+    "Server paging now resolves case-insensitive allowlist keys to their original row key and rejects ambiguous/unlisted keys; portable generated-key assertion matches the current JDBC signature."
+  ],
+  "falseGreenControls": [
+    "No production validation, approval proof, nonce consumption, permission, allowlist or fencing requirement was relaxed.",
+    "Verification status remains pending until focused and complete Admin Java 25 tests pass."
+  ]
+}

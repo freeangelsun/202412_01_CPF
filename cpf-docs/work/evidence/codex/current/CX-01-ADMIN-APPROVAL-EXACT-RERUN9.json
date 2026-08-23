@@ -1,0 +1,16 @@
+{
+  "track": "CX-01-ADMIN-APPROVAL-EXACT-RERUN9",
+  "finishedAt": "2026-08-22T19:19:08+09:00",
+  "exitCode": 0,
+  "result": "PASS",
+  "finding": "CX-F-081",
+  "test": "AdmApprovalServiceIdempotencyTest.batRequestFinalizesCanonicalRiskFingerprintAfterGeneratedId",
+  "sourceIdentity": "09d065fef72f4a769a4a3b0fc465e3bd4058f6eb223d79d625f3a8df5d31b650",
+  "rootGarbageCount": 0,
+  "durationSeconds": 53,
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-APPROVAL-EXACT-RERUN9.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-APPROVAL-EXACT-RERUN9.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-01-ADMIN-APPROVAL-EXACT-RERUN9.exit.txt"
+  ]
+}

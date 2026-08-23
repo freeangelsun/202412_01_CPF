@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-SPRING-MOCK-ENVIRONMENT-FIX-IDENTITY",
+  "requirementIds": ["TEST-EVIDENCE", "REL-BUILD"],
+  "timestamp": {
+    "started": "2026-08-22T12:34:45.2112096+09:00",
+    "finished": "2026-08-22T12:34:50.7708034+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\verification\\tools\\cpf-source-state.py --root . --scope source",
+  "exitCode": 0,
+  "sourceIdentityBefore": "c4806d36e4661acf114c634e067936d363af6f41e33b8bfba6679f53144d08d7",
+  "sourceIdentityAfter": "863504e986fb79fec9801a98aaeaf2f5d9bf56a4bc41daa331373d734511a61d",
+  "fileCount": 8204,
+  "totalBytes": 75682610,
+  "sourceChanges": [
+    "Replace all four direct Spring Environment test emulations with MockEnvironment plus typed MapPropertySource",
+    "Preserve mutable resilience test properties through the live MapPropertySource backing map"
+  ],
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-013"],
+  "sanitized": true
+}

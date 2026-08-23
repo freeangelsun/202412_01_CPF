@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-08-23T16:00:00+09:00",
+  "findingId": "CX-F-182",
+  "status": "SOURCE_FIXED",
+  "sourceIdentityBefore": "e1d7d9b99420bd712ecbda15c244369d7c8ad97e925fffe6bfbfffefc90795c6",
+  "title": "Admin safety verifier rejects the canonical CPF transaction annotation",
+  "command": "pwsh -NoProfile -File cpf-tools/verification/tools/check-admin-data-safety.ps1 -Root .",
+  "actual": "FAIL: ADM change method transaction boundary is missing",
+  "rootCause": "The verifier hard-codes Spring @Transactional(transactionManager = ...) syntax, while AdmOperatorService imports and uses the product-standard com.cpf.data.persistence.api.annotation.CpfTransactional on every mutation boundary.",
+  "repair": "The gate requires the exact @CpfTransactional(transactionManager = admTransactionManager) contract with whitespace-tolerant syntax, and a regression statically forbids the former Spring expectation while executing the full gate.",
+  "sourceIdentityAfter": "38975cc45fbbdfc0c4df062006e5dc0d081dffb38d5a87f3e881fc2735f274eb",
+  "verificationAttempt1": "The static assertion passes, but the Python subprocess reader uses the Windows cp949 default against pwsh UTF-8 output and raises UnicodeDecodeError before reporting the actual gate result. This is a harness FAIL, not Product PASS/FAIL; the subprocess contract must explicitly decode UTF-8 with replacement for diagnostics.",
+  "repairPlan": "Run the static/actual regression and continue the same broad gate to its next real result.",
+  "falseGreenForbidden": "Do not add duplicate Spring annotations, weaken the requirement to any annotation, or suppress the verifier."
+}

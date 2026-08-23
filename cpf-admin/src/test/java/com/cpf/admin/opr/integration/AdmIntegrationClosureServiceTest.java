@@ -39,7 +39,7 @@ class AdmIntegrationClosureServiceTest {
         when(time.now()).thenReturn(now);
         when(approvals.requestApproval(any(), eq("maker"))).thenReturn(Map.of("approvalRequestId", 77L));
         Map<String,Object> result = service().requestCorrection(
-                "DQ-1", 3, Map.of("name", "Kim"), "idem-1", "maker", "fix invalid name");
+                "DQ-1", 3, Map.of("name", "Kim"), "idem-0001", "maker", "fix invalid name");
         assertThat(result).containsEntry("approvalRequestId", 77L);
         ArgumentCaptor<AdmApprovalService.CreateRequest> request = ArgumentCaptor.forClass(AdmApprovalService.CreateRequest.class);
         verify(approvals).requestApproval(request.capture(), eq("maker"));
@@ -62,13 +62,13 @@ class AdmIntegrationClosureServiceTest {
                 "requestedBy", "maker",
                 "expireAt", Timestamp.from(now.plusSeconds(60)),
                 "participants", List.of(Map.of("operatorId","checker","decisionStatus","APPROVED"))));
-        when(approvals.execute(77L,"execute","checker")).thenReturn(Map.of(
+        when(approvals.execute(77L,"execute approved","checker")).thenReturn(Map.of(
                 "approvalRequestId",77L,"payloadSnapshot","secret",
                 "execution",Map.of("resultCode","DQ-CORRECTED","payloadSnapshot","secret")));
-        Map<String,Object> result=service().executeCorrection(77L,"checker","execute");
+        Map<String,Object> result=service().executeCorrection(77L,"checker","execute approved");
         assertThat(result).doesNotContainKey("payloadSnapshot");
-        assertThat((Map<?,?>)result.get("execution")).doesNotContainKey("payloadSnapshot");
-        verify(approvals).execute(77L,"execute","checker");
+        assertThat(((Map<?, ?>) result.get("execution")).containsKey("payloadSnapshot")).isFalse();
+        verify(approvals).execute(77L,"execute approved","checker");
     }
 
     @Test
@@ -83,8 +83,8 @@ class AdmIntegrationClosureServiceTest {
                 "expireAt",Timestamp.from(now.minusSeconds(1)),
                 "participants",List.of(Map.of("operatorId","checker","decisionStatus","APPROVED")));
         when(approvals.detail(77L)).thenReturn(base);
-        assertThatThrownBy(() -> service().executeCorrection(77L,"maker","execute")).isInstanceOf(RuntimeException.class);
-        assertThatThrownBy(() -> service().executeCorrection(77L,"checker","execute")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> service().executeCorrection(77L,"maker","execute approved")).isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> service().executeCorrection(77L,"checker","execute approved")).isInstanceOf(RuntimeException.class);
         verify(approvals,never()).execute(anyLong(),anyString(),anyString());
     }
 

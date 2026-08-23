@@ -48,11 +48,11 @@ try {
     $defaultProfile = Get-Content -LiteralPath $defaultProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
     foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
         $profile = $defaultProfile | ConvertTo-Json -Depth 50 | ConvertFrom-Json -Depth 50
-        $profile.modules.reference.vendor = $vendor
-        $profile.modules.reference.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
-        $profile.modules.reference.databaseName = "refLifecycleFixture"
-        $profile.modules.reference.schemaName = "refLifecycleSchema"
-        $profile.modules.reference.clientPath = ""
+        $profile.modules.education.vendor = $vendor
+        $profile.modules.education.port = @{ mariadb = 3306; postgresql = 5432; oracle = 1521 }[$vendor]
+        $profile.modules.education.databaseName = "refLifecycleFixture"
+        $profile.modules.education.schemaName = "refLifecycleSchema"
+        $profile.modules.education.clientPath = ""
         $profilePath = Join-Path $tempRoot "$vendor-profile.json"
         [IO.File]::WriteAllText($profilePath, ($profile | ConvertTo-Json -Depth 50) + "`n", $Utf8NoBom)
 
@@ -83,6 +83,10 @@ try {
             if ($case.ContainsKey("migrationVersions")) {
                 $versions = @($result.plan.migrationPlan.versions | ForEach-Object { [int]$_ })
                 Assert-CpfReferenceGate (($versions -join ',') -eq (@($case.migrationVersions) -join ',')) "$vendor/$($case.action) V/U version 순서가 정확하다."
+                Assert-CpfReferenceGate ($result.plan.logicalDatabase -eq "referenceFixture") "$vendor/$($case.action) 외부 계약은 referenceFixture를 유지한다."
+                Assert-CpfReferenceGate ($result.plan.historicalLogicalDatabase -eq "refDB") "$vendor/$($case.action) immutable pack은 refDB로 해석한다."
+                $migrationLogicalDatabases = @($result.plan.migrationPlan.operations.logicalDatabase | Sort-Object -Unique)
+                Assert-CpfReferenceGate (($migrationLogicalDatabases -join ',') -eq "refDB") "$vendor/$($case.action) nested migration plan은 refDB pack만 사용한다."
             }
             if ($case.action -eq "fresh-install") {
                 Assert-CpfReferenceGate (@($result.plan.operations | Where-Object { $_.role -eq "baseline-initializer" }).Count -eq 1) "$vendor fresh-install은 공식 baseline initializer를 사용한다."

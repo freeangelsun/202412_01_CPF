@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BROKER-RELIABILITY-TEST-ATTEMPT1",
+  "startedAt": "2026-08-22T16:34:47.1901092+09:00",
+  "finishedAt": "2026-08-22T16:35:20.2825024+09:00",
+  "durationSeconds": 33.092,
+  "sourceIdentity": "d02f1f48be4384adf670793a5d88c0dd3290f1e891d905e8efae93f59cc398ac",
+  "command": ".\\gradlew.bat --no-daemon :internal:messaging:reliability:jdbc:test --rerun-tasks",
+  "execution": "Hidden cmd child process with stdout/stderr redirected directly to evidence files",
+  "exitCode": 1,
+  "result": "FAIL",
+  "progress": {
+    "mainCompile": "PASS",
+    "testCompile": "FAIL",
+    "suites": 0,
+    "tests": 0
+  },
+  "logs": {
+    "stdout": {"path": "cpf-docs/work/evidence/codex/current/CX-01-BROKER-RELIABILITY-TEST-RERUN.stdout.log", "sha256": "47de52abed719163f1bfdafbfc56ee80c7443e7532899e5cc313ab0b8d7967b9", "bytes": 29289},
+    "stderr": {"path": "cpf-docs/work/evidence/codex/current/CX-01-BROKER-RELIABILITY-TEST-RERUN.stderr.log", "sha256": "6ceab61f671e7467aa8ec365011bcdb42dc7af50edb5ccba1652518ea8a8643e", "bytes": 75341}
+  },
+  "resourceCheck": {"codeMaxHandlesBefore": 1190, "codeMaxHandlesAfter": 1190},
+  "findings": [
+    "CX-F-044 missing direct Mockito and Spring-test dependencies",
+    "CX-F-045 obsolete low-level replay operations tests",
+    "CX-F-046 broker bridge constructor/result/Context test drift",
+    "CX-F-047 publisher worker and deterministic publisher package import drift"
+  ]
+}

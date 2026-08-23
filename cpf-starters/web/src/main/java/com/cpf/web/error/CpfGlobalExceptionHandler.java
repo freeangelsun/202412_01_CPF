@@ -1,6 +1,7 @@
 package com.cpf.web.error;
 
 import com.cpf.core.api.error.CpfErrorCatalogResolver;
+import com.cpf.core.api.error.CpfErrorDefinition;
 import com.cpf.core.api.error.CpfResolvedErrorView;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.error.CpfErrorCode;

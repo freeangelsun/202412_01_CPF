@@ -1,0 +1,22 @@
+{
+  "caseId": "CX-01-GATEWAY-COMPILE-FIX-IDENTITY",
+  "startedAt": "2026-08-22T17:01:00+09:00",
+  "finishedAt": "2026-08-22T17:04:20.1823548+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha256": "a6ba195202958296b240d9fc99fff535255018286f25fe63ce65c6099862af68",
+    "contentSha1": "98b8d6fae4219c9e2fc6fa78d06fda4324b0f346",
+    "fileCount": 8207,
+    "totalBytes": 75719563
+  },
+  "findings": ["CX-F-052", "CX-F-053", "CX-F-054", "CX-F-055"],
+  "changes": [
+    "Capture resilience transaction lineage from the current managed CPF Context",
+    "Reject compatibility transactionId mismatch before executor mutation",
+    "Evaluate channel policy with standardExecutionId and canonical callerChannel only",
+    "Use canonical TRUSTED_INTERNAL outbound classification",
+    "Bind exact managed Gateway Context in resilience and direct handler tests and assert cleanup",
+    "Add regressions for transaction-lineage spoofing and raw-header callerChannel override"
+  ],
+  "verificationPending": "Detached Java 25 :runtime:gateway:test --rerun-tasks"
+}

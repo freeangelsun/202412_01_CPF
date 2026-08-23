@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-23T17:35:00+09:00",
+  "findingId": "CX-F-197",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": "e742666a10133f4f7d9045c52e16ce7cee73b42524dd98e4a6ea8630d97ba197",
+  "runtime": {"vendor":"postgresql","version":"18.4","runId":"c273b2aee963","freshInstall":"FAIL","cleanup":"PASS"},
+  "actualError": "duplicate key value violates unique constraint uk_adm_button_menu_action at Product Seed line 742",
+  "collision": {"businessKey":["REMOTE_LOG","DOWNLOAD"],"buttonIds":["REMOTE_LOG_DOWNLOAD","REMOTE_LOG_BUNDLE_DOWNLOAD","REMOTE_LOG_JOB_DOWNLOAD"]},
+  "rootCause": "BUTTON_ID is unique but the canonical ADM_BUTTON model additionally defines MENU_ID/ACTION_CODE as its business uniqueness contract. Three distinct Remote Log operations were assigned one generic action code.",
+  "requiredRepair": "Keep all button identities and assign distinct developer-facing action codes from the canonical seed model, regenerate every maintained vendor projection, and add exact unique-key regression.",
+  "falseGreen": false
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # CPF Cross-platform Generator 검증은 launcher와 단일 OS-neutral Engine의 동일 계약을 확인합니다.
 from __future__ import annotations
-import argparse, importlib.util, json, shutil, stat, subprocess, sys, tempfile
+import argparse, importlib.util, json, os, shutil, stat, subprocess, sys, tempfile
 from pathlib import Path
 from generated_domain_layout import domain_surface_dirs
 
@@ -48,44 +48,61 @@ def tree_hash(root:Path)->str:
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument('--root',type=Path,required=True); ap.add_argument('--evidence',type=Path)
     ns=ap.parse_args(); root=ns.root.resolve(); cli=root/'cpf-tools/runtime/cli/cpf'; py=root/'cpf-tools/runtime/cli/cpf.py'; engine=load_engine(root)
-    launcher=[str(cli)] if cli.is_file() and bool(cli.stat().st_mode & stat.S_IXUSR) else ['sh',str(cli)]
+    sh=shutil.which('sh')
+    posix_launcher=([str(cli)] if os.name!='nt' and cli.is_file() and bool(cli.stat().st_mode & stat.S_IXUSR)
+                    else ([sh,str(cli)] if sh else None))
+    launcher=posix_launcher or [sys.executable,str(py),'--root',str(root)]
     checks=[]
     def add(name,status,detail=''):
         checks.append({'name':name,'status':status,'detail':detail}); print(f'[{status}] {name}',flush=True)
     def check(name,ok,detail=''): add(name,'PASS' if ok else 'FAIL',detail)
 
     # Launcher는 실제 실행하고 Windows는 이 환경에서 물리 실행 대신 thin-wrapper 계약을 검증한다.
-    check('posix-launcher-runnable',cli.is_file() and (bool(cli.stat().st_mode & stat.S_IXUSR) or shutil.which('sh') is not None),{'path':str(cli),'executableBit':bool(cli.stat().st_mode & stat.S_IXUSR) if cli.is_file() else False,'launcher':launcher})
+    if posix_launcher is not None:
+        check('posix-launcher-runnable',cli.is_file(),{'path':str(cli),'executableBit':bool(cli.stat().st_mode & stat.S_IXUSR) if cli.is_file() else False,'launcher':posix_launcher})
+    else:
+        add('posix-launcher-runnable','UNVERIFIED',{'path':str(cli),'reason':'POSIX shell unavailable on this host'})
     bat=root/'cpf-tools/runtime/cli/cpf.bat'; check('windows-launcher-present',bat.is_file(),str(bat))
     bat_text=bat.read_text(encoding='utf-8-sig') if bat.is_file() else ''
     sh_text=cli.read_text(encoding='utf-8-sig') if cli.is_file() else ''
     check('windows-launcher-thin','cpf-tools\\runtime\\cli\\cpf.py' in bat_text and 'create-domain.ps1' not in bat_text,bat_text)
     check('linux-launcher-thin','cpf-tools/runtime/cli/cpf.py' in sh_text and 'pwsh' not in sh_text,sh_text)
-    for name,args in [('linux-cli-help',['--help']),('linux-cli-version',['--version'])]:
-        rr=run([*launcher,*args],root); add(name,'PASS' if rr['rc']==0 else 'FAIL',rr)
-    invalid=run([*launcher,'domain','generate','--file','__missing__.yaml'],root); check('invalid-input-exit-code',invalid['rc']==2,invalid)
-    generic=run([*launcher,'verify','generator'],root); add('genericity-source-scan','PASS' if generic['rc']==0 else 'FAIL',generic)
+    if posix_launcher:
+        for name,args in [('posix-cli-help',['--help']),('posix-cli-version',['--version'])]:
+            rr=run([*posix_launcher,*args],root); add(name,'PASS' if rr['rc']==0 else 'FAIL',rr)
+        invalid=run([*posix_launcher,'domain','generate','--file','__missing__.yaml'],root); check('invalid-input-exit-code',invalid['rc']==2,invalid)
+        generic=run([*posix_launcher,'verify','generator'],root); add('genericity-source-scan','PASS' if generic['rc']==0 else 'FAIL',generic)
+    else:
+        add('posix-cli-help','UNVERIFIED','sh unavailable')
+        add('posix-cli-version','UNVERIFIED','sh unavailable')
+        invalid=run([sys.executable,str(py),'--root',str(root),'domain','generate','--file','__missing__.yaml'],root)
+        check('invalid-input-exit-code',invalid['rc']==2,invalid)
+        generic=run([sys.executable,str(py),'--root',str(root),'verify','generator'],root)
+        add('genericity-source-scan','PASS' if generic['rc']==0 else 'FAIL',generic)
 
     # 두 공식 Root는 한 번의 Public CLI verify-all로 검증하여 중복 Python startup을 제거한다.
     for name in ('cpf-member','cpf-external'):
-        logical=name.removeprefix('cpf-'); definition=root/name/'cpf-domain.yaml'; check(f'{name}-definition',definition.is_file(),str(definition)); check(f'{name}-customer-metadata-zero',not (root/name/'.cpf').exists(),str(root/name/'.cpf'))
+        contract=root/name/'gradle.properties'
+        forbidden=[entry for entry in ('.cpf','cpf-domain.yaml','cpf-generator.lock.json') if (root/name/entry).exists()]
+        check(f'{name}-developer-contract',contract.is_file() and 'cpf.domain.contractVersion=' in contract.read_text(encoding='utf-8-sig'),str(contract))
+        check(f'{name}-customer-metadata-zero',not forbidden,forbidden)
     all_verify=run([*launcher,'verify','all'],root,10)
     check('retained-member-external-verify-all',all_verify['rc']==0 and '"status": "PASS"' in all_verify['stdout'],all_verify)
     for name in ('cpf-member','cpf-external'):
         d=root/name; dirs=domain_surface_dirs(d)
         logical=name.removeprefix('cpf-')
-        definition=root/name/'cpf-domain.yaml'
-        dd=engine.validate_definition(engine.load_yaml_subset(definition))
+        contract=root/name/'gradle.properties'
+        dd=engine.load_domain_contract(contract)
         expected={'online'} | ({'batch'} if dd.batch else set())
         check(f'{name}-minimal-ia',dirs==expected,{'expected':sorted(expected),'actual':sorted(dirs)})
         check(f'{name}-no-readme-verification-db',not any((d/x).exists() for x in ['README.md','verification','db']),str(d))
     for name in ('cpf-member','cpf-external'):
         try:
-            logical=name.removeprefix('cpf-'); dr=engine.diff(root,root/name/'cpf-domain.yaml',root/name)
+            logical=name.removeprefix('cpf-'); dr=engine.diff(root,root/name/'gradle.properties',root/name)
             check(f'{name}-idempotent-diff',dr.get('clean') is True,dr)
         except Exception as e: add(f'{name}-idempotent-diff','FAIL',repr(e))
 
-    temp_parent=root/'build/domain-generator/verification'; temp_parent.mkdir(parents=True,exist_ok=True)
+    temp_parent=root/'cpf-docs/work/evidence/generated/domain-generator/verification'; temp_parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='CPF 한글 Path With Spaces ', dir=temp_parent) as td:
         troot=Path(td)
         definition=troot/'crlf spec'/'ledger.yaml'; write_def(definition,'ledger','LDG','LDG','\r\n')
@@ -106,7 +123,7 @@ def main()->int:
         add('add-domain-does-not-damage-retained-roots','PASS' if ar['rc']==0 and intact else 'FAIL',{'add':ar,'retainedIntact':intact})
 
         # 사용자 수정 영역 보호는 Public CLI regenerate에서 fail-closed를 확인한다.
-        mod=out/'online/src/main/java/ledger/online/ledger/service/SampleTransactionPolicy.java'
+        mod=out/'online/src/main/java/ledger/sample/service/SampleTransactionPolicy.java'
         if mod.is_file():
             original=mod.read_text(encoding='utf-8'); mod.write_text(original+'\n// 사용자 수정 보호 검증\n',encoding='utf-8',newline='\n')
             rr=run([*launcher,'domain','regenerate','ledger','--file',str(definition),'--output',str(out)],root,8)
@@ -116,18 +133,25 @@ def main()->int:
         else: add('user-owned-modification-protection','FAIL','target file missing')
 
         # Lifecycle은 같은 Canonical Engine을 한 프로세스에서 수행한다. Shell별 별도 Engine은 사용하지 않는다.
-        lifedef=troot/'lifecycle.yaml'; write_def(lifedef,'lifecycle','LFC','LFC'); life=root/'build/domain-generator/lifecycle-tests/cpf-lifecycle'
-        if life.exists(): shutil.rmtree(life)
+        lifedef=troot/'lifecycle.yaml'; write_def(lifedef,'lifecycle','LFC','LFC'); life=troot/'lifecycle'/'cpf-lifecycle'
         try:
             gen=engine.generate(root,lifedef,life)
-            rem=engine.remove_owned(root,lifedef,life,apply=True)
+            rem=engine.remove_owned(root,lifedef,life,apply=False)
+            for relative in rem.get('deleteCandidates',[]):
+                candidate=(life/relative).resolve()
+                if life.resolve() not in candidate.parents:
+                    raise RuntimeError(f'remove manifest escaped disposable root: {candidate}')
+                if candidate.is_file(): candidate.unlink()
+            for directory in sorted((p for p in life.rglob('*') if p.is_dir()),key=lambda p:len(p.parts),reverse=True):
+                try: directory.rmdir()
+                except OSError: pass
             restore=engine.restore(root,lifedef,life)
             clean=engine.diff(root,lifedef,life)
-            ok=gen.get('status')=='GENERATED' and rem.get('status')=='REMOVED' and restore.get('status')=='RESTORED' and clean.get('clean') is True and not (life/'.cpf').exists()
-            add('remove-restore-isolated-lifecycle','PASS' if ok else 'FAIL',{'generate':gen.get('status'),'remove':rem.get('status'),'restore':restore.get('status'),'diffClean':clean.get('clean')})
+            ok=(gen.get('status')=='GENERATED' and rem.get('status')=='PLANNED_DELETE_MANIFEST'
+                and rem.get('safeToRemove') is True and restore.get('status')=='RESTORED'
+                and clean.get('clean') is True and not (life/'.cpf').exists())
+            add('remove-restore-isolated-lifecycle','PASS' if ok else 'FAIL',{'generate':gen.get('status'),'remove':rem.get('status'),'safeToRemove':rem.get('safeToRemove'),'restore':restore.get('status'),'diffClean':clean.get('clean')})
         except Exception as e: add('remove-restore-isolated-lifecycle','FAIL',repr(e))
-        finally:
-            if life.exists(): shutil.rmtree(life)
 
         # generate-all Public CLI를 실제 실행한다.
         defs=troot/'definitions'; write_def(defs/'cpf-alpha'/'cpf-domain.yaml','alpha','ALP','ALP'); write_def(defs/'cpf-beta'/'cpf-domain.yaml','beta','BET','BET')
@@ -140,7 +164,7 @@ def main()->int:
     for command in ('generate','add','dry-run','diff','regenerate','upgrade','remove','restore','generate-all'):
         check('cli-surface-'+command,command in py_text,command)
 
-    text_files=[p for p in [cli,py,root/'cpf-member/cpf-domain.yaml',root/'cpf-external/cpf-domain.yaml'] if p.is_file()]
+    text_files=[p for p in [cli,py,root/'cpf-member/gradle.properties',root/'cpf-external/gradle.properties'] if p.is_file()]
     lf_ok=True; utf_ok=True
     for p in text_files:
         raw=p.read_bytes(); lf_ok &= b'\r\n' not in raw
@@ -149,10 +173,18 @@ def main()->int:
     check('generated-lf-normalized',lf_ok,','.join(str(x) for x in text_files)); check('utf8-decode',utf_ok)
 
     java=run(['java','-version'],root); gradle=shutil.which('gradle'); pwsh=shutil.which('pwsh') or shutil.which('powershell')
-    add('windows-launcher-execution','UNVERIFIED','Windows cmd runtime is unavailable in this Linux container.')
+    if os.name=='nt':
+        windows=run(['cmd','/d','/c',str(bat),'--version'],root)
+        add('windows-launcher-execution','PASS' if windows['rc']==0 else 'FAIL',windows)
+    else:
+        add('windows-launcher-execution','UNVERIFIED','Windows cmd runtime unavailable on this host.')
     add('gradle-generated-compile-test','UNVERIFIED' if not gradle else 'NOT_RUN','gradle executable unavailable' if not gradle else gradle)
     version_text=(java['stdout']+java['stderr']); add('java25-runtime','PASS' if ('version "25' in version_text or 'version "26' in version_text) else 'UNVERIFIED',java)
-    add('powershell-wrapper-execution','UNVERIFIED' if not pwsh else 'NOT_RUN','PowerShell runtime unavailable' if not pwsh else pwsh)
+    if pwsh:
+        powershell=run([pwsh,'-NoProfile','-Command',f"& '{sys.executable}' '{py}' --root '{root}' --version"],root)
+        add('powershell-wrapper-execution','PASS' if powershell['rc']==0 and powershell['stdout'].strip().startswith('cpf ') else 'FAIL',powershell)
+    else:
+        add('powershell-wrapper-execution','UNVERIFIED','PowerShell runtime unavailable')
 
     failed=[x for x in checks if x['status']=='FAIL']; unverified=[x for x in checks if x['status'] in {'UNVERIFIED','NOT_RUN'}]
     result={'gate':'NXT3_GENERATOR_CROSS_PLATFORM','staticStatus':'PASS' if not failed else 'FAIL','overallStatus':'UNVERIFIED' if not failed and unverified else ('FAIL' if failed else 'PASS'),'checks':checks,'failedCount':len(failed),'unverifiedCount':len(unverified)}

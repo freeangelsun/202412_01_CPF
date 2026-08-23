@@ -1,9 +1,12 @@
 package com.cpf.common.message.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
-/** HTTP status를 소유하지 않는 transport-neutral Response Code catalog 요청입니다. */
+/** Runtime HTTP 응답 의미까지 포함하는 Response Code catalog 관리 요청입니다. */
 public class CommonResponseCodeRequest {
     @NotBlank private String responseCode;
     @NotBlank private String messageCode;
@@ -11,6 +14,7 @@ public class CommonResponseCodeRequest {
     @NotBlank private String moduleId;
     @NotBlank private String responseGroup;
     @NotBlank private String sequenceNo;
+    @NotNull @Min(100) @Max(599) private Integer httpStatus;
     private String category = "BUSINESS";
     private String retryDisposition = "NEVER";
     private String exposure = "SAFE_MESSAGE_ONLY";
@@ -33,6 +37,8 @@ public class CommonResponseCodeRequest {
     public void setResponseGroup(String v) { responseGroup=v; }
     public String getSequenceNo() { return sequenceNo; }
     public void setSequenceNo(String v) { sequenceNo=v; }
+    public Integer getHttpStatus() { return httpStatus; }
+    public void setHttpStatus(Integer v) { httpStatus=v; }
     public String getCategory() { return category; }
     public void setCategory(String v) { category=v; }
     public String getRetryDisposition() { return retryDisposition; }

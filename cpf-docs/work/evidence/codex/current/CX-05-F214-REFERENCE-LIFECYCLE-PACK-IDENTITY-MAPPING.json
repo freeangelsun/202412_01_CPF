@@ -1,0 +1,15 @@
+{
+  "evidenceId": "CX-05-F214-REFERENCE-LIFECYCLE-PACK-IDENTITY-MAPPING",
+  "finding": "CX-F-214",
+  "recordedAt": "2026-08-23T19:42:57+09:00",
+  "sourceIdentitySha256": "2fe919f8c4d35e99d8965c803aaea859e3ca81ebf29e1bc320e52f23ba39d5b2",
+  "command": "pwsh -NoProfile -File cpf-tools/db/verification/check-reference-database-lifecycle.ps1 -Root .",
+  "observed": {
+    "freshInstallDryRun": "PASS",
+    "upgradeDryRun": "FAIL",
+    "error": "No migration operation was found for the selected Platform module."
+  },
+  "rootCause": "The public Reference lifecycle correctly discovers education/referenceFixture, but passes that current logical name unchanged to the generic historical migration runner. Immutable V93/V94/U93/U94 packs are contract-owned under refDB, so no operation can be resolved.",
+  "requiredFix": "Derive the single historical pack identity from the Reference Fixture contract, create a disposable profile projection for the nested migration call, preserve the original physical database/schema/credentials, and use the same projection for dry-run and apply.",
+  "status": "OPEN"
+}

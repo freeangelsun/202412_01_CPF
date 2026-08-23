@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-08-23T12:45:00+09:00",
+  "findingId": "CX-F-150",
+  "status": "SOURCE_FIXED",
+  "revisedSourceFix": {
+    "sourceRollbackSqlCount": 39,
+    "centralRollbackSqlCount": 96,
+    "publishedInventory": "cpf-docs/deliverables/SHA256SUMS.txt",
+    "everyRollbackSqlRequiresExistingEntry": true,
+    "everyRollbackSqlRequiresExactPublishedHash": true,
+    "legacyVNamedManifestValidationRetained": true,
+    "crossHistoryEqualityRequired": false,
+    "publishedInventoryChanged": false,
+    "historicalSqlChanged": false
+  },
+  "sourceIdentity": {
+    "sha256": "a5f0541169534255666bc9988cfacf66dc2595879d4a6cf5f25b128b46cd7e5c",
+    "sha1": "86c3b47622fdad17bb9dabe8399a8b591d6b0427",
+    "fileCount": 8248,
+    "totalBytes": 76640244
+  },
+  "verificationPending": "Expanded unit, checksum integrity, semantic parity."
+}

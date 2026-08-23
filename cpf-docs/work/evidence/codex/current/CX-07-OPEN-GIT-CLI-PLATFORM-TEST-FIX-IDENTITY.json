@@ -1,0 +1,13 @@
+{
+  "executionId": "CX-07-OPEN-GIT-CLI-PLATFORM-TEST-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:08:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha1": "7d1dbfa5d4cf2c63e93674f3549e6eaafc8419df",
+    "contentSha256": "2ebc4acb3f59fbaab79ae1e9d7d788c8ef6b861bd7beeecbea07096f747d6053",
+    "fileCount": 8228,
+    "totalBytes": 75771759
+  },
+  "fix": "The regression statically checks both command implementations, executes cpf.ps1 through native PowerShell on Windows, and executes cpf.sh through Bash on non-Windows.",
+  "verification": "PENDING"
+}

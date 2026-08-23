@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BROKER-RELIABILITY-DLQ-DIAGNOSIS",
+  "finishedAt": "2026-08-22T16:31:35.2166775+09:00",
+  "sourceIdentity": "26c6cade3f6588bbdfdf3f56199cd9798d7b74297b11cddd78830a38955a7c49",
+  "result": "DIAGNOSIS_COMPLETE",
+  "rootFailure": ":internal:messaging:reliability:jdbc:compileJava",
+  "compilerError": "JdbcCpfBrokerReliabilityRepository does not override moveToDlq(CpfBrokerEnvelope,String)",
+  "rootCause": "The Public failure-transition SPI retains the two-argument abstract compatibility contract and a default consumer-specific overload, while the JDBC reference adapter implements only the three-argument overload",
+  "canonicalPattern": "The same repository implements two-argument markReceived/markConsumed by delegating to CPF_DEFAULT_CONSUMER and preserves consumer-specific overloads",
+  "requiredFix": "Implement the two-argument DLQ transition as DEFAULT_CONSUMER delegation and retain the atomic consumer-specific implementation",
+  "finding": "CX-F-042 IN_PROGRESS"
+}

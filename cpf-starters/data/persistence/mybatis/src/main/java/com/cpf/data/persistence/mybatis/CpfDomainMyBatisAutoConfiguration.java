@@ -1,7 +1,7 @@
 package com.cpf.data.persistence.mybatis;
 
 import com.cpf.data.persistence.api.database.CpfSqlSession;
-import com.cpf.data.persistence.mybatis.CpfSqlResources;
+import com.cpf.data.persistence.jdbc.CpfDomainDataSourceAutoConfiguration;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -17,7 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Generated Domain mapper resource를 CPF 표준 DataSource와 연결합니다. */
-@AutoConfiguration(afterName = "com.cpf.starter.persistence.jdbc.CpfDomainDataSourceAutoConfiguration")
+@AutoConfiguration(after = CpfDomainDataSourceAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "cpf.domain.persistence", name = "provider", havingValue = "mybatis")
 @ConditionalOnBean(name = {"cpfDomainDataSource", "cpfDomainTransactionManager"})
 public class CpfDomainMyBatisAutoConfiguration {
@@ -27,7 +27,7 @@ public class CpfDomainMyBatisAutoConfiguration {
             @Qualifier("cpfDomainDataSource") DataSource dataSource, Environment environment) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
-        bean.setMapperLocations(CpfSqlResources.mapperResources(environment, "*"));
+        bean.setMapperLocations(CpfDomainMapperResources.resolve(environment));
         return bean.getObject();
     }
     @Bean("cpfDomainSqlSessionTemplate")

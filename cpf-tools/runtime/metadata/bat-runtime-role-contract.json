@@ -14,6 +14,7 @@
       ],
       "projectPath": ":runtime:batch:control-plane",
       "artifactName": "cpf-batch-control-plane",
+      "applicationResource": "cpf-batch/control-plane/src/main/resources/application.yml",
       "legacyArtifactNames": [
         "cpf-batch-control-server"
       ],
@@ -26,6 +27,7 @@
       "legacyEnvPrefixes": [],
       "projectPath": ":runtime:batch:scheduler",
       "artifactName": "cpf-batch-scheduler",
+      "applicationResource": "cpf-batch/scheduler/src/main/resources/application.yml",
       "legacyArtifactNames": [],
       "localPort": 8181
     },
@@ -36,6 +38,7 @@
       "legacyEnvPrefixes": [],
       "projectPath": ":runtime:batch:worker",
       "artifactName": "cpf-batch-worker",
+      "applicationResource": "cpf-batch/worker/src/main/resources/application.yml",
       "legacyArtifactNames": [],
       "localPort": 8182
     },
@@ -50,6 +53,7 @@
       ],
       "projectPath": ":runtime:batch:center-cut",
       "artifactName": "cpf-batch-center-cut",
+      "applicationResource": "cpf-batch/center-cut/src/main/resources/application.yml",
       "legacyArtifactNames": [
         "cpf-center-cut-runner"
       ],
@@ -66,6 +70,7 @@
       ],
       "projectPath": ":runtime:batch:agent",
       "artifactName": "cpf-batch-agent",
+      "applicationResource": "cpf-batch/agent/src/main/resources/application.yml",
       "legacyArtifactNames": [
         "cpf-batch-host-agent"
       ],

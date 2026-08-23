@@ -6,6 +6,11 @@
     "postgresql",
     "oracle"
   ],
+  "requiredModules": [
+    "cpf",
+    "backoffice",
+    "cmn"
+  ],
   "authoringRoot": "cpf-tools/db/runtime-template",
   "tokens": {
     "NOW": "Vendor current timestamp",
@@ -39,7 +44,12 @@
       "templateRoot": "cpf-tools/db/runtime-template/cpf",
       "generatedPackPath": "runtime/cpf/repository",
       "sourceScopes": [
-        "cpf-core/src/main/java"
+        "cpf-admin/src/main/java/com/cpf/admin/opr/transaction",
+        "cpf-starters/file/sftp/src/main/java",
+        "cpf-starters/integration/resilience/src/main/java",
+        "cpf-starters/messaging/src/main/java",
+        "cpf-starters/platform-operations/channel-registry/jdbc/src/main/java",
+        "cpf-starters/platform-operations/runtime-control/src/main/java"
       ],
       "status": "완료",
       "inlineSqlPolicy": "PORTABLE_ONLY",
@@ -85,6 +95,12 @@
           "consumer": "CpfExecutionCatalogRepository",
           "usage": "ACTIVE",
           "parameterCount": 0
+        },
+        {
+          "key": "execution-catalog-find-by-id",
+          "consumer": "CpfExecutionCatalogRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 1
         },
         {
           "key": "execution-catalog-resolve-alias",
@@ -153,7 +169,157 @@
           "parameterCount": 6
         },
         {
+          "key": "operation-caller-policy-insert-seed",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 8
+        },
+        {
+          "key": "operation-catalog-exists",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "operation-catalog-find-scoped-application",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "operation-catalog-find-scoped-null-application",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "operation-catalog-insert",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 18
+        },
+        {
+          "key": "operation-catalog-update",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 15
+        },
+        {
+          "key": "operation-catalog-update-discovery-status",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 4
+        },
+        {
+          "key": "operation-discovery-exists",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "operation-discovery-find-by-operation",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "operation-discovery-insert",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 10
+        },
+        {
+          "key": "operation-discovery-update",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 9
+        },
+        {
+          "key": "operation-policy-caller-find-all",
+          "consumer": "CpfJdbcOperationAccessPolicy",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "operation-policy-domain-access-find-all",
+          "consumer": "CpfJdbcOperationAccessPolicy",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "operation-policy-find-all",
+          "consumer": "CpfJdbcOperationAccessPolicy",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "operation-policy-insert-seed",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 8
+        },
+        {
+          "key": "operation-policy-system-find-all",
+          "consumer": "CpfJdbcOperationAccessPolicy",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "operation-policy-version-current",
+          "consumer": "CpfJdbcOperationAccessPolicy",
+          "usage": "ACTIVE",
+          "parameterCount": 0
+        },
+        {
+          "key": "operation-runtime-active-instance-find-by-service",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "operation-system-registry-exists",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 1
+        },
+        {
+          "key": "operation-system-registry-insert",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 9
+        },
+        {
+          "key": "operation-system-registry-update",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "reconciliation-claim-candidates",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "reconciliation-claim-update",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 7
+        },
+        {
+          "key": "reconciliation-defer",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 6
+        },
+        {
           "key": "reconciliation-find",
+          "consumer": "JdbcCpfReconciliationRepository",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
+          "key": "reconciliation-mark-manual-review",
           "consumer": "JdbcCpfReconciliationRepository",
           "usage": "ACTIVE",
           "parameterCount": 5
@@ -172,54 +338,33 @@
         },
         {
           "key": "transaction-meta-count",
-          "consumer": "CpfTransactionMetaRepository",
+          "consumer": "AdmTransactionMetaRepository",
           "usage": "ACTIVE",
           "parameterCount": 6
         },
         {
           "key": "transaction-meta-find-all",
-          "consumer": "CpfTransactionMetaRepository",
-          "usage": "STAGED",
+          "consumer": "AdmTransactionMetaRepository",
+          "usage": "ACTIVE",
           "parameterCount": 7
         },
         {
           "key": "transaction-meta-find-by-id",
-          "consumer": "CpfTransactionMetaRepository",
+          "consumer": "AdmTransactionMetaRepository",
           "usage": "ACTIVE",
           "parameterCount": 1
         },
         {
           "key": "transaction-meta-find-page",
-          "consumer": "CpfTransactionMetaRepository",
+          "consumer": "AdmTransactionMetaRepository",
           "usage": "ACTIVE",
           "parameterCount": 8
         },
         {
           "key": "transaction-meta-inactivate",
-          "consumer": "CpfTransactionMetaRepository",
+          "consumer": "AdmTransactionMetaRepository",
           "usage": "ACTIVE",
-          "parameterCount": 2
-        },
-        {
-          "key": "transaction-meta-mark-missing-inactive",
-          "consumer": "CpfTransactionMetaRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 1,
-          "formatTokens": [
-            "POSITIONAL_LIST"
-          ]
-        },
-        {
-          "key": "transaction-meta-table-available",
-          "consumer": "CpfTransactionMetaRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 0
-        },
-        {
-          "key": "transaction-meta-upsert",
-          "consumer": "CpfTransactionMetaRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 14
+          "parameterCount": 4
         }
       ],
       "managedMyBatis": [
@@ -707,6 +852,71 @@
           "usage": "ACTIVE",
           "parameters": [
             "operationId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-claim",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "claimExpiresAt",
+            "claimedAt",
+            "claimOwnerId",
+            "environmentFingerprint",
+            "operationId",
+            "tokenHash"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-cleanup",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "cleanupStatus",
+            "failureCode",
+            "tokenHash",
+            "updatedAt"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-find-by-operation-id",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "value"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-find-by-token-hash",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "value"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-reconcile-complete",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "completedAt",
+            "operationId",
+            "tokenHash"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-approval-update-terminal",
+          "consumer": "BackofficeBootstrapApprovalRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "adminUserId",
+            "claimOwnerId",
+            "completedAt",
+            "failureCode",
+            "operationId",
+            "status",
+            "tokenHash"
           ]
         },
         {
@@ -2189,101 +2399,6 @@
       "verificationStatus": "미검증"
     },
     {
-      "module": "education",
-      "ownerArtifact": "cpf-education",
-      "profileModuleKey": "referenceFixture",
-      "parameterStyle": "JDBC_POSITIONAL",
-      "templateRoot": "cpf-tools/db/runtime-template/ref",
-      "generatedPackPath": "runtime/ref/repository",
-      "sourceScopes": [
-        "cpf-education/src/main/java/com/cpf/education/operations/centercut"
-      ],
-      "status": "완료",
-      "inlineSqlPolicy": "PORTABLE_ONLY",
-      "statements": [
-        {
-          "key": "centercut-count-results-by-status",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-delete-smoke-results",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-find-ready-targets",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 2
-        },
-        {
-          "key": "centercut-find-result-snapshots",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-mark-result-target",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 7
-        },
-        {
-          "key": "centercut-mark-running",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 5
-        },
-        {
-          "key": "centercut-operations-find-result-detail",
-          "consumer": "RefCenterCutOperationsExtension",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-operations-find-results",
-          "consumer": "RefCenterCutOperationsExtension",
-          "usage": "ACTIVE",
-          "parameterCount": 4
-        },
-        {
-          "key": "centercut-operations-find-targets",
-          "consumer": "RefCenterCutOperationsExtension",
-          "usage": "ACTIVE",
-          "parameterCount": 4
-        },
-        {
-          "key": "centercut-operations-summarize-results",
-          "consumer": "RefCenterCutOperationsExtension",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-operations-summarize-targets",
-          "consumer": "RefCenterCutOperationsExtension",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-reset-smoke-targets",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 1
-        },
-        {
-          "key": "centercut-upsert-result",
-          "consumer": "EducationCenterCutTargetRepository",
-          "usage": "ACTIVE",
-          "parameterCount": 9
-        }
-      ],
-      "managedMyBatis": [],
-      "verificationStatus": "미검증"
-    },
-    {
       "module": "cmn",
       "ownerArtifact": "cpf-common",
       "profileModuleKey": "common",
@@ -2292,8 +2407,7 @@
       "generatedPackPath": "cpf-common/src/main/resources/cpf-sql/cmn",
       "sourceScopes": [
         "cpf-common/src/main/java/com/cpf/common/calendar",
-        "cpf-common/src/main/java/com/cpf/common/template",
-        "cpf-education/src/main/java/com/cpf/education/common/sample"
+        "cpf-common/src/main/java/com/cpf/common/template"
       ],
       "status": "완료",
       "inlineSqlPolicy": "FORBIDDEN",

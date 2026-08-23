@@ -7,31 +7,30 @@ pluginManagement {
 
 rootProject.name = 'cpf-public-developer-workspace'
 
-def definitionRoot = file('domains')
+def cpfManagedGradleRoot = new File(gradle.gradleUserHomeDir, "cpf/work/gradle/${rootProject.name}").canonicalFile
+gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
+if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
+    def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    propagatedProjectProperties.put('cpfManagedGradleRoot', cpfManagedGradleRoot.absolutePath)
+    gradle.startParameter.setProjectProperties(propagatedProjectProperties)
+}
+
 def domainRows = []
 def seenNames = new LinkedHashSet<String>()
 def seenCodes = new LinkedHashSet<String>()
-if (!definitionRoot.isDirectory()) {
-    throw new GradleException("CPF public domain catalog is missing: ${definitionRoot}")
-}
-definitionRoot.eachDir { dir ->
-    def definition = new File(dir, 'cpf-domain.yaml')
-    if (!definition.isFile()) return
-    def text = definition.getText('UTF-8')
-    def domainBlock = (text =~ /(?ms)^domain:\s*\n((?:^[ ]{2}.+\n?)*)/)
-    if (!domainBlock.find()) throw new GradleException("domain block is missing: ${definition}")
-    def block = domainBlock.group(1)
-    def nameMatcher = block =~ /(?m)^\s{2}name:\s*([a-z][a-z0-9-]*)\s*$/
-    def codeMatcher = block =~ /(?m)^\s{2}systemCode:\s*([A-Z][A-Z0-9]{2})\s*$/
-    if (!nameMatcher.find() || !codeMatcher.find()) throw new GradleException("domain name/systemCode is invalid: ${definition}")
-    def name = nameMatcher.group(1)
-    def systemCode = codeMatcher.group(1)
+rootDir.eachDirMatch(~/cpf-.+/) { projectDir ->
+    def contract = new File(projectDir, 'gradle.properties')
+    if (!contract.isFile() || !new File(projectDir, 'settings.gradle').isFile()) return
+    def values = new Properties()
+    contract.withInputStream { values.load(it) }
+    if (values.getProperty('cpf.domain.contractVersion') != '1') return
+    def name = values.getProperty('cpf.domain.name')
+    def systemCode = values.getProperty('cpf.domain.systemCode')
+    if (!(name ==~ /[a-z][a-z0-9-]*/) || !(systemCode ==~ /[A-Z][A-Z0-9]{2}/))
+        throw new GradleException("domain Developer contract is invalid: ${contract}")
     if (!seenNames.add(name)) throw new GradleException("duplicate domain name: ${name}")
     if (!seenCodes.add(systemCode)) throw new GradleException("duplicate domain systemCode: ${systemCode}")
-    def projectDir = file("cpf-${name}")
-    if (!new File(projectDir, 'settings.gradle').isFile()) {
-        throw new GradleException("domain definition requires physical project: ${name} -> ${projectDir}")
-    }
+    if (projectDir.name != "cpf-${name}") throw new GradleException("domain root/name mismatch: ${projectDir}")
     domainRows << [name:name, systemCode:systemCode, projectDir:projectDir]
 }
 domainRows.sort { a,b -> a.name <=> b.name }.each { row ->

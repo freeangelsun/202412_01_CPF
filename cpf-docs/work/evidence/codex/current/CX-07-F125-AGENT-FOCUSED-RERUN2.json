@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F125-AGENT-FOCUSED-RERUN2",
+  "startedAt": "2026-08-23T01:22:57.8425512+09:00",
+  "finishedAt": "2026-08-23T01:23:50.8912161+09:00",
+  "sourceIdentitySha256": "e5fa725f6d698687c0b5bc4f85704db6eaa4015f005993b7b658fbe019962098",
+  "command": ".\\gradlew.bat :runtime:batch:agent:test --tests ArtifactInstallerSecurityTest --tests PinnedArtifactHttpTransportTest --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 1,
+  "result": "5_OF_6_PASS",
+  "tasks": {"actionable": 56, "executed": 3, "upToDate": 53},
+  "tests": {"completed": 6, "failed": 1},
+  "remainingFailure": {
+    "test": "PinnedArtifactHttpTransportTest.mixedDnsCidrAndPortPoliciesFailClosed",
+    "expected": "ARTIFACT_REPOSITORY_CIDR_DENIED",
+    "actual": "ARTIFACT_REPOSITORY_NETWORK_POLICY_DENIED:1.1.1.1",
+    "rootCause": "The shared policy correctly rejects the address but the Agent adapter masks its stable operator-facing CIDR contract behind the generic wrapper."
+  },
+  "finding": "CX-F-125",
+  "findingState": "IN_PROGRESS",
+  "postRunCapacityGiB": {"freePhysical": 13.97, "freeCommit": 42.53},
+  "processSafety": "Command-owned Java exited; no OOM/crash occurred.",
+  "log": "cpf-docs/work/evidence/codex/current/f125-agent-focused-rerun2.log",
+  "next": "Preserve explicit CIDR denial in the Agent adapter without widening policy; rerun the exact six tests."
+}

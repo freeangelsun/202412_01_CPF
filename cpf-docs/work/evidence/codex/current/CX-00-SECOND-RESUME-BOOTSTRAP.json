@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-00-SECOND-RESUME-BOOTSTRAP",
+  "requirementIds": ["CX-00", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:53:08.0805879+09:00",
+    "finished": "2026-08-22T14:53:16.3536545+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "8d02731b5d4697b0703e4487da03f2e38b6b84e9008c8c671c698a73fcc950db",
+  "sourceState": {
+    "contentSha1": "1ec802aa7a04c0e1c4f62af496a80e65f8067ac3",
+    "fileCount": 8206,
+    "totalBytes": 75702510
+  },
+  "actualResult": "Execution capacity recovered: 19.47 GiB physical and 32.96 GiB virtual memory free; 16 GiB pagefile allocated with 0.74 GiB used. Source Identity is exactly preserved. Five Java and zero Node processes are present; continue only focused single-root tasks.",
+  "result": "PASS",
+  "findingIds": ["CX-F-023", "CX-F-026"],
+  "sanitized": true
+}

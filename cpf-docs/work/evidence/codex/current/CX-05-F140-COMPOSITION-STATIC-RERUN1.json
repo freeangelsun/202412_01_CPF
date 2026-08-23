@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-140",
+  "status": "PASS",
+  "command": "python -m pytest cpf-tools/verification/tests/test_cpf_gradle_logical_tree.py -q",
+  "result": "9 passed in 0.06s",
+  "exitCode": 0,
+  "sourceIdentitySha256": "a5724c800a5517011fbf5c1e05eb75379afeb568db9a386b4a95e6d685b104ea",
+  "scope": [
+    "mandatory Common runtime composition",
+    "existing logical-tree ownership",
+    "composite identity collision prevention"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "executionId": "CX-07-OPEN-GIT-PROJECTION-PORTABILITY-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:06:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha1": "f7c24d6e42aca1a76d8b6dbb0520812b65cf4151",
+    "contentSha256": "3c35e62a0954e00b2ef39596ff170e0db6c4122ae2fb4a584f04c4bd533fc30b",
+    "fileCount": 8228,
+    "totalBytes": 75771390
+  },
+  "fixes": {
+    "CX-F-094": "Public READY metadata omits the local absolute staging path while the caller return value retains it for diagnostics.",
+    "CX-F-095": "The test uses a real symlink when the host supports it and directly exercises the exact Path.is_symlink rejection branch only for Windows WinError 1314; it never skips."
+  },
+  "verification": "PENDING"
+}

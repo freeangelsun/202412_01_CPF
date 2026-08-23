@@ -22,6 +22,13 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @EnableConfigurationProperties(CpfKeyOperationProperties.class)
 public class CpfSecretAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean(CpfSecretProvider.class)
+    @ConditionalOnProperty(prefix = "cpf.security.secret.environment", name = "enabled", havingValue = "true")
+    CpfSecretProvider cpfEnvironmentSecretProvider() {
+        return new CpfEnvironmentSecretProvider();
+    }
+
     @Bean @ConditionalOnMissingBean
     CpfSecretProviderRegistry cpfSecretProviderRegistry(List<CpfSecretProvider> providers) {
         if (providers.isEmpty()) throw new IllegalStateException("CPF Product runtime requires an approved customer-managed SecretProvider.");

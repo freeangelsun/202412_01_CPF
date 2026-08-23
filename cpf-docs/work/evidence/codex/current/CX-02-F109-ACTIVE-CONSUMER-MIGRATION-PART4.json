@@ -1,0 +1,25 @@
+{
+  "track": "CX-02-F109-ACTIVE-CONSUMER-MIGRATION-PART4",
+  "sourceIdentity": {
+    "sha1": "ffdfc9591b5df4e04aecbaf43824b1be97947649",
+    "sha256": "6c2f26bdf58611ed1f33f0e6c2ac7b6a52ea8071442c6573a04072a725279d29",
+    "fileCount": 8228,
+    "totalBytes": 75814748
+  },
+  "status": "SOURCE_FIXED_PARTIAL",
+  "owners": [
+    "NXT3 cross-platform generator gate",
+    "federation/export scripts and regressions",
+    "Generated DB installer regression",
+    "business-feature setup/sync regression",
+    "parity and capability inventory",
+    "runtime default-inventory regression",
+    "central Generated Domain selection contract"
+  ],
+  "contract": {
+    "developerSource": "cpf-<domain>/gradle.properties",
+    "generatorBookkeeping": "ABSENT",
+    "transientYaml": "explicit input outside generated output only"
+  },
+  "next": "Execute targeted consumers, then exact approved current sync."
+}

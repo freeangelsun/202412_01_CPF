@@ -50,7 +50,7 @@ class AdmRuntimeSqlPortabilityTest {
         assertThat(policySource)
                 .contains("DuplicateKeyException")
                 .contains("GeneratedKeyHolder")
-                .contains("new String[] {\"override_id\"}")
+                .contains("new String[]{\"override_id\"}")
                 .contains("updatePolicyByKey");
     }
 

@@ -2,6 +2,8 @@ package com.cpf.common.message.service;
 
 import com.cpf.common.message.api.CpfMessageRecord;
 import com.cpf.common.message.api.CpfMessageSource;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -25,7 +27,7 @@ public final class CmnCpfMessageSource implements CpfMessageSource {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    CmnCpfMessageSource(CmnErrorCatalogStore store, CmnMessageArgumentPolicy argumentPolicy, Clock clock) {
+    CmnCpfMessageSource(CmnErrorCatalogStore store, CmnMessageArgumentPolicy argumentPolicy, @Qualifier(CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock) {
         this.store = store; this.argumentPolicy = argumentPolicy; this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
 

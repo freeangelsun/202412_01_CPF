@@ -15,7 +15,7 @@ def main()->int:
     ap.add_argument('--expected-source-sha256',required=True)
     args=ap.parse_args()
     root=Path(args.root).resolve()
-    env=os.environ.copy(); env['PYTHONDONTWRITEBYTECODE']='1'; env['PYTEST_ADDOPTS']=env.get('PYTEST_ADDOPTS','')+' -p no:cacheprovider'
+    env=os.environ.copy(); env['PYTHONDONTWRITEBYTECODE']='1'
     py=sys.executable
     stages=[
       ('CANONICAL_STATIC',[py,str(root/'cpf-tools/verification/tools/run-cpf-canonical-verifiers.py'),'--root',str(root)]),

@@ -384,8 +384,8 @@
       "publicationClass": "PUBLIC_TOOLING",
       "publishSources": false,
       "publishJavadoc": false,
-      "publicGroupId": "com.cpf.build",
-      "publicProjectPath": ":",
+      "publicGroupId": "com.cpf.gradle",
+      "publicProjectPath": ":cpf-gradle-plugin",
       "documentationArtifactException": "Gradle tooling is consumed as a plugin/bootstrap tool; Java compile-time source/Javadoc publication is not the supported API surface."
     },
     {
@@ -638,9 +638,11 @@
         "license-review"
       ],
       "consumer": "customer-domain-public-starter",
-      "publicationClass": "PUBLIC_STARTER",
+      "publicationClass": "PUBLIC_COMPILE_TIME_JAVA",
       "publishSources": true,
-      "publishJavadoc": true
+      "publishJavadoc": true,
+      "publicGroupId": "com.cpf.starter",
+      "publicProjectPath": ":starters:file:attachment"
     },
     {
       "artifactId": "cpf-starter-file-sftp",

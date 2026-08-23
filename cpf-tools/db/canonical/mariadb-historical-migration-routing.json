@@ -143,6 +143,34 @@
           "logicalDatabase": "admDB"
         }
       ]
+    },
+    "V135__current_binding_and_response_contract.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R135__current_binding_and_response_contract.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "V136__backoffice_permission_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "mbwDB"
+        }
+      ]
+    },
+    "R136__backoffice_permission_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "mbwDB"
+        }
+      ]
     }
   }
 }

@@ -11,6 +11,7 @@ public record CpfResponseCodeRecord(
         String moduleId,
         String responseGroup,
         String sequenceNo,
+        int httpStatus,
         String category,
         String retryDisposition,
         String exposure,

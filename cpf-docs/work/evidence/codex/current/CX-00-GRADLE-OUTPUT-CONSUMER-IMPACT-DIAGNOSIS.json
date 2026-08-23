@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-GRADLE-OUTPUT-CONSUMER-IMPACT-DIAGNOSIS",
+  "finishedAt": "2026-08-22T21:49:00+09:00",
+  "sourceIdentitySha256": "217c1cec3952c9cab5b83dd586eee2c2380d34dbdbe30bee0605d6841f7993ad",
+  "status": "FINDING_REGISTERED",
+  "finding": "CX-F-104",
+  "rootCause": "Relocating every module build directory invalidates the canonical artifact catalog and runtime launchers, which deliberately consume conventional ownerPath/build outputs. The private repository-root build/cache/crash isolation requirement does not authorize silently breaking those consumers.",
+  "impact": {
+    "artifactCatalogBuildPatterns": 80,
+    "runtimeAndSmokeConsumers": [
+      "cpf-tools/runtime/tools/runtime-common.ps1",
+      "cpf-tools/runtime/tools/start-cpf-local.ps1",
+      "cpf-tools/runtime/tools/smoke-adm-runtime.ps1",
+      "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+      "cpf-tools/supply-chain/tools/generate-cpf-supply-chain-evidence.ps1"
+    ]
+  },
+  "repair": "Retain conventional module build ownership while isolating repository-root and project-cache/JVM failure state; remove module outputs through an exact post-validation garbage cleanup rather than changing 80+ artifact/runtime contracts.",
+  "requirementWeakening": false
+}

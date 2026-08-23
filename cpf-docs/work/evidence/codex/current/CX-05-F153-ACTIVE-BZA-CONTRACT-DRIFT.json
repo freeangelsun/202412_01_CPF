@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-08-23T13:12:00+09:00",
+  "findingId": "CX-F-153",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentity": "6cbe03336f36ccad86f05995e831e4a90b83286b74c3605f970e5c2135b0f420",
+  "sourceIdentityAfterFix": {
+    "contentSha256": "0b27f9c925ec80d1c8757a49b5d516c8ac9a9a0621ddf8875b932f804ceefa61",
+    "contentSha1": "a4ea4d3c3be67195cd5f9e515bf29ac20a350af9",
+    "fileCount": 8220,
+    "totalBytes": 75014176
+  },
+  "title": "Current developer and runtime tooling still exposes retired BZA identity",
+  "canonicalFacts": {
+    "productOwnerRoots": ["cpf-backoffice", "cpf-backoffice-web"],
+    "systemCode": "MBW",
+    "routePrefix": "/api/v1/backoffice/",
+    "databaseRuntimeModuleDirectory": "backoffice",
+    "retiredRuntimeOwner": "cpf-biz-admin"
+  },
+  "activeDriftOwners": [
+    "cpf-admin/frontend/scripts",
+    "cpf-tools/generator/contracts/capability-profiles.json",
+    "cpf-tools/generator/contracts/cpf-developer-adoption-contract.json",
+    "cpf-tools/governance/cpf-runtime-environment-manifest.schema.json",
+    "cpf-tools/governance/cpf-runtime-environment-manifest.template.json",
+    "cpf-tools/db/metadata/default-metadata-catalog.json",
+    "cpf-tools/db/verification/smoke-platform-runtime-query-packs-official-db.ps1",
+    "cpf-tools/runtime/tools/smoke-platform-runtime-query-packs-official-db.ps1",
+    "cpf-tools/runtime/tools/smoke-platform-runtime-query-packs-mariadb.ps1",
+    "cpf-tools/verification/frontend-api-runtime/backoffice-stubs/generated/cpf-operation-contract.ts",
+    "cpf-starters/file/sftp/src/test/java/com/cpf/file/common/filetransfer/JdbcCpfFileTransferRepositoryTest.java"
+  ],
+  "rootCause": "The repository owners and generated Product surfaces were renamed/currentized earlier, but several developer-facing catalogs, smoke entrypoints and verification fixtures retained the retired short identity and legacy route grammar.",
+  "repairPolicy": "Currentize active contracts at their canonical owners to Backoffice or MBW according to contract layer; preserve immutable Versioned Migration/Rollback bytes and narrow explicit retired-name rejection gates.",
+  "sourceFix": "Admin-only validators no longer provide retired BZA compatibility; developer capability and environment catalogs now expose backoffice; DB metadata uses MBW; query-pack smoke selectors target the existing backoffice directories and profile; Backoffice TypeScript stubs use MBW operation IDs and canonical routes; the generic SFTP consumer uses MBW.",
+  "targetedVerification": "JSON and PowerShell parse PASS; three vendor Backoffice packs have 176 files each; ADM OpenAPI and actual 337/337 consumer closure PASS; Backoffice OpenAPI 96/96 PASS; dual actual TypeScript plus Node behavior PASS; Java 25 SFTP exact 3/3 PASS; scoped active retired-token matches zero.",
+  "passCriteria": [
+    "Current capabilities and environment manifests expose Backoffice rather than BZA",
+    "Current DB smoke modules select the existing backoffice runtime pack",
+    "Current frontend validation uses BACKOFFICE and /api/v1/backoffice",
+    "Current generic consumer tests use MBW identity",
+    "Targeted contract tests pass"
+  ]
+}

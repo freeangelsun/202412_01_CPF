@@ -1,0 +1,24 @@
+def cpfCompositeGroups = [
+    ':starters:data:jdbc': 'com.cpf.composite.starter.data.jdbc',
+    ':internal:messaging:reliability:jdbc': 'com.cpf.composite.internal.messaging.reliability.jdbc',
+    ':internal:platform-operations:channel-registry:jdbc': 'com.cpf.composite.internal.platform.operations.channel.registry.jdbc',
+    ':internal:security:audit:jdbc': 'com.cpf.composite.internal.security.audit.jdbc',
+    ':starters:security:session:jdbc': 'com.cpf.composite.starter.security.session.jdbc',
+    ':internal:platform-operations:runtime-health:jdbc': 'com.cpf.composite.internal.platform.operations.runtime.health.jdbc',
+    ':starters:cache:valkey': 'com.cpf.composite.starter.cache.valkey',
+    ':starters:data:lock:valkey': 'com.cpf.composite.starter.data.lock.valkey',
+    ':starters:security:session:valkey': 'com.cpf.composite.starter.security.session.valkey'
+]
+
+gradle.afterProject { project, state ->
+    def compositeGroup = cpfCompositeGroups[project.path]
+    if (compositeGroup != null) {
+        project.group = compositeGroup
+        project.plugins.withId('maven-publish') {
+            project.publishing.publications.withType(org.gradle.api.publish.maven.MavenPublication).configureEach {
+                groupId = 'com.cpf.starter'
+            }
+        }
+        println "CPF_COMPOSITE_GROUP_PROBE=${project.path}|${project.group}:${project.name}"
+    }
+}

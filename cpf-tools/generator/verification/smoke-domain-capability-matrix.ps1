@@ -12,13 +12,13 @@ $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $Root 'cpf-tools/generator/tools/generated-domain-common.ps1')
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root 'build/runtime-smoke'
+    $ResultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/runtime-smoke'
 } elseif (-not [IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
 New-Item -ItemType Directory -Force -Path $ResultDir | Out-Null
 $resultPath = Join-Path $ResultDir 'domain-capability-matrix.sanitized.json'
-$sandbox = Join-Path $Root 'build/domain-generator/capability-matrix'
+$sandbox = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/capability-matrix'
 $transientRoots = [Collections.Generic.List[string]]::new()
 $cases = @(
     [ordered]@{ domain='matrixminimal'; code='MXM'; preset='minimal'; persistence='none'; sample=$false; http=$false; resilience=$false; cache='none'; messaging='none'; objectStorage='none'; security='resource-server' },
@@ -31,7 +31,7 @@ $vendors = @('mariadb', 'postgresql', 'oracle')
 function Bool-Text([bool] $Value) { if ($Value) { return 'true' }; return 'false' }
 function Assert-SafeSandbox([string] $Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
-    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'build/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolved.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Capability sandbox가 허용 경로 밖입니다: $resolved"
     }
@@ -43,7 +43,7 @@ New-Item -ItemType Directory -Force -Path $sandbox | Out-Null
 $result = [ordered]@{
     startedAt = [DateTimeOffset]::Now.ToString('o')
     status = 'FAILED'
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     combinations = @()
     build = [ordered]@{ executed = $false; exitCode = $null }
 }
@@ -83,7 +83,7 @@ generation:
   sampleTransaction: $sample
 "@
         [IO.File]::WriteAllText($definitionPath, $definition.Replace("`r`n", "`n"), $Utf8NoBom)
-        $transientRoots.Add((Join-Path $Root "build/domain-generator/verification/cpf-$($case.domain)")) | Out-Null
+        $transientRoots.Add((Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$($case.domain)")) | Out-Null
         $dryRun = Invoke-CpfCanonicalCli -Root $Root -Arguments @(
             'domain', 'dry-run', '--file', $definitionPath, '--output', $project
         )

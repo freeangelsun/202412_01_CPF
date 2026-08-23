@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-08-23T03:23:00+09:00",
+  "sourceIdentitySha256": "07c293f1826cd6b81e8e3c561fa5eefd02536caaad599fe5bd71d95f52b78031",
+  "command": "gradlew -p <Fresh> :online:test :online:bootJar --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfProductCompositeRoot=<current> -PcpfResourceProfile=test",
+  "java": "25.0.3",
+  "exitCode": 1,
+  "status": "FAIL",
+  "completedBoundary": "Current Product composite and Fresh generated main Java compiled through :online:compileJava.",
+  "failedTask": ":online:prepareCpfVendorResources",
+  "actualError": "DB Vendor was not specified; set -PcpfDbVendor=<mariadb|postgresql|oracle> or CPF_DB_VENDOR.",
+  "classification": "The current rerun omitted the explicitly required compile-time Vendor selection. No Product Source is changed from this attempt; rerun with the generated PostgreSQL profile's vendor is required.",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F132-FRESH-SAMPLE-JAVA25-RERUN1.log"
+}

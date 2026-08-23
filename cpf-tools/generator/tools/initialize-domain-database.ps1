@@ -126,7 +126,7 @@ if ($Operation -eq "rollback" -and (-not $Apply -or -not $ConfirmRollback)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($ResultDir)) {
-    $ResultDir = Join-Path $Root "build/reports/domain-db-init/$domain"
+    $ResultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/domain-db-init/$domain"
 } elseif (-not [System.IO.Path]::IsPathRooted($ResultDir)) {
     $ResultDir = Join-Path $Root $ResultDir
 }
@@ -415,9 +415,9 @@ $result = [ordered]@{
     databaseName = $DatabaseName
     databaseUsername = $DatabaseUsername
     profilePath = $ProfilePath
-    definitionPath = [string]$definition.definitionPath
-    definitionSha256 = [string]$definition.definitionSha256
-    generatedProjectMetadata = "NONE"
+    contractPath = [string]$definition.contractPath
+    contractSha256 = [string]$definition.contractSha256
+    generatedProjectMetadata = "ABSENT"
     passwordProvided = -not [string]::IsNullOrWhiteSpace($DatabasePassword)
     phases = $plannedPhases
     centralDomainTemplate = Get-RecordedPath $resourceRoot

@@ -1,0 +1,10 @@
+gradle.projectsEvaluated {
+    def collisions = rootProject.allprojects
+        .groupBy { project -> "${project.group}:${project.name}" }
+        .findAll { coordinate, projects -> coordinate != 'unspecified:' && projects.size() > 1 }
+    println "CPF_COMPOSITE_COORDINATE_COLLISION_COUNT=${collisions.size()}"
+    collisions.keySet().sort().each { coordinate ->
+        def paths = collisions[coordinate].collect { project -> project.path }.sort()
+        println "CPF_COMPOSITE_COORDINATE_COLLISION=${coordinate}|${paths.join(',')}"
+    }
+}

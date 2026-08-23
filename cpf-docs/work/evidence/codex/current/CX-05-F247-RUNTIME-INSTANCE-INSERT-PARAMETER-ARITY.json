@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-247",
+  "recordedAt": "2026-08-23T22:21:00+09:00",
+  "sourceIdentitySha256": "acd0e2066c7e67dd016f2dbbb7b66ebe289ee46f9c12f334b1ab33bdd1e01a00",
+  "status": "OPEN",
+  "trigger": {
+    "runId": "b4200823c022",
+    "database": "fresh verifier-owned MariaDB Product Seed",
+    "actualFailure": "OPS_SERVICE_INSTANCE first-claim INSERT declares 20 bind placeholders but supplies 19 arguments; MariaDB reports parameter position 20 is not set"
+  },
+  "rootCause": "Both inactive identity-claim and zero-row active projection INSERT SQL have one extra placeholder after the fixed last_heartbeat_at expression. Existing Mockito tests cover identity comparison but do not execute or assert JDBC SQL/argument arity.",
+  "cleanup": {
+    "database": "PASS",
+    "roles": "PASS"
+  },
+  "requiredFix": "Correct both production INSERT shapes, add exact SQL/argument arity regression, rebuild and repeat Fresh two-Worker runtime.",
+  "prohibitedWorkarounds": ["Do not skip Runtime Agent registration", "Do not loosen MariaDB driver checks", "Do not preinsert smoke-only instance rows"]
+}

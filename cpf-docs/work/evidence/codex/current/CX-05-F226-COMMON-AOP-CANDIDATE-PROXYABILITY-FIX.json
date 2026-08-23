@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-226",
+  "status": "SOURCE_FIXED",
+  "sourceIdentitySha256": "ec40f2cf10e4731781db78d1ecf32f43fd9607265c4e876028042b14d01bdba0",
+  "sourceIdentitySha1": "7148159e9404334fc553eace988f7bfe717063e2",
+  "fileCount": 8291,
+  "totalBytes": 75244291,
+  "changes": [
+    "Removed final only from both actual Common @Transactional services.",
+    "Removed final only from the Common cache-event @Repository.",
+    "Added an exact owner-wide class-based AOP proxyability regression."
+  ],
+  "preserved": [
+    "Transactional annotations and transaction manager ownership",
+    "Repository annotation and persistence exception translation",
+    "CpfCommonJdbcAutoConfiguration proxyTargetClass=true"
+  ],
+  "verificationStatus": "PENDING"
+}

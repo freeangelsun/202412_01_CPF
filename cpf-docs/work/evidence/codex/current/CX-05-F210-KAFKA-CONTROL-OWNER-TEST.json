@@ -1,0 +1,23 @@
+{
+  "track": "CX-05-F210-KAFKA-CONTROL-OWNER-TEST",
+  "startedAt": "2026-08-23T19:03:01+09:00",
+  "finishedAt": "2026-08-23T19:04:19+09:00",
+  "sourceIdentitySha256": "fc6d7714d1a39e2aaf7db38d3b3ad6255d9e1f504cf5fe395677d9d2e3f0874c",
+  "command": ".\\gradlew.bat :starters:messaging:kafka:test --tests com.cpf.messaging.kafka.internal.CpfKafkaConsumerControlAdapterTest --no-daemon --max-workers=1 --no-watch-fs --console=plain",
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "exitCode": 0,
+  "buildResult": "BUILD SUCCESSFUL",
+  "suite": "com.cpf.messaging.kafka.internal.CpfKafkaConsumerControlAdapterTest",
+  "tests": 3,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "verifiedBehavior": [
+    "configured consumer group only",
+    "pause and resume",
+    "concurrency application",
+    "missing configured group fails closed"
+  ],
+  "next": "Run complete Worker and Messaging Kafka Java 25 suites."
+}

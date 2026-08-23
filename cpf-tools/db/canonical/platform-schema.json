@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 55,
+  "schemaVersion": 56,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -22083,7 +22083,18 @@
       "primaryKey": [
         "permission_id"
       ],
-      "uniqueKeys": [],
+      "uniqueKeys": [
+        {
+          "name": "uk_mbw_permission_scope",
+          "columns": [
+            "role_code",
+            "menu_code",
+            "button_code",
+            "permission_type",
+            "environment_code"
+          ]
+        }
+      ],
       "indexes": [
         {
           "name": "ix_mbw_permission_scope",
@@ -23971,6 +23982,15 @@
           "comment": "응답 일련번호"
         },
         {
+          "name": "http_status",
+          "type": "INT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "HTTP 상태 코드"
+        },
+        {
           "name": "description",
           "type": "VARCHAR(500)",
           "nullable": true,
@@ -25791,7 +25811,13 @@
           "columns": [
             "FIELD_NAME",
             "SEARCH_TOKEN"
-          ]
+          ],
+          "vendorColumns": {
+            "mariadb": [
+              "FIELD_NAME",
+              "SEARCH_TOKEN(64)"
+            ]
+          }
         }
       ],
       "foreignKeys": [],
@@ -25993,9 +26019,16 @@
           "name": "ix_cpf_file_transfer_duplicate",
           "columns": [
             "endpoint_code",
-            "duplicate_key(255)",
+            "duplicate_key",
             "checksum"
-          ]
+          ],
+          "vendorColumns": {
+            "mariadb": [
+              "endpoint_code",
+              "duplicate_key(255)",
+              "checksum"
+            ]
+          }
         },
         {
           "name": "ix_cpf_file_transfer_tx",
@@ -28898,6 +28931,8 @@
           "type": "VARCHAR(128)",
           "nullable": true,
           "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
           "comment": "Runtime host IP"
         },
         {
@@ -31386,6 +31421,15 @@
           "comment": "낙관적 잠금 버전"
         },
         {
+          "name": "binding_key_hash",
+          "type": "CHAR(64)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Route Match Key SHA-256"
+        },
+        {
           "name": "binding_checksum",
           "type": "VARCHAR(64)",
           "nullable": true,
@@ -31420,12 +31464,7 @@
         {
           "name": "uk_cpf_gwy_binding_key",
           "columns": [
-            "environment_code",
-            "host_pattern",
-            "path_pattern",
-            "http_method",
-            "api_version",
-            "route_version"
+            "binding_key_hash"
           ]
         }
       ],
@@ -38245,7 +38284,9 @@
           "refTable": "OPS_RETENTION_POLICY",
           "refColumns": [
             "policy_id"
-          ]
+          ],
+          "onDelete": null,
+          "onUpdate": null
         }
       ],
       "checks": [
@@ -39757,6 +39798,33 @@
           "autoIncrement": false,
           "onUpdate": null,
           "comment": "APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할"
+        },
+        {
+          "name": "desired_runtime_state",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": "'RUNNING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Central runtime desired lifecycle state"
+        },
+        {
+          "name": "actual_runtime_state",
+          "type": "VARCHAR(32)",
+          "nullable": false,
+          "default": "'UNKNOWN'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Central runtime actual lifecycle state"
+        },
+        {
+          "name": "control_row_version",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Central runtime lifecycle optimistic version"
         },
         {
           "name": "registration_source",

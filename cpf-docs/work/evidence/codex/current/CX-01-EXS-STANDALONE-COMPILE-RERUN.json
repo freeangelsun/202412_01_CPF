@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-EXS-STANDALONE-COMPILE-RERUN",
+  "requirementIds": ["REL-BUILD", "JAVA25", "GENERATED-DOMAIN", "RUNTIME-RESOURCE", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:55:17.0398824+09:00",
+    "finished": "2026-08-22T13:56:17.0372118+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat -p .\\cpf-external --no-daemon :online:compileJava --rerun-tasks -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF",
+  "exitCode": 0,
+  "sourceIdentity": "5868c3d51f28e070b9241d47aded4589d86ba950131f509c813dc551b5cec473",
+  "actualResult": "BUILD SUCCESSFUL in 59s; all 18 actionable compile tasks executed under Java 25 using only Source defaults. The command completed the original EXS online consumer path and all Product composite prerequisite compiles without a native memory crash.",
+  "result": "PASS",
+  "findingIds": ["CX-F-005", "CX-F-006", "CX-F-007", "CX-F-008", "CX-F-009", "CX-F-010", "CX-F-011", "CX-F-012", "CX-F-014", "CX-F-015", "CX-F-018", "CX-F-019", "CX-F-023"],
+  "artifacts": ["cpf-docs/work/evidence/codex/current/CX-01-EXS-STANDALONE-COMPILE-RERUN.log"],
+  "sanitized": true
+}

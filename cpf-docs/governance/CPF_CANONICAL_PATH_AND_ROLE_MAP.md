@@ -22,12 +22,15 @@
 
 ```text
 cpf-<domain>/
-  cpf-domain.yaml
+  build.gradle
+  settings.gradle
+  gradle.properties                              # cpf.domain.* Developer Contract
   online/<business-feature>/<technical-role>/
   batch/<business-feature>/<technical-role>/   # batch=true only
   domain/                                      # actual shared consumer exists only
-  config/cpf-db-profile.local.yaml             # local generated binding; raw secret 금지
 ```
+
+Generator 입력 descriptor, lock/state/manifest/cache/evidence, `.cpf/`, DB Vendor tree는 Generated Customer Domain Root에 두지 않는다. 환경별 local DB binding은 `cpf-docs/work/evidence/generated/domain-generator/cpf-local/<domain>/cpf-db-profile.local.json`이 소유하며 raw secret을 저장하지 않는다.
 
 ## 3. Current Governance Navigation
 

@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-08-23T09:28:00+09:00",
+  "sourceIdentitySha256": "cdf033e2d600c45d1d271736bb3497b839d9d500c93c4a7bc2624333398e4360",
+  "finding": "CX-F-136",
+  "status": "IN_PROGRESS",
+  "rootCauses": [
+    "Generator renders spring.datasource but omits the existing cpf.domain.persistence enabled/provider/data-source-prefix contract, so CpfDomainDataSourceAutoConfiguration and CpfDomainMyBatisAutoConfiguration are both condition-negative.",
+    "CpfMyBatisConfig is the CPF platform/observability MyBatis owner for an explicitly named cpfDataSource, but is imported unconditionally and therefore fails every Generated business-only runtime that correctly has no platform cpfDataSource.",
+    "CpfDomainMyBatisAutoConfiguration uses a retired afterName package instead of the actual CpfDomainDataSourceAutoConfiguration class, leaving ordering vulnerable after the Generator contract is enabled.",
+    "Generated @MapperScan does not name cpfDomainSqlSessionFactory, leaving the business Mapper owner implicit when multiple platform session factories legitimately coexist."
+  ],
+  "canonicalRepairOwners": [
+    "cpf-tools/generator/engine/cpf_domain_generator.py",
+    "cpf-starters/data/persistence/jdbc/CpfDomainDataSourceAutoConfiguration",
+    "cpf-starters/data/persistence/mybatis/CpfDomainMyBatisAutoConfiguration",
+    "cpf-starters/data/persistence/mybatis/config/CpfMyBatisConfig"
+  ],
+  "preservedBoundaries": [
+    "CUSTOMER_BUSINESS_DB remains distinct from optional CPF platform DB",
+    "No Generated-domain hand-written DataSource bean",
+    "Explicit sqlSessionFactoryRef for business Mapper scan",
+    "Persistence-none output remains zero footprint"
+  ]
+}

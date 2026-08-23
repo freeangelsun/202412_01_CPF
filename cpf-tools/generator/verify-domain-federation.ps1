@@ -60,6 +60,7 @@ function Test-PermanentMetadata {
     foreach ($relative in @(
             '.cpf',
             'cpf-domain.yaml',
+            'cpf-generator.lock.json',
             'cpf-domain-manifest.json',
             'cpf-domain-ownership.json',
             'manifest/domain-manifest.json',
@@ -77,7 +78,7 @@ function Test-CanonicalGeneratedProject {
         Add-Failure "Canonical definition의 Generated Project가 없습니다: $($Definition.projectName)"
         return
     }
-    if ([string]$Definition.generatedProjectMetadata -cne 'NONE' -or
+    if ([string]$Definition.generatedProjectMetadata -cne 'ABSENT' -or
             @($Definition.forbiddenPermanentMetadata).Count -ne 0) {
         Add-Failure "Generated Project metadata 계약 위반: $($Definition.projectName)"
     }
@@ -85,9 +86,9 @@ function Test-CanonicalGeneratedProject {
     Test-ForbiddenSource -Path $projectPath -Label ([string]$Definition.projectName)
     try {
         $verify = Invoke-CpfCanonicalCli -Root $frameworkRootResolved -Arguments @(
-            'verify', 'domain', '--file', ([string]$Definition.definitionPath), '--output', $projectPath)
-        if ([string]$verify.status -cne 'PASS') {
-            Add-Failure "Canonical Generated Domain verify status가 PASS가 아닙니다: $($Definition.projectName)"
+            'verify', 'domain', '--file', ([string]$Definition.contractPath), '--output', $projectPath)
+        if ([string]$verify.status -notin @('PASS', 'PREBUILT_VERIFIED')) {
+            Add-Failure "Canonical Domain verify status가 성공 상태가 아닙니다: $($Definition.projectName) status=$($verify.status)"
         }
     } catch {
         Add-Failure "Canonical Generated Domain verify 실패: $($Definition.projectName) :: $($_.Exception.Message)"
@@ -97,8 +98,8 @@ function Test-CanonicalGeneratedProject {
         path = $projectPath
         domainName = [string]$Definition.domainName
         systemCode = [string]$Definition.systemCode
-        definitionSha256 = [string]$Definition.definitionSha256
-        generatedProjectMetadata = 'NONE'
+        contractSha256 = [string]$Definition.contractSha256
+        generatedProjectMetadata = 'ABSENT'
     }) | Out-Null
 }
 
@@ -115,9 +116,13 @@ function Test-StandaloneRepository {
 
     $expectedModules = [System.Collections.Generic.List[string]]::new()
     if ([bool]$Definition.onlineEnabled) { $expectedModules.Add('online') }
-    foreach ($forbiddenGeneratedModule in @('batch', 'domain', 'jobpack')) {
+    if ([bool]$Definition.batchEnabled) { $expectedModules.Add('batch') }
+    if (-not [bool]$Definition.batchEnabled -and (Test-Path -LiteralPath (Join-Path $root 'batch'))) {
+        Add-Failure 'Generated Domain Developer Contract가 선택하지 않은 batch module이 존재합니다.'
+    }
+    foreach ($forbiddenGeneratedModule in @('domain', 'jobpack')) {
         if (Test-Path -LiteralPath (Join-Path $root $forbiddenGeneratedModule)) {
-            Add-Failure "Generated Domain에는 $forbiddenGeneratedModule module을 생성할 수 없습니다. Batch는 초기 프로젝트 구성에서 cpf-starter-batch로 별도 선택합니다."
+            Add-Failure "Generated Domain에는 $forbiddenGeneratedModule module을 생성할 수 없습니다."
         }
     }
     foreach ($required in @(
@@ -207,11 +212,11 @@ function Test-StandaloneRepository {
         path = $root
         domainName = [string]$Definition.domainName
         systemCode = [string]$Definition.systemCode
-        definitionSha256 = [string]$Definition.definitionSha256
+        contractSha256 = [string]$Definition.contractSha256
         databaseVendor = if ([bool]$Definition.databaseEnabled) { $DatabaseVendor } else { $null }
         artifactMode = $ArtifactMode
         batchCapabilitySelection = 'PROJECT_SETUP'
-        generatedProjectMetadata = 'NONE'
+        generatedProjectMetadata = 'ABSENT'
     }) | Out-Null
 }
 
@@ -230,7 +235,7 @@ if ($root -eq $frameworkRootResolved) {
         $DomainName = $Matches[1]
     }
     if ([string]::IsNullOrWhiteSpace($DefinitionFile)) {
-        $DefinitionFile = Join-Path $frameworkRootResolved "cpf-$DomainName/cpf-domain.yaml"
+        $DefinitionFile = Join-Path $frameworkRootResolved "cpf-$DomainName/gradle.properties"
     }
     $definition = Get-CpfGeneratedDomainDefinition `
             -Root $frameworkRootResolved `

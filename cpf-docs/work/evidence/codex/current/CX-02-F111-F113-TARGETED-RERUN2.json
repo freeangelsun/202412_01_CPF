@@ -1,0 +1,17 @@
+{
+  "track": "CX-02-F111-F113-TARGETED-RERUN2",
+  "sourceIdentity": "1621c85c6b29aa966911ab9d74f39a8441df4fe439f45ce49e32d3185d03d5d7",
+  "command": "python -m pytest -q -p no:cacheprovider <7 Generated/federation/runtime consumer test files>",
+  "exitCode": 0,
+  "summary": {"passed": 34, "failed": 0, "total": 34, "durationSeconds": 28.93},
+  "validated": [
+    "metadata-free setup and sync",
+    "business-feature preservation",
+    "DB3 installer contracts",
+    "PowerShell diagnostic plus JSON transport",
+    "authored cpf-backoffice prebuilt classification",
+    "Member selected-batch standalone federation",
+    "runtime arbitrary-domain inventory"
+  ],
+  "findingStatus": {"CX-F-111": "CLOSED", "CX-F-112": "CLOSED", "CX-F-113": "VERIFICATION_PENDING"}
+}

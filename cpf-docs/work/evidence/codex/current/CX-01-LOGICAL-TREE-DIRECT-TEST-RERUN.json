@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-LOGICAL-TREE-DIRECT-TEST-RERUN",
+  "requirementIds": ["REL-BUILD", "COMMON-DOMAIN", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:02:01.8739570+09:00",
+    "finished": "2026-08-22T14:02:01.9447833+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Directly import and execute all fixture-free test functions in test_cpf_gradle_logical_tree.py",
+  "exitCode": 0,
+  "sourceIdentity": "ea485a60e2936c40c8a132931de433a97cb3cb3a84f460f74c539ab646dd97a3",
+  "actualResult": "All six logical-tree tests passed, including representative cpf-common direct imports mapped to slf4j-api implementation and jakarta.annotation-api compileOnly declarations.",
+  "testSummary": {"tests": 6, "failures": 0, "errors": 0, "skipped": 0},
+  "result": "PASS",
+  "findingIds": ["CX-F-006", "CX-F-014", "CX-F-015", "CX-F-024"],
+  "sanitized": true
+}

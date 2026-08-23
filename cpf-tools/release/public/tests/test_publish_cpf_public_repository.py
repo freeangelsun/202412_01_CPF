@@ -26,6 +26,65 @@ def test_publisher_has_no_automatic_commit_or_push_path():
     assert "git,'commit'" not in text
     assert 'publishToMavenLocal' not in text
 
+def test_private_gates_use_each_verifiers_public_root_contract(monkeypatch, tmp_path):
+    commands=[]
+    monkeypatch.setattr(m,'run',lambda command,cwd: commands.append((command,cwd)))
+
+    m.private_gates(tmp_path,'python-test')
+
+    common=[
+        command for command,_cwd in commands
+        if any(str(argument).endswith('verify_common_product_service_dx.py') for argument in command)
+    ]
+    assert common==[[
+        'python-test','cpf-tools/verification/verify_common_product_service_dx.py','--root','.'
+    ]]
+    assert all(cwd==tmp_path for _command,cwd in commands)
+    assert len(commands)==7
+
+def _write_bom(path: Path, version: str, artifact: str = 'cpf-platform-bom'):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        '<project><modelVersion>4.0.0</modelVersion>'
+        f'<groupId>com.cpf</groupId><artifactId>{artifact}</artifactId>'
+        f'<version>{version}</version></project>',
+        encoding='utf-8',
+    )
+
+def test_release_bom_resolver_accepts_exact_release(tmp_path):
+    bom=tmp_path/'com/cpf/cpf-platform-bom/1.2.3/cpf-platform-bom-1.2.3.pom'
+    _write_bom(bom,'1.2.3')
+    assert m.resolve_published_bom(tmp_path,'1.2.3')==bom
+
+def test_release_bom_resolver_uses_snapshot_metadata_without_renaming(tmp_path):
+    directory=tmp_path/'com/cpf/cpf-platform-bom/1.2.3-SNAPSHOT'
+    bom=directory/'cpf-platform-bom-1.2.3-20260823.010203-4.pom'
+    _write_bom(bom,'1.2.3-SNAPSHOT')
+    (directory/'maven-metadata.xml').write_text(
+        '<metadata><groupId>com.cpf</groupId><artifactId>cpf-platform-bom</artifactId>'
+        '<version>1.2.3-SNAPSHOT</version><versioning><snapshotVersions><snapshotVersion>'
+        '<extension>pom</extension><value>1.2.3-20260823.010203-4</value>'
+        '</snapshotVersion></snapshotVersions></versioning></metadata>',
+        encoding='utf-8',
+    )
+    assert m.resolve_published_bom(tmp_path,'1.2.3-SNAPSHOT')==bom
+    assert not (directory/'cpf-platform-bom-1.2.3-SNAPSHOT.pom').exists()
+
+def test_release_bom_resolver_fails_closed_for_malformed_metadata(tmp_path):
+    directory=tmp_path/'com/cpf/cpf-platform-bom/1.2.3-SNAPSHOT'
+    directory.mkdir(parents=True)
+    (directory/'maven-metadata.xml').write_text('<metadata>',encoding='utf-8')
+    try: m.resolve_published_bom(tmp_path,'1.2.3-SNAPSHOT')
+    except m.PublishError as error: assert 'invalid Maven snapshot metadata XML' in str(error)
+    else: raise AssertionError('malformed Maven metadata accepted')
+
+def test_release_bom_resolver_rejects_mismatched_pom_coordinate(tmp_path):
+    bom=tmp_path/'com/cpf/cpf-platform-bom/1.2.3/cpf-platform-bom-1.2.3.pom'
+    _write_bom(bom,'1.2.3','wrong-artifact')
+    try: m.resolve_published_bom(tmp_path,'1.2.3')
+    except m.PublishError as error: assert 'coordinate mismatch' in str(error)
+    else: raise AssertionError('mismatched BOM coordinate accepted')
+
 def test_release_root_must_be_outside_private_root():
     with tempfile.TemporaryDirectory() as d:
         private=Path(d)/'private'; private.mkdir()

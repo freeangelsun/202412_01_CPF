@@ -21,7 +21,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-public final class JdbcCpfNotificationOutbox {
+public class JdbcCpfNotificationOutbox {
     private final JdbcTemplate jdbc;
     private final Clock clock;
     private final CpfNotificationContextCodec contextCodec;

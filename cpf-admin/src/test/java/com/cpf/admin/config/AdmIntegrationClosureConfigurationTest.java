@@ -2,6 +2,9 @@
 package com.cpf.admin.config;
 
 import com.cpf.admin.approval.owner.DataQualityCorrectionApprovalOwnerCommandAdapter;
+import com.cpf.admin.approval.repository.AdmApprovalRepository;
+import com.cpf.admin.approval.security.AdmApprovalCapabilityNonceRepository;
+import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.service.AdmApprovalService;
 import com.cpf.admin.opr.controller.AdmIntegrationClosureController;
 import com.cpf.admin.opr.integration.AdmIntegrationClosureService;
@@ -23,6 +26,7 @@ import static org.mockito.Mockito.when;
 class AdmIntegrationClosureConfigurationTest {
     private static final String PROOF_KEY = "cpf.adm.integration-closure.approval-proof-key-base64=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withInitializer(context -> context.getEnvironment().setActiveProfiles("local"))
             .withUserConfiguration(
                     AdmIntegrationClosureConfiguration.class,
                     AdmIntegrationClosureController.class,
@@ -149,6 +153,21 @@ class AdmIntegrationClosureConfigurationTest {
         @Bean
         AdmApprovalService admApprovalService() {
             return mock(AdmApprovalService.class);
+        }
+
+        @Bean
+        AdmApprovalCapabilityNonceRepository admApprovalCapabilityNonceRepository() {
+            return mock(AdmApprovalCapabilityNonceRepository.class);
+        }
+
+        @Bean
+        AdmApprovalRepository admApprovalRepository() {
+            return mock(AdmApprovalRepository.class);
+        }
+
+        @Bean
+        AdmApprovalSnapshotIntegrity admApprovalSnapshotIntegrity(ObjectMapper objectMapper) {
+            return new AdmApprovalSnapshotIntegrity(objectMapper);
         }
     }
 }

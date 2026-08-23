@@ -161,16 +161,22 @@ if (($contractVendors -join "`n") -cne ($expectedVendors -join "`n")) {
 }
 
 $modules = @($contract.modules)
-if ($modules.Count -ne 3 -or
-        "backoffice" -notin @($modules.module) -or
-        "cpf" -notin @($modules.module) -or
-        "ref" -notin @($modules.module)) {
-    throw "Platform Runtime Query contract must contain exactly CPF, Backoffice, and REF modules."
+$requiredModules = @($contract.requiredModules | ForEach-Object { [string] $_ })
+$actualModules = @($modules | ForEach-Object { [string] $_.module })
+if ($requiredModules.Count -eq 0 -or
+        @($requiredModules | Sort-Object -CaseSensitive -Unique).Count -ne $requiredModules.Count -or
+        ($actualModules -join "`n") -cne ($requiredModules -join "`n")) {
+    throw (
+        "Platform Runtime Query module inventory must exactly match requiredModules: " +
+        "required=$($requiredModules -join ',') actual=$($actualModules -join ',')"
+    )
 }
 
 $written = 0
 $checked = 0
 $managedMyBatisCount = 0
+$repositoryFileCount = 0
+$portableResourceCount = 0
 foreach ($module in $modules) {
     $moduleCode = [string] $module.module
     Assert-SafeName -Value $moduleCode -DisplayName "module code"
@@ -184,6 +190,97 @@ foreach ($module in $modules) {
     if ($statements.Count -eq 0 -or
             @($keys | Sort-Object -CaseSensitive -Unique).Count -ne $keys.Count) {
         throw "Platform Runtime Query statement contract is empty or duplicated: module=$moduleCode"
+    }
+
+    $resourceStatements = @($statements | Where-Object { $_.PSObject.Properties.Name -contains "resource" })
+    if ($resourceStatements.Count -gt 0) {
+        if ($resourceStatements.Count -ne $statements.Count) {
+            throw "Platform Runtime Query module mixes repository keys and portable resources: module=$moduleCode"
+        }
+        $resources = @($resourceStatements | ForEach-Object { [string] $_.resource })
+        foreach ($resource in $resources) {
+            if ($resource -cnotmatch '^(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\.sql$') {
+                throw "Invalid portable Platform Runtime resource path: module=$moduleCode resource=$resource"
+            }
+        }
+        if (@($resources | Sort-Object -CaseSensitive -Unique).Count -ne $resources.Count) {
+            throw "Duplicate portable Platform Runtime resource path: module=$moduleCode"
+        }
+        $authorResources = @(
+            Get-ChildItem -LiteralPath $templateRoot -Recurse -File -Filter "*.sql" |
+                ForEach-Object { Get-RelativePath -BasePath $templateRoot -Path $_.FullName }
+        )
+        $authorOnly = @($authorResources | Where-Object { $_ -notin $resources })
+        $contractOnly = @($resources | Where-Object { $_ -notin $authorResources })
+        if ($authorOnly.Count -gt 0 -or $contractOnly.Count -gt 0) {
+            throw (
+                "Portable Platform Runtime authoring/contract mismatch: module=$moduleCode " +
+                "authorOnly=$($authorOnly -join ',') contractOnly=$($contractOnly -join ',')"
+            )
+        }
+        $targetRoot = [IO.Path]::GetFullPath((Join-Path $Root ([string] $module.generatedPackPath)))
+        if (-not $targetRoot.StartsWith($Root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Portable Platform Runtime target escapes Workspace root: module=$moduleCode target=$targetRoot"
+        }
+        if (-not $Check) {
+            [IO.Directory]::CreateDirectory($targetRoot) | Out-Null
+        }
+        foreach ($statement in $resourceStatements) {
+            $resource = [string] $statement.resource
+            $authorPath = Join-Path $templateRoot ($resource -replace '/', '\')
+            $targetPath = Join-Path $targetRoot ($resource -replace '/', '\')
+            $sql = [IO.File]::ReadAllText($authorPath, [Text.Encoding]::UTF8)
+            if ($sql -match '@[A-Z0-9_]+@') {
+                throw "Portable Platform Runtime resource contains a vendor token: module=$moduleCode resource=$resource"
+            }
+            Assert-StatementParameters -Module $module -Statement $statement -Vendor "portable" -Sql $sql
+            if ($Check) {
+                if (-not (Test-Path -LiteralPath $targetPath -PathType Leaf)) {
+                    throw "Missing portable Platform Runtime resource: module=$moduleCode resource=$resource"
+                }
+                $expectedHash = (Get-FileHash -LiteralPath $authorPath -Algorithm SHA256).Hash
+                $actualHash = (Get-FileHash -LiteralPath $targetPath -Algorithm SHA256).Hash
+                if ($actualHash -cne $expectedHash) {
+                    throw "Portable Platform Runtime resource drift: module=$moduleCode resource=$resource"
+                }
+                $checked++
+            } else {
+                [IO.Directory]::CreateDirectory((Split-Path -Parent $targetPath)) | Out-Null
+                [IO.File]::WriteAllBytes($targetPath, [IO.File]::ReadAllBytes($authorPath))
+                $written++
+            }
+            $portableResourceCount++
+        }
+        $actualResources = if (Test-Path -LiteralPath $targetRoot -PathType Container) {
+            @(
+                Get-ChildItem -LiteralPath $targetRoot -Recurse -File -Filter "*.sql" |
+                    ForEach-Object { Get-RelativePath -BasePath $targetRoot -Path $_.FullName }
+            )
+        } else { @() }
+        $unexpectedResources = @($actualResources | Where-Object { $_ -notin $resources })
+        if (-not $Check -and $unexpectedResources.Count -gt 0) {
+            foreach ($staleResource in $unexpectedResources) {
+                Remove-Item -LiteralPath (Join-Path $targetRoot ($staleResource -replace '/', '\')) -Force
+                Write-Host "Removed stale portable Platform Runtime resource: module=$moduleCode resource=$staleResource"
+            }
+            Get-ChildItem -LiteralPath $targetRoot -Recurse -Directory |
+                Sort-Object FullName -Descending |
+                Where-Object { @(Get-ChildItem -LiteralPath $_.FullName -Force).Count -eq 0 } |
+                Remove-Item -Force
+            $actualResources = @(
+                Get-ChildItem -LiteralPath $targetRoot -Recurse -File -Filter "*.sql" |
+                    ForEach-Object { Get-RelativePath -BasePath $targetRoot -Path $_.FullName }
+            )
+            $unexpectedResources = @($actualResources | Where-Object { $_ -notin $resources })
+        }
+        $missingResources = @($resources | Where-Object { $_ -notin $actualResources })
+        if ($unexpectedResources.Count -gt 0 -or $missingResources.Count -gt 0) {
+            throw (
+                "Portable Platform Runtime target parity mismatch: module=$moduleCode " +
+                "missing=$($missingResources -join ',') unexpected=$($unexpectedResources -join ',')"
+            )
+        }
+        continue
     }
 
     $commonKeys = @(
@@ -249,9 +346,11 @@ foreach ($module in $modules) {
                     throw "Generated Platform Runtime SQL drift: module=$moduleCode vendor=$vendor key=$key"
                 }
                 $checked++
+                $repositoryFileCount++
             } else {
                 [System.IO.File]::WriteAllText($targetPath, $expected, $utf8NoBom)
                 $written++
+                $repositoryFileCount++
             }
         }
         $actualKeys = @(
@@ -280,7 +379,10 @@ foreach ($module in $modules) {
         }
     }
 
-    foreach ($artifact in @($module.managedMyBatis)) {
+    $managedArtifacts = if ($module.PSObject.Properties.Name -contains "managedMyBatis") {
+        @($module.managedMyBatis)
+    } else { @() }
+    foreach ($artifact in $managedArtifacts) {
         Assert-SafeName -Value ([string] $artifact.key) -DisplayName "$moduleCode MyBatis artifact key"
         foreach ($vendor in @($artifact.vendors)) {
             $vendorName = [string] $vendor
@@ -328,9 +430,8 @@ foreach ($module in $modules) {
     modules = @($modules.module)
     vendors = $expectedVendors.Count
     statements = ($modules | ForEach-Object { @($_.statements).Count } | Measure-Object -Sum).Sum
-    repositoryFiles = ($modules | ForEach-Object {
-        @($_.statements).Count * $expectedVendors.Count
-    } | Measure-Object -Sum).Sum
+    repositoryFiles = $repositoryFileCount
+    portableResourceFiles = $portableResourceCount
     managedMyBatisFiles = $managedMyBatisCount
     processedFiles = if ($Check) { $checked } else { $written }
 } | ConvertTo-Json -Depth 5

@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-08-23T17:54:00+09:00",
+  "findingId": "CX-F-200",
+  "sourceIdentity": {
+    "sha256": "f5a95b9e3d77157042e42f8112b52353a0e86d3a8b4cd1c99c9d3d9b068136b7",
+    "sha1": "1ecf04eae351cae1d93bc706588fd42a8118ec00",
+    "files": 8283,
+    "bytes": 75208751
+  },
+  "status": "OPEN",
+  "trigger": "Run canonical seed projection, current renderer, official vendor pack builder, MariaDB bundle builder, then canonical seed --check",
+  "actual": "28 targeted tests pass, but canonical Seed zero-drift fails for all 18 source/seed aggregate bundles across MariaDB, PostgreSQL, and Oracle.",
+  "rootCause": "sync-canonical-seed-bundles.py is declared as canonical Seed bundle owner, while build-official-db-vendor-packs.ps1 and build-all-install-sql.ps1 rewrite the same 00_product/optional/test outputs using independent formatting.",
+  "requiredFix": "One writer for maintained Seed bundles; downstream builders validate and consume them without rewriting.",
+  "forbiddenWorkaround": "Do not weaken --check, normalize away semantic drift, or remove maintained lifecycle consumers.",
+  "falseGreen": false
+}

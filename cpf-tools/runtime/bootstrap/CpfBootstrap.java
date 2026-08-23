@@ -15,11 +15,6 @@ import java.util.regex.*;
 
 /** CPF Public Developer Workspace의 OS-neutral Local Bootstrap Engine. Java 25 source launcher로 실행합니다. */
 public final class CpfBootstrap {
-    private static final Pattern DOMAIN_BLOCK = Pattern.compile("(?ms)^domain:\\s*\\n((?:^[ ]{2}.+\\n?)*)");
-    private static final Pattern DOMAIN_NAME = Pattern.compile("(?m)^\\s{2}name:\\s*([a-z][a-z0-9-]*)\\s*$");
-    private static final Pattern SYSTEM_CODE = Pattern.compile("(?m)^\\s{2}systemCode:\\s*([A-Z][A-Z0-9]{2})\\s*$");
-    private static final Pattern FEATURE_VALUE = Pattern.compile("(?m)^\\s{2}(persistence|cache|messaging):\\s*([a-zA-Z0-9-]+)\\s*$");
-    private static final Pattern LOCAL_ONLINE_PORT = Pattern.compile("(?m)^\\s{2}localOnlinePort:\\s*(\\d+)\\s*$");
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     private final Path root;
     private final Path logDir;
@@ -33,7 +28,7 @@ public final class CpfBootstrap {
 
     private record DbBinding(String vendor, String host, int port, String databaseName, String serviceName, String schemaName,
                              String migrationUser, String runtimeUser, String migrationSecretEnv, String runtimeSecretEnv, Path profile) {}
-    private record Domain(String name, String systemCode, Path definition, Path project, Map<String,String> features, int localOnlinePort, DbBinding db) {}
+    private record Domain(String name, String systemCode, Path contract, Path project, Map<String,String> features, int localOnlinePort, DbBinding db) {}
     private record ExecResult(int exit, String output) {}
 
     private CpfBootstrap(Path root, int timeoutSeconds) throws Exception {
@@ -155,33 +150,27 @@ public final class CpfBootstrap {
     }
 
     private void discoverDomains() throws Exception {
-        Path defs = root.resolve("domains");
-        if (!Files.isDirectory(defs)) throw new IllegalStateException("public domain catalog missing: " + defs);
         Set<String> names = new HashSet<>(), codes = new HashSet<>();
-        try (DirectoryStream<Path> children = Files.newDirectoryStream(defs)) {
-            for (Path dir : children) {
-                Path definition = dir.resolve("cpf-domain.yaml");
-                if (!Files.isRegularFile(definition)) continue;
-                String text = Files.readString(definition, StandardCharsets.UTF_8);
-                Matcher block = DOMAIN_BLOCK.matcher(text);
-                if (!block.find()) throw new IllegalStateException("domain block missing: " + definition);
-                String body = block.group(1);
-                Matcher nm = DOMAIN_NAME.matcher(body), cm = SYSTEM_CODE.matcher(body);
-                if (!nm.find() || !cm.find()) throw new IllegalStateException("invalid domain name/systemCode: " + definition);
-                String name = nm.group(1), code = cm.group(1);
+        try (DirectoryStream<Path> children = Files.newDirectoryStream(root, "cpf-*")) {
+            for (Path project : children) {
+                Path contract = project.resolve("gradle.properties");
+                if (!Files.isRegularFile(contract) || !Files.isRegularFile(project.resolve("settings.gradle"))) continue;
+                Properties values = new Properties();
+                try (Reader reader = Files.newBufferedReader(contract, StandardCharsets.UTF_8)) { values.load(reader); }
+                if (!"1".equals(values.getProperty("cpf.domain.contractVersion"))) continue;
+                String name = values.getProperty("cpf.domain.name", "").trim();
+                String code = values.getProperty("cpf.domain.systemCode", "").trim();
+                if (!name.matches("[a-z][a-z0-9-]*") || !code.matches("[A-Z][A-Z0-9]{2}"))
+                    throw new IllegalStateException("invalid domain name/systemCode: " + contract);
                 if (!names.add(name)) throw new IllegalStateException("duplicate domain name=" + name);
                 if (!codes.add(code)) throw new IllegalStateException("duplicate systemCode=" + code);
-                Path project = root.resolve("cpf-" + name);
-                if (!Files.isRegularFile(project.resolve("settings.gradle"))) throw new IllegalStateException("domain dependency requires physical project: " + name + " -> " + project);
+                if (!project.getFileName().toString().equals("cpf-" + name)) throw new IllegalStateException("domain root/name mismatch: " + project);
                 Map<String,String> features = new HashMap<>();
-                Matcher fm = FEATURE_VALUE.matcher(text);
-                while (fm.find()) features.put(fm.group(1), fm.group(2));
-                Matcher pm = LOCAL_ONLINE_PORT.matcher(text);
-                if (!pm.find()) throw new IllegalStateException("runtime.localOnlinePort missing: " + definition);
-                int localOnlinePort = Integer.parseInt(pm.group(1));
-                if (localOnlinePort < 18080 || localOnlinePort > 18999) throw new IllegalStateException("runtime.localOnlinePort out of range: " + localOnlinePort + " file=" + definition);
+                for (String feature : List.of("persistence","cache","messaging")) features.put(feature, values.getProperty("cpf.domain." + feature, "none"));
+                int localOnlinePort = Integer.parseInt(values.getProperty("cpf.domain.localOnlinePort", "0"));
+                if (localOnlinePort < 18080 || localOnlinePort > 18999) throw new IllegalStateException("runtime.localOnlinePort out of range: " + localOnlinePort + " file=" + contract);
                 DbBinding db = features.getOrDefault("persistence", "none").equals("none") ? null : loadDbBinding(name, code);
-                domains.add(new Domain(name, code, definition, project, features, localOnlinePort, db));
+                domains.add(new Domain(name, code, contract, project, features, localOnlinePort, db));
             }
         }
         domains.sort(Comparator.comparing(Domain::name));
@@ -419,7 +408,7 @@ public final class CpfBootstrap {
     private void applyTrackedSql(Domain d, String db, String user, String container, String vendor, String password) throws Exception {
         Path base = root.resolve("build/cpf-local").resolve(d.name).resolve("db3").resolve(vendor);
         Files.createDirectories(base);
-        List<String> render=List.of("java", root.resolve("bin/CpfGeneratorLauncher.java").toString(), "db", "render", "--file", root.relativize(d.definition).toString(), "--vendor", vendor, "--output", base.toString());
+        List<String> render=List.of("java", root.resolve("bin/CpfGeneratorLauncher.java").toString(), "db", "render", "--file", root.relativize(d.contract).toString(), "--vendor", vendor, "--output", base.toString());
         runChecked(render, baseEnv, Math.max(timeoutSeconds,120), null, true);
         List<Path> migrations;
         try(var stream=Files.list(base)){ migrations=stream.filter(p->p.getFileName().toString().startsWith("V")&&p.getFileName().toString().endsWith(".sql")).sorted().toList(); }
@@ -639,7 +628,7 @@ public final class CpfBootstrap {
     private static String envOrDefault(String env,String fallback){ return firstNonBlank(System.getenv(env),fallback); }
     private static String firstNonBlank(String... values){ for(String v:values) if(v!=null&&!v.isBlank()) return v.trim(); return ""; }
     private static boolean isWindows(){ return System.getProperty("os.name","").toLowerCase(Locale.ROOT).contains("win"); }
-    private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("domains"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
+    private static Path locateRoot(){ Path p=Path.of(System.getProperty("user.dir")).toAbsolutePath(); while(p!=null){ if(Files.isRegularFile(p.resolve("settings.gradle"))&&Files.isDirectory(p.resolve("config"))) return p; p=p.getParent(); } throw new IllegalStateException("CPF Public Workspace root not found"); }
     private static String readDefaultTimeout(Path root){ Properties p=new Properties(); Path f=root.resolve("config/cpf-workspace.properties"); try{ if(Files.isRegularFile(f)) try(Reader r=Files.newBufferedReader(f)){p.load(r);} }catch(Exception ignored){} return p.getProperty("cpf.bootstrap.timeout-seconds","300"); }
     private static Map<String,String> parseArgs(String[] args){ Map<String,String> m=new LinkedHashMap<>(); String command="bootstrap"; for(int i=0;i<args.length;i++){ String a=args[i]; if(!a.startsWith("--")&&!a.startsWith("-")){command=a;continue;} if(a.equals("--db")&&i+1<args.length)m.put("db",args[++i]); else if(a.equals("--timeout")&&i+1<args.length)m.put("timeout",args[++i]); else if(a.equals("--run"))m.put("run","true"); else if(a.equals("--full"))m.put("full","true"); else if(a.equals("--confirm-local-reset"))m.put("confirm-local-reset","true"); else throw new IllegalArgumentException("unknown option="+a);} m.put("command",command); return m; }
     private static String safeUri(String uri){ try{ URI u=URI.create(uri); return new URI(u.getScheme(),null,u.getHost(),u.getPort(),u.getPath(),null,null).toString(); }catch(Exception e){ return "<configured>"; } }

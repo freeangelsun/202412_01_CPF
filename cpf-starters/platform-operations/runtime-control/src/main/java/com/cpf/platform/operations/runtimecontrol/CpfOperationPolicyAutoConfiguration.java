@@ -1,8 +1,11 @@
 package com.cpf.platform.operations.runtimecontrol;
 
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
+import com.cpf.foundation.execution.api.CpfExecutionCatalogPort;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import com.cpf.platform.operations.channelregistry.application.CpfChannelPolicyService;
+import com.cpf.platform.operations.runtimecontrol.catalog.CpfExecutionCatalogRepository;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
@@ -32,14 +35,16 @@ public class CpfOperationPolicyAutoConfiguration {
     @ConditionalOnMissingBean(CpfOperationAccessPolicy.class)
     CpfJdbcOperationAccessPolicy cpfOperationAccessPolicy(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbc,
+            CpfVendorSqlCatalogProvider catalogs,
             Environment env,
             ObjectProvider<Clock> clocks,
             ObjectProvider<CpfChannelPolicyService> channelPolicies) {
         return new CpfJdbcOperationAccessPolicy(
                 jdbc,
+                catalogs,
                 env.getProperty("cpf.operation-policy.refresh-interval", Duration.class, Duration.ofSeconds(2)),
                 env.getProperty("cpf.operation-policy.max-stale", Duration.class, Duration.ofMinutes(5)),
-                clocks.getIfAvailable(Clock::systemUTC),
+                clocks.getIfUnique(Clock::systemUTC),
                 channelPolicies.getIfAvailable());
     }
 
@@ -56,7 +61,8 @@ public class CpfOperationPolicyAutoConfiguration {
     @ConditionalOnMissingBean(CpfOperationCatalogRegistry.class)
     CpfOperationCatalogRegistry cpfOperationCatalogRegistry(
             @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbc,
-            PlatformTransactionManager manager,
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager manager,
+            CpfVendorSqlCatalogProvider catalogs,
             Environment env,
             ObjectProvider<Clock> clocks) {
         String raw = env.getProperty(SEED_ALLOWED_CALLERS, "");
@@ -66,9 +72,20 @@ public class CpfOperationPolicyAutoConfiguration {
         return new CpfJdbcOperationCatalogRegistry(
                 jdbc,
                 new TransactionTemplate(manager),
-                clocks.getIfAvailable(Clock::systemUTC),
+                catalogs,
+                clocks.getIfUnique(Clock::systemUTC),
                 callers,
                 env.getProperty(SEED_SOURCE, "YML"),
                 env.getProperty(SEED_REVISION, "UNSPECIFIED"));
+    }
+
+    @Bean
+    @ConditionalOnBean(CpfVendorSqlCatalogProvider.class)
+    @ConditionalOnMissingBean(CpfExecutionCatalogPort.class)
+    CpfExecutionCatalogPort cpfExecutionCatalogPort(
+            @Qualifier("cpfJdbcTemplate") JdbcTemplate jdbc,
+            @Qualifier("cpfTransactionManager") PlatformTransactionManager manager,
+            CpfVendorSqlCatalogProvider catalogs) {
+        return new CpfExecutionCatalogRepository(jdbc, new TransactionTemplate(manager), catalogs);
     }
 }

@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-08-23T18:17:00+09:00",
+  "sourceIdentity": {
+    "sha256": "e865b9c40d8159afcad9bf7592f71d6de1f944236bba10f56edc7fe18a069321",
+    "sha1": "1b798002f94458f5ecc575616c30706305a708b7",
+    "files": 8279,
+    "bytes": 75180913
+  },
+  "findingId": "CX-F-201",
+  "result": "PASS_TARGETED",
+  "verified": [
+    "Immutable migration regressions 10/10 PASS",
+    "Official builder passes twice and explicitly skips canonical referenceFixture for PostgreSQL and Oracle",
+    "All four independent referenceFixture history/rollback directories remain absent",
+    "MariaDB source/runtime and PostgreSQL/Oracle discovered migration checksum integrity PASS"
+  ],
+  "next": "Actual PostgreSQL FreshInstall/V135 Upgrade/RollbackReapply lifecycle.",
+  "falseGreen": false
+}

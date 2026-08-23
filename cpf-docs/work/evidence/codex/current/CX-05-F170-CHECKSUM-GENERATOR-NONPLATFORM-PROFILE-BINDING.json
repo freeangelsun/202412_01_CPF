@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-08-23T14:15:00+09:00",
+  "findingId": "CX-F-170",
+  "status": "CLOSED",
+  "sourceIdentity": "59acf779716338a6d2f782ef5902634e7defa127068fdc29265405e1b771e4f3",
+  "title": "Checksum maintenance rejects an enabled non-Platform profile binding as a missing Platform migration pack",
+  "command": "pwsh -NoProfile -File cpf-tools/db/tools/generate-migration-checksums.ps1 -Root . -Apply",
+  "actual": {
+    "mariadbRuntimeManifest": "V135 appended successfully",
+    "failure": "current Platform migration pack missing: vendor=postgresql database=referenceFixture",
+    "exitCode": 1
+  },
+  "integrity": "The command stopped before PostgreSQL/Oracle V135 registration. Existing manifest bytes were validated before any append; MariaDB contains the one intended append and no historical rewrite.",
+  "rootCause": "The maintenance owner treated every enabled lifecycle target as a same-named production historical pack. The canonical REFERENCE_FIXTURE is instead the non-production current projection of immutable refDB lineage and intentionally has no referenceFixture migration directory.",
+  "repair": "Resolve the fixture physical name from canonical platformDatabaseArchitecture, exclude only that canonical non-production target from same-name production-pack requirements, retain exact cpfDB/mbwDB fail-closed requirements, and add an immutable-generation regression.",
+  "verification": "Exact maintenance command exits 0 across every discovered three-vendor pack; prior prefixes are exact; immutable/current-edge targeted suite passes 23/23; complete checksum gate passes.",
+  "closed": true
+}

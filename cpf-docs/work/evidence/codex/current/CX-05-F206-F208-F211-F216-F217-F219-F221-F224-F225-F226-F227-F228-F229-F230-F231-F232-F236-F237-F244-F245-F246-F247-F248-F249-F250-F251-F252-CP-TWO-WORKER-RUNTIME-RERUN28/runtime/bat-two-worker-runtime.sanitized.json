@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-08-23T22:57:23.3332377+09:00",
+  "status": "FAILED",
+  "clientAdapter": "Docker",
+  "controlPlane": {
+    "status": "DONE",
+    "port": 8279,
+    "liveness": 200
+  },
+  "registration": {},
+  "distribution": {},
+  "drain": {},
+  "crashUnknown": {},
+  "mismatch": {},
+  "endedAt": "2026-08-23T22:58:10.9585872+09:00"
+}

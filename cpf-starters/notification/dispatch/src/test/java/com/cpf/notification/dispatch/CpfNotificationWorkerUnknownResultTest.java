@@ -35,17 +35,18 @@ class CpfNotificationWorkerUnknownResultTest {
                 .thenReturn(List.of(new JdbcCpfNotificationOutbox.ClaimedNotification(request, lineage, 0)));
         CpfNotificationProvider provider = mock(CpfNotificationProvider.class);
         when(provider.channel()).thenReturn("email");
-        when(provider.send(request)).thenReturn(CpfNotificationResult.unknown("N-1", "email", "timeout"));
+        Instant now = Instant.parse("2026-08-02T00:00:00Z");
+        when(provider.send(request)).thenReturn(CpfNotificationResult.unknown("N-1", "email", "timeout", now));
         var properties = new CpfNotificationProperties(
                 true, "w", 10, Duration.ofSeconds(30), Duration.ofSeconds(30), Duration.ofMinutes(1));
         var worker = new CpfNotificationWorker(
                 outbox, List.of(provider), new CpfNotificationPreferencePolicy(), properties,
-                Clock.fixed(Instant.parse("2026-08-02T00:00:00Z"), ZoneOffset.UTC), codec);
+                Clock.fixed(now, ZoneOffset.UTC), codec);
 
         worker.runOnce("w", 10);
 
         verify(outbox).markUnknown(
-                CpfNotificationResult.unknown("N-1", "email", "timeout"),
+                CpfNotificationResult.unknown("N-1", "email", "timeout", now),
                 Instant.parse("2026-08-02T00:01:00Z"));
         verify(outbox, never()).complete(org.mockito.ArgumentMatchers.any());
     }
@@ -72,7 +73,7 @@ class CpfNotificationWorkerUnknownResultTest {
         worker.runOnce("w", 10);
 
         verify(outbox).markUnknown(
-                CpfNotificationResult.unknown("N-2", "email", "socket closed"),
+                CpfNotificationResult.unknown("N-2", "email", "socket closed", now),
                 Instant.parse("2026-08-02T00:01:00Z"));
         verify(outbox, never()).retry(
                 org.mockito.ArgumentMatchers.anyString(),

@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-08-23T17:11:00+09:00",
+  "findingId": "CX-F-189",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentity": {"sha256":"cd29347cb098031b4591496fb476e8fa69f9cf4a3f3d3f93ff34042e327a872e","sha1":"992c1daf11725875b3f540264c477ba05571a005","files":8193,"bytes":75014534},
+  "priorExecution": {"command":"gradlew.bat :internal:platform-operations:runtime-control:test --no-daemon --max-workers=1 -PcpfResourceProfile=test --stacktrace","exitCode":0,"result":"BUILD SUCCESSFUL in 18s; compileJava compileTestJava and test executed"},
+  "addedTest": "CpfExecutionCatalogRepositoryTest",
+  "contracts": ["findById requires nonblank and passes trimmed ID to exact execution-catalog-find-by-id literal", "upsertAll runs one TransactionTemplate batch using exact execution-catalog-upsert literal and all 18 canonical values/YN flags"],
+  "next": "Execute the newly added exact test and complete module suite sequentially.",
+  "falseGreen": false
+}

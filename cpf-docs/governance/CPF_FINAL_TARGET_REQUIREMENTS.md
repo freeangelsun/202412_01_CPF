@@ -162,6 +162,7 @@ Canonical System6 업무 Transaction 강제 대상:
 
 - `cpf-admin` 플랫폼 관리 API
 - `cpf-gateway` 운영/관리 API
+- `cpf-batch` Control Plane의 Runtime·Job Pack·Orchestration 관리 API
 - 일반 Health/Actuator endpoint
 
 이들 관리 API도 일반 Security/Validation/Trace/Audit/Error Handling은 사용하지만 업무 Operation Policy와 System6를 억지로 적용하지 않는다.
@@ -372,8 +373,9 @@ Generated Business Domain의 물리 Project, Runtime Module, Java Namespace, Bus
 
 ```text
 cpf-<domain>/                         # Domain Project / Gradle Project boundary
-  cpf-domain.yaml                    # 단일 Logical Definition 정본
-  cpf-generator.lock.json            # Generator ownership/diff lock
+  build.gradle                       # Domain aggregate build contract
+  settings.gradle                    # Developer-facing module/build registration
+  gradle.properties                  # Developer Domain contract (`cpf.domain.*`)
   online/                            # Online Runtime Gradle Module
     src/main/java/
       <domain-package>/              # Java Namespace root
@@ -403,7 +405,7 @@ cpf-<domain>/                         # Domain Project / Gradle Project boundary
 - `src/main/java/<domain-package>`는 Java Base Package이며 제거하지 않는다.
 - Runtime Module 이름 `online`/`batch`를 Java package 안에 다시 반복하지 않는다.
 - Domain 이름을 Business Feature 이름으로 자동 재사용하지 않는다.
-- `businessFeatures`는 `cpf-domain.yaml`의 명시적 업무 Feature 목록이며 Domain Identity/Capability와 분리한다.
+- `cpf.domain.businessFeatures`는 root `gradle.properties`의 명시적 업무 Feature 목록이며 Domain Identity/Capability와 분리한다.
 - Business Feature가 아직 지정되지 않은 최초 scaffold는 reserved `sample`을 사용한다. 실제 Feature가 지정되면 해당 Feature를 사용한다.
 - `base/`에는 Generator-owned bootstrap, 공통 infrastructure adapter, 공통 추상 contract만 둘 수 있고 실제 업무 Controller/Service/Repository를 몰아넣지 않는다.
 - 모든 Feature에 모든 Technical Role을 억지로 만들지 않는다. 선택 Capability/Dependency가 요구하는 Role만 생성한다.
@@ -487,39 +489,34 @@ CpfBase -> DomainBase -> Business Implementation
 
 ## 10. Domain Setup / Sync / Ownership
 
-### 10.1 `cpf-domain.yaml` 정본
+### 10.1 Developer Domain Contract
 
-Generated Domain root의 `cpf-domain.yaml`은 **source-controlled Logical Domain Definition**이다.
+Generated Customer Domain은 고객 개발자가 실제 업무를 개발·빌드·테스트하는 결과물 영역이다. Root의 source-controlled `gradle.properties`가 Gradle, Generator, Runtime이 함께 읽는 **Developer Domain Contract**이며 `cpf.domain.*` key로 logical identity, module, feature, capability, dependency, integration intent를 선언한다.
 
 최소 의미:
 
-```yaml
-domain:
-  name: member
-  systemCode: MBR
-  packageName: member
-  tablePrefix: MBR
-
-modules:
-  online: true
-  batch: true
-
-preset: standard-enterprise
-
-capabilities:
-  persistence: mybatis
-  cache: none
-  messaging: none
-  externalHttp: true
-
-domainDependencies:
-  - targetSystemCode: ACC
-    operations: [ACC-ACCOUNT-GET]
-externalClients: []
-
-generation:
-  sampleTransaction: true
+```properties
+cpf.domain.contractVersion=1
+cpf.domain.name=member
+cpf.domain.systemCode=MBR
+cpf.domain.packageName=member
+cpf.domain.tablePrefix=MBR
+cpf.domain.preset=standard-enterprise
+cpf.domain.online=true
+cpf.domain.batch=true
+cpf.domain.businessFeatures=customer,profile
+cpf.domain.persistence=mybatis
+cpf.domain.httpClient=true
+cpf.domain.resilience=true
+cpf.domain.cache=none
+cpf.domain.messaging=none
+cpf.domain.sampleTransaction=false
+cpf.domain.generationMode=generated
+cpf.domain.dependencies=
+cpf.domain.externalClients=
 ```
+
+Generator 입력 전용 descriptor는 명시적 일회성 입력으로만 사용할 수 있고 Generated Root에 복사·보존하지 않는다. `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 lock/state/manifest, `.cpf/` 숨김 상태, cache/trace/evidence는 Fresh output과 기존 Generated Root, Open Git, Source ZIP/Release Package에 존재해서는 안 된다. Generator는 Developer Contract와 현재 Template에서 expected output을 deterministic하게 재계산하고 검증 실행 중 필요한 transient state만 `cpf-docs/work/evidence/generated/domain-generator/verification/**`가 소유한다.
 
 금지:
 
@@ -601,10 +598,10 @@ Generated Domain 예:
 
 | 구분 | 예 | Owner |
 |---|---|---|
-| Logical Domain | member / MBR | `cpf-domain.yaml` |
-| Logical DB ID | `mbrDB` | Domain Definition |
-| DB Role | `CUSTOMER_BUSINESS_DB` | Domain Definition |
-| Table Prefix | `MBR_` | Domain Definition |
+| Logical Domain | member / MBR | root `gradle.properties` Developer Domain Contract |
+| Logical DB ID | `mbrDB` | Developer Domain Contract에서 결정적 파생 |
+| DB Role | `CUSTOMER_BUSINESS_DB` | Developer Domain Contract |
+| Table Prefix | `MBR_` | Developer Domain Contract |
 | Vendor | PostgreSQL | Environment Binding |
 | Host/Port | 환경값 | Environment Binding |
 | Database/Service | 환경값 | Environment Binding |
@@ -881,7 +878,7 @@ prerequisite check
 
 `stop`은 data/volume을 삭제하지 않는다. `reset`만 명시적으로 data destructive 동작을 할 수 있다.
 
-Domain 추가/삭제 후 다시 실행하면 workspace definition/`cpf-domain.yaml`을 재발견해야 하며 hardcoded Domain list를 사용하지 않는다.
+Domain 추가/삭제 후 다시 실행하면 각 `cpf-<domain>/gradle.properties`의 `cpf.domain.contractVersion` 계약을 재발견해야 하며 hardcoded Domain list를 사용하지 않는다.
 
 장시간 외부 wait에는 timeout과 진행상황을 출력한다.
 
@@ -932,6 +929,54 @@ fresh public clone
 ```
 
 repository URL/version은 중앙 설정으로 관리한다.
+
+### 21.3 Open Git Release Packaging
+
+Open Git 릴리즈는 Private CPF Source에서 생성하는 **검증된 Projection**이며 독립 개발 정본이 아니다.
+
+#### 21.3.1 Owner와 생성 Lifecycle
+
+- Private master가 유일한 개발 정본이며 생성/정책/검증 Owner는 `cpf-tools/release/open-git/**`다. 기존 `cpf-tools/release/public/**`은 검증된 공통 구현으로 재사용할 수 있지만 Consumer 0과 완전 대체가 입증되기 전에는 삭제하거나 이중 정본으로 복제하지 않는다.
+- Private Repository Root의 생성 전용 디렉터리는 정확히 `cpf-release/`로 고정하고 Private Git 및 Source Identity에서 제외한다. 최종 구조는 `cpf-release/open-git`, `cpf-release/binary-repository`, `cpf-release/reports`, `cpf-release/logs`다.
+- 매 실행은 Root/ignore/tracked-file/symlink 보호 검사를 먼저 수행하고 기존 `cpf-release/`만 안전 제거한 뒤 신규 생성한다. Open Git Working Repository도 지정 Remote에서 fresh clone하며 이전 Projection, Binary 또는 `.git`을 재사용하지 않는다.
+- Release Tool이 수행할 수 있는 Git write의 최종선은 `cpf-release/open-git/.git`에 대한 `git add -A`, `git diff --cached --check`, `READY_TO_COMMIT`이다. Private master를 포함한 어느 저장소에도 commit/push/branch/tag/reset/clean을 자동 실행하지 않는다.
+
+#### 21.3.2 Source/Binary 공개 경계
+
+- Open Git Source는 Generated Customer Domain, Backoffice 고객 개발 Surface, Backoffice Web Channel/BFF, EDU 35 Example, Developer Command 및 필요한 공개 계약·설정만 포함한다.
+- `cpf-core`, `cpf-common`, ADM, Gateway, Batch Runtime/Worker/Scheduler/Agent, Starter/Internal Provider, Private release engine, governance/QA/evidence/work, secret/credential의 구현 Source Tree는 포함하지 않는다.
+- Open Git Source Workspace에는 누적 CPF JAR/WAR를 포함하지 않는다. Framework 소비 Binary는 별도 형제 `binary-repository`에 Maven-compatible 구조로 제공한다.
+- Binary Repository는 실제 공개 Catalog가 허용한 BOM/API/SPI/Starter/Runtime/Generator만 제공한다. 임의 Group/Artifact/Version 또는 Private Source 복사로 누락을 우회하지 않는다.
+- `sources.jar`/`javadoc.jar`도 Source 공개로 취급해 Default-Deny한다. Common/Public Starter/Public API·SPI 중 Catalog가 명시 허용한 항목만 제공하며 Core/ADM/Gateway/Batch/Internal Runtime 및 Provider는 binary-only다.
+- Surface와 Artifact 모두 미분류 1건, Private Source/경로 1건, 금지 sources/javadoc 1건, secret/credential 1건, POM의 미제공 CPF dependency 1건이라도 Release Blocker다.
+
+#### 21.3.3 사용자 명령과 실행 UX
+
+- Release 담당자 Canonical UX는 `cpf open-git`, `cpf open-git check`, `cpf open-git status`다.
+- Open Git 개발자 Golden Path는 `cpf bootstrap`, `cpf build`, `cpf test`, `cpf verify`, `cpf domain new`, `cpf domain sync`, `cpf status`, `cpf stop`, `cpf reset --confirm`이다. 실제 Package의 Help/Dispatcher/Wrapper가 공개하는 **모든 명령과 옵션**을 Inventory 정본으로 추출하고 Golden Path뿐 아니라 전수 실행한다.
+- 기존 개별 Script는 단일 Dispatcher를 호출하는 호환 Wrapper로만 유지할 수 있다. PowerShell과 POSIX Shell은 명령·옵션·기본값·ExitCode·안전 계약이 같아야 한다.
+- 장시간 명령은 현재/전체 Stage와 실제 하위 실행 출력을 콘솔에 계속 표시하고 Timestamp 로그를 동시에 남긴다. 종료 시 명령 목적의 최종 상태, PASS/FAIL, ExitCode, 시작/완료 시각, 절대 로그 경로, 실패 원인과 다음 행동을 표시한다.
+- `stop`은 Runtime만 안전하게 종료하며 Source/개발 Data를 삭제하지 않는다. `reset`은 명시적 `--confirm` 또는 동등 승인 없이는 어떠한 destructive action도 시작하지 않는다.
+
+#### 21.3.4 Fresh 개발자 Acceptance
+
+다음 흐름을 **생성된 Open Git fresh checkout과 별도 isolated Gradle/Maven cache만으로** 끝까지 실제 실행한다. Private CPF Source, Private 경로, `mavenLocal()` 또는 과거 CPF Artifact가 성공에 기여하면 False Green이다.
+
+```text
+Fresh checkout → 초기 설정 → cpf bootstrap → 기존 Domain build/test
+→ 신규 Domain 생성 → domain sync/bootstrap → 생성 Domain compile/test
+→ Runtime 기동 → Health/대표 업무 호출 → cpf stop
+```
+
+- `cpf bootstrap`은 Java 25, Git/Docker/필요 시 Node, CPF Version/Binary Repository, Container/DB, Migration/Seed, Domain 인식, Build/Test, Runtime/Health를 실제 준비하고 성공 시 정확히 `CPF LOCAL DEVELOPMENT READY`를 출력한다.
+- 신규 Domain은 ExitCode만 보지 않고 Developer Contract, Directory IA, Java Package, Starter dependency, DB 설정, Build registration과 생성물을 검증하고 생성 직후 compile/test한다. 지원 옵션 조합은 fresh generate로 검증하고 sync/bootstrap 재실행은 멱등 또는 안전 복구돼야 한다. Generator 입력/상태 metadata가 결과 Root에 남으면 실패다.
+- EDU/Backoffice/Generated Domain의 대표 Public API/Starter Consumer를 실제 compile/run해 Binary 존재만으로 PASS하지 않는다.
+- Java 버전 오류, Docker 미기동, Binary Repository 불가, 잘못된 CPF Version, 잘못되거나 중복된 Domain identity, 필수 옵션 누락, DB 연결 실패, Build/Test 실패, bootstrap 중간 실패 후 재실행, reset 확인 누락, 존재하지 않는 명령/옵션을 실제 실패경로로 검증한다.
+- 환경 때문에 실행할 수 없는 항목은 PASS가 아니라 `미검증/BLOCKED_EXTERNAL`로 남기고 환경, 명령, 실제 오류와 재실행 조건을 기록한다.
+
+#### 21.3.5 READY Gate
+
+Source/Artifact 정책, Generator/Catalog parity, Open Git build/test, Fresh Consumer, Manifest/SHA, secret/leakage, staged diff가 모두 통과하고 모든 공개 개발자 명령이 목적을 수행한 경우에만 `READY_TO_COMMIT`이다. 명령/Help/Mock 파일만 존재하거나 Private Source/Maven Local에 의존하거나 Domain compile/test, Runtime/Health, 실패경로를 실행하지 않은 상태는 PASS가 아니다. 필수 사용자 명령 하나라도 사용 불가하거나 필수 검증 하나라도 미실행이면 Open Git Release 전체를 READY로 판정하지 않는다.
 
 ## 22. EDU Canonical 35
 
@@ -1281,8 +1326,8 @@ Current canonical 역할:
 | `CPF-SYSTEM6` | cpf-core contract + trusted ingress/runtime adapters | 업무 Domain Online Transaction의 논리 거래 Context를 `X-Transaction-Id`, `X-Original-System-Code`, `X-System-Code`, `X-Caller-System-Code`, `X-Target-System-Code`, `X-Target-Operation-Id` 6개로 고정한다. Browser는 작성하지 못하고 Same-JVM은 in-process Context, Remote 경계는 6개를 serialize/deserialize하며 Receiver는 System/Target/Operation 정합을 Controller 실행 전에 검증한다. | Header/Context unit+contract, Browser spoof negative, Same-JVM/Remote parity, mismatch pre-controller reject, async/retry propagation Evidence |
 | `CPF-INSTANCE` | runtime identity + platform operations | `instanceId`는 명시 property/env를 우선하고 없으면 실제 runtime hostname을 bootstrap 시 1회 확정한다. localhost/unknown/Domain명 등 fabricated fallback을 금지한다. 동일 Host에서 동일 System의 다중 Process는 explicit instanceId가 필수이며 active `{systemCode,instanceId}` 충돌 시 READY 금지다. | bootstrap unit, hostname failure, same-host multiprocess collision, registry/readiness, log/trace/ADM identity Evidence |
 | `CPF-OPERATION` | online transaction contract + operation registry/policy | `@CpfOnlineTransaction.operationId` = OpenAPI operationId = Target Operation Header = Domain Client = Registry/ADM/Log/Trace의 단일 안정 ID다. Source는 operation 사실/metadata/discovery를, ADM Policy는 enabled/allowedCallerSystems 및 별도 channel policy를 소유한다. Source 미발견은 단일 instance 기준 자동삭제하지 않는다. | annotation/OpenAPI/client parity, policy seed/override, multi-instance discovery, ALL/unknown/disabled negative, LKG/fail-close Evidence |
-| `GEN-DOMAIN` | cpf-tools generator + generated business domain contract | Generated Business Domain은 `cpf-<domain>/online/<feature>/<technical-role>` Feature-First를 기본으로 하고 `batch=true`일 때만 `batch/<feature>/<role>`을 생성한다. 공유 `domain/`은 실제 2개 이상 Runtime Consumer가 있을 때만 만든다. Generated Domain은 Public Starter/API만 소비하고 Internal Leaf와 vendor DB source folder를 직접 노출하지 않는다. | fresh generate normalized parity, package/ownership gate, internal dependency 0, optional batch include/exclude, user source protection Evidence |
-| `GEN-SETUP` | cpf-tools domain setup/sync | Domain root의 source-controlled `cpf-domain.yaml`에 logical identity/module/capability/dependency/integration을 선언하고 `domain setup/create/sync/diff`가 workspace, build, Public Starter, config template, generated clients, bootstrap/runtime discovery 준비를 일관되게 처리한다. 위험 변경은 dry-run/diff와 fail-closed를 요구하고 user-owned source를 silent overwrite하지 않는다. | setup validation corpus, duplicate/port/dependency cycle negative, dry-run/idempotency/sync, user-owned protection, public workspace consumer Evidence |
+| `GEN-DOMAIN` | cpf-tools generator + generated business domain contract | Generated Business Domain은 고객 개발자가 실제 업무를 개발하는 결과물 영역이다. `cpf-<domain>/online/<feature>/<technical-role>` Feature-First를 기본으로 하고 `batch=true`일 때만 `batch/<feature>/<role>`을 생성한다. 공유 `domain/`은 실제 2개 이상 Runtime Consumer가 있을 때만 만든다. Public Starter/API와 Developer-Facing Source/Build/설정만 노출하며 Internal Leaf, vendor DB source folder, Generator 입력·lock·state·cache·evidence를 생성하지 않는다. | fresh generate normalized parity, root cleanliness, package/ownership gate, forbidden metadata 0, internal dependency 0, optional batch include/exclude, user source protection Evidence |
+| `GEN-SETUP` | cpf-tools domain setup/sync | Domain root의 source-controlled `gradle.properties` `cpf.domain.*` Developer Contract에 logical identity/module/capability/dependency/integration을 선언하고 `domain setup/create/sync/diff`가 workspace, build, Public Starter, config template, generated clients, bootstrap/runtime discovery 준비를 일관되게 처리한다. 명시적 외부 descriptor는 transient 입력일 뿐 결과 Root에 저장하지 않는다. 위험 변경과 exact Generated-owned 삭제는 dry-run/diff 및 명시적 승인으로 fail-closed하고 user-owned source를 silent overwrite하지 않는다. | setup validation corpus, duplicate/port/dependency cycle negative, dry-run/idempotency/sync, stateless regenerate, user-owned protection, public workspace consumer Evidence |
 | `DB-BINDING` | cpf-tools DB lifecycle + generated domain setup | Logical Domain Definition과 environment-specific DB Binding을 분리한다. Generated Domain의 logical DB ID는 기본 `<systemCode lower>DB`이고 Oracle/PostgreSQL/MariaDB 중 Domain별 vendor를 독립 선택한다. host/service/database/schema, migration principal, runtime principal, secret reference는 Binding이 소유하며 raw secret은 Source/Evidence에 금지한다. | DB3 binding matrix, migration/runtime account separation, secret scan, persistence=none/no-binding, required DB missing fail-close, vendor-change dry-run Evidence |
 | `MBW-WEB` | cpf-backoffice-web | Backoffice Web은 Frontend SPA + Spring Boot BFF Reference다. DB dependency, CPF Internal Java dependency, Business Domain Java project dependency는 0이어야 한다. Published OpenAPI/protocol schema로 생성된 HTTP Client 사용은 허용·권장하며 Browser session/cookie/CSRF와 server-side credential propagation은 BFF가 소유하고 Browser는 protected CPF Header를 작성하지 않는다. | dependency gate, OpenAPI generated client consumer, session/CSRF/security negative, Browser header spoof negative, Gateway→MBW E2E Evidence |
 | `REL-PUBLIC-WORKSPACE` | cpf-tools release/public workspace | Public Git Workspace는 empty-directory default-deny staging으로 PUBLIC 분류된 developer source/config/script/docs만 포함하고 Private framework/internal/provider/governance/QA/evidence/secret과 누적 CPF JAR을 포함하지 않는다. commit/push는 자동화하지 않는다. | unclassified=0, private leakage=0, secret=0, manifest/hash, clean clone build/setup/bootstrap, manual commit boundary Evidence |
@@ -1299,6 +1344,7 @@ Current canonical 역할:
 - `X-Original-Channel`, `X-Current-Channel` 등을 Canonical System6 alias로 사용
 - `callerChannel`을 Caller System authorization의 대체값으로 사용
 - Generated Domain root vendor DB folder
+- Generated Domain root 또는 생성 결과의 `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름만 바꾼 Generator state/lock/manifest와 `.cpf/` 숨김 상태
 - Generated Domain의 Internal Starter 직접 dependency
 - Browser protected CPF Header authoring
 - same-JVM self-HTTP

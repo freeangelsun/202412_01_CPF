@@ -2,25 +2,23 @@ package com.cpf.batch.worker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
+import com.cpf.messaging.api.CpfBrokerConsumerControl;
+import com.cpf.messaging.api.CpfBrokerConsumerControlPort;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
-import org.springframework.kafka.listener.MessageListenerContainer;
 
 class SpringBatchWorkerRuntimeStateTest {
-    private static final String GROUP_ID = "cpf-batch-remote-workers-v2";
+    private static final int PREFETCH = 7;
 
     @Test
-    void missingKafkaWorkerListenerIsFailClosed() {
-        KafkaListenerEndpointRegistry registry = mock(KafkaListenerEndpointRegistry.class);
-        when(registry.getAllListenerContainers()).thenReturn(List.of());
+    void missingBrokerControlPortIsFailClosed() {
         SpringBatchWorkerRuntimeState runtime = runtime(
-                registry, new BatchRuntimePolicy(), new WorkerExecutionTracker(), 4);
+                List.of(), new BatchRuntimePolicy(), new WorkerExecutionTracker(), 4);
 
         runtime.reconcile();
 
@@ -28,89 +26,78 @@ class SpringBatchWorkerRuntimeStateTest {
         assertThat(runtime.actualState()).isEqualTo(ActualState.DEGRADED);
         assertThat(runtime.availableCapacity()).isZero();
         assertThat(runtime.lastErrorCode())
-                .isEqualTo(SpringBatchWorkerRuntimeState.LISTENER_UNAVAILABLE);
+                .isEqualTo(SpringBatchWorkerRuntimeState.CONTROL_PORT_UNAVAILABLE);
         assertThat(runtime.dependencyHealth())
-                .containsEntry("springBatchKafkaWorker", "NOT_AVAILABLE");
+                .containsEntry("brokerConsumerControl", "NOT_AVAILABLE");
     }
 
     @Test
-    void drainAndResumeControlOnlyTheConfiguredWorkerConsumerGroup() throws Exception {
-        KafkaListenerEndpointRegistry registry = mock(KafkaListenerEndpointRegistry.class);
-        MessageListenerContainer worker = runningContainer(GROUP_ID);
-        MessageListenerContainer unrelated = runningContainer("unrelated-group");
-        when(registry.getAllListenerContainers()).thenReturn(List.of(worker, unrelated));
+    void drainAndResumeApplyProviderNeutralBrokerControl() throws Exception {
+        CpfBrokerConsumerControlPort controlPort = mock(CpfBrokerConsumerControlPort.class);
         WorkerExecutionTracker tracker = new WorkerExecutionTracker();
         SpringBatchWorkerRuntimeState runtime = runtime(
-                registry, new BatchRuntimePolicy(), tracker, 4);
+                List.of(controlPort), new BatchRuntimePolicy(), tracker, 4);
         runtime.reconcile();
+        verify(controlPort).apply(new CpfBrokerConsumerControl(false, 4, PREFETCH));
         assertThat(runtime.ready()).isTrue();
         assertThat(runtime.availableCapacity()).isEqualTo(4);
 
         WorkerExecutionTracker.Scope inFlight = tracker.begin("cpf-101", 101L, 19L);
         runtime.drain();
 
-        verify(worker).pause();
+        verify(controlPort).apply(new CpfBrokerConsumerControl(true, 4, PREFETCH));
         assertThat(runtime.draining()).isTrue();
         assertThat(runtime.drained()).isFalse();
         assertThat(runtime.actualState()).isEqualTo(ActualState.DRAINING);
         assertThat(runtime.currentExecutions()).containsExactly("cpf-101");
-        assertThat(runtime.activeLeases()).isEmpty();
+        assertThat(runtime.activeLeases())
+                .containsExactly("lease-epoch=1;fencing-token=19");
         assertThat(runtime.fencingToken()).isEqualTo(19L);
 
         inFlight.close();
         assertThat(runtime.drained()).isTrue();
 
-        when(worker.isPauseRequested()).thenReturn(true);
         runtime.resume();
-        verify(worker).resume();
+        verify(controlPort, times(2)).apply(new CpfBrokerConsumerControl(false, 4, PREFETCH));
         assertThat(runtime.draining()).isFalse();
     }
 
     @Test
     void runtimePolicyChangesTheActualHandlerAdmissionCapacity() {
-        KafkaListenerEndpointRegistry registry = mock(KafkaListenerEndpointRegistry.class);
-        MessageListenerContainer worker = runningContainer(GROUP_ID);
-        when(registry.getAllListenerContainers()).thenReturn(List.of(worker));
+        CpfBrokerConsumerControlPort controlPort = mock(CpfBrokerConsumerControlPort.class);
         BatchRuntimePolicy policy = new BatchRuntimePolicy();
         WorkerExecutionTracker tracker = new WorkerExecutionTracker();
-        SpringBatchWorkerRuntimeState runtime = runtime(registry, policy, tracker, 8);
+        SpringBatchWorkerRuntimeState runtime = runtime(List.of(controlPort), policy, tracker, 8);
         runtime.reconcile();
 
         assertThat(tracker.snapshot().capacityLimit()).isEqualTo(8);
         policy.replaceConcurrency(1L, true, 3);
         runtime.reconcile();
+        verify(controlPort).apply(new CpfBrokerConsumerControl(false, 3, PREFETCH));
         assertThat(tracker.snapshot().capacityLimit()).isEqualTo(3);
         assertThat(runtime.availableCapacity()).isEqualTo(3);
 
         policy.replaceConcurrency(2L, false, 3);
         runtime.reconcile();
-        verify(worker).pause();
+        verify(controlPort).apply(new CpfBrokerConsumerControl(true, 3, PREFETCH));
         assertThat(runtime.ready()).isFalse();
         assertThat(runtime.availableCapacity()).isZero();
         assertThat(runtime.actualState()).isEqualTo(ActualState.DRAINING);
     }
 
     private static SpringBatchWorkerRuntimeState runtime(
-            KafkaListenerEndpointRegistry registry,
+            List<CpfBrokerConsumerControlPort> controlPorts,
             BatchRuntimePolicy policy,
             WorkerExecutionTracker tracker,
             int maxConcurrency) {
         return new SpringBatchWorkerRuntimeState(
-                registry,
-                GROUP_ID,
+                controlPorts,
                 policy,
                 tracker,
                 "worker-1",
                 "1.0.0",
                 "GENERAL,FILE",
-                maxConcurrency);
-    }
-
-    private static MessageListenerContainer runningContainer(String groupId) {
-        MessageListenerContainer container = mock(MessageListenerContainer.class);
-        when(container.getGroupId()).thenReturn(groupId);
-        when(container.isRunning()).thenReturn(true);
-        when(container.isInExpectedState()).thenReturn(true);
-        return container;
+                maxConcurrency,
+                PREFETCH);
     }
 }

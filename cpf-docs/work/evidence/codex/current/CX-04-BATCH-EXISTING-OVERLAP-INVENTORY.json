@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-04-BATCH-EXISTING-OVERLAP-INVENTORY",
+  "startedAt": "2026-08-23T00:23:00+09:00",
+  "finishedAt": "2026-08-23T00:29:00+09:00",
+  "sourceIdentitySha256": "11eca41954dfb53b706a5f3efe30907ce0f273c16da6626e82714ab8329f6fa4",
+  "result": "INVENTORY_COMPLETE",
+  "modules": {
+    "count": 9,
+    "names": ["agent", "api", "center-cut", "control-plane", "runtime", "runtime-support", "scheduler", "testkit", "worker"],
+    "mainFiles": 251,
+    "mainJavaFiles": 233,
+    "testFiles": 77,
+    "testJavaFiles": 77,
+    "executableApplications": 5
+  },
+  "canonicalExecutionTopologies": ["LOCAL", "PARALLEL_STEPS", "LOCAL_PARTITION", "REMOTE_PARTITION", "REMOTE_CHUNK", "REMOTE_STEP"],
+  "implementation": {
+    "jobFactoryMaterializesAllTopologies": true,
+    "modeRelatedMainFiles": 11,
+    "modeRelatedTestFiles": 3,
+    "actualTwoWorkerSmoke": "cpf-tools/runtime/tools/smoke-bat-two-worker-runtime.ps1",
+    "publicBatchLifecycleCliFound": false,
+    "dedicatedPowerShellOrPosixLifecycleWrappersFound": false
+  },
+  "database": {
+    "vendors": ["oracle", "postgresql", "mariadb"],
+    "canonicalSchemaAndRuntimeQueriesPresent": true,
+    "installMigrationRollbackFilesPresent": true,
+    "liveCurrentSourceExecution": "NOT_YET_VERIFIED"
+  },
+  "reuse": {
+    "closedFindings": ["CX-F-029", "CX-F-030", "CX-F-032", "CX-F-033", "CX-F-034", "CX-F-077", "CX-F-078", "CX-F-083", "CX-F-085"],
+    "educationBatch": "15/15 current Private gate PASS",
+    "generatedOptionalBatch": "Current MBR Java25 compile PASS"
+  },
+  "classification": {
+    "ALREADY_CLOSED_AND_REUSABLE": ["Center-Cut focused behavior", "runtime identity unit scope", "ADM Batch typed/risk/security unit scope", "EDU Batch 15 static/executable scope", "Generated optional Batch compile scope"],
+    "IMPACTED_REVALIDATION_REQUIRED": ["Fresh Public Binary", "Open Git public Batch consumer", "ADM runtime/browser integration"],
+    "PARTIAL": ["all six topology implementation/runtime tests", "Scheduler/Worker/Agent multi-process", "process-kill/recovery", "public lifecycle CLI/shell UX"],
+    "ENVIRONMENT_BLOCKED": ["live DB3 until Docker/native client recheck", "Linux runtime shell on current Windows host"]
+  },
+  "findingDecision": "No Product defect is opened from file absence alone; owner/consumer/runtime trace determines root-cause findings next."
+}

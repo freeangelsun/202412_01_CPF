@@ -59,7 +59,7 @@ class CenterCutReconciliationControllerTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("CENTER_CUT_EXECUTION_NOT_FOUND");
         verify(jdbc, never()).update(
-                eq("centercut-reconcile-unknown-items"), any());
+                eq("centercut-reconcile-unknown-items"), any(Object[].class));
     }
 
 
@@ -126,13 +126,24 @@ class CenterCutReconciliationControllerTest {
                 .hasMessageContaining(
                         "CENTER_CUT_JOB_SCOPE_RECONCILE_DISABLED_USE_EXECUTION_SCOPE");
 
-        verify(jdbc, never()).update(eq("centercut-reconcile-unknown-job"), any());
+        verify(jdbc, never()).update(
+                eq("centercut-reconcile-unknown-job"), any(Object[].class));
     }
 
     @Test
     void auditsOnlyAfterBothUnknownTransitionsSucceed() {
         when(jdbc.update("centercut-reconcile-unknown-items", "exec-1")).thenReturn(2);
         when(jdbc.update("centercut-reconcile-unknown-execution", 2, 2, "exec-1"))
+                .thenReturn(1);
+        when(jdbc.update(
+                eq("centercut-reconcile-audit"),
+                eq("job-1"),
+                eq("RECONCILE_UNKNOWN"),
+                eq("requester"),
+                eq("verified business result"),
+                any(),
+                eq("approver"),
+                eq("approver")))
                 .thenReturn(1);
 
         controller.unknownExecution("exec-1", request, http);

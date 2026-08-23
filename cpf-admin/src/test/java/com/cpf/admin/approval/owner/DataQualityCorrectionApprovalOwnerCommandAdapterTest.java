@@ -3,14 +3,17 @@ package com.cpf.admin.approval.owner;
 import com.cpf.admin.approval.api.AdmApprovalExecutionStatus;
 import com.cpf.admin.approval.api.AdmApprovedOperationCommand;
 import com.cpf.admin.approval.repository.AdmApprovalRepository;
+import com.cpf.admin.approval.security.AdmApprovalCapabilityNonceRepository;
+import com.cpf.admin.approval.security.AdmDataQualityCorrectionGateway;
 import com.cpf.admin.approval.security.AdmApprovalSnapshotIntegrity;
 import com.cpf.admin.approval.security.AdmDataQualityApprovalProofService;
 import com.cpf.data.api.quality.CpfDataQualityOperations;
-import com.cpf.data.spi.quality.CpfDataQualityCorrectionPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,11 +27,16 @@ import static org.mockito.Mockito.*;
 class DataQualityCorrectionApprovalOwnerCommandAdapterTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AdmApprovalSnapshotIntegrity integrity = new AdmApprovalSnapshotIntegrity(objectMapper);
-    private final CpfDataQualityCorrectionPort correction = mock(CpfDataQualityCorrectionPort.class);
+    private final AdmDataQualityCorrectionGateway correction = mock(AdmDataQualityCorrectionGateway.class);
     private final CpfDataQualityOperations query = mock(CpfDataQualityOperations.class);
     private final AdmApprovalRepository repository = mock(AdmApprovalRepository.class);
+    private final AdmApprovalCapabilityNonceRepository nonceRepository =
+            mock(AdmApprovalCapabilityNonceRepository.class);
     private final AdmDataQualityApprovalProofService proofService = new AdmDataQualityApprovalProofService(
-            Base64.getEncoder().encodeToString(new byte[32]));
+            Base64.getEncoder().encodeToString(new byte[32]),
+            nonceRepository,
+            Duration.ofMinutes(15),
+            Clock.systemUTC());
     private final DataQualityCorrectionApprovalOwnerCommandAdapter adapter =
             new DataQualityCorrectionApprovalOwnerCommandAdapter(correction, query, objectMapper, repository, integrity, proofService);
 

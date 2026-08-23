@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F131-MANAGEMENT-HEADER-BOUNDARY-TARGETED-RERUN2",
+  "startedAt": "2026-08-23T03:05:17+09:00",
+  "finishedAt": "2026-08-23T03:06:00.5011229+09:00",
+  "finding": "CX-F-131",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentity": "a07140b7efc0bf9256764b5385e4a05406062e8ebb7b49207b1c26e8f1027158",
+  "command": ".\\gradlew.bat :framework:web:test --tests com.cpf.web.runtime.CpfWebContextFilterManagementBoundaryTest --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "gradleTasks": "15 executed",
+  "junit": {"tests": 3, "failures": 0, "errors": 0, "skipped": 0, "timeSeconds": 2.327},
+  "verified": [
+    "default /actuator and descendants are management boundaries",
+    "/actuatorx and ordinary business paths are not exempt",
+    "custom base path honors servlet context path",
+    "root base path exempts only Boot-discovered endpoint roots and descendants"
+  ],
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F131-MANAGEMENT-HEADER-BOUNDARY-TARGETED-RERUN2.log",
+  "next": "Fresh rebuild and actual headerless Health/business negative runtime checks."
+}

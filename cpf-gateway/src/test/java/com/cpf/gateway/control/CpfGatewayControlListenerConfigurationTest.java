@@ -2,6 +2,7 @@ package com.cpf.gateway.control;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.InetAddress;
 import org.apache.catalina.connector.Connector;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,9 @@ class CpfGatewayControlListenerConfigurationTest {
         assertThat(connector.getPort()).isEqualTo(9070);
         assertThat(connector.getScheme()).isEqualTo("https");
         assertThat(connector.getSecure()).isTrue();
-        assertThat(connector.getProperty("address")).isEqualTo("127.0.0.1");
-        assertThat(connector.getProperty("SSLEnabled")).isEqualTo("true");
+        assertThat(connector.getProperty("address")).isInstanceOf(InetAddress.class);
+        assertThat(((InetAddress) connector.getProperty("address")).getHostAddress())
+                .isEqualTo("127.0.0.1");
+        assertThat(connector.getProperty("SSLEnabled")).isEqualTo(Boolean.TRUE);
     }
 }

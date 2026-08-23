@@ -133,7 +133,7 @@ try {
             $TablePrefix.Trim().ToUpperInvariant()
         }
         $temporaryDefinitionRoot = Join-Path $frameworkRoot (
-            'build/domain-generator/federation-input/' + [guid]::NewGuid().ToString('N'))
+            'cpf-docs/work/evidence/generated/domain-generator/federation-input/' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Force -Path $temporaryDefinitionRoot | Out-Null
         $definitionPath = Join-Path $temporaryDefinitionRoot 'cpf-domain.yaml'
         $definitionText = @"
@@ -197,7 +197,7 @@ generation:
         throw "Standalone Repository가 이미 있습니다. 사용자 Source를 덮어쓰지 않습니다: $target"
     }
     $generatedSourceParent = Join-Path $frameworkRoot (
-        'build/domain-generator/federation-staging/' + [guid]::NewGuid().ToString('N'))
+        'cpf-docs/work/evidence/generated/domain-generator/federation-staging/' + [guid]::NewGuid().ToString('N'))
     $generatedSourceRoot = Join-Path $generatedSourceParent ([string]$definition.projectName)
 
     if ($DryRun) {
@@ -210,8 +210,8 @@ generation:
             systemCode = [string]$definition.systemCode
             target = $target
             canonicalSchema = 'cpf-tools/generator/contracts/cpf-domain.schema.json'
-            definitionSha256 = [string]$definition.definitionSha256
-            generatedProjectMetadata = 'NONE'
+            contractSha256 = [string]$definition.contractSha256
+            generatedProjectMetadata = 'ABSENT'
             databaseVendor = if ([bool]$definition.databaseEnabled) { $DatabaseVendor } else { $null }
             artifactMode = $ArtifactMode
             batchCapabilitySelection = 'PROJECT_SETUP'

@@ -1,0 +1,25 @@
+{
+  "findingId": "CX-F-227",
+  "status": "OPEN",
+  "observedAt": "2026-08-23T20:50:03+09:00",
+  "sourceIdentitySha256": "ec40f2cf10e4731781db78d1ecf32f43fd9607265c4e876028042b14d01bdba0",
+  "runId": "b4200823c011",
+  "scope": "generic optional Clock consumers across public Starters",
+  "result": "FAILED",
+  "rootCause": "Twelve generic ObjectProvider<Clock> consumers call getIfAvailable, which requires a unique candidate and throws in a valid composed runtime containing multiple owner-scoped Clock beans.",
+  "firstFailure": "CpfOperationPolicyAutoConfiguration.cpfOperationAccessPolicy",
+  "affectedOwners": [
+    "base runtime idempotency",
+    "platform operation policy",
+    "platform observability",
+    "security resource server",
+    "integration resilience",
+    "integration HTTP service-call"
+  ],
+  "requiredFix": "Use the established getIfUnique(Clock::systemUTC) optional-clock contract at every generic consumer and enforce zero unsafe usages with a repository verifier.",
+  "cleanup": {
+    "disposableDatabases": 0,
+    "disposableRoles": 0
+  },
+  "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F206-F208-F211-F216-F217-F219-F221-F224-F225-F226-TWO-WORKER-RUNTIME-RERUN11/**"
+}

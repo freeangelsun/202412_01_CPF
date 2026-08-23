@@ -42,7 +42,12 @@ public record CpfBrokerPublishRequest(
         if (values == null || values.isEmpty()) return Map.of();
         java.util.LinkedHashMap<String, String> copy = new java.util.LinkedHashMap<>();
         for (var entry : values.entrySet()) {
-            String name = require(entry.getKey(), label + " key");
+            String rawName = entry.getKey();
+            if (rawName != null && !rawName.equals(rawName.trim())) {
+                throw new IllegalArgumentException(
+                        label + " key must not contain surrounding whitespace: " + rawName);
+            }
+            String name = require(rawName, label + " key");
             String value = require(entry.getValue(), label + "[" + name + "]");
             if (copy.put(name, value) != null) throw new IllegalArgumentException(label + " contains duplicate key: " + name);
         }

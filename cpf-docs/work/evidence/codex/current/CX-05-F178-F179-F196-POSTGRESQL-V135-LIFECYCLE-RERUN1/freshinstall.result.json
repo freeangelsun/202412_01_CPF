@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "tool": "run-db-vendor-lifecycle.ps1",
+  "vendor": "postgresql",
+  "mode": "FreshInstall",
+  "status": "UNKNOWN",
+  "executionStarted": true,
+  "reconcileRequired": true,
+  "lifecyclePlan": "cpf-docs/work/evidence/codex/current/CX-05-F178-F179-F196-POSTGRESQL-V135-LIFECYCLE-RERUN1/freshinstall.plan.json",
+  "lifecyclePlanSha256": "fca22f53fe97ee09b1d78cc522fec5f7f6c34d521de9cb2e45a63764ba42b5a6",
+  "profileSha256": "978b5127ef291c79a2ffea4f73552f156e976fef802827e843dd4da2d8bf89fe",
+  "adapter": {
+    "ready": true,
+    "mode": "Docker",
+    "client": "psql",
+    "image": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1",
+    "imageId": "sha256:7fcd59fe809e1b8862d316f1742aae07312c88d4a0fa496259d4251fd71f64b5",
+    "probeNetwork": "none"
+  },
+  "startedAt": "2026-08-23T08:32:36.7127475+00:00",
+  "finishedAt": "2026-08-23T08:32:42.7195710+00:00",
+  "approvalReference": "CPF-VERIFY-c273b2aee963",
+  "error": "Docker DB lifecycle adapter failed: exit=1",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "c273b2aee963"
+}

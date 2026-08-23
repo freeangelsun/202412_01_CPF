@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-08-23T14:25:00+09:00",
+  "sourceIdentity": "c5af8ea6c944818d6cff0ce563c9e2d67465e442a91c078a752dce3437acbe57",
+  "maintenanceCommandExitCode": 0,
+  "result": "PASS",
+  "manifests": [
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/checksums.sha256",
+      "prefixExact": true,
+      "prefixSha256": "9176ca8ce5689e80b1642387dd537bff049695b9e696c56fe11e4c6827f63621",
+      "linesBefore": 114,
+      "linesAfter": 115,
+      "appended": "e08d9605a5bb4dab66d927c634fca09fd5ff145ab3f9f6ae0370feee15004e8b *V135__current_binding_and_response_contract.sql",
+      "appendedHashMatchesFile": true,
+      "manifestSha256After": "df84f525ba67464c838b75ef45d14826b8abbe29d36832d25050574a7a9fb2c0"
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/checksums.sha256",
+      "prefixExact": true,
+      "prefixSha256": "50fd18a400f6ab961e6332c37bf877be6faa593ddd4e600b6c347ca6fa1a7fa1",
+      "linesBefore": 31,
+      "linesAfter": 32,
+      "appended": "f92967aa4b71bf96a5578c0426fd9f5bef2f21774dbb92293b80417a201fe87e *V135__current_binding_and_response_contract.sql",
+      "appendedHashMatchesFile": true,
+      "manifestSha256After": "025e9cd621f316587512d8aeed0317896b21015359a645574e9c952a9af78faf"
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/checksums.sha256",
+      "prefixExact": true,
+      "prefixSha256": "a2f24c889aa9b6bff6ac3bedac88ba68c3bd6cf2486b592a89075df470cd4f79",
+      "linesBefore": 31,
+      "linesAfter": 32,
+      "appended": "58de1c2970fad5414bb82272b00cde05ad22c56189311a4122f083dbfb944c25 *V135__current_binding_and_response_contract.sql",
+      "appendedHashMatchesFile": true,
+      "manifestSha256After": "9c06c04366003d9d2dcb67fe69de514145c9d2cf7f80bb10ca0ae86803b06ced"
+    }
+  ],
+  "historicalMutation": false,
+  "appendCountPerCurrentPack": 1
+}

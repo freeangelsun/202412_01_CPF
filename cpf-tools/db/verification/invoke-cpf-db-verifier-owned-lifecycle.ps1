@@ -14,6 +14,33 @@ $rootPath=(Resolve-Path -LiteralPath $Root).Path
 $evidence=if([IO.Path]::IsPathRooted($EvidenceRoot)){[IO.Path]::GetFullPath($EvidenceRoot)}else{[IO.Path]::GetFullPath((Join-Path $rootPath $EvidenceRoot))}
 [IO.Directory]::CreateDirectory($evidence)|Out-Null
 if($SourceSha -notmatch '^[0-9a-f]{40}$'){throw 'Exact 40-char source content identity is required.'}
+function Get-CurrentEdgeVersionFromChecksumManifests([string]$RepositoryRoot){
+    $vendorEdges=[ordered]@{}
+    foreach($officialVendor in @('mariadb','postgresql','oracle')){
+        $migrationRoot=Join-Path $RepositoryRoot "cpf-tools/db/vendor/$officialVendor/migration/flyway"
+        $manifests=@(Get-ChildItem -LiteralPath $migrationRoot -Recurse -File -Filter 'checksums.sha256' | Sort-Object FullName)
+        if($manifests.Count -eq 0){throw "Official migration checksum manifest is missing: vendor=$officialVendor"}
+        $versions=[Collections.Generic.HashSet[int]]::new()
+        foreach($manifest in $manifests){
+            foreach($line in Get-Content -LiteralPath $manifest.FullName -Encoding UTF8){
+                if([string]::IsNullOrWhiteSpace($line)){continue}
+                $match=[regex]::Match($line,'^(?<sha>[0-9a-f]{64})\s+\*?V(?<version>[0-9]+)__[^\\/]+\.sql$')
+                if(-not $match.Success){throw "Malformed official migration checksum entry: vendor=$officialVendor manifest=$($manifest.FullName) line=$line"}
+                [void]$versions.Add([int]$match.Groups['version'].Value)
+            }
+        }
+        if($versions.Count -eq 0){throw "Official migration checksum manifest is empty: vendor=$officialVendor"}
+        $vendorEdges[$officialVendor]=[int]($versions | Measure-Object -Maximum).Maximum
+    }
+    $edges=@($vendorEdges.Values | Sort-Object -Unique)
+    if($edges.Count -ne 1){
+        $detail=@($vendorEdges.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ', '
+        throw "Official vendors disagree on the current migration edge: $detail"
+    }
+    return [pscustomobject]@{selectionMode='CHECKSUM_MANIFEST_CURRENT_EDGE';version=[int]$edges[0];vendorEdges=$vendorEdges}
+}
+$currentEdgeSelection=Get-CurrentEdgeVersionFromChecksumManifests $rootPath
+$currentEdgeVersion=[int]$currentEdgeSelection.version
 $adminSecret=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
 if([string]::IsNullOrWhiteSpace($adminSecret)){throw 'CPF_ADMIN_PASSWORD is required from the FullLocal Docker secret environment.'}
 $runId=([guid]::NewGuid().ToString('N').Substring(0,12)).ToLowerInvariant()
@@ -55,16 +82,18 @@ $env:CPF_VERIFY_DB_RUNTIME_PASSWORD=('R!n_'+[guid]::NewGuid().ToString('N')+'8y'
 $lifecycle=Join-Path $rootPath 'cpf-tools/db/tools/run-db-vendor-lifecycle.ps1'
 $migration=Join-Path $rootPath 'cpf-tools/db/tools/invoke-platform-database-migration.ps1'
 $cleanup=Join-Path $rootPath 'cpf-tools/db/verification/cleanup-cpf-db-verifier-owned.ps1'
-$result=[ordered]@{schemaVersion=1;vendor=$Vendor;runId=$runId;sourceSha=$SourceSha;status='RUNNING';stages=@();profile=(Split-Path -Leaf $profilePath);sanitized=$true;startedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+$result=[ordered]@{schemaVersion=1;vendor=$Vendor;runId=$runId;sourceSha=$SourceSha;status='RUNNING';stages=@();profile=(Split-Path -Leaf $profilePath);migrationSelection=$currentEdgeSelection;sanitized=$true;startedAt=[DateTimeOffset]::UtcNow.ToString('o')}
 function Invoke-Lifecycle([string]$Mode,[switch]$PreCurrent,[switch]$CurrentApplied){
     $stem=$Mode.ToLowerInvariant();$plan=Join-Path $evidence "$stem.plan.json";$res=Join-Path $evidence "$stem.result.json";$logs=Join-Path $evidence "$stem.logs"
-    & $lifecycle -Vendor $Vendor -Mode $Mode -Root $rootPath -ProfilePath $profilePath -ClientAdapter Docker -DockerImage $DockerImage -DockerNetwork $DockerNetwork -LogDir $logs -LifecyclePlanPath $plan -ResultPath $res -VerifierOwnedDisposable -VerifierRunId $runId
+    $selectionParameters=if($Mode -eq 'FreshInstall'){@{}}else{@{MigrationVersion=$currentEdgeVersion}}
+    & $lifecycle -Vendor $Vendor -Mode $Mode -Root $rootPath -ProfilePath $profilePath -ClientAdapter Docker -DockerImage $DockerImage -DockerNetwork $DockerNetwork -LogDir $logs -LifecyclePlanPath $plan -ResultPath $res -VerifierOwnedDisposable -VerifierRunId $runId @selectionParameters
     if($LASTEXITCODE -ne 0){throw "DB lifecycle plan failed mode=$Mode"}
     $planned=Get-Content -LiteralPath $res -Raw -Encoding UTF8|ConvertFrom-Json -Depth 50
     $args=@('-NoProfile','-File',$lifecycle,'-Vendor',$Vendor,'-Mode',$Mode,'-Root',$rootPath,'-ProfilePath',$profilePath,'-ClientAdapter','Docker','-DockerImage',$DockerImage,'-DockerNetwork',$DockerNetwork,'-LogDir',$logs,'-LifecyclePlanPath',$plan,'-ResultPath',$res,'-ConfirmExecute','-ConfirmApplicationsStopped','-ConfirmRollbackReady','-ExpectedLifecyclePlanSha256',[string]$planned.lifecyclePlanSha256,'-Operator',$operator,'-Reason',$reason,'-ApprovalReference',$approval,'-VerifierOwnedDisposable','-VerifierRunId',$runId)
     if($PreCurrent){$args+='-ConfirmPreCurrentFixture'}
     if($CurrentApplied){$args+='-ConfirmCurrentMigrationApplied'}
     if($Mode -ne 'FreshInstall'){
+        $args+=@('-MigrationVersion',$currentEdgeVersion)
         $planJson=Get-Content -LiteralPath $plan -Raw -Encoding UTF8|ConvertFrom-Json -Depth 100
         $upgrade=@($planJson.stages|Where-Object direction -eq 'upgrade'|Select-Object -First 1)
         if($upgrade.Count -eq 0){$upgrade=@($planJson.stages|Where-Object stage -eq 'Reapply'|Select-Object -First 1)}
@@ -80,12 +109,12 @@ function Invoke-Lifecycle([string]$Mode,[switch]$PreCurrent,[switch]$CurrentAppl
 }
 function Invoke-PreCurrentRollback {
     $dry=Join-Path $evidence 'prepare-pre-current.dry-run.json';$applied=Join-Path $evidence 'prepare-pre-current.result.json'
-    & $migration -Root $rootPath -ProfilePath $profilePath -Direction rollback -ResultPath $dry -DryRun
+    & $migration -Root $rootPath -ProfilePath $profilePath -Direction rollback -MigrationVersion $currentEdgeVersion -ResultPath $dry -DryRun
     if($LASTEXITCODE -ne 0){throw 'Pre-current rollback dry-run failed.'}
     $plan=Get-Content -LiteralPath $dry -Raw -Encoding UTF8|ConvertFrom-Json -Depth 50
     $execRoot=Join-Path $evidence 'prepare-pre-current-docker';[IO.Directory]::CreateDirectory($execRoot)|Out-Null
     Copy-Item -LiteralPath $profilePath -Destination (Join-Path $execRoot 'profile.json') -Force
-    $dockerArgs=@('run','--rm','--network',$DockerNetwork,'--mount',"type=bind,source=$rootPath,target=/workspace/cpf,readonly",'--mount',"type=bind,source=$execRoot,target=/workspace/result",'--workdir','/workspace/cpf','--env','CPF_VERIFY_DB_ADMIN_PASSWORD','--env','CPF_VERIFY_DB_MIGRATION_PASSWORD','--env','CPF_VERIFY_DB_RUNTIME_PASSWORD',$DockerImage,'pwsh','-NoProfile','-File','/workspace/cpf/cpf-tools/db/tools/invoke-platform-database-migration.ps1','-Root','/workspace/cpf','-ProfilePath','/workspace/result/profile.json','-Direction','rollback','-ResultPath','/workspace/result/rollback.json','-Apply','-ConfirmApply','-ConfirmApplicationsStopped','-ConfirmRollbackReady','-ExpectedPlanSha256',[string]$plan.planSha256,'-Operator',$operator,'-Reason',$reason,'-ApprovalReference',$approval,'-VerifierOwnedDisposable','-VerifierRunId',$runId)
+    $dockerArgs=@('run','--rm','--network',$DockerNetwork,'--mount',"type=bind,source=$rootPath,target=/workspace/cpf,readonly",'--mount',"type=bind,source=$execRoot,target=/workspace/result",'--workdir','/workspace/cpf','--env','CPF_VERIFY_DB_ADMIN_PASSWORD','--env','CPF_VERIFY_DB_MIGRATION_PASSWORD','--env','CPF_VERIFY_DB_RUNTIME_PASSWORD',$DockerImage,'pwsh','-NoProfile','-File','/workspace/cpf/cpf-tools/db/tools/invoke-platform-database-migration.ps1','-Root','/workspace/cpf','-ProfilePath','/workspace/result/profile.json','-Direction','rollback','-MigrationVersion',$currentEdgeVersion,'-ResultPath','/workspace/result/rollback.json','-Apply','-ConfirmApply','-ConfirmApplicationsStopped','-ConfirmRollbackReady','-ExpectedPlanSha256',[string]$plan.planSha256,'-Operator',$operator,'-Reason',$reason,'-ApprovalReference',$approval,'-VerifierOwnedDisposable','-VerifierRunId',$runId)
     & docker @dockerArgs
     if($LASTEXITCODE -ne 0){throw 'Pre-current rollback execution failed.'}
     $script:result.stages += [ordered]@{stage='PreparePreCurrentFixture';status='PASS';planSha256=[string]$plan.planSha256}

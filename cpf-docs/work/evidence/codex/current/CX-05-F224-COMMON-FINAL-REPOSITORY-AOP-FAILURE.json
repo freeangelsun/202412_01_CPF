@@ -1,0 +1,17 @@
+{
+  "finding": "CX-F-224",
+  "runId": "b4200823c008",
+  "recordedAt": "2026-08-23T20:37:00+09:00",
+  "sourceIdentitySha256": "c5bb3b9b6ed38e837773d21f12ab42211ce2f7036769f249980dc8c4acb89932",
+  "actualFailure": {
+    "bean": "cmnJdbcErrorCatalogRepository",
+    "exception": "AopConfigException: Cannot subclass final class CmnJdbcErrorCatalogRepository",
+    "proxyOwner": "CpfCommonJdbcAutoConfiguration @EnableAspectJAutoProxy(proxyTargetClass=true)",
+    "advice": "Spring @Repository persistence exception translation"
+  },
+  "rootCause": "The mandatory Common JDBC repository is a package-private final @Repository while Common intentionally uses class-based Spring proxies. Its repository exception-translation advice therefore cannot create a proxy in an actual packaged Runtime.",
+  "f223": "CLOSED_BY_ACTUAL_REPLAY: fenced Broker reconciler/publisher Bean construction passed",
+  "cleanup": {"status": "PASS", "databaseLeaks": 0, "roleLeaks": 0},
+  "status": "OPEN",
+  "next": "Make only the Spring repository implementation proxyable, retain its internal interface/visibility/Repository advice, add exact contract, run complete Common tests, rebuild and replay."
+}

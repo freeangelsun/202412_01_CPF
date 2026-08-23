@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F125-AGENT-SECURITY-CONTRACT-FIX-IDENTITY",
+  "startedAt": "2026-08-23T01:19:00+09:00",
+  "finishedAt": "2026-08-23T01:22:08.4522206+09:00",
+  "beforeSourceIdentitySha256": "7052fb32e78d467251cdd9a03065aef001948bfd4b6fbb4f0d7a1c2b2e9106ce",
+  "afterSourceIdentitySha256": "e5fa725f6d698687c0b5bc4f85704db6eaa4015f005993b7b658fbe019962098",
+  "afterSourceIdentitySha1": "5826d7454f0285649ed998560c127cc80907279a",
+  "fileCount": 8215,
+  "totalBytes": 75809236,
+  "finding": "CX-F-125",
+  "findingState": "SOURCE_FIXED",
+  "changes": [
+    "Preserve explicit ARTIFACT_REPOSITORY_TLS_REQUIRED before the generic endpoint-policy wrapper.",
+    "Preserve explicit artifact metadata-service denial for IPv4, IPv6 EC2, and IPv4-mapped metadata endpoints.",
+    "Replace RFC 5737 documentation networks incorrectly used as public routable test fixtures.",
+    "Make the local HTTP Artifact Installer integration fixture explicitly opt into loopback development HTTP and its ephemeral port."
+  ],
+  "security": "No host, port, CIDR, TLS, pinning, private-address, special-use-address, or metadata-address restriction was relaxed.",
+  "postChangeCapacityGiB": {"freePhysical": 14.82, "freeCommit": 43.45},
+  "next": "Run the two exact test classes, then the full Agent suite without rerunning all dependency tasks."
+}

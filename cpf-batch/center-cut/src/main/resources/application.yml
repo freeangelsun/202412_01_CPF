@@ -25,11 +25,12 @@ cpf:
   framework:
     module-id: BAT
     was-id: ${CPF_WAS_ID:}
+  runtime:
+    role: CENTER_CUT
   batch:
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:
-      role: CENTER_CUT
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}
   center-cut:
     max-concurrency: ${CPF_CENTER_CUT_MAX_CONCURRENCY:1}

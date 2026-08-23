@@ -219,8 +219,8 @@ def main():
     if actual != role_expected: fail(f'canonical role set mismatch: {sorted(actual)}')
     forbidden={
       'mariadb':(r'GENERATED\s+BY\s+DEFAULT\s+AS\s+IDENTITY',r'\bBYTEA\b',r'\bVARCHAR2\b'),
-      'postgresql':(r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bVARCHAR2\b',r'\bFROM\s+dual\b'),
-      'oracle':(r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bBYTEA\b',r'\bON\s+DUPLICATE\s+KEY\b',r'\bON\s+CONFLICT\b',r'\bLIMIT\s+\d+\b')
+      'postgresql':(r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bVARCHAR2\b',r'\bVARBINARY\b',r'\bFROM\s+dual\b'),
+      'oracle':(r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bBYTEA\b',r'\bVARBINARY\b',r'\bON\s+DUPLICATE\s+KEY\b',r'\bON\s+CONFLICT\b',r'\bLIMIT\s+\d+\b')
     }
     for v in OFFICIAL:
         for f in (generated/v).glob('*.sql'):

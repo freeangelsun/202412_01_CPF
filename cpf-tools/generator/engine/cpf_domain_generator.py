@@ -24,7 +24,22 @@ SUPPORTED_VENDORS = ("oracle", "postgresql", "mariadb")
 SCHEMA_REL = Path("cpf-tools/generator/contracts/cpf-domain.schema.json")
 CATALOG_REL = Path("cpf-tools/generator/contracts/cpf-starter-catalog.json")
 STACK_REL = Path("gradle/cpf-stack.properties")
-GENERATOR_VERSION = "6.4.0"
+GENERATOR_VERSION = "6.4.1"
+GRADLE_DAEMON_JVMARGS = "-Xms250m -Xmx1000m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8"
+MANAGED_GENERATOR_REL = Path("cpf-docs/work/evidence/generated/domain-generator")
+
+
+def managed_generator_root(workspace_root: Path) -> Path:
+    """Generator-owned mutable state and QA output root를 반환합니다.
+
+    Product repository root에는 ``build/``를 만들지 않습니다. CI나 packaged CLI가 별도
+    disposable volume을 요구하면 ``CPF_GENERATOR_WORK_ROOT``로 명시할 수 있고, 기본값은
+    Source Identity와 Git 관리에서 제외된 repository managed-evidence owner입니다.
+    """
+    configured = os.environ.get("CPF_GENERATOR_WORK_ROOT", "").strip()
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return (workspace_root.resolve() / MANAGED_GENERATOR_REL).resolve()
 
 
 def _generator_resource_root(workspace_root: Path) -> Path:
@@ -50,21 +65,17 @@ def _generator_resource_root(workspace_root: Path) -> Path:
 
 
 def _canonical_domain_root(workspace_root: Path, domain_name: str) -> Path:
-    """Generated Business Domain의 source-controlled canonical root를 반환합니다.
-
-    Logical definition, ownership lock, generated source는 모두 ``cpf-<domain>/`` 아래에서
-    하나의 lifecycle을 이룹니다. Tool-side definitions는 migration input일 수는 있지만
-    current truth가 될 수 없습니다.
-    """
+    """Developer-Facing Generated Business Domain의 canonical source root를 반환합니다."""
     return workspace_root / f"cpf-{domain_name}"
 
 
-def _workspace_definition_paths(workspace_root: Path) -> list[Path]:
-    """Repository에 실제 존재하는 canonical root definitions를 이름순으로 반환합니다."""
-    return sorted(
-        (p for p in workspace_root.glob("cpf-*/cpf-domain.yaml") if p.is_file()),
-        key=lambda p: p.parent.name,
-    )
+def _workspace_contract_paths(workspace_root: Path) -> list[Path]:
+    """Developer-Facing Gradle Domain 계약만 Workspace authority로 읽습니다."""
+    contracts = []
+    for path in workspace_root.glob("cpf-*/gradle.properties"):
+        if path.is_file() and "cpf.domain.contractVersion=" in path.read_text(encoding="utf-8-sig"):
+            contracts.append(path)
+    return sorted(contracts, key=lambda p: p.parent.name)
 
 
 class DomainError(RuntimeError):
@@ -489,11 +500,73 @@ def validate_definition(raw: dict[str, Any]) -> DomainDefinition:
     if not 18080 <= local_online_port <= 18999: raise DomainError(f"runtime.localOnlinePort는 18080~18999 범위여야 합니다: {local_online_port}")
     return DomainDefinition(name,module,system,package,tuple(business_features),"CUSTOMER_BUSINESS_DB",prefix,preset,online,batch,persistence,http_client,resilience,cache,messaging,object_storage,security_profile,sample_tx,generation_mode,local_online_port,tuple(domain_dependencies),tuple(external_clients))
 
+
+def load_domain_gradle_contract(path: Path) -> DomainDefinition:
+    """Generated Root의 실제 Build 입력인 gradle.properties에서 Developer Domain 계약을 읽습니다."""
+    values: dict[str,str] = {}
+    for raw_line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key,value=line.split("=",1)
+        values[key.strip()]=value.strip()
+    required = {
+        "cpf.domain.contractVersion","cpf.domain.name","cpf.domain.systemCode","cpf.domain.packageName",
+        "cpf.domain.tablePrefix","cpf.domain.preset","cpf.domain.online","cpf.domain.batch",
+        "cpf.domain.businessFeatures","cpf.domain.persistence","cpf.domain.httpClient","cpf.domain.resilience",
+        "cpf.domain.cache","cpf.domain.messaging","cpf.domain.objectStorage","cpf.domain.securityProfile",
+        "cpf.domain.sampleTransaction","cpf.domain.generationMode","cpf.domain.localOnlinePort",
+        "cpf.domain.dependencies","cpf.domain.externalClients",
+    }
+    missing=sorted(required-set(values))
+    if missing:
+        raise DomainError(f"Generated Domain Gradle 계약 누락: {path}:{missing}")
+    if values["cpf.domain.contractVersion"] != "1":
+        raise DomainError(f"지원하지 않는 Generated Domain Gradle 계약입니다: {path}")
+    def boolean(key: str) -> bool:
+        value=values[key].lower()
+        if value not in {"true","false"}: raise DomainError(f"Generated Domain boolean 계약 오류: {path}:{key}")
+        return value == "true"
+    dependencies: dict[str,dict[str,Any]] = {}
+    for row in filter(None,values["cpf.domain.dependencies"].split(";")):
+        parts=row.split(":",2)
+        if len(parts)!=3: raise DomainError(f"Generated Domain dependency 계약 오류: {path}:{row}")
+        name,system,operations=parts
+        dependencies[name]={"systemCode":system,"operations":[x for x in operations.split(",") if x]}
+    external_clients: dict[str,dict[str,str]] = {}
+    for row in filter(None,values["cpf.domain.externalClients"].split(";")):
+        parts=row.split(":",2)
+        if len(parts)!=3: raise DomainError(f"Generated External Client 계약 오류: {path}:{row}")
+        name,client_id,capability=parts
+        external_clients[name]={"id":client_id,"capability":capability}
+    raw: dict[str,Any] = {
+        "domain":{"name":values["cpf.domain.name"],"systemCode":values["cpf.domain.systemCode"],"packageName":values["cpf.domain.packageName"]},
+        "database":{"role":"CUSTOMER_BUSINESS_DB","tablePrefix":values["cpf.domain.tablePrefix"]},
+        "preset":values["cpf.domain.preset"],
+        "modules":{"online":boolean("cpf.domain.online"),"batch":boolean("cpf.domain.batch")},
+        "businessFeatures":[x for x in values["cpf.domain.businessFeatures"].split(",") if x],
+        "features":{
+            "persistence":values["cpf.domain.persistence"],"httpClient":boolean("cpf.domain.httpClient"),
+            "resilience":boolean("cpf.domain.resilience"),"cache":values["cpf.domain.cache"],
+            "messaging":values["cpf.domain.messaging"],"objectStorage":values["cpf.domain.objectStorage"],
+            "securityProfile":values["cpf.domain.securityProfile"],
+        },
+        "generation":{"sampleTransaction":boolean("cpf.domain.sampleTransaction"),"mode":values["cpf.domain.generationMode"]},
+        "runtime":{"localOnlinePort":int(values["cpf.domain.localOnlinePort"])},
+        "domainDependencies":dependencies,
+        "externalClients":external_clients,
+    }
+    return validate_definition(raw)
+
+
+def load_domain_contract(path: Path) -> DomainDefinition:
+    return load_domain_gradle_contract(path) if path.name == "gradle.properties" else validate_definition(load_yaml_subset(path))
+
 def _load_workspace_definitions(root: Path, current: DomainDefinition | None = None) -> dict[str,DomainDefinition]:
     definitions: dict[str,DomainDefinition] = {}
-    for definition in _workspace_definition_paths(root):
+    for definition in _workspace_contract_paths(root):
         try:
-            item=validate_definition(load_yaml_subset(definition))
+            item=load_domain_contract(definition)
         except DomainError as exc:
             raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
         if item.name in definitions:
@@ -538,9 +611,9 @@ def validate_repository_uniqueness(root: Path, d: DomainDefinition, output: Path
     if not root.is_dir(): return
     attrs=(("domain.name","name"),("domain.systemCode","system_code"),("domain.packageName(derived)","package_name"),("database.tablePrefix","table_prefix"))
     requested_ports={d.local_online_port} if d.online else set()
-    candidates=_workspace_definition_paths(root)
+    candidates=_workspace_contract_paths(root)
     for definition in candidates:
-        try: other=validate_definition(load_yaml_subset(definition))
+        try: other=load_domain_contract(definition)
         except DomainError as exc: raise DomainError(f"기존 Generated Domain 정의가 유효하지 않습니다: {definition}: {exc}") from exc
         if other.name==d.name: continue
         other_ports={other.local_online_port} if other.online else set()
@@ -663,21 +736,78 @@ def _developer_selection_summary(d: DomainDefinition, catalog: dict[str, Any]) -
     }
 
 
-def render_root_settings(d: DomainDefinition) -> str:
+def render_root_settings(d: DomainDefinition, dependency_targets: Iterable[DomainDefinition] = ()) -> str:
     includes=(["online"] if d.online else []) + (["batch"] if d.batch else [])
-    lines=["// Generated Customer Domain 최소 IA settings입니다.", f"rootProject.name = 'cpf-{d.name}'"]
+    lines=[
+      "// Generated Customer Domain 최소 IA settings입니다.",
+      "def cpfDomainName = providers.gradleProperty('cpf.domain.name').get()",
+      "rootProject.name = \"cpf-${cpfDomainName}\"",
+      "if (rootDir.name != rootProject.name) {",
+      "    throw new GradleException(\"Generated Domain Root/name 불일치: root=${rootDir.name} contract=${rootProject.name}\")",
+      "}",
+      "",
+      "def cpfManagedGradleBase = providers.gradleProperty('cpfManagedGradleRoot')",
+      "        .orElse(providers.environmentVariable('CPF_MANAGED_GRADLE_ROOT'))",
+      "        .orElse(new File(gradle.gradleUserHomeDir, 'cpf/work/gradle').absolutePath).get()",
+      "def cpfManagedGradleRoot = new File(cpfManagedGradleBase, rootProject.name)",
+      "gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')",
+    ]
     for name in includes: lines.append(f"include '{name}'")
     lines += [
       "",
       "// CPF Product Source와 함께 하는 회귀검증에서만 명시적으로 Composite Build를 연결합니다.",
       "// 고객 Release Build는 이 속성을 지정하지 않고 배포된 CPF Artifact를 소비합니다.",
       "def cpfProductCompositeRoot = providers.gradleProperty('cpfProductCompositeRoot').orNull",
+      "def cpfDomainWorkspaceRoot = cpfProductCompositeRoot ? file(cpfProductCompositeRoot).canonicalFile : rootDir.parentFile.canonicalFile",
+    ]
+    for target in dependency_targets:
+        lines += [
+          f"def cpfDependencyRoot{target.class_name} = new File(cpfDomainWorkspaceRoot, 'cpf-{target.name}').canonicalFile",
+          f"def cpfDependencyContract{target.class_name} = new File(cpfDependencyRoot{target.class_name}, 'gradle.properties')",
+          f"if (!cpfDependencyContract{target.class_name}.isFile() || !new File(cpfDependencyRoot{target.class_name}, 'settings.gradle').isFile()) {{",
+          f"    throw new GradleException('Declared Domain dependency project is missing: {target.system_code}/{target.name} -> ' + cpfDependencyRoot{target.class_name})",
+          "}",
+          f"includeBuild(cpfDependencyRoot{target.class_name}) {{",
+          f"    name = 'cpf-domain-{target.name}'",
+          "    dependencySubstitution {",
+          f"        substitute module('{target.package_name}:online') using project(':online')",
+        ]
+        if target.batch:
+            lines.append(f"        substitute module('{target.package_name}:batch') using project(':batch')")
+        lines += ["    }", "}"]
+    lines += [
       "if (cpfProductCompositeRoot) {",
       "    def productRoot = file(cpfProductCompositeRoot).canonicalFile",
       "    if (!new File(productRoot, 'settings.gradle').isFile()) {",
       "        throw new GradleException(\"CPF Product composite root가 유효하지 않습니다: ${productRoot}\")",
       "    }",
-      "    includeBuild(productRoot) { name = 'cpf-product-source' }",
+      "    def starterCatalogFile = new File(productRoot, 'cpf-tools/generator/contracts/cpf-starter-catalog.json')",
+      "    if (!starterCatalogFile.isFile()) {",
+      "        throw new GradleException(\"CPF Public Starter catalog가 없습니다: ${starterCatalogFile}\")",
+      "    }",
+      "    def starterCatalog = new groovy.json.JsonSlurper().parse(starterCatalogFile)",
+      "    if (!(starterCatalog.modules instanceof List)) {",
+      "        throw new GradleException(\"CPF Public Starter catalog modules가 유효하지 않습니다: ${starterCatalogFile}\")",
+      "    }",
+      "    def publicStarterModules = starterCatalog.modules.findAll { row ->",
+      "        row instanceof Map && row.visibility?.toString() == 'public'",
+      "    }",
+      "    if (publicStarterModules.isEmpty()) {",
+      "        throw new GradleException(\"CPF Public Starter catalog에 public module이 없습니다: ${starterCatalogFile}\")",
+      "    }",
+      "    publicStarterModules.each { row ->",
+      "        if (!(row.groupId instanceof String) || !(row.artifactId instanceof String) || !(row.projectPath instanceof String)) {",
+      "            throw new GradleException(\"CPF Public Starter catalog 좌표가 유효하지 않습니다: ${row}\")",
+      "        }",
+      "    }",
+      "    includeBuild(productRoot) {",
+      "        name = 'cpf-product-source'",
+      "        dependencySubstitution {",
+      "            publicStarterModules.each { starter ->",
+      "                substitute module(\"${starter.groupId}:${starter.artifactId}\") using project(starter.projectPath.toString())",
+      "            }",
+      "        }",
+      "    }",
       "}",
     ]
     return "\n".join(lines)+"\n"
@@ -699,12 +829,18 @@ def cpfPublicRepositoryUrl = providers.environmentVariable('CPF_MAVEN_REPOSITORY
         .orElse(providers.environmentVariable('CPF_ARTIFACT_REPOSITORY_URL'))
         .orElse(providers.gradleProperty('cpfArtifactRepositoryUrl'))
         .orNull
+def cpfDomainName = providers.gradleProperty('cpf.domain.name').get()
+def cpfDomainSystemCode = providers.gradleProperty('cpf.domain.systemCode').get()
+def cpfDomainPackageName = providers.gradleProperty('cpf.domain.packageName').get()
+if (cpfDomainName != '{d.name}' || cpfDomainSystemCode != '{d.system_code}' || cpfDomainPackageName != '{d.package_name}') {{
+    throw new GradleException('Generated Domain 계약과 생성된 Build가 일치하지 않습니다. cpf domain sync를 실행하세요.')
+}}
 if (!cpfProductCompositeRootValue && !cpfPublicRepositoryUrl) {{
     throw new GradleException('Standalone Generated Domain은 CPF_MAVEN_REPOSITORY_URL 또는 cpfArtifactRepositoryUrl이 필요합니다. Private Source composite 회귀검증은 -PcpfProductCompositeRoot를 사용하세요.')
 }}
 
 allprojects {{
-    group = '{d.package_name}'
+    group = cpfDomainPackageName
     version = '1.0.0-SNAPSHOT'
     ext.set('cpfPlatformVersion', cpfResolvedPlatformVersion)
     repositories {{
@@ -751,6 +887,24 @@ subprojects {{
         java {{ toolchain {{ languageVersion = JavaLanguageVersion.of({java}) }} }}
         tasks.withType(Test).configureEach {{ useJUnitPlatform() }}
 
+        // Runtime discovery descriptor는 업무 Source가 아니라 Build 산출물로만 생성합니다.
+        def generatedDomainDescriptorRoot = layout.buildDirectory.dir('generated/cpf-runtime-descriptor')
+        def generatedDomainDescriptor = generatedDomainDescriptorRoot.map {{ it.file('META-INF/cpf/generated-domain.properties') }}
+        tasks.register('generateCpfDomainRuntimeDescriptor') {{
+            inputs.property('domain', cpfDomainName)
+            inputs.property('systemCode', cpfDomainSystemCode)
+            inputs.property('kind', project.name)
+            inputs.property('scanPackage', cpfDomainPackageName)
+            outputs.file(generatedDomainDescriptor)
+            doLast {{
+                def target = generatedDomainDescriptor.get().asFile
+                target.parentFile.mkdirs()
+                target.setText("domain=${{cpfDomainName}}\nsystemCode=${{cpfDomainSystemCode}}\nkind=${{project.name}}\nscanPackage=${{cpfDomainPackageName}}\n", 'UTF-8')
+            }}
+        }}
+        sourceSets.main.resources.srcDir(generatedDomainDescriptorRoot)
+        tasks.named('processResources').configure {{ dependsOn('generateCpfDomainRuntimeDescriptor') }}
+
         if (project.name == 'online') {{
             def manifestRoot = layout.buildDirectory.dir('generated/cpf-operation-manifest')
             def manifestFile = manifestRoot.map {{ it.file('META-INF/cpf/business-operation-manifest.json') }}
@@ -773,6 +927,9 @@ subprojects {{
                         def classMappings = (classPrefix =~ /(?s)@RequestMapping\s*(?:\((.*?)\))?/) .collect {{ it }}
                         def basePath = classMappings.isEmpty() ? '' : cpfFirstString(classMappings.last()[1] as String)
 
+                        def classBodyStart = text.indexOf('{{', classMatcher.end())
+                        if (classBodyStart < 0) throw new GradleException("Business Operation class body를 찾을 수 없습니다: ${{source}}")
+                        def previousTransactionEnd = classBodyStart + 1
                         def txMatcher = text =~ /(?s)@CpfOnlineTransaction\s*\((.*?)\)/
                         while (txMatcher.find()) {{
                             def txBody = txMatcher.group(1)
@@ -782,8 +939,12 @@ subprojects {{
                             if (!operationId || !name || !description) {{
                                 throw new GradleException("@CpfOnlineTransaction operationId/name/description가 필요합니다: ${{source}}")
                             }}
-                            def previousBoundary = Math.max(text.lastIndexOf('}}', txMatcher.start()), text.lastIndexOf(';', txMatcher.start()))
-                            def prefix = text.substring(Math.max(0, previousBoundary + 1), txMatcher.start())
+                            // HTTP path templates such as "/{{id}}" contain a literal closing brace.
+                            // A raw lastIndexOf('}}') therefore truncates the annotation block and
+                            // incorrectly reports that the operation has no Spring mapping.  The
+                            // previous CPF transaction is the stable lower boundary: its mapping is
+                            // before that annotation, while the current operation annotations are after it.
+                            def prefix = text.substring(previousTransactionEnd, txMatcher.start())
                             def openApiMatches = (prefix =~ /(?s)@Operation\s*\((.*?)\)/).collect {{ it }}
                             if (openApiMatches.isEmpty()) throw new GradleException("업무 Online Operation에는 @Operation(operationId=...)이 필요합니다: ${{controllerClass}}#${{operationId}}")
                             def openApiId = cpfTextAttribute(openApiMatches.last()[1] as String, 'operationId')
@@ -806,6 +967,7 @@ subprojects {{
                                            controllerClass:controllerClass, handlerMethod:handlerMethod,
                                            sourceFingerprint:fingerprint,
                                            sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                            previousTransactionEnd = txMatcher.end()
                         }}
                     }}
                     def duplicateIds = operations.groupBy {{ it.operationId }}.findAll {{ k,v -> v.size() > 1 }}.keySet()
@@ -909,15 +1071,56 @@ dependencies {{
 '''
 
 
-def render_app_build(d: DomainDefinition, kind: str, deps: list[str], stack: dict[str,str]) -> str:
+def render_app_build(d: DomainDefinition, kind: str, deps: list[str], stack: dict[str,str],
+                     domain_dependency_groups: Iterable[str] = ()) -> str:
     if kind not in {"online","batch"}: raise DomainError(f"지원하지 않는 Generated Domain module: {kind}")
     boot=stack.get("springBootVersion","4.1.0")
     dm=stack.get("springDependencyManagementVersion","1.1.7")
     project=kind
     lines=_gradle_dependency_lines(deps)
+    domain_lines=""
+    if kind == "online":
+        domain_lines="\n".join(
+            f'    implementation "{group}:online:1.0.0-SNAPSHOT"'
+            for group in domain_dependency_groups
+        )
+        if domain_lines: domain_lines += "\n"
     shared=""
     owner_overlay = d.sample_transaction and d.persistence == "mybatis"
     overlay = render_vendor_mapper_overlay(d) if owner_overlay else ""
+    jdbc_runtime_prelude = ""
+    jdbc_runtime_dependency = ""
+    jdbc_runtime_validation = ""
+    if d.persistence != "none":
+        jdbc_runtime_prelude = '''def cpfRuntimeSupportedDbVendors = ['mariadb', 'postgresql', 'oracle'] as Set
+def cpfRuntimeSelectedDbVendor = providers.gradleProperty('cpfDbVendor').orElse(providers.environmentVariable('CPF_DB_VENDOR'))
+def cpfJdbcDriverByVendor = [
+    mariadb: 'org.mariadb.jdbc:mariadb-java-client',
+    postgresql: 'org.postgresql:postgresql',
+    oracle: 'com.oracle.database.jdbc:ojdbc11'
+]
+def cpfRequireRuntimeDbVendor = {
+    def selected = cpfRuntimeSelectedDbVendor.orNull
+    if (selected == null || selected.trim().isEmpty()) {
+        throw new GradleException("DB Vendor가 지정되지 않았습니다. -PcpfDbVendor=<mariadb|postgresql|oracle> 또는 CPF_DB_VENDOR 환경변수를 설정하세요.")
+    }
+    def vendor = selected.trim().toLowerCase(Locale.ROOT)
+    if (!cpfRuntimeSupportedDbVendors.contains(vendor)) {
+        throw new GradleException("Unsupported cpfDbVendor: ${vendor}")
+    }
+    vendor
+}
+def cpfSelectedJdbcDriver = providers.provider { cpfJdbcDriverByVendor[cpfRequireRuntimeDbVendor()] }
+
+'''
+        jdbc_runtime_dependency = "    runtimeOnly cpfSelectedJdbcDriver\n"
+        jdbc_runtime_validation = '''tasks.register('validateCpfJdbcDriverSelection') {
+    inputs.property('cpfDbVendor', providers.provider { cpfRuntimeSelectedDbVendor.orNull ?: 'UNSET' })
+    doLast { cpfSelectedJdbcDriver.get() }
+}
+tasks.named('processResources') { dependsOn tasks.named('validateCpfJdbcDriverSelection') }
+
+'''
     return f'''// Generated Customer Domain {kind} 실행 Module 설정입니다.
 plugins {{
     id 'java'
@@ -925,23 +1128,52 @@ plugins {{
     id 'io.spring.dependency-management' version '{dm}'
 }}
 
-group = '{d.package_name}'
+group = providers.gradleProperty('cpf.domain.packageName').get()
 
-dependencies {{
+{jdbc_runtime_prelude}dependencies {{
 {shared}    implementation platform("com.cpf:cpf-platform-bom:${{cpfPlatformVersion}}")
 {lines}
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+{domain_lines}{jdbc_runtime_dependency}    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }}
 
-tasks.named('bootJar') {{ archiveBaseName = 'cpf-{d.name}-{project}' }}
+{jdbc_runtime_validation}tasks.named('bootJar') {{ archiveBaseName = 'cpf-{d.name}-{project}' }}
 {overlay}
 '''
 
 
-def render_gradle_properties(stack: dict[str,str]) -> str:
+def render_gradle_properties(d: DomainDefinition, stack: dict[str,str]) -> str:
     version = stack.get("cpfVersion") or "1.0.0-SNAPSHOT"
-    return f"# CPF Generator가 생성한 공통 Gradle 속성이며 Secret은 저장하지 않습니다.\ncpfPlatformVersion={version}\norg.gradle.jvmargs=-Dfile.encoding=UTF-8\n"
+    dependencies = ";".join(f"{x.name}:{x.system_code}:{','.join(x.operations)}" for x in d.domain_dependencies)
+    external_clients = ";".join(f"{x.name}:{x.client_id}:{x.capability}" for x in d.external_clients)
+    return (
+        f"# 개발자가 이해·수정하고 Gradle/Generator/Runtime이 함께 소비하는 Domain 계약입니다. Secret은 저장하지 않습니다.\n"
+        "cpf.domain.contractVersion=1\n"
+        f"cpf.domain.name={d.name}\n"
+        f"cpf.domain.systemCode={d.system_code}\n"
+        f"cpf.domain.packageName={d.package_name}\n"
+        f"cpf.domain.tablePrefix={d.table_prefix}\n"
+        f"cpf.domain.preset={d.preset}\n"
+        f"cpf.domain.online={str(d.online).lower()}\n"
+        f"cpf.domain.batch={str(d.batch).lower()}\n"
+        f"cpf.domain.businessFeatures={','.join(d.business_features)}\n"
+        f"cpf.domain.persistence={d.persistence}\n"
+        f"cpf.domain.httpClient={str(d.http_client).lower()}\n"
+        f"cpf.domain.resilience={str(d.resilience).lower()}\n"
+        f"cpf.domain.cache={d.cache}\n"
+        f"cpf.domain.messaging={d.messaging}\n"
+        f"cpf.domain.objectStorage={d.object_storage}\n"
+        f"cpf.domain.securityProfile={d.security_profile}\n"
+        f"cpf.domain.sampleTransaction={str(d.sample_transaction).lower()}\n"
+        f"cpf.domain.generationMode={d.generation_mode}\n"
+        f"cpf.domain.localOnlinePort={d.local_online_port}\n"
+        f"cpf.domain.dependencies={dependencies}\n"
+        f"cpf.domain.externalClients={external_clients}\n"
+        f"cpfPlatformVersion={version}\n"
+        f"org.gradle.jvmargs={GRADLE_DAEMON_JVMARGS}\n"
+        "org.gradle.workers.max=2\n"
+        "org.gradle.parallel=false\n"
+    )
 
 
 def render_domain_base_service(d: DomainDefinition) -> str:
@@ -1595,16 +1827,17 @@ public class SampleTransactionController extends {c}BaseController {{
 
 def render_api_application(d: DomainDefinition) -> str:
     c=d.class_name
+    mapper_import="import org.mybatis.spring.annotation.MapperScan;\n" if d.persistence == "mybatis" else ""
+    mapper_annotation=(f'@MapperScan(basePackages="{d.feature_package}.repository", '
+                       'sqlSessionFactoryRef="cpfDomainSqlSessionFactory")\n') if d.persistence == "mybatis" else ""
     return f'''package {d.package_name};
 
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
+{mapper_import}import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /** {d.name} Generated API 실행 진입점입니다. */
 @SpringBootApplication(scanBasePackages="{d.package_name}")
-@MapperScan("{d.feature_package}.repository")
-public class {c}ApiApplication {{
+{mapper_annotation}public class {c}ApiApplication {{
     public static void main(String[] args) {{ SpringApplication.run({c}ApiApplication.class,args); }}
 }}
 '''
@@ -1822,6 +2055,7 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
     """Generated runtime 공통설정. batch는 web server를 띄우지 않는 기본 Golden Path입니다."""
     prefix=d.system_code
     datasource = ""
+    domain_persistence = ""
     mybatis = ""
     if d.persistence != "none":
         datasource = ("  datasource:\n"
@@ -1830,6 +2064,12 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
                       f"    username: ${{{prefix}_DATASOURCE_USERNAME}}\n"
                       f"    password: ${{{prefix}_DATASOURCE_PASSWORD}}\n"
                       f"    driver-class-name: ${{{prefix}_DATASOURCE_DRIVER}}\n")
+        domain_persistence = ("  domain:\n"
+                              "    persistence:\n"
+                              "      enabled: true\n"
+                              "      required: true\n"
+                              f"      provider: {d.persistence}\n"
+                              "      data-source-prefix: spring.datasource\n")
         if d.persistence == "mybatis":
             mybatis = "mybatis:\n  # Oracle/PostgreSQL/MariaDB 공통 Mapper만 로드하며 Vendor별 Business SQL 복제를 금지합니다.\n  mapper-locations: classpath*:db/mapper/*.xml\n"
     web_mode = "  main:\n    web-application-type: none\n" if kind == "batch" else ""
@@ -1844,20 +2084,52 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
             f"    system-code: {d.system_code}\n"
             "    database-role: CUSTOMER_BUSINESS_DB\n"
             f"    table-prefix: {d.table_prefix}\n"
+            + domain_persistence +
             "  operation-policy:\n"
             "    seed:\n"
             "      # 최초 Operation 등록 때만 적용되며, 이후 ADM Policy를 restart/redeploy가 덮지 않습니다.\n"
             "      allowed-callers: ${CPF_OPERATION_POLICY_SEED_ALLOWED_CALLERS:}\n"
             "      source: YML\n"
             "      revision: ${CPF_OPERATION_POLICY_SEED_REVISION:GENERATED-1}\n"
+            "  logging:\n"
+            "    # 일반 Runtime 로그는 Application/Instance별 경로로 분리하며 Transaction Evidence와 혼용하지 않습니다.\n"
+            "    enabled: true\n"
+            "    root: ${CPF_LOG_ROOT:logs}\n"
+            "    instance-id: ${CPF_RUNTIME_INSTANCE_ID:${HOSTNAME:local}}\n"
+            "    maintenance-interval: ${CPF_LOG_MAINTENANCE_INTERVAL:1h}\n"
+            "    files:\n"
+            "      runtime:\n"
+            "        # 전체 Runtime 흐름을 기록하는 기본 파일입니다. Console 출력도 함께 유지됩니다.\n"
+            "        enabled: true\n"
+            "        file-name: runtime.log\n"
+            "        rolling: DAILY\n"
+            "        compress-after-days: 5\n"
+            "        delete-after-days: 365\n"
+            "      error:\n"
+            "        # ERROR 이상을 별도 파일에도 기록하여 운영 장애 탐색 경로를 명확히 합니다.\n"
+            "        enabled: true\n"
+            "        file-name: error.log\n"
+            "        level: ERROR\n"
+            "        rolling: DAILY\n"
+            "        compress-after-days: 5\n"
+            "        delete-after-days: 365\n"
             + mybatis)
 
 def render_profile_yml(d: DomainDefinition, kind: str, profile: str) -> str:
     """local/test는 안전한 기본을 제공하고 dev/stg/prod는 누락 Binding을 fail-fast하게 유지합니다."""
     prefix=d.system_code
+    levels={"local":"TRACE","dev":"DEBUG","test":"DEBUG","stg":"INFO","prod":"INFO"}
+    if profile not in levels:
+        raise DomainError(f"지원하지 않는 profile: {profile}")
+    logging_profile=(
+        "# 환경별 기본 레벨은 개발 추적성과 운영 안정성의 Canonical 기준이며 CPF_LOG_LEVEL로 명시 조정할 수 있습니다.\n"
+        "logging:\n"
+        "  level:\n"
+        f"    root: ${{CPF_LOG_LEVEL:{levels[profile]}}}\n"
+    )
     if kind == "batch":
         note = "# Batch Generated Domain은 non-web Runtime이며 Domain Call binding은 Online과 같은 Canonical profile 계약을 사용합니다.\n"
-        return note + render_domain_binding_profile(d, profile)
+        return note + logging_profile + render_domain_binding_profile(d, profile)
     if kind not in {"api","online"}: raise DomainError(f"지원하지 않는 Generated Domain profile module: {kind}")
     env_key=f"{prefix}_ONLINE_PORT"
     local_port=d.local_online_port
@@ -1872,9 +2144,7 @@ def render_profile_yml(d: DomainDefinition, kind: str, profile: str) -> str:
     elif profile in {"dev","stg","prod"}:
         port_expr=f"${{{env_key}}}"
         note="# 공유/운영 환경은 명시적 Deployment Binding이 없으면 시작에 실패하도록 기본값을 두지 않습니다.\n"
-    else:
-        raise DomainError(f"지원하지 않는 profile: {profile}")
-    return note + "server:\n" + f"  port: {port_expr}\n" + render_domain_binding_profile(d, profile)
+    return note + logging_profile + "server:\n" + f"  port: {port_expr}\n" + render_domain_binding_profile(d, profile)
 
 def _render_db_template(root: Path, d: DomainDefinition, vendor: str, relative_path: str) -> str:
     """Render the DB Tool-owned canonical vendor template for one generated domain.
@@ -1933,7 +2203,7 @@ def _verify_sql(root: Path, d: DomainDefinition, vendor: str) -> str:
 def render_readme(d: DomainDefinition, deps: dict[str,list[str]]) -> str:
     return f'''# {d.name} Generated Customer Domain
 
-이 Root는 CPF Product Module이 아니라 `cpf-domain.yaml`에서 동일 Domain-neutral Generator로 생성된 Customer Business Domain입니다.
+이 Root는 CPF Product Module이 아니라 Developer-Facing `gradle.properties` 계약에서 동일 Domain-neutral Generator로 생성된 Customer Business Domain입니다.
 
 - systemCode: `{d.system_code}`
 - packageName: `{d.package_name}`
@@ -1946,7 +2216,7 @@ def render_readme(d: DomainDefinition, deps: dict[str,list[str]]) -> str:
 - API direct CPF dependencies: `{', '.join(deps.get('api',[]))}`
 - Batch Module: `modules.batch=true`일 때만 `batch/`를 생성하고 Public `cpf-starter-batch`를 소비
 
-Generated Source를 수동 복제하여 다른 Domain을 만들지 않습니다. 새 Domain은 새로운 `cpf-domain.yaml`을 같은 `cpf domain generate` 명령에 전달합니다.
+Generated Source를 수동 복제하여 다른 Domain을 만들지 않습니다. 새 Domain은 `cpf domain create/setup`으로 생성합니다.
 '''
 
 
@@ -1979,7 +2249,7 @@ def _feature_java(content: str, d: DomainDefinition, role: str | None = None) ->
 
 
 def _transient_root(root: Path, d: DomainDefinition) -> Path:
-    return root/"build"/"domain-generator"/"verification"/f"cpf-{d.name}"
+    return managed_generator_root(root)/"verification"/f"cpf-{d.name}"
 
 
 def _external_client_properties(d: DomainDefinition, client: ExternalClientDefinition) -> str:
@@ -2200,25 +2470,30 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
     stack=read_stack(root)
     online_deps=direct_dependencies(d,"api",catalog)
     batch_deps=direct_dependencies(d,"batch",catalog) if d.batch else []
+    workspace_defs=_load_workspace_definitions(root,d)
+    dependency_targets=[]
+    for dependency in d.domain_dependencies:
+        target=workspace_defs.get(dependency.name)
+        if target is None: raise DomainError(f"Domain dependency target missing during render: {dependency.name}")
+        dependency_targets.append(target)
     deps={"online":online_deps, **({"batch":batch_deps} if d.batch else {})}
     p=d.package_path.as_posix()
     feature=d.primary_feature
     fp=f"{p}/{feature}"
     files: dict[str,str]={
-      "settings.gradle":render_root_settings(d),
+      "settings.gradle":render_root_settings(d,dependency_targets),
       "build.gradle":render_root_build(d,stack),
-      "gradle.properties":render_gradle_properties(stack),
+      "gradle.properties":render_gradle_properties(d,stack),
     }
     if d.online:
-        files["online/build.gradle"]=render_app_build(d,"online",online_deps,stack)
+        files["online/build.gradle"]=render_app_build(
+            d,"online",online_deps,stack,(target.package_name for target in dependency_targets))
         files[f"online/src/main/java/{p}/base/{d.class_name}BaseController.java"]=_feature_java(render_domain_base_controller(d),d)
         files[f"online/src/main/java/{p}/base/{d.class_name}BaseService.java"]=_feature_java(render_domain_base_service(d),d)
         if d.persistence != "none":
             files[f"online/src/main/java/{p}/base/{d.class_name}BaseRepository.java"]=_feature_java(render_domain_base_repository(d),d)
         files[f"online/src/main/java/{p}/{d.class_name}OnlineApplication.java"]=_feature_java(render_api_application(d),d)
         files["online/src/main/resources/application.yml"]=render_application_yml(d,"api").replace(f"{d.name}-api",f"{d.name}-online")
-        files["online/src/main/resources/META-INF/cpf/generated-domain.properties"]=(
-            f"# CPF 생성 Domain의 Local Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=online\nscanPackage={d.package_name}\n")
         for profile in ("local","test","dev","stg","prod"):
             files[f"online/src/main/resources/application-{profile}.yml"]=render_profile_yml(d,"api",profile)
 
@@ -2234,7 +2509,6 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
                 f"public interface {extra_class}FeatureScaffold {{ }}\n"
             )
         dependency_contracts={}
-        workspace_defs=_load_workspace_definitions(root,d)
         for dependency in d.domain_dependencies:
             target=workspace_defs.get(dependency.name)
             if target is None: raise DomainError(f"Domain dependency target missing during render: {dependency.name}")
@@ -2278,8 +2552,6 @@ def render_files(root: Path, d: DomainDefinition, catalog: dict[str,Any]) -> tup
         files["batch/src/main/resources/application.yml"]=render_application_yml(d,"batch")
         for profile in ("local","test","dev","stg","prod"):
             files[f"batch/src/main/resources/application-{profile}.yml"]=render_profile_yml(d,"batch",profile)
-        files["batch/src/main/resources/META-INF/cpf/generated-domain.properties"]=(
-            f"# CPF 생성 Domain Batch Runtime 자동 편입 메타데이터입니다.\ndomain={d.name}\nsystemCode={d.system_code}\nkind=batch\nscanPackage={d.package_name}\n")
         app_pkg=d.package_name
         app_path=d.package_path.as_posix()
         files[f"batch/src/main/java/{app_path}/{d.class_name}BatchApplication.java"]=(
@@ -2307,6 +2579,11 @@ def definition_hash(path: Path) -> str: return sha256_file(path)
 def generator_hash() -> str: return sha256_file(Path(__file__))
 
 
+def domain_contract_hash(d: DomainDefinition) -> str:
+    """Path나 임시 입력 형식과 무관한 Developer Domain 의미 계약 hash입니다."""
+    return sha256_bytes(json.dumps(dataclasses.asdict(d),ensure_ascii=False,sort_keys=True,separators=(",",":" )).encode("utf-8"))
+
+
 def _expected_files(root: Path, d: DomainDefinition) -> tuple[dict[str,str],dict[str,list[str]]]:
     """고객 Project에 영구 metadata 없이도 동일 입력에서 동일 파일 집합을 계산한다."""
     return render_files(root,d,load_catalog(root))
@@ -2322,8 +2599,8 @@ def _write_transient_state(root: Path, definition_path: Path, d: DomainDefinitio
     out=_transient_root(root,d)
     out.mkdir(parents=True,exist_ok=True)
     payload={
-      "stateVersion":"1.0","generatorVersion":GENERATOR_VERSION,"domain":d.name,
-      "definition":str(definition_path),"definitionSha256":definition_hash(definition_path),
+      "stateVersion":"2.0","generatorVersion":GENERATOR_VERSION,"domain":d.name,
+      "contractSha256":domain_contract_hash(d),
       "generatorSha256":generator_hash(),"expectedFiles":[{"path":k,"sha256":v} for k,v in sorted(expected.items())],
       "result":result,
     }
@@ -2355,12 +2632,14 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
                      *, persist_evidence: bool = True) -> dict[str,Any]:
     """Generated Customer Domain의 최소 IA와 실제 Runtime Consumer를 metadata 없이 검증한다."""
     load_catalog(root)
-    if not definition_path.is_file(): raise DomainError(f"Generator 입력 정의가 없습니다: {definition_path}")
+    if not definition_path.is_file(): raise DomainError(f"Generator 입력 계약이 없습니다: {definition_path}")
     if output.name != f"cpf-{d.name}": raise DomainError(f"Generated Root naming 위반: {output.name}")
-    canonical_definition = output / 'cpf-domain.yaml'
-    if not canonical_definition.is_file(): raise DomainError('Generated Root canonical cpf-domain.yaml 누락')
-    canonical = validate_definition(load_yaml_subset(canonical_definition))
-    if canonical != d: raise DomainError('Generated Root cpf-domain.yaml과 실행 Definition 불일치')
+    forbidden_metadata=[name for name in ('cpf-domain.yaml','cpf-generator.lock.json') if (output/name).exists()]
+    if forbidden_metadata: raise DomainError(f'Generated Root의 Generator 내부 metadata 금지: {forbidden_metadata}')
+    contract_path=output/'gradle.properties'
+    if not contract_path.is_file(): raise DomainError('Generated Root Developer 계약 gradle.properties 누락')
+    canonical=load_domain_gradle_contract(contract_path)
+    if canonical != d: raise DomainError('Generated Root gradle.properties Developer 계약과 실행 입력 불일치')
     forbidden_roots=['.cpf','README.md','verification','canonical','vendors','db',d.name+'-api',d.name+'-common',d.name+'-online',d.name+'-batch']
     bad=[x for x in forbidden_roots if (output/x).exists()]
     if bad: raise DomainError(f"Generated Customer Domain 최소 IA 위반: {bad}")
@@ -2375,6 +2654,10 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
         if (output/forbidden).is_dir() and any(x.is_file() for x in (output/forbidden).rglob('*')): raise DomainError(f'Generated Domain에 금지된 module 발견: {forbidden}')
     for required in ('settings.gradle','build.gradle','gradle.properties'):
         if not (output/required).is_file(): raise DomainError(f"Generated Root Gradle 파일 누락: {required}")
+    gradle_properties=(output/'gradle.properties').read_text(encoding='utf-8-sig')
+    for token in (f'org.gradle.jvmargs={GRADLE_DAEMON_JVMARGS}', 'org.gradle.workers.max=2', 'org.gradle.parallel=false'):
+        if token not in gradle_properties:
+            raise DomainError(f'Generated Root Gradle resource ceiling 누락: gradle.properties:{token}')
     text='\n'.join(p.read_text(encoding='utf-8-sig',errors='ignore') for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts) and p.stat().st_size<2_000_000)
     if d.database_role!='CUSTOMER_BUSINESS_DB' or 'CUSTOMER_BUSINESS_DB' not in text: raise DomainError('CUSTOMER_BUSINESS_DB 계약 누락')
     if d.sample_transaction:
@@ -2422,10 +2705,14 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
     if java and not re.search(r'[가-힣]',java): raise DomainError('Generated Source 한글 주석 누락')
     if d.domain_dependencies:
         target_defs={x.system_code:x for x in _load_workspace_definitions(root,d).values()}
+        online_build_text=(output/'online'/'build.gradle').read_text(encoding='utf-8-sig')
         for dependency in d.domain_dependencies:
             target=target_defs.get(dependency.system_code)
             if target is None:
                 raise DomainError(f"Generated Domain dependency target definition 누락: {dependency.system_code}")
+            coordinate=f'implementation "{target.package_name}:online:1.0.0-SNAPSHOT"'
+            if coordinate not in online_build_text:
+                raise DomainError(f"Generated Domain target artifact dependency 누락: {dependency.system_code}:{coordinate}")
             contracts=discover_domain_operation_contracts(root,target)
             for token in (f"interface {dependency.class_name}DomainClient", f"class Default{dependency.class_name}DomainClient"):
                 if token not in java:
@@ -2454,7 +2741,7 @@ def verify_generated(root: Path, definition_path: Path, output: Path, d: DomainD
                 for dependency in d.domain_dependencies:
                     if dependency.system_code not in profile_text or 'domain-call:' not in profile_text:
                         raise DomainError(f"Generated Domain Binding profile 누락: {runtime}/{profile}/{dependency.system_code}")
-    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batch':d.batch,'batchCapabilitySelection':'DOMAIN_DEFINITION'},'customerMetadata':'NONE','publicBoundary':'PASS','db3Renderer':'EXTERNAL_CANONICAL_RENDERER' if d.persistence != 'none' else 'NOT_APPLICABLE','runtimeConsumers':'PASS','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
+    result={'domain':d.name,'status':'PASS','physicalRoot':f'cpf-{d.name}','ia':{'online':True,'batch':d.batch,'batchCapabilitySelection':'DEVELOPER_GRADLE_CONTRACT'},'developerContract':'gradle.properties','generatorMetadata':'ABSENT','publicBoundary':'PASS','db3Renderer':'EXTERNAL_CANONICAL_RENDERER' if d.persistence != 'none' else 'NOT_APPLICABLE','runtimeConsumers':'BUILD_GENERATED_DESCRIPTOR','generatedFiles':sum(1 for p in output.rglob('*') if p.is_file() and not any(part in {'build','.gradle'} for part in p.relative_to(output).parts))}
     if persist_evidence:
         _write_transient_verification(root,d,result)
     return result
@@ -2464,70 +2751,17 @@ def _materialize(root: Path, definition_path: Path, output: Path, d: DomainDefin
                  *, persist_state: bool = True) -> dict[str,Any]:
     files,deps=_expected_files(root,d)
     output.mkdir(parents=True,exist_ok=True)
-    canonical_definition = output / "cpf-domain.yaml"
-    if definition_path.resolve() != canonical_definition.resolve():
-        write_text(canonical_definition, definition_path.read_text(encoding="utf-8-sig"))
-        definition_path = canonical_definition
     for rel,content in files.items(): write_text(output/rel,content)
     result=verify_generated(root,definition_path,output,d,persist_evidence=persist_state)
     if persist_state:
         expected_hashes=_expected_hashes(root,d)
         _write_transient_state(root,definition_path,d,result,expected_hashes)
-        _write_workspace_lock(root,definition_path,d,expected_hashes)
     return result
 
 
-def _workspace_lock_path(root: Path, d: DomainDefinition) -> Path:
-    """Source-controlled Workspace Catalog의 Generator ownership lock 경로입니다.
-
-    Lock은 업무 의미 정본이 아니라 안전한 sync/upgrade를 위한 ownership hash입니다.
-    Generated Project 내부나 숨김 .cpf state를 사용하지 않습니다.
-    """
-    return _canonical_domain_root(root, d.name) / "cpf-generator.lock.json"
-
-
-def _definition_is_canonical(root: Path, definition_path: Path, d: DomainDefinition) -> bool:
-    try:
-        return definition_path.resolve() == (_canonical_domain_root(root, d.name) / "cpf-domain.yaml").resolve()
-    except OSError:
-        return False
-
-
-def _write_workspace_lock(root: Path, definition_path: Path, d: DomainDefinition, expected_hashes: dict[str,str]) -> None:
-    if not _definition_is_canonical(root, definition_path, d):
-        return
-    target = _workspace_lock_path(root, d)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    data = {
-      "lockVersion":"1.0",
-      "domain":d.name,
-      "systemCode":d.system_code,
-      "generatorVersion":GENERATOR_VERSION,
-      "definitionSha256":definition_hash(definition_path),
-      "expectedFiles":[{"path":rel,"sha256":digest} for rel,digest in sorted(expected_hashes.items())]
-    }
-    target.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8",newline="\n")
-
-
-def _read_workspace_lock(root: Path, d: DomainDefinition) -> dict[str,Any]:
-    path = _workspace_lock_path(root, d)
-    if not path.is_file():
-        raise DomainError(f"Workspace ownership lock이 없습니다: {path}")
-    data=json.loads(path.read_text(encoding='utf-8-sig'))
-    if data.get('lockVersion')!='1.0' or data.get('domain')!=d.name or data.get('systemCode')!=d.system_code:
-        raise DomainError(f"지원하지 않는 Workspace ownership lock입니다: {path}")
-    rows=data.get('expectedFiles')
-    if not isinstance(rows,list) or any(not isinstance(x,dict) or not x.get('path') or not x.get('sha256') for x in rows):
-        raise DomainError(f"Workspace ownership lock expectedFiles가 손상되었습니다: {path}")
-    return data
-
-
 def _read_ownership_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
-    """Local transient state를 우선 사용하고, fresh clone에서는 source-controlled lock으로 복구합니다."""
-    try:
-        return _read_transient_state(root,d)
-    except DomainError:
-        return _read_workspace_lock(root,d)
+    """Source-controlled lock 없이 외부 managed Evidence의 transient ownership만 읽습니다."""
+    return _read_transient_state(root,d)
 
 
 def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
@@ -2536,7 +2770,7 @@ def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
     if not path.is_file():
         raise DomainError(f"안전한 lifecycle 수행에 필요한 transient generation-state가 없습니다: {path}")
     data=json.loads(path.read_text(encoding='utf-8-sig'))
-    if data.get('stateVersion')!='1.0' or data.get('domain')!=d.name:
+    if data.get('stateVersion') not in {'1.0','2.0'} or data.get('domain')!=d.name:
         raise DomainError(f"지원하지 않는 generation-state입니다: {path}")
     rows=data.get('expectedFiles')
     if not isinstance(rows,list) or any(not isinstance(x,dict) or not x.get('path') or not x.get('sha256') for x in rows):
@@ -2544,19 +2778,16 @@ def _read_transient_state(root: Path, d: DomainDefinition) -> dict[str,Any]:
     return data
 
 
-ROOT_METADATA_FILES = {"cpf-domain.yaml", "cpf-generator.lock.json"}
-
-
 def _has_materialized_generated_content(output: Path) -> bool:
-    """Canonical definition/ownership lock만 있는 Root는 fresh generation target으로 취급합니다."""
+    """Developer-Facing 파일이 하나라도 있으면 기존 Generated Root로 취급합니다."""
     if not output.is_dir():
         return False
-    return any(entry.name not in ROOT_METADATA_FILES for entry in output.iterdir())
+    return any(output.iterdir())
 
 
 def preflight(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     """쓰기 전에 입력/Starter 조합/식별자/Target collision을 검증한다."""
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     schema=_generator_resource_root(root)/SCHEMA_REL
     if not schema.is_file(): raise DomainError(f"Canonical input schema가 없습니다: {schema}")
     json.loads(schema.read_text(encoding='utf-8-sig'))
@@ -2573,18 +2804,16 @@ def preflight(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
         if not dr['clean']:
             raise DomainError(f"Generated target path collision 또는 변경이 감지되었습니다: {output}; changed={dr['changed']}; staleGenerated={dr.get('staleGeneratedFiles', [])}; userFiles={dr['extraUserFiles']}")
         target_state='EXISTING_GENERATED'
-    elif output.exists():
-        target_state='CANONICAL_DEFINITION_ONLY'
     return {
       'status':'PREFLIGHT_PASS','domain':d.name,'target':str(output),'targetState':target_state,
       'definitionSha256':definition_hash(definition_path),'schema':'cpf-domain.schema.json',
-      'customerMetadata':'NONE','publicBoundary':'PASS',
+      'developerContract':'gradle.properties','generatorMetadata':'ABSENT','publicBoundary':'PASS',
       'selectionSummary':_developer_selection_summary(d,catalog)
     }
 
 
 def dry_run(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     validate_repository_uniqueness(root,d,output)
     with tempfile.TemporaryDirectory(prefix=f"cpf-{d.name}-dry-run-") as td:
         stage=Path(td)/f"cpf-{d.name}"
@@ -2646,16 +2875,23 @@ def _legacy_generated_stale_candidate(d: DomainDefinition, rel: str, path: Path)
 
 def verify_prebuilt_domain(root: Path, definition_path: Path, output: Path, d: DomainDefinition) -> dict[str,Any]:
     if d.generation_mode != "prebuilt": raise DomainError("prebuilt verifier misuse")
-    required=[output/'build.gradle', output/'settings.gradle']
+    required=[output/'build.gradle', output/'settings.gradle', output/'gradle.properties']
     if d.online: required.append(output/'online'/'build.gradle')
     missing=[str(p.relative_to(root)) for p in required if not p.is_file()]
     java_count=sum(1 for p in (output/'online'/'src'/'main'/'java').rglob('*.java')) if d.online and (output/'online'/'src'/'main'/'java').exists() else 0
     if missing or (d.online and java_count == 0):
         raise DomainError(f"Prebuilt Domain physical contract 불완전: missing={missing}, javaCount={java_count}")
-    return {'domain':d.name,'status':'PREBUILT_VERIFIED','output':str(output),'javaCount':java_count,'definition':str(definition_path)}
+    contract=load_domain_gradle_contract(output/'gradle.properties')
+    if contract != d: raise DomainError(f"Prebuilt Domain Developer 계약 불일치: {output/'gradle.properties'}")
+    legacy=[name for name in ('cpf-domain.yaml','cpf-generator.lock.json') if (output/name).exists()]
+    if legacy:
+        return {'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),'javaCount':java_count,
+                'developerContract':str(output/'gradle.properties'),'deleteCandidates':legacy,
+                'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST','mutated':False}
+    return {'domain':d.name,'status':'PREBUILT_VERIFIED','output':str(output),'javaCount':java_count,'developerContract':str(output/'gradle.properties')}
 
 def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     if d.generation_mode == 'prebuilt': return verify_prebuilt_domain(root,definition_path,output,d)
     validate_repository_uniqueness(root,d,output)
     expected=_expected_hashes(root,d); missing=[]; changed=[]
@@ -2671,12 +2907,15 @@ def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     except DomainError:
         previous_expected = set()
     stale_generated=[]; extra_user=[]
-    metadata_files={'cpf-domain.yaml','cpf-generator.lock.json'}
+    legacy_metadata=[]
     if output.exists():
         for p in output.rglob('*'):
             if not p.is_file(): continue
             rel=p.relative_to(output).as_posix()
-            if rel in expected_set or rel in metadata_files or rel.startswith('build/') or '/build/' in rel or rel.startswith('.gradle/'):
+            if rel in {'cpf-domain.yaml','cpf-generator.lock.json'}:
+                legacy_metadata.append(rel)
+                continue
+            if rel in expected_set or rel.startswith('build/') or '/build/' in rel or rel.startswith('.gradle/'):
                 continue
             if rel in previous_expected or _legacy_generated_stale_candidate(d, rel, p):
                 stale_generated.append(rel)
@@ -2684,14 +2923,13 @@ def diff(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
                 extra_user.append(rel)
     clean=not missing and not changed and not stale_generated
     return {'domain':d.name,'missing':missing,'changed':changed,'staleGeneratedFiles':sorted(stale_generated),
-            'extraUserFiles':sorted(extra_user),'clean':clean,'metadataRequired':False}
+            'extraUserFiles':sorted(extra_user),'legacyMetadataFiles':sorted(legacy_metadata),'clean':clean,'metadataRequired':False}
 
 
 def generate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     if d.generation_mode == 'prebuilt': return verify_prebuilt_domain(root,definition_path,output,d)
     materialized=_has_materialized_generated_content(output)
-    # canonical cpf-domain.yaml/ownership lock만 존재하는 fresh Root도 정상 generation target입니다.
     if not materialized:
         preflight(root,definition_path,output)
     else:
@@ -2703,7 +2941,6 @@ def generate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
             vr=verify_generated(root,definition_path,output,d)
             expected_hashes=_expected_hashes(root,d)
             _write_transient_state(root,definition_path,d,vr,expected_hashes)
-            _write_workspace_lock(root,definition_path,d,expected_hashes)
             return {'domain':d.name,'status':'IDEMPOTENT','output':str(output),'diff':dr,'verify':vr}
         raise DomainError(f"기존 Generated Root의 Seed Source가 달라 자동 덮어쓰기를 금지합니다. diff를 확인하세요: {output}")
     result=_materialize(root,definition_path,output,d)
@@ -2716,7 +2953,7 @@ def regenerate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]
     현재 Seed Source가 기대 Template과 다르면 사용자 수정/Template drift를 구분할 수 없으므로
     덮어쓰지 않는다. 동일 파일은 유지하고 누락 파일만 복구한다.
     """
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     validate_repository_uniqueness(root,d,output)
     if not output.is_dir(): raise DomainError(f"regenerate 대상이 없습니다: {output}")
     expected_files,_=_expected_files(root,d); expected_hashes={rel:sha256_bytes(normalized_bytes(c)) for rel,c in expected_files.items()}
@@ -2731,17 +2968,16 @@ def regenerate(root: Path, definition_path: Path, output: Path) -> dict[str,Any]
         if not p.exists(): write_text(p,content); restored.append(rel)
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,expected_hashes)
-    _write_workspace_lock(root,definition_path,d,expected_hashes)
     return {'domain':d.name,'status':'REGENERATED','output':str(output),'restored':sorted(restored),'verify':vr}
 
 
-def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
+def upgrade(root: Path, definition_path: Path, output: Path, *, apply_delete: bool = False) -> dict[str,Any]:
     """Transient ownership state를 기준으로 Generated 파일만 안전하게 새 Template으로 승격한다.
 
     사용자 수정 파일 또는 state 밖 파일은 절대 덮어쓰거나 삭제하지 않는다. 기존 Generated 파일이
     마지막 state hash와 다르면 전체 upgrade를 적용하기 전에 실패시켜 부분 업그레이드를 방지한다.
     """
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     validate_repository_uniqueness(root,d,output)
     if not output.is_dir(): raise DomainError(f"upgrade 대상이 없습니다: {output}")
     state=_read_ownership_state(root,d)
@@ -2750,6 +2986,10 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     current_hashes={rel:sha256_bytes(normalized_bytes(content)) for rel,content in current_files.items()}
     user_modified=[]
     for rel,digest in sorted(previous.items()):
+        # gradle.properties는 Generator state가 아니라 개발자가 의도적으로 관리하는 입력 계약입니다.
+        # 유효성/identity/risky-change는 새 DomainDefinition으로 검증하고, Seed Source drift와 혼동하지 않습니다.
+        if rel == 'gradle.properties':
+            continue
         p=output/rel
         if p.is_file() and sha256_file(p)!=digest: user_modified.append(rel)
     if user_modified:
@@ -2758,7 +2998,16 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     removed=sorted(set(previous)-set(current_hashes))
     changed=sorted(rel for rel in set(previous)&set(current_hashes) if previous[rel]!=current_hashes[rel])
     # 삭제는 Generator가 직접 수행하지 않습니다. 사용자 승인 Delete Manifest에서만 실행합니다.
-    delete_candidates=[rel for rel in removed if (output/rel).is_file()]
+    legacy_metadata=[name for name in ('cpf-domain.yaml','cpf-generator.lock.json') if (output/name).is_file()]
+    delete_candidates=sorted([rel for rel in removed if (output/rel).is_file()] + legacy_metadata)
+    if delete_candidates and not apply_delete:
+        return {'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
+                'fromGeneratorVersion':state.get('generatorVersion'),'toGeneratorVersion':GENERATOR_VERSION,
+                'added':added,'changed':changed,'deleteCandidates':delete_candidates,
+                'deletePrecondition':'EXPLICIT_APPROVAL_REQUIRED','mutated':False}
+    for rel in delete_candidates:
+        target=output/rel
+        if target.is_file(): target.unlink()
     for rel in sorted(set(added)|set(changed)):
         write_text(output/rel,current_files[rel])
     for rel,content in current_files.items():
@@ -2767,14 +3016,8 @@ def upgrade(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     for p in sorted((x for x in output.rglob('*') if x.is_dir()),key=lambda x:len(x.parts),reverse=True):
         try: p.rmdir()
         except OSError: pass
-    if delete_candidates:
-        return {'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
-                'fromGeneratorVersion':state.get('generatorVersion'),'toGeneratorVersion':GENERATOR_VERSION,
-                'added':added,'changed':changed,'deleteCandidates':delete_candidates,
-                'deletePrecondition':'USER_APPROVED_DELETE_MANIFEST'}
     vr=verify_generated(root,definition_path,output,d)
     _write_transient_state(root,definition_path,d,vr,current_hashes)
-    _write_workspace_lock(root,definition_path,d,current_hashes)
     return {'domain':d.name,'status':'UPGRADED','output':str(output),'fromGeneratorVersion':state.get('generatorVersion'),
             'toGeneratorVersion':GENERATOR_VERSION,'added':added,'changed':changed,'removed':[],'verify':vr}
 
@@ -2785,23 +3028,24 @@ def restore(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
     Generator/입력이 바뀐 상태에서 restore를 가장한 신규 생성을 하지 않는다. 이 경우 upgrade 또는
     명시적인 fresh generation을 선택하게 하여 복원과 승격 의미를 분리한다.
     """
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     state=_read_ownership_state(root,d)
     if output.exists():
-        remaining=[p.name for p in output.iterdir() if p.name not in {'cpf-domain.yaml','cpf-generator.lock.json'}]
-        if remaining: raise DomainError(f"restore target에 canonical definition/lock 외 파일이 남아 있습니다: {output}:{sorted(remaining)}")
+        remaining=[p.name for p in output.iterdir()]
+        if remaining: raise DomainError(f"restore target에 파일이 남아 있습니다: {output}:{sorted(remaining)}")
     expected=_expected_hashes(root,d)
     previous={str(x['path']):str(x['sha256']) for x in state['expectedFiles']}
     if previous!=expected:
         raise DomainError('현재 Generator Template이 remove 시점과 달라 restore할 수 없습니다. 명시적 fresh generate/upgrade 절차를 사용하세요.')
-    if state.get('definitionSha256')!=definition_hash(definition_path):
-        raise DomainError('현재 cpf-domain.yaml이 remove 시점과 달라 restore할 수 없습니다.')
+    state_contract=state.get('contractSha256')
+    if state_contract is not None and state_contract!=domain_contract_hash(d):
+        raise DomainError('현재 Developer Domain 계약이 remove 시점과 달라 restore할 수 없습니다.')
     result=_materialize(root,definition_path,output,d)
     return {'domain':d.name,'status':'RESTORED','output':str(output),'verify':result}
 
 
 def remove_plan(root: Path, definition_path: Path, output: Path) -> dict[str,Any]:
-    raw=load_yaml_subset(definition_path); d=validate_definition(raw)
+    d=load_domain_contract(definition_path)
     try:
         state=_read_transient_state(root,d)
         expected={str(x['path']):str(x['sha256']) for x in state['expectedFiles']}

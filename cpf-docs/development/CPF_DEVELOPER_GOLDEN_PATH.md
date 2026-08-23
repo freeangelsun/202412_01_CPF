@@ -78,20 +78,20 @@ Remote Side Effect를 호출한 뒤 응답 확정 여부를 모르면 `UNKNOWN`�
 ## 5. Generator를 안전하게 쓰는 순서
 
 ```text
-cpf-domain.yaml
+cpf domain create/setup
       ↓
-   validate
+gradle.properties Developer Contract
       ↓
-   dry-run
+ setup --preview
       ↓
-     diff
+     sync/diff
       ↓
-   generate
+deterministic generate/regenerate
       ↓
 compile / test
 ```
 
-Canonical Generator는 `dry-run`, `diff`, `regenerate`, `upgrade`, `remove`, `restore` lifecycle을 검증합니다. Generated-owned 파일의 사용자 수정이 있으면 fail-closed하고, unmanaged/custom Source를 임의 삭제하지 않습니다.
+Canonical Generator는 `create`, `setup --preview`, `sync`, `diff`, `regenerate`, `upgrade`, `remove`, `restore` lifecycle을 검증합니다. Generated-owned 파일의 사용자 수정이 있으면 fail-closed하고, unmanaged/custom Source를 임의 삭제하지 않습니다. `cpf-domain.yaml`, `cpf-generator.lock.json` 또는 이름을 바꾼 Generator bookkeeping은 생성 결과에 저장하지 않습니다.
 
 ## 6. 검증은 3단계
 
@@ -137,7 +137,31 @@ CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Ext
 
 `cpf-tools/verification/tools/report-cpf-upgrade-impact.py`는 현재 Public Starter/API, Config, Generator, DB migration, OpenAPI surface의 fingerprint를 만들고 이전 snapshot과 비교할 수 있게 합니다. Breaking 후보가 있으면 Major 검토 대상으로 보고, Deprecated API는 즉시 삭제하지 않습니다.
 
-## 10. 더 찾을 때
+## 10. Database Migration 안전 실행
+
+Platform DB Migration은 `cpf-tools/db/tools/invoke-platform-database-migration.ps1`만 사용합니다. 먼저 대상 Vendor/Profile/Module/Version으로 dry-run을 생성하고 결과의 `planSha256`과 operation별 migration/rollback hash를 검토합니다.
+
+```powershell
+pwsh -NoProfile -File cpf-tools/db/tools/invoke-platform-database-migration.ps1 `
+  -ProfilePath <profile.json> -Direction upgrade -MigrationVersion <version> `
+  -Modules <module> -ResultPath <dry-run-result.json> -DryRun
+```
+
+실제 적용은 애플리케이션 정지, rollback 준비, 검토한 plan hash, 운영 감사정보를 모두 명시해야 합니다. Verifier가 소유한 disposable DB가 아닌 실제 환경은 선택된 모든 물리 DB를 포함하는 `BackupManifestPath`도 필수입니다.
+
+```powershell
+pwsh -NoProfile -File cpf-tools/db/tools/invoke-platform-database-migration.ps1 `
+  -ProfilePath <profile.json> -Direction upgrade -MigrationVersion <version> `
+  -Modules <module> -Apply -ConfirmApply -ConfirmApplicationsStopped `
+  -ConfirmRollbackReady -ExpectedPlanSha256 <reviewed-sha256> `
+  -BackupManifestPath <backup-manifest.json> `
+  -Operator <operator> -Reason <reason> -ApprovalReference <approval> `
+  -ResultPath <apply-result.json>
+```
+
+Plan hash가 달라지면 다시 dry-run부터 검토합니다. Client/DDL/Network 실패 후 `reconcileRequired=true`이면 성공이나 자동 rollback을 추정하지 말고 결과의 `failureOperation`을 기준으로 실제 DB 상태를 확인한 뒤 명시적으로 복구합니다. Secret은 Profile의 환경변수 참조로만 전달하고 명령행·결과·로그에 값을 기록하지 않습니다.
+
+## 11. 더 찾을 때
 
 1. `CPF_STARTER_QUICK_SELECT.md` — 어떤 Starter를 고를지
 2. `CPF_PUBLIC_FUNCTION_TOP_100.md` — 어떤 Public 기능/Annotation이 있는지
@@ -146,8 +170,7 @@ CPF 계약을 fork하지 않고 기존 표준을 연결할 때는 현재 SPI/Ext
 
 ## 관리 API와 업무 거래 API를 구분하는 기준
 
-- ADM/MBW Backoffice/Gateway 자체 Controller는 업무 Domain Online Transaction이 아니므로 `@CpfOnlineTransaction`과 거래 Header 6개를 붙이지 않습니다.
+- ADM/MBW Backoffice/Gateway 자체 Controller와 Batch Control Plane 관리 Controller는 업무 Domain Online Transaction이 아니므로 `@CpfOnlineTransaction`과 거래 Header 6개를 붙이지 않습니다.
 - 관리 기능은 Spring Web/Security/Validation/OpenAPI와 해당 Owner의 CPF Public API를 사용합니다. `cpf-core` internal package나 업무 Domain internal package를 직접 참조하지 않습니다.
 - 관리 화면에서 MBR/EXS 같은 실제 업무 Operation을 호출하는 경우에는 Controller가 아니라 **Domain Client outbound 경계**부터 거래 Context를 적용합니다. 개발자가 Header 6개를 직접 만들지 않습니다.
 - Generated Domain은 `online/` 필수, `modules.batch=true`일 때 `batch/` 선택 구조입니다. 업무 예제는 EDU `online` 20개와 `batch` 15개를 Canonical로 사용합니다.
-

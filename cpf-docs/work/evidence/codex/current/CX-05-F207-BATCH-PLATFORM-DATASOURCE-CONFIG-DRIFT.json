@@ -1,0 +1,19 @@
+{
+  "track": "CX-05-F207-BATCH-PLATFORM-DATASOURCE-CONFIG-DRIFT",
+  "startedAt": "2026-08-23T18:33:01+09:00",
+  "endedAt": "2026-08-23T18:35:09+09:00",
+  "sourceIdentity": {
+    "sha256": "b91b1083331712e13c5f95aff16110f6955bc9828fc3248667400014003b6e25",
+    "sha1": "1162a870413e81bc16e32e0a8388406173f7e96c"
+  },
+  "status": "OPEN",
+  "observations": [
+    "BatDataSourceConfiguration correctly requires CpfDatabaseRole.CPF_PLATFORM_DB and states that separate batDB is retired",
+    "application-bat-runtime.yml still publishes unused spring.datasource.bat properties and defaults to retired physical batDB",
+    "no Product consumer binds spring.datasource.bat or BAT_DATABASE_*",
+    "the canonical Data JDBC provider creates cpfPlatformDataSource only from cpf.data.persistence.jdbc.role-datasources.cpf-platform-db",
+    "smoke-bat-two-worker-runtime.ps1 still configures and queries retired batDB directly"
+  ],
+  "rootCause": "Batch developer/runtime configuration and smoke tooling were not currentized with the canonical CPF_PLATFORM_DB consolidation, so the documented/imported settings cannot create the DataSource that the runtime actually requires.",
+  "requiredRepair": "Bind Batch runtime defaults and smoke execution to the canonical role DataSource and cpfDB while retaining only deliberate compatibility aliases, then run actual JDBC-backed Batch runtime verification."
+}

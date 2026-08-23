@@ -1,0 +1,13 @@
+{
+  "track": "CX-05-F210-OWNER-TEST-FIX-FINAL-IDENTITY",
+  "timestamp": "2026-08-23T18:57:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "be9ab8f3f7587347697f84471af24a2940c43f542475c4f18ed012c627deb64e",
+    "sha1": "6af65f947b7a9acd43c97286b8431ebfce3e6121",
+    "files": 8288,
+    "bytes": 75219910
+  },
+  "assertion": "The initial active control is asserted once; after resume the same active snapshot is asserted exactly twice in total.",
+  "next": "Execute affected Worker and Kafka Java 25 tests."
+}

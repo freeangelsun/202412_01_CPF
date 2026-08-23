@@ -42,7 +42,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
                         moduleName = 'payment'
                         databaseEnabled = $true
                         databaseRole = 'CUSTOMER_BUSINESS_DB'
-                        definitionPath = 'cpf-payment/cpf-domain.yaml'
+                        contractPath = 'cpf-payment/gradle.properties'
                     })
                 }
                 """
@@ -88,7 +88,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
                         projectName = [string] $_.projectName
                         generatedDomain = [bool] $_.generatedDomain
                         databaseRole = [string] $_['databaseRole']
-                        definitionPath = [string] $_['definitionPath']
+                        contractPath = [string] $_['contractPath']
                     }}
                 }}) | ConvertTo-Json -Depth 8 -Compress
                 """
@@ -107,7 +107,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
             self.assertTrue(by_code["PAY"]["generatedDomain"])
             self.assertEqual("cpf-payment", by_code["PAY"]["projectName"])
             self.assertEqual("CUSTOMER_BUSINESS_DB", by_code["PAY"]["databaseRole"])
-            self.assertTrue(by_code["PAY"]["definitionPath"].endswith("payment/cpf-domain.yaml"))
+            self.assertTrue(by_code["PAY"]["contractPath"].endswith("payment/gradle.properties"))
 
     @unittest.skipUnless(shutil.which("pwsh"), "pwsh 7 is required")
     def test_arbitrary_system_code_runtime_start_consumes_deployment_binding(self):

@@ -1,1 +1,0 @@
-export class MutationObserver<TData=unknown,TError=unknown,TVariables=unknown,TContext=unknown>{ constructor(_:any,private cfg:any){} async mutate(_:TVariables):Promise<TData>{return this.cfg.mutationFn();} reset(){} }

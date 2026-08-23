@@ -1,0 +1,33 @@
+{
+  "finding": "CX-F-139",
+  "status": "PASS",
+  "startedAt": "2026-08-23T09:59:00.3333788+09:00",
+  "finishedAt": "2026-08-23T09:59:28.3203118+09:00",
+  "environment": {
+    "java": "25.0.3",
+    "maxWorkers": 1,
+    "daemon": false
+  },
+  "command": ".\\gradlew.bat :framework:base-runtime:test :framework:operations:observability:test --no-daemon --max-workers=1 --console=plain",
+  "result": {
+    "exitCode": 0,
+    "durationSeconds": 27,
+    "suites": 12,
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "actionableTasks": 25,
+    "executedTasks": 7,
+    "upToDateTasks": 18
+  },
+  "exactCoverage": [
+    "Nested lexical scopes project child context then restore the parent",
+    "Final lexical scope close clears projections",
+    "Out-of-order close fails closed and clears thread state",
+    "Spring publishes the exact ServiceLoader runtime registry",
+    "Observability projection unregisters on bean destruction"
+  ],
+  "sourceIdentitySha256": "320328107fafb45a0b046f7ecb910c93664ed68aa6eab53439d8e07369960bc4",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F139-BASE-OBSERVABILITY-TARGETED-RERUN1.log"
+}

@@ -6,22 +6,42 @@ import com.cpf.core.api.domain.CpfDomainBinding;
 import com.cpf.core.api.domain.CpfDomainBindingMode;
 import com.cpf.core.api.domain.CpfDomainPingRequest;
 import com.cpf.core.api.domain.CpfDomainPingResponse;
+import com.cpf.core.api.context.CpfContext;
+import com.cpf.core.api.context.CpfContextSnapshot;
+import com.cpf.core.api.context.CpfContexts;
 import com.cpf.core.api.result.CpfResult;
 import java.time.Instant;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 class CpfDomainClientRouterTest {
 
     @Test
-    void autoUsesLocalOperationWithoutChangingBusinessClient() {
+    void autoUsesLocalOperationWithoutChangingBusinessClient() throws Exception {
         var registry = registry(true, "LOCAL");
         var router = new CpfDomainClientRouter(code -> CpfDomainBinding.auto("EXS-SERVICE"), registry,
                 remoteSuccess());
 
-        CpfResult<CpfDomainPingResponse> result = router.invoke("EXS", "ping", new CpfDomainPingRequest("R1"), CpfDomainPingResponse.class);
+        CpfResult<CpfDomainPingResponse> result;
+        try (AutoCloseable ignored = CpfContexts.bind(rootContext())) {
+            result = router.invoke("EXS", "ping", new CpfDomainPingRequest("R1"), CpfDomainPingResponse.class);
+        }
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.requireData().systemCode()).isEqualTo("LOCAL");
+        assertThat(CpfContexts.current()).isNull();
+    }
+
+    @Test
+    void localOperationWithoutCanonicalContextFailsClosed() {
+        var router = new CpfDomainClientRouter(code -> CpfDomainBinding.auto("EXS-SERVICE"),
+                registry(true, "LOCAL"), remoteMustNotRun());
+
+        CpfResult<CpfDomainPingResponse> result = router.invoke(
+                "EXS", "ping", new CpfDomainPingRequest("R-NO-CONTEXT"), CpfDomainPingResponse.class);
+
+        assertThat(result.isTechnicalFailure()).isTrue();
+        assertThat(result.errorCode()).isEqualTo("CPF-DOMAIN-CONTEXT-MISSING");
     }
 
     @Test
@@ -65,6 +85,23 @@ class CpfDomainClientRouterTest {
                 throw new AssertionError("remote must not run");
             }
         };
+    }
+
+    private static CpfContextSnapshot rootContext() {
+        Instant now = Instant.parse("2026-08-22T00:00:00Z");
+        CpfContext root = new CpfContext(
+                new CpfContext.CpfTransactionContext(
+                        "TX-DOMAIN-ROUTER-1", "TX-DOMAIN-ROUTER-1", null, null, null,
+                        "MBR", "MBR", null, null,
+                        "INTERNAL", "INTERNAL", null, null,
+                        LocalDate.of(2026, 8, 22), now, CpfContext.CpfTransactionOriginKind.INTERNAL,
+                        "MBR", null),
+                new CpfContext.CpfExecutionContext(
+                        null, "EX-DOMAIN-ROUTER-1", "EX-DOMAIN-ROUTER-1", null,
+                        "SG-DOMAIN-ROUTER-1", null, CpfContext.CpfExecutionType.INTERNAL,
+                        1, 0, now, null, CpfContext.CpfCancellationMode.DEADLINE_ENFORCED),
+                null, null, null);
+        return CpfContextSnapshot.capture(root, now);
     }
 
     private static CpfDomainOperationRegistry registry(boolean available, String responseSystemCode) {

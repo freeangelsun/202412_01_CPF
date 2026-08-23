@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-08-23T13:38:00+09:00",
+  "findingId": "CX-F-156",
+  "status": "CLOSED",
+  "sourceIdentity": "cd0ad5f28dfc46a82265d9f485b645e5bcff214fefe387d7de353ca17780cfa1",
+  "sourceIdentityAfterFix": {
+    "contentSha256": "b91a373f96ddfdc21daf1f351676dd22f3759d385f5cc7da2ab0c2bbc3f9a21c",
+    "contentSha1": "767ac7e830d3b0bca60dbd27f939db24665a808c",
+    "fileCount": 8220,
+    "totalBytes": 75015798
+  },
+  "title": "SFTP repository unit tests cannot construct the repository after canonical SQL pack externalization",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 --console=plain :internal:file:sftp:test --tests com.cpf.file.common.filetransfer.JdbcCpfFileTransferRepositoryTest",
+  "environment": "Java 25.0.3; Gradle 9.1.0; one worker; local profile",
+  "actualResult": "3 tests executed and 3 failed before assertions",
+  "actualError": "IllegalStateException: cpf.db.resource-root is required; module-local Vendor SQL fallback is unsupported",
+  "rootCause": "The SQL catalog correctly became an external fail-closed runtime dependency, but JdbcCpfFileTransferRepository offers only constructors that construct that environment-owned dependency internally. Its isolated repository tests therefore cannot inject the contract they are testing against.",
+  "repairPolicy": "Add explicit CpfVendorSqlCatalog dependency injection while retaining existing fail-closed environment constructors; inject a strict statement catalog in repository unit tests. Actual external query-pack existence and DB execution remain separate mandatory gates.",
+  "sourceFix": "A null-safe explicit CpfVendorSqlCatalog constructor now owns dependency injection; both existing environment constructors delegate through it and retain fail-closed external resource resolution. Unit tests inject only statement lookup while retaining the real JDBC repository behavior.",
+  "verification": "Java 25 Gradle 9.1 exact replay passes 3/3 tests with zero failures/errors in 19 seconds; 47 actionable tasks with 3 executed and one worker. The separate three-vendor Backoffice runtime pack inventory also passes with 176 files per vendor.",
+  "passCriteria": ["Exact 3 repository tests PASS under Java 25", "Default runtime constructor remains fail-closed without cpf.db.resource-root", "External Backoffice query-pack gates are not skipped"]
+}

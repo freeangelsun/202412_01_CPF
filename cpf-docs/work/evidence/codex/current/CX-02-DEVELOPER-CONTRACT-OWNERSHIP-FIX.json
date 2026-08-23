@@ -1,0 +1,7 @@
+{
+  "track": "CX-02-DEVELOPER-CONTRACT-OWNERSHIP-FIX",
+  "finding": "CX-F-109",
+  "attempt2": {"exitCode": 2, "cause": "v1 transient ownership classified the newly developer-authoritative gradle.properties as Seed drift", "mutation": "NONE"},
+  "fix": "Upgrade excludes only gradle.properties from Generated Seed user-modification detection; the parsed Domain contract, identity, graph, risky-change and final render checks remain active.",
+  "sourceIdentity": {"sha256": "e4f3a91707cddc3b6fd1284e407f9f6a64e582278813af63f84f886dc3c333c1", "sha1": "7dfc08fadf04c007e76f70370e8361f668dbe27d", "fileCount": 8228, "totalBytes": 75801348}
+}

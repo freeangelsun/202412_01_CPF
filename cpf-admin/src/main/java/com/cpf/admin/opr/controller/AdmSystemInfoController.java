@@ -2,6 +2,7 @@ package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.core.api.version.CpfPlatformVersion;
+import com.cpf.foundation.version.CpfPlatformVersionLoader;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,11 @@ import java.util.Map;
 @RequestMapping("/adm/api/v1/system")
 @Tag(name = "ADM 시스템 정보", description = "CPF platform 및 구성요소 버전 정보")
 public class AdmSystemInfoController extends AdmBaseController {
+    private final CpfPlatformVersionLoader versions;
+
+    public AdmSystemInfoController(CpfPlatformVersionLoader versions) {
+        this.versions = versions;
+    }
 
     /**
      * 현재 실행 산출물의 버전 정보를 반환합니다.
@@ -25,10 +31,11 @@ public class AdmSystemInfoController extends AdmBaseController {
     @GetMapping("/version")
     @Operation(operationId = "getAdmSystemVersion", summary = "CPF 시스템 버전 조회")
     public ResponseEntity<Map<String, String>> version() {
+        CpfPlatformVersion version = versions.load();
         return ok(Map.of(
-                "platformVersion", CpfPlatformVersion.current(),
-                "componentVersion", CpfPlatformVersion.componentVersion(),
-                "compatibleRange", CpfPlatformVersion.compatibleRange(),
+                "platformVersion", version.platformVersion(),
+                "componentVersion", version.componentVersion(),
+                "compatibleRange", version.compatibleRange(),
                 "component", "adm"));
     }
 }

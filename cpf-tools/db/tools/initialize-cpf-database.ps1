@@ -227,6 +227,33 @@ foreach ($profileKey in $moduleOrder) {
     }
 }
 
+# Shared modules are application ownership aliases, not independent physical
+# lifecycle targets. Baseline registration and current verify run once for each
+# distinct profile-resolved database using its declared owner identity.
+$physicalOwnerTargets = [System.Collections.Generic.List[object]]::new()
+$seenPhysicalTargets = [System.Collections.Generic.HashSet[string]]::new(
+    [System.StringComparer]::OrdinalIgnoreCase
+)
+foreach ($key in $selectedKeys) {
+    $target = $moduleProfiles[$key]
+    $ownerKey = if ([string]::IsNullOrWhiteSpace([string]$target.sharesDatabaseWith)) {
+        $key
+    } else {
+        [string]$target.sharesDatabaseWith
+    }
+    if (-not $moduleProfiles.ContainsKey($ownerKey)) {
+        throw "공유 DB의 물리 Owner가 Profile에 없습니다: module=$key owner=$ownerKey"
+    }
+    $owner = $moduleProfiles[$ownerKey]
+    $physicalKey = "$($target.vendor)|$($target.host)|$($target.port)|$($target.databaseName)"
+    if ($seenPhysicalTargets.Add($physicalKey)) {
+        $physicalOwnerTargets.Add([pscustomobject]@{
+                moduleKey = $ownerKey
+                target = $owner
+            })
+    }
+}
+
 $installFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql"
 $productSeedFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/seed/00_product_seed.sql"
 $optionalSampleSeedFile = Join-Path $Root "cpf-tools/db/vendor/mariadb/seed/00_optional_sample_seed.sql"
@@ -1043,16 +1070,23 @@ ORDER BY table_name;
 SELECT COUNT(*)
 FROM information_schema.tables
 WHERE table_schema = '$($core.databaseName.Replace("'","''"))'
-  AND table_name = 'cpf_schema_installation';
+  AND UPPER(table_name) = 'OPS_SCHEMA_INSTALLATION';
 "@
-        if ([int](($baselineTableText -split '\r?\n' | Where-Object { $_ } | Select-Object -First 1)) -eq 1) {
-            $values = @()
-            foreach ($key in $selectedKeys) {
-                $t = $moduleProfiles[$key]
-                $values += "('$($t.databaseName)', '$($t.systemCode)', '$($t.vendor.ToUpperInvariant())', '1.0.0-SNAPSHOT', 'CPF_PROFILE_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER')"
-            }
-            $baselineSql = @"
-INSERT INTO cpf_schema_installation (
+        if ([int](($baselineTableText -split '\r?\n' | Where-Object { $_ } | Select-Object -First 1)) -ne 1) {
+            throw "Current baseline registry table is missing: OPS_SCHEMA_INSTALLATION database=$($core.databaseName)"
+        }
+        $values = @()
+        $identityPredicates = @()
+        foreach ($entry in $physicalOwnerTargets) {
+            $t = $entry.target
+            $schemaName = ([string]$t.databaseName).Replace("'", "''")
+            $systemCode = ([string]$t.systemCode).ToUpperInvariant().Replace("'", "''")
+            $vendor = ([string]$t.vendor).ToUpperInvariant().Replace("'", "''")
+            $values += "('$schemaName', '$systemCode', '$vendor', '1.0.0-SNAPSHOT', 'CPF_PROFILE_INSTALL_V1', 'PRODUCT_SEEDED', 'CPF_INSTALLER', 'CPF_INSTALLER')"
+            $identityPredicates += "(schema_name = '$schemaName' AND system_code = '$systemCode')"
+        }
+        $baselineSql = @"
+INSERT INTO OPS_SCHEMA_INSTALLATION (
     schema_name, system_code, database_vendor, product_version,
     baseline_key, install_state, created_by, updated_by
 ) VALUES
@@ -1066,25 +1100,45 @@ ON DUPLICATE KEY UPDATE
     updated_by=VALUES(updated_by),
     updated_at=CURRENT_TIMESTAMP(3);
 "@
-            [void](Invoke-MariaText $core $core.migrationUsername $core.migrationPassword $baselineSql $core.databaseName)
-        } else {
-            Write-Host "CPF baseline registry=SKIP (core baseline table not installed yet)"
+        [void](Invoke-MariaText $core $core.migrationUsername $core.migrationPassword $baselineSql $core.databaseName)
+        $baselineVerifySql = @"
+SELECT COUNT(*), COUNT(DISTINCT schema_name)
+FROM OPS_SCHEMA_INSTALLATION
+WHERE database_vendor = 'MARIADB'
+  AND product_version = '1.0.0-SNAPSHOT'
+  AND baseline_key = 'CPF_PROFILE_INSTALL_V1'
+  AND install_state = 'PRODUCT_SEEDED'
+  AND ($($identityPredicates -join ' OR '));
+"@
+        $baselineVerification = Invoke-MariaText $core $core.adminUsername $core.adminPassword $baselineVerifySql $core.databaseName
+        $baselineFields = @(($baselineVerification -split '\r?\n' | Where-Object { $_ } | Select-Object -First 1).Split("`t"))
+        $expectedBaselineCount = $physicalOwnerTargets.Count
+        if ($baselineFields.Count -ne 2 -or [int]$baselineFields[0] -ne $expectedBaselineCount -or
+                [int]$baselineFields[1] -ne $expectedBaselineCount) {
+            throw "CPF baseline registry identity mismatch. expected=$expectedBaselineCount actual=$($baselineFields -join ',')"
         }
+        $result.verify.baselineCount = $expectedBaselineCount
+        Write-Host "CPF baseline registry=PASS physicalTargets=$expectedBaselineCount"
     }
 
     if ($RequireRun -and -not $ProvisionOnly -and $fullPlatformSelection) {
-        $core = $moduleProfiles[$coreKey]
-        $verifySql = Get-Content -LiteralPath $verifyFile -Raw -Encoding UTF8
-        if ([string]::IsNullOrWhiteSpace($verifySql)) {
-            throw "MariaDB Verify Pack이 비어 있습니다: $verifyFile"
+        $verifyRows = [System.Collections.Generic.List[string]]::new()
+        foreach ($entry in $physicalOwnerTargets) {
+            $target = $entry.target
+            $verifySql = Get-ModuleSql $verifyFile $target.logicalDatabase
+            if ([string]::IsNullOrWhiteSpace($verifySql)) {
+                throw "MariaDB Verify Pack logical section이 비어 있습니다: logicalDatabase=$($target.logicalDatabase) file=$verifyFile"
+            }
+            $verifyText = Invoke-MariaText `
+                $target `
+                $target.adminUsername `
+                $target.adminPassword `
+                $verifySql `
+                $target.databaseName
+            foreach ($row in @($verifyText -split '\r?\n' | Where-Object { $_ })) {
+                $verifyRows.Add($row)
+            }
         }
-        $verifyText = Invoke-MariaText `
-            $core `
-            $core.adminUsername `
-            $core.adminPassword `
-            $verifySql `
-            $core.databaseName
-        $verifyRows = @($verifyText -split '\r?\n' | Where-Object { $_ })
         if ($verifyRows.Count -eq 0) {
             throw "MariaDB Verify Pack이 검증 결과를 반환하지 않았습니다."
         }

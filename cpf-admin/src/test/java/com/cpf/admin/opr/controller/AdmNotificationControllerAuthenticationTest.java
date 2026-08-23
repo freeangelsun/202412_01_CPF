@@ -30,15 +30,16 @@ class AdmNotificationControllerAuthenticationTest {
     }
 
     @Test
-    void rejectsClaimedOperatorMismatch() {
-        AdmNotificationController controller =
-                new AdmNotificationController(mock(AdmNotificationService.class));
+    void forwardsAuthenticatedOperatorWithoutCallerOwnedIdentity() {
+        AdmNotificationService service = mock(AdmNotificationService.class);
+        AdmNotificationController controller = new AdmNotificationController(service);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setAttribute("adm.operatorId", "operator-a");
+        request.setRemoteAddr("127.0.0.1");
 
-        assertThatThrownBy(() -> controller.disableRule(1L, "점검", "operator-b", request))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("일치하지 않습니다");
+        controller.disableRule(1L, "점검", request);
+
+        verify(service).disableRule(1L, "점검", "operator-a", "127.0.0.1");
     }
 
     @Test
@@ -65,7 +66,7 @@ class AdmNotificationControllerAuthenticationTest {
                         null));
 
         AdmNotificationDeliveryStatusResponse body = controller.retryDelivery(
-                10L, 7L, "provider 확인", null, request).getBody();
+                10L, 7L, "provider 확인", request).getBody();
 
         assertThat(body).isNotNull();
         assertThat(body.version()).isEqualTo(8L);

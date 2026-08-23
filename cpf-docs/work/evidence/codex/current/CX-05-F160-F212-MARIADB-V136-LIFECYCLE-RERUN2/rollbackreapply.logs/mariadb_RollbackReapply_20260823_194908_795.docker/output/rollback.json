@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "tool": "invoke-platform-database-migration.ps1",
+  "mode": "APPLY",
+  "status": "완료",
+  "generatedAt": "2026-08-23T10:49:10.5916692+00:00",
+  "profile": "profile.json",
+  "plan": {
+    "schemaVersion": 1,
+    "direction": "rollback",
+    "vendor": "mariadb",
+    "selectionMode": "explicit",
+    "fromVersion": null,
+    "toVersion": null,
+    "versions": [
+      136
+    ],
+    "operations": [
+      {
+        "order": 1,
+        "version": 136,
+        "moduleKey": "backoffice",
+        "moduleName": "cpf-backoffice",
+        "systemCode": "MBW",
+        "logicalDatabase": "mbwDB",
+        "physicalDatabase": "cpf_verify_109027fbe612_mbw",
+        "physicalSchema": "cpf_verify_109027fbe612_mbw",
+        "migrationPath": "cpf-tools/db/vendor/mariadb/migration/flyway/V136__backoffice_permission_identity.sql",
+        "migrationSha256": "4e13bc3ea2c3eea85aab0a149391aacae6b226342a662f1859be399b57fafb63",
+        "rollbackPath": "cpf-tools/db/vendor/mariadb/rollback/R136__backoffice_permission_identity.sql",
+        "rollbackSha256": "fe5ff8ffd8f3dae24ee5bfe4d82f3637b0b0edb7747799917d79e8eebe536589",
+        "selectedPath": "cpf-tools/db/vendor/mariadb/rollback/R136__backoffice_permission_identity.sql",
+        "selectedSha256": "fe5ff8ffd8f3dae24ee5bfe4d82f3637b0b0edb7747799917d79e8eebe536589",
+        "renderedSha256": "80b15cb5c05ba3321ef8f8b960d056f21799871c9673dbcc2cad3603d4a723f2"
+      }
+    ]
+  },
+  "planSha256": "7de6c3b14d073b4754f0614213a688f0cfefdf1f81af357bee0d8b659cdc9b98",
+  "operations": [
+    {
+      "order": 1,
+      "version": 136,
+      "moduleKey": "backoffice",
+      "physicalDatabase": "cpf_verify_109027fbe612_mbw",
+      "status": "COMPLETED",
+      "startedAt": "2026-08-23T10:49:12.0273417Z",
+      "finishedAt": "2026-08-23T10:49:12.0862585Z",
+      "failureCode": ""
+    }
+  ],
+  "error": "",
+  "reconcileRequired": false,
+  "failureOperation": null,
+  "operator": "CPF_FULLLOCAL",
+  "reason": "cpf-full-local-isolated-db-lifecycle",
+  "approvalReference": "CPF-VERIFY-109027fbe612",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "backupWaiverReason": "VERIFIER_OWNED_DISPOSABLE_DATABASE_ONLY",
+  "finishedAt": "2026-08-23T10:49:12.0866742+00:00"
+}

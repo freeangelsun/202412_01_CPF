@@ -42,8 +42,8 @@ const typedGeneratedConsumed=new Set();
 const rawMutationConsumed=new Set();
 function match(method,raw,rel){const pathname=normalizeSourceTemplate(raw);const found=operations.find(op=>op.method===method&&templateRegex(op.template).test(pathname));if(!found){failures.push(`${rel}: privileged API is absent from OpenAPI: ${method} ${raw}`);return null;}consumed.add(found.operationId);return found.operationId;}
 const patterns=[
- {re:/\b(?:adm|bza)Query(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1/g,method:"GET"},
- {re:/\b(?:adm|bza)Mutation(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1\s*,\s*([`"'])(POST|PUT|PATCH|DELETE)\3/g,method:null},
+ {re:/\badmQuery(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1/g,method:"GET"},
+ {re:/\badmMutation(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1\s*,\s*([`"'])(POST|PUT|PATCH|DELETE)\3/g,method:null},
  {re:/\bthis\.getJson(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1/g,method:"GET"},
  {re:/\bthis\.sendJson(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1\s*,\s*([`"'])(POST|PUT|PATCH|DELETE)\3/g,method:null},
  {re:/\bthis\.rawResponse(?:<[^>]+>)?\s*\(\s*([`"'])(\/[^`"']+)\1(?:\s*,\s*([`"'])(GET|POST|PUT|PATCH|DELETE)\3)?/g,method:"RAW"},
@@ -60,7 +60,7 @@ function extractCall(text,start){
  return text.slice(start,Math.min(text.length,start+1200));
 }
 function inferWrapperCalls(text,rel){
- const wrapper=/\b(?:request|admApi|bzaApi)(?:<[^>]+>)?\s*\(\s*([`"'])(\/(?:adm\/api|api\/bza)\/[^`"']+)\1/g;
+ const wrapper=/\b(?:request|admApi)(?:<[^>]+>)?\s*\(\s*([`"'])(\/adm\/api\/[^`"']+)\1/g;
  for(const item of text.matchAll(wrapper)){
    const raw=item[2]; const callStart=(item.index||0)+item[0].indexOf('('); const call=extractCall(text,callStart);
    const explicit=call.match(/\bmethod\s*:\s*([`"'])(POST|PUT|PATCH|DELETE|GET)\1/i);
@@ -69,10 +69,10 @@ function inferWrapperCalls(text,rel){
    if(operationId&&["POST","PUT","PATCH","DELETE"].includes(inferredMethod))rawMutationConsumed.add(operationId);
  }
 }
-for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/")||/\.(?:test|spec)\.(?:ts|vue)$/.test(rel)||/\.contract\.test\.ts$/.test(rel))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/(?:adm\/api|api\/bza)\b/.test(text)&&!["src/shared/cpfApi.ts","src/shared/orval-mutator.ts"].includes(rel))failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
- for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/(?:adm\/api|api\/bza)\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC"){const operationId=match(method,raw,rel);if(operationId&&["POST","PUT","PATCH","DELETE"].includes(method))rawMutationConsumed.add(operationId);}}}
+for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file).replaceAll("\\","/");if(rel.startsWith("src/generated/")||/\.(?:test|spec)\.(?:ts|vue)$/.test(rel)||/\.contract\.test\.ts$/.test(rel))continue;const text=fs.readFileSync(file,"utf8");if(/\bfetch\s*\(/.test(text)&&/\/adm\/api\b/.test(text)&&!["src/shared/cpfApi.ts","src/shared/orval-mutator.ts"].includes(rel))failures.push(`${rel}: direct privileged API fetch is forbidden`);if(/\b(?:axios|XMLHttpRequest)\b/.test(text))failures.push(`${rel}: direct HTTP client usage is forbidden`);
+ for(const pattern of patterns){for(const matchValue of text.matchAll(pattern.re)){const raw=matchValue[2];if(!/^\/adm\/api\//.test(raw))continue;const method=pattern.method===null?matchValue[4]:(pattern.method==="RAW"?(matchValue[4]||"GET"):pattern.method);if(method!=="DYNAMIC"){const operationId=match(method,raw,rel);if(operationId&&["POST","PUT","PATCH","DELETE"].includes(method))rawMutationConsumed.add(operationId);}}}
  inferWrapperCalls(text,rel);
- for(const invoked of text.matchAll(/\b(?:adm|bza)InvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
+ for(const invoked of text.matchAll(/\badmInvokeOperation(?:<[^>]+>)?\s*\(\s*["']([^"']+)["']/g)){
    const operationId=invoked[1];
    if(!ids.includes(operationId))failures.push(`${rel}: unknown generated operation invocation ${operationId}`);
    else {
@@ -102,7 +102,7 @@ for(const file of walk(path.join(root,"src"))){const rel=path.relative(root,file
 const routeRegistry=[read("src/app/routes.ts"), ...walk(path.join(root,"src/app/routes")).filter(file=>file.endsWith(".ts")).map(file=>fs.readFileSync(file,"utf8"))].join("\n");
 const appSource=read("src/App.vue");
 const workbenchSource=read("src/components/RouteOperationWorkbench.vue");
-const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&/(?:adm|bza)InvokeOperation/.test(workbenchSource)&&workbenchSource.includes("cpfOperationDescriptors");
+const hasRouteWorkbench=appSource.includes("RouteOperationWorkbench")&&/admInvokeOperation/.test(workbenchSource)&&workbenchSource.includes("cpfOperationDescriptors");
 const workbenchGetOnly=hasRouteWorkbench&&(workbenchSource.includes('item.method === "GET"')||workbenchSource.includes('descriptor.method !== "GET"')||workbenchSource.includes('selectedOperation.value.method !== "GET"'));
 if(!hasRouteWorkbench)failures.push("route operation workbench is not wired to the generated operation contract");
 if(hasRouteWorkbench&&!workbenchGetOnly)failures.push("route operation workbench must be GET-only before registry operations can count as consumers");

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BROKER-RELIABILITY-BEHAVIOR-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T16:52:10+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha256": "5324ac45a5c6dd22ff14894cb0a42f5c1e323210305d0e0b8ebfc9d0c44ada9a",
+    "contentSha1": "8a96a49cb36717dded68139dcbc15b73e4cdf18f",
+    "fileCount": 8206,
+    "totalBytes": 75714403
+  },
+  "changes": [
+    "Restore Context from full persisted headers but pass only user headers to provider validation",
+    "Remove exactly CpfMessageHeaderNames.ALL; keep all other reserved-header rejection active",
+    "Make worker fixtures explicitly support and assert worker-id fenced mutation overloads",
+    "Use worker identity for reconcile completion and default consumer identity in duplicate SQL stub"
+  ],
+  "findings": {"CX-F-048": "SOURCE_FIXED", "CX-F-049": "SOURCE_FIXED", "CX-F-050": "SOURCE_FIXED", "CX-F-051": "SOURCE_FIXED"},
+  "next": "Run JDBC reliability tests using fully detached Gradle plus exit-file polling"
+}

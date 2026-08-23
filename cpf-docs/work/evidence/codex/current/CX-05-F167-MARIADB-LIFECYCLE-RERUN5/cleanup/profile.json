@@ -1,0 +1,280 @@
+{
+  "profileVersion": 1,
+  "profileName": "full-local-mariadb-bb2e129c4691",
+  "environment": "test",
+  "description": "FullLocal verifier-owned isolated DB lifecycle profile. Contains env references only.",
+  "supportedVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "policy": {
+    "promptForMissingValues": false,
+    "allowInlineDevDefaults": false,
+    "failClosedOnMissingVendorPack": true,
+    "failClosedOnPartialDatabase": true,
+    "autoDropDatabase": false,
+    "autoResetDatabase": false,
+    "allowMixedVendorConfiguration": false,
+    "allowMixedHostConfiguration": false
+  },
+  "modules": {
+    "core": {
+      "domainName": "core",
+      "systemCode": "CPF",
+      "moduleName": "cpf-core",
+      "enabled": true,
+      "required": true,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_platform",
+      "schemaName": "cpf_verify_bb2e129c4691_platform",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "common": {
+      "domainName": "common",
+      "systemCode": "CMN",
+      "moduleName": "cpf-common",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_platform",
+      "schemaName": "cpf_verify_bb2e129c4691_platform",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "admin": {
+      "domainName": "admin",
+      "systemCode": "ADM",
+      "moduleName": "cpf-admin",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_platform",
+      "schemaName": "cpf_verify_bb2e129c4691_platform",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "batch": {
+      "domainName": "batch",
+      "systemCode": "BAT",
+      "moduleName": "cpf-batch",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "cpfDB",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_platform",
+      "schemaName": "cpf_verify_bb2e129c4691_platform",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sharesDatabaseWith": "core"
+    },
+    "education": {
+      "domainName": "education",
+      "systemCode": "EDU",
+      "moduleName": "cpf-education",
+      "enabled": false,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "referenceFixture",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_platform",
+      "schemaName": "cpf_verify_bb2e129c4691_platform",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_pm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_pr",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      }
+    },
+    "backoffice": {
+      "domainName": "backoffice",
+      "systemCode": "MBW",
+      "moduleName": "cpf-backoffice",
+      "enabled": true,
+      "required": false,
+      "transitional": false,
+      "logicalDatabase": "mbwDB",
+      "vendor": "mariadb",
+      "host": "mariadb",
+      "port": 3306,
+      "databaseName": "cpf_verify_bb2e129c4691_mbw",
+      "schemaName": "cpf_verify_bb2e129c4691_mbw",
+      "clientPath": "",
+      "sslMode": "disabled",
+      "admin": {
+        "username": "root",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_ADMIN_PASSWORD"
+        }
+      },
+      "migration": {
+        "username": "cpfv_bb2e129c4691_bm",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_MIGRATION_PASSWORD"
+        }
+      },
+      "runtime": {
+        "username": "cpfv_bb2e129c4691_br",
+        "userHost": "%",
+        "password": {
+          "env": "CPF_VERIFY_DB_RUNTIME_PASSWORD"
+        }
+      },
+      "seed": {
+        "product": true,
+        "optionalSample": false,
+        "test": false
+      },
+      "sourceOptional": true,
+      "ownerPath": "cpf-backoffice"
+    }
+  }
+}

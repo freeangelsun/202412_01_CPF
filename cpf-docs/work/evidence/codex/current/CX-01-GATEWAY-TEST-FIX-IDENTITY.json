@@ -1,0 +1,22 @@
+{
+  "caseId": "CX-01-GATEWAY-TEST-FIX-IDENTITY",
+  "startedAt": "2026-08-22T17:08:30+09:00",
+  "finishedAt": "2026-08-22T17:10:28.8278946+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha256": "ec932a1aaf04fc5dc90d6ce9c25a57cbf2bf38378c70215e7c8aac6573e25b9e",
+    "contentSha1": "170468c5228232fe9462208bcfec20e7d00422b4",
+    "fileCount": 8207,
+    "totalBytes": 75720463
+  },
+  "findings": ["CX-F-056", "CX-F-057", "CX-F-058", "CX-F-059", "CX-F-060"],
+  "changes": [
+    "Assert typed Tomcat InetAddress without weakening dedicated listener checks",
+    "Return the installed immutable snapshot for identical header/CORS/rate policy replay",
+    "Retain same-version conflict, stale-version rejection, and CAS atomic installation",
+    "Use Gateway execution selector in URI/header mismatch regression",
+    "Use canonical Web Idempotency-Key in opaque stable hash regression",
+    "Assert current direct SecurityException propagation for duplicate trusted headers"
+  ],
+  "verificationPending": "Detached Java 25 complete Gateway rerun"
+}

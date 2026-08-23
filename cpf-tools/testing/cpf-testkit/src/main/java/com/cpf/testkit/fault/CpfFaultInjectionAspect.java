@@ -21,7 +21,7 @@ public class CpfFaultInjectionAspect {
 
     @Around("@annotation(transaction)")
     public Object around(ProceedingJoinPoint joinPoint, CpfOnlineTransaction transaction) throws Throwable {
-        injector.before(transaction.id());
+        injector.before(transaction.operationId());
         return joinPoint.proceed();
     }
 }

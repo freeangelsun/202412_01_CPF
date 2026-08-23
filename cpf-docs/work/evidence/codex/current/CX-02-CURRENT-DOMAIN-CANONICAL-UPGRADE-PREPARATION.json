@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-CURRENT-DOMAIN-CANONICAL-UPGRADE-PREPARATION",
+  "finishedAt": "2026-08-22T21:43:14.5822449+09:00",
+  "sourceIdentitySha256": "213f001efdadb165f0c3c4469e60b707ee747b549ec21038ad8ecdb366289c1f",
+  "status": "UPGRADE_PREPARED",
+  "reason": "The safety-preserving Generator upgrade correctly rejected manually pre-edited generated files. Only the four Codex-added generated snippets were removed so canonical domain sync can apply the same engine-owned change and refresh ownership locks.",
+  "userSourceModified": false,
+  "next": "cpf domain sync"
+}

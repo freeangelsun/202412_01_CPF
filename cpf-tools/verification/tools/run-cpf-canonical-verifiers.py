@@ -22,7 +22,7 @@ def main() -> int:
     items=registry.get('verifiers') or []
     if not items: raise SystemExit('empty verifier registry')
     results=[]; failed=0
-    env=os.environ.copy(); env['PYTHONDONTWRITEBYTECODE']='1'; env['PYTEST_ADDOPTS']=env.get('PYTEST_ADDOPTS','')+' -p no:cacheprovider'
+    env=os.environ.copy(); env['PYTHONDONTWRITEBYTECODE']='1'
     for item in items:
         rel=item['path']; target=(root/rel).resolve()
         if root not in target.parents or not target.is_file():

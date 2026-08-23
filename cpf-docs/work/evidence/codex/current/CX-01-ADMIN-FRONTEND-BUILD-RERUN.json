@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-ADMIN-FRONTEND-BUILD-RERUN",
+  "requirementIds": ["FRONTEND", "WINDOWS", "REL-BUILD", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:39:49.5712985+09:00",
+    "finished": "2026-08-22T14:40:31.1199395+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :apps:admin:frontendBuild",
+  "exitCode": 0,
+  "sourceIdentity": "54b329e86db99ec9b84ec12151a27d7272ccb7bcda643705a5787c17a37e9bf0",
+  "actualResult": "BUILD SUCCESSFUL in 41s; generated API and all frontend generated/consumer/security contracts pass, Vite transforms 1,981 modules and emits 102 bundle files. Post-build Source Identity is unchanged, proving regeneration is clean.",
+  "result": "PASS",
+  "findingIds": ["CX-F-027"],
+  "artifacts": ["cpf-docs/work/evidence/codex/current/CX-01-ADMIN-FRONTEND-BUILD-RERUN.log"],
+  "sanitized": true
+}

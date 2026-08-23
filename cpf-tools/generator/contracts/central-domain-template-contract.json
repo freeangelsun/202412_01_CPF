@@ -166,12 +166,12 @@
     }
   },
   "selection": {
-    "metadataSource": "cpf-domain.yaml",
+    "metadataSource": "gradle.properties",
     "metadataLocations": [
-      "cpf-{domain}/cpf-domain.yaml",
-      "explicit --file"
+      "cpf-{domain}/gradle.properties",
+      "explicit transient --file"
     ],
-    "generatedProjectMetadata": "NONE",
+    "generatedProjectMetadata": "ABSENT",
     "selectedVendorOnly": true,
     "sourceTreeMutation": false,
     "moduleLocalVendorPack": false,

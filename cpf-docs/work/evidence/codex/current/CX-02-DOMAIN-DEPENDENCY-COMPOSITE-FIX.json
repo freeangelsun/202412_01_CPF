@@ -1,0 +1,9 @@
+{
+  "track": "CX-02-DOMAIN-DEPENDENCY-COMPOSITE-FIX",
+  "finding": "CX-F-106",
+  "attempt1": {"exitCode": 1, "failure": "Could not find member:online:1.0.0-SNAPSHOT", "publicStarters": "RESOLVED", "logs": "C:/Users/fly10/AppData/Local/CPF/validation/f109-composite-compile"},
+  "rootCause": "Generated settings included the CPF Product composite for public Starter substitutions but never included declared sibling Generated Domain projects.",
+  "fix": "render_root_settings emits exact includeBuild and online/batch dependency substitution for each validated Domain dependency, using Product root for private regression and the parent public workspace for Open Git.",
+  "sourceIdentity": {"sha256": "d5077f82e2f89c5fbf2cde4a196a73fe7b119db088c33c6fd20b91b470150fc0", "sha1": "2363afa0ee4a8251fd3cb6fa36d54b39e2757c5c", "fileCount": 8228, "totalBytes": 75802930},
+  "status": "SOURCE_FIXED"
+}

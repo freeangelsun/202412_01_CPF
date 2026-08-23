@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-23T17:05:00+09:00",
+  "findingId": "CX-F-192",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "45ba1ee8971089721c96f6f8202c922c98d82c401e0c87ea600361724edcdb45",
+  "actual": "The education query module declares 13 ACTIVE runtime/ref statements for EducationCenterCutTargetRepository and RefCenterCutOperationsExtension. Both classes and the configured operations/centercut source scope are absent; current Education uses online/centercut and Batch owner APIs.",
+  "impact": "A generated REF pack exists without its declared Product consumer, so neither presence nor sync is execution evidence and Open Git EDU ownership is ambiguous.",
+  "rootCause": "The runtime-query contract retained a pre-Feature-First education adapter contract after its two Java consumers were retired. Recreating them would violate cpf-education's public-API-only golden path and duplicate current Batch Center Cut ownership.",
+  "repair": "Removed education from required runtime-query modules and deleted only the 13 orphan statement templates, two vendor overrides and 39 DB3 projections. Kept REF migrations, tables, seed, MyBatis/manual and referenceFixture assets because they remain independently owned test fixtures.",
+  "proof": ["Global non-generated Source search: zero declared consumers", "git ls-tree HEAD: zero declared consumers", "current EDU SettlementCutService and SettlementCenterCutJobService consume public CpfCenterCutOperations", "cpf-education golden path prohibits JdbcTemplate and raw SQL"],
+  "next": "Run canonical platform sync/check, full query integrity and actual EDU/Open Git runtime.",
+  "falseGreen": false
+}

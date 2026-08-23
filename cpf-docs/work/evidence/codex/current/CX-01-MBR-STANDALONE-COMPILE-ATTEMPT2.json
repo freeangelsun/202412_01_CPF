@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-MBR-STANDALONE-COMPILE-ATTEMPT2",
+  "requirementIds": ["REL-BUILD", "JAVA25", "GENERATED-DOMAIN", "COMMON-DOMAIN", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:28:22.2524245+09:00",
+    "finished": "2026-08-22T14:28:43.4096976+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat -p .\\cpf-member --no-daemon :online:compileJava :batch:compileJava -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF",
+  "exitCode": 0,
+  "sourceIdentity": "494dfdaafc02bec8bb35b08aa957bc6bac784dfd36667d43d17f73e815f661fa",
+  "actualResult": "BUILD SUCCESSFUL in 20s; 22 actionable tasks, 2 executed and 20 up-to-date. Product cpf-common compiles on the original consumer classpath, MBR online compiles, and batch runtime plus MBR batch compile execute successfully.",
+  "result": "PASS",
+  "findingIds": ["CX-F-005", "CX-F-014", "CX-F-015", "CX-F-018", "CX-F-024", "CX-F-025"],
+  "artifacts": ["cpf-docs/work/evidence/codex/current/CX-01-MBR-STANDALONE-COMPILE-ATTEMPT2.log"],
+  "sanitized": true
+}

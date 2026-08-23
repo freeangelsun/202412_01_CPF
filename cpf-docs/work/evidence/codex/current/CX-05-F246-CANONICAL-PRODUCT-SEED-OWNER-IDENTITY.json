@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-246",
+  "recordedAt": "2026-08-23T22:15:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "56c7852af9fa583a539b30ecb7c0b238648916a7350387dc2c20e72105bf77c2",
+    "sha1": "0a81df5f6018452578e002fee7544bd8e934f33a",
+    "fileCount": 8301,
+    "totalBytes": 75282006
+  },
+  "changes": [
+    "Added canonical 53_runtime_service_registry_seed.sql ownership",
+    "Moved OPS_SERVICE masters into the Product Seed projection",
+    "Moved OPS_SERVICE_ENDPOINT masters into the Product Seed projection",
+    "Moved OPS_SERVICE_ROUTING_POLICY masters into the Product Seed projection",
+    "Added the owner to MariaDB PostgreSQL and Oracle Product Seed source plans"
+  ],
+  "runtimeOwnedState": "OPS_SERVICE_INSTANCE, circuit state and health observations remain outside Product Seed as runtime/sample state"
+}

@@ -55,7 +55,7 @@ public class CpfCommonJdbcAutoConfiguration {
     public static final String DATA_SOURCE_BEAN = CpfCommonPersistenceNames.DATA_SOURCE_BEAN;
     public static final String TX_MANAGER_BEAN = CpfCommonPersistenceNames.TX_MANAGER_BEAN;
 
-    @Bean(name = DATA_SOURCE_BEAN)
+    @Bean(name = {DATA_SOURCE_BEAN, CpfCommonPersistenceNames.PLATFORM_DATA_SOURCE_BEAN})
     DataSource cpfCommonDataSource(CpfDataSourceRegistry dataSources, Environment environment) {
         try {
             DataSource dataSource = dataSources.require(CpfDatabaseRole.CPF_PLATFORM_DB);
@@ -72,7 +72,7 @@ public class CpfCommonJdbcAutoConfiguration {
         }
     }
 
-    @Bean(name = "cpfCommonJdbcTemplate")
+    @Bean(name = {CpfCommonPersistenceNames.JDBC_TEMPLATE_BEAN, CpfCommonPersistenceNames.PLATFORM_JDBC_TEMPLATE_BEAN})
     JdbcTemplate cpfCommonJdbcTemplate(@Qualifier(DATA_SOURCE_BEAN) DataSource cpfCommonDataSource) {
         return new JdbcTemplate(cpfCommonDataSource);
     }
@@ -82,7 +82,7 @@ public class CpfCommonJdbcAutoConfiguration {
         return new NamedParameterJdbcTemplate(cpfCommonDataSource);
     }
 
-    @Bean(name = TX_MANAGER_BEAN)
+    @Bean(name = {TX_MANAGER_BEAN, CpfCommonPersistenceNames.PLATFORM_TX_MANAGER_BEAN})
     PlatformTransactionManager cpfCommonTransactionManager(@Qualifier(DATA_SOURCE_BEAN) DataSource cpfCommonDataSource) {
         return new DataSourceTransactionManager(cpfCommonDataSource);
     }
@@ -122,8 +122,8 @@ public class CpfCommonJdbcAutoConfiguration {
     }
 
     /** Common Product Service의 effective-time/audit/cache 시간을 하나의 override 가능한 Clock으로 통일합니다. */
-    @Bean
-    @ConditionalOnMissingBean(Clock.class)
+    @Bean(name = CpfCommonPersistenceNames.CLOCK_BEAN)
+    @ConditionalOnMissingBean(name = CpfCommonPersistenceNames.CLOCK_BEAN)
     Clock cpfCommonClock() {
         return Clock.systemUTC();
     }

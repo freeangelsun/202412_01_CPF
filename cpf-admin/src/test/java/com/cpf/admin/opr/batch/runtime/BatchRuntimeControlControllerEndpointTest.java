@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +77,8 @@ class BatchRuntimeControlControllerEndpointTest {
     @Test
     void typedOwnerErrorsUseOneEndpointIndependentStatusMatrix() {
         for (BatchControlClientException.Category category : BatchControlClientException.Category.values()) {
-            when(client.createPlan(any())).thenThrow(new BatchControlClientException(category, "E-" + category, "failure", "TRACE", null));
+            doThrow(new BatchControlClientException(category, "E-" + category, "failure", "TRACE", null))
+                    .when(client).createPlan(any());
             ResponseEntity<Map<String, Object>> response = controller.plan("session-admin", validPlan());
             int expected = switch (category) {
                 case VALIDATION -> 400; case PERMISSION -> 403; case NOT_FOUND -> 404; case CONFLICT -> 409;

@@ -11,5 +11,5 @@ import java.util.LinkedHashMap;
 @CpfService
 public class SettlementFileJobService {
  private final CpfFixedLengthOperations fixed; public SettlementFileJobService(CpfFixedLengthOperations fixed){this.fixed=fixed;}
- public BatchStepResult run(BatchStepCommand command){var values=new LinkedHashMap<String,Object>();values.put("memberId",String.valueOf(command.jobParameters().getOrDefault("memberId","0000000001")));var out=fixed.write(values,"EDU-BATCH-FILE","1");var parsed=fixed.parse(out.message(),"EDU-BATCH-FILE","1");return BatchStepResult.completed("fixed length file validated",1,1,Map.of("fieldCount",parsed.values().size()));}
+ public BatchStepResult run(BatchStepCommand command){var values=new LinkedHashMap<String,Object>();values.put("memberId",String.valueOf(command.jobParameters().getOrDefault("memberId","0000000001")));var out=fixed.write(values,"EDU-BATCH-FILE","1");var parsed=fixed.parse(out.message(),"EDU-BATCH-FILE","1");return BatchStepResult.completed("fixed length file validated",1,1,Map.of("fieldCount",parsed.fields().size()));}
 }

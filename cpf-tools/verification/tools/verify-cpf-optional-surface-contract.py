@@ -33,6 +33,9 @@ for app in policy.get('sourceRemovableApplications', []):
         require("if (cpfBackofficePresent)" in settings, 'Backoffice projectDir is not guarded')
         require("rootProject.findProject(':apps:backoffice') != null" in local_runtime,
                 'local runtime hard-depends on Backoffice')
+        require("cpfMountGeneratedDomains" not in local_runtime
+                and "dependencies.add('implementation', \"${packageName}:online:1.0.0-SNAPSHOT\")" not in local_runtime,
+                'local runtime must not merge independent Generated Domain source builds into its classpath')
         require("rootProject.findProject(':apps:backoffice') != null" in root_conventions,
                 'root Backoffice run alias is not absence-safe')
         db = profile.get('modules', {}).get(db_key or '', {})
@@ -43,7 +46,9 @@ for app in policy.get('sourceRemovableApplications', []):
 # Hard Gradle dependency leaks outside the two approved guarded consumers.
 for p in root.rglob('*.gradle'):
     rel = p.relative_to(root).as_posix()
-    if any(x in p.parts for x in ('build', '.gradle')) and not rel.startswith('cpf-tools/build/'):
+    if not p.is_file() or '.gradle' in p.parts:
+        continue
+    if 'build' in p.parts and not rel.startswith('cpf-tools/build/'):
         continue
     if rel in {'settings.gradle', 'cpf-tools/runtime/cpf-local-runtime/build.gradle', 'cpf-tools/build/cpf-root-conventions.gradle'}:
         continue

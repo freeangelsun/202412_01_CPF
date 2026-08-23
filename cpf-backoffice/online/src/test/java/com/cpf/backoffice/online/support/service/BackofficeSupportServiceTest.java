@@ -3,13 +3,21 @@ package com.cpf.backoffice.online.support.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cpf.backoffice.online.audit.service.BackofficeBusinessAuditService;
 import com.cpf.backoffice.online.support.repository.BackofficeSupportRepository;
-import com.cpf.file.attachment.api.CpfAttachmentContent;
+import com.cpf.file.attachment.api.CpfAttachmentStream;
 import com.cpf.file.attachment.api.CpfAttachmentStoragePort;
 import com.cpf.file.attachment.api.CpfStoredAttachment;
 import com.cpf.core.api.error.CpfValidationException;
+import com.cpf.testkit.context.CpfContextTestSupport;
+import com.cpf.testkit.context.CpfTestContextRuntime;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,11 +33,29 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BackofficeSupportServiceTest {
+    private static CpfTestContextRuntime contextRuntime;
+    private final CpfContextTestSupport contexts =
+            new CpfContextTestSupport("MBW-SUPPORT", LocalDate.of(2026, 8, 22));
     private final BackofficeSupportRepository repository = mock(BackofficeSupportRepository.class);
     private final CpfAttachmentStoragePort storagePort = mock(CpfAttachmentStoragePort.class);
     private final BackofficeBusinessAuditService auditService = mock(BackofficeBusinessAuditService.class);
     private final BackofficeSupportService service =
             new BackofficeSupportService(repository, storagePort, new ObjectMapper(), auditService);
+
+    @BeforeAll
+    static void installContextRuntime() {
+        contextRuntime = CpfTestContextRuntime.install();
+    }
+
+    @AfterAll
+    static void closeContextRuntime() {
+        contextRuntime.close();
+    }
+
+    @AfterEach
+    void assertContextClear() {
+        contexts.assertClear();
+    }
 
     @Test
     void savedSearchCanonicalizesObjectJsonAndUsesAuthenticatedOperator() {
@@ -98,7 +124,9 @@ class BackofficeSupportServiceTest {
     void attachmentMetadataFailureCompensatesStoredFile() {
         CpfStoredAttachment stored = new CpfStoredAttachment(
                 "GROUP/a.txt", "a.txt", "a.txt", "text/plain", 1, "a".repeat(64), Instant.now());
-        when(storagePort.store("GROUP", "a.txt", "text/plain", new byte[]{1})).thenReturn(stored);
+        when(storagePort.store(
+                eq("GROUP"), eq("a.txt"), eq("text/plain"), any(InputStream.class), eq(1L)))
+                .thenReturn(stored);
         when(repository.insertAttachment(any())).thenThrow(new IllegalStateException("DB 실패"));
 
         assertThatThrownBy(() -> service.storeAttachment(
@@ -109,7 +137,7 @@ class BackofficeSupportServiceTest {
     }
 
     @Test
-    void attachmentDownloadRejectsChecksumMismatchAndWritesFailureAudit() {
+    void attachmentDownloadRejectsChecksumMismatchAndWritesFailureAudit() throws Exception {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("attachmentId", 1L);
         metadata.put("originalFileName", "evidence.txt");
@@ -118,12 +146,15 @@ class BackofficeSupportServiceTest {
         metadata.put("checksumSha256", "a".repeat(64));
         metadata.put("scanStatus", "CLEAN");
         when(repository.findAttachment(1L)).thenReturn(java.util.Optional.of(metadata));
-        when(storagePort.read("GROUP/evidence.txt"))
-                .thenReturn(new CpfAttachmentContent(new byte[]{1}, "b".repeat(64)));
+        when(storagePort.open("GROUP/evidence.txt"))
+                .thenReturn(new CpfAttachmentStream(
+                        new ByteArrayInputStream(new byte[]{1}), 1, "b".repeat(64)));
 
-        assertThatThrownBy(() -> service.downloadAttachment(1L, "감사 증적 확인", "operator01"))
-                .isInstanceOf(CpfValidationException.class)
-                .hasMessageContaining("checksum");
+        try (AutoCloseable ignored = contexts.bindRoot("correlation-a", null, "operator01")) {
+            assertThatThrownBy(() -> service.downloadAttachment(1L, "감사 증적 확인", "operator01"))
+                    .isInstanceOf(CpfValidationException.class)
+                    .hasMessageContaining("checksum");
+        }
         verify(repository).insertDownloadAudit(any());
     }
 }

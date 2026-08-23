@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-CENTER-CONTEXT-RUNTIME-IDENTITY-MESSAGING-DIAGNOSIS",
+  "requirementIds": ["BATCH", "MESSAGING", "SEC-BOUNDARY", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:54:00+09:00",
+    "finished": "2026-08-22T15:00:00+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "8d02731b5d4697b0703e4487da03f2e38b6b84e9008c8c671c698a73fcc950db",
+  "actualResult": "F029: two center-cut catch branches bind Context via checked AutoCloseable without handling close failure; use canonical CpfContexts.call and map checked close failure. F030: RuntimeIdentityFactory never resolves cpf.runtime.instance-id/CPF_RUNTIME_INSTANCE_ID from Spring Environment. F031: CpfBrokerPublishRequest.validatedMap trims keys before provider validation, erasing surrounding-whitespace evidence; both JMS and IBM MQ fail the same assertion.",
+  "result": "DIAGNOSIS_COMPLETE",
+  "findingIds": ["CX-F-029", "CX-F-030", "CX-F-031"],
+  "artifacts": [
+    "cpf-batch/runtime-support/build/test-results/test/TEST-com.cpf.batch.runtime.RuntimeIdentityFactoryTest.xml",
+    "cpf-starters/messaging/jms/build/test-results/test/TEST-com.cpf.messaging.jms.CpfJmsBrokerClientTest.xml",
+    "cpf-starters/messaging/ibm-mq/build/test-results/test/TEST-com.cpf.messaging.ibmmq.CpfIbmMqBrokerClientTest.xml"
+  ],
+  "sanitized": true
+}

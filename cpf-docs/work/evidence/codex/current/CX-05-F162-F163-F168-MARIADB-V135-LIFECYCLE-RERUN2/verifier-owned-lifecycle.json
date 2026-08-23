@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "runId": "cc997a5a2ff9",
+  "sourceSha": "03c4cd20f83017796e859743434e35c34c247ecf",
+  "status": "FAIL",
+  "stages": [
+    {
+      "stage": "FreshInstall",
+      "status": "PASS",
+      "planSha256": "0d5607e7c8a4c0b8df64b611525ff8c6672f145966ea0f99015b63d96dcd7809"
+    },
+    {
+      "stage": "PreparePreCurrentFixture",
+      "status": "PASS",
+      "planSha256": "dfb54723d9b4a621d82afce3033ac346315d3971bb7433dcdd630c114bbcd08a"
+    }
+  ],
+  "profile": "database-install.mariadb.cc997a5a2ff9.json",
+  "migrationSelection": {
+    "selectionMode": "CHECKSUM_MANIFEST_CURRENT_EDGE",
+    "version": 135,
+    "vendorEdges": {
+      "mariadb": 135,
+      "postgresql": 135,
+      "oracle": 135
+    }
+  },
+  "sanitized": true,
+  "startedAt": "2026-08-23T06:23:04.8390159+00:00",
+  "error": "DB profile modules are unknown: -MigrationVersion",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T06:23:26.9900217+00:00"
+}

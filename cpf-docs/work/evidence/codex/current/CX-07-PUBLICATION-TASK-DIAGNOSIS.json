@@ -1,0 +1,28 @@
+{
+  "executionId": "CX-07-PUBLICATION-TASK-DIAGNOSIS",
+  "finishedAt": "2026-08-22T21:15:00+09:00",
+  "sourceIdentitySha256": "97c8f6664f1554c1b25f0f3aaa340d1ee24d4412d2bce91b6df9240899d32c2b",
+  "status": "FINDINGS_REGISTERED_BEFORE_SOURCE_EDIT",
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "rootTaskInventory": {
+    "publishCpfVerifiedLocalPlatformArtifacts": false,
+    "cpfPublishToIsolatedLocal": true,
+    "publicationGate": true
+  },
+  "publicationTaskConsumers": [
+    "cpf-tools/release/public/publish-cpf-public-repository.py",
+    "cpf-tools/generator/create-domain-repository.ps1",
+    "cpf-tools/build/tools/build-cpf-offline-artifact-bundle.ps1",
+    "cpf-tools/release/tools/promote-cpf-verified-local-artifacts.ps1"
+  ],
+  "documentationTaskInventory": {
+    ":framework:core:sourcesJar": false,
+    ":framework:core:javadocJar": false,
+    ":starters:profiles:secure-api:sourcesJar": false,
+    ":starters:profiles:secure-api:javadocJar": false
+  },
+  "catalogContract": "Both sampled artifacts are cataloged publishSources=true and publishJavadoc=true; the final public binary verifier requires those classified artifacts.",
+  "rootGeneratedGarbage": [],
+  "findings": ["CX-F-097", "CX-F-098"]
+}

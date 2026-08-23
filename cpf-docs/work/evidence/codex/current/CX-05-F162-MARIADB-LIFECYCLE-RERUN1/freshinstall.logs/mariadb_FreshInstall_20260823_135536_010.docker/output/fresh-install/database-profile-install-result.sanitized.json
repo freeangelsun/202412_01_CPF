@@ -1,0 +1,24 @@
+{
+  "startedAt": "2026-08-23T04:55:38.1379057+00:00",
+  "status": "실패",
+  "profilePath": "/workspace/result/profile.json",
+  "profileName": "full-local-mariadb-52d03afc23bd",
+  "operationMode": "install",
+  "seedMode": "product",
+  "selectedModules": [
+    "core",
+    "common",
+    "admin",
+    "batch",
+    "backoffice"
+  ],
+  "generatedDomainTransitions": [],
+  "modules": {},
+  "verify": {
+    "status": "미검증",
+    "checkCount": 0,
+    "failedChecks": []
+  },
+  "error": "MariaDB 실행 실패 module=core host=mariadb:3306 user=cpfv_52d03afc23bd_pm database=cpf_verify_52d03afc23bd_platform exit=1 error=--------------\nINSERT INTO CMN_RESPONSE_CODE (response_code, message_code, result_type, module_id, response_group, sequence_no, http_status, description, created_by, updated_by) VALUES ('SCPF000000', 'MCPF000000', 'S', 'CPF', '00', '0000', 200, 'CPF 공통 성공', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010001', 'MCPF010001', 'E', 'CPF', '01', '0001', 400, '파라미터 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010002', 'MCPF010002', 'E', 'CPF', '01', '0002', 404, '미존재 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010003', 'MCPF010003', 'E', 'CPF', '01', '0003', 409, '중복 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010004', 'MCPF010004', 'E', 'CPF', '01', '0004', 400, '검증 실패', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010005', 'MCPF010005', 'E', 'CPF', '01', '0005', 401, '인증 필요', 'SYSTEM', 'SYSTEM'),\n    ('ECPF010006', 'MCPF010006', 'E', 'CPF', '01', '0006', 403, '권한 없음', 'SYSTEM', 'SYSTEM'),\n    ('ECPF020001', 'MCPF020001', 'E', 'CPF', '02', '0001', 400, '업무 규칙 위반', 'SYSTEM', 'SYSTEM'),\n    ('ECPF030001', 'MCPF030001', 'E', 'CPF', '03', '0001', 502, '외부 연계 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF900001', 'MCPF900001', 'E', 'CPF', '90', '0001', 400, '필수 거래 헤더 누락', 'SYSTEM', 'SYSTEM'),\n    ('ECPF900002', 'MCPF900002', 'E', 'CPF', '90', '0002', 500, '거래 메타데이터 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF900003', 'MCPF900003', 'E', 'CPF', '90', '0003', 500, '서비스 endpoint 미등록', 'SYSTEM', 'SYSTEM'),\n    ('ECPF900004', 'MCPF900004', 'E', 'CPF', '90', '0004', 400, '동적 로그 규칙 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF900005', 'MCPF900005', 'E', 'CPF', '90', '0005', 403, '내부 공유 API 접근 거부', 'SYSTEM', 'SYSTEM'),\n    ('ECPF990000', 'MCPF990000', 'E', 'CPF', '99', '0000', 500, '내부 서버 오류', 'SYSTEM', 'SYSTEM'),\n    ('ECPF990001', 'MCPF990001', 'E', 'CPF', '99', '0001', 500, '데이터베이스 오류', 'SYSTEM', 'SYSTEM'),\n    ('SMBW000000', 'MMBW000000', 'S', 'MBW', '00', '0000', 200, 'MBW 성공', 'SYSTEM', 'SYSTEM'),\n    ('EMBW010001', 'MMBW010001', 'E', 'MBW', '01', '0001', 400, 'MBW 입력값 오류', 'SYSTEM', 'SYSTEM'),\n    ('EMBW010002', 'MMBW010002', 'E', 'MBW', '01', '0002', 403, 'MBW 권한 오류', 'SYSTEM', 'SYSTEM'),\n    ('EEDU010001', 'MEDU010001', 'E', 'EDU', '01', '0001', 409, 'EDU 샘플 중복 오류', 'SYSTEM', 'SYSTEM') ON DUPLICATE KEY UPDATE message_code = VALUES(message_code), result_type = VALUES(result_type), module_id = VALUES(module_id), response_group = VALUES(response_group), sequence_no = VALUES(sequence_no), http_status = VALUES(http_status), description = VALUES(description), use_yn = 'Y', updated_by = VALUES(updated_by), updated_at = CURRENT_TIMESTAMP\n--------------\n\nERROR 1054 (42S22) at line 74: Unknown column 'http_status' in 'INSERT INTO'",
+  "finishedAt": "2026-08-23T04:55:39.7956083+00:00"
+}

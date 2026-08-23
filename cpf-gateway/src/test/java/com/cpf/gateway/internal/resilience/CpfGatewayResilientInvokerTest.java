@@ -3,6 +3,7 @@ package com.cpf.gateway.internal.resilience;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cpf.gateway.support.GatewayContextTestSupport;
 import com.cpf.integration.resilience.api.CpfResilienceCallContext;
 import com.cpf.integration.resilience.api.CpfResilienceExecutor;
 import com.cpf.integration.resilience.api.CpfResilienceOutcome;
@@ -16,13 +17,17 @@ class CpfGatewayResilientInvokerTest {
     private static final Instant NOW = Instant.parse("2026-08-05T02:00:00Z");
 
     @Test
-    void compatibilityCallMarksUnknownAndDisablesTimeoutRetry() {
+    void compatibilityCallMarksUnknownAndDisablesTimeoutRetry() throws Exception {
         RecordingExecutor executor = new RecordingExecutor();
         CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
                 executor, Clock.fixed(NOW, ZoneOffset.UTC));
 
-        invoker.invoke("member", "tx-1", null, () -> "ok");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-1", "WEB")) {
+            invoker.invoke("member", "tx-1", null, () -> "ok");
+        }
 
+        GatewayContextTestSupport.assertClear();
+        assertThat(executor.context.transactionId()).isEqualTo("tx-1");
         assertThat(executor.context.requestedAt()).isEqualTo(NOW);
         assertThat(executor.context.operationKind())
                 .isEqualTo(CpfResilienceCallContext.OperationKind.UNKNOWN);
@@ -33,17 +38,22 @@ class CpfGatewayResilientInvokerTest {
     }
 
     @Test
-    void readAndWriteDeclareDifferentRetrySemantics() {
+    void readAndWriteDeclareDifferentRetrySemantics() throws Exception {
         RecordingExecutor executor = new RecordingExecutor();
         CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
                 executor, Clock.fixed(NOW, ZoneOffset.UTC));
 
-        invoker.invokeRead("catalog", "tx-read", () -> "read");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-read", "WEB")) {
+            invoker.invokeRead("catalog", "tx-read", () -> "read");
+        }
         assertThat(executor.context.operationKind())
                 .isEqualTo(CpfResilienceCallContext.OperationKind.READ);
         assertThat(executor.context.timeoutRetryAllowed()).isTrue();
 
-        invoker.invokeWrite("payment", "tx-write", "idem-1", false, () -> "write");
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-write", "WEB")) {
+            invoker.invokeWrite("payment", "tx-write", "idem-1", false, () -> "write");
+        }
+        GatewayContextTestSupport.assertClear();
         assertThat(executor.context.operationKind())
                 .isEqualTo(CpfResilienceCallContext.OperationKind.WRITE);
         assertThat(executor.context.timeoutRetryAllowed()).isFalse();
@@ -59,6 +69,23 @@ class CpfGatewayResilientInvokerTest {
                 "payment", "tx-write", null, true, () -> "write"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("idempotencyKey");
+        assertThat(executor.calls).isZero();
+    }
+
+    @Test
+    void compatibilityTransactionIdCannotOverrideManagedLineage() throws Exception {
+        RecordingExecutor executor = new RecordingExecutor();
+        CpfGatewayResilientInvoker invoker = new CpfGatewayResilientInvoker(
+                executor, Clock.fixed(NOW, ZoneOffset.UTC));
+
+        try (AutoCloseable ignored = GatewayContextTestSupport.bind("tx-current", "WEB")) {
+            assertThatThrownBy(() -> invoker.invokeRead(
+                    "catalog", "tx-spoofed", () -> "read"))
+                    .isInstanceOf(SecurityException.class)
+                    .hasMessageContaining("current managed CPF transaction");
+        }
+
+        GatewayContextTestSupport.assertClear();
         assertThat(executor.calls).isZero();
     }
 

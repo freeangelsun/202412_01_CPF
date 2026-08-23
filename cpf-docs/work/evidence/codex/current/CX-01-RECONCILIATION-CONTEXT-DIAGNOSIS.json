@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RECONCILIATION-CONTEXT-DIAGNOSIS",
+  "requirementIds": ["INTEGRATION", "SEC-BOUNDARY", "RECOVERY"],
+  "timestamp": {
+    "started": "2026-08-22T12:49:33.0014881+09:00",
+    "finished": "2026-08-22T12:49:33.0416504+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Trace scheduled reconciliation from recoveredLineage through resilienceExecutor.reconcile to unconditional CpfContexts.requireSnapshot",
+  "exitCode": 0,
+  "sourceIdentity": "04a9612e2050b15a1adc44fdd510b9dbbcb155241dc870a0ae4036fcb6005e4e",
+  "actualResult": "The @Scheduled reconciliation worker creates a recovery-only call context from persisted canonical transaction lineage and invokes reconcile without binding a current CPF context. CpfResilienceEngine nevertheless unconditionally requires a current snapshot in executeAttempts. Therefore the real scheduled UNKNOWN reconciliation path fails before invoking its probe.",
+  "result": "FAIL_DIAGNOSIS",
+  "findingIds": ["CX-F-018"],
+  "sanitized": true
+}

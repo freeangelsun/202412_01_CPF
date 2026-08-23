@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.controller;
 
 import com.cpf.admin.opr.service.AdmBatchOperationService;
+import com.cpf.data.api.CpfDataRow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -111,11 +112,11 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
 
     @GetMapping("/overview")    @Operation(operationId = "admBatchWorkbenchOverview", summary = "Batch 운영 Dashboard", description = "Job·Schedule·Execution·Worker·Recovery 상태를 역할별 KPI로 제공합니다.")
     public ResponseEntity<Map<String, Object>> overview() {
-        List<Map<String, Object>> jobs = operations.findJobs();
-        List<Map<String, Object>> schedules = operations.findSchedules();
-        List<Map<String, Object>> executions = operations.findExecutions(null, null, null, null, null, 500);
-        List<Map<String, Object>> workers = operations.findWorkers(120);
-        List<Map<String, Object>> ghosts = operations.findGhostCandidates(120);
+        List<CpfDataRow> jobs = operations.findJobs();
+        List<CpfDataRow> schedules = operations.findSchedules();
+        List<CpfDataRow> executions = operations.findExecutions(null, null, null, null, null, 500);
+        List<CpfDataRow> workers = operations.findWorkers(120);
+        List<CpfDataRow> ghosts = operations.findGhostCandidates(120);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("jobCount", jobs.size());
         result.put("scheduleCount", schedules.size());
@@ -131,7 +132,7 @@ public class AdmBatchWorkbenchController extends com.cpf.admin.common.base.AdmBa
     }
 
 
-    private static long countStatus(List<Map<String, Object>> rows, String... expected) {
+    private static long countStatus(List<? extends Map<String, Object>> rows, String... expected) {
         Set<String> statuses = Set.of(expected);
         return rows.stream().filter(row -> {
             Object value = row.get("status");

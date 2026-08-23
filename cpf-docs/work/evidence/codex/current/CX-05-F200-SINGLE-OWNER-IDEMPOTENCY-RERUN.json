@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-08-23T18:01:00+09:00",
+  "sourceIdentity": {
+    "sha256": "704cd7b2708d4609162c5060cb2e6441be1b63fb6daed42d627e1c4b46014ae6",
+    "sha1": "eb94ebfc3b5a1b1560f2f92beee4c2952517e9b7",
+    "files": 8283,
+    "bytes": 75205666
+  },
+  "findingId": "CX-F-200",
+  "result": "PASS_IDEMPOTENCY",
+  "sequence": [
+    "Single canonical writer regenerated 18 Seed aggregates",
+    "Canonical zero-drift PASS before downstream builders",
+    "PostgreSQL/Oracle builder pass 1 and zero-drift PASS",
+    "MariaDB builder pass 1 and zero-drift PASS",
+    "Both builders pass 2",
+    "Final canonical zero-drift PASS with written=0"
+  ],
+  "immutableHistory": "Published V63/R63 histories were skipped and not modified.",
+  "next": "Run complete targeted suite and actual PostgreSQL lifecycle.",
+  "falseGreen": false
+}

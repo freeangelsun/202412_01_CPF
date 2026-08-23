@@ -16,6 +16,11 @@ public final class CpfTransactionIds {
         return requireCanonical(value).substring(17, 20);
     }
 
+    /** Canonical transactionId를 발급한 Runtime의 7자리 instance token을 반환합니다. */
+    public static String instanceToken(String value) {
+        return requireCanonical(value).substring(20, 27);
+    }
+
     /** requireCanonical 작업을 CPF 표준 계약에 따라 수행한다. */
     public static String requireCanonical(String value) {
         if (!isCanonical(value)) {

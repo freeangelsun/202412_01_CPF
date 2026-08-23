@@ -1,0 +1,12 @@
+{
+  "track": "CX-02-F109-NXT3-GENERATOR-GATE-RERUN1",
+  "sourceIdentity": "1621c85c6b29aa966911ab9d74f39a8441df4fe439f45ce49e32d3185d03d5d7",
+  "command": "python cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py --root .",
+  "exitCode": 0,
+  "summary": {"passed": 30, "failed": 0},
+  "currentDomains": {
+    "cpf-member": {"files": 49, "batch": true, "metadata": "ABSENT", "diff": "clean"},
+    "cpf-external": {"files": 43, "batch": false, "metadata": "ABSENT", "diff": "clean"}
+  },
+  "disposable": "dry-run/generate/verify/idempotent/user-protection/remove-manifest-replay/restore/negative inputs PASS"
+}

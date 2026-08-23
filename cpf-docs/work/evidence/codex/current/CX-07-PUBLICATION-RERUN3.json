@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-PUBLICATION-RERUN3",
+  "startedAt": "2026-08-22T22:13:49.9841394+09:00",
+  "finishedAt": "2026-08-22T22:17:35.1414572+09:00",
+  "sourceIdentitySha256": "7026cb41d8d14dd3ede3c6b9670243dfe45b6d2b59c2a73ef8ab80cc479b994a",
+  "exitCode": 1,
+  "status": "FAIL_WITH_NEW_FINDING",
+  "finding": "CX-F-108",
+  "tasksReached": 137,
+  "failedTask": ":internal:integration:resilience:javadoc",
+  "actualError": "CpfIntegrationClientCoordinator class Javadoc writes annotation names as raw @CpfClient/@CpfRetry/@CpfTimeout text, which Javadoc parses as an unregistered custom tag.",
+  "staged": {"files": 490, "bytes": 24788565},
+  "publicationRepository": "C:/Users/fly10/AppData/Local/CPF/validation/open-git-public-binary-20260822-2214",
+  "externalLogs": [
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-publication-rerun3.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-publication-rerun3.stderr.log"
+  ]
+}

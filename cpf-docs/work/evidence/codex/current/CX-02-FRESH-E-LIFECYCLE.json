@@ -1,0 +1,43 @@
+{
+  "executionId": "CX-02-FRESH-E-LIFECYCLE",
+  "finishedAt": "2026-08-22T20:47:19.7352299+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS_STATIC_LIFECYCLE",
+  "case": "E",
+  "domain": "cxepsilon",
+  "systemCode": "QAE",
+  "externalClient": {
+    "name": "bank",
+    "id": "bank-http",
+    "capability": "http",
+    "generatedClasses": 4
+  },
+  "dryRun": "PASS",
+  "validate": "PREFLIGHT_PASS",
+  "setupSync": "UPGRADED",
+  "regenerateCount": 2,
+  "consecutiveDiffs": [
+    {
+      "missing": 0,
+      "changed": 0,
+      "staleGeneratedFiles": 0,
+      "expectedExtraUserFiles": 1,
+      "unexpectedDrift": 0,
+      "clean": true
+    },
+    {
+      "missing": 0,
+      "changed": 0,
+      "staleGeneratedFiles": 0,
+      "expectedExtraUserFiles": 1,
+      "unexpectedDrift": 0,
+      "clean": true
+    }
+  ],
+  "userOwnedSha256": "95271d829715dc3d005a02dc22bd8f04b89d729f26c68f7292a3adbc39725a15",
+  "userLoss": 0,
+  "generatedFiles": 23,
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "next": "Actual Java 25 compile and generated HTTP client contract test"
+}

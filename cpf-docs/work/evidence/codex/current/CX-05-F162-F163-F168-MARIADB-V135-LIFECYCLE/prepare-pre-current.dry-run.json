@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "tool": "invoke-platform-database-migration.ps1",
+  "mode": "DRY_RUN",
+  "status": "실패",
+  "generatedAt": "2026-08-23T15:12:25.2016914+09:00",
+  "profile": "database-install.mariadb.f36c00d2ad6c.json",
+  "plan": null,
+  "planSha256": "",
+  "operations": [],
+  "error": "선택된 Module logicalDatabase가 비어 있거나 중복되었습니다: module=common",
+  "reconcileRequired": false,
+  "failureOperation": null,
+  "operator": "",
+  "reason": "",
+  "approvalReference": "",
+  "sanitized": true,
+  "finishedAt": "2026-08-23T15:12:25.2508682+09:00"
+}

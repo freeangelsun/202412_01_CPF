@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-WEB-FULL-TEST-RERUN2",
+  "startedAt": "2026-08-23T03:13:03+09:00",
+  "finishedAt": "2026-08-23T03:13:46.8748683+09:00",
+  "sourceIdentity": "07c293f1826cd6b81e8e3c561fa5eefd02536caaad599fe5bd71d95f52b78031",
+  "command": ".\\gradlew.bat :framework:web:test --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "gradleTasks": "15 executed",
+  "junit": {"suites": 9, "tests": 28, "failures": 0, "errors": 0, "skipped": 0},
+  "closures": [
+    {"finding": "CX-F-128", "status": "CLOSED", "linkedActualRuntime": "CX-05-F129-FRESH-RUNTIME-OPERATION-CATALOG-DIAGNOSIS and later Fresh runtime reruns"},
+    {"finding": "CX-F-131", "status": "CLOSED", "linkedActualRuntime": "CX-05-F131-FRESH-PROD-RUNTIME-RERUN9"}
+  ],
+  "remaining": {"finding": "CX-F-132", "status": "VERIFICATION_PENDING", "reason": "real annotated Product consumer compile/start still required"},
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-WEB-FULL-TEST-RERUN2.log"
+}

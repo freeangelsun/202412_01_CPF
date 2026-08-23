@@ -7,7 +7,9 @@ import com.cpf.common.message.api.CpfMessageRecord;
 import com.cpf.common.message.api.CpfResponseCodeRecord;
 import com.cpf.common.message.dto.CommonMessageRequest;
 import com.cpf.common.message.dto.CommonResponseCodeRequest;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
 import com.cpf.core.api.error.CpfBusinessException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +23,7 @@ import java.util.Map;
 
 /** MBW Backoffice와 고객 Application이 소비하는 Common Error/Message 관리 Product Service입니다. */
 @Service
-public final class CmnCommonCatalogManagementService implements CpfCommonCatalogManagementService {
+public class CmnCommonCatalogManagementService implements CpfCommonCatalogManagementService {
     private static final String TX = "cpfCommonTransactionManager";
     private final CmnErrorCatalogRepository repository;
     private final CmnErrorCatalogCache cache;
@@ -33,7 +35,7 @@ public final class CmnCommonCatalogManagementService implements CpfCommonCatalog
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    public CmnCommonCatalogManagementService(CmnErrorCatalogRepository repository, CmnErrorCatalogCache cache, CpfCommonManagementAuditSink audit, Clock clock) {
+    public CmnCommonCatalogManagementService(CmnErrorCatalogRepository repository, CmnErrorCatalogCache cache, CpfCommonManagementAuditSink audit, @Qualifier(CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock) {
         this.repository = repository; this.cache = cache; this.audit = audit; this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
 
@@ -190,6 +192,7 @@ public final class CmnCommonCatalogManagementService implements CpfCommonCatalog
         if (code == null || !code.trim().toUpperCase(Locale.ROOT).matches("[A-Z0-9_.:-]{2,20}")) throw invalid("responseCode");
         String messageCode = request.getMessageCode();
         if (messageCode == null || !messageCode.trim().toUpperCase(Locale.ROOT).matches("[A-Z0-9_.:-]{2,20}")) throw invalid("messageCode");
+        if (request.getHttpStatus() == null || request.getHttpStatus() < 100 || request.getHttpStatus() > 599) throw invalid("httpStatus");
         if (request.getEffectiveFrom() != null && request.getEffectiveTo() != null && !request.getEffectiveTo().isAfter(request.getEffectiveFrom()))
             throw invalid("effective period");
     }

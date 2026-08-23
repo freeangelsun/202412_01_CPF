@@ -1,0 +1,9 @@
+{
+  "track": "CX-02-PUBLIC-PROJECTION-REGRESSION-RERUN3",
+  "finishedAt": "2026-08-22T23:12:27.3385899+09:00",
+  "sourceIdentity": "ab93fd0f204c4358177c147c4e179e54e7129b5d7ee8565805afbed9db6e431c",
+  "command": "python -B -m pytest -q test_prepare_cpf_public_workspace.py test_cpf_open_git.py",
+  "exitCode": 0,
+  "tests": {"passed": 21, "failed": 0, "total": 21},
+  "verified": ["physical Domain contract identity/drift", "duplicate domains catalog absent", "cpf-domain.yaml absent", "cpf-generator.lock.json absent", "final Open Git tree verification"]
+}

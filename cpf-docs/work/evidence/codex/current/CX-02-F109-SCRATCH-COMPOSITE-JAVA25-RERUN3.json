@@ -1,0 +1,15 @@
+{
+  "track": "CX-02-F109-SCRATCH-COMPOSITE-JAVA25-RERUN3",
+  "startedAt": "2026-08-22T23:08:00.0119768+09:00",
+  "finishedAt": "2026-08-22T23:09:17.5222978+09:00",
+  "sourceIdentity": "d5077f82e2f89c5fbf2cde4a196a73fe7b119db088c33c6fd20b91b470150fc0",
+  "exitCode": 0,
+  "tasksExecuted": 104,
+  "build": "SUCCESSFUL",
+  "onlineTest": "PASS",
+  "batchCompile": "PASS",
+  "batchTest": "NO_SOURCE_EXPECTED",
+  "resolved": ["catalog public Starters", "member:online sibling Domain", "fixed-length external client", "PostgreSQL vendor overlays for Scratch and Member"],
+  "mavenLocalReliance": "NONE_FOR_CPF_COORDINATES_PRODUCT_COMPOSITE",
+  "logs": "C:/Users/fly10/AppData/Local/CPF/validation/f109-composite-compile-rerun3"
+}

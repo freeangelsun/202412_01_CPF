@@ -7,6 +7,9 @@ description = 'CPF ADM product-internal runtime provider composition. The ADM ap
 dependencies {
     // These providers are intentionally composed only here. Public/owner contracts remain on cpf-admin/build.gradle.
     api project(':internal:platform-operations:runtime-control')
+    api project(':internal:data:cache:spring-data-redis')
+    api project(':framework:messaging')
+    api project(':internal:integration:resilience')
     api project(':internal:messaging:reliability:jdbc')
     api project(':internal:platform-operations:runtime-health:jdbc')
     api project(':internal:integration:webhook')

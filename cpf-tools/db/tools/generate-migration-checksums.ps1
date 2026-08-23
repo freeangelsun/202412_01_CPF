@@ -105,12 +105,22 @@ $runtime = Join-Path $Root 'cpf-tools/db/vendor/mariadb/migration/flyway'
 Rebuild-Pack $source
 Rebuild-Pack $runtime
 
-# PostgreSQL/Oracle은 물리 DB별 Flyway history가 독립적이다. 현재 Platform Pack은
+# PostgreSQL/Oracle은 물리 DB별 Flyway history가 독립적이다. 현재 production Pack은
 # Profile로 요구하고, retired Domain을 포함한 immutable historical pack도 디렉터리에서 발견해 보존한다.
+# REFERENCE_FIXTURE는 current snapshot의 비운영 물리 대상이며 immutable refDB lineage를
+# 소비하므로 referenceFixture라는 동일 이름의 historical migration pack을 요구하지 않는다.
 $profile = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/db/config/database-install.default.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$requiredPlatformDatabases = @(
+$canonicalSchema = Get-Content -LiteralPath (Join-Path $Root 'cpf-tools/db/canonical/platform-schema.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$referenceFixtureDatabase = [string]$canonicalSchema.canonicalPolicy.platformDatabaseArchitecture.REFERENCE_FIXTURE.physicalName
+if ([string]::IsNullOrWhiteSpace($referenceFixtureDatabase)) {
+    throw 'Canonical REFERENCE_FIXTURE physicalName is required for migration-pack ownership.'
+}
+$requiredProductionDatabases = @(
     $profile.modules.PSObject.Properties |
-        Where-Object { [bool]$_.Value.enabled } |
+        Where-Object {
+            [bool]$_.Value.enabled -and
+            [string]$_.Value.logicalDatabase -cne $referenceFixtureDatabase
+        } |
         ForEach-Object { [string]$_.Value.logicalDatabase } |
         Sort-Object -Unique
 )
@@ -123,12 +133,12 @@ foreach ($vendor in @('postgresql','oracle')) {
             } |
             Sort-Object Name
     )
-    foreach ($logicalDatabase in $requiredPlatformDatabases) {
+    foreach ($logicalDatabase in $requiredProductionDatabases) {
         if (@($packDirectories | Where-Object { $_.Name -ceq $logicalDatabase }).Count -ne 1) {
-            throw "current Platform migration pack missing: vendor=$vendor database=$logicalDatabase"
+            throw "current production migration pack missing: vendor=$vendor database=$logicalDatabase"
         }
     }
-    foreach ($packDirectory in $packDirectories) {
-        Rebuild-Pack $packDirectory.FullName
+    foreach ($discoveredPackDirectory in $packDirectories) {
+        Rebuild-Pack $discoveredPackDirectory.FullName
     }
 }

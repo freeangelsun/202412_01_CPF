@@ -9,10 +9,17 @@ import java.time.Instant;
 public final class CpfApprovalContextSupport {
     private static final ThreadLocal<CpfApprovalContext> CURRENT = new ThreadLocal<>();
 
+    /** Lexical approval scope whose restoration cannot throw a checked exception. */
+    @FunctionalInterface
+    public interface Scope extends AutoCloseable {
+        @Override
+        void close();
+    }
+
     public CpfApprovalContext current() { return CURRENT.get(); }
 
-    public AutoCloseable bind(String id, String policy, String requester, String approver,
-                              String reason, String state, String action) {
+    public Scope bind(String id, String policy, String requester, String approver,
+                      String reason, String state, String action) {
         CpfApprovalContext previous=CURRENT.get();
         CpfApprovalContext next=new CpfApprovalContext(id,policy,requester,approver,reason,Instant.now(),
                 "APPROVED".equals(state)?Instant.now():null,state,action);

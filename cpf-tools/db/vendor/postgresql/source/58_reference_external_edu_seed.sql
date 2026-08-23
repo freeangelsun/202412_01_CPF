@@ -18,7 +18,7 @@ ON CONFLICT (endpoint_code) DO UPDATE SET service_id=EXCLUDED.service_id, endpoi
 INSERT INTO OPS_SERVICE_INSTANCE (instance_id, service_id, endpoint_code, instance_name, base_url, host_name, port_no, instance_status, weight, active_yn, last_heartbeat_at, created_by, updated_by)
 VALUES (
     'EDU-EXT-SIM-local-01', 'EDU', 'EDU-EXTERNAL-SIMULATOR', 'EDU 대외 시뮬레이터 인스턴스',
-    'http://127.0.0.1:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP(3), 'SEED', 'SEED'
+    'http://127.0.0.1:8099', 'localhost', 8099, 'UP', 100, 'Y', CURRENT_TIMESTAMP, 'SEED', 'SEED'
 )
 ON CONFLICT (instance_id) DO UPDATE SET service_id=EXCLUDED.service_id, endpoint_code=EXCLUDED.endpoint_code, instance_name=EXCLUDED.instance_name, base_url=EXCLUDED.base_url, host_name=EXCLUDED.host_name, port_no=EXCLUDED.port_no, instance_status=EXCLUDED.instance_status, active_yn=EXCLUDED.active_yn, last_heartbeat_at=EXCLUDED.last_heartbeat_at, updated_by=EXCLUDED.updated_by, updated_at=CURRENT_TIMESTAMP(3);
 INSERT INTO OPS_SERVICE_ROUTING_POLICY (service_id, endpoint_code, routing_mode, load_balance_type, failover_enabled_yn, health_check_required_yn, active_yn, priority, created_by, updated_by)

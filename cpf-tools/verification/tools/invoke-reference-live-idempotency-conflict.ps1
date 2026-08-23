@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
-. (Join-Path $PSScriptRoot "database-profile-common.ps1")
+. (Join-Path $Root "cpf-tools/db/tools/database-profile-common.ps1")
 
 function Get-CpfFileSha256([string] $Path) {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()

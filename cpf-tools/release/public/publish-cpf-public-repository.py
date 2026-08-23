@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse, json, os, shutil, subprocess, sys
 from datetime import datetime
 from pathlib import Path
+from xml.etree import ElementTree
 
 class PublishError(RuntimeError): pass
 
@@ -50,12 +51,65 @@ def private_gates(root:Path,python:str)->None:
       [python,'cpf-tools/release/tools/verify-cpf-publication-starter-closure.py','--root','.','--require-physical'],
       [python,'cpf-tools/verification/tools/verify-cpf-frontend-consumer-closure.py','--root','.'],
       [python,'cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py','--root','.'],
-      [python,'cpf-tools/verification/verify_common_product_service_dx.py','.'],
+      [python,'cpf-tools/verification/verify_common_product_service_dx.py','--root','.'],
       [python,'cpf-tools/verification/tools/verify-cpf-education-active-surface.py','--root','.'],
       [python,'cpf-tools/verification/tools/verify-cpf-edu-executable-coverage.py','--root','.'],
       [python,'cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py','--root','.'],
     ]
     for gate in gates: run(gate,root)
+
+def _direct_xml_text(element:ElementTree.Element,name:str)->str:
+    for child in element:
+        if child.tag.rsplit('}',1)[-1]==name:
+            return (child.text or '').strip()
+    return ''
+
+def _read_xml(path:Path,kind:str)->ElementTree.Element:
+    try:
+        return ElementTree.parse(path).getroot()
+    except (OSError,ElementTree.ParseError) as error:
+        raise PublishError(f'invalid {kind} XML: {path}: {error}') from error
+
+def resolve_published_bom(binary_repo:Path,version:str)->Path:
+    """Resolve and validate the BOM Maven actually published.
+
+    Maven repositories store unique snapshots with a timestamped file name. The
+    version-level maven-metadata.xml is the canonical mapping; copying or renaming
+    the timestamped POM would produce a repository that only appears complete.
+    """
+    artifact_dir=binary_repo/'com/cpf/cpf-platform-bom'/version
+    if version.endswith('-SNAPSHOT'):
+        metadata_path=artifact_dir/'maven-metadata.xml'
+        metadata=_read_xml(metadata_path,'Maven snapshot metadata')
+        expected={'groupId':'com.cpf','artifactId':'cpf-platform-bom','version':version}
+        actual={key:_direct_xml_text(metadata,key) for key in expected}
+        if actual!=expected:
+            raise PublishError(f'CPF BOM snapshot metadata coordinate mismatch: {metadata_path} expected={expected} actual={actual}')
+        candidates=[]
+        for entry in metadata.iter():
+            if entry.tag.rsplit('}',1)[-1]!='snapshotVersion':
+                continue
+            fields={child.tag.rsplit('}',1)[-1]:(child.text or '').strip() for child in entry}
+            if fields.get('extension')=='pom' and not fields.get('classifier'):
+                candidates.append(fields.get('value',''))
+        if len(candidates)!=1:
+            raise PublishError(f'CPF BOM snapshot metadata must contain exactly one unclassified POM mapping: {metadata_path}')
+        resolved_version=candidates[0]
+        snapshot_base=version[:-len('-SNAPSHOT')]
+        if (not resolved_version.startswith(snapshot_base+'-') or '/' in resolved_version
+                or '\\' in resolved_version or resolved_version in {'.','..'}):
+            raise PublishError(f'invalid CPF BOM snapshot value in metadata: {resolved_version!r}')
+        bom=artifact_dir/f'cpf-platform-bom-{resolved_version}.pom'
+    else:
+        bom=artifact_dir/f'cpf-platform-bom-{version}.pom'
+    if not bom.is_file():
+        raise PublishError(f'isolated binary publication missing CPF BOM: {bom}')
+    pom=_read_xml(bom,'CPF BOM POM')
+    expected={'groupId':'com.cpf','artifactId':'cpf-platform-bom','version':version}
+    actual={key:_direct_xml_text(pom,key) for key in expected}
+    if actual!=expected:
+        raise PublishError(f'CPF BOM POM coordinate mismatch: {bom} expected={expected} actual={actual}')
+    return bom
 
 def private_build_and_publication(root:Path,binary_repo:Path,version:str)->None:
     wrapper=root/('gradlew.bat' if os.name=='nt' else 'gradlew')
@@ -65,9 +119,9 @@ def private_build_and_publication(root:Path,binary_repo:Path,version:str)->None:
     run([str(wrapper),'clean','cpfBuild','qualityGate','cpfTest','publicationGate',
          'publishCpfVerifiedLocalPlatformArtifacts','--continue','--no-daemon',
          f'-PcpfArtifactMode=LOCAL_DEV',f'-PcpfPublicBinaryRepository={binary_repo}',
+         f'-PcpfArtifactStagingRepository={binary_repo}',
          f'-PcpfPlatformVersion={version}'],root)
-    bom=binary_repo/'com/cpf/cpf-platform-bom'/version/f'cpf-platform-bom-{version}.pom'
-    if not bom.is_file(): raise PublishError(f'isolated binary publication missing CPF BOM: {bom}')
+    resolve_published_bom(binary_repo,version)
 
 
 def _generator_distribution_files(directory:Path,version:str,classifier:str)->tuple[Path,Path,Path]:

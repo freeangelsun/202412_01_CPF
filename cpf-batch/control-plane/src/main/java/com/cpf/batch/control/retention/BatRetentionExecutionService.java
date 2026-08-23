@@ -4,6 +4,7 @@ import com.cpf.platform.operations.api.retention.CpfRetentionCommand;
 import com.cpf.platform.operations.api.retention.CpfRetentionPolicy;
 import com.cpf.platform.operations.api.retention.CpfRetentionResult;
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class BatRetentionExecutionService {
     private final Clock clock;
     private final String runtimeInstanceId;
 
+    @Autowired
     public BatRetentionExecutionService(BatRetentionOperations operations, BatRetentionExecutionRepository repository,
                                         Environment environment) {
         this(operations, repository, environment, Clock.systemUTC());

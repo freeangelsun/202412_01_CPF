@@ -113,7 +113,7 @@ class RuntimeCommandExecutorFailureClassificationTest {
         verify(commands).recordAttempt(
                 eq("CMD-1"), eq(1), eq("runtime-1"), eq("OWNER_API_DISPATCH"),
                 eq(CommandState.UNKNOWN_RESULT),
-                argThat(message -> message.contains("token=<masked>")
+                argThat(message -> message.contains("token=***")
                         && !message.contains("raw-secret")));
         verify(commands).transition(
                 eq("CMD-1"), eq(CommandState.UNKNOWN_RESULT), eq("OWNER_API_DISPATCH"),

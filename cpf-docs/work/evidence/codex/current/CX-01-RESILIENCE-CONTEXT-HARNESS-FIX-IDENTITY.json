@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RESILIENCE-CONTEXT-HARNESS-FIX-IDENTITY",
+  "requirementIds": ["INTEGRATION", "RECOVERY", "SEC-BOUNDARY", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:51:41.9157831+09:00",
+    "finished": "2026-08-22T12:51:48.7767004+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Repair recovery-only context restoration, bind matching contexts in normal-execution JUnit harnesses, capture current/legacy Mockito varargs, add fail-close/recovery tests, and recalculate Source Identity",
+  "exitCode": 0,
+  "sourceIdentity": "9f1eea6d0b93a8725d063e2295280fe83a9ad217c376f5c98c65a4f0d84e4788",
+  "sourceState": {
+    "contentSha1": "3103fb84f09488bf3b4c8d69072c5a8b5035ba01",
+    "fileCount": 8204,
+    "totalBytes": 75689555
+  },
+  "actualResult": "Normal execute still requires a bound CPF snapshot and retains transaction mismatch enforcement. Reconcile can synthesize a trusted recovery snapshot only when no context exists, after canonical transaction validation; attempts bind child snapshots as before. JUnit action paths now bind matching contexts. JDBC contract tests capture both flattened and nested Mockito varargs without changing binding assertions.",
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-016", "CX-F-017", "CX-F-018"],
+  "sanitized": true
+}

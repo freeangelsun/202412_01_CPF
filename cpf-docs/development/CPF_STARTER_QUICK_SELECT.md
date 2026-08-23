@@ -40,6 +40,8 @@
 | Level | Artifact | 언제 선택 | 기본 선택? |
 |---|---|---|---|
 | capability | `cpf-starter-integration-fixed-length` | 대외 고정길이 전문 송수신 | 아니오 |
+| capability | `cpf-starter-integration-http` | 다른 서비스의 HTTP API를 CPF 표준 Client로 호출 | 아니오 |
+| capability | `cpf-starter-integration-resilience` | 외부 호출에 Timeout·Retry·Circuit Breaker 정책 적용 | 아니오 |
 | capability | `cpf-starter-graphql` | GraphQL Endpoint/Client 사용 | 아니오 |
 | capability | `cpf-starter-realtime` | 실시간 SSE 통신 | 아니오 |
 

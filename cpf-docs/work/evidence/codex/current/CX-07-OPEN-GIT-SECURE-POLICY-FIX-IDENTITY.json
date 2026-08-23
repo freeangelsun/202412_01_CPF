@@ -1,0 +1,22 @@
+{
+  "executionId": "CX-07-OPEN-GIT-SECURE-POLICY-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:02:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha1": "82ad50a7c222f6585d1cd928b5f2c92f7022bd39",
+    "contentSha256": "01e22142180c4abb528b044e6256290ef80776706e8a1842cf11381297b831e0",
+    "fileCount": 8228,
+    "totalBytes": 75770384
+  },
+  "fixes": [
+    "Require owner-path segment boundaries for source/javadoc disclosure policy.",
+    "Fail closed on unclassified repository files, ordinary binaries, and POM coordinates.",
+    "Parse dependencyManagement dependencies in final Maven closure and reject incomplete CPF coordinates.",
+    "Redact authenticated URL userinfo and discovered credential values from command console, logs, output, and exceptions while preserving the real subprocess argument.",
+    "Align required Open Git Maven contracts with artifacts actually consumed by the public developer workspace; keep ADM/Gateway source forbidden and binary-only if delivered, but do not invent unused public Maven coordinates.",
+    "Treat cpf-core documentation as an upstream canonical public-publication input that the stricter Open Git stage-8 policy must remove and stage-9 must reject if it remains."
+  ],
+  "verification": "PENDING",
+  "commitExecuted": false,
+  "pushExecuted": false
+}

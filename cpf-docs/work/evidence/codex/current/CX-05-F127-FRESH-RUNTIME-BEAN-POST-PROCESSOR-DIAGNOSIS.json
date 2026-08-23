@@ -1,0 +1,31 @@
+{
+  "track": "CX-05-F127-FRESH-RUNTIME-BEAN-POST-PROCESSOR-DIAGNOSIS",
+  "finding": "CX-F-127",
+  "sourceIdentityBeforeEdit": "31e07351282718a277b7f3a6350949e9bdb7075ff063c1bcf4aa888d334e38ff",
+  "statusBeforeSourceEdit": "IN_PROGRESS",
+  "runtime": {
+    "domain": "f126logging",
+    "java": "25.0.3",
+    "springBoot": "4.1.0",
+    "profile": "test",
+    "bootJar": "cpf-f126logging-online-1.0.0-SNAPSHOT.jar",
+    "exitCode": 1
+  },
+  "actualError": "BeanCreationException: cpfOnlineTransactionBeanPostProcessor could not be CGLIB proxied because CpfOnlineTransactionBeanPostProcessor is final",
+  "rootCause": "CpfCapabilityUsageAspect matches every public com.cpf method except com.cpf.starter.runtime. It therefore treats Spring BeanPostProcessor infrastructure as a business capability consumer. Spring attempts a class proxy before startup and fails on the intentionally final infrastructure class.",
+  "impact": [
+    "Fresh Generated Online Runtime cannot start although Java 25 compile/test succeeds",
+    "all applications combining the default base Starter capability aspect with Web runtime BeanPostProcessors are potentially affected",
+    "compile-only and context-light tests can falsely pass"
+  ],
+  "requiredFix": [
+    "exclude the standard BeanPostProcessor type hierarchy at the capability aspect pointcut owner",
+    "add an exact pointcut regression for final infrastructure and a normal CPF consumer",
+    "rerun targeted tests and the same Fresh bootJar runtime command"
+  ],
+  "falseFixesProhibited": [
+    "removing final only to permit an invalid proxy",
+    "disabling AOP or the capability feature",
+    "declaring runtime PASS from compile/test"
+  ]
+}

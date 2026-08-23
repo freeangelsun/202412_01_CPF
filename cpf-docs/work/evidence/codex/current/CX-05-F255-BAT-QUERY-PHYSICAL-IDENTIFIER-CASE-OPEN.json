@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-255",
+  "recordedAt": "2026-08-23T23:10:55+09:00",
+  "sourceIdentitySha256": "d2c54fb72a692c935a44ab8dcc6ca923b0613728850fec8fa8fdfca215820cd6",
+  "status": "IN_PROGRESS",
+  "freshRunId": "b4200823c029",
+  "failedBoundary": "Job Pack repository through generated BAT vendor SQL catalog",
+  "actualError": "Linux MariaDB cannot resolve lowercase bat_job_pack against canonical BAT_JOB_PACK",
+  "rootCause": "BAT runtime SQL authoring templates and generated DB3 packs use lowercase physical identifiers despite uppercase canonical table ownership",
+  "cleanup": "PASS",
+  "prohibitedWorkaround": "MariaDB lower_case_table_names change or one-query-only patch"
+}

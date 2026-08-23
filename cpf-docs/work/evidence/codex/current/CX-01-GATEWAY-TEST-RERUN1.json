@@ -1,0 +1,22 @@
+{
+  "caseId": "CX-01-GATEWAY-TEST-RERUN1",
+  "startedAt": "2026-08-22T17:05:31.1943381+09:00",
+  "finishedAt": "2026-08-22T17:06:17+09:00",
+  "sourceIdentity": "a6ba195202958296b240d9fc99fff535255018286f25fe63ce65c6099862af68",
+  "command": ".\\gradlew.bat --no-daemon :runtime:gateway:test --rerun-tasks",
+  "executionMode": "fully detached hidden child; stdout/stderr/exit files; short exit-file polls only",
+  "exitCode": 1,
+  "status": "FAIL",
+  "testSummary": {"suites": 28, "tests": 102, "passed": 97, "failures": 5, "errors": 0, "skipped": 0},
+  "targetedResults": {
+    "CpfGatewayResilientInvokerTest": {"tests": 4, "failures": 0, "errors": 0, "skipped": 0},
+    "canonicalCallerChannelOverrideRegression": "PASS"
+  },
+  "newFindings": ["CX-F-056", "CX-F-057", "CX-F-058", "CX-F-059", "CX-F-060"],
+  "artifacts": {
+    "stdout": {"path": "cpf-docs/work/evidence/codex/current/CX-01-GATEWAY-TEST-RERUN1.stdout.log", "sha256": "B2C2C53D8E00AA2A93F5840792E66B059921E2C4E2862E96B1E8800C079432A0"},
+    "stderr": {"path": "cpf-docs/work/evidence/codex/current/CX-01-GATEWAY-TEST-RERUN1.stderr.log", "sha256": "72AC2754E6CDDB209B2639467AA2A78EB6C434610B9E9722DB4AD864B03BBD4D"},
+    "exit": {"path": "cpf-docs/work/evidence/codex/current/CX-01-GATEWAY-TEST-RERUN1.exit.txt", "sha256": "F1B2F662800122BED0FF255693DF89C4487FBDCF453D3524A42D4EC20C3D9C04"}
+  },
+  "resourceSafety": {"peakObservedCodeHandles": 11441, "recoveredCodeHandles": 5853, "vsCodeReopened": false}
+}

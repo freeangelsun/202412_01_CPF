@@ -5,6 +5,29 @@ import shutil, subprocess, tempfile, sys, os
 root = Path(__file__).resolve().parents[3]
 base = Path(__file__).resolve().parent
 
+
+def resolve_typescript_command() -> list[str]:
+    local_bin = root / 'cpf-admin' / 'frontend' / 'node_modules' / '.bin'
+    candidates = [
+        local_bin / ('tsc.cmd' if os.name == 'nt' else 'tsc'),
+        Path(found) if (found := shutil.which('tsc')) else None,
+    ]
+    compiler = next((candidate.resolve() for candidate in candidates if candidate and candidate.is_file()), None)
+    if compiler is None:
+        raise SystemExit(
+            'TypeScript compiler missing: run the canonical frontend dependency setup so '
+            'cpf-admin/frontend/node_modules/.bin/tsc is available'
+        )
+    if compiler.suffix.lower() in {'.cmd', '.bat'}:
+        command_processor = os.environ.get('COMSPEC') or shutil.which('cmd.exe')
+        if not command_processor:
+            raise SystemExit('Windows command processor is unavailable for the repository-local TypeScript compiler')
+        return [command_processor, '/d', '/s', '/c', str(compiler)]
+    return [str(compiler)]
+
+
+typescript_command = resolve_typescript_command()
+
 with tempfile.TemporaryDirectory(prefix='cpf-frontend-runtime-') as td:
     t = Path(td)
 
@@ -20,7 +43,7 @@ with tempfile.TemporaryDirectory(prefix='cpf-frontend-runtime-') as td:
             raise SystemExit(f'missing actual ADM source: {actual}')
         (adm_src / 'shared').mkdir(parents=True, exist_ok=True)
         shutil.copy2(actual, adm_src / 'shared' / name)
-    c = subprocess.run(['tsc', '-p', str(adm / 'tsconfig.json')], text=True, capture_output=True)
+    c = subprocess.run([*typescript_command, '-p', str(adm / 'tsconfig.json')], text=True, capture_output=True)
     if c.returncode:
         print(c.stdout + c.stderr)
         raise SystemExit(c.returncode)
@@ -38,7 +61,7 @@ with tempfile.TemporaryDirectory(prefix='cpf-frontend-runtime-') as td:
     text = text.replace("(import.meta.env.VITE_MBW_WEB_BASE_URL ?? '')", "('')")
     (bo_src / 'channelHttpClient.ts').write_text(text, encoding='utf-8')
     shutil.copy2(base / 'backoffice-tsconfig.json', bo / 'tsconfig.json')
-    c = subprocess.run(['tsc', '-p', str(bo / 'tsconfig.json')], text=True, capture_output=True)
+    c = subprocess.run([*typescript_command, '-p', str(bo / 'tsconfig.json')], text=True, capture_output=True)
     if c.returncode:
         print(c.stdout + c.stderr)
         raise SystemExit(c.returncode)

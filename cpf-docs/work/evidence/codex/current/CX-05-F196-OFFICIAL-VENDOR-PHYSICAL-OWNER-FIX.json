@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-08-23T17:33:00+09:00",
+  "findingId": "CX-F-196",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {"sha256":"e742666a10133f4f7d9045c52e16ce7cee73b42524dd98e4a6ea8630d97ba197","sha1":"bab7e9727c04e9c415fb5b318e004164e62955d2","files":8278,"bytes":75034462},
+  "owner": "cpf-tools/db/tools/invoke-official-db-vendor-sql.ps1",
+  "identityFields": ["vendor", "host", "port", "databaseName", "schemaName", "logicalDatabase", "adminUsername", "migrationUsername", "runtimeUsername"],
+  "semantics": "Requested modules are filtered first. Exact physical identities are then executed once in profile declaration order; duplicate aliases emit SKIP_DUPLICATE_TARGET. The caller's lifecycle plan still records the complete selected module inventory.",
+  "test": "test_official_vendor_physical_target_dedup.py",
+  "next": "Targeted test and identical actual PostgreSQL verifier-owned lifecycle rerun.",
+  "falseGreen": false
+}

@@ -1,0 +1,19 @@
+{
+  "track": "CX-00-VSCODE-RENDERER-MEMORY-HEADROOM",
+  "observedAt": "2026-08-22T19:04:04+09:00",
+  "result": "CONFIGURED_RESTART_PENDING",
+  "sourceIdentity": "657c3c8f31741b2151227063a3824ce2d12430803e9807e30883b66d1fb44755",
+  "evidence": {
+    "installedVsCodeArgvSchemaSupportsJsFlags": true,
+    "rendererOldSpaceLimitMiB": 8192,
+    "disableHardwareAcceleration": true,
+    "normalWorkspaceFunctionalityReduced": false,
+    "pagefileMiB": 32768
+  },
+  "configuration": "C:/Users/fly10/AppData/Roaming/Code/argv.json",
+  "activationCondition": "Complete VS Code application exit followed by a new launch; window reload alone does not restart the main process",
+  "notes": [
+    "No watcher, search, Java automatic synchronization, terminal scrollback, or editor retention capability was disabled.",
+    "The 8 GiB V8 old-space ceiling addresses JavaScript heap headroom; renderer crashes unrelated to V8 heap remain covered by disabled hardware acceleration and ongoing process diagnostics."
+  ]
+}

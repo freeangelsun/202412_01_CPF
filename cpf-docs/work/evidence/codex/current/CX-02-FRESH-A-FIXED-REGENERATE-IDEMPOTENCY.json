@@ -1,0 +1,16 @@
+{
+  "executionId": "CX-02-FRESH-A-FIXED-REGENERATE-IDEMPOTENCY",
+  "timestamp": "2026-08-22T20:01:00+09:00",
+  "sourceIdentitySha256": "ad003b40615a2125c56a90b09b85f6ffdaf03144aabeb1c3a32d4335cf836d64",
+  "status": "PASS",
+  "setupSync": "UPGRADED",
+  "regenerateCount": 2,
+  "consecutiveDiffs": [
+    {"missing": 0, "changed": 0, "staleGeneratedFiles": 0, "expectedExtraUserFiles": 1, "unexpectedDrift": 0, "clean": true},
+    {"missing": 0, "changed": 0, "staleGeneratedFiles": 0, "expectedExtraUserFiles": 1, "unexpectedDrift": 0, "clean": true}
+  ],
+  "mapperScanAbsent": true,
+  "userOwnedSha256": "0f9a74ac28f6432f95890e07595726b508d2036dd672547f3abe5c881ed5cdf4",
+  "userLoss": 0,
+  "productRootBuildPresentAfter": false
+}

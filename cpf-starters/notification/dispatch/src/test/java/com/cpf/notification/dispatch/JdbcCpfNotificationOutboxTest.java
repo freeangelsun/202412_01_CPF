@@ -110,7 +110,7 @@ class JdbcCpfNotificationOutboxTest {
         return new CpfContextExecutionFactory(() -> transactionId, new CpfExecutionIdGenerator() {
             public String newExecutionId() { return "EX-" + java.util.UUID.randomUUID(); }
             public String newSegmentId() { return "SG-" + java.util.UUID.randomUUID(); }
-        }, () -> LocalDate.of(2026, 8, 2), Clock.systemUTC());
+        }, () -> LocalDate.of(2026, 8, 2), Clock.fixed(NOW, java.time.ZoneOffset.UTC));
     }
 
     private static <T> T withContext(String transactionId, java.util.concurrent.Callable<T> action) {
@@ -203,6 +203,12 @@ class JdbcCpfNotificationOutboxTest {
                 throw new DuplicateKeyException("duplicate receipt");
             }
             return updateResult;
+        }
+
+        @Override
+        public List<Map<String, Object>> queryForList(String sql) {
+            lastQuery = sql;
+            return rows;
         }
 
         @Override

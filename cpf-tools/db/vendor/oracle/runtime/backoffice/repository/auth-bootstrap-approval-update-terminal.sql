@@ -1,0 +1,5 @@
+UPDATE MBW_BOOTSTRAP_APPROVAL
+   SET STATUS = :status, COMPLETED_AT = :completedAt, ADMIN_USER_ID = :adminUserId,
+       FAILURE_CODE = :failureCode, CLAIM_EXPIRES_AT = NULL, UPDATED_AT = :completedAt
+ WHERE TOKEN_HASH = :tokenHash AND STATUS = 'CLAIMED'
+   AND OPERATION_ID = :operationId AND CLAIM_OWNER_ID = :claimOwnerId

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-MBW-SCANNER-DIAGNOSIS",
+  "requirementIds": ["REL-BUILD", "ARCH-BOUNDARY", "SAMPLE-MBW"],
+  "timestamp": {
+    "recorded": "2026-08-22T11:34:53.1624228+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "c335bed4283ce424d90b64951147ceb0dbc4a38956b57307c85f67a53a723602",
+  "inspected": [
+    "settings.gradle",
+    "cpf-tools/runtime/cpf-local-runtime/build.gradle",
+    "cpf-backoffice/cpf-domain.yaml",
+    "cpf-backoffice/online/build.gradle",
+    "cpf-tools/build/cpf-root-conventions.gradle",
+    "cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py"
+  ],
+  "facts": [
+    "Root settings classifies generation.mode=prebuilt as a canonical Root project and excludes it from generated includeBuild scanning.",
+    "The local runtime correctly adds :apps:backoffice only when the optional project exists.",
+    "The local runtime generated-domain scanner scans every cpf-*/cpf-domain.yaml with settings.gradle but has no prebuilt exclusion.",
+    "cpf-backoffice declares generation.mode=prebuilt, packageName=com.cpf.backoffice, and modules.online=true, so the scanner adds the unresolved duplicate com.cpf.backoffice:online dependency."
+  ],
+  "rootCause": "LOCAL_RUNTIME_GENERATED_DOMAIN_SCANNER_IGNORES_PREBUILT_MODE",
+  "result": "FAIL_CONFIRMED",
+  "findingIds": ["CX-F-003"],
+  "sanitized": true
+}

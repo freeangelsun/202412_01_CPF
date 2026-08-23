@@ -25,7 +25,7 @@ class AdmApprovalSnapshotIntegrityTest {
     void actionTargetVersionAndPayloadMutationsChangeHash() {
         Map<String, Object> base = envelope("{\"quarantineId\":\"DQ-1\",\"expectedVersion\":2,\"corrected\":{\"name\":\"A\"}}");
         String hash = integrity.hash(base);
-        for (Map.Entry<String, Object> mutation : Map.of(
+        for (Map.Entry<String, String> mutation : Map.of(
                 "actionType", "OTHER",
                 "targetId", "DQ-2",
                 "payloadSnapshot", "{\"quarantineId\":\"DQ-1\",\"expectedVersion\":3,\"corrected\":{\"name\":\"A\"}}"

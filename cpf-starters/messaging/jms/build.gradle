@@ -8,6 +8,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('test') { useJUnitPlatform() }
 publishing { publications { mavenJava(MavenPublication) { from components.java; artifactId = 'cpf-starter-messaging-jms' } } }

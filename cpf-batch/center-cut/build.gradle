@@ -4,6 +4,7 @@ dependencies {
     implementation project(':framework:base-runtime')
     implementation project(':framework:operations')
     implementation project(':framework:data')
+    implementation project(':starters:data:jdbc')
     implementation project(':runtime:batch:api')
     implementation project(':runtime:batch:runtime-support')
     implementation project(':runtime:batch:runtime')
@@ -11,14 +12,21 @@ dependencies {
     implementation project(':starters:common')
     implementation project(':starters:messaging:kafka')
     implementation project(':framework:operations:observability')
+    implementation project(':internal:platform-operations:runtime-control')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
     implementation 'org.springframework.batch:spring-batch-integration'
     implementation 'org.springframework.integration:spring-integration-kafka'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation project(':runtime:batch:testkit')
+    testImplementation project(':internal:testing:testkit')
     testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('bootJar') { archiveFileName = "cpf-batch-center-cut-${project.version}.jar" }
 tasks.named('test') { useJUnitPlatform() }

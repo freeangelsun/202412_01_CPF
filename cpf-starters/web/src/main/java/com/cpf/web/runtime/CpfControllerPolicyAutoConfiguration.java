@@ -6,6 +6,7 @@ import com.cpf.web.context.CpfRequestOperationResolver;
 import com.cpf.foundation.execution.api.CpfOperationAccessPolicy;
 import com.cpf.foundation.execution.api.CpfOperationCatalogRegistry;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -35,7 +36,8 @@ public class CpfControllerPolicyAutoConfiguration {
                 requestOperationResolvers.orderedStream().toList());
     }
 
-    @Bean CpfOperationCatalogBootstrap cpfOperationCatalogBootstrap(RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime,
+    @Bean CpfOperationCatalogBootstrap cpfOperationCatalogBootstrap(
+            @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mappings, CpfRuntimeIdentity runtime,
             Environment environment, ObjectProvider<CpfOperationCatalogRegistry> registries) {
         return new CpfOperationCatalogBootstrap(mappings, runtime, environment, registries.orderedStream().toList());
     }

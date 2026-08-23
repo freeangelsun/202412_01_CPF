@@ -1,0 +1,19 @@
+{
+  "executionId": "CX-02-TYPED-DOMAIN-DEPENDENCY-FIX-IDENTITY",
+  "timestamp": "2026-08-22T20:10:00+09:00",
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-089",
+  "sourceIdentity": {
+    "sha256": "2f13c55698acc7b0cc50cfa096fc597cb3ac3ac1bcd4714d41f0ef837b13c1e5",
+    "sha1": "fdb0fdb86196072ff47ef3e5141a2d6daaaf25ff",
+    "fileCount": 8212,
+    "totalBytes": 75672564
+  },
+  "fix": [
+    "Generated Online build declares the exact target package group plus online artifact for every typed Domain dependency",
+    "verify_generated fails closed when that coordinate is missing",
+    "Product generated-domain composite fallback uses the actual definition-derived package/group and checks root/name equality",
+    "Focused regressions assert dependency materialization and composite coordinate ownership"
+  ],
+  "verificationRequired": "Focused Generator/Gradle tests, fixed Case B regenerate/diff, actual Java 25 compile with current MBR"
+}

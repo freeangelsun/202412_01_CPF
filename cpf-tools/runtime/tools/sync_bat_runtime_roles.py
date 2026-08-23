@@ -29,10 +29,19 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8-sig")
 
 
-def write_or_check(path: Path, expected: str, write: bool, changed: list[str]) -> None:
+def write_or_check(
+    path: Path,
+    expected: str,
+    write: bool,
+    changed: list[str],
+    *,
+    immutable_versioned: bool = False,
+) -> None:
     actual = read_text(path) if path.is_file() else None
     if actual == expected:
         return
+    if actual is not None and immutable_versioned:
+        raise ContractError(f"IMMUTABLE_MIGRATION_CONFLICT path={path.as_posix()}")
     if not write:
         raise ContractError(f"generated/current contract drift: {path.as_posix()}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -134,6 +143,24 @@ def verify_java_enum(root: Path, contract: dict[str, Any]) -> None:
     values = [part.strip() for part in body.replace(";", ",").split(",") if part.strip()]
     if values != canonical_roles(contract):
         raise ContractError(f"Java RuntimeRole parity mismatch: {values}")
+
+
+def verify_application_runtime_role_properties(root: Path, contract: dict[str, Any]) -> None:
+    """Verify every executable publishes its role through the shared Runtime Agent namespace."""
+    resources: set[str] = set()
+    for role in contract["roles"]:
+        relative = str(role.get("applicationResource", ""))
+        if not relative or relative in resources:
+            raise ContractError(f"BAT application resource ownership is missing or duplicated: {relative}")
+        resources.add(relative)
+        text = read_text(root / relative)
+        expected = f"  runtime:\n    role: {role['name']}\n"
+        if text.count(expected) != 1:
+            raise ContractError(
+                f"shared cpf.runtime.role declaration mismatch: {relative}: expected={role['name']}"
+            )
+        if re.search(r"(?m)^  batch:\s*$[\s\S]*?^    runtime:\s*$\n      role:\s*", text):
+            raise ContractError(f"retired cpf.batch.runtime.role remains active: {relative}")
 
 
 def verify_owned_surfaces(root: Path, contract: dict[str, Any]) -> None:
@@ -542,7 +569,7 @@ def render_migrations(root: Path, contract: dict[str, Any], write: bool, changed
         if collisions:
             raise ContractError(f"migration V{version} collision: {[p.as_posix() for p in collisions]}")
     for path, expected in outputs.items():
-        write_or_check(path, expected, write, changed)
+        write_or_check(path, expected, write, changed, immutable_versioned=True)
 
 
 def verify_migration_safety(root: Path, contract: dict[str, Any]) -> None:
@@ -667,6 +694,7 @@ def main() -> int:
         canonical_roles(contract)
         replacement_map(contract)
         verify_java_enum(root, contract)
+        verify_application_runtime_role_properties(root, contract)
         verify_migration_version_lock(root, contract)
         verify_owned_surfaces(root, contract)
         render_runtime_sql(root, contract, args.write, changed)

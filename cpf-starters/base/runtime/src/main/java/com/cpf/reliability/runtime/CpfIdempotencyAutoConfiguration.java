@@ -24,7 +24,7 @@ public class CpfIdempotencyAutoConfiguration {
     CpfIdempotencyCoordinator cpfIdempotencyCoordinator(CpfIdempotencyProperties properties,
             ObjectProvider<CpfIdempotencyStore> store, CpfIdempotencyFingerprintResolver fingerprintResolver,
             CpfIdempotencyResultCodec resultCodec, ObjectProvider<Clock> clocks) {
-        Clock clock = clocks.getIfAvailable(Clock::systemUTC);
+        Clock clock = clocks.getIfUnique(Clock::systemUTC);
         return new CpfIdempotencyCoordinator(properties, store.getIfAvailable(), fingerprintResolver, resultCodec, clock);
     }
 

@@ -1,0 +1,42 @@
+{
+  "track": "CX-00-PYTEST-CANONICAL-OWNERSHIP-VERIFICATION",
+  "startedAt": "2026-08-22T18:13:33.9472411+09:00",
+  "finishedAt": "2026-08-22T18:17:00.8920712+09:00",
+  "sourceIdentitySha256": "c39d029c9f6033ee54626a102ee04bdb6ceef05d82396d206f4b47be84c0ad92",
+  "result": "PASS",
+  "finding": "CX-F-072",
+  "findingStatus": "CLOSED",
+  "verification": {
+    "pytestConfigs": 1,
+    "canonicalConfig": "cpf-tools/testing/config/pytest.ini",
+    "rootPytestConfigPresent": false,
+    "runnerContractTests": {
+      "tests": 2,
+      "passed": 2,
+      "durationSeconds": 0.05
+    },
+    "canonicalCollection": {
+      "testsCollected": 811,
+      "durationSeconds": 1.54,
+      "authoritativeRerunExitCode": 0,
+      "note": "The first detached collection produced the complete 811-test output but its orchestration exit file was empty. No PASS was inferred from that file; the identical 1.77-second command was immediately rerun and returned exit code 0."
+    },
+    "consumers": [
+      ".github/workflows/cpf-final-source-gates.yml",
+      "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+      ".vscode/settings.json",
+      "README.md"
+    ],
+    "duplicatePytestOptionOwners": 0,
+    "rootItemCountAfterMove": 27,
+    "rootGeneratedRegression": {
+      "pytestCache": false,
+      "pycache": false,
+      "gradle": false,
+      "build": false,
+      "jvmCrashFiles": 0,
+      "heapDumpFiles": 0
+    }
+  },
+  "generatedPythonCacheAction": "Two py_compile-created __pycache__ directories were moved without deletion to cpf-docs/work/evidence/generated/python/pycache/pytest-ownership-20260822."
+}

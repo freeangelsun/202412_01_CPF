@@ -1,0 +1,30 @@
+{
+  "track": "CX-05-F128-APPLICATION-MAPPING-TARGETED-RERUN1",
+  "startedAt": "2026-08-23T02:33:06.0260844+09:00",
+  "finishedAt": "2026-08-23T02:34:15.1662253+09:00",
+  "sourceIdentity": "a8191f8e22a9e1f1734ad00ab9639f3dfa6f998cfc5e89ba86893d14a7aa3d33",
+  "command": ".\\gradlew.bat :framework:web:test --tests com.cpf.web.runtime.CpfApplicationRequestMappingSelectionTest --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "result": "PASS_TARGETED",
+  "junit": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "xml": "cpf-starters/web/build/test-results/test/TEST-com.cpf.web.runtime.CpfApplicationRequestMappingSelectionTest.xml"
+  },
+  "gradle": {
+    "tasksExecuted": 15,
+    "java": "25.0.3",
+    "version": "9.1.0",
+    "maxWorkers": 1,
+    "daemon": "single-use and stopped"
+  },
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F128-APPLICATION-MAPPING-TARGETED-RERUN1.log",
+  "resourceAfter": {
+    "freePhysicalGiB": 7.26,
+    "commitFreeGiB": 67.9,
+    "javaProcesses": 6
+  },
+  "closureDecision": "F128 is VERIFICATION_PENDING. The current-source Fresh bootJar must start with both mappings present."
+}

@@ -1,0 +1,21 @@
+{
+  "track": "CX-02-F111-F113-SOURCE-FIX",
+  "sourceIdentity": {
+    "sha1": "8e9475f5e1a6c1569905e18b533320af379f4f5a",
+    "sha256": "07d474f295ead6ec76fd69859813437622f64f7fcc81ad64ebcf9da3f34629a8",
+    "fileCount": 8220,
+    "totalBytes": 75802708
+  },
+  "sourceFixed": [
+    "CX-F-111: verify domain/all dispatches generationMode=prebuilt to verify_prebuilt_domain",
+    "CX-F-112: PowerShell helper extracts the first structured JSON document after diagnostic lines",
+    "CX-F-113: generated inventory exposes batchEnabled and federation honors the selected capability"
+  ],
+  "safety": {
+    "retiredCpfBizAdminRestored": false,
+    "unselectedBatchAccepted": false,
+    "domainOrJobpackAccepted": false,
+    "nonzeroCliExitAccepted": false
+  },
+  "next": "Rerun exact 34-test target."
+}

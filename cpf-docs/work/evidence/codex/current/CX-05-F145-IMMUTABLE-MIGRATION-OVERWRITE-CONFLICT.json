@@ -1,0 +1,44 @@
+{
+  "findingId": "CX-F-145",
+  "observedAt": "2026-08-23T11:13:00+09:00",
+  "status": "OPEN",
+  "trigger": "The maintained append-only checksum tool rejected the post-generation tree before changing any manifest.",
+  "error": "immutable migration checksum drift: cpf-tools/db/vendor/mariadb/migration/flyway/V29__bza_backoffice_baseline.sql",
+  "rootCause": "build-all-install-sql.ps1 copies the legacy derived cpf-tools/db/vendor/mariadb/source/migration tree over the central published runtime migration tree. The two histories already diverge: central V29 retains the historical BZA baseline and central V133 is the correct append-only BZA-to-MBW currentization, while the legacy source mirror rewrites old migrations directly to MBW.",
+  "affectedWorkingTree": {
+    "trackedFilesOverwrittenByReplay": 21,
+    "migrationFiles": 11,
+    "rollbackFiles": 10,
+    "paths": [
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V6__transaction_server_identity.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V29__bza_backoffice_baseline.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V43__bza_approval_lifecycle_resubmit.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V53__bza_governance_operability_hardening.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V59__admin_contact_model.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V60__bza_employee_safe_defaults.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V61__admin_data_safety_status.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V62__bza_admin_create_idempotency.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V63__bza_login_atomic_operation.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V65__bza_login_idempotent_result.sql",
+      "cpf-tools/db/vendor/mariadb/migration/flyway/V70__bza_action_permission_hardening.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/R53__bza_governance_operability_hardening.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/R65__bza_login_idempotent_result.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/R70__bza_action_permission_hardening.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V29__bza_backoffice_baseline_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V43__bza_approval_lifecycle_resubmit_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V59__admin_contact_model_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V60__bza_employee_safe_defaults_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V61__admin_data_safety_status_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V62__bza_admin_create_idempotency_rollback.sql",
+      "cpf-tools/db/vendor/mariadb/rollback/V63__bza_login_atomic_operation_rollback.sql"
+    ]
+  },
+  "architectureProof": "cpf-tools/db/vendor/mariadb/migration/flyway/V133__backoffice_mbw_identity.sql is explicitly append-only and renames legacy BZA physical tables to canonical MBW; rewriting V29 and later historical predecessors makes V133 invalid.",
+  "requiredRepair": [
+    "Restore only the 21 replay-overwritten central history files to their pre-replay HEAD bytes.",
+    "Change the MariaDB bundle builder so lifecycle bundle generation never overwrites published migration/rollback history from the legacy source mirror.",
+    "Keep central V133 as the Backoffice/MBW transition owner.",
+    "Register V134 append-only in the three official owner manifests and rerun lifecycle/parity."
+  ],
+  "authorization": "Explicit user approval is required before the targeted restore. No restore/reset command has been run."
+}

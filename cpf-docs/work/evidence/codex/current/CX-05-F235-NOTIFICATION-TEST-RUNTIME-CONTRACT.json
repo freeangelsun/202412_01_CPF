@@ -1,0 +1,20 @@
+{
+  "findingId": "CX-F-235",
+  "status": "CLOSED",
+  "observedAt": "2026-08-23T21:28:48+09:00",
+  "sourceIdentitySha256": "a191d288671aa03f1493811b81f83beed34091b4c21a30ba313e7be431f76ac4",
+  "scope": "Notification JDBC outbox full targeted regression",
+  "result": "FAILED",
+  "rootCause": "The focused fake JDBC harness overrides only queryForList(String,Object...) while production correctly selects queryForList(String) for no-argument claim SQL, causing an unintended real JdbcTemplate DataSource access. Its context factory also uses the current wall clock with a fixed historical deadline, violating the canonical deadline-after-startedAt invariant.",
+  "actualError": "IllegalStateException: No DataSource set; IllegalArgumentException: deadline before startedAt",
+  "requiredFix": "Make the fake implement the exact no-argument JDBC overload and bind the context factory to the test's fixed instant, then rerun the complete notification module.",
+  "prohibited": "Do not relax context invariants, add a production DataSource fallback, or bypass the physical SQL shape assertions.",
+  "sourceFix": {
+    "sourceIdentitySha256": "b3e5483902c9456ac51df6c3bf2f70a6b5197a0131858ef9bdb6dbf6d1092fbe",
+    "sourceIdentitySha1": "1d693f4ac3d05b96ff407626c9879b0290612c66",
+    "fileCount": 8297,
+    "totalBytes": 75270693,
+    "testHarness": "Exact queryForList(String) interception and Clock.fixed(NOW) context creation"
+  },
+  "verification": "Complete Notification Dispatch suite PASS 10/10 with zero failures/errors/skips."
+}

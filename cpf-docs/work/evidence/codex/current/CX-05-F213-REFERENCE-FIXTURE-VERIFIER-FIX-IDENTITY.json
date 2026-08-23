@@ -1,0 +1,18 @@
+{
+  "evidenceId": "CX-05-F213-REFERENCE-FIXTURE-VERIFIER-FIX-IDENTITY",
+  "finding": "CX-F-213",
+  "recordedAt": "2026-08-23T19:36:00+09:00",
+  "sourceIdentity": {
+    "sha256": "995e1be4fe5a2ec30f0ab5ce75c81740733178d9cd0517cd856393cfeb60cd06",
+    "sha1": "9986e4c193dd7a0bc2630d764bfaf6660b03482c",
+    "fileCount": 8288,
+    "totalBytes": 75223570
+  },
+  "changes": [
+    "Platform migration verifier uses module key education and an isolated refDB historical-pack fixture mapped to disposable physical identifiers",
+    "Reference lifecycle verifier configures the canonical education/referenceFixture owner",
+    "No retired reference profile module was reintroduced"
+  ],
+  "status": "SOURCE_FIXED",
+  "verificationPending": "Rerun both complete verifier owners."
+}

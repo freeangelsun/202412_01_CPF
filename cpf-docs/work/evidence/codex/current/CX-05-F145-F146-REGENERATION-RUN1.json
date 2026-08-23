@@ -1,0 +1,38 @@
+{
+  "recordedAt": "2026-08-23T12:13:01+09:00",
+  "findings": ["CX-F-145", "CX-F-146"],
+  "execution": {
+    "commands": [
+      "cpf-tools/db/tools/generate-official-db-vendor-source.ps1",
+      "cpf-tools/db/tools/build-official-db-vendor-packs.ps1",
+      "cpf-tools/db/tools/build-all-install-sql.ps1"
+    ],
+    "exitCodes": [0, 0, 0],
+    "result": "PASS"
+  },
+  "immutableCentralHistory": {
+    "fileCountBefore": 252,
+    "fileCountAfter": 252,
+    "aggregateSha256Before": "8762add0ff258d3bfc6471d0fe380957b369b85a40d300e68620de51480963db",
+    "aggregateSha256After": "8762add0ff258d3bfc6471d0fe380957b369b85a40d300e68620de51480963db",
+    "unchanged": true
+  },
+  "currentVerifyProjection": {
+    "scopedFiles": [
+      "cpf-tools/db/vendor/postgresql/source/00_verify.sql",
+      "cpf-tools/db/vendor/postgresql/verify/00_verify.sql",
+      "cpf-tools/db/vendor/oracle/source/00_verify.sql",
+      "cpf-tools/db/vendor/oracle/verify/00_verify.sql"
+    ],
+    "retiredFromBzaRoleOrMenuReferences": 0,
+    "canonicalFromMbwRoleOrMenuReferences": 8
+  },
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "2dab73b46cd58e3ecbc650673ee78dbba4013b06533b69449c3cb18b9b83cf95",
+    "sha1": "310648e7cb45e7959933ae969df41b0fd0102c4a",
+    "fileCount": 8249,
+    "totalBytes": 76637863
+  },
+  "next": "Remove the proven ownerless central rollback checksum projection immediately, then execute an identical second regeneration and immutable-conflict checks."
+}

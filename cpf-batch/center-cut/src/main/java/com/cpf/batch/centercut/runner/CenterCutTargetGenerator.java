@@ -108,7 +108,9 @@ public class CenterCutTargetGenerator {
     static List<CenterCutTargetProvider.Target> validatePage(
             String currentCursor, int limit, List<CenterCutTargetProvider.Target> returned) {
         if (limit <= 0) throw new IllegalArgumentException("limit must be positive");
-        List<CenterCutTargetProvider.Target> targets = returned == null ? List.of() : List.copyOf(returned);
+        List<CenterCutTargetProvider.Target> targets = returned == null
+                ? List.of()
+                : new ArrayList<>(returned);
         if (targets.size() > limit) {
             throw new IllegalStateException("BATCH_CENTER_CUT_PROVIDER_PAGE_LIMIT_EXCEEDED");
         }
@@ -135,7 +137,7 @@ public class CenterCutTargetGenerator {
             }
             if (nextCursor != null && !nextCursor.isBlank()) previousCursor = nextCursor;
         }
-        return targets;
+        return List.copyOf(targets);
     }
 
 }

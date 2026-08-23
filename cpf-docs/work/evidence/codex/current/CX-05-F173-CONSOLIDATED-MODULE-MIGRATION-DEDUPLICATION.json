@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-08-23T15:15:00+09:00",
+  "findingId": "CX-F-173",
+  "status": "CLOSED",
+  "sourceIdentity": "f26e96851eef8932a1bf983cbd2e1c32cf8ec676c0883b3dc4b7432cbea872a8",
+  "title": "Platform migration rejects canonical modules that share one consolidated logical database",
+  "actualRuntime": {
+    "runId": "f36c00d2ad6c",
+    "freshInstall": "PASS",
+    "migrationSelection": "CHECKSUM_MANIFEST_CURRENT_EDGE V135 across all three vendors",
+    "failure": "선택된 Module logicalDatabase가 비어 있거나 중복되었습니다: module=common",
+    "cleanup": "PASS"
+  },
+  "rootCause": "invoke-platform-database-migration.ps1 models selected modules as one migration target each. Canonical core/common/admin/batch instead share cpfDB and declare one lifecycle owner through sharesDatabaseWith, so the executor rejects a valid consolidated profile before constructing the physical plan.",
+  "requiredRepair": "Group selected modules by logical database, require one declared shared owner and identical connection/migration identity, select one deterministic lifecycle target, and emit exactly one operation per logical/physical owner.",
+  "repair": "The executor groups selected modules by normalized logical database, requires exactly one declared owner, checks the owner's full migration connection identity against every selected peer, selects the declared owner deterministically, and resolves runtime credentials only for physical plan targets.",
+  "regression": "Platform migration safety suite requires the group/owner/connection/dedup contract and forbids the former duplicate rejection.",
+  "verification": "Safety suite passes and actual verifier-owned lifecycle plans/applies one cpfDB operation while all core/common/admin/batch modules remain enabled; Fresh, Upgrade and RollbackReapply pass.",
+  "falseGreenForbidden": "Do not disable common/admin/batch, narrow the verifier profile, or execute V135 repeatedly per shared module.",
+  "closed": true
+}

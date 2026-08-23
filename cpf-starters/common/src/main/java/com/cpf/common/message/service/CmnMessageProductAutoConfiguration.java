@@ -2,6 +2,7 @@ package com.cpf.common.message.service;
 
 import com.cpf.core.api.error.CpfErrorCatalogResolver;
 import com.cpf.common.message.api.CpfErrorCatalogSignalSink;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * cpf-common 메시지 Product Service의 runtime 조립을 Starter 경계에서 담당합니다.
@@ -28,7 +30,7 @@ public class CmnMessageProductAutoConfiguration {
             CmnErrorCatalogStore store,
             CpfErrorCatalogSignalSink signals,
             CmnMessageArgumentPolicy policy,
-            Clock clock) {
+            @Qualifier(CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock) {
         return new CmnCpfErrorCatalogResolver(store, signals, policy, clock);
     }
 }

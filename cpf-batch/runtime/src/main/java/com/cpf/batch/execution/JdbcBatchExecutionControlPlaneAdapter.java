@@ -22,7 +22,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /** CPF 승인·감사 Control Plane과 Spring Batch Metadata를 연결하는 JDBC Adapter입니다. */
-public final class JdbcBatchExecutionControlPlaneAdapter implements BatchExecutionLedgerPort, BatchFencingPort {
+public class JdbcBatchExecutionControlPlaneAdapter implements BatchExecutionLedgerPort, BatchFencingPort {
     private final JdbcTemplate jdbc;
     private final CpfVendorSqlCatalog sql;
 

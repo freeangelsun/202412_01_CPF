@@ -1,5 +1,6 @@
 package com.cpf.gateway.internal.resilience;
 
+import com.cpf.core.api.context.CpfContexts;
 import com.cpf.integration.resilience.api.CpfResilienceCallContext;
 
 import com.cpf.integration.resilience.api.CpfResilienceExecutor;
@@ -64,6 +65,12 @@ public final class CpfGatewayResilientInvoker {
             boolean timeoutRetryAllowed,
             Supplier<T> downstream) {
         String normalizedRoute = required(routeId, "routeId");
+        String suppliedTransactionId = required(transactionId, "transactionId");
+        String currentTransactionId = CpfContexts.transactionId();
+        if (!currentTransactionId.equals(suppliedTransactionId)) {
+            throw new SecurityException(
+                    "transactionId must match the current managed CPF transaction");
+        }
         Objects.requireNonNull(operationKind, "operationKind");
         Objects.requireNonNull(downstream, "downstream");
 
@@ -77,9 +84,8 @@ public final class CpfGatewayResilientInvoker {
         attributes.put(CpfResilienceCallContext.TRACE_SEGMENT_ATTRIBUTE,
                 "gateway." + normalizedRoute);
 
-        CpfResilienceCallContext context = CpfResilienceCallContext.now(
+        CpfResilienceCallContext context = CpfResilienceCallContext.current(
                 "gateway." + normalizedRoute,
-                transactionId,
                 idempotencyKey,
                 Map.copyOf(attributes),
                 clock);

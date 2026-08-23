@@ -88,6 +88,16 @@ APP_BASE_NAME=${0##*/}
 # Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
 APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
 
+# Keep Gradle cache/build diagnostics and JVM crash/OOM artifacts out of the repository root.
+CPF_GENERATED_EVIDENCE=$APP_HOME/cpf-docs/work/evidence/generated
+CPF_GRADLE_PROJECT_CACHE=$CPF_GENERATED_EVIDENCE/gradle/project-cache
+CPF_MANAGED_GRADLE_ROOT=$CPF_GENERATED_EVIDENCE/gradle/managed-builds
+CPF_JVM_CRASH_DIR=$CPF_GENERATED_EVIDENCE/jvm/crash
+CPF_JVM_HEAP_DUMP_DIR=$CPF_GENERATED_EVIDENCE/jvm/heap-dump
+mkdir -p "$CPF_JVM_CRASH_DIR" "$CPF_JVM_HEAP_DUMP_DIR" || exit 1
+JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -XX:+HeapDumpOnOutOfMemoryError -XX:ErrorFile=\"$CPF_JVM_CRASH_DIR/java-hs_err_pid%p.log\" -XX:HeapDumpPath=\"$CPF_JVM_HEAP_DUMP_DIR\""
+export JAVA_TOOL_OPTIONS
+
 # CPF project-local resource policy. This affects this repository wrapper only.
 CPF_RESOURCE_PROFILE=${CPF_RESOURCE_PROFILE:-local}
 for cpf_arg do
@@ -243,6 +253,8 @@ DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 set -- \
         "-Dorg.gradle.appname=$APP_BASE_NAME" \
         -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
+        --project-cache-dir "$CPF_GRADLE_PROJECT_CACHE" \
+        "-PcpfManagedGradleRoot=$CPF_MANAGED_GRADLE_ROOT" \
         "$@"
 
 # Stop when "xargs" is not available.

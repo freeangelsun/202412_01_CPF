@@ -1,0 +1,23 @@
+{
+  "findingId": "CX-F-237",
+  "status": "SOURCE_FIXED",
+  "observedAt": "2026-08-23T21:42:31+09:00",
+  "sourceIdentitySha256": "a246d0a2bacc125d76993fffccdf85aeaa81f718303898a75a54f600cf721601",
+  "runId": "b4200823c018",
+  "scope": "Kafka Provider discovery for every executable declaring cpf.batch.remote.transport=kafka",
+  "result": "FAILED",
+  "rootCause": "CpfKafkaBindingAutoConfiguration exists but is absent from the starter's AutoConfiguration.imports, so the real Kafka client never becomes a public CpfNamedBrokerClient. Batch executables also do not declare Kafka as their single default binding, and Scheduler declares Kafka transport without depending on the CPF Kafka Starter.",
+  "actualError": "Both Fresh Workers fail closed: Messaging capability requires one configured broker Provider",
+  "cleanup": {"disposableDatabases": 0, "disposableRoles": 0},
+  "requiredFix": "Publish the binding auto-configuration, make Kafka the explicit default binding in all Kafka Batch executables, add the missing Scheduler Starter dependency, and guard the complete four-executable contract.",
+  "prohibited": "Do not inject a smoke-only provider, disable reliability, allow an empty router, or make an implicit provider guess.",
+  "sourceFix": {
+    "sourceIdentitySha256": "780cf7e334be0f6923fe3073f0eb544935e16176086585ad42d0c4e174107f17",
+    "sourceIdentitySha1": "40f7b85e64e4776fdfce9dd6ed7bc9a73af00533",
+    "fileCount": 8299,
+    "totalBytes": 75275790,
+    "starter": "Publishes client and named-binding auto-configurations.",
+    "executables": "Worker, Control Plane, Scheduler, and Center Cut package the CPF Kafka Starter and explicitly select Kafka as the default binding with environment override.",
+    "regression": "cpf-tools/verification/tests/test_batch_kafka_named_provider_contract.py"
+  }
+}

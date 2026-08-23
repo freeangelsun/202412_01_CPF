@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-ABSOLUTE-PROJECT-CACHE-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T22:29:54.2179524+09:00",
+  "sourceIdentity": {
+    "contentSha1": "ae842363c32e7455987e1b52a88284a8902e8111",
+    "contentSha256": "129db4f879f888825a13178e277e0f70a90dd0fb2a61eef9b29f63ca41fc4aab",
+    "fileCount": 8228,
+    "totalBytes": 75795780
+  },
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-110",
+  "changes": [
+    "Remove the inherited relative org.gradle.projectcachedir property.",
+    "Keep settings.gradle absolute projectCacheDir for Tooling API/IDE.",
+    "Keep absolute --project-cache-dir in both command-line wrappers.",
+    "Update regression to prohibit any global relative property."
+  ],
+  "verificationPending": ["targeted test", "exact cleanup of 105 generated fanout directories", "Gradle rerun and zero-regeneration inventory"]
+}

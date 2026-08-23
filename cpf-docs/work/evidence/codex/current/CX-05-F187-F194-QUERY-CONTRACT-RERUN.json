@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-23T17:08:00+09:00",
+  "sourceIdentity": "45ba1ee8971089721c96f6f8202c922c98d82c401e0c87ea600361724edcdb45",
+  "executionPolicy": "Sequential lightweight validation after VS Code crash; no Gradle/JVM process in parallel",
+  "commands": [
+    {"command":"python -m unittest cpf-tools.db.tests.test_runtime_query_module_contract_currentization -v","exitCode":0,"result":"2 tests passed"},
+    {"command":"pwsh -NoProfile -File cpf-tools/runtime/tools/sync-platform-runtime-query-packs.ps1 -Root . -Check","exitCode":0,"result":"PASS; modules cpf/backoffice/cmn; 227 statements; 639 repository files; 14 portable resources; 6 managed MyBatis files; 659 total"},
+    {"command":"pwsh -NoProfile -File cpf-tools/db/verification/check-query-contract-integrity.ps1 -Root .","exitCode":0,"result":"CPF Query Contract integrity gate passed for mariadb/postgresql/oracle"}
+  ],
+  "findingState": {"CX-F-187":"VERIFICATION_PENDING","CX-F-188":"VERIFICATION_PENDING","CX-F-189":"VERIFICATION_PENDING","CX-F-190":"IN_PROGRESS","CX-F-191":"VERIFICATION_PENDING","CX-F-192":"VERIFICATION_PENDING","CX-F-193":"VERIFICATION_PENDING","CX-F-194":"VERIFICATION_PENDING"},
+  "remaining": ["17 current OPS inline statements under CX-F-190", "affected Java 25 compile/test", "actual ADM/Backoffice/Common/Batch/EDU runtime and Open Git replay"],
+  "falseGreen": false
+}

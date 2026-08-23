@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """CPF cross-platform user CLI. Windows/Linux launcher가 동일 command surface를 호출한다."""
 from __future__ import annotations
-import argparse, json, os, shutil, sys, tempfile, uuid
+import argparse, json, os, shutil, sys, tempfile, uuid, subprocess
 from pathlib import Path
 
 HERE=Path(__file__).resolve()
@@ -14,8 +14,9 @@ else:
     DEFAULT_ROOT=HERE.parents[3]
     sys.path.insert(0,str(DEFAULT_ROOT/'cpf-tools/generator/engine'))
 from cpf_domain_generator import (DomainError, generate, regenerate, diff, dry_run, load_yaml_subset, validate_definition,
-                           verify_generated, verify_genericity, remove_owned, preflight, upgrade, restore,
-                           SUPPORTED_VENDORS, _ddl, _migration, _seed, _rollback, _verify_sql)
+                           verify_generated, verify_prebuilt_domain, verify_genericity, remove_owned, preflight, upgrade, restore,
+                           SUPPORTED_VENDORS, _ddl, _migration, _seed, _rollback, _verify_sql,
+                           managed_generator_root, load_domain_contract)
 
 VERSION='6.4.0'
 
@@ -27,11 +28,15 @@ def generated_root_name(domain_name:str)->str:
     return domain_name if domain_name.startswith('cpf-') else f'cpf-{domain_name}'
 
 def canonical_domain_root(root:Path, domain_name:str)->Path:
-    """Logical definition과 Generated Source가 함께 사는 cpf-<domain> canonical root입니다."""
+    """Developer-Facing Source와 Gradle Domain 계약이 함께 사는 canonical root입니다."""
     return root/generated_root_name(domain_name)
 
 def workspace_definitions(root:Path)->list[Path]:
-    return sorted(p for p in root.glob('cpf-*/cpf-domain.yaml') if p.is_file())
+    contracts=[]
+    for path in root.glob('cpf-*/gradle.properties'):
+        if path.is_file() and 'cpf.domain.contractVersion=' in path.read_text(encoding='utf-8-sig'):
+            contracts.append(path)
+    return sorted(contracts,key=lambda path:path.parent.name)
 
 
 def _normalize_business_features(values, *, domain_name:str, fallback=None) -> list[str]:
@@ -56,7 +61,7 @@ def _golden_domain_definition(name:str,system_code:str,batch:bool,business_featu
     table_prefix=system_code.upper(); business_features=_normalize_business_features(business_features,domain_name=name)
     feature_lines=''.join(f'  - {feature}\n' for feature in business_features)
     return (
-        '# CPF Generated Business Domain의 source-controlled Canonical Definition입니다.\n'
+        '# CPF Domain create/setup의 일회성 Generator 입력입니다. 출력 Root에는 저장하지 않습니다.\n'
         'domain:\n'
         f'  name: {name}\n'
         f'  systemCode: {system_code}\n'
@@ -86,61 +91,99 @@ def create_workspace_domain(root:Path,name:str,system_code:str,batch:bool,busine
     name=name.strip().lower(); system_code=system_code.strip().upper()
     if not name or not system_code: raise DomainError('domain name/systemCode가 필요합니다.')
     final_output=canonical_domain_root(root,name)
-    canonical=final_output/'cpf-domain.yaml'
-    if canonical.exists(): raise DomainError(f'Domain definition이 이미 존재합니다: {canonical}')
     if final_output.exists(): raise DomainError(f'Generated Domain project가 이미 존재합니다: {final_output}')
     business_features=_normalize_business_features(business_features,domain_name=name)
     body=_golden_domain_definition(name,system_code,batch,business_features)
-    temp_parent=root/'build'/'domain-generator'/'new'; temp_parent.mkdir(parents=True,exist_ok=True)
+    temp_parent=managed_generator_root(root)/'new'; temp_parent.mkdir(parents=True,exist_ok=True)
     # 먼저 외부 staging definition으로 dry-run하여 validation을 끝내고, 성공한 경우에만 canonical root를 생성합니다.
     with tempfile.TemporaryDirectory(prefix='cpf-domain-new-',dir=temp_parent) as td:
         stage=Path(td); definition=stage/'cpf-domain.yaml'; definition.write_text(body,encoding='utf-8',newline='\n')
         planned=dry_run(root,definition,final_output)
         if planned.get('status')!='DRY_RUN_PASS': raise DomainError(f'Generated Domain preflight failed: {name}')
-    canonical.parent.mkdir(parents=True,exist_ok=False)
-    canonical.write_text(body,encoding='utf-8',newline='\n')
     try:
-        verified=generate(root,canonical,final_output)
+        with tempfile.TemporaryDirectory(prefix='cpf-domain-new-apply-',dir=temp_parent) as td:
+            definition=Path(td)/'cpf-domain.yaml'; definition.write_text(body,encoding='utf-8',newline='\n')
+            verified=generate(root,definition,final_output)
         if verified.get('verify',{}).get('status')!='PASS': raise DomainError(f'Generated Domain verification failed: {name}')
     except Exception:
         if final_output.exists(): shutil.rmtree(final_output,ignore_errors=True)
         raise
-    return {'status':'PASS','action':'DOMAIN_NEW','domain':name,'systemCode':system_code,'batch':batch,'businessFeatures':business_features,'definition':str(canonical),'project':str(final_output),'generator':verified}
+    return {'status':'PASS','action':'DOMAIN_NEW','domain':name,'systemCode':system_code,'batch':batch,'businessFeatures':business_features,'developerContract':str(final_output/'gradle.properties'),'project':str(final_output),'generator':verified}
 
 
-def sync_workspace_domains(root:Path)->dict:
+def _delete_approved_legacy_metadata(output:Path,candidates:list[str])->list[str]:
+    allowed={'cpf-domain.yaml','cpf-generator.lock.json'}
+    normalized=sorted(set(str(value).replace('\\','/') for value in candidates))
+    if any(value not in allowed for value in normalized):
+        raise DomainError(f'승인 범위를 벗어난 Generated metadata 삭제 후보입니다: {normalized}')
+    removed=[]
+    for relative in normalized:
+        target=(output/relative).resolve()
+        if target.parent != output.resolve():
+            raise DomainError(f'Generated Root 밖의 삭제 경로를 거부합니다: {target}')
+        if target.is_file():
+            target.unlink()
+            removed.append(relative)
+    return removed
+
+
+def sync_workspace_domains(root:Path,approve_generated_delete:bool=False)->dict:
     definitions=workspace_definitions(root)
-    if not definitions: raise DomainError(f'Canonical cpf-<domain>/cpf-domain.yaml이 없습니다: {root}')
+    if not definitions: raise DomainError(f'Generated Domain gradle.properties 계약이 없습니다: {root}')
     results=[]
     for definition in definitions:
-        d=validate_definition(load_yaml_subset(definition)); output=root/generated_root_name(d.name)
-        if not output.is_dir():
+        d=load_domain_contract(definition); output=root/generated_root_name(d.name)
+        if d.generation_mode == 'prebuilt':
+            result=generate(root,definition,output)
+            if result.get('status')=='VERIFICATION_PENDING_DELETE' and approve_generated_delete:
+                removed=_delete_approved_legacy_metadata(output,list(result.get('deleteCandidates',[])))
+                result=generate(root,definition,output)
+                result['removed']=removed
+                result['mutated']=bool(removed)
+        elif not output.is_dir():
             result=generate(root,definition,output)
         else:
-            lock=definition.parent/'cpf-generator.lock.json'
-            if lock.is_file(): result=upgrade(root,definition,output)
-            else: result=generate(root,definition,output)
-        results.append({'domain':d.name,'status':result.get('status'),'project':str(output)})
-    return {'status':'PASS','action':'DOMAIN_SYNC','count':len(results),'results':results}
+            try:
+                result=upgrade(root,definition,output,apply_delete=approve_generated_delete)
+            except DomainError as exc:
+                if 'transient generation-state가 없습니다' not in str(exc): raise
+                current=diff(root,definition,output)
+                if not current.get('clean'):
+                    raise DomainError(f'Fresh clone의 현재 Source가 Developer Contract/Template과 exact-match가 아닙니다: {current}')
+                candidates=list(current.get('legacyMetadataFiles',[]))
+                if candidates and not approve_generated_delete:
+                    result={'domain':d.name,'status':'VERIFICATION_PENDING_DELETE','output':str(output),
+                            'deleteCandidates':candidates,'deletePrecondition':'EXPLICIT_APPROVAL_REQUIRED','mutated':False}
+                else:
+                    removed=_delete_approved_legacy_metadata(output,candidates) if candidates else []
+                    result=regenerate(root,definition,output)
+                    result['removed']=removed
+                    result['mutated']=bool(removed or result.get('restored'))
+        results.append({'domain':d.name,'status':result.get('status'),'project':str(output),
+                        'changed':result.get('changed',[]),'added':result.get('added',[]),
+                        'deleteCandidates':result.get('deleteCandidates',[]),'mutated':result.get('mutated',result.get('status') not in {'VERIFICATION_PENDING_DELETE'})})
+    pending=any(row['status']=='VERIFICATION_PENDING_DELETE' for row in results)
+    return {'status':'VERIFICATION_PENDING_DELETE' if pending else 'PASS','action':'DOMAIN_SYNC',
+            'approvedGeneratedDelete':approve_generated_delete,'count':len(results),'results':results}
 
 def resolve_definition(root:Path, domain_name:str, file_value:str|None=None)->Path:
-    """Generated Project 내부 metadata에 의존하지 않고 Framework 정의 또는 명시 입력을 사용한다."""
+    """Developer-Facing gradle.properties 계약 또는 명시적인 일회성 입력을 사용한다."""
     if file_value:
         p=Path(file_value)
         p=p if p.is_absolute() else root/p
     else:
-        p=canonical_domain_root(root,domain_name)/'cpf-domain.yaml'
+        p=canonical_domain_root(root,domain_name)/'gradle.properties'
     p=p.resolve()
     if not p.is_file(): raise DomainError(f'Generator definition이 없습니다. --file을 지정하세요: {p}')
-    d=validate_definition(load_yaml_subset(p))
+    d=load_domain_contract(p)
     if d.name!=domain_name: raise DomainError(f'domain 인자와 definition 불일치: {domain_name} != {d.name}')
     return p
 
 def definition_output(root:Path, file_value:str, output_value:str|None)->tuple[Path,Path]:
     definition=Path(file_value)
     if not definition.is_absolute(): definition=(root/definition).resolve()
-    if not definition.is_file(): raise DomainError(f'cpf-domain.yaml이 없습니다: {definition}')
-    raw=load_yaml_subset(definition); d=validate_definition(raw)
+    if not definition.is_file(): raise DomainError(f'Domain 입력 계약이 없습니다: {definition}')
+    d=load_domain_contract(definition)
     output=Path(output_value).resolve() if output_value and Path(output_value).is_absolute() else (root/(output_value or generated_root_name(d.name))).resolve()
     return definition,output
 
@@ -175,7 +218,7 @@ def _domain_setup_definition(
         dependencies:list[tuple[str,str,tuple[str,...]]], external_clients:list[tuple[str,str,str]]) -> str:
     package_line = f"  packageName: {package_name}\n" if package_name else ""
     lines=[
-      "# CPF Generated Business Domain의 source-controlled Canonical Definition입니다.",
+      "# CPF Domain setup의 일회성 Generator 입력입니다. 출력 Root에는 저장하지 않습니다.",
       "# DB Vendor/Host/계정/Secret은 local/environment binding profile이 소유합니다.",
       "domain:", f"  name: {name}", f"  systemCode: {system_code}",
     ]
@@ -288,13 +331,15 @@ def _risky_setup_changes(before:dict|None, after:dict) -> list[str]:
 def setup_workspace_domain(root:Path, ns) -> dict:
     requested_name=ns.name.strip().lower(); requested_system=ns.system_code.strip().upper()
     output=Path(ns.output).resolve() if ns.output else canonical_domain_root(root,requested_name)
-    canonical=Path(ns.definition_output).resolve() if ns.definition_output else output/'cpf-domain.yaml'
-    existing=None; existing_raw=None
-    if canonical.is_file():
-        existing_raw=load_yaml_subset(canonical)
-        existing=validate_definition(existing_raw)
+    developer_contract=output/'gradle.properties'
+    legacy_definition=output/'cpf-domain.yaml'
+    explicit_definition=Path(ns.definition_output).resolve() if ns.definition_output else None
+    existing_contract=(developer_contract if developer_contract.is_file() and 'cpf.domain.contractVersion=' in developer_contract.read_text(encoding='utf-8-sig')
+                       else (explicit_definition if explicit_definition and explicit_definition.is_file()
+                             else (legacy_definition if legacy_definition.is_file() else None)))
+    existing=load_domain_contract(existing_contract) if existing_contract else None
     if existing is not None and not ns.sync:
-        raise DomainError(f"Domain definition이 이미 존재합니다: {canonical}; 변경은 --sync 또는 domain sync를 사용하세요.")
+        raise DomainError(f"Domain 계약이 이미 존재합니다: {existing_contract}; 변경은 --sync 또는 domain sync를 사용하세요.")
     if output.exists() and existing is None and not ns.sync:
         raise DomainError(f"Generated Domain project가 이미 존재합니다: {output}; 변경은 --sync 또는 domain sync를 사용하세요.")
 
@@ -307,7 +352,7 @@ def setup_workspace_domain(root:Path, ns) -> dict:
         raise DomainError(f"sync에서 systemCode 변경은 지원하지 않습니다: {existing.system_code} -> {requested_system}")
 
     table_prefix=(ns.table_prefix.strip().upper() if ns.table_prefix else (existing.table_prefix if existing else system_code))
-    package_name=(ns.package_name.strip() if ns.package_name else (((existing_raw or {}).get('domain') or {}).get('packageName') if existing else None))
+    package_name=(ns.package_name.strip() if ns.package_name else (existing.package_name if existing else None))
     online=(ns.online if getattr(ns,'online',None) is not None else (existing.online if existing else True))
     batch=(ns.batch if getattr(ns,'batch',None) is not None else (existing.batch if existing else False))
     if not online and not batch: raise DomainError("--no-online 사용 시 --batch가 필요합니다.")
@@ -350,8 +395,7 @@ def setup_workspace_domain(root:Path, ns) -> dict:
         external_clients=[_parse_external_client_arg(x) for x in ns.external_client]
     else:
         external_clients=_external_client_tuples(existing) if existing else []
-    old_runtime=((existing_raw or {}).get('runtime') or {}) if existing else {}
-    old_local_port=old_runtime.get('localOnlinePort') if isinstance(old_runtime,dict) else None
+    old_local_port=existing.local_online_port if existing else None
     local_online_port=(ns.local_online_port if ns.local_online_port is not None
                        else (None if ns.clear_local_online_port else old_local_port))
 
@@ -361,7 +405,7 @@ def setup_workspace_domain(root:Path, ns) -> dict:
         dependencies,external_clients)
 
     profile=None; profile_payload=None
-    existing_profile_path=Path(ns.db_profile_output).resolve() if ns.db_profile_output else root/'build'/'cpf-local'/name/'cpf-db-profile.local.json'
+    existing_profile_path=Path(ns.db_profile_output).resolve() if ns.db_profile_output else managed_generator_root(root)/'cpf-local'/name/'cpf-db-profile.local.json'
     existing_profile=json.loads(existing_profile_path.read_text(encoding='utf-8')) if existing_profile_path.is_file() else None
     if selected['persistence']!='none':
         existing_db=(existing_profile or {}).get('database',{}) if isinstance(existing_profile,dict) else {}
@@ -406,40 +450,44 @@ def setup_workspace_domain(root:Path, ns) -> dict:
           'riskyChanges':risky,'selectionSummary':planned.get('selectionSummary')
         }
         if ns.preview:
-            return {'status':'PREVIEW','preview':preview,'definition':str(canonical),'dbProfile':str(profile) if profile else None,'output':str(output)}
+            return {'status':'PREVIEW','preview':preview,'developerContract':str(developer_contract),'dbProfile':str(profile) if profile else None,'output':str(output)}
         if risky and not ns.approve_risky_change:
             raise DomainError("위험 변경은 --preview로 diff를 확인한 뒤 --approve-risky-change를 명시해야 합니다: "+", ".join(risky))
 
-        canonical.parent.mkdir(parents=True,exist_ok=True)
-        previous_definition=canonical.read_bytes() if canonical.exists() else None
         previous_profile=profile.read_bytes() if profile and profile.exists() else None
         # Generator가 실패해도 generated-owned tree가 부분 갱신되지 않도록 기존 project를 stage에 보존합니다.
         backup_project=stage/'project-backup'
-        if output.exists() and (output/'cpf-generator.lock.json').is_file():
+        if output.exists():
             shutil.copytree(output,backup_project,dirs_exist_ok=True)
-        canonical.write_text(definition_body,encoding='utf-8',newline='\n')
         if profile and profile_payload:
             profile.parent.mkdir(parents=True,exist_ok=True)
             profile.write_text(json.dumps(profile_payload,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
         try:
-            materialized = output.is_dir() and any(x.name not in {'cpf-domain.yaml','cpf-generator.lock.json'} for x in output.iterdir())
-            generated=upgrade(root,canonical,output) if materialized else generate(root,canonical,output)
+            materialized = output.is_dir() and any(output.iterdir())
+            if materialized:
+                try:
+                    generated=upgrade(root,staged_def,output,apply_delete=bool(ns.approve_risky_change))
+                except DomainError as exc:
+                    if 'transient generation-state가 없습니다' not in str(exc) or existing_contract is None:
+                        raise
+                    # Fresh clone에서는 현재 Developer 계약과 Source가 exact-match일 때만 transient ownership을 재구축합니다.
+                    regenerate(root,existing_contract,output)
+                    generated=upgrade(root,staged_def,output,apply_delete=bool(ns.approve_risky_change))
+            else:
+                generated=generate(root,staged_def,output)
+            if generated.get('status')=='VERIFICATION_PENDING_DELETE':
+                raise DomainError('Generated 파일 삭제가 필요한 변경입니다. --preview 확인 후 --approve-risky-change를 명시하세요: '+', '.join(generated.get('deleteCandidates',[])))
         except Exception:
             if backup_project.is_dir():
                 # temp working copy에서만 rollback하며 user-owned generated tree를 원상복구합니다.
                 shutil.rmtree(output,ignore_errors=True); shutil.copytree(backup_project,output,dirs_exist_ok=True)
-            if previous_definition is None:
-                canonical.unlink(missing_ok=True)
-                try: canonical.parent.rmdir()
-                except OSError: pass
-            else: canonical.write_bytes(previous_definition)
             if profile:
                 if previous_profile is None: profile.unlink(missing_ok=True)
                 else: profile.write_bytes(previous_profile)
             raise
     return {
       'status':'PASS','action':'DOMAIN_SETUP','domain':name,'systemCode':system_code,
-      'definition':str(canonical),'dbProfile':str(profile) if profile else None,'project':str(output),
+      'developerContract':str(developer_contract),'dbProfile':str(profile) if profile else None,'project':str(output),
       'preview':preview,'sourceGeneration':generated.get('status'),
       'localDb':'NOT_EXECUTED','runtime':'NOT_EXECUTED',
       'next':{'bootstrap':'cpf-bootstrap','sync':'cpf domain sync'}
@@ -471,17 +519,19 @@ def main()->int:
     setup.add_argument('--migration-user'); setup.add_argument('--runtime-user'); setup.add_argument('--migration-secret-env'); setup.add_argument('--runtime-secret-env')
     setup.add_argument('--domain-dependency',action='append',default=None,help='name:SYSTEM:operation1,operation2'); setup.add_argument('--clear-domain-dependencies',action='store_true')
     setup.add_argument('--external-client',action='append',default=None,help='name:client-id:capability'); setup.add_argument('--clear-external-clients',action='store_true')
-    setup.add_argument('--definition-output'); setup.add_argument('--db-profile-output'); setup.add_argument('--output'); setup.add_argument('--preview',action='store_true'); setup.add_argument('--sync',action='store_true'); setup.add_argument('--approve-risky-change',action='store_true')
+    setup.add_argument('--definition-output',help=argparse.SUPPRESS); setup.add_argument('--db-profile-output'); setup.add_argument('--output'); setup.add_argument('--preview',action='store_true'); setup.add_argument('--sync',action='store_true'); setup.add_argument('--approve-risky-change',action='store_true')
     regen=dsub.add_parser('regenerate',help=argparse.SUPPRESS); regen.add_argument('domain'); regen.add_argument('--file'); regen.add_argument('--output')
     allgen=dsub.add_parser('generate-all',help=argparse.SUPPRESS); allgen.add_argument('--definitions-root'); allgen.add_argument('--output-root')
     upgrade_parser=dsub.add_parser('upgrade',help=argparse.SUPPRESS); upgrade_parser.add_argument('domain'); upgrade_parser.add_argument('--file'); upgrade_parser.add_argument('--output')
     restore_parser=dsub.add_parser('restore',help=argparse.SUPPRESS); restore_parser.add_argument('--file',required=True); restore_parser.add_argument('--output')
-    rem=dsub.add_parser('remove'); rem.add_argument('domain'); rem.add_argument('--file'); rem.add_argument('--output'); rem.add_argument('--apply',action='store_true',help='현재 Generator 입력과 동일한 Seed Source만 안전하게 제거'); rem.add_argument('--purge-definition',action='store_true',help='명시 승인 시 cpf-domain.yaml 정의까지 제거하여 선택 Domain을 완전히 해제')
+    rem=dsub.add_parser('remove'); rem.add_argument('domain'); rem.add_argument('--file'); rem.add_argument('--output'); rem.add_argument('--apply',action='store_true',help='현재 Generator 입력과 동일한 Seed Source만 안전하게 제거'); rem.add_argument('--purge-definition',action='store_true',help=argparse.SUPPRESS)
     createp=dsub.add_parser('create',help='Public Workspace에 신규 Business Domain을 생성하고 자동 편입')
     createp.add_argument('--name',required=True); createp.add_argument('--system-code',required=True); createp.add_argument('--batch',action='store_true'); createp.add_argument('--business-feature',action='append',default=None,help='업무 Feature 이름. 여러 개면 옵션을 반복 지정')
     newp=dsub.add_parser('new',help=argparse.SUPPRESS)
     newp.add_argument('--name',required=True); newp.add_argument('--system-code',required=True); newp.add_argument('--batch',action='store_true'); newp.add_argument('--business-feature',action='append',default=None)
-    dsub.add_parser('sync',help='Workspace Canonical Definition과 Generated Domain을 안전하게 동기화')
+    sync_parser=dsub.add_parser('sync',help='Workspace Developer Domain 계약과 Generated Source를 안전하게 동기화')
+    sync_parser.add_argument('--approve-generated-delete',action='store_true',
+                             help='preview된 root legacy Generator metadata만 exact allowlist로 삭제')
     # argparse keeps suppressed subcommands in the positional help list. Hide legacy/advanced aliases
     # from the Golden Path while keeping them callable for compatibility.
     _hidden_domain_commands={'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}
@@ -497,12 +547,19 @@ def main()->int:
     va=vsub.add_parser('domain'); va.add_argument('--file',required=True); va.add_argument('--output')
     vsub.add_parser('all')
 
+    open_git=sub.add_parser('open-git',help='Open Git release package')
+    open_git.add_argument('command',nargs='?',default='build',choices=['build','check','status'])
+
     ns=p.parse_args(); root=repo_root(ns.root)
+    if ns.group=='open-git':
+        tool=root/'cpf-tools/release/open-git/cpf_open_git.py'
+        if not tool.is_file(): raise DomainError(f'Open Git release tool이 없습니다: {tool}')
+        return subprocess.run([sys.executable,str(tool),ns.command,'--root',str(root)],cwd=root,check=False).returncode
     if ns.group=='domain':
         if ns.command in {'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}:
             print(f'[CPF][DEPRECATED] domain {ns.command} is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.', file=sys.stderr)
         if ns.command in ('create','new'): print_json(create_workspace_domain(root,ns.name,ns.system_code,ns.batch,getattr(ns,'business_feature',None))); return 0
-        if ns.command=='sync': print_json(sync_workspace_domains(root)); return 0
+        if ns.command=='sync': print_json(sync_workspace_domains(root,ns.approve_generated_delete)); return 0
         if ns.command=='setup':
             if ns.interactive:
                 if not sys.stdin.isatty(): raise CpfCliError('Interactive setup requires a TTY')
@@ -531,7 +588,7 @@ def main()->int:
             if not defs: raise DomainError(f'생성할 Generated Domain definition이 없습니다: {definitions_root}')
             results=[]
             for definition in defs:
-                d=validate_definition(load_yaml_subset(definition)); results.append(generate(root,definition,output_root/generated_root_name(d.name)))
+                d=load_domain_contract(definition); results.append(generate(root,definition,output_root/generated_root_name(d.name)))
             print_json({'status':'PASS','count':len(results),'results':results}); return 0
         if ns.command in ('regenerate','upgrade'):
             output=((Path(ns.output) if Path(ns.output).is_absolute() else root/Path(ns.output)).resolve() if ns.output else (root/generated_root_name(ns.domain)).resolve()); definition=resolve_definition(root,ns.domain,ns.file)
@@ -545,8 +602,8 @@ def main()->int:
             print_json(remove_owned(root,definition,output,apply=ns.apply,purge_definition=ns.purge_definition)); return 0
     if ns.group=='db' and ns.command=='render':
         definition=Path(ns.file); definition=definition if definition.is_absolute() else root/definition
-        d=validate_definition(load_yaml_subset(definition.resolve())); vendor=ns.vendor
-        out=Path(ns.output).resolve() if ns.output else root/'build'/'domain-generator'/'verification'/generated_root_name(d.name)/'db3'/vendor
+        d=load_domain_contract(definition.resolve()); vendor=ns.vendor
+        out=Path(ns.output).resolve() if ns.output else managed_generator_root(root)/'verification'/generated_root_name(d.name)/'db3'/vendor
         out.mkdir(parents=True,exist_ok=True)
         files={
           '10_empty_install.sql':_ddl(root,d,vendor),
@@ -560,14 +617,18 @@ def main()->int:
     if ns.group=='verify':
         if ns.command=='generator': print_json(verify_genericity(root/'cpf-tools/generator')); return 0
         if ns.command=='domain':
-            definition,output=definition_output(root,ns.file,ns.output); d=validate_definition(load_yaml_subset(definition)); print_json(verify_generated(root,definition,output,d)); return 0
+            definition,output=definition_output(root,ns.file,ns.output); d=load_domain_contract(definition)
+            verifier=verify_prebuilt_domain if d.generation_mode=='prebuilt' else verify_generated
+            print_json(verifier(root,definition,output,d)); return 0
         if ns.command=='all':
             generic=verify_genericity(root/'cpf-tools/generator'); results={'generator':generic,'domains':[]}
             for definition in workspace_definitions(root):
-                d=validate_definition(load_yaml_subset(definition)); child=root/generated_root_name(d.name)
+                d=load_domain_contract(definition); child=root/generated_root_name(d.name)
                 if not child.is_dir(): continue
-                results['domains'].append(verify_generated(root,definition,child,d))
-            results['status']='PASS' if generic['status']=='PASS' and all(x['status']=='PASS' for x in results['domains']) else 'FAIL'
+                verifier=verify_prebuilt_domain if d.generation_mode=='prebuilt' else verify_generated
+                results['domains'].append(verifier(root,definition,child,d))
+            accepted={'PASS','PREBUILT_VERIFIED'}
+            results['status']='PASS' if generic['status']=='PASS' and all(x['status'] in accepted for x in results['domains']) else 'FAIL'
             print_json(results); return 0 if results['status']=='PASS' else 2
     raise DomainError('지원하지 않는 명령입니다.')
 

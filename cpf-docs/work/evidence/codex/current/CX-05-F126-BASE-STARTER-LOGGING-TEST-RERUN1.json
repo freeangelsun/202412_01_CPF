@@ -1,0 +1,37 @@
+{
+  "track": "CX-05-F126-BASE-STARTER-LOGGING-TEST-RERUN1",
+  "finding": "CX-F-126",
+  "sourceIdentitySha256": "48029ea8f76c1a5899f359a0dd209d476081d870407b76d72fc5783049e2a683",
+  "command": ".\\gradlew.bat :starters:base:test --tests 'com.cpf.starter.logging.*' --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "result": "PASS_TARGETED",
+  "junit": {
+    "xmlFiles": 1,
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "latestWrite": "2026-08-23T01:47:15.0372527+09:00"
+  },
+  "gradle": {
+    "actionableTasks": 14,
+    "executed": 5,
+    "upToDate": 9
+  },
+  "verifiedScope": [
+    "existing base Starter auto-configuration is discovered through Spring Boot imports",
+    "visible cpf.logging properties bind to cpf-common validation and maintenance policy",
+    "default Logback adapter creates and writes separate runtime.log and error.log files",
+    "Console output is preserved and no separate Logging Starter is introduced",
+    "tests execute with Java 25, no daemon and one Gradle worker"
+  ],
+  "notYetVerified": [
+    "Generator-owned visible application/profile output and Fresh generated compile/test/runtime",
+    "current MBR and EXS regenerate parity",
+    "all fixed executable runtime owners",
+    "actual MDC/header lineage and sensitive-data masking",
+    "Open Git publication and Fresh release consumer runtime"
+  ],
+  "log": "cpf-docs/work/evidence/codex/current/f126-base-starter-logging-tests-rerun1.log",
+  "closureDecision": "Do not close CX-F-126. Move the implemented Starter sub-scope to verification pending while broader required scopes remain explicitly unverified."
+}

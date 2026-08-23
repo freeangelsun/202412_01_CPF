@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BACKOFFICE-AUTH-CONTEXT-FIX-IDENTITY",
+  "startedAt": "2026-08-22T16:24:15+09:00",
+  "finishedAt": "2026-08-22T16:25:19.4614655+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "contentSha256": "26c6cade3f6588bbdfdf3f56199cd9798d7b74297b11cddd78830a38955a7c49",
+    "contentSha1": "2353805f4077734834bf7034d25ef0848826af65",
+    "fileCount": 8206,
+    "totalBytes": 75708139
+  },
+  "finding": "CX-F-041 SOURCE_FIXED",
+  "changes": [
+    "Install and close canonical CpfTestContextRuntime for the authentication test class",
+    "Bind managed root Context only around login success/failure history paths",
+    "Assert Context cleanup after every test"
+  ],
+  "invariants": [
+    "Production authentication Context fail-close remains unchanged",
+    "Unrelated refresh/history tests do not receive unnecessary bound Context",
+    "No skip, verifier, allowlist, or requirement was weakened"
+  ],
+  "next": "Run focused BackofficeAuthServiceTest with direct child-process file redirection, then complete MBW tests"
+}

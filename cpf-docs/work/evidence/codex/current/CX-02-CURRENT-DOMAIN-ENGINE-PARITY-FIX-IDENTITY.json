@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-CURRENT-DOMAIN-ENGINE-PARITY-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:53:47.6820712+09:00",
+  "sourceIdentity": {
+    "contentSha1": "200ec2363a9b926789dde5c8fec1df61eacae6f9",
+    "contentSha256": "594479c0636878167af816d35bdd37797d9102ad459325037c7bda179a1c3ba8",
+    "fileCount": 8228,
+    "totalBytes": 75793762
+  },
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-103",
+  "basis": "All expected files were compared against the current Generator render before edit: only MBR settings/build and EXS settings/build/online-build differed; missing=0 and removed=0.",
+  "changes": [
+    "MBR/EXS managed project-cache settings",
+    "exact current manifest-scanner comment render",
+    "EXS declared member:online dependency",
+    "five exact ownership hashes"
+  ],
+  "verificationPending": ["canonical domain sync", "domain diff", "Java 25 MBR/EXS compile/test"]
+}

@@ -26,8 +26,8 @@ class VendorRendererTest(unittest.TestCase):
     def test_generated_sql_has_no_cross_vendor_syntax_or_non_executable_seed_markers(self):
         forbidden={
           'mariadb':[r'GENERATED\s+BY\s+DEFAULT\s+AS\s+IDENTITY',r'\bBYTEA\b',r'\bVARCHAR2\b'],
-          'postgresql':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bVARCHAR2\b',r'\bFROM\s+dual\b'],
-          'oracle':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bBYTEA\b',r'\bON\s+DUPLICATE\s+KEY\b',r'\bON\s+CONFLICT\b',r'\bLIMIT\s+\d+\b']
+          'postgresql':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bVARCHAR2\b',r'\bVARBINARY\b',r'\bFROM\s+dual\b',r'\bDATE_(?:ADD|SUB)\s*\('],
+          'oracle':[r'\bAUTO_INCREMENT\b',r'\bENGINE\s*=',r'\bBYTEA\b',r'\bVARBINARY\b',r'\bON\s+DUPLICATE\s+KEY\b',r'\bON\s+CONFLICT\b',r'\bLIMIT\s+\d+\b',r'\bDATE_(?:ADD|SUB)\s*\(']
         }
         for vendor in OFFICIAL:
             sql='\n'.join(p.read_text(encoding='utf-8-sig') for p in (DB/'generated/current'/vendor).glob('*.sql'))

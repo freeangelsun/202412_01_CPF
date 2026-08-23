@@ -57,6 +57,7 @@ public record CpfGatewayRoute(
         targetProtocol = Objects.requireNonNullElse(targetProtocol, CpfGatewayProtocol.HTTP);
         environmentCode = blankTo(environmentCode, "DEFAULT");
         hostPattern = blankTo(hostPattern, "*");
+        httpMethod = blankTo(httpMethod, "*");
         apiVersion = blankTo(apiVersion, "v1");
         routeVersion = blankTo(routeVersion, "1");
         serverGroupId = Objects.requireNonNullElse(serverGroupId, "").trim();

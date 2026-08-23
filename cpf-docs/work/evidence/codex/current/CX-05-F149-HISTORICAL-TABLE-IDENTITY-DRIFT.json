@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-08-23T12:27:00+09:00",
+  "findingId": "CX-F-149",
+  "status": "IN_PROGRESS",
+  "sourceIdentityBeforeFix": "04bcade926beb4f47474cdfaa9201fa1747bc0c6bd7430a354d9f997a6deeb6d",
+  "trigger": {
+    "command": "pwsh -NoProfile -File cpf-tools/verification/tools/sync-platform-nullable-empty-string-repair.ps1 -Check",
+    "exitCode": 1,
+    "error": "Nullable repair table is not canonical: cpf_cache_invalidation_event",
+    "log": "cpf-docs/work/evidence/codex/current/CX-05-F148-IMMUTABLE-RERUN1.log"
+  },
+  "diagnosis": {
+    "historicalContractTable": "cpf_cache_invalidation_event",
+    "canonicalTargetTable": "CPF_CACHE_INVALIDATION_EVENT",
+    "canonicalHistoricalIdentityField": "currentName=cpf_cache_invalidation_event",
+    "gatewayExamples": {
+      "cpf_gateway_server_group": "GW_SERVER_GROUP",
+      "cpf_gateway_binding": "GW_BINDING",
+      "cpf_gateway_apply_status": "GW_APPLY_STATUS",
+      "cpf_gateway_connection_test": "GW_CONNECTION_TEST",
+      "cpf_gateway_transaction": "GW_TRANSACTION",
+      "cpf_gateway_attempt": "GW_ATTEMPT"
+    }
+  },
+  "rootCause": "The immutable historical repair verifier resolves only the latest canonical table name and ignores the canonical currentName/consolidation identity retained for historical migrations.",
+  "repairDirection": "Resolve exactly one table through either latest canonical name or exact historical currentName, continue resolving/validating its current canonical column shape, and render the immutable SQL with the historical contract table name.",
+  "prohibited": ["rewrite historical table names in V96/R96", "change current canonical table names", "skip target validation"]
+}

@@ -22,8 +22,8 @@ $canonicalSchema = Get-Content -LiteralPath $canonicalSchemaPath -Raw -Encoding 
 foreach ($requiredKey in @('domain', 'database', 'preset', 'modules', 'generation')) {
     if ($requiredKey -notin @($schema.required)) { throw "cpf-domain.schema.json 필수 key 누락: $requiredKey" }
 }
-if ([string]$contract.selection.metadataSource -ne 'cpf-domain.yaml' -or
-        [string]$contract.selection.generatedProjectMetadata -ne 'NONE' -or
+if ([string]$contract.selection.metadataSource -ne 'gradle.properties' -or
+        [string]$contract.selection.generatedProjectMetadata -ne 'ABSENT' -or
         [bool]$contract.selection.sourceTreeMutation -or
         [bool]$contract.selection.moduleLocalVendorPack -or
         [string]$contract.businessDatabaseContract.physicalDatabaseProvisioning -ne 'EXTERNAL_DEPLOYMENT_OWNER' -or

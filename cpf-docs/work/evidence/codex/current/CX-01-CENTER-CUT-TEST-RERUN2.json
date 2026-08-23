@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-CENTER-CUT-TEST-RERUN2",
+  "requirementIds": ["BATCH", "SEC-BOUNDARY", "REL-BUILD", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T15:09:15.6579137+09:00",
+    "finished": "2026-08-22T15:10:05.0816961+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "4b84bd32745deab154de53596a974ec4a1a705e253e1feb6135d58816b80c3a8",
+  "command": ".\\gradlew.bat --no-daemon :runtime:batch:center-cut:test --rerun-tasks",
+  "exitCode": 0,
+  "result": "PASS",
+  "testSummary": {
+    "suites": 6,
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "gradleSummary": {
+    "result": "BUILD SUCCESSFUL",
+    "durationSeconds": 49,
+    "actionableTasks": 77,
+    "executedTasks": 77
+  },
+  "postRunSourceIdentityUnchanged": true,
+  "evidenceRevalidatedAfterReboot": true,
+  "log": {
+    "path": "cpf-docs/work/evidence/codex/current/CX-01-CENTER-CUT-TEST-RERUN2.log",
+    "sha256": "c961dd7633e6e6bb0e798aa44af89639b8422bcd2023e8d31333a9e32ecdbd33"
+  },
+  "findingIds": ["CX-F-029", "CX-F-033", "CX-F-034"],
+  "sanitized": true
+}

@@ -25,9 +25,10 @@ cpf:
   framework:
     module-id: BAT
     was-id: ${CPF_WAS_ID:}
+  runtime:
+    role: SCHEDULER
   batch:
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:
-      role: SCHEDULER
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}

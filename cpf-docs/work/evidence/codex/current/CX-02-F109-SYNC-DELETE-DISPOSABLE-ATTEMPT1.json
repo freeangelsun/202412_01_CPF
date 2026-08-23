@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-F109-SYNC-DELETE-DISPOSABLE-ATTEMPT1",
+  "status": "COMMAND_REJECTED_NO_EXECUTION",
+  "sourceIdentity": "feb0c0b0305429a20237a315f2bbf7e7dc0817e6be85848243104819fcb93214",
+  "reason": "Execution safety policy rejected the PowerShell recursive temporary-directory cleanup before process start.",
+  "workspaceMutation": false,
+  "next": "Implement the same real CLI lifecycle as a TemporaryDirectory regression."
+}

@@ -15,7 +15,7 @@ public enum CpfCommonResource {
             Set.of("message_id","message_code","locale","message_format_type","external_message","internal_message","parameter_count","parameter_sample","parameter_schema_json","escape_html_yn","mask_arguments_yn","effective_from","effective_to","catalog_version","description","use_yn"),
             List.of("message_code","locale","description")),
     RESPONSE_CODE("CMN_RESPONSE_CODE", List.of("response_code"), "response_code", "use_yn", "catalog_version", "effective_from", "effective_to", "responseCodeCache",
-            Set.of("response_code","message_code","result_type","module_id","response_group","sequence_no","category","retry_disposition","exposure","effective_from","effective_to","catalog_version","description","use_yn"),
+            Set.of("response_code","message_code","result_type","module_id","response_group","sequence_no","http_status","category","retry_disposition","exposure","effective_from","effective_to","catalog_version","description","use_yn"),
             List.of("response_code","message_code","module_id","response_group","description")),
     CALENDAR("CMN_BUSINESS_CALENDAR_DAY", List.of("calendar_id","business_date"), "business_date", null, "version_no", null, null, "businessCalendar",
             Set.of("calendar_id","business_date","business_day_yn","day_type","institution_code","reason","version_no"),

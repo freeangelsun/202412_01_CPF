@@ -4,6 +4,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import com.cpf.common.calendar.api.CpfCalendarService;
 import java.time.LocalDate;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class BusinessDateSchedulerJobService {
 
         if (misfire) {
             return new BatchStepResult(
-                    BatchStepResult.Status.STOPPED,
+                    Status.STOPPED,
                     "MISFIRE_REVIEW",
                     "Misfire 정책에 따라 자동 중복 실행하지 않고 Runtime 정책으로 재계획합니다.",
                     0, 0, 0,
@@ -35,7 +36,7 @@ public class BusinessDateSchedulerJobService {
         }
         if (!calendar.isBusinessDay("KR", date)) {
             return new BatchStepResult(
-                    BatchStepResult.Status.STOPPED,
+                    Status.STOPPED,
                     "NON_BUSINESS_DAY",
                     "영업일이 아닙니다.",
                     0, 0, 0,

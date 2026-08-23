@@ -1,0 +1,35 @@
+{
+  "caseId": "CX-01-ROOT-BUILD-RERUN4",
+  "startedAt": "2026-08-22T17:18:32.5519104+09:00",
+  "finishedAt": "2026-08-22T17:19:58+09:00",
+  "sourceIdentity": "6496844a33830d983719209458a4fd6f5b24a9e2d973779a285feb80f1da5df2",
+  "command": ".\\gradlew.bat --no-daemon build --continue --stacktrace -PcpfIncludeGeneratedDomains=true",
+  "executionMode": "fully detached hidden child; stdout/stderr/exit files; short exit-file polls only",
+  "exitCode": 1,
+  "status": "FAIL",
+  "gradleTasks": {"actionable": 428, "executed": 108, "upToDate": 320, "failed": 16},
+  "failedTasks": [
+    ":apps:admin:compileJava",
+    ":apps:education:compileJava",
+    ":framework:web:compileTestJava",
+    ":runtime:batch:control-plane:compileJava",
+    ":runtime:batch:scheduler:compileJava",
+    ":runtime:batch:worker:compileJava",
+    ":starters:common:compileTestJava",
+    ":internal:file:sftp:test",
+    ":internal:integration:tcp:test",
+    ":internal:notification:dispatch:test",
+    ":internal:notification:email:compileJava",
+    ":internal:notification:sms:compileJava",
+    ":internal:testing:testkit:compileTestJava",
+    ":runtime:batch:agent:compileTestJava",
+    ":runtime:batch:testkit:test",
+    ":internal:file:tabular:poi:test"
+  ],
+  "artifacts": {
+    "stdout": {"path": "cpf-docs/work/evidence/codex/current/CX-01-ROOT-BUILD-RERUN4.stdout.log", "sha256": "A8D9471E15532D8399467E507F382DDC533F975B416AC73AEC7135CD6F8CE201"},
+    "stderr": {"path": "cpf-docs/work/evidence/codex/current/CX-01-ROOT-BUILD-RERUN4.stderr.log", "sha256": "2F9580FC7C4DCAA01C1C80248F2FBBB7753C995180DD170C8DDD795DDF8962EB"},
+    "exit": {"path": "cpf-docs/work/evidence/codex/current/CX-01-ROOT-BUILD-RERUN4.exit.txt", "sha256": "F1B2F662800122BED0FF255693DF89C4487FBDCF453D3524A42D4EC20C3D9C04"}
+  },
+  "resourceSafety": {"completionCodeHandles": 5845, "vsCodeReopened": false}
+}

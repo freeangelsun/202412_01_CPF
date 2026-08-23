@@ -38,15 +38,15 @@ class AdmTransactionGroupServiceFailureTest {
         when(batch.findExecutions(isNull(), eq("TX-BATCH-FAIL"), isNull(), isNull(), isNull(), anyInt()))
                 .thenThrow(new IllegalStateException("simulated batch owner unavailable"));
 
-        AdmTransactionGroupService service = new AdmTransactionGroupService(timeline, provider);
+        AdmTransactionGroupService service = new AdmTransactionGroupService(timeline, provider, null);
         Map<String, Object> detail = service.findDetail("TX-BATCH-FAIL");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> freshness = (Map<String, Object>) detail.get("sourceFreshness");
         assertThat(freshness.get("partial")).isEqualTo(true);
         assertThat(freshness.get("resultState")).isEqualTo("PARTIAL");
-        assertThat((List<?>) freshness.get("missingSources")).contains("BATCH");
-        assertThat((List<?>) freshness.get("failedSources")).contains("BATCH");
+        assertThat((List<?>) freshness.get("missingSources")).anyMatch("BATCH"::equals);
+        assertThat((List<?>) freshness.get("failedSources")).anyMatch("BATCH"::equals);
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> sources = (List<Map<String, Object>>) freshness.get("sources");

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-DATA-JDBC-SINGLE-CANDIDATE-FIX-IDENTITY",
+  "requirementIds": ["REL-BUILD", "DATA", "RUNTIME-WIRING", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:22:37.9112428+09:00",
+    "finished": "2026-08-22T13:23:55.8088098+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Split DataSource/transaction-manager single-candidate conditions across nested configuration and bean method; add three context regressions; recalculate official Source Identity",
+  "exitCode": 0,
+  "sourceIdentity": "dadb9db7cc19b467456962e9139d1529b39c344feb682fcb5aedb6be1e51985a",
+  "sourceFileCount": 8206,
+  "sourceTotalBytes": 75698096,
+  "actualResult": "Both fail-closed candidate constraints remain active without repeating a non-repeatable annotation. New tests require one valid DataSource/transaction-manager pair to create the operations bean and either ambiguous candidate set to suppress it.",
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-022"],
+  "sanitized": true
+}

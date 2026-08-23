@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * CPF 파일 전송 이력과 중복 방지를 담당하는 JDBC reference adapter입니다.
@@ -31,8 +32,12 @@ public class JdbcCpfFileTransferRepository implements CpfFileTransferHistoryPort
     }
 
     public JdbcCpfFileTransferRepository(JdbcTemplate jdbcTemplate, Environment environment) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.sql = com.cpf.data.persistence.sql.CpfVendorSqlCatalog.create(environment, "cpf");
+        this(jdbcTemplate, com.cpf.data.persistence.sql.CpfVendorSqlCatalog.create(environment, "cpf"));
+    }
+
+    public JdbcCpfFileTransferRepository(JdbcTemplate jdbcTemplate, CpfVendorSqlCatalog sql) {
+        this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "jdbcTemplate");
+        this.sql = Objects.requireNonNull(sql, "sql");
     }
 
     @Override

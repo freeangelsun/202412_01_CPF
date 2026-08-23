@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-DATA-JDBC-TEST-RERUN",
+  "requirementIds": ["REL-BUILD", "DATA", "RUNTIME-WIRING", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:26:38.4250471+09:00",
+    "finished": "2026-08-22T13:27:25.7587438+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :starters:data:jdbc:test --rerun-tasks",
+  "exitCode": 0,
+  "sourceIdentity": "dadb9db7cc19b467456962e9139d1529b39c344feb682fcb5aedb6be1e51985a",
+  "actualResult": "BUILD SUCCESSFUL in 46s; 35 actionable tasks executed. Five JUnit suites report 12 tests, 0 failures, 0 errors, and 0 skipped. The three new auto-configuration tests prove the valid single-pair case and fail-closed behavior for ambiguous DataSource and PlatformTransactionManager candidates.",
+  "testSummary": {
+    "suites": 5,
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "result": "PASS",
+  "findingIds": ["CX-F-022"],
+  "sanitized": true
+}

@@ -1,0 +1,24 @@
+{
+  "findingId": "CX-F-141",
+  "recordedAt": "2026-08-23T10:49:00+09:00",
+  "lifecycle": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "5c4cc49dec0df0b4d20e6ee906f139ace95f09b953a5ee21e0fcef0147b225c9",
+    "sha1": "434e14bca5a9de1d0a21b4083d81570e3195113d",
+    "fileCount": 8243,
+    "totalBytes": 75903080
+  },
+  "sourceOwnersChanged": [
+    "cpf-tools/db/canonical/platform-schema.json",
+    "cpf-tools/db/render_vendor_pack.py",
+    "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+    "cpf-tools/db/tests/test_canonical_vendor_render.py"
+  ],
+  "contract": "Canonical index columns are vendor-portable; MariaDB-only prefix length is an explicit vendorColumns override consumed by both generation paths.",
+  "verificationPending": [
+    "Regenerate all canonical current vendor packs and official vendor source/install outputs",
+    "Run exact renderer and vendor-parity regressions",
+    "Execute the PostgreSQL schema/seed/verify pack in a new empty database"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "finding": "CX-F-217",
+  "runId": "b4200823c001",
+  "startedAt": "2026-08-23T19:58:01+09:00",
+  "endedAt": "2026-08-23T20:01:00+09:00",
+  "sourceIdentitySha256": "a4488b69963ef6793bcd90bfb65617c51527c5cf25cfbe4bd77189cec04ce577",
+  "sourceIdentitySha1": "bd0e535bf346a3ca9a05a4577aeb02544e791976",
+  "environment": {
+    "database": "MariaDB 12.3.2",
+    "clientAdapter": "existing cpf-mariadb container",
+    "kafka": "existing cpf-kafka container",
+    "newImagePulledOrBuilt": false
+  },
+  "preparation": {
+    "status": "PASS",
+    "enabledOwners": ["core", "common", "admin", "batch", "backoffice"],
+    "physicalTargets": 2,
+    "platformTableCount": 201,
+    "backofficeTableCount": 29,
+    "seedAndVerify": "PASS"
+  },
+  "runtime": {
+    "status": "FAILED_BEFORE_WORKER_START",
+    "actualError": "ERROR 1146: Table 'cpf_verify_b4200823c001_runtime.bat_execution_lease' doesn't exist",
+    "rootCause": "The canonical generated MariaDB schema owns case-sensitive physical BAT_* table names, while the maintained two-worker smoke emits lowercase bat_* table identifiers. Linux MariaDB therefore rejects the first cleanup query.",
+    "requirementNotLowered": true
+  },
+  "cleanup": {
+    "status": "PASS",
+    "databaseLeaks": 0,
+    "roleLeaks": 0
+  },
+  "status": "OPEN",
+  "next": "Replace every smoke SQL physical table reference with the exact canonical BAT_* identity, add an exact regression, and replay prepare through cleanup from a fresh verifier-owned database."
+}

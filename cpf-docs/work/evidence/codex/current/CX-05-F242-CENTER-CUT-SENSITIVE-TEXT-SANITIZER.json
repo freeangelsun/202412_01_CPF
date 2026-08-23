@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-242",
+  "recordedAt": "2026-08-23T21:52:21+09:00",
+  "sourceIdentity": "0f2c6beb2caa577664464297ca8234a7e18eb74d937733f300e8d26d422cb936",
+  "status": "CLOSED",
+  "rootCause": "Center Cut diagnostic messages used generic PII masking, which obscured the whole expression instead of removing the secret assignment value.",
+  "change": "Use the existing shared SensitiveTextSanitizer for error/result messages; continue excluding payload bodies and exposing length-only markers.",
+  "verification": "PASS: complete Control Plane suite 68/68; targeted Center Cut response assertion proves token=***, payload exclusion, and length-only metadata."
+}

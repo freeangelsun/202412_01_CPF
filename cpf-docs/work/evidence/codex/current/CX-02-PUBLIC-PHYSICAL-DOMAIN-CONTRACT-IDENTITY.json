@@ -1,0 +1,14 @@
+{
+  "track": "CX-02-PUBLIC-PHYSICAL-DOMAIN-CONTRACT-IDENTITY",
+  "finishedAt": "2026-08-22T22:52:47.9334595+09:00",
+  "finding": "CX-F-109",
+  "result": "SOURCE_FIXED_PARTIAL",
+  "sourceIdentity": {
+    "sha256": "094bec578e8704a5fd3dc72124f9119434c095de5ffd9a5c2e139eb760943d1e",
+    "sha1": "69ff51d315d659fee735553a5b0a870c038918fd",
+    "fileCount": 8228,
+    "totalBytes": 75798773
+  },
+  "checks": {"prepareScriptAst": "PASS", "publicPolicyJson": "PASS", "openGitPolicyJson": "PASS"},
+  "contract": "Public/Open Git releases discover each physical cpf-<domain>/gradle.properties directly; duplicate domains/* catalogs and both legacy metadata filenames are forbidden."
+}

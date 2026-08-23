@@ -1,0 +1,54 @@
+{
+  "executionId": "CX-02-FRESH-C-LIFECYCLE",
+  "finishedAt": "2026-08-22T20:40:28.6741324+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS_STATIC_LIFECYCLE",
+  "case": "C",
+  "domain": "cxgamma",
+  "systemCode": "QAC",
+  "topology": {
+    "online": true,
+    "batch": true
+  },
+  "capabilities": {
+    "persistence": "mybatis",
+    "httpClient": true,
+    "resilience": true,
+    "sampleTransaction": true
+  },
+  "databaseProfile": {
+    "vendor": "postgresql",
+    "sourceControlled": false,
+    "secretValuesStored": false,
+    "migrationSecretEnv": "QAC_DB_MIGRATION_PASSWORD",
+    "runtimeSecretEnv": "QAC_DB_RUNTIME_PASSWORD"
+  },
+  "setupSync": "UPGRADED",
+  "validateAfterSync": "PREFLIGHT_PASS",
+  "mapperScanPresent": true,
+  "regenerateCount": 2,
+  "consecutiveDiffs": [
+    {
+      "missing": 0,
+      "changed": 0,
+      "staleGeneratedFiles": 0,
+      "expectedExtraUserFiles": 1,
+      "unexpectedDrift": 0,
+      "clean": true
+    },
+    {
+      "missing": 0,
+      "changed": 0,
+      "staleGeneratedFiles": 0,
+      "expectedExtraUserFiles": 1,
+      "unexpectedDrift": 0,
+      "clean": true
+    }
+  ],
+  "userOwnedSha256": "c4f732037654e156b0d3edfd30a0a4fb9e8561d9e60e4b47ac2a9f7ec3e9d643",
+  "userLoss": 0,
+  "generatedFiles": 54,
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "next": "Actual Java 25 online and batch compile with PostgreSQL resource selection"
+}

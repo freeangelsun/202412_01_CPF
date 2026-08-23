@@ -49,6 +49,31 @@ class PlatformMigrationSafetyContractTest(unittest.TestCase):
         for field in ["Target.host", "Target.databaseName", "Target.migrationUsername", "Target.migrationPassword"]:
             self.assertIn(field, self.text)
 
+    def test_consolidated_modules_plan_one_verified_shared_database_owner(self):
+        for token in [
+            "$moduleKeysByLogicalDatabase",
+            "$migrationTargetKeys",
+            "$declaredOwners.Count -ne 1",
+            "$connectionIdentities.Count -ne 1",
+            "$migrationTargetKeys.Add($selectedTargetKey)",
+        ]:
+            self.assertIn(token, self.text)
+        self.assertNotIn("logicalDatabase가 비어 있거나 중복되었습니다", self.text)
+
+    def test_mariadb_forward_and_rollback_use_their_own_routing_entries(self):
+        self.assertIn(
+            "(Get-CpfMariaRoutingEntry $mariaRoutingManifest $migrationFile.Name)",
+            self.text,
+        )
+
+    def test_verifier_owned_host_check_does_not_assign_powershell_host(self):
+        self.assertIn("$targetHost = ([string]$target.host)", self.text)
+        self.assertNotIn("$host = ([string]$target.host)", self.text)
+        self.assertIn(
+            "(Get-CpfMariaRoutingEntry $mariaRoutingManifest $rollbackFile.Name)",
+            self.text,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

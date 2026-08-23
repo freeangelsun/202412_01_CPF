@@ -1,0 +1,28 @@
+{
+  "finding": "CX-F-138",
+  "status": "PASS",
+  "startedAt": "2026-08-23T09:49:16.6229252+09:00",
+  "finishedAt": "2026-08-23T09:49:34.6757781+09:00",
+  "environment": {
+    "java": "25.0.3",
+    "gradleTask": ":framework:base-runtime:test",
+    "maxWorkers": 1,
+    "daemon": false
+  },
+  "command": ".\\gradlew.bat :framework:base-runtime:test --tests com.cpf.starter.runtime.CpfJackson2AutoConfigurationTest --no-daemon --max-workers=1 --console=plain",
+  "result": {
+    "exitCode": 0,
+    "durationSeconds": 17,
+    "tests": 2,
+    "actionableTasks": 7,
+    "executedTasks": 4,
+    "upToDateTasks": 3
+  },
+  "assertions": [
+    "Base-owned Jackson 2 mapper discovers Java-time modules and round-trips LocalDate",
+    "A developer-provided Jackson 2 ObjectMapper remains authoritative",
+    "The canonical logical Gradle owner is :framework:base-runtime"
+  ],
+  "sourceIdentitySha256": "d5a5f10411e1352013a84a4d70c179b50c69332751ae2243cbf431c41d8d435c",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F138-BASE-RUNTIME-TARGETED-RERUN2.log"
+}

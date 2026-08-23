@@ -5,7 +5,7 @@ INSERT INTO mbw_permission (
     :roleCode, :menuCode, :buttonCode, :permissionType, :httpMethod, :apiPattern,
     :domainCode, :environmentCode, :dataScope, :allowYn, :useYn, :requestUser, :requestUser
 )
-ON CONFLICT (role_code, menu_code, button_code) DO UPDATE SET
+ON CONFLICT (role_code, menu_code, button_code, permission_type, environment_code) DO UPDATE SET
     permission_type = EXCLUDED.permission_type, http_method = EXCLUDED.http_method,
     api_pattern = EXCLUDED.api_pattern, domain_code = EXCLUDED.domain_code,
     environment_code = EXCLUDED.environment_code, data_scope = EXCLUDED.data_scope,

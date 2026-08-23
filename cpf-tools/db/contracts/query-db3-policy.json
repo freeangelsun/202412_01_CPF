@@ -19,7 +19,7 @@
       "testId": "NXT3-QUERY-001-GENERATOR-RENDERER"
     },
     {
-      "pattern": "build/domain-generator/verification/cpf-*/db3/**",
+      "pattern": "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-*/db3/**",
       "owner": "TRANSIENT_GENERATED_DB_RENDERER_OUTPUT",
       "reason": "제3 임의 Domain 및 lifecycle 검증용 transient DB3 renderer 산출물",
       "testId": "NXT3-GENERATOR-003-DB3"

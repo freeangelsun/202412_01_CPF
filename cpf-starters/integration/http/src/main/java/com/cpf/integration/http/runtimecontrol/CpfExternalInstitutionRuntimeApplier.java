@@ -1,6 +1,6 @@
 package com.cpf.integration.http.runtimecontrol;
 
-import com.cpf.integration.fixedlength.api.CpfFixedLengthLayoutRegistry;
+import com.cpf.integration.api.message.CpfMessageLayoutValidator;
 import com.cpf.platform.operations.runtimecontrol.CpfRuntimeApplyResult;
 import com.cpf.platform.operations.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.platform.operations.runtimecontrol.CpfRuntimeDelivery;
@@ -16,9 +16,9 @@ import java.util.Map;
 /** 기관/외부 시스템 endpoint 정본을 layout version과 timeout까지 검증한 뒤 원자 적용합니다. */
 public final class CpfExternalInstitutionRuntimeApplier implements CpfRuntimeChangeApplier {
     private final CpfServiceEndpointRegistry registry;
-    private final CpfFixedLengthLayoutRegistry layouts;
+    private final CpfMessageLayoutValidator layouts;
 
-    public CpfExternalInstitutionRuntimeApplier(CpfServiceEndpointRegistry registry, CpfFixedLengthLayoutRegistry layouts) {
+    public CpfExternalInstitutionRuntimeApplier(CpfServiceEndpointRegistry registry, CpfMessageLayoutValidator layouts) {
         this.registry = java.util.Objects.requireNonNull(registry, "registry");
         this.layouts = layouts;
     }
@@ -103,7 +103,7 @@ public final class CpfExternalInstitutionRuntimeApplier implements CpfRuntimeCha
         if (layoutId.isBlank() || layoutVersion.isBlank() || layouts == null) {
             throw new IllegalArgumentException("layoutId/layoutVersion/registry가 함께 필요합니다.");
         }
-        layouts.require(layoutId, layoutVersion);
+        layouts.requireAvailable(layoutId, layoutVersion);
     }
 
     private String required(JsonNode source, String key) {

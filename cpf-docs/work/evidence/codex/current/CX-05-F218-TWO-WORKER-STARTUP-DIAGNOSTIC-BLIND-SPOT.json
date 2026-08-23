@@ -1,0 +1,17 @@
+{
+  "finding": "CX-F-218",
+  "runId": "b4200823c002",
+  "recordedAt": "2026-08-23T20:07:00+09:00",
+  "sourceIdentitySha256": "f7cc698bb92390cf32b2aa3e706043fc39d701e475bbc0c119963a2abaa653af",
+  "actual": {
+    "prepare": "PASS: Platform 201 tables, Backoffice 29 tables, canonical checks 20",
+    "runtime": "FAILED: two workers not registered",
+    "workerDiagnostics": "ABSENT",
+    "causeOfDiagnosticLoss": "ProcessStartInfo redirects both Worker streams, but the smoke neither drains nor persists either stream and does not check early process exit during registration.",
+    "cleanup": "PASS",
+    "databaseLeaks": 0,
+    "roleLeaks": 0
+  },
+  "status": "OPEN",
+  "next": "Asynchronously drain both streams into managed Evidence, persist them on shutdown, detect early Worker exit with ExitCode and log paths, then replay the physical runtime."
+}

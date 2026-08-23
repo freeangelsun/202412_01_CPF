@@ -1,0 +1,17 @@
+{
+  "executionId": "CX-02-FRESH-A-SETUP-RERUN2",
+  "timestamp": "2026-08-22T19:49:00+09:00",
+  "sourceIdentitySha256": "d8081948eaf65c574883123c73b7bd77177e14a9c4e63ded468ec4bd4fe8b303",
+  "status": "PASS",
+  "case": "A",
+  "domain": "cxalpha",
+  "systemCode": "QAA",
+  "workspace": "C:/Users/fly10/AppData/Local/CPF/validation/generated-domains/cx02-20260822-1947/workspace",
+  "generatorResourceRoot": "C:/dev/projects/jck/202412_01_CPF",
+  "generatorWorkRoot": "C:/Users/fly10/AppData/Local/CPF/validation/generated-domains/cx02-20260822-1947/evidence/domain-generator",
+  "generatedFiles": 17,
+  "topology": {"online": true, "batch": false, "domainDependencies": 0, "externalClients": 0},
+  "ownershipLockPresent": true,
+  "transientStatePresent": true,
+  "productRootBuildPresentAfter": false
+}

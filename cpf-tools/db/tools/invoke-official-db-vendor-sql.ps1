@@ -134,6 +134,37 @@ function Invoke-SqlPlus($t,[string]$Sql) {
 }
 $targets=@($profile.modules.PSObject.Properties | ForEach-Object { ConvertTo-CpfModuleProfile $profile $_.Name } | Where-Object { $_.enabled -and $_.vendor -eq $Vendor })
 if($Modules.Count -gt 0){$targets=@($targets | Where-Object {$_.moduleKey -in $Modules})}
+function Get-PhysicalLifecycleTargetKey($Target) {
+    $parts=@(
+        $Vendor,
+        [string]$Target.host,
+        [string]$Target.port,
+        [string]$Target.databaseName,
+        [string]$Target.schemaName,
+        [string]$Target.logicalDatabase,
+        [string]$Target.adminUsername,
+        [string]$Target.migrationUsername,
+        [string]$Target.runtimeUsername
+    ) | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() }
+    return ($parts -join [char]31)
+}
+# common/admin/batch are application ownership aliases of the consolidated cpfDB
+# target. Execute each exact physical lifecycle target once while retaining the
+# full selected-module inventory in the caller-owned lifecycle plan/evidence.
+$physicalTargets=[Collections.Generic.List[object]]::new()
+$physicalOwners=@{}
+$seenPhysicalTargets=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach($candidate in $targets){
+    $physicalKey=Get-PhysicalLifecycleTargetKey $candidate
+    if($seenPhysicalTargets.Add($physicalKey)){
+        $physicalTargets.Add($candidate)
+        $physicalOwners[$physicalKey]=[string]$candidate.moduleKey
+    }else{
+        Write-Host "[$($candidate.moduleKey)] physical lifecycle alias owner=$($physicalOwners[$physicalKey]); execute=SKIP_DUPLICATE_TARGET"
+    }
+}
+$targets=@($physicalTargets)
+if($targets.Count -eq 0){throw "No physical lifecycle target selected for vendor=$Vendor"}
 function Q-Sql([string]$value) { return $value.Replace("'", "''") }
 function Provision-Postgresql($t) {
     $client=if([string]::IsNullOrWhiteSpace($t.clientPath)){'psql'}else{$t.clientPath}

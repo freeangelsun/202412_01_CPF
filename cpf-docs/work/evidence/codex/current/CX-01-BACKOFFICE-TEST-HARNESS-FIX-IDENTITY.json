@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-BACKOFFICE-TEST-HARNESS-FIX-IDENTITY",
+  "requirementIds": ["TEST-EVIDENCE", "PUBLIC-API", "SEC-BOUNDARY"],
+  "timestamp": {
+    "started": "2026-08-22T15:37:30+09:00",
+    "finished": "2026-08-22T15:38:55.6590283+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "0ed3a1eb5fb698db0d89a76644a30370cc8ec550c7c79a09d7d661e7c353ad0b",
+  "sourceState": {
+    "contentSha1": "adb0851f701de16f15a572a68cac827cb19852ba",
+    "fileCount": 8206,
+    "totalBytes": 75705019
+  },
+  "actualResult": "The auth harness supplies canonical system/application properties through MockEnvironment. Attachment harnesses stub streaming store(InputStream,long) and open(CpfAttachmentStream), retaining compensation delete and checksum mismatch semantics. Production source is unchanged for both harness findings.",
+  "postUiPressure": {
+    "commitFreeGiB": 46.03,
+    "totalHandles": 124279,
+    "largestHandleCount": 5760,
+    "recovered": true
+  },
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-037", "CX-F-038"],
+  "sanitized": true
+}

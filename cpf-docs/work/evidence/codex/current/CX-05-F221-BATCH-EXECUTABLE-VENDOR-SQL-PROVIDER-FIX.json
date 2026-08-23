@@ -1,0 +1,13 @@
+{
+  "finding": "CX-F-221",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-23T20:25:00+09:00",
+  "sourceIdentity": {
+    "sha256": "7a2ca437092923591818cab1e6ff66dcad9a1e702105609a2992312bafc2cf54",
+    "sha1": "97e84f83bb4b697383573d1a1b7c7102c7a906b6",
+    "fileCount": 8288,
+    "totalBytes": 75235807
+  },
+  "change": "control-plane, scheduler, worker and center-cut each include exactly one implementation dependency on the official :starters:data:jdbc Provider owner.",
+  "next": "Run the exact owner contract, rebuild the Worker and replay physical runtime."
+}

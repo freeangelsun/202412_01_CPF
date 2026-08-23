@@ -1,0 +1,440 @@
+{
+  "gate": "NXT3_GENERATOR_CROSS_PLATFORM",
+  "staticStatus": "FAIL",
+  "overallStatus": "FAIL",
+  "checks": [
+    {
+      "name": "posix-launcher-runnable",
+      "status": "FAIL",
+      "detail": {
+        "path": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf",
+        "executableBit": false,
+        "launcher": null
+      }
+    },
+    {
+      "name": "windows-launcher-present",
+      "status": "PASS",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.bat"
+    },
+    {
+      "name": "windows-launcher-thin",
+      "status": "PASS",
+      "detail": "@echo off\nsetlocal EnableExtensions EnableDelayedExpansion\nset \"ROOT=%~dp0..\\..\\..\"\nwhere py >nul 2>nul\nif %ERRORLEVEL%==0 (\n  py -3 \"%ROOT%\\cpf-tools\\runtime\\cli\\cpf.py\" --root \"%ROOT%\" %*\n  exit /b !ERRORLEVEL!\n)\nwhere python >nul 2>nul\nif %ERRORLEVEL%==0 (\n  python \"%ROOT%\\cpf-tools\\runtime\\cli\\cpf.py\" --root \"%ROOT%\" %*\n  exit /b !ERRORLEVEL!\n)\necho CPF_CLI=FAIL Python 3 is required 1>&2\nexit /b 127\n"
+    },
+    {
+      "name": "linux-launcher-thin",
+      "status": "PASS",
+      "detail": "#!/usr/bin/env sh\nset -eu\nSCRIPT_DIR=$(CDPATH= cd -- \"$(dirname -- \"$0\")\" && pwd)\nROOT=$(CDPATH= cd -- \"$SCRIPT_DIR/../../..\" && pwd)\nif command -v python3 >/dev/null 2>&1; then PYTHON=python3\nelif command -v python >/dev/null 2>&1; then PYTHON=python\nelse echo \"CPF_CLI=FAIL Python 3 is required\" >&2; exit 127\nfi\nexec \"$PYTHON\" \"$ROOT/cpf-tools/runtime/cli/cpf.py\" --root \"$ROOT\" \"$@\"\n"
+    },
+    {
+      "name": "posix-cli-help",
+      "status": "UNVERIFIED",
+      "detail": "sh unavailable"
+    },
+    {
+      "name": "posix-cli-version",
+      "status": "UNVERIFIED",
+      "detail": "sh unavailable"
+    },
+    {
+      "name": "invalid-input-exit-code",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "domain",
+          "generate",
+          "--file",
+          "__missing__.yaml"
+        ],
+        "rc": 2,
+        "stdout": "",
+        "stderr": "[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\nCPF_CLI=FAIL Domain 입력 계약이 없습니다: C:\\dev\\projects\\jck\\202412_01_CPF\\__missing__.yaml\n"
+      }
+    },
+    {
+      "name": "genericity-source-scan",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "verify",
+          "generator"
+        ],
+        "rc": 0,
+        "stdout": "{\n  \"status\": \"PASS\",\n  \"filesScanned\": 2,\n  \"hits\": []\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "cpf-member-developer-contract",
+      "status": "PASS",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-member\\gradle.properties"
+    },
+    {
+      "name": "cpf-member-customer-metadata-zero",
+      "status": "PASS",
+      "detail": []
+    },
+    {
+      "name": "cpf-external-developer-contract",
+      "status": "PASS",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-external\\gradle.properties"
+    },
+    {
+      "name": "cpf-external-customer-metadata-zero",
+      "status": "PASS",
+      "detail": []
+    },
+    {
+      "name": "retained-member-external-verify-all",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "verify",
+          "all"
+        ],
+        "rc": 0,
+        "stdout": "{\n  \"generator\": {\n    \"status\": \"PASS\",\n    \"filesScanned\": 2,\n    \"hits\": []\n  },\n  \"domains\": [\n    {\n      \"domain\": \"backoffice\",\n      \"status\": \"PREBUILT_VERIFIED\",\n      \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-backoffice\",\n      \"javaCount\": 55,\n      \"developerContract\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-backoffice\\\\gradle.properties\"\n    },\n    {\n      \"domain\": \"external\",\n      \"status\": \"PASS\",\n      \"physicalRoot\": \"cpf-external\",\n      \"ia\": {\n        \"online\": true,\n        \"batch\": false,\n        \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n      },\n      \"developerContract\": \"gradle.properties\",\n      \"generatorMetadata\": \"ABSENT\",\n      \"publicBoundary\": \"PASS\",\n      \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n      \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n      \"generatedFiles\": 43\n    },\n    {\n      \"domain\": \"member\",\n      \"status\": \"PASS\",\n      \"physicalRoot\": \"cpf-member\",\n      \"ia\": {\n        \"online\": true,\n        \"batch\": true,\n        \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n      },\n      \"developerContract\": \"gradle.properties\",\n      \"generatorMetadata\": \"ABSENT\",\n      \"publicBoundary\": \"PASS\",\n      \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n      \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n      \"generatedFiles\": 49\n    }\n  ],\n  \"status\": \"PASS\"\n}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "cpf-member-minimal-ia",
+      "status": "PASS",
+      "detail": {
+        "expected": [
+          "batch",
+          "online"
+        ],
+        "actual": [
+          "batch",
+          "online"
+        ]
+      }
+    },
+    {
+      "name": "cpf-member-no-readme-verification-db",
+      "status": "PASS",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-member"
+    },
+    {
+      "name": "cpf-external-minimal-ia",
+      "status": "PASS",
+      "detail": {
+        "expected": [
+          "online"
+        ],
+        "actual": [
+          "online"
+        ]
+      }
+    },
+    {
+      "name": "cpf-external-no-readme-verification-db",
+      "status": "PASS",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-external"
+    },
+    {
+      "name": "cpf-member-idempotent-diff",
+      "status": "PASS",
+      "detail": {
+        "domain": "member",
+        "missing": [],
+        "changed": [],
+        "staleGeneratedFiles": [],
+        "extraUserFiles": [],
+        "legacyMetadataFiles": [],
+        "clean": true,
+        "metadataRequired": false
+      }
+    },
+    {
+      "name": "cpf-external-idempotent-diff",
+      "status": "PASS",
+      "detail": {
+        "domain": "external",
+        "missing": [],
+        "changed": [],
+        "staleGeneratedFiles": [],
+        "extraUserFiles": [],
+        "legacyMetadataFiles": [],
+        "clean": true,
+        "metadataRequired": false
+      }
+    },
+    {
+      "name": "third-domain-fresh-generate-path-space-utf8-crlf",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "domain",
+          "generate",
+          "--file",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\crlf spec\\ledger.yaml",
+          "--output",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\cpf-ledger"
+        ],
+        "rc": 0,
+        "stdout": "{\n  \"domain\": \"ledger\",\n  \"status\": \"GENERATED\",\n  \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\cpf-ledger\",\n  \"verify\": {\n    \"domain\": \"ledger\",\n    \"status\": \"PASS\",\n    \"physicalRoot\": \"cpf-ledger\",\n    \"ia\": {\n      \"online\": true,\n      \"batch\": false,\n      \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n    },\n    \"developerContract\": \"gradle.properties\",\n    \"generatorMetadata\": \"ABSENT\",\n    \"publicBoundary\": \"PASS\",\n    \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n    \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n    \"generatedFiles\": 40\n  }\n}\n",
+        "stderr": "[CPF][DEPRECATED] domain generate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\n"
+      }
+    },
+    {
+      "name": "third-domain-db3-render",
+      "status": "PASS",
+      "detail": [
+        {
+          "cmd": [
+            "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+            "--root",
+            "C:\\dev\\projects\\jck\\202412_01_CPF",
+            "db",
+            "render",
+            "--file",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\crlf spec\\ledger.yaml",
+            "--vendor",
+            "oracle",
+            "--output",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\db render\\oracle"
+          ],
+          "rc": 0,
+          "stdout": "{\n  \"status\": \"PASS\",\n  \"vendor\": \"oracle\",\n  \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\db render\\\\oracle\",\n  \"files\": [\n    \"10_empty_install.sql\",\n    \"20_product_seed.sql\",\n    \"90_verify.sql\",\n    \"R1__remove_ledger_domain.sql\",\n    \"V1__ledger_domain.sql\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "cmd": [
+            "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+            "--root",
+            "C:\\dev\\projects\\jck\\202412_01_CPF",
+            "db",
+            "render",
+            "--file",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\crlf spec\\ledger.yaml",
+            "--vendor",
+            "postgresql",
+            "--output",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\db render\\postgresql"
+          ],
+          "rc": 0,
+          "stdout": "{\n  \"status\": \"PASS\",\n  \"vendor\": \"postgresql\",\n  \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\db render\\\\postgresql\",\n  \"files\": [\n    \"10_empty_install.sql\",\n    \"20_product_seed.sql\",\n    \"90_verify.sql\",\n    \"R1__remove_ledger_domain.sql\",\n    \"V1__ledger_domain.sql\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "cmd": [
+            "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+            "--root",
+            "C:\\dev\\projects\\jck\\202412_01_CPF",
+            "db",
+            "render",
+            "--file",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\crlf spec\\ledger.yaml",
+            "--vendor",
+            "mariadb",
+            "--output",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\db render\\mariadb"
+          ],
+          "rc": 0,
+          "stdout": "{\n  \"status\": \"PASS\",\n  \"vendor\": \"mariadb\",\n  \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\db render\\\\mariadb\",\n  \"files\": [\n    \"10_empty_install.sql\",\n    \"20_product_seed.sql\",\n    \"90_verify.sql\",\n    \"R1__remove_ledger_domain.sql\",\n    \"V1__ledger_domain.sql\"\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "add-domain-does-not-damage-retained-roots",
+      "status": "PASS",
+      "detail": {
+        "add": {
+          "cmd": [
+            "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+            "--root",
+            "C:\\dev\\projects\\jck\\202412_01_CPF",
+            "domain",
+            "add",
+            "--file",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\add.yaml",
+            "--output",
+            "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\cpf-orders"
+          ],
+          "rc": 0,
+          "stdout": "{\n  \"domain\": \"orders\",\n  \"status\": \"GENERATED\",\n  \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\cpf-orders\",\n  \"verify\": {\n    \"domain\": \"orders\",\n    \"status\": \"PASS\",\n    \"physicalRoot\": \"cpf-orders\",\n    \"ia\": {\n      \"online\": true,\n      \"batch\": false,\n      \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n    },\n    \"developerContract\": \"gradle.properties\",\n    \"generatorMetadata\": \"ABSENT\",\n    \"publicBoundary\": \"PASS\",\n    \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n    \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n    \"generatedFiles\": 40\n  }\n}\n",
+          "stderr": "[CPF][DEPRECATED] domain add is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\n"
+        },
+        "retainedIntact": true
+      }
+    },
+    {
+      "name": "user-owned-modification-protection",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "domain",
+          "regenerate",
+          "ledger",
+          "--file",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\crlf spec\\ledger.yaml",
+          "--output",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\cpf-ledger"
+        ],
+        "rc": 2,
+        "stdout": "",
+        "stderr": "[CPF][DEPRECATED] domain regenerate is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\nCPF_CLI=FAIL 사용자 변경 또는 Template drift가 감지되어 무상태 regenerate가 덮어쓰지 않습니다: ['online/src/main/java/ledger/sample/service/SampleTransactionPolicy.java']\n"
+      }
+    },
+    {
+      "name": "remove-restore-isolated-lifecycle",
+      "status": "FAIL",
+      "detail": "DomainError('Generated Domain 실제 삭제는 사용자 승인 Delete Manifest 실행기로만 수행할 수 있습니다. --apply 직접 삭제는 금지됩니다.')"
+    },
+    {
+      "name": "generate-all-two-domains",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Users\\fly10\\AppData\\Local\\CPF\\validation\\python313-env\\Scripts\\python.exe",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py",
+          "--root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF",
+          "domain",
+          "generate-all",
+          "--definitions-root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\definitions",
+          "--output-root",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\generated\\domain-generator\\verification\\CPF 한글 Path With Spaces n02nvg37\\all outputs"
+        ],
+        "rc": 0,
+        "stdout": "{\n  \"status\": \"PASS\",\n  \"count\": 2,\n  \"results\": [\n    {\n      \"domain\": \"alpha\",\n      \"status\": \"GENERATED\",\n      \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\all outputs\\\\cpf-alpha\",\n      \"verify\": {\n        \"domain\": \"alpha\",\n        \"status\": \"PASS\",\n        \"physicalRoot\": \"cpf-alpha\",\n        \"ia\": {\n          \"online\": true,\n          \"batch\": false,\n          \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n        },\n        \"developerContract\": \"gradle.properties\",\n        \"generatorMetadata\": \"ABSENT\",\n        \"publicBoundary\": \"PASS\",\n        \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n        \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n        \"generatedFiles\": 40\n      }\n    },\n    {\n      \"domain\": \"beta\",\n      \"status\": \"GENERATED\",\n      \"output\": \"C:\\\\dev\\\\projects\\\\jck\\\\202412_01_CPF\\\\cpf-docs\\\\work\\\\evidence\\\\generated\\\\domain-generator\\\\verification\\\\CPF 한글 Path With Spaces n02nvg37\\\\all outputs\\\\cpf-beta\",\n      \"verify\": {\n        \"domain\": \"beta\",\n        \"status\": \"PASS\",\n        \"physicalRoot\": \"cpf-beta\",\n        \"ia\": {\n          \"online\": true,\n          \"batch\": false,\n          \"batchCapabilitySelection\": \"DEVELOPER_GRADLE_CONTRACT\"\n        },\n        \"developerContract\": \"gradle.properties\",\n        \"generatorMetadata\": \"ABSENT\",\n        \"publicBoundary\": \"PASS\",\n        \"db3Renderer\": \"EXTERNAL_CANONICAL_RENDERER\",\n        \"runtimeConsumers\": \"BUILD_GENERATED_DESCRIPTOR\",\n        \"generatedFiles\": 40\n      }\n    }\n  ]\n}\n",
+        "stderr": "[CPF][DEPRECATED] domain generate-all is a compatibility/advanced command; use create/setup/sync/diff/remove for new workflows.\n"
+      }
+    },
+    {
+      "name": "cli-surface-generate",
+      "status": "PASS",
+      "detail": "generate"
+    },
+    {
+      "name": "cli-surface-add",
+      "status": "PASS",
+      "detail": "add"
+    },
+    {
+      "name": "cli-surface-dry-run",
+      "status": "PASS",
+      "detail": "dry-run"
+    },
+    {
+      "name": "cli-surface-diff",
+      "status": "PASS",
+      "detail": "diff"
+    },
+    {
+      "name": "cli-surface-regenerate",
+      "status": "PASS",
+      "detail": "regenerate"
+    },
+    {
+      "name": "cli-surface-upgrade",
+      "status": "PASS",
+      "detail": "upgrade"
+    },
+    {
+      "name": "cli-surface-remove",
+      "status": "PASS",
+      "detail": "remove"
+    },
+    {
+      "name": "cli-surface-restore",
+      "status": "PASS",
+      "detail": "restore"
+    },
+    {
+      "name": "cli-surface-generate-all",
+      "status": "PASS",
+      "detail": "generate-all"
+    },
+    {
+      "name": "generated-lf-normalized",
+      "status": "FAIL",
+      "detail": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf,C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py,C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-member\\gradle.properties,C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-external\\gradle.properties"
+    },
+    {
+      "name": "utf8-decode",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "windows-launcher-execution",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "cmd",
+          "/d",
+          "/c",
+          "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.bat",
+          "--version"
+        ],
+        "rc": 0,
+        "stdout": "cpf 6.4.0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "gradle-generated-compile-test",
+      "status": "UNVERIFIED",
+      "detail": "gradle executable unavailable"
+    },
+    {
+      "name": "java25-runtime",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "java",
+          "-version"
+        ],
+        "rc": 0,
+        "stdout": "",
+        "stderr": "openjdk version \"25.0.3\" 2026-04-21 LTS\nOpenJDK Runtime Environment Temurin-25.0.3+9 (build 25.0.3+9-LTS)\nOpenJDK 64-Bit Server VM Temurin-25.0.3+9 (build 25.0.3+9-LTS, mixed mode, sharing)\n"
+      }
+    },
+    {
+      "name": "powershell-wrapper-execution",
+      "status": "PASS",
+      "detail": {
+        "cmd": [
+          "C:\\Program Files\\WindowsApps\\Microsoft.PowerShell_7.6.5.0_x64__8wekyb3d8bbwe\\pwsh.EXE",
+          "-NoProfile",
+          "-Command",
+          "& 'C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-tools\\runtime\\cli\\cpf.py' --root 'C:\\dev\\projects\\jck\\202412_01_CPF' --version"
+        ],
+        "rc": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  ],
+  "failedCount": 3,
+  "unverifiedCount": 3
+}

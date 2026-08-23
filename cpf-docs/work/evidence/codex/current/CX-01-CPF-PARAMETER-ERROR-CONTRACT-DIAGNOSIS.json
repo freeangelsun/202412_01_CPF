@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-CPF-PARAMETER-ERROR-CONTRACT-DIAGNOSIS",
+  "requirementIds": ["COMMON-DOMAIN", "PUBLIC-API", "ERROR-CONTRACT", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:23:02.0000000+09:00",
+    "finished": "2026-08-22T14:23:59.6319167+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Inspect failing JUnit XML, typed-value test, CpfParameterService conversion implementation, and repository-wide error-message consumers",
+  "exitCode": 0,
+  "sourceIdentity": "ea485a60e2936c40c8a132931de433a97cb3cb3a84f460f74c539ab646dd97a3",
+  "actualResult": "CpfParameterService creates the precise unsupported-target IllegalArgumentException inside the same try block that catches every RuntimeException, so it immediately wraps that programming/configuration error as a generic value-conversion failure. Unsupported type validation must occur before parsing. Supported-type parse failures must retain the existing key/type conversion-failed wrapper; add a separate malformed Integer regression to prevent semantic collapse.",
+  "result": "DIAGNOSIS_COMPLETE",
+  "findingIds": ["CX-F-025"],
+  "sanitized": true
+}

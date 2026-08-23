@@ -1,0 +1,13 @@
+{
+  "track": "CX-05-F208-POWERSHELL-QUOTING-FIX-IDENTITY",
+  "timestamp": "2026-08-23T18:40:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "2cb0a6dfaf0dff9c263de7e6908961c3226d4af236fb865e070ed154bb5bd32b",
+    "sha1": "5e6124698e67eda824d7bad290e59e175007c7fe",
+    "files": 8287,
+    "bytes": 75217239
+  },
+  "change": "The Docker sh -lc command now uses PowerShell backtick escaping around the literal container-side MARIADB_ROOT_PASSWORD expansion.",
+  "next": "Rerun parser, then canonical synchronization and runtime tests."
+}

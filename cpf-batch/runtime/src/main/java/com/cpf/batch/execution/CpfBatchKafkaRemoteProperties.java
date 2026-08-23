@@ -3,6 +3,7 @@ package com.cpf.batch.execution;
 import java.time.Duration;
 import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("cpf.batch.remote.kafka")
 public record CpfBatchKafkaRemoteProperties(
@@ -38,6 +39,7 @@ public record CpfBatchKafkaRemoteProperties(
                 retryBackoffMillis,maxDeliveryAttempts,null,32,1000);
     }
 
+    @ConstructorBinding
     public CpfBatchKafkaRemoteProperties {
         requestTopic = blank(requestTopic) ? "cpf.batch.remote.requests.v2" : requestTopic.trim();
         replyTopicPrefix = blank(replyTopicPrefix) ? "cpf.batch.remote.replies.v2" : replyTopicPrefix.trim();

@@ -1,0 +1,9 @@
+{
+  "executionId": "CX-02-TYPED-DOMAIN-DEPENDENCY-TEST-RERUN1",
+  "timestamp": "2026-08-22T20:11:00+09:00",
+  "sourceIdentitySha256": "2f13c55698acc7b0cc50cfa096fc597cb3ac3ac1bcd4714d41f0ef837b13c1e5",
+  "status": "PASS",
+  "tests": {"executed": 18, "passed": 18, "failed": 0},
+  "coverage": "Generator setup/canonical source plus Root logical Gradle tree; exact member:online dependency and definition-derived composite group/root identity asserted.",
+  "remaining": "Regenerate Case B and execute exact MBR_SAMPLE_TX_DETAIL Java 25 compile"
+}

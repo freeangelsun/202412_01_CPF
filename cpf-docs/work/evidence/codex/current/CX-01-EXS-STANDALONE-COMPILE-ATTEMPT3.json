@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-EXS-STANDALONE-COMPILE-ATTEMPT3",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "SAMPLE-EXS", "OBSERVABILITY"],
+  "timestamp": {
+    "started": "2026-08-22T12:22:50.1334831+09:00",
+    "finished": "2026-08-22T12:23:12.7346229+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat -p .\\cpf-external --no-daemon :online:compileJava -PcpfProductCompositeRoot=C:\\dev\\projects\\jck\\202412_01_CPF",
+  "exitCode": 1,
+  "sourceIdentity": "baa3bddaa711ad9f4714e5dc3fd385af33aa2fccc9d25b7d3633320e7836e3ab",
+  "actualResult": "Standalone EXS compile passed the repaired runtime-control module and advanced to framework:operations:observability. LoggingAspect imports unresolved com.cpf.foundation.context.system.CpfCurrentChannels.",
+  "result": "FAIL",
+  "failureSummary": "New Product Source Java compilation finding CX-F-011; determine canonical channel-context API/package before modification.",
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-exs-standalone-compile-20260822-1223.log",
+    "sha256": "c1e1fc2f44f044571b1b8f331a854ce40c504c227fc91e82879025a9154231ea",
+    "bytes": 30410
+  },
+  "compilerErrors": [
+    "LoggingAspect.java:8 cannot find symbol com.cpf.foundation.context.system.CpfCurrentChannels"
+  ],
+  "findingIds": ["CX-F-005", "CX-F-006", "CX-F-009", "CX-F-010", "CX-F-011"],
+  "sanitized": true
+}

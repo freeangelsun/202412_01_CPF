@@ -1,0 +1,28 @@
+{
+  "finding": "CX-F-139",
+  "status": "PASS",
+  "startedAt": "2026-08-23T10:00:43.9663414+09:00",
+  "finishedAt": "2026-08-23T10:01:18.5291619+09:00",
+  "environment": {
+    "java": "25.0.3",
+    "databaseVendor": "postgresql",
+    "maxWorkers": 1,
+    "daemon": false,
+    "freshDomain": "cpf-f132consumer"
+  },
+  "result": {
+    "exitCode": 0,
+    "durationSeconds": 34,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "actionableTasks": 81,
+    "executedTasks": 8,
+    "upToDateTasks": 73,
+    "bootJarBytes": 78814194,
+    "bootJarSha256": "b9ede37c29e86e354e40836c13917277ed050190f3ef17467ab89f49cd89bc08"
+  },
+  "sourceIdentitySha256": "320328107fafb45a0b046f7ecb910c93664ed68aa6eab53439d8e07369960bc4",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F139-FRESH-JAVA25-RERUN1.log"
+}

@@ -17,7 +17,18 @@ $profileLogicalDatabases=@($platformModules | ForEach-Object { [string]$_.logica
 if(($logicalDatabases -join "`n") -cne ($profileLogicalDatabases -join "`n")){
  throw "Canonical schema/profile logical database drift. schema=$($logicalDatabases -join ',') profile=$($profileLogicalDatabases -join ',')"
 }
-$fileByDb=@{cpfDB='10_cpf_schema.sql';cmnDB='20_cmn_schema.sql';admDB='30_adm_schema.sql';batDB='35_bat_schema.sql';mbwDB='40_business_modules_schema.sql';refDB='40_business_modules_schema.sql'}
+$fileByDb=@{cpfDB='10_cpf_schema.sql';mbwDB='40_business_modules_schema.sql';referenceFixture='40_business_modules_schema.sql'}
+$retiredSplitSchemaFiles=@('20_cmn_schema.sql','30_adm_schema.sql')
+foreach($vendor in $vendors){
+ $vendorSourceRoot=[IO.Path]::GetFullPath((Join-Path $Root "cpf-tools/db/vendor/$vendor/source"))
+ foreach($retiredFile in $retiredSplitSchemaFiles){
+  $retiredPath=[IO.Path]::GetFullPath((Join-Path $vendorSourceRoot $retiredFile))
+  if(-not $retiredPath.StartsWith($vendorSourceRoot+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+   throw "Retired vendor Source cleanup escaped its owner root: $retiredPath"
+  }
+  if(Test-Path -LiteralPath $retiredPath -PathType Leaf){Remove-Item -LiteralPath $retiredPath -Force}
+ }
+}
 function W([string]$p,[string]$s){New-Item -ItemType Directory -Force -Path (Split-Path -Parent $p)|Out-Null;[IO.File]::WriteAllText($p,$s.TrimEnd()+"`n",[Text.UTF8Encoding]::new($false))}
 function Assert-DbIdentifier([string]$value,[string]$name){
  if($value -cnotmatch '^[A-Za-z][A-Za-z0-9_$#]{1,62}$'){throw "Invalid $name in canonical DB profile: $value"}
@@ -219,6 +230,97 @@ W (Join-Path $Root 'cpf-tools/db/vendor/oracle/source/00_provision.sql') ($oracl
 
 $tableCounts=@{}
 foreach($group in ($schema.tables | Group-Object logicalDatabase)){$tableCounts[$group.Name]=$group.Count}
+
+# Current product-seed verification is projected from the canonical seed model.
+# Arbitrary row-count minimums can both reject a correct Fresh install and pass
+# when a required business key is absent but an unrelated row happens to exist.
+function Split-CanonicalSeedProjection([string]$source,[char]$separator=','){
+ $parts=@();$start=0;$depth=0;$quote=[char]0
+ for($i=0;$i -lt $source.Length;$i++){
+  $character=$source[$i]
+  if($quote -ne [char]0){
+   if($character -eq $quote){if($i+1 -lt $source.Length -and $source[$i+1] -eq $quote){$i++}else{$quote=[char]0}}
+   continue
+  }
+  if($character -eq "'" -or $character -eq '"'){$quote=$character;continue}
+  if($character -eq '('){$depth++}
+  elseif($character -eq ')'){$depth--}
+  elseif($character -eq $separator -and $depth -eq 0){$parts+=$source.Substring($start,$i-$start).Trim();$start=$i+1}
+ }
+ $parts+=$source.Substring($start).Trim()
+ return $parts
+}
+function Get-CanonicalSeedValueRows([object]$statement){
+ $source=[string]$statement.source
+ if([string]$statement.sourceKind -eq 'select'){
+  $match=[regex]::Match($source,'(?is)^\s*SELECT\s+(?<projection>.*?)\s+WHERE\s+NOT\s+EXISTS\s*\(')
+  if(-not $match.Success){throw "Unsupported canonical product-seed SELECT projection: table=$($statement.currentTableName)"}
+  return @($match.Groups['projection'].Value.Trim())
+ }
+ if([string]$statement.sourceKind -cne 'values'){
+  throw "Unsupported canonical product-seed source kind: table=$($statement.currentTableName) kind=$($statement.sourceKind)"
+ }
+ $rows=@();$start=-1;$depth=0;$quote=[char]0
+ for($i=0;$i -lt $source.Length;$i++){
+  $character=$source[$i]
+  if($quote -ne [char]0){
+   if($character -eq $quote){if($i+1 -lt $source.Length -and $source[$i+1] -eq $quote){$i++}else{$quote=[char]0}}
+   continue
+  }
+  if($character -eq "'" -or $character -eq '"'){$quote=$character;continue}
+  if($character -eq '('){if($depth -eq 0){$start=$i+1};$depth++}
+  elseif($character -eq ')'){$depth--;if($depth -eq 0 -and $start -ge 0){$rows+=$source.Substring($start,$i-$start);$start=-1}}
+ }
+ if($depth -ne 0 -or $quote -ne [char]0){throw "Unbalanced canonical product-seed VALUES projection: table=$($statement.currentTableName)"}
+ return $rows
+}
+function Get-CanonicalProductSeedKeyContract([string]$tableName,[string[]]$keyColumns){
+ $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+ $predicates=[Collections.Generic.List[string]]::new()
+ $statements=@($seed.statements | Where-Object {
+  [bool]$_.productionDefault -and [string]$_.statementKind -ceq 'insert' -and [string]$_.currentTableName -ceq $tableName
+ })
+ if($statements.Count -eq 0){throw "Canonical production seed has no insert contract for $tableName"}
+ foreach($statement in $statements){
+  $columns=@($statement.columns)
+  foreach($row in @(Get-CanonicalSeedValueRows $statement)){
+   $values=@(Split-CanonicalSeedProjection $row)
+   if($values.Count -ne $columns.Count){throw "Canonical product-seed projection width mismatch: table=$tableName columns=$($columns.Count) values=$($values.Count)"}
+   $keyValues=@();$clauses=@()
+   foreach($keyColumn in $keyColumns){
+    if($keyColumn -cnotmatch '^[A-Za-z][A-Za-z0-9_]*$'){throw "Unsafe canonical product-seed key identifier: $tableName.$keyColumn"}
+    $columnIndex=[array]::IndexOf($columns,$keyColumn)
+    if($columnIndex -lt 0){throw "Canonical product-seed key is absent from projection: $tableName.$keyColumn"}
+    $keyValue=[string]$values[$columnIndex]
+    if($keyValue -cnotmatch "^'(?:''|[^'])*'$" -and $keyValue -cnotmatch '^-?[0-9]+$'){
+     throw "Canonical product-seed key must be a deterministic SQL literal: $tableName.$keyColumn=$keyValue"
+    }
+    $keyValues+=$keyValue
+    $clauses+="$keyColumn = $keyValue"
+   }
+   $signature=$keyValues -join ([char]0x1f)
+   if($seen.Add($signature)){$predicates.Add('('+($clauses -join ' AND ')+')')}
+  }
+ }
+ if($predicates.Count -eq 0){throw "Canonical product-seed business-key contract is empty: $tableName"}
+ return [pscustomobject]@{table=$tableName;count=$predicates.Count;predicate=($predicates -join ' OR ')}
+}
+$productSeedKeyColumns=[ordered]@{
+ CMN_CODE=@('code_key','code_value')
+ CMN_MESSAGE=@('message_code','locale')
+ CMN_RESPONSE_CODE=@('response_code')
+ CMN_PARAMETER=@('config_key')
+}
+$productSeedContracts=@{}
+foreach($tableName in $productSeedKeyColumns.Keys){
+ $productSeedContracts[$tableName]=Get-CanonicalProductSeedKeyContract $tableName @($productSeedKeyColumns[$tableName])
+}
+$mariaVerify=@(
+ '-- AUTO-GENERATED from CPF canonical schema/profile contracts'
+ '-- vendor=mariadb; each logical section executes in its profile-selected physical database.'
+ '-- DO NOT EDIT generated verify SQL directly.'
+ ''
+)
 $postgresVerify=@(
  '-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json'
  '-- vendor=postgresql; each logical section executes in its profile-selected schema.'
@@ -235,6 +337,42 @@ foreach($module in $platformModules){
  $db=[string]$module.logicalDatabase
  $systemCode=([string]$module.systemCode).ToUpperInvariant()
  $expected=[int]$tableCounts[$db]
+ $mariaVerify+=@(
+  "-- CPF_LOGICAL_DATABASE=$db"
+  "SELECT '$db.table_count' AS check_name,"
+  "       IF(COUNT(*) = $expected, 1, 0) AS passed"
+  'FROM information_schema.tables'
+  "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';"
+  ''
+  "SELECT '$db.table_engine_collation' AS check_name,"
+  '       IF(COUNT(*) = 0, 1, 0) AS passed'
+  'FROM information_schema.tables'
+  "WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'"
+  "  AND (UPPER(COALESCE(engine, '')) <> 'INNODB'"
+  "       OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');"
+  ''
+ )
+ $transactionColumns=@()
+ foreach($table in @($schema.tables|Where-Object{[string]$_.logicalDatabase -eq $db})){
+  foreach($column in @($table.columns|Where-Object{[string]$_.name -ieq 'transaction_id'})){
+   $type=[string]$column.type
+   if($type -cnotmatch '^(CHAR|VARCHAR)\((\d+)\)$'){throw "Unsupported canonical transaction_id type: $($table.name).$type"}
+   $transactionColumns+= [pscustomobject]@{table=([string]$table.name).ToUpperInvariant();dataType=$Matches[1].ToLowerInvariant();length=[int]$Matches[2]}
+  }
+ }
+ $mariaVerify+=@(
+  "SELECT '$db.runtime_transaction_id_contract' AS check_name,"
+  "       IF(COUNT(*) = $($transactionColumns.Count) AND COALESCE(SUM(CASE"
+ )
+ foreach($transactionColumn in $transactionColumns){
+  $mariaVerify+="           WHEN UPPER(table_name) = '$($transactionColumn.table)' AND LOWER(data_type) = '$($transactionColumn.dataType)' AND character_maximum_length = $($transactionColumn.length) THEN 1"
+ }
+ $mariaVerify+=@(
+  "           ELSE 0 END), 0) = $($transactionColumns.Count), 1, 0) AS passed"
+  'FROM information_schema.columns'
+  "WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';"
+  ''
+ )
  $postgresVerify+=@(
   "-- CPF_LOGICAL_DATABASE=$db"
   "SELECT '$db.table_count' AS check_name,"
@@ -251,33 +389,130 @@ foreach($module in $platformModules){
   ''
  )
  if($systemCode -eq 'CPF'){
+ $mariaVerify+=@(
+   "SELECT 'cpfDB.product_seed' AS check_name,"
+   '       IF('
+   "           (SELECT COUNT(*) FROM CMN_CODE WHERE $($productSeedContracts['CMN_CODE'].predicate)) = $($productSeedContracts['CMN_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_MESSAGE WHERE $($productSeedContracts['CMN_MESSAGE'].predicate)) = $($productSeedContracts['CMN_MESSAGE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_PARAMETER WHERE $($productSeedContracts['CMN_PARAMETER'].predicate)) = $($productSeedContracts['CMN_PARAMETER'].count),"
+   '           1, 0' 
+   '       ) AS passed;'
+   ''
+   "SELECT 'cpfDB.response_code_http_status' AS check_name,"
+   "       IF((SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   '          AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599), 1, 0) AS passed;'
+   ''
+   "SELECT 'cpfDB.admin_product_seed' AS check_name,"
+   '       IF('
+   "           (SELECT COUNT(*) FROM ADM_ROLE WHERE USE_YN = 'Y') >= 5"
+   "           AND (SELECT COUNT(*) FROM ADM_MENU WHERE USE_YN = 'Y') >= 30"
+   "           AND (SELECT COUNT(*) FROM ADM_API_PERMISSION WHERE USE_YN = 'Y') >= 10,"
+   '           1, 0'
+   '       ) AS passed;'
+   ''
+   "SELECT 'cpfDB.removed_stale_tables_absent' AS check_name,"
+   '       IF(COUNT(*) = 0, 1, 0) AS passed'
+   'FROM information_schema.tables'
+   "WHERE table_schema = DATABASE() AND LOWER(table_name) IN ('cpf_file_exchange_log','adm_operation_log');"
+   ''
+   "SELECT 'cpfDB.adm_operator_account_safety_columns' AS check_name,"
+   '       IF(COUNT(*) = 3, 1, 0) AS passed'
+   'FROM information_schema.columns'
+   "WHERE table_schema = DATABASE() AND UPPER(table_name) = 'ADM_OPERATOR'"
+   "  AND UPPER(column_name) IN ('ACCOUNT_STATUS','VERSION_NO','CREATE_OPERATION_ID');"
+   ''
+   "SELECT 'cpfDB.adm_contact_ownership' AS check_name,"
+   '       IF('
+   "         (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND UPPER(column_name) IN ('MOBILE_NO','OFFICE_PHONE_NO')) = 0"
+   '         AND'
+   "         (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR_PROFILE' AND UPPER(column_name) IN ('MOBILE_NO','OFFICE_PHONE_NO')) = 2,"
+   '         1, 0'
+   '       ) AS passed;'
+   ''
+   "SELECT 'cpfDB.adm_operator_status_constraint' AS check_name,"
+   '       IF(COUNT(*) = 1, 1, 0) AS passed'
+   'FROM information_schema.table_constraints'
+   "WHERE table_schema=DATABASE() AND UPPER(table_name)='ADM_OPERATOR' AND constraint_name='ck_adm_operator_status';"
+   ''
+  )
   $postgresVerify+=@(
    "SELECT 'cpfDB.product_seed' AS check_name,"
    '       CASE WHEN'
-   '           (SELECT COUNT(*) FROM cpf_code) >= 100'
-   '           AND (SELECT COUNT(*) FROM cpf_message) >= 40'
-   '           AND (SELECT COUNT(*) FROM cpf_response_code) >= 40'
-   '           AND (SELECT COUNT(*) FROM cpf_config) >= 20'
+   "           (SELECT COUNT(*) FROM CMN_CODE WHERE $($productSeedContracts['CMN_CODE'].predicate)) = $($productSeedContracts['CMN_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_MESSAGE WHERE $($productSeedContracts['CMN_MESSAGE'].predicate)) = $($productSeedContracts['CMN_MESSAGE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_PARAMETER WHERE $($productSeedContracts['CMN_PARAMETER'].predicate)) = $($productSeedContracts['CMN_PARAMETER'].count)"
+   '       THEN 1 ELSE 0 END AS passed;'
+   ''
+   "SELECT 'cpfDB.response_code_http_status' AS check_name,"
+   "       CASE WHEN (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   '                 AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599)'
    '       THEN 1 ELSE 0 END AS passed;'
    ''
   )
   $oracleVerify+=@(
    "SELECT 'cpfDB.product_seed' AS check_name,"
    '       CASE WHEN'
-   '           (SELECT COUNT(*) FROM cpf_code) >= 100'
-   '           AND (SELECT COUNT(*) FROM cpf_message) >= 40'
-   '           AND (SELECT COUNT(*) FROM cpf_response_code) >= 40'
-   '           AND (SELECT COUNT(*) FROM cpf_config) >= 20'
+   "           (SELECT COUNT(*) FROM CMN_CODE WHERE $($productSeedContracts['CMN_CODE'].predicate)) = $($productSeedContracts['CMN_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_MESSAGE WHERE $($productSeedContracts['CMN_MESSAGE'].predicate)) = $($productSeedContracts['CMN_MESSAGE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   "           AND (SELECT COUNT(*) FROM CMN_PARAMETER WHERE $($productSeedContracts['CMN_PARAMETER'].predicate)) = $($productSeedContracts['CMN_PARAMETER'].count)"
+   '       THEN 1 ELSE 0 END AS passed FROM dual;'
+   ''
+   "SELECT 'cpfDB.response_code_http_status' AS check_name,"
+   "       CASE WHEN (SELECT COUNT(*) FROM CMN_RESPONSE_CODE WHERE $($productSeedContracts['CMN_RESPONSE_CODE'].predicate)) = $($productSeedContracts['CMN_RESPONSE_CODE'].count)"
+   '                 AND NOT EXISTS (SELECT 1 FROM CMN_RESPONSE_CODE WHERE http_status NOT BETWEEN 100 AND 599)'
    '       THEN 1 ELSE 0 END AS passed FROM dual;'
    ''
   )
  }
  if($systemCode -eq 'MBW'){
+  $mariaVerify+=@(
+   "SELECT 'mbwDB.product_seed' AS check_name,"
+   '       IF('
+   "           (SELECT COUNT(*) FROM MBW_ROLE WHERE use_yn = 'Y') >= 4"
+   "           AND (SELECT COUNT(*) FROM MBW_MENU WHERE use_yn = 'Y') >= 8"
+   "           AND (SELECT COUNT(*) FROM MBW_PERMISSION WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8,"
+   '           1, 0'
+   '       ) AS passed;'
+   ''
+   "SELECT 'mbwDB.removed_stale_tables_absent' AS check_name,"
+   '       IF(COUNT(*) = 0, 1, 0) AS passed'
+   'FROM information_schema.tables'
+   "WHERE table_schema = DATABASE() AND LOWER(table_name) IN ('mbw_customer','mbw_product','mbw_order','mbw_masking_audit');"
+   ''
+   "SELECT 'mbwDB.admin_user_account_safety_columns' AS check_name,"
+   '       IF(COUNT(*) = 3, 1, 0) AS passed'
+   'FROM information_schema.columns'
+   "WHERE table_schema=DATABASE() AND UPPER(table_name)='MBW_ADMIN_USER'"
+   "  AND UPPER(column_name) IN ('ACCOUNT_STATUS','VERSION_NO','CREATE_OPERATION_ID');"
+   ''
+   "SELECT 'mbwDB.employee_status_default' AS check_name,"
+   "       IF(MAX(UPPER(REPLACE(COALESCE(column_default,''), CHAR(39), ''))) = 'EMPLOYED', 1, 0) AS passed"
+   'FROM information_schema.columns'
+   "WHERE table_schema=DATABASE() AND UPPER(table_name)='MBW_EMPLOYEE' AND LOWER(column_name)='employment_status';"
+   ''
+   "SELECT 'mbwDB.status_constraints' AS check_name,"
+   '       IF(COUNT(*) = 2, 1, 0) AS passed'
+   'FROM information_schema.table_constraints'
+   "WHERE table_schema=DATABASE() AND ((UPPER(table_name)='MBW_ADMIN_USER' AND constraint_name='ck_mbw_admin_user_status')"
+   "   OR (UPPER(table_name)='MBW_EMPLOYEE' AND constraint_name='ck_mbw_employee_status'));"
+   ''
+   "SELECT 'mbwDB.login_operation_contract' AS check_name,"
+   '       IF('
+   "         (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND UPPER(table_name)='MBW_LOGIN_OPERATION' AND table_type='BASE TABLE') = 1"
+   '         AND'
+   "         (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND UPPER(table_name)='MBW_REFRESH_TOKEN' AND LOWER(column_name)='login_operation_id') = 1,"
+   '         1, 0'
+   '       ) AS passed;'
+   ''
+  )
   $postgresVerify+=@(
    "SELECT 'mbwDB.product_seed' AS check_name,"
    '       CASE WHEN'
-   "           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4"
-   "           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8"
+   "           (SELECT COUNT(*) FROM MBW_ROLE WHERE use_yn = 'Y') >= 4"
+   "           AND (SELECT COUNT(*) FROM MBW_MENU WHERE use_yn = 'Y') >= 8"
    "           AND (SELECT COUNT(*) FROM mbw_permission WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
    '       THEN 1 ELSE 0 END AS passed;'
    ''
@@ -285,23 +520,26 @@ foreach($module in $platformModules){
   $oracleVerify+=@(
    "SELECT 'mbwDB.product_seed' AS check_name,"
    '       CASE WHEN'
-   "           (SELECT COUNT(*) FROM bza_role WHERE use_yn = 'Y') >= 4"
-   "           AND (SELECT COUNT(*) FROM bza_menu WHERE use_yn = 'Y') >= 8"
+   "           (SELECT COUNT(*) FROM MBW_ROLE WHERE use_yn = 'Y') >= 4"
+   "           AND (SELECT COUNT(*) FROM MBW_MENU WHERE use_yn = 'Y') >= 8"
    "           AND (SELECT COUNT(*) FROM mbw_permission WHERE role_code = 'MBW_ADMIN' AND allow_yn = 'Y' AND use_yn = 'Y') >= 8"
    '       THEN 1 ELSE 0 END AS passed FROM dual;'
    ''
   )
  }
 }
+W (Join-Path $Root 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql') ($mariaVerify -join "`n")
 W (Join-Path $Root 'cpf-tools/db/vendor/postgresql/source/00_verify.sql') ($postgresVerify -join "`n")
 W (Join-Path $Root 'cpf-tools/db/vendor/oracle/source/00_verify.sql') ($oracleVerify -join "`n")
 function Type-For([string]$v,[string]$t){
  $u=$t.ToUpperInvariant()
  if($v -eq 'mariadb'){$u=$u -replace '^CLOB$','MEDIUMTEXT' -replace '^BYTEA$','LONGBLOB';return $u}
  if($v -eq 'postgresql'){
+  if($u -match '^VARBINARY\(\d+\)$'){return 'BYTEA'}
   $u=$u -replace '^DATETIME','TIMESTAMP' -replace '^TINYINT','SMALLINT' -replace '^INT$','INTEGER' -replace '^LONGTEXT$','TEXT' -replace '^MEDIUMTEXT$','TEXT' -replace '^LONGBLOB$','BYTEA' -replace '^BLOB$','BYTEA' -replace '^CLOB$','TEXT'
   return $u
  }
+ if($u -match '^VARBINARY\((\d+)\)$'){return "RAW($($Matches[1]))"}
  if($u -match '^VARCHAR\((\d+)\)$'){return "VARCHAR2($($Matches[1]) CHAR)"}
  if($u -match '^CHAR\((\d+)\)$'){return "CHAR($($Matches[1]) CHAR)"}
  if($u -match '^BIGINT$'){return 'NUMBER(19)'}; if($u -match '^INT$'){return 'NUMBER(10)'}; if($u -match '^TINYINT$'){return 'NUMBER(3)'}
@@ -347,11 +585,11 @@ function Render-Table([string]$v,$t){
   $lines+='    CONSTRAINT '+$c.name+' CHECK ('+(Check-For $v $checkExpression)+')'
  }
  foreach($f in $t.foreignKeys){$line='    CONSTRAINT '+$f.name+' FOREIGN KEY ('+($f.columns -join ', ')+') REFERENCES '+$f.refTable+' ('+($f.refColumns -join ', ')+')';if($f.onDelete){$line+=' ON DELETE '+$f.onDelete};$lines+=$line}
- if($v -eq 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$lines+='    '+$(if($isUnique){'UNIQUE '}else{''})+'INDEX '+$i.name+' ('+($i.columns -join ', ')+')'}}
+ if($v -eq 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$indexColumns=@($i.columns);if($null -ne $i.PSObject.Properties['vendorColumns'] -and $null -ne $i.vendorColumns.PSObject.Properties[$v]){$indexColumns=@($i.vendorColumns.PSObject.Properties[$v].Value)};$lines+='    '+$(if($isUnique){'UNIQUE '}else{''})+'INDEX '+$i.name+' ('+($indexColumns -join ', ')+')'}}
  $createPrefix=if($v -eq 'mariadb'){'CREATE TABLE IF NOT EXISTS '}else{'CREATE TABLE '}
  $createSuffix=if($v -eq 'mariadb'){"`n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"+$(if($t.comment){" COMMENT='$(Q ([string]$t.comment))'"}else{''})+";`n"}else{"`n);`n"}
  $out=$createPrefix+$t.name+" (`n"+($lines -join ",`n")+$createSuffix
- if($v -ne 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$portableColumns=@($i.columns | ForEach-Object { [regex]::Replace([string]$_,'\(\d+\)$','') });$out+='CREATE '+($(if($isUnique){'UNIQUE '}else{''}))+'INDEX '+$i.name+' ON '+$t.name+' ('+($portableColumns -join ', ')+");`n"}}
+ if($v -ne 'mariadb'){foreach($i in $t.indexes){$isUnique=$null -ne $i.PSObject.Properties['unique'] -and [bool]$i.unique;$indexColumns=@($i.columns);if($null -ne $i.PSObject.Properties['vendorColumns'] -and $null -ne $i.vendorColumns.PSObject.Properties[$v]){$indexColumns=@($i.vendorColumns.PSObject.Properties[$v].Value)};$out+='CREATE '+($(if($isUnique){'UNIQUE '}else{''}))+'INDEX '+$i.name+' ON '+$t.name+' ('+($indexColumns -join ', ')+");`n"}}
  if($v -ne 'mariadb'){
   if($t.comment){$out+="COMMENT ON TABLE $($t.name) IS '$(Q $t.comment)';`n"}
   foreach($c in $t.columns){if($c.comment){$out+="COMMENT ON COLUMN $($t.name).$($c.name) IS '$(Q $c.comment)';`n"}}
@@ -362,10 +600,11 @@ function Render-Table([string]$v,$t){
  }
  return $out
 }
+$sourceSchemaFiles=@($fileByDb.Values | Sort-Object -Unique)
 foreach($v in $vendors){
- $bucket=@{}; foreach($db in $fileByDb.Keys){$bucket[$fileByDb[$db]]=@()}
- foreach($db in $fileByDb.Keys){$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
- foreach($f in $bucket.Keys){if($bucket[$f].Count -gt 0){W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$f") ($bucket[$f] -join "`n")}}
+ $bucket=[ordered]@{}; foreach($sourceFile in $sourceSchemaFiles){$bucket[$sourceFile]=@()}
+ foreach($db in $logicalDatabases){$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
+ foreach($sourceFile in $sourceSchemaFiles){if($bucket[$sourceFile].Count -gt 0){W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$sourceFile") ($bucket[$sourceFile] -join "`n")}}
 }
 # Seed model is canonical too. Rendering is delegated to the dedicated function below so generated SQL never copies another vendor pack.
 function Convert-Expr([string]$v,[string]$x){

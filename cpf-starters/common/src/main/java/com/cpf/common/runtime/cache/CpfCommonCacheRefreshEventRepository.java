@@ -14,7 +14,7 @@ import java.util.Map;
 
 /** CMN_CACHE_REFRESH_EVENT/CHECKPOINT의 CPF Data JDBC repository입니다. */
 @Repository
-public final class CpfCommonCacheRefreshEventRepository {
+public class CpfCommonCacheRefreshEventRepository {
     private final JdbcTemplate jdbc;
 
     public CpfCommonCacheRefreshEventRepository(@Qualifier("cpfCommonJdbcTemplate") JdbcTemplate cpfCommonJdbcTemplate) {

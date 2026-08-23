@@ -1,7 +1,9 @@
 package com.cpf.common.runtime.cache;
 
 import com.cpf.foundation.runtime.CpfInstanceIdentity;
+import com.cpf.common.spi.CpfCommonPersistenceNames;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ public class CpfCommonCacheRefreshListener {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    public CpfCommonCacheRefreshListener(CpfCommonCacheRefreshEventRepository repository, CpfCommonCacheRefresher refresher, Clock clock) {
+    public CpfCommonCacheRefreshListener(CpfCommonCacheRefreshEventRepository repository, CpfCommonCacheRefresher refresher, @Qualifier(CpfCommonPersistenceNames.CLOCK_BEAN) Clock clock) {
         this.repository = repository;
         this.refresher = refresher;
         this.clock = java.util.Objects.requireNonNull(clock, "clock");

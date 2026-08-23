@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-SOURCES-JAR-CANONICAL-RESOURCE-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T22:10:56.0331867+09:00",
+  "sourceIdentity": {
+    "contentSha1": "bdfb0b6ce9e92716c61c73ba86367ef68c68667a",
+    "contentSha256": "7026cb41d8d14dd3ede3c6b9670243dfe45b6d2b59c2a73ef8ab80cc479b994a",
+    "fileCount": 8228,
+    "totalBytes": 75794881
+  },
+  "status": "SOURCE_FIXED",
+  "finding": "CX-F-107",
+  "rootCause": "Management-capable modules expose both the legacy static descriptor and catalog-generated descriptor through main resources. sourcesJar correctly failed rather than silently choosing one.",
+  "changes": [
+    "Exclude only the exact legacy static runtime-capability descriptor from build inputs.",
+    "Retain catalog-generated metadata as the single resource and source-archive input.",
+    "Set both processResources and sourcesJar duplicate handling to FAIL.",
+    "Add an exact regression that forbids the prior broad EXCLUDE strategy."
+  ],
+  "verificationPending": ["targeted regression", "actual Java 25 public publication", "archive content inspection"]
+}

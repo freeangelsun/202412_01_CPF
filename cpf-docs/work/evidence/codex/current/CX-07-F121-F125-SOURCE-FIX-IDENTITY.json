@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-07-F121-F125-SOURCE-FIX-IDENTITY",
+  "startedAt": "2026-08-23T00:48:00+09:00",
+  "finishedAt": "2026-08-23T00:51:47.3138924+09:00",
+  "sourceIdentitySha256": "f735c0ed1fe472a9147990bf3c880f8c6d8992b4b5bff6cc7524cb4edf6170dd",
+  "sourceIdentitySha1": "9d72ca109a211679410330dc7aea086da596a646",
+  "fileCount": 8215,
+  "totalBytes": 75807714,
+  "result": "SOURCE_FIXED",
+  "findings": ["CX-F-121", "CX-F-122", "CX-F-123", "CX-F-124", "CX-F-125"],
+  "changes": {
+    "CX-F-121": [
+      "EDU explicitly selects cpf-starter-common.",
+      "Batch examples consume BatchStepHandler.Status.",
+      "Cache and Fixed-Length examples consume payload() and fields()."
+    ],
+    "CX-F-122": [
+      "Control Plane directly declares framework:web for CpfHttpHeaders.",
+      "Scheduler directly declares Runtime Control and uses shiftBusinessDay.",
+      "Worker directly declares Runtime Control, Kafka Starter and Jackson."
+    ],
+    "CX-F-123": [
+      "Email/SMS wiring imports Public notification SPI/API owners.",
+      "Five exact consumer-zero duplicate SMS legacy files were removed per the saved manifest; canonical SMS package/resource/test remains."
+    ],
+    "CX-F-124": [
+      "Both maintained Context fixtures now state System and Channel lineage explicitly through the canonical constructor."
+    ],
+    "CX-F-125": [
+      "Agent declares direct Mockito test ownership.",
+      "Installer validation tests exercise public install fail-closed behavior instead of removed internal helpers."
+    ]
+  },
+  "legacyActiveConsumerScan": "PASS for retired Notification API imports, BatchStepResult.Status, EDU cache value(), and Fixed-Length values().",
+  "next": "Rerun the same nine Java25 compile targets before moving any finding to VERIFICATION_PENDING."
+}

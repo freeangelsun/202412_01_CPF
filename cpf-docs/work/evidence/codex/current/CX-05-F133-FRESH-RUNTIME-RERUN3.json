@@ -1,0 +1,19 @@
+{
+  "executedAt": "2026-08-23T03:34:20+09:00",
+  "sourceIdentitySha256": "eee6d9bbe1e60d5b8db02f4bcd6a8ea3850663328ce66f1f6159747c186fd458",
+  "bootJarSha256": "5aa60e33008a4a6020e9ed3d8867d4b000c8776a9df89b5fde613dfba0287c09",
+  "database": {
+    "container": "cpf-codex-f132-postgres",
+    "image": "postgres:18.4-trixie",
+    "endpoint": "127.0.0.1:15432/f132db",
+    "health": "healthy"
+  },
+  "exitCode": 1,
+  "originalJdbcDriverFailurePresent": false,
+  "hikariStarted": false,
+  "managedLoggingReady": false,
+  "actualFailure": "CpfServerSessionSecurityAutoConfiguration activated in a resource-server Generated Domain and required CPF_BFF_CREDENTIAL_KEY before DataSource/controller startup",
+  "diagnosis": "The attempted CPF_BFF_CREDENTIAL_KEY environment name is not the Spring binding name of CpfServerSessionProperties. More importantly, the resource-server profile did not select the optional browser-session provider; dependency ownership must be traced instead of bypassing the boundary with a session secret.",
+  "console": "cpf-docs/work/evidence/codex/current/runtime/F133-FRESH-RUNTIME-RERUN3/console.log",
+  "result": "FAIL_INDEPENDENT_BOUNDARY"
+}

@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-08-23T11:20:00+09:00",
+  "findingId": "CX-F-145",
+  "sourceDocument": "C:/Users/fly10/Downloads/CPF_CODEX_GENERATOR_IMMUTABLE_MIGRATION_BZA_RETIREMENT_STEERING_REV2_FINAL_20260823.md",
+  "sha256": "28c029e675e72bba20970f9ad22266c3af2c26b36b6a47a54055c7d918cfcda2",
+  "bytes": 18797,
+  "lines": 906,
+  "classification": "User-approved acceptance and repair steering; not evidence that current Product already satisfies it",
+  "supersedes": "CPF_CODEX_GENERATOR_IMMUTABLE_MIGRATION_BZA_RETIREMENT_STEERING_FINAL_20260823.md",
+  "bindingInterpretation": [
+    "Only already-applied versioned migrations and versioned rollbacks retain historical BZA identifiers as immutable history.",
+    "The exact 21 files overwritten by this session are authorized for limited restoration to the proven pre-execution normal content; unrelated Working Tree changes remain protected.",
+    "Current Source, config, generator, catalog, tests and canonical docs must describe only Current Backoffice/MBW and must not retain active retired BZA/cpf-biz-admin behavior without an actual consumer.",
+    "Existing history mismatch must fail as IMMUTABLE_MIGRATION_CONFLICT; checksum rewrite, Flyway repair, baseline change and broad replacement are prohibited.",
+    "V133 remains the append-only historical BZA-to-MBW transition owner; V134 is registered only as its actual independent new change, never to legalize the 21 overwritten predecessors."
+  ],
+  "executionOrder": "exact recovery -> generator root cause/guard -> repeat/conflict -> valid checksum append -> active-retired inventory/cleanup -> DB3/runtime -> canonical currentization"
+}

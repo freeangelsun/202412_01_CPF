@@ -36,7 +36,7 @@ class BackofficeOperationServiceTest {
     @Test
     void createAdminUserStartsPendingWithoutRoleAndDoesNotExposePasswordHash() {
         when(repository.findAdminUser("operator01")).thenReturn(Optional.empty());
-        when(passwordHashingPort.hash(org.mockito.ArgumentMatchers.any(char[].class)))
+        when(passwordHashingPort.encode(org.mockito.ArgumentMatchers.any(char[].class)))
                 .thenReturn("{cpf-pbkdf2-sha256-v1}encoded");
         when(repository.insertAdminUser(any())).thenReturn(1);
         var request = new BackofficeOperationService.AdminUserRequest(

@@ -15,9 +15,9 @@
 | 7 | `@CpfTimeLimiter` | `cpf-integration-runtime` | 외부 연계 deadline/timeout | `cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java` |
 | 8 | `@CpfRetry` | `cpf-integration-runtime` | 정책 기반 bounded retry | `cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java` |
 | 9 | `CpfContexts.transactionId` | `framework/runtime` | 현재 CPF 거래 Context 조회 | `cpf-core/src/main/java/com/cpf/core/api/context/CpfContexts.java` |
-| 10 | `CpfCodeService.required` | `cpf-starter-common` | 공통 코드 필수 조회 | `cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java` |
-| 11 | `CpfMessageSource.resolve` | `cpf-starter-common` | 표준 메시지 조회 | `cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java` |
-| 12 | `CpfParameterService.requiredValue` | `cpf-starter-common` | 운영 파라미터 조회 | `cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java` |
+| 10 | `CpfCodeService.required` | `framework/runtime` | 공통 코드 필수 조회 | `cpf-common/src/main/java/com/cpf/common/code/api/CpfCodeService.java` |
+| 11 | `CpfMessageSource.resolve` | `framework/runtime` | 표준 메시지 조회 | `cpf-common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java` |
+| 12 | `CpfParameterService.requiredValue` | `framework/runtime` | 운영 파라미터 조회 | `cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java` |
 | 13 | `CpfCalendarService.nextBusinessDay` | `framework/runtime` | 영업일 계산 | `cpf-common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java` |
 | 14 | `@CpfIdempotent` | `cpf-base-runtime` | 중복 side effect 방지 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotent.java` |
 | 15 | `@CpfLogging` | `cpf-base-runtime` | 업무/운영 로그 표준화 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfLogging.java` |
@@ -40,9 +40,9 @@
 | 7 | golden | `@CpfTimeLimiter` | `cpf-integration-runtime` | 외부 연계 deadline/timeout | `cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfTimeLimiter.java` |
 | 8 | golden | `@CpfRetry` | `cpf-integration-runtime` | 정책 기반 bounded retry | `cpf-starters/integration/src/main/java/com/cpf/integration/api/annotation/CpfRetry.java` |
 | 9 | golden | `CpfContexts.transactionId` | `framework/runtime` | 현재 CPF 거래 Context 조회 | `cpf-core/src/main/java/com/cpf/core/api/context/CpfContexts.java` |
-| 10 | golden | `CpfCodeService.required` | `cpf-starter-common` | 공통 코드 필수 조회 | `cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java` |
-| 11 | golden | `CpfMessageSource.resolve` | `cpf-starter-common` | 표준 메시지 조회 | `cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java` |
-| 12 | golden | `CpfParameterService.requiredValue` | `cpf-starter-common` | 운영 파라미터 조회 | `cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java` |
+| 10 | golden | `CpfCodeService.required` | `framework/runtime` | 공통 코드 필수 조회 | `cpf-common/src/main/java/com/cpf/common/code/api/CpfCodeService.java` |
+| 11 | golden | `CpfMessageSource.resolve` | `framework/runtime` | 표준 메시지 조회 | `cpf-common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java` |
+| 12 | golden | `CpfParameterService.requiredValue` | `framework/runtime` | 운영 파라미터 조회 | `cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java` |
 | 13 | golden | `CpfCalendarService.nextBusinessDay` | `framework/runtime` | 영업일 계산 | `cpf-common/src/main/java/com/cpf/common/calendar/api/CpfCalendarService.java` |
 | 14 | golden | `@CpfIdempotent` | `cpf-base-runtime` | 중복 side effect 방지 | `cpf-starters/base/runtime/src/main/java/com/cpf/reliability/api/CpfIdempotent.java` |
 | 15 | golden | `@CpfLogging` | `cpf-base-runtime` | 업무/운영 로그 표준화 | `cpf-starters/base/runtime/src/main/java/com/cpf/foundation/annotation/CpfLogging.java` |

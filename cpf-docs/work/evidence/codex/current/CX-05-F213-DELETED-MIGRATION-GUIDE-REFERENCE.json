@@ -1,0 +1,10 @@
+{
+  "evidenceId": "CX-05-F213-DELETED-MIGRATION-GUIDE-REFERENCE",
+  "finding": "CX-F-213",
+  "recordedAt": "2026-08-23T19:44:00+09:00",
+  "sourceIdentitySha256": "663832ff1364995ee9f53820a40e0511573ba8a2088f9bfb206925b951eca3ad",
+  "passedBeforeFailure": "Complete 3-vendor migration plans, historical REF/BAT resolution, Maria routing, confirmation and plan-hash fail-closed cases",
+  "actualError": "Expected guide does not exist: cpf-docs/releases/MIGRATION_GUIDE.md",
+  "decision": "Do not recreate a duplicate releases guide. Absorb the current command and safety contract into cpf-docs/development/CPF_DEVELOPER_GOLDEN_PATH.md and point the verifier to that single user-facing authority.",
+  "status": "IN_PROGRESS"
+}

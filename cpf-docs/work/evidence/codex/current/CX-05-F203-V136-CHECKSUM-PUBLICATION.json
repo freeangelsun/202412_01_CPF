@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-08-23T18:28:00+09:00",
+  "findingId": "CX-F-203",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": {
+    "sha256": "fb1b84a895ecadc345e4af85307ba9aacd7993675d45f5c4bf5d83824e1d2a25",
+    "sha1": "5336d5a7009c23c8518ebd833a90e096d5190e92",
+    "files": 8286,
+    "bytes": 75210068
+  },
+  "result": "PASS_CHECKSUM_PUBLICATION",
+  "verified": [
+    "V136 structural migration tests 2/2 PASS",
+    "Canonical Seed/runtime permission identity tests 8/8 PASS",
+    "MariaDB V136 checksum appended once",
+    "PostgreSQL mbwDB V136 checksum appended once",
+    "Oracle mbwDB V136 checksum appended once",
+    "Every V135 and earlier checksum entry unchanged"
+  ],
+  "next": "Regenerate every maintained current schema, Seed, runtime query, install, verify, and lifecycle aggregate through official owners.",
+  "falseGreen": false
+}

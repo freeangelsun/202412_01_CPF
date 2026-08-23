@@ -1,0 +1,25 @@
+{
+  "executionId": "CX-02-FRESH-D-SETUP",
+  "finishedAt": "2026-08-22T20:43:30+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS",
+  "case": "D",
+  "domain": "cxdelta",
+  "systemCode": "QAD",
+  "preview": "PASS",
+  "setup": "GENERATED",
+  "topology": {
+    "online": true,
+    "batch": false
+  },
+  "businessFeatures": ["orders", "settlement"],
+  "capabilities": {
+    "persistence": "none",
+    "httpClient": false,
+    "resilience": false,
+    "sampleTransaction": false
+  },
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "next": "Full lifecycle, user-source preservation and Java 25 compile"
+}

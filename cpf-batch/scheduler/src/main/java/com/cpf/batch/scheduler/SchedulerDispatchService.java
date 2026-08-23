@@ -154,7 +154,7 @@ public class SchedulerDispatchService {
         }
         if (businessDayOnly && !calendar.isBusinessDay(calendarId, businessDate)) {
             if ("NEXT_BUSINESS_DAY".equalsIgnoreCase(Objects.toString(row.get("holiday_policy"), "SKIP"))) {
-                businessDate = calendar.nextBusinessDay(calendarId, businessDate, 1);
+                businessDate = calendar.shiftBusinessDay(calendarId, businessDate, 1);
             } else {
                 advance(row, fireAt, lease);
                 return;
@@ -243,7 +243,7 @@ public class SchedulerDispatchService {
             batchContext = batchContexts.newSchedulerRoot(
                     jobId, scheduleId, businessDate, jobId,
                     scheduleId + ":" + scheduledAt.toInstant(), fireAt.toInstant());
-            try (AutoCloseable ignored = CpfContexts.bind(batchContext.snapshot())) {
+            CpfContexts.run(batchContext.snapshot(), () -> {
                 BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(
                         new BatchApprovedLaunchRequestResolver.TriggerContext(
                                 scheduleId,
@@ -264,15 +264,15 @@ public class SchedulerDispatchService {
                 if (changed != 1) {
                     throw new IllegalStateException("SCHEDULER_DISPATCH_FENCED_AFTER_START");
                 }
-            }
+            });
         } catch (RuntimeException failure) {
             if (batchContext != null) {
                 String unknownId = "BATCH-UNKNOWN-" + java.util.UUID.randomUUID();
                 CpfBatchContextBundle recovery = batchContexts.unknown(batchContext, unknownId,
                         "SCHEDULER_RECONCILE", batchContext.snapshot().execution().attempt() + 1);
-                try (AutoCloseable ignored = CpfContexts.bind(recovery.snapshot())) {
+                CpfContexts.run(recovery.snapshot(), () -> {
                     markUnknownOrFail(failure, scheduleId, scheduledAt, lease);
-                }
+                });
             } else {
                 markUnknownOrFail(failure, scheduleId, scheduledAt, lease);
             }

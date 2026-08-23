@@ -6,10 +6,14 @@ dependencies {
     implementation project(':runtime:batch:api')
     implementation project(':runtime:batch:runtime-support')
     implementation project(':framework:core')
+    implementation project(':internal:platform-operations:runtime-control')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${rootProject.ext.cpfSpringdocVersion}"
     testImplementation project(':runtime:batch:testkit')
+    testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('bootJar') { archiveFileName = "cpf-batch-agent-${project.version}.jar" }
 tasks.named('test') { useJUnitPlatform() }

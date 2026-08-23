@@ -1,5 +1,6 @@
 package com.cpf.platform.operations.runtimecontrol;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
 
@@ -40,11 +41,31 @@ public record CpfRuntimeInstanceRegistration(
         int leaseSeconds) {
 
     public CpfRuntimeInstanceRegistration {
+        baseUrl = requiredHttpUrl(baseUrl);
         capabilities = capabilities == null ? Map.of() : Map.copyOf(capabilities);
         labels = labels == null ? Map.of() : Map.copyOf(labels);
         startedAt = startedAt == null ? Instant.now() : startedAt;
         agentTime = agentTime == null ? Instant.now() : agentTime;
         leaseSeconds = Math.max(10, Math.min(3600, leaseSeconds <= 0 ? 60 : leaseSeconds));
+    }
+
+    private static String requiredHttpUrl(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Runtime instance baseUrl is required");
+        }
+        try {
+            String normalized = value.trim();
+            URI uri = URI.create(normalized);
+            String scheme = uri.getScheme();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || uri.getHost() == null || uri.getUserInfo() != null || uri.getFragment() != null) {
+                throw new IllegalArgumentException("invalid");
+            }
+            return normalized;
+        } catch (RuntimeException failure) {
+            throw new IllegalArgumentException(
+                    "Runtime instance baseUrl must be an http(s) URI without credentials or fragment");
+        }
     }
 
     /** 기존 Runtime Agent 생성 코드 호환입니다. */

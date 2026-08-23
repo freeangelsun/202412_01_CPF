@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "vendor": "mariadb",
+  "runId": "f36c00d2ad6c",
+  "sourceSha": "0c3febbb51020e2a652045ae49a846499543ac62",
+  "status": "FAIL",
+  "stages": [
+    {
+      "stage": "FreshInstall",
+      "status": "PASS",
+      "planSha256": "2af8c38ed418ca4aa89b2fcb4a14d50ce9c0128fa14c357fb2400f5d7f0ef2da"
+    }
+  ],
+  "profile": "database-install.mariadb.f36c00d2ad6c.json",
+  "migrationSelection": {
+    "selectionMode": "CHECKSUM_MANIFEST_CURRENT_EDGE",
+    "version": 135,
+    "vendorEdges": {
+      "mariadb": 135,
+      "postgresql": 135,
+      "oracle": 135
+    }
+  },
+  "sanitized": true,
+  "startedAt": "2026-08-23T06:12:07.2536782+00:00",
+  "error": "선택된 Module logicalDatabase가 비어 있거나 중복되었습니다: module=common",
+  "cleanup": "PASS",
+  "finishedAt": "2026-08-23T06:12:26.7750321+00:00"
+}

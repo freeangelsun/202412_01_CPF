@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-137",
+  "status": "PASS_TARGETED_VERIFICATION_PENDING_RUNTIME",
+  "sourceIdentitySha256": "c656a8156da65f11c2cad69acd580a08b4dd80fe004712cc0084e607d63766c8",
+  "java": "25.0.3",
+  "tests": {"executed": 4, "failed": 0, "errors": 0, "skipped": 0},
+  "gradle": {"exitCode": 0, "result": "BUILD SUCCESSFUL in 21s", "maxWorkers": 1},
+  "covered": [
+    "real Mapper XML parsing",
+    "explicit Generated Domain DataSource and SqlSessionFactory ownership",
+    "non-MyBatis provider zero footprint",
+    "platform MyBatis absence without cpfDataSource",
+    "declared zero-match mapper pattern fails closed"
+  ],
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F137-MAPPER-RESOURCE-TARGETED-RERUN1.log"
+}

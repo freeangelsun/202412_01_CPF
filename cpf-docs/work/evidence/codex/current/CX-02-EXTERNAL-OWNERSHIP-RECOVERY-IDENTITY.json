@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-EXTERNAL-OWNERSHIP-RECOVERY-IDENTITY",
+  "finishedAt": "2026-08-22T22:00:31.1577665+09:00",
+  "sourceIdentity": {
+    "contentSha1": "fdedfc068c4e6676dcc6cc36431d05626e71ef62",
+    "contentSha256": "081cc839ff8bfb3942afb0148092e038dce7c3b4ea2ce261e1e2b972c6c74f4b",
+    "fileCount": 8228,
+    "totalBytes": 75793762
+  },
+  "status": "UPGRADE_PREPARED",
+  "finding": "CX-F-103",
+  "diagnosis": "EXS online/build.gradle differs from the current Generator render only by one trailing LF. Its lock had already been advanced to the new render hash, so ownership protection correctly rejected the still-old physical byte sequence.",
+  "change": "Restore only that lock entry to the actual pre-upgrade file hash so canonical domain sync can verify ownership and atomically write the current render plus new lock.",
+  "verificationPending": ["canonical domain sync", "domain diff", "Java 25 compile/test"]
+}

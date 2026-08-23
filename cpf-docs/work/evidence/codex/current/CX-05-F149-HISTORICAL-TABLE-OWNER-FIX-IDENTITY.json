@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-23T12:29:00+09:00",
+  "findingId": "CX-F-149",
+  "status": "SOURCE_FIXED",
+  "sourceFix": {
+    "tableResolution": "exact canonical name OR exact canonical currentName",
+    "exactOneOwnerRequired": true,
+    "currentLogicalDatabaseValidationRetained": true,
+    "currentColumnShapeValidationRetained": true,
+    "historicalSqlIdentifierPreservedForRendering": true
+  },
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "1a59cbd9a55bd19fe3397bb6856f6e6078c6edc4ff1dd5fef3cbce833f81fe21",
+    "sha1": "8b7d55e35659c978f985be573aeae801579c0e45",
+    "fileCount": 8248,
+    "totalBytes": 76637882
+  },
+  "verificationPending": "Complete V96/R96 hash preservation plus expanded unit and repeated check-mode execution."
+}

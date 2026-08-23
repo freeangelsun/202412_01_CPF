@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "contract": "CPF_DB_VENDOR_LIFECYCLE_PLAN",
+  "vendor": "postgresql",
+  "mode": "FreshInstall",
+  "profile": {
+    "name": "database-install.postgresql.0ed27df87f98.json",
+    "profileSha256": "1472d928b899cd62439eead8770855870ddc9e458acea55d817aad40f43cefa0",
+    "modules": [
+      "core",
+      "common",
+      "admin",
+      "batch",
+      "backoffice"
+    ]
+  },
+  "authority": {
+    "vendorPackManifest": {
+      "path": "cpf-tools/db/vendor-pack-manifest.json",
+      "sha256": "1c75ba68b08a4709e4af4e392d7901943634b36126d7b6e358fdb7e6dde62e97"
+    },
+    "lifecycleContract": {
+      "path": "cpf-tools/db/cpf-db-lifecycle-contract.json",
+      "sha256": "a3970a47373b04a67c8ca506e4388a9c616eff4575724478ea254db97dd8ffc6"
+    },
+    "migrationIntentCatalog": {
+      "path": "cpf-tools/db/canonical/migration-intent-catalog.json",
+      "sha256": "1545dded65b98a8eb387c1d7e0dc28dd45479d12526af27d8da402f9a630c12a"
+    },
+    "lifecycleScenarioCatalog": {
+      "path": "cpf-tools/db/canonical/db3-lifecycle-scenarios.json",
+      "sha256": "ddd12cbbadecd59f68e9c8e177dc15241eaae2e8ce4a8a01dbb8aeda5c348e57"
+    }
+  },
+  "discovery": {
+    "policy": "ALL_CHECKSUM_MANIFEST_MIGRATIONS",
+    "executionCoverage": "CURRENT_EDGE_ONLY",
+    "fullHistoricalLifecycleEvidence": false,
+    "migrationRoot": "cpf-tools/db/vendor/postgresql/migration/flyway",
+    "rollbackRoot": "cpf-tools/db/vendor/postgresql/rollback",
+    "discoveredMigrationCount": 76,
+    "availableVersions": [
+      63,
+      64,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      101,
+      107,
+      108,
+      109,
+      114,
+      116,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      129,
+      130,
+      131,
+      132,
+      133,
+      134,
+      135,
+      136
+    ],
+    "currentVersion": 136,
+    "selectionMode": "DISCOVERED_CURRENT_EDGE",
+    "selectedVersions": [
+      136
+    ],
+    "selectedMigrations": [
+      {
+        "pack": "mbwDB",
+        "version": 136,
+        "path": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V136__backoffice_permission_identity.sql",
+        "checksumSha256": "4e13bc3ea2c3eea85aab0a149391aacae6b226342a662f1859be399b57fafb63",
+        "rollbackPath": "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R136__backoffice_permission_identity.sql",
+        "rollbackSha256": "97910c9756972498a48f03d7560a8721d2b41f474f140e458d8e1851f975dfa7"
+      }
+    ]
+  },
+  "sourceStateRequirement": "EMPTY_DATABASES",
+  "freshInstallCurrentSnapshotWarning": "FreshInstall already contains the current schema edge; do not run current-edge Upgrade against that same database. Use the catalogued pre-current fixture.",
+  "stages": [
+    {
+      "stage": "Provision",
+      "consumer": "cpf-tools/db/tools/initialize-cpf-database.ps1",
+      "artifact": "cpf-tools/db/vendor/postgresql/provision/00_provision.sql",
+      "artifactSha256": "69c28329ade8a8b603b00923a0a5a66ab120400c02e7fd3695d9eee9dfc33584"
+    },
+    {
+      "stage": "EmptyInstall",
+      "consumer": "cpf-tools/db/tools/initialize-cpf-database.ps1",
+      "artifact": "cpf-tools/db/vendor/postgresql/install/00_empty_install.sql",
+      "artifactSha256": "85a5b53dca24b86c3873c8bb55342213ecbe1ba91b9e63429b87e289f8df58b0"
+    },
+    {
+      "stage": "ProductSeed",
+      "consumer": "cpf-tools/db/tools/initialize-cpf-database.ps1",
+      "artifact": "cpf-tools/db/vendor/postgresql/seed/00_product_seed.sql",
+      "artifactSha256": "4ec51bdf4a961a9e032d1b2dcdb4098b3bc0be40324edf153ce3258b3a22088c"
+    },
+    {
+      "stage": "Verify",
+      "consumer": "cpf-tools/db/tools/initialize-cpf-database.ps1",
+      "artifact": "cpf-tools/db/vendor/postgresql/verify/00_verify.sql",
+      "artifactSha256": "455fcaa97ca26fad4158ac9094cedae1eae27fb44c6ff90d0561ebd0eac67a6b"
+    }
+  ],
+  "clientAdapter": {
+    "ready": true,
+    "mode": "Docker",
+    "client": "psql",
+    "image": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1",
+    "imageId": "sha256:7fcd59fe809e1b8862d316f1742aae07312c88d4a0fa496259d4251fd71f64b5",
+    "probeNetwork": "none"
+  },
+  "backupManifests": [],
+  "mutationAuthorized": false,
+  "sanitized": true
+}

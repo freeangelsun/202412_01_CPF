@@ -4,6 +4,21 @@
 -- DO NOT EDIT generated seed directly.
 
 -- CPF_LOGICAL_DATABASE=cpfDB
+MERGE INTO OPS_SYSTEM_REGISTRY tgt
+USING (SELECT 'CPF' AS system_code, 'CPF Core Platform' AS system_name, 'CPF' AS domain_code, 'Y' AS enabled_yn, 'CPF core platform system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'CMN' AS system_code, 'CPF Common' AS system_name, 'CMN' AS domain_code, 'Y' AS enabled_yn, 'CPF mandatory common system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'ADM' AS system_code, 'CPF Administration' AS system_name, 'ADM' AS domain_code, 'Y' AS enabled_yn, 'CPF administration system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'MBW' AS system_code, 'CPF Backoffice' AS system_name, 'MBW' AS domain_code, 'Y' AS enabled_yn, 'CPF business backoffice system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'BAT' AS system_code, 'CPF Batch' AS system_name, 'BAT' AS domain_code, 'Y' AS enabled_yn, 'CPF batch runtime system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+UNION ALL
+SELECT 'EDU' AS system_code, 'CPF Education' AS system_name, 'EDU' AS domain_code, 'Y' AS enabled_yn, 'CPF education reference system' AS description, 1 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+ON (tgt.system_code=src.system_code)
+WHEN MATCHED THEN UPDATE SET tgt.system_name=src.system_name, tgt.domain_code=src.domain_code, tgt.enabled_yn=src.enabled_yn, tgt.description=src.description, tgt.policy_version=src.policy_version, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
+WHEN NOT MATCHED THEN INSERT (system_code, system_name, domain_code, enabled_yn, description, policy_version, created_by, updated_by) VALUES (src.system_code, src.system_name, src.domain_code, src.enabled_yn, src.description, src.policy_version, src.created_by, src.updated_by);
 MERGE INTO OPS_CHANNEL_REGISTRY tgt
 USING (SELECT 'WEB' AS channel_code, '웹' AS channel_name, 'CLIENT' AS channel_type, 'EXTERNAL' AS trust_level, 'Y' AS client_channel_yn, 'N' AS internal_channel_yn, 'Y' AS authentication_required_yn, 'N' AS signature_required_yn, 'Y' AS active_yn, '웹 브라우저 채널' AS description, 0 AS policy_version, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL

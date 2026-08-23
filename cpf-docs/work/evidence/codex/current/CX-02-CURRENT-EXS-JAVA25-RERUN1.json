@@ -1,0 +1,15 @@
+{
+  "track": "CX-02-CURRENT-EXS-JAVA25-RERUN1",
+  "sourceIdentity": "bb8fe6619b869ed900e57611271893ff2fe4722e14848b285a32e43db5329d73",
+  "command": "gradlew.bat -p cpf-external test --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfDbVendor=mariadb -PcpfProductCompositeRoot=<workspace>",
+  "started": "2026-08-23T00:09:39.4055111+09:00",
+  "finished": "2026-08-23T00:10:47.3979295+09:00",
+  "exitCode": 0,
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "tasks": {"actionable": 82, "executed": 82},
+  "tests": {"xmlSuites": 2, "tests": 4, "failures": 0, "errors": 0, "skipped": 0},
+  "typedDomainDependency": "member:online compiled through cpf-domain-member composite substitution",
+  "log": "cpf-docs/work/evidence/codex/current/generated-java25/cpf-external-test.log",
+  "resourceCeiling": {"daemon": false, "workers": 1, "gradleXmx": "1000m", "testXmx": "500m"}
+}

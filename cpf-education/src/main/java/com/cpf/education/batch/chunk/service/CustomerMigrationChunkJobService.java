@@ -4,6 +4,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import java.util.Map;
 
 /** 배치-02 DB Chunk: commit interval, checkpoint, retryable failure와 restart 지점을 함께 표현합니다. */
@@ -19,7 +20,7 @@ public class CustomerMigrationChunkJobService {
 
         if (failAt >= offset && failAt < endExclusive) {
             return new BatchStepResult(
-                    BatchStepResult.Status.RETRYABLE_FAILURE,
+                    Status.RETRYABLE_FAILURE,
                     "CHUNK_WRITE_RETRY",
                     "현재 Chunk만 rollback하고 이전 checkpoint부터 재시작합니다.",
                     processed,

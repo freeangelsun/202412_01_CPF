@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-08-23T14:11:00+09:00",
+  "findingId": "CX-F-158",
+  "status": "CLOSED",
+  "sourceIdentity": "0d02f69b75cae2c279020ac8d9e174ab2351dacc121f3fe0f1ec01df7c1a06d1",
+  "sourceIdentityAfterFix": {
+    "contentSha256": "a97342e45e70f1c9b22d6e0810e31d2d60ed349a59ae75c41b64dd30d0da93c9",
+    "contentSha1": "4d9c0268b915befa308a89a218efb2d10eac9fc6",
+    "fileCount": 8220,
+    "totalBytes": 75016836
+  },
+  "title": "Backoffice employee change UI omits implemented contact fields and clear controls",
+  "discoveredBy": "F157 exact contact-model verifier attempt 2",
+  "actualError": "EmployeeChangeForm.vue lacks the canonical mobile contact label",
+  "contractProof": {
+    "frontendModelFields": ["email", "mobileNo", "officePhoneNo", "clearEmail", "clearMobileNo", "clearOfficePhoneNo"],
+    "backendOwner": "BackofficeManagementService resolves and persists all three contacts with explicit clear flags",
+    "uiCurrentState": "The form initializes only clear flags and exposes none of the contact values or clear controls."
+  },
+  "rootCause": "The DTO/model and backend contact contract were completed but the developer-facing employee form remained a partial projection, so a user cannot submit or intentionally clear those fields.",
+  "repairPolicy": "Expose email, mobile and office phone inputs plus explicit clear controls in the canonical EmployeeChangeForm; keep the typed generated API path and backend semantics unchanged.",
+  "sourceFix": "EmployeeChangeForm initializes and binds all three contact values, disables a value input when its explicit clear flag is selected, exposes all three clear controls, requires the backend-required organization, and mirrors the five-character reason validation in HTML.",
+  "verification": "Contact parity and live golden path PASS; TypeScript PASS; mounted component behavior is exercised; 2 Vitest files and 6 tests PASS; Vite production build PASS with 54 modules.",
+  "passCriteria": ["All contact values are editable", "Every optional contact has an explicit clear control", "Backoffice TypeScript/test/build PASS", "F157 contact-model gate PASS"]
+}

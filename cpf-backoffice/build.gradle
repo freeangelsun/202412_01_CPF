@@ -86,6 +86,9 @@ subprojects {
                         def classMappings = (classPrefix =~ /(?s)@RequestMapping\s*(?:\((.*?)\))?/) .collect { it }
                         def basePath = classMappings.isEmpty() ? '' : cpfFirstString(classMappings.last()[1] as String)
 
+                        def classBodyStart = text.indexOf('{', classMatcher.end())
+                        if (classBodyStart < 0) throw new GradleException("Business Operation class body를 찾을 수 없습니다: ${source}")
+                        def previousTransactionEnd = classBodyStart + 1
                         def txMatcher = text =~ /(?s)@CpfOnlineTransaction\s*\((.*?)\)/
                         while (txMatcher.find()) {
                             def txBody = txMatcher.group(1)
@@ -95,8 +98,10 @@ subprojects {
                             if (!operationId || !name || !description) {
                                 throw new GradleException("@CpfOnlineTransaction operationId/name/description가 필요합니다: ${source}")
                             }
-                            def previousBoundary = Math.max(text.lastIndexOf('}', txMatcher.start()), text.lastIndexOf(';', txMatcher.start()))
-                            def prefix = text.substring(Math.max(0, previousBoundary + 1), txMatcher.start())
+                            // HTTP path templates such as "/{id}" contain a literal closing brace.
+                            // Bound the current annotation block by the previous CPF transaction
+                            // instead of treating a brace inside an annotation string as Java syntax.
+                            def prefix = text.substring(previousTransactionEnd, txMatcher.start())
                             def openApiMatches = (prefix =~ /(?s)@Operation\s*\((.*?)\)/).collect { it }
                             if (openApiMatches.isEmpty()) throw new GradleException("업무 Online Operation에는 @Operation(operationId=...)이 필요합니다: ${controllerClass}#${operationId}")
                             def openApiId = cpfTextAttribute(openApiMatches.last()[1] as String, 'operationId')
@@ -119,6 +124,7 @@ subprojects {
                                            controllerClass:controllerClass, handlerMethod:handlerMethod,
                                            sourceFingerprint:fingerprint,
                                            sourcePath:project.projectDir.toPath().relativize(source.toPath()).toString().replace('\\','/')]
+                            previousTransactionEnd = txMatcher.end()
                         }
                     }
                     def duplicateIds = operations.groupBy { it.operationId }.findAll { k,v -> v.size() > 1 }.keySet()

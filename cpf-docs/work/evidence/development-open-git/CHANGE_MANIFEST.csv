@@ -1,0 +1,41 @@
+change_type,path,owner,purpose,codex_overlap
+ADD,cpf-tools/release/open-git/README.md,Open Git Release,사용법 및 IA,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/cpf-open-git.ps1,Open Git Release,Windows 짧은 진입점,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/cpf-open-git.sh,Open Git Release,Linux 짧은 진입점,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/cpf_open_git.py,Open Git Release,패키징/검증/통합 Orchestrator,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/open-git-artifact-policy.json,Open Git Release,Binary/source disclosure Default-Deny 정책,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/open-git-surface-policy.json,Open Git Release,Open Git Source Default-Deny 정책,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/README.md,Open Git Release,공개 Workspace README,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/build.gradle,Open Git Release,공개 Workspace Root Build,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/settings.gradle,Open Git Release,공개 Workspace Root Settings,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/cpf-education/build.gradle,Open Git Release,EDU 독립 Public Binary 소비 Build,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/cpf-education/settings.gradle,Open Git Release,EDU 독립 Settings,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.ps1,Open Git Release,Windows 공개 Workspace 검증,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.sh,Open Git Release,Linux 공개 Workspace 검증,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/tests/test_cpf_open_git.py,Open Git Release,안전/정책/회귀 Test,NONE_NEW_PATH
+ADD,cpf-docs/work/current/CPF_OPEN_GIT_RELEASE_WORK_PACKAGE.md,Development GPT,WP-14 개발 원장,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/TEST_AND_EVIDENCE.md,Development GPT,실행 Evidence,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/OPEN_ISSUES.md,Development GPT,통합 Blocker,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/CHANGE_MANIFEST.csv,Development GPT,이번 Overlay 변경목록,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/DELETE_MANIFEST.csv,Development GPT,삭제 승인 목록,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/REQUIREMENT_STATUS.csv,Development GPT,개발 상태,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/OVERLAY_APPLY_AND_VERIFY.md,Development GPT,Codex 종료 후 안전 통합 절차,NONE_NEW_PATH
+ADD,cpf-docs/work/evidence/development-open-git/PACKAGE_MANIFEST.json,Development GPT,Overlay 파일 SHA-256 Manifest,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/cpf,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/cpf.cmd,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-build.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-build.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-test.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-test.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-stop.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-stop.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-reset.ps1,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH
+ADD,cpf-tools/release/open-git/templates/bin/cpf-reset.sh,Open Git Developer UX,Open Git 개발자 짧은 Canonical CLI/호환 Wrapper와 진행·오류 UX,NONE_NEW_PATH

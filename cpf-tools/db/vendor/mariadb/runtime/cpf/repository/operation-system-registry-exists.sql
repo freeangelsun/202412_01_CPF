@@ -1,0 +1,3 @@
+SELECT COUNT(*)
+FROM OPS_SYSTEM_REGISTRY
+WHERE system_code = ?

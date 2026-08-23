@@ -120,7 +120,7 @@ def main(argv=None):
    walk(catalog)
   except Exception: pass
  for domain in ['cpf-member','cpf-external']:
-  d=root/domain; definition=d/'cpf-domain.yaml'; g.check('GEN_ROOT_'+domain.upper(),d.exists() and definition.exists() and not (d/'.cpf').exists())
+  d=root/domain; definition=d/'gradle.properties'; contract=definition.read_text(encoding='utf-8-sig',errors='ignore') if definition.is_file() else ''; forbidden=[name for name in ('.cpf','cpf-domain.yaml','cpf-generator.lock.json') if (d/name).exists()]; g.check('GEN_ROOT_'+domain.upper(),d.exists() and 'cpf.domain.contractVersion=1' in contract and not forbidden,','.join(forbidden))
   if d.exists():
    build_text='\n'.join(p.read_text(encoding='utf-8',errors='ignore') for p in d.rglob('build.gradle'))
    direct=set(re.findall(r"project\(['\"]([^'\"]+)['\"]\)", build_text))

@@ -27,6 +27,14 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
         self.assertIn("-ConfirmRollbackReady", self.lifecycle)
         self.assertIn("Invoke-PreCurrentRollback", self.lifecycle)
         self.assertIn("RollbackReapply", self.lifecycle)
+        self.assertIn("Get-CurrentEdgeVersionFromChecksumManifests", self.lifecycle)
+        self.assertIn("CHECKSUM_MANIFEST_CURRENT_EDGE", self.lifecycle)
+        self.assertIn("migrationSelection=$currentEdgeSelection", self.lifecycle)
+        self.assertIn("Official vendors disagree on the current migration edge", self.lifecycle)
+        self.assertIn("@{MigrationVersion=$currentEdgeVersion}", self.lifecycle)
+        self.assertIn("@selectionParameters", self.lifecycle)
+        self.assertNotIn("@selectionArgs", self.lifecycle)
+        self.assertGreaterEqual(self.lifecycle.count("-MigrationVersion"), 3)
         self.assertIn("cleanup-cpf-db-verifier-owned.ps1", self.lifecycle)
         self.assertIn("if($result.status -ne 'PASS')", self.lifecycle)
 
@@ -41,6 +49,9 @@ class CpfVerifierOwnedDbRuntimeContractTest(unittest.TestCase):
             self.assertIn(name, self.prepare)
         self.assertNotIn("password='", self.prepare.lower())
         self.assertIn("-RequireRun", self.prepare)
+        self.assertIn("@('core','common','admin','batch','backoffice')", self.prepare)
+        self.assertIn("$isBackoffice=($key -eq 'backoffice')", self.prepare)
+        self.assertNotIn("bizAdmin", self.prepare)
 
     def test_cleanup_refuses_non_verifier_targets(self):
         self.assertIn("Refusing verifier cleanup for environment", self.cleanup)

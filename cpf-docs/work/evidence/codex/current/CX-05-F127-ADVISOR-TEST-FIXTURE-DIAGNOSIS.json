@@ -1,0 +1,22 @@
+{
+  "track": "CX-05-F127-ADVISOR-TEST-FIXTURE-DIAGNOSIS",
+  "startedAt": "2026-08-23T02:22:33+09:00",
+  "finishedAt": "2026-08-23T02:22:33+09:00",
+  "sourceIdentity": "ce8e6330e46535cb12559c237874fcdec92be03b8f56b06c9ed1251c44f2e46c",
+  "result": "FINDING_IN_PROGRESS",
+  "finding": "CX-F-127",
+  "review": {
+    "registeredPackageBase": "com.cpf.capability",
+    "positiveType": "com.cpf.capability.CpfCapabilityUsageAspectPointcutTest$BusinessCapabilityConsumer",
+    "negativeType": "com.cpf.capability.CpfCapabilityUsageAspectPointcutTest$UnownedConsumer",
+    "defect": "Both types are inside the same registered package, so the negative type is descriptor-owned and cannot validly assert false.",
+    "rootCause": "The regression fixture used package-wide ownership when it intended exact-type ownership."
+  },
+  "decision": "Return F127 to IN_PROGRESS before editing the Product test. Register the exact positive class name as packageBase so the positive and negative paths exercise actual inventory resolution without weakening the runtime implementation.",
+  "resourceState": {
+    "freePhysicalGiB": 10.16,
+    "commitFreeGiB": 70.38,
+    "javaProcesses": 6,
+    "javaWorkingSetGiB": 7.0
+  }
+}

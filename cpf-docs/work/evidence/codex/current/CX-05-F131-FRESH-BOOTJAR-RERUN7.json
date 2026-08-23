@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F131-FRESH-BOOTJAR-RERUN7",
+  "startedAt": "2026-08-23T03:06:36+09:00",
+  "finishedAt": "2026-08-23T03:07:03.7046720+09:00",
+  "finding": "CX-F-131",
+  "sourceIdentity": "a07140b7efc0bf9256764b5385e4a05406062e8ebb7b49207b1c26e8f1027158",
+  "exitCode": 0,
+  "gradle": {"tasks": 45, "executed": 3, "upToDate": 42},
+  "changedTasks": [
+    ":cpf-product-source:framework:web:compileJava",
+    ":cpf-product-source:framework:web:jar",
+    ":online:bootJar"
+  ],
+  "artifact": {
+    "sha256": "96a3b927fa7f60b8c7432b360bbd5f9d6b726c938dae10393664caee89b8d873",
+    "bytes": 39894359,
+    "previousSha256": "a8d2c30a976d001553732874f412092f885faf113312fcd6100c21b10faf87a7"
+  },
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F131-FRESH-BOOTJAR-RERUN7.log",
+  "next": "Headerless Health 200 plus adjacent/business missing-System6 rejection in runtime-evidence-9."
+}

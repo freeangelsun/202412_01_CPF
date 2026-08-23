@@ -1,1 +1,2 @@
 com.cpf.messaging.kafka.CpfKafkaAutoConfiguration
+com.cpf.messaging.kafka.CpfKafkaBindingAutoConfiguration

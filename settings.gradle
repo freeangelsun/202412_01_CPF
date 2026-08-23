@@ -88,6 +88,16 @@ pluginManagement {
 
 rootProject.name = 'cpf-core-platform-framework'
 
+// Included/Generated Builds share the Product-owned Gradle workspace instead of creating
+// project-local .gradle/ or build/ trees throughout the Source checkout.
+def cpfManagedGradleRoot = file('cpf-docs/work/evidence/generated/gradle').canonicalFile
+gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
+if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
+    def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    propagatedProjectProperties.put('cpfManagedGradleRoot', cpfManagedGradleRoot.absolutePath)
+    gradle.startParameter.setProjectProperties(propagatedProjectProperties)
+}
+
 include ':cpf-common'
 include ':framework:core', ':apps:admin', ':apps:admin-runtime', ':apps:backoffice-web', ':runtime:gateway', ':apps:education', ':internal:testing:testkit', ':runtime:local', ':runtime:local-batch'
 // Optional Prebuilt Business Domain: Backoffice(MBW)는 Generated Business Domain과 동일한 Online 계약을 사용합니다.
@@ -315,33 +325,44 @@ if (includeLocalDomains) {
 }
 
 // Repository-tracked Generated Customer Domain은 Product Module/BOM 대상이 아니며 opt-in Composite Build로만 연결합니다.
-// Generated Project 내부 metadata를 읽지 않고 Framework canonical definition과 실제 settings.gradle만 사용합니다.
+// Developer-Facing gradle.properties 계약과 실제 settings.gradle만 사용합니다.
 def includeGeneratedDomains = providers.gradleProperty('cpfIncludeGeneratedDomains').map { it.toBoolean() }.orElse(false).get()
 def generatedDomainRoots = (rootDir.listFiles() ?: [] as File[])
         .findAll { candidate ->
+            def contract = new File(candidate, 'gradle.properties')
             if (!(candidate.isDirectory() && candidate.name.startsWith('cpf-')
-                    && new File(candidate, 'cpf-domain.yaml').isFile()
+                    && contract.isFile() && contract.getText('UTF-8').contains('cpf.domain.contractVersion=')
                     && new File(candidate, 'settings.gradle').isFile())) return false
             // Optional Prebuilt Business Domain(MBW 등)은 Product Project로 exactly-once 포함하며
             // Generated Customer Domain Composite Scanner에 다시 편입하지 않습니다.
-            def definitionText = new File(candidate, 'cpf-domain.yaml').getText('UTF-8')
-            def prebuilt = (definitionText =~ /(?m)^\s*mode:\s*prebuilt\s*$/).find()
-            return !prebuilt
+            def properties = new Properties()
+            contract.withInputStream { properties.load(it) }
+            return properties.getProperty('cpf.domain.generationMode','generated') != 'prebuilt'
         }
         .sort { a, b -> a.name <=> b.name }
 if (includeGeneratedDomains) {
+    // Root 회귀 Build에서는 Generated Domain이 현재 Product Source를 composite로 참조해야 합니다.
+    // StartParameter의 projectProperties를 복사해 보강하면 포함 Build에도 전달되며,
+    // Generated Domain을 단독 실행할 때의 public repository/composite fail-close는 유지됩니다.
+    if (!providers.gradleProperty('cpfProductCompositeRoot').isPresent()) {
+        def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+        propagatedProjectProperties.put('cpfProductCompositeRoot', rootDir.canonicalFile.absolutePath)
+        gradle.startParameter.setProjectProperties(propagatedProjectProperties)
+    }
     generatedDomainRoots.each { candidate ->
         def canonical = candidate.canonicalFile
         if (!canonical.toPath().startsWith(rootDir.canonicalFile.toPath())) {
             throw new GradleException("Generated Domain path escapes root: ${candidate}")
         }
         def domainName = candidate.name.substring('cpf-'.length())
-        def definition = new File(candidate, 'cpf-domain.yaml')
-        def definitionText = definition.getText('UTF-8')
-        def packageMatch = (definitionText =~ /(?m)^\s*packageName:\s*([A-Za-z0-9_.-]+)\s*$/)
-        def domainMatch = (definitionText =~ /(?m)^\s{2}name:\s*([A-Za-z0-9_-]+)\s*$/)
-        def packageName = packageMatch.find() ? packageMatch.group(1) : (domainMatch.find() ? "com.cpf.${domainMatch.group(1).replace('-', '_')}" : null)
-        if (packageName == null) throw new GradleException("Generated Domain name/packageName missing: ${definition}")
+        def contract = new File(candidate, 'gradle.properties')
+        def properties = new Properties()
+        contract.withInputStream { properties.load(it) }
+        def definitionDomainName = properties.getProperty('cpf.domain.name')
+        def packageName = properties.getProperty('cpf.domain.packageName')
+        if (properties.getProperty('cpf.domain.contractVersion') != '1' || packageName == null || definitionDomainName == null)
+            throw new GradleException("Generated Domain Developer 계약이 유효하지 않습니다: ${contract}")
+        if (definitionDomainName != domainName) throw new GradleException("Generated Domain root/name mismatch: root=${domainName} contract=${definitionDomainName}")
         includeBuild(canonical) {
             name = "cpf-generated-${candidate.name}"
             dependencySubstitution {

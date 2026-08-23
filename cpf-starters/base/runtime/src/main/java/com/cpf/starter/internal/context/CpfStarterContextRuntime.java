@@ -1,7 +1,9 @@
 package com.cpf.starter.internal.context;
 
 import com.cpf.core.api.context.CpfContext;
+import com.cpf.core.api.context.CpfContextSnapshot;
 import com.cpf.core.spi.context.CpfContextRuntimeProvider;
+import com.cpf.foundation.context.CpfContextProjectionRegistry;
 import java.util.ArrayDeque;
 
 /**
@@ -10,8 +12,13 @@ import java.util.ArrayDeque;
  */
 public final class CpfStarterContextRuntime implements CpfContextRuntimeProvider {
     private final ThreadLocal<ArrayDeque<CpfContext>> stack = ThreadLocal.withInitial(ArrayDeque::new);
+    private final CpfContextProjectionRegistry projections;
 
-    public CpfStarterContextRuntime() { }
+    public CpfStarterContextRuntime() { this(CpfContextProjectionRegistry.runtimeRegistry()); }
+
+    CpfStarterContextRuntime(CpfContextProjectionRegistry projections) {
+        this.projections = projections;
+    }
 
     @Override public int priority() { return 100; }
 
@@ -24,6 +31,7 @@ public final class CpfStarterContextRuntime implements CpfContextRuntimeProvider
         if (context == null) throw new IllegalArgumentException("context");
         ArrayDeque<CpfContext> values = stack.get();
         values.push(context);
+        projections.project(CpfContextSnapshot.capture(context));
         return new Scope(values, context);
     }
 
@@ -38,11 +46,19 @@ public final class CpfStarterContextRuntime implements CpfContextRuntimeProvider
         @Override public void close() {
             if (closed) return;
             closed = true;
-            if (values.isEmpty() || values.pop() != expected) {
+            if (values.isEmpty() || values.peek() != expected) {
+                values.clear();
                 stack.remove();
+                projections.clear();
                 throw new IllegalStateException("CPF context scope close order violated");
             }
-            if (values.isEmpty()) stack.remove();
+            values.pop();
+            if (values.isEmpty()) {
+                stack.remove();
+                projections.clear();
+            } else {
+                projections.project(CpfContextSnapshot.capture(values.peek()));
+            }
         }
     }
 }

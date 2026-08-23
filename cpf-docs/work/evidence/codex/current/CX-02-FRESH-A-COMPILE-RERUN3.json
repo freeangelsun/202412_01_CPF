@@ -1,0 +1,20 @@
+{
+  "executionId": "CX-02-FRESH-A-COMPILE-RERUN3",
+  "started": "2026-08-22T20:02:31.3734515+09:00",
+  "status": "PASS",
+  "exitCode": 0,
+  "sourceIdentitySha256": "ad003b40615a2125c56a90b09b85f6ffdaf03144aabeb1c3a32d4335cf836d64",
+  "case": "A",
+  "java": "25.0.3",
+  "gradle": "9.1.0",
+  "durationSeconds": 34,
+  "tasks": {"actionable": 9, "executed": 9},
+  "userOwnedSourceCompiled": true,
+  "productRootBuildPresentAfter": false,
+  "vscode": {"mainPid": 36204, "mainAlive": true, "newCrashLines": 0},
+  "logs": [
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE-RERUN3.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE-RERUN3.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-A-COMPILE-RERUN3.exit.txt"
+  ]
+}

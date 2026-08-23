@@ -8,6 +8,8 @@ import com.cpf.messaging.spi.broker.CpfBrokerPublisher;
 import com.cpf.messaging.spi.broker.CpfBrokerResult;
 import com.cpf.messaging.context.*;
 import java.time.Clock;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /** Internal worker adapter that performs the actual Provider publish after an outbox claim. */
@@ -36,7 +38,7 @@ public final class CpfProviderBrokerPublisher implements CpfBrokerPublisher {
                 envelope.producerModule(),
                 envelope.consumerModule(),
                 envelope.idempotencyKey(),
-                envelope.message().headers(),
+                providerUserHeaders(envelope.message().headers()),
                 envelope.attributes());
         CpfBrokerPublishResult providerResult;
         try {
@@ -85,5 +87,12 @@ public final class CpfProviderBrokerPublisher implements CpfBrokerPublisher {
         return new CpfBrokerResult(
                 "UNKNOWN", envelope.message().messageId(), "UNKNOWN_PROVIDER", null,
                 clock.instant(), CpfBrokerFailureSanitizer.sanitize(detail));
+    }
+
+    private static Map<String, String> providerUserHeaders(Map<String, String> persistedHeaders) {
+        if (persistedHeaders == null || persistedHeaders.isEmpty()) return Map.of();
+        Map<String, String> userHeaders = new LinkedHashMap<>(persistedHeaders);
+        CpfMessageHeaderNames.ALL.forEach(userHeaders::remove);
+        return Map.copyOf(userHeaders);
     }
 }

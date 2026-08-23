@@ -1,0 +1,20 @@
+{
+  "executionId": "CX-07-PUBLICATION-TASK-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T21:18:00+09:00",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "contentSha1": "a3eafad22c8069b66cf914fb9d44c5d3f424540e",
+    "contentSha256": "513a7e71fcd07a250a3271515808b697bdda7ff30751b68bd5a874c2cb834e61",
+    "fileCount": 8228,
+    "totalBytes": 75785147
+  },
+  "fixes": [
+    "Register one canonical verified publication entrypoint with distinct public-only and full local staging graphs.",
+    "Publish Root subprojects and the Gradle-plugin/Platform-BOM included builds to the same explicit staging repository.",
+    "Promote only full local staging through the existing manifest barrier; public release mode remains isolated and unpromoted.",
+    "Drive sourcesJar/javadocJar registration centrally from final artifact catalog ownership.",
+    "Correct the unique attachment classification/coordinate drift and the Gradle plugin public group/project identity.",
+    "Pass the exact public staging path to all included builds from the public release backend."
+  ],
+  "verification": "PENDING_ACTUAL_JAVA25_TASKS_AND_PUBLICATION"
+}

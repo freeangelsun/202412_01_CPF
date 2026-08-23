@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-08-23T12:33:00+09:00",
+  "findingId": "CX-F-145",
+  "result": "PASS",
+  "workspacePrimarySource": true,
+  "sourceFunctionsExecuted": [
+    "cpf-tools/verification/tools/sync-platform-non-table-objects.ps1#Set-GeneratedArtifact",
+    "cpf-tools/verification/tools/sync-platform-nullable-empty-string-repair.ps1#Write-CpfGeneratedFile"
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "result": "HARNESS_SETUP_FAIL",
+      "reason": "AST-imported function remained scoped inside the importer function.",
+      "productSourceExecuted": false,
+      "fixtureDeletedImmediately": true
+    },
+    {
+      "attempt": 2,
+      "result": "HARNESS_SETUP_FAIL",
+      "reason": "The extracted Set-GeneratedArtifact function required its owner script UTF-8 encoder variable.",
+      "existingMismatchCheckAlreadyFailedClosed": true,
+      "fixtureDeletedImmediately": true
+    },
+    {
+      "attempt": 3,
+      "result": "PASS",
+      "fixture": "cpf-docs/work/evidence/codex/current/.immutable-conflict-fixture",
+      "fixtureDeletedImmediately": true,
+      "fixtureExistsAfter": false
+    }
+  ],
+  "assertions": [
+    {
+      "owner": "Set-GeneratedArtifact",
+      "existingMismatchRaised": "IMMUTABLE_MIGRATION_CONFLICT",
+      "beforeSha256": "e41adfc0670b4e1740e6874bdb59f26e0bc6982e44796c5df37b6eead72932dc",
+      "afterSha256": "e41adfc0670b4e1740e6874bdb59f26e0bc6982e44796c5df37b6eead72932dc",
+      "existingBytesUnchanged": true,
+      "missingNewVersionCreated": true,
+      "newSha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c"
+    },
+    {
+      "owner": "Write-CpfGeneratedFile",
+      "existingMismatchRaised": "IMMUTABLE_MIGRATION_CONFLICT",
+      "beforeSha256": "e41adfc0670b4e1740e6874bdb59f26e0bc6982e44796c5df37b6eead72932dc",
+      "afterSha256": "e41adfc0670b4e1740e6874bdb59f26e0bc6982e44796c5df37b6eead72932dc",
+      "existingBytesUnchanged": true,
+      "missingNewVersionCreated": true,
+      "newSha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c"
+    }
+  ],
+  "sourceIdentityUnchanged": "1a59cbd9a55bd19fe3397bb6856f6e6078c6edc4ff1dd5fef3cbce833f81fe21"
+}

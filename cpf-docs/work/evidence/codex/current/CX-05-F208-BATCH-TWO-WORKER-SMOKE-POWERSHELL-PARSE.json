@@ -1,0 +1,19 @@
+{
+  "track": "CX-05-F208-BATCH-TWO-WORKER-SMOKE-POWERSHELL-PARSE",
+  "timestamp": "2026-08-23T18:39:00+09:00",
+  "sourceIdentity": {
+    "sha256": "412c6a34140bf78fcc4787ec50f9df0269a97e5699a7df48e0e503d91f394542",
+    "sha1": "1fcc8e0f1816da69a12721ac4e3049b67cb31bbe"
+  },
+  "status": "OPEN",
+  "command": "System.Management.Automation.Language.Parser.ParseFile on three modified PowerShell owners",
+  "exit": 1,
+  "passed": [
+    "cpf-tools/verification/tools/sync-platform-non-table-objects.ps1",
+    "cpf-tools/verification/tools/check-spring-batch-sequence-contract.ps1"
+  ],
+  "failed": "cpf-tools/runtime/tools/smoke-bat-two-worker-runtime.ps1",
+  "actualError": "Unexpected token at the Docker sh -lc MYSQL_PWD command; backslash-double-quote was used as if it escaped a PowerShell double-quoted string.",
+  "rootCause": "The maintained Windows PowerShell smoke has never formed a valid AST at its Docker client command construction.",
+  "next": "Use PowerShell backtick escaping for the embedded shell double quotes, rerun all three parse gates, then execute canonical sequence synchronization."
+}

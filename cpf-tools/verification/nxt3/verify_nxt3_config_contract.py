@@ -139,10 +139,18 @@ def main():
   check('unique_config_prefix',len(vals)==len(set(vals)))
   base_mod=next((m for m in mods if m.get('projectPath')==':starters:base'),None)
   check('public_base_artifact',bool(base_mod) and base_mod.get('visibility')=='public' and base_mod.get('artifactId')=='cpf-starter')
-  # Internal HTTP/Resilience leaf must remain internal; public profiles may compose them internally.
+  # HTTP and Resilience are explicit developer-selectable integration capabilities.
+  # Their implementation owner path remains under cpf-starters/integration, while the
+  # published catalog contract must expose the provider artifacts to Generated Domains.
   by_art={m.get('artifactId'):m for m in mods}
-  check('integration_http_internal',by_art.get('cpf-starter-integration-http',{}).get('visibility')=='internal')
-  check('integration_resilience_internal',by_art.get('cpf-starter-integration-resilience',{}).get('visibility')=='internal')
+  http=by_art.get('cpf-starter-integration-http',{})
+  resilience=by_art.get('cpf-starter-integration-resilience',{})
+  check('integration_http_public_selectable',
+        http.get('visibility')=='public' and http.get('userSelectable') is True
+        and http.get('usageLevel')=='capability' and http.get('publicationRequired') is True)
+  check('integration_resilience_public_selectable',
+        resilience.get('visibility')=='public' and resilience.get('userSelectable') is True
+        and resilience.get('usageLevel')=='capability' and resilience.get('publicationRequired') is True)
  # Official all-in-one runner must prove both mount visibility and actual Included Build
  # subproject checks. Root `test` alone is a false-green because it does not execute them.
  runner=root/'cpf-tools/verification/nxt3/cpf_nxt3_verify_all.py'

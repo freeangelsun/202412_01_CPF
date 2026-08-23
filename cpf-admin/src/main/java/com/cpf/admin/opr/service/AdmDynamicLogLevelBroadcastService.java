@@ -3,7 +3,7 @@ package com.cpf.admin.opr.service;
 import com.cpf.messaging.common.api.CmnMessageConsumer;
 import com.cpf.messaging.common.api.CmnMessageEnvelope;
 import com.cpf.messaging.common.api.CmnMessagePublisher;
-import com.cpf.common.runtime.cache.CpfCommonCacheRefreshPublisher;
+import com.cpf.common.spi.CpfCommonCacheChangePublisher;
 import com.cpf.foundation.util.CpfStrings;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.platform.operations.observability.api.logging.CpfDynamicLogLevelOperations;
@@ -32,14 +32,14 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
     private final AdmDynamicLogLevelRuleStore ruleStore;
     private final CpfDynamicLogLevelOperations runtimeService;
     private final ObjectProvider<CmnMessagePublisher> messagePublisherProvider;
-    private final ObjectProvider<CpfCommonCacheRefreshPublisher> cacheRefreshEventPublisherProvider;
+    private final ObjectProvider<CpfCommonCacheChangePublisher> cacheRefreshEventPublisherProvider;
 
     public AdmDynamicLogLevelBroadcastService(
             AdmDynamicLogLevelRuleStore ruleStore,
             CpfDynamicLogLevelOperations runtimeService,
             @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessagePublisher> messagePublisherProvider,
             @Qualifier("cmnMessageBridgeService") ObjectProvider<CmnMessageConsumer> messageConsumerProvider,
-            ObjectProvider<CpfCommonCacheRefreshPublisher> cacheRefreshEventPublisherProvider) {
+            ObjectProvider<CpfCommonCacheChangePublisher> cacheRefreshEventPublisherProvider) {
         this.ruleStore = ruleStore;
         this.runtimeService = runtimeService;
         this.messagePublisherProvider = messagePublisherProvider;
@@ -92,9 +92,9 @@ public class AdmDynamicLogLevelBroadcastService extends com.cpf.admin.common.bas
     }
 
     private void publishDatabaseEvent(String eventType, String ruleId, String requestUser) {
-        CpfCommonCacheRefreshPublisher publisher = cacheRefreshEventPublisherProvider.getIfAvailable();
+        CpfCommonCacheChangePublisher publisher = cacheRefreshEventPublisherProvider.getIfAvailable();
         if (publisher != null) {
-            publisher.publishAfterCommit("dynamicLogLevelRule", eventType, ruleId, requestUser);
+            publisher.publishOutOfBand("dynamicLogLevelRule", eventType, ruleId, requestUser);
         }
     }
 

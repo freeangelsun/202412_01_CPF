@@ -63,7 +63,7 @@ public final class RuntimeControlApprovalOwnerCommandAdapter implements AdmAppro
         try{
             JsonNode payload=mapper.readTree(command.payloadSnapshot());
             String operationId=required(payload,"commandId");
-            return terminal(control.getByCommandId(commandId),"RECONCILE");
+            return terminal(control.getByCommandId(operationId),"RECONCILE");
         }catch(RuntimeException notObserved){return unknown("RUNTIME_RECONCILE_PENDING","Runtime Owner에서 최종 상태를 아직 관측하지 못했습니다.");}
         catch(Exception invalid){return failed("RUNTIME_APPROVED_PAYLOAD_INVALID","승인 Payload를 해석할 수 없습니다.");}
     }

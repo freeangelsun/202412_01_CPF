@@ -3,8 +3,13 @@ group = 'com.cpf.starter'
 
 dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // Public default entry is intentionally lightweight. Optional Common/Persistence capabilities are explicit selections.
+    // Public default entry always provides the CPF Common Product and its runtime wiring.
     api project(':framework:base-runtime')
+    api project(':starters:common')
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework:spring-context'
+    compileOnly 'ch.qos.logback:logback-classic'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
 
 tasks.named('test') { useJUnitPlatform() }

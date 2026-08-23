@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-NXT-ZERO-FOOTPRINT-RERUN",
+  "requirementIds": ["OPTIONAL-SURFACE", "REL-BUILD"],
+  "timestamp": {
+    "started": "2026-08-22T13:09:23.6643130+09:00",
+    "finished": "2026-08-22T13:09:23.8044060+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\verification\\verify_nxt_zero_footprint.py --root . --mutation-self-test",
+  "exitCode": 0,
+  "sourceIdentity": "2b0594c9469862bfbf755a31ab0a1ba1b8dbd6abbb96a7e1169c396a7a581665",
+  "actualResult": "PASS with no findings. minimal, persistence-only, http-only, and resilience-only closures contain exactly their allowed optional provider. All four mutation assertions pass, including detection of an implementation resilience edge and exclusion of a compileOnly resilience declaration from runtime closure.",
+  "result": "PASS",
+  "findingIds": ["CX-F-019"],
+  "sanitized": true
+}

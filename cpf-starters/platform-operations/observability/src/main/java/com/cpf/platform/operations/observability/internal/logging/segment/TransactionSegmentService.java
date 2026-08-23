@@ -29,7 +29,7 @@ public class TransactionSegmentService {
     public TransactionSegmentService(TransactionSegmentPersistenceService persistenceService,
                                      org.springframework.beans.factory.ObjectProvider<Clock> clockProvider) {
         this.persistenceService = persistenceService;
-        this.clock = clockProvider.getIfAvailable(Clock::systemUTC);
+        this.clock = clockProvider.getIfUnique(Clock::systemUTC);
     }
 
     TransactionSegmentService(TransactionSegmentPersistenceService persistenceService, Clock clock) {

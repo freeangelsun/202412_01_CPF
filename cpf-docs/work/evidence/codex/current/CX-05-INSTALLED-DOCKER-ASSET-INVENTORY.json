@@ -1,0 +1,33 @@
+{
+  "track": "CX-05-INSTALLED-DOCKER-ASSET-INVENTORY",
+  "finishedAt": "2026-08-23T19:14:28+09:00",
+  "sourceIdentitySha256": "e7fd5f59441076a379b21e68f96dc4b852921df4f815ea25f763949ce9014ede",
+  "docker": {
+    "clientVersion": "29.7.2",
+    "serverVersion": "29.7.2",
+    "desktopVersion": "4.87.0",
+    "daemonAvailable": true,
+    "network": "cpf_default",
+    "networkDriver": "bridge"
+  },
+  "installedAssets": [
+    {"type": "image", "name": "postgres:18.4-trixie", "id": "3a82e1f56c8f", "size": "650MB"},
+    {"type": "container", "name": "cpf-postgresql", "image": "postgres:18.4-trixie", "state": "exited"},
+    {"type": "container", "name": "cpf-codex-f132-postgres", "image": "postgres:18.4-trixie", "state": "exited", "purpose": "prior isolated verifier"},
+    {"type": "image", "name": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1", "id": "7fcd59fe809e", "size": "4.96GB"}
+  ],
+  "secret": {
+    "processEnvironmentPresent": false,
+    "externalEstablishedFilePresent": true,
+    "requiredKeyPresent": true,
+    "valueReadIntoEvidence": false
+  },
+  "mutations": {
+    "pull": false,
+    "install": false,
+    "imageBuild": false,
+    "containerCreate": false,
+    "containerStart": false
+  },
+  "next": "Start and reuse the existing cpf-postgresql container, then run verifier-owned disposable databases with the installed integration runner."
+}

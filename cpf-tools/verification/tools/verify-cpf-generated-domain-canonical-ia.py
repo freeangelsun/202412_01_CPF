@@ -1,27 +1,30 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse,json,re,sys
+import argparse,json,re
 from pathlib import Path
 
-def parse_yaml_subset(path:Path):
-    # 충분한 정적 판정용 key reader. Generator engine의 정본 입력과 충돌하지 않는다.
-    text=path.read_text(encoding='utf-8-sig')
-    def scalar(key):
-        m=re.search(rf'(?m)^\s*{re.escape(key)}:\s*([^#\n]+)',text); return m.group(1).strip().strip('"\'') if m else ''
-    name=''; m=re.search(r'(?ms)^domain:\s*\n(?:\s+.*\n)*?\s+name:\s*([A-Za-z0-9_-]+)',text); name=m.group(1) if m else ''
-    package=''; m=re.search(r'(?m)^\s+packageName:\s*([^#\n]+)',text); package=m.group(1).strip() if m else name.replace('-','')
-    mode=''; m=re.search(r'(?ms)^generation:\s*\n(?:\s+.*\n)*?\s+mode:\s*([A-Za-z0-9_-]+)',text); mode=m.group(1) if m else ''
-    feats=[]; fm=re.search(r'(?ms)^businessFeatures:\s*\n((?:\s+-\s*[^\n]+\n?)+)',text)
-    if fm: feats=[x.strip().split('#',1)[0].strip() for x in re.findall(r'(?m)^\s+-\s*([^\n]+)',fm.group(1))]
-    return name,package,mode,feats
+def parse_contract(path:Path):
+    values={}
+    for raw in path.read_text(encoding='utf-8-sig').splitlines():
+        line=raw.strip()
+        if not line or line.startswith(('#','!')) or '=' not in line: continue
+        key,value=line.split('=',1); values[key.strip()]=value.strip()
+    name=values.get('cpf.domain.name','')
+    package=values.get('cpf.domain.packageName','') or name.replace('-','')
+    mode=values.get('cpf.domain.generationMode','generated')
+    features=[value.strip() for value in values.get('cpf.domain.businessFeatures','').split(',') if value.strip()]
+    return name,package,mode,features
 
 def scan(root:Path):
     findings=[]; details=[]
-    for definition in sorted(root.glob('cpf-*/cpf-domain.yaml')):
-        name,pkg,mode,features=parse_yaml_subset(definition)
+    for definition in sorted(root.glob('cpf-*/gradle.properties')):
+        if 'cpf.domain.contractVersion=' not in definition.read_text(encoding='utf-8-sig'): continue
+        name,pkg,mode,features=parse_contract(definition)
         if mode.lower()=='prebuilt': continue
         if not name: findings.append(f'{definition}:domain-name-missing'); continue
         domain_root=definition.parent
+        forbidden=[value for value in ('cpf-domain.yaml','cpf-generator.lock.json','.cpf') if (domain_root/value).exists()]
+        if forbidden: findings.append(f'{domain_root.name}:forbidden-generator-metadata:{forbidden}')
         if not features: findings.append(f'{domain_root.name}:businessFeatures-missing')
         if name in features: findings.append(f'{domain_root.name}:businessFeature-equals-domain:{name}')
         allowed=set(features)|{'base'}

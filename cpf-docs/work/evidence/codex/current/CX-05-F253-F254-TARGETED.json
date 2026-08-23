@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-23T23:06:21+09:00",
+  "sourceIdentitySha256": "d2c54fb72a692c935a44ab8dcc6ca923b0613728850fec8fa8fdfca215820cd6",
+  "status": "VERIFICATION_PENDING",
+  "verification": [
+    {"task": ":framework:web:test", "tests": 29, "failures": 0, "errors": 0, "skipped": 0},
+    {"task": ":runtime:batch:control-plane:test", "tests": 69, "failures": 0, "errors": 0, "skipped": 0},
+    {"task": ":runtime:batch:control-plane:bootJar", "bytes": 76676190, "status": "PASS"},
+    {"contract": "lowercase Retention physical identifier inventory", "remaining": 0, "status": "PASS"}
+  ],
+  "remainingGate": "Fresh physical Linux MariaDB Control Plane plus two-Worker replay"
+}

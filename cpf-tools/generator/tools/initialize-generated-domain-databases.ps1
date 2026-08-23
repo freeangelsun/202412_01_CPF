@@ -19,8 +19,8 @@ param(
     [switch] $ConfirmRollback
 )
 
-# Registered domains are discovered only from Framework-owned cpf-domain.yaml definitions.
-# DB Vendor/connection values are deployment inputs and never project-local Generated metadata.
+# Registered domains are discovered only from each Generated Root's Developer-Facing gradle.properties contract.
+# DB Vendor/connection values are deployment inputs and never project-local Generator bookkeeping.
 $ErrorActionPreference = 'Stop'
 $Utf8NoBom = [Text.UTF8Encoding]::new($false)
 $Root = (Resolve-Path -LiteralPath $Root).Path
@@ -71,7 +71,7 @@ foreach ($item in $selected) {
         '-Root', $Root,
         '-DomainName', [string]$item.domainName,
         '-SystemCode', [string]$item.systemCode,
-        '-DefinitionPath', [string]$item.definitionPath,
+        '-DefinitionPath', [string]$item.contractPath,
         '-Operation', $Operation
     )
     foreach ($entry in @(
@@ -98,20 +98,20 @@ foreach ($item in $selected) {
     $results += [ordered]@{
         domainName = [string]$item.domainName
         systemCode = [string]$item.systemCode
-        definitionPath = [string]$item.definitionPath
+        contractPath = [string]$item.contractPath
         operation = $Operation
         status = if ($Apply) { '완료' } else { '미검증' }
     }
 }
 
-$resultDir = Join-Path $Root 'build/db-install/generated-domains'
+$resultDir = Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator/db-install/generated-domains'
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-batch-result.sanitized.json'
 $result = [ordered]@{
     generatedAt = [DateTimeOffset]::Now.ToString('o')
     operation = $Operation
     applied = [bool]$Apply
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     domains = $results
 }
 [IO.File]::WriteAllText(

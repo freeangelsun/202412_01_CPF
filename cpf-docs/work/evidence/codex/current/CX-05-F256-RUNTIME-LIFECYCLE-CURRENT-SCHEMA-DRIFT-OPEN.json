@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-256",
+  "recordedAt": "2026-08-23T23:10:55+09:00",
+  "sourceIdentitySha256": "d2c54fb72a692c935a44ab8dcc6ca923b0613728850fec8fa8fdfca215820cd6",
+  "status": "IN_PROGRESS",
+  "freshRunId": "b4200823c029",
+  "failedBoundary": "central Runtime lifecycle read after real Control Plane and Worker registration",
+  "actualError": "Unknown column s.desired_runtime_state",
+  "rootCause": "Current canonical schema omitted desired_runtime_state, actual_runtime_state and control_row_version consumed by the active Runtime Control repository although the immutable V134 migration introduced them",
+  "cleanup": "PASS",
+  "prohibitedWorkaround": "remove active repository fields or edit immutable historical migrations"
+}

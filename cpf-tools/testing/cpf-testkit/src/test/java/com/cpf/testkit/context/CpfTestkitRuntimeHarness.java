@@ -27,7 +27,11 @@ public final class CpfTestkitRuntimeHarness {
     }
     static CpfContext context(String tx,String ex,String seg){
         Instant now=Instant.parse("2026-08-10T00:00:00Z");
-        var t=new CpfContext.CpfTransactionContext(tx,tx,null,tx,null,"WEB","SYS",LocalDate.of(2026,8,10),now,CpfContext.CpfTransactionOriginKind.HTTP,"SYS",tx);
+        var t=new CpfContext.CpfTransactionContext(
+                tx,tx,null,tx,null,
+                "SYS","SYS",null,null,
+                "WEB","WEB",null,null,
+                LocalDate.of(2026,8,10),now,CpfContext.CpfTransactionOriginKind.HTTP,"SYS",tx);
         var e=new CpfContext.CpfExecutionContext(ex,ex,ex,null,seg,null,CpfContext.CpfExecutionType.API,1,0,now,null,CpfContext.CpfCancellationMode.DEADLINE_ENFORCED);
         return new CpfContext(t,e,null,null,null);
     }

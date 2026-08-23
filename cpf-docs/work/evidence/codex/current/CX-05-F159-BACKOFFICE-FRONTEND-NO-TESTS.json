@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-08-23T14:19:00+09:00",
+  "findingId": "CX-F-159",
+  "status": "CLOSED",
+  "sourceIdentity": "a97342e45e70f1c9b22d6e0810e31d2d60ed349a59ae75c41b64dd30d0da93c9",
+  "sourceIdentityAfterFix": {
+    "contentSha256": "db8ebd7f959a497fb86e4dfeb5ef59d5fe67e11734a7b4c0e81d9855fc0c2867",
+    "contentSha1": "c731a5a2c55d16487c92982916c9ef0bda0e4fb1",
+    "fileCount": 8222,
+    "totalBytes": 75020477
+  },
+  "title": "Backoffice frontend test command has no executable tests",
+  "command": "npm run verify",
+  "environment": "Node 24.11.0; repository lockfile npm ci; Vitest 4.1.10; 750 MiB Node old-space ceiling",
+  "actualResult": "TypeScript and generated 96-operation client PASS; npm test fails because Vitest finds zero test files; production build is not reached.",
+  "rootCause": "The package advertises a complete test stage and includes Vitest plus Vue Test Utils, but the maintained Backoffice frontend contains no test/spec file. The newly completed employee contact behavior therefore has no executable regression owner.",
+  "repairPolicy": "Add real model and Vue component behavior tests for required validation, trimming, contact entry, explicit clear controls and loading behavior; retain the normal failing zero-test default.",
+  "sourceFix": "Added model validation tests plus a mounted jsdom Vue component suite covering the complete contact payload, explicit clear semantics, input disabling and loading-state submit protection.",
+  "verification": "Vitest executes 2 files and 6 tests with zero failures; complete npm verify reaches and passes production build. Generated dependencies and dist are deleted afterward.",
+  "passCriteria": ["Vitest executes nonzero tests", "Employee contact and clear payload behavior covered", "TypeScript PASS", "Production build PASS"]
+}

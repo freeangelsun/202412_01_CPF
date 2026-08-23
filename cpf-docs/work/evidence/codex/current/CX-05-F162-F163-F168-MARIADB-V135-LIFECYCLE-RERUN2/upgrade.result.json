@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "tool": "run-db-vendor-lifecycle.ps1",
+  "vendor": "mariadb",
+  "mode": "Upgrade",
+  "status": "FAILED",
+  "executionStarted": false,
+  "reconcileRequired": false,
+  "lifecyclePlan": "cpf-docs/work/evidence/codex/current/CX-05-F162-F163-F168-MARIADB-V135-LIFECYCLE-RERUN2/upgrade.plan.json",
+  "lifecyclePlanSha256": "",
+  "profileSha256": "a2eb44d9c056d9defebaa1643dca9f06a29a334bcc952f41dfcb2a30e8892be4",
+  "adapter": null,
+  "startedAt": "2026-08-23T06:23:25.5711251+00:00",
+  "finishedAt": "2026-08-23T06:23:25.6327676+00:00",
+  "approvalReference": "",
+  "error": "DB profile modules are unknown: -MigrationVersion",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "cc997a5a2ff9"
+}

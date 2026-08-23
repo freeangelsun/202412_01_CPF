@@ -54,12 +54,13 @@ def main(argv=None):
   # 각 Generated Build를 Product Source composite consumer로 직접 실행해야 CPF Artifact substitution,
   # 선택 Vendor Mapper overlay, Generated Online test가 모두 실제 task graph에 포함됩니다.
   generated_roots=sorted(
-      definition.parent for definition in root.glob('cpf-*/cpf-domain.yaml')
-      if definition.parent.is_dir()
+      definition.parent for definition in root.glob('cpf-*/gradle.properties')
+      if definition.parent.is_dir() and 'cpf.domain.contractVersion=' in definition.read_text(encoding='utf-8-sig')
+      and 'cpf.domain.generationMode=generated' in definition.read_text(encoding='utf-8-sig')
   )
   for vendor in SUPPORTED_GENERATED_DB_VENDORS:
    for generated_root in generated_roots:
-    capabilities=['online'] if (generated_root/'online/build.gradle').is_file() and not any((generated_root/x).exists() for x in ('batch','domain','jobpack')) else []
+    capabilities=[name for name in ('online','batch') if (generated_root/name/'build.gradle').is_file()]
     if not capabilities:
      c.run(f'gradle_generated_{generated_root.name}_{vendor}', ['__cpf_generated_capability_missing__'],10)
      continue

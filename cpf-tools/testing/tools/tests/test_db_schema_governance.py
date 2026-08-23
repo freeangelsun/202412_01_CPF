@@ -55,6 +55,27 @@ class DbSchemaGovernanceTest(unittest.TestCase):
             failures, _ = MODULE.verify(path)
         self.assertTrue(any("missing column" in finding.message for finding in failures))
 
+    def test_missing_required_column_shape_is_rejected(self):
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8-sig"))
+        mutated = copy.deepcopy(schema)
+        del mutated["tables"][0]["columns"][0]["autoIncrement"]
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "schema.json"
+            path.write_text(json.dumps(mutated), encoding="utf-8")
+            failures, _ = MODULE.verify(path)
+        self.assertTrue(any("missing required fields" in finding.message for finding in failures))
+
+    def test_missing_required_foreign_key_shape_is_rejected(self):
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8-sig"))
+        mutated = copy.deepcopy(schema)
+        target = next(table for table in mutated["tables"] if table.get("foreignKeys"))
+        del target["foreignKeys"][0]["onDelete"]
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "schema.json"
+            path.write_text(json.dumps(mutated), encoding="utf-8")
+            failures, _ = MODULE.verify(path)
+        self.assertTrue(any("foreign key is missing required fields" in finding.message for finding in failures))
+
 
 if __name__ == "__main__":
     unittest.main()

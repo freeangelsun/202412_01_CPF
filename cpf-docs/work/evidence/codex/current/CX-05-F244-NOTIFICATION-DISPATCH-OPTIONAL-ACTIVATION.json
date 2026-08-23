@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-244",
+  "sourceIdentity": "44f08ddf421c443b98d0da5f3f0238436d4c06e1cf4572e63463b86bcbadf5a0",
+  "status": "VERIFICATION_PENDING",
+  "failedRun": "b4200823c019",
+  "rootCause": "Classpath discovery activated Provider-dependent notification dispatch even when its existing enabled property was false or absent.",
+  "change": "Guard the complete dispatch auto-configuration with cpf.notification.dispatch.enabled=true and add disabled/enabled ApplicationContextRunner coverage.",
+  "safety": {
+    "fakeProviderAddedToBatch": false,
+    "providerValidationWeakened": false,
+    "newDockerImageInstalled": false,
+    "verifierDatabaseCleanup": "PASS"
+  },
+  "verification": "Static/targeted PASS: Notification 12/12, Worker 43/43, and Worker bootJar 85339241 bytes. Fresh runtime replay pending."
+}

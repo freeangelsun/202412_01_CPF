@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-08-23T14:02:00+09:00",
+  "findingId": "CX-F-157",
+  "status": "CLOSED",
+  "sourceIdentity": "b91a373f96ddfdc21daf1f351676dd22f3759d385f5cc7da2ab0c2bbc3f9a21c",
+  "sourceIdentityAfterFix": {
+    "contentSha256": "0f1802241e1897d8debad4e00a8cb3dcef4adb7d4bf9ef5441d71ced4df55a28",
+    "contentSha1": "f4406d470528de0a32583cdd70201b0f2669288d",
+    "fileCount": 8220,
+    "totalBytes": 75015924
+  },
+  "title": "Current contact-model verifier targets removed BZA repository and runtime-pack paths",
+  "command": "cpf-tools/verification/tools/check-admin-contact-model.ps1",
+  "actualError": "Required file missing: cpf-backoffice/online/.../backoffice/repository/BzaBackofficeRepository.java",
+  "canonicalOwners": {
+    "repository": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/management/repository/BackofficeManagementRepository.java",
+    "catalogModule": "backoffice",
+    "templateRoot": "cpf-tools/db/runtime-template/backoffice/repository",
+    "runtimePackRoot": "cpf-tools/db/vendor/<vendor>/runtime/backoffice/repository"
+  },
+  "proof": "The canonical repository contains all three required statement keys; each vendor current runtime pack and the template owner contain the required employee queries.",
+  "rootCause": "The Product repository and SQL pack were currentized to Feature-First Backoffice ownership, but this current verifier retained retired class, module and directory contracts and therefore cannot validate the maintained Source.",
+  "repairPolicy": "Currentize only the verifier's current Product owners and labels; preserve referenced immutable V59 migration/rollback and legacy-table assertions byte-for-byte.",
+  "sourceFix": "The verifier now resolves BackofficeManagementRepository, forModule(backoffice), current backoffice templates, and each vendor's runtime/backoffice pack. Historical migration/rollback paths and SQL assertions are unchanged.",
+  "verificationAttempt1": "Reached the published source-archive V59 and failed because the verifier expects USE bzaDB while the immutable manifest-owned artifact uses USE backofficeDB and mbw_employee with exact published SHA-256 a3d44b06b8bc4264a284ab7cf7decef5411735d29facfb40823206408106bd13.",
+  "repairPolicyCorrection": "Do not modify V59 bytes or its checksum. Currentize the verifier assertion to the exact independently published source-archive contract; central and source immutable histories remain independent.",
+  "sourceIdentityAfterAssertionFix": {
+    "contentSha256": "0d02f69b75cae2c279020ac8d9e174ab2351dacc121f3fe0f1ec01df7c1a06d1",
+    "contentSha1": "5568c7553237d4a0026acecd4cb75542b42ca171",
+    "fileCount": 8220,
+    "totalBytes": 75016007
+  },
+  "verification": "Exact ADM/MBW contact-model gate PASS across the current Backoffice owner, templates, UI, and three vendor runtime packs; the full Backoffice frontend verify also passes after F158/F159.",
+  "passCriteria": ["Verifier PASS against current Backoffice owner", "All three vendor current runtime queries validated", "Immutable migration inputs unchanged"]
+}

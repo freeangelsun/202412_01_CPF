@@ -218,7 +218,7 @@ WHERE (
         AND DETAIL_KEY = 'memo'
   );
 MERGE INTO ADM_DYNAMIC_LOG_LEVEL_RULE tgt
-USING (SELECT 'sample-rule-001' AS RULE_ID, NULL AS TRANSACTION_ID, 'OEDUAA0001' AS BUSINESS_TRANSACTION_ID, 'EDU' AS MODULE_ID, 'DEBUG' AS LOG_LEVEL, DATE_ADD(NOW(), INTERVAL 30 MINUTE) AS EXPIRE_AT, 'ADM 화면 smoke 검증용 동적 로그 규칙입니다.' AS REASON, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'sample-rule-001' AS RULE_ID, NULL AS TRANSACTION_ID, 'OEDUAA0001' AS BUSINESS_TRANSACTION_ID, 'EDU' AS MODULE_ID, 'DEBUG' AS LOG_LEVEL, (SYSTIMESTAMP + INTERVAL '30' MINUTE) AS EXPIRE_AT, 'ADM 화면 smoke 검증용 동적 로그 규칙입니다.' AS REASON, 'Y' AS USE_YN, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.RULE_ID=src.RULE_ID)
 WHEN MATCHED THEN UPDATE SET tgt.BUSINESS_TRANSACTION_ID=src.BUSINESS_TRANSACTION_ID, tgt.MODULE_ID=src.MODULE_ID, tgt.LOG_LEVEL=src.LOG_LEVEL, tgt.EXPIRE_AT=src.EXPIRE_AT, tgt.REASON=src.REASON, tgt.USE_YN=src.USE_YN, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (RULE_ID, TRANSACTION_ID, BUSINESS_TRANSACTION_ID, MODULE_ID, LOG_LEVEL, EXPIRE_AT, REASON, USE_YN, created_by, updated_by) VALUES (src.RULE_ID, src.TRANSACTION_ID, src.BUSINESS_TRANSACTION_ID, src.MODULE_ID, src.LOG_LEVEL, src.EXPIRE_AT, src.REASON, src.USE_YN, src.created_by, src.updated_by);
@@ -276,7 +276,7 @@ ON (tgt.role_code=src.role_code)
 WHEN MATCHED THEN UPDATE SET tgt.role_name=src.role_name, tgt.write_allowed_yn=src.write_allowed_yn, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (role_code, role_name, write_allowed_yn, data_scope, use_yn, created_by, updated_by) VALUES (src.role_code, src.role_name, src.write_allowed_yn, src.data_scope, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_USER_ROLE tgt
-USING (SELECT admin_user_id AS admin_user_id, 'MBW_MANAGER' AS role_code, CURRENT_TIMESTAMP(3) AS valid_from, NULL AS valid_to, 'Y' AS primary_yn, 'CPF_TEST_SEED' AS grant_reason, 'CPF-TEST-MBW-ROLE-MANAGER-0001' AS operation_id, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER
+USING (SELECT admin_user_id AS admin_user_id, 'MBW_MANAGER' AS role_code, SYSTIMESTAMP AS valid_from, NULL AS valid_to, 'Y' AS primary_yn, 'CPF_TEST_SEED' AS grant_reason, 'CPF-TEST-MBW-ROLE-MANAGER-0001' AS operation_id, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM MBW_ADMIN_USER
 WHERE admin_login_id = 'mbw-admin') src
 ON (tgt.operation_id=src.operation_id)
 WHEN MATCHED THEN UPDATE SET tgt.valid_to=NULL, tgt.primary_yn='Y', tgt.grant_reason=src.grant_reason, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
@@ -340,9 +340,9 @@ ON (tgt.setting_key=src.setting_key)
 WHEN MATCHED THEN UPDATE SET tgt.setting_value=src.setting_value, tgt.description=src.description, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (setting_key, setting_value, description, use_yn, created_by, updated_by) VALUES (src.setting_key, src.setting_value, src.description, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_ORGANIZATION tgt
-USING (SELECT 'HQ' AS organization_code, NULL AS parent_organization_code, '본사' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
+USING (SELECT 'HQ' AS organization_code, NULL AS parent_organization_code, '본사' AS organization_name, 'COMPANY' AS organization_type, 10 AS sort_order, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual
 UNION ALL
-SELECT 'OPS' AS organization_code, 'HQ' AS parent_organization_code, '업무운영팀' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+SELECT 'OPS' AS organization_code, 'HQ' AS parent_organization_code, '업무운영팀' AS organization_name, 'DEPARTMENT' AS organization_type, 20 AS sort_order, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'Y' AS use_yn, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.organization_code=src.organization_code)
 WHEN MATCHED THEN UPDATE SET tgt.parent_organization_code=src.parent_organization_code, tgt.organization_name=src.organization_name, tgt.organization_type=src.organization_type, tgt.sort_order=src.sort_order, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (organization_code, parent_organization_code, organization_name, organization_type, sort_order, effective_from, effective_to, use_yn, created_by, updated_by) VALUES (src.organization_code, src.parent_organization_code, src.organization_name, src.organization_type, src.sort_order, src.effective_from, src.effective_to, src.use_yn, src.created_by, src.updated_by);
@@ -362,7 +362,7 @@ ON (tgt.admin_user_id=src.admin_user_id)
 WHEN MATCHED THEN UPDATE SET tgt.admin_user_id=src.admin_user_id, tgt.organization_code=src.organization_code, tgt.employee_name=src.employee_name, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.employment_status=src.employment_status, tgt.email=src.email, tgt.use_yn=src.use_yn, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP
 WHEN NOT MATCHED THEN INSERT (employee_no, admin_user_id, organization_code, employee_name, position_code, job_title_code, employment_status, join_date, email, use_yn, created_by, updated_by) VALUES (src.employee_no, src.admin_user_id, src.organization_code, src.employee_name, src.position_code, src.job_title_code, src.employment_status, src.join_date, src.email, src.use_yn, src.created_by, src.updated_by);
 MERGE INTO MBW_EMPLOYEE_ASSIGNMENT tgt
-USING (SELECT 'EMP001' AS employee_no, 'OPS' AS organization_code, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'PRIMARY' AS assignment_type, 'Y' AS primary_yn, CURRENT_TIMESTAMP(3) AS effective_from, NULL AS effective_to, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
+USING (SELECT 'EMP001' AS employee_no, 'OPS' AS organization_code, 'P3' AS position_code, 'OPERATOR' AS job_title_code, 'PRIMARY' AS assignment_type, 'Y' AS primary_yn, SYSTIMESTAMP AS effective_from, NULL AS effective_to, 'SYSTEM' AS created_by, 'SYSTEM' AS updated_by FROM dual) src
 ON (tgt.employee_no=src.employee_no AND tgt.assignment_type=src.assignment_type AND tgt.primary_yn=src.primary_yn)
 WHEN MATCHED THEN UPDATE SET tgt.organization_code=src.organization_code, tgt.position_code=src.position_code, tgt.job_title_code=src.job_title_code, tgt.primary_yn=src.primary_yn, tgt.effective_to=NULL, tgt.updated_by=src.updated_by, tgt.updated_at=CURRENT_TIMESTAMP(3)
 WHEN NOT MATCHED THEN INSERT (employee_no, organization_code, position_code, job_title_code, assignment_type, primary_yn, effective_from, effective_to, created_by, updated_by) VALUES (src.employee_no, src.organization_code, src.position_code, src.job_title_code, src.assignment_type, src.primary_yn, src.effective_from, src.effective_to, src.created_by, src.updated_by);

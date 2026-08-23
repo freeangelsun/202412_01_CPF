@@ -1,0 +1,25 @@
+{
+  "track": "CX-05-F127-DESCRIPTOR-AWARE-ADVISOR-FIX-IDENTITY",
+  "finding": "CX-F-127",
+  "status": "SOURCE_FIXED",
+  "sourceIdentityBeforeSha256": "302ed31f6a277d7e5a1368362a9712260298b73619dd2c752a676932ce3ed626",
+  "sourceIdentityAfter": {
+    "contentSha256": "ce8e6330e46535cb12559c237874fcdec92be03b8f56b06c9ed1251c44f2e46c",
+    "contentSha1": "b139064207dfa411117e4676e60209fbaadcef07",
+    "fileCount": 8228,
+    "totalBytes": 75855441
+  },
+  "designCorrection": [
+    "replace broad AspectJ eligibility with a metadata-aware StaticMethodMatcherPointcutAdvisor",
+    "decide before proxy creation using the canonical runtime capability inventory",
+    "exclude Spring BeanPostProcessor/BeanFactoryPostProcessor/Advisor/Pointcut/AOP infrastructure and configuration/property types",
+    "exclude final target classes that cannot satisfy the active class-proxy contract",
+    "preserve usage context binding around proxy-safe operator-visible capability methods"
+  ],
+  "regressionCoverage": [
+    "descriptor-owned proxy-safe consumer matches",
+    "final BeanPostProcessor infrastructure does not match",
+    "descriptor-unowned type does not match"
+  ],
+  "verificationPending": "Targeted test, rebuilt Fresh bootJar startup, actual runtime/error files and broader base-runtime tests."
+}

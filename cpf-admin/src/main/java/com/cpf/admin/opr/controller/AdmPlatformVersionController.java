@@ -1,5 +1,6 @@
 package com.cpf.admin.opr.controller;
 
+import com.cpf.admin.common.base.AdmBaseController;
 import com.cpf.core.api.version.CpfPlatformVersion;
 import com.cpf.data.persistence.api.annotation.CpfTransactional;
 import com.cpf.foundation.version.CpfPlatformVersionLoader;

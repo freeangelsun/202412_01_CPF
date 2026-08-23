@@ -52,6 +52,16 @@ public class JdbcCpfBrokerReliabilityRepository
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
     }
 
+    @Override
+    public boolean supportsFencedUnknownMutation() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsFencedPublishMutation() {
+        return true;
+    }
+
 
     @Override
     // 메시지 상태 전이를 단일 트랜잭션으로 묶어 부분 저장과 중복 처리를 방지합니다.
@@ -405,6 +415,12 @@ public class JdbcCpfBrokerReliabilityRepository
         upsertDlq(envelope.message().messageId(), envelope.message().topic(), envelope.transactionId(),
                 envelope.segmentId(), safe, "WAITING", null);
         return CpfBrokerResult.failed(envelope.message().messageId(), "CPF_DLQ", safe);
+    }
+
+    @Override
+    @Transactional(transactionManager = "cpfTransactionManager")
+    public CpfBrokerResult moveToDlq(CpfBrokerEnvelope envelope, String reason) {
+        return moveToDlq(DEFAULT_CONSUMER_IDENTITY, envelope, reason);
     }
 
     @Override

@@ -1,0 +1,13 @@
+{
+  "track": "CX-05-F210-INVOCATION-CARDINALITY-ATTEMPT1-IDENTITY",
+  "timestamp": "2026-08-23T18:56:00+09:00",
+  "status": "TEST_CORRECTION_PENDING",
+  "sourceIdentity": {
+    "sha256": "7542eaead377b30cc8485b17a3c53e233695450052e9b54c0092aff71d939559",
+    "sha1": "204c485e032c60a2eb5f0b57a987181ec28cbf07",
+    "files": 8288,
+    "bytes": 75219910
+  },
+  "observation": "The mechanical cardinality patch matched the initial pre-resume assertion rather than the final post-resume assertion. This was found by line inspection before executing tests.",
+  "next": "Keep the initial call at one and require two total matching calls only after resume."
+}

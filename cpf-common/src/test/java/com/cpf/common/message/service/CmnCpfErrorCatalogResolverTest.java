@@ -51,7 +51,7 @@ class CmnCpfErrorCatalogResolverTest {
     }
 
     private static CpfResponseCodeRecord response(String code,String message,String category,String retry,String exposure,String use) {
-        return new CpfResponseCodeRecord(code,message,"FAIL","MBR","BUSINESS","1",category,retry,exposure,null,null,1,"",use,Instant.now());
+        return new CpfResponseCodeRecord(code,message,"FAIL","MBR","BUSINESS","1",500,category,retry,exposure,null,null,1,"",use,Instant.now());
     }
     private static CpfMessageRecord message(long id,String code,String locale,String external,String use,Instant from,Instant to) {
         return new CpfMessageRecord(id,code,locale,"FIXED",external,"internal",0,"",null,"N","N",from,to,1,"",use,Instant.now());

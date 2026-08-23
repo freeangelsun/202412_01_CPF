@@ -4890,6 +4890,7 @@
         "module_id",
         "response_group",
         "sequence_no",
+        "http_status",
         "description",
         "use_yn",
         "created_by",
@@ -6782,6 +6783,7 @@
         "updated_by",
         "updated_at",
         "row_version",
+        "binding_key_hash",
         "binding_checksum",
         "retired_by",
         "retired_at"
@@ -6791,12 +6793,7 @@
           "name": "uk_cpf_gwy_binding_key",
           "unique": true,
           "columns": [
-            "environment_code",
-            "host_pattern",
-            "path_pattern",
-            "http_method",
-            "api_version",
-            "route_version"
+            "binding_key_hash"
           ]
         },
         {
@@ -11119,6 +11116,17 @@
         "updated_at"
       ],
       "indexes": [
+        {
+          "name": "uk_mbw_permission_scope",
+          "unique": true,
+          "columns": [
+            "role_code",
+            "menu_code",
+            "button_code",
+            "permission_type",
+            "environment_code"
+          ]
+        },
         {
           "name": "ix_mbw_permission_scope",
           "unique": false,

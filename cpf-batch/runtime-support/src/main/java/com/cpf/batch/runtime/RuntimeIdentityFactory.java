@@ -18,7 +18,11 @@ public final class RuntimeIdentityFactory {
             RuntimeRole role,
             String serviceId,
             int defaultPort) {
-        String instanceId = CpfInstanceIdentity.current().instanceId();
+        String instanceId = property(
+                environment,
+                "cpf.runtime.instance-id",
+                "CPF_RUNTIME_INSTANCE_ID",
+                CpfInstanceIdentity.current().instanceId());
         int port = Integer.parseInt(property(
                 environment, "server.port", "CPF_PORT", Integer.toString(defaultPort)));
         List<String> capabilities = Arrays.stream(property(

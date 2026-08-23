@@ -4,6 +4,7 @@ import com.cpf.foundation.annotation.CpfService;
 
 import com.cpf.batch.spi.BatchStepHandler.BatchStepCommand;
 import com.cpf.batch.spi.BatchStepHandler.BatchStepResult;
+import com.cpf.batch.spi.BatchStepHandler.Status;
 import java.util.Map;
 
 /** 배치-07 Retry·Skip·Restart: retryable/skip/checkpoint를 구분하고 restart 시 중복 처리를 방지합니다. */
@@ -16,7 +17,7 @@ public class BillingRestartJobService {
 
         if (retryable) {
             return new BatchStepResult(
-                    BatchStepResult.Status.RETRYABLE_FAILURE,
+                    Status.RETRYABLE_FAILURE,
                     "TEMPORARY",
                     "CPF Runtime retry/backoff 후 동일 checkpoint에서 재실행합니다.",
                     1, 0, 0,
@@ -24,7 +25,7 @@ public class BillingRestartJobService {
         }
         if (skippable) {
             return new BatchStepResult(
-                    BatchStepResult.Status.COMPLETED,
+                    Status.COMPLETED,
                     "",
                     "허용된 데이터 오류 1건을 skip하고 checkpoint를 전진합니다.",
                     1, 0, 1,

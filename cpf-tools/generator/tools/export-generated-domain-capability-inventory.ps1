@@ -1,6 +1,6 @@
 param(
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
-    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..\..\..").Path "build/quality-gate")
+    [string] $ResultDir = (Join-Path (Resolve-Path "$PSScriptRoot\..\..\..").Path "cpf-docs/work/evidence/generated/domain-generator/quality-gate")
 )
 
 $CpfUtf8ConsoleEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -32,7 +32,7 @@ $capabilities = [System.Collections.Generic.List[object]]::new()
 $capabilities.Add([ordered]@{
     id = "GEN-CENTRAL-GOLDEN-TEMPLATE"
     owner = "GEN"
-    description = "임의 Domain Metadata를 단일 Golden Template과 공식 DB 3종으로 생성·검증"
+    description = "임의 Domain을 Developer Contract와 단일 Golden Template 및 공식 DB 3종으로 생성·검증"
     contractValid = $true
     contractMessage = $null
     paths = @(
@@ -106,21 +106,21 @@ foreach ($metadata in @(Get-CpfGeneratedDomainInventory -Root $Root)) {
     $contractValid =
         [bool]$metadata.exists -and
         [string]$metadata.databaseRole -eq 'CUSTOMER_BUSINESS_DB' -and
-        [string]$metadata.generatedProjectMetadata -eq 'NONE' -and
+        [string]$metadata.generatedProjectMetadata -eq 'ABSENT' -and
         @($metadata.forbiddenPermanentMetadata).Count -eq 0
     $capabilities.Add([ordered]@{
         id = "GENERATED-DOMAIN-$([string]$metadata.systemCode)"
         owner = [string] $metadata.systemCode
-        description = "Canonical definition 기반 Generated Domain $([string]$metadata.domainName)"
+    description = "Developer Contract 기반 Generated Domain $([string]$metadata.domainName)"
         contractValid = $contractValid
         contractMessage = if ($contractValid) {
             $null
         } else {
-            "canonical definition/project/permanent-metadata contract mismatch"
+            "developer contract/project/permanent-metadata contract mismatch"
         }
         paths = @(
             "$($metadata.projectName)/build.gradle",
-            [string]$metadata.definitionPath
+            [string]$metadata.contractPath
         )
     }) | Out-Null
 }
@@ -133,9 +133,9 @@ $capabilities.Add([ordered]@{
     owner = "GEN"
     description = "cpf-member가 다른 임의 Domain과 동일 Generator 산출물인 Golden Reference"
     contractValid = $goldenReferenceFound
-    contractMessage = if ($goldenReferenceFound) { $null } else { "cpf-member canonical definition/output missing" }
+    contractMessage = if ($goldenReferenceFound) { $null } else { "cpf-member Developer Contract/output missing" }
     paths = @(
-        "cpf-member/cpf-domain.yaml",
+        "cpf-member/gradle.properties",
         "cpf-member/build.gradle"
     )
 }) | Out-Null
@@ -183,7 +183,7 @@ $result = [ordered]@{
     items = $items
     missingTargetCount = $missingTargets.Count
     contractFailureCount = $contractFailures.Count
-    note = "고정 Domain 지원 목록 없이 Framework canonical cpf-domain.yaml 정의와 중앙 Template 계약에서 직접 생성했습니다."
+    note = "고정 Domain 지원 목록 없이 각 Generated Root의 Developer-Facing gradle.properties 계약과 중앙 Template에서 직접 산출했습니다."
 }
 $resultPath = Join-Path $ResultDir "generated-domain-capability-inventory.sanitized.json"
 [IO.File]::WriteAllText($resultPath, ($result | ConvertTo-Json -Depth 12), $Utf8NoBom)

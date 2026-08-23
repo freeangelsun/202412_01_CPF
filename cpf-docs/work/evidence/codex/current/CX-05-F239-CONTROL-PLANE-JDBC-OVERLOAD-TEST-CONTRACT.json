@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-239",
+  "status": "SOURCE_FIXED",
+  "observedAt": "2026-08-23T21:46:29+09:00",
+  "sourceIdentitySha256": "be384a1622b9dfed68970cca63d0366b1b9368cf59d6daca3ecd6e1644e8998f",
+  "scope": "Control Plane Center Cut reconciliation negative-path test compilation",
+  "result": "FAILED",
+  "rootCause": "Two negative-path Mockito verifications use untyped any() for the second JdbcTemplate.update argument. Spring JDBC exposes both PreparedStatementSetter and Object... overloads, so Java 25 compilation cannot select the production Object[] contract.",
+  "actualError": "reference to update is ambiguous at CenterCutReconciliationControllerTest lines 61 and 129",
+  "requiredFix": "Type both matchers as Object[] so the tests continue verifying no invocation of the exact production varargs overload.",
+  "prohibited": "Do not delete the negative assertions, suppress compilation, or change production JDBC behavior to fit a matcher.",
+  "sourceFix": {
+    "sourceIdentitySha256": "c2b09db0d0f8cd5e2b680d3005f8e0ee3749946805bb01db03f0e4bfa31e1e04",
+    "sourceIdentitySha1": "03f19fe6d1c468e8b9350a8cae8e1dca180229ed",
+    "fileCount": 8299,
+    "totalBytes": 75275932,
+    "implementation": "Both negative verifications target any(Object[].class); production code is unchanged."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-08-23T11:27:00+09:00",
+  "findingId": "CX-F-145",
+  "authorizedCommand": "git restore --source=HEAD --worktree -- <exact 21 explicit paths>",
+  "restoreExitCode": 0,
+  "targetCount": 21,
+  "allRestoredSha256EqualHead": true,
+  "targetStatusAfterRestore": {},
+  "unrelatedWorkingTree": {
+    "beforeStatusEntryCount": 2213,
+    "afterStatusEntryCount": 2213,
+    "beforeAggregateSha256": "f92e96001393888ad905364340cd03a064bf902a510fb875a1b4a77c5945ee27",
+    "afterAggregateSha256": "f92e96001393888ad905364340cd03a064bf902a510fb875a1b4a77c5945ee27",
+    "unchanged": true
+  },
+  "postRestoreSourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "e48e762bc0597a3ab7d09cd68aff3482027698d1fd59cf14e2a5e2b893bdd7a2",
+    "sha1": "871af163f45adfe93a5c5daf8dc4dfe090288497",
+    "fileCount": 8248,
+    "totalBytes": 76634394
+  },
+  "fullPerPathHashes": "cpf-docs/work/evidence/codex/current/CX-05-F145-PRE-RESTORE-21.csv",
+  "next": "Fix the builder before any repeat generation; do not run the defective publisher again."
+}

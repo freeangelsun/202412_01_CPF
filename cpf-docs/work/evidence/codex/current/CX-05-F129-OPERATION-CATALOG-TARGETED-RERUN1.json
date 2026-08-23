@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F129-OPERATION-CATALOG-TARGETED-RERUN1",
+  "startedAt": "2026-08-23T02:45:29+09:00",
+  "finishedAt": "2026-08-23T02:46:50.8888264+09:00",
+  "finding": "CX-F-129",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentity": "9a86e893dcded05ae5911f04b0ba0deb8b64ef67d7797c9fe5e4e502c96a6ec1",
+  "attempts": [
+    {
+      "command": ".\\gradlew.bat :framework:web:test --tests com.cpf.web.runtime.CpfOperationCatalogBootstrapTest --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+      "exitCode": 1,
+      "result": "ORCHESTRATION_ONLY",
+      "detail": "The first launcher supplied a nonexistent JAVA_HOME C:\\dev\\java\\jdk-25.0.3+9; Gradle did not start and no product verdict was taken."
+    },
+    {
+      "command": ".\\gradlew.bat :framework:web:test --tests com.cpf.web.runtime.CpfOperationCatalogBootstrapTest --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+      "javaHome": "C:\\dev\\java\\jdk-25.0.3.9-hotspot",
+      "exitCode": 0,
+      "result": "PASS_TARGETED",
+      "gradleTasks": "15 executed",
+      "duration": "31s"
+    }
+  ],
+  "junit": {
+    "suite": "com.cpf.web.runtime.CpfOperationCatalogBootstrapTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "timeSeconds": 2.847,
+    "xml": "cpf-starters/web/build/test-results/test/TEST-com.cpf.web.runtime.CpfOperationCatalogBootstrapTest.xml"
+  },
+  "verified": [
+    "An empty generated domain completes bootstrap without a catalog registry.",
+    "A real @CpfOnlineTransaction operation with zero registries fails with CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:0."
+  ],
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F129-OPERATION-CATALOG-TARGETED-RERUN1.log",
+  "next": "Rebuild and launch the same Fresh prod runtime from current composite Product Source."
+}

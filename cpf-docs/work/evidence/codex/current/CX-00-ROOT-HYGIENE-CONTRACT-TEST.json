@@ -1,0 +1,17 @@
+{
+  "track": "CX-00-ROOT-HYGIENE-CONTRACT-TEST",
+  "startedAt": "2026-08-22T18:06:36.5711065+09:00",
+  "finishedAt": "2026-08-22T18:06:36.6960139+09:00",
+  "sourceIdentitySha256": "dddb36f7cbe993e4b44a087a6a7e0ce100c4aa3b61145d5daeb5905dd8ef25dd",
+  "command": "Direct import and execution of every test_* function in test_cpf_source_state.py and test_cpf_resource_policy_contract.py with isolated tmp_path fixtures",
+  "exitCode": 0,
+  "result": "PASS",
+  "tests": 9,
+  "failures": 0,
+  "coverage": [
+    "source and managed identity invariance for JVM crash, replay, heap-dump and stack-dump garbage",
+    "nested cpf-docs/work/evidence/generated exclusion",
+    "root Gradle build/cache and JVM fatal-artifact routing contract",
+    "resource ceiling profiles and task convention"
+  ]
+}

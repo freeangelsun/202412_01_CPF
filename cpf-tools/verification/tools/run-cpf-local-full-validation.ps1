@@ -462,6 +462,7 @@ $environment=[ordered]@{
 # 1. 저비용/정적 Gate + Python 전체 test tree를 독립 실행한다.
 #    한 tree 실패가 다른 tree 실행을 막지 않으며, 전체 collection도 별도 확인한다.
 if($python){
+    $pytestRunner='.\cpf-tools\testing\tools\run-cpf-pytest.py'
     Invoke-CpfStage 'RESOURCE_POLICY' $python @('.\cpf-tools\verification\verify-cpf-resource-policy.py','--root','.')
     Invoke-CpfStage 'NXT3_22' $python @('.\cpf-tools\verification\nxt3\run_nxt3_final_all.py','--root','.', '--evidence',(Join-Path $evidenceDir 'nxt3.json'),'--log',(Join-Path $evidenceDir 'nxt3.log'))
     Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/deliverables','--expected-requirements','205','--expected-findings','63')
@@ -469,7 +470,7 @@ if($python){
     Invoke-CpfStage 'ARCH_INVENTORY_GENERATE' $python @('.\cpf-tools\governance\tools\generate-cpf-project-inventory.py','--root','.', '--output-dir',$inventory)
     Invoke-CpfStage 'ARCH_INVENTORY_VERIFY' $python @('.\cpf-tools\governance\tools\verify-cpf-project-inventory.py','--inventory-dir',$inventory,'--policy','.\cpf-tools\governance\cpf-product-surface-policy.json','--waivers','.\cpf-tools\governance\cpf-project-inventory-waivers.csv','--release')
 
-    Invoke-CpfStage 'PYTEST_COLLECT_ALL' $python @('-m','pytest','--collect-only','.\cpf-tools','-q','--import-mode=importlib','-p','no:cacheprovider')
+    Invoke-CpfStage 'PYTEST_COLLECT_ALL' $python @($pytestRunner,'--collect-only','.\cpf-tools','-q')
     $pythonTrees=@(
         @{name='TESTING_TOOLS';path='.\cpf-tools\testing\tools\tests'},
         @{name='DB_VERIFICATION_TESTS';path='.\cpf-tools\db\verification\tests'},
@@ -485,7 +486,7 @@ if($python){
         @{name='SUPPLY_CHAIN_TOOL_TESTS';path='.\cpf-tools\supply-chain\tools\tests'}
     )
     foreach($tree in $pythonTrees){
-        Invoke-CpfStage $tree.name $python @('-m','pytest',$tree.path,'-q','--import-mode=importlib','-p','no:cacheprovider')
+        Invoke-CpfStage $tree.name $python @($pytestRunner,$tree.path,'-q')
     }
 
     # 고가치 독립 계약 Gate. 전체 pytest와 별개로 결과를 명시적으로 남긴다.

@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-08-23T14:17:07.0523928+09:00",
+  "findingId": "CX-F-166",
+  "status": "CLOSED",
+  "sourceIdentity": "de79fa85d5725fac36f0f43e8333dbf4033c80ac5c55b80dde5e5f03c504dcb1",
+  "title": "Consolidated current Fresh bundle omits the three Spring Batch 6 sequences",
+  "requirement": "DB-BINDING",
+  "proof": {
+    "currentFreshInstall": "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql",
+    "currentSequenceCreateCount": 0,
+    "currentVerifyRequires": 3,
+    "staleCurrentProjection": "cpf-tools/db/vendor/mariadb/source/35_bat_schema.sql",
+    "canonicalCurrentPhysicalDatabase": "cpfDB",
+    "historicalImmutableOwner": "batDB/V73 and R73"
+  },
+  "rootCause": "The non-table object contract and synchronizer use the historical batDB/35_bat_schema.sql identity for both immutable history and current Source. Current Fresh was consolidated to cpfDB/10_cpf_schema.sql, so its build excludes the generated sequence definitions while the verify still expects them. Current projection identity must be separated from immutable historical identity.",
+  "sourceFix": {
+    "recordedAt": "2026-08-23T14:21:18.4280787+09:00",
+    "status": "SOURCE_FIXED",
+    "currentProjection": "cpfDB/10_cpf_schema.sql",
+    "currentVerifyDatabase": "profile-resolved cpfDB",
+    "immutableHistoricalProjection": "batDB/35_bat_schema.sql plus V73/R73",
+    "powerShellParse": "PASS",
+    "contentSha256": "70a293d9de38feef9a7f9017f7e57f92cf4c3677a18ae406739c755aeb7ac9b0",
+    "contentSha1": "85dbbc5fda57eec606374fbcddf59e20095c2931",
+    "fileCount": 8224,
+    "totalBytes": 75042436,
+    "regression": "cpf-tools/db/tests/test_mariadb_profile_verify_contract.py",
+    "regressionSourceIdentity": "26b790d09c8193bf344f66686f808a2d1cb470f7c73f49c2e232a318d216e783",
+    "regeneration": "PENDING"
+  },
+  "targetedVerification": {
+    "status": "PASS",
+    "currentFreshSequenceCreateCount": 3,
+    "currentVerifySequenceContractCount": 1,
+    "retiredCurrentManagedBlockPresent": false,
+    "nonTableObjectCheck": "15/15 PASS",
+    "immutableHistoryCount": 677,
+    "immutableHistorySha256BeforeAfter": "60c16597db67d22429b2a2560deaf8b7a39836a1fd4cc14d4050cfafcb920367",
+    "contentSha256": "cb242aa27c34a50a1ccbc5abd634858a882e2671638dea58bbd71071f387174f",
+    "contentSha1": "6ac3e0e6ccf9f53c4ea5f4f66580f0b4ea025749",
+    "fileCount": 8225,
+    "totalBytes": 75060861,
+    "actualFresh": "PENDING"
+  },
+  "actualClosureVerification": {
+    "runId": "bb2e129c4691",
+    "freshInstall": "SUCCEEDED",
+    "currentSequenceCreates": 3,
+    "canonicalVerify": "PASS checks=20 failedChecks=0 including bat_spring_batch_6_sequence_contract",
+    "cleanup": "PASS",
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F167-MARIADB-LIFECYCLE-RERUN5/freshinstall.result.json"
+  },
+  "isClosed": true,
+  "passCriteria": [
+    "current canonical source projects all three sequences into cpfDB/10_cpf_schema.sql",
+    "current MariaDB Fresh install bundle contains all three sequence creates",
+    "current verify executes the sequence contract inside the resolved platform database",
+    "V73/R73 and every older Migration/Rollback byte remain unchanged",
+    "actual MariaDB Fresh and repeat generation pass"
+  ]
+}

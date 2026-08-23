@@ -21,6 +21,7 @@ dependencies {
     // 업무 개발자는 Public Profile/Starter/API만 직접 소비합니다.
     implementation project(':starters:profiles:secure-api')
     implementation project(':starters:profiles:batch')
+    implementation project(':starters:common')
     implementation project(':starters:data:jdbc')
     implementation project(':starters:integration:fixed-length')
     implementation project(':starters:messaging:kafka')

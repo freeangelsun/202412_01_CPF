@@ -9,6 +9,8 @@
     ],
     "source": "cpf-tools/db/canonical/platform-non-table-objects.json",
     "generatedSourcePattern": "cpf-tools/db/vendor/{vendor}/source/{sourceFile}",
+    "currentLogicalDatabase": "cpfDB",
+    "currentSourceFile": "10_cpf_schema.sql",
     "historicalMigrationImmutable": true
   },
   "upstreamReference": {

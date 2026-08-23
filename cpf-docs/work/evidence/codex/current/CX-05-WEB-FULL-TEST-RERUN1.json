@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-WEB-FULL-TEST-RERUN1",
+  "startedAt": "2026-08-23T03:09:11+09:00",
+  "finishedAt": "2026-08-23T03:09:42+09:00",
+  "sourceIdentity": "a07140b7efc0bf9256764b5385e4a05406062e8ebb7b49207b1c26e8f1027158",
+  "command": ".\\gradlew.bat :framework:web:test --rerun-tasks --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 1,
+  "gradleTasks": "15 executed",
+  "junit": {"tests": 28, "passed": 27, "failures": 1, "errors": 0, "skipped": 0},
+  "failure": {
+    "suite": "com.cpf.web.runtime.CpfOnlineTransactionBeanPostProcessorTest",
+    "test": "invalidVisibilityFailsAtStartup()",
+    "actual": "Expected IllegalStateException but nothing was thrown"
+  },
+  "finding": {"id": "CX-F-132", "status": "IN_PROGRESS"},
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-WEB-FULL-TEST-RERUN1.log",
+  "junitXml": "cpf-starters/web/build/test-results/test/TEST-com.cpf.web.runtime.CpfOnlineTransactionBeanPostProcessorTest.xml"
+}

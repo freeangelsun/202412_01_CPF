@@ -105,6 +105,28 @@
         "rollback-restores-v92-physical-names",
         "reapply-preserves-data"
       ]
+    },
+    {
+      "id": "CPF-DB3-D012-BACKOFFICE-PERMISSION-001",
+      "steps": [
+        "fresh-install",
+        "product-seed",
+        "verify-environment-scoped-unique-identity",
+        "rollback-v136",
+        "upgrade-v136",
+        "reapply-product-seed",
+        "verify-deny-wins-runtime-query",
+        "cleanup"
+      ],
+      "sameScenarioForAllVendors": true,
+      "runtimeRequiredForFinalPass": true,
+      "invariants": [
+        "role-menu-button-permission-type-environment-is-unique",
+        "environment-specific-permissions-remain-representable",
+        "duplicate-existing-identities-fail-closed",
+        "retired-actions-route-is-not-seeded",
+        "canonical-decisions-route-remains-authorized"
+      ]
     }
   ]
 }

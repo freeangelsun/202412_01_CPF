@@ -1,0 +1,51 @@
+{
+  "track": "CX-01-COMMON-ADMIN-TEST-RERUN4",
+  "startedAt": "2026-08-22T18:29:46.6134752+09:00",
+  "finishedAt": "2026-08-22T18:32:04.3091419+09:00",
+  "sourceIdentityBeforeSha256": "fb19fc1ae8f233a6d6ea77ac626c58c3252fe0fa004aea5bf12630e910401614",
+  "sourceIdentityAfterRegenerationSha256": "fb19fc1ae8f233a6d6ea77ac626c58c3252fe0fa004aea5bf12630e910401614",
+  "sourceIdentityStableAfterRegeneration": true,
+  "command": ".\\gradlew.bat --no-daemon :starters:common:test :apps:admin:test --rerun-tasks",
+  "execution": "fully detached hidden child with delayed-expansion exit capture",
+  "exitCode": 1,
+  "result": "FAIL",
+  "duration": "2m16s",
+  "passedBeforeFailure": [
+    "Common main/test compilation and all 5 Common tests",
+    "Admin main compilation including CX-F-061 through CX-F-067 and CX-F-074/CX-F-075 source fixes",
+    "ADM OpenAPI source/schema coverage for 337 operations",
+    "Generated client regeneration and verification",
+    "All generated runtime/security/route/permission consumer contracts reached by frontendBuild",
+    "Vite 8.1.5 production bundle with 1,981 transformed modules"
+  ],
+  "failure": {
+    "task": ":apps:admin:compileTestJava",
+    "compilerErrors": 30,
+    "affectedTestFiles": 13,
+    "findingsRegisteredBeforeEdit": ["CX-F-076", "CX-F-077", "CX-F-078", "CX-F-079", "CX-F-080"],
+    "groups": {
+      "CX-F-076": "Approval gateway, snapshot generic and Mockito matcher fixtures",
+      "CX-F-077": "Batch/client/controller authenticated constructor and method signatures",
+      "CX-F-078": "Batch operation CpfDataRow, approval service and fence version contracts",
+      "CX-F-079": "Log policy, reliability, session and transaction timeline service dependencies/arguments",
+      "CX-F-080": "Runtime health record and wildcard generic assertions"
+    }
+  },
+  "rootGeneratedRegression": {
+    "gradle": false,
+    "build": false,
+    "jvmCrashFiles": 0,
+    "heapDumpFiles": 0
+  },
+  "vsCode": {
+    "peakObservedHandlesDuringFrontendGeneration": 95601,
+    "handlesAfterCompletion": 5837,
+    "reopened": false,
+    "normalFileWatchingAndSearchPreserved": true
+  },
+  "artifacts": {
+    "stdoutSha256": "5352FB2B68EC14076D4FAE09EA6DC85E237B8606B055CFE1FC51CEEC2A9CE189",
+    "stderrSha256": "D618842C92FFD7D4312C8B375DBADE76D3B7FB641DE51A0D2EC409FBE1C9F288",
+    "exitSha256": "F1B2F662800122BED0FF255693DF89C4487FBDCF453D3524A42D4EC20C3D9C04"
+  }
+}

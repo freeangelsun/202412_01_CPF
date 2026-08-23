@@ -1,0 +1,18 @@
+{
+  "finding": "CX-F-222",
+  "runId": "b4200823c006",
+  "recordedAt": "2026-08-23T20:27:00+09:00",
+  "sourceIdentitySha256": "7a2ca437092923591818cab1e6ff66dcad9a1e702105609a2992312bafc2cf54",
+  "actual": {
+    "officialJdbcStarterInExecutable": true,
+    "autoConfigurationDiscovered": "CpfVendorSqlCatalogAutoConfiguration",
+    "conditionFailure": "cpf.domain.persistence.provider=jdbc did not find property provider",
+    "smokeInputsMissing": ["CPF_DOMAIN_PERSISTENCE_PROVIDER", "CPF_DB_VENDOR", "CPF_DB_RESOURCE_ROOT"],
+    "cleanup": "PASS",
+    "databaseLeaks": 0,
+    "roleLeaks": 0
+  },
+  "rootCause": "The standalone two-worker harness supplies role DataSource settings but omits the canonical external Vendor Pack selection required by the official SQL catalog Provider. The standard runtime-start-services harness already resolves and injects these inputs.",
+  "status": "OPEN",
+  "next": "Parameterize and validate the canonical MariaDB Vendor Pack root, inject provider/vendor/resource-root into each Worker, strengthen the exact contract, rebuild and replay."
+}

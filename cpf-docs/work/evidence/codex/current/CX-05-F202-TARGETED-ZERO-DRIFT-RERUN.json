@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-08-23T18:11:53+09:00",
+  "sourceIdentity": {
+    "sha256": "45f7d408b73041ef742f1b947b17d7b7154cdeec0a8b14d5c7dfe90c0a214632",
+    "sha1": "7ae1d1499ab920ce1b4920790c8249214edeb529",
+    "files": 8279,
+    "bytes": 75201671
+  },
+  "result": "PASS_TARGETED",
+  "commands": [
+    "python cpf-tools/db/verification/tests/test_seed_bundle_runtime_contract.py -v",
+    "python cpf-tools/db/verification/tests/test_seed_bundle_plan_closure.py -v",
+    "python cpf-tools/db/tests/test_canonical_vendor_render.py -v",
+    "python cpf-tools/db/tests/test_vendor_renderer.py -v",
+    "python cpf-tools/db/tests/test_database_artifact_sync_order.py -v",
+    "python cpf-tools/db/tests/test_immutable_migration_generation.py -v",
+    "python cpf-tools/db/verification/tests/test_official_vendor_physical_target_dedup.py -v",
+    "python cpf-tools/db/tools/sync-canonical-seed-bundles.py --root . --check",
+    "python cpf-tools/db/render_vendor_pack.py --root . --check"
+  ],
+  "verified": [
+    "42 exact tests PASS",
+    "canonical route ownership and role aggregation PASS",
+    "single Seed bundle ownership and lifecycle mirror PASS",
+    "all official Vendor rendering and time-expression portability PASS",
+    "immutable migration history and Reference Fixture ownership PASS",
+    "physical target deduplication PASS",
+    "canonical Seed drift written=0",
+    "generated/current Vendor pack drift=0"
+  ],
+  "next": "Execute actual verifier-owned PostgreSQL Fresh/Upgrade/RollbackReapply lifecycle.",
+  "falseGreen": false
+}

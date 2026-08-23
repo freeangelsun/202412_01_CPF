@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-08-23T15:55:00+09:00",
+  "findingId": "CX-F-181",
+  "status": "SOURCE_FIXED",
+  "sourceIdentityBefore": "207ece107b87b19673c813558ec1eaa1f74de1ffae260d552b6efbb3c4086dad",
+  "title": "Data-safety verifier requires retired BZA current schema and cross-history byte equality",
+  "command": "pwsh -NoProfile -File cpf-tools/verification/tools/check-data-safety-schema-contract.ps1 -Root .",
+  "actual": "FAIL: current 40_business_modules_schema.sql lacks uk_bza_admin_user_create_operation",
+  "currentContractProof": "Current Source creates MBW_ADMIN_USER, MBW_LOGIN_OPERATION, MBW_REFRESH_TOKEN and MBW_EMPLOYEE with uk_mbw_admin_user_create_operation, ix_mbw_refresh_token_login_operation and ck_mbw_employee_status.",
+  "historyProof": "The retained source compatibility V61-V63 archive is currentized to MBW while the independently published central executable V61-V63 history correctly retains BZA bytes. Their own manifests/published hashes pass the complete checksum gate and must not be forced byte-equal.",
+  "rootCause": "The verifier predates BZA retirement, consolidated Fresh ownership and the independent immutable-history contract established by F150. It still labels the current schema bzaSchema, asserts active bza_* names, and calls Require-SameHash across independently published histories.",
+  "repair": "Current Fresh checks use MBW names. Source and central V61-V63 migrations are independently validated against their own checksums manifests; Source rollback also uses its manifest and both rollback histories use the published SHA inventory. The currentized Source V61 MBW contract and immutable central V61 BZA historical contract are asserted separately, while both exact V60 rollback safety contracts remain mandatory.",
+  "sourceIdentityAfter": "e1d7d9b99420bd712ecbda15c244369d7c8ad97e925fffe6bfbfffefc90795c6",
+  "repairPlan": "Run the new actual regression, direct verifier, complete checksum gate and broader Backoffice safety checks before closure.",
+  "falseGreenForbidden": "Do not restore BZA current tables, rewrite immutable central V61-V63 bytes, skip checksum integrity, or remove exact rollback safety assertions."
+}

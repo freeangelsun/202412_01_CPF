@@ -167,7 +167,7 @@
     [
       "generator",
       "adm",
-      "bza",
+      "backoffice",
       "full-platform"
     ]
   ],
@@ -255,17 +255,17 @@
     },
     {
       "name": "CpfCodeService.required",
-      "source": "cpf-starters/common/src/main/java/com/cpf/common/code/api/CpfCodeService.java",
+      "source": "cpf-common/src/main/java/com/cpf/common/code/api/CpfCodeService.java",
       "when": "공통 코드 필수 조회"
     },
     {
       "name": "CpfMessageSource.resolve",
-      "source": "cpf-starters/common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java",
+      "source": "cpf-common/src/main/java/com/cpf/common/message/api/CpfMessageSource.java",
       "when": "표준 메시지 조회"
     },
     {
       "name": "CpfParameterService.requiredValue",
-      "source": "cpf-starters/common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java",
+      "source": "cpf-common/src/main/java/com/cpf/common/parameter/api/CpfParameterService.java",
       "when": "운영 파라미터 조회"
     },
     {

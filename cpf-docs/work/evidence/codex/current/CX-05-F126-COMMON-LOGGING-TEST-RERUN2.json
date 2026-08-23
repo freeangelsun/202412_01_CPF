@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F126-COMMON-LOGGING-TEST-RERUN2",
+  "startedAt": "2026-08-23T01:42:02.2328381+09:00",
+  "finishedAt": "2026-08-23T01:43:19.3762485+09:00",
+  "sourceIdentitySha256": "8b8f0202c4d7a1ce7cfa5f5b1b7f70a7f96bbb1c4125162323d7c3f27b1b462d",
+  "command": ".\\gradlew.bat :cpf-common:test --tests com.cpf.common.logging.* --no-daemon --max-workers=1 --console=plain -PcpfResourceProfile=test",
+  "exitCode": 0,
+  "result": "PASS",
+  "tasks": {"actionable": 10, "executed": 2, "upToDate": 8},
+  "tests": {"completed": 4, "failed": 0, "skipped": 0},
+  "verified": ["configuration validation", "path containment", "active-file retention", "five-day exact boundary", "delayed gzip", "365-day exact boundary", "past-365 deletion", "unknown-file exclusion"],
+  "finding": "CX-F-126",
+  "findingState": "IN_PROGRESS",
+  "scopeState": "COMMON_FOUNDATION_VERIFIED",
+  "capacityGiB": {"freePhysical": 15.31, "freeCommit": 74.47, "pagefileAllocated": 64.0},
+  "pagefileUsedMiB": 244,
+  "log": "cpf-docs/work/evidence/codex/current/f126-common-logging-tests-rerun2.log",
+  "next": "Add the existing default Starter binding and default Logback adapter; Common remains mandatory without a new Logging starter."
+}

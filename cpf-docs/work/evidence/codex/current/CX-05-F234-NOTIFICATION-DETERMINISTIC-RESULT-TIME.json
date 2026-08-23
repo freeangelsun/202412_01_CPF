@@ -1,0 +1,20 @@
+{
+  "findingId": "CX-F-234",
+  "status": "CLOSED",
+  "observedAt": "2026-08-23T21:28:48+09:00",
+  "sourceIdentitySha256": "a191d288671aa03f1493811b81f83beed34091b4c21a30ba313e7be431f76ac4",
+  "scope": "Notification dispatch full targeted regression",
+  "result": "FAILED",
+  "rootCause": "CpfNotificationWorker owns an injected Clock but creates internal UNKNOWN_RESULT values through a factory that reads the wall clock, so provider-null and exception/reconcile outcomes are nondeterministic and cannot carry the actual processing instant controlled by the runtime owner.",
+  "actualError": "Two exact markUnknown verifications differ only in processedAt nanoseconds because separate Instant.now() calls are used.",
+  "requiredFix": "Add an explicit-time UNKNOWN_RESULT factory contract, use the Worker processing instant for every Worker-created unknown result, and verify exact deterministic results without weakening argument checks.",
+  "prohibited": "Do not replace exact verification with any(), truncate timestamps, or remove processedAt from the public result contract.",
+  "sourceFix": {
+    "sourceIdentitySha256": "b3e5483902c9456ac51df6c3bf2f70a6b5197a0131858ef9bdb6dbf6d1092fbe",
+    "sourceIdentitySha1": "1d693f4ac3d05b96ff407626c9879b0290612c66",
+    "fileCount": 8297,
+    "totalBytes": 75270693,
+    "implementation": "Explicit processedAt overload plus injected Worker instant for all Worker-created UNKNOWN_RESULT paths"
+  },
+  "verification": "Complete Notification Dispatch suite PASS 10/10 with zero failures/errors/skips."
+}

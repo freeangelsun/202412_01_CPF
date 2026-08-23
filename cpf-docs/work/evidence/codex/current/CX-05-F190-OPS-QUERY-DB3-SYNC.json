@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-08-23T17:17:00+09:00",
+  "findingId": "CX-F-190",
+  "sourceIdentity": {"sha256":"4ff7659447e4e9cc107dec26963a5afc70b96eb9707ef700394b9b29a0cd7e67","sha1":"1ad04d3965b44f44450863755bdeee5652d7b305","files":8277,"bytes":75031391},
+  "command": "pwsh -NoProfile -File cpf-tools/runtime/tools/sync-platform-runtime-query-packs.ps1 -Root .",
+  "exitCode": 0,
+  "result": {"status":"PASS","mode":"SYNC","modules":["cpf","backoffice","cmn"],"vendors":3,"statements":248,"repositoryFiles":702,"portableResourceFiles":14,"managedMyBatisFiles":6,"processedFiles":722},
+  "next": "Independent CHECK/integrity and Java 25 behavior verification.",
+  "falseGreen": false
+}

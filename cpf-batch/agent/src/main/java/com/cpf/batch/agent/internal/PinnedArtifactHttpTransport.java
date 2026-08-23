@@ -109,6 +109,9 @@ final class PinnedArtifactHttpTransport {
             throw new SecurityException("ARTIFACT_REPOSITORY_PORT_DENIED:" + port);
         }
         boolean localHttp = "http".equals(scheme) && properties.isAllowHttpLoopback() && literalLoopback(host);
+        if ("http".equals(scheme) && !localHttp) {
+            throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
+        }
         CpfNetworkEndpointPolicy policy = new CpfNetworkEndpointPolicy(
                 properties.getArtifactAllowedCidrs(), properties.getArtifactAllowedPorts(),
                 properties.isAllowPrivateRepositoryAddresses(), true, true, !localHttp);
@@ -117,11 +120,11 @@ final class PinnedArtifactHttpTransport {
             catch (IllegalArgumentException denied) { throw new SecurityException("ARTIFACT_REPOSITORY_NETWORK_POLICY_DENIED", denied); }
         }
         ResolvedTarget resolved = resolveIdentity(
-                "ARTIFACT_REPOSITORY", host, port, properties.getArtifactPinnedAddresses(), policy, localHttp);
+                "ARTIFACT_REPOSITORY", host, port, properties.getArtifactPinnedAddresses(),
+                properties.getArtifactAllowedCidrs(), policy, localHttp);
         if (localHttp && !resolved.address().isLoopbackAddress()) {
             throw new SecurityException("ARTIFACT_REPOSITORY_LOOPBACK_PIN_REQUIRED");
         }
-        if ("http".equals(scheme) && !localHttp) throw new SecurityException("ARTIFACT_REPOSITORY_TLS_REQUIRED");
         return resolved;
     }
 
@@ -135,7 +138,8 @@ final class PinnedArtifactHttpTransport {
                 properties.getArtifactProxyAllowedCidrs(), Set.of(port),
                 properties.isAllowPrivateProxyAddresses(), true, true, false);
         return resolveIdentity(
-                "ARTIFACT_PROXY", host, port, properties.getArtifactProxyPinnedAddresses(), policy, false);
+                "ARTIFACT_PROXY", host, port, properties.getArtifactProxyPinnedAddresses(),
+                properties.getArtifactProxyAllowedCidrs(), policy, false);
     }
 
     private ResolvedTarget resolveIdentity(
@@ -143,6 +147,7 @@ final class PinnedArtifactHttpTransport {
             String host,
             int port,
             List<String> configuredPins,
+            List<String> allowedCidrs,
             CpfNetworkEndpointPolicy policy,
             boolean allowLoopback) throws Exception {
         List<InetAddress> resolved = new ArrayList<>(resolver.resolve(host));
@@ -158,6 +163,13 @@ final class PinnedArtifactHttpTransport {
             String normalized = normalizeAddress(address.getHostAddress());
             if (!pins.isEmpty() && !pins.contains(normalized)) {
                 throw new SecurityException(prefix + "_PIN_MISMATCH:" + normalized);
+            }
+            if (metadataAddress(address)) {
+                throw new SecurityException(prefix + "_METADATA_ADDRESS_DENIED:" + normalized);
+            }
+            if (allowedCidrs != null && !allowedCidrs.isEmpty()
+                    && allowedCidrs.stream().noneMatch(cidr -> inCidr(address, cidr))) {
+                throw new SecurityException(prefix + "_CIDR_DENIED:" + normalized);
             }
             if (!(allowLoopback && address.isLoopbackAddress())) {
                 try {
@@ -176,6 +188,34 @@ final class PinnedArtifactHttpTransport {
             throw new SecurityException(prefix + "_PIN_REQUIRED");
         }
         return new ResolvedTarget(host, resolved.getFirst(), port);
+    }
+
+    private static boolean metadataAddress(InetAddress address) {
+        byte[] raw = address.getAddress();
+        if (raw.length == 4) {
+            int a = Byte.toUnsignedInt(raw[0]);
+            int b = Byte.toUnsignedInt(raw[1]);
+            int c = Byte.toUnsignedInt(raw[2]);
+            int d = Byte.toUnsignedInt(raw[3]);
+            return a == 169 && b == 254 && c == 169 && d == 254
+                    || a == 100 && b == 100 && c == 100 && d == 200;
+        }
+        if (Byte.toUnsignedInt(raw[0]) == 0xfd && Byte.toUnsignedInt(raw[1]) == 0x00
+                && Byte.toUnsignedInt(raw[2]) == 0x0e && Byte.toUnsignedInt(raw[3]) == 0xc2) {
+            return true;
+        }
+        boolean ipv4Mapped = true;
+        for (int index = 0; index < 10; index++) {
+            ipv4Mapped &= raw[index] == 0;
+        }
+        ipv4Mapped &= Byte.toUnsignedInt(raw[10]) == 0xff && Byte.toUnsignedInt(raw[11]) == 0xff;
+        if (!ipv4Mapped) return false;
+        int a = Byte.toUnsignedInt(raw[12]);
+        int b = Byte.toUnsignedInt(raw[13]);
+        int c = Byte.toUnsignedInt(raw[14]);
+        int d = Byte.toUnsignedInt(raw[15]);
+        return a == 169 && b == 254 && c == 169 && d == 254
+                || a == 100 && b == 100 && c == 100 && d == 200;
     }
 
     private Socket openSocket(ResolvedTarget target, ResolvedTarget proxy, URI uri) throws Exception {

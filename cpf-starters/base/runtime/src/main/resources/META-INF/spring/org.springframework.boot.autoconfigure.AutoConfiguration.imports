@@ -1,3 +1,4 @@
+com.cpf.starter.runtime.CpfJackson2AutoConfiguration
 com.cpf.starter.runtime.CpfStarterAutoConfiguration
 com.cpf.starter.runtime.CpfServicePolicyAutoConfiguration
 com.cpf.reliability.runtime.CpfIdempotencyAutoConfiguration

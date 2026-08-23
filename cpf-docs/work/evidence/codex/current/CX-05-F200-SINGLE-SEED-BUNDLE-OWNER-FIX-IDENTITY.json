@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-23T17:58:00+09:00",
+  "findingId": "CX-F-200",
+  "sourceIdentity": {
+    "sha256": "595181220804f323f530b9dfdb42a26b7babd6e4174afef6650423246610d719",
+    "sha1": "e674e5ecf10a90f6755fab4113dc46300d08f718",
+    "files": 8283,
+    "bytes": 75209578
+  },
+  "status": "SOURCE_FIXED",
+  "canonicalWriter": "cpf-tools/db/tools/sync-canonical-seed-bundles.py",
+  "changes": [
+    "PostgreSQL/Oracle pack builder validates canonical Seed zero drift and no longer rewrites six source/lifecycle aggregates",
+    "MariaDB bundle builder validates canonical Seed zero drift and retains product safety checks without rewriting six aggregates",
+    "Downstream builders fail closed with an actionable canonical sync command",
+    "Exact one-writer regression covers all three Seed bundle kinds"
+  ],
+  "next": "Regenerate with the single owner, run both builders twice, and prove zero drift after each pass.",
+  "falseGreen": false
+}

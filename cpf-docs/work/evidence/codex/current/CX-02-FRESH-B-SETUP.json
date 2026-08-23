@@ -1,0 +1,15 @@
+{
+  "executionId": "CX-02-FRESH-B-SETUP",
+  "timestamp": "2026-08-22T20:03:00+09:00",
+  "sourceIdentitySha256": "ad003b40615a2125c56a90b09b85f6ffdaf03144aabeb1c3a32d4335cf836d64",
+  "status": "PASS",
+  "case": "B",
+  "domain": "cxbeta",
+  "systemCode": "QAB",
+  "dependency": {"name": "member", "systemCode": "MBR", "operations": ["MBR_SAMPLE_TX_DETAIL"]},
+  "targetSnapshot": {"source": "Current cpf-member", "javaFiles": 32, "buildOrGradleDirsCopied": 0},
+  "generatedFiles": 20,
+  "typedClientFiles": ["MemberDomainClient.java", "DefaultMemberDomainClient.java"],
+  "productRootBuildPresentAfter": false,
+  "remaining": "verify/sync/diff/regenerate and actual Java 25 compile"
+}

@@ -70,7 +70,7 @@ jobs:
           python -m unittest discover -s ./cpf-tools/db/tests -p 'test_*.py'
           # Full QA test inventory: includes runtime/security/release/generator/docker/openapi/supply-chain trees.
           # importlib mode prevents duplicate test module basename collisions across independent test trees.
-          python -m pytest ./cpf-tools -q --import-mode=importlib -p no:cacheprovider
+          python ./cpf-tools/testing/tools/run-cpf-pytest.py ./cpf-tools -q
           python ./cpf-tools/verification/nxt3/cpf_nxt3_generator_gate.py --root .
           python ./cpf-tools/verification/nxt3/cpf_nxt3_query_boundary_gate.py --root .
           python ./cpf-tools/verification/nxt3/verify_nxt3_config_contract.py --root .

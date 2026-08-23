@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-CENTER-CUT-MOCKITO-FIX-IDENTITY",
+  "requirementIds": ["BATCH", "REL-BUILD", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T14:58:00+09:00",
+    "finished": "2026-08-22T14:58:20.4582334+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "sourceIdentity": "980b7415ce24f87a029bc975159264ef133a71f11f227bb98b27f90b31ba3236",
+  "sourceState": {
+    "contentSha1": "100616d4d65ff3d79128d33a92f8ff1d6ac5c42a",
+    "fileCount": 8206,
+    "totalBytes": 75703344
+  },
+  "actualResult": "Added Mockito only to the center-cut testImplementation configuration and recalculated Product Source Identity immediately.",
+  "result": "SOURCE_FIXED",
+  "findingIds": ["CX-F-032"],
+  "sanitized": true
+}

@@ -1,0 +1,15 @@
+{
+  "track": "CX-05-F211-BATCH-WORKER-BOOTJAR-DUPLICATE-ARCHIVE",
+  "finding": "CX-F-211",
+  "status": "OPEN",
+  "sourceIdentitySha256": "e7fd5f59441076a379b21e68f96dc4b852921df4f815ea25f763949ce9014ede",
+  "command": ".\\gradlew.bat :runtime:batch:worker:bootJar --no-daemon --max-workers=1 --no-watch-fs --console=plain",
+  "exitCode": 1,
+  "error": "Entry BOOT-INF/lib/jdbc-1.0.0-SNAPSHOT.jar is a duplicate but no duplicate handling strategy has been set.",
+  "collidingOwners": [
+    {"project": ":starters:data:jdbc", "artifactId": "cpf-starter-data-jdbc", "currentArchive": "jdbc-1.0.0-SNAPSHOT.jar"},
+    {"project": ":internal:messaging:reliability:jdbc", "artifactId": "cpf-starter-messaging-reliability-jdbc", "currentArchive": "jdbc-1.0.0-SNAPSHOT.jar"}
+  ],
+  "rootCause": "Canonical Maven artifactId is not applied to local Jar archive identity; same-leaf catalog modules remain indistinguishable inside executable Boot archives.",
+  "prohibitedFalseGreen": ["duplicatesStrategy", "required dependency exclusion", "two-module-only rename", "public coordinate change"]
+}

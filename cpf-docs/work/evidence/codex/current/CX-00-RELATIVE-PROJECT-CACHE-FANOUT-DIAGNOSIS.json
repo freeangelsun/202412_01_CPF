@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-RELATIVE-PROJECT-CACHE-FANOUT-DIAGNOSIS",
+  "finishedAt": "2026-08-22T22:29:20+09:00",
+  "sourceIdentitySha256": "e2b041bfbf74a112b05eeb08243bd32fa12eaff15c31c456c7f20578726953af",
+  "status": "FINDING_REGISTERED",
+  "finding": "CX-F-110",
+  "actual": "The relative org.gradle.projectcachedir value from root gradle.properties is inherited by subprojects and resolves beneath each project directory.",
+  "liveMisplacedProjectCacheDirectories": 105,
+  "canonicalProjectCache": "cpf-docs/work/evidence/generated/gradle/project-cache",
+  "impact": "The publication run regenerated cpf-docs/work/evidence/generated/gradle/project-cache trees under 105 product module directories, violating whole-tree hygiene and increasing VS Code watcher/index pressure.",
+  "repairDirection": "Remove the relative global property; retain the absolute wrapper --project-cache-dir and settings-owned absolute projectCacheDir contracts; prove no fanout after exact cleanup/rerun."
+}

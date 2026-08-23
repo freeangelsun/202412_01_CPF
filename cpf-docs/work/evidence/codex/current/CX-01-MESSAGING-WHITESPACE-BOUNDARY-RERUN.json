@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-MESSAGING-WHITESPACE-BOUNDARY-RERUN",
+  "requirementIds": ["MESSAGING", "SEC-BOUNDARY", "JAVA25", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T15:02:49.8903736+09:00",
+    "finished": "2026-08-22T15:03:40.6651618+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :framework:messaging:test :starters:messaging:jms:test :starters:messaging:ibm-mq:test",
+  "exitCode": 0,
+  "sourceIdentity": "980b7415ce24f87a029bc975159264ef133a71f11f227bb98b27f90b31ba3236",
+  "actualResult": "BUILD SUCCESSFUL in 50s; common messaging API, JMS, and IBM MQ full suites pass. Both providers reject reserved, whitespace, and normalization-collision inputs before provider interaction.",
+  "result": "PASS",
+  "findingIds": ["CX-F-028", "CX-F-031"],
+  "artifacts": ["cpf-docs/work/evidence/codex/current/CX-01-MESSAGING-WHITESPACE-BOUNDARY-RERUN.log"],
+  "sanitized": true
+}

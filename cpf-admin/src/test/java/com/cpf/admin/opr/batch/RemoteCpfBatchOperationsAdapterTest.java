@@ -1,6 +1,7 @@
 package com.cpf.admin.opr.batch;
 
 import com.cpf.batch.api.BatControlHeaders;
+import com.cpf.batch.api.CpfBatchRiskCommand;
 import com.cpf.admin.opr.context.AdmAuthenticatedOperatorContext;
 import com.cpf.integration.api.servicecall.CpfServiceCaller;
 import com.cpf.integration.api.servicecall.CpfServiceRequest;
@@ -23,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class RemoteCpfBatchOperationsAdapterTest {
@@ -52,28 +52,37 @@ class RemoteCpfBatchOperationsAdapterTest {
     }
 
     @Test
-    void mutationUsesExplicitVerifiedRequestUserInsteadOfAmbientReadContext() {
+    void mutationSeparatesAuthenticatedExecutorFromApprovedRequester() {
         AtomicReference<ClientRequest> httpRequest = new AtomicReference<>();
         AtomicReference<CpfServiceRequest> serviceRequest = new AtomicReference<>();
         AdmAuthenticatedOperatorContext operatorContext =
                 mock(AdmAuthenticatedOperatorContext.class);
+        when(operatorContext.currentOperatorId()).thenReturn("operator-approver");
         RemoteCpfBatchOperationsAdapter adapter = new RemoteCpfBatchOperationsAdapter(
                 successCaller(serviceRequest),
                 webClient(httpRequest, "{\"accepted\":true}"),
                 operatorContext,
                 "adm-instance-01");
 
-        assertThat(adapter.requestRun(
-                "JOB-1",
-                "{}",
-                "operator-mutation",
-                "운영 실행"))
+        CpfBatchRiskCommand command = new CpfBatchRiskCommand(
+                "requestRun", "bat_job", "JOB-1", "RUN",
+                "operator-requester", "운영 실행", "42", "REQ-RUN-0001", null, "{}");
+        assertThat(adapter.requestRun("JOB-1", "{}", command))
                 .containsEntry("accepted", true);
 
-        assertCallerHeaders(httpRequest.get().headers(), "operator-mutation");
+        assertCallerHeaders(httpRequest.get().headers(), "operator-approver");
+        assertThat(httpRequest.get().headers().getFirst(BatControlHeaders.APPROVAL_REQUESTER_ID))
+                .isEqualTo("operator-requester");
+        assertThat(httpRequest.get().headers().getFirst(BatControlHeaders.APPROVAL_REQUEST_ID))
+                .isEqualTo("42");
+        assertThat(httpRequest.get().headers().getFirst(CpfHttpHeaders.idempotencyKey()))
+                .isEqualTo("REQ-RUN-0001");
         assertThat(serviceRequest.get().headers())
-                .containsEntry(BatControlHeaders.OPERATOR_ID, "operator-mutation");
-        verifyNoInteractions(operatorContext);
+                .containsEntry(BatControlHeaders.OPERATOR_ID, "operator-approver")
+                .containsEntry(BatControlHeaders.APPROVAL_REQUESTER_ID, "operator-requester")
+                .containsEntry(BatControlHeaders.APPROVAL_REQUEST_ID, "42")
+                .containsEntry(CpfHttpHeaders.idempotencyKey(), "REQ-RUN-0001");
+        verify(operatorContext).currentOperatorId();
     }
 
     private void assertCallerHeaders(HttpHeaders headers, String operatorId) {

@@ -74,7 +74,7 @@ generation:
             self.assertEqual(1, len(rows))
             self.assertEqual("arbitraryconsumer", rows[0]["domainName"])
             self.assertEqual("ARC", rows[0]["systemCode"])
-            self.assertEqual("NONE", rows[0]["generatedProjectMetadata"])
+            self.assertEqual("ABSENT", rows[0]["generatedProjectMetadata"])
             self.assertEqual([], rows[0]["forbiddenPermanentMetadata"])
 
     @unittest.skipUnless(shutil.which("pwsh"), "pwsh required for PowerShell parser verification")

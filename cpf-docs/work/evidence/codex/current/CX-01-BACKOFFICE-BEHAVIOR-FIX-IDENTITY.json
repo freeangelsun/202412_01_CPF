@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-01",
+  "case": "BACKOFFICE-BEHAVIOR-FIX-IDENTITY",
+  "startedAt": "2026-08-22T15:45:15+09:00",
+  "finishedAt": "2026-08-22T15:47:37.6630216+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "contentSha256": "46e2eb6c7fc9466367d2ed9cffdb0ddd2096c8e8d302189120672d50ed8ead62",
+    "contentSha1": "c9e2feaa193ff4dc9cdc33145e119204ce311659",
+    "fileCount": 8206,
+    "totalBytes": 75707074
+  },
+  "changes": [
+    "Use canonical cpf.system-code in BackofficeAuthServiceTest",
+    "Declare the Public cpf-testkit coordinate in MBW test scope and bind it to current Product Source during the Root regression",
+    "Bind and clean canonical managed Context around the checksum failure-audit path",
+    "Construct a genuinely owner-only Windows ACL in the positive bootstrap fixture"
+  ],
+  "invariants": [
+    "Production checksum failure audit remains fail-closed without Context",
+    "Production bootstrap ACL policy remains unchanged",
+    "No verifier, allowlist, skip, requirement, or Product security boundary was weakened"
+  ],
+  "findings": {
+    "CX-F-037": "SOURCE_FIXED",
+    "CX-F-039": "SOURCE_FIXED",
+    "CX-F-040": "SOURCE_FIXED"
+  },
+  "next": "Run framework operations and complete MBW tests with rerun-tasks under Java 25"
+}

@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-23T14:20:00+09:00",
+  "findingId": "CX-F-171",
+  "status": "CLOSED",
+  "sourceIdentity": "37e9d47bc595da212753bdb8bc42d855f180e7b426d7db88b40c273d4cb2b890",
+  "title": "Checksum generator foreach variable collides case-insensitively with typed PackDirectory parameter",
+  "command": "pwsh -NoProfile -File cpf-tools/db/tools/generate-migration-checksums.ps1 -Root . -Apply",
+  "actual": "MariaDB manifests remain unchanged; execution reaches PostgreSQL discovery and exits because property FullName is unavailable on the coerced string loop value.",
+  "rootCause": "PowerShell variable names are case-insensitive. The loop variable packDirectory aliases the typed string[] parameter PackDirectory, so DirectoryInfo assignments are coerced to string before .FullName is read.",
+  "repair": "The discovered DirectoryInfo loop now uses a name distinct from the public typed parameter; the public PackDirectory contract is unchanged and a source regression forbids reintroducing the alias.",
+  "verification": "Exact command iterates all 18 PostgreSQL/Oracle pack directories plus both MariaDB owners and exits 0; targeted suite passes 23/23; complete checksum gate passes.",
+  "closed": true
+}

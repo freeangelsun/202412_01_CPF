@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-08-23T03:17:20.9338978+09:00",
+  "sourceIdentitySha256": "07c293f1826cd6b81e8e3c561fa5eefd02536caaad599fe5bd71d95f52b78031",
+  "command": "cpf domain setup --name f132consumer --system-code FCS --table-prefix FCS --business-feature probe --preset custom --persistence none --no-http-client --no-resilience --sample-transaction --output <managed-evidence>/cpf-f132consumer",
+  "exitCode": 2,
+  "result": "EXPECTED_CONTRACT_REJECTION",
+  "actualError": "Canonical Sample Transaction consumes the central Vendor Mapper Pack and therefore requires persistence=mybatis.",
+  "interpretation": "The Generator correctly rejects an invalid sample-transaction/persistence-none combination. The next Fresh consumer attempt must use the supported MyBatis Golden Path; no Product Source change is justified by this negative case.",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F132-FRESH-SAMPLE-GENERATE-RERUN1.log"
+}

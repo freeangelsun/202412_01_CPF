@@ -1,3 +1,8 @@
 UPDATE OPS_OPERATION_POLICY
-SET enabled_yn='N', policy_version=policy_version+1, change_reason=?, updated_by=?, updated_at=CURRENT_TIMESTAMP(3)
-WHERE operation_id=? AND policy_version=?
+SET enabled_yn = 'N',
+    change_reason = ?,
+    updated_by = ?,
+    policy_version = policy_version + 1,
+    updated_at = CURRENT_TIMESTAMP
+WHERE operation_id = ?
+  AND policy_version = ?

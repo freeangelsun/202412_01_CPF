@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-BASE-OBSERVABILITY-TEST-ATTEMPT1",
+  "requirementIds": ["PUBLIC-API", "OBSERVABILITY", "CTX-003", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:28:37.0591530+09:00",
+    "finished": "2026-08-22T12:29:06.1722467+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :framework:base-runtime:test :framework:operations:observability:test",
+  "exitCode": 1,
+  "sourceIdentity": "dd50b42190ee10f405b12dab0bbe6599338dec8678cbc02dafea7c7c6ebf831b",
+  "actualResult": "Base-runtime compiled and its tests passed. Observability main source compiled, clearing the known production API-drift errors. Observability test compilation then failed because two MapEnvironment harness implementations lack the current Spring Environment.getDefaultProfiles() method.",
+  "result": "FAIL",
+  "failureSummary": "New test-source compatibility finding CX-F-013; do not skip the observability tests.",
+  "compilerErrors": [
+    "CpfLogPolicyVersionJdbcAutoConfigurationHarness.MapEnvironment does not override Environment.getDefaultProfiles()",
+    "CpfRemoteLogLocalAutoConfigurationHarness.MapEnvironment does not override Environment.getDefaultProfiles()"
+  ],
+  "findingIds": ["CX-F-008", "CX-F-011", "CX-F-012", "CX-F-013"],
+  "sanitized": true
+}

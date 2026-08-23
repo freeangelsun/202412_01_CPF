@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "officialVendors": [
+    "mariadb",
+    "postgresql",
+    "oracle"
+  ],
+  "canonicalTableCount": 234,
+  "lifecycle": {
+    "mariadb": {
+      "generatedCurrent": [
+        {
+          "path": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
+          "bytes": 245512,
+          "sha256": "b22ff6c5835e04c986ab1fecea4c1aecab0e6f03de9ae97c74eeabfba75012c2"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
+          "bytes": 40415,
+          "sha256": "27c2ba3429e5624fa7a04faa3a3e5000fabc11b4ad29775f7c71c923e6c8533a"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/mariadb/reference-fixture-schema.sql",
+          "bytes": 6408,
+          "sha256": "34abd836cf5aa777c65f596fa30d34e613fffb0584f1d7810763034710711cac"
+        }
+      ]
+    },
+    "postgresql": {
+      "generatedCurrent": [
+        {
+          "path": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
+          "bytes": 502300,
+          "sha256": "8513e29ad760976535c8817a438a3d2858186780815471d31753e01aa528eed8"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
+          "bytes": 77883,
+          "sha256": "ed87e07a5b4d0c914e809e1f60baba30de576ba068e08c94d58a84ad825dac29"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/postgresql/reference-fixture-schema.sql",
+          "bytes": 12300,
+          "sha256": "24fa19865c706d1d97743cd4d41378a362abb8f0d9d4e8b787efafe7756a19e8"
+        }
+      ]
+    },
+    "oracle": {
+      "generatedCurrent": [
+        {
+          "path": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
+          "bytes": 507864,
+          "sha256": "fdd931804d35bc6f3b5d2cdd8b310e44c9fb6cca69b357193cbcda9a4fb87d0b"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
+          "bytes": 78576,
+          "sha256": "67dc05703e8dcd30040329bf342fe29a12e583b7088039aed6ce72efb95c8f12"
+        },
+        {
+          "path": "cpf-tools/db/generated/current/oracle/reference-fixture-schema.sql",
+          "bytes": 12322,
+          "sha256": "5694adede8dce9557af9363c7c399e352ac87fd8deb5a03b24268ccde7ec7814"
+        }
+      ]
+    }
+  },
+  "findings": [],
+  "currentSnapshotAuthority": "CANONICAL_JSON_RENDERER"
+}

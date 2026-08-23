@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 
-const scriptDir = path.dirname(new URL(import.meta.url).pathname);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const frontend = path.resolve(scriptDir, "..");
 const root = path.resolve(frontend, "..");
 const read = rel => fs.readFileSync(path.resolve(root, rel), "utf8");

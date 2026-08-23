@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-ROOT-BUILD-ATTEMPT2",
+  "requirementIds": ["REL-BUILD", "ARCH-BOUNDARY", "SAMPLE-MBW"],
+  "timestamp": {
+    "started": "2026-08-22T11:32:11.4118347+09:00",
+    "finished": "2026-08-22T11:32:37.0622065+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true",
+  "environment": {
+    "os": "Microsoft Windows 10.0.26200",
+    "java": "Temurin OpenJDK 25.0.3+9 LTS",
+    "gradle": "9.1.0"
+  },
+  "exitCode": 1,
+  "sourceIdentity": "c335bed4283ce424d90b64951147ceb0dbc4a38956b57307c85f67a53a723602",
+  "actualResult": "Generated domains passed the prior configuration point. Task graph construction then failed because :runtime:local runtimeClasspath could not find com.cpf.backoffice:online:1.0.0-SNAPSHOT.",
+  "result": "FAIL",
+  "failureSummary": "Could not find com.cpf.backoffice:online:1.0.0-SNAPSHOT. Required by project :runtime:local.",
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-java25-root-20260822-1132.log",
+    "sha256": "f53e3b902408cf9b5edec1c90c728bd11877dd170ccb81aa902bd66b3de10e1d",
+    "bytes": 47242
+  },
+  "findingIds": ["CX-F-002", "CX-F-003"],
+  "sanitized": true
+}

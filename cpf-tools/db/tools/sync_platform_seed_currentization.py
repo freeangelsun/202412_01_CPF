@@ -36,6 +36,19 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def write_immutable_or_check(path: Path, expected: str, write: bool, changed: list[str], root: Path) -> None:
+    actual = path.read_text(encoding="utf-8-sig") if path.is_file() else None
+    if actual == expected:
+        return
+    if actual is not None:
+        raise ContractError(f"IMMUTABLE_MIGRATION_CONFLICT path={path.relative_to(root).as_posix()}")
+    if not write:
+        raise ContractError(f"generated migration missing: {path.relative_to(root).as_posix()}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(expected, encoding="utf-8", newline="\n")
+    changed.append(path.relative_to(root).as_posix())
+
+
 def split_sql_values(source: str) -> list[list[str]]:
     tuples: list[list[str]] = []
     current_tuple: list[str] = []
@@ -351,14 +364,7 @@ def sync(root: Path, write: bool) -> list[str]:
     verify_version_allocation(root, contract, outputs)
     changed: list[str] = []
     for path, expected in outputs.items():
-        actual = path.read_text(encoding="utf-8-sig") if path.is_file() else None
-        if actual == expected:
-            continue
-        if not write:
-            raise ContractError(f"generated migration drift: {path.relative_to(root).as_posix()}")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(expected, encoding="utf-8", newline="\n")
-        changed.append(path.relative_to(root).as_posix())
+        write_immutable_or_check(path, expected, write, changed, root)
     if not write:
         verify_checksums(root, outputs)
     return changed

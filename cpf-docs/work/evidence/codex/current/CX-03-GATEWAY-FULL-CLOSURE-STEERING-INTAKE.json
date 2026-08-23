@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-08-23T16:18:57+09:00",
+  "track": "CX-03-GATEWAY-FULL-CLOSURE-STEERING-INTAKE",
+  "status": "IN_PROGRESS",
+  "attachment": "C:\\Users\\fly10\\Downloads\\CPF_GATEWAY_FULL_CLOSURE_DEVELOPMENT_QA_REQUEST_FINAL_20260823.md",
+  "sha256": "fdc30d3d0098f6a230ae78e0075ba8809966eab76b677b2aaed50bcc219e5d63",
+  "bytes": 35136,
+  "lines": 2093,
+  "classification": "User-supplied acceptance and validation steering; not Product Source, not an inherited PASS, and not authority to replace the current Working Tree with the older snapshot named in the document.",
+  "acceptedCurrentContracts": [
+    "Gateway is generic: explicit configured routes work without CPF business headers; Target Channel Code routing is optional.",
+    "ADM Common Service/Instance/Endpoint is canonical identity and URL ownership; Gateway owns membership and routing policy only.",
+    "Every ADM setting must reach publish/version, runtime snapshot and the actual primary data plane.",
+    "Round Robin, Weighted Round Robin, Rendezvous Hash, effective health and independent DB/File logging require actual runtime consumer proof.",
+    "Retired BZA is not restored; current Backoffice/MBW and Channel Code terminology apply.",
+    "DB3, OpenAPI, generated frontend client, security, multi-instance/failure recovery, Open Git projection and canonical requirements are in acceptance scope."
+  ],
+  "priority": "Close active shared query/Backoffice and PostgreSQL V135 foundations first; then read-only Gateway call graph and consumer matrix; repair exact owners; actual runtime last.",
+  "netExecutionUnitsAdded": 32,
+  "workPackage": "cpf-docs/work/current/CPF_GATEWAY_FULL_CLOSURE_WORK_PACKAGE.md",
+  "productSourceIdentity": "f5f64570aba2abc5a14ebd60b06d51681e2f7873e1101534d275d8b72f9da779"
+}

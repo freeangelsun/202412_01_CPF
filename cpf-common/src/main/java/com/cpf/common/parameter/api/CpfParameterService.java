@@ -39,6 +39,9 @@ public interface CpfParameterService {
     @SuppressWarnings("unchecked")
     private static <T> T convert(String key, String raw, Class<T> type) {
         if (type == null) throw new IllegalArgumentException("parameter target type is required");
+        if (!isSupportedTargetType(type)) {
+            throw new IllegalArgumentException("Unsupported CPF Common parameter target type: " + type.getName());
+        }
         if (type == String.class) return (T) raw;
         try {
             Object converted;
@@ -56,12 +59,24 @@ public interface CpfParameterService {
             else if (type == Duration.class) converted = Duration.parse(raw);
             else if (type == LocalDate.class) converted = LocalDate.parse(raw);
             else if (type == LocalDateTime.class) converted = LocalDateTime.parse(raw);
-            else throw new IllegalArgumentException("Unsupported CPF Common parameter target type: " + type.getName());
+            else throw new IllegalStateException("validated parameter target type has no converter: " + type.getName());
             return (T) converted;
         // 하위 구현 실패를 정상값으로 숨기지 않고 호출자가 실패 의미를 구분할 수 있도록 보존합니다.
         } catch (RuntimeException ex) {
             throw new IllegalArgumentException(
                     "CPF Common parameter type conversion failed: key=" + key + ", type=" + type.getSimpleName(), ex);
         }
+    }
+
+    private static boolean isSupportedTargetType(Class<?> type) {
+        return type == String.class
+                || type == Integer.class || type == int.class
+                || type == Long.class || type == long.class
+                || type == Boolean.class || type == boolean.class
+                || type == Double.class || type == double.class
+                || type == BigDecimal.class
+                || type == Duration.class
+                || type == LocalDate.class
+                || type == LocalDateTime.class;
     }
 }

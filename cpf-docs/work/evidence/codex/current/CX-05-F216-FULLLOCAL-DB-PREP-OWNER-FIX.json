@@ -1,0 +1,16 @@
+{
+  "evidenceId": "CX-05-F216-FULLLOCAL-DB-PREP-OWNER-FIX",
+  "finding": "CX-F-216",
+  "recordedAt": "2026-08-23T19:54:00+09:00",
+  "sourceIdentity": {
+    "sha256": "ec9a15616abba7b961ea49f38267f5b5fa14a52afa4df46fd668ee1f13da921b",
+    "sha1": "47199c22c0c0df2232cfaccb3fe0fbe44d21a87d",
+    "fileCount": 8288,
+    "totalBytes": 75229910
+  },
+  "change": "FullLocal disposable profile enables core/common/admin/batch/backoffice and recognizes only backoffice as the MBW physical target.",
+  "retiredBizAdminReferences": 0,
+  "powershellParseErrors": 0,
+  "status": "SOURCE_FIXED",
+  "verificationPending": "Add exact regression assertion and execute real prepare/cleanup."
+}

@@ -1,0 +1,22 @@
+{
+  "finding": "CX-F-217",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-23T20:04:00+09:00",
+  "beforeSourceIdentitySha256": "a4488b69963ef6793bcd90bfb65617c51527c5cf25cfbe4bd77189cec04ce577",
+  "afterSourceIdentity": {
+    "sha256": "f7cc698bb92390cf32b2aa3e706043fc39d701e475bbc0c119963a2abaa653af",
+    "sha1": "b5812712a31db3f2d44e1e29e90e3023bac1e51f",
+    "fileCount": 8288,
+    "totalBytes": 75232092
+  },
+  "changes": [
+    "Every maintained two-worker SQL reference now uses the exact canonical BAT_WORKER, BAT_JOB, BAT_EXECUTION and BAT_EXECUTION_LEASE physical identity.",
+    "The maintained shell contract requires every canonical table and rejects lowercase SQL table tokens after shielding valid uppercase tokens."
+  ],
+  "prohibitedWorkarounds": {
+    "databaseCaseSettingChanged": false,
+    "compatibilityAliasAdded": false,
+    "runtimeAssertionWeakened": false
+  },
+  "next": "Parse the PowerShell owner, execute the maintained regression, then replay actual FullLocal prepare through two-worker runtime and cleanup."
+}

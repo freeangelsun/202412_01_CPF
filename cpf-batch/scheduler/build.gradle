@@ -4,11 +4,14 @@ dependencies {
     implementation project(':framework:base-runtime')
     implementation project(':framework:operations')
     implementation project(':framework:data')
+ implementation project(':internal:platform-operations:runtime-control')
  implementation project(':runtime:batch:api')
  implementation project(':runtime:batch:runtime-support')
  implementation project(':runtime:batch:runtime')
  implementation project(':framework:core')
+ implementation project(':starters:data:jdbc')
  implementation project(':starters:common')
+ implementation project(':starters:messaging:kafka')
  implementation project(':internal:messaging:reliability:jdbc')
  implementation project(':internal:integration:resilience')
  implementation 'org.springframework.boot:spring-boot-starter-webmvc'
@@ -16,10 +19,14 @@ dependencies {
  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
  implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
  implementation 'org.springframework.batch:spring-batch-integration'
+ runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+ runtimeOnly 'org.postgresql:postgresql'
+ runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
  implementation 'com.fasterxml.jackson.core:jackson-databind'
  implementation "com.github.kagkarlsson:db-scheduler:${rootProject.ext.cpfDbSchedulerVersion}"
  testImplementation project(':runtime:batch:testkit')
  testImplementation 'org.springframework.batch:spring-batch-test'
+ testImplementation 'org.mockito:mockito-core'
 }
 tasks.named('bootJar'){archiveFileName="cpf-batch-scheduler-${project.version}.jar"}
 tasks.named('test'){useJUnitPlatform()}

@@ -1,0 +1,41 @@
+{
+  "executionId": "CX-02-OPERATION-MANIFEST-IMPACT-RERUN3",
+  "startedAt": "2026-08-22T20:37:20.6690815+09:00",
+  "finishedAt": "2026-08-22T20:37:46.5723968+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS",
+  "exitCode": 0,
+  "tasks": {
+    "memberAndExternal": "2/2 executed",
+    "backoffice": "1/1 executed"
+  },
+  "manifests": [
+    {
+      "owner": "member",
+      "operations": 6,
+      "templatedPathOperations": 3,
+      "exactDetailPath": "/api/v1/member/samples/{id}"
+    },
+    {
+      "owner": "external",
+      "operations": 6,
+      "templatedPathOperations": 3,
+      "exactDetailPath": "/api/v1/external/samples/{id}"
+    },
+    {
+      "owner": "backoffice",
+      "operations": 96,
+      "templatedPathOperations": 26
+    }
+  ],
+  "mappingRequirementRelaxed": false,
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "jdtProcessId": 27708,
+  "jdtAliveAfter": true,
+  "evidence": [
+    "cpf-docs/work/evidence/codex/current/CX-02-OPERATION-MANIFEST-IMPACT-RERUN3.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-OPERATION-MANIFEST-IMPACT-RERUN3.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-OPERATION-MANIFEST-IMPACT-RERUN3.exit.txt"
+  ]
+}

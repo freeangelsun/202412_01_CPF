@@ -1,0 +1,18 @@
+{
+  "evidenceId": "CX-05-F213-REFERENCE-FIXTURE-VERIFIER-MODULE-DRIFT",
+  "finding": "CX-F-213",
+  "recordedAt": "2026-08-23T19:32:36+09:00",
+  "sourceIdentitySha256": "29f507b6e0e14718d7518020c422c84e67fd2fd3c0ecab7c66eb5aa508134e89",
+  "precedingPasses": {
+    "migrationChecksumIntegrity": "PASS including MariaDB rollback inventories 39 and 98",
+    "v136Contract": "PASS 3/3"
+  },
+  "failedCommand": "pwsh -NoProfile -File cpf-tools/db/verification/check-platform-database-migration-tool.ps1 -Root .",
+  "actualError": "The property 'reference' cannot be found on this object.",
+  "rootCause": "Two DB verifier fixtures still address profile.modules.reference after the canonical developer-facing module became education while retaining the REFERENCE_FIXTURE logical database role.",
+  "affectedOwners": [
+    "cpf-tools/db/verification/check-platform-database-migration-tool.ps1",
+    "cpf-tools/db/verification/check-reference-database-lifecycle.ps1"
+  ],
+  "status": "OPEN"
+}

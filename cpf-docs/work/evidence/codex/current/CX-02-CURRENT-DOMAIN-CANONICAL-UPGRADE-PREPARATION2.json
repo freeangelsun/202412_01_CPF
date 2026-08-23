@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-CURRENT-DOMAIN-CANONICAL-UPGRADE-PREPARATION2",
+  "finishedAt": "2026-08-22T21:44:04.5906626+09:00",
+  "sourceIdentitySha256": "217c1cec3952c9cab5b83dd586eee2c2380d34dbdbe30bee0605d6841f7993ad",
+  "status": "UPGRADE_PREPARED",
+  "reason": "The first sync proved the optional prebuilt Backoffice domain participates in the same ownership upgrade. Its two Codex-added generated snippets were also removed; no user-owned source was changed.",
+  "next": "cpf domain sync"
+}

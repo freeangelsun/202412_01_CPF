@@ -1,0 +1,14 @@
+{
+  "findingId": "CX-F-146",
+  "recordedAt": "2026-08-23T11:38:00+09:00",
+  "lifecycle": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "714e36b0638bf6c05332567f326c73ddd33b8132e69467d5ae480ad3cc2bbf01",
+    "sha1": "5d4904feb61f7c29c21e55e82b286faaee740e10",
+    "fileCount": 8249,
+    "totalBytes": 76637863
+  },
+  "ownerFix": "The official PostgreSQL/Oracle MBW product-seed verification generator now queries MBW_ROLE and MBW_MENU; regression rejects FROM bza_role and FROM bza_menu.",
+  "verificationPending": "Regenerate current vendor source and lifecycle verify bundles, then rerun non-table and vendor checks."
+}

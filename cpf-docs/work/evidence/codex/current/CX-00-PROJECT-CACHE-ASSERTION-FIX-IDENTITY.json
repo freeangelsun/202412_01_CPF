@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-PROJECT-CACHE-ASSERTION-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T22:31:26.6857850+09:00",
+  "sourceIdentity": {
+    "contentSha1": "1330149c35b7f1400e339ca588e717a1d9f264e8",
+    "contentSha256": "dfaedeb67bdf73906164b2f7f0d4a6d5cf807423f287f397226abd113bb71026",
+    "fileCount": 8228,
+    "totalBytes": 75795799
+  },
+  "status": "TEST_FIXED",
+  "finding": "CX-F-110",
+  "change": "Bind the regression to the exact current settings.gradle absolute project-cache expression."
+}

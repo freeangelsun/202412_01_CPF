@@ -1,8 +1,10 @@
 package com.cpf.batch.control.compat;
 
+import com.cpf.batch.api.CpfBatchRiskCommand;
 import com.cpf.common.calendar.CmnBusinessCalendar;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,7 +34,15 @@ class BatchOperationsCompatibilityServiceGhostSqlTest {
         when(provider.forModule("bat")).thenReturn(catalog);
         when(transactionManager.getTransaction(any(TransactionDefinition.class)))
                 .thenReturn(mock(TransactionStatus.class));
-        service = new BatchOperationsCompatibilityService(jdbc, calendar, transactionManager, provider);
+        JdbcBatchRiskCommandLedger ledger = mock(JdbcBatchRiskCommandLedger.class);
+        when(ledger.reserve(any(CpfBatchRiskCommand.class)))
+                .thenReturn(JdbcBatchRiskCommandLedger.Decision.created());
+        service = new BatchOperationsCompatibilityService(
+                jdbc,
+                calendar,
+                transactionManager,
+                provider,
+                new CpfBatchRiskCommandCoordinator(ledger, new ObjectMapper()));
     }
 
     @Test
@@ -44,11 +54,22 @@ class BatchOperationsCompatibilityServiceGhostSqlTest {
                 "execution_id", 41L,
                 "job_id", "BAT.QA37",
                 "execution_status", "RUNNING",
-                "last_heartbeat_at", LocalDateTime.now().minusMinutes(10))));
-        when(jdbc.update("EXECUTION_FINISH_GHOST", "FAILED", "qa-user", 41L)).thenReturn(1);
+                "last_heartbeat_at", LocalDateTime.now().minusMinutes(10),
+                "row_version", 3L)));
+        when(jdbc.update("EXECUTION_FINISH_GHOST", "FAILED", "qa-user", 41L, 3L)).thenReturn(1);
 
-        service.actGhostExecution(41L, "FAIL", "qa-user", "stale heartbeat");
+        service.actGhostExecution(41L, "FAIL", new CpfBatchRiskCommand(
+                "actGhostExecution",
+                "bat_execution",
+                "41",
+                "FAIL",
+                "qa-user",
+                "stale heartbeat",
+                "APR-QA37",
+                "IDEM-QA37-GHOST-41",
+                3L,
+                ""));
 
-        verify(jdbc).update("EXECUTION_FINISH_GHOST", "FAILED", "qa-user", 41L);
+        verify(jdbc).update("EXECUTION_FINISH_GHOST", "FAILED", "qa-user", 41L, 3L);
     }
 }

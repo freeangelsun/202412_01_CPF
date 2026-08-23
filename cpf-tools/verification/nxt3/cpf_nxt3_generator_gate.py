@@ -25,16 +25,18 @@ def main(argv=None) -> int:
 
     # 공식 Root는 같은 Engine의 verify/diff를 사용하며 수동 Golden Source를 허용하지 않는다.
     for name in ('cpf-member','cpf-external'):
-        out=root/name; logical=name.removeprefix('cpf-'); definition=out/'cpf-domain.yaml'
+        out=root/name; logical=name.removeprefix('cpf-'); definition=out/'gradle.properties'
         try:
-            d=eng.validate_definition(eng.load_yaml_subset(definition))
+            d=eng.load_domain_contract(definition)
             vr=eng.verify_generated(root,definition,out,d)
             ck('VERIFY_'+name.upper(),vr.get('status')=='PASS',json.dumps(vr,ensure_ascii=False))
             dr=eng.diff(root,definition,out)
             ck('IDEMPOTENT_DIFF_'+name.upper(),dr.get('clean') is True,json.dumps(dr,ensure_ascii=False))
-            raw=eng.load_yaml_subset(definition)
-            ck('DOMAIN_INPUT_VENDOR_FREE_'+name.upper(),'vendor' not in raw.get('database',{}),json.dumps(raw.get('database',{}),ensure_ascii=False))
-            ck('DIRECT_DOMAIN_PACKAGE_'+name.upper(),d.package_name==d.name and 'packageName' not in raw.get('domain',{}),d.package_name)
+            contract=definition.read_text(encoding='utf-8-sig')
+            ck('DOMAIN_INPUT_VENDOR_FREE_'+name.upper(),'cpf.domain.vendor=' not in contract,definition.as_posix())
+            ck('DIRECT_DOMAIN_PACKAGE_'+name.upper(),d.package_name==d.name,d.package_name)
+            forbidden=[entry for entry in ('cpf-domain.yaml','cpf-generator.lock.json','.cpf') if (out/entry).exists()]
+            ck('GENERATOR_METADATA_ZERO_'+name.upper(),not forbidden,forbidden)
             legacy_paths=[p.relative_to(out).as_posix() for p in out.rglob('*') if p.is_file() and 'com/customer/' in p.as_posix()]
             legacy_text=[]
             for p in out.rglob('*'):
@@ -69,17 +71,24 @@ def main(argv=None) -> int:
             d=eng.validate_definition(eng.load_yaml_subset(definition))
             vr=eng.verify_generated(repo,definition,out,d); ck('ARBITRARY_VERIFY',vr.get('status')=='PASS',json.dumps(vr,ensure_ascii=False))
             idem=eng.generate(repo,definition,out); ck('ARBITRARY_IDEMPOTENT',idem.get('status')=='IDEMPOTENT',json.dumps(idem,ensure_ascii=False)[:4000])
-            plan=eng.remove_owned(repo,definition,out,apply=False); ck('REMOVE_PLAN_SAFE',plan.get('status')=='PLANNED' and plan.get('safeToRemove') is True,json.dumps(plan,ensure_ascii=False)[:4000])
+            plan=eng.remove_owned(repo,definition,out,apply=False); ck('REMOVE_PLAN_SAFE',plan.get('status')=='PLANNED_DELETE_MANIFEST' and plan.get('safeToRemove') is True,json.dumps(plan,ensure_ascii=False)[:4000])
             # Generator-owned Source 사용자 변경 시 regenerate/remove가 fail-closed여야 한다.
-            target=out/'online/src/main/java/ledger/online/ledger/controller/SampleTransactionController.java'
-            target.write_text(target.read_text(encoding='utf-8')+'\n// 사용자 소유 변경 검증\n',encoding='utf-8')
+            target=out/'online/src/main/java/ledger/sample/controller/SampleTransactionController.java'
+            target.write_text(target.read_text(encoding='utf-8')+'\n// 사용자 소유 변경 검증\n',encoding='utf-8',newline='\n')
             try: eng.regenerate(repo,definition,out); protected=False
             except Exception: protected=True
             ck('USER_MODIFICATION_PROTECTED',protected)
             # 변경을 되돌리고 regenerate -> remove -> restore 전체 lifecycle을 수행한다.
-            target.write_text(target.read_text(encoding='utf-8').replace('\n// 사용자 소유 변경 검증\n',''),encoding='utf-8')
+            target.write_text(target.read_text(encoding='utf-8').replace('\n// 사용자 소유 변경 검증\n',''),encoding='utf-8',newline='\n')
             regen=eng.regenerate(repo,definition,out); ck('REGENERATE',regen.get('status')=='REGENERATED',json.dumps(regen,ensure_ascii=False)[:4000])
-            rem=eng.remove_owned(repo,definition,out,apply=True); remaining={p.name for p in out.iterdir()} if out.is_dir() else set(); ck('REMOVE_APPLY_GENERATOR_OWNED',rem.get('status')=='REMOVED' and remaining <= {'cpf-domain.yaml','cpf-generator.lock.json'},json.dumps({'remove':rem,'remaining':sorted(remaining)},ensure_ascii=False)[:4000])
+            rem=eng.remove_owned(repo,definition,out,apply=False)
+            for rel in rem.get('deleteCandidates',[]):
+                candidate=out/rel
+                if candidate.is_file(): candidate.unlink()
+            for directory in sorted((p for p in out.rglob('*') if p.is_dir()),key=lambda p:len(p.parts),reverse=True):
+                try: directory.rmdir()
+                except OSError: pass
+            remaining={p.name for p in out.iterdir()} if out.is_dir() else set(); ck('REMOVE_MANIFEST_REPLAY_GENERATOR_OWNED',rem.get('status')=='PLANNED_DELETE_MANIFEST' and not remaining,json.dumps({'remove':rem,'remaining':sorted(remaining)},ensure_ascii=False)[:4000])
             restore=eng.restore(repo,definition,out); ck('RESTORE',restore.get('status')=='RESTORED',json.dumps(restore,ensure_ascii=False)[:4000])
         except Exception as exc:
             ck('ARBITRARY_LIFECYCLE_EXCEPTION',False,repr(exc))

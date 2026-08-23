@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-LOGICAL-TREE-DIRECT-TEST",
+  "requirementIds": ["TEST-EVIDENCE", "REL-BUILD", "ARCH-BOUNDARY"],
+  "timestamp": {
+    "started": "2026-08-22T12:08:35.2909036+09:00",
+    "finished": "2026-08-22T12:08:35.9255636+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python -c <direct import and execution of all test_* functions in test_cpf_gradle_logical_tree.py>",
+  "exitCode": 0,
+  "sourceIdentity": "1c4e41c200dc3e85ebd7fccc1aab6b43c37473991369701b373300c84d7b6e51",
+  "actualResult": "DIRECT_ASSERT_TESTS=PASS count=3, including framework:web direct framework:data dependency.",
+  "result": "PASS",
+  "failureSummary": null,
+  "findingIds": ["CX-F-006"],
+  "sanitized": true
+}

@@ -1,0 +1,17 @@
+{
+  "track": "CX-01-ADMIN-FOCUSED-REMAINDER-FIX-IDENTITY",
+  "finishedAt": "2026-08-22T19:14:06.6867385+09:00",
+  "result": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "fe8139907fdcef3e4c6dc75fdd483d4596d682650575459ab57dff5758a91a2e",
+    "sha1": "9efb45194bf56bd967e837282d2684837c337233",
+    "fileCount": 8212,
+    "totalBytes": 75665829
+  },
+  "findings": ["CX-F-081", "CX-F-085"],
+  "changes": [
+    "The generated-ID Batch approval test supplies one enabled action policy through findActivePolicy and findPolicy, preserving canonical Registry binding.",
+    "The API permission test reads Mockito's expanded final scalar vararg and preserves the exact BATCH_RUNTIME_READ/BATCH_READ separation assertion."
+  ],
+  "verification": "Pending exact and affected-scope Java 25 tests"
+}

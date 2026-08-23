@@ -5,17 +5,17 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $checks = [ordered]@{
-    admSchema = "cpf-tools/db/vendor/mariadb/source/30_adm_schema.sql"
-    bzaSchema = "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
+    admSchema = "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql"
+    backofficeSchema = "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql"
     migration = "cpf-tools/db/vendor/mariadb/source/migration/flyway/V59__admin_contact_model.sql"
     rollback = "cpf-tools/db/vendor/mariadb/source/migration/rollback/V59__admin_contact_model_rollback.sql"
     admService = "cpf-admin/src/main/java/com/cpf/admin/opr/service/AdmOperatorService.java"
-    bzaRepository = "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/backoffice/repository/BzaBackofficeRepository.java"
-    bzaFindEmployeesTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employees-01.sql.template"
-    bzaFindEmployeeTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-01.sql.template"
-    bzaRawContactTemplate = "cpf-tools/db/runtime-template/bza/repository/backoffice-repository-find-employee-raw-contact-01.sql.template"
+    backofficeRepository = "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/management/repository/BackofficeManagementRepository.java"
+    backofficeFindEmployeesTemplate = "cpf-tools/db/runtime-template/backoffice/repository/backoffice-repository-find-employees-01.sql.template"
+    backofficeFindEmployeeTemplate = "cpf-tools/db/runtime-template/backoffice/repository/backoffice-repository-find-employee-01.sql.template"
+    backofficeRawContactTemplate = "cpf-tools/db/runtime-template/backoffice/repository/backoffice-repository-find-employee-raw-contact-01.sql.template"
     admUi = "cpf-admin/frontend/src/features/operators/OperatorsPage.vue"
-    bzaUi = "cpf-backoffice-web/frontend/src/features/employees/components/EmployeeChangeForm.vue"
+    backofficeUi = "cpf-backoffice-web/frontend/src/features/employees/components/EmployeeChangeForm.vue"
 }
 
 foreach ($entry in $checks.GetEnumerator()) {
@@ -48,21 +48,21 @@ if (-not $profileMatch.Success -or $profileMatch.Groups[1].Value -notmatch 'MOBI
     throw "ADM 연락처 Profile 컬럼이 adm_operator_profile에 없습니다."
 }
 
-Require-Text $checks.bzaSchema @("mobile_no", "office_phone_no")
-Require-Text $checks.migration @("ALTER TABLE adm_operator_profile", "MOBILE_NO", "OFFICE_PHONE_NO", "USE bzaDB", "office_phone_no")
-Require-Text $checks.rollback @("ALTER TABLE adm_operator_profile", "DROP COLUMN IF EXISTS OFFICE_PHONE_NO", "DROP COLUMN IF EXISTS office_phone_no")
+Require-Text $checks.backofficeSchema @("mobile_no", "office_phone_no")
+Require-Text $checks.migration @("ALTER TABLE adm_operator_profile", "MOBILE_NO", "OFFICE_PHONE_NO", "USE backofficeDB", "ALTER TABLE mbw_employee", "office_phone_no")
+Require-Text $checks.rollback @("USE backofficeDB", "ALTER TABLE mbw_employee", "ALTER TABLE adm_operator_profile", "DROP COLUMN IF EXISTS OFFICE_PHONE_NO", "DROP COLUMN IF EXISTS office_phone_no")
 Require-Text $checks.admService @("LEFT JOIN adm_operator_profile", "upsertOperatorContactProfile", "MOBILE_NO", "OFFICE_PHONE_NO")
-Require-Text $checks.bzaRepository @(
+Require-Text $checks.backofficeRepository @(
     "CpfVendorSqlCatalog",
-    'sqlCatalogProvider\.forModule\("bza"\)',
+    'sqlCatalogProvider\.forModule\("backoffice"\)',
     'sql\.required\("backoffice-repository-find-employees-01"\)',
     'sql\.required\("backoffice-repository-find-employee-01"\)',
     'sql\.required\("backoffice-repository-find-employee-raw-contact-01"\)'
 )
 foreach ($queryTemplate in @(
-    $checks.bzaFindEmployeesTemplate,
-    $checks.bzaFindEmployeeTemplate,
-    $checks.bzaRawContactTemplate
+    $checks.backofficeFindEmployeesTemplate,
+    $checks.backofficeFindEmployeeTemplate,
+    $checks.backofficeRawContactTemplate
 )) {
     Require-Text $queryTemplate @("mobile_no AS mobileNo", "office_phone_no AS officePhoneNo")
 }
@@ -72,7 +72,7 @@ foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
         "backoffice-repository-find-employee-01",
         "backoffice-repository-find-employee-raw-contact-01"
     )) {
-        $renderedQuery = "cpf-tools/db/vendor/$vendor/runtime/bza/repository/$queryKey.sql"
+        $renderedQuery = "cpf-tools/db/vendor/$vendor/runtime/backoffice/repository/$queryKey.sql"
         if (-not (Test-Path -LiteralPath (Join-Path $Root $renderedQuery) -PathType Leaf)) {
             throw "Admin contact model DB3 runtime query가 없습니다: $renderedQuery"
         }
@@ -80,6 +80,6 @@ foreach ($vendor in @("mariadb", "postgresql", "oracle")) {
     }
 }
 Require-Text $checks.admUi @("연락처\(휴대폰\)", "내부 전화번호")
-Require-Text $checks.bzaUi @("연락처\(휴대폰\)", "내부 전화번호")
+Require-Text $checks.backofficeUi @("연락처\(휴대폰\)", "내부 전화번호")
 
 Write-Host "[PASS] ADM/MBW contact model identity/profile ownership + API/UI/migration static parity"

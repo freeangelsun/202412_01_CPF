@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-02-F109-CANONICAL-DOCS-PART1",
+  "startedAt": "2026-08-22T23:15:00+09:00",
+  "finishedAt": "2026-08-22T23:19:25.8358213+09:00",
+  "status": "SOURCE_FIXED_PARTIAL",
+  "sourceIdentity": {
+    "sha256": "65c6017ed9ba5804be35978b0ffc667893a4b3535f1a44d5ff9001e0cefbd1e0",
+    "sha1": "c24f772dd5e710eea511fed711210682fe87ad5b",
+    "fileCount": 8228,
+    "totalBytes": 75807198
+  },
+  "changedCanonicalOwners": [
+    "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+    "cpf-docs/development/GENERATOR_GUIDE.md",
+    "cpf-docs/development/CPF_DEVELOPER_GOLDEN_PATH.md",
+    "cpf-docs/governance/CPF_CANONICAL_PATH_AND_ROLE_MAP.md",
+    "cpf-docs/work/current/CPF_CURRENT_WORK_REQUEST.md",
+    "cpf-docs/work/current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md",
+    "cpf-tools/README.md",
+    "cpf-tools/release/public/templates/README.md"
+  ],
+  "contract": "Generated Customer Domain root is developer-facing source/build/settings only; gradle.properties cpf.domain.* is the persistent Developer Contract; cpf-domain.yaml, cpf-generator.lock.json and renamed/hidden bookkeeping are forbidden in generated roots and releases.",
+  "remaining": [
+    "Currentize requirement review and closure inventory narratives without changing QA-owned status columns",
+    "Migrate remaining active verifier consumers",
+    "Apply exact approved current-domain delete manifest only after targeted gates pass"
+  ]
+}

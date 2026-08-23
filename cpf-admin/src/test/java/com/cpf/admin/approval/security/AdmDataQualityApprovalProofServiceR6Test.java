@@ -19,10 +19,11 @@ class AdmDataQualityApprovalProofServiceR6Test {
         Instant issued=Instant.parse("2026-08-07T00:00:00Z");
         AdmDataQualityApprovalProofService signer=new AdmDataQualityApprovalProofService(
                 key,null,Duration.ofMinutes(5),Clock.fixed(issued,ZoneOffset.UTC));
-        String proof=signer.sign("q1",1,"ADM-APPROVAL:1:c1","a".repeat(64),"n1",issued);
+        String nonce="nonce-0123456789abcdef";
+        String proof=signer.sign("q1",1,"ADM-APPROVAL:1:c1","a".repeat(64),nonce,issued);
         CpfDataQualityCorrectionPort.ApprovedCorrection command=new CpfDataQualityCorrectionPort.ApprovedCorrection(
                 "q1",1,Map.of("x","y"),"actor","reason-123","ADM-APPROVAL:1:c1",
-                "a".repeat(64),"n1",proof,issued);
+                "a".repeat(64),nonce,proof,issued);
         assertThat(signer.verify(command)).isTrue();
         AdmDataQualityApprovalProofService expired=new AdmDataQualityApprovalProofService(
                 key,null,Duration.ofMinutes(5),Clock.fixed(issued.plus(Duration.ofMinutes(6)),ZoneOffset.UTC));

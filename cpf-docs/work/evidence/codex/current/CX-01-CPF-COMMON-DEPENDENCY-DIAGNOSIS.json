@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-CPF-COMMON-DEPENDENCY-DIAGNOSIS",
+  "requirementIds": ["REL-BUILD", "COMMON-DOMAIN", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T13:59:06.9302703+09:00",
+    "finished": "2026-08-22T14:00:02.0000000+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "Inspect cpf-common build dependencies, all direct main-source SLF4J/Jakarta Annotation imports, and neighboring canonical dependency scopes",
+  "exitCode": 0,
+  "sourceIdentity": "5868c3d51f28e070b9241d47aded4589d86ba950131f509c813dc551b5cec473",
+  "actualResult": "cpf-common has 20 direct import lines across seven SLF4J users and six PostConstruct users, while its build declares neither dependency. Neighboring Product modules consistently own slf4j-api as implementation and jakarta.annotation-api as compileOnly. Add exactly those direct scopes and a logical-tree regression.",
+  "result": "DIAGNOSIS_COMPLETE",
+  "findingIds": ["CX-F-024"],
+  "sanitized": true
+}

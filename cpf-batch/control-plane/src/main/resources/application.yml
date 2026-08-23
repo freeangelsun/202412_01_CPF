@@ -22,9 +22,17 @@ management:
       probes:
         enabled: true
 cpf:
+  web:
+    context:
+      # BAT Control Plane은 별도 peer/mTLS 보안 경계를 가진 관리 API이며 업무 System6 대상이 아니다.
+      management-root-paths:
+        - /api/v1/batch
+        - /bat
   framework:
     module-id: BAT
     was-id: ${CPF_WAS_ID:}
+  runtime:
+    role: CONTROL_PLANE
   batch:
     security:
       trusted-peer-addresses: ${CPF_BATCH_TRUSTED_PEER_ADDRESSES:}
@@ -32,5 +40,4 @@ cpf:
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}
     runtime:
-      role: CONTROL_PLANE
       heartbeat-ms: ${CPF_RUNTIME_HEARTBEAT_MS:5000}

@@ -88,7 +88,7 @@ class AdmReliabilityServiceTest {
         CpfReliabilityOperationsPort port = mock(CpfReliabilityOperationsPort.class);
         when(port.findUnknownResult("U1"))
                 .thenReturn(Optional.of(Map.of("unknown_type", "SERVICE_CALL")));
-        when(port.resolveUnknown("U1", "CONFIRMED_SUCCESS", "OP1", "외부 결과 확인"))
+        when(port.resolveUnknown("U1", "CONFIRMED_SUCCESS", 7L, "OP1", "외부 결과 확인"))
                 .thenReturn(new CpfReliabilityOperationsPort.ChangeResult(
                         Map.of("unknownStatus", "CHECK_PENDING"),
                         Map.of("unknownStatus", "CONFIRMED_SUCCESS"),
@@ -96,7 +96,7 @@ class AdmReliabilityServiceTest {
         AdmReliabilityService service = new AdmReliabilityService(port);
 
         AdmReliabilityService.ChangeResult result = service.resolveUnknown(
-                "U1", "CONFIRMED_SUCCESS", "OP1", "외부 결과 확인");
+                "U1", "CONFIRMED_SUCCESS", 7L, "OP1", "외부 결과 확인");
 
         assertThat(result.before()).containsEntry("unknownStatus", "CHECK_PENDING");
         assertThat(result.after()).containsEntry("unknownStatus", "CONFIRMED_SUCCESS");

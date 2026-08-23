@@ -58,6 +58,25 @@ function Get-SourceKeys([string[]] $Scopes) {
     }
     return Normalize-Set $keys
 }
+function Get-SourceResources([string[]] $Scopes) {
+    $resources = [System.Collections.Generic.List[string]]::new()
+    foreach ($scope in $Scopes) {
+        $sourceRoot = Join-Path $Root ($scope -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
+            Add-Failure "Query source scope missing: $scope"
+            continue
+        }
+        foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -Filter '*.java') {
+            $text = Read-Text $file.FullName
+            foreach ($m in [regex]::Matches(
+                    $text,
+                    'CpfCommonSqlResourceLoader\.load\(\s*"(?<resource>(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\.sql)"\s*\)')) {
+                $resources.Add($m.Groups['resource'].Value)
+            }
+        }
+    }
+    return Normalize-Set $resources
+}
 function Build-StatementIndex([object[]] $Statements) {
     $index = @{}
     foreach ($s in $Statements) { $index[[string]$s.key] = $s }
@@ -74,19 +93,77 @@ function Get-StatementUsage([object] $Statement) {
 function Test-Module(
     [string] $ModuleCode,
     [string] $ParameterStyle,
+    [string] $GeneratedPackPath,
     [string[]] $SourceScopes,
     [object[]] $Statements
 ) {
-    $sourceKeys = Get-SourceKeys $SourceScopes
     $statementIndex = Build-StatementIndex $Statements
     $hasLifecycleMetadata = @(
         $Statements | Where-Object { $null -ne $_.PSObject.Properties['usage'] }
     ).Count -gt 0
+    $resourceStatements = @(
+        $Statements | Where-Object { $null -ne $_.PSObject.Properties['resource'] }
+    )
+    if ($resourceStatements.Count -gt 0) {
+        if ($resourceStatements.Count -ne $Statements.Count) {
+            Add-Failure "Query module mixes repository keys and portable resources: module=$ModuleCode"
+            return
+        }
+        $sourceResources = Get-SourceResources $SourceScopes
+        $resourceIndex = @{}
+        foreach ($statement in $resourceStatements) {
+            $resourceIndex[[string]$statement.resource] = $statement
+        }
+        $targetRoot = Join-Path $Root ($GeneratedPackPath -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path -LiteralPath $targetRoot -PathType Container)) {
+            Add-Failure "Portable query target missing: module=$ModuleCode path=$GeneratedPackPath"
+            return
+        }
+        $actualResources = Normalize-Set @(
+            Get-ChildItem -LiteralPath $targetRoot -Recurse -File -Filter '*.sql' |
+                ForEach-Object {
+                    [System.IO.Path]::GetRelativePath($targetRoot, $_.FullName).Replace('\', '/')
+                }
+        )
+        foreach ($resource in $sourceResources) {
+            if (-not $resourceIndex.ContainsKey($resource)) {
+                Add-Failure "Source portable query has no contract resource: module=$ModuleCode resource=$resource"
+            }
+            if ($actualResources -cnotcontains $resource) {
+                Add-Failure "Source portable query has no generated resource: module=$ModuleCode resource=$resource"
+            }
+        }
+        foreach ($resource in $actualResources) {
+            if (-not $resourceIndex.ContainsKey($resource)) {
+                Add-Failure "Orphan portable query resource: module=$ModuleCode resource=$resource"
+            }
+        }
+        foreach ($statement in $resourceStatements) {
+            $resource = [string]$statement.resource
+            if ((Get-StatementUsage $statement) -ceq 'ACTIVE' -and $sourceResources -cnotcontains $resource) {
+                Add-Failure "ACTIVE portable query has no Source consumer: module=$ModuleCode resource=$resource consumer=$($statement.consumer)"
+            }
+            $targetPath = Join-Path $targetRoot ($resource -replace '/', [System.IO.Path]::DirectorySeparatorChar)
+            if (-not (Test-Path -LiteralPath $targetPath -PathType Leaf)) { continue }
+            $sql = Read-Text $targetPath
+            if ($sql -match '@[A-Z0-9_]+@') {
+                Add-Failure "Unresolved portable SQL token: module=$ModuleCode resource=$resource"
+            }
+            $actualParameterCount = Get-PositionalParameterCount $sql
+            if ($ParameterStyle -ceq 'JDBC_POSITIONAL' -and
+                    $actualParameterCount -ne [int]$statement.parameterCount) {
+                Add-Failure "Portable positional parameter mismatch: module=$ModuleCode resource=$resource contract=$($statement.parameterCount) sql=$actualParameterCount"
+            }
+        }
+        return
+    }
+
+    $sourceKeys = Get-SourceKeys $SourceScopes
     $vendorKeys = @{}
     $vendorSql = @{}
 
     foreach ($vendor in $officialVendors) {
-        $repoRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor/runtime/$ModuleCode/repository"
+        $repoRoot = Join-Path $Root "cpf-tools/db/vendor/$vendor/$GeneratedPackPath"
         if (-not (Test-Path -LiteralPath $repoRoot -PathType Container)) {
             Add-Failure "Runtime query repository missing: module=$ModuleCode vendor=$vendor"
             continue
@@ -196,13 +273,18 @@ if (-not (Compare-Set @($platform.vendors) $officialVendors)) {
 }
 foreach ($module in @($platform.modules)) {
     Test-Module -ModuleCode ([string]$module.module) -ParameterStyle ([string]$module.parameterStyle) `
+        -GeneratedPackPath ([string]$module.generatedPackPath) `
         -SourceScopes @($module.sourceScopes) -Statements @($module.statements)
 }
 Test-Module -ModuleCode 'bat' -ParameterStyle ([string]$bat.parameterStyle) `
+    -GeneratedPackPath ([string]$bat.generatedPackPath) `
     -SourceScopes @($bat.migrationScope) -Statements @($bat.statements)
 
 if ($failures.Count -gt 0) {
-    $failures | ForEach-Object { Write-Error $_ }
+    # Emit the complete independent inventory before failing. Write-Error is
+    # terminating under ErrorActionPreference=Stop and previously hid every
+    # finding after the first one.
+    $failures | ForEach-Object { [Console]::Error.WriteLine("QUERY_CONTRACT_FAILURE: $_") }
     throw "CPF Query Contract integrity gate failed: $($failures.Count) issue(s)."
 }
 Write-Host "CPF Query Contract integrity gate passed. vendors=$($officialVendors -join ',')"

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-136",
+  "status": "PASS_TARGETED_VERIFICATION_PENDING_RUNTIME",
+  "sourceIdentitySha256": "f446537f8de2725c04cb8e62233b7027e22814cdeedd8dc35d721c84c509371f",
+  "generatorContract": {"passed": 5, "failed": 0},
+  "jdbcOwnerTests": {"passed": 2, "failed": 0},
+  "mybatisScopeTests": {"passed": 3, "failed": 0},
+  "gradleExitCode": 0,
+  "gradleResult": "BUILD SUCCESSFUL in 19s",
+  "java": "25.0.3",
+  "maxWorkers": 1,
+  "rawLogs": [
+    "cpf-docs/work/evidence/codex/current/CX-05-F136-GENERATOR-TARGETED-RERUN1.log",
+    "cpf-docs/work/evidence/codex/current/CX-05-F136-DATASOURCE-OWNER-TARGETED-RERUN4.log"
+  ]
+}

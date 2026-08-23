@@ -1,0 +1,22 @@
+{
+  "executionId": "CX-07-OPEN-GIT-TEST-RERUN2",
+  "finishedAt": "2026-08-22T21:09:00+09:00",
+  "sourceIdentitySha256": "2ebc4acb3f59fbaab79ae1e9d7d788c8ef6b861bd7beeecbea07096f747d6053",
+  "status": "PASS",
+  "suites": [
+    "cpf-tools/release/open-git/tests/test_cpf_open_git.py",
+    "cpf-tools/release/public/tests/test_prepare_cpf_public_workspace.py"
+  ],
+  "tests": {"passed": 19, "failed": 0, "total": 19, "durationSeconds": 4.53},
+  "actualCurrentProjectionExecuted": true,
+  "nativeWindowsCpfHelpExecuted": true,
+  "rootCacheOrPycacheCreated": false,
+  "findingStatus": {
+    "CX-F-091": "VERIFICATION_PENDING_ACTUAL_BINARY_REPOSITORY",
+    "CX-F-092": "VERIFICATION_PENDING_STREAMING_RUNNER",
+    "CX-F-093": "VERIFICATION_PENDING_ACTUAL_RELEASE_STAGES",
+    "CX-F-094": "CLOSED",
+    "CX-F-095": "CLOSED",
+    "CX-F-096": "CLOSED"
+  }
+}

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 INITIALIZER = ROOT / "cpf-tools/generator/tools/initialize-domain-database.ps1"
-DEFINITION = ROOT / "cpf-member/cpf-domain.yaml"
+DEFINITION = ROOT / "cpf-member/gradle.properties"
 CANONICAL_TEMPLATE_ROOT = ROOT / "cpf-tools/db/generated/domain-template"
 VENDORS = ("mariadb", "postgresql", "oracle")
 EXPECTED_ARTIFACTS = {

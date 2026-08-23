@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-00-MANAGED-GRADLE-REGRESSION-ATTEMPT1",
+  "finishedAt": "2026-08-22T21:39:00+09:00",
+  "sourceIdentitySha256": "2229ba4c284374faec604ed685c5df219161eae47d299075d6324f16253150ae",
+  "status": "FAIL_WITH_NEW_FINDING",
+  "result": {"passed": 27, "failed": 1},
+  "finding": "CX-F-102",
+  "rootCause": "The public-workspace unit fixture projects only README.md, so the new exact assertions cannot exercise the real .gitignore/settings.gradle template rules.",
+  "externalLogs": [
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-managed-output-tests.stdout.log",
+    "C:/Users/fly10/AppData/Local/CPF/validation/cx07-managed-output-tests.stderr.log"
+  ]
+}

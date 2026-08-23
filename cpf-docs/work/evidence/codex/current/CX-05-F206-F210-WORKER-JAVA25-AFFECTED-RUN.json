@@ -1,0 +1,21 @@
+{
+  "track": "CX-05-F206-F210-WORKER-JAVA25-AFFECTED-RUN",
+  "startedAt": "2026-08-23T18:57:01+09:00",
+  "finishedAt": "2026-08-23T19:00:00+09:00",
+  "sourceIdentitySha256": "be9ab8f3f7587347697f84471af24a2940c43f542475c4f18ed012c627deb64e",
+  "sourceIdentitySha1": "6af65f947b7a9acd43c97286b8431ebfce3e6121",
+  "command": ".\\gradlew.bat :runtime:batch:worker:test --tests com.cpf.batch.worker.BatchRepositoryConfigurationTest --tests com.cpf.batch.worker.SpringBatchWorkerRuntimeStateTest --tests com.cpf.batch.worker.ApprovedShellExecutorTest --no-daemon --max-workers=1 --no-watch-fs --console=plain",
+  "exitCode": 1,
+  "recoveredAfterVsCodeReload": true,
+  "suites": [
+    {"name": "com.cpf.batch.worker.BatchRepositoryConfigurationTest", "tests": 1, "failures": 0, "errors": 0, "skipped": 0},
+    {"name": "com.cpf.batch.worker.ApprovedShellExecutorTest", "tests": 7, "failures": 0, "errors": 0, "skipped": 0},
+    {"name": "com.cpf.batch.worker.SpringBatchWorkerRuntimeStateTest", "tests": 3, "failures": 1, "errors": 0, "skipped": 0}
+  ],
+  "failure": {
+    "test": "drainAndResumeApplyProviderNeutralBrokerControl()",
+    "message": "Expecting empty but was: [lease-epoch=1;fencing-token=19]",
+    "rootCause": "The newly currentized fixture retained an empty-active-lease expectation even though the current runtime intentionally exposes a positive fencing token as an active lease."
+  },
+  "next": "Correct the exact expected lease and rerun affected tests."
+}

@@ -192,6 +192,8 @@
     ".git/"
   ],
   "forbiddenNamePatterns": [
+    "cpf-domain.yaml",
+    "cpf-generator.lock.json",
     "*.pem",
     "*.p12",
     "*.pfx",
@@ -207,19 +209,15 @@
     "(?i)(?:C:|D:)[\\\\/]+Users[\\\\/]"
   ],
   "gitRemoteEnvironment": "CPF_PUBLIC_GIT_REMOTE",
-  "mandatoryDomainCatalogs": [
+  "mandatoryDomainProjects": [
     {
       "systemCode": "MBR",
       "name": "member",
-      "source": "cpf-member/cpf-domain.yaml",
-      "target": "domains/member/cpf-domain.yaml",
       "physicalProject": "cpf-member"
     },
     {
       "systemCode": "EXS",
       "name": "external",
-      "source": "cpf-external/cpf-domain.yaml",
-      "target": "domains/external/cpf-domain.yaml",
       "physicalProject": "cpf-external"
     }
   ]

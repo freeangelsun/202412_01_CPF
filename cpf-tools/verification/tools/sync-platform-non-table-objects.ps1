@@ -9,6 +9,8 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $ContractPath = Join-Path $Root "cpf-tools/db/canonical/platform-non-table-objects.json"
 $Contract = Get-Content -Raw -Encoding UTF8 -LiteralPath $ContractPath | ConvertFrom-Json -Depth 30
+$PlatformSchemaPath = Join-Path $Root "cpf-tools/db/canonical/platform-schema.json"
+$PlatformSchema = Get-Content -Raw -Encoding UTF8 -LiteralPath $PlatformSchemaPath | ConvertFrom-Json -Depth 100
 $OfficialVendors = @("mariadb", "postgresql", "oracle")
 $Marker = "spring-batch-6-sequences"
 $Written = 0
@@ -20,19 +22,25 @@ function Normalize-Text([string] $Text) {
 
 function Set-GeneratedArtifact(
     [Parameter(Mandatory = $true)][string] $Path,
-    [Parameter(Mandatory = $true)][string] $Expected
+    [Parameter(Mandatory = $true)][string] $Expected,
+    [switch] $ImmutableVersioned
 ) {
     $Expected = Normalize-Text $Expected
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        $Actual = Normalize-Text ([IO.File]::ReadAllText($Path, [Text.Encoding]::UTF8))
+        if ($Actual -ceq $Expected) {
+            if ($Check) { $script:Checked++ }
+            return
+        }
+        if ($ImmutableVersioned) {
+            throw "IMMUTABLE_MIGRATION_CONFLICT path=$Path"
+        }
+    }
     if ($Check) {
         if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
             throw "Missing generated non-table DB artifact: $Path"
         }
-        $Actual = Normalize-Text ([IO.File]::ReadAllText($Path, [Text.Encoding]::UTF8))
-        if ($Actual -cne $Expected) {
-            throw "Generated non-table DB artifact drift: $Path"
-        }
-        $script:Checked++
-        return
+        throw "Generated non-table DB artifact drift: $Path"
     }
     [IO.Directory]::CreateDirectory((Split-Path -Parent $Path)) | Out-Null
     [IO.File]::WriteAllText($Path, $Expected, $Utf8NoBom)
@@ -63,6 +71,38 @@ function Assert-Identifier([string] $Value, [string] $DisplayName) {
     if ($Value -cnotmatch "^[A-Za-z][A-Za-z0-9_]{1,62}$") {
         throw "Invalid ${DisplayName}: $Value"
     }
+}
+
+function Get-CurrentSequenceObjects(
+    [object[]] $HistoricalObjects,
+    [string] $CurrentLogicalDatabase,
+    [string] $CurrentSourceFile
+) {
+    return @($HistoricalObjects | ForEach-Object {
+        $historical = $_
+        $matches = @($PlatformSchema.tables | Where-Object {
+            [string] $_.currentName -ceq [string] $historical.idTable
+        })
+        if ($matches.Count -ne 1) {
+            throw "Current Spring Batch table mapping must be exact: table=$($historical.idTable) count=$($matches.Count)"
+        }
+        $mapped = $matches[0]
+        if ([string] $mapped.logicalDatabase -cne $CurrentLogicalDatabase) {
+            throw "Current Spring Batch table must belong to ${CurrentLogicalDatabase}: table=$($historical.idTable) actual=$($mapped.logicalDatabase)"
+        }
+        $targetTable = [string] $mapped.targetTableName
+        Assert-Identifier $targetTable "current Spring Batch table"
+        [pscustomobject]@{
+            kind = "sequence"
+            module = "bat"
+            logicalDatabase = $CurrentLogicalDatabase
+            sourceFile = $CurrentSourceFile
+            name = "${targetTable}_SEQ"
+            idTable = $targetTable
+            idColumn = [string] $historical.idColumn
+            legacyNames = @()
+        }
+    })
 }
 
 function Get-SequenceSourceSql([string] $Vendor, [object[]] $Objects) {
@@ -118,23 +158,24 @@ function Get-VerifySql([string] $Vendor, [string[]] $ExpectedNames, [string[]] $
     $expectedCount = $ExpectedNames.Count
     if ($Vendor -ceq "mariadb") {
         return @"
+-- CPF_LOGICAL_DATABASE=$($Contract.canonicalPolicy.currentLogicalDatabase)
 -- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        IF(
            (SELECT COUNT(*)
               FROM information_schema.tables
-             WHERE LOWER(table_schema) = 'batdb'
+             WHERE table_schema = DATABASE()
                AND table_type = 'SEQUENCE') = $expectedCount
            AND
            (SELECT COUNT(*)
               FROM information_schema.tables
-             WHERE LOWER(table_schema) = 'batdb'
+             WHERE table_schema = DATABASE()
                AND table_type = 'SEQUENCE'
                AND UPPER(table_name) IN ($nameList)) = $expectedCount
            AND
            (SELECT COUNT(*)
               FROM information_schema.tables
-             WHERE LOWER(table_schema) = 'batdb'
+             WHERE table_schema = DATABASE()
                AND UPPER(table_name) IN ($legacyList)) = 0,
            1, 0
        ) AS passed;
@@ -142,7 +183,7 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
     }
     if ($Vendor -ceq "postgresql") {
         return @"
--- CPF_LOGICAL_DATABASE=batDB
+-- CPF_LOGICAL_DATABASE=$($Contract.canonicalPolicy.currentLogicalDatabase)
 -- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
@@ -153,14 +194,14 @@ SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
              WHERE sequence_schema = current_schema()
                AND UPPER(sequence_name) IN ($nameList)) = $expectedCount
            AND
-           (SELECT COUNT(*) FROM information_schema.tables
-             WHERE table_schema = current_schema()
-               AND UPPER(table_name) IN ($legacyList)) = 0
+           (SELECT COUNT(*) FROM information_schema.sequences
+             WHERE sequence_schema = current_schema()
+               AND UPPER(sequence_name) IN ($legacyList)) = 0
        THEN 1 ELSE 0 END AS passed;
 "@
     }
     return @"
--- CPF_LOGICAL_DATABASE=batDB
+-- CPF_LOGICAL_DATABASE=$($Contract.canonicalPolicy.currentLogicalDatabase)
 -- Fail-closed Spring Batch 6.0.4 sequence name/count verification.
 SELECT 'bat_spring_batch_6_sequence_contract' AS check_name,
        CASE WHEN
@@ -369,6 +410,12 @@ if ([int] $Contract.schemaVersion -ne 1 -or
         [string] $Contract.contract -cne "CPF_PLATFORM_NON_TABLE_OBJECTS") {
     throw "Invalid CPF Platform non-table object contract header."
 }
+$CurrentLogicalDatabase = [string] $Contract.canonicalPolicy.currentLogicalDatabase
+$CurrentSourceFile = [string] $Contract.canonicalPolicy.currentSourceFile
+Assert-Identifier $CurrentLogicalDatabase "current logical database"
+if ($CurrentSourceFile -cnotmatch '^[A-Za-z0-9_.-]+\.sql$') {
+    throw "Invalid current non-table source file: $CurrentSourceFile"
+}
 $contractVendors = @($Contract.canonicalPolicy.officialVendors | ForEach-Object { [string] $_ })
 if (($contractVendors -join "`n") -cne ($OfficialVendors -join "`n")) {
     throw "Platform non-table object vendors must be exactly: $($OfficialVendors -join ',')"
@@ -399,17 +446,33 @@ if (($ExpectedNames | Sort-Object) -join "," -cne
 if (($LegacyNames -join ",") -cne "BATCH_JOB_SEQ") {
     throw "Unexpected Spring Batch legacy sequence contract: $($LegacyNames -join ',')"
 }
+$CurrentObjects = @(Get-CurrentSequenceObjects $Objects $CurrentLogicalDatabase $CurrentSourceFile)
+$CurrentExpectedNames = @($CurrentObjects.name | ForEach-Object { [string] $_ })
+if (($CurrentExpectedNames | Sort-Object) -join "," -cne
+        (@("BAT_SB_JOB_EXECUTION_SEQ", "BAT_SB_JOB_INSTANCE_SEQ", "BAT_SB_STEP_EXECUTION_SEQ") -join ",")) {
+    throw "Current Spring Batch sequence names do not match the canonical table mapping."
+}
 
-$AllManagedNames = @($ExpectedNames + $LegacyNames | Sort-Object -Unique)
+$RetiredCurrentNames = @($ExpectedNames + $LegacyNames | Sort-Object -Unique)
+$AllManagedNames = @($CurrentExpectedNames + $RetiredCurrentNames | Sort-Object -Unique)
 foreach ($vendor in $OfficialVendors) {
-    $schemaPath = Join-Path $Root "cpf-tools/db/vendor/$vendor/source/35_bat_schema.sql"
+    $schemaPath = Join-Path $Root "cpf-tools/db/vendor/$vendor/source/$CurrentSourceFile"
     if (-not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) {
-        throw "Missing BAT vendor source schema: $schemaPath"
+        throw "Missing current platform vendor source schema: $schemaPath"
     }
     $schemaText = [IO.File]::ReadAllText($schemaPath, [Text.Encoding]::UTF8)
     $schemaBase = Remove-LegacySequenceDdl $schemaText $AllManagedNames
-    $schemaExpected = Add-ManagedBlock $schemaBase (Get-SequenceSourceSql $vendor $Objects)
+    $schemaExpected = Add-ManagedBlock $schemaBase (Get-SequenceSourceSql $vendor $CurrentObjects)
     Set-GeneratedArtifact $schemaPath $schemaExpected
+
+    # Remove only the managed current projection from its retired split-database
+    # location. Historical V73/R73 files below retain their original batDB owner.
+    $retiredCurrentPath = Join-Path $Root "cpf-tools/db/vendor/$vendor/source/35_bat_schema.sql"
+    if ($retiredCurrentPath -cne $schemaPath -and (Test-Path -LiteralPath $retiredCurrentPath -PathType Leaf)) {
+        $retiredText = [IO.File]::ReadAllText($retiredCurrentPath, [Text.Encoding]::UTF8)
+        $retiredExpected = Remove-LegacySequenceDdl $retiredText $AllManagedNames
+        Set-GeneratedArtifact $retiredCurrentPath $retiredExpected
+    }
 
     $verifyRelative = if ($vendor -ceq "mariadb") {
         "cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql"
@@ -421,7 +484,7 @@ foreach ($vendor in $OfficialVendors) {
         throw "Missing vendor verify source: $verifyPath"
     }
     $verifyText = [IO.File]::ReadAllText($verifyPath, [Text.Encoding]::UTF8)
-    $verifyExpected = Add-ManagedBlock $verifyText (Get-VerifySql $vendor $ExpectedNames $LegacyNames)
+    $verifyExpected = Add-ManagedBlock $verifyText (Get-VerifySql $vendor $CurrentExpectedNames $RetiredCurrentNames)
     Set-GeneratedArtifact $verifyPath $verifyExpected
 }
 
@@ -430,22 +493,28 @@ $description = [string] $Contract.migration.description
 $jobInstanceObject = @($Objects | Where-Object { $_.name -ceq "BATCH_JOB_INSTANCE_SEQ" })[0]
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/migration/flyway/V${version}__${description}.sql") `
-    (Get-MariaMigration $Objects)
+    (Get-MariaMigration $Objects) `
+    -ImmutableVersioned
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/mariadb/source/migration/rollback/R${version}__${description}.sql") `
-    (Get-MariaRollback $jobInstanceObject)
+    (Get-MariaRollback $jobInstanceObject) `
+    -ImmutableVersioned
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/postgresql/migration/flyway/batDB/V${version}__${description}.sql") `
-    (Get-PostgresqlMigration $Objects)
+    (Get-PostgresqlMigration $Objects) `
+    -ImmutableVersioned
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/postgresql/rollback/batDB/R${version}__${description}.sql") `
-    (Get-DropRollback "postgresql" $Objects)
+    (Get-DropRollback "postgresql" $Objects) `
+    -ImmutableVersioned
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/oracle/migration/flyway/batDB/V${version}__${description}.sql") `
-    (Get-OracleMigration $Objects)
+    (Get-OracleMigration $Objects) `
+    -ImmutableVersioned
 Set-GeneratedArtifact `
     (Join-Path $Root "cpf-tools/db/vendor/oracle/rollback/batDB/R${version}__${description}.sql") `
-    (Get-DropRollback "oracle" $Objects)
+    (Get-DropRollback "oracle" $Objects) `
+    -ImmutableVersioned
 
 [pscustomobject]@{
     status = "PASS"

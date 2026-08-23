@@ -9,6 +9,9 @@ dependencies {
     implementation project(':internal:platform-operations:runtime-control')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     api project(':framework:core')
 implementation project(':framework:base-runtime')
 implementation 'org.springframework:spring-jdbc'

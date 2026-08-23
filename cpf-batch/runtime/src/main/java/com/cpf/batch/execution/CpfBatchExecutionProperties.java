@@ -1,6 +1,7 @@
 package com.cpf.batch.execution;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("cpf.batch.execution")
 public record CpfBatchExecutionProperties(
@@ -14,6 +15,7 @@ public record CpfBatchExecutionProperties(
         int executorCoreSize,
         int executorMaxSize,
         int executorQueueCapacity) {
+    @ConstructorBinding
     public CpfBatchExecutionProperties {
         defaultChunkSize = bounded(defaultChunkSize, 100, 1, 10_000, "defaultChunkSize");
         maxPartitionCount = bounded(maxPartitionCount, 256, 1, 10_000, "maxPartitionCount");

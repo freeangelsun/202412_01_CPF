@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "action": "RollbackReapply",
+  "root": "/workspace/cpf",
+  "profilePath": "/workspace/result/profile.json",
+  "resultRoot": "/workspace/result/output",
+  "migrationVersions": [
+    136
+  ],
+  "modules": [
+    "core",
+    "common",
+    "admin",
+    "batch",
+    "backoffice"
+  ],
+  "expectedUpgradePlanSha256": "057048cb0527a6ed4d9ba40a3ed6c3ba1a72fe52f47f3a1e7eeb09fa04fda2ef",
+  "expectedRollbackPlanSha256": "c58c6a96762b78a213667f922884a80d81c2a7bc4da418f93878a7e46410af31",
+  "backupManifestPaths": [],
+  "operator": "CPF_FULLLOCAL",
+  "reason": "cpf-full-local-isolated-db-lifecycle",
+  "approvalReference": "CPF-VERIFY-0ed27df87f98",
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "0ed27df87f98"
+}

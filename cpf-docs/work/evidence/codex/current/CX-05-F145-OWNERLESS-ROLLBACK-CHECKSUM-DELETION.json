@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-08-23T12:15:00+09:00",
+  "findingId": "CX-F-145",
+  "workspacePrimarySource": true,
+  "authorization": "User directed proven deletion targets to be deleted immediately and recorded in the current Workspace.",
+  "deletedPath": "cpf-tools/db/vendor/mariadb/rollback/checksums.sha256",
+  "classification": {
+    "gitStatusBefore": "untracked",
+    "trackedBaselineOwner": false,
+    "exactConsumerCountOutsideEvidence": 0,
+    "producerRemoved": "cpf-tools/db/tools/build-all-install-sql.ps1 no longer copies legacy versioned history",
+    "sha256": "addb5b921737d8cb215ebcb99d9924e46983bdb1585b84b734c98f01cb79ec57",
+    "bytes": 2008
+  },
+  "deletion": {
+    "exactLiteralPathOnly": true,
+    "deleted": true,
+    "existsAfter": false,
+    "ignoredInstead": false,
+    "recoverableFrom": "cpf-tools/db/vendor/mariadb/source/migration/rollback/checksums.sha256"
+  },
+  "postDeletionSourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "f60ae4cf0e16e27fce6d4b73897276cb1f2e87ee04585252ae40f30c2a062021",
+    "sha1": "86ba97b8e262b6b1e7c6955130ce121634d6318f",
+    "fileCount": 8248,
+    "totalBytes": 76635855
+  },
+  "regressionCondition": "The next two maintained regeneration/check runs must leave this exact path absent."
+}

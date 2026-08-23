@@ -74,7 +74,7 @@ public final class CpfNotificationWorker {
                 CpfNotificationResult result = provider.send(request);
                 if (result == null) {
                     result = CpfNotificationResult.unknown(
-                            request.notificationId(), provider.channel(), "provider returned null");
+                            request.notificationId(), provider.channel(), "provider returned null", now);
                 }
                 if (isUnknown(result)) {
                     outbox.markUnknown(result, now.plus(properties.unknownReconcileDelay()));
@@ -91,7 +91,7 @@ public final class CpfNotificationWorker {
                 // Preserve UNKNOWN and reconcile before any re-send to avoid duplicates.
                 outbox.markUnknown(
                         CpfNotificationResult.unknown(
-                                request.notificationId(), provider.channel(), safe(exception)),
+                                request.notificationId(), provider.channel(), safe(exception), now),
                         now.plus(properties.unknownReconcileDelay()));
                 unknown++;
             }
@@ -112,7 +112,7 @@ public final class CpfNotificationWorker {
                 outbox.markUnknown(
                         CpfNotificationResult.unknown(request.notificationId(),
                                 provider == null ? "MISSING_PROVIDER" : provider.channel(),
-                                "provider does not support reconcile"),
+                                "provider does not support reconcile", now),
                         now.plus(properties.unknownReconcileDelay()));
                 unknown++;
                 continue;
@@ -124,7 +124,7 @@ public final class CpfNotificationWorker {
                 if (result == null || isUnknown(result)) {
                     outbox.markUnknown(
                             result == null
-                                    ? CpfNotificationResult.unknown(request.notificationId(), provider.channel(), "reconcile returned null")
+                                    ? CpfNotificationResult.unknown(request.notificationId(), provider.channel(), "reconcile returned null", now)
                                     : result,
                             now.plus(properties.unknownReconcileDelay()));
                     unknown++;
@@ -137,7 +137,7 @@ public final class CpfNotificationWorker {
                 }
             } catch (Exception exception) {
                 outbox.markUnknown(
-                        CpfNotificationResult.unknown(request.notificationId(), provider.channel(), safe(exception)),
+                        CpfNotificationResult.unknown(request.notificationId(), provider.channel(), safe(exception), now),
                         now.plus(properties.unknownReconcileDelay()));
                 unknown++;
             }

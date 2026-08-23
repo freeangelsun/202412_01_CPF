@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "action": "FreshInstall",
+  "root": "/workspace/cpf",
+  "profilePath": "/workspace/result/profile.json",
+  "resultRoot": "/workspace/result/output",
+  "migrationVersions": [
+    135
+  ],
+  "modules": [
+    "core",
+    "common",
+    "admin",
+    "batch",
+    "backoffice"
+  ],
+  "expectedUpgradePlanSha256": "",
+  "expectedRollbackPlanSha256": "",
+  "backupManifestPaths": [],
+  "operator": "CPF_FULLLOCAL",
+  "reason": "cpf-full-local-isolated-db-lifecycle",
+  "approvalReference": "CPF-VERIFY-a1f8d355616a",
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "a1f8d355616a"
+}

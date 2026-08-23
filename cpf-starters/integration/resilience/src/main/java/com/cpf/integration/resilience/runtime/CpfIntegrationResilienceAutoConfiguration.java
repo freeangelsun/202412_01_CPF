@@ -31,13 +31,13 @@ public class CpfIntegrationResilienceAutoConfiguration {
             ObjectProvider<Clock> clocks,CpfIntegrationAnnotationProperties properties){
         ArrayList<CpfResiliencePolicyResolver> resolvers=new ArrayList<>();
         CpfResiliencePolicyStore durable=durablePolicies.getIfAvailable(); if(durable!=null)resolvers.add(durable);resolvers.add(annotationPolicies);
-        Clock clock=clocks.getIfAvailable(Clock::systemUTC);CpfTelemetry tel=telemetry.getIfAvailable(CpfTelemetry::noop);
+        Clock clock=clocks.getIfUnique(Clock::systemUTC);CpfTelemetry tel=telemetry.getIfAvailable(CpfTelemetry::noop);
         return new CpfResilienceEngine(new CpfCompositeResiliencePolicyResolver(resolvers),classifier,audit,runtimePolicyResolver,
                 locks.getIfAvailable(),tel,contextFactory,clock,Executors.newVirtualThreadPerTaskExecutor(),Math::random,System::nanoTime,10_000,Duration.ofMinutes(30));
     }
     @Bean @ConditionalOnMissingBean CpfIntegrationClientCoordinator cpfIntegrationClientCoordinator(CpfIntegrationAnnotationProperties p,
             CpfIntegrationAnnotationPolicyFactory f,CpfAnnotationResiliencePolicyRegistry r,CpfResilienceEngine e,ObjectProvider<Clock> clocks){
-        return new CpfIntegrationClientCoordinator(p,f,r,e,clocks.getIfAvailable(Clock::systemUTC));
+        return new CpfIntegrationClientCoordinator(p,f,r,e,clocks.getIfUnique(Clock::systemUTC));
     }
     @Bean @ConditionalOnMissingBean CpfIntegrationClientAspect cpfIntegrationClientAspect(CpfIntegrationClientCoordinator c){return new CpfIntegrationClientAspect(c);}
 }

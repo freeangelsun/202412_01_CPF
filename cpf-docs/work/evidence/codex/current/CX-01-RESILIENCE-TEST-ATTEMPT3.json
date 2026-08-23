@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-RESILIENCE-TEST-ATTEMPT3",
+  "requirementIds": ["INTEGRATION", "RECOVERY", "SEC-BOUNDARY", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T12:52:51.1451843+09:00",
+    "finished": "2026-08-22T12:53:15.6575949+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :internal:integration:resilience:test",
+  "exitCode": 1,
+  "sourceIdentity": "9f1eea6d0b93a8725d063e2295280fe83a9ad217c376f5c98c65a4f0d84e4788",
+  "actualResult": "Main/test compilation succeeded and 15 tests ran. Fourteen passed. Both JDBC policy-store contract failures cleared. The new contextless canonical reconcile test and normal execute fail-closed test passed. Only auditFailureDoesNotReturnAFalseSuccess failed its expected-exception assertion.",
+  "result": "FAIL",
+  "failureSummary": "CX-F-017 is CLOSED. CX-F-018 is VERIFICATION_PENDING after exact boundary tests. CX-F-016 remains IN_PROGRESS for the sole audit semantics failure.",
+  "findingIds": ["CX-F-016", "CX-F-017", "CX-F-018"],
+  "sanitized": true
+}

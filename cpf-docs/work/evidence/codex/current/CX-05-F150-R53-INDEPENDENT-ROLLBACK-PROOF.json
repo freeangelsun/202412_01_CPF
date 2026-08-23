@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-08-23T12:43:00+09:00",
+  "findingId": "CX-F-150",
+  "status": "IN_PROGRESS",
+  "trigger": {
+    "command": "pwsh -NoProfile -File cpf-tools/db/verification/check-migration-checksums.ps1",
+    "exitCode": 1,
+    "error": "source/runtime modern rollback drift: R53__bza_governance_operability_hardening.sql",
+    "log": "cpf-docs/work/evidence/codex/current/CX-05-F144-F150-CHECKSUM-SEMANTIC-RERUN2.log"
+  },
+  "sourceArchiveR53": {
+    "sha256": "0abf612634ff0c9dddfa72c26a08ef29b10a7d0948e80855cda08277ee504cff",
+    "publishedSha256": "0abf612634ff0c9dddfa72c26a08ef29b10a7d0948e80855cda08277ee504cff",
+    "publishedMatch": true
+  },
+  "centralRuntimeR53": {
+    "sha256": "5573cd8a993d227f4e9d49683bd5b5b92cac7c1096370baa1ac1bca28d63008e",
+    "publishedSha256": "5573cd8a993d227f4e9d49683bd5b5b92cac7c1096370baa1ac1bca28d63008e",
+    "publishedMatch": true
+  },
+  "completePublishedInventoryProbe": {
+    "sourceRNamedRollbacks": 21,
+    "sourcePublishedMatches": 21,
+    "centralRollbacks": 96,
+    "centralPublishedMatches": 96,
+    "missing": 0,
+    "drift": 0
+  },
+  "conclusion": "The first F150 repair was too narrow. Modern R-named files are also separately published immutable archive/runtime bytes. Both rollback trees must be validated independently against the existing published SHA256SUMS inventory; equality must not be required."
+}

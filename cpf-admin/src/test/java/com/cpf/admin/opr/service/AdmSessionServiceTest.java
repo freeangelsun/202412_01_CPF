@@ -25,7 +25,7 @@ class AdmSessionServiceTest {
         AdmOperator operator = new AdmOperator(
                 "admin", "CPF 관리자", List.of("ADM_ADMIN"), false, false, true, null, null);
 
-        var login = service.issue(operator, List.of(), List.of());
+        var login = service.issue(operator, List.of(), List.of(), List.of());
         var issued = service.findValidSession(login.accessToken()).orElseThrow();
 
         assertThat(issued.passwordChangeRequired()).isTrue();
@@ -48,7 +48,7 @@ class AdmSessionServiceTest {
         AdmOperator operator = new AdmOperator(
                 "admin", "CPF 관리자", List.of("ADM_ADMIN"), false, false, false, null, null);
 
-        assertThatThrownBy(() -> service.issue(operator, List.of(), List.of()))
+        assertThatThrownBy(() -> service.issue(operator, List.of(), List.of(), List.of()))
                 .isInstanceOf(CpfBusinessException.class);
     }
 

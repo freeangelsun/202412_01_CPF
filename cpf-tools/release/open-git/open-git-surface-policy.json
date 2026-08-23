@@ -1,0 +1,432 @@
+{
+  "schemaVersion": 1,
+  "policyId": "CPF-OPEN-GIT-SURFACE",
+  "repository": "cpf-team/cpf-framework",
+  "defaultPolicy": "DENY",
+  "releaseRoot": "cpf-release",
+  "openGitDirectory": "open-git",
+  "binaryRepositoryDirectory": "binary-repository",
+  "gitRemoteEnvironment": "CPF_OPEN_GIT_REMOTE",
+  "sourceRules": [
+    {
+      "pattern": "cpf-member/build.gradle",
+      "target": "cpf-member/build.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/settings.gradle",
+      "target": "cpf-member/settings.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/gradle.properties",
+      "target": "cpf-member/gradle.properties",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/online/build.gradle",
+      "target": "cpf-member/online/build.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/online/src/**",
+      "target": "cpf-member/online/src",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/batch/build.gradle",
+      "target": "cpf-member/batch/build.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-member/batch/src/**",
+      "target": "cpf-member/batch/src",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/build.gradle",
+      "target": "cpf-external/build.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/settings.gradle",
+      "target": "cpf-external/settings.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/gradle.properties",
+      "target": "cpf-external/gradle.properties",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/online/build.gradle",
+      "target": "cpf-external/online/build.gradle",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-external/online/src/**",
+      "target": "cpf-external/online/src",
+      "classification": "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/build.gradle",
+      "target": "cpf-backoffice/build.gradle",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/settings.gradle",
+      "target": "cpf-backoffice/settings.gradle",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/gradle.properties",
+      "target": "cpf-backoffice/gradle.properties",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/online/build.gradle",
+      "target": "cpf-backoffice/online/build.gradle",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/online/src/main/**",
+      "target": "cpf-backoffice/online/src/main",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice/openapi/**",
+      "target": "cpf-backoffice/openapi",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/build.gradle",
+      "target": "cpf-backoffice-web/build.gradle",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/settings.gradle",
+      "target": "cpf-backoffice-web/settings.gradle",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/src/**",
+      "target": "cpf-backoffice-web/src",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/.nvmrc",
+      "target": "cpf-backoffice-web/frontend/.nvmrc",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/index.html",
+      "target": "cpf-backoffice-web/frontend/index.html",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/package.json",
+      "target": "cpf-backoffice-web/frontend/package.json",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/package-lock.json",
+      "target": "cpf-backoffice-web/frontend/package-lock.json",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/tsconfig.json",
+      "target": "cpf-backoffice-web/frontend/tsconfig.json",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/vite.config.ts",
+      "target": "cpf-backoffice-web/frontend/vite.config.ts",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/src/**",
+      "target": "cpf-backoffice-web/frontend/src",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/scripts/**",
+      "target": "cpf-backoffice-web/frontend/scripts",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-backoffice-web/frontend/openapi/**",
+      "target": "cpf-backoffice-web/frontend/openapi",
+      "classification": "OPEN_GIT_BACKOFFICE_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "cpf-education/src/**",
+      "target": "cpf-education/src",
+      "classification": "OPEN_GIT_EDUCATION_SOURCE",
+      "required": true
+    },
+    {
+      "pattern": "gradle/wrapper/**",
+      "target": "gradle/wrapper",
+      "classification": "OPEN_GIT_BOOTSTRAP",
+      "required": true
+    },
+    {
+      "pattern": "gradlew",
+      "target": "gradlew",
+      "classification": "OPEN_GIT_BOOTSTRAP",
+      "required": true
+    },
+    {
+      "pattern": "gradlew.bat",
+      "target": "gradlew.bat",
+      "classification": "OPEN_GIT_BOOTSTRAP",
+      "required": true
+    }
+  ],
+  "templateRules": [
+    {
+      "source": "cpf-tools/release/open-git/templates/README.md",
+      "target": "README.md",
+      "classification": "OPEN_GIT_USER_DOC"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/settings.gradle",
+      "target": "settings.gradle",
+      "classification": "OPEN_GIT_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/build.gradle",
+      "target": "build.gradle",
+      "classification": "OPEN_GIT_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/gradle.properties",
+      "target": "gradle.properties",
+      "classification": "OPEN_GIT_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/.gitignore",
+      "target": ".gitignore",
+      "classification": "OPEN_GIT_BOOTSTRAP"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/config/cpf-workspace.properties",
+      "target": "config/cpf-workspace.properties",
+      "classification": "OPEN_GIT_USER_CONFIG"
+    },
+    {
+      "source": "cpf-tools/runtime/bootstrap/compose.yaml",
+      "target": "deploy/local/compose.yaml",
+      "classification": "OPEN_GIT_DEPLOY_ASSET"
+    },
+    {
+      "source": "cpf-tools/runtime/bootstrap/CpfBootstrap.java",
+      "target": "bin/CpfBootstrap.java",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "target": "bin/cpf-bootstrap.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "target": "bin/cpf-bootstrap.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "target": "bin/cpf-stop.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "target": "bin/cpf-stop.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "target": "bin/cpf-reset.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "target": "bin/cpf-reset.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "target": "bin/cpf-build.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "target": "bin/cpf-build.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "target": "bin/cpf-test.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "target": "bin/cpf-test.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/public/templates/bin/CpfGeneratorLauncher.java",
+      "target": "bin/CpfGeneratorLauncher.java",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "target": "bin/cpf-domain-new.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "target": "bin/cpf-domain-new.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "target": "bin/cpf-domain-sync.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "target": "bin/cpf-domain-sync.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf.cmd",
+      "target": "cpf.cmd",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf",
+      "target": "cpf",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
+      "target": "bin/cpf.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "target": "bin/cpf.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.ps1",
+      "target": "tools/verify-open-git-workspace.ps1",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/tools/verify-open-git-workspace.sh",
+      "target": "tools/verify-open-git-workspace.sh",
+      "classification": "OPEN_GIT_USER_SCRIPT"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf-education/settings.gradle",
+      "target": "cpf-education/settings.gradle",
+      "classification": "OPEN_GIT_EDUCATION_BUILD"
+    },
+    {
+      "source": "cpf-tools/release/open-git/templates/cpf-education/build.gradle",
+      "target": "cpf-education/build.gradle",
+      "classification": "OPEN_GIT_EDUCATION_BUILD"
+    }
+  ],
+  "allowedClassifications": [
+    "OPEN_GIT_USER_DOC",
+    "OPEN_GIT_USER_SCRIPT",
+    "OPEN_GIT_USER_CONFIG",
+    "OPEN_GIT_GENERATED_DOMAIN_SOURCE",
+    "OPEN_GIT_BACKOFFICE_SOURCE",
+    "OPEN_GIT_EDUCATION_SOURCE",
+    "OPEN_GIT_EDUCATION_BUILD",
+    "OPEN_GIT_BOOTSTRAP",
+    "OPEN_GIT_DEPLOY_ASSET",
+    "PUBLIC_RELEASE_METADATA",
+    "PUBLIC_GENERATED_SOURCE"
+  ],
+  "forbiddenPathPrefixes": [
+    "cpf-core/",
+    "cpf-common/",
+    "cpf-admin/",
+    "cpf-biz-admin/",
+    "cpf-batch/",
+    "cpf-gateway/",
+    "cpf-starters/",
+    "cpf-tools/",
+    "cpf-docs/",
+    ".git/"
+  ],
+  "forbiddenNamePatterns": [
+    "cpf-domain.yaml",
+    "cpf-generator.lock.json",
+    "*.pem",
+    "*.p12",
+    "*.pfx",
+    "*.jks",
+    "*.keystore",
+    ".env",
+    ".env.*"
+  ],
+  "forbiddenContentPatterns": [
+    "-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+    "AKIA[0-9A-Z]{16}",
+    "(?i)(?:password|secret|token)\\s*[:=]\\s*['\\\"][^'\\\"+${}\\r\\n]{12,}['\\\"]",
+    "(?i)(?:C:|D:)[\\\\/]+Users[\\\\/]"
+  ],
+  "mandatoryDomainProjects": [
+    {
+      "systemCode": "MBR",
+      "name": "member",
+      "physicalProject": "cpf-member"
+    },
+    {
+      "systemCode": "EXS",
+      "name": "external",
+      "physicalProject": "cpf-external"
+    },
+    {
+      "systemCode": "MBW",
+      "name": "backoffice",
+      "physicalProject": "cpf-backoffice"
+    }
+  ]
+}

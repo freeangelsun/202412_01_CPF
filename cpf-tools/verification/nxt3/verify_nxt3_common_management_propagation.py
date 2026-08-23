@@ -10,7 +10,7 @@ def read(root, rel):
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--root',default='.'); ap.add_argument('--json-out'); a=ap.parse_args()
     root=Path(a.root).resolve(); failures=[]
-    service=read(root,'cpf-starters/common/src/main/java/com/cpf/common/management/JdbcCpfCommonManagementService.java')
+    service=read(root,'cpf-common/src/main/java/com/cpf/common/management/JdbcCpfCommonManagementService.java')
     publisher=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshPublisher.java')
     listener=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshListener.java')
     event_repo=read(root,'cpf-starters/common/src/main/java/com/cpf/common/runtime/cache/CpfCommonCacheRefreshEventRepository.java')

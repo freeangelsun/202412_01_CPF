@@ -1,0 +1,22 @@
+{
+  "executionId": "CX-07-OPEN-GIT-TEST-ATTEMPT1",
+  "finishedAt": "2026-08-22T21:04:00+09:00",
+  "sourceIdentitySha256": "01e22142180c4abb528b044e6256290ef80776706e8a1842cf11381297b831e0",
+  "status": "FAIL_WITH_NEW_FINDINGS",
+  "tests": {"passed": 12, "failed": 3, "total": 15},
+  "confirmedFixes": ["owner-path boundary", "unclassified repository fail-close", "dependencyManagement parsing", "credential redaction", "current artifact contract"],
+  "newFindings": [
+    {
+      "id": "CX-F-094",
+      "rootCause": "The public staging READY metadata persisted its absolute staging directory and was then correctly rejected by the Open Git private-path leakage policy.",
+      "failedTests": 2
+    },
+    {
+      "id": "CX-F-095",
+      "rootCause": "The symlink safety regression required Windows symlink creation privilege before it could exercise the already implemented rejection branch.",
+      "failedTests": 1
+    }
+  ],
+  "falseGreen": false,
+  "next": "Remove host-absolute paths from public READY metadata and make the symlink branch test executable without privileged filesystem setup while retaining actual symlink coverage where supported."
+}

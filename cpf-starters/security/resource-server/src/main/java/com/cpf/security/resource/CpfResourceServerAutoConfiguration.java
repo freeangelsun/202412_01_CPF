@@ -80,7 +80,7 @@ public class CpfResourceServerAutoConfiguration {
             ObjectProvider<CpfApprovalVerifier> verifier, CpfAuthorizationAuditSink auditSink,
             ObjectProvider<Clock> clocks) {
         return new CpfApprovalCoordinator(properties, verifier.getIfAvailable(), auditSink,
-                clocks.getIfAvailable(Clock::systemUTC));
+                clocks.getIfUnique(Clock::systemUTC));
     }
 
     @Bean

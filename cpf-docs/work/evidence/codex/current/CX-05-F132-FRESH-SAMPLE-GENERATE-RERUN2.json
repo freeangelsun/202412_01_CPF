@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-08-23T03:18:00+09:00",
+  "sourceIdentitySha256": "07c293f1826cd6b81e8e3c561fa5eefd02536caaad599fe5bd71d95f52b78031",
+  "command": "cpf domain setup --name f132consumer --system-code FCS --table-prefix FCS --business-feature probe --preset standard-enterprise --vendor postgresql --host localhost --port 15432 --database-name f132db --schema-name f132 --migration-user cpf_f132_migration --runtime-user cpf_f132_runtime --db-profile-output <managed-evidence>/cpf-local/f132consumer/cpf-db-profile.local.json --output <managed-evidence>/cpf-f132consumer",
+  "exitCode": 0,
+  "status": "PASS",
+  "generation": {
+    "sourceGeneration": "GENERATED",
+    "sourceFileCount": 40,
+    "rootFiles": ["build.gradle", "gradle.properties", "settings.gradle"],
+    "rootDirectories": ["online"],
+    "sampleTransaction": true,
+    "persistence": "mybatis",
+    "annotatedPublicHttpMethods": 6,
+    "forbiddenGeneratedArtifacts": 0,
+    "forbiddenNames": [".gradle", "build", "cpf-generator.lock.json", "cpf-domain.yaml"]
+  },
+  "secretHandling": "Only environment-variable names are stored in the disposable DB profile; no password value was supplied or emitted.",
+  "result": "Fresh current-Generator sample consumer materialized in managed disposable Evidence with developer-facing root and public annotated handlers.",
+  "rawLog": "cpf-docs/work/evidence/codex/current/CX-05-F132-FRESH-SAMPLE-GENERATE-RERUN2.log"
+}

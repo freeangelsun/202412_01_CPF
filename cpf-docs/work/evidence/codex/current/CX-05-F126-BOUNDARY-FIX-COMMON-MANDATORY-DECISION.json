@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F126-BOUNDARY-FIX-COMMON-MANDATORY-DECISION",
+  "startedAt": "2026-08-23T01:41:00+09:00",
+  "finishedAt": "2026-08-23T01:44:00+09:00",
+  "beforeSourceIdentitySha256": "b8deec6639414288687da7cb0c531a005a60ae9777a10e858fdd4ec5db4bc143",
+  "afterSourceIdentitySha256": "8b8f0202c4d7a1ce7cfa5f5b1b7f70a7f96bbb1c4125162323d7c3f27b1b462d",
+  "afterSourceIdentitySha1": "1f2da5c2f824a32944f53d371e15184e110dfc9d",
+  "fileCount": 8222,
+  "totalBytes": 75829386,
+  "finding": "CX-F-126",
+  "findingState": "SOURCE_FIXED",
+  "testFix": "The retained exactly-365-day file is also expected to be compressed because compression and deletion are independent age boundaries.",
+  "userCanonicalDecision": "cpf-common is provided by default and is not optional.",
+  "impact": "Current starter comments/dependencies, Generator defaults and canonical documents that describe Common as optional must be currentized; no optional Common branch will be preserved.",
+  "next": "Rerun common Logging tests, then wire cpf-common through the existing default starter without creating a separate Logging starter."
+}

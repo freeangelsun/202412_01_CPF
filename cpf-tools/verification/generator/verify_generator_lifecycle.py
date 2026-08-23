@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """CPF Generated Domain 상용 lifecycle 회귀 Gate.
 
-제품 Source를 변경하지 않고 ``build/domain-generator/verification`` 아래의 격리 출력만 사용한다.
+제품 Source를 변경하지 않고 ``cpf-docs/work/evidence/generated/domain-generator/verification`` 아래의 격리 출력만 사용한다.
 입력 preflight, DB3/Public Starter 경계, idempotency, upgrade, remove/restore, 사용자 수정 보호와
 한글/공백 경로를 실제 ``cpf`` CLI로 호출해 검증한다.
 """
@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -23,7 +24,8 @@ def sha256(path: Path) -> str:
 
 def run(command: list[str], *, expect: int = 0) -> subprocess.CompletedProcess[str]:
     """명령을 실행하고 기대 종료 코드와 다르면 stdout/stderr를 포함해 즉시 실패시킨다."""
-    result = subprocess.run(command, text=True, encoding="utf-8", capture_output=True, check=False)
+    process_env={**os.environ,"PYTHONUTF8":"1","PYTHONIOENCODING":"utf-8"}
+    result = subprocess.run(command, text=True, encoding="utf-8", errors="replace", capture_output=True, check=False, env=process_env)
     if result.returncode != expect:
         raise RuntimeError(
             "명령 종료 코드가 예상과 다릅니다.\n"
@@ -69,7 +71,7 @@ def main() -> int:
         raise RuntimeError(f"CPF CLI가 없습니다: {cli}")
 
     # 한글과 공백이 있는 경로에서 동일 Core CLI가 정상 동작하는지도 같이 검증한다.
-    work = root / "build/domain-generator/verification" / "NXT3 lifecycle 한글 space"
+    work = root / "cpf-docs/work/evidence/generated/domain-generator/verification" / "NXT3 lifecycle 한글 space"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True, exist_ok=True)
     definition = work / "order-cpf-domain.yaml"
@@ -105,7 +107,7 @@ def main() -> int:
         evidence["checks"]["idempotent"] = json.loads(rerun.stdout)
 
         # 3) 사용자 수정 Generated 파일은 upgrade가 단 한 파일도 덮기 전에 차단해야 한다.
-        online_build.write_text(online_build.read_text(encoding="utf-8") + "// 사용자 수정 보호 검증\n", encoding="utf-8")
+        online_build.write_text(online_build.read_text(encoding="utf-8") + "// 사용자 수정 보호 검증\n", encoding="utf-8", newline="\n")
         modified_hash = sha256(online_build)
         failed_upgrade = run(
             base + ["domain", "upgrade", "order", "--file", str(definition), "--output", str(output)],
@@ -119,7 +121,7 @@ def main() -> int:
         }
 
         # 보호 검증용 수정만 되돌리고 동일 state에서 remove→restore byte parity를 확인한다.
-        online_build.write_text(online_build.read_text(encoding="utf-8").replace("// 사용자 수정 보호 검증\n", ""), encoding="utf-8")
+        online_build.write_text(online_build.read_text(encoding="utf-8").replace("// 사용자 수정 보호 검증\n", ""), encoding="utf-8", newline="\n")
         tree_before = {p.relative_to(output).as_posix(): sha256(p) for p in output.rglob("*") if p.is_file()}
         planned = run(base + ["domain", "remove", "order", "--file", str(definition), "--output", str(output)])
         plan_json = json.loads(planned.stdout)
@@ -148,9 +150,7 @@ def main() -> int:
         user_file.write_text("고객 소유 파일\n", encoding="utf-8")
         changed_definition = yaml_text("order", "ORD", "order", "ORD", security="resource-server")
         definition.write_text(changed_definition, encoding="utf-8")
-        canonical_definition = output / "cpf-domain.yaml"
-        canonical_definition.write_text(changed_definition, encoding="utf-8")
-        upgraded = run(base + ["domain", "upgrade", "order", "--file", str(canonical_definition), "--output", str(output)])
+        upgraded = run(base + ["domain", "upgrade", "order", "--file", str(definition), "--output", str(output)])
         if not user_file.is_file():
             raise RuntimeError("upgrade가 user-owned extra file을 삭제했습니다.")
         if "cpf-starter-oidc" in online_build.read_text(encoding="utf-8"):

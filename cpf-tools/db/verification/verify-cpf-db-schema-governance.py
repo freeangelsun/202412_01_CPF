@@ -110,6 +110,10 @@ def verify(schema_path: Path) -> tuple[list[Finding], dict[str, Any]]:
             continue
         column_map: dict[str, dict[str, Any]] = {}
         for column in columns:
+            required_fields = {"name", "type", "nullable", "default", "autoIncrement", "onUpdate", "comment"}
+            missing_fields = sorted(required_fields - set(column))
+            if missing_fields:
+                failures.append(Finding(name, f"column is missing required fields {missing_fields}: {column.get('name', '<unknown>')}"))
             column_name = str(column.get("name", "")).strip()
             column_key = normalized_identifier(column_name)
             if not column_name:
@@ -121,6 +125,10 @@ def verify(schema_path: Path) -> tuple[list[Finding], dict[str, Any]]:
                 column_map[column_key] = column
             if not str(column.get("type") or "").strip():
                 failures.append(Finding(f"{name}.{column_name}", "column type is required"))
+            if "nullable" in column and not isinstance(column["nullable"], bool):
+                failures.append(Finding(f"{name}.{column_name}", "nullable must be boolean"))
+            if "autoIncrement" in column and not isinstance(column["autoIncrement"], bool):
+                failures.append(Finding(f"{name}.{column_name}", "autoIncrement must be boolean"))
             if not str(column.get("comment") or "").strip():
                 failures.append(Finding(f"{name}.{column_name}", "column comment is required"))
 
@@ -151,6 +159,10 @@ def verify(schema_path: Path) -> tuple[list[Finding], dict[str, Any]]:
         fk_names: set[str] = set()
         for foreign_key in table.get("foreignKeys") or []:
             foreign_key_count += 1
+            required_fields = {"name", "columns", "refTable", "refColumns", "onDelete", "onUpdate"}
+            missing_fields = sorted(required_fields - set(foreign_key))
+            if missing_fields:
+                failures.append(Finding(name, f"foreign key is missing required fields {missing_fields}: {foreign_key.get('name', '<unknown>')}"))
             fk_name = str(foreign_key.get("name", "")).strip()
             fk_key = normalized_identifier(fk_name)
             if not fk_name:

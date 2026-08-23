@@ -2,10 +2,10 @@
 """CPF 배포 JAR을 한 artifacts 디렉터리에 모으고 topology-aware manifest를 생성합니다.
 
 빌드 자체는 각 Gradle/Jenkins 단계가 담당하고 이 도구는 배포 산출물 수집·해시·배치 계획만 소유합니다.
-Generated Domain은 실제 cpf-<domain>/cpf-domain.yaml Root 정본만 확인해 자동 편입합니다.
+Generated Domain은 실제 cpf-<domain>/gradle.properties Developer 계약만 확인해 자동 편입합니다.
 """
 from __future__ import annotations
-import argparse, hashlib, json, re, shutil
+import argparse, hashlib, json, shutil
 from pathlib import Path
 
 
@@ -19,9 +19,14 @@ def sha256(path: Path) -> str:
 def load_json(path: Path): return json.loads(path.read_text(encoding='utf-8-sig'))
 
 
-def yaml_scalar(text: str, key: str) -> str | None:
-    m=re.search(rf'(?m)^\s*{re.escape(key)}:\s*([^#\r\n]+?)\s*$',text)
-    return m.group(1).strip() if m else None
+def domain_properties(path: Path) -> dict[str,str]:
+    values={}
+    for raw in path.read_text(encoding='utf-8-sig').splitlines():
+        line=raw.strip()
+        if not line or line.startswith('#') or '=' not in line: continue
+        key,value=line.split('=',1); values[key.strip()]=value.strip()
+    if values.get('cpf.domain.contractVersion')!='1': return {}
+    return values
 
 
 def choose_jar(patterns: list[Path]) -> Path | None:
@@ -60,13 +65,13 @@ def platform_candidates(root: Path, service: dict) -> list[Path]:
 
 def generated_entries(root: Path, env: str) -> list[dict]:
     rows=[]
-    for definition in sorted(root.glob('cpf-*/cpf-domain.yaml')):
-        text=definition.read_text(encoding='utf-8-sig')
-        name=yaml_scalar(text,'name'); system=yaml_scalar(text,'systemCode')
-        project=definition.parent
+    for contract in sorted(root.glob('cpf-*/gradle.properties')):
+        values=domain_properties(contract)
+        name=values.get('cpf.domain.name'); system=values.get('cpf.domain.systemCode')
+        project=contract.parent
         if not name or not project.is_dir(): continue
-        online=bool(re.search(r'(?m)^\s*online:\s*true\s*$',text))
-        batch=bool(re.search(r'(?m)^\s*batch:\s*true\s*$',text))
+        online=values.get('cpf.domain.online')=='true'
+        batch=values.get('cpf.domain.batch')=='true'
         if online:
             rows.append({'module':system,'serviceName':f'cpf-{name}-online','generatedDomain':True,'kind':'online',
                          'profile':env,'artifactPatterns':[project/'online/build/libs'/f'cpf-{name}-online*.jar']})

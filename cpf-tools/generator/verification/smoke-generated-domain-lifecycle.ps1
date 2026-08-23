@@ -57,18 +57,18 @@ foreach ($script in @($create, $verify, $remove, $dbInit)) {
     if (-not (Test-Path -LiteralPath $script -PathType Leaf)) { throw "필수 Script가 없습니다: $script" }
 }
 
-$sandbox = Join-Path $Root "build/domain-generator/lifecycle-$domain"
+$sandbox = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/lifecycle-$domain"
 $definitionDir = Join-Path $sandbox 'definition'
 $definitionPath = Join-Path $definitionDir 'cpf-domain.yaml'
 $project = Join-Path $sandbox "cpf-$domain"
-$transient = Join-Path $Root "build/domain-generator/verification/cpf-$domain"
-$resultDir = Join-Path $Root "build/reports/generated-domain-lifecycle/$domain"
+$transient = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/verification/cpf-$domain"
+$resultDir = Join-Path $Root "cpf-docs/work/evidence/generated/domain-generator/reports/generated-domain-lifecycle/$domain"
 New-Item -ItemType Directory -Force -Path $resultDir | Out-Null
 $resultPath = Join-Path $resultDir 'generated-domain-lifecycle.sanitized.json'
 
 function Assert-SafeGeneratedPath([string] $Path) {
     $resolved = [IO.Path]::GetFullPath($Path)
-    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'build/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $allowed = [IO.Path]::GetFullPath((Join-Path $Root 'cpf-docs/work/evidence/generated/domain-generator')).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolved.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Generated lifecycle sandbox가 허용 경로 밖입니다: $resolved"
     }
@@ -106,7 +106,7 @@ $result = [ordered]@{
     domainName = $domain
     systemCode = $code
     definitionPath = $definitionPath
-    generatedProjectMetadata = 'NONE'
+    generatedProjectMetadata = 'ABSENT'
     apply = [bool]$Apply
     provisionDatabase = [bool]$ProvisionDatabase
     databaseVendor = $DatabaseVendor

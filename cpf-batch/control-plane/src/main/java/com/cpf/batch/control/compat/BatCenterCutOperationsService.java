@@ -1,9 +1,9 @@
 package com.cpf.batch.control.compat;
 
 import com.cpf.batch.api.CpfCenterCutOperationsPort;
+import com.cpf.batch.runtime.SensitiveTextSanitizer;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
-import com.cpf.security.api.CpfMasking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -225,7 +225,7 @@ public final class BatCenterCutOperationsService implements CpfCenterCutOperatio
             Object message = masked.get(actualMessageKey);
             masked.put(
                     actualMessageKey,
-                    message == null ? null : CpfMasking.mask(String.valueOf(message), 1000));
+                    message == null ? null : SensitiveTextSanitizer.sanitize(String.valueOf(message)));
         }
         String actualLengthKey = keyIgnoreCase(masked, lengthKey);
         if (actualLengthKey != null && masked.get(actualLengthKey) != null) {

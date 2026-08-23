@@ -44,6 +44,9 @@ public final class CpfOperationCatalogBootstrap implements ApplicationListener<A
         boolean manifestRequired = environment.getProperty(
                 "cpf.operation-catalog.manifest-required", Boolean.class, generatedBusinessDomain);
         manifestVerifier.verify(operations, manifestRequired);
+        // 빈 Generated Domain도 manifest 정합성은 검증하지만, 동기화할 업무 Operation이 없으면
+        // 외부 Catalog Registry를 요구하지 않습니다. 실제 Operation이 하나라도 있으면 아래 fail-closed 계약을 유지합니다.
+        if (operations.isEmpty()) return;
         boolean required=environment.getProperty("cpf.operation-catalog.required",Boolean.class,true);
         if (registries.size()!=1) {
             if(required) throw new IllegalStateException("CPF_OPERATION_CATALOG_REGISTRY_UNAVAILABLE:"+registries.size());

@@ -1,0 +1,10 @@
+{
+  "evidenceId": "CX-05-F213-PLAN-MISMATCH-FIXTURE-MISSING-AUDIT",
+  "finding": "CX-F-213",
+  "recordedAt": "2026-08-23T19:40:00+09:00",
+  "sourceIdentitySha256": "e8b8def8f508e691979d4eec44cdfbd5df7c76077edb3cc60c5cb56ea1e8edce",
+  "command": "pwsh -NoProfile -File cpf-tools/db/verification/check-platform-database-migration-tool.ps1 -Root .",
+  "passedBeforeFailure": "All 3-vendor BAT/REF plans and Maria routing/fail-closed cases through missing confirmation",
+  "actualMismatch": "The plan-mismatch case omits mandatory Operator/Reason/ApprovalReference and therefore fails at audit validation before ExpectedPlanSha256.",
+  "status": "IN_PROGRESS"
+}

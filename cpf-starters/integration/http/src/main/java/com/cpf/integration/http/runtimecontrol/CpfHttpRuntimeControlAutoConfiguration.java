@@ -1,6 +1,6 @@
 package com.cpf.integration.http.runtimecontrol;
 
-import com.cpf.integration.fixedlength.api.CpfFixedLengthLayoutRegistry;
+import com.cpf.integration.api.message.CpfMessageLayoutValidator;
 import com.cpf.platform.operations.runtimecontrol.CpfRuntimeChangeApplier;
 import com.cpf.integration.http.internal.CpfApiClientRuntimePolicy;
 import com.cpf.integration.http.internal.CpfServiceEndpointRegistry;
@@ -25,7 +25,7 @@ public class CpfHttpRuntimeControlAutoConfiguration {
 
     @Bean(name="cpfExternalInstitutionRuntimeApplier") @ConditionalOnBean(CpfServiceEndpointRegistry.class)
     @ConditionalOnMissingBean(name="cpfExternalInstitutionRuntimeApplier")
-    CpfRuntimeChangeApplier institution(CpfServiceEndpointRegistry registry, ObjectProvider<CpfFixedLengthLayoutRegistry> layouts){
+    CpfRuntimeChangeApplier institution(CpfServiceEndpointRegistry registry, ObjectProvider<CpfMessageLayoutValidator> layouts){
         return new CpfExternalInstitutionRuntimeApplier(registry, layouts.getIfAvailable());
     }
 

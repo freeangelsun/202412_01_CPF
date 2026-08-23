@@ -1,3 +1,3 @@
 export type CpfOperationId=string;
-export const cpfOperationDescriptors=[{operationId:"bzaOp",method:"POST",template:"/bza/api/runtime-control/status"},{operationId:"bzaGet",method:"GET",template:"/bza/api/runtime-control/status"}];
-export function resolveCpfOperation(method:string,path:string){return {operationId:"bza-"+method.toLowerCase(),method,template:path};}
+export const cpfOperationDescriptors=[{operationId:"MBW_RUNTIME_CONTROL_UPDATE",method:"POST",template:"/api/v1/backoffice/runtime-control/status"},{operationId:"MBW_RUNTIME_CONTROL_STATUS",method:"GET",template:"/api/v1/backoffice/runtime-control/status"}];
+export function resolveCpfOperation(method:string,path:string){return {operationId:"MBW_RUNTIME_CONTROL_"+method.toUpperCase(),method,template:path};}

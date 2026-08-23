@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-ROOT-BUILD-ATTEMPT1",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "SAMPLE-MBR", "ARCH-BOUNDARY", "TEST-RUNTIME"],
+  "timestamp": {
+    "started": "2026-08-22T11:21:38.1742693+09:00",
+    "finished": "2026-08-22T11:22:36.4368833+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true",
+  "environment": {
+    "os": "Microsoft Windows 10.0.26200",
+    "java": "Temurin OpenJDK 25.0.3+9 LTS",
+    "gradle": "9.1.0"
+  },
+  "exitCode": 1,
+  "sourceIdentity": "bcb9d3beec8bfdc5a6ca828d78769b70074e1d7be6b7ccbd9d9917c49fe5bc21",
+  "actualResult": "BUILD FAILED in 56s during included generated-domain configuration; zero failed-task markers and zero failed-test markers because task execution did not begin.",
+  "failureSummary": "cpf-external/build.gradle line 16 rejected configuration because neither CPF_MAVEN_REPOSITORY_URL/cpfArtifactRepositoryUrl nor cpfProductCompositeRoot was visible while the generated domain was included by the Root build.",
+  "failedTaskMarkers": 0,
+  "failedTestMarkers": 0,
+  "log": {
+    "path": "C:\\Users\\fly10\\Downloads\\cpf-codex-java25-root-20260822-1121.log",
+    "bytes": 65596,
+    "sha256": "d74130c192b140d5984b37de3d1d8086d14b4ed7a36e042d929093fef6fb3280"
+  },
+  "result": "FAIL",
+  "findingIds": ["CX-F-002"],
+  "artifactSha256": null,
+  "sanitized": true
+}

@@ -1,0 +1,14 @@
+{
+  "findingId": "CX-F-226",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentitySha256": "ec40f2cf10e4731781db78d1ecf32f43fd9607265c4e876028042b14d01bdba0",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 :cpf-common:test :starters:common:test :runtime:batch:worker:bootJar --console=plain",
+  "environment": "Temurin Java 25.0.3; Gradle 9.1.0; maxWorkers=1",
+  "result": "PASS",
+  "testSuites": 23,
+  "tests": 44,
+  "failed": 0,
+  "skipped": 0,
+  "workerBootJarBytes": 85258148,
+  "remaining": "Actual packaged class-based proxy creation in two-worker runtime"
+}

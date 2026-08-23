@@ -9,6 +9,9 @@ const form = reactive<EmployeeSavePayload>({
   employeeName: '',
   organizationCode: '',
   employmentStatus: 'EMPLOYED',
+  email: '',
+  mobileNo: '',
+  officePhoneNo: '',
   useYn: 'Y',
   reason: '',
   clearEmail: false,
@@ -28,12 +31,20 @@ function submit() {
     <div class="form-grid">
       <label>사번<input v-model.trim="form.employeeNo" required /></label>
       <label>이름<input v-model.trim="form.employeeName" required /></label>
-      <label>조직<input v-model.trim="form.organizationCode" /></label>
+      <label>조직<input v-model.trim="form.organizationCode" required /></label>
       <label>재직상태<input v-model.trim="form.employmentStatus" /></label>
+      <label>이메일<input v-model.trim="form.email" :disabled="form.clearEmail" autocomplete="email" type="email" /></label>
+      <label>연락처(휴대폰)<input v-model.trim="form.mobileNo" :disabled="form.clearMobileNo" autocomplete="tel" type="tel" /></label>
+      <label>내부 전화번호<input v-model.trim="form.officePhoneNo" :disabled="form.clearOfficePhoneNo" autocomplete="off" type="tel" /></label>
       <label>사용여부<select v-model="form.useYn"><option value="Y">Y</option><option value="N">N</option></select></label>
       <label>expectedVersion<input v-model.number="form.expectedVersion" min="0" type="number" /></label>
     </div>
-    <label>변경 사유<textarea v-model.trim="form.reason" required rows="2" /></label>
+    <div class="form-grid">
+      <label><input v-model="form.clearEmail" type="checkbox" /> 이메일 삭제</label>
+      <label><input v-model="form.clearMobileNo" type="checkbox" /> 휴대폰 번호 삭제</label>
+      <label><input v-model="form.clearOfficePhoneNo" type="checkbox" /> 내부 전화번호 삭제</label>
+    </div>
+    <label>변경 사유<textarea v-model.trim="form.reason" minlength="5" required rows="2" /></label>
     <button :disabled="props.loading" type="submit">저장</button>
   </form>
 </template>

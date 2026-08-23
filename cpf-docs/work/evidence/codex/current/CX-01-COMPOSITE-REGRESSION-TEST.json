@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-COMPOSITE-REGRESSION-TEST",
+  "requirementIds": ["REL-BUILD", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T11:30:47.2919794+09:00",
+    "finished": "2026-08-22T11:30:47.4243229+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\testing\\tools\\tests\\test_settings_composite_build_identity.py",
+  "exitCode": 0,
+  "sourceIdentity": "c335bed4283ce424d90b64951147ceb0dbc4a38956b57307c85f67a53a723602",
+  "actualResult": "Ran 2 tests in 0.002s; OK.",
+  "result": "PASS",
+  "failureSummary": null,
+  "findingIds": ["CX-F-002"],
+  "sanitized": true
+}

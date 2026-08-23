@@ -2102,13 +2102,3 @@ CREATE TABLE bat_operation_request (
 );
 CREATE INDEX ix_bat_operation_request_target ON bat_operation_request(target_type,target_id,created_at);
 CREATE INDEX ix_bat_operation_request_state ON bat_operation_request(request_state,updated_at);
-
--- CPF_CANONICAL_OBJECTS_BEGIN spring-batch-6-sequences
--- Generated from cpf-tools/db/canonical/platform-non-table-objects.json.
--- Spring Batch 6.0.4 JobRepository sequence contract; do not edit vendor SQL directly.
-CREATE SEQUENCE BATCH_JOB_INSTANCE_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372036854775807 INCREMENT BY 1 ORDER NOCYCLE;
-
-CREATE SEQUENCE BATCH_JOB_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372036854775807 INCREMENT BY 1 ORDER NOCYCLE;
-
-CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ START WITH 0 MINVALUE 0 MAXVALUE 9223372036854775807 INCREMENT BY 1 ORDER NOCYCLE;
--- CPF_CANONICAL_OBJECTS_END spring-batch-6-sequences

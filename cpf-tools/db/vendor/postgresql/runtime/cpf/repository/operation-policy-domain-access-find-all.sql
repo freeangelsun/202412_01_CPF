@@ -1,0 +1,2 @@
+SELECT caller_system_code, target_system_code, allowed_yn
+FROM OPS_SYSTEM_DOMAIN_ACCESS

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-AFFECTED-HARNESS-TEST-ATTEMPT2",
+  "requirementIds": ["TEST-EVIDENCE", "REL-BUILD"],
+  "timestamp": {
+    "started": "2026-08-22T12:32:44.6311765+09:00",
+    "finished": "2026-08-22T12:33:01.4236878+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": ".\\gradlew.bat --no-daemon :framework:operations:observability:test :internal:security:secret:test :internal:integration:resilience:test",
+  "exitCode": 1,
+  "sourceIdentity": "c4806d36e4661acf114c634e067936d363af6f41e33b8bfba6679f53144d08d7",
+  "actualResult": "The added profile methods cleared getDefaultProfiles, but observability test compilation next failed because the custom Environment harnesses also lack PropertyResolver.resolveRequiredPlaceholders(String). Later module tests did not run.",
+  "result": "FAIL",
+  "failureSummary": "CX-F-013 initial fix is incomplete. Replace custom interface emulation with a maintained Spring Environment implementation where available rather than adding methods iteratively.",
+  "findingIds": ["CX-F-013"],
+  "sanitized": true
+}

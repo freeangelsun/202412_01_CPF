@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Gateway Control 보안 실패를 append-only DB 원장에 기록합니다. */
 @Repository
-public final class JdbcCpfGatewayControlSecurityAuditAdapter implements CpfGatewayControlSecurityAuditPort {
+public class JdbcCpfGatewayControlSecurityAuditAdapter implements CpfGatewayControlSecurityAuditPort {
     private final JdbcTemplate jdbc;
 
     public JdbcCpfGatewayControlSecurityAuditAdapter(JdbcTemplate jdbc) {

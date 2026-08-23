@@ -25,9 +25,9 @@ import java.util.Locale;
  * Oracle/PostgreSQL/MariaDB에서 동일 SQL surface를 사용하며, catalog row의 기술 SQL 오류를 외부로 노출하지 않습니다.</p>
  */
 @Repository
-final class CmnJdbcErrorCatalogRepository implements CmnErrorCatalogRepository {
+class CmnJdbcErrorCatalogRepository implements CmnErrorCatalogRepository {
     private static final String RESPONSE_COLUMNS = "response_code,message_code,result_type,module_id,response_group,sequence_no," +
-            "category,retry_disposition,exposure,effective_from,effective_to,catalog_version,description,use_yn,updated_at";
+            "http_status,category,retry_disposition,exposure,effective_from,effective_to,catalog_version,description,use_yn,updated_at";
     private static final String MESSAGE_COLUMNS = "message_id,message_code,locale,message_format_type,external_message,internal_message," +
             "parameter_count,parameter_sample,parameter_schema_json,escape_html_yn,mask_arguments_yn,effective_from,effective_to," +
             "catalog_version,description,use_yn,updated_at";
@@ -87,23 +87,23 @@ final class CmnJdbcErrorCatalogRepository implements CmnErrorCatalogRepository {
 
     public CpfResponseCodeRecord insertResponseCode(CommonResponseCodeRequest r, String actor) {
         jdbc.update("INSERT INTO CMN_RESPONSE_CODE " +
-                        "(response_code,message_code,result_type,module_id,response_group,sequence_no,description,use_yn,created_by,updated_by," +
+                        "(response_code,message_code,result_type,module_id,response_group,sequence_no,http_status,description,use_yn,created_by,updated_by," +
                         "category,retry_disposition,exposure,effective_from,effective_to,catalog_version) " +
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 normalizeCode(r.getResponseCode()), normalizeCode(r.getMessageCode()), required(r.getResultType(), "resultType"),
                 required(r.getModuleId(), "moduleId"), required(r.getResponseGroup(), "responseGroup"), required(r.getSequenceNo(), "sequenceNo"),
-                trimToNull(r.getDescription()), yn(r.getUseYn(), "Y"), actor, actor,
+                httpStatus(r.getHttpStatus()), trimToNull(r.getDescription()), yn(r.getUseYn(), "Y"), actor, actor,
                 upper(r.getCategory(), "BUSINESS"), upper(r.getRetryDisposition(), "NEVER"), upper(r.getExposure(), "SAFE_MESSAGE_ONLY"),
                 timestamp(r.getEffectiveFrom()), timestamp(r.getEffectiveTo()), positiveVersion(r.getCatalogVersion()));
         return findResponseCode(r.getResponseCode());
     }
 
     public CpfResponseCodeRecord updateResponseCode(String code, long expectedVersion, CommonResponseCodeRequest r, String actor) {
-        int count = jdbc.update("UPDATE CMN_RESPONSE_CODE SET message_code=?,result_type=?,module_id=?,response_group=?,sequence_no=?," +
+        int count = jdbc.update("UPDATE CMN_RESPONSE_CODE SET message_code=?,result_type=?,module_id=?,response_group=?,sequence_no=?,http_status=?," +
                         "description=?,use_yn=?,updated_by=?,updated_at=CURRENT_TIMESTAMP,category=?,retry_disposition=?,exposure=?," +
                         "effective_from=?,effective_to=?,catalog_version=catalog_version+1 WHERE response_code=? AND catalog_version=?",
                 normalizeCode(r.getMessageCode()), required(r.getResultType(), "resultType"), required(r.getModuleId(), "moduleId"),
-                required(r.getResponseGroup(), "responseGroup"), required(r.getSequenceNo(), "sequenceNo"), trimToNull(r.getDescription()),
+                required(r.getResponseGroup(), "responseGroup"), required(r.getSequenceNo(), "sequenceNo"), httpStatus(r.getHttpStatus()), trimToNull(r.getDescription()),
                 yn(r.getUseYn(), "Y"), actor, upper(r.getCategory(), "BUSINESS"), upper(r.getRetryDisposition(), "NEVER"),
                 upper(r.getExposure(), "SAFE_MESSAGE_ONLY"), timestamp(r.getEffectiveFrom()), timestamp(r.getEffectiveTo()),
                 normalizeCode(code), expectedVersion);
@@ -160,7 +160,7 @@ final class CmnJdbcErrorCatalogRepository implements CmnErrorCatalogRepository {
 
     private static final RowMapper<CpfResponseCodeRecord> RESPONSE_MAPPER = (rs, rowNum) -> new CpfResponseCodeRecord(
             rs.getString("response_code"), rs.getString("message_code"), rs.getString("result_type"), rs.getString("module_id"),
-            rs.getString("response_group"), rs.getString("sequence_no"), rs.getString("category"), rs.getString("retry_disposition"),
+            rs.getString("response_group"), rs.getString("sequence_no"), rs.getInt("http_status"), rs.getString("category"), rs.getString("retry_disposition"),
             rs.getString("exposure"), instant(rs, "effective_from"), instant(rs, "effective_to"), rs.getLong("catalog_version"),
             rs.getString("description"), rs.getString("use_yn"), instant(rs, "updated_at"));
 
@@ -190,6 +190,7 @@ final class CmnJdbcErrorCatalogRepository implements CmnErrorCatalogRepository {
         return v;
     }
     private static int nonNegative(Integer value) { int v = value == null ? 0 : value; if (v < 0) throw new IllegalArgumentException("value must be >= 0"); return v; }
+    private static int httpStatus(Integer value) { if (value == null || value < 100 || value > 599) throw new IllegalArgumentException("httpStatus must be between 100 and 599"); return value; }
     private static long positiveVersion(Long value) { long v = value == null ? 1 : value; if (v < 1) throw new IllegalArgumentException("catalogVersion must be >= 1"); return v; }
     private static String trimToNull(String value) { if (value == null) return null; String v=value.trim(); return v.isEmpty()?null:v; }
     private static String required(String value, String name) { if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " is required"); return value.trim(); }

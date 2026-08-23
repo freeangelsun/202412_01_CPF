@@ -1,0 +1,23 @@
+{
+  "track": "CX-00-VSCODE-OOM-DIAGNOSIS",
+  "timestamp": "2026-08-22T17:40:57.375+09:00",
+  "sourceIdentity": "124fba3156a903f053b0f37e0ff3a869fce94f3bfba02ac819fadd126eceb5d6",
+  "result": "FAIL_ENVIRONMENT",
+  "vscode": "1.134.0",
+  "windowFailure": "renderer process gone (reason: oom, code: -536870904)",
+  "systemMemoryAtInspection": {"totalGiB": 31.51, "freeGiB": 15.56},
+  "currentProcesses": {
+    "windowMiB": 971,
+    "extensionHostMiB": 744,
+    "javaLanguageServerMiB": 1255,
+    "gradleBuildServerMiB": 804,
+    "gpuMiB": 371
+  },
+  "workspaceFiles": 18831,
+  "generatedClassFilesVisibleToWorkspace": 6879,
+  "gpuEvidence": [
+    "D3D11 device removed 0x887A0007 followed by GPU-process restart",
+    "D3D11 device removed 0x887A0005 followed by GPU-process restart"
+  ],
+  "conclusion": "The failure is a VS Code renderer-local OOM with repeated GPU device loss, not system commit exhaustion. Reduce generated-tree watching/search/editor output retention and disable hardware acceleration on the next VS Code restart; do not increase Java heaps."
+}

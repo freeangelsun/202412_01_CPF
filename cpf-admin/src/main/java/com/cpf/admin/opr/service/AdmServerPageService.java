@@ -40,11 +40,8 @@ public class AdmServerPageService {
             Map<String, Object> row = sourceRow == null ? Map.of() : new LinkedHashMap<>(sourceRow);
             if (normalizedQuery.isEmpty() || matches(row, normalizedQuery)) filtered.add(row);
         }
-        String sortKey = normalize(sort);
+        String sortKey = resolveSortKey(sort, allowedSortKeys);
         if (!sortKey.isEmpty()) {
-            if (allowedSortKeys == null || !allowedSortKeys.contains(sortKey)) {
-                throw new IllegalArgumentException("unsupported sort key: " + sortKey);
-            }
             Comparator<Map<String, Object>> comparator = Comparator.comparing(
                     row -> comparable(row.get(sortKey)), Comparator.nullsLast(Comparator.naturalOrder()));
             if ("desc".equalsIgnoreCase(direction)) comparator = comparator.reversed();
@@ -66,6 +63,23 @@ public class AdmServerPageService {
 
     private static String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String resolveSortKey(String requested, Set<String> allowedSortKeys) {
+        String normalized = normalize(requested);
+        if (normalized.isEmpty()) return "";
+        String resolved = null;
+        if (allowedSortKeys != null) {
+            for (String candidate : allowedSortKeys) {
+                if (candidate == null || candidate.isBlank() || !normalize(candidate).equals(normalized)) continue;
+                if (resolved != null && !resolved.equals(candidate)) {
+                    throw new IllegalArgumentException("ambiguous sort key: " + normalized);
+                }
+                resolved = candidate;
+            }
+        }
+        if (resolved == null) throw new IllegalArgumentException("unsupported sort key: " + normalized);
+        return resolved;
     }
 
     private static ComparableValue comparable(Object value) {

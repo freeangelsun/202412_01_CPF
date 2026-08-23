@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-MBW-SOURCE-FIX-IDENTITY",
+  "requirementIds": ["REL-BUILD", "ARCH-BOUNDARY", "SAMPLE-MBW", "TEST-EVIDENCE"],
+  "timestamp": {
+    "started": "2026-08-22T11:35:12.7022658+09:00",
+    "finished": "2026-08-22T11:35:21.0263655+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\verification\\tools\\cpf-source-state.py --root . --scope source",
+  "exitCode": 0,
+  "beforeSourceIdentity": "c335bed4283ce424d90b64951147ceb0dbc4a38956b57307c85f67a53a723602",
+  "sourceIdentity": "2ead2c0996415f4f9c9df750567d1d4e6bb380f4a4ca06b720c0c02d6d1b96d5",
+  "fileCount": 8204,
+  "totalBytes": 75679270,
+  "changedProductSource": [
+    "cpf-tools/runtime/cpf-local-runtime/build.gradle",
+    "cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py"
+  ],
+  "findingStatus": "SOURCE_FIXED",
+  "result": "PASS",
+  "findingIds": ["CX-F-003"],
+  "sanitized": true
+}

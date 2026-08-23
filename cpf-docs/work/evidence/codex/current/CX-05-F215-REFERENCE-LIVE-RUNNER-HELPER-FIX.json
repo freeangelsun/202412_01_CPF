@@ -1,0 +1,15 @@
+{
+  "evidenceId": "CX-05-F215-REFERENCE-LIVE-RUNNER-HELPER-FIX",
+  "finding": "CX-F-215",
+  "recordedAt": "2026-08-23T19:47:00+09:00",
+  "sourceIdentity": {
+    "sha256": "6c8378da4d42ca724641e3433e088027025026a3347d1e453b9a656294bef685",
+    "sha1": "4a141983a284a546b3827d787d450f0ea274bea5",
+    "fileCount": 8288,
+    "totalBytes": 75229898
+  },
+  "change": "Reference live idempotency runner dotsources Root/cpf-tools/db/tools/database-profile-common.ps1, matching every other cross-directory consumer.",
+  "powershellParseErrors": 0,
+  "status": "SOURCE_FIXED",
+  "verificationPending": "Rerun complete 3-vendor Reference lifecycle verifier."
+}

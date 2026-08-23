@@ -1,0 +1,38 @@
+{
+  "executionId": "CX-02-FRESH-C-COMPILE-RERUN1",
+  "startedAt": "2026-08-22T20:41:03.1170487+09:00",
+  "finishedAt": "2026-08-22T20:41:50.8520888+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS",
+  "exitCode": 0,
+  "runtime": {
+    "java": "25.0.3",
+    "gradle": "9.1.0",
+    "dbVendorResourceSelection": "postgresql",
+    "os": "Windows x64"
+  },
+  "tasks": {
+    "actionable": 23,
+    "executed": 23,
+    "onlineCompileJava": "PASS",
+    "batchCompileJava": "PASS"
+  },
+  "compiled": {
+    "onlineApplication": true,
+    "batchApplication": true,
+    "mybatisMapper": true,
+    "userOwnedExtension": true
+  },
+  "persistenceNoneCaseACompile": "PASS",
+  "persistenceMybatisCaseCCompile": "PASS",
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "jdtProcessId": 27708,
+  "jdtAliveAfter": true,
+  "newJdtLogHasOom": false,
+  "evidence": [
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-C-COMPILE-RERUN1.stdout.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-C-COMPILE-RERUN1.stderr.log",
+    "cpf-docs/work/evidence/codex/current/CX-02-FRESH-C-COMPILE-RERUN1.exit.txt"
+  ]
+}

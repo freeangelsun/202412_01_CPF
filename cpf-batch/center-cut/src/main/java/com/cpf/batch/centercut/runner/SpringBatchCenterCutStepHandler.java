@@ -222,13 +222,13 @@ public final class SpringBatchCenterCutStepHandler implements BatchStepHandler, 
             runtimeState.repositoryHealthy();
             return result(itemStatus, handled);
         } catch (LeaseLostException lost) {
-            try (AutoCloseable ignoredContext = CpfContexts.bind(itemSnapshot)) {
+            return withContext(itemSnapshot, () -> {
                 runtimeState.leaseLost();
                 return new BatchStepResult(Status.UNKNOWN_RESULT, SpringBatchCenterCutRuntimeState.LEASE_LOST,
                         "Center-Cut item lease was lost", 1, 0, 0, Map.of());
-            }
+            });
         } catch (Exception failure) {
-            try (AutoCloseable ignoredContext = CpfContexts.bind(itemSnapshot)) {
+            return withContext(itemSnapshot, () -> {
                 String detail = SensitiveTextSanitizer.sanitize(failure.getMessage());
                 try {
                     repository.complete(claim, "UNKNOWN_RESULT", null, detail);
@@ -238,7 +238,19 @@ public final class SpringBatchCenterCutStepHandler implements BatchStepHandler, 
                 }
                 return new BatchStepResult(Status.UNKNOWN_RESULT, "CENTER_CUT_HANDLER_UNKNOWN_RESULT",
                         detail, 1, 0, 0, Map.of());
-            }
+            });
+        }
+    }
+
+    private static <T> T withContext(
+            CpfContextSnapshot snapshot,
+            java.util.concurrent.Callable<T> action) {
+        try {
+            return CpfContexts.call(snapshot, action);
+        } catch (RuntimeException failure) {
+            throw failure;
+        } catch (Exception failure) {
+            throw new IllegalStateException("CPF center-cut context scope close failed", failure);
         }
     }
 

@@ -2,6 +2,7 @@ package com.cpf.web.runtime;
 
 import com.cpf.foundation.execution.api.CpfOnlineTransaction;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.BeansException;
@@ -22,7 +23,13 @@ public final class CpfOnlineTransactionBeanPostProcessor implements BeanPostProc
     }
     private void inspect(Class<?> type, Method method) {
         CpfOnlineTransaction rule = AnnotatedElementUtils.findMergedAnnotation(method, CpfOnlineTransaction.class);
-        if (rule != null) register(rule, type.getName() + "#" + method.getName());
+        if (rule != null) {
+            String source = type.getName() + "#" + method.getName();
+            if (!Modifier.isPublic(method.getModifiers())) {
+                throw new IllegalStateException("CPF_ONLINE_TRANSACTION_NOT_PUBLIC:" + source);
+            }
+            register(rule, source);
+        }
     }
     private void register(CpfOnlineTransaction rule, String source) {
         CpfOnlineTransactionMetadataValidator.validate(rule, source);

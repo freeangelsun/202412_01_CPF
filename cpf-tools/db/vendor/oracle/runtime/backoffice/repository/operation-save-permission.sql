@@ -8,7 +8,9 @@ USING (
 ) source
 ON (target.role_code = source.role_code
     AND target.menu_code = source.menu_code
-    AND target.button_code = source.button_code)
+    AND target.button_code = source.button_code
+    AND target.permission_type = source.permission_type
+    AND target.environment_code = source.environment_code)
 WHEN MATCHED THEN UPDATE SET
     target.permission_type = source.permission_type, target.http_method = source.http_method,
     target.api_pattern = source.api_pattern, target.domain_code = source.domain_code,

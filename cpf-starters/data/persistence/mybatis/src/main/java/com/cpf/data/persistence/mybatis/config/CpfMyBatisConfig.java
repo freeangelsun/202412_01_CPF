@@ -15,6 +15,7 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -29,6 +30,7 @@ import javax.sql.DataSource;
  * 실수를 방지합니다.</p>
  */
 @Configuration
+@ConditionalOnBean(name = "cpfDataSource")
 @MapperScan(basePackages = "com.cpf.data.persistence.mybatis.mapper", sqlSessionFactoryRef = "cpfSqlSessionFactory")
 public class CpfMyBatisConfig {
 

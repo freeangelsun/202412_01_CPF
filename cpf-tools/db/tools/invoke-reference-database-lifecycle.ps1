@@ -14,7 +14,10 @@ param(
     [switch] $ConfirmApplicationsStopped,
     [switch] $ConfirmRollbackReady,
     [string] $ExpectedPlanSha256 = "",
-    [string[]] $BackupManifestPath = @()
+    [string[]] $BackupManifestPath = @(),
+    [string] $Operator = "",
+    [string] $Reason = "",
+    [string] $ApprovalReference = ""
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -47,6 +50,22 @@ function Get-CpfTextSha256 {
 function Get-CpfRelativePath {
     param([Parameter(Mandatory = $true)][string] $Path)
     return ([IO.Path]::GetRelativePath($Root, [IO.Path]::GetFullPath($Path))).Replace("\", "/")
+}
+
+function New-CpfReferenceMigrationProfile {
+    param(
+        [Parameter(Mandatory = $true)] $SourceProfile,
+        [Parameter(Mandatory = $true)][string] $ModuleKey,
+        [Parameter(Mandatory = $true)][string] $HistoricalLogicalDatabase
+    )
+    Assert-CpfIdentifier $HistoricalLogicalDatabase "historicalLogicalDatabase"
+    $projected = $SourceProfile | ConvertTo-Json -Depth 60 | ConvertFrom-Json -Depth 60
+    $module = $projected.modules.$ModuleKey
+    if ($null -eq $module) { throw "Reference migration profile module이 없습니다: $ModuleKey" }
+    $module.logicalDatabase = $HistoricalLogicalDatabase
+    $path = Join-Path ([IO.Path]::GetTempPath()) ("cpf-reference-migration-profile-" + [guid]::NewGuid().ToString("N") + ".json")
+    [IO.File]::WriteAllText($path, ($projected | ConvertTo-Json -Depth 60) + "`n", $Utf8NoBom)
+    return $path
 }
 
 function Assert-CpfIdentifier {
@@ -358,6 +377,21 @@ $contractPath = Join-Path $Root "cpf-tools/generator/contracts/education-referen
 $manifestPath = Join-Path $Root "cpf-tools/db/vendor-pack-manifest.json"
 $contract = Get-Content -LiteralPath $contractPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
 $vendorManifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+$historicalLogicalDatabases = @(
+    $contract.featurePacks.PSObject.Properties |
+        ForEach-Object {
+            $migrationArtifact = [string]$_.Value.artifacts.migration
+            if ($migrationArtifact -notmatch '(?i)(?:^|/)migration/flyway/(?<logicalDatabase>[A-Za-z][A-Za-z0-9_$#]{0,127})/V[0-9]+__') {
+                throw "Reference migration artifact에서 historical logical DB를 결정할 수 없습니다: pack=$($_.Name) path=$migrationArtifact"
+            }
+            [string]$Matches.logicalDatabase
+        } |
+        Sort-Object -Unique
+)
+if ($historicalLogicalDatabases.Count -ne 1) {
+    throw "Reference feature pack의 historical logical DB가 하나로 수렴하지 않습니다: $($historicalLogicalDatabases -join ', ')"
+}
+$historicalLogicalDatabase = [string]$historicalLogicalDatabases[0]
 
 $referenceTargets = @(
     $profile.modules.PSObject.Properties |
@@ -432,18 +466,23 @@ if ($Action -in @("upgrade", "rollback", "reapply")) {
             Sort-Object -Descending:($direction -eq "rollback")
     )
     $migrationResultPath = Join-Path ([IO.Path]::GetTempPath()) ("cpf-ref-migration-" + [guid]::NewGuid().ToString("N") + ".json")
-    $migrationParameters = @{
-        Root = $Root
-        ProfilePath = $ProfilePath
-        Direction = $direction
-        MigrationVersion = [int[]]$versions
-        Modules = @([string]$referenceTarget.moduleKey)
-        ResultPath = $migrationResultPath
-        DryRun = $true
+    $migrationProfilePath = New-CpfReferenceMigrationProfile $profile ([string]$referenceTarget.moduleKey) $historicalLogicalDatabase
+    try {
+        $migrationParameters = @{
+            Root = $Root
+            ProfilePath = $migrationProfilePath
+            Direction = $direction
+            MigrationVersion = [int[]]$versions
+            Modules = @([string]$referenceTarget.moduleKey)
+            ResultPath = $migrationResultPath
+            DryRun = $true
+        }
+        & (Join-Path $PSScriptRoot "invoke-platform-database-migration.ps1") @migrationParameters
+        $migrationDryRun = Get-Content -LiteralPath $migrationResultPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
+        if ($migrationDryRun.status -eq "실패") { throw "Reference migration dry-run 생성 실패" }
+    } finally {
+        Remove-Item -LiteralPath $migrationProfilePath -Force -ErrorAction SilentlyContinue
     }
-    & (Join-Path $PSScriptRoot "invoke-platform-database-migration.ps1") @migrationParameters
-    $migrationDryRun = Get-Content -LiteralPath $migrationResultPath -Raw -Encoding UTF8 | ConvertFrom-Json -Depth 50
-    if ($migrationDryRun.status -eq "실패") { throw "Reference migration dry-run 생성 실패" }
     $grantSql = if ($direction -eq "upgrade") { Get-CpfRuntimeGrantSql $addedPacks } else { "" }
     Add-CpfRenderedOperation "runtime-grant" "state" $grantSql
 } elseif ($Action -eq "fresh-install") {
@@ -504,6 +543,7 @@ $plan = [ordered]@{
     targetState = $TargetState
     moduleKey = [string]$referenceTarget.moduleKey
     logicalDatabase = [string]$referenceTarget.logicalDatabase
+    historicalLogicalDatabase = $historicalLogicalDatabase
     physicalDatabase = [string]$referenceTarget.databaseName
     physicalSchema = [string]$referenceTarget.schemaName
     contractSha256 = Get-CpfFileSha256 $contractPath
@@ -535,6 +575,7 @@ try {
         if ($Action -in @("fresh-install", "upgrade", "rollback", "reapply")) {
             if (-not $ConfirmApply) { throw "DB 변경 Action에는 -ConfirmApply가 필요합니다." }
             if (-not $ConfirmApplicationsStopped) { throw "DB 변경 Action에는 -ConfirmApplicationsStopped가 필요합니다." }
+            if (-not $ConfirmRollbackReady) { throw "DB 변경 Action에는 -ConfirmRollbackReady가 필요합니다." }
         }
         $referenceTarget = ConvertTo-CpfModuleProfile $profile ([string]$referenceTarget.moduleKey)
 
@@ -557,21 +598,29 @@ try {
                     ForEach-Object { [int](Get-CpfPackMetadata $_).migrationVersion } |
                     Sort-Object -Descending:($direction -eq "rollback")
             )
-            $applyParameters = @{
-                Root = $Root
-                ProfilePath = $ProfilePath
-                Direction = $direction
-                MigrationVersion = [int[]]$versions
-                Modules = @([string]$referenceTarget.moduleKey)
-                ResultPath = $migrationResultPath
-                Apply = $true
-                ConfirmApply = $true
-                ConfirmApplicationsStopped = $true
-                ConfirmRollbackReady = [bool]$ConfirmRollbackReady
-                ExpectedPlanSha256 = [string]$migrationDryRun.planSha256
-                BackupManifestPath = $BackupManifestPath
+            $migrationProfilePath = New-CpfReferenceMigrationProfile $profile ([string]$referenceTarget.moduleKey) $historicalLogicalDatabase
+            try {
+                $applyParameters = @{
+                    Root = $Root
+                    ProfilePath = $migrationProfilePath
+                    Direction = $direction
+                    MigrationVersion = [int[]]$versions
+                    Modules = @([string]$referenceTarget.moduleKey)
+                    ResultPath = $migrationResultPath
+                    Apply = $true
+                    ConfirmApply = $true
+                    ConfirmApplicationsStopped = $true
+                    ConfirmRollbackReady = $true
+                    ExpectedPlanSha256 = [string]$migrationDryRun.planSha256
+                    BackupManifestPath = $BackupManifestPath
+                    Operator = $Operator
+                    Reason = $Reason
+                    ApprovalReference = $ApprovalReference
+                }
+                & (Join-Path $PSScriptRoot "invoke-platform-database-migration.ps1") @applyParameters
+            } finally {
+                Remove-Item -LiteralPath $migrationProfilePath -Force -ErrorAction SilentlyContinue
             }
-            & (Join-Path $PSScriptRoot "invoke-platform-database-migration.ps1") @applyParameters
         }
 
         for ($index = 0; $index -lt $internalOperations.Count; $index++) {

@@ -2,14 +2,13 @@
 """Canonical Generated Customer Domain inventory.
 
 Generated Project 내부의 영구 manifest/ownership metadata를 읽지 않는다.
-Framework가 관리하는 cpf-domain.yaml과 canonical generator validation을 사용한다.
+Developer-Facing gradle.properties 계약과 canonical Generator validation을 사용한다.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -27,11 +26,9 @@ def main() -> int:
     sys.path.insert(0, str(engine))
     from cpf_domain_generator import (  # type: ignore
         GENERATOR_VERSION,
-        load_yaml_subset,
-        validate_definition,
+        load_domain_contract,
     )
 
-    settings = (root / "settings.gradle").read_text(encoding="utf-8") if (root / "settings.gradle").is_file() else ""
     result = []
     seen_system: set[str] = set()
     seen_package: set[str] = set()
@@ -39,17 +36,19 @@ def main() -> int:
     if args.file:
         selected = [Path(args.file).resolve()]
     else:
-        selected = sorted(root.glob("cpf-*/cpf-domain.yaml"))
+        selected = sorted(path for path in root.glob("cpf-*/gradle.properties")
+                          if "cpf.domain.contractVersion=" in path.read_text(encoding="utf-8-sig"))
         if args.domain:
             normalized = args.domain.strip().lower()
+            normalized = normalized if normalized.startswith("cpf-") else f"cpf-{normalized}"
             selected = [path for path in selected if path.parent.name.lower() == normalized]
             if not selected:
-                raise SystemExit(f"Generated Domain canonical definition이 없습니다: {normalized}")
+                raise SystemExit(f"Generated Domain Developer 계약이 없습니다: {normalized}")
 
-    for definition in selected:
-        if not definition.is_file():
-            raise SystemExit(f"Generated Domain definition이 없습니다: {definition}")
-        d = validate_definition(load_yaml_subset(definition))
+    for contract in selected:
+        if not contract.is_file():
+            raise SystemExit(f"Generated Domain 계약이 없습니다: {contract}")
+        d = load_domain_contract(contract)
         project_name = f"cpf-{d.name}"
         project_dir = root / project_name
         exists = project_dir.is_dir()
@@ -71,21 +70,24 @@ def main() -> int:
         if exists:
             for rel in (
                 ".cpf",
-                "generator.lock",
+                "cpf-domain.yaml",
+                "cpf-generator.lock.json",
                 "manifest/domain-manifest.json",
                 "manifest/generator-ownership.json",
+                "online/src/main/resources/META-INF/cpf/generated-domain.properties",
+                "batch/src/main/resources/META-INF/cpf/generated-domain.properties",
             ):
                 if (project_dir / rel).exists():
                     forbidden.append(rel)
         try:
-            definition_path = definition.relative_to(root).as_posix()
+            contract_path = contract.relative_to(root).as_posix()
         except ValueError:
-            definition_path = str(definition)
+            contract_path = str(contract)
         result.append({
             "projectName": project_name,
             "projectPath": project_name,
-            "definitionPath": definition_path,
-            "definitionSha256": hashlib.sha256(definition.read_bytes()).hexdigest(),
+            "contractPath": contract_path,
+            "contractSha256": hashlib.sha256(contract.read_bytes()).hexdigest(),
             "generatorVersion": GENERATOR_VERSION,
             "domainName": d.name,
             "moduleName": d.module_name,
@@ -97,6 +99,7 @@ def main() -> int:
             "databaseEnabled": d.persistence != "none" or d.sample_transaction,
             "persistence": d.persistence,
             "onlineEnabled": d.online,
+            "batchEnabled": d.batch,
             "batchCapabilitySelection": "PROJECT_SETUP",
             "sampleTransaction": d.sample_transaction,
             "httpClient": d.http_client,
@@ -116,11 +119,8 @@ def main() -> int:
             "localOnlinePort": d.local_online_port,
             "dependencyModel": "root-generated-regression",
             "exists": exists,
-            "settingsIncluded": bool(re.search(
-                rf"(?m)^\s*include\s+['\"]{re.escape(project_name)}['\"]\s*$",
-                settings,
-            )),
-            "generatedProjectMetadata": "NONE",
+            "settingsIncluded": exists and (project_dir / "settings.gradle").is_file(),
+            "generatedProjectMetadata": "ABSENT",
             "forbiddenPermanentMetadata": forbidden,
         })
     print(json.dumps({"schemaVersion": 1, "domains": result}, ensure_ascii=False))

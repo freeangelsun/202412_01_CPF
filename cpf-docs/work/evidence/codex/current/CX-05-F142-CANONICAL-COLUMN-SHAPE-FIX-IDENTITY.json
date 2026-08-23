@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-142",
+  "recordedAt": "2026-08-23T10:55:00+09:00",
+  "lifecycle": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "policy": "GIT_INDEPENDENT_CANONICAL_PATH_SIZE_SHA256_LINES",
+    "sha256": "b943406d45cd944da4a4d2d820cf98be41b2b8ba7dcc5a862f342bc16cc74531",
+    "sha1": "e18c0f18319b276b022ccd4bfb19aaa2f58eb000",
+    "fileCount": 8243,
+    "totalBytes": 75904404
+  },
+  "sourceOwnersChanged": [
+    "cpf-tools/db/canonical/platform-schema.json",
+    "cpf-tools/db/verification/verify-cpf-db-schema-governance.py",
+    "cpf-tools/testing/tools/tests/test_db_schema_governance.py"
+  ],
+  "contract": "Every canonical column explicitly carries name, type, nullable, default, autoIncrement, onUpdate and comment; governance rejects missing fields and non-boolean flags before rendering."
+}

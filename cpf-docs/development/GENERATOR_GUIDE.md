@@ -1,13 +1,13 @@
 # CPF Generator Guide
 
 > **주 독자**: 업무 개발자 / Tech Lead / Generator·Template 관리자  
-> **이 문서로 끝내는 일**: `cpf-domain.yaml`에서 Online 업무 Domain을 생성하고 재생성·Upgrade·Remove까지 사용자 코드를 보호하며 운영한다. Batch는 초기 프로젝트 구성에서 별도 Capability로 선택한다.  
+> **이 문서로 끝내는 일**: Developer Domain Contract를 가진 Online 업무 Domain을 생성하고 Sync·Upgrade·Remove까지 사용자 코드를 보호하며 운영한다. Batch는 초기 프로젝트 구성에서 별도 Capability로 선택한다.  
 > **이 문서를 펼칠 때**: 신규 Domain 생성, 기존 Domain 재생성, Framework Upgrade, Generator Template 변경을 수행할 때
 
 ## 가장 먼저 할 일
 
-1. `cpf-domain.yaml`을 작성하고 Schema Validation을 통과합니다.  
-2. `dry-run`과 `diff`로 변경 범위와 충돌을 확인합니다.  
+1. `cpf domain create` 또는 `cpf domain setup`으로 Developer Domain Contract를 구성합니다.  
+2. `setup --preview`, `sync`, `diff`로 변경 범위와 충돌을 확인합니다.  
 3. `online/` 업무 Source를 필수 생성하고 `modules.batch=true`이면 같은 Generated Root에 `batch/`를 선택 생성합니다. Generated Project에는 lifecycle metadata를 영구 저장하지 않으며 Batch 구현은 Public `cpf-starter-batch` 계약을 소비합니다.  
 4. Sample Transaction과 DB3/Test를 실행합니다.  
 5. regenerate/upgrade/remove에서도 User-owned Source와 DB 안전성을 보존합니다.
@@ -23,37 +23,18 @@
 
 Generator는 서비스를 단순 분리하는 Skeleton만 만들지 않습니다. Generated Online 업무에 필요한 Context propagation, Transaction/Idempotency, Event reliability, 운영 추적 기본 연결점을 같은 Domain 계약으로 생성합니다. Batch Runtime/lineage는 별도 `cpf-starter-batch` Capability가 소유합니다. Generated Domain은 Public Surface만 직접 참조하며 Orchestration을 위해 Internal leaf를 우회 참조하지 않습니다.
 
-### 1.1 `cpf-domain.yaml` 작성
+### 1.1 신규 Domain 생성
 
-```yaml
-domain:
-  name: member
-  systemCode: MBR
-
-database:
-  role: CUSTOMER_BUSINESS_DB
-  tablePrefix: MBR
-
-preset: standard-enterprise
-
-modules:
-  online: true
-
-features:
-  persistence: mybatis
-  httpClient: true
-  resilience: true
-  cache: none
-  messaging: none
-
-generation:
-  sampleTransaction: true
+```console
+cpf domain create --name payment --system-code PAY --business-feature transfer
 ```
+
+이 명령은 `cpf-payment/`에 업무 Source와 `build.gradle`, `settings.gradle`, `gradle.properties`만 생성합니다. `cpf-domain.yaml`, `cpf-generator.lock.json`, `.cpf/` 또는 다른 Generator bookkeeping 파일은 생성하지 않습니다.
 
 ### 1.2 생성 계획 확인
 
 ```console
-cpf domain dry-run --file cpf-member/cpf-domain.yaml
+cpf domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment --preview
 ```
 
 Dry-run에서 다음을 확인합니다.
@@ -69,7 +50,7 @@ Dry-run에서 다음을 확인합니다.
 ### 1.3 Diff 확인
 
 ```console
-cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
+cpf domain sync
 ```
 
 Diff는 파일 단순 비교가 아니라 `Generated-owned`, `User-owned`, `Mergeable`, `Conflict`, `Obsolete`를 구분합니다.
@@ -77,16 +58,19 @@ Diff는 파일 단순 비교가 아니라 `Generated-owned`, `User-owned`, `Merg
 ### 1.4 생성
 
 ```console
-cpf domain generate --file cpf-member/cpf-domain.yaml
+cpf domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment
 ```
 
 `standard-enterprise` 기본 결과:
 
 ```text
-cpf-member/
+cpf-payment/
+├─ build.gradle
+├─ settings.gradle
+├─ gradle.properties
 └─ online/
 
-Batch를 사용하는 Domain은 `cpf-domain.yaml`에서 `modules.batch=true`를 선택합니다. Generator는 `batch/`를 생성하고 그 Runtime은 Public `cpf-starter-batch` 계약을 사용합니다.
+Batch를 사용하는 Domain은 `--batch` 또는 `cpf.domain.batch=true`를 선택합니다. Generator는 `batch/`를 생성하고 그 Runtime은 Public `cpf-starter-batch` 계약을 사용합니다.
 ```
 
 ### 1.5 개발 시작
@@ -113,21 +97,20 @@ DTO/Validation
 사용자에게 노출되는 Generator의 Canonical 명령은 `cpf domain ...`입니다. 운영체제마다 별도 Generator Script나 Template을 유지하지 않습니다.
 
 ```console
-cpf domain generate --file cpf-member/cpf-domain.yaml
-cpf domain generate --file cpf-external/cpf-domain.yaml
-cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
-cpf domain regenerate member
-cpf domain regenerate external
+cpf domain create --name payment --system-code PAY --business-feature transfer
+cpf domain setup --name payment --system-code PAY --table-prefix PAY --business-feature transfer --preset minimal --persistence none --output cpf-payment --preview
+cpf domain sync
+cpf domain diff --file C:/temp/payment-input.yaml --output cpf-payment
 ```
 
 설치된 환경은 Windows/Linux 모두 `cpf ...`를 사용합니다. Repository-local 실행만 launcher가 다릅니다.
 
 ```text
-Windows CURRENT  .\cpf-tools\runtime\cli\cpf.bat domain generate --file cpf-member/cpf-domain.yaml
-Linux CURRENT    ./cpf-tools/runtime/cli/cpf domain generate --file cpf-member/cpf-domain.yaml
+Windows CURRENT  .\cpf-tools\runtime\cli\cpf.bat domain create --name payment --system-code PAY --business-feature transfer
+Linux CURRENT    ./cpf-tools/runtime/cli/cpf domain create --name payment --system-code PAY --business-feature transfer
 ```
 
-`cpf-tools/runtime/cli/cpf`와 `cpf-tools/runtime/cli/cpf.bat`는 Repository-local thin wrapper입니다. 설치 후 논리 명령은 `cpf ...`입니다. Schema validation, naming, template selection, DB intent, diff, lifecycle state와 exit-code 의미는 OS-neutral Engine이 소유합니다. 따라서 같은 `cpf-domain.yaml`을 Windows와 Linux에서 생성했을 때 line-ending 같은 비의미 차이를 normalize한 결과가 같아야 합니다.
+`cpf-tools/runtime/cli/cpf`와 `cpf-tools/runtime/cli/cpf.bat`는 Repository-local thin wrapper입니다. 설치 후 논리 명령은 `cpf ...`입니다. Schema validation, naming, template selection, DB intent, diff, lifecycle state와 exit-code 의미는 OS-neutral Engine이 소유합니다. 따라서 같은 CLI 입력을 Windows와 Linux에서 생성했을 때 line-ending 같은 비의미 차이를 normalize한 결과가 같아야 합니다.
 
 Generator Cross-platform Gate는 다음을 함께 확인합니다.
 
@@ -165,16 +148,18 @@ Generator는 다음을 생성 결과의 불변조건으로 유지합니다.
 
 ---
 
-## 4. Canonical 입력 — `cpf-domain.yaml`
+## 4. Canonical Developer Domain Contract — `gradle.properties`
 
-대화형 Wizard는 보조 UI일 수 있지만 **정본은 선언형 `cpf-domain.yaml`**입니다. 이 파일은 코드 리뷰, 재현, 자동화, CI, Upgrade에 사용됩니다.
+대화형 Wizard와 명시적 외부 descriptor는 생성 시점의 보조 입력입니다. 생성된 Domain의 source-controlled 정본은 root `gradle.properties`의 `cpf.domain.*` Developer Contract입니다. Gradle, Generator, Runtime, Workspace discovery가 이 계약을 함께 읽습니다.
 
 ### 4.1 Domain
 
-```yaml
-domain:
-  name: payment
-  systemCode: PAY
+```properties
+cpf.domain.contractVersion=1
+cpf.domain.name=payment
+cpf.domain.systemCode=PAY
+cpf.domain.packageName=payment
+cpf.domain.tablePrefix=PAY
 ```
 
 - `name`: 업무 Domain 논리명
@@ -185,13 +170,12 @@ domain:
 
 ### 4.2 Database
 
-```yaml
-database:
-  role: CUSTOMER_BUSINESS_DB
-  tablePrefix: PAY
+```properties
+cpf.domain.persistence=mybatis
+cpf.domain.tablePrefix=PAY
 ```
 
-`cpf-domain.yaml`은 업무 Domain의 DB 역할과 Prefix를 선언하며 특정 Vendor를 업무 Source 생성 조건으로 사용하지 않습니다. 실제 배포/검증 환경의 Vendor 선택은 중앙 DB Lifecycle/환경 설정에서 수행합니다. Generated Application Source는 Oracle/PostgreSQL/MariaDB에서 동일하게 유지됩니다.
+Developer Contract는 업무 Domain의 DB 역할과 Prefix를 선언하며 특정 Vendor를 업무 Source 생성 조건으로 사용하지 않습니다. 실제 배포/검증 환경의 Vendor 선택은 중앙 DB Lifecycle/환경 설정에서 수행합니다. Generated Application Source는 Oracle/PostgreSQL/MariaDB에서 동일하게 유지됩니다.
 
 #### 생성 Setup에서 DB Vendor 선택
 
@@ -201,17 +185,14 @@ DB Vendor는 Domain Source 정본과 분리하지만, 개발자가 처음 준비
 cpf domain setup --name payment --system-code PAY --table-prefix PAY --vendor postgresql --database-name businessDB
 ```
 
-이 명령은 transient `build/domain-generator/setup/payment/` 아래에 다음 두 파일을 만듭니다.
-
-- `cpf-domain.yaml`: Vendor-neutral 업무 Domain 정본. `packageName` 생략 시 `payment` package를 사용합니다.
-- `cpf-db-profile.local.json`: `postgresql` 같은 환경별 DB Vendor/Host/Port/Database와 Secret 환경변수 참조만 저장합니다.
+이 명령은 `cpf-payment/gradle.properties` Developer Contract를 만들고 transient `cpf-docs/work/evidence/generated/domain-generator/cpf-local/payment/cpf-db-profile.local.json`에 환경별 DB Vendor/Host/Port/Database와 Secret 환경변수 참조만 저장합니다. Generator 입력 descriptor와 내부 state는 Domain Root에 저장하지 않습니다.
 
 비밀번호 원문은 Profile에 저장하지 않습니다. Generated build도 MariaDB를 암묵 선택하지 않으며 `-PcpfDbVendor=<vendor>` 또는 `CPF_DB_VENDOR`가 없으면 fail-closed합니다.
 
 ### 4.3 Preset
 
-```yaml
-preset: standard-enterprise
+```properties
+cpf.domain.preset=standard-enterprise
 ```
 
 지원 Preset:
@@ -225,29 +206,28 @@ preset: standard-enterprise
 
 ### 4.4 Modules
 
-```yaml
-modules:
-  online: true
+```properties
+cpf.domain.online=true
+cpf.domain.batch=false
 ```
 
-Generated Domain은 `online/`을 필수로 생성하고, `cpf-domain.yaml`의 `modules.batch=true`일 때 같은 `cpf-<domain>/batch/`를 선택적으로 생성합니다. Batch Runtime은 Public `cpf-starter-batch` 계약을 사용하며, `modules.batch=false`인 Domain에는 Batch Source/Runtime/Config를 생성하지 않습니다.
+Generated Domain은 `online/`을 필수로 생성하고, `cpf.domain.batch=true`일 때 같은 `cpf-<domain>/batch/`를 선택적으로 생성합니다. Batch Runtime은 Public `cpf-starter-batch` 계약을 사용하며, `cpf.domain.batch=false`인 Domain에는 Batch Source/Runtime/Config를 생성하지 않습니다.
 
 ### 4.5 Features
 
-```yaml
-features:
-  persistence: mybatis
-  httpClient: true
-  resilience: true
-  cache: valkey
-  messaging: kafka
-  objectStorage: s3
+```properties
+cpf.domain.persistence=mybatis
+cpf.domain.httpClient=true
+cpf.domain.resilience=true
+cpf.domain.cache=valkey
+cpf.domain.messaging=kafka
+cpf.domain.objectStorage=s3
   oidc: true
 ```
 
 외부 Infra Provider는 Preset 이름만으로 무조건 끌어오지 않습니다. 선택한 기능만 Runtime graph에 포함됩니다.
 
-Secret/password/token은 `cpf-domain.yaml`에 넣지 않습니다. 환경변수나 Secret Manager reference만 기록합니다.
+Secret/password/token은 Developer Contract에 넣지 않습니다. 환경변수나 Secret Manager reference만 사용합니다.
 
 ---
 
@@ -511,7 +491,7 @@ Generated Project의 `src/main/resources` 아래에 Vendor별 SQL/Mapper를 복�
 Generated Project에 Lock/ownership/manifest를 저장하지 않습니다. Generator는 정본 입력과 현재 Template에서 expected seed를 재계산하고, 사용자 수정 보호에 필요한 실행 상태만 다음 transient 경로가 소유합니다.
 
 ```text
-build/domain-generator/verification/cpf-<domain>/generation-state.json
+cpf-docs/work/evidence/generated/domain-generator/verification/cpf-<domain>/generation-state.json
 ```
 
 이 상태는 state/Generator version, definition·Generator SHA-256, expected Generated file 경로·hash, 검증 결과를 저장합니다. `regenerate/upgrade/remove/restore`는 이 기준과 현재 파일을 대사하고 사용자 수정이 있으면 fail-closed합니다. 해당 `build/**` 상태를 임의 재생성하여 충돌을 숨기지 않습니다.
@@ -521,7 +501,7 @@ build/domain-generator/verification/cpf-<domain>/generation-state.json
 ## 14. Dry-run
 
 ```console
-cpf domain dry-run --file cpf-member/cpf-domain.yaml
+cpf domain setup --name member --system-code MBR --output cpf-member --preview
 ```
 
 Dry-run은 다음 변경 계획을 보여줍니다.
@@ -541,7 +521,7 @@ Dry-run은 다음 변경 계획을 보여줍니다.
 ## 15. Diff
 
 ```console
-cpf domain diff --file cpf-member/cpf-domain.yaml --output cpf-member
+cpf domain sync
 ```
 
 Diff는 다음 Ownership을 구분합니다.
@@ -567,7 +547,7 @@ cpf domain regenerate member
 흐름:
 
 ```text
-cpf-domain.yaml
+gradle.properties `cpf.domain.*` Developer Contract
 → stateless expected-seed comparison
 → current file ownership/hash
 → user modification detection
@@ -604,7 +584,7 @@ Compatibility shim을 영구적으로 중첩하여 구 구조와 새 구조를 �
 ## 18. Remove
 
 ```console
-cpf domain remove member --file cpf-member/cpf-domain.yaml
+cpf domain remove member
 ```
 
 삭제 계획은 먼저 다음을 확인합니다.
@@ -617,7 +597,7 @@ cpf domain remove member --file cpf-member/cpf-domain.yaml
 6. Config/Secret reference
 7. 실행 plan
 
-위 명령은 제거 계획만 출력합니다. 실제 제거는 계획을 검토한 뒤 `cpf domain remove member --file cpf-member/cpf-domain.yaml --apply`로 수행합니다. Generator는 자신이 소유한 안전한 범위만 제거하고 User-owned Source와 승인되지 않은 DB 상태는 보존합니다.
+위 명령은 제거 계획만 출력합니다. 실제 제거는 계획을 검토한 뒤 `cpf domain remove member --apply`로 수행합니다. Generator는 자신이 소유한 안전한 범위만 제거하고 User-owned Source와 승인되지 않은 DB 상태는 보존합니다.
 
 ---
 
@@ -670,7 +650,7 @@ cpf-external/
 Batch는 선택형 Generated Runtime입니다. 회귀 기준인 member는 `modules.batch=true`로 `cpf-member/batch/`를 생성하고, external은 `modules.batch=false`로 online-only 조합을 검증합니다.
 ```
 
-Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, lock, ownership/manifest, README, verification, DB Vendor tree를 영구 저장하지 않습니다. Fresh input은 `cpf-<domain>/cpf-domain.yaml` 또는 explicit `--file`, transient state/DB3 Evidence는 `build/domain-generator/verification/**`가 소유합니다.
+Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, `cpf-generator.lock.json`, 이름을 바꾼 lock/state/manifest, verification/Evidence, DB Vendor tree를 영구 저장하지 않습니다. Fresh 입력은 CLI option 또는 Domain Root 밖의 explicit transient `--file`이며, 생성 후 정본은 root `gradle.properties` Developer Contract입니다. transient state/DB3 Evidence는 `cpf-docs/work/evidence/generated/domain-generator/verification/**`만 소유합니다.
 
 ### `cpf-member/` - MBR 회귀 Domain
 
@@ -691,7 +671,7 @@ Generated Project에는 `.cpf/**`, root `cpf-domain.yaml`, lock, ownership/manif
 `cpf-member/`와 `cpf-external/`만으로도 두 개의 독립 Domain을 검증하지만, Template가 이름에 특수화되지 않았는지 제3 임의 Domain을 fresh 생성해 확인합니다.
 
 ```text
-build/domain-generator/verification/<scenario>/
+cpf-docs/work/evidence/generated/domain-generator/verification/<scenario>/
 ```
 
 또는 Repository 외부 Temp Directory를 사용합니다.
@@ -832,7 +812,7 @@ Generator 결과는 `cpf-education`가 소비하는 Public API/Starter/Class/Ann
 ### Provider collision
 
 **증상**: Redis와 Valkey, 두 Persistence Provider 등 동일 종류 Provider가 동시에 Classpath에 존재.  
-**조치**: `cpf-domain.yaml`에서 Provider를 하나로 명시합니다. Framework가 임의 우선순위를 선택하지 않습니다.
+**조치**: root `gradle.properties`의 해당 `cpf.domain.*` Provider를 하나로 명시합니다. Framework가 임의 우선순위를 선택하지 않습니다.
 
 ### User modification conflict
 

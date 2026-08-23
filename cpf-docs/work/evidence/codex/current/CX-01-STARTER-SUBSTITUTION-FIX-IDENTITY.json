@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "trackId": "CX-01-STARTER-SUBSTITUTION-FIX-IDENTITY",
+  "requirementIds": ["REL-BUILD", "GEN-DOMAIN", "TEST-EVIDENCE", "SAMPLE-MBR", "SAMPLE-EXS"],
+  "timestamp": {
+    "started": "2026-08-22T11:50:32.6217889+09:00",
+    "finished": "2026-08-22T11:50:40.2155619+09:00",
+    "timezone": "Asia/Seoul"
+  },
+  "cwd": "C:\\dev\\projects\\jck\\202412_01_CPF",
+  "command": "python .\\cpf-tools\\verification\\tools\\cpf-source-state.py --root . --scope source",
+  "exitCode": 0,
+  "beforeSourceIdentity": "dd24f9ba8988189ca9bbeb8a30fec2ed47562288beb26bc06f620853a5623d01",
+  "sourceIdentity": "a3905b8c9f6c17548bc818deb401bffca0575846c40279fe90f3e45ca2570403",
+  "fileCount": 8204,
+  "totalBytes": 75684253,
+  "changedProductSource": [
+    "cpf-tools/generator/engine/cpf_domain_generator.py",
+    "cpf-tools/generator/verification/tests/test_verify_cpf_generator_canonical_source.py",
+    "cpf-member/settings.gradle",
+    "cpf-external/settings.gradle"
+  ],
+  "findingStatus": "SOURCE_FIXED",
+  "result": "PASS",
+  "findingIds": ["CX-F-005"],
+  "sanitized": true
+}

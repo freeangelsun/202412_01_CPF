@@ -1,0 +1,20 @@
+{
+  "executionId": "CX-02-OPERATION-MANIFEST-PATH-TEMPLATE-TEST-RERUN1",
+  "finishedAt": "2026-08-22T20:30:00+09:00",
+  "sourceIdentitySha256": "189e12be28f21a631126f9abc533ac2f544f79e1e8a5baf15cba83b9688b5132",
+  "status": "PASS",
+  "command": "python -m pytest -c cpf-tools/testing/config/pytest.ini test_generator_setup_contract.py test_verify_cpf_generator_canonical_source.py -q",
+  "tests": 11,
+  "passed": 11,
+  "failed": 0,
+  "durationSeconds": 1.69,
+  "assertions": [
+    "Generated sample retains @GetMapping(\"/{id}\").",
+    "Generated manifest scanner uses class/previous-transaction annotation boundaries.",
+    "Raw closing-brace lastIndexOf boundary is absent.",
+    "Canonical generated-domain source contracts remain valid."
+  ],
+  "productRootBuildPresentAfter": false,
+  "productRootGradleCachePresentAfter": false,
+  "next": "Actual Member manifest and Fresh B Java 25 compile"
+}

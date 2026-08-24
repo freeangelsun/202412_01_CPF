@@ -72,7 +72,8 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
     public boolean supports(BatchJobDefinition.ExecutorType type, String reference) {
         return switch (type) {
             case APPROVED_SHELL, FILE_PROCESS, FILE_TRANSFER,
-                    SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER -> true;
+                    MESSAGE_TRIGGER, PROTOCOL_ADAPTER -> true;
+            case SERVICE_CALL -> !DiagnosticBatchStepHandler.REFERENCE.equals(reference);
             case SPRING_BATCH, FILE_WATCH -> false;
         };
     }

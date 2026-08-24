@@ -3,3 +3,4 @@ com.cpf.integration.http.internal.CpfWebClientConfig
 com.cpf.integration.http.internal.servicecall.CpfServiceCallAutoConfiguration
 com.cpf.integration.http.runtimecontrol.CpfHttpRuntimeControlAutoConfiguration
 com.cpf.integration.http.internal.domaincall.CpfDomainCallAutoConfiguration
+com.cpf.integration.http.internal.domaincall.CpfDomainCallSecurityAutoConfiguration

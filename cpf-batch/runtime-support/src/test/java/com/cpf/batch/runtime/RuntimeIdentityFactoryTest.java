@@ -49,4 +49,15 @@ class RuntimeIdentityFactoryTest {
         assertThat(registration.profile()).isEqualTo("stg");
         assertThat(registration.endpoints().get("base")).endsWith(":18091");
     }
+
+    @Test
+    void batchRuntimeUsesTheCanonicalCentralServiceIdentity() {
+        for (RuntimeRole role : RuntimeRole.values()) {
+            var registration = RuntimeIdentityFactory.fromBatchEnvironment(
+                    new MockEnvironment(), role, 18080);
+
+            assertThat(registration.serviceId()).isEqualTo("BAT");
+            assertThat(registration.runtimeRole()).isEqualTo(role);
+        }
+    }
 }

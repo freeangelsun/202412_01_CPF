@@ -42,6 +42,9 @@ public class CpfServiceEndpointProperties {
         /** Public routable 주소 허용 여부입니다. */
         private boolean allowPublic = true;
 
+        /** TLS 필수 여부입니다. 기본값은 true이며 false는 명시적으로 허용된 Literal IP 개발망에만 사용합니다. */
+        private boolean requireTls = true;
+
         /** 허용 CIDR. 비어 있으면 address class 정책만 적용합니다. */
         private List<String> allowedCidrs = List.of();
 

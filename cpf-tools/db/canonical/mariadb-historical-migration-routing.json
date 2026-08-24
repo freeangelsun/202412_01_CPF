@@ -171,6 +171,20 @@
           "logicalDatabase": "mbwDB"
         }
       ]
+    },
+    "V137__generic_runtime_application_role.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R137__generic_runtime_application_role.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
     }
   }
 }

@@ -5,7 +5,7 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 234,
+  "tableCount": 235,
   "tables": [
     {
       "vendor": "mariadb",
@@ -3913,6 +3913,46 @@
       "vendor": "mariadb",
       "logicalDatabase": "cpfDB",
       "sourceFile": "cpf-platform-schema.sql",
+      "tableName": "BAT_RECONCILIATION_AUDIT",
+      "columns": [
+        "reconciliation_audit_id",
+        "request_id",
+        "entity_type",
+        "entity_key",
+        "from_status",
+        "to_status",
+        "requester_id",
+        "approver_id",
+        "reason_text",
+        "idempotency_key",
+        "expected_attempt",
+        "expected_version",
+        "created_at"
+      ],
+      "indexes": [
+        {
+          "name": "uq_bat_reconcile_idem",
+          "unique": true,
+          "columns": [
+            "idempotency_key"
+          ]
+        },
+        {
+          "name": "ix_bat_reconcile_entity",
+          "unique": false,
+          "columns": [
+            "entity_type",
+            "entity_key",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": []
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "cpfDB",
+      "sourceFile": "cpf-platform-schema.sql",
       "tableName": "BAT_REMOTE_MESSAGE_LEDGER",
       "columns": [
         "direction_cd",
@@ -3963,7 +4003,7 @@
           "columns": [
             "instance_id"
           ],
-          "referencedTable": "BAT_RUNTIME_INSTANCE",
+          "referencedTable": "OPS_SERVICE_INSTANCE",
           "referencedColumns": [
             "instance_id"
           ]
@@ -4095,7 +4135,7 @@
           "columns": [
             "instance_id"
           ],
-          "referencedTable": "BAT_RUNTIME_INSTANCE",
+          "referencedTable": "OPS_SERVICE_INSTANCE",
           "referencedColumns": [
             "instance_id"
           ]
@@ -6330,6 +6370,7 @@
         "segment_id",
         "transaction_segment_id",
         "transaction_id",
+        "execution_id",
         "parent_segment_id",
         "transaction_role",
         "module_code",
@@ -6385,6 +6426,14 @@
           "unique": true,
           "columns": [
             "transaction_segment_id"
+          ]
+        },
+        {
+          "name": "ix_cpf_transaction_segment_execution",
+          "unique": false,
+          "columns": [
+            "execution_id",
+            "started_at"
           ]
         },
         {
@@ -8873,6 +8922,9 @@
         "artifact_version",
         "artifact_commit",
         "runtime_role",
+        "desired_runtime_state",
+        "actual_runtime_state",
+        "control_row_version",
         "registration_source",
         "schema_version",
         "config_hash",

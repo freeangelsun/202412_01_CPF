@@ -1,2 +1,1 @@
-DELETE FROM bat_operation_log
-WHERE created_at < ?
+DELETE FROM BAT_OPERATION_LOG WHERE operation_id IN (%s)

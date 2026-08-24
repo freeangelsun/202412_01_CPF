@@ -47,6 +47,27 @@ def main() -> int:
     policy_smoke_path = "cpf-tools/runtime/tools/smoke-log-policy-runtime.ps1"
     correlation_smoke_path = "cpf-tools/runtime/tools/smoke-integrated-log-correlation.ps1"
     full_local_path = "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1"
+    canonical_schema_path = "cpf-tools/db/canonical/platform-schema.json"
+
+    canonical_schema_source = require_file(root, canonical_schema_path, failures)
+    if canonical_schema_source:
+        canonical_schema = json.loads(canonical_schema_source)
+        segment_tables = [
+            table for table in canonical_schema.get("tables", [])
+            if table.get("name") == "CPF_TRANSACTION_SEGMENT"
+        ]
+        if len(segment_tables) != 1:
+            failures.append(f"CANONICAL_TABLE_COUNT:{canonical_schema_path}:CPF_TRANSACTION_SEGMENT:{len(segment_tables)}")
+        else:
+            segment_table = segment_tables[0]
+            segment_columns = {column.get("name") for column in segment_table.get("columns", [])}
+            if "execution_id" not in segment_columns:
+                failures.append(f"CANONICAL_COLUMN_MISSING:{canonical_schema_path}:CPF_TRANSACTION_SEGMENT.execution_id")
+            segment_indexes = {
+                index.get("name"): index.get("columns") for index in segment_table.get("indexes", [])
+            }
+            if segment_indexes.get("ix_cpf_transaction_segment_execution") != ["execution_id", "started_at"]:
+                failures.append(f"CANONICAL_INDEX_MISMATCH:{canonical_schema_path}:ix_cpf_transaction_segment_execution")
 
     file_writer = require_file(root, file_writer_path, failures)
     require_tokens(file_writer, file_writer_path, (
@@ -92,14 +113,101 @@ def main() -> int:
         "insertTransactionLogDetail",
     ), failures)
 
+    canonical_mapper_namespace = (
+        '<mapper namespace="com.cpf.data.persistence.mybatis.mapper.logging.TransactionLogMapper">'
+    )
+    canonical_segment_mapper_namespace = (
+        '<mapper namespace="com.cpf.data.persistence.mybatis.mapper.logging.TransactionSegmentMapper">'
+    )
+    for vendor in ("mariadb", "postgresql", "oracle"):
+        template_path = (
+            f"cpf-tools/db/runtime-template/cpf/vendor/{vendor}/mybatis/logging/TransactionLogMapper.xml.template"
+        )
+        rendered_path = f"cpf-tools/db/vendor/{vendor}/runtime/cpf/mybatis/logging/TransactionLogMapper.xml"
+        for mapper_path in (template_path, rendered_path):
+            mapper = require_file(root, mapper_path, failures)
+            require_tokens(mapper, mapper_path, (
+                canonical_mapper_namespace,
+                'id="existsRecoveryEvent"',
+                'id="insertTransactionLog"',
+                'id="insertTransactionLogDetail"',
+                "CPF_TRANSACTION_LOG",
+                "CPF_TRANSACTION_LOG_DETAIL",
+                "CALLER_SYSTEM_CODE",
+                "TARGET_SYSTEM_CODE",
+                "ORIGINAL_SYSTEM_CODE",
+                "SYSTEM_CODE",
+                "#{callerSystemCode}",
+                "#{targetSystemCode}",
+                "#{originalSystemCode}",
+                "#{systemCode}",
+            ), failures)
+            if "com.cpf.core.mapper.common.logging.TransactionLogMapper" in mapper:
+                failures.append(f"{mapper_path}: retired TransactionLogMapper namespace remains")
+            if "cpf_transaction_log" in mapper or "cpf_transaction_log_detail" in mapper:
+                failures.append(f"{mapper_path}: noncanonical lowercase transaction-log table remains")
+
+        segment_template_path = (
+            f"cpf-tools/db/runtime-template/cpf/vendor/{vendor}/mybatis/logging/TransactionSegmentMapper.xml.template"
+        )
+        segment_rendered_path = (
+            f"cpf-tools/db/vendor/{vendor}/runtime/cpf/mybatis/logging/TransactionSegmentMapper.xml"
+        )
+        for mapper_path in (segment_template_path, segment_rendered_path):
+            mapper = require_file(root, mapper_path, failures)
+            require_tokens(mapper, mapper_path, (
+                canonical_segment_mapper_namespace,
+                'id="insertSegment"',
+                'id="updateSegmentEnd"',
+                'id="countByTransactionSegmentId"',
+                "CPF_TRANSACTION_SEGMENT",
+                "execution_id",
+                "#{executionId}",
+                "system_code",
+                "original_system_code",
+                "caller_system_code",
+                "target_system_code",
+                "current_channel",
+                "original_channel",
+                "caller_channel",
+                "target_channel",
+                "#{systemCode}",
+                "#{originalSystemCode}",
+                "#{callerSystemCode}",
+                "#{targetSystemCode}",
+                "#{currentChannel}",
+                "#{originalChannel}",
+                "#{callerChannel}",
+                "#{targetChannel}",
+            ), failures)
+            if "com.cpf.core.mapper.common.logging.TransactionSegmentMapper" in mapper:
+                failures.append(f"{mapper_path}: retired TransactionSegmentMapper namespace remains")
+            if "cpf_transaction_segment" in mapper:
+                failures.append(f"{mapper_path}: noncanonical lowercase transaction-segment table remains")
+
     timeline = require_file(root, timeline_path, failures)
     require_tokens(timeline, timeline_path, (
-        '"cpf_transaction_log"',
-        '"cpf_broker_outbox"',
-        '"cpf_broker_dlq"',
-        '"cpf_unknown_result"',
+        '"CPF_TRANSACTION_LOG"',
+        '"CPF_TRANSACTION_SEGMENT"',
+        "CPF_TRANSACTION_LINEAGE",
+        "target_system_code AS remoteSystem",
+        '"CPF_FILE_TRANSFER_HISTORY"',
+        '"CPF_UNKNOWN_RESULT"',
+        '"CPF_BROKER_OUTBOX"',
+        '"CPF_BROKER_DLQ"',
         "transactionId",
     ), failures)
+    if "remote_system AS remoteSystem" in timeline:
+        failures.append(f"{timeline_path}: retired lineage remote_system column remains")
+    for retired_table in (
+        "cpf_transaction_log",
+        "cpf_transaction_segment",
+        "cpf_transaction_lineage",
+        "cpf_file_transfer_history",
+        "cpf_unknown_result",
+    ):
+        if retired_table in timeline:
+            failures.append(f"{timeline_path}: noncanonical lowercase physical table remains: {retired_table}")
 
     adm_observability = require_file(root, adm_observability_path, failures)
     require_tokens(adm_observability, adm_observability_path, (

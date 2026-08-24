@@ -1,4 +1,4 @@
 SELECT *
-FROM bat_lock
+FROM BAT_LOCK
 WHERE (? IS NULL OR job_id = ?)
 ORDER BY locked_at DESC

@@ -174,13 +174,13 @@ INSERT INTO BAT_CENTER_CUT_JOB (center_cut_job_id, batch_job_id, center_cut_job_
 VALUES (
     'CPF_BAT_CENTER_CUT_JOB',
     'CPF_BAT_CENTER_CUT_JOB',
-    'CPF BAT 센터컷 smoke Job',
-    'batCenterCutSampleTargetProvider',
-    'batCenterCutSampleHandler',
+    'CPF Domain Invocation 센터컷 Job',
+    'cpfParameterSnapshotCenterCutTargetProvider',
+    'cpfDomainInvocationCenterCutHandler',
     10,
     3,
     'Y',
-    'CPF 표준 center-cut 계약과 BAT 기본 구현체를 검증하는 1차 모수입니다.',
+    '불변 실행 Parameter의 실제 업무 대상을 DB Work Item으로 만들고 CPF 공식 Domain Invocation으로 처리합니다.',
     'SYSTEM',
     'SYSTEM'
 )

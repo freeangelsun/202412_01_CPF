@@ -1,0 +1,26 @@
+{
+  "runId": "b4200824c042",
+  "transportRunId": "e78dd10d74e7",
+  "startedAt": "2026-08-24T13:05:36.2422655+09:00",
+  "endedAt": "2026-08-24T13:06:20.4488025+09:00",
+  "sourceIdentitySha256": "c1ff25fdcc6d816f66548a0dfb581ac50b7ba26b3893ec8a0be2ebe12430ec38",
+  "status": "FAILED",
+  "exitCode": 1,
+  "completed": [
+    "installed MariaDB and Kafka adapters reused",
+    "four isolated topics created and cleaned",
+    "Control Plane, Center Cut and two Workers registered"
+  ],
+  "failure": "Diagnostic launch returned HTTP 500 before Kafka distribution.",
+  "rootCause": "The F272 lifecycle now reaches actual late aggregation-flow registration, but the shared reply input is a QueueChannel and the application has no default PollerMetadata. Spring Integration rejects the generated consumer endpoint with BeanCreationException: No poller has been defined.",
+  "finding": "CX-F-272",
+  "requiredFix": "Provide a bounded canonical Batch default poller only when the application does not already own one; verify late flow registration, complete Runtime, bootJars and Fresh physical flow.",
+  "forbidden": [
+    "change QueueChannel to a non-pollable channel that breaks Remote Chunk",
+    "increase timeout",
+    "suppress BeanCreationException",
+    "disable reply aggregation"
+  ],
+  "cleanupRequired": true,
+  "runtimeResult": "runtime/bat-two-worker-runtime.sanitized.json"
+}

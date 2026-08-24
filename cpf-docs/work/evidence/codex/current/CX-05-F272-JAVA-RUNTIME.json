@@ -1,0 +1,16 @@
+{
+  "findingId": "CX-F-272",
+  "startedAt": "2026-08-24T13:02:00+09:00",
+  "endedAt": "2026-08-24T13:03:00+09:00",
+  "sourceIdentitySha256": "c1ff25fdcc6d816f66548a0dfb581ac50b7ba26b3893ec8a0be2ebe12430ec38",
+  "java": "25.0.3",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 :runtime:batch:runtime:test",
+  "exitCode": 0,
+  "suites": 16,
+  "tests": 44,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "status": "PASS",
+  "closure": "PENDING_EXECUTABLE_BOOTJARS_AND_FRESH_PHYSICAL"
+}

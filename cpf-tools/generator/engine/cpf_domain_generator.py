@@ -1608,6 +1608,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 
 /** HTTP -> Service -> DAO/Mapper -> CUSTOMER_BUSINESS_DB 실제 Sample Transaction입니다. */
@@ -1617,11 +1618,12 @@ public class SampleTransactionService extends {c}BaseService {{
     private final SampleTransactionPolicy policy;
     private final DomainAuditLogger audit;
     private final Clock clock;
-    public SampleTransactionService(SampleTransactionRepository repository, SampleTransactionPolicy policy, DomainAuditLogger audit, Clock clock) {{
+    public SampleTransactionService(SampleTransactionRepository repository, SampleTransactionPolicy policy, DomainAuditLogger audit,
+            @Qualifier("cpfStarterClock") Clock clock) {{
         this.repository=repository; this.policy=policy; this.audit=audit; this.clock=clock;
     }}
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     public SampleItem create(CreateSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         String idem=policy.requireIdempotencyKey(request.idempotencyKey());
@@ -1646,19 +1648,19 @@ public class SampleTransactionService extends {c}BaseService {{
         return item;
     }}
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     public SampleItem detail(long id) {{
         return repository.findById(id).orElseThrow(() -> new CpfBusinessException(CpfErrorCode.NOT_FOUND, "Sample을 찾을 수 없습니다."));
     }}
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     public SamplePage search(SampleSearchRequest request) {{
         int page=request.safePage(), size=request.safeSize();
         return new SamplePage(repository.search(request.keyword(),request.statusCode(),page,size,
                 "sample_item_id","ASC"),repository.count(request.keyword(),request.statusCode()),page,size);
     }}
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     public SampleSlice slice(SampleSearchRequest request) {{
         int size=request.safeSize();
         List<SampleItem> rows=repository.cursorSlice(request.keyword(),request.statusCode(),request.safeCursor(),size+1);
@@ -1668,7 +1670,7 @@ public class SampleTransactionService extends {c}BaseService {{
         return new SampleSlice(items,hasNext,nextCursor);
     }}
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     public SampleItem update(long id, UpdateSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         policy.requireExpectedVersion(request.expectedVersion());
@@ -1691,7 +1693,7 @@ public class SampleTransactionService extends {c}BaseService {{
         audit.success("UPDATE",tx,Long.toString(id)); return updated;
     }}
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     public SampleItem delete(long id, DeleteSampleRequest request) {{
         String tx=requireTransactionId(); String actor=actorId();
         policy.requireExpectedVersion(request.expectedVersion());
@@ -1714,7 +1716,7 @@ public class SampleTransactionService extends {c}BaseService {{
     }}
 
     /** Failure-injection Test가 실제 Transaction rollback을 증명할 수 있는 명시적 Probe입니다. */
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     public void rollbackProbe(CreateSampleRequest request) {{
         create(request);
         throw new CpfBusinessException(CpfErrorCode.BUSINESS_RULE_VIOLATION,
@@ -1895,13 +1897,14 @@ import com.cpf.core.api.domain.CpfDomainPingResponse;
 import com.cpf.core.api.result.CpfResult;
 import com.cpf.integration.api.domaincall.CpfDomainOperation;
 import java.time.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /** Local/Remote 동일 Domain Call 경로를 실제 Runtime에서 검증하는 Generated managed operation입니다. */
 @Component
 public class {c}DomainPingOperation implements CpfDomainOperation<CpfDomainPingRequest, CpfDomainPingResponse> {{
     private final Clock clock;
-    public {c}DomainPingOperation(Clock clock) {{ this.clock = clock; }}
+    public {c}DomainPingOperation(@Qualifier("cpfStarterClock") Clock clock) {{ this.clock = clock; }}
     @Override public String systemCode() {{ return "{d.system_code}"; }}
     @Override public String operationId() {{ return "ping"; }}
     @Override public Class<CpfDomainPingRequest> requestType() {{ return CpfDomainPingRequest.class; }}
@@ -2026,7 +2029,9 @@ def render_sample_business_domain_operations(d: DomainDefinition) -> dict[str,st
             f"import {service};\nimport {req_fq};\nimport {resp_fq};\n"
             f"import org.springframework.stereotype.Component;\n\n"
             f"/** @CpfOnlineTransaction {d.sample_tx_id}_{op}의 typed Same-JVM/Remote 공통 adapter입니다. */\n"
-            f"@Component\npublic final class {cls} implements CpfDomainOperation<{req}, {resp}> {{\n"
+            # Spring AOP observes this canonical operation boundary. CGLIB is the repository-wide
+            # proxy strategy, so generated operation adapters must remain proxyable.
+            f"@Component\npublic class {cls} implements CpfDomainOperation<{req}, {resp}> {{\n"
             f"    private final SampleTransactionService service;\n"
             f"    public {cls}(SampleTransactionService service) {{ this.service=service; }}\n"
             f"    @Override public String systemCode() {{ return \"{d.system_code}\"; }}\n"

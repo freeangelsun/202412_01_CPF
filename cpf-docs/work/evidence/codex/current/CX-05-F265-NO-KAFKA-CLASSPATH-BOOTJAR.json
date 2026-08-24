@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-265",
+  "sourceIdentitySha256": "9066b73be7926d7432d8f898e01c249ecb85c0d80b960a78e174a856ebb82af9",
+  "startedAt": "2026-08-24T14:34:00+09:00",
+  "finishedAt": "2026-08-24T14:35:00+09:00",
+  "runtimeClasspath": {
+    "gradleExitCode": 0,
+    "lineCount": 1065,
+    "caseInsensitiveKafkaOrRemoteKafkaHits": 0,
+    "result": "PASS"
+  },
+  "bootJar": {
+    "path": "cpf-batch/center-cut/build/libs/cpf-batch-center-cut-1.0.0-SNAPSHOT.jar",
+    "bytes": 69815372,
+    "sha256": "290e07e395a06bedf50571758179d8a73cd6282009a58637b5c77a8733d6e970",
+    "entries": 296,
+    "kafkaEntries": 0,
+    "result": "PASS"
+  },
+  "constraints": [
+    "No Gradle exclusion was used to disguise a transitive dependency.",
+    "The actual resolved runtimeClasspath and actual executable archive were inspected."
+  ]
+}

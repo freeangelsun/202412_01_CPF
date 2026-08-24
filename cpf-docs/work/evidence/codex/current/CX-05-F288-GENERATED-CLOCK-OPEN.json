@@ -1,0 +1,19 @@
+{
+  "finding": "CX-F-288",
+  "status": "IN_PROGRESS",
+  "observedAt": "2026-08-24T16:53:05+09:00",
+  "sourceIdentitySha256": "64b25c8f3c5c515020fb37732906f267b0adcd90b1638de54ebb2eede6df65f7",
+  "runtime": "cpf-member online exact Java 25 bootJar",
+  "physicalEvidence": "CX-05-F282-E2E2/runtime/mbr/stdout.log",
+  "driverProof": "BOOT-INF/lib/mariadb-java-client-3.5.8.jar",
+  "failure": "NoUniqueBeanDefinitionException: Clock candidates cpfCommonClock and cpfStarterClock",
+  "firstConsumer": "member.sample.service.SampleTransactionService constructor parameter 3",
+  "additionalAffectedCanonicalOutput": "sample DomainPingOperation",
+  "owner": "cpf-tools/generator/engine/cpf_domain_generator.py",
+  "prohibitedWorkarounds": [
+    "mark either Clock Primary",
+    "remove mandatory Common",
+    "edit only cpf-member",
+    "disable generated sample"
+  ]
+}

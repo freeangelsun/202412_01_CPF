@@ -7,6 +7,26 @@ plugins {
 
 group = providers.gradleProperty('cpf.domain.packageName').get()
 
+def cpfRuntimeSupportedDbVendors = ['mariadb', 'postgresql', 'oracle'] as Set
+def cpfRuntimeSelectedDbVendor = providers.gradleProperty('cpfDbVendor').orElse(providers.environmentVariable('CPF_DB_VENDOR'))
+def cpfJdbcDriverByVendor = [
+    mariadb: 'org.mariadb.jdbc:mariadb-java-client',
+    postgresql: 'org.postgresql:postgresql',
+    oracle: 'com.oracle.database.jdbc:ojdbc11'
+]
+def cpfRequireRuntimeDbVendor = {
+    def selected = cpfRuntimeSelectedDbVendor.orNull
+    if (selected == null || selected.trim().isEmpty()) {
+        throw new GradleException("DB Vendor가 지정되지 않았습니다. -PcpfDbVendor=<mariadb|postgresql|oracle> 또는 CPF_DB_VENDOR 환경변수를 설정하세요.")
+    }
+    def vendor = selected.trim().toLowerCase(Locale.ROOT)
+    if (!cpfRuntimeSupportedDbVendors.contains(vendor)) {
+        throw new GradleException("Unsupported cpfDbVendor: ${vendor}")
+    }
+    vendor
+}
+def cpfSelectedJdbcDriver = providers.provider { cpfJdbcDriverByVendor[cpfRequireRuntimeDbVendor()] }
+
 dependencies {
     implementation platform("com.cpf:cpf-platform-bom:${cpfPlatformVersion}")
     implementation "com.cpf.starter:cpf-starter:${cpfPlatformVersion}"
@@ -15,9 +35,16 @@ dependencies {
     implementation "com.cpf.starter:cpf-starter-integration-http:${cpfPlatformVersion}"
     implementation "com.cpf.starter:cpf-starter-integration-resilience:${cpfPlatformVersion}"
     implementation "member:online:1.0.0-SNAPSHOT"
+    runtimeOnly cpfSelectedJdbcDriver
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+tasks.register('validateCpfJdbcDriverSelection') {
+    inputs.property('cpfDbVendor', providers.provider { cpfRuntimeSelectedDbVendor.orNull ?: 'UNSET' })
+    doLast { cpfSelectedJdbcDriver.get() }
+}
+tasks.named('processResources') { dependsOn tasks.named('validateCpfJdbcDriverSelection') }
 
 tasks.named('bootJar') { archiveBaseName = 'cpf-external-online' }
 

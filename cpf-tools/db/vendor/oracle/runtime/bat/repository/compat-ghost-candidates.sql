@@ -1,5 +1,5 @@
 SELECT *
-FROM bat_execution
+FROM BAT_EXECUTION
 WHERE execution_status IN ('RUNNING', 'CLAIMED', 'CLAIMING')
   AND last_heartbeat_at < CURRENT_TIMESTAMP(3) - NUMTODSINTERVAL(?, 'SECOND')
 ORDER BY last_heartbeat_at

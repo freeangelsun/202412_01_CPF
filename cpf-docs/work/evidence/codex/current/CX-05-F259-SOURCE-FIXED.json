@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-259",
+  "recordedAt": "2026-08-24T10:21:00+09:00",
+  "sourceIdentitySha256": "bb8910e5139018daa73b77af8a72a0eb127a94a51f38314badea400e023eeb8d",
+  "status": "SOURCE_FIXED",
+  "declaredTableCount": 235,
+  "actualTableCount": 235,
+  "remainingGate": "complete DB3 artifact synchronization and manifest verification"
+}

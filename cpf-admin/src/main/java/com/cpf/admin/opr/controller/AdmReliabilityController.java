@@ -100,7 +100,7 @@ public class AdmReliabilityController extends com.cpf.admin.common.base.AdmBaseC
                 CpfContexts.transactionId(),
                 operatorId,
                 "BROKER_DLQ_REPLAY_APPROVAL_REQUEST",
-                "cpf_broker_dlq",
+                "CPF_BROKER_DLQ",
                 messageId,
                 reason,
                 "{}",

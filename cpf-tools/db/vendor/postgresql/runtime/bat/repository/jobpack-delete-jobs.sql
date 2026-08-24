@@ -1,2 +1,2 @@
-DELETE FROM bat_job_pack_job
+DELETE FROM BAT_JOB_PACK_JOB
 WHERE job_pack_id = ?

@@ -1,4 +1,4 @@
-UPDATE cpf_batch_execution_control
+UPDATE BAT_EXECUTION_CONTROL
    SET control_status = ?,
        unknown_reason = ?,
        unknown_detail = ?,

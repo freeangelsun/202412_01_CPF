@@ -93,9 +93,16 @@ public class CpfRuntimeControlAgentAutoConfiguration {
     @ConditionalOnMissingBean
     CpfRuntimeControlAgent cpfRuntimeControlAgent(
             CpfRuntimeAgentPort controlPlane, CpfRuntimeInstanceRegistration registration,
-            ObjectProvider<CpfRuntimeChangeApplier> appliers, CpfRuntimeInstanceInboxStore inbox) {
+            ObjectProvider<CpfRuntimeChangeApplier> appliers, CpfRuntimeInstanceInboxStore inbox,
+            Environment environment) {
         List<CpfRuntimeChangeApplier> installed = appliers.orderedStream().toList();
-        return new CpfRuntimeControlAgent(controlPlane, registration, installed, inbox);
+        int attempts = bounded(environment.getProperty(
+                "cpf.runtime.control.agent.registration-max-attempts", Integer.class, 5), 1, 20,
+                "cpf.runtime.control.agent.registration-max-attempts");
+        long backoffMillis = bounded(environment.getProperty(
+                "cpf.runtime.control.agent.registration-backoff-millis", Long.class, 100L), 10L, 5_000L,
+                "cpf.runtime.control.agent.registration-backoff-millis");
+        return new CpfRuntimeControlAgent(controlPlane, registration, installed, inbox, attempts, backoffMillis);
     }
 
     private static Map<String,String> prefixed(Environment environment, String prefix) {
@@ -116,6 +123,14 @@ public class CpfRuntimeControlAgentAutoConfiguration {
     private static String required(String value, String name) {
         if (value == null || value.isBlank()) throw new IllegalStateException(name + " is required");
         return value.trim();
+    }
+    private static int bounded(int value, int minimum, int maximum, String name) {
+        if (value < minimum || value > maximum) throw new IllegalStateException(name + " must be between " + minimum + " and " + maximum);
+        return value;
+    }
+    private static long bounded(long value, long minimum, long maximum, String name) {
+        if (value < minimum || value > maximum) throw new IllegalStateException(name + " must be between " + minimum + " and " + maximum);
+        return value;
     }
     private static String first(String first, String second) {
         return first != null && !first.isBlank() ? first.trim() : (second == null || second.isBlank() ? null : second.trim());

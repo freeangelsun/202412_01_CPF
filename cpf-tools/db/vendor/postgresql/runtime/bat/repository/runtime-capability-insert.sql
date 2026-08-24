@@ -1,2 +1,2 @@
-INSERT INTO bat_runtime_capability(instance_id, capability_code)
+INSERT INTO BAT_RUNTIME_CAPABILITY(instance_id, capability_code)
 VALUES (?, ?)

@@ -1,4 +1,4 @@
-INSERT INTO bat_center_cut_rate_window (
+INSERT INTO BAT_CENTER_CUT_RATE_WINDOW (
     center_cut_execution_id,
     window_second,
     admitted_count

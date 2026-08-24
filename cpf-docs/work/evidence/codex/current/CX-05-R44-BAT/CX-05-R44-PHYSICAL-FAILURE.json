@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "runId": "b4200824c044",
+  "transportRunId": "1f5ebfae701c",
+  "startedAt": "2026-08-24T13:26:28.6053829+09:00",
+  "endedAt": "2026-08-24T13:28:20.8328057+09:00",
+  "sourceIdentitySha256": "9a74229d7be6c9badba6d79af4d2d5218cac6ecd6a1324bd8ddd7ee83b7d2f45",
+  "status": "FAILED_AT_EXISTING_F265_DRAIN_BOUNDARY",
+  "exitCode": 1,
+  "closedScopes": {
+    "F271": "six actual Worker replies deserialize, aggregate and complete the Manager Job",
+    "F272": "late dynamic QueueChannel aggregation flow starts, consumes all replies and completes the Manager Job",
+    "F273": "six exact partition-qualified StepExecutions and six durable contexts are counted"
+  },
+  "completed": {
+    "managerStatus": "COMPLETED",
+    "partitions": 6,
+    "distinctWorkers": 2,
+    "jobInstances": 1,
+    "stepExecutions": 6,
+    "stepExecutionContexts": 6
+  },
+  "failure": "The Worker 1 drain request did not enter DRAINING.",
+  "observedDrainCauses": [
+    "The physical harness sent no canonical external Header6 and the Worker rejected POST /internal/v1/worker/drain with HTTP 400 before the controller.",
+    "The live Worker heartbeat also reported brokerConsumerControl=NOT_AVAILABLE and zero broker control ports, so the existing F265 actual-listener control scope remains unresolved independently of the missing harness headers."
+  ],
+  "finding": "CX-F-265",
+  "cleanupRequired": false
+}

@@ -1,0 +1,27 @@
+{
+  "findingId": "CX-F-303",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "95cf615996d4bad67d94ef010133a1cef671aaa40364da2e16ca61d7ae6ba42f",
+    "sha1": "10464d1ac9de5a8032ed9d7521e7684591d99501",
+    "fileCount": 8420,
+    "totalBytes": 56713329
+  },
+  "repairs": [
+    "Canonical CpfContexts transactionId traceId and execution segment take precedence over legacy request/MDC fallbacks",
+    "Resolved inbound operationId is observed without being misrepresented as an outbound target",
+    "LoggingAspect consumes the concrete CpfTransactionSegmentPort and terminates MAIN/INBOUND segments on success or failure",
+    "Transaction summary INSERT persists caller target original and current System codes",
+    "Transaction segment INSERT persists System and Channel lineages in separate canonical columns",
+    "MariaDB PostgreSQL and Oracle runtime projections are synchronized from the canonical templates"
+  ],
+  "databaseSync": {
+    "status": "PASS",
+    "platformStatements": 250,
+    "repositoryFiles": 708,
+    "portableResources": 14,
+    "managedMyBatisFiles": 6,
+    "processedFiles": 728
+  },
+  "immutableMigrationHistoryModified": false
+}

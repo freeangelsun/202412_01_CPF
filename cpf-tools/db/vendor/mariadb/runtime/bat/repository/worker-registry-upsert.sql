@@ -1,4 +1,4 @@
-INSERT INTO bat_worker (
+INSERT INTO BAT_WORKER (
     worker_id,
     instance_id,
     host_name,

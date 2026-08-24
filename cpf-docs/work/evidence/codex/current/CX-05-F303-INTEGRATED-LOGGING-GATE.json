@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "failures": [],
+  "checked": {
+    "fileLogDurability": true,
+    "dbLogDurability": true,
+    "transactionTimeline": true,
+    "admObservability": true,
+    "runtimeFileLogProbe": true,
+    "runtimeDbLogPolicyProbe": true,
+    "runtimeCorrelationProbe": true
+  },
+  "note": "Static closure only; Windows FullLocal runtime stages must PASS for runtime completion."
+}

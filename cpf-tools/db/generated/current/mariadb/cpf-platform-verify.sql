@@ -81,6 +81,7 @@ SELECT 'BAT_ON_DEMAND_REQUEST' AS table_name, COUNT(*) AS present FROM informati
 SELECT 'BAT_OPERATION_LOG' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_OPERATION_LOG';
 SELECT 'BAT_OPERATION_LOG_ARCHIVE' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_OPERATION_LOG_ARCHIVE';
 SELECT 'BAT_OPERATION_REQUEST' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_OPERATION_REQUEST';
+SELECT 'BAT_RECONCILIATION_AUDIT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_RECONCILIATION_AUDIT';
 SELECT 'BAT_REMOTE_MESSAGE_LEDGER' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_REMOTE_MESSAGE_LEDGER';
 SELECT 'BAT_RUNTIME_CAPABILITY' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_RUNTIME_CAPABILITY';
 SELECT 'BAT_RUNTIME_COMMAND' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'BAT_RUNTIME_COMMAND';

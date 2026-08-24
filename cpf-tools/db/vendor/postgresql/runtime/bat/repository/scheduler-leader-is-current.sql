@@ -1,5 +1,5 @@
 SELECT COUNT(*)
-  FROM bat_scheduler_lease
+  FROM BAT_SCHEDULER_LEASE
  WHERE scheduler_key = ?
    AND owner_instance_id = ?
    AND fencing_token = ?

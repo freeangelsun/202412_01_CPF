@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_claim
+UPDATE BAT_CENTER_CUT_CLAIM
    SET lease_until = ?,
        last_heartbeat_at = CURRENT_TIMESTAMP(6),
        claim_status = 'RUNNING'

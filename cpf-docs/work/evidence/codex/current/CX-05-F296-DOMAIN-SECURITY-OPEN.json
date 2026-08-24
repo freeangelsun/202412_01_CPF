@@ -1,0 +1,23 @@
+{
+  "findingId": "CX-F-296",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "7e37182ed4490ec13b9baa4df13d4bc954067fc99e2c779af7cfcf5672492a59",
+  "physicalRun": "CX-05-F282-E2E16",
+  "actual": {
+    "workItems": 20,
+    "workerDistribution": "13/7",
+    "businessRows": 0,
+    "request": "POST /_cpf/domain/MBR/MBR_SAMPLE_TX_CREATE",
+    "response": "401 after default security error dispatch",
+    "rootLog": "Spring Security CsrfFilter rejected the machine request before CpfDomainInvocationGuard"
+  },
+  "rootCause": "secure-api supplies Spring Security, but its resource-server chain is conditional; without an endpoint-scoped CPF chain, Boot's global default chain owns the internal Domain endpoint",
+  "requiredFix": "Narrow stateless /_cpf/domain/** chain authorizing only verified CPF internal ingress, with CSRF disabled only for that machine endpoint; unrelated API security remains unchanged",
+  "prohibited": [
+    "global CSRF disable",
+    "permitAll",
+    "trusting caller headers as identity",
+    "mock/no-op invocation",
+    "weakening the existing Header6 and operation guard"
+  ]
+}

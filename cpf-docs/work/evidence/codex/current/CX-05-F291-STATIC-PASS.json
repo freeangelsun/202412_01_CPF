@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-291",
+  "state": "VERIFICATION_PENDING",
+  "sourceIdentity": "5b5692fa1648b6e230ac4b8d1dd4d64d0c349c36c9ed202f12c66bfdc1e42087",
+  "results": {
+    "focusedRegression": "PASS 3/3",
+    "vendorRenderCheck": "PASS mariadb,postgresql,oracle",
+    "immutableChecksumGate": "PASS all official migration packs and published MariaDB rollbacks",
+    "migrationLifecycle": "PASS migrations=281 rollback=226 forwardRecovery=55",
+    "databaseLifecycleContract": "PASS vendors=3 stages=9"
+  },
+  "remaining": "Fresh physical MariaDB runtime registration and No-Kafka business flow"
+}

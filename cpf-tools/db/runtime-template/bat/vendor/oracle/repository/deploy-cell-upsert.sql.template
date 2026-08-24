@@ -1,4 +1,4 @@
-MERGE INTO bat_deployment_cell target
+MERGE INTO BAT_DEPLOYMENT_CELL target
 USING (
     SELECT ? cell_id, ? environment_id, ? runtime_role, ? service_id,
            ? manifest_version, ? manifest_hash, ? desired_state

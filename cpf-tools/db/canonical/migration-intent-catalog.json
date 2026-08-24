@@ -104,6 +104,20 @@
         "oracle"
       ],
       "lifecycleScenarioId": "CPF-DB3-D012-BACKOFFICE-PERMISSION-001"
+    },
+    {
+      "id": "D-013-GENERIC-RUNTIME-APPLICATION-ROLE",
+      "owner": "cpf-starters/platform-operations/runtime-control",
+      "description": "Append-only widening of the shared OPS Runtime state role contract for canonical non-Batch APPLICATION runtimes while retaining the five-role Batch-only tables unchanged.",
+      "source": "cpf-tools/db/canonical/platform-schema.json",
+      "vendors": [
+        "mariadb",
+        "postgresql",
+        "oracle"
+      ],
+      "allocatedVersion": 137,
+      "observedRepositoryMaxVersionAtAllocation": 136,
+      "lifecycleScenarioId": "CPF-DB3-D013-GENERIC-RUNTIME-ROLE-001"
     }
   ]
 }

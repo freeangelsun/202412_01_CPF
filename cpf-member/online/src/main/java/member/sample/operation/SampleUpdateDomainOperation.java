@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /** @CpfOnlineTransaction MBR_SAMPLE_TX_UPDATE의 typed Same-JVM/Remote 공통 adapter입니다. */
 @Component
-public final class SampleUpdateDomainOperation implements CpfDomainOperation<UpdateSampleCommand, SampleItem> {
+public class SampleUpdateDomainOperation implements CpfDomainOperation<UpdateSampleCommand, SampleItem> {
     private final SampleTransactionService service;
     public SampleUpdateDomainOperation(SampleTransactionService service) { this.service=service; }
     @Override public String systemCode() { return "MBR"; }

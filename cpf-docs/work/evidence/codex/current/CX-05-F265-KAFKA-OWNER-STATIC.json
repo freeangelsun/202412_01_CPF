@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F265-KAFKA-OWNER-STATIC",
+  "startedAt": "2026-08-24T14:13:00+09:00",
+  "finishedAt": "2026-08-24T14:14:00+09:00",
+  "sourceIdentity": "2c6a56091fe060350974bdb8518f16696755d6659d361fcdd2e55000c45cf0be",
+  "command": "python -m unittest cpf-tools.verification.tests.test_batch_kafka_named_provider_contract cpf-tools.verification.tests.test_batch_kafka_runtime_dependency_contract",
+  "exitCode": 0,
+  "tests": 4,
+  "failures": 0,
+  "errors": 0,
+  "assertions": [
+    "Worker, Control Plane and Scheduler retain the optional Kafka provider selection.",
+    "Center-Cut has no direct Kafka Starter, Integration dependency, property or Java reference.",
+    "The shared optional Batch Kafka Remote Transport owner remains packaged."
+  ],
+  "findingStatus": "VERIFICATION_PENDING"
+}

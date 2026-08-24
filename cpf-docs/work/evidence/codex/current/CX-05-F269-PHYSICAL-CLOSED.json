@@ -1,0 +1,7 @@
+{
+  "finding": "CX-F-269",
+  "status": "CLOSED",
+  "sourceIdentitySha256": "bdb54717cb755fae2adea48453d4bb02eb20c53652d22f1b33b935d82f800e8e",
+  "evidence": "Fresh R39 and R40 deliver six real Kafka requests through both live Integration subscribers and both Worker JVMs complete all six cpfRemotePartitionWorkerStep executions. The later reply-codec failure is downstream and independent.",
+  "falseGreenExcluded": ["context-only startup", "mock channel", "help/file presence"]
+}

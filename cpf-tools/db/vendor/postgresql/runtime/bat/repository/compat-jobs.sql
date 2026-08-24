@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_job
+FROM BAT_JOB
 ORDER BY job_id

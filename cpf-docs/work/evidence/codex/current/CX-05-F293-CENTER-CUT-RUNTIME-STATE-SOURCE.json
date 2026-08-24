@@ -1,0 +1,11 @@
+{
+  "finding": "CX-F-293",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "9da09c9be46be01dc57ef2d843c8fb690d68827cc4a1476a0bbd91cdf251fa5e",
+  "sourceSha1": "3b8917cf44dcd407887c707592f2f692c9ec2759",
+  "fileCount": 8403,
+  "totalBytes": 56650157,
+  "owner": "cpf-batch/center-cut",
+  "readinessInputs": ["qualified batDataSource physical connection", "concrete CenterCutTargetProvider cardinality"],
+  "falseGreenProhibited": ["shared fallback", "always-ready state", "no-op provider", "disabled RuntimeCommonConfiguration"]
+}

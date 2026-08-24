@@ -1,0 +1,17 @@
+{
+  "findingId": "CX-F-266",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-24T11:24:00+09:00",
+  "sourceIdentity": {
+    "sha256": "c239ef5ec58e50dec129dc2a8e8dd93702a49131b797070c90c1a4b20dfb16e5",
+    "sha1": "bc250b37bf84fdae4e00fae7122eb484b5f0011f",
+    "files": 8273,
+    "bytes": 56516172
+  },
+  "fix": "Runtime Agent retries the complete proxied registration call only for Spring/JDBC transient failures with bounded exponential backoff. Fencing and permanent failures remain immediate fail-closed outcomes.",
+  "configuration": {
+    "cpf.runtime.control.agent.registration-max-attempts": {"default": 5, "range": "1..20"},
+    "cpf.runtime.control.agent.registration-backoff-millis": {"default": 100, "range": "10..5000"}
+  },
+  "remaining": "Java 25 targeted regression and Fresh concurrent physical replay"
+}

@@ -1,4 +1,4 @@
-INSERT INTO bat_center_cut_result (
+INSERT INTO BAT_CENTER_CUT_RESULT (
     center_cut_item_id,
     center_cut_job_id,
     result_status,
@@ -20,5 +20,5 @@ SELECT center_cut_item_id,
        parent_segment_id,
        'CENTER_CUT',
        'CENTER_CUT'
-  FROM bat_center_cut_item
+  FROM BAT_CENTER_CUT_ITEM
  WHERE center_cut_item_id = ?

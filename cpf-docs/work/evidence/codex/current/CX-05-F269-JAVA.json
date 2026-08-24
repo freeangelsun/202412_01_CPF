@@ -1,0 +1,10 @@
+{
+  "findingId": "CX-F-269",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentitySha256": "957a70ee01475145dce243fb56730830f9c63772350e73291c340f3986ad1197",
+  "environment": "Java 25.0.3; Gradle wrapper; max-workers=2; no-daemon",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=2 :runtime:batch:runtime:test --tests com.cpf.batch.execution.CpfBatchRemoteWorkerConfigurationTest",
+  "result": {"status": "BUILD SUCCESSFUL", "tests": 1, "failures": 0, "errors": 0, "skipped": 0, "durationSeconds": 23},
+  "assertion": "Both actual Worker DirectChannels have exactly one live IntegrationFlow subscriber after context refresh.",
+  "closurePending": "Worker bootJar rebuild and Fresh physical replay"
+}

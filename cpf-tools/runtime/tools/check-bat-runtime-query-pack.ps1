@@ -21,6 +21,7 @@ $failures = [System.Collections.Generic.List[string]]::new()
 $inlineSqlPattern = '(?is)(?:"""|")\s*(?:(?:SELECT|INSERT|UPDATE|MERGE)\b|DELETE\s+FROM\b)'
 $expectedMigrationScopes = @(
     "cpf-batch/worker/src/main/java",
+    "cpf-batch/center-cut-runtime/src/main/java",
     "cpf-batch/scheduler/src/main/java",
     "cpf-batch/center-cut/src/main/java",
     "cpf-batch/control-plane/src/main/java",
@@ -46,7 +47,7 @@ function ConvertTo-BatScopeArray {
 $migrationScopes = @(ConvertTo-BatScopeArray -Value $contract.migrationScope)
 $remainingScopes = @(ConvertTo-BatScopeArray -Value $contract.remainingScope)
 if (($migrationScopes -join "`n") -cne ($expectedMigrationScopes -join "`n")) {
-    $failures.Add("BAT migrationScope must contain only the five owned main Java roots.")
+    $failures.Add("BAT migrationScope must contain only the six owned main Java roots.")
 }
 foreach ($scope in $remainingScopes) {
     if ($expectedMigrationScopes -cnotcontains $scope) {
@@ -124,9 +125,12 @@ foreach ($scope in $remainingScopes) {
 foreach ($vendor in $vendors) {
     $packPath = Join-Path $Root "cpf-tools\db\vendor\$vendor\pack.json"
     $pack = Get-Content -Raw -Encoding UTF8 -LiteralPath $packPath | ConvertFrom-Json
-    $descriptor = $pack.runtimeModules.bat
-    if ($null -eq $descriptor -or [string] $descriptor.ownerArtifact -cne "cpf-batch") {
-        $failures.Add("pack.json BAT Runtime ownership is missing: vendor=$vendor")
+    $expectedRuntimeRoot = "cpf-tools/db/vendor/$vendor/runtime"
+    if ([int] $pack.schemaVersion -lt 5 -or
+            [string] $pack.owner -cne "cpf-tools/db" -or
+            [string] $pack.currentSnapshotAuthority -cne "CANONICAL_JSON_GENERATED_VENDOR_PACK" -or
+            [string] $pack.runtimeRoot -cne $expectedRuntimeRoot) {
+        $failures.Add("pack.json canonical Runtime ownership is invalid: vendor=$vendor")
     }
 }
 

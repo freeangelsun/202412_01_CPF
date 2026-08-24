@@ -81,7 +81,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
             if (fresh) {
                 insertOperation(operation, request.instanceId(), now);
                 inserted++;
-                seeded += seedPolicy(operationId, now);
+                seeded += seedPolicy(systemCode, operationId, now);
             } else {
                 updateOperation(operation, request.instanceId(), now);
                 updated++;
@@ -254,7 +254,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
         }
     }
 
-    private int seedPolicy(String operationId, Timestamp now) {
+    private int seedPolicy(String targetSystemCode, String operationId, Timestamp now) {
         boolean all = defaultAllowedCallers.contains("ALL");
         jdbc.update(
                 sql.required("operation-policy-insert-seed"),
@@ -269,6 +269,7 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
         int rows = 1;
         if (!all) {
             for (String caller : defaultAllowedCallers) {
+                rows += seedSystemDomainAccess(caller, targetSystemCode, now);
                 jdbc.update(
                         sql.required("operation-caller-policy-insert-seed"),
                         operationId,
@@ -283,6 +284,30 @@ public final class CpfJdbcOperationCatalogRegistry implements CpfOperationCatalo
             }
         }
         return rows;
+    }
+
+    /**
+     * An explicit initial operation caller also needs the first-level System-to-Domain relation.
+     * Only a missing relation is initialized: an existing ADM-owned allow or deny is immutable here.
+     * ALL remains symbolic and never expands into cross-system grants.
+     */
+    private int seedSystemDomainAccess(String callerSystemCode, String targetSystemCode, Timestamp now) {
+        if (callerSystemCode.equals(targetSystemCode)) return 0;
+        Integer count = jdbc.queryForObject(
+                sql.required("operation-system-domain-access-exists"),
+                Integer.class,
+                callerSystemCode,
+                targetSystemCode);
+        if (count != null && count > 0) return 0;
+        jdbc.update(
+                sql.required("operation-system-domain-access-insert-seed"),
+                callerSystemCode,
+                targetSystemCode,
+                "Initial explicit operation caller System-to-Domain seed [source="
+                        + seedSource + ", revision=" + seedRevision + "]",
+                now,
+                now);
+        return 1;
     }
 
     private static String required(String value, String field) {

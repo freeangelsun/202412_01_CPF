@@ -1,0 +1,21 @@
+{
+  "findingId": "CX-F-255",
+  "status": "IN_PROGRESS",
+  "observedAt": "2026-08-24T11:05:00+09:00",
+  "runId": "b4200824c031",
+  "sourceIdentitySha256": "c76d361dbc73fb470180f841a93625733f8ebaa7a8f140fe5a6fa34372ba4ef2",
+  "rootCauseExtension": "The first physical-identifier inventory recognized bat_* legacy names but omitted four active cpf_batch_* legacy names used by the approved-launch and execution-control owners.",
+  "affectedLegacyNames": [
+    "cpf_batch_approved_launch",
+    "cpf_batch_execution_control",
+    "cpf_batch_execution_epoch",
+    "cpf_batch_execution_link"
+  ],
+  "canonicalTargets": [
+    "BAT_APPROVED_LAUNCH",
+    "BAT_EXECUTION_CONTROL",
+    "BAT_EXECUTION_EPOCH",
+    "BAT_EXECUTION_LINK"
+  ],
+  "requiredClosure": "Repair the canonical authoring templates, strengthen the inventory against all canonical currentName-to-targetTableName mappings, regenerate DB3, and replay the actual manager path on case-sensitive Linux MariaDB."
+}

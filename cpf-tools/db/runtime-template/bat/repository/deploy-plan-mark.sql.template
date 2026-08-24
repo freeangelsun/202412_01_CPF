@@ -1,4 +1,4 @@
-UPDATE bat_deployment_plan
+UPDATE BAT_DEPLOYMENT_PLAN
 SET plan_state = ?,
     updated_at = @NOW6@
 WHERE plan_id = ?

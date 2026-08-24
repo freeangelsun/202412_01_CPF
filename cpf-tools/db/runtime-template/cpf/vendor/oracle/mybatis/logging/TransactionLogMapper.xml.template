@@ -3,20 +3,20 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.cpf.core.mapper.common.logging.TransactionLogMapper">
+<mapper namespace="com.cpf.data.persistence.mybatis.mapper.logging.TransactionLogMapper">
 
     <!-- durable fallback 재적재가 이미 완료됐는지 중복 방지 키로 확인합니다. -->
     <select id="existsRecoveryEvent" resultType="boolean">
-        SELECT CASE WHEN EXISTS (SELECT 1 FROM cpf_transaction_log WHERE RECOVERY_EVENT_ID = #{recoveryEventId}) THEN 1 ELSE 0 END FROM dual
+        SELECT CASE WHEN EXISTS (SELECT 1 FROM CPF_TRANSACTION_LOG WHERE RECOVERY_EVENT_ID = #{recoveryEventId}) THEN 1 ELSE 0 END FROM dual
     </select>
 
-    <!-- cpf_transaction_log 테이블에 거래 요약 로그를 저장합니다. -->
+    <!-- CPF_TRANSACTION_LOG 테이블에 거래 요약 로그를 저장합니다. -->
     <insert id="insertTransactionLog"
             parameterType="com.cpf.platform.operations.observability.spi.logging.TransactionLogRecord"
             useGeneratedKeys="true"
             keyProperty="logIdx"
             keyColumn="LOG_IDX">
-        INSERT INTO cpf_transaction_log (
+        INSERT INTO CPF_TRANSACTION_LOG (
             LOG_DATE,
             RECOVERY_EVENT_ID,
             TRANSACTION_ID,
@@ -32,6 +32,10 @@
             API_VERSION,
             CLIENT_ID,
             CLIENT_VERSION,
+            CALLER_SYSTEM_CODE,
+            TARGET_SYSTEM_CODE,
+            ORIGINAL_SYSTEM_CODE,
+            SYSTEM_CODE,
             CALLER_CHANNEL,
             TARGET_CHANNEL,
             TARGET_OPERATION_ID,
@@ -114,6 +118,10 @@
             #{apiVersion},
             #{clientId},
             #{clientVersion},
+            #{callerSystemCode},
+            #{targetSystemCode},
+            #{originalSystemCode},
+            #{systemCode},
             #{callerChannel},
             #{targetChannel},
             #{targetOperationId},
@@ -183,9 +191,9 @@
         )
     </insert>
 
-    <!-- cpf_transaction_log_detail 테이블에 요청/응답 본문 같은 상세 로그를 저장합니다. -->
+    <!-- CPF_TRANSACTION_LOG_DETAIL 테이블에 요청/응답 본문 같은 상세 로그를 저장합니다. -->
     <insert id="insertTransactionLogDetail" parameterType="map">
-        INSERT INTO cpf_transaction_log_detail (
+        INSERT INTO CPF_TRANSACTION_LOG_DETAIL (
             LOG_IDX,
             DETAIL_KEY,
             DETAIL_VALUE,

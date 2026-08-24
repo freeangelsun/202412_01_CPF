@@ -15,7 +15,9 @@ import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.dao.TransientDataAccessException;
 
+import java.sql.SQLTransientException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +38,9 @@ public class CpfRuntimeControlAgent {
     private final CpfRuntimeInstanceRegistration registration;
     private final Map<String, CpfRuntimeChangeApplier> appliers;
     private final CpfRuntimeInstanceInboxStore inbox;
+    private final int registrationMaxAttempts;
+    private final long registrationBackoffMillis;
+    private final RegistrationBackoff registrationBackoff;
     private volatile CpfRuntimeInstanceLease lease;
     private volatile String actualHash;
     private volatile long actualVersion;
@@ -44,9 +49,38 @@ public class CpfRuntimeControlAgent {
                                   CpfRuntimeInstanceRegistration registration,
                                   List<CpfRuntimeChangeApplier> appliers,
                                   CpfRuntimeInstanceInboxStore inbox) {
+        this(controlPlane, registration, appliers, inbox, 5, 100L);
+    }
+
+    public CpfRuntimeControlAgent(CpfRuntimeAgentPort controlPlane,
+                                  CpfRuntimeInstanceRegistration registration,
+                                  List<CpfRuntimeChangeApplier> appliers,
+                                  CpfRuntimeInstanceInboxStore inbox,
+                                  int registrationMaxAttempts,
+                                  long registrationBackoffMillis) {
+        this(controlPlane, registration, appliers, inbox, registrationMaxAttempts,
+                registrationBackoffMillis, Thread::sleep);
+    }
+
+    CpfRuntimeControlAgent(CpfRuntimeAgentPort controlPlane,
+                           CpfRuntimeInstanceRegistration registration,
+                           List<CpfRuntimeChangeApplier> appliers,
+                           CpfRuntimeInstanceInboxStore inbox,
+                           int registrationMaxAttempts,
+                           long registrationBackoffMillis,
+                           RegistrationBackoff registrationBackoff) {
         this.controlPlane = controlPlane;
         this.registration = registration;
         this.inbox = inbox;
+        if (registrationMaxAttempts < 1 || registrationMaxAttempts > 20) {
+            throw new IllegalArgumentException("registrationMaxAttempts must be between 1 and 20");
+        }
+        if (registrationBackoffMillis < 10L || registrationBackoffMillis > 5_000L) {
+            throw new IllegalArgumentException("registrationBackoffMillis must be between 10 and 5000");
+        }
+        this.registrationMaxAttempts = registrationMaxAttempts;
+        this.registrationBackoffMillis = registrationBackoffMillis;
+        this.registrationBackoff = registrationBackoff;
         LinkedHashMap<String, CpfRuntimeChangeApplier> map = new LinkedHashMap<>();
         for (CpfRuntimeChangeApplier applier : appliers) {
             String type = normalize(applier.changeType());
@@ -68,7 +102,7 @@ public class CpfRuntimeControlAgent {
 
     @PostConstruct
     public synchronized void start() {
-        lease = controlPlane.register(registration);
+        lease = registerWithTransientRetry();
         actualVersion = lease.actualVersion();
         actualHash = lease.actualHash();
         List<CpfRuntimeActualState> states = inbox.latestAppliedStates();
@@ -79,6 +113,45 @@ public class CpfRuntimeControlAgent {
                 actualHash = latest.actualHash();
             });
         }
+    }
+
+    private CpfRuntimeInstanceLease registerWithTransientRetry() {
+        for (int attempt = 1; attempt <= registrationMaxAttempts; attempt++) {
+            try {
+                // CpfRuntimeAgentPort의 proxied call 하나가 transaction 경계입니다. 실패한 transaction 내부를
+                // 재사용하지 않고 전체 등록 호출만 다시 실행해야 deadlock rollback과 fencing을 모두 보존합니다.
+                return controlPlane.register(registration);
+            } catch (RuntimeException failure) {
+                if (!isTransientRegistrationFailure(failure) || attempt == registrationMaxAttempts) {
+                    throw failure;
+                }
+                long delay = Math.min(5_000L, registrationBackoffMillis * (1L << Math.min(attempt - 1, 10)));
+                log.warn("Runtime Agent transient registration retry. instanceId={} attempt={}/{} delayMs={} cause={}",
+                        registration.instanceId(), attempt, registrationMaxAttempts, delay,
+                        failure.getClass().getSimpleName());
+                try {
+                    registrationBackoff.pause(delay);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("RUNTIME_AGENT_REGISTRATION_RETRY_INTERRUPTED", interrupted);
+                }
+            }
+        }
+        throw new IllegalStateException("RUNTIME_AGENT_REGISTRATION_RETRY_EXHAUSTED");
+    }
+
+    private static boolean isTransientRegistrationFailure(Throwable failure) {
+        Throwable current = failure;
+        for (int depth = 0; current != null && depth < 16; depth++, current = current.getCause()) {
+            if (current instanceof CpfRuntimeFenceException) return false;
+            if (current instanceof TransientDataAccessException || current instanceof SQLTransientException) return true;
+        }
+        return false;
+    }
+
+    @FunctionalInterface
+    interface RegistrationBackoff {
+        void pause(long millis) throws InterruptedException;
     }
 
     @PreDestroy

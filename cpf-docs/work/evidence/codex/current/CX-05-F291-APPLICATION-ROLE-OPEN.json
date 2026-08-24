@@ -1,0 +1,13 @@
+{
+  "finding": "CX-F-291",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "b8b4bd4f782b59f257302ec1b8cba33d5f5b2c4429ebe7da7225a8cca005c7cc",
+  "physicalRun": "f282e2e6",
+  "canonicalRuntimeDefault": "APPLICATION",
+  "rejectedTable": "OPS_RUNTIME_INSTANCE_STATE",
+  "currentOpsAllowedRoles": ["CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT", "AGENT"],
+  "requiredOpsAllowedRoles": ["APPLICATION", "CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT", "AGENT"],
+  "batchOnlyTablesUnchanged": ["BAT_RUNTIME_INSTANCE", "BAT_DEPLOYMENT_CELL"],
+  "requiredMigration": 137,
+  "officialVendors": ["mariadb", "postgresql", "oracle"]
+}

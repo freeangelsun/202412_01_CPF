@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:17:00+09:00",
+  "finishedAt": "2026-08-24T15:19:00+09:00",
+  "sourceIdentitySha256": "5b95faf9e2b31cabef39d812e01b66d930bd8da208c7a7c7f67494f4ad15d804",
+  "contract": {"tests": 2, "passed": 2, "execution": "direct maintained functions because host pytest is unavailable"},
+  "agentBootJar": {
+    "bytes": 34661896,
+    "sha256": "2E9A13A77B497DAFF69FED2490C067A5644A4360553A6F19F62925C94F25A542",
+    "packagedSharedRuntimeImportCount": 1
+  },
+  "build": "SUCCESSFUL",
+  "status": "VERIFICATION_PENDING",
+  "remaining": "Fresh five-executable boot."
+}

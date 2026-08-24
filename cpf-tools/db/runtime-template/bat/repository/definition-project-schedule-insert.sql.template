@@ -1,4 +1,4 @@
-INSERT INTO bat_schedule (
+INSERT INTO BAT_SCHEDULE (
   schedule_id,job_id,definition_version,definition_checksum,cron_expression,timezone,
   enabled_yn,created_by,created_at,updated_by,updated_at
 )

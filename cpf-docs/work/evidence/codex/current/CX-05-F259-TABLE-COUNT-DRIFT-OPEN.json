@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-259",
+  "recordedAt": "2026-08-24T10:20:00+09:00",
+  "sourceIdentitySha256": "64621e2228c4389baeee41bb6a601859160737cfbd325c0a5a5b0750f403f92a",
+  "status": "IN_PROGRESS",
+  "failedGate": "CPF_DB_SCHEMA_MANIFEST",
+  "declaredTableCount": 234,
+  "actualTableCount": 235,
+  "rootCause": "F257 added the active BAT reconciliation audit table but did not advance redundant canonical count metadata",
+  "requiredFix": "make declared count exact and rerun the complete artifact synchronization"
+}

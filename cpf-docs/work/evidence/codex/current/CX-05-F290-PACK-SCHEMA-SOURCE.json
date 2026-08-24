@@ -1,0 +1,13 @@
+{
+  "finding": "CX-F-290",
+  "status": "SOURCE_FIXED",
+  "sourceIdentitySha256": "b8b4bd4f782b59f257302ec1b8cba33d5f5b2c4429ebe7da7225a8cca005c7cc",
+  "sourceIdentitySha1": "3c2a02277f6745171d8d4c3b937456959948019d",
+  "fileCount": 8392,
+  "totalBytes": 56632579,
+  "supportedPackSchemaVersion": 5,
+  "officialVendors": ["mariadb", "postgresql", "oracle"],
+  "positiveTestVersion": 5,
+  "negativeTestVersions": [1, 4, 6],
+  "otherManifestAndPathChecksRetained": true
+}

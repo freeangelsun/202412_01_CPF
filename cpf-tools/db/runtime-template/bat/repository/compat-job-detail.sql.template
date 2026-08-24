@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_job
+FROM BAT_JOB
 WHERE job_id = ?

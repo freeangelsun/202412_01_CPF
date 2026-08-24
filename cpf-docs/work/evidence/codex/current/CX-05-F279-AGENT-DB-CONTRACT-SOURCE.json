@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:15:00+09:00",
+  "finishedAt": "2026-08-24T15:17:00+09:00",
+  "sourceIdentity": {
+    "sha256": "5b95faf9e2b31cabef39d812e01b66d930bd8da208c7a7c7f67494f4ad15d804",
+    "sha1": "fe186c995c12bc155cbd5e680f15c7318930a04d",
+    "fileCount": 8288,
+    "totalBytes": 56600160
+  },
+  "changes": [
+    "Agent imports application-bat-runtime.yml like the other four Batch executables.",
+    "A maintained five-owner contract asserts the shared import, BAT module identity, exact Runtime role, and external database/secret markers."
+  ],
+  "status": "SOURCE_FIXED",
+  "verification": "Static contract, Agent bootJar and Fresh five-executable Runtime pending."
+}

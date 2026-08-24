@@ -1,0 +1,25 @@
+{
+  "finding": "CX-F-288",
+  "status": "SOURCE_FIXED",
+  "sourceIdentitySha256": "24bf3c7077ac8ef3a8812d29e85c50a9846a3f2ae00cbde3fc7c3e60cff01cd7",
+  "sourceIdentitySha1": "3a702b7c912a07bc6d9d3cb5ea2b5f22a728006c",
+  "fileCount": 8390,
+  "totalBytes": 56629410,
+  "ownerChanges": [
+    "Generator SampleTransactionService selects cpfStarterClock",
+    "Generator DomainPingOperation selects cpfStarterClock",
+    "fresh-generate regression inspects both consumers"
+  ],
+  "canonicalSync": {
+    "status": "PASS",
+    "domains": 3,
+    "updatedPersistentSources": 4,
+    "deleteCandidates": 0
+  },
+  "persistentConsumers": [
+    "cpf-member online sample service",
+    "cpf-member online ping operation",
+    "cpf-external online sample service",
+    "cpf-external online ping operation"
+  ]
+}

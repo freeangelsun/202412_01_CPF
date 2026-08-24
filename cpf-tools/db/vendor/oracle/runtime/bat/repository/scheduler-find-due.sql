@@ -10,8 +10,8 @@ SELECT s.schedule_id,
        s.next_fire_at,
        s.definition_version,
        s.definition_checksum
-  FROM bat_schedule s
-  JOIN bat_job j
+  FROM BAT_SCHEDULE s
+  JOIN BAT_JOB j
     ON j.job_id = s.job_id
  WHERE s.enabled_yn = 'Y'
    AND j.use_yn = 'Y'

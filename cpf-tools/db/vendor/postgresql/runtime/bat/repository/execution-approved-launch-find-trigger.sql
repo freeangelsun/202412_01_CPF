@@ -1,5 +1,5 @@
 SELECT launch_request_json
-  FROM cpf_batch_approved_launch
+  FROM BAT_APPROVED_LAUNCH
  WHERE job_id = ?
    AND definition_version = ?
    AND definition_checksum = ?

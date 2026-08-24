@@ -7,6 +7,7 @@
   "generatedPackPath": "runtime/bat/repository",
   "migrationScope": [
     "cpf-batch/worker/src/main/java",
+    "cpf-batch/center-cut-runtime/src/main/java",
     "cpf-batch/scheduler/src/main/java",
     "cpf-batch/center-cut/src/main/java",
     "cpf-batch/control-plane/src/main/java",
@@ -481,6 +482,7 @@
         "nextCursor",
         "targetCompleteYn",
         "insertedCount",
+        "targetCompleteForApprovalYn",
         "executionState",
         "executionId"
       ]
@@ -629,6 +631,8 @@
       "consumer": "JdbcCenterCutClaimRepository.complete",
       "parameters": [
         "itemStatus",
+        "retryStatus",
+        "completionStatus",
         "errorMessage",
         "itemId"
       ]
@@ -1532,16 +1536,13 @@
       "consumer": "BatOperationLogRetentionHandler.execute",
       "parameters": [
         "archivedBy",
-        "archiveReason",
-        "cutoff"
+        "archiveReason"
       ]
     },
     {
       "key": "retention-operation-log-purge",
       "consumer": "BatOperationLogRetentionHandler.execute",
-      "parameters": [
-        "cutoff"
-      ]
+      "parameters": []
     },
     {
       "key": "scheduler-trigger-find-dispatchable",
@@ -2154,6 +2155,131 @@
         "updatedBy",
         "executionRequestId"
       ]
+    },
+    {
+      "key": "risk-command-reserve",
+      "consumer": "JdbcBatchRiskCommandLedger.reserve",
+      "parameters": ["idempotencyKey", "requestHash", "operationType", "targetType", "targetId", "actionType", "approvalRequestId", "requestedBy", "expectedVersion", "createdBy", "updatedBy"]
+    },
+    {
+      "key": "risk-command-complete",
+      "consumer": "JdbcBatchRiskCommandLedger.update",
+      "parameters": ["requestState", "resultPayload", "failureCode", "failureMessage", "updatedBy", "idempotencyKey", "requestHash"]
+    },
+    {
+      "key": "risk-command-find",
+      "consumer": "JdbcBatchRiskCommandLedger.find",
+      "parameters": ["idempotencyKey"]
+    },
+    {
+      "key": "retention-operation-log-find-ids",
+      "consumer": "BatOperationLogRetentionHandler.execute",
+      "parameters": ["cutoffAt"]
+    },
+    {
+      "key": "retention-policy-find-due",
+      "consumer": "BatRetentionExecutionRepository.findDuePolicyIds",
+      "parameters": ["now"]
+    },
+    {
+      "key": "retention-policy-list",
+      "consumer": "BatRetentionExecutionRepository.findPolicies",
+      "parameters": []
+    },
+    {
+      "key": "retention-policy-find",
+      "consumer": "BatRetentionExecutionRepository.findPolicy",
+      "parameters": ["policyId"]
+    },
+    {
+      "key": "retention-policy-update",
+      "consumer": "BatRetentionExecutionRepository.savePolicy",
+      "parameters": ["targetName", "actionName", "retentionDays", "scheduleExpression", "maintenanceStart", "maintenanceEnd", "enabledYn", "legalHoldYn", "chunkSize", "throttleMillis", "maxRowsPerRun", "maxRuntimeSeconds", "leaseSeconds", "policyVersion", "nextRunAt", "updatedBy", "policyId", "rowVersion"]
+    },
+    {
+      "key": "retention-policy-insert",
+      "consumer": "BatRetentionExecutionRepository.savePolicy",
+      "parameters": ["policyId", "targetName", "actionName", "retentionDays", "scheduleExpression", "maintenanceStart", "maintenanceEnd", "enabledYn", "legalHoldYn", "chunkSize", "throttleMillis", "maxRowsPerRun", "maxRuntimeSeconds", "leaseSeconds", "policyVersion", "nextRunAt", "createdBy", "updatedBy"]
+    },
+    {
+      "key": "retention-policy-claim",
+      "consumer": "BatRetentionExecutionRepository.claim",
+      "parameters": ["leaseOwner", "leaseUntil", "policyId", "now", "sameOwner"]
+    },
+    {
+      "key": "retention-policy-claim-version",
+      "consumer": "BatRetentionExecutionRepository.claim",
+      "parameters": ["leaseOwner", "leaseUntil", "policyId", "rowVersion", "now", "sameOwner"]
+    },
+    {
+      "key": "retention-policy-renew",
+      "consumer": "BatRetentionExecutionRepository.renewLease",
+      "parameters": ["leaseUntil", "policyId", "leaseOwner", "now"]
+    },
+    {
+      "key": "retention-policy-release",
+      "consumer": "BatRetentionExecutionRepository.release",
+      "parameters": ["nextRunAt", "policyId", "leaseOwner"]
+    },
+    {
+      "key": "retention-policy-pause",
+      "consumer": "BatRetentionExecutionRepository.setPolicyPaused",
+      "parameters": ["pausedYn", "updatedBy", "policyId", "rowVersion"]
+    },
+    {
+      "key": "retention-run-insert",
+      "consumer": "BatRetentionExecutionRepository.createRun",
+      "parameters": ["runId", "policyId", "triggerType", "status", "runtimeInstanceId", "actorId", "reason", "policyVersion", "cutoffAt", "startedAt", "matchedCount", "archivedCount", "deletedCount", "processedCount", "compressedCount", "freedBytes", "pauseRequestedYn"]
+    },
+    {
+      "key": "retention-run-find",
+      "consumer": "BatRetentionExecutionRepository.findRun",
+      "parameters": ["runId"]
+    },
+    {
+      "key": "retention-run-list",
+      "consumer": "BatRetentionExecutionRepository.findRuns",
+      "parameters": []
+    },
+    {
+      "key": "retention-run-list-policy",
+      "consumer": "BatRetentionExecutionRepository.findRuns",
+      "parameters": ["policyId"]
+    },
+    {
+      "key": "retention-run-request-pause",
+      "consumer": "BatRetentionExecutionRepository.requestPause",
+      "parameters": ["controlActorId", "controlReason", "runId", "policyRowVersion"]
+    },
+    {
+      "key": "retention-run-pause-requested",
+      "consumer": "BatRetentionExecutionRepository.pauseRequested",
+      "parameters": ["runId"]
+    },
+    {
+      "key": "retention-run-mark-running",
+      "consumer": "BatRetentionExecutionRepository.markRunning",
+      "parameters": ["runtimeInstanceId", "actorId", "controlActorId", "runId"]
+    },
+    {
+      "key": "retention-run-progress",
+      "consumer": "BatRetentionExecutionRepository.progress",
+      "parameters": ["matchedCount", "archivedCount", "deletedCount", "processedCount", "compressedCount", "freedBytes", "runId"]
+    },
+    {
+      "key": "retention-run-finish",
+      "consumer": "BatRetentionExecutionRepository.finish",
+      "parameters": ["status", "errorCode", "errorSummary", "runId"]
+    },
+    {
+      "key": "retention-audit-insert",
+      "consumer": "BatRetentionExecutionRepository.audit",
+      "parameters": ["auditId", "operationType", "targetType", "targetId", "requestedBy", "approvedBy", "approvalRequestId", "reasonText", "expectedVersion", "resultState"]
+    },
+    {
+      "key": "retention-audit-find-approval",
+      "consumer": "BatRetentionExecutionRepository.findAuditsByApprovalRequestId",
+      "parameters": ["approvalRequestId"]
     }
   ],
   "verificationStatus": "미검증",

@@ -1,5 +1,5 @@
 SELECT *
-FROM bat_execution
+FROM BAT_EXECUTION
 WHERE (? IS NULL OR job_id = ?)
   AND (? IS NULL OR transaction_id = ?)
   AND (? IS NULL OR spring_batch_job_instance_id = ?)

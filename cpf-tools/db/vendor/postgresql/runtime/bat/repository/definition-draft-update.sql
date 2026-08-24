@@ -1,4 +1,4 @@
-UPDATE bat_job_definition_version
+UPDATE BAT_JOB_DEFINITION_VERSION
 SET job_name = ?,executor_type = ?,definition_state = ?,owner_domain = ?,description = ?,
     trigger_type = ?,trigger_expression = ?,timezone_id = ?,misfire_policy = ?,agent_pool = ?,
     zone_id = ?,max_concurrency = ?,timeout_seconds = ?,restartable_yn = ?,max_attempts = ?,

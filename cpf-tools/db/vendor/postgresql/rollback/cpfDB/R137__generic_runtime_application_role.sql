@@ -1,0 +1,10 @@
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM OPS_RUNTIME_INSTANCE_STATE WHERE runtime_role = 'APPLICATION') THEN
+        RAISE EXCEPTION 'R137 blocked: APPLICATION Runtime registrations still exist';
+    END IF;
+END $$;
+ALTER TABLE OPS_RUNTIME_INSTANCE_STATE DROP CONSTRAINT ck_ops_runtime_instance_role;
+ALTER TABLE OPS_RUNTIME_INSTANCE_STATE
+    ADD CONSTRAINT ck_ops_runtime_instance_role
+    CHECK (runtime_role IS NULL OR runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'));

@@ -1,0 +1,22 @@
+{
+  "findingId": "CX-F-255",
+  "status": "VERIFICATION_PENDING",
+  "verifiedAt": "2026-08-24T11:10:00+09:00",
+  "sourceIdentitySha256": "81d801b2804f4011f793cce90504e8d3c0eda1e38ca638c2b8f55e7f68604994",
+  "queryPackSync": {
+    "status": "PASS",
+    "statements": 216,
+    "vendors": 3,
+    "renderedFiles": 648,
+    "prunedFiles": 0
+  },
+  "queryContractIntegrity": "PASS",
+  "legacyPhysicalIdentifierCount": 0,
+  "scope": [
+    "canonical BAT SQL authoring templates",
+    "MariaDB generated BAT Runtime pack",
+    "PostgreSQL generated BAT Runtime pack",
+    "Oracle generated BAT Runtime pack"
+  ],
+  "remaining": "Fresh case-sensitive Linux MariaDB manager-to-worker replay"
+}

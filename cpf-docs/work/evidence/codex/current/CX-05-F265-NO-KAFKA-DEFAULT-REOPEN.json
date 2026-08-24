@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-265",
+  "state": "IN_PROGRESS",
+  "openedBeforeSourceEdit": true,
+  "sourceIdentity": "c44c3f6b582018d5000665063cb5732ad740936c2cefc00d38671c95f5b4e675",
+  "freshRun": "f282e2e8",
+  "passedBeforeFailure": [
+    "Fresh 202-table platform and 29-table Backoffice DB3",
+    "Generated MBR liveness 200",
+    "canonical APPLICATION Runtime registration"
+  ],
+  "failure": "Control Plane broker reliability requires one default binding while canonical no-Kafka run selects none",
+  "rootCause": "Control Plane, Worker and Scheduler package the independent adapter correctly but still make Kafka transport/binding the application defaults; Worker reliability scheduler is not conditional on capability activation.",
+  "prohibited": [
+    "start Kafka",
+    "create a fake binding",
+    "remove fail-closed router validation",
+    "weaken the no-Kafka scenario"
+  ]
+}

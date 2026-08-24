@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_claim
+UPDATE BAT_CENTER_CUT_CLAIM
    SET claim_status = 'EXPIRED',
        released_at = @NOW6@
  WHERE center_cut_item_id = ?

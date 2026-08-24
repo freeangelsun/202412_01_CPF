@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_worker
+FROM BAT_WORKER
 ORDER BY worker_id

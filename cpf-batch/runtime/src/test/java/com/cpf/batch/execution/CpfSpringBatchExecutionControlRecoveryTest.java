@@ -1,6 +1,7 @@
 package com.cpf.batch.execution;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -15,6 +16,9 @@ import com.cpf.batch.api.BatchExecutionLink;
 import com.cpf.batch.api.BatchExecutionReservation;
 import com.cpf.batch.spi.BatchExecutionLedgerPort;
 import com.cpf.batch.spi.BatchFencingPort;
+import com.cpf.batch.execution.internal.context.CpfBatchRuntimeContexts;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +66,12 @@ class CpfSpringBatchExecutionControlRecoveryTest {
     void bindsRecoveredExecutionUsingTheValidatedFence() throws Exception {
         Fixture fixture = new Fixture();
         JobExecution recovered = execution(202L);
-        when(fixture.operator.recover(fixture.previous)).thenReturn(recovered);
+        when(fixture.operator.recover(fixture.previous)).thenAnswer(invocation -> {
+            assertEquals("CPF-EXEC-1", CpfBatchRuntimeContexts.current().batch().processStateId());
+            assertEquals("SPRING_BATCH_RECOVER", CpfBatchRuntimeContexts.current().batch().recoveryId());
+            assertEquals("TX-RECOVER-1", CpfContexts.current().transaction().transactionId());
+            return recovered;
+        });
 
         BatchExecutionLink link = fixture.control.recover(
                 101L, "operator-a", "approved recovery");
@@ -71,6 +80,8 @@ class CpfSpringBatchExecutionControlRecoveryTest {
         assertEquals(202L, link.jobExecutionId());
         verify(fixture.fencing).assertCurrent("BAT.RECOVER", "CPF-EXEC-1", 17L);
         verify(fixture.ledger).bind(link);
+        assertNull(CpfBatchRuntimeContexts.current());
+        assertNull(CpfContexts.current());
     }
 
 
@@ -135,6 +146,13 @@ class CpfSpringBatchExecutionControlRecoveryTest {
         private final CpfBatchJobFactory jobs = mock(CpfBatchJobFactory.class);
         private final BatchExecutionLedgerPort ledger = mock(BatchExecutionLedgerPort.class);
         private final BatchFencingPort fencing = mock(BatchFencingPort.class);
+        private final CpfBatchExecutionContextSupport contextSupport = new CpfBatchExecutionContextSupport(
+                () -> "TX-UNUSED",
+                new CpfExecutionIdGenerator() {
+                    @Override public String newExecutionId() { return "EX-RECOVER-1"; }
+                    @Override public String newSegmentId() { return "SG-RECOVER-1"; }
+                },
+                () -> java.time.LocalDate.of(2026, 8, 5));
         private final JobExecution previous = execution(101L);
         private final CpfSpringBatchExecutionControl control;
 
@@ -142,7 +160,7 @@ class CpfSpringBatchExecutionControlRecoveryTest {
             when(repository.getJobExecution(101L)).thenReturn(previous);
             control = new CpfSpringBatchExecutionControl(
                     operator, repository, jobs, ledger, fencing,
-                    mock(CpfBatchExecutionContextSupport.class));
+                    contextSupport);
         }
     }
 
@@ -190,6 +208,11 @@ class CpfSpringBatchExecutionControlRecoveryTest {
                 .addString("jobId", "BAT.RECOVER")
                 .addLong("definitionVersion", 4L)
                 .addLong("fencingToken", 17L)
+                .addString(CpfBatchExecutionContextSupport.TX, "TX-RECOVER-1")
+                .addString(CpfBatchExecutionContextSupport.ROOT_TX, "TX-RECOVER-1")
+                .addString(CpfBatchExecutionContextSupport.BUSINESS_DATE, "2026-08-05")
+                .addString(CpfBatchExecutionContextSupport.TX_STARTED, "2026-08-05T00:00:00Z")
+                .addString(CpfBatchExecutionContextSupport.ROOT_EXEC, "EX-ROOT-1")
                 .toJobParameters();
         when(execution.getId()).thenReturn(id);
         when(execution.getJobParameters()).thenReturn(parameters);

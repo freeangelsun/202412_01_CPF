@@ -136,7 +136,7 @@ public class CpfBrokerReliabilityAutoConfiguration {
             }
             try (Connection connection = dataSource.getConnection()) {
                 for (String table : List.of(
-                        "cpf_broker_outbox", "cpf_broker_inbox", "cpf_broker_dlq")) {
+                        "CPF_BROKER_OUTBOX", "CPF_BROKER_INBOX", "CPF_BROKER_DLQ")) {
                     try (var result = connection.getMetaData().getTables(
                             connection.getCatalog(), null, table, null)) {
                         if (!result.next()) {

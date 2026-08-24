@@ -1,3 +1,3 @@
 SELECT manifest_json
-FROM bat_deployment_plan
+FROM BAT_DEPLOYMENT_PLAN
 WHERE plan_id = ?

@@ -87,7 +87,7 @@
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
     "crossOwnerReferenceCount": 5
   },
-  "tableCount": 234,
+  "tableCount": 235,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -14594,6 +14594,170 @@
       "productionDefault": true
     },
     {
+      "name": "BAT_RECONCILIATION_AUDIT",
+      "columns": [
+        {
+          "name": "reconciliation_audit_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": true,
+          "onUpdate": null,
+          "comment": "Reconciliation audit sequence"
+        },
+        {
+          "name": "request_id",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Approved reconciliation request identifier"
+        },
+        {
+          "name": "entity_type",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Reconciled entity type"
+        },
+        {
+          "name": "entity_key",
+          "type": "VARCHAR(300)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Canonical reconciled entity identity"
+        },
+        {
+          "name": "from_status",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "State observed before reconciliation"
+        },
+        {
+          "name": "to_status",
+          "type": "VARCHAR(40)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "State established by reconciliation"
+        },
+        {
+          "name": "requester_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Verified reconciliation requester"
+        },
+        {
+          "name": "approver_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Verified independent approver"
+        },
+        {
+          "name": "reason_text",
+          "type": "VARCHAR(1000)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Required operator reason"
+        },
+        {
+          "name": "idempotency_key",
+          "type": "VARCHAR(200)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Single reconciliation outcome key"
+        },
+        {
+          "name": "expected_attempt",
+          "type": "INTEGER",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Expected trigger execution attempt"
+        },
+        {
+          "name": "expected_version",
+          "type": "BIGINT",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Expected entity optimistic version"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(6)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Immutable audit creation time"
+        }
+      ],
+      "primaryKey": [
+        "reconciliation_audit_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uq_bat_reconcile_idem",
+          "columns": [
+            "idempotency_key"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_bat_reconcile_entity",
+          "columns": [
+            "entity_type",
+            "entity_key",
+            "created_at"
+          ]
+        }
+      ],
+      "foreignKeys": [],
+      "checks": [
+        {
+          "name": "ck_bat_reconcile_separation",
+          "expression": "requester_id <> approver_id"
+        }
+      ],
+      "comment": "Immutable BAT UNKNOWN-result reconciliation approval audit",
+      "module": "bat",
+      "logicalDatabase": "cpfDB",
+      "currentLogicalDatabase": "batDB",
+      "currentName": "bat_reconciliation_audit",
+      "logicalOwner": "batch",
+      "targetDatabaseRole": "CPF_PLATFORM_DB",
+      "targetPhysicalDatabase": "cpfDB",
+      "targetTableName": "BAT_RECONCILIATION_AUDIT",
+      "targetTablePrefix": "BAT_",
+      "migrationOwner": "batch",
+      "runtimeConsumer": "batch",
+      "atomicityClass": "PLATFORM_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
       "name": "BAT_REMOTE_MESSAGE_LEDGER",
       "columns": [
         {
@@ -14758,7 +14922,7 @@
       "columns": [
         {
           "name": "instance_id",
-          "type": "VARCHAR(160)",
+          "type": "VARCHAR(120)",
           "nullable": false,
           "default": null,
           "autoIncrement": false,
@@ -14787,7 +14951,7 @@
           "columns": [
             "instance_id"
           ],
-          "refTable": "BAT_RUNTIME_INSTANCE",
+          "refTable": "OPS_SERVICE_INSTANCE",
           "refColumns": [
             "instance_id"
           ],
@@ -15212,7 +15376,7 @@
         },
         {
           "name": "instance_id",
-          "type": "VARCHAR(160)",
+          "type": "VARCHAR(120)",
           "nullable": false,
           "default": null,
           "autoIncrement": false,
@@ -15320,7 +15484,7 @@
           "columns": [
             "instance_id"
           ],
-          "refTable": "BAT_RUNTIME_INSTANCE",
+          "refTable": "OPS_SERVICE_INSTANCE",
           "refColumns": [
             "instance_id"
           ],
@@ -29650,6 +29814,15 @@
           "comment": "CPF transactionId"
         },
         {
+          "name": "execution_id",
+          "type": "VARCHAR(160)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "CPF 실행 인스턴스 ID"
+        },
+        {
           "name": "parent_segment_id",
           "type": "VARCHAR(120)",
           "nullable": true,
@@ -30094,6 +30267,13 @@
         }
       ],
       "indexes": [
+        {
+          "name": "ix_cpf_transaction_segment_execution",
+          "columns": [
+            "execution_id",
+            "started_at"
+          ]
+        },
         {
           "name": "ix_cpf_transaction_segment_transaction",
           "columns": [
@@ -39966,9 +40146,9 @@
         },
         {
           "name": "ck_ops_runtime_instance_role",
-          "expression": "runtime_role IS NULL OR runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')",
+          "expression": "runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')",
           "vendorExpressions": {
-            "mariadb": "runtime_role IS NULL OR BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')"
+            "mariadb": "runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')"
           }
         }
       ],

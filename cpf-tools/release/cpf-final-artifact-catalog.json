@@ -202,6 +202,25 @@
       "documentationArtifactException": "Runtime support is transitive/deployment implementation and is not a supported external compile-time Java API surface."
     },
     {
+      "artifactId": "cpf-batch-remote-kafka",
+      "ownerPath": "cpf-batch/remote-kafka",
+      "kind": "runtime",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/remote-kafka/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment",
+      "publicationClass": "PUBLIC_RUNTIME",
+      "publishSources": false,
+      "publishJavadoc": false,
+      "publicGroupId": "com.cpf.batch",
+      "publicProjectPath": ":runtime:batch:remote-kafka",
+      "documentationArtifactException": "Optional Kafka adapter; the broker-neutral Batch Runtime and Center-Cut do not require this artifact."
+    },
+    {
       "artifactId": "cpf-batch-control-plane",
       "ownerPath": "cpf-batch/control-plane",
       "kind": "runtime",

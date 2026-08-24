@@ -11,7 +11,16 @@ import java.util.List;
 import java.util.Map;
 
 public final class RuntimeIdentityFactory {
+    private static final String CANONICAL_BATCH_SERVICE_ID = "BAT";
+
     private RuntimeIdentityFactory() {}
+
+    public static RuntimeRegistration fromBatchEnvironment(
+            Environment environment,
+            RuntimeRole role,
+            int defaultPort) {
+        return fromEnvironment(environment, role, CANONICAL_BATCH_SERVICE_ID, defaultPort);
+    }
 
     public static RuntimeRegistration fromEnvironment(
             Environment environment,

@@ -6,6 +6,7 @@ import com.cpf.batch.runtime.BatDataSourceConfiguration;
 import com.cpf.batch.runtime.JobPackCatalog;
 import com.cpf.batch.runtime.RuntimeCommonConfiguration;
 import com.cpf.batch.runtime.RuntimeIdentityFactory;
+import com.cpf.batch.centercut.runtime.CenterCutWorkRuntimeConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,7 +18,8 @@ import org.springframework.web.client.RestClient;
 
 @EnableConfigurationProperties(WorkerOperationalProperties.class)
 @SpringBootApplication(scanBasePackages = "com.cpf.batch.worker")
-@Import({RuntimeCommonConfiguration.class, BatDataSourceConfiguration.class})
+@Import({RuntimeCommonConfiguration.class, BatDataSourceConfiguration.class,
+        CenterCutWorkRuntimeConfiguration.class})
 public class BatchWorkerApplication {
     public static void main(String[] args) {
         SpringApplication.run(BatchWorkerApplication.class, args);
@@ -34,7 +36,7 @@ public class BatchWorkerApplication {
 
     @Bean
     RuntimeRegistration runtimeRegistration(Environment environment) {
-        return RuntimeIdentityFactory.fromEnvironment(
-                environment, RuntimeRole.WORKER, "cpf-batch-worker", 8182);
+        return RuntimeIdentityFactory.fromBatchEnvironment(
+                environment, RuntimeRole.WORKER, 8182);
     }
 }

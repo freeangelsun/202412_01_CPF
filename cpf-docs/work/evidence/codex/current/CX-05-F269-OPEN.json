@@ -1,0 +1,10 @@
+{
+  "findingId": "CX-F-269",
+  "status": "OPEN",
+  "severity": "P0",
+  "sourceIdentitySha256": "0858b1abd2a73f2534b2c8cfdbdadc1d0c38502726f907e2574de4121c4b25ac",
+  "requirement": "A configured remote Worker has live Spring Integration subscribers before Kafka delivery begins.",
+  "rootCause": "CpfBatchRemoteWorkerConfiguration declares IntegrationFlow beans but does not activate the Spring Integration infrastructure; the Worker Kafka listener starts and all six actual requests are sent to an unsubscribed DirectChannel.",
+  "physicalEvidence": "Fresh R37 DLT ListenerExecutionFailedException -> MessageDeliveryException -> MessageDispatchingException: Dispatcher has no subscribers",
+  "prohibitedFixes": ["increase HTTP timeout", "skip remote flow", "mock subscriber", "accept DLT as success"]
+}

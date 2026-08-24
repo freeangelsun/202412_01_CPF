@@ -1,0 +1,12 @@
+{
+  "findingId": "CX-F-266",
+  "status": "IN_PROGRESS",
+  "openedAt": "2026-08-24T11:21:01+09:00",
+  "sourceIdentitySha256": "64884d2e16e0461af4031bb5a82edc3479ae7eb43f0c1a666d980894f280c1d6",
+  "runId": "b4200824c032",
+  "scope": "Runtime Control Agent concurrent registration",
+  "observed": "Two real Workers started concurrently against a Fresh canonical MariaDB. Worker 2 aborted in @PostConstruct when its first registration transaction lost a MariaDB deadlock while inserting OPS_RUNTIME_INSTANCE_STATE.",
+  "rootCause": "CpfRuntimeControlAgent performs exactly one startup registration attempt. A transient deadlock rolls back the whole correctly transactional register call, but the Agent treats that retryable database arbitration outcome as permanent startup failure.",
+  "cleanup": {"databaseAndRoles": "PASS", "kafkaTopics": "4/4 removed", "runtimeProcesses": "stopped"},
+  "prohibitedWorkarounds": ["serialize verifier startup", "ignore registration failure", "weaken transaction or fencing", "retry duplicate-key fencing conflicts"]
+}

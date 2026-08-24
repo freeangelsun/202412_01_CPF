@@ -46,7 +46,7 @@ def test_recover_without_fencing_fails(tmp_path: Path) -> None:
 
 def test_stable_remote_owner_reintroduction_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
-    rel = "cpf-batch/runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java"
+    rel = "cpf-batch/remote-kafka/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java"
     path = root / rel
     path.write_text(path.read_text().replace(
         "ledger.complete(direction, envelope.messageId(), attemptOwnerId)",

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-304",
+  "status": "IN_PROGRESS",
+  "severity": "P0",
+  "sourceIdentitySha256": "95cf615996d4bad67d94ef010133a1cef671aaa40364da2e16ca61d7ae6ba42f",
+  "runId": "f282e2e26",
+  "executionId": "15be175a-178d-4e21-8ce9-d038a0115267",
+  "rootTransactionId": "20260824111404189BATX76K8J90000001",
+  "physicalResult": {
+    "executionState": "COMPLETED",
+    "targetCount": 20,
+    "successCount": 20,
+    "transactionLogCount": 2,
+    "transactionSegmentCount": 0,
+    "transactionLineageCount": 0
+  },
+  "actualError": "Unknown column 'execution_id' in 'INSERT INTO'",
+  "rootCause": "The immutable V115 migration and every concrete Segment Mapper/record/timeline consumer require CPF_TRANSACTION_SEGMENT.execution_id, but the current canonical fresh-install schema omitted that column and index. Timeline also selects retired CPF_TRANSACTION_LINEAGE.remote_system instead of canonical target_system_code.",
+  "prohibitedWorkarounds": [
+    "drop executionId from the runtime contract",
+    "ignore Segment/Lineage because business rows completed",
+    "case-insensitive or ad-hoc E2E ALTER TABLE",
+    "mock timeline data"
+  ]
+}

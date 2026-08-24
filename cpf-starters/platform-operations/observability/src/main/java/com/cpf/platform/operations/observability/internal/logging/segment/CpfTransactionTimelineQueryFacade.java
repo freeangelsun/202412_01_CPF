@@ -105,7 +105,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        downstream_http_status AS downstreamHttpStatus,
                        result_state AS resultState,
                        unknown_result_id AS unknownResultId
-                  FROM cpf_transaction_segment
+                  FROM CPF_TRANSACTION_SEGMENT
                  WHERE transaction_id = ?
                  ORDER BY started_at, sequence_no, segment_id
                 """, transactionId.trim()).stream()
@@ -129,7 +129,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                            idempotency_key AS idempotencyKey, tenant_id AS tenantId,
                            current_channel AS currentChannel, actor_id_masked AS actorIdMasked,
                            instance_id AS instanceId, was_id AS wasId, agent_id AS agentId,
-                           worker_id AS workerId, remote_system AS remoteSystem, operation_id AS operation,
+                           worker_id AS workerId, target_system_code AS remoteSystem, operation_id AS operation,
                            message_id AS messageId, consumer_group AS consumerGroup, dlq_id AS dlqId,
                            batch_job_instance_id AS batchJobInstanceId,
                            batch_job_execution_id AS batchJobExecutionId,
@@ -138,7 +138,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                            lifecycle_state AS lifecycleState, failure_stage AS failureStage,
                            unknown_yn AS unknownYn, reconcile_state AS reconcileState,
                            occurred_at AS occurredAt, freshness_at AS freshnessAt
-                      FROM cpf_transaction_lineage
+                      FROM CPF_TRANSACTION_LINEAGE
                      WHERE transaction_id = ?
                      ORDER BY occurred_at, segment_id, attempt_no
                     """, List.of(tx), max));
@@ -146,7 +146,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
 
         // Existing canonical stores are queried directly so the one-shot view is useful even before
         // optional cross-database lineage exporters are enabled.
-        appendIfTable(rows, "cpf_transaction_segment", """
+        appendIfTable(rows, "CPF_TRANSACTION_SEGMENT", """
                 SELECT transaction_id AS transactionId, transaction_segment_id AS segmentId,
                        parent_segment_id AS parentSegmentId, execution_id AS executionId, COALESCE(attempt_no,1) AS attempt,
                        NULL AS traceId, NULL AS spanId, NULL AS requestId, NULL AS idempotencyKey,
@@ -160,9 +160,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        transaction_segment_id AS sourceRefId, status AS lifecycleState,
                        failure_code AS failureStage, CASE WHEN result_state='UNKNOWN' OR unknown_result_id IS NOT NULL THEN 'Y' ELSE 'N' END AS unknownYn,
                        result_state AS reconcileState, started_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_transaction_segment WHERE transaction_id = ? ORDER BY started_at, sequence_no
+                  FROM CPF_TRANSACTION_SEGMENT WHERE transaction_id = ? ORDER BY started_at, sequence_no
                 """, tx, max);
-        appendIfTable(rows, "cpf_transaction_log", """
+        appendIfTable(rows, "CPF_TRANSACTION_LOG", """
                 SELECT transaction_id AS transactionId, span_id AS segmentId,
                        parent_span_id AS parentSegmentId, COALESCE(sequence_no,1) AS attempt,
                        trace_id AS traceId, span_id AS spanId, correlation_id AS requestId,
@@ -177,9 +177,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        CASE WHEN error_code IS NULL THEN 'COMPLETED' ELSE 'FAILED' END AS lifecycleState,
                        error_code AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
                        COALESCE(start_time,created_at) AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_transaction_log WHERE transaction_id = ? ORDER BY start_time, log_idx
+                  FROM CPF_TRANSACTION_LOG WHERE transaction_id = ? ORDER BY start_time, log_idx
                 """, tx, max);
-        appendIfTable(rows, "cpf_broker_outbox", """
+        appendIfTable(rows, "CPF_BROKER_OUTBOX", """
                 SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
                        GREATEST(attempt_count,1) AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
                        idempotency_key AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
@@ -191,9 +191,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        outbox_id AS sourceRefId, outbox_status AS lifecycleState,
                        failure_message AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
                        occurred_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_broker_outbox WHERE transaction_id = ? ORDER BY occurred_at, outbox_id
+                  FROM CPF_BROKER_OUTBOX WHERE transaction_id = ? ORDER BY occurred_at, outbox_id
                 """, tx, max);
-        appendIfTable(rows, "cpf_broker_dlq", """
+        appendIfTable(rows, "CPF_BROKER_DLQ", """
                 SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
                        GREATEST(replay_count,1) AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
                        NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
@@ -205,9 +205,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        dlq_id AS sourceRefId, replay_status AS lifecycleState,
                        failure_reason AS failureStage, 'N' AS unknownYn, replay_status AS reconcileState,
                        created_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_broker_dlq WHERE transaction_id = ? ORDER BY created_at, dlq_id
+                  FROM CPF_BROKER_DLQ WHERE transaction_id = ? ORDER BY created_at, dlq_id
                 """, tx, max);
-        appendIfTable(rows, "cpf_file_transfer_history", """
+        appendIfTable(rows, "CPF_FILE_TRANSFER_HISTORY", """
                 SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
                        1 AS attempt, NULL AS traceId, NULL AS spanId, NULL AS requestId,
                        duplicate_key AS idempotencyKey, NULL AS tenantId, NULL AS channel, NULL AS actorIdMasked,
@@ -219,9 +219,9 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        transfer_id AS sourceRefId, transfer_status AS lifecycleState,
                        result_detail AS failureStage, 'N' AS unknownYn, NULL AS reconcileState,
                        created_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_file_transfer_history WHERE transaction_id = ? ORDER BY created_at, history_id
+                  FROM CPF_FILE_TRANSFER_HISTORY WHERE transaction_id = ? ORDER BY created_at, history_id
                 """, tx, max);
-        appendIfTable(rows, "cpf_unknown_result", """
+        appendIfTable(rows, "CPF_UNKNOWN_RESULT", """
                 SELECT transaction_id AS transactionId, segment_id AS segmentId, NULL AS parentSegmentId,
                        GREATEST(attempt_count,1) AS attempt, NULL AS traceId, NULL AS spanId,
                        external_key AS requestId, NULL AS idempotencyKey, NULL AS tenantId, NULL AS channel,
@@ -233,7 +233,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        unknown_id AS sourceRefId, unknown_status AS lifecycleState,
                        failure_code AS failureStage, 'Y' AS unknownYn, unknown_status AS reconcileState,
                        detected_at AS occurredAt, updated_at AS freshnessAt
-                  FROM cpf_unknown_result WHERE transaction_id = ? ORDER BY detected_at, unknown_seq
+                  FROM CPF_UNKNOWN_RESULT WHERE transaction_id = ? ORDER BY detected_at, unknown_seq
                 """, tx, max);
         appendIfTable(rows, "OPS_SERVICE_CALL_HISTORY", """
                 SELECT transaction_id AS transactionId, call_id AS segmentId,
@@ -384,11 +384,11 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
 
     private static String sourceTypeForTable(String table) {
         return switch (table) {
-            case "cpf_transaction_log" -> "TRACE";
-            case "cpf_broker_outbox" -> "MESSAGE";
-            case "cpf_broker_dlq" -> "DLQ";
-            case "cpf_file_transfer_history" -> "FILE";
-            case "cpf_unknown_result" -> "UNKNOWN";
+            case "CPF_TRANSACTION_LOG" -> "TRACE";
+            case "CPF_BROKER_OUTBOX" -> "MESSAGE";
+            case "CPF_BROKER_DLQ" -> "DLQ";
+            case "CPF_FILE_TRANSFER_HISTORY" -> "FILE";
+            case "CPF_UNKNOWN_RESULT" -> "UNKNOWN";
             case "OPS_SERVICE_CALL_HISTORY" -> "REMOTE";
             case "SEC_TOKEN_AUDIT_LOG" -> "AUDIT";
             default -> "LOCAL";
@@ -445,7 +445,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                        started_at AS startedAt,
                        ended_at AS endedAt,
                        duration_ms AS durationMs
-                  FROM cpf_transaction_segment
+                  FROM CPF_TRANSACTION_SEGMENT
                  WHERE transaction_id = ?
                    AND (transaction_role = 'EXTERNAL' OR external_institution_code IS NOT NULL)
                  ORDER BY started_at, sequence_no
@@ -457,12 +457,12 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     private QueryParts buildGroupQuery(Map<String, String> criteria, String sort) {
         StringBuilder sql = new StringBuilder("""
                 WITH filtered_segments AS (
-                    SELECT cpf_transaction_segment.*,
+                    SELECT CPF_TRANSACTION_SEGMENT.*,
                            ROW_NUMBER() OVER (
                                PARTITION BY transaction_id
                                ORDER BY started_at, sequence_no, segment_id
                            ) AS cpf_row_no
-                      FROM cpf_transaction_segment
+                      FROM CPF_TRANSACTION_SEGMENT
                      WHERE 1 = 1
                 """);
         List<Object> args = new ArrayList<>();
@@ -514,7 +514,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
                 SELECT transaction_id AS transactionId,
                        module_code AS moduleCode,
                        transaction_role AS transactionRole
-                  FROM cpf_transaction_segment
+                  FROM CPF_TRANSACTION_SEGMENT
                  WHERE 1 = 1
                 """);
         List<Object> detailArgs = new ArrayList<>();
@@ -649,7 +649,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
     private boolean lineageTableAvailable() {
         try {
             if (jdbcTemplate == null) return false;
-            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cpf_transaction_lineage WHERE 1 = 0", Long.class);
+            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM CPF_TRANSACTION_LINEAGE WHERE 1 = 0", Long.class);
             return true;
         } catch (Exception ignored) {
             return false;
@@ -667,9 +667,7 @@ public class CpfTransactionTimelineQueryFacade implements CpfTransactionTimeline
         try (Connection connection = dataSource.getConnection()) {
             String catalog = connection.getCatalog();
             String schema = currentSchema(connection);
-            for (String candidate : List.of(
-                    "cpf_transaction_segment",
-                    "CPF_TRANSACTION_SEGMENT")) {
+            for (String candidate : List.of("CPF_TRANSACTION_SEGMENT")) {
                 try (ResultSet tables = connection.getMetaData()
                         .getTables(catalog, schema, candidate, new String[]{"TABLE"})) {
                     if (tables.next()) {

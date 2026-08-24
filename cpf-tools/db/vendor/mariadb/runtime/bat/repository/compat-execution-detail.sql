@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_execution
+FROM BAT_EXECUTION
 WHERE execution_id = ?

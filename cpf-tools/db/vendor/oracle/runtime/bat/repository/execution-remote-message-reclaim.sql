@@ -1,4 +1,4 @@
-UPDATE bat_remote_message_ledger
+UPDATE BAT_REMOTE_MESSAGE_LEDGER
    SET status_cd = 'PROCESSING',
        owner_id = ?,
        lease_until = ?,

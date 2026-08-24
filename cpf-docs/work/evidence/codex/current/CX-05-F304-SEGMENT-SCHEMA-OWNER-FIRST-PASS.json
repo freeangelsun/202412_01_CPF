@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-304",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "713806172ffb32fcc348f53e97a4e2bdbc021a133d3b8b2ebd3d7b7855175d70",
+  "sourceIdentitySha1": "46e4396d7acffbc6dd7d4a9fb3771f7d5bdd296e",
+  "fileCount": 8420,
+  "totalBytes": 56715303,
+  "changes": [
+    "Restore nullable execution_id and its execution/start index in the canonical CPF_TRANSACTION_SEGMENT fresh schema, matching immutable V115 and concrete runtime consumers",
+    "Use canonical CPF_TRANSACTION_LINEAGE.target_system_code for Timeline remote-system projection",
+    "Extend the integrated logging closure verifier across canonical schema, Mapper execution binding and Timeline column ownership"
+  ],
+  "remaining": "Regenerate DB3 projections, run drift/static/Java gates, rebuild MBR and repeat Fresh physical replay"
+}

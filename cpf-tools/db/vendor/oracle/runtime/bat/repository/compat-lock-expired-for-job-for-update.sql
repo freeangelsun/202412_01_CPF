@@ -1,5 +1,5 @@
 SELECT *
-FROM bat_lock
+FROM BAT_LOCK
 WHERE job_id = ?
   AND expire_at < CURRENT_TIMESTAMP(3)
 FOR UPDATE

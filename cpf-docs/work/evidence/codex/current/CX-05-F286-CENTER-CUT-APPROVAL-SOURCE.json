@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "finding": "F286",
+  "recordedAt": "2026-08-24T16:31:00+09:00",
+  "sourceIdentitySha256": "7f1389e6bc93a5eb1f41bcd75b63d8ba67984e96d6e43458842d157a55571306",
+  "states": {
+    "unapprovedPreparation": ["CREATED", "TARGETING", "TARGET_READY"],
+    "approvedBeforeTargetCompletion": "STARTING",
+    "authorizedProcessing": "RUNNING"
+  },
+  "atomicRule": "STARTING plus target_complete_yn=Y transitions to RUNNING; otherwise STARTING is preserved",
+  "workerAdmission": "RUNNING only",
+  "status": "SOURCE_FIXED"
+}

@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_execution
+UPDATE BAT_CENTER_CUT_EXECUTION
 SET unknown_count = CASE WHEN unknown_count - ? < 0 THEN 0 ELSE unknown_count - ? END,
     execution_state = 'RUNNING',
     completed_at = NULL,

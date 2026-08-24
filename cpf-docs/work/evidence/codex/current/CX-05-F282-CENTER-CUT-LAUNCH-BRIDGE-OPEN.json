@@ -1,0 +1,30 @@
+{
+  "finding": "CX-F-282",
+  "status": "IN_PROGRESS",
+  "recordedAt": "2026-08-24T15:51:17+09:00",
+  "sourceIdentity": {
+    "sha256": "18e046f8ea80f4ca8461872b8d671fb6825391d2fb7c2c2ff958c098d8ba87ed",
+    "sha1": "653f956de36ed0a0bccccb67d9153cdefc935d56",
+    "files": 8286,
+    "bytes": 56599509
+  },
+  "observedContract": {
+    "controlPlaneOwner": "CenterCutExecutionService.launch inserts BAT_CENTER_CUT_EXECUTION",
+    "targetOwner": "CenterCutTargetGenerator materializes BAT_CENTER_CUT_ITEM",
+    "workConsumer": "SpringBatchCenterCutStepHandler claims only an approved centerCutExecutionId passed through Batch JobParameters",
+    "gap": "No Product consumer launches the approved Spring Batch CENTER_CUT handler for the Control Plane execution id; generated Work Items cannot reach the concrete F274 Handler through the canonical flow"
+  },
+  "consumerSearch": [
+    "centerCutExecutionId has no production bridge outside SpringBatchCenterCutStepHandler",
+    "BAT_CENTER_CUT_EXECUTION creation and Target generation are not connected to BatchExecutionControlPort",
+    "CenterCutControlController requires an authenticated Principal but the Center-Cut executable owns no authentication filter or SecurityFilterChain"
+  ],
+  "forbiddenShortcuts": [
+    "direct repository invocation from the verifier",
+    "mock/no-op Worker or Handler",
+    "test-only business operation",
+    "Kafka/Broker launch fallback",
+    "manual database status fabrication"
+  ],
+  "next": "Implement the exact Control Plane-to-CEC approved launch bridge and authenticated internal command boundary, then run no-Kafka Generated Domain physical E2E"
+}

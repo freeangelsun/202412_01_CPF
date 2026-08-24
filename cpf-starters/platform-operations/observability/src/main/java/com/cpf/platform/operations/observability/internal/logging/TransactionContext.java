@@ -158,18 +158,29 @@ public final class TransactionContext {
     }
 
     public static String currentTransactionId() {
+        String canonical = com.cpf.core.api.context.CpfContexts.currentTransactionId();
+        if (hasText(canonical)) return canonical;
         return firstText(getAttributeAsString(ATTR_TRANSACTION_ID), MDC.get(MDC_TRANSACTION_ID));
     }
 
     public static String currentTraceId() {
+        String canonical = com.cpf.core.api.context.CpfContexts.traceId();
+        if (hasText(canonical)) return canonical;
         return firstText(getAttributeAsString(ATTR_TRACE_ID), MDC.get(MDC_TRACE_ID));
     }
 
     public static String currentSpanId() {
+        String canonical = com.cpf.core.api.context.CpfContexts.currentSegmentId();
+        if (hasText(canonical)) return canonical;
         return firstText(getAttributeAsString(ATTR_SPAN_ID), MDC.get(MDC_SPAN_ID));
     }
 
     public static String currentParentSpanId() {
+        var canonical = com.cpf.core.api.context.CpfContexts.current();
+        if (canonical != null && canonical.execution() != null
+                && hasText(canonical.execution().parentSegmentId())) {
+            return canonical.execution().parentSegmentId();
+        }
         return getAttributeAsString(ATTR_PARENT_SPAN_ID);
     }
 
@@ -277,6 +288,15 @@ public final class TransactionContext {
         if (hasText(value)) return value;
         TransactionHeader header = currentHeader();
         return header != null ? header.getTargetOperationId() : null;
+    }
+
+    /**
+     * 현재 inbound/business boundary에서 검증·resolve된 Canonical operationId입니다.
+     * Outbound target 선택과 구분하여 Header 전파에는 {@link #targetOperationId()}를 사용합니다.
+     */
+    public static String observedOperationId() {
+        String current = com.cpf.core.api.context.CpfContexts.operationId();
+        return hasText(current) ? current : targetOperationId();
     }
 
     public static String channelDetailCode() {

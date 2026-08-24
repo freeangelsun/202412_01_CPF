@@ -1,4 +1,4 @@
-UPDATE bat_remote_message_ledger
+UPDATE BAT_REMOTE_MESSAGE_LEDGER
    SET status_cd = 'FAILED',
        owner_id = 'RECONCILED',
        lease_until = CURRENT_TIMESTAMP(6),

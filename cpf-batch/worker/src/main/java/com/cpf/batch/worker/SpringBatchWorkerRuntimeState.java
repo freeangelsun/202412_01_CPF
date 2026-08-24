@@ -6,6 +6,7 @@ import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.runtime.RuntimeStateProvider;
 import com.cpf.messaging.api.CpfBrokerConsumerControl;
 import com.cpf.messaging.api.CpfBrokerConsumerControlPort;
+import com.cpf.batch.worker.centercut.WorkerCenterCutState;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** Provider-neutral runtime state and admission control for the Spring Batch worker. */
 @Component
@@ -36,6 +38,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
     private final AtomicReference<String> controlError = new AtomicReference<>();
     private final AtomicLong leaseEpoch = new AtomicLong();
     private final AtomicLong observedFencingToken = new AtomicLong(-1L);
+    private WorkerCenterCutState centerCut;
 
     public SpringBatchWorkerRuntimeState(
             List<CpfBrokerConsumerControlPort> controlPorts,
@@ -68,12 +71,21 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         this.executions.updateCapacity(effectiveConcurrency());
     }
 
+    @Autowired
+    void setCenterCutState(WorkerCenterCutState centerCut) {
+        this.centerCut = centerCut;
+    }
+
     @Scheduled(fixedDelayString = "${cpf.batch.worker.runtime-reconcile-ms:500}")
     public synchronized void reconcile() {
         executions.updateCapacity(effectiveConcurrency());
         refreshLeaseEpoch();
-        if (controlPorts.isEmpty()) {
+        if (controlPorts.isEmpty() && !centerCutEnabled()) {
             controlError.set(CONTROL_PORT_UNAVAILABLE);
+            return;
+        }
+        if (controlPorts.isEmpty()) {
+            controlError.set(null);
             return;
         }
         CpfBrokerConsumerControl control = new CpfBrokerConsumerControl(
@@ -102,7 +114,13 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
     }
 
     public boolean drained() {
-        return draining() && executions.snapshot().inFlightInvocations() == 0;
+        return draining() && executions.snapshot().inFlightInvocations() == 0
+                && centerCutActive() == 0;
+    }
+
+    public boolean acceptingCenterCut() {
+        return centerCutEnabled() && !draining()
+                && centerCutActive() < Math.max(1, effectiveConcurrency());
     }
 
     public String workerId() {
@@ -139,7 +157,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         if (draining()) {
             return ActualState.DRAINING;
         }
-        if (snapshot.inFlightInvocations() > 0) {
+        if (snapshot.inFlightInvocations() > 0 || centerCutActive() > 0) {
             return ActualState.BUSY;
         }
         return ready() ? ActualState.READY : ActualState.STARTING;
@@ -147,18 +165,23 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     @Override
     public boolean ready() {
-        return !draining() && !controlPorts.isEmpty() && controlError.get() == null;
+        return !draining() && (!controlPorts.isEmpty() || centerCutEnabled())
+                && controlError.get() == null && centerCutError() == null;
     }
 
     @Override
     public List<String> currentExecutions() {
-        return executions.snapshot().executionIds();
+        return java.util.stream.Stream.concat(
+                executions.snapshot().executionIds().stream(), centerCutExecutions().stream())
+                .distinct().sorted().toList();
     }
 
     @Override
     public List<String> activeLeases() {
-        long token = fencingToken();
-        return token > 0 ? List.of("lease-epoch=" + leaseEpoch() + ";fencing-token=" + token) : List.of();
+        java.util.ArrayList<String> leases = new java.util.ArrayList<>(centerCutLeases());
+        long token = executions.snapshot().fencingToken();
+        if(token>0) leases.add("lease-epoch=" + leaseEpoch() + ";fencing-token=" + token);
+        return leases.stream().sorted().toList();
     }
 
     @Override
@@ -167,7 +190,7 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
             return 0;
         }
         WorkerExecutionTracker.Snapshot snapshot = executions.snapshot();
-        return Math.max(0, effectiveConcurrency() - snapshot.activeInvocations());
+        return Math.max(0, effectiveConcurrency() - snapshot.activeInvocations() - centerCutActive());
     }
 
     @Override
@@ -182,14 +205,17 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
 
     @Override
     public Map<String, String> dependencyHealth() {
-        return Map.of("brokerConsumerControl", controlPorts.isEmpty()
-                ? "NOT_AVAILABLE"
+        LinkedHashMap<String,String> health = new LinkedHashMap<>();
+        health.put("brokerConsumerControl", controlPorts.isEmpty()
+                ? centerCutEnabled() ? "NOT_SELECTED" : "NOT_AVAILABLE"
                 : controlError.get() == null ? "UP" : "DOWN");
+        if(centerCut!=null) health.putAll(centerCut.dependencyHealth());
+        return Map.copyOf(health);
     }
 
     @Override
     public String lastErrorCode() {
-        return controlError.get();
+        return controlError.get()!=null ? controlError.get() : centerCutError();
     }
 
     @Override
@@ -203,12 +229,15 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
         values.put("worker.brokerControlPorts", controlPorts.size());
         values.put("worker.leaseEpoch", leaseEpoch());
         values.put("worker.fencingToken", fencingToken());
+        values.put("worker.centerCutActive", centerCutActive());
+        values.put("worker.centerCutEnabled", centerCutEnabled()?1:0);
         return Map.copyOf(values);
     }
 
     @Override
     public long fencingToken() {
-        return Math.max(0L, executions.snapshot().fencingToken());
+        return Math.max(Math.max(0L, executions.snapshot().fencingToken()),
+                centerCut==null?0L:centerCut.fencingToken());
     }
 
     private void refreshLeaseEpoch() {
@@ -222,6 +251,12 @@ public final class SpringBatchWorkerRuntimeState implements RuntimeStateProvider
     private int effectiveConcurrency() {
         return Math.min(configuredMaxConcurrency, runtimePolicy.current().workerConcurrencyLimit());
     }
+
+    private boolean centerCutEnabled(){return centerCut!=null&&centerCut.enabled();}
+    private int centerCutActive(){return centerCut==null?0:centerCut.activeCount();}
+    private String centerCutError(){return centerCut==null?null:centerCut.errorCode();}
+    private List<String> centerCutExecutions(){return centerCut==null?List.of():centerCut.executions();}
+    private List<String> centerCutLeases(){return centerCut==null?List.of():centerCut.leases();}
 
     private static List<String> capabilities(String text) {
         List<String> values = Arrays.stream(text == null ? new String[0] : text.split(","))

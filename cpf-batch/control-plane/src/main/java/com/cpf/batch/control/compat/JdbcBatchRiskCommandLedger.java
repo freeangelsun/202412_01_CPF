@@ -1,6 +1,8 @@
 package com.cpf.batch.control.compat;
 
 import com.cpf.batch.api.CpfBatchRiskCommand;
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
+import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,12 +24,15 @@ import java.util.Map;
 @Component
 public final class JdbcBatchRiskCommandLedger {
     private final JdbcTemplate jdbc;
+    private final CpfVendorSqlCatalog sql;
     private final TransactionTemplate requiresNew;
     private final Duration inProgressTimeout;
 
     public JdbcBatchRiskCommandLedger(
-            JdbcTemplate jdbc, PlatformTransactionManager transactionManager) {
+            JdbcTemplate jdbc, PlatformTransactionManager transactionManager,
+            CpfVendorSqlCatalogProvider sqlCatalogProvider) {
         this.jdbc = jdbc;
+        this.sql = sqlCatalogProvider.forModule("bat");
         this.requiresNew = new TransactionTemplate(transactionManager);
         this.requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.inProgressTimeout = Duration.ofMinutes(10);
@@ -38,10 +43,7 @@ public final class JdbcBatchRiskCommandLedger {
         if (existing != null) return decision(existing, command);
         try {
             requiresNew.executeWithoutResult(status -> jdbc.update(
-                    "INSERT INTO bat_operation_request("
-                            + "idempotency_key,request_hash,operation_type,target_type,target_id,action_type,"
-                            + "approval_request_id,requested_by,expected_version,request_state,created_by,updated_by) "
-                            + "VALUES(?,?,?,?,?,?,?,?,?,'RESERVED',?,?)",
+                    sql.required("risk-command-reserve"),
                     command.idempotencyKey(), command.fingerprint(), command.operation(),
                     command.targetType(), command.targetId(), command.actionType(),
                     command.approvalRequestId(), command.requestUser(), command.expectedVersion(),
@@ -73,9 +75,7 @@ public final class JdbcBatchRiskCommandLedger {
             String failureCode,
             String failureMessage) {
         Integer changed = requiresNew.execute(status -> jdbc.update(
-                "UPDATE bat_operation_request SET request_state=?,result_payload=?,failure_code=?,"
-                        + "failure_message=?,completed_at=CURRENT_TIMESTAMP,updated_by=?,updated_at=CURRENT_TIMESTAMP "
-                        + "WHERE idempotency_key=? AND request_hash=? AND request_state IN ('RESERVED','UNKNOWN')",
+                sql.required("risk-command-complete"),
                 state, resultPayload, trim(failureCode, 80), trim(failureMessage, 1000),
                 command.requestUser(), command.idempotencyKey(), command.fingerprint()));
         if (changed == null || changed != 1) {
@@ -111,8 +111,7 @@ public final class JdbcBatchRiskCommandLedger {
     private Map<String,Object> find(String idempotencyKey) {
         try {
             return jdbc.queryForMap(
-                    "SELECT idempotency_key,request_hash,request_state,result_payload,failure_code,"
-                            + "failure_message,updated_at FROM bat_operation_request WHERE idempotency_key=?",
+                    sql.required("risk-command-find"),
                     idempotencyKey);
         } catch (EmptyResultDataAccessException missing) {
             return null;

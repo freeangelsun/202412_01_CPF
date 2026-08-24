@@ -102,9 +102,13 @@ public class CenterCutTargetGenerator {
 
             jdbc.update(sql.required("centercut-target-update-progress"),
                     nextCursor, last ? "Y" : "N", inserted,
-                    last ? "RUNNING" : "TARGETING", executionId);
+                    last ? "Y" : "N", preparedState(last), executionId);
         });
     }
+    static String preparedState(boolean last) {
+        return last ? "TARGET_READY" : "TARGETING";
+    }
+
     static List<CenterCutTargetProvider.Target> validatePage(
             String currentCursor, int limit, List<CenterCutTargetProvider.Target> returned) {
         if (limit <= 0) throw new IllegalArgumentException("limit must be positive");

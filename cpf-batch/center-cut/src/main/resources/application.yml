@@ -22,6 +22,10 @@ management:
       probes:
         enabled: true
 cpf:
+  web:
+    context:
+      management-root-paths:
+        - /internal/v1/center-cut
   framework:
     module-id: BAT
     was-id: ${CPF_WAS_ID:}

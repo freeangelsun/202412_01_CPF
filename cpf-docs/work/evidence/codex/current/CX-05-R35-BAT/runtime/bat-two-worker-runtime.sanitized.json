@@ -1,0 +1,55 @@
+{
+  "startedAt": "2026-08-24T11:41:37.7114062+09:00",
+  "endedAt": "2026-08-24T11:42:23.0979528+09:00",
+  "status": "FAILED",
+  "exitCode": 1,
+  "runId": "55d0a76456d0",
+  "resultPath": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\bat-two-worker-runtime.sanitized.json",
+  "clientAdapter": "Docker",
+  "kafka": {
+    "status": "DONE",
+    "container": "cpf-kafka",
+    "createdTopicCount": 4,
+    "installedAssetOnly": true,
+    "cleanedTopicCount": 4
+  },
+  "controlPlane": {
+    "status": "DONE",
+    "port": 8279,
+    "liveness": 200
+  },
+  "registration": {
+    "status": "DONE",
+    "workerCount": 2,
+    "jobPackCount": 1,
+    "jobCount": 1
+  },
+  "distribution": {},
+  "durableMetadata": {},
+  "drain": {},
+  "crashUnknown": {},
+  "mismatch": {},
+  "logs": {
+    "bat-smoke-control-plane": {
+      "stdout": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-control-plane\\bat-smoke-control-plane.stdout.log",
+      "stderr": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-control-plane\\bat-smoke-control-plane.stderr.log",
+      "exitCode": -1
+    },
+    "bat-smoke-worker-1": {
+      "stdout": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-worker-1\\bat-smoke-worker-1.stdout.log",
+      "stderr": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-worker-1\\bat-smoke-worker-1.stderr.log",
+      "exitCode": -1
+    },
+    "bat-smoke-center-cut": {
+      "stdout": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-center-cut\\bat-smoke-center-cut.stdout.log",
+      "stderr": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-center-cut\\bat-smoke-center-cut.stderr.log",
+      "exitCode": -1
+    },
+    "bat-smoke-worker-2": {
+      "stdout": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-worker-2\\bat-smoke-worker-2.stdout.log",
+      "stderr": "C:\\dev\\projects\\jck\\202412_01_CPF\\cpf-docs\\work\\evidence\\codex\\current\\CX-05-R35-BAT\\runtime\\processes\\bat-smoke-worker-2\\bat-smoke-worker-2.stderr.log",
+      "exitCode": -1
+    }
+  },
+  "error": "Actual distributed execution mismatch status=FAILED workerSteps=0 distinctWorkers=0"
+}

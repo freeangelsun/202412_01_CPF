@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-268",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "0a97d23eb53d3a2660121f07d724267c45eabe10661868655f7fdb597f0b9e30",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=2 :runtime:batch:runtime:test :runtime:batch:scheduler:test",
+  "result": {
+    "exitCode": 1,
+    "runtimeSuite": "PASS before scheduler compilation",
+    "schedulerSuite": "NOT_EXECUTED",
+    "compileError": "SchedulerDispatchService batchContext is reassigned before capture by the transactional dispatch lambda and is not effectively final"
+  },
+  "decision": "No Scheduler PASS claimed; make the resolved dispatch context immutable at the lambda boundary."
+}

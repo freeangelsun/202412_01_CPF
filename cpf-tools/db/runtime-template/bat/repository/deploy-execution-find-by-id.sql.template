@@ -1,1 +1,1 @@
-SELECT * FROM bat_deployment_execution WHERE deployment_id = ?
+SELECT * FROM BAT_DEPLOYMENT_EXECUTION WHERE deployment_id = ?

@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-268",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "f381a830d4dfc601b9e4d3bad7178bd1b60739347274718755c487e0c081cee4",
+    "sha1": "714cebd317067480c81e33b61bfeb5372ca2541d",
+    "files": 8273,
+    "bytes": 56529538
+  },
+  "change": "Recover handles JobExecutionException from the shared scoped execution helper through BATCH_RECOVER_RESPONSE_UNKNOWN.",
+  "failureSemantics": "fail-closed and durable UNKNOWN retained",
+  "verificationPending": "targeted Java 25 rerun"
+}

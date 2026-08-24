@@ -1,4 +1,8 @@
 # 공유/운영 환경은 명시적 Deployment Binding이 없으면 시작에 실패하도록 기본값을 두지 않습니다.
+# 환경별 기본 레벨은 개발 추적성과 운영 안정성의 Canonical 기준이며 CPF_LOG_LEVEL로 명시 조정할 수 있습니다.
+logging:
+  level:
+    root: ${CPF_LOG_LEVEL:INFO}
 server:
   port: ${EXS_ONLINE_PORT}
 cpf:

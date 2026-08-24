@@ -1,0 +1,17 @@
+{
+  "finding": "CX-F-282",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": {
+    "sha256": "857c3ad44f1594ff843e85f2e387a0f8febd1685ea6c08375168fa843fb0891d",
+    "sha1": "2daf4b0c90b0f73bf79957a864d2dc6ab22b5ed2",
+    "files": 8287,
+    "bytes": 56600821
+  },
+  "changes": [
+    "Declared center-cut-runtime as the reusable DB Work/Domain Invocation owner",
+    "Moved Claim/Admission/official Domain Handler and their owner tests out of the CEC executable source set",
+    "Wired the actual Worker to the reusable runtime module",
+    "Removed the CEC executable's direct Integration HTTP dependency"
+  ],
+  "remaining": "Add Worker scheduler/processor/state, remove unreachable Spring Batch intermediary, synchronize SQL contracts and execute tests"
+}

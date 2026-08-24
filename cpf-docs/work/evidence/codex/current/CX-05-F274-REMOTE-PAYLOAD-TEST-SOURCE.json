@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-24T13:51:00+09:00",
+  "finding": "CX-F-274",
+  "status": "SOURCE_FIXED",
+  "testContract": "CpfHttpDomainRemoteTransport sends CpfDomainPayload.values as the exact business JSON object and reconstructs the response payload",
+  "sourceIdentity": {
+    "sha256": "5af60e4ff9b7733792711f39e6b662b9883004136e24b493bce127a63a21f3fa",
+    "sha1": "f8de9abf9141cca0bcc4e76bf7afae7c54ad7879",
+    "fileCount": 8283,
+    "totalBytes": 56579715
+  },
+  "passClaimed": false
+}

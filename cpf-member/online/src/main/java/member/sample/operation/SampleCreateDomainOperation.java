@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /** @CpfOnlineTransaction MBR_SAMPLE_TX_CREATE의 typed Same-JVM/Remote 공통 adapter입니다. */
 @Component
-public final class SampleCreateDomainOperation implements CpfDomainOperation<CreateSampleRequest, SampleItem> {
+public class SampleCreateDomainOperation implements CpfDomainOperation<CreateSampleRequest, SampleItem> {
     private final SampleTransactionService service;
     public SampleCreateDomainOperation(SampleTransactionService service) { this.service=service; }
     @Override public String systemCode() { return "MBR"; }

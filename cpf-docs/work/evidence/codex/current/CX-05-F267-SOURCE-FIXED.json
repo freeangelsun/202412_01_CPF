@@ -1,0 +1,22 @@
+{
+  "findingId": "CX-F-267",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "df60291ab2b799f3401ab2cb8391cb5ff71a185597f1b789f983847ebc926a9a",
+    "sha1": "ed88f8a52c71e99d5930bf18114def16bf1af3ec",
+    "files": 8273,
+    "bytes": 56516901
+  },
+  "owners": [
+    "cpf-batch/control-plane/src/main/resources/application.properties",
+    "cpf-batch/center-cut/src/main/resources/application.properties",
+    "cpf-batch/scheduler/src/main/resources/application.properties",
+    "cpf-batch/worker/src/main/resources/application.properties"
+  ],
+  "configuration": {
+    "spring.batch.jdbc.initialize-schema": "never",
+    "spring.batch.jdbc.table-prefix": "BAT_SB_"
+  },
+  "regressionOwner": "cpf-tools/runtime/tools/tests/test_bat_two_worker_runtime_shell_contract.py",
+  "verificationPending": ["targeted contract", "bootJar rebuild", "Fresh actual distributed flow"]
+}

@@ -1,9 +1,9 @@
-INSERT INTO bat_schedule_trigger (
+INSERT INTO BAT_SCHEDULE_TRIGGER (
     schedule_id, scheduled_fire_at, fencing_token, trigger_status,
     job_id, definition_version, definition_checksum, business_date, fire_zone, idempotency_key, created_at, updated_at
 )
 SELECT ?, ?, ?, 'CREATED', ?, ?, ?, ?, ?, ?, @NOW6@, @NOW6@
-  FROM bat_scheduler_lease
+  FROM BAT_SCHEDULER_LEASE
  WHERE scheduler_key = ?
    AND owner_instance_id = ?
    AND fencing_token = ?

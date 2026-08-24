@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /** @CpfOnlineTransaction EXS_SAMPLE_TX_SEARCH의 typed Same-JVM/Remote 공통 adapter입니다. */
 @Component
-public final class SampleSearchDomainOperation implements CpfDomainOperation<SampleSearchRequest, SamplePage> {
+public class SampleSearchDomainOperation implements CpfDomainOperation<SampleSearchRequest, SamplePage> {
     private final SampleTransactionService service;
     public SampleSearchDomainOperation(SampleTransactionService service) { this.service=service; }
     @Override public String systemCode() { return "EXS"; }

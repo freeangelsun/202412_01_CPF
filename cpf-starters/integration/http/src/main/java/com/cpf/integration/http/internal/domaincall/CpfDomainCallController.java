@@ -5,6 +5,9 @@ import com.cpf.core.api.result.CpfResult;
 import com.cpf.integration.api.domaincall.CpfDomainOperation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,12 +33,29 @@ public final class CpfDomainCallController {
     @PostMapping("/{systemCode}/{operationId}")
     @SuppressWarnings({"rawtypes", "unchecked"})
     public CpfDomainRemoteEnvelope invoke(
-            @PathVariable String systemCode, @PathVariable String operationId, @RequestBody JsonNode payload,
+            @PathVariable String systemCode, @PathVariable String operationId, @RequestBody byte[] wirePayload,
             HttpServletRequest servletRequest) {
         CpfDomainOperation operation = registry.requireOperation(systemCode, operationId);
         var metadata = invocationGuard.verify(servletRequest, operation);
+        JsonNode payload = parsePayload(wirePayload);
         CpfRequest request = (CpfRequest) objectMapper.convertValue(payload, operation.requestType());
         CpfResult<?> result = registry.invoke(metadata, systemCode, operationId, request, operation.responseType());
         return CpfDomainRemoteEnvelope.from(result);
+    }
+
+    private JsonNode parsePayload(byte[] wirePayload) {
+        if (wirePayload == null || wirePayload.length == 0) throw malformedPayload(null);
+        try {
+            JsonNode payload = objectMapper.readTree(wirePayload);
+            if (payload == null || !payload.isObject()) throw malformedPayload(null);
+            return payload;
+        } catch (IOException failure) {
+            throw malformedPayload(failure);
+        }
+    }
+
+    private static ResponseStatusException malformedPayload(Throwable cause) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "CPF Domain request payload must be one valid JSON object.", cause);
     }
 }

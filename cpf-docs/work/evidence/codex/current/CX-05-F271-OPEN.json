@@ -1,0 +1,20 @@
+{
+  "finding": "CX-F-271",
+  "status": "OPEN",
+  "requirement": "BATCH-RUNTIME",
+  "sourceIdentitySha256": "bdb54717cb755fae2adea48453d4bb02eb20c53652d22f1b33b935d82f800e8e",
+  "freshRun": "b4200824c040",
+  "rootCause": "CpfBatchRemoteCodec advertises Spring Batch StepExecution as an allowed Kafka reply payload and serializes it with generic Jackson, but StepExecution has no Jackson creator. The Manager therefore cannot deserialize any successful Worker reply, records REPLY FAILED with IllegalArgumentException, retries three times, emits DLT and leaves the Job STARTED until the HTTP caller times out.",
+  "physicalEvidence": {
+    "workerRequests": "six REQUEST ledger rows COMPLETE",
+    "workerSteps": "six cpfRemotePartitionWorkerStep rows COMPLETED",
+    "managerReplies": "REPLY rows FAILED, last_error_cd=IllegalArgumentException, attempt_no=3",
+    "dltCause": "BATCH_REMOTE_PAYLOAD_DESERIALIZATION_FAILED -> InvalidDefinitionException: cannot construct StepExecution"
+  },
+  "constraints": [
+    "Do not increase the timeout",
+    "Do not use Java native serialization or open polymorphic deserialization",
+    "Preserve the bounded allowlist and canonical owner context",
+    "Fix the Runtime codec owner and verify actual fresh Worker-to-Manager replies"
+  ]
+}

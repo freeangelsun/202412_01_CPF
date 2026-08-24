@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-268",
+  "status": "IN_PROGRESS",
+  "verifiedAt": "2026-08-24T11:55:00+09:00",
+  "sourceIdentitySha256": "f381a830d4dfc601b9e4d3bad7178bd1b60739347274718755c487e0c081cee4",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=2 :runtime:batch:runtime:test :runtime:batch:scheduler:test",
+  "result": {
+    "exitCode": 1,
+    "runtimeTests": 39,
+    "failures": 2,
+    "schedulerExecuted": false,
+    "failedTests": [
+      "CpfSpringBatchExecutionControlRecoveryTest.recordsUnknownWhenRecoverResponseIsLost",
+      "CpfSpringBatchExecutionControlRecoveryTest.bindsRecoveredExecutionUsingTheValidatedFence"
+    ]
+  },
+  "decision": "No broader PASS claimed; reconcile recovery fixture and production recovery context contract before source modification."
+}

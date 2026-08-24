@@ -1,4 +1,4 @@
-UPDATE bat_job_runtime_projection
+UPDATE BAT_JOB_RUNTIME_PROJECTION
 SET projection_status = 'RETIRED',
     retired_at = @NOW@,
     row_version = row_version + 1

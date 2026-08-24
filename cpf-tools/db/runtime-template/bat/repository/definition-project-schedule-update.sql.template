@@ -1,4 +1,4 @@
-UPDATE bat_schedule
+UPDATE BAT_SCHEDULE
 SET definition_version = ?,
     definition_checksum = ?,
     cron_expression = ?,

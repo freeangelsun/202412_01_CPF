@@ -1,4 +1,4 @@
-MERGE INTO bat_worker target
+MERGE INTO BAT_WORKER target
 USING (
     SELECT ? AS worker_id,
            ? AS instance_id,

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T19:49:00+09:00",
+  "finding": "F302",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "b2624be81f0a76ece73b4b3756a610d1ff1d7baa87ca464a5d2030def039a514",
+    "sha1": "c752505a63eb38db830b243ef12a80075a71c41d",
+    "fileCount": 8419,
+    "totalBytes": 56697031
+  },
+  "owners": {
+    "transactionLogMapperTemplates": 3,
+    "transactionSegmentMapperTemplates": 3,
+    "managedMyBatisProjections": 6,
+    "lineagePersistence": "exact CPF_TRANSACTION_LINEAGE",
+    "timelineSources": "exact DB3 physical identifiers"
+  },
+  "canonicalNamespaces": {
+    "transactionLog": "com.cpf.data.persistence.mybatis.mapper.logging.TransactionLogMapper",
+    "transactionSegment": "com.cpf.data.persistence.mybatis.mapper.logging.TransactionSegmentMapper"
+  },
+  "remainingGate": "DB3 drift, integrated logging, Java 25, Fresh physical persistence and timeline"
+}

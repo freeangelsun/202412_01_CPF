@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_deployment_cell
+FROM BAT_DEPLOYMENT_CELL
 WHERE cell_id = ?

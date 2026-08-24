@@ -1,4 +1,4 @@
-MERGE INTO bat_center_cut_rate_window target
+MERGE INTO BAT_CENTER_CUT_RATE_WINDOW target
 USING (
     SELECT ? AS center_cut_execution_id,
            ? AS window_second

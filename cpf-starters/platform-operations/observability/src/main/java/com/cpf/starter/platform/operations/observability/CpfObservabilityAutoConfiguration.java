@@ -22,4 +22,5 @@ public class CpfObservabilityAutoConfiguration {
             CpfMdcContextProjection mdc,CpfTraceContextProjection trace,CpfContextProjectionRegistry projections){
         return new CpfObservabilityContextProjection(mdc, trace, projections);
     }
+
 }

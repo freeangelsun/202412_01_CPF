@@ -1,4 +1,4 @@
-INSERT INTO bat_deployment_plan(
+INSERT INTO BAT_DEPLOYMENT_PLAN(
     plan_id, cell_id, manifest_json, manifest_hash, requested_by, reason_text, plan_state, created_at
 )
 VALUES (?, ?, ?, ?, ?, ?, 'PLANNED', @NOW6@)

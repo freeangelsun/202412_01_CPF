@@ -4,6 +4,8 @@
 
 The final 2026-08-23 Logging Steering supersedes conflicting earlier Logging directions. This package is execution tracking, not inherited PASS.
 
+The 2026-08-24 all-executable Runtime Config/Profile/Logging/Launcher Steering is an acceptance overlay on this package, the Batch deep-dive, Generated Domain and Open Git work. It adds no duplicate work package and does not restart completed source analysis. Every real executable Main must expose a consumed local/dev/test/stg/prod configuration and logging contract; standalone processes additionally require equivalent Windows/Linux lifecycle launchers. Empty profiles, comments without consumers, library launchers and file-presence-only checks are not PASS. Intake evidence: `cpf-docs/work/evidence/codex/current/CX-00-STEERING-ALL-EXECUTABLE-RUNTIME.json`.
+
 ## Canonical ownership
 
 - `cpf-common`: shared SLF4J/context/masking/property-validation and any common delayed archive/retention implementation.
@@ -54,6 +56,8 @@ The final 2026-08-23 Logging Steering supersedes conflicting earlier Logging dir
 ## Current acceptance state
 
 `VERIFICATION_PENDING` for the completed Common/base-Starter sub-scope only. The complete package remains not accepted. File existence, YML-only properties, mock-only tests and generated-domain manual edits cannot close this package.
+
+The remaining fixed-runtime units now explicitly include profile activation/default/environment/CLI precedence, invalid values, actual logging level/file/rolling/retention/MDC/masking behavior, and the standalone launcher lifecycle matrix. The existing 24-unit denominator already owns this scope; no duplicate units were added.
 
 ## Review trace — Common and default Starter foundation
 

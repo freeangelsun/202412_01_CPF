@@ -49,7 +49,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findOutbox(String status,String transactionId,String topic,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_broker_outbox WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_BROKER_OUTBOX WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"outbox_status",status); eq(sql,args,"transaction_id",transactionId); eq(sql,args,"topic",topic);
         sql.append(" ORDER BY updated_at DESC, outbox_id DESC");
@@ -58,7 +58,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findInbox(String status,String key,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_broker_inbox WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_BROKER_INBOX WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"inbox_status",status);
         if(hasText(key)) { sql.append(" AND (message_id = ? OR idempotency_key = ? OR consumer_identity = ?)"); args.add(key.trim());args.add(key.trim());args.add(key.trim()); }
@@ -68,7 +68,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
 
     @Override
     public List<Map<String,Object>> findDlq(String status,String transactionId,String topic,int limit) {
-        StringBuilder sql=new StringBuilder("SELECT * FROM cpf_broker_dlq WHERE 1=1");
+        StringBuilder sql=new StringBuilder("SELECT * FROM CPF_BROKER_DLQ WHERE 1=1");
         List<Object> args=new ArrayList<>();
         eq(sql,args,"replay_status",status); eq(sql,args,"transaction_id",transactionId); eq(sql,args,"topic",topic);
         sql.append(" ORDER BY updated_at DESC, dlq_id DESC");
@@ -135,13 +135,13 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
         String state=value(before,"replay_status").toUpperCase(java.util.Locale.ROOT);
         if(!java.util.Set.of("WAITING","FAILED").contains(state)) throw new IllegalStateException("DLQ replay state is not eligible: "+state);
         int outbox=jdbc.update("""
-            UPDATE cpf_broker_outbox SET outbox_status='PENDING', worker_id=NULL, claimed_at=NULL, lease_until=NULL,
+            UPDATE CPF_BROKER_OUTBOX SET outbox_status='PENDING', worker_id=NULL, claimed_at=NULL, lease_until=NULL,
                 next_attempt_at=CURRENT_TIMESTAMP, failure_message=NULL, updated_by=?, updated_at=CURRENT_TIMESTAMP
             WHERE message_id=? AND outbox_status IN ('FAILED','UNKNOWN')
             """,operatorId.trim(),id);
         if(outbox!=1) throw new IllegalStateException("Replay source outbox is not in replayable state: "+id);
         int dlq=jdbc.update("""
-            UPDATE cpf_broker_dlq SET replay_status='REQUESTED', replay_count=replay_count+1,
+            UPDATE CPF_BROKER_DLQ SET replay_status='REQUESTED', replay_count=replay_count+1,
                 replay_requested_at=CURRENT_TIMESTAMP, replay_completed_at=NULL, updated_by=?, updated_at=CURRENT_TIMESTAMP
             WHERE message_id=? AND replay_status IN ('WAITING','FAILED')
             """,operatorId.trim(),id);
@@ -178,7 +178,7 @@ public class CpfBrokerReliabilityOperations implements CpfReliabilityOperationsP
     public void verifyLowLevelReplayIsClosed(String messageId) { replay.replay(required(messageId,"messageId")); }
 
     private Optional<Map<String,Object>> findDlqByMessage(String id) {
-        List<Map<String,Object>> rows=query("SELECT * FROM cpf_broker_dlq WHERE message_id = ?",List.of(id),2);
+        List<Map<String,Object>> rows=query("SELECT * FROM CPF_BROKER_DLQ WHERE message_id = ?",List.of(id),2);
         if(rows.size()>1) throw new IllegalStateException("duplicate broker DLQ message: "+id);
         return rows.stream().findFirst();
     }

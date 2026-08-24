@@ -1,4 +1,4 @@
-INSERT INTO bat_deployment_cell(
+INSERT INTO BAT_DEPLOYMENT_CELL(
     cell_id, environment_id, runtime_role, service_id, manifest_version, manifest_hash,
     desired_state, row_version
 )
@@ -10,4 +10,4 @@ ON CONFLICT (cell_id) DO UPDATE SET
     manifest_version = EXCLUDED.manifest_version,
     manifest_hash = EXCLUDED.manifest_hash,
     desired_state = EXCLUDED.desired_state,
-    row_version = bat_deployment_cell.row_version + 1
+    row_version = BAT_DEPLOYMENT_CELL.row_version + 1

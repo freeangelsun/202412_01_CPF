@@ -1,3 +1,3 @@
 SELECT COUNT(*)
-FROM bat_operation_log
+FROM BAT_OPERATION_LOG
 WHERE created_at < ?

@@ -1,4 +1,4 @@
-INSERT INTO bat_center_cut_claim (
+INSERT INTO BAT_CENTER_CUT_CLAIM (
     center_cut_item_id,
     runner_id,
     pool_id,

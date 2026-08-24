@@ -4,12 +4,20 @@ import com.cpf.batch.api.CenterCutExecutionRequest;
 import com.cpf.batch.api.CpfCenterCutOperations;
 import com.cpf.batch.runtime.CenterCutParameterProtector;
 import com.cpf.batch.runtime.SensitiveTextSanitizer;
+import com.cpf.core.api.context.CpfContext;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.core.api.transaction.CpfTransactionIds;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalog;
 import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
+import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
+import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -23,14 +31,20 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
     private final ObjectMapper mapper;
     private final CenterCutParameterProtector protector;
     private final CpfVendorSqlCatalog sql;
+    private final CpfTransactionIdGenerator transactionIds;
+    private final CpfExecutionIdGenerator executionIds;
 
     public CenterCutExecutionService(JdbcTemplate jdbc, ObjectMapper mapper,
                                      CenterCutParameterProtector protector,
-                                     CpfVendorSqlCatalogProvider sqlCatalogProvider) {
+                                     CpfVendorSqlCatalogProvider sqlCatalogProvider,
+                                     CpfTransactionIdGenerator transactionIds,
+                                     CpfExecutionIdGenerator executionIds) {
         this.jdbc = jdbc;
         this.mapper = mapper;
         this.protector = protector;
         this.sql = sqlCatalogProvider.forModule("bat");
+        this.transactionIds = Objects.requireNonNull(transactionIds, "transactionIds");
+        this.executionIds = Objects.requireNonNull(executionIds, "executionIds");
     }
 
     @Override
@@ -40,27 +54,64 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
                 sql.required("centercut-execution-find-by-idempotency"), request.idempotencyKey());
         if (!existing.isEmpty()) return existing.getFirst();
 
-        Map<String, Object> job = jdbc.queryForMap(
-                sql.required("centercut-job-find-active"),
-                request.centerCutJobId());
+        Map<String, Object> job;
+        try {
+            job = jdbc.queryForMap(
+                    sql.required("centercut-job-find-active"),
+                    request.centerCutJobId());
+        } catch (EmptyResultDataAccessException missing) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "CENTER_CUT_JOB_NOT_FOUND");
+        }
         if (!"Y".equals(String.valueOf(job.get("use_yn")))) {
-            throw new IllegalStateException("Center-Cut job disabled");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "CENTER_CUT_JOB_DISABLED");
         }
 
         String canonical = mapper.writeValueAsString(new TreeMap<>(request.parameters()));
         var protectedPayload = protector.protect(canonical);
+        LaunchContext launchContext = resolveLaunchContext(request);
         String executionId = UUID.randomUUID().toString();
         jdbc.update(sql.required("centercut-execution-insert"),
                 executionId, request.centerCutJobId(), request.idempotencyKey(), protectedPayload.cipherText(),
                 protectedPayload.sha256(), request.parameterSchemaVersion(), request.tpsLimit(),
-                request.concurrencyLimit(), request.transactionId(), request.parentSegmentId(), request.requestedBy(),
+                request.concurrencyLimit(), launchContext.transactionId(), launchContext.parentSegmentId(), request.requestedBy(),
                 SensitiveTextSanitizer.sanitize(request.reason()));
         return detail(executionId);
     }
 
+    LaunchContext resolveLaunchContext(CenterCutExecutionRequest request) {
+        CpfContext current = CpfContexts.current();
+        String suppliedTransaction = text(request.transactionId());
+        if (current != null && suppliedTransaction != null
+                && !current.transactionId().equals(suppliedTransaction)) {
+            throw new SecurityException("CENTER_CUT_TRANSACTION_CONTEXT_MISMATCH");
+        }
+        String transactionId = suppliedTransaction != null
+                ? suppliedTransaction
+                : current != null ? current.transactionId() : transactionIds.newTransactionId();
+        transactionId = CpfTransactionIds.requireCanonical(transactionId);
+
+        String suppliedParentSegment = text(request.parentSegmentId());
+        if (current != null && suppliedParentSegment != null
+                && !current.segmentId().equals(suppliedParentSegment)) {
+            throw new SecurityException("CENTER_CUT_PARENT_SEGMENT_CONTEXT_MISMATCH");
+        }
+        String parentSegmentId = suppliedParentSegment != null
+                ? suppliedParentSegment
+                : current != null ? current.segmentId() : executionIds.newSegmentId();
+        parentSegmentId = requiredIdentifier(parentSegmentId, "parentSegmentId");
+        return new LaunchContext(transactionId, parentSegmentId);
+    }
+
     @Override
     public Map<String, Object> status(String id) {
-        return jdbc.queryForMap(sql.required("centercut-execution-detail"), id);
+        try {
+            return jdbc.queryForMap(sql.required("centercut-execution-detail"), id);
+        } catch (EmptyResultDataAccessException missing) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "CENTER_CUT_EXECUTION_NOT_FOUND");
+        }
     }
 
 
@@ -92,16 +143,16 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
         return detail(id);
     }
 
-    private static String nextState(String action, String current, boolean targetComplete) {
+    static String nextState(String action, String current, boolean targetComplete) {
         if (Set.of("COMPLETED", "CANCELLED").contains(current)) {
             throw new IllegalStateException("Terminal Center-Cut execution cannot transition");
         }
         return switch (action) {
             case "START" -> {
-                if (!Set.of("CREATED", "TARGETING", "PAUSED").contains(current)) {
+                if (!Set.of("CREATED", "TARGETING", "TARGET_READY", "PAUSED").contains(current)) {
                     throw new IllegalStateException("START not allowed from " + current);
                 }
-                yield targetComplete ? "RUNNING" : "TARGETING";
+                yield targetComplete || "PAUSED".equals(current) ? "RUNNING" : "STARTING";
             }
             case "RESUME" -> {
                 if (!Set.of("PAUSED", "DRAINING").contains(current)) {
@@ -128,4 +179,19 @@ public class CenterCutExecutionService implements CpfCenterCutOperations {
             throw new IllegalArgumentException("requester/approver separation and reason required");
         }
     }
+
+    private static String text(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static String requiredIdentifier(String value, String name) {
+        String normalized = text(value);
+        if (normalized == null || normalized.length() > 160
+                || normalized.chars().anyMatch(Character::isISOControl)) {
+            throw new IllegalArgumentException("Invalid Center-Cut " + name);
+        }
+        return normalized;
+    }
+
+    record LaunchContext(String transactionId, String parentSegmentId) { }
 }

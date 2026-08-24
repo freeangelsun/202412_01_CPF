@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /** @CpfOnlineTransaction EXS_SAMPLE_TX_DELETE의 typed Same-JVM/Remote 공통 adapter입니다. */
 @Component
-public final class SampleDeleteDomainOperation implements CpfDomainOperation<DeleteSampleCommand, SampleItem> {
+public class SampleDeleteDomainOperation implements CpfDomainOperation<DeleteSampleCommand, SampleItem> {
     private final SampleTransactionService service;
     public SampleDeleteDomainOperation(SampleTransactionService service) { this.service=service; }
     @Override public String systemCode() { return "EXS"; }

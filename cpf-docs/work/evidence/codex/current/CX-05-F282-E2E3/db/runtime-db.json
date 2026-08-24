@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "runId": "f282e2e3",
+  "vendor": "mariadb",
+  "host": "127.0.0.1",
+  "port": 3306,
+  "platformDatabase": "cpf_verify_f282e2e3_runtime",
+  "platformRuntimeUser": "cpfv_f282e2e3_pr",
+  "backofficeDatabase": "cpf_verify_f282e2e3_mbw",
+  "backofficeRuntimeUser": "cpfv_f282e2e3_br",
+  "profile": "profile.json",
+  "status": "PASS",
+  "sanitized": true
+}

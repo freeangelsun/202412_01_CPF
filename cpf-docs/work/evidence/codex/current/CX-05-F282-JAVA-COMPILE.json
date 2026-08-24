@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "finding": "F282",
+  "recordedAt": "2026-08-24T16:08:00+09:00",
+  "sourceIdentitySha256": "efff2cb98c203d21f03bc2a4441570948460e3b6e5a212e4d80b79c02d55445d",
+  "java": "25.0.3",
+  "compile": {
+    "tasks": [
+      ":runtime:batch:center-cut-runtime:compileJava",
+      ":runtime:batch:worker:compileJava",
+      ":runtime:batch:center-cut:compileJava"
+    ],
+    "exitCode": 0,
+    "result": "BUILD SUCCESSFUL"
+  },
+  "firstTestAttempt": {
+    "exitCode": 1,
+    "testsExecuted": 0,
+    "cause": "Test fixture used retired runnerId accessor instead of canonical workerId",
+    "correction": "Fixture now observes CpfCenterCutContext.workerId; Product implementation unchanged"
+  },
+  "status": "VERIFICATION_PENDING"
+}

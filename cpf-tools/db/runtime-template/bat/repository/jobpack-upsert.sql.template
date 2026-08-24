@@ -1,4 +1,4 @@
-INSERT INTO bat_job_pack(
+INSERT INTO BAT_JOB_PACK(
     job_pack_id, owner_domain, artifact_coordinate, artifact_version, artifact_checksum,
     signature_present_yn, platform_range, manifest_json, last_registered_at
 )

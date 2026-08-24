@@ -30,9 +30,7 @@ public class SettlementCenterCutJobService {
                 100,
                 4,
                 "EDU",
-                "교육 Center-Cut 실행",
-                String.valueOf(command.jobParameters().getOrDefault("transactionId", "BATCH")),
-                command.cpfExecutionId()));
+                "교육 Center-Cut 실행"));
 
         String executionId = String.valueOf(launch.getOrDefault("executionId", command.cpfExecutionId()));
         Map<String, Object> status = centerCut.status(executionId);

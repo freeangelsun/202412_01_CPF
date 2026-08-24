@@ -786,6 +786,26 @@ CREATE TABLE IF NOT EXISTS BAT_OPERATION_REQUEST (
     INDEX ix_bat_operation_request_state (request_state, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 위험조치 승인·멱등·UNKNOWN 복구 Ledger';
 
+CREATE TABLE IF NOT EXISTS BAT_RECONCILIATION_AUDIT (
+    reconciliation_audit_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Reconciliation audit sequence',
+    request_id VARCHAR(100) NOT NULL COMMENT 'Approved reconciliation request identifier',
+    entity_type VARCHAR(40) NOT NULL COMMENT 'Reconciled entity type',
+    entity_key VARCHAR(300) NOT NULL COMMENT 'Canonical reconciled entity identity',
+    from_status VARCHAR(40) NOT NULL COMMENT 'State observed before reconciliation',
+    to_status VARCHAR(40) NOT NULL COMMENT 'State established by reconciliation',
+    requester_id VARCHAR(120) NOT NULL COMMENT 'Verified reconciliation requester',
+    approver_id VARCHAR(120) NOT NULL COMMENT 'Verified independent approver',
+    reason_text VARCHAR(1000) NOT NULL COMMENT 'Required operator reason',
+    idempotency_key VARCHAR(200) NOT NULL COMMENT 'Single reconciliation outcome key',
+    expected_attempt INTEGER NULL COMMENT 'Expected trigger execution attempt',
+    expected_version BIGINT NULL COMMENT 'Expected entity optimistic version',
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Immutable audit creation time',
+    CONSTRAINT pk_BAT_RECONCILIATION_AUDIT PRIMARY KEY (reconciliation_audit_id),
+    CONSTRAINT uq_bat_reconcile_idem UNIQUE (idempotency_key),
+    CONSTRAINT ck_bat_reconcile_separation CHECK (requester_id <> approver_id),
+    INDEX ix_bat_reconcile_entity (entity_type, entity_key, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Immutable BAT UNKNOWN-result reconciliation approval audit';
+
 CREATE TABLE IF NOT EXISTS BAT_REMOTE_MESSAGE_LEDGER (
     direction_cd VARCHAR(20) NOT NULL COMMENT 'REQUEST 또는 REPLY',
     message_id VARCHAR(64) NOT NULL COMMENT '안정 Remote Message 식별자',
@@ -1582,6 +1602,7 @@ CREATE TABLE IF NOT EXISTS CPF_TRANSACTION_SEGMENT (
     segment_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '거래 구간 내부 순번',
     transaction_segment_id VARCHAR(120) NOT NULL COMMENT '거래 구간 ID',
     transaction_id CHAR(34) NOT NULL COMMENT 'CPF transactionId',
+    execution_id VARCHAR(160) NULL COMMENT 'CPF 실행 인스턴스 ID',
     parent_segment_id VARCHAR(120) NULL COMMENT '상위 거래 구간 ID',
     transaction_role VARCHAR(40) NOT NULL COMMENT '구간 역할',
     module_code VARCHAR(20) NOT NULL COMMENT '현재 처리 모듈 코드',
@@ -1632,6 +1653,7 @@ CREATE TABLE IF NOT EXISTS CPF_TRANSACTION_SEGMENT (
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정일시',
     CONSTRAINT pk_CPF_TRANSACTION_SEGMENT PRIMARY KEY (segment_id),
     CONSTRAINT uk_cpf_transaction_segment_id UNIQUE (transaction_segment_id),
+    INDEX ix_cpf_transaction_segment_execution (execution_id, started_at),
     INDEX ix_cpf_transaction_segment_transaction (transaction_id, started_at, segment_id),
     INDEX ix_cpf_transaction_segment_parent (parent_segment_id),
     INDEX ix_cpf_transaction_segment_module (module_code, started_at),
@@ -2818,13 +2840,6 @@ CREATE TABLE IF NOT EXISTS BAT_JOB_RUNTIME_PROJECTION_OUTBOX (
     INDEX ix_bat_projection_outbox_job (job_id, definition_version, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Batch Runtime Projection Durable Outbox';
 
-CREATE TABLE IF NOT EXISTS BAT_RUNTIME_CAPABILITY (
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
-    CONSTRAINT pk_BAT_RUNTIME_CAPABILITY PRIMARY KEY (instance_id, capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
-
 CREATE TABLE IF NOT EXISTS BAT_RUNTIME_COMMAND_ATTEMPT (
     attempt_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Command attempt identifier',
     command_id VARCHAR(80) NOT NULL COMMENT 'Runtime command identifier',
@@ -2840,23 +2855,6 @@ CREATE TABLE IF NOT EXISTS BAT_RUNTIME_COMMAND_ATTEMPT (
     CONSTRAINT fk_bat_runtime_command_attempt_command FOREIGN KEY (command_id) REFERENCES BAT_RUNTIME_COMMAND (command_id) ON DELETE CASCADE,
     INDEX ix_bat_runtime_command_attempt_instance (instance_id, started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime command execution attempt';
-
-CREATE TABLE IF NOT EXISTS BAT_RUNTIME_HEARTBEAT (
-    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
-    instance_id VARCHAR(160) NOT NULL COMMENT 'Runtime instance identifier',
-    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
-    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
-    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
-    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
-    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
-    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
-    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
-    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
-    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
-    CONSTRAINT pk_BAT_RUNTIME_HEARTBEAT PRIMARY KEY (heartbeat_id),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE,
-    INDEX ix_bat_runtime_heartbeat_instance (instance_id, heartbeat_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
 
 CREATE TABLE IF NOT EXISTS BAT_SB_JOB_EXECUTION (
     JOB_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch JobExecution 순번',
@@ -4120,6 +4118,30 @@ CREATE TABLE IF NOT EXISTS BAT_GHOST_EVENT (
     INDEX ix_bat_ghost_event_worker (worker_id, detected_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT 배치 ghost 감지와 조치 이력';
 
+CREATE TABLE IF NOT EXISTS BAT_RUNTIME_CAPABILITY (
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    capability_code VARCHAR(80) NOT NULL COMMENT 'Advertised capability code',
+    CONSTRAINT pk_BAT_RUNTIME_CAPABILITY PRIMARY KEY (instance_id, capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime capability projection';
+
+CREATE TABLE IF NOT EXISTS BAT_RUNTIME_HEARTBEAT (
+    heartbeat_id BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Heartbeat event identifier',
+    instance_id VARCHAR(120) NOT NULL COMMENT 'Runtime instance identifier',
+    heartbeat_at DATETIME(6) NOT NULL COMMENT 'Heartbeat observation time',
+    ready_yn CHAR(1) NOT NULL COMMENT 'Readiness flag',
+    available_capacity INT NOT NULL DEFAULT 0 COMMENT 'Available execution capacity',
+    queue_depth BIGINT NOT NULL DEFAULT 0 COMMENT 'Observed queue depth',
+    draining_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT 'Drain mode flag',
+    current_execution_count INT NOT NULL DEFAULT 0 COMMENT 'Current execution count',
+    active_lease_count INT NOT NULL DEFAULT 0 COMMENT 'Active lease count',
+    last_error_code VARCHAR(80) NULL COMMENT 'Last runtime error code',
+    deployment_version VARCHAR(80) NULL COMMENT 'Observed deployment version',
+    CONSTRAINT pk_BAT_RUNTIME_HEARTBEAT PRIMARY KEY (heartbeat_id),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE,
+    INDEX ix_bat_runtime_heartbeat_instance (instance_id, heartbeat_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT runtime heartbeat event';
+
 CREATE TABLE IF NOT EXISTS BAT_SB_STEP_EXECUTION_CONTEXT (
     STEP_EXECUTION_ID BIGINT NOT NULL COMMENT 'Spring Batch StepExecution 순번',
     SHORT_CONTEXT VARCHAR(2500) NOT NULL COMMENT '짧은 실행 컨텍스트',
@@ -4309,6 +4331,9 @@ CREATE TABLE IF NOT EXISTS OPS_RUNTIME_INSTANCE_STATE (
     artifact_version VARCHAR(100) NULL COMMENT 'Runtime artifact version',
     artifact_commit VARCHAR(64) NULL COMMENT '실행 Artifact 기준 Commit',
     runtime_role VARCHAR(40) NULL COMMENT 'APPLICATION/GATEWAY/BATCH/AGENT 등 Runtime 역할',
+    desired_runtime_state VARCHAR(32) NOT NULL DEFAULT 'RUNNING' COMMENT 'Central runtime desired lifecycle state',
+    actual_runtime_state VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN' COMMENT 'Central runtime actual lifecycle state',
+    control_row_version BIGINT NOT NULL DEFAULT 0 COMMENT 'Central runtime lifecycle optimistic version',
     registration_source VARCHAR(120) NULL COMMENT '배포/Discovery/Self registration identity source',
     schema_version VARCHAR(100) NULL COMMENT 'Runtime schema version',
     config_hash VARCHAR(64) NULL COMMENT 'Runtime configuration checksum',
@@ -4322,7 +4347,7 @@ CREATE TABLE IF NOT EXISTS OPS_RUNTIME_INSTANCE_STATE (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
     CONSTRAINT pk_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE,
     INDEX ix_cpf_runtime_instance_lease (lease_until),
     INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)

@@ -53,7 +53,7 @@ public class BatOperationLogRetentionHandler implements CpfRetentionTargetHandle
 
         List<String> ids = jdbc.query(con -> {
             PreparedStatement ps = con.prepareStatement(
-                    "SELECT operation_id FROM bat_operation_log WHERE created_at < ? ORDER BY created_at, operation_id");
+                    sql.required("retention-operation-log-find-ids"));
             ps.setTimestamp(1, Timestamp.from(command.cutoff()));
             ps.setMaxRows(command.maxRows());
             return ps;
@@ -66,18 +66,14 @@ public class BatOperationLogRetentionHandler implements CpfRetentionTargetHandle
         String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
         long archived = 0;
         if ("ARCHIVE".equals(action)) {
-            String archiveSql = "INSERT INTO bat_operation_log_archive(" +
-                    "operation_id,job_id,execution_id,operation_type,operator_id,reason,before_data,after_data," +
-                    "result_type,result_message,created_by,created_at,updated_by,updated_at,archived_at,archived_by,archive_reason) " +
-                    "SELECT operation_id,job_id,execution_id,operation_type,operator_id,reason,before_data,after_data," +
-                    "result_type,result_message,created_by,created_at,updated_by,updated_at,CURRENT_TIMESTAMP,?,? " +
-                    "FROM bat_operation_log WHERE operation_id IN (" + placeholders + ")";
+            String archiveSql = sql.required("retention-operation-log-archive")
+                    .formatted(placeholders);
             Object[] args = new Object[2 + ids.size()];
             args[0] = command.actorId(); args[1] = command.reason();
             for (int i = 0; i < ids.size(); i++) args[i + 2] = ids.get(i);
             archived = jdbc.update(archiveSql, args);
         }
-        String deleteSql = "DELETE FROM bat_operation_log WHERE operation_id IN (" + placeholders + ")";
+        String deleteSql = sql.required("retention-operation-log-purge").formatted(placeholders);
         long purged = jdbc.update(deleteSql, ids.toArray());
         long processed = ids.size();
         return new CpfRetentionResult(TARGET, action, false, false, matched, archived, purged,

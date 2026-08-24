@@ -20,7 +20,7 @@ public class CenterCutApplication {
 
     @Bean
     RuntimeRegistration runtimeRegistration(Environment environment) {
-        return RuntimeIdentityFactory.fromEnvironment(
-                environment, RuntimeRole.CENTER_CUT, "cpf-batch-center-cut", 8183);
+        return RuntimeIdentityFactory.fromBatchEnvironment(
+                environment, RuntimeRole.CENTER_CUT, 8183);
     }
 }

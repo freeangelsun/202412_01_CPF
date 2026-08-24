@@ -1,0 +1,3 @@
+SELECT CASE WHEN pause_requested_yn = 'Y' THEN 1 ELSE 0 END
+FROM OPS_RETENTION_RUN
+WHERE run_id = ?

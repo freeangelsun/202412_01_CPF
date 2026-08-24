@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T10:44:00+09:00",
+  "sourceIdentitySha256": "c76d361dbc73fb470180f841a93625733f8ebaa7a8f140fe5a6fa34372ba4ef2",
+  "status": "PASS",
+  "java": "25.0.3",
+  "suites": {
+    "controlPlane": 69,
+    "worker": 43,
+    "scheduler": 13,
+    "centerCut": 23,
+    "agent": 26
+  },
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "bootJars": {
+    "controlPlaneBytes": 76676298,
+    "workerBytes": 85344613
+  },
+  "remainingGate": "Fresh central registration and telemetry replay"
+}

@@ -1,4 +1,4 @@
 SELECT *
-FROM bat_lock
+FROM BAT_LOCK
 WHERE lock_key = ?
 FOR UPDATE

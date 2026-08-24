@@ -62,6 +62,25 @@ class CpfServiceEndpointRegistryTest {
         assertEquals("https://partner.example", registry.runtimeEndpoint("partner-a").baseUrl());
     }
 
+    @Test
+    void literalHttpRequiresExplicitTlsOptOutAndRemainsAddressAndPortAllowlisted() {
+        CpfServiceEndpointProperties.ServiceEndpoint endpoint = new CpfServiceEndpointProperties.ServiceEndpoint();
+        endpoint.setBaseUrl("http://192.168.45.232:8290");
+        endpoint.setAllowPrivate(true);
+        endpoint.setAllowedPorts(List.of(8290));
+        CpfServiceEndpointProperties properties = new CpfServiceEndpointProperties();
+        properties.setServices(Map.of("member", endpoint));
+
+        CpfServiceEndpointRegistry secure = new CpfServiceEndpointRegistry(properties);
+        assertThrows(IllegalArgumentException.class, () -> secure.resolvedEndpoint("member"));
+
+        endpoint.setRequireTls(false);
+        CpfServiceEndpointRegistry explicitlyLocal = new CpfServiceEndpointRegistry(properties);
+        var resolved = explicitlyLocal.resolvedEndpoint("member");
+        assertEquals("192.168.45.232", resolved.pinnedAddress().getHostAddress());
+        assertEquals(8290, resolved.port());
+    }
+
     private static CpfServiceEndpointProperties properties(String url, List<String> pins) {
         CpfServiceEndpointProperties.ServiceEndpoint endpoint = new CpfServiceEndpointProperties.ServiceEndpoint();
         endpoint.setBaseUrl(url);

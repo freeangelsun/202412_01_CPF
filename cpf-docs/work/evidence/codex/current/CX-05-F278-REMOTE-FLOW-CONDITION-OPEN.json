@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-278",
+  "startedAt": "2026-08-24T15:07:00+09:00",
+  "finishedAt": "2026-08-24T15:09:00+09:00",
+  "sourceIdentitySha256": "f801002d9426108c17b589566c26604d891006fa471eb921ed466c1575669e68",
+  "rootCause": "The transport-neutral Remote Worker flow is conditional only on worker-enabled=true. The Worker executable default remains true, so selecting transport=disabled removes the Adapter channels but still instantiates flows that require those channels.",
+  "requiredOwnerFix": "Activate the Remote Worker flow only when a complete transport channel set exists, preserving support for Kafka or any future Adapter without coupling common Runtime to an implementation name.",
+  "status": "IN_PROGRESS"
+}

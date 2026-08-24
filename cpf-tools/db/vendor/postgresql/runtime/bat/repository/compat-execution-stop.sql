@@ -1,4 +1,4 @@
-UPDATE bat_execution
+UPDATE BAT_EXECUTION
 SET stop_requested_yn = 'Y',
     updated_by = ?,
     updated_at = CURRENT_TIMESTAMP(3),

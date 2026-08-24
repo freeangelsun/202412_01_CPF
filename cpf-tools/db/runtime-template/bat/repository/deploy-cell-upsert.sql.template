@@ -1,4 +1,4 @@
-INSERT INTO bat_deployment_cell(
+INSERT INTO BAT_DEPLOYMENT_CELL(
     cell_id, environment_id, runtime_role, service_id, manifest_version, manifest_hash,
     desired_state, row_version
 )

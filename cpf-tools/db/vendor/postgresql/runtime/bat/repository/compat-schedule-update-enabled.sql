@@ -1,4 +1,4 @@
-UPDATE bat_schedule
+UPDATE BAT_SCHEDULE
 SET enabled_yn = ?,
     updated_by = ?,
     updated_at = CURRENT_TIMESTAMP,

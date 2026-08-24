@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-255",
+  "recordedAt": "2026-08-24T10:18:00+09:00",
+  "sourceIdentitySha256": "88d8603f922614712ddbfd704f17a9642f1d1686f22f8268017f76747084d6f2",
+  "status": "SOURCE_FIXED",
+  "authoringTemplateCount": 241,
+  "rewrittenTemplateCount": 226,
+  "canonicalPhysicalTableCount": 43,
+  "remainingLowercasePhysicalIdentifierCount": 0,
+  "remainingGate": "DB3 query-pack regeneration, parity verification and Fresh Linux MariaDB replay"
+}

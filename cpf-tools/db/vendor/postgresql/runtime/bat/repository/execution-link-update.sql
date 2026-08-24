@@ -1,4 +1,4 @@
-UPDATE cpf_batch_execution_link
+UPDATE BAT_EXECUTION_LINK
    SET spring_job_instance_id = ?,
        spring_job_execution_id = ?,
        spring_step_execution_id = ?,

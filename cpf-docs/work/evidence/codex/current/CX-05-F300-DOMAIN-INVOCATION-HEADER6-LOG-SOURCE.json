@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-300",
+  "status": "SOURCE_FIXED",
+  "rootCause": [
+    "The complete transaction log/segment/fallback/recovery implementation was packaged but never assembled by its auto-configuration; only lightweight context projections were beans.",
+    "The canonical transaction LoggingAspect matched CPF-internal Controller packages but not customer Generated Controllers annotated with CpfOnlineTransaction.",
+    "The first repair retained the legacy broad Controller name pointcut, which made Spring CGLIB-proxy intentionally final transport and management Controllers."
+  ],
+  "repair": [
+    "Activate the complete persisted observability owner through explicit auto-configuration beans only when the platform transaction manager and all three concrete persistence/projection ports exist.",
+    "Observe package-independent CpfOnlineTransaction boundaries and the official CpfDomainOperation.invoke boundary, not Controller naming conventions.",
+    "Generate proxyable typed Domain operation adapters so remote and same-JVM invocation cross the same canonical AOP boundary."
+  ],
+  "canonicalSync": {
+    "scope": "AllGeneratorOwned",
+    "domains": ["member", "external"],
+    "changedPerDomain": 6,
+    "added": 0,
+    "removed": 0,
+    "developerIa": "PASS",
+    "generatorMetadata": "ABSENT"
+  },
+  "safety": [
+    "No DB Provider means no persisted observability component scan.",
+    "No mock or no-op persistence port is created.",
+    "Existing durable file fallback and recovery components remain the failure owner.",
+    "Center-Cut remains independent of Kafka."
+  ],
+  "sourceIdentity": {
+    "sha256": "4a6e733b59d51aecf565441e66a23e0b576a9cf6c5521ec72d2724bc05b224c4",
+    "sha1": "e6a23ce615ec9709a70ea46f6c54812fba126e91",
+    "files": 8419,
+    "bytes": 56693928
+  }
+}

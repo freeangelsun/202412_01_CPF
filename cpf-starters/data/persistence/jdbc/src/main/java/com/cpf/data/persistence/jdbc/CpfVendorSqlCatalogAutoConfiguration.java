@@ -13,7 +13,7 @@ import org.springframework.core.env.Environment;
 
 /** Supplies deterministic, fail-closed SQL catalogs from the selected external Vendor Pack. */
 @AutoConfiguration(after = CpfDomainDataSourceAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "cpf.domain.persistence", name = "provider", havingValue = "jdbc")
+@ConditionalOnProperty(prefix = "cpf.db", name = "resource-root")
 public class CpfVendorSqlCatalogAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CpfVendorSqlCatalogProvider.class)
@@ -23,7 +23,7 @@ public class CpfVendorSqlCatalogAutoConfiguration {
         String configured = environment.getProperty("cpf.db.resource-root");
         if (configured == null || configured.isBlank()) {
             throw new IllegalStateException(
-                    "cpf.db.resource-root is required for the JDBC Generated Domain provider");
+                    "cpf.db.resource-root is required for the Vendor SQL catalog provider");
         }
         Path root = Path.of(configured.trim());
         return moduleCode -> CpfVendorSqlCatalogs.fromPack(vendor, moduleCode, root);

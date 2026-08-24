@@ -11,6 +11,6 @@ SELECT c.center_cut_job_id AS centerCutJobId,
        c.updated_at AS updatedAt,
        j.job_name AS batchJobName,
        j.job_type AS batchJobType
-FROM bat_center_cut_job c
-LEFT JOIN bat_job j ON j.job_id = c.batch_job_id
+FROM BAT_CENTER_CUT_JOB c
+LEFT JOIN BAT_JOB j ON j.job_id = c.batch_job_id
 ORDER BY c.center_cut_job_id

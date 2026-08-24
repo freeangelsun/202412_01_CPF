@@ -1,4 +1,4 @@
-UPDATE bat_runtime_command
+UPDATE BAT_RUNTIME_COMMAND
 SET command_state = ?,
     failure_stage = ?,
     result_text = ?,

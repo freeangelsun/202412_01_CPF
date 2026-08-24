@@ -22,7 +22,7 @@ public final class CpfHeaderPropagator {
     public static Map<String, String> inboundHeaders(TransactionHeader transactionHeader) {
         Map<String, String> headers = new LinkedHashMap<>();
         appendResolvedIdentity(headers, transactionHeader, false);
-        appendBusinessHeaders(headers, transactionHeader);
+        appendBusinessHeaders(headers, transactionHeader, false);
         appendNetworkHeaders(headers, transactionHeader);
         appendExtensionHeaders(headers, transactionHeader);
         return CpfHeaderMasker.maskHeaders(headers);
@@ -32,7 +32,7 @@ public final class CpfHeaderPropagator {
         Map<String, String> headers = new LinkedHashMap<>();
         TransactionHeader transactionHeader = TransactionContext.currentHeader();
         appendResolvedIdentity(headers, transactionHeader, false);
-        appendBusinessHeaders(headers, transactionHeader);
+        appendBusinessHeaders(headers, transactionHeader, false);
         appendNetworkHeaders(headers, transactionHeader);
         appendExtensionHeaders(headers, transactionHeader);
         return CpfHeaderMasker.maskHeaders(headers);
@@ -42,7 +42,7 @@ public final class CpfHeaderPropagator {
         Map<String, String> headers = new LinkedHashMap<>();
         TransactionHeader transactionHeader = TransactionContext.currentHeader();
         appendResolvedIdentity(headers, transactionHeader, true);
-        appendBusinessHeaders(headers, transactionHeader);
+        appendBusinessHeaders(headers, transactionHeader, true);
         appendExtensionHeaders(headers, transactionHeader);
         appendOutboundAllowed(headers);
         appendSegmentHeaders(headers);
@@ -99,7 +99,10 @@ public final class CpfHeaderPropagator {
         }
     }
 
-    private static void appendBusinessHeaders(Map<String, String> headers, TransactionHeader transactionHeader) {
+    private static void appendBusinessHeaders(
+            Map<String, String> headers,
+            TransactionHeader transactionHeader,
+            boolean outbound) {
         putIfHasText(headers, CpfHeaderNames.API_VERSION, headerValue(transactionHeader, TransactionHeader::getApiVersion));
         putIfHasText(headers, CpfHeaderNames.CLIENT_ID, headerValue(transactionHeader, TransactionHeader::getClientId));
         putIfHasText(headers, CpfHeaderNames.CLIENT_VERSION, headerValue(transactionHeader, TransactionHeader::getClientVersion));
@@ -112,7 +115,8 @@ public final class CpfHeaderPropagator {
         putIfHasText(headers, CpfHeaderNames.ORIGINAL_CHANNEL, TransactionContext.originalChannel());
         putIfHasText(headers, CpfHeaderNames.CURRENT_CHANNEL, TransactionContext.currentChannel());
         putIfHasText(headers, CpfHeaderNames.TARGET_CHANNEL, TransactionContext.targetChannel());
-        putIfHasText(headers, CpfHeaderNames.TARGET_OPERATION_ID, TransactionContext.targetOperationId());
+        putIfHasText(headers, CpfHeaderNames.TARGET_OPERATION_ID,
+                outbound ? TransactionContext.targetOperationId() : TransactionContext.observedOperationId());
         putIfHasText(headers, CpfHeaderNames.LOCALE, headerValue(transactionHeader, TransactionHeader::getLocale));
         putIfHasText(headers, CpfHeaderNames.TIMEZONE, headerValue(transactionHeader, TransactionHeader::getTimezone));
         putIfHasText(headers, CpfHeaderNames.REQUEST_TYPE, headerValue(transactionHeader, TransactionHeader::getRequestType));

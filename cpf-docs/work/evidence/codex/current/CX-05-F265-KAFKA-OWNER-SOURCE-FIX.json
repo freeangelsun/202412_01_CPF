@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F265-KAFKA-OWNER-SOURCE-FIX",
+  "startedAt": "2026-08-24T14:05:00+09:00",
+  "finishedAt": "2026-08-24T14:12:47+09:00",
+  "finding": "CX-F-265",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "2c6a56091fe060350974bdb8518f16696755d6659d361fcdd2e55000c45cf0be",
+    "sha1": "092eba12bf10467ffe62c1613df2373535b586e6",
+    "fileCount": 8283,
+    "totalBytes": 56580755
+  },
+  "changes": [
+    "Removed the Kafka Starter and spring-integration-kafka direct dependencies from cpf-batch/center-cut.",
+    "Removed the Center-Cut Kafka transport/role/default-binding application properties.",
+    "Moved the local optional Remote Partition diagnostic endpoint and its owner test from Center-Cut to Control Plane.",
+    "Updated the maintained two-Worker harness so Control Plane owns the Kafka Manager and Center-Cut runs with Remote Transport disabled.",
+    "Updated static contracts to require Kafka only for Worker, Control Plane and Scheduler and to reject Kafka references in Center-Cut.",
+    "Currentized CENTER canonical requirements to the DB Work/Claim/Lease/Fencing and official Domain Invocation flow."
+  ],
+  "preserved": [
+    "The independent Batch Kafka Remote Transport implementation and R44 evidence remain intact.",
+    "No Kafka/Broker control was added to Center-Cut.",
+    "No timeout, assertion, Seed or Requirement was weakened."
+  ],
+  "next": "Run static owner contracts and Java tests, inspect the actual runtime classpath, then boot Center-Cut without Kafka."
+}

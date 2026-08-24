@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F265-TRANSITIVE-KAFKA-REOPEN",
+  "startedAt": "2026-08-24T14:17:00+09:00",
+  "finishedAt": "2026-08-24T14:18:00+09:00",
+  "sourceIdentity": "2c6a56091fe060350974bdb8518f16696755d6659d361fcdd2e55000c45cf0be",
+  "command": ".\\gradlew.bat :runtime:batch:center-cut:dependencies --configuration runtimeClasspath --no-daemon --no-watch-fs --max-workers=1 --console=plain",
+  "exitCode": 0,
+  "result": "FAILED_REQUIREMENT",
+  "finding": "CX-F-265",
+  "actual": [
+    "cpf-batch/runtime still exports spring-integration-kafka to Center-Cut runtimeClasspath",
+    "spring-kafka and kafka-clients remain transitively present",
+    "spring-boot-starter-kafka remains transitively present"
+  ],
+  "rootCause": "The common Batch Runtime module owns both transport-neutral execution and the Kafka adapter implementation/dependencies.",
+  "requiredFix": "Create an optional Batch Remote Kafka Adapter owner and leave the common Batch Runtime broker-neutral; actual Kafka executables select the adapter explicitly.",
+  "prohibited": "Do not hide the coupling with per-executable Gradle excludes or disabled tests."
+}

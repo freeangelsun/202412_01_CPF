@@ -31,7 +31,7 @@ public class AgentProperties {
     private boolean allowPrivateProxyAddresses;
     private int artifactConnectTimeoutSeconds = 20;
     private int artifactReadTimeoutSeconds = 300;
-    private String commandLedgerRoot = "./data/agent-command-ledger";
+    private String commandLedgerRoot;
     private boolean requireSignature = true;
     private long maxArtifactBytes = 536_870_912L;
     private long maxLogArchiveBytes = 1_073_741_824L;

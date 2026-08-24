@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "runId": "b4200824c043",
+  "status": "FAILED_ROOT_CAUSE_CAPTURED_CLEAN",
+  "sourceIdentitySha256": "aeaafa8d4e2361170f0d776de6e85b906ec06f485bc7f071dd8136e4e706036c",
+  "artifactEvidence": "CX-05-F272-POLLER-BOOTJARS.json",
+  "completed": [
+    "Fresh verifier-owned MariaDB platform database with 202 canonical tables",
+    "Fresh verifier-owned Backoffice database with 29 canonical tables",
+    "411 platform indexes and 129 platform foreign keys",
+    "63 Backoffice indexes and 24 Backoffice foreign keys",
+    "20 canonical MariaDB checks",
+    "Ephemeral migration and runtime roles"
+  ],
+  "failure": "Manager and both physical Workers completed the normal distributed job, but the verifier's exact base step-name equality did not count Spring Batch partition-qualified StepExecutions.",
+  "finding": "CX-F-273",
+  "next": "Correct the verifier predicate without weakening count/status/context assertions, then rerun the complete flow from a new Fresh DB.",
+  "cleanupRequired": false
+}

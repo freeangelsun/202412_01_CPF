@@ -1,4 +1,4 @@
-UPDATE bat_deployment_cell
+UPDATE BAT_DEPLOYMENT_CELL
 SET desired_instance_count = ?,
     updated_at = @NOW6@
 WHERE cell_id = ?

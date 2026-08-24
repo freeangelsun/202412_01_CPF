@@ -1,0 +1,17 @@
+{
+  "steering": "CPF_BATCH_STANDALONE_RUNTIME_LAUNCHER_OPEN_GIT_STEERING_20260824.md",
+  "readCompletely": true,
+  "lineCount": 397,
+  "integratedInto": ["current Batch Runtime Work Package", "existing Open Git Fresh Release Work Package"],
+  "separateRepositoryRestart": false,
+  "requiredProof": [
+    "actual standalone Runtime Main and fresh-built artifact inventory",
+    "shared Windows and Linux launcher convention with runtime-minimal configuration",
+    "start stop restart status and foreground actual behavior",
+    "PID duplicate and stale handling plus graceful versus forced shutdown",
+    "Java 25 profile external config instance log work and JVM option override",
+    "UTF-8 Korean operational explanations preserved on Windows Linux and release",
+    "Open Git projection without Private source and actual Fresh execution"
+  ],
+  "passProhibited": ["file exists", "help only", "one-line java wrapper", "missing artifact", "mock only"]
+}

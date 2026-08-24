@@ -1,0 +1,7 @@
+UPDATE OPS_RETENTION_POLICY
+SET target_name = ?, action_name = ?, retention_days = ?, schedule_expression = ?,
+    maintenance_start = ?, maintenance_end = ?, enabled_yn = ?, legal_hold_yn = ?,
+    chunk_size = ?, throttle_millis = ?, max_rows_per_run = ?, max_runtime_seconds = ?,
+    lease_seconds = ?, policy_version = ?, next_run_at = ?, row_version = row_version + 1,
+    updated_by = ?, updated_at = CURRENT_TIMESTAMP
+WHERE policy_id = ? AND row_version = ?

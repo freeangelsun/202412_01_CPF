@@ -29,7 +29,7 @@ CHECKS = {
         "BATCH_CENTER_CUT_DUPLICATE_BUSINESS_KEY",
         "BATCH_CENTER_CUT_NON_ADVANCING_CURSOR",
     ),
-    "cpf-batch/center-cut/src/main/java/com/cpf/batch/centercut/runner/internal/JdbcCenterCutClaimRepository.java": (
+    "cpf-batch/center-cut-runtime/src/main/java/com/cpf/batch/centercut/runtime/JdbcCenterCutClaimRepository.java": (
         "TransactionTemplate",
         "status.setRollbackOnly()",
         "claimWithinTransaction(",
@@ -39,7 +39,7 @@ CHECKS = {
         "BATCH_RECOVER_RESPONSE_UNKNOWN",
         "operator.recover(previous)",
     ),
-    "cpf-batch/runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java": (
+    "cpf-batch/remote-kafka/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java": (
         "String attemptOwnerId=attemptOwnerId();",
         "UUID.randomUUID()",
         "ledger.complete(direction,envelope.messageId(),attemptOwnerId)",
@@ -47,7 +47,7 @@ CHECKS = {
 }
 
 FORBIDDEN = {
-    "cpf-batch/runtime/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java": (
+    "cpf-batch/remote-kafka/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java": (
         "ledger.complete(direction,envelope.messageId(),ownerId)",
         "ledger.fail(direction,envelope.messageId(),ownerId",
     ),

@@ -1,4 +1,4 @@
-INSERT INTO bat_deployment_lock(
+INSERT INTO BAT_DEPLOYMENT_LOCK(
     cell_id, owner_deployment_id, fencing_token, locked_at, expires_at
 )
 VALUES (?, ?, 1, CURRENT_TIMESTAMP(6), DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL 30 MINUTE))

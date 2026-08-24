@@ -1,4 +1,4 @@
-INSERT INTO bat_runtime_command_attempt(
+INSERT INTO BAT_RUNTIME_COMMAND_ATTEMPT(
     command_id, attempt_no, instance_id, stage_code, attempt_state, result_message, started_at, finished_at
 )
 VALUES (?, ?, ?, ?, ?, ?, @NOW6@, @NOW6@)

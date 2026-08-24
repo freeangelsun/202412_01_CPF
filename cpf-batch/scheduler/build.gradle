@@ -11,7 +11,7 @@ dependencies {
  implementation project(':framework:core')
  implementation project(':starters:data:jdbc')
  implementation project(':starters:common')
- implementation project(':starters:messaging:kafka')
+ implementation project(':runtime:batch:remote-kafka')
  implementation project(':internal:messaging:reliability:jdbc')
  implementation project(':internal:integration:resilience')
  implementation 'org.springframework.boot:spring-boot-starter-webmvc'

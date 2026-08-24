@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-268",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "a1345789250515a1e7b2e2c13d7231643df8372bb38badc6a219e0ddc84d3cb2",
+    "sha1": "8e95d0aa5b998f943656ba7eae31f50130d7ccf5",
+    "files": 8273,
+    "bytes": 56529514
+  },
+  "ownerChanges": [
+    "Execution control creates one launch bundle and uses its identical snapshot for durable JobParameters and synchronous JobOperator scope",
+    "Restart and recover restore the owner scope from durable Job metadata",
+    "Scheduler binds its schedule/trigger-rich Batch bundle before central dispatch",
+    "Remote codec keeps BATCH_REMOTE_OWNER_CONTEXT_REQUIRED fail-closed behavior"
+  ],
+  "regression": "JobOperator answer asserts the actual bound bundle and post-return restoration",
+  "verificationPending": ["Java 25 targeted tests", "affected bootJar rebuild", "Fresh actual distributed flow"]
+}

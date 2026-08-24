@@ -6,8 +6,13 @@ import com.cpf.batch.api.BatchControlState;
 import com.cpf.batch.api.BatchExecutionControlPort;
 import com.cpf.batch.api.BatchExecutionLink;
 import com.cpf.batch.api.BatchExecutionReservation;
+import com.cpf.batch.context.CpfBatchContextBundle;
+import com.cpf.batch.context.CpfBatchLaunchMode;
 import com.cpf.batch.spi.BatchExecutionLedgerPort;
 import com.cpf.batch.spi.BatchFencingPort;
+import com.cpf.batch.execution.internal.context.CpfBatchRuntimeContexts;
+import com.cpf.core.api.context.CpfContexts;
+import com.cpf.core.api.context.CpfContextSnapshot;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -73,7 +78,12 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         ledger.transition(cpfExecutionId, Set.of(BatchControlState.RESERVED), BatchControlState.STARTING,
                 null, null, null);
         try {
-            JobExecution execution = operator.start(job, parameters(request, cpfExecutionId, contextSupport));
+            CpfBatchContextBundle launchContext = contextSupport.launchBundle(
+                    request, cpfExecutionId, CpfBatchRuntimeContexts.current());
+            JobParameters launchParameters = parameters(
+                    request, cpfExecutionId, contextSupport, launchContext.snapshot());
+            JobExecution execution = withLaunchContext(
+                    launchContext, () -> operator.start(job, launchParameters));
             BatchExecutionLink link = link(cpfExecutionId, request.definition().jobId(),
                     request.definition().definitionVersion(), request.fencingToken(), execution);
             ledger.bind(link);
@@ -115,7 +125,10 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         String jobId = required(previous, "jobId");
         fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);
         try {
-            JobExecution restarted = operator.restart(previous);
+            CpfBatchContextBundle restartContext = contextSupport.restoreControl(
+                    previous, CpfBatchLaunchMode.RESTART, "SPRING_BATCH_RESTART");
+            JobExecution restarted = withLaunchContext(
+                    restartContext, () -> operator.restart(previous));
             BatchExecutionLink link = link(cpfExecutionId, jobId,
                     requiredLong(previous, "definitionVersion"), fencingToken, restarted);
             ledger.bind(link);
@@ -198,12 +211,15 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
         long fencingToken = requiredLong(previous, "fencingToken");
         fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);
         try {
-            JobExecution recovered = operator.recover(previous);
+            CpfBatchContextBundle recoveryContext = contextSupport.restoreControl(
+                    previous, CpfBatchLaunchMode.RESTART, "SPRING_BATCH_RECOVER");
+            JobExecution recovered = withLaunchContext(
+                    recoveryContext, () -> operator.recover(previous));
             BatchExecutionLink link = link(cpfExecutionId, jobId,
                     requiredLong(previous, "definitionVersion"), fencingToken, recovered);
             ledger.bind(link);
             return link;
-        } catch (RuntimeException failure) {
+        } catch (JobExecutionException | RuntimeException failure) {
             ledger.recordUnknown(cpfExecutionId, "BATCH_RECOVER_RESPONSE_UNKNOWN", safe(failure));
             throw new CpfBatchUnknownResultException(
                     "BATCH_RECOVER_RESPONSE_UNKNOWN", "Recover outcome is unknown for " + cpfExecutionId);
@@ -211,6 +227,15 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
     }
 
     static JobParameters parameters(BatchApprovedLaunchRequest request, String cpfExecutionId, CpfBatchExecutionContextSupport contextSupport) {
+        return parameters(request, cpfExecutionId, contextSupport,
+                contextSupport.launchSnapshot("batch.launch." + request.definition().jobId()));
+    }
+
+    static JobParameters parameters(
+            BatchApprovedLaunchRequest request,
+            String cpfExecutionId,
+            CpfBatchExecutionContextSupport contextSupport,
+            CpfContextSnapshot launchSnapshot) {
         JobParametersBuilder builder = new JobParametersBuilder()
                 .addString("cpfExecutionId", cpfExecutionId, true)
                 .addString("jobId", request.definition().jobId(), true)
@@ -232,8 +257,26 @@ public final class CpfSpringBatchExecutionControl implements BatchExecutionContr
                 .addLong("timeoutSeconds", request.definition().resourcePolicy().timeoutSeconds(), false)
                 .addLong("maxAttempts", (long) request.definition().recoveryPolicy().maxAttempts(), false);
         request.parameters().forEach((name, value) -> add(builder, "arg." + name, value));
-        contextSupport.addDurableParameters(builder, contextSupport.launchSnapshot("batch.launch." + request.definition().jobId()));
+        contextSupport.addDurableParameters(builder, launchSnapshot);
         return builder.toJobParameters();
+    }
+
+    private JobExecution withLaunchContext(
+            CpfBatchContextBundle launchContext,
+            CheckedJobExecution operation) throws JobExecutionException {
+        try (AutoCloseable ignoredCore = CpfContexts.bind(launchContext.snapshot());
+             AutoCloseable ignoredBatch = CpfBatchRuntimeContexts.bind(launchContext)) {
+            return operation.execute();
+        } catch (JobExecutionException | RuntimeException failure) {
+            throw failure;
+        } catch (Exception scopeFailure) {
+            throw new IllegalStateException("BATCH_LAUNCH_CONTEXT_SCOPE_CLOSE_FAILED", scopeFailure);
+        }
+    }
+
+    @FunctionalInterface
+    private interface CheckedJobExecution {
+        JobExecution execute() throws JobExecutionException;
     }
 
     private static void add(JobParametersBuilder builder, String name, Object value) {

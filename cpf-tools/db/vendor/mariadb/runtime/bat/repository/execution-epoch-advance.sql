@@ -1,4 +1,4 @@
-UPDATE cpf_batch_execution_epoch
+UPDATE BAT_EXECUTION_EPOCH
    SET current_fencing_token = ?,
        epoch_version = epoch_version + 1,
        updated_at = CURRENT_TIMESTAMP(6)

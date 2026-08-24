@@ -20,7 +20,7 @@ public class BatchControlPlaneApplication {
 
     @Bean
     RuntimeRegistration runtimeRegistration(Environment environment) {
-        return RuntimeIdentityFactory.fromEnvironment(
-                environment, RuntimeRole.CONTROL_PLANE, "cpf-batch-control-plane", 8180);
+        return RuntimeIdentityFactory.fromBatchEnvironment(
+                environment, RuntimeRole.CONTROL_PLANE, 8180);
     }
 }

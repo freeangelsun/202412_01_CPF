@@ -22,7 +22,7 @@ public class BatchSchedulerApplication {
 
     @Bean
     RuntimeRegistration runtimeRegistration(Environment environment) {
-        return RuntimeIdentityFactory.fromEnvironment(
-                environment, RuntimeRole.SCHEDULER, "cpf-batch-scheduler", 8181);
+        return RuntimeIdentityFactory.fromBatchEnvironment(
+                environment, RuntimeRole.SCHEDULER, 8181);
     }
 }

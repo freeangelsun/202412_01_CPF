@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-291",
+  "state": "IN_PROGRESS",
+  "scope": "V137 publication routing and maintained regression",
+  "sourceIdentity": {
+    "contentSha256": "7447416768987220e9ee4c4fcd7addc578176992a2a76883e8b569e283dd3cac",
+    "contentSha1": "6158000416a83a8e965ad45eb905c9f8c0ffbb8d",
+    "fileCount": 8399,
+    "totalBytes": 56640187
+  },
+  "changes": [
+    "MariaDB V137 and R137 explicitly publish to cpfDB",
+    "Focused regression protects shared OPS APPLICATION and unchanged Batch-only role contracts",
+    "All three vendor upgrades and fail-closed rollbacks are required"
+  ],
+  "remaining": [
+    "focused test",
+    "render and immutable checksum gates",
+    "DB3 lifecycle",
+    "Fresh physical runtime"
+  ]
+}

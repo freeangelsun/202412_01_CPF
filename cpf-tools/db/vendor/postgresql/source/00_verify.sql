@@ -4,7 +4,7 @@
 
 -- CPF_LOGICAL_DATABASE=cpfDB
 SELECT 'cpfDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 201 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 202 THEN 1 ELSE 0 END AS passed
 FROM information_schema.tables
 WHERE table_schema = current_schema() AND table_type = 'BASE TABLE';
 

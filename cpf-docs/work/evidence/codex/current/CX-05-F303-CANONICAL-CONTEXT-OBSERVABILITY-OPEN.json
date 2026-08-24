@@ -1,0 +1,32 @@
+{
+  "findingId": "CX-F-303",
+  "recordedAt": "2026-08-24T19:55:19.4354123+09:00",
+  "status": "IN_PROGRESS",
+  "sourceIdentitySha256": "b2624be81f0a76ece73b4b3756a610d1ff1d7baa87ca464a5d2030def039a514",
+  "freshRun": "f282e2e25",
+  "facts": {
+    "kafkaStopped": true,
+    "businessOperationsCompleted": 20,
+    "businessRowsCommitted": 20,
+    "transactionSummaryRows": 20,
+    "canonicalRootTransactionUsedBySummaries": false,
+    "systemLineageColumnsPopulated": false,
+    "targetOperationIdPopulated": false,
+    "transactionSegmentRows": 0,
+    "transactionLineageRows": 0
+  },
+  "rootCauseOwners": [
+    "Observability TransactionContext transaction/trace identity projection",
+    "Canonical DB3 TransactionLogMapper System lineage column binding",
+    "Canonical operation projection after ingress resolution",
+    "Persisted transaction segment scope at the official business invocation boundary"
+  ],
+  "prohibitedFalseGreen": [
+    "synthetic verifier rows",
+    "mock or no-op segments",
+    "relaxed Header6 assertions",
+    "Generated-local transaction fallback",
+    "Kafka coupling"
+  ],
+  "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F282-E2E25/**"
+}

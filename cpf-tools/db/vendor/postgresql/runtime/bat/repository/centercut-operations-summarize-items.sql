@@ -8,5 +8,5 @@ SELECT COUNT(*) AS totalCount,
        COALESCE(SUM(CASE WHEN item_status = 'STOP_REQUESTED' THEN 1 ELSE 0 END), 0) AS stopRequestedCount,
        MAX(started_at) AS lastStartedAt,
        MAX(completed_at) AS lastCompletedAt
-FROM bat_center_cut_item
+FROM BAT_CENTER_CUT_ITEM
 WHERE center_cut_job_id = ?

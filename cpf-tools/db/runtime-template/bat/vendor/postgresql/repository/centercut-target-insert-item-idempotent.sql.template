@@ -1,4 +1,4 @@
-INSERT INTO bat_center_cut_item (
+INSERT INTO BAT_CENTER_CUT_ITEM (
     center_cut_job_id,
     center_cut_execution_id,
     business_key,
@@ -20,6 +20,6 @@ SELECT center_cut_job_id,
        ?,
        'CENTER_CUT_TARGET',
        'CENTER_CUT_TARGET'
-  FROM bat_center_cut_execution
+  FROM BAT_CENTER_CUT_EXECUTION
  WHERE center_cut_execution_id = ?
 ON CONFLICT (center_cut_execution_id, business_key) DO NOTHING

@@ -8,13 +8,36 @@ import static org.mockito.Mockito.when;
 
 import com.cpf.messaging.api.CpfBrokerConsumerControl;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListenerContainer;
 
 class CpfKafkaConsumerControlAdapterTest {
-    private static final String GROUP_ID = "cpf-batch-worker";
+    private static final String GROUP_ID = "cpf-batch-remote-workers-v2";
+
+    @Test
+    void bindsCanonicalRemoteWorkerGroupFromActualSpringProperty() {
+        KafkaListenerEndpointRegistry registry = mock(KafkaListenerEndpointRegistry.class);
+        MessageListenerContainer worker = mock(MessageListenerContainer.class);
+        when(worker.getGroupId()).thenReturn("runtime-workers-local");
+        when(registry.getAllListenerContainers()).thenReturn(List.of(worker));
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.getEnvironment().getPropertySources().addFirst(new MapPropertySource(
+                    "test", Map.of("cpf.batch.remote.kafka.consumer-group", "runtime-workers-local")));
+            context.registerBean(KafkaListenerEndpointRegistry.class, () -> registry);
+            context.register(CpfKafkaConsumerControlAdapter.class);
+            context.refresh();
+
+            context.getBean(CpfKafkaConsumerControlAdapter.class)
+                    .apply(new CpfBrokerConsumerControl(true, 2, 3));
+
+            verify(worker).pause();
+        }
+    }
 
     @Test
     void appliesConcurrencyAndPauseOnlyToConfiguredGroup() {

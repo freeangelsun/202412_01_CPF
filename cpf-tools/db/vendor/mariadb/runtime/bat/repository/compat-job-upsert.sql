@@ -1,4 +1,4 @@
-INSERT INTO bat_job(
+INSERT INTO BAT_JOB(
     job_id, job_name, job_type, description, created_by, updated_by
 )
 VALUES (?, ?, ?, ?, ?, ?)

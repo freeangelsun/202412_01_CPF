@@ -1,4 +1,4 @@
-UPDATE bat_execution
+UPDATE BAT_EXECUTION
 SET execution_status = ?,
     end_time = CURRENT_TIMESTAMP(3),
     updated_by = ?,

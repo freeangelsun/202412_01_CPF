@@ -1,2 +1,2 @@
-SELECT * FROM bat_deployment_execution
+SELECT * FROM BAT_DEPLOYMENT_EXECUTION
 WHERE idempotency_scope = ? AND idempotency_key = ?

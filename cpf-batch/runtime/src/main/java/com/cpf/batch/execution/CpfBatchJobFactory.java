@@ -28,7 +28,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /** 승인된 CPF Plan을 Spring Batch Job/Step graph로 materialize합니다. */
-public final class CpfBatchJobFactory {
+public final class CpfBatchJobFactory implements AutoCloseable {
     private final JobRepository repository;
     private final PlatformTransactionManager transactionManager;
     private final TaskExecutor taskExecutor;
@@ -40,6 +40,7 @@ public final class CpfBatchJobFactory {
     private final MessageChannel remoteRequests;
     private final PollableChannel remoteReplies;
     private final MessagingTemplate remoteMessagingTemplate;
+    private final CpfBatchDynamicManagerFlowLifecycle dynamicManagerFlows;
     private final Map<String, Job> cache;
 
     public CpfBatchJobFactory(
@@ -53,7 +54,8 @@ public final class CpfBatchJobFactory {
             CpfBatchExecutionContextSupport contextSupport,
             MessageChannel remoteRequests,
             PollableChannel remoteReplies,
-            MessagingTemplate remoteMessagingTemplate) {
+            MessagingTemplate remoteMessagingTemplate,
+            CpfBatchDynamicManagerFlowLifecycle dynamicManagerFlows) {
         this.repository = repository;
         this.transactionManager = transactionManager;
         this.taskExecutor = taskExecutor;
@@ -65,9 +67,12 @@ public final class CpfBatchJobFactory {
         this.remoteRequests = remoteRequests;
         this.remoteReplies = remoteReplies;
         this.remoteMessagingTemplate = remoteMessagingTemplate;
+        this.dynamicManagerFlows = dynamicManagerFlows;
         this.cache = new LinkedHashMap<>(128, 0.75f, true) {
             @Override protected boolean removeEldestEntry(Map.Entry<String, Job> eldest) {
-                return size() > properties.maxMaterializedJobs();
+                boolean evict = size() > properties.maxMaterializedJobs();
+                if (evict) dynamicManagerFlows.release(eldest.getKey());
+                return evict;
             }
         };
     }
@@ -77,9 +82,18 @@ public final class CpfBatchJobFactory {
         String cacheKey = plan.planId() + "@" + plan.planVersion() + ":" + plan.checksum();
         Job existing = cache.get(cacheKey);
         if (existing != null) return existing;
-        Job created = build(plan);
+        int expectedManagerFlows = plan.topology() == BatchExecutionTopology.REMOTE_PARTITION
+                ? plan.steps().size() : 0;
+        Job created = dynamicManagerFlows.materialize(
+                cacheKey, expectedManagerFlows, () -> build(plan));
         cache.put(cacheKey, created);
         return created;
+    }
+
+    @Override
+    public synchronized void close() {
+        cache.clear();
+        dynamicManagerFlows.close();
     }
 
     public static String jobName(String planId, long planVersion, String checksum) {
@@ -178,6 +192,7 @@ public final class CpfBatchJobFactory {
                 .inputChannel(remoteReplies)
                 .pollInterval(properties.remotePollIntervalMs())
                 .timeout(properties.remoteTimeoutMs())
+                .beanFactory(dynamicManagerFlows.beanFactory())
                 .listener(listener)
                 .build();
     }

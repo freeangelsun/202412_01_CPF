@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_schedule
+FROM BAT_SCHEDULE
 ORDER BY schedule_id

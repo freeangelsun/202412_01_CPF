@@ -1,4 +1,5 @@
 com.cpf.starter.platform.operations.observability.CpfObservabilityAutoConfiguration
+com.cpf.starter.platform.operations.observability.CpfPersistedTransactionObservabilityAutoConfiguration
 com.cpf.starter.observability.runtimecontrol.CpfObservabilityRuntimeControlAutoConfiguration
 com.cpf.starter.platform.operations.observability.CpfRemoteLogLocalAutoConfiguration
 com.cpf.starter.platform.operations.observability.CpfLogPolicyVersionJdbcAutoConfiguration

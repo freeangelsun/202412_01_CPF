@@ -277,6 +277,18 @@
           "parameterCount": 2
         },
         {
+          "key": "operation-system-domain-access-exists",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 2
+        },
+        {
+          "key": "operation-system-domain-access-insert-seed",
+          "consumer": "CpfJdbcOperationCatalogRegistry",
+          "usage": "ACTIVE",
+          "parameterCount": 5
+        },
+        {
           "key": "operation-system-registry-exists",
           "consumer": "CpfJdbcOperationCatalogRegistry",
           "usage": "ACTIVE",

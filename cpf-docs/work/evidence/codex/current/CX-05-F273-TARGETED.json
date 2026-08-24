@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-273",
+  "startedAt": "2026-08-24T13:25:00+09:00",
+  "endedAt": "2026-08-24T13:27:00+09:00",
+  "sourceIdentitySha256": "9a74229d7be6c9badba6d79af4d2d5218cac6ecd6a1324bd8ddd7ee83b7d2f45",
+  "attempts": [
+    {"runner": "host python -m pytest", "status": "UNAVAILABLE", "actual": "No module named pytest"},
+    {"runner": "installed verifier image python3 -m pytest", "status": "UNAVAILABLE", "actual": "No module named pytest"},
+    {"runner": "host Python runpy exact plain-assert functions", "status": "PASS", "tests": 8, "failures": 0},
+    {"runner": "PowerShell AST parser", "status": "PASS", "parseErrors": 0}
+  ],
+  "note": "The maintained file contains no pytest fixtures or parametrization; all eight test_* callables were invoked directly and all assertions executed. No package was installed and no test was skipped.",
+  "artifactReuse": "Product Java source did not change after the previously hashed F272 Poller bootJars; Fresh R44 will execute those exact files again.",
+  "status": "PASS",
+  "closure": "VERIFICATION_PENDING_FRESH_R44"
+}

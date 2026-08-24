@@ -1,7 +1,11 @@
-UPDATE bat_center_cut_execution
+UPDATE BAT_CENTER_CUT_EXECUTION
    SET target_cursor = ?,
        target_complete_yn = ?,
        target_count = target_count + ?,
-       execution_state = ?,
+       execution_state = CASE
+           WHEN execution_state = 'STARTING' AND ? = 'Y' THEN 'RUNNING'
+           WHEN execution_state = 'STARTING' THEN 'STARTING'
+           ELSE ?
+       END,
        updated_at = @NOW6@
  WHERE center_cut_execution_id = ?

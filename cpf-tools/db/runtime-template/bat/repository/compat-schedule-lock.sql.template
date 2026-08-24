@@ -1,4 +1,4 @@
 SELECT *
-FROM bat_schedule
+FROM BAT_SCHEDULE
 WHERE schedule_id = ?
 FOR UPDATE

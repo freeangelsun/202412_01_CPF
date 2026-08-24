@@ -1,0 +1,10 @@
+{
+  "finding": "CX-F-293",
+  "status": "VERIFICATION_PENDING",
+  "java": "25.0.3",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 :runtime:batch:center-cut:test --tests com.cpf.batch.centercut.runner.CenterCutRuntimeStateProviderTest :runtime:batch:center-cut:bootJar",
+  "result": "PASS",
+  "tests": 3,
+  "failures": 0,
+  "build": "BUILD SUCCESSFUL"
+}

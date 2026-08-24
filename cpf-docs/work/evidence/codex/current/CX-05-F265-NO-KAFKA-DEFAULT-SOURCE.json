@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-265",
+  "state": "VERIFICATION_PENDING",
+  "sourceIdentity": "1246b2d8f5c0d78f9d1db9c24ac171f6bd0a759fc6fcd47cd1ae40a774836ec1",
+  "changes": [
+    "Control Plane Worker Scheduler default Remote Transport to disabled",
+    "Kafka default binding and JDBC broker reliability require explicit environment activation",
+    "Worker broker reliability scheduler is conditional on capability activation",
+    "Independent Remote Kafka Adapter packaging and R44 proof are retained"
+  ],
+  "verification": {
+    "staticContracts": "PASS 4/4",
+    "javaContract": "PASS 1/1",
+    "affectedBootJars": "PASS Control Plane Worker Scheduler"
+  },
+  "remaining": "Fresh no-Kafka business and recovery flows"
+}

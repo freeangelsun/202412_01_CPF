@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T10:40:00+09:00",
+  "sourceIdentitySha256": "9a854a474c012f43bffae256678a5a7f4791a53d63094d697adcbb975ed6b4bb",
+  "status": "PASS",
+  "java": "25.0.3",
+  "suites": {
+    "batchRuntimeSupport": {"tests": 11, "failures": 0, "skipped": 0},
+    "messagingReliabilityJdbc": {"tests": 51, "failures": 0, "skipped": 0},
+    "observability": {"tests": 3, "failures": 0, "skipped": 0},
+    "admin": {"tests": 266, "failures": 0, "skipped": 0},
+    "canonicalLifecycleSafety": {"tests": 9, "failures": 0, "skipped": 0}
+  },
+  "closed": ["CX-F-263"],
+  "remaining": "DB3 regeneration, five Batch executable compilation and Fresh physical replay for F260-F262"
+}

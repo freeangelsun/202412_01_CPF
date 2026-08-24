@@ -1,0 +1,19 @@
+{
+  "runId": "b4200824c041",
+  "status": "FAILED_ROOT_CAUSE_CAPTURED_CLEAN",
+  "sourceIdentitySha256": "8023779ebca14afe7029bb466e3d7d49004d8db725dcc37b30b22a460fd4b04b",
+  "completed": [
+    "Fresh MariaDB platform database with 202 canonical tables",
+    "Fresh Backoffice database with 29 canonical tables",
+    "20 canonical MariaDB checks",
+    "verifier-owned runtime and migration roles",
+    "Control Plane, Center Cut and two Workers registered",
+    "six request ledgers COMPLETE",
+    "six Worker StepExecutions COMPLETED",
+    "six reply ledgers COMPLETE",
+    "verifier cleanup PASS with zero DB, role, topic and listener leaks"
+  ],
+  "failure": "Manager Job remained STARTED until the maintained 90-second HTTP timeout even though all six replies decoded and completed; F272 owns the absent lifecycle for the dynamically materialized Manager aggregation flow.",
+  "next": "Implement and verify bounded owned dynamic aggregation-flow lifecycle, then rerun targeted/full Runtime/build and the complete Fresh physical flow.",
+  "cleanupRequired": false
+}

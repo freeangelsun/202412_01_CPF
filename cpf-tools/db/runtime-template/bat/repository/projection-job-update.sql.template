@@ -1,4 +1,4 @@
-UPDATE bat_job
+UPDATE BAT_JOB
 SET job_name = ?,
     job_type = ?,
     published_definition_version = ?,

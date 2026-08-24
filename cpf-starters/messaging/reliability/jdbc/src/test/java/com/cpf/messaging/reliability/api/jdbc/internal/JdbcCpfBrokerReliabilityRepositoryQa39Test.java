@@ -158,7 +158,7 @@ class JdbcCpfBrokerReliabilityRepositoryQa39Test {
             updates++;
             sqls.add(sql);
             arguments.add(args);
-            if (duplicateInsert && sql.contains("INSERT INTO cpf_broker_outbox")) {
+            if (duplicateInsert && sql.contains("INSERT INTO CPF_BROKER_OUTBOX")) {
                 throw new DuplicateKeyException("concurrent insert");
             }
             return updateResults.isEmpty() ? 1 : updateResults.removeFirst();

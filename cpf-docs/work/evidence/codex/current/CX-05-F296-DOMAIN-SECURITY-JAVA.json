@@ -1,0 +1,15 @@
+{
+  "findingId": "CX-F-296",
+  "status": "VERIFICATION_PENDING",
+  "java": "25.0.3",
+  "task": ":internal:integration:http:test",
+  "selector": "com.cpf.integration.http.internal.domaincall.CpfDomainCallSecurityAutoConfigurationTest",
+  "result": {
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "gradle": "BUILD SUCCESSFUL"
+  },
+  "physicalClosurePending": "Fresh generated MBR receives a real official Worker Domain Invocation"
+}

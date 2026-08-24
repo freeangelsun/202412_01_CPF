@@ -1,4 +1,4 @@
-UPDATE bat_deployment_execution
+UPDATE BAT_DEPLOYMENT_EXECUTION
 SET execution_state = ?,
     failure_stage = ?,
     result_message = ?,

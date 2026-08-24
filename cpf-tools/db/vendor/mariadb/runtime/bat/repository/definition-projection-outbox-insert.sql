@@ -1,4 +1,4 @@
-INSERT INTO bat_job_runtime_projection_outbox (
+INSERT INTO BAT_JOB_RUNTIME_PROJECTION_OUTBOX (
   outbox_id,job_id,definition_version,event_type,payload_hash,event_payload,
   delivery_status,fencing_token,attempt_count,next_attempt_at,created_at
 )

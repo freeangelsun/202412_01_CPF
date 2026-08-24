@@ -1,2 +1,2 @@
-DELETE FROM bat_deployment_instance
+DELETE FROM BAT_DEPLOYMENT_INSTANCE
 WHERE cell_id = ?

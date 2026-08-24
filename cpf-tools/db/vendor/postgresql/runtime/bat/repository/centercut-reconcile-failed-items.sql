@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_item
+UPDATE BAT_CENTER_CUT_ITEM
 SET item_status = 'RETRY',
     retry_count = retry_count + 1,
     completed_at = NULL,

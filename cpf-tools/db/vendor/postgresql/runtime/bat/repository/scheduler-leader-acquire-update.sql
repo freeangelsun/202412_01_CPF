@@ -1,4 +1,4 @@
-UPDATE bat_scheduler_lease
+UPDATE BAT_SCHEDULER_LEASE
    SET owner_instance_id = ?,
        fencing_token = fencing_token + 1,
        lease_until = ?,

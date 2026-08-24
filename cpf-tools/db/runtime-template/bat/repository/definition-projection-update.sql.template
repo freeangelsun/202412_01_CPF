@@ -1,4 +1,4 @@
-UPDATE bat_job_runtime_projection
+UPDATE BAT_JOB_RUNTIME_PROJECTION
 SET definition_checksum = ?,
     projection_status = 'ACTIVE',
     executor_type = ?,

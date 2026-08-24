@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_claim
+UPDATE BAT_CENTER_CUT_CLAIM
    SET runner_id = ?,
        pool_id = ?,
        claim_token = ?,

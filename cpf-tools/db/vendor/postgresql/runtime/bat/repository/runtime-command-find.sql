@@ -1,3 +1,3 @@
 SELECT *
-FROM bat_runtime_command
+FROM BAT_RUNTIME_COMMAND
 WHERE idempotency_key = ?

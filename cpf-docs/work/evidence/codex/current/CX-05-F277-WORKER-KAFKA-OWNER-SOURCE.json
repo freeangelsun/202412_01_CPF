@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-277",
+  "startedAt": "2026-08-24T14:55:00+09:00",
+  "finishedAt": "2026-08-24T14:58:00+09:00",
+  "sourceIdentity": {
+    "sha256": "6717fb967c95c73bde94881fdf0a70833cbc1db9cd8c41dd5d85731e8d43ebb7",
+    "sha1": "8b02757b44323d2957e7e83e471a7401b3a918e3",
+    "fileCount": 8287,
+    "totalBytes": 56597990
+  },
+  "changes": [
+    "Removed the direct Spring Kafka type and listener-factory post-processor from generic Worker Source.",
+    "Retained transport-neutral Spring Batch runtime policy reconciliation in Worker.",
+    "Moved Kafka listener concurrency validation/application to the optional remote-kafka AutoConfiguration.",
+    "Moved the exact valid/out-of-range owner regression to remote-kafka."
+  ],
+  "status": "SOURCE_FIXED",
+  "verification": "Adapter tests and all five actual bootJars pending."
+}

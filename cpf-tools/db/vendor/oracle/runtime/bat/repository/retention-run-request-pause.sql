@@ -1,0 +1,7 @@
+UPDATE OPS_RETENTION_RUN
+SET pause_requested_yn = 'Y', control_actor_id = ?, control_reason = ?, updated_at = CURRENT_TIMESTAMP
+WHERE run_id = ? AND status = 'RUNNING'
+  AND EXISTS (
+    SELECT 1 FROM OPS_RETENTION_POLICY p
+    WHERE p.policy_id = OPS_RETENTION_RUN.policy_id AND p.row_version = ?
+  )

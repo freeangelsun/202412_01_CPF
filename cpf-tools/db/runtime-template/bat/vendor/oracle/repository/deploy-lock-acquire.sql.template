@@ -1,4 +1,4 @@
-MERGE INTO bat_deployment_lock target
+MERGE INTO BAT_DEPLOYMENT_LOCK target
 USING (SELECT ? cell_id, ? owner_deployment_id FROM dual) source
 ON (target.cell_id = source.cell_id)
 WHEN MATCHED THEN UPDATE SET

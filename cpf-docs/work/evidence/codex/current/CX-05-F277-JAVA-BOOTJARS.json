@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-277",
+  "startedAt": "2026-08-24T15:01:00+09:00",
+  "finishedAt": "2026-08-24T15:03:00+09:00",
+  "sourceIdentitySha256": "f801002d9426108c17b589566c26604d891006fa471eb921ed466c1575669e68",
+  "java": "Temurin 25.0.3+9 LTS",
+  "gradle": {
+    "result": "BUILD SUCCESSFUL",
+    "seconds": 34,
+    "tasks": 121,
+    "executed": 13
+  },
+  "test": {
+    "suite": "CpfBatchKafkaWorkerConcurrencyTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "workerDirectSpringKafkaSourceReferences": 0,
+  "bootJars": [
+    {"role": "CONTROL_PLANE", "bytes": 76703684, "sha256": "5ADEEF276D1621753653C1CAC10A523DA1A06D41D940ACC9CD7D3CB8965CF169"},
+    {"role": "SCHEDULER", "bytes": 85565171, "sha256": "6F31890467F02F52C753CDBFC5B85BBD6B78BD3A10DFFFB064174ACEC230F2C8"},
+    {"role": "WORKER", "bytes": 85364852, "sha256": "125EAFA6E5C089D7CB2F8415CD5CA44A5ECC8CB418570F33DAEEB3FD3B05F43D"},
+    {"role": "CENTER_CUT", "bytes": 69816419, "sha256": "73535D12E730C203F7EA53F74762193BE1D720BE83CF62BD90FB999632E50EA8"},
+    {"role": "AGENT", "bytes": 34661889, "sha256": "DE88681D418BB51878D19BE20A5552103FA7DC2C063535A538A3095846E90DD7"}
+  ],
+  "status": "CLOSED"
+}

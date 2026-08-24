@@ -1,4 +1,4 @@
-UPDATE bat_scheduler_lease
+UPDATE BAT_SCHEDULER_LEASE
    SET lease_until = ?,
        last_heartbeat_at = CURRENT_TIMESTAMP(6),
        updated_at = CURRENT_TIMESTAMP(6)

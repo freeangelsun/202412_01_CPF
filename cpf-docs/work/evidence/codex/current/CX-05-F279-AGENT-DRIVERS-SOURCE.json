@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:26:00+09:00",
+  "finishedAt": "2026-08-24T15:28:00+09:00",
+  "sourceIdentity": {
+    "sha256": "8897d6d8dbc08ed33f0d01d89083facab69f6080e8e11a0d995a83e8631b25ba",
+    "sha1": "bfce24271cbae3a674c5df33a21acd95facce716",
+    "fileCount": 8288,
+    "totalBytes": 56601155
+  },
+  "changes": [
+    "Agent declares the JDBC Starter directly because its Main consumes BatDataSourceConfiguration and mandatory Common.",
+    "Agent packages the managed MariaDB, PostgreSQL and Oracle runtime drivers like the other four DB-backed Batch executables.",
+    "The existing DB-backed executable inventory now enumerates all five roles."
+  ],
+  "status": "SOURCE_FIXED"
+}

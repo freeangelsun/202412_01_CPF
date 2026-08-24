@@ -81,6 +81,7 @@ public class CpfServiceEndpointRegistry {
         attributes.put("allowDns", Boolean.toString(endpoint.isAllowDns()));
         attributes.put("allowPrivate", Boolean.toString(endpoint.isAllowPrivate()));
         attributes.put("allowPublic", Boolean.toString(endpoint.isAllowPublic()));
+        attributes.put("requireTls", Boolean.toString(endpoint.isRequireTls()));
         attributes.put("allowedCidrs", join(endpoint.getAllowedCidrs()));
         attributes.put("allowedPorts", joinIntegers(endpoint.getAllowedPorts()));
         attributes.put("pinnedAddresses", join(endpoint.getPinnedAddresses()));
@@ -177,17 +178,18 @@ public class CpfServiceEndpointRegistry {
 
     private CpfNetworkEndpointPolicy policy(Map<String, String> attributes) {
         boolean custom = attributes != null && attributes.keySet().stream().anyMatch(key -> Set.of(
-                "allowDns", "allowPrivate", "allowPublic", "allowedCidrs", "allowedPorts").contains(key));
+                "allowDns", "allowPrivate", "allowPublic", "requireTls", "allowedCidrs", "allowedPorts").contains(key));
         if (!custom) return endpointPolicy;
         boolean allowDns = bool(attributes, "allowDns", false);
         boolean allowPrivate = bool(attributes, "allowPrivate", false);
         boolean allowPublic = bool(attributes, "allowPublic", true);
+        boolean requireTls = bool(attributes, "requireTls", true);
         List<String> cidrs = csv(attributes.get("allowedCidrs"));
         List<Integer> ports = csv(attributes.get("allowedPorts")).stream().map(value -> {
             try { return Integer.parseInt(value); }
             catch (NumberFormatException failure) { throw new IllegalArgumentException("allowedPorts 형식 오류: " + value, failure); }
         }).toList();
-        return new CpfNetworkEndpointPolicy(cidrs, ports, allowPrivate, allowPublic, allowDns, true);
+        return new CpfNetworkEndpointPolicy(cidrs, ports, allowPrivate, allowPublic, allowDns, requireTls);
     }
 
     private void requireConfiguredPins(Map<String, String> attributes, List<InetAddress> addresses) {

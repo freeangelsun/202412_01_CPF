@@ -4,6 +4,7 @@ import com.cpf.batch.api.BatchExecutionControlPort;
 import com.cpf.batch.api.BatchExecutionLink;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.batch.context.CpfBatchContextBundle;
+import com.cpf.batch.execution.internal.context.CpfBatchRuntimeContexts;
 import com.cpf.batch.scheduler.internal.context.CpfBatchContextFactory;
 import com.cpf.core.api.context.CpfContexts;
 import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
@@ -240,29 +241,36 @@ public class SchedulerDispatchService {
             ZonedDateTime fireAt = scheduledAt.toInstant().atZone(zone);
             String jobId = requiredText(command, "job_id");
             LocalDate businessDate = requiredDate(command, "business_date");
-            batchContext = batchContexts.newSchedulerRoot(
+            CpfBatchContextBundle resolvedBatchContext = batchContexts.newSchedulerRoot(
                     jobId, scheduleId, businessDate, jobId,
                     scheduleId + ":" + scheduledAt.toInstant(), fireAt.toInstant());
-            CpfContexts.run(batchContext.snapshot(), () -> {
-                BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(
-                        new BatchApprovedLaunchRequestResolver.TriggerContext(
-                                scheduleId,
-                                jobId,
-                                requiredLong(command, "definition_version"),
-                                requiredText(command, "definition_checksum"),
-                                businessDate,
-                                fireAt.toOffsetDateTime(),
-                                requiredLong(command, "fencing_token"),
-                                requiredText(command, "idempotency_key"))));
-                if (execution.jobExecutionId() == null) {
-                    throw new IllegalStateException("SPRING_BATCH_EXECUTION_ID_MISSING");
-                }
-                int changed = transaction.execute(status -> jdbc.update(
-                        sql.required("scheduler-trigger-mark-dispatched"),
-                        execution.jobExecutionId(), scheduleId, scheduledAt,
-                        lease.instanceId(), lease.fencingToken()));
-                if (changed != 1) {
-                    throw new IllegalStateException("SCHEDULER_DISPATCH_FENCED_AFTER_START");
+            batchContext = resolvedBatchContext;
+            CpfContexts.run(resolvedBatchContext.snapshot(), () -> {
+                try (AutoCloseable ignoredBatch = CpfBatchRuntimeContexts.bind(resolvedBatchContext)) {
+                    BatchExecutionLink execution = executionControl.start(launchRequestResolver.resolve(
+                            new BatchApprovedLaunchRequestResolver.TriggerContext(
+                                    scheduleId,
+                                    jobId,
+                                    requiredLong(command, "definition_version"),
+                                    requiredText(command, "definition_checksum"),
+                                    businessDate,
+                                    fireAt.toOffsetDateTime(),
+                                    requiredLong(command, "fencing_token"),
+                                    requiredText(command, "idempotency_key"))));
+                    if (execution.jobExecutionId() == null) {
+                        throw new IllegalStateException("SPRING_BATCH_EXECUTION_ID_MISSING");
+                    }
+                    int changed = transaction.execute(status -> jdbc.update(
+                            sql.required("scheduler-trigger-mark-dispatched"),
+                            execution.jobExecutionId(), scheduleId, scheduledAt,
+                            lease.instanceId(), lease.fencingToken()));
+                    if (changed != 1) {
+                        throw new IllegalStateException("SCHEDULER_DISPATCH_FENCED_AFTER_START");
+                    }
+                } catch (RuntimeException failure) {
+                    throw failure;
+                } catch (Exception scopeFailure) {
+                    throw new IllegalStateException("BATCH_SCHEDULER_CONTEXT_SCOPE_CLOSE_FAILED", scopeFailure);
                 }
             });
         } catch (RuntimeException failure) {

@@ -3,6 +3,8 @@ group = 'com.cpf.internal'
 
 dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation project(':framework:base-runtime')
+    testRuntimeOnly 'jakarta.servlet:jakarta.servlet-api'
     api project(':framework:operations')
     implementation project(':framework:security')
     implementation project(':internal:platform-operations:runtime-control')

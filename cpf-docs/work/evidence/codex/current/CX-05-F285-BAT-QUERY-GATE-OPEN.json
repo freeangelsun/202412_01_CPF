@@ -1,0 +1,18 @@
+{
+  "finding": "CX-F-285",
+  "status": "IN_PROGRESS",
+  "sourceIdentity": "02228969d41a0d82daf71f4401ecfff8f40fd2a52af7a2152288e7610ea1a497",
+  "command": "cpf-tools/runtime/tools/check-bat-runtime-query-pack.ps1",
+  "actual": {
+    "generatedStatements": 216,
+    "generatedVendors": 3,
+    "failures": 6,
+    "inlineSqlOwners": [
+      "JdbcBatchRiskCommandLedger",
+      "BatOperationLogRetentionHandler",
+      "BatRetentionExecutionRepository"
+    ],
+    "descriptorDrift": "Checker requires runtimeModules.bat although all DB3 pack.json descriptors now expose canonical runtimeRoot/owner/operationLedger and no runtimeModules property"
+  },
+  "next": "Migrate active BAT inline SQL to the vendor query catalog and currentize the checker to the actual canonical pack descriptor without weakening ownership validation"
+}

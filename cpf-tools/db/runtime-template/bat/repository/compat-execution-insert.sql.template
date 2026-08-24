@@ -1,4 +1,4 @@
-INSERT INTO bat_execution(
+INSERT INTO BAT_EXECUTION(
     job_id, schedule_id, job_parameters, execution_status, business_date, requested_by, created_by
 )
 VALUES (?, ?, ?, 'READY', CURRENT_DATE, ?, ?)

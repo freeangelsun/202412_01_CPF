@@ -1,0 +1,23 @@
+{
+  "findings": ["CX-F-282", "CX-F-283", "CX-F-284"],
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "02228969d41a0d82daf71f4401ecfff8f40fd2a52af7a2152288e7610ea1a497",
+    "sha1": "1101aa8b6f4d6313498a03fdf9d5f82412e24c15",
+    "files": 8289,
+    "bytes": 56592477
+  },
+  "implemented": [
+    "Reusable center-cut-runtime owns DB admission, claim, lease heartbeat, fencing, canonical Core plus Batch/CEC context and official Domain Invocation",
+    "Actual Worker polls at most one Work Item by default so multiple JVMs share DB claims; drain blocks new claims",
+    "Worker readiness accepts DB Center-Cut dispatch without a Broker control port while independent Kafka Adapter remains optional",
+    "RETRY increments retry_count and becomes FAILED at immutable retry_limit; UNKNOWN remains explicit reconciliation-only",
+    "Canonical Work SQL template preserves parent_segment_id and adds retry_count/retry_limit; DB3 648 query files regenerated",
+    "Unreachable CEC Spring Batch controller/step/runtime-state implementation and tests were deleted immediately"
+  ],
+  "verification": {
+    "queryPackSync": "PASS 216 statements x 3 vendors = 648 files",
+    "queryPackCheck": "FAILED on pre-existing active inline SQL and obsolete pack.json runtimeModules expectation; recorded separately as F285",
+    "java": "PENDING"
+  }
+}

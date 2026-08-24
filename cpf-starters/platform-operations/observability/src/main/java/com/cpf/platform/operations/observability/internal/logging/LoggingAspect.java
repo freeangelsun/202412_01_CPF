@@ -4,6 +4,8 @@ import com.cpf.platform.operations.observability.spi.logging.TransactionLogRecor
 import com.cpf.security.api.CpfMaskingRuntime;
 
 import com.cpf.platform.operations.observability.api.logging.CpfLogLevel;
+import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort;
+import com.cpf.platform.operations.observability.api.logging.CpfTransactionSegmentPort.SegmentScope;
 import com.cpf.platform.operations.observability.api.logging.DynamicLogLevelRule;
 import com.cpf.foundation.context.system.CpfSystemCodes;
 import com.cpf.core.api.error.DefaultCpfMessageResolver;
@@ -79,6 +81,7 @@ public class LoggingAspect {
     private final CpfMessageResolver messageResolver;
     private final CpfResponseCodeResolver responseCodeResolver;
     private final ObjectProvider<LogPolicyResolver> logPolicyResolverProvider;
+    private final CpfTransactionSegmentPort transactionSegments;
     private final Clock clock;
 
     public LoggingAspect(
@@ -89,6 +92,7 @@ public class LoggingAspect {
             ObjectProvider<CpfMessageResolver> messageResolverProvider,
             ObjectProvider<CpfResponseCodeResolver> responseCodeResolverProvider,
             ObjectProvider<LogPolicyResolver> logPolicyResolverProvider,
+            CpfTransactionSegmentPort transactionSegments,
             ObjectProvider<Clock> clockProvider) {
         this.eventPublisher = eventPublisher;
         this.environment = environment;
@@ -97,10 +101,13 @@ public class LoggingAspect {
         this.messageResolver = messageResolverProvider.getIfAvailable(DefaultCpfMessageResolver::new);
         this.responseCodeResolver = responseCodeResolverProvider.getIfAvailable(DefaultCpfResponseCodeResolver::new);
         this.logPolicyResolverProvider = logPolicyResolverProvider;
+        this.transactionSegments = Objects.requireNonNull(transactionSegments, "transactionSegments");
         this.clock = clockProvider.getIfUnique(Clock::systemUTC);
     }
 
-    @Around("execution(* com.cpf..*Controller.*(..))")
+    @Around("@annotation(com.cpf.foundation.execution.api.CpfOnlineTransaction) || "
+            + "@within(com.cpf.foundation.execution.api.CpfOnlineTransaction) || "
+            + "execution(* com.cpf.integration.api.domaincall.CpfDomainOperation+.invoke(..))")
     public Object logTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
         LocalDateTime startTime = LocalDateTime.now(clock);
         long startNanos = System.nanoTime();
@@ -129,6 +136,14 @@ public class LoggingAspect {
         String userAgent = request != null ? request.getHeader("User-Agent") : null;
         String businessTransactionId = onlineExecution != null ? onlineExecution.id() : "UNKNOWN";
         String businessTransactionName = onlineExecution != null ? onlineExecution.name() : controller;
+        SegmentScope transactionSegment = transactionSegments.start(
+                CpfTransactionSegmentPort.Role.MAIN,
+                CpfTransactionSegmentPort.Direction.INBOUND,
+                firstText(TransactionContext.currentSystemCode(), moduleId),
+                TransactionContext.callerSystemCode(),
+                TransactionContext.targetSystemCode(),
+                uri,
+                businessTransactionName);
         LogPolicyDecision logPolicy = resolveOnlineLogPolicy(businessTransactionId);
         if (!logPolicy.requestBodySave()) {
             requestBody = null;
@@ -183,6 +198,7 @@ public class LoggingAspect {
 
         try {
             Object result = joinPoint.proceed();
+            transactionSegment.success();
             LocalDateTime endTime = LocalDateTime.now(clock);
             long durationMs = elapsedMillis(startNanos);
             ResponseMetadata responseMetadata = resolveResponseMetadata(result, moduleId);
@@ -256,6 +272,7 @@ public class LoggingAspect {
 
             return result;
         } catch (Throwable ex) {
+            transactionSegment.fail(ex.getClass().getSimpleName(), ex.getMessage());
             LocalDateTime endTime = LocalDateTime.now(clock);
             long durationMs = elapsedMillis(startNanos);
             ErrorMetadata errorMetadata = resolveErrorMetadata(ex, request != null ? request.getLocale() : Locale.KOREAN);
@@ -404,7 +421,7 @@ public class LoggingAspect {
                 .systemCode(TransactionContext.currentSystemCode())
                 .callerChannel(TransactionContext.callerChannel())
                 .targetChannel(TransactionContext.targetChannel())
-                .targetOperationId(TransactionContext.targetOperationId())
+                .targetOperationId(TransactionContext.observedOperationId())
                 .callerInstanceId(headerValue(transactionHeader, TransactionHeader::getCallerInstanceId))
                 .correlationId(headerValue(transactionHeader, TransactionHeader::getCorrelationId))
                 .idempotencyKey(headerValue(transactionHeader, TransactionHeader::getIdempotencyKey))
@@ -659,7 +676,44 @@ public class LoggingAspect {
             return new OnlineExecutionMetadata(shared.id(), shared.name());
         }
         CpfTransaction legacy = resolveAnnotation(joinPoint, CpfTransaction.class);
-        return legacy == null ? null : new OnlineExecutionMetadata(legacy.id(), legacy.name());
+        if (legacy != null) {
+            return new OnlineExecutionMetadata(legacy.id(), legacy.name());
+        }
+        return resolveDomainOperation(joinPoint);
+    }
+
+    /**
+     * Integration은 Observability의 선택 기능이므로 이 모듈에 역방향 compile dependency를 만들지 않습니다.
+     * Pointcut이 실제 Public SPI 구현의 invoke에만 진입한 뒤 그 SPI가 보장하는 metadata를 읽습니다.
+     */
+    private OnlineExecutionMetadata resolveDomainOperation(ProceedingJoinPoint joinPoint) {
+        Object target = joinPoint.getTarget();
+        if (target == null || !implementsInterface(target.getClass(),
+                "com.cpf.integration.api.domaincall.CpfDomainOperation")) {
+            return null;
+        }
+        try {
+            Object operationId = target.getClass().getMethod("operationId").invoke(target);
+            String value = operationId == null ? null : operationId.toString().trim();
+            if (!hasText(value)) {
+                throw new IllegalStateException("CPF_DOMAIN_OPERATION_ID_REQUIRED");
+            }
+            return new OnlineExecutionMetadata(value, value);
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("CPF_DOMAIN_OPERATION_METADATA_UNAVAILABLE", failure);
+        }
+    }
+
+    private static boolean implementsInterface(Class<?> type, String interfaceName) {
+        if (type == null) {
+            return false;
+        }
+        for (Class<?> candidate : type.getInterfaces()) {
+            if (interfaceName.equals(candidate.getName()) || implementsInterface(candidate, interfaceName)) {
+                return true;
+            }
+        }
+        return implementsInterface(type.getSuperclass(), interfaceName);
     }
 
     private record OnlineExecutionMetadata(String id, String name) {

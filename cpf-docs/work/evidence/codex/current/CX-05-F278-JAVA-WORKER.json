@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-278",
+  "startedAt": "2026-08-24T15:11:00+09:00",
+  "finishedAt": "2026-08-24T15:13:00+09:00",
+  "sourceIdentitySha256": "89b17b4107ea3ae816a1f26e5eb09a271657858e97cf54b3676ff920505c1e77",
+  "test": {
+    "suite": "CpfBatchRemoteWorkerConfigurationTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "workerBootJar": {
+    "bytes": 85364874,
+    "sha256": "38A3D63AEC15D5C1EFD3554023CAF6425E9EB57C0A75400186D01CB38EE14956"
+  },
+  "build": "SUCCESSFUL",
+  "status": "VERIFICATION_PENDING",
+  "remaining": "Fresh no-Kafka Worker and complete five-executable boot composition."
+}

@@ -1,4 +1,4 @@
-MERGE INTO bat_job target
+MERGE INTO BAT_JOB target
 USING (
     SELECT ? job_id, ? job_name, ? job_type, ? description, ? created_by, ? updated_by
     FROM dual

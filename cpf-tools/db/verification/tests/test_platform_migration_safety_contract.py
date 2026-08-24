@@ -74,6 +74,23 @@ class PlatformMigrationSafetyContractTest(unittest.TestCase):
             self.text,
         )
 
+    def test_current_batch_telemetry_uses_central_runtime_lifecycle_owner(self):
+        import json
+
+        schema = json.loads(
+            (ROOT / "cpf-tools/db/canonical/platform-schema.json").read_text(encoding="utf-8")
+        )
+        tables = {table["name"]: table for table in schema["tables"]}
+        for name in ("BAT_RUNTIME_CAPABILITY", "BAT_RUNTIME_HEARTBEAT"):
+            table = tables[name]
+            instance = next(column for column in table["columns"] if column["name"] == "instance_id")
+            foreign_key = next(
+                key for key in table["foreignKeys"]
+                if key["columns"] == ["instance_id"]
+            )
+            self.assertEqual("VARCHAR(120)", instance["type"], name)
+            self.assertEqual("OPS_SERVICE_INSTANCE", foreign_key["refTable"], name)
+
 
 if __name__ == "__main__":
     unittest.main()

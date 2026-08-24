@@ -1,2 +1,2 @@
-DELETE FROM bat_runtime_capability
+DELETE FROM BAT_RUNTIME_CAPABILITY
 WHERE instance_id = ?

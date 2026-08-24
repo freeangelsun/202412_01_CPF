@@ -1,0 +1,12 @@
+{
+  "findingId": "CX-F-266",
+  "status": "CLOSED",
+  "verifiedAt": "2026-08-24T11:28:21+09:00",
+  "runId": "b4200824c033",
+  "sourceIdentitySha256": "c239ef5ec58e50dec129dc2a8e8dd93702a49131b797070c90c1a4b20dfb16e5",
+  "freshDatabase": {"platformTables": 202, "backofficeTables": 29, "canonicalChecks": 20, "status": "PASS"},
+  "runtime": {"controlPlane": "LIVE", "centerCut": "LIVE", "worker1": "REGISTERED", "worker2": "REGISTERED", "concurrentWorkerCount": 2},
+  "targetedJava": {"tests": 6, "failures": 0, "errors": 0, "skipped": 0},
+  "cleanup": {"databaseAndRoles": "PASS", "kafkaTopics": "4/4 removed", "runtimeProcesses": "stopped"},
+  "downstream": "Run then stopped at F264 verifier configuration because diagnostic mode was not passed to the new generic launcher; this is outside F266's registration contract."
+}

@@ -1,4 +1,4 @@
-UPDATE bat_schedule
+UPDATE BAT_SCHEDULE
    SET last_fire_at = ?,
        next_fire_at = ?,
        updated_at = @NOW@
@@ -6,7 +6,7 @@ UPDATE bat_schedule
    AND ((next_fire_at IS NULL AND ? IS NULL) OR next_fire_at = ?)
    AND EXISTS (
        SELECT 1
-         FROM bat_scheduler_lease l
+         FROM BAT_SCHEDULER_LEASE l
         WHERE l.scheduler_key = ?
           AND l.owner_instance_id = ?
           AND l.fencing_token = ?

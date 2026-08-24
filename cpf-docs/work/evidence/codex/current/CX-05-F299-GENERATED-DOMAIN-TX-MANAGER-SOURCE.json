@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-299",
+  "status": "SOURCE_FIXED",
+  "recordedAt": "2026-08-24T18:57:07+09:00",
+  "rootCause": "The canonical Generated Domain sample scaffold emitted unqualified CpfTransactional annotations although mandatory Common and the customer business database intentionally provide separate transaction managers.",
+  "owner": "cpf-tools/generator/engine/cpf_domain_generator.py",
+  "repair": {
+    "transactionManager": "cpfDomainTransactionManager",
+    "writeMethods": 4,
+    "readOnlyMethods": 3,
+    "scope": "Generator canonical scaffold; MBR and EXS must be synchronized from this owner"
+  },
+  "freshGeneratedValidation": {
+    "domain": "cpf-qaf299",
+    "generatorCommand": "cpf domain setup --preset custom --persistence mybatis --vendor mariadb --sample-transaction",
+    "generatedWriteAnnotations": 4,
+    "generatedReadOnlyAnnotations": 3,
+    "testSuites": 2,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "compiledMainClasses": 28
+  },
+  "sourceIdentity": {
+    "sha256": "d0f6dee2943e7faa3a48d27a86a836f45bc365942678b72e2419b87385580fa2",
+    "sha1": "283cf883f2d5b6c8309a301b57a21125fb3e1334",
+    "files": 8417,
+    "bytes": 56680823
+  },
+  "remaining": [
+    "Synchronize cpf-member and cpf-external from the Generator canonical owner",
+    "Compile and test both generated domains",
+    "Repeat the no-Kafka physical business invocation"
+  ],
+  "prohibitionsPreserved": [
+    "No global Primary transaction manager",
+    "No optional Common downgrade",
+    "No MBR-only manual patch",
+    "No transaction or AOP bypass"
+  ]
+}

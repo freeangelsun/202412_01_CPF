@@ -3,11 +3,11 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.cpf.core.mapper.common.logging.TransactionSegmentMapper">
+<mapper namespace="com.cpf.data.persistence.mybatis.mapper.logging.TransactionSegmentMapper">
 
     <!-- 복합 거래의 구간 시작 시점에 RUNNING 상태를 저장합니다. -->
     <insert id="insertSegment" parameterType="com.cpf.platform.operations.observability.spi.logging.segment.TransactionSegmentRecord">
-        INSERT INTO cpf_transaction_segment (
+        INSERT INTO CPF_TRANSACTION_SEGMENT (
             transaction_segment_id,
             transaction_id,
             execution_id,
@@ -32,9 +32,13 @@
             operator_id_masked,
             system_code,
             original_system_code,
-            client_id,
             caller_system_code,
             target_system_code,
+            current_channel,
+            original_channel,
+            client_id,
+            caller_channel,
+            target_channel,
             target_operation_id,
             external_institution_code,
             external_transaction_id,
@@ -73,6 +77,10 @@
             #{memberNoMasked},
             #{userIdMasked},
             #{operatorIdMasked},
+            #{systemCode},
+            #{originalSystemCode},
+            #{callerSystemCode},
+            #{targetSystemCode},
             #{currentChannel},
             #{originalChannel},
             #{clientId},
@@ -99,7 +107,7 @@
 
     <!-- 구간 종료 시 성공/실패 상태와 수행시간을 확정합니다. -->
     <update id="updateSegmentEnd" parameterType="com.cpf.platform.operations.observability.spi.logging.segment.TransactionSegmentRecord">
-        UPDATE cpf_transaction_segment
+        UPDATE CPF_TRANSACTION_SEGMENT
            SET ended_at = #{endedAt},
                duration_ms = #{durationMs},
                status = #{status},
@@ -125,7 +133,7 @@
     <!-- 복구 시 END 이벤트가 START 이벤트보다 먼저 처리되지 않도록 존재 여부를 확인합니다. -->
     <select id="countByTransactionSegmentId" resultType="int">
         SELECT COUNT(*)
-          FROM cpf_transaction_segment
+          FROM CPF_TRANSACTION_SEGMENT
          WHERE transaction_segment_id = #{transactionSegmentId}
     </select>
 

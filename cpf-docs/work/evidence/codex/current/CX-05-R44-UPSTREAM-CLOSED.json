@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T13:30:00+09:00",
+  "runId": "b4200824c044",
+  "sourceIdentitySha256": "9a74229d7be6c9badba6d79af4d2d5218cac6ecd6a1324bd8ddd7ee83b7d2f45",
+  "status": "PASS",
+  "findingsClosed": ["CX-F-271", "CX-F-272", "CX-F-273"],
+  "physicalProof": [
+    "Fresh canonical MariaDB and isolated Kafka topics",
+    "actual Control Plane, Center Cut and two Worker JVMs",
+    "six remote Kafka partitions handled by two distinct Workers",
+    "six bounded reply contracts consumed and Manager Job COMPLETED",
+    "six canonical partition StepExecutions and six durable contexts",
+    "all verifier-owned resources cleaned with zero leaks"
+  ],
+  "separateDownstreamFinding": "CX-F-265 remains IN_PROGRESS at the drain/resume boundary; it does not invalidate the already completed reply/aggregation/step-query requirements."
+}

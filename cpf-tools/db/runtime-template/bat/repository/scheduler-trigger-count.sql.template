@@ -1,4 +1,4 @@
 SELECT COUNT(*)
-  FROM bat_schedule_trigger
+  FROM BAT_SCHEDULE_TRIGGER
  WHERE schedule_id = ?
    AND scheduled_fire_at = ?

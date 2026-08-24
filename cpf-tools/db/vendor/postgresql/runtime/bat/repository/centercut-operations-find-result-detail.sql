@@ -11,6 +11,6 @@ SELECT r.center_cut_result_id AS resultId,
        CHAR_LENGTH(r.result_payload) AS resultPayloadLength,
        r.created_at AS createdAt,
        r.updated_at AS updatedAt
-FROM bat_center_cut_result r
-LEFT JOIN bat_center_cut_item i ON i.center_cut_item_id = r.center_cut_item_id
+FROM BAT_CENTER_CUT_RESULT r
+LEFT JOIN BAT_CENTER_CUT_ITEM i ON i.center_cut_item_id = r.center_cut_item_id
 WHERE r.center_cut_result_id = ?

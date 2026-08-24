@@ -815,6 +815,27 @@ ALTER TABLE BAT_OPERATION_REQUEST COMMENT = 'BAT 위험조치 승인·멱등·UN
 CREATE INDEX ix_bat_operation_request_target ON BAT_OPERATION_REQUEST (target_type, target_id, created_at);
 CREATE INDEX ix_bat_operation_request_state ON BAT_OPERATION_REQUEST (request_state, updated_at);
 
+CREATE TABLE BAT_RECONCILIATION_AUDIT (
+    reconciliation_audit_id BIGINT AUTO_INCREMENT NOT NULL,
+    request_id VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(40) NOT NULL,
+    entity_key VARCHAR(300) NOT NULL,
+    from_status VARCHAR(40) NOT NULL,
+    to_status VARCHAR(40) NOT NULL,
+    requester_id VARCHAR(120) NOT NULL,
+    approver_id VARCHAR(120) NOT NULL,
+    reason_text VARCHAR(1000) NOT NULL,
+    idempotency_key VARCHAR(200) NOT NULL,
+    expected_attempt INT NULL,
+    expected_version BIGINT NULL,
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
+    CONSTRAINT PK_BAT_RECONCILIATION_AUDIT PRIMARY KEY (reconciliation_audit_id),
+    CONSTRAINT uq_bat_reconcile_idem UNIQUE (idempotency_key),
+    CONSTRAINT ck_bat_reconcile_separation CHECK (requester_id <> approver_id)
+) ENGINE=InnoDB;
+ALTER TABLE BAT_RECONCILIATION_AUDIT COMMENT = 'Immutable BAT UNKNOWN-result reconciliation approval audit';
+CREATE INDEX ix_bat_reconcile_entity ON BAT_RECONCILIATION_AUDIT (entity_type, entity_key, created_at);
+
 CREATE TABLE BAT_REMOTE_MESSAGE_LEDGER (
     direction_cd VARCHAR(20) NOT NULL,
     message_id VARCHAR(64) NOT NULL,
@@ -1644,6 +1665,7 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     segment_id BIGINT AUTO_INCREMENT NOT NULL,
     transaction_segment_id VARCHAR(120) NOT NULL,
     transaction_id CHAR(34) NOT NULL,
+    execution_id VARCHAR(160) NULL,
     parent_segment_id VARCHAR(120) NULL,
     transaction_role VARCHAR(40) NOT NULL,
     module_code VARCHAR(20) NOT NULL,
@@ -1696,6 +1718,7 @@ CREATE TABLE CPF_TRANSACTION_SEGMENT (
     CONSTRAINT uk_cpf_transaction_segment_id UNIQUE (transaction_segment_id)
 ) ENGINE=InnoDB;
 ALTER TABLE CPF_TRANSACTION_SEGMENT COMMENT = 'CPF 복합 거래 구간 로그';
+CREATE INDEX ix_cpf_transaction_segment_execution ON CPF_TRANSACTION_SEGMENT (execution_id, started_at);
 CREATE INDEX ix_cpf_transaction_segment_transaction ON CPF_TRANSACTION_SEGMENT (transaction_id, started_at, segment_id);
 CREATE INDEX ix_cpf_transaction_segment_parent ON CPF_TRANSACTION_SEGMENT (parent_segment_id);
 CREATE INDEX ix_cpf_transaction_segment_module ON CPF_TRANSACTION_SEGMENT (module_code, started_at);
@@ -2956,32 +2979,6 @@ CREATE TABLE BAT_RUNTIME_COMMAND_ATTEMPT (
 ) ENGINE=InnoDB;
 ALTER TABLE BAT_RUNTIME_COMMAND_ATTEMPT COMMENT = 'BAT runtime command execution attempt';
 CREATE INDEX ix_bat_runtime_command_attempt_instance ON BAT_RUNTIME_COMMAND_ATTEMPT (instance_id, started_at);
-
-CREATE TABLE BAT_RUNTIME_CAPABILITY (
-    instance_id VARCHAR(160) NOT NULL,
-    capability_code VARCHAR(80) NOT NULL,
-    CONSTRAINT PK_BAT_RUNTIME_CAPABILITY PRIMARY KEY (instance_id, capability_code),
-    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-ALTER TABLE BAT_RUNTIME_CAPABILITY COMMENT = 'BAT runtime capability projection';
-
-CREATE TABLE BAT_RUNTIME_HEARTBEAT (
-    heartbeat_id BIGINT AUTO_INCREMENT NOT NULL,
-    instance_id VARCHAR(160) NOT NULL,
-    heartbeat_at DATETIME(6) NOT NULL,
-    ready_yn CHAR(1) NOT NULL,
-    available_capacity INT DEFAULT 0 NOT NULL,
-    queue_depth BIGINT DEFAULT 0 NOT NULL,
-    draining_yn CHAR(1) DEFAULT 'N' NOT NULL,
-    current_execution_count INT DEFAULT 0 NOT NULL,
-    active_lease_count INT DEFAULT 0 NOT NULL,
-    last_error_code VARCHAR(80) NULL,
-    deployment_version VARCHAR(80) NULL,
-    CONSTRAINT PK_BAT_RUNTIME_HEARTBEAT PRIMARY KEY (heartbeat_id),
-    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES BAT_RUNTIME_INSTANCE (instance_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-ALTER TABLE BAT_RUNTIME_HEARTBEAT COMMENT = 'BAT runtime heartbeat event';
-CREATE INDEX ix_bat_runtime_heartbeat_instance ON BAT_RUNTIME_HEARTBEAT (instance_id, heartbeat_at);
 
 CREATE TABLE BAT_SB_JOB_EXECUTION (
     JOB_EXECUTION_ID BIGINT NOT NULL,
@@ -4416,6 +4413,32 @@ CREATE TABLE GW_TRANSACTION_CAPTURE_SEGMENT (
 ALTER TABLE GW_TRANSACTION_CAPTURE_SEGMENT COMMENT = 'Gateway 정책 기반 Capture Segment 원장';
 CREATE INDEX ix_cpf_gwy_capture_time ON GW_TRANSACTION_CAPTURE_SEGMENT (captured_at, segment_type);
 
+CREATE TABLE BAT_RUNTIME_CAPABILITY (
+    instance_id VARCHAR(120) NOT NULL,
+    capability_code VARCHAR(80) NOT NULL,
+    CONSTRAINT PK_BAT_RUNTIME_CAPABILITY PRIMARY KEY (instance_id, capability_code),
+    CONSTRAINT fk_bat_runtime_capability_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+ALTER TABLE BAT_RUNTIME_CAPABILITY COMMENT = 'BAT runtime capability projection';
+
+CREATE TABLE BAT_RUNTIME_HEARTBEAT (
+    heartbeat_id BIGINT AUTO_INCREMENT NOT NULL,
+    instance_id VARCHAR(120) NOT NULL,
+    heartbeat_at DATETIME(6) NOT NULL,
+    ready_yn CHAR(1) NOT NULL,
+    available_capacity INT DEFAULT 0 NOT NULL,
+    queue_depth BIGINT DEFAULT 0 NOT NULL,
+    draining_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    current_execution_count INT DEFAULT 0 NOT NULL,
+    active_lease_count INT DEFAULT 0 NOT NULL,
+    last_error_code VARCHAR(80) NULL,
+    deployment_version VARCHAR(80) NULL,
+    CONSTRAINT PK_BAT_RUNTIME_HEARTBEAT PRIMARY KEY (heartbeat_id),
+    CONSTRAINT fk_bat_runtime_heartbeat_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+ALTER TABLE BAT_RUNTIME_HEARTBEAT COMMENT = 'BAT runtime heartbeat event';
+CREATE INDEX ix_bat_runtime_heartbeat_instance ON BAT_RUNTIME_HEARTBEAT (instance_id, heartbeat_at);
+
 CREATE TABLE OPS_RUNTIME_DELIVERY (
     delivery_id VARCHAR(80) NOT NULL,
     change_id VARCHAR(80) NOT NULL,
@@ -4495,6 +4518,9 @@ CREATE TABLE OPS_RUNTIME_INSTANCE_STATE (
     artifact_version VARCHAR(100) NULL,
     artifact_commit VARCHAR(64) NULL,
     runtime_role VARCHAR(40) NULL,
+    desired_runtime_state VARCHAR(32) DEFAULT 'RUNNING' NOT NULL,
+    actual_runtime_state VARCHAR(32) DEFAULT 'UNKNOWN' NOT NULL,
+    control_row_version BIGINT DEFAULT 0 NOT NULL,
     registration_source VARCHAR(120) NULL,
     schema_version VARCHAR(100) NULL,
     config_hash VARCHAR(64) NULL,
@@ -4508,7 +4534,7 @@ CREATE TABLE OPS_RUNTIME_INSTANCE_STATE (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT PK_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 ALTER TABLE OPS_RUNTIME_INSTANCE_STATE COMMENT = 'Runtime desired/actual/lease/fencing 상태';

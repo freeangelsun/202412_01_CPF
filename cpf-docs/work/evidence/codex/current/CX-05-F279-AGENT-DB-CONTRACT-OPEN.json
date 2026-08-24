@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:13:00+09:00",
+  "finishedAt": "2026-08-24T15:15:00+09:00",
+  "sourceIdentitySha256": "89b17b4107ea3ae816a1f26e5eb09a271657858e97cf54b3676ff920505c1e77",
+  "rootCause": "Agent consumes runtime-support and mandatory Common/JDBC auto-configuration, but unlike the other four Batch executables its application.yml does not import the shared application-bat-runtime.yml external DataSource/Profile contract.",
+  "observed": "Fresh Agent aborts while creating cpfCommonDataSource with a secret-safe reachable-cpfDB failure; all earlier executables use the same prepared database successfully.",
+  "status": "IN_PROGRESS",
+  "requiredClosure": "Import the shared BAT Runtime contract in Agent, protect the five-executable inventory with a regression, rebuild and boot all five from Fresh DB."
+}

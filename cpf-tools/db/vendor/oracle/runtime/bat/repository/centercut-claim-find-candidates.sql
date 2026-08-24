@@ -2,10 +2,10 @@ SELECT i.center_cut_item_id,
        i.center_cut_execution_id,
        e.tps_limit,
        e.concurrency_limit
-  FROM bat_center_cut_item i
-  JOIN bat_center_cut_job j
+  FROM BAT_CENTER_CUT_ITEM i
+  JOIN BAT_CENTER_CUT_JOB j
     ON j.center_cut_job_id = i.center_cut_job_id
-  LEFT JOIN bat_center_cut_execution e
+  LEFT JOIN BAT_CENTER_CUT_EXECUTION e
     ON e.center_cut_execution_id = i.center_cut_execution_id
  WHERE i.item_status IN ('READY', 'RETRY')
    AND j.use_yn = 'Y'

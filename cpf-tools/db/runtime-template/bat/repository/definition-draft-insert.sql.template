@@ -1,4 +1,4 @@
-INSERT INTO bat_job_definition_version (
+INSERT INTO BAT_JOB_DEFINITION_VERSION (
   job_id,definition_version,job_name,executor_type,definition_state,owner_domain,description,
   trigger_type,trigger_expression,timezone_id,misfire_policy,agent_pool,zone_id,max_concurrency,
   timeout_seconds,restartable_yn,max_attempts,initial_backoff_seconds,backoff_multiplier,

@@ -1,6 +1,7 @@
 package com.cpf.messaging.kafka;
 
 import com.cpf.starter.runtime.CpfCapabilityBinding;
+import com.cpf.starter.runtime.CpfCapabilityBindingCardinality;
 import com.cpf.starter.runtime.CpfCapabilityBindingRegistry;
 import com.cpf.messaging.spi.CpfNamedBrokerClient;
 import java.util.Map;
@@ -21,6 +22,8 @@ public class CpfKafkaBindingAutoConfiguration {
         String bindingName = properties.bindingName();
         boolean defaultBinding = properties.defaultBinding();
         var named = new CpfNamedBrokerClient(bindingName, "kafka", defaultBinding, client);
+        registry.configureCardinality(
+                "messaging", CpfCapabilityBindingCardinality.NAMED_MULTI_OPTIONAL_DEFAULT);
         registry.register(new CpfCapabilityBinding(
                 "messaging", bindingName, "kafka", defaultBinding,
                 Map.of("requireIdempotence", Boolean.toString(properties.requireIdempotence()))));

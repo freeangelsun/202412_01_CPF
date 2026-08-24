@@ -1,0 +1,25 @@
+{
+  "findingId": "CX-F-298",
+  "status": "SOURCE_FIXED",
+  "fixedAt": "2026-08-24T18:47:00+09:00",
+  "sourceIdentitySha256": "73cd452ba0114a0a63e34be22bdb7052152ead36e7ed01d74bb2ad90a6b4c8c6",
+  "sourceIdentitySha1": "de70deaa3ca5e98c6f66625c13168a6797bf9c87",
+  "fileCount": 8417,
+  "totalBytes": 56680145,
+  "implementation": {
+    "owner": "CpfJdbcOperationCatalogRegistry fresh policy transaction",
+    "behavior": "For each explicit non-ALL allowed caller, seed a missing cross-system relation before its operation caller policy in the same transaction.",
+    "existingDecision": "Preserved without update, including explicit deny.",
+    "sameSystem": "No cross-system row.",
+    "allCallers": "Symbolic operation policy only; never expanded into broad System-to-Domain grants.",
+    "vendorCatalogs": ["mariadb", "postgresql", "oracle"],
+    "canonicalQueryOwner": "cpf-tools/db/runtime-template/cpf/repository plus platform-runtime-query-contract.json"
+  },
+  "targetedTestsAdded": [
+    "fresh explicit caller",
+    "existing decision immutability",
+    "rediscovery idempotency",
+    "same-system caller"
+  ],
+  "verification": "PENDING"
+}

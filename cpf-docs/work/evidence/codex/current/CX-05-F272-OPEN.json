@@ -1,0 +1,33 @@
+{
+  "findingId": "CX-F-272",
+  "openedAt": "2026-08-24T12:49:00+09:00",
+  "sourceIdentitySha256": "8023779ebca14afe7029bb466e3d7d49004d8db725dcc37b30b22a460fd4b04b",
+  "status": "OPEN",
+  "severity": "P0",
+  "title": "DYNAMIC_REMOTE_MANAGER_AGGREGATION_FLOW_IS_NEVER_REGISTERED_OR_STARTED",
+  "acceptance": "Every dynamically materialized remote-partition Manager owns an active reply aggregation flow for its complete lifetime and releases all correlated replies without leaking flows on eviction.",
+  "observed": {
+    "freshRun": "CX-05-R41-BAT",
+    "requestsComplete": 6,
+    "workerStepsCompleted": 6,
+    "repliesDecodedAndLedgerComplete": 6,
+    "managerJobStatus": "STARTED",
+    "timeoutSeconds": 90
+  },
+  "rootCause": "CpfBatchJobFactory dynamically builds RemotePartitioningManagerStepBuilder after ApplicationContext refresh but does not provide BeanFactory. Spring Batch therefore does not register its input-channel aggregation flow. Even when registered late, the framework builder requests autoStartup(false), so CPF must explicitly own lifecycle start and cleanup for dynamically materialized jobs.",
+  "primaryOwner": "cpf-batch/runtime/src/main/java/com/cpf/batch/execution/CpfBatchJobFactory.java",
+  "requiredFix": [
+    "supply the canonical BeanFactory to every dynamic remote Manager builder",
+    "start only flows registered by that materialization",
+    "destroy owned flows when a materialized Job is evicted or creation fails",
+    "add actual flow lifecycle and aggregation regression coverage",
+    "rerun complete Java 25 Runtime, executable bootJars and Fresh physical flow"
+  ],
+  "forbidden": [
+    "timeout increase",
+    "repository-polling bypass",
+    "global start of unrelated flows",
+    "unbounded dynamic flow leak",
+    "mock-only closure"
+  ]
+}

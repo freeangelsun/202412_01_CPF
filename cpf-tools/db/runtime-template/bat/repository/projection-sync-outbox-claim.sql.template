@@ -1,4 +1,4 @@
-UPDATE bat_job_runtime_projection_outbox
+UPDATE BAT_JOB_RUNTIME_PROJECTION_OUTBOX
 SET delivery_status = 'CLAIMED',
     lease_owner = ?,
     lease_until = ?,

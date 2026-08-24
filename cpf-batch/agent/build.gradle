@@ -6,12 +6,16 @@ dependencies {
     implementation project(':runtime:batch:api')
     implementation project(':runtime:batch:runtime-support')
     implementation project(':framework:core')
+    implementation project(':starters:data:jdbc')
     implementation project(':internal:platform-operations:runtime-control')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${rootProject.ext.cpfSpringdocVersion}"
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     testImplementation project(':runtime:batch:testkit')
     testImplementation 'org.mockito:mockito-core'
 }

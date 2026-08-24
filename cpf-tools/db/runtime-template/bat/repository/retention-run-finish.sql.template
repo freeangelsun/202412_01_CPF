@@ -1,0 +1,3 @@
+UPDATE OPS_RETENTION_RUN
+SET status = ?, completed_at = @NOW@, error_code = ?, error_summary = ?, updated_at = @NOW@
+WHERE run_id = ?

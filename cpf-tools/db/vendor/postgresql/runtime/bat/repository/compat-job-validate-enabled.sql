@@ -1,4 +1,4 @@
 SELECT job_id
-FROM bat_job
+FROM BAT_JOB
 WHERE job_id = ?
   AND use_yn = 'Y'

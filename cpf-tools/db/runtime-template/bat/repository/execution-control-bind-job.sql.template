@@ -1,4 +1,4 @@
-UPDATE cpf_batch_execution_control
+UPDATE BAT_EXECUTION_CONTROL
    SET job_instance_id = ?,
        job_execution_id = ?,
        control_status = ?,
@@ -11,7 +11,7 @@ UPDATE cpf_batch_execution_control
    AND fencing_token = ?
    AND EXISTS (
        SELECT 1
-         FROM cpf_batch_execution_epoch epoch
-        WHERE epoch.job_id = cpf_batch_execution_control.job_id
-          AND epoch.current_fencing_token = cpf_batch_execution_control.fencing_token
+         FROM BAT_EXECUTION_EPOCH epoch
+        WHERE epoch.job_id = BAT_EXECUTION_CONTROL.job_id
+          AND epoch.current_fencing_token = BAT_EXECUTION_CONTROL.fencing_token
    )

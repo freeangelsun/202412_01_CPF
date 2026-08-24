@@ -1,0 +1,29 @@
+{
+  "findingId": "CX-F-298",
+  "status": "VERIFICATION_PENDING",
+  "verifiedAt": "2026-08-24T18:49:00+09:00",
+  "sourceIdentitySha256": "73cd452ba0114a0a63e34be22bdb7052152ead36e7ed01d74bb2ad90a6b4c8c6",
+  "sourceIdentitySha1": "de70deaa3ca5e98c6f66625c13168a6797bf9c87",
+  "fileCount": 8417,
+  "totalBytes": 56680145,
+  "java": {
+    "runtime": "Temurin 25.0.3+9 LTS",
+    "task": ":internal:platform-operations:runtime-control:test",
+    "testClass": "CpfJdbcOperationCatalogRegistryTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "result": "BUILD SUCCESSFUL"
+  },
+  "queryPack": {
+    "canonicalTemplates": 2,
+    "vendors": 3,
+    "statements": 250,
+    "repositoryFiles": 708,
+    "processedFiles": 728,
+    "syncCheck": "PASS",
+    "contractCheck": "PASS"
+  },
+  "remaining": "Rebuild exact MBR executable and repeat Fresh physical no-Kafka flow."
+}

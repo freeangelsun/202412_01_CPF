@@ -9,6 +9,6 @@ SELECT parameter_id AS parameterId,
        use_yn AS useYn,
        created_at AS createdAt,
        updated_at AS updatedAt
-FROM bat_center_cut_parameter
+FROM BAT_CENTER_CUT_PARAMETER
 WHERE center_cut_job_id = ?
 ORDER BY parameter_key

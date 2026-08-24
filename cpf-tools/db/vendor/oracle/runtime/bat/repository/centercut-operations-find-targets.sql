@@ -14,7 +14,7 @@ SELECT center_cut_item_id AS targetId,
        LENGTH(item_payload) AS targetPayloadLength,
        created_at AS createdAt,
        updated_at AS updatedAt
-FROM bat_center_cut_item
+FROM BAT_CENTER_CUT_ITEM
 WHERE center_cut_job_id = ?
   AND (? IS NULL OR item_status = ?)
 ORDER BY center_cut_item_id

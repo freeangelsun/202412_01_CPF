@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "runId": "b4200824c043",
+  "transportRunId": "b3f80cf87e3b",
+  "startedAt": "2026-08-24T13:19:23.5802060+09:00",
+  "endedAt": "2026-08-24T13:20:51.8171186+09:00",
+  "sourceIdentitySha256": "aeaafa8d4e2361170f0d776de6e85b906ec06f485bc7f071dd8136e4e706036c",
+  "status": "FAILED_VERIFIER_ASSERTION_AFTER_MANAGER_COMPLETION",
+  "exitCode": 1,
+  "observed": [
+    "Control Plane, Center Cut and both Worker JVMs registered.",
+    "Both real Workers processed the six Kafka partitions.",
+    "The Manager Job reached COMPLETED at the unchanged timeout boundary.",
+    "The ledger independently identified two distinct Workers."
+  ],
+  "failure": "The maintained verifier required STEP_NAME='cpfRemotePartitionWorkerStep', while Spring Batch persisted the canonical partition step names as cpfRemotePartitionWorkerStep:partition-N; the exact equality returned zero.",
+  "finding": "CX-F-273",
+  "f272Impact": "F272 dynamic flow registration, polling, reply aggregation and Manager completion are physically proven, but the complete maintained Stage 1 gate must be rerun after correcting the verifier before closure.",
+  "cleanupRequired": false
+}

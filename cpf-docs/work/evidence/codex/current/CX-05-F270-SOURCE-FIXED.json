@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-270",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "bdb54717cb755fae2adea48453d4bb02eb20c53652d22f1b33b935d82f800e8e",
+    "sha1": "ae55677567bab8097663435f86e27f7d7a534c26",
+    "files": 8275,
+    "bytes": 56534976
+  },
+  "change": "The Control Plane now executes parent Job Pack upsert, child replacement and all child inserts in one REQUIRED transaction with checked-exception rollback.",
+  "concurrencyContract": "The parent upsert provides the canonical same-pack row lock, serializing concurrent complete replacement without verifier-side ordering.",
+  "verificationPending": "Java 25 owner test, Control Plane bootJar and Fresh concurrent two-Worker startup"
+}

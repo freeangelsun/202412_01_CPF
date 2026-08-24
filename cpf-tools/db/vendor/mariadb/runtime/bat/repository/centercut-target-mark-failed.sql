@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_execution
+UPDATE BAT_CENTER_CUT_EXECUTION
    SET execution_state = 'FAILED',
        last_error_message = ?,
        updated_at = CURRENT_TIMESTAMP(6)

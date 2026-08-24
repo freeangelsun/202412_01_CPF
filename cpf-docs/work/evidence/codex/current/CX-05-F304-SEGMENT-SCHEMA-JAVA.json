@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-304",
+  "status": "PASS",
+  "sourceIdentitySha256": "6efea48749f7427a47a4f6ba0913089b64fce510946e24e44b32677ded2293ac",
+  "javaVersion": "25.0.3",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 --console=plain :starters:data:mybatis:test :framework:operations:observability:test",
+  "result": "BUILD SUCCESSFUL",
+  "modules": [
+    {"module": "cpf-starter-data-mybatis", "suites": 3, "tests": 5, "failures": 0, "errors": 0, "skipped": 0},
+    {"module": "cpf-platform-operations-observability", "suites": 4, "tests": 6, "failures": 0, "errors": 0, "skipped": 0}
+  ]
+}

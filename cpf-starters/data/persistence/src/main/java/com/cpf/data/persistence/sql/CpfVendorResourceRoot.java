@@ -21,6 +21,7 @@ import java.util.Optional;
  */
 final class CpfVendorResourceRoot {
     static final String PROPERTY_NAME = "cpf.db.resource-root";
+    private static final int SUPPORTED_PACK_SCHEMA_VERSION = 5;
     private static final long MAX_MANIFEST_BYTES = 65_536;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -127,9 +128,10 @@ final class CpfVendorResourceRoot {
                                 + "selected=" + selectedVendor.id()
                                 + ", pack=" + manifestVendor.id());
             }
-            if (schemaVersionNode.intValue() != 1) {
+            if (schemaVersionNode.intValue() != SUPPORTED_PACK_SCHEMA_VERSION) {
                 throw new IllegalStateException(
-                        "지원하지 않는 DB Vendor pack schemaVersion입니다. expected=1, actual="
+                        "지원하지 않는 DB Vendor pack schemaVersion입니다. expected="
+                                + SUPPORTED_PACK_SCHEMA_VERSION + ", actual="
                                 + schemaVersionNode.intValue());
             }
         } catch (IllegalStateException ex) {

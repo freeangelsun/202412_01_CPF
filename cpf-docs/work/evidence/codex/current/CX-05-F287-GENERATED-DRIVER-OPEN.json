@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-287",
+  "status": "OPEN_IN_PROGRESS",
+  "sourceIdentitySha256": "10f7b4947bce13e264833249791cc17199843ec02be6bdf770e0400ae3611c4e",
+  "runId": "f282e2e1",
+  "facts": {
+    "freshPlatformDb3": "PASS",
+    "freshMbrBusinessSchema": "PASS",
+    "mbrLiveness": "FAIL_EXIT_1",
+    "selectedJdbcDriverInBootJar": false,
+    "generatorCanonicalVendorDriverSelection": true,
+    "checkedInGeneratedOutputParity": false
+  },
+  "rootCause": "The current Generator canonical renders a cpfDbVendor-selected runtimeOnly JDBC driver and validation task, but checked-in MBR/EXS Generated Domain build outputs are stale and omit that block.",
+  "requiredClosure": "Regenerate all canonical Generated Domains from the Generator owner, verify output parity and DB3 selection failure paths, rebuild the selected executable JAR, and rerun the identical Fresh no-Kafka E2E without classpath injection."
+}

@@ -11,7 +11,7 @@ dependencies {
     implementation project(':framework:base-runtime')
     implementation project(':framework:web')
     implementation project(':starters:common')
-    implementation project(':starters:messaging:kafka')
+    implementation project(':runtime:batch:remote-kafka')
     implementation project(':internal:messaging:reliability:jdbc')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -20,13 +20,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
     implementation 'org.springframework.batch:spring-batch-integration'
-    implementation 'org.springframework.integration:spring-integration-kafka'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     testImplementation project(':runtime:batch:testkit')
+    testImplementation project(':internal:testing:testkit')
     testImplementation 'org.springframework.batch:spring-batch-test'
     testImplementation 'org.mockito:mockito-core'
 }

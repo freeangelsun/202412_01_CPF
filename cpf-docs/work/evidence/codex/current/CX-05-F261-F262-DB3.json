@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T10:42:00+09:00",
+  "sourceIdentitySha256": "c76d361dbc73fb470180f841a93625733f8ebaa7a8f140fe5a6fa34372ba4ef2",
+  "status": "PASS",
+  "vendors": ["mariadb", "postgresql", "oracle"],
+  "canonicalTableCount": 235,
+  "centralTelemetryForeignKeyMatchesByVendor": {"mariadb": 9, "postgresql": 9, "oracle": 9},
+  "retiredTelemetryForeignKeyMatchesByVendor": {"mariadb": 0, "postgresql": 0, "oracle": 0},
+  "mutableLowercaseBrokerFilesByVendor": {"mariadb": 0, "postgresql": 0, "oracle": 0},
+  "immutableMigrationRollbackDiffCount": 0,
+  "queryContractIntegrity": "PASS",
+  "manifestDrift": "PASS",
+  "remainingGate": "Fresh physical Runtime replay"
+}

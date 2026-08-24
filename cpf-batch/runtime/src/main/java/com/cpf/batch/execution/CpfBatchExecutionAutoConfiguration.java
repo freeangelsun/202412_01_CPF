@@ -9,6 +9,7 @@ import com.cpf.foundation.time.spi.CpfBusinessDateProvider;
 import com.cpf.foundation.id.spi.CpfExecutionIdGenerator;
 import com.cpf.foundation.id.spi.CpfTransactionIdGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.List;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
@@ -20,16 +21,32 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.context.IntegrationFlowContext;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @AutoConfiguration
 @ConditionalOnClass(JobOperator.class)
 @EnableConfigurationProperties(CpfBatchExecutionProperties.class)
+@EnableIntegration
 public class CpfBatchExecutionAutoConfiguration {
+    @Bean(name = PollerMetadata.DEFAULT_POLLER)
+    @ConditionalOnMissingBean(name = PollerMetadata.DEFAULT_POLLER)
+    PollerMetadata cpfBatchDefaultPoller(CpfBatchExecutionProperties properties) {
+        PollerMetadata poller = new PollerMetadata();
+        poller.setTrigger(new PeriodicTrigger(Duration.ofMillis(properties.remotePollIntervalMs())));
+        poller.setMaxMessagesPerPoll(properties.maxPartitionCount());
+        poller.setReceiveTimeout(Math.min(properties.remotePollIntervalMs(), 1_000L));
+        return poller;
+    }
+
     @Bean
     @ConditionalOnMissingBean
     CpfBatchExecutionContextSupport cpfBatchExecutionContextSupport(
@@ -96,6 +113,12 @@ public class CpfBatchExecutionAutoConfiguration {
     }
 
     @Bean
+    CpfBatchDynamicManagerFlowLifecycle cpfBatchDynamicManagerFlowLifecycle(
+            BeanFactory beanFactory, IntegrationFlowContext flowContext) {
+        return new CpfBatchDynamicManagerFlowLifecycle(beanFactory, flowContext);
+    }
+
+    @Bean
     CpfBatchJobFactory cpfBatchJobFactory(
             JobRepository repository,
             PlatformTransactionManager transactionManager,
@@ -107,9 +130,11 @@ public class CpfBatchExecutionAutoConfiguration {
             CpfBatchExecutionContextSupport contextSupport,
             @Qualifier("cpfBatchRemoteRequests") MessageChannel requests,
             @Qualifier("cpfBatchRemoteReplies") PollableChannel replies,
-            @Qualifier("cpfBatchRemoteMessagingTemplate") MessagingTemplate messagingTemplate) {
+            @Qualifier("cpfBatchRemoteMessagingTemplate") MessagingTemplate messagingTemplate,
+            CpfBatchDynamicManagerFlowLifecycle dynamicManagerFlows) {
         return new CpfBatchJobFactory(repository, transactionManager, taskExecutor, handlers,
-                fencing, listener, properties, contextSupport, requests, replies, messagingTemplate);
+                fencing, listener, properties, contextSupport, requests, replies, messagingTemplate,
+                dynamicManagerFlows);
     }
 
     @Bean

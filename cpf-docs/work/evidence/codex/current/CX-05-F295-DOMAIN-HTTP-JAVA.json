@@ -1,0 +1,9 @@
+{
+  "finding": "CX-F-295",
+  "status": "VERIFICATION_PENDING",
+  "java": "25.0.3",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 :internal:integration:http:test --tests com.cpf.integration.http.internal.CpfServiceEndpointRegistryTest :runtime:batch:worker:bootJar",
+  "result": "PASS",
+  "securityAssertions": ["TLS default rejects HTTP", "explicit requireTls=false accepts private literal", "exact port remains allowlisted", "DNS HTTP remains forbidden"],
+  "build": "BUILD SUCCESSFUL"
+}

@@ -92,7 +92,7 @@ public class TransactionSegmentService {
         record.setClientId(CpfMaskingRuntime.truncate(TransactionContext.clientId(), 100));
         record.setCallerChannel(CpfMaskingRuntime.truncate(TransactionContext.callerChannel(), 100));
         record.setTargetChannel(CpfMaskingRuntime.truncate(TransactionContext.targetChannel(), 100));
-        record.setTargetOperationId(CpfMaskingRuntime.truncate(TransactionContext.targetOperationId(), 160));
+        record.setTargetOperationId(CpfMaskingRuntime.truncate(TransactionContext.observedOperationId(), 160));
         record.setCreatedBy(requestUser());
         record.setUpdatedBy(record.getCreatedBy());
 

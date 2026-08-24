@@ -1,4 +1,4 @@
 SELECT current_fencing_token
-  FROM cpf_batch_execution_epoch
+  FROM BAT_EXECUTION_EPOCH
  WHERE job_id = ?
  FOR UPDATE

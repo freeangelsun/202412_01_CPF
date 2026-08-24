@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_execution
+UPDATE BAT_CENTER_CUT_EXECUTION
    SET unknown_count = unknown_count + 1,
        execution_state = 'UNKNOWN_RESULT',
        last_error_message = 'One or more items became UNKNOWN_RESULT',

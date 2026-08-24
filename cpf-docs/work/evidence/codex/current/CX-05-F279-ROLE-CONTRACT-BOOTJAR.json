@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:22:00+09:00",
+  "finishedAt": "2026-08-24T15:24:00+09:00",
+  "sourceIdentitySha256": "7d8193516e0d00c095c00426ba9f71e38445bc0497dcc50b51f771f5a0a93424",
+  "contract": {"tests": 2, "passed": 2, "fiveMainRoleOwnerAssertions": 10},
+  "agentBootJar": {"bytes": 34661910, "sha256": "74A1BB575FB8C0EDC4FE9A1802ACCDA5C196FD2DA1A7D45109C0384DB08CDD7D"},
+  "build": "SUCCESSFUL",
+  "status": "VERIFICATION_PENDING"
+}

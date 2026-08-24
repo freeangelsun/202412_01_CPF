@@ -1,0 +1,12 @@
+{
+  "finding": "CX-F-293",
+  "status": "IN_PROGRESS",
+  "recordedAt": "2026-08-24T17:52:29.9545091+09:00",
+  "sourceIdentity": "9a7a80585426f619bc2f531f1fdf21b3d50b5e5c766238727ab957c6a9567bbf",
+  "freshRun": "f282e2e11",
+  "passedStages": ["DB3_PLATFORM", "MBR_DOMAIN", "MBR_LIVENESS", "CONTROL_PLANE_LIVENESS"],
+  "failedStage": "CENTER_CUT_LIVENESS",
+  "actualError": "RuntimeCommonConfiguration requires RuntimeStateProvider; Center-Cut Runner provides zero beans",
+  "requiredOwner": "cpf-batch/center-cut",
+  "prohibited": ["shared permissive fallback", "no-op provider", "disabled runtime reporting", "test-only bean"]
+}

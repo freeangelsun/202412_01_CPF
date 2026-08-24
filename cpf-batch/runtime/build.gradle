@@ -14,8 +14,6 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-batch-jdbc'
     api 'org.springframework.batch:spring-batch-integration'
     implementation 'org.springframework.integration:spring-integration-core'
-    implementation 'org.springframework.integration:spring-integration-kafka'
-    implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

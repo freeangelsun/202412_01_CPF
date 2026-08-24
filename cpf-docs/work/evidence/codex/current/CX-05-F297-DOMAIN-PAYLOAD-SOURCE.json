@@ -1,0 +1,15 @@
+{
+  "findingId": "CX-F-297",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "7a9d11d31fcd7bc2f4cfbc171ad21304831303f1092bcdefe9d7c2ab87190fab",
+    "sha1": "3e4b2d8ef51b93a2945aa3c820e0cdf9a86d824a",
+    "fileCount": 8408,
+    "totalBytes": 56670957
+  },
+  "owner": "cpf-starters/integration/http/CpfDomainCallController",
+  "wireType": "byte[]",
+  "internalType": "declared CpfRequest",
+  "malformedPolicy": "HTTP 400",
+  "verificationState": "NOT_YET_EXECUTED"
+}

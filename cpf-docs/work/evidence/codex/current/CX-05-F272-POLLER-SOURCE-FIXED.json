@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "track": "CX-05-F272-POLLER-SOURCE-FIXED",
+  "finding": "CX-F-272",
+  "recordedAt": "2026-08-24T13:10:25.7206670+09:00",
+  "status": "SOURCE_FIXED",
+  "rootCause": "The dynamic remote-partition manager correctly registered a QueueChannel consumer after the first F272 fix, but the Batch integration context did not own a default PollerMetadata, so Spring Integration 7.1 failed the late ConsumerEndpointFactoryBean before it could consume correlated replies.",
+  "sourceFix": [
+    "Provide the Spring Integration canonical default-poller bean only when the application has not provided one.",
+    "Bound its interval, per-poll message count and receive timeout from validated CpfBatchExecutionProperties.",
+    "Exercise the lifecycle regression with a real QueueChannel polling endpoint instead of a DirectChannel shortcut."
+  ],
+  "nonBypass": [
+    "No runtime or verifier timeout increase",
+    "No QueueChannel replacement",
+    "No repository polling completion bypass",
+    "No override of an application-owned default poller"
+  ],
+  "sourceIdentity": {
+    "contentSha256": "aeaafa8d4e2361170f0d776de6e85b906ec06f485bc7f071dd8136e4e706036c",
+    "contentSha1": "77fd31a45a9438ce233e2e85a7d7b97babb94ad2",
+    "fileCount": 8277,
+    "totalBytes": 56554776
+  },
+  "verificationNext": "Java 25 targeted QueueChannel lifecycle tests, complete Batch Runtime suite, exact bootJars and Fresh R43 physical replay with the fixed 90-second boundary"
+}

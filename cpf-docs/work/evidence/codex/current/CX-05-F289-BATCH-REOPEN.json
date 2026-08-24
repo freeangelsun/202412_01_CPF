@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-289",
+  "state": "IN_PROGRESS",
+  "openedBeforeSourceEdit": true,
+  "sourceIdentity": "1246b2d8f5c0d78f9d1db9c24ac171f6bd0a759fc6fcd47cd1ae40a774836ec1",
+  "freshRun": "f282e2e9",
+  "failure": "BatchControlQueryController has no CpfVendorSqlCatalogProvider",
+  "rootCause": "Shared catalog activation follows cpf.domain.persistence.enabled although Batch DB3 runtimes select the same external pack through cpf.db.resource-root.",
+  "requiredScope": [
+    "Generated JDBC MyBatis JPA",
+    "Control Plane Scheduler Worker Center-Cut",
+    "exactly one provider",
+    "absent only without an external Vendor Pack selection"
+  ]
+}

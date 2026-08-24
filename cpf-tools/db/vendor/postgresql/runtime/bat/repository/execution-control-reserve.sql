@@ -1,4 +1,4 @@
-INSERT INTO cpf_batch_execution_control (
+INSERT INTO BAT_EXECUTION_CONTROL (
   cpf_execution_id, job_id, definition_version, approval_id, operator_id, reason,
   idempotency_scope, idempotency_key, request_hash, plan_checksum,
   fencing_token, control_status, control_version, reconcile_attempts,

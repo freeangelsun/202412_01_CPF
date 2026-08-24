@@ -1,0 +1,19 @@
+{
+  "findingId": "CX-F-264",
+  "status": "VERIFICATION_PENDING",
+  "verifiedAt": "2026-08-24T11:18:00+09:00",
+  "sourceIdentitySha256": "949aac5dde40386db3eafeb2e0cab9f54fc2f30b2c6b3144dd7d9a57bebbdf5d",
+  "java": "25.0.3",
+  "gradle": {
+    "status": "BUILD SUCCESSFUL",
+    "durationSeconds": 30,
+    "tasks": 102,
+    "executedTasks": 7,
+    "upToDateTasks": 95
+  },
+  "tests": {
+    "CenterCutDiagnosticControllerTest": {"tests": 3, "failures": 0, "errors": 0, "skipped": 0},
+    "DiagnosticBatchStepHandlerTest": {"tests": 2, "failures": 0, "errors": 0, "skipped": 0}
+  },
+  "remaining": "Rewrite maintained two-Worker smoke, build executable artifacts, and run Fresh physical manager-Kafka-worker flow"
+}

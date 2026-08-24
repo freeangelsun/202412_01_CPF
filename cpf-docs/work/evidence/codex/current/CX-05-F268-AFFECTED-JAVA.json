@@ -1,0 +1,14 @@
+{
+  "findingId": "CX-F-268",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentitySha256": "0858b1abd2a73f2534b2c8cfdbdadc1d0c38502726f907e2574de4121c4b25ac",
+  "environment": "Java 25.0.3; Gradle wrapper; Windows x64; max-workers=2; no-daemon",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=2 :runtime:batch:runtime:test :runtime:batch:scheduler:test",
+  "result": {
+    "exitCode": 0,
+    "gradle": "BUILD SUCCESSFUL in 27s",
+    "runtime": {"tests": 39, "failures": 0, "errors": 0, "skipped": 0},
+    "scheduler": {"tests": 13, "failures": 0, "errors": 0, "skipped": 0}
+  },
+  "closurePending": "Rebuild four executable artifacts and Fresh physical replay"
+}

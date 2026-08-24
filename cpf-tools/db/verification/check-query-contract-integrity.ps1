@@ -276,9 +276,51 @@ foreach ($module in @($platform.modules)) {
         -GeneratedPackPath ([string]$module.generatedPackPath) `
         -SourceScopes @($module.sourceScopes) -Statements @($module.statements)
 }
+
+function Test-BatCanonicalPhysicalIdentifiers {
+    $schemaPath = Join-Path $Root 'cpf-tools/db/canonical/platform-schema.json'
+    $schema = Get-Content -Raw -Encoding UTF8 -LiteralPath $schemaPath | ConvertFrom-Json
+    $legacyMappings = @(
+        $schema.tables | Where-Object {
+            [string]$_.module -ceq 'bat' -and
+            $null -ne $_.PSObject.Properties['currentName'] -and
+            $null -ne $_.PSObject.Properties['targetTableName'] -and
+            -not [string]::IsNullOrWhiteSpace([string]$_.currentName) -and
+            ([string]$_.currentName -cne [string]$_.targetTableName)
+        } | ForEach-Object {
+            [pscustomobject]@{
+                legacy = [string]$_.currentName
+                target = [string]$_.targetTableName
+            }
+        }
+    )
+    $roots = [System.Collections.Generic.List[string]]::new()
+    $roots.Add((Join-Path $Root 'cpf-tools/db/runtime-template/bat'))
+    foreach ($vendor in $officialVendors) {
+        $roots.Add((Join-Path $Root "cpf-tools/db/vendor/$vendor/runtime/bat"))
+    }
+    foreach ($queryRoot in $roots) {
+        if (-not (Test-Path -LiteralPath $queryRoot -PathType Container)) {
+            Add-Failure "BAT physical query root missing: $queryRoot"
+            continue
+        }
+        foreach ($file in Get-ChildItem -LiteralPath $queryRoot -Recurse -File |
+                Where-Object { $_.Name -match '\.sql(?:\.template)?$' }) {
+            $text = Strip-SqlNoise (Read-Text $file.FullName)
+            foreach ($mapping in $legacyMappings) {
+                $pattern = '(?<![A-Za-z0-9_])' + [regex]::Escape($mapping.legacy) + '(?![A-Za-z0-9_])'
+                if ([regex]::IsMatch($text, $pattern)) {
+                    $relative = [System.IO.Path]::GetRelativePath($Root, $file.FullName).Replace('\', '/')
+                    Add-Failure "Legacy BAT physical identifier: path=$relative legacy=$($mapping.legacy) canonical=$($mapping.target)"
+                }
+            }
+        }
+    }
+}
 Test-Module -ModuleCode 'bat' -ParameterStyle ([string]$bat.parameterStyle) `
     -GeneratedPackPath ([string]$bat.generatedPackPath) `
     -SourceScopes @($bat.migrationScope) -Statements @($bat.statements)
+Test-BatCanonicalPhysicalIdentifiers
 
 if ($failures.Count -gt 0) {
     # Emit the complete independent inventory before failing. Write-Error is

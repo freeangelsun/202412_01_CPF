@@ -1,0 +1,16 @@
+{
+  "runId": "b4200824c040",
+  "status": "FAILED_ROOT_CAUSE_CAPTURED",
+  "sourceIdentitySha256": "bdb54717cb755fae2adea48453d4bb02eb20c53652d22f1b33b935d82f800e8e",
+  "completed": [
+    "Fresh MariaDB platform database with 202 canonical tables",
+    "Fresh Backoffice database with 29 canonical tables",
+    "20 canonical MariaDB checks",
+    "verifier-owned runtime and migration roles"
+  ],
+  "failure": "Manager cannot deserialize org.springframework.batch.core.step.StepExecution from the successful Worker reply: BATCH_REMOTE_PAYLOAD_DESERIALIZATION_FAILED / InvalidDefinitionException.",
+  "liveState": "six REQUEST COMPLETE; six Worker StepExecution rows COMPLETED; REPLY FAILED at attempt 3; Manager Job remains STARTED",
+  "cleanup": "PASS: database leaks 0, role leaks 0, topic leaks 0, listener leaks 0",
+  "next": "Fix CX-F-271 at the bounded Runtime codec owner, then targeted test, bootJar rebuild and full Fresh replay.",
+  "cleanupRequired": false
+}

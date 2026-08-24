@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-300",
+  "status": "VERIFICATION_PENDING",
+  "javaVersion": "25.0.3",
+  "generator": {"execution": "direct focused functions because host pytest is unavailable", "tests": 3, "failures": 0},
+  "observability": {"tests": 4, "failures": 0, "errors": 0, "skipped": 0},
+  "member": {
+    "tests": 4, "failures": 0, "errors": 0, "skipped": 0,
+    "bootJarBytes": 78566954,
+    "bootJarSha256": "659b0ab4fa210fb82fd065dfea4dcdeb3452ed25c91c39c58f3214bf304becb6"
+  },
+  "external": {
+    "tests": 4, "failures": 0, "errors": 0, "skipped": 0,
+    "bootJarBytes": 78613605,
+    "bootJarSha256": "5d83f98e66d1ee96844134bc128857d9a2eb4fb9c91c098c9c3ee8ba6915986f"
+  },
+  "sourceIdentitySha256": "4a6e733b59d51aecf565441e66a23e0b576a9cf6c5521ec72d2724bc05b224c4",
+  "remaining": "Fresh no-Kafka two-Worker transaction lineage and timeline"
+}

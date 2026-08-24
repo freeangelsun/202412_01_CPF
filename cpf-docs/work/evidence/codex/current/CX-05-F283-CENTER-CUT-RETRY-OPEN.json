@@ -1,0 +1,16 @@
+{
+  "finding": "CX-F-283",
+  "status": "IN_PROGRESS",
+  "recordedAt": "2026-08-24T15:58:28+09:00",
+  "sourceIdentity": "18e046f8ea80f4ca8461872b8d671fb6825391d2fb7c2c2ff958c098d8ba87ed",
+  "rootCause": "Center-Cut Handler technical failures persist item_status=RETRY, but centercut-item-complete never increments retry_count and the claim query immediately selects RETRY again. BAT_CENTER_CUT_JOB.retry_limit is read only by operations views and is absent from Work processing.",
+  "impact": "A real downstream technical failure can loop indefinitely, violate bounded recovery, repeatedly invoke the business Domain and prevent a terminal aggregate.",
+  "requiredFix": "Bind retry_count/retry_limit into the Worker-owned Work contract, increment only an approved automatic retry, terminate at the configured limit, and preserve UNKNOWN for explicit reconciliation without blind retry.",
+  "forbidden": [
+    "unbounded automatic retry",
+    "treat UNKNOWN as RETRY",
+    "delete retry_limit",
+    "verifier-only attempt counter",
+    "report terminal success while work remains"
+  ]
+}

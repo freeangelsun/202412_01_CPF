@@ -1,0 +1,13 @@
+{
+  "findingId": "CX-F-264",
+  "status": "VERIFICATION_PENDING",
+  "recordedAt": "2026-08-24T11:04:51+09:00",
+  "sourceIdentity": {
+    "sha256": "1c61e7bc5ac3a346a6c2aa58dc511b82ddae6636ef61102d07f025b354e34a89",
+    "sha1": "ef9a836a37fbcd29ec5a521399c58081412019c7",
+    "files": 8273,
+    "bytes": 56516223
+  },
+  "change": "Maintained two-Worker smoke now launches the actual Center Cut manager, isolated installed Kafka topics, two canonical Worker consumers and Spring Batch BAT_SB durable metadata; its default disposable output is outside the Workspace.",
+  "remaining": "Repeat maintained contract test and Fresh physical execution with diagnostic mode passed to actual Center Cut and Workers"
+}

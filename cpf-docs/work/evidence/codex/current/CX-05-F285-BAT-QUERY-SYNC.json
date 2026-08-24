@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "finding": "F285",
+  "recordedAt": "2026-08-24T16:20:00+09:00",
+  "sourceIdentitySha256": "21540acf427ac8a88b0dd956c2d15b136eec87e94e45a4c5264050cff8fc6f26",
+  "status": "PASS",
+  "mode": "SYNC",
+  "statements": 241,
+  "vendors": 3,
+  "renderedFiles": 723,
+  "prunedFiles": 0
+}

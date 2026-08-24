@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_execution
+UPDATE BAT_CENTER_CUT_EXECUTION
    SET processed_count = processed_count + 1,
        success_count = success_count
            + CASE WHEN ? IN ('SUCCESS', 'COMPLETED') THEN 1 ELSE 0 END,

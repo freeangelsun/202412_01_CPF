@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-257",
+  "recordedAt": "2026-08-24T10:15:52+09:00",
+  "sourceIdentitySha256": "50d0e51315a408376787153499310b7ba7ca1e5ddf6566fe92fda6a8f2bff7bc",
+  "status": "SOURCE_FIXED",
+  "owner": "cpf-tools/db/canonical/platform-schema.json",
+  "change": "Current schema declares BAT_RECONCILIATION_AUDIT with active Scheduler columns, constraints and indexes",
+  "immutableMigrationChanged": false,
+  "remainingGate": "DB3 regeneration, static parity and physical Fresh replay"
+}

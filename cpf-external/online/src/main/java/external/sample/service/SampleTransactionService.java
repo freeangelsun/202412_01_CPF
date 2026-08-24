@@ -17,6 +17,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 
 /** HTTP -> Service -> DAO/Mapper -> CUSTOMER_BUSINESS_DB 실제 Sample Transaction입니다. */
@@ -26,11 +27,12 @@ public class SampleTransactionService extends ExternalBaseService {
     private final SampleTransactionPolicy policy;
     private final DomainAuditLogger audit;
     private final Clock clock;
-    public SampleTransactionService(SampleTransactionRepository repository, SampleTransactionPolicy policy, DomainAuditLogger audit, Clock clock) {
+    public SampleTransactionService(SampleTransactionRepository repository, SampleTransactionPolicy policy, DomainAuditLogger audit,
+            @Qualifier("cpfStarterClock") Clock clock) {
         this.repository=repository; this.policy=policy; this.audit=audit; this.clock=clock;
     }
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     /** create 작업을 CPF 표준 계약에 따라 수행한다. */
     public SampleItem create(CreateSampleRequest request) {
         String tx=requireTransactionId(); String actor=actorId();
@@ -57,20 +59,20 @@ public class SampleTransactionService extends ExternalBaseService {
         return item;
     }
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     /** detail 작업을 CPF 표준 계약에 따라 수행한다. */
     public SampleItem detail(long id) {
         return repository.findById(id).orElseThrow(() -> new CpfBusinessException(CpfErrorCode.NOT_FOUND, "Sample을 찾을 수 없습니다."));
     }
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     public SamplePage search(SampleSearchRequest request) {
         int page=request.safePage(), size=request.safeSize();
         return new SamplePage(repository.search(request.keyword(),request.statusCode(),page,size,
                 "sample_item_id","ASC"),repository.count(request.keyword(),request.statusCode()),page,size);
     }
 
-    @CpfTransactional(readOnly=true)
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager", readOnly=true)
     /** slice 작업을 CPF 표준 계약에 따라 수행한다. */
     public SampleSlice slice(SampleSearchRequest request) {
         int size=request.safeSize();
@@ -81,7 +83,7 @@ public class SampleTransactionService extends ExternalBaseService {
         return new SampleSlice(items,hasNext,nextCursor);
     }
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     /** update 작업을 CPF 표준 계약에 따라 수행한다. */
     public SampleItem update(long id, UpdateSampleRequest request) {
         String tx=requireTransactionId(); String actor=actorId();
@@ -105,7 +107,7 @@ public class SampleTransactionService extends ExternalBaseService {
         audit.success("UPDATE",tx,Long.toString(id)); return updated;
     }
 
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     /** delete 작업을 CPF 표준 계약에 따라 수행한다. */
     public SampleItem delete(long id, DeleteSampleRequest request) {
         String tx=requireTransactionId(); String actor=actorId();
@@ -129,7 +131,7 @@ public class SampleTransactionService extends ExternalBaseService {
     }
 
     /** Failure-injection Test가 실제 Transaction rollback을 증명할 수 있는 명시적 Probe입니다. */
-    @CpfTransactional
+    @CpfTransactional(transactionManager="cpfDomainTransactionManager")
     public void rollbackProbe(CreateSampleRequest request) {
         create(request);
         throw new CpfBusinessException(CpfErrorCode.BUSINESS_RULE_VIOLATION,

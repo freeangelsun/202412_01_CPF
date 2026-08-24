@@ -17,7 +17,7 @@ public final class CpfKafkaConsumerControlAdapter implements CpfBrokerConsumerCo
 
     public CpfKafkaConsumerControlAdapter(
             KafkaListenerEndpointRegistry registry,
-            @Value("${cpf.messaging.kafka.consumer-control.group-id:${cpf.batch.worker.group-id:cpf-batch-worker}}")
+            @Value("${cpf.messaging.kafka.consumer-control.group-id:${cpf.batch.remote.kafka.consumer-group:cpf-batch-remote-workers-v2}}")
             String groupId) {
         this.registry = registry;
         this.groupId = groupId;

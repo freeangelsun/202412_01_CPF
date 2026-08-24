@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-265",
+  "state": "VERIFICATION_PENDING",
+  "sourceIdentity": "9a7a80585426f619bc2f531f1fdf21b3d50b5e5c766238727ab957c6a9567bbf",
+  "contract": "Messaging named bindings allow zero or one default; explicit reliability routing still requires exactly one default.",
+  "java": "PASS 1/1",
+  "rebuiltJars": [
+    "cpf-batch-control-plane",
+    "cpf-batch-worker",
+    "cpf-batch-scheduler"
+  ],
+  "remaining": "Fresh no-Kafka business and recovery flows"
+}

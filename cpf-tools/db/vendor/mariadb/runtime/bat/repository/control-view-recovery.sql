@@ -1,11 +1,11 @@
 SELECT 'EXECUTION' type, CAST(execution_id AS CHAR) id, execution_status state, error_message detail
-FROM bat_execution
+FROM BAT_EXECUTION
 WHERE execution_status = 'UNKNOWN_RESULT'
 UNION ALL
 SELECT 'CENTER_CUT', CAST(center_cut_item_id AS CHAR), item_status, last_error_message
-FROM bat_center_cut_item
+FROM BAT_CENTER_CUT_ITEM
 WHERE item_status = 'UNKNOWN_RESULT'
 UNION ALL
 SELECT 'COMMAND', command_id, command_state, result_text
-FROM bat_runtime_command
+FROM BAT_RUNTIME_COMMAND
 WHERE command_state = 'UNKNOWN_RESULT'

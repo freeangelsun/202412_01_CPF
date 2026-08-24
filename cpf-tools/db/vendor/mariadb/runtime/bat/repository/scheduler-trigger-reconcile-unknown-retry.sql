@@ -1,4 +1,4 @@
-UPDATE bat_schedule_trigger
+UPDATE BAT_SCHEDULE_TRIGGER
    SET trigger_status = 'FAILED',
        dispatch_owner = NULL,
        dispatch_token = NULL,

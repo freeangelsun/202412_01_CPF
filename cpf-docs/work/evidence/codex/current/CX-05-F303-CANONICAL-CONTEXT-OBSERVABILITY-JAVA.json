@@ -1,0 +1,24 @@
+{
+  "findingId": "CX-F-303",
+  "status": "VERIFICATION_PENDING",
+  "runtime": "OpenJDK 25.0.3; Gradle 9.1.0; max-workers=1",
+  "command": ".\\gradlew.bat --no-daemon :framework:operations:observability:test --max-workers=1",
+  "result": {
+    "status": "PASS",
+    "suites": 4,
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "covered": [
+    "Canonical Core Context transaction trace span System lineage and resolved operation projection",
+    "Resolved inbound operation remains distinct from absent outbound target",
+    "Concrete Segment port consumption and success termination",
+    "Concrete Segment port failure termination",
+    "Canonical business-only Aspect boundary",
+    "Transaction lineage projection"
+  ],
+  "staticGate": "cpf-docs/work/evidence/codex/current/CX-05-F303-INTEGRATED-LOGGING-GATE.json",
+  "staticGateStatus": "PASS"
+}

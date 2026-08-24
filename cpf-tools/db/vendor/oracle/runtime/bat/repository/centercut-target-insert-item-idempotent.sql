@@ -1,4 +1,4 @@
-MERGE INTO bat_center_cut_item target
+MERGE INTO BAT_CENTER_CUT_ITEM target
 USING (
     SELECT e.center_cut_job_id,
            ? AS center_cut_execution_id,
@@ -7,7 +7,7 @@ USING (
            ? AS transaction_segment_id,
            e.parent_segment_id,
            ? AS item_payload
-      FROM bat_center_cut_execution e
+      FROM BAT_CENTER_CUT_EXECUTION e
      WHERE e.center_cut_execution_id = ?
 ) source
 ON (

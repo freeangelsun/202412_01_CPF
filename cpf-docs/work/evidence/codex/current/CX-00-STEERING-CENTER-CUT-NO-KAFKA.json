@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-08-24T13:35:00+09:00",
+  "sourceIdentitySha256": "9a74229d7be6c9badba6d79af4d2d5218cac6ecd6a1324bd8ddd7ee83b7d2f45",
+  "decision": "CENTER_CUT_CANONICAL_FLOW_IS_DB_BACKED_AND_KAFKA_FREE",
+  "canonicalFlow": [
+    "Control Plane",
+    "CEC",
+    "DB Work/Claim/Lease/Fencing",
+    "two Workers",
+    "official CPF Domain Invocation",
+    "actual business Domain operation",
+    "Result/Aggregate",
+    "Drain/Recovery/Reconcile"
+  ],
+  "prohibitedCenterCutWork": [
+    "Kafka Broker Control implementation or repair",
+    "Center-Cut Topic/Listener/Consumer Group implementation or restoration",
+    "Center-Cut Reply/DLT implementation or restoration"
+  ],
+  "preservedEvidence": {
+    "run": "R44",
+    "classification": "independent Kafka Batch Remote Transport",
+    "facts": [
+      "two actual Worker JVMs",
+      "six real requests and replies",
+      "Manager COMPLETED",
+      "six durable StepExecutions and contexts",
+      "cleanup leak counts zero"
+    ]
+  },
+  "finding": {
+    "id": "CX-F-265",
+    "status": "IN_PROGRESS",
+    "scope": "official Header6/Context plus DB/Worker admission and removal of Center-Cut broker assumptions"
+  },
+  "executionOrder": [
+    "Center-Cut Kafka consumer/dependency inventory",
+    "exact-owner source correction",
+    "all Batch executable common Boot Gate",
+    "Fresh no-Kafka Center-Cut business Domain Invocation E2E"
+  ],
+  "passClaimed": false
+}

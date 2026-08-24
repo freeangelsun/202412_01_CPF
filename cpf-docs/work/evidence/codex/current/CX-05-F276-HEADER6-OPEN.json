@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-276",
+  "sourceIdentitySha256": "9066b73be7926d7432d8f898e01c249ecb85c0d80b960a78e174a856ebb82af9",
+  "startedAt": "2026-08-24T14:38:10+09:00",
+  "finishedAt": "2026-08-24T14:41:00+09:00",
+  "scope": [
+    "CenterCutExecutionService",
+    "BAT_CENTER_CUT_EXECUTION and BAT_CENTER_CUT_ITEM lineage",
+    "JdbcCenterCutClaimRepository Work projection",
+    "SpringBatchCenterCutStepHandler",
+    "CpfDomainClientRouter and HTTP Header6 projection",
+    "Education public Center-Cut consumers"
+  ],
+  "observed": {
+    "storedTransactionIdConsumedByBoundCpfContext": false,
+    "storedTransactionSegmentConsumedByBoundCpfContext": false,
+    "storedParentSegmentLoaded": false,
+    "launchTransactionIdCanonicalValidation": false,
+    "developerConsumersAssembleTransactionFields": true
+  },
+  "rootCause": "The DB Work Item owns canonical transaction/segment lineage, but the step handler binds a newly synthesized child over the unrelated current Spring Batch parent transaction and segment. Launch accepts nullable or malformed caller-supplied values without resolving them through CPF generators/current context.",
+  "status": "IN_PROGRESS",
+  "requiredClosure": "Canonical launch resolution plus exact DB Work lineage restore plus official Router Header6 test plus physical no-Kafka Domain invocation."
+}

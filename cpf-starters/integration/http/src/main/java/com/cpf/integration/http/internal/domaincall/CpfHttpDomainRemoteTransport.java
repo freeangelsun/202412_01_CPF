@@ -9,6 +9,7 @@ import com.cpf.core.api.result.CpfResult;
 import com.cpf.core.api.result.CpfResultStatus;
 import com.cpf.integration.api.domaincall.CpfDomainRemoteTransport;
 import com.cpf.integration.api.domaincall.CpfDomainCallOptions;
+import com.cpf.integration.api.domaincall.CpfDomainPayload;
 import com.cpf.integration.http.internal.CpfWebClient;
 import com.cpf.integration.http.internal.servicecall.ServiceCallRequest;
 import com.cpf.web.context.CpfHttpOutboundContextAdapter;
@@ -54,8 +55,11 @@ public final class CpfHttpDomainRemoteTransport implements CpfDomainRemoteTransp
                 .httpMethod("POST")
                 .requestPath("/_cpf/domain/" + systemCode + "/" + operationId);
         headers.forEach(call::header);
+        Object requestBody = request instanceof CpfDomainPayload payload
+                ? payload.values()
+                : request;
         ServiceCallResult<CpfDomainRemoteEnvelope> transport = webClient.postResult(
-                call.build(), request, CpfDomainRemoteEnvelope.class);
+                call.build(), requestBody, CpfDomainRemoteEnvelope.class);
         if (!transport.successValue()) {
             return mapTransportFailure(transport);
         }
@@ -64,6 +68,11 @@ public final class CpfHttpDomainRemoteTransport implements CpfDomainRemoteTransp
             return CpfResult.technicalFailure("CPF-DOMAIN-INVALID-RESPONSE", "Domain 응답 envelope가 없습니다.");
         }
         if (envelope.status() == CpfResultStatus.SUCCESS) {
+            if (CpfDomainPayload.class.equals(responseType)) {
+                @SuppressWarnings("unchecked")
+                O payload = (O) new CpfDomainPayload(objectMapper.convertValue(envelope.data(), java.util.Map.class));
+                return CpfResult.success(payload);
+            }
             return CpfResult.success(objectMapper.convertValue(envelope.data(), responseType));
         }
         if (envelope.status() == CpfResultStatus.BUSINESS_FAILURE) {

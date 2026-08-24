@@ -1,0 +1,14 @@
+{
+  "finding": "CX-F-271",
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentitySha256": "8023779ebca14afe7029bb466e3d7d49004d8db725dcc37b30b22a460fd4b04b",
+  "command": ".\\gradlew.bat --no-daemon --max-workers=1 :runtime:batch:runtime:test",
+  "java": "25.0.3",
+  "exitCode": 0,
+  "suites": 15,
+  "tests": 42,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "result": "PASS"
+}

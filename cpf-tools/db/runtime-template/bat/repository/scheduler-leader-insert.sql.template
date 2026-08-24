@@ -1,4 +1,4 @@
-INSERT INTO bat_scheduler_lease (
+INSERT INTO BAT_SCHEDULER_LEASE (
     scheduler_key,
     owner_instance_id,
     fencing_token,

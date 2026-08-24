@@ -5,10 +5,16 @@ import com.cpf.messaging.reliability.api.jdbc.CpfBrokerUnknownResultReconciler;
 import com.cpf.messaging.reliability.api.jdbc.CpfMessagingReliabilityProperties;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(
+        prefix = "cpf.messaging.reliability",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = true)
 public final class CpfBrokerReliabilityScheduler {
     private final ObjectProvider<CpfBrokerPublisherWorker> publisher;
     private final CpfBrokerUnknownResultReconciler reconciler;

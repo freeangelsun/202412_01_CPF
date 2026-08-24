@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-276",
+  "startedAt": "2026-08-24T14:41:00+09:00",
+  "finishedAt": "2026-08-24T14:44:00+09:00",
+  "sourceIdentity": {
+    "sha256": "f6b2d9f181f6d2a92de27416580cefd96be8bc8aab38b3e180c6b01dbb711e3c",
+    "sha1": "20ef945310fa2cf71ce0301dfe40638ba9354fc0",
+    "fileCount": 8287,
+    "totalBytes": 56597884
+  },
+  "changes": [
+    "Control Plane resolves missing transaction and parent segment from the current CPF Context or canonical generators.",
+    "Explicit malformed or current-context-conflicting transaction lineage fails closed.",
+    "DB Work projection now loads parent_segment_id for all three vendor Runtime Packs.",
+    "Center-Cut binds the exact DB Work transaction, item segment and parent segment with runtime System Code before official Domain invocation.",
+    "The original System Code is derived from the immutable canonical transaction ID issuer.",
+    "Education consumers use the developer-facing request constructor and no longer assemble transaction lineage.",
+    "The actual HTTP Domain transport regression asserts all six canonical headers with the real outbound adapter."
+  ],
+  "status": "SOURCE_FIXED",
+  "verification": "Targeted Java, DB pack parity, actual Header6 and no-Kafka physical invocation pending."
+}

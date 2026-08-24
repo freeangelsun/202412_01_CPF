@@ -3,6 +3,7 @@ spring:
     import:
       - optional:classpath:application-cpf.yml
       - optional:classpath:application-cpf-${spring.profiles.active:local}.yml
+      - optional:classpath:application-bat-runtime.yml
   application:
     name: cpf-batch-agent
   profiles:
@@ -32,6 +33,8 @@ cpf:
   agent:
     artifact-repository-base-url: ${CPF_ARTIFACT_REPOSITORY_URL:}
     artifact-public-key-path: ${CPF_ARTIFACT_PUBLIC_KEY_PATH:}
+    artifact-state-mac-key-base64: ${CPF_AGENT_ARTIFACT_STATE_MAC_KEY_BASE64}
+    command-ledger-root: ${CPF_AGENT_COMMAND_LEDGER_ROOT}
     require-signature: ${CPF_AGENT_REQUIRE_SIGNATURE:true}
     max-artifact-bytes: ${CPF_AGENT_MAX_ARTIFACT_BYTES:536870912}
     max-log-archive-bytes: ${CPF_AGENT_MAX_LOG_ARCHIVE_BYTES:1073741824}

@@ -13,13 +13,20 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /** Spring Batch 표준 Remote Partition/Chunk/Step Worker 실행 경로입니다. */
-@AutoConfiguration(after = CpfBatchKafkaRemoteConfiguration.class)
+@AutoConfiguration(afterName = "com.cpf.batch.execution.CpfBatchKafkaRemoteConfiguration")
 @ConditionalOnProperty(name = "cpf.batch.remote.worker-enabled", havingValue = "true")
+@ConditionalOnBean(name = {
+        "cpfBatchWorkerRequests",
+        "cpfBatchChunkWorkerRequests",
+        "cpfBatchWorkerReplies"
+})
+@EnableIntegration
 public class CpfBatchRemoteWorkerConfiguration {
     @Bean("cpfRemotePartitionWorkerStep")
     Step cpfRemotePartitionWorkerStep(

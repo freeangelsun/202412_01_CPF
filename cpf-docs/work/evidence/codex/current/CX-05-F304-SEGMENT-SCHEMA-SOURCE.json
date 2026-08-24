@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "findingId": "CX-F-304",
+  "status": "SOURCE_FIXED",
+  "sourceIdentitySha256": "6efea48749f7427a47a4f6ba0913089b64fce510946e24e44b32677ded2293ac",
+  "sourceIdentitySha1": "f509860c3324d76163c438263b6e2dd7564c114e",
+  "fileCount": 8420,
+  "totalBytes": 56717774,
+  "databaseProjection": {
+    "status": "PASS",
+    "vendors": ["mariadb", "postgresql", "oracle"],
+    "platformStatements": 250,
+    "runtimeQueryFiles": 708,
+    "managedMyBatisFiles": 6,
+    "batchStatements": 241,
+    "batchRenderedFiles": 723,
+    "schemaTables": 235,
+    "immutableMigrationHistoryChanged": false
+  },
+  "integratedLoggingGate": {
+    "status": "PASS",
+    "failures": 0,
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F304-INTEGRATED-LOGGING-GATE.json"
+  },
+  "remaining": "Java timeline/Mapper regression, exact MBR rebuild and Fresh physical replay"
+}

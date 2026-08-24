@@ -1,4 +1,4 @@
-UPDATE bat_job_definition_version
+UPDATE BAT_JOB_DEFINITION_VERSION
 SET definition_state = ?,
     definition_json = ?,
     row_version = row_version + 1,

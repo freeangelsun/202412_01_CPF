@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-279",
+  "startedAt": "2026-08-24T15:20:00+09:00",
+  "finishedAt": "2026-08-24T15:22:00+09:00",
+  "sourceIdentity": {
+    "sha256": "7d8193516e0d00c095c00426ba9f71e38445bc0497dcc50b51f771f5a0a93424",
+    "sha1": "2c0ecb4bdc121b6b47f70cc64d598d3f89a39615",
+    "fileCount": 8288,
+    "totalBytes": 56600912
+  },
+  "change": "Agent Main imports BatDataSourceConfiguration beside RuntimeCommonConfiguration, matching all four other Batch executables and establishing a concrete CPF Platform DB role before mandatory Common resolution.",
+  "contract": "The maintained five-Main test now requires both runtime configuration owners for every executable.",
+  "status": "SOURCE_FIXED"
+}

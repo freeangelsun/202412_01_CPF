@@ -1,0 +1,35 @@
+plugins { id 'java-library'; id 'maven-publish' }
+group = 'com.cpf.batch'
+
+dependencies {
+    api project(':runtime:batch:api')
+    implementation project(':framework:base-runtime')
+    implementation project(':framework:core')
+    implementation project(':framework:data')
+    implementation project(':framework:integration')
+    implementation project(':internal:integration:http')
+    implementation project(':starters:common')
+    implementation project(':starters:data:jdbc')
+    implementation project(':runtime:batch:runtime-support')
+    implementation project(':runtime:batch:runtime')
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-jdbc'
+    implementation 'org.springframework:spring-tx'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    testImplementation project(':internal:testing:testkit')
+    testImplementation 'org.mockito:mockito-core'
+}
+
+tasks.named('test') { useJUnitPlatform() }
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+            groupId = 'com.cpf.batch'
+            artifactId = 'cpf-batch-center-cut-runtime'
+            version = project.version.toString()
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "VERIFICATION_PENDING",
+  "sourceIdentitySha256": "7fa8b4619063c229707f7263167f0070a66f3f2d0185f30e9fccafd52ad626d7",
+  "generatorTests": {"executed": 3, "passed": 3, "runner": "direct Python function invocation because host pytest is not installed"},
+  "java": "25.0.3",
+  "gradleBuild": "BUILD SUCCESSFUL",
+  "artifact": "cpf-member/online/build/libs/cpf-member-online-1.0.0-SNAPSHOT.jar",
+  "artifactBytes": 78558967,
+  "archiveProof": [
+    "BOOT-INF/classes/member/sample/operation/MemberDomainPingOperation.class",
+    "BOOT-INF/classes/member/sample/service/SampleTransactionService.class",
+    "BOOT-INF/lib/mariadb-java-client-3.5.8.jar"
+  ],
+  "otherJdbcDrivers": 0,
+  "physicalRuntimePending": true
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-277",
+  "startedAt": "2026-08-24T14:58:00+09:00",
+  "finishedAt": "2026-08-24T15:00:00+09:00",
+  "sourceIdentitySha256": "6717fb967c95c73bde94881fdf0a70833cbc1db9cd8c41dd5d85731e8d43ebb7",
+  "commandScope": "remote-kafka exact test plus five actual Batch bootJars",
+  "exitCode": 1,
+  "executedTests": 0,
+  "failure": "remote-kafka compile cannot resolve BatchRuntimePolicy because the Adapter does not yet declare its runtime-support implementation dependency",
+  "status": "IN_PROGRESS"
+}

@@ -9,6 +9,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CenterCutTargetGeneratorTest {
     @Test
+    void targetPreparationNeverAuthorizesBusinessProcessing() {
+        assertEquals("TARGETING", CenterCutTargetGenerator.preparedState(false));
+        assertEquals("TARGET_READY", CenterCutTargetGenerator.preparedState(true));
+    }
+
+    @Test
     void acceptsBoundedPageWithAdvancingContinuationCursor() {
         List<Target> validated = CenterCutTargetGenerator.validatePage(
                 "cursor-0", 2, List.of(

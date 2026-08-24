@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -64,6 +65,20 @@ public final class CpfGlobalExceptionHandler {
                         fields));
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<CpfHttpErrorResponse> handleResponseStatus(ResponseStatusException error) {
+        CpfErrorCode fallback = statusFallback(error.getStatusCode().value());
+        CpfResolvedErrorView resolved = catalogResolver.resolve(
+                error.getReason(), fallback, LocaleContextHolder.getLocale(), Map.of());
+        boundarySignal(error.getClass().getSimpleName(), resolved.responseCode());
+        return ResponseEntity.status(error.getStatusCode())
+                .body(new CpfHttpErrorResponse(
+                        resolved.responseCode(),
+                        resolved.externalMessage(),
+                        CpfContexts.currentTransactionId(),
+                        CpfContexts.currentExecutionId()));
+    }
+
     @ExceptionHandler(Throwable.class)
     ResponseEntity<CpfHttpErrorResponse> handleUnknown(Throwable error) {
         var fallback = CpfErrorCode.INTERNAL_SERVER_ERROR;
@@ -89,6 +104,21 @@ public final class CpfGlobalExceptionHandler {
             @Override public String internalMessage() { return safe.defaultInternalMessage(); }
             @Override public java.util.Locale locale() { return locale == null ? java.util.Locale.KOREAN : locale; }
             @Override public boolean catalogHit() { return false; }
+        };
+    }
+
+    private static CpfErrorCode statusFallback(int status) {
+        return switch (status) {
+            case 400 -> CpfErrorCode.INVALID_PARAMETER;
+            case 401 -> CpfErrorCode.UNAUTHORIZED;
+            case 403 -> CpfErrorCode.FORBIDDEN;
+            case 404 -> CpfErrorCode.NOT_FOUND;
+            case 409 -> CpfErrorCode.CONFLICT;
+            case 429 -> CpfErrorCode.RATE_LIMITED;
+            case 503 -> CpfErrorCode.INFRASTRUCTURE_UNAVAILABLE;
+            default -> status >= 400 && status < 500
+                    ? CpfErrorCode.INVALID_PARAMETER
+                    : CpfErrorCode.INTERNAL_SERVER_ERROR;
         };
     }
 

@@ -15,6 +15,20 @@ public record CenterCutExecutionRequest(
         String transactionId,
         String parentSegmentId
 ) {
+    /** 개발자는 CPF transaction/segment를 직접 조립하지 않고 Runtime에 위임합니다. */
+    public CenterCutExecutionRequest(
+            String centerCutJobId,
+            String idempotencyKey,
+            Map<String,Object> parameters,
+            String parameterSchemaVersion,
+            int tpsLimit,
+            int concurrencyLimit,
+            String requestedBy,
+            String reason) {
+        this(centerCutJobId, idempotencyKey, parameters, parameterSchemaVersion,
+                tpsLimit, concurrencyLimit, requestedBy, reason, null, null);
+    }
+
     public CenterCutExecutionRequest {
         if (centerCutJobId == null || centerCutJobId.isBlank()) throw new IllegalArgumentException("centerCutJobId is required");
         if (idempotencyKey == null || idempotencyKey.isBlank()) throw new IllegalArgumentException("idempotencyKey is required");

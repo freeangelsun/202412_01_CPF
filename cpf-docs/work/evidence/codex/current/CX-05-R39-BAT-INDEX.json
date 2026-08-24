@@ -1,0 +1,10 @@
+{
+  "runId": "b4200824c039",
+  "status": "FAILED",
+  "sourceIdentitySha256": "bdb54717cb755fae2adea48453d4bb02eb20c53652d22f1b33b935d82f800e8e",
+  "completed": ["202 platform tables", "29 Backoffice tables", "20 canonical DB3 checks", "concurrent Control Plane plus Center Cut plus two Worker startup", "two Worker Job Pack registration"],
+  "failure": "Actual distributed launch exceeds the 90-second HTTP timeout after successful concurrent registration",
+  "cleanup": "Fresh DB/roles, four topics and Runtime JVMs cleaned",
+  "decision": "F270 physical concurrency scope advances; no distributed execution PASS claimed until Worker/Manager logs isolate the next boundary.",
+  "detail": "cpf-docs/work/evidence/codex/current/CX-05-R39-BAT/runtime/**"
+}

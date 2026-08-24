@@ -9,6 +9,7 @@ import com.cpf.batch.api.ActualState;
 import com.cpf.batch.runtime.BatchRuntimePolicy;
 import com.cpf.messaging.api.CpfBrokerConsumerControl;
 import com.cpf.messaging.api.CpfBrokerConsumerControlPort;
+import com.cpf.batch.worker.centercut.WorkerCenterCutState;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +30,22 @@ class SpringBatchWorkerRuntimeStateTest {
                 .isEqualTo(SpringBatchWorkerRuntimeState.CONTROL_PORT_UNAVAILABLE);
         assertThat(runtime.dependencyHealth())
                 .containsEntry("brokerConsumerControl", "NOT_AVAILABLE");
+    }
+
+    @Test
+    void dbCenterCutWorkerIsARealTransportNeutralDispatchCapability() {
+        SpringBatchWorkerRuntimeState runtime = runtime(
+                List.of(), new BatchRuntimePolicy(), new WorkerExecutionTracker(), 2);
+        runtime.setCenterCutState(new WorkerCenterCutState(true));
+
+        runtime.reconcile();
+
+        assertThat(runtime.ready()).isTrue();
+        assertThat(runtime.actualState()).isEqualTo(ActualState.READY);
+        assertThat(runtime.availableCapacity()).isEqualTo(2);
+        assertThat(runtime.dependencyHealth())
+                .containsEntry("brokerConsumerControl", "NOT_SELECTED")
+                .containsEntry("centerCutDbClaim", "UP");
     }
 
     @Test

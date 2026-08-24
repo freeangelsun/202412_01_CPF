@@ -1,0 +1,17 @@
+{
+  "runId": "b4200824c041",
+  "transportRunId": "eb5cef49bbef",
+  "cleanedAt": "2026-08-24T12:50:00+09:00",
+  "status": "PASS",
+  "cleanupScriptExitCode": 0,
+  "databaseLeaks": 0,
+  "roleLeaks": 0,
+  "topicLeaks": 0,
+  "listenerLeaks": {
+    "8279": 0,
+    "8280": 0,
+    "8282": 0,
+    "8283": 0
+  },
+  "dockerImagesPulledOrBuilt": 0
+}

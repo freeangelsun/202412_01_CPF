@@ -1,0 +1,18 @@
+{
+  "findingId": "CX-F-265",
+  "status": "OPEN",
+  "observedAt": "2026-08-24T11:22:00+09:00",
+  "sourceIdentitySha256": "949aac5dde40386db3eafeb2e0cab9f54fc2f30b2c6b3144dd7d9a57bebbdf5d",
+  "rootCause": "The Kafka listener consumes with cpf.batch.remote.kafka.consumer-group, while CpfKafkaConsumerControlAdapter searches for cpf.batch.worker.group-id and defaults to cpf-batch-worker. The real remote Worker container is therefore never found, so admission control records BAT_WORKER_BROKER_CONTROL_APPLY_FAILED and drain/resume cannot affect the actual distributed listener.",
+  "impact": [
+    "Worker readiness remains degraded even while registration SQL succeeds",
+    "Operational drain and resume do not control the actual remote Worker consumer",
+    "A drain test can stall or accept new work contrary to policy"
+  ],
+  "requiredClosure": [
+    "Bind the provider control adapter to the canonical remote consumer-group owner",
+    "Keep an explicit override for non-Batch messaging consumers",
+    "Add exact real-property and missing-group fail-closed regressions",
+    "Replay drain/resume against two actual Kafka Workers"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "finding": "CX-F-281",
+  "startedAt": "2026-08-24T15:39:00+09:00",
+  "finishedAt": "2026-08-24T15:40:00+09:00",
+  "sourceIdentitySha256": "18e046f8ea80f4ca8461872b8d671fb6825391d2fb7c2c2ff958c098d8ba87ed",
+  "verification": {
+    "sourceContracts": {"passed": 4, "failed": 0},
+    "agentRuntimeStateProviderTests": {"passed": 2, "failed": 0, "errors": 0},
+    "agentBootJar": {
+      "build": "BUILD SUCCESSFUL",
+      "bytes": 44289055,
+      "sha256": "17D7BC6BF47F5E6D26343B3DF00C07ADF6A34D8F244F047564F150F9FC65AB54"
+    }
+  },
+  "status": "VERIFICATION_PENDING",
+  "next": "Run the exact rebuilt JAR in Fresh Boot5."
+}

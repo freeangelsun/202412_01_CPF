@@ -1,0 +1,5 @@
+INSERT INTO OPS_RETENTION_RUN(
+  run_id, policy_id, trigger_type, status, runtime_instance_id, actor_id, reason,
+  policy_version, cutoff_at, started_at, matched_count, archived_count, deleted_count,
+  processed_count, compressed_count, freed_bytes, pause_requested_yn, created_at, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @NOW@, @NOW@)

@@ -1,0 +1,20 @@
+{
+  "finding": "CX-F-271",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": {
+    "sha256": "8023779ebca14afe7029bb466e3d7d49004d8db725dcc37b30b22a460fd4b04b",
+    "sha1": "ba92a7f4a842f067098d24ad27a3cfb33bf1b4e2",
+    "fileCount": 8275,
+    "totalBytes": 56543980
+  },
+  "owner": "cpf-batch/runtime CpfBatchRemoteCodec",
+  "changes": [
+    "replace generic StepExecution JSON with an explicit versioned bounded reply DTO",
+    "reconstruct only the fields consumed by Spring Batch remote partition aggregation",
+    "carry the whitelisted Spring Integration correlationId, sequenceNumber and sequenceSize headers",
+    "enforce the same explicit CPF/aggregation header allowlist on both outbound copy and inbound validation",
+    "retain payload hash, producer/environment/tenant validation and size/depth limits",
+    "add real StepExecution reply round-trip and non-allowlisted-header regressions"
+  ],
+  "verification": "PENDING"
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-24T10:35:00+09:00",
+  "sourceIdentitySha256": "f0f76ae8262bc6d080b39163ba92285a445d8f223d499dffdf5d7ccab3557e05",
+  "status": "SOURCE_FIXED",
+  "batchExecutableCount": 5,
+  "canonicalBatchServiceId": "BAT",
+  "telemetryTables": {
+    "BAT_RUNTIME_CAPABILITY": {"instanceIdType": "VARCHAR(120)", "parent": "OPS_SERVICE_INSTANCE"},
+    "BAT_RUNTIME_HEARTBEAT": {"instanceIdType": "VARCHAR(120)", "parent": "OPS_SERVICE_INSTANCE"}
+  },
+  "brokerMutableConsumersChanged": 20,
+  "remainingLowercaseBrokerConsumersOutsideImmutableHistoryAndLegacyMapping": 0,
+  "immutableHistoryChanged": false,
+  "remainingGate": "targeted tests, DB3 regeneration and Fresh physical replay"
+}

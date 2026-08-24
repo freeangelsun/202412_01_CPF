@@ -1,5 +1,5 @@
 SELECT *
-FROM bat_execution
+FROM BAT_EXECUTION
 WHERE execution_status IN ('RUNNING', 'CLAIMED', 'CLAIMING')
   AND last_heartbeat_at < @NOW3_MINUS_SECONDS_PARAM@
 ORDER BY last_heartbeat_at

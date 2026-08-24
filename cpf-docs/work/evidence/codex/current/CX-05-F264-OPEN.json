@@ -1,0 +1,31 @@
+{
+  "findingId": "CX-F-264",
+  "status": "OPEN",
+  "observedAt": "2026-08-24T10:41:00+09:00",
+  "runId": "b4200824c031",
+  "sourceIdentitySha256": "c76d361dbc73fb470180f841a93625733f8ebaa7a8f140fe5a6fa34372ba4ef2",
+  "actual": {
+    "freshDatabaseInstall": "PASS",
+    "controlPlaneLiveness": 200,
+    "workerProcesses": 2,
+    "workerRegistryUpsertsObserved": 2,
+    "runtimeHeartbeatAccepted": true,
+    "brokerOutboxCanonicalTableQueryObserved": true,
+    "smokeStatus": "FAILED",
+    "smokeFailure": "two workers not registered"
+  },
+  "rootCause": "The maintained two-worker verifier waits for operator aliases in BAT_WORKER.worker_id and then drives a retired BAT_EXECUTION polling model. Product runtime registers collision-resistant canonical worker IDs, and the current distributed execution owner is Kafka remote dispatch plus Spring Batch BAT_SB_* durable metadata.",
+  "requiredClosure": [
+    "Make registration discovery use the canonical runtime/worker identity contract",
+    "Drive work through the current manager-to-Kafka-to-worker invocation path",
+    "Assert actual BAT_SB_JOB_INSTANCE, BAT_SB_JOB_EXECUTION and BAT_SB_STEP_EXECUTION persistence",
+    "Retain two-worker distribution, drain, crash UNKNOWN_RESULT and mismatch failure coverage",
+    "Replay against a fresh installed database using only installed Docker assets"
+  ],
+  "falseGreenProhibited": [
+    "Changing the product registry key back to a friendly verifier alias",
+    "Seeding custom BAT_EXECUTION rows without a current product consumer",
+    "Treating process liveness or SQL logging as runtime completion",
+    "Skipping Spring Batch durable metadata assertions"
+  ]
+}

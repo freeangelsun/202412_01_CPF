@@ -1,0 +1,10 @@
+{
+  "finding": "CX-F-294",
+  "status": "SOURCE_FIXED",
+  "sourceIdentity": "e5a0202ce90b035fab7569a35cc7b5e0b90d5f3350f102e9cf6222e1cdd0fc34",
+  "sourceSha1": "002fda36177bac738892ac35943ef3a786f542e0",
+  "fileCount": 8405,
+  "totalBytes": 56656978,
+  "statusContract": {"400":"ECPF010001","401":"ECPF010005","403":"ECPF010006","404":"ECPF010002","409":"ECPF010007","429":"ECPF010008","503":"ECPF990002"},
+  "safeBoundary": "raw ResponseStatusException reason is used only as a catalog lookup reference; response content is catalog-resolved"
+}

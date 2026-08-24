@@ -7,6 +7,7 @@ import com.cpf.data.persistence.api.database.CpfVendorSqlCatalogProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,7 @@ public class JobPackRegistryController {
     }
 
     @PostMapping("/registrations")
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<Void> register(@RequestBody JobPackManifest manifest) throws Exception {
         String json = SensitiveTextSanitizer.sanitize(mapper.writeValueAsString(manifest));
         jdbc.update(sql.required("jobpack-upsert"),

@@ -106,7 +106,7 @@ public class JdbcCpfBrokerReliabilityRepository
                        header_json AS headerJson,
                        attribute_json AS attributeJson,
                        occurred_at AS occurredAt
-                FROM cpf_broker_outbox
+                FROM CPF_BROKER_OUTBOX
                 WHERE message_id = ?
                 """, messageId);
     }
@@ -122,7 +122,7 @@ public class JdbcCpfBrokerReliabilityRepository
 
     private void insertOutbox(CpfBrokerEnvelope envelope) {
         jdbcTemplate.update("""
-                INSERT INTO cpf_broker_outbox (
+                INSERT INTO CPF_BROKER_OUTBOX (
                     message_id, topic, message_key, transaction_id, segment_id,
                     producer_module, consumer_module, idempotency_key, payload, content_type,
                     header_json, attribute_json, outbox_status, occurred_at, created_by, updated_by
@@ -150,7 +150,7 @@ public class JdbcCpfBrokerReliabilityRepository
         requireWorker(workerId);
         Instant now = Instant.now(clock);
         jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
+                UPDATE CPF_BROKER_OUTBOX
                 SET outbox_status = 'UNKNOWN',
                     next_attempt_at = ?,
                     failure_message = 'Claim lease expired before durable provider outcome was recorded',
@@ -176,7 +176,7 @@ public class JdbcCpfBrokerReliabilityRepository
                        header_json AS headerJson,
                        attribute_json AS attributeJson,
                        occurred_at AS occurredAt
-                FROM cpf_broker_outbox
+                FROM CPF_BROKER_OUTBOX
                 WHERE outbox_status = 'PENDING'
                   AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
                 ORDER BY outbox_id
@@ -185,7 +185,7 @@ public class JdbcCpfBrokerReliabilityRepository
         for (Map<String, Object> row : rows) {
             Instant claimedAt = Instant.now(clock);
             int updated = jdbcTemplate.update("""
-                    UPDATE cpf_broker_outbox
+                    UPDATE CPF_BROKER_OUTBOX
                     SET outbox_status = 'CLAIMED',
                         worker_id = ?,
                         claimed_at = ?,
@@ -220,7 +220,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public void markUnknown(String workerId, String messageId, CpfBrokerResult result, Instant nextReconcileAt) {
         requireWorker(workerId);
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox
+                UPDATE CPF_BROKER_OUTBOX
                 SET outbox_status = 'UNKNOWN', next_attempt_at = ?, worker_id = NULL,
                     claimed_at = NULL, lease_until = NULL, broker_name = ?, failure_message = ?,
                     updated_by = 'CPF_BROKER_RECONCILE', updated_at = CURRENT_TIMESTAMP
@@ -237,7 +237,7 @@ public class JdbcCpfBrokerReliabilityRepository
         requireWorker(workerId);
         Instant now = Instant.now(clock);
         jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox SET outbox_status = 'UNKNOWN', worker_id = NULL,
+                UPDATE CPF_BROKER_OUTBOX SET outbox_status = 'UNKNOWN', worker_id = NULL,
                     claimed_at = NULL, lease_until = NULL, updated_by = 'CPF_BROKER_RECOVERY',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE outbox_status = 'CLAIMED_UNKNOWN' AND lease_until <= ?
@@ -248,7 +248,7 @@ public class JdbcCpfBrokerReliabilityRepository
                        producer_module AS producerModule, consumer_module AS consumerModule,
                        idempotency_key AS idempotencyKey, payload, content_type AS contentType,
                        header_json AS headerJson, attribute_json AS attributeJson, occurred_at AS occurredAt
-                FROM cpf_broker_outbox
+                FROM CPF_BROKER_OUTBOX
                 WHERE outbox_status = 'UNKNOWN' AND next_attempt_at IS NOT NULL AND next_attempt_at <= ?
                 ORDER BY outbox_id
                 """, List.of(timestamp(now)), limit);
@@ -256,7 +256,7 @@ public class JdbcCpfBrokerReliabilityRepository
         for (Map<String, Object> row : rows) {
             Instant claimedAt = Instant.now(clock);
             int updated = jdbcTemplate.update("""
-                    UPDATE cpf_broker_outbox SET outbox_status = 'CLAIMED_UNKNOWN', worker_id = ?,
+                    UPDATE CPF_BROKER_OUTBOX SET outbox_status = 'CLAIMED_UNKNOWN', worker_id = ?,
                         claimed_at = ?, lease_until = ?, updated_at = CURRENT_TIMESTAMP
                     WHERE message_id = ? AND outbox_status = 'UNKNOWN'
                       AND next_attempt_at IS NOT NULL AND next_attempt_at <= ?
@@ -279,7 +279,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public void releaseUnknown(String workerId, String messageId, String detail, Instant nextReconcileAt) {
         requireWorker(workerId);
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox SET outbox_status = 'UNKNOWN', next_attempt_at = ?,
+                UPDATE CPF_BROKER_OUTBOX SET outbox_status = 'UNKNOWN', next_attempt_at = ?,
                     worker_id = NULL, claimed_at = NULL, lease_until = NULL, failure_message = ?,
                     updated_by = 'CPF_BROKER_RECONCILE', updated_at = CURRENT_TIMESTAMP
                 WHERE message_id = ? AND outbox_status = 'CLAIMED_UNKNOWN' AND worker_id = ?
@@ -303,7 +303,7 @@ public class JdbcCpfBrokerReliabilityRepository
                 || "SUCCESS".equalsIgnoreCase(result.status()) || "ACCEPTED".equalsIgnoreCase(result.status());
         List<Map<String, Object>> attempts = jdbcTemplate.queryForList("""
                 SELECT attempt_count AS attemptCount, max_attempts AS maxAttempts
-                FROM cpf_broker_outbox WHERE message_id = ? AND worker_id = ?
+                FROM CPF_BROKER_OUTBOX WHERE message_id = ? AND worker_id = ?
                   AND outbox_status IN ('CLAIMED', 'CLAIMED_UNKNOWN')
                 """, messageId, workerId);
         if (attempts.size() != 1) throw new IllegalStateException("Broker publish claim fencing conflict: " + messageId);
@@ -315,7 +315,7 @@ public class JdbcCpfBrokerReliabilityRepository
         Timestamp nextAttemptAt = !published && nextAttempt < maxAttempts
                 ? timestamp(processedAt.plusSeconds(retryDelaySeconds(previousAttempt))) : null;
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_outbox SET attempt_count = ?, outbox_status = ?, next_attempt_at = ?,
+                UPDATE CPF_BROKER_OUTBOX SET attempt_count = ?, outbox_status = ?, next_attempt_at = ?,
                     worker_id = NULL, claimed_at = NULL, lease_until = NULL, broker_name = ?,
                     partition_key = ?, published_at = ?, failure_message = ?, updated_by = 'CPF_BROKER', updated_at = ?
                 WHERE message_id = ? AND attempt_count = ? AND worker_id = ?
@@ -327,7 +327,7 @@ public class JdbcCpfBrokerReliabilityRepository
         if (updated != 1) throw new IllegalStateException("Broker publish claim fencing conflict: " + messageId);
         if (published) {
             jdbcTemplate.update("""
-                    UPDATE cpf_broker_dlq SET replay_status = 'COMPLETED', replay_completed_at = ?,
+                    UPDATE CPF_BROKER_DLQ SET replay_status = 'COMPLETED', replay_completed_at = ?,
                         updated_by = 'CPF_BROKER', updated_at = CURRENT_TIMESTAMP
                     WHERE message_id = ? AND replay_status = 'REQUESTED'
                     """, timestamp(processedAt), messageId);
@@ -335,7 +335,7 @@ public class JdbcCpfBrokerReliabilityRepository
             List<Map<String, Object>> failed = jdbcTemplate.queryForList("""
                     SELECT message_id AS messageId, topic, transaction_id AS transactionId,
                            segment_id AS segmentId, failure_message AS failureReason
-                    FROM cpf_broker_outbox WHERE message_id = ? AND outbox_status = 'FAILED'
+                    FROM CPF_BROKER_OUTBOX WHERE message_id = ? AND outbox_status = 'FAILED'
                     """, messageId);
             if (!failed.isEmpty()) {
                 Map<String, Object> row = failed.getFirst();
@@ -365,7 +365,7 @@ public class JdbcCpfBrokerReliabilityRepository
         java.util.Objects.requireNonNull(messageId, "messageId");
         try {
             jdbcTemplate.update("""
-                    INSERT INTO cpf_broker_inbox (consumer_identity, message_id, idempotency_key, inbox_status, received_at, created_by, updated_by)
+                    INSERT INTO CPF_BROKER_INBOX (consumer_identity, message_id, idempotency_key, inbox_status, received_at, created_by, updated_by)
                     VALUES (?, ?, ?, 'RECEIVED', CURRENT_TIMESTAMP, 'CPF_BROKER', 'CPF_BROKER')
                     """, consumerIdentity, messageId, idempotencyKey);
             return true;
@@ -373,7 +373,7 @@ public class JdbcCpfBrokerReliabilityRepository
         } catch (DuplicateKeyException ex) {
             Instant staleBefore = Instant.now(clock).minus(claimLease);
             int reclaimed = jdbcTemplate.update("""
-                    UPDATE cpf_broker_inbox SET received_at = CURRENT_TIMESTAMP, result_detail = NULL,
+                    UPDATE CPF_BROKER_INBOX SET received_at = CURRENT_TIMESTAMP, result_detail = NULL,
                         lease_version = lease_version + 1, updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
                     WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED' AND updated_at <= ?
                     """, consumerIdentity, messageId, timestamp(staleBefore));
@@ -387,7 +387,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public void markConsumed(String consumerIdentity, String messageId, CpfBrokerResult result) {
         Instant processedAt = result.processedAt() == null ? Instant.now(clock) : result.processedAt();
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_inbox SET inbox_status = ?, consumed_at = ?, result_detail = ?,
+                UPDATE CPF_BROKER_INBOX SET inbox_status = ?, consumed_at = ?, result_detail = ?,
                     updated_by = 'CPF_BROKER', updated_at = ?
                 WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
                 """, result.status(), timestamp(processedAt), CpfBrokerFailureSanitizer.sanitizeNullable(result.detail()),
@@ -400,7 +400,7 @@ public class JdbcCpfBrokerReliabilityRepository
     @Transactional(transactionManager = "cpfTransactionManager")
     public void markConsumerUnknown(String consumerIdentity, String messageId, String detail) {
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_inbox SET inbox_status = 'UNKNOWN', result_detail = ?,
+                UPDATE CPF_BROKER_INBOX SET inbox_status = 'UNKNOWN', result_detail = ?,
                     updated_by = 'CPF_BROKER_RECOVERY', updated_at = CURRENT_TIMESTAMP
                 WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
                 """, CpfBrokerFailureSanitizer.sanitize(detail), consumerIdentity, messageId);
@@ -429,7 +429,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public CpfBrokerResult moveToDlq(String consumerIdentity, CpfBrokerEnvelope envelope, String reason) {
         CpfBrokerResult result = sendToDlq(envelope, reason);
         int updated = jdbcTemplate.update("""
-                UPDATE cpf_broker_inbox SET inbox_status = 'DLQ', consumed_at = CURRENT_TIMESTAMP,
+                UPDATE CPF_BROKER_INBOX SET inbox_status = 'DLQ', consumed_at = CURRENT_TIMESTAMP,
                     result_detail = ?, updated_by = 'CPF_BROKER', updated_at = CURRENT_TIMESTAMP
                 WHERE consumer_identity = ? AND message_id = ? AND inbox_status = 'RECEIVED'
                 """, result.detail(), consumerIdentity, envelope.message().messageId());
@@ -443,11 +443,11 @@ public class JdbcCpfBrokerReliabilityRepository
         if (cutoff == null) throw new IllegalArgumentException("cutoff is required");
         if (limit < 1 || limit > 10_000) throw new IllegalArgumentException("limit must be 1..10000");
         List<Map<String,Object>> rows = queryForListLimited("""
-                SELECT inbox_id AS inboxId FROM cpf_broker_inbox
+                SELECT inbox_id AS inboxId FROM CPF_BROKER_INBOX
                 WHERE inbox_status <> 'RECEIVED' AND updated_at < ? ORDER BY inbox_id
                 """, List.of(timestamp(cutoff)), limit);
         int deleted=0;
-        for (Map<String,Object> row : rows) deleted += jdbcTemplate.update("DELETE FROM cpf_broker_inbox WHERE inbox_id = ? AND inbox_status <> 'RECEIVED'", row.get("inboxId"));
+        for (Map<String,Object> row : rows) deleted += jdbcTemplate.update("DELETE FROM CPF_BROKER_INBOX WHERE inbox_id = ? AND inbox_status <> 'RECEIVED'", row.get("inboxId"));
         return deleted;
     }
 
@@ -467,8 +467,8 @@ public class JdbcCpfBrokerReliabilityRepository
                        o.header_json AS headerJson,
                        o.attribute_json AS attributeJson,
                        o.occurred_at AS occurredAt
-                FROM cpf_broker_outbox o
-                JOIN cpf_broker_dlq d ON d.message_id = o.message_id
+                FROM CPF_BROKER_OUTBOX o
+                JOIN CPF_BROKER_DLQ d ON d.message_id = o.message_id
                 WHERE (? IS NULL OR d.topic = ?)
                 ORDER BY d.dlq_id DESC
                 """, Arrays.asList(topic, topic), limit).stream().map(this::mapEnvelope).toList();
@@ -509,7 +509,7 @@ public class JdbcCpfBrokerReliabilityRepository
     public boolean isDuplicate(String idempotencyKey) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM cpf_broker_inbox
+                FROM CPF_BROKER_INBOX
                 WHERE idempotency_key = ?
                 """, Integer.class, idempotencyKey);
         return count != null && count > 0;
@@ -573,7 +573,7 @@ public class JdbcCpfBrokerReliabilityRepository
         }
         try {
             jdbcTemplate.update("""
-                    INSERT INTO cpf_broker_dlq (
+                    INSERT INTO CPF_BROKER_DLQ (
                         message_id, topic, transaction_id, segment_id, failure_reason,
                         replay_status, created_by, updated_by
                     ) VALUES (?, ?, ?, ?, ?, 'WAITING', 'CPF_BROKER', 'CPF_BROKER')
@@ -589,7 +589,7 @@ public class JdbcCpfBrokerReliabilityRepository
     private int updateDlq(String messageId, String reason, String status, Instant completedAt) {
         if (completedAt == null) {
             return jdbcTemplate.update("""
-                    UPDATE cpf_broker_dlq
+                    UPDATE CPF_BROKER_DLQ
                     SET failure_reason = ?,
                         replay_status = ?,
                         updated_by = 'CPF_BROKER',
@@ -598,7 +598,7 @@ public class JdbcCpfBrokerReliabilityRepository
                     """, reason, status, messageId);
         }
         return jdbcTemplate.update("""
-                UPDATE cpf_broker_dlq
+                UPDATE CPF_BROKER_DLQ
                 SET failure_reason = ?,
                     replay_status = ?,
                     replay_completed_at = ?,

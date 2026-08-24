@@ -1,4 +1,4 @@
-UPDATE bat_schedule_trigger
+UPDATE BAT_SCHEDULE_TRIGGER
    SET trigger_status = 'DISPATCHING',
        dispatch_owner = ?,
        dispatch_token = ?,
@@ -10,6 +10,6 @@ UPDATE bat_schedule_trigger
    AND trigger_status IN ('CREATED','FAILED')
    AND (dispatch_lease_until IS NULL OR dispatch_lease_until < CURRENT_TIMESTAMP(6))
    AND EXISTS (
-       SELECT 1 FROM bat_scheduler_lease
+       SELECT 1 FROM BAT_SCHEDULER_LEASE
         WHERE scheduler_key = ? AND owner_instance_id = ? AND fencing_token = ? AND lease_until >= CURRENT_TIMESTAMP(6)
    )

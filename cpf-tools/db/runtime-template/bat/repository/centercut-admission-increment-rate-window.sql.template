@@ -1,4 +1,4 @@
-UPDATE bat_center_cut_rate_window
+UPDATE BAT_CENTER_CUT_RATE_WINDOW
    SET admitted_count = admitted_count + 1,
        updated_at = @NOW6@
  WHERE center_cut_execution_id = ?

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "harnessVersion": "1.1.3",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -28,8 +28,8 @@
   },
   "sentence": {
     "one_primary_idea": true,
-    "korean_char_review_trigger": 90,
-    "korean_char_hard_review_trigger": 140,
+    "korean_char_review_trigger": 65,
+    "korean_char_hard_review_trigger": 100,
     "exceptions": [
       "API signature",
       "path",
@@ -41,18 +41,28 @@
     "ambiguous_pronoun": "forbidden"
   },
   "paragraph": {
-    "preferred_sentences_min": 2,
-    "preferred_sentences_max": 4,
-    "single_sentence_paragraph": "allowed only for transition, warning, definition, or short caption",
-    "wall_of_text": "forbidden",
-    "first_sentence_contains_main_point": true
+    "preferred_sentences_min": 1,
+    "preferred_sentences_max": 3,
+    "hard_max_sentences": 4,
+    "preferred_chars_max": 240,
+    "review_chars_over": 320,
+    "single_sentence_paragraph": "preferred for definitions, lead, transition, caption and concise guidance",
+    "wall_of_text": "hard_fail",
+    "first_sentence_contains_main_point": true,
+    "repeat_same_point_in_same_section": "forbidden",
+    "repeat_generic_checklist_across_sections": "forbidden"
   },
   "lists": {
     "parallel_structure_required": true,
     "numbered_for_sequence": true,
     "bulleted_for_nonsequence": true,
-    "preferred_max_items_before_grouping": 7,
-    "intro_sentence_required_unless_heading_is_self_explanatory": true
+    "preferred_max_items_before_grouping": 5,
+    "hard_review_items_over": 7,
+    "item_preferred_chars_max": 55,
+    "item_review_chars_over": 85,
+    "max_depth_default": 2,
+    "third_level": "forbidden unless profile explicitly allows",
+    "intro_sentence_required": "only when heading does not already make list purpose clear"
   },
   "headings": {
     "descriptive": true,
@@ -73,7 +83,10 @@
       "그림 없이 읽는 설명",
       "Public Consumer Acceptance"
     ],
-    "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다."
+    "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다.",
+    "numbered_h1_all_documents": true,
+    "readme_h1_prefix": "1. / 2. / 3. ... exact locked order",
+    "readme_toc": "forbidden"
   },
   "benefit_expression": {
     "explicit_marketing_section": "forbidden",
@@ -119,13 +132,31 @@
     "implementation_gap_goes_to_evidence_not_user_doc": true
   },
   "license": {
-    "separate_license_file_assumption": "forbidden",
-    "allowed_phrase": "Community & Evaluation License",
+    "exact_user_facing_sentence": "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.",
+    "additional_user_facing_license_sentence": "forbidden",
     "license_file_link": "forbidden"
   },
   "naming": {
     "module_name_as_primary_owner_label": true,
     "system_code_as_module_name": "forbidden",
     "system_code_usage": "runtime/transaction identity only; show as secondary metadata when necessary"
+  },
+  "conciseness": {
+    "principle": "독자가 행동·선택·판단하는 데 직접 필요하지 않은 문장은 제거한다.",
+    "forbidden": [
+      "같은 내용의 다른 표현 반복",
+      "문서 분량을 늘리기 위한 배경 설명",
+      "모든 장에 동일한 정상/실패/복구 문구 반복",
+      "Source 내부 구현 상세 Dump",
+      "기능명만 나열한 긴 목록",
+      "이미 표에 있는 내용을 아래 문단에서 그대로 반복"
+    ],
+    "preferred_order": [
+      "결론/선택",
+      "핵심 근거",
+      "필요 시 짧은 예",
+      "주의/실패",
+      "더 자세한 Source/문서 링크"
+    ]
   }
 }

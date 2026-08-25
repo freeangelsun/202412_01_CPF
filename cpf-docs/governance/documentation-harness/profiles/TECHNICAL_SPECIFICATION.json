@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "documentId": "TECHNICAL_SPECIFICATION",
   "title": "CPF 기술사양서",
   "locked": true,
@@ -10,629 +10,198 @@
   "additionalH1": false,
   "tocRequired": true,
   "primaryPersona": [
+    "Framework 개발자",
     "Architect",
-    "Framework Maintainer",
-    "인프라/배포 담당자"
+    "검수자"
   ],
-  "entryCondition": "지원 기술/버전/구성/호환성을 확인해야 하는 상태",
-  "exitCondition": "환경이 CPF 지원 사양인지, 어떤 Profile/Provider/DB/Build 조건을 만족해야 하는지 판정할 수 있다.",
+  "entryCondition": "지원 기술/구성/호환성을 확인해야 하는 상태",
+  "exitCondition": "지원 범위와 구성·제약·검증 방법을 빠르게 확인한다.",
   "orientation": "landscape",
-  "pageCountReviewRange": {
-    "min": 65,
-    "max": 100
-  },
   "globalRules": {
     "allH1MustAppearExactlyOnce": true,
     "allRequiredH2MustAppearExactlyOnce": true,
     "renamingHeadings": "forbidden",
     "reorderingHeadings": "forbidden",
-    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
-    "extraSections": "forbidden without user-authorized harness revision"
+    "extraSections": "forbidden without user-authorized harness revision",
+    "contentDensityRef": "content-density.json"
   },
   "sections": [
     {
-      "title": "기술 기준과 적용 범위",
+      "title": "Runtime·Java·Spring·Build 기준",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "제품 기준",
-        "지원 범위",
-        "정본",
-        "사양 확인 방법"
+        "Runtime Baseline",
+        "Java",
+        "Spring/Spring Boot",
+        "Build/Artifact"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "COMPATIBILITY"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Runtime Baseline",
+      "title": "Starter·Profile·Provider·Configuration",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Java 25",
-        "Process / JVM",
-        "Container",
-        "OS / Shell 전제"
+        "Starter",
+        "Profile",
+        "Provider",
+        "Configuration"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "STARTER_SELECTION",
+        "OPTION"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Java",
+      "title": "Common·Persistence·Transaction",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Version",
-        "Compiler",
-        "Encoding",
-        "Javadoc"
+        "Framework Common",
+        "Persistence",
+        "Transaction"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "API"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Spring / Spring Boot",
+      "title": "Integration·Messaging·Notification·File",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Spring Boot",
-        "Spring Framework",
-        "Spring Cloud",
-        "Spring Batch"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Build / Artifact",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Gradle",
-        "BOM",
-        "Artifact Naming",
-        "Publication"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Starter",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Base Starter",
-        "Capability Group",
-        "Public / Internal"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "STARTER_SELECTION"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Profile",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "web-api",
-        "secure-api",
-        "bff",
-        "event",
-        "batch"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "STARTER_SELECTION"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Provider",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Data",
-        "Cache",
-        "Messaging",
         "Integration",
-        "File",
+        "Messaging",
+        "Notification",
+        "File/Archive/Object Storage"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "COMPATIBILITY"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Security·Observability",
+      "model": "TECH_SPEC_CHAPTER",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
         "Security",
-        "Lock / Object Storage"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "STARTER_SELECTION"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Configuration",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Precedence",
-        "Schema",
-        "Default",
-        "Dynamic",
-        "Secret"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "CPF Framework Common",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Code / Parameter / Message",
-        "Calendar / Template",
-        "Persistence / Cache backing",
-        "Management"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Transaction",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Local",
-        "REQUIRES_NEW",
-        "TCC",
-        "XA",
-        "Recovery"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Persistence",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "JDBC",
-        "MyBatis",
-        "JPA",
-        "Cursor / Paging",
-        "Lock",
-        "Data Quality"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Integration",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "HTTP",
-        "Resilience",
-        "Fixed-Length",
-        "GraphQL",
-        "Realtime",
-        "AI",
-        "Webhook"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Messaging",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Kafka",
-        "RabbitMQ",
-        "JMS",
-        "IBM MQ",
-        "Reliability"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Notification",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "API",
-        "Provider Runtime",
-        "Status / Reconcile",
+        "Audit/Approval",
         "Observability"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "COMPATIBILITY"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "File",
+      "title": "Platform Operations·OpenAPI",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Attachment",
-        "S3",
-        "Transfer",
-        "Inspection",
-        "Archive",
-        "Tabular"
+        "ADM/Platform Operations",
+        "OpenAPI",
+        "Frontend Client"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "COMPATIBILITY"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Security",
+      "title": "Batch·Gateway",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "OIDC",
-        "Session",
-        "Permission",
-        "Crypto",
-        "Audit",
-        "Digital Signature",
-        "Masking / Sensitive Data",
-        "Secret / Certificate Reload"
+        "Batch",
+        "Gateway"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "COMPATIBILITY"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Observability",
+      "title": "Database·Generator·Generated Domain",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Actuator",
-        "Micrometer",
-        "OpenTelemetry",
-        "CPF correlation"
+        "Database",
+        "Generator",
+        "Generated Domain"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "DB_VENDOR",
+        "COMPATIBILITY"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Platform Operations / ADM",
+      "title": "Performance·Compatibility·Release",
       "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "State / Feature Flag",
-        "Runtime Control",
-        "Health",
-        "Config / Secret",
-        "Incident / Recovery",
-        "Gateway / Batch control"
+        "Performance/Capacity",
+        "Compatibility",
+        "Build/Test",
+        "Release Acceptance"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "SPEC_CONTRACT"
+        "COMPATIBILITY",
+        "TEST_SCENARIO"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Batch",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Spring Batch",
-        "db-scheduler",
-        "Runtime roles",
-        "Remote execution"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Gateway",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Spring Cloud Gateway",
-        "Route",
-        "Rate",
-        "Health"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "OpenAPI / Frontend Client",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "OpenAPI operationId",
-        "Generated Client",
-        "Route Coverage",
-        "Auth / Error / Paging / File / Async",
-        "Accessibility / Responsive"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Database",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Oracle",
-        "PostgreSQL",
-        "MariaDB",
-        "Lifecycle"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DB_VENDOR"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Generator",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Domain create/setup/sync",
-        "Catalog",
-        "DB renderer",
-        "Verification"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Generated Domain",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Directory IA",
-        "Package IA",
-        "Business Feature",
-        "Dependency"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Performance / Capacity",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Baseline 항목",
-        "Latency / Throughput",
-        "Batch capacity",
-        "DB / Cache / Messaging"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Compatibility",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Java / Spring",
-        "DB",
-        "Provider",
-        "Mixed Version"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Build / Test",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Build",
-        "Unit",
-        "Integration",
-        "Runtime",
-        "DB3",
-        "Failure"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Release Acceptance",
-      "model": "TECH_SPEC_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Artifact",
-        "SBOM / License",
-        "Secret / Vulnerability",
-        "Fresh Consumer",
-        "Evidence"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SPEC_CONTRACT"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     }
-  ],
-  "specialRules": {}
+  ]
 }

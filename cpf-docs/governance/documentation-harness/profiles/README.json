@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -8,397 +8,190 @@
   "structureLocked": true,
   "h1OrderLocked": true,
   "additionalH1": false,
-  "tocRequired": true,
+  "tocRequired": false,
   "primaryPersona": [
     "CPF를 처음 보는 개발자",
     "Architect/기술 의사결정자",
     "운영 담당자"
   ],
   "entryCondition": "Repository 첫 화면에서 CPF를 평가하거나 처음 실행하려는 상태",
-  "exitCondition": "CPF가 주는 실제 편의와 주요 기능을 이해하고 Bootstrap/Domain 생성/Build/Test의 시작점을 찾으며 상세 문서를 선택할 수 있다.",
+  "exitCondition": "CPF의 차별점과 실제 개발·운영 편의를 이해하고 시작 경로와 상세 문서를 찾을 수 있다.",
   "orientation": "screen",
-  "pageCountReviewRange": {
-    "renderedScreensPreferred": [
-      12,
-      22
-    ]
-  },
   "globalRules": {
     "allH1MustAppearExactlyOnce": true,
     "allRequiredH2MustAppearExactlyOnce": true,
     "renamingHeadings": "forbidden",
     "reorderingHeadings": "forbidden",
-    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
-    "extraSections": "forbidden without user-authorized harness revision"
+    "extraSections": "forbidden without user-authorized harness revision",
+    "contentDensityRef": "content-density.json"
   },
   "sections": [
     {
-      "title": "업무 호출은 배포 위치가 바뀌어도 같은 계약을 유지합니다",
+      "title": "1. 배포 구조가 달라져도 업무 호출 계약은 그대로 유지합니다",
       "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Same JVM에서 호출할 때",
-        "Remote로 호출할 때",
-        "업무 호출 코드가 배포 Topology에 묶이지 않는 이유"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "TOPOLOGY_COMPARE"
-      ],
-      "figures": [
-        "REQUEST_FLOW"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [
-        "cpf-core",
-        "cpf-starters/base/runtime",
-        "cpf-tools/generator/contracts/cpf-starter-catalog.json"
-      ],
-      "acceptance": []
-    },
-    {
-      "title": "거래 Context는 Framework가 시스템 경계를 넘어 이어줍니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "CPF가 자동으로 관리하는 Canonical System6",
-        "신뢰 경계에서 Header를 다시 구성하는 경우",
-        "업무 Controller에 들어가기 전에 검증하는 값"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "SYSTEM6"
-      ],
-      "figures": [
-        "REQUEST_FLOW"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "거래 하나를 Log·Trace·Timeline에서 같은 식별자로 따라갑니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "transactionId가 연결하는 범위",
-        "operationId가 가리키는 실행 계약",
-        "instanceId가 가리키는 실제 Runtime"
+        "Same JVM과 Remote를 같은 계약으로 호출",
+        "System6 거래 Context를 자동으로 전파",
+        "transactionId·operationId·instanceId로 거래를 연결"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
       "figures": [
-        "OPERATION_TRACE"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "DB Commit과 원격 Side Effect의 결과를 같은 실패로 다루지 않습니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Local Transaction",
-        "Remote Side Effect",
-        "부분 실패가 발생했을 때"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "REQUEST_FLOW"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "결과를 확정할 수 없을 때 UNKNOWN으로 남기고 다시 확인합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "UNKNOWN으로 남겨야 하는 경우",
-        "Reconcile이 확인하는 것",
-        "성공·실패를 임의 판정하지 않는 이유"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "STATE_TRANSITION"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "같은 요청이 다시 들어와도 중복 처리를 제어합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Durable Idempotency",
-        "Retry와 Idempotency의 역할 차이",
-        "중복 Side Effect를 줄이는 방식"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "STATE_TRANSITION"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "분산 거래는 Saga·TCC·XA를 상황에 맞게 선택합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Saga를 선택하는 경우",
-        "TCC를 선택하는 경우",
-        "XA를 선택하는 경우",
-        "선택 전에 확인할 Transaction 경계"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DECISION"
-      ],
-      "figures": [
-        "DECISION_FLOW"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Batch는 실행과 제어를 분리하고 재시작과 재처리를 구분합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Control Plane·Scheduler·Worker·Center-Cut·Agent",
-        "Restart·Rerun·Reprocess·Reconcile",
-        "Worker 장애와 Process Kill 이후"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RESTART_RERUN_REPROCESS_RECONCILE"
-      ],
-      "figures": [
-        "BATCH_TOPOLOGY",
-        "BATCH_RECOVERY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "필요한 기능만 Starter와 Provider로 조합합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Public Profile에서 시작",
-        "Capability와 Provider를 선택하는 경우",
-        "Internal 구현을 업무 코드에서 직접 쓰지 않는 이유"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "STARTER_SELECTION"
-      ],
-      "figures": [
-        "CAPABILITY_GALLERY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Domain을 만들 때 구조·Starter·DB 연결을 같은 규칙으로 맞춥니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Generated Domain의 Canonical 구조",
-        "Business Feature와 기술 역할을 나누는 방식",
-        "생성 후 Sync·Build·Test"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "GENERATOR_FLOW"
+        "SPLIT_COMPARE",
+        "OPERATIONS_TRACE"
       ],
       "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Oracle·PostgreSQL·MariaDB를 하나의 DB Lifecycle로 관리합니다",
+      "title": "2. 성공과 실패 사이의 불확실성까지 거래 상태로 관리합니다",
       "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "공식 DB Vendor",
-        "Migration·Seed·Upgrade",
-        "Rollback 또는 Recovery",
-        "Generator와 Runtime Query까지 함께 맞추는 이유"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DB_VENDOR"
-      ],
-      "figures": [
-        "DB3_LIFECYCLE"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "외부 연계·Messaging·File도 실패와 재처리까지 같은 운영 관점으로 연결합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "External HTTP·Fixed-Length",
-        "Kafka·RabbitMQ·JMS·IBM MQ",
-        "Attachment·Object Storage",
-        "Timeout·Retry·DLQ·Replay·UNKNOWN"
+        "Local Transaction과 원격 Side Effect를 구분",
+        "UNKNOWN을 추측하지 않고 Reconcile",
+        "Idempotency로 중복 Side Effect를 제어",
+        "Saga·TCC·XA를 자원 특성에 맞게 선택"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
       "figures": [
-        "CAPABILITY_GALLERY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Security·승인·Audit를 업무 흐름과 따로 떼어 두지 않습니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Authentication과 Authorization",
-        "Permission과 Operation Policy",
-        "Approval·Reason·Audit",
-        "Secret·Masking 경계"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "SECURITY_AUDIT_FLOW"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Gateway와 Backoffice는 역할이 다르고 필요한 경우에만 배치합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Gateway를 사용하는 경우",
-        "허용된 Direct Public HTTP",
-        "CPF Backoffice와 업무 Domain 경계",
-        "DB-less Backoffice Web/BFF"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DECISION"
-      ],
-      "figures": [
-        "GATEWAY_OPTIONALITY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "운영자는 거래와 Runtime을 같은 Control Plane에서 확인합니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Health·Log·Trace",
-        "Incident·Recovery",
-        "Batch·Gateway·Security 운영",
-        "위험 조치의 Permission·Reason·Approval·Audit"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "OPERATION_TRACE"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Bootstrap에서 Build·Test·Runtime까지 처음 시작 흐름을 줄입니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Prerequisite 확인",
-        "Local Bootstrap",
-        "Domain 생성·Sync",
-        "Build·Test·Runtime 확인",
-        "Stop과 Reset의 차이"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "LIFECYCLE"
+        "RECOVERY_STATE_MAP"
       ],
       "maxCodeLevel": "L2",
-      "sourceEvidence": [
-        "cpf-tools/runtime/cli/cpf.py",
-        "cpf-tools/build/tools/cpf-dev.ps1"
-      ],
-      "acceptance": []
-    },
-    {
-      "title": "필요한 상세 문서는 역할에 따라 바로 찾습니다",
-      "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "업무 개발",
-        "Batch 개발",
-        "운영",
-        "Architecture와 Contract",
-        "기술·DB 표준"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Community & Evaluation License",
+      "title": "3. Batch는 실행·제어·복구 역할을 나눠 운영 실수를 줄입니다",
       "model": "BROCHURE_PANEL",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "사용 범위 안내"
+        "Control Plane·Scheduler·Worker·Center-Cut·Agent 역할",
+        "Restart·Rerun·Reprocess·Reconcile 선택",
+        "Lease·Fencing·Heartbeat와 Process Kill 복구"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "BATCH_CONTROL_EXECUTION_MAP"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "4. Domain 생성부터 Starter와 DB까지 같은 규칙으로 맞춥니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "Generator가 Domain 구조와 Package를 Canonical하게 생성",
+        "필요한 Starter·Provider만 조합",
+        "Oracle·PostgreSQL·MariaDB Lifecycle을 함께 관리"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "LIFECYCLE_PIPELINE"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "5. 외부 연계와 Gateway·Backoffice도 업무 Owner 경계를 유지합니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "외부 연계·Messaging·File·Notification의 실패와 재처리",
+        "Gateway는 필요한 경계에서만 선택",
+        "Backoffice는 Owner Domain을 우회하지 않음"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "OWNERSHIP_BOUNDARY"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "6. 운영자는 거래와 Runtime을 같은 식별 체계로 추적합니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "Log·Trace·Timeline·Health를 한 흐름으로 확인",
+        "위험 조치는 Permission·Reason·Approval·Audit와 연결",
+        "운영 상태와 복구 결과를 같은 기준으로 확인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "OPERATIONS_TRACE"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "7. 반복 공통 기능을 다시 만들지 않고 필요한 Capability를 선택합니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "Cache·Validation·Messaging·File·Notification 공통 계약",
+        "Security·Masking·Audit·Approval 공통 정책",
+        "Config·Profile·Provider로 Runtime 기능 선택"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "CAPABILITY_LANDSCAPE"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "8. 시작·생성·Build·Test 흐름이 정해져 있어 바로 개발에 들어갑니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "개발 Shell로 Build·Run·검증",
+        "Generator CLI로 Domain 생성·동기화",
+        "상세 문서는 역할별 Guide에서 바로 확인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [
+        "LIFECYCLE_PIPELINE"
+      ],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "9. Community & Evaluation License",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다."
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     }
@@ -408,36 +201,41 @@
       "required": true,
       "elements": [
         "CPF / Core Platform Framework",
-        "한 줄 제품 설명",
-        "2~3줄 보조 설명",
+        "한 줄 제품 정의",
+        "1~2줄 보조 문장",
         "README_HERO visual"
-      ],
-      "marketingBuzzword": "forbidden"
+      ]
     },
-    "visibleToc": {
+    "toc": {
+      "required": false,
+      "forbidden": true
+    },
+    "architectureMap": {
       "required": true,
-      "position": "immediately_after_hero",
-      "levels": "H1 only",
-      "linkStyle": "relative anchor links",
-      "maxLines": 22
+      "position": "Hero 직후",
+      "preset": "README_ARCHITECTURE_MAP"
     },
-    "visualPanelCount": {
-      "mandatoryMinIncludingHero": 14,
-      "preferred": 17,
-      "hardMax": 20
+    "visualCount": {
+      "min": 5,
+      "preferred": [
+        6,
+        7
+      ],
+      "hardMax": 8,
+      "sameLayoutMax": 2
     },
-    "imageExplanation": "모든 핵심 이미지 바로 아래에 2~4문장 설명을 둔다. AI 리뷰와 이미지 미표시 상황에서도 의미를 이해할 수 있어야 한다.",
-    "darkBrochure": "README 전체를 unsupported CSS에 의존하지 않는다. Hero와 모든 핵심 Visual Board를 동일 Dark Design System으로 제작하고, 본문은 GitHub Light/Dark 양쪽에서 읽히도록 한다.",
-    "commands": "실제 Source에서 현재 노출되는 CLI만 사용. 명령은 언제 사용/입력 의미/정상 완료/파괴 여부를 1~2문장으로 설명.",
+    "license": {
+      "exactSentence": "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.",
+      "additionalSentence": "forbidden"
+    },
     "forbidden": [
-      "장점 전용 H1/H2",
-      "CPF가 해결하는 문제만 나열하는 문제정의 장",
-      "핵심 해석/이 구조의 장점 label",
-      "긴 API reference",
-      "긴 Source tree",
-      "QA/개발 진행상태",
-      "별도 LICENSE 파일 링크",
-      "내부 Release 용어를 주 사용자 용어로 반복"
+      "장점 전용 장",
+      "기능명만 나열하는 장",
+      "목차",
+      "긴 API Reference",
+      "긴 표",
+      "동일 박스-화살표 그림 반복",
+      "README에 QA/개발상태 노출"
     ]
   }
 }

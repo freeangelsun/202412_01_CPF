@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "harnessVersion": "1.1.3",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -40,18 +40,27 @@
     "blankPages": 0,
     "headingOnlyPages": 0,
     "manualDecorativeLineBreaksCausingRaggedTables": 0,
-    "fontSubstitutionInFinalPdf": 0
+    "fontSubstitutionInFinalPdf": 0,
+    "raggedIndentation": 0,
+    "untitledTables": 0,
+    "untitledFigures": 0,
+    "longProseTableCells": 0,
+    "repeatedGenericDiagramTemplate": 0,
+    "readmeToc": 0,
+    "readmeUnnumberedH1": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
-    "tableHasMoreThanColumnsPortrait": 6,
-    "tableHasMoreThanColumnsLandscape": 8,
-    "sentenceKoreanCharsOver": 90,
-    "paragraphSentencesOver": 4,
-    "listItemsOver": 7,
+    "tableHasMoreThanColumnsPortrait": 4,
+    "tableHasMoreThanColumnsLandscape": 5,
+    "sentenceKoreanCharsOver": 65,
+    "paragraphSentencesOver": 3,
+    "listItemsOver": 5,
     "readmeImageTextPxBelow": 28,
     "docFigureTextPtBelow": 10,
-    "tableFontPtBelow": 9.0
+    "tableFontPtBelow": 9.0,
+    "tableCellKoreanCharsOver": 70,
+    "tableCellVisualLinesOver": 4
   },
   "mandatoryInspection": {
     "allPagesQuickScan": true,
@@ -71,7 +80,10 @@
       "check Korean/English glyph",
       "check dark/light contrast",
       "check caption matches figure",
-      "check figure not duplicating prose verbatim"
+      "check figure not duplicating prose verbatim",
+      "visual type differs from adjacent visual",
+      "information hierarchy/polish",
+      "actual architecture/boundary fidelity"
     ],
     "tableInspection": [
       "actual Word tblGrid",
@@ -82,7 +94,11 @@
       "row page split",
       "repeat header",
       "font size",
-      "padding"
+      "padding",
+      "table number/title/purpose",
+      "cell prose length",
+      "column count",
+      "body left grid alignment"
     ]
   },
   "fixLoop": [
@@ -94,5 +110,5 @@
     "repeat full high-risk checks",
     "only then mark VISUAL_PASS"
   ],
-  "passDefinition": "Visual PASS는 자동검사 결과가 아니라 최종 렌더의 실제 육안 검수와 hardFail 0을 함께 만족한 상태다."
+  "passDefinition": "Visual PASS는 1) 전페이지 실제 렌더, 2) 표/그림/들여쓰기 Grid의 통일, 3) README 대표 Architecture 구성도와 시각화 다양성, 4) 장황한 표/반복 도식 0을 모두 만족한 상태다."
 }

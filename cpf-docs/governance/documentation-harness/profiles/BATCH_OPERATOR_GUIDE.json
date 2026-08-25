@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "documentId": "BATCH_OPERATOR_GUIDE",
   "title": "CPF 배치 운영 가이드",
   "locked": true,
@@ -12,240 +12,68 @@
   "primaryPersona": [
     "Batch 운영자"
   ],
-  "entryCondition": "Batch 실행 이상 또는 복구 요청을 받은 상태",
-  "exitCondition": "Restart/Rerun/Reprocess/Reconcile을 구분하고 Worker/Scheduler/Center-Cut/Agent 장애를 안전하게 복구·판정할 수 있다.",
+  "entryCondition": "Batch 실행/장애를 확인해야 하는 상태",
+  "exitCondition": "실행 상태와 복구 방법을 빠르게 선택하고 안전하게 정상화한다.",
   "orientation": "landscape",
-  "pageCountReviewRange": {
-    "min": 50,
-    "max": 85
-  },
   "globalRules": {
     "allH1MustAppearExactlyOnce": true,
     "allRequiredH2MustAppearExactlyOnce": true,
     "renamingHeadings": "forbidden",
     "reorderingHeadings": "forbidden",
-    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
-    "extraSections": "forbidden without user-authorized harness revision"
+    "extraSections": "forbidden without user-authorized harness revision",
+    "contentDensityRef": "content-density.json"
   },
   "sections": [
     {
-      "title": "Batch 운영 Topology",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Control Plane",
-        "Scheduler",
-        "Worker",
-        "Center-Cut",
-        "Agent",
-        "DB / Registry",
-        "ADM"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "ROLE"
-      ],
-      "figures": [
-        "BATCH_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Execution 상태 확인",
+      "title": "Batch 운영 Topology와 상태",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Execution ID",
-        "Job / Step",
-        "상태",
-        "시작 / 종료",
-        "처리 건수",
-        "Retry / Skip",
-        "Partition",
-        "오류"
+        "Control Plane·Scheduler·Worker·Center-Cut·Agent",
+        "Execution 상태",
+        "Lease·Fencing·Heartbeat"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "ROLE",
         "STATE"
       ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Control Plane 확인",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Job Definition",
-        "Execution Metadata",
-        "Policy",
-        "Runtime 제어",
-        "Reconcile 상태"
+      "figures": [
+        "BATCH_CONTROL_EXECUTION_MAP"
       ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Scheduler 확인",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Trigger",
-        "Schedule",
-        "Claim / Lease",
-        "Misfire",
-        "Leader",
-        "Dispatch"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Worker 확인",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Worker ID",
-        "Heartbeat",
-        "Lease",
-        "Fencing",
-        "Processing",
-        "Stale",
-        "Draining"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Center-Cut 확인",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "대상",
-        "Preview",
-        "Claim",
-        "Attempt",
-        "부분 실패",
-        "Reconcile"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Agent 확인",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Host",
-        "Artifact",
-        "Command Ledger",
-        "Start / Stop",
-        "Rollback",
-        "Drain / Resume"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Lease / Fencing / Heartbeat",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Lease 상태",
-        "만료",
-        "Fencing mismatch",
-        "Heartbeat 지연",
-        "Stale Worker",
-        "재할당"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "STATE",
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
       "title": "복구 방법 선택",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Restart / Rerun / Reprocess / Reconcile 한눈에 비교",
-        "선택 전 공통 확인",
-        "중복 Side Effect 여부",
-        "Checkpoint / 기존 Execution",
-        "UNKNOWN 여부"
+        "Restart·Rerun·Reprocess·Reconcile",
+        "언제 선택하면 안 되는가",
+        "Side Effect 확인"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "RESTART_RERUN_REPROCESS_RECONCILE",
-        "DECISION"
+        "RESTART_RERUN_REPROCESS_RECONCILE"
       ],
-      "figures": [
-        "BATCH_RECOVERY"
-      ],
-      "maxCodeLevel": "L1",
+      "figures": [],
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Restart",
+      "title": "Worker·Scheduler 장애",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Restart 가능한 상태",
-        "Checkpoint",
-        "완료 Step",
-        "기존 Parameter",
-        "중복 위험",
-        "실행",
-        "정상화"
+        "Worker 장애",
+        "Scheduler 장애",
+        "Lease 소유권",
+        "Process Kill"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -253,21 +81,19 @@
         "RUNBOOK"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Rerun",
+      "title": "부분·대량 처리 장애",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "새 실행이 필요한 경우",
-        "Parameter",
-        "기존 결과",
-        "중복 위험",
-        "실행",
-        "정상화"
+        "Center-Cut 일부 실패",
+        "Partition/Chunk 일부 실패",
+        "대량 대상 재처리",
+        "성능/DB 영향"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -275,201 +101,40 @@
         "RUNBOOK"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Reprocess",
+      "title": "외부 Side Effect·UNKNOWN",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "재처리 대상 선정",
-        "단건 / 다건",
-        "대상 격리",
-        "Side Effect",
-        "승인",
-        "실행",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Reconcile",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "대상",
-        "외부/내부 결과 조회",
-        "상태 확정",
-        "실패 대상",
-        "재시도",
-        "Audit"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Process Kill",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Kill 감지",
-        "Heartbeat",
-        "Lease 만료",
-        "Fencing",
-        "재할당",
-        "중복 방지",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Worker 장애",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "단일 Worker",
-        "다중 Worker",
-        "Stale",
-        "Drain",
-        "재할당",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Scheduler 장애",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Leader / Lease",
-        "Trigger 누락",
-        "Misfire",
-        "중복 Dispatch",
-        "복구",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "부분 실패",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "실패 범위",
-        "완료 대상",
-        "실패 대상",
-        "재처리 범위",
-        "Idempotency",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "대량 처리 장애",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "진행률",
-        "처리량",
-        "DB / Lock",
-        "Partition",
-        "Backlog",
-        "Throttling",
-        "복구"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "외부 Side Effect / UNKNOWN",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "외부 결과 불명",
-        "Retry 금지/허용",
-        "Probe",
+        "UNKNOWN 판단",
         "Reconcile",
-        "Compensation",
-        "정상화"
+        "중복 Side Effect 방지",
+        "안전한 재처리"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "RUNBOOK",
+        "ERROR",
         "STATE"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Drain / Resume",
+      "title": "Drain·Resume·Rollback",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Drain 전 조건",
-        "신규 작업 차단",
-        "진행 작업",
-        "완료 확인",
-        "Resume",
-        "Audit"
+        "Drain/Resume",
+        "Rollback",
+        "재기동",
+        "금지 조치"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -477,99 +142,30 @@
         "RUNBOOK"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Rollback",
+      "title": "정상화·Audit·Decision Matrix",
       "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Artifact / 배포 상태",
-        "Rollback 조건",
-        "DB 영향",
-        "진행 Execution",
-        "실행",
-        "확인",
-        "Audit"
+        "정상화 기준",
+        "Approval/Audit",
+        "Escalation",
+        "장애 Decision Matrix"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
+        "DECISION",
         "RUNBOOK"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "안전한 재처리",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "대상 Snapshot",
-        "중복 검증",
-        "승인",
-        "Preview",
-        "실행",
-        "결과 비교",
-        "정상화"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "정상화 판정",
-      "model": "OPERATOR_RUNBOOK_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Execution",
-        "Scheduler",
-        "Worker",
-        "Lease",
-        "Backlog",
-        "UNKNOWN",
-        "Audit"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "RUNBOOK"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Batch 장애 Decision Matrix",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "실패 유형별 첫 확인",
-        "권장 조치",
-        "금지 조치",
-        "Escalation"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DECISION"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     }
-  ],
-  "specialRules": {}
+  ]
 }

@@ -1,19 +1,17 @@
-# CPF Documentation Harness
+# CPF Documentation Harness v1.1.3
 
-이 디렉터리는 CPF 공식 산출물 생성의 단일 작성 하네스다.
+CPF 공식 README 및 11개 DOCX/PDF를 생성·현행화할 때 사용하는 고정 하네스입니다.
 
-## 매 세션 필수 읽기 순서
+- 변경 권한: **사용자의 명시적 요청만**
+- 작성 원칙: 필요한 내용만 짧고 정확하게, 표/그림은 이해 시간을 줄일 때만 사용
+- README: 목차 없음, 번호형 H1, Hero 다음 실제 CPF Architecture Map 필수
+- DOCX/PDF: 목차 필수, 자동 H1/H2 번호, 좁은 여백, 공통 Alignment Grid
+- 표: 제목+목적 필수, 일반 4열 이하, 장문 Cell 금지, 코드성 값 외 본문 중앙정렬 금지, 균등폭 금지
+- 그림: 같은 박스-화살표 반복 금지, 시각화 역할 다양성 필수
+- 완료: 내용·시각·접근성·PDF·링크·Package 검증을 모두 통과해야 함
 
-1. `HARNESS_LOCK.json`
-2. `CPF_DOCUMENTATION_HARNESS.md`
-3. `harness.json`
-4. `scope.json`
-5. `design-tokens.json` + `writing-style.json` + `terminology.json`
-6. `content-models.json` + `table-presets.json` + `figure-presets.json`
-7. `product-coverage.json`
-8. 작업 대상 `profiles/*.json`
-9. 최신 Source Identity
+실행 순서와 세부 규칙은 `CPF_DOCUMENTATION_HARNESS.md`, `design-tokens.json`, `content-density.json`, `visual-system.json`, `profiles/*.json`을 따릅니다.
 
-Harness를 수정할 수 있는 유일한 권한은 **사용자의 명시적 요청**이다. Source 변경, QA Finding, 작성자 판단은 자동 수정 권한이 아니다.
+## 설치 검증
 
-기존 분산 산출물 작성 지침 삭제 대상은 `DELETE_MANIFEST.txt`에 Root-relative exact path로 기록한다.
+Windows에서는 `validators/validate_harness.ps1`을 정본 검증기로 사용한다. Python 설치/버전에 의존하지 않는다. Linux/macOS 또는 독립 교차검증에는 `validators/validate_harness.py`를 사용할 수 있다.

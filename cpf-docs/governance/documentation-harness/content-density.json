@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
+  "locked": true,
+  "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
+  "global": {
+    "one_section_one_question": true,
+    "h1_intro_max_sentences": 2,
+    "h1_intro_max_chars": 180,
+    "h2_max_paragraphs": 2,
+    "h2_max_sentences_total": 5,
+    "h2_preferred_text_chars_excluding_tables_code": 420,
+    "h2_review_chars_over": 650,
+    "repeated_background_explanation": "forbidden",
+    "generic_closing_checklist": "forbidden",
+    "duplicate_content_across_adjacent_sections": "forbidden",
+    "when_detail_exceeds_limit": "move exact contract details to Specification/Source, keep decision/use/failure essentials in guide"
+  },
+  "microBlocks": {
+    "developer": [
+      "언제 사용: 1문장",
+      "선택/API: Compact table 또는 2~5개 불릿",
+      "예: 3~8줄 코드가 실제 이해를 빠르게 할 때만",
+      "주의/실패: 최대 3개 불릿",
+      "확인: 1~2개 불릿",
+      "Source/EDU: 1줄"
+    ],
+    "operator": [
+      "상황: 1문장",
+      "확인/판단: 2~4개 불릿 또는 4열 이하 Runbook 표",
+      "조치: 최대 4단계",
+      "금지/권한: 필요한 경우만",
+      "완료 기준: 1~2개 불릿"
+    ],
+    "architecture": [
+      "책임/경계: 2~4개 불릿",
+      "대표 그림: 필요 장에서 1개",
+      "정상/실패 영향: 최대 4개 불릿",
+      "선택/금지: Decision 또는 짧은 표"
+    ],
+    "standard": [
+      "규칙 Summary: 필수/금지 중심",
+      "예: 올바른/잘못된 예 각각 1개",
+      "검사: 최대 3개 불릿"
+    ],
+    "specification": [
+      "정의: 1~2문장",
+      "Contract compact table",
+      "실패/호환성: 필요한 항목만",
+      "Source exact path"
+    ]
+  },
+  "pageBudgets": {
+    "FRAMEWORK_DEVELOPER_GUIDE": {
+      "preferred": [
+        35,
+        50
+      ],
+      "hardMax": 60
+    },
+    "BATCH_DEVELOPER_GUIDE": {
+      "preferred": [
+        28,
+        42
+      ],
+      "hardMax": 50
+    },
+    "OPERATOR_MANUAL": {
+      "preferred": [
+        25,
+        38
+      ],
+      "hardMax": 45
+    },
+    "BATCH_OPERATOR_GUIDE": {
+      "preferred": [
+        20,
+        32
+      ],
+      "hardMax": 40
+    },
+    "GATEWAY_GUIDE": {
+      "preferred": [
+        18,
+        28
+      ],
+      "hardMax": 35
+    },
+    "SPECIFICATION": {
+      "preferred": [
+        35,
+        50
+      ],
+      "hardMax": 60
+    },
+    "ARCHITECTURE_DESIGN": {
+      "preferred": [
+        24,
+        38
+      ],
+      "hardMax": 45
+    },
+    "TECHNICAL_SPECIFICATION": {
+      "preferred": [
+        22,
+        34
+      ],
+      "hardMax": 40
+    },
+    "TECHNICAL_STANDARD": {
+      "preferred": [
+        22,
+        34
+      ],
+      "hardMax": 40
+    },
+    "DATABASE_STANDARD": {
+      "preferred": [
+        28,
+        42
+      ],
+      "hardMax": 50
+    },
+    "DELIVERABLE_INDEX": {
+      "preferred": [
+        7,
+        12
+      ],
+      "hardMax": 15
+    }
+  },
+  "hardMaxPolicy": "hardMax를 넘으면 먼저 중복/긴 표/반복 설명을 압축한다. 핵심 Coverage 때문에 그래도 넘는다면 임의로 늘리지 말고 HARNESS_CHANGE_REQUIRED."
+}

@@ -51,14 +51,10 @@ README와 Developer/Batch/Operator/Gateway/Specification 등 공식 사용자 �
 
 ## Documentation Harness 정본
 
-CPF 공식 사용자 산출물의 생성·현행화·Visual QA·Packaging 기준은 다음 디렉터리를 단일 정본으로 사용한다.
+CPF 공식 사용자 산출물의 생성·현행화·시각 QA·Packaging 기준은 다음 디렉터리를 단일 정본으로 사용한다.
 
-- `documentation-harness/CPF_DOCUMENTATION_HARNESS.md`
-- `documentation-harness/harness.json`
-- `documentation-harness/scope.json`
-- `documentation-harness/profiles/*.json`
+- `cpf-docs/governance/documentation-harness/` — **CPF Documentation Harness v1.1.3**
 
-Harness는 사용자 명시 요청에 의해서만 수정한다. Source 변경, QA Finding, 작성자 판단은 Harness 자동 수정 권한이 아니다. 새 Source와 Harness가 충돌하면 `HARNESS_CHANGE_REQUIRED` 또는 `HARNESS_SOURCE_CONFLICT`로 기록하고 사용자 승인 없이 목차·규격·Coverage를 바꾸지 않는다.
+Harness는 **사용자의 명시 요청에 의해서만 수정**한다. Source 변경, QA Finding, 작성자 판단은 Harness 자동 수정 권한이 아니다. 새 Source와 Harness가 충돌하면 `HARNESS_CHANGE_REQUIRED` 또는 `HARNESS_SOURCE_CONFLICT`로 기록하고 사용자 승인 없이 목차·규격·Coverage를 바꾸지 않는다.
 
-과거 분산 Documentation 작성 지침은 Harness의 `DELETE_MANIFEST.txt`에 기록된 exact path를 기준으로 제거하며, 제거 이후 이 Index에서 Harness만 산출물 작성 기준으로 사용한다.
-
+과거 분산 Documentation 작성 지침은 Harness의 `DELETE_MANIFEST.txt`에 기록된 exact path를 기준으로 제거하며, 제거 이후 이 Index에서는 Harness만 산출물 작성 기준으로 사용한다.

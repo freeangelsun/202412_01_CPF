@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
+  "locked": true,
+  "items": [
+    {
+      "id": "V01",
+      "name": "배포 Topology Parity",
+      "statement": "Same JVM/Remote가 바뀌어도 같은 Domain Invocation 계약을 사용해 업무 호출 코드를 다시 만들 필요를 줄인다.",
+      "section": "README-1"
+    },
+    {
+      "id": "V02",
+      "name": "System6 자동 전파",
+      "statement": "거래 Header를 개발자가 직접 조립하지 않고 CPF가 생성·전파·검증한다.",
+      "section": "README-1"
+    },
+    {
+      "id": "V03",
+      "name": "Operation/Trace Identity",
+      "statement": "transactionId·operationId·instanceId로 여러 System/Instance의 거래를 같은 기준으로 추적한다.",
+      "section": "README-1"
+    },
+    {
+      "id": "V04",
+      "name": "Local vs Remote Failure",
+      "statement": "DB Commit과 원격 Side Effect를 같은 성공/실패로 오판하지 않는다.",
+      "section": "README-2"
+    },
+    {
+      "id": "V05",
+      "name": "UNKNOWN/Reconcile",
+      "statement": "결과를 모르면 UNKNOWN으로 보존하고 Probe/Reconcile로 다시 확인한다.",
+      "section": "README-2"
+    },
+    {
+      "id": "V06",
+      "name": "Durable Idempotency",
+      "statement": "응답 유실·재호출·Process 재시작에서도 중복 Side Effect를 제어할 근거를 남긴다.",
+      "section": "README-2"
+    },
+    {
+      "id": "V07",
+      "name": "Saga/TCC/XA 선택",
+      "statement": "자원과 업무 특성에 맞는 분산 거래 전략을 구분해 사용한다.",
+      "section": "README-2"
+    },
+    {
+      "id": "V08",
+      "name": "Batch 복구 구분",
+      "statement": "Restart/Rerun/Reprocess/Reconcile을 구분해 운영 실수를 줄인다.",
+      "section": "README-3"
+    },
+    {
+      "id": "V09",
+      "name": "Batch 역할 분리",
+      "statement": "Control Plane/Scheduler/Worker/Center-Cut/Agent가 제어·실행·대량처리·Host 제어 책임을 나눈다.",
+      "section": "README-3"
+    },
+    {
+      "id": "V10",
+      "name": "Lease/Fencing/Heartbeat",
+      "statement": "다중 Worker와 Process Kill 상황에서 소유권·stale writer를 구분한다.",
+      "section": "README-3"
+    },
+    {
+      "id": "V11",
+      "name": "Generator Canonical",
+      "statement": "Domain 구조·Package·Starter·DB 연결을 같은 Canonical 입력에서 맞춘다.",
+      "section": "README-4"
+    },
+    {
+      "id": "V12",
+      "name": "Starter/Provider 조합",
+      "statement": "필요한 Runtime Capability만 Starter/Provider로 조합한다.",
+      "section": "README-4"
+    },
+    {
+      "id": "V13",
+      "name": "DB3 Lifecycle",
+      "statement": "Oracle/PostgreSQL/MariaDB를 Migration·Seed·Upgrade·Rollback/Recovery까지 같은 Lifecycle로 관리한다.",
+      "section": "README-4"
+    },
+    {
+      "id": "V14",
+      "name": "Gateway Optionality",
+      "statement": "Gateway를 업무 Domain의 필수 경로로 만들지 않고 필요한 Trust/Routing 정책에서 선택한다.",
+      "section": "README-5"
+    },
+    {
+      "id": "V15",
+      "name": "Backoffice Boundary",
+      "statement": "Backoffice가 업무 원장을 직접 소유하지 않고 Owner Domain 경계를 유지한다.",
+      "section": "README-5"
+    },
+    {
+      "id": "V16",
+      "name": "Integration Recovery",
+      "statement": "외부 연계·Messaging·File·Notification을 Timeout/Retry/Idempotency/UNKNOWN 관점에서 운영 가능하게 연결한다.",
+      "section": "README-5"
+    },
+    {
+      "id": "V17",
+      "name": "Security/Approval/Audit",
+      "statement": "권한·사유·승인·Audit를 위험 운영 조치와 연결한다.",
+      "section": "README-6"
+    },
+    {
+      "id": "V18",
+      "name": "Operations Trace",
+      "statement": "Log/Trace/Timeline/Health를 거래·Operation·Instance 식별 체계로 연결한다.",
+      "section": "README-6"
+    },
+    {
+      "id": "V19",
+      "name": "Framework Common",
+      "statement": "Cache·Messaging·File·Notification·Validation 등 반복 공통 기능을 CPF 계약으로 제공한다.",
+      "section": "README-7"
+    },
+    {
+      "id": "V20",
+      "name": "Bootstrap/Build/Test",
+      "statement": "개발 Shell과 Generator CLI로 시작·생성·Build·Test·Runtime 확인 흐름을 표준화한다.",
+      "section": "README-8"
+    }
+  ],
+  "rule": "README는 이 Value를 기능 목록처럼 나열하지 않는다. 8개 섹션 안에서 관련 Value를 묶어 구조/효익으로 설명한다."
+}

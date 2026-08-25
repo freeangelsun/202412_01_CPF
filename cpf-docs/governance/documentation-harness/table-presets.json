@@ -1,26 +1,23 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "locked": true,
   "commonRulesRef": "design-tokens.json#/tables",
   "presets": {
     "FUNCTION_SELECTION": {
       "columns": [
-        "하고 싶은 작업",
-        "사용할 기능/API",
-        "주요 옵션",
-        "언제 선택",
-        "주의사항"
+        "하려는 일",
+        "기능/API",
+        "핵심 옵션",
+        "선택 기준"
       ],
       "widthPct": [
-        18,
-        24,
-        16,
-        24,
-        18
+        20,
+        29,
+        20,
+        31
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -29,25 +26,19 @@
     },
     "OPTION": {
       "columns": [
-        "옵션",
-        "타입",
-        "필수 여부",
-        "기본값",
+        "옵션 / 타입",
+        "필수 / 기본",
         "예시",
         "설명"
       ],
       "widthPct": [
-        17,
-        13,
-        10,
-        14,
-        18,
-        28
+        24,
+        20,
+        24,
+        32
       ],
       "align": [
         "left",
-        "left",
-        "center",
         "left",
         "left",
         "left"
@@ -55,21 +46,18 @@
     },
     "API": {
       "columns": [
-        "API/Annotation",
-        "역할",
-        "주요 입력",
-        "결과",
+        "기능/API",
+        "언제 사용",
+        "핵심 입력/옵션",
         "실패/주의"
       ],
       "widthPct": [
-        23,
+        27,
         25,
-        18,
-        16,
-        18
+        23,
+        25
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -80,19 +68,16 @@
       "columns": [
         "역할",
         "책임",
-        "소유 상태/데이터",
-        "하지 않는 일",
+        "소유/경계",
         "장애 영향"
       ],
       "widthPct": [
-        13,
-        27,
-        20,
-        20,
-        20
+        16,
+        31,
+        29,
+        24
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -103,19 +88,16 @@
       "columns": [
         "상황",
         "선택",
-        "선택 기준",
-        "피해야 하는 경우",
-        "확인할 결과"
+        "판단 기준",
+        "피해야 할 경우"
       ],
       "widthPct": [
-        20,
-        14,
-        28,
-        20,
-        18
+        24,
+        18,
+        32,
+        26
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -125,20 +107,17 @@
     "ERROR": {
       "columns": [
         "상태/오류",
-        "의미",
-        "원인 후보",
-        "재시도/복구",
-        "운영 확인"
+        "의미/원인",
+        "Retry·복구",
+        "확인/조치"
       ],
       "widthPct": [
-        16,
-        22,
-        24,
         18,
-        20
+        30,
+        24,
+        28
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -147,21 +126,18 @@
     },
     "RUNBOOK": {
       "columns": [
-        "증상/상황",
-        "확인 위치",
-        "판단 기준",
-        "허용 조치",
+        "상황",
+        "확인·판단",
+        "조치",
         "완료 기준"
       ],
       "widthPct": [
         20,
-        20,
-        23,
-        22,
-        15
+        31,
+        29,
+        20
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -170,21 +146,18 @@
     },
     "STATE": {
       "columns": [
-        "현재 상태",
-        "조건/이벤트",
-        "다음 상태",
-        "허용 조치",
-        "금지 조치"
+        "상태",
+        "발생/조건",
+        "다음 처리",
+        "금지"
       ],
       "widthPct": [
-        16,
-        24,
-        16,
-        22,
-        22
+        17,
+        30,
+        30,
+        23
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -219,19 +192,16 @@
         "HTTP",
         "의미",
         "우선 확인",
-        "사용자/운영 조치",
-        "재시도 여부"
+        "조치"
       ],
       "widthPct": [
-        9,
-        21,
-        25,
-        29,
-        16
+        10,
+        24,
+        31,
+        35
       ],
       "align": [
         "center",
-        "left",
         "left",
         "left",
         "left"
@@ -239,21 +209,18 @@
     },
     "OWNER_BOUNDARY": {
       "columns": [
-        "Module",
-        "Owner 역할",
-        "소유",
-        "금지",
+        "영역/Module",
+        "책임",
+        "소유/경계",
         "주요 Consumer"
       ],
       "widthPct": [
-        16,
         22,
-        24,
-        20,
-        18
+        29,
+        29,
+        20
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -282,16 +249,56 @@
     },
     "SYSTEM6": {
       "columns": [
-        "Header/Context",
-        "의미",
-        "생성/변경 주체",
-        "불변/변경 규칙"
+        "Header",
+        "설정 주체",
+        "변경 규칙",
+        "검증/주의"
       ],
       "widthPct": [
-        27,
-        27,
-        22,
+        26,
+        20,
+        26,
+        28
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    "DB_VENDOR": {
+      "columns": [
+        "항목",
+        "Oracle",
+        "PostgreSQL",
+        "MariaDB"
+      ],
+      "widthPct": [
+        28,
+        24,
+        24,
         24
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    "DB_LIFECYCLE": {
+      "columns": [
+        "단계",
+        "Canonical",
+        "Vendor 영향",
+        "검증/복구"
+      ],
+      "widthPct": [
+        18,
+        28,
+        28,
+        26
       ],
       "align": [
         "left",
@@ -303,138 +310,17 @@
     "STARTER_SELECTION": {
       "columns": [
         "필요 기능",
-        "Public Profile/Starter",
-        "Provider 선택",
-        "사용 시점",
-        "운영 영향"
+        "Starter/Provider",
+        "설정",
+        "선택 기준"
       ],
       "widthPct": [
-        18,
-        25,
-        20,
-        20,
-        17
-      ],
-      "align": [
-        "left",
-        "left",
-        "left",
-        "left",
-        "left"
-      ]
-    },
-    "DB_VENDOR": {
-      "columns": [
-        "Logical Rule",
-        "Oracle",
-        "PostgreSQL",
-        "MariaDB",
-        "주의사항"
-      ],
-      "widthPct": [
-        22,
-        17,
-        18,
-        18,
-        25
-      ],
-      "align": [
-        "left",
-        "left",
-        "left",
-        "left",
-        "left"
-      ]
-    },
-    "DB_LIFECYCLE": {
-      "columns": [
-        "단계",
-        "Canonical Source",
-        "Vendor 산출물",
-        "Runtime 영향",
-        "Rollback/Recovery",
-        "검증"
-      ],
-      "widthPct": [
-        12,
-        19,
-        17,
-        18,
-        18,
-        16
-      ],
-      "align": [
-        "left",
-        "left",
-        "left",
-        "left",
-        "left",
-        "left"
-      ]
-    },
-    "STANDARD_RULE": {
-      "columns": [
-        "구분",
-        "규칙",
-        "적용 범위",
-        "검사 방법",
-        "예외"
-      ],
-      "widthPct": [
-        12,
-        37,
-        18,
-        21,
-        12
-      ],
-      "align": [
-        "center",
-        "left",
-        "left",
-        "left",
-        "left"
-      ]
-    },
-    "SPEC_CONTRACT": {
-      "columns": [
-        "항목",
-        "Canonical 값/계약",
-        "설명",
-        "Source"
-      ],
-      "widthPct": [
-        18,
-        28,
-        36,
-        18
-      ],
-      "align": [
-        "left",
-        "left",
-        "left",
-        "left"
-      ]
-    },
-    "DOCUMENT_INDEX": {
-      "columns": [
-        "문서",
-        "주 독자",
-        "언제 보는가",
-        "얻는 답",
-        "다음 문서",
-        "갱신 Trigger"
-      ],
-      "widthPct": [
-        18,
-        12,
-        18,
         24,
-        13,
-        15
+        26,
+        22,
+        28
       ],
       "align": [
-        "left",
-        "left",
         "left",
         "left",
         "left",
@@ -444,20 +330,17 @@
     "TEST_SCENARIO": {
       "columns": [
         "시나리오",
-        "준비/입력",
+        "입력/조건",
         "기대 결과",
-        "실패 기준",
-        "Evidence"
+        "실패 기준"
       ],
       "widthPct": [
-        23,
-        19,
-        24,
-        19,
-        15
+        25,
+        25,
+        28,
+        22
       ],
       "align": [
-        "left",
         "left",
         "left",
         "left",
@@ -467,15 +350,72 @@
     "SOURCE_NAV": {
       "columns": [
         "찾는 것",
-        "먼저 볼 Root",
-        "대표 Source/EDU",
+        "먼저 볼 위치",
         "왜 보는가"
       ],
       "widthPct": [
-        18,
         24,
-        30,
-        28
+        42,
+        34
+      ],
+      "align": [
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    "DOCUMENT_INDEX": {
+      "columns": [
+        "상황",
+        "먼저 볼 문서",
+        "얻는 답",
+        "다음 문서"
+      ],
+      "widthPct": [
+        23,
+        25,
+        32,
+        20
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    "RULE_SUMMARY": {
+      "columns": [
+        "구분",
+        "규칙",
+        "적용 범위",
+        "검사"
+      ],
+      "widthPct": [
+        15,
+        38,
+        27,
+        20
+      ],
+      "align": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    "COMPATIBILITY": {
+      "columns": [
+        "항목",
+        "지원/기준",
+        "제약",
+        "확인"
+      ],
+      "widthPct": [
+        25,
+        25,
+        28,
+        22
       ],
       "align": [
         "left",

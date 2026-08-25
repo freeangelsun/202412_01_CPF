@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "harnessVersion": "1.1.3",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "docxShell": {
@@ -39,7 +39,7 @@
     "numbering": {
       "H1": "1.",
       "H2": "1.1",
-      "H3": "1.1.1",
+      "H3": "1.1.2",
       "automaticMultilevelList": true,
       "manualNumberTyping": "forbidden"
     },
@@ -71,17 +71,17 @@
   "readmeShell": {
     "order": [
       "Hero",
-      "visible manual TOC",
-      "locked H1 panels",
-      "documentation navigation",
+      "mandatory CPF architecture map",
+      "locked numbered H1 panels",
+      "short documentation navigation",
       "Community & Evaluation License"
     ],
-    "headingNumbering": "none; brochure titles remain natural sentences",
-    "toc": "H1 anchors only",
+    "headingNumbering": "required; Markdown H1 text contains locked numeric prefix 1. 2. 3. ...",
+    "toc": "forbidden",
     "heroWidth": "100%",
     "coreVisualWidth": "100%",
-    "horizontalTwoColumnHero": "forbidden on mobile-critical content",
-    "unsupportedCssDependency": "forbidden"
+    "unsupportedCssDependency": "forbidden",
+    "heroRule": "Hero는 브랜드/한 줄 정의/핵심 플랫폼 인상만. 기능 카드 10개 이상을 Hero에 몰아넣지 않는다."
   },
   "metadata": {
     "documentVersionFormat": "HARNESS_VERSION + document revision; do not invent release status",

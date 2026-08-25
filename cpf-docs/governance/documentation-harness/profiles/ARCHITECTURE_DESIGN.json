@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "documentId": "ARCHITECTURE_DESIGN",
   "title": "CPF 아키텍처설계서",
   "locked": true,
@@ -14,459 +14,198 @@
     "Tech Lead",
     "Framework Maintainer"
   ],
-  "entryCondition": "Owner/Dependency/Topology/Boundary를 설계하거나 검토하는 상태",
-  "exitCondition": "기능 배치 위치와 허용 Dependency, Topology 선택, Failure Domain을 문서만으로 판단할 수 있다.",
+  "entryCondition": "CPF 구조/Owner/Topology 결정을 해야 하는 상태",
+  "exitCondition": "Owner·Boundary·Dependency·Failure Domain과 Topology 선택을 판단한다.",
   "orientation": "landscape",
-  "pageCountReviewRange": {
-    "min": 60,
-    "max": 95
-  },
   "globalRules": {
     "allH1MustAppearExactlyOnce": true,
     "allRequiredH2MustAppearExactlyOnce": true,
     "renamingHeadings": "forbidden",
     "reorderingHeadings": "forbidden",
-    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
-    "extraSections": "forbidden without user-authorized harness revision"
+    "extraSections": "forbidden without user-authorized harness revision",
+    "contentDensityRef": "content-density.json"
   },
   "sections": [
     {
-      "title": "CPF Architecture 개요",
+      "title": "Architecture 원칙과 Module Ownership",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "제품 경계",
-        "주요 Runtime",
-        "업무 Domain",
-        "Public Surface"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Architecture 원칙",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Owner 단일성",
+        "Owner와 책임",
         "Dependency 방향",
-        "Public / Internal",
-        "Native Escape Hatch"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Module Ownership",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "cpf-core",
-        "cpf-common",
-        "cpf-admin",
-        "cpf-backoffice",
-        "cpf-backoffice-web",
-        "cpf-batch",
-        "cpf-gateway",
-        "cpf-starters",
-        "cpf-tools",
-        "Generated Domain"
+        "Public/SPI/Internal 경계"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
         "OWNER_BOUNDARY"
       ],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
+      "figures": [],
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Dependency 방향",
+      "title": "CPF 전체 Architecture Map",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "허용 방향",
-        "금지 역방향",
-        "Internal 참조 금지",
-        "Consumer 방향"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "전체 Runtime Topology",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "외부 진입",
-        "업무 Domain",
-        "공통 Runtime",
+        "Business Domain",
+        "Framework/Starter/Common",
+        "Gateway/Backoffice",
         "Batch",
-        "Admin",
-        "DB / External"
+        "DB/Operations"
       ],
       "additionalH2": false,
       "additionalH3": false,
-      "tables": [
-        "DECISION"
-      ],
+      "tables": [],
       "figures": [
-        "ARCHITECTURE_TOPOLOGY"
+        "README_ARCHITECTURE_MAP"
       ],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Same JVM Topology",
+      "title": "Same JVM·Remote·Domain Invocation",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "CpfContext",
-        "내부 호출",
-        "Self-HTTP 금지",
-        "Remote와 동일한 정책"
+        "Same JVM",
+        "Remote/MSA",
+        "Domain Invocation",
+        "Self-HTTP 금지"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "DECISION"
+        "TOPOLOGY_COMPARE"
       ],
       "figures": [
-        "ARCHITECTURE_TOPOLOGY"
+        "SPLIT_COMPARE"
       ],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Remote / MSA Topology",
+      "title": "Context·Security Boundary",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Registry / Routing",
         "System6",
-        "Timeout / Retry",
-        "UNKNOWN / Reconcile"
+        "Trust/Security Boundary",
+        "Operation/Instance Identity"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "DECISION"
+        "SYSTEM6"
       ],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
+      "figures": [],
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Domain Invocation",
+      "title": "Gateway·Backoffice",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Local / Remote Router",
-        "Operation",
-        "Binding",
-        "Failure Semantics"
+        "Gateway Optionality",
+        "Backoffice/Owner Domain 경계"
       ],
       "additionalH2": false,
       "additionalH3": false,
-      "tables": [],
+      "tables": [
+        "DECISION",
+        "OWNER_BOUNDARY"
+      ],
       "figures": [
-        "ARCHITECTURE_TOPOLOGY"
+        "OWNERSHIP_BOUNDARY"
       ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "거래 Context Boundary",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Trusted Entry",
-        "System6",
-        "Protected Header",
-        "Management API 제외"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Gateway",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Optionality",
-        "Trust Boundary",
-        "Routing",
-        "Direct 허용 경로",
-        "금지 자동 Fallback"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Backoffice",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "cpf-backoffice Owner",
-        "다른 Domain DB 직접 접근 금지",
-        "cpf-backoffice-web BFF",
-        "Optionality"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
       "title": "Batch Architecture",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "api/runtime/runtime-support/testkit",
-        "Control Plane",
-        "Scheduler",
-        "Worker",
-        "Center-Cut",
-        "Agent"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Persistence / DB Ownership",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Business DB",
-        "Platform DB",
-        "Data Ownership",
-        "DB3 Binding"
+        "Control Plane/Scheduler/Worker",
+        "Center-Cut/Agent",
+        "Lease/Fencing/Heartbeat"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
-        "OWNER_BOUNDARY"
+        "ROLE"
       ],
       "figures": [
-        "ARCHITECTURE_TOPOLOGY"
+        "BATCH_CONTROL_EXECUTION_MAP"
       ],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Security Boundary",
+      "title": "Persistence·DB Ownership",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "AuthN",
-        "AuthZ",
-        "Secret",
-        "Approval / Audit",
-        "Masking"
+        "DB Owner",
+        "Oracle/PostgreSQL/MariaDB",
+        "Migration/Upgrade/Rollback 경계"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [
+        "DB_VENDOR",
+        "DB_LIFECYCLE"
+      ],
+      "figures": [],
+      "maxCodeLevel": "L2",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "Observability·Multi-instance·HA",
+      "model": "ARCHITECTURE_CHAPTER",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "Log/Trace/Timeline",
+        "Multi-instance",
+        "HA/Failure Domain"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
       "figures": [
-        "ARCHITECTURE_TOPOLOGY"
+        "OPERATIONS_TRACE"
       ],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Observability",
+      "title": "Deployment·금지 패턴·Decision",
       "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "transactionId",
-        "operationId",
-        "instanceId",
-        "Log / Metric / Trace / Timeline"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Multi-instance",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "instance identity",
-        "registry",
-        "lease",
-        "shared state",
-        "duplicate prevention"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "HA / Failure Domain",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Gateway",
-        "Domain",
-        "DB",
-        "Messaging",
-        "Batch",
-        "Admin"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Deployment Topology",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Modular Monolith",
-        "분리 WAS",
-        "MSA",
-        "Multi-WAS",
-        "선택 기준"
+        "Deployment Topology",
+        "금지 Architecture",
+        "Topology Decision Matrix"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [
         "DECISION"
       ],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "금지 Architecture",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Self-HTTP",
-        "Cross-domain DB",
-        "Core Pollution",
-        "Internal Dependency",
-        "Automatic Gateway fallback",
-        "Hidden Owner"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Topology Decision Matrix",
-      "model": "ARCHITECTURE_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "배포 선택 기준",
-        "운영 복잡도",
-        "장애 격리",
-        "Latency",
-        "확장",
-        "필수 Runtime"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DECISION"
-      ],
-      "figures": [
-        "ARCHITECTURE_TOPOLOGY"
-      ],
-      "maxCodeLevel": "L1",
+      "figures": [],
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     }
-  ],
-  "specialRules": {
-    "mandatoryFigurePerArchitectureH1": true,
-    "diagramAsDecoration": "forbidden"
-  }
+  ]
 }

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
+  "locked": true,
+  "README": {
+    "toc": "forbidden",
+    "h1Numbering": "required 1..N sequential",
+    "headingPattern": "^# [1-9][0-9]*\\. ",
+    "licenseExactSentence": "CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.",
+    "licenseAdditionalSentence": "forbidden",
+    "architectureVisual": "mandatory",
+    "visualCountMin": 5,
+    "visualCountMax": 8,
+    "sameVisualLayoutMax": 2,
+    "sourceIdentifiers": "must be current source-backed"
+  },
+  "DOCX": {
+    "toc": "required H1/H2 with real page numbers",
+    "h1Numbering": "automatic multilevel required",
+    "tableTitle": "required",
+    "figureTitle": "required",
+    "nonCodeTableBodyCenter": "hard_fail",
+    "maxColumnsPortrait": 4,
+    "maxColumnsLandscape": 5,
+    "tableCellLongProse": "hard_fail",
+    "indentGrid": "required",
+    "blankPage": "hard_fail"
+  },
+  "finalReview": {
+    "semantic": "각 문서의 독자가 실제 질문에 답할 수 있는지",
+    "visual": "전페이지 렌더 + 고위험 페이지 100%/200%",
+    "conciseness": "불필요한 반복/장황한 설명/표 셀 장문 0",
+    "package": "hash/nfc/link/path"
+  }
+}

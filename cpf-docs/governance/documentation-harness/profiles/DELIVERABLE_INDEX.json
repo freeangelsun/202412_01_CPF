@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0",
-  "harnessVersion": "1.0.0",
+  "schemaVersion": "1.1",
+  "harnessVersion": "1.1.3",
   "documentId": "DELIVERABLE_INDEX",
   "title": "CPF 산출물목록",
   "locked": true,
@@ -10,38 +10,29 @@
   "additionalH1": false,
   "tocRequired": true,
   "primaryPersona": [
-    "신규 사용자",
-    "Project Manager",
-    "개발자",
-    "운영자"
+    "모든 CPF 사용자"
   ],
-  "entryCondition": "어떤 문서를 먼저 열어야 하는지 모르거나 문서 갱신 영향을 확인해야 하는 상태",
-  "exitCondition": "30초 안에 올바른 문서를 고르고 Source 변경 시 어떤 공식 문서를 갱신해야 하는지 판단할 수 있다.",
+  "entryCondition": "어떤 문서를 봐야 할지 결정해야 하는 상태",
+  "exitCondition": "30초 안에 필요한 문서와 갱신 관계를 찾는다.",
   "orientation": "portrait",
-  "pageCountReviewRange": {
-    "min": 12,
-    "max": 24
-  },
   "globalRules": {
     "allH1MustAppearExactlyOnce": true,
     "allRequiredH2MustAppearExactlyOnce": true,
     "renamingHeadings": "forbidden",
     "reorderingHeadings": "forbidden",
-    "omittingEmptyRequiredSection": "forbidden; if Source has no evidence, record HARNESS_SOURCE_CONFLICT instead of silently omitting",
-    "extraSections": "forbidden without user-authorized harness revision"
+    "extraSections": "forbidden without user-authorized harness revision",
+    "contentDensityRef": "content-density.json"
   },
   "sections": [
     {
       "title": "CPF 문서 길찾기",
       "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "30초 문서 선택표",
-        "처음 보는 사용자",
-        "개발자",
-        "Batch 개발자",
-        "운영자",
-        "Architect / Reviewer"
+        "처음 보는 경우",
+        "업무 개발",
+        "Batch 개발",
+        "운영"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -49,37 +40,18 @@
         "DOCUMENT_INDEX"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "처음 CPF를 보는 경우",
+      "title": "Architecture·Contract·표준",
       "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "README에서 얻는 답",
-        "다음 문서 선택"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "업무 개발을 하는 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Framework Developer Guide",
+        "Architecture",
         "Specification",
-        "Technical Standard",
-        "DB Standard"
+        "기술/DB 표준"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -87,130 +59,18 @@
         "DOCUMENT_INDEX"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "Batch 개발을 하는 경우",
+      "title": "공식 산출물 목록",
       "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Batch Developer Guide",
-        "Batch Operator Guide",
-        "Specification"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "운영하는 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Operator Manual",
-        "Batch Operator Guide",
-        "Gateway Guide"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Architecture를 확인하는 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Architecture Design",
-        "Technical Specification",
-        "Specification"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Contract가 필요한 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Specification",
-        "Source / Public API"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "개발 표준을 확인하는 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Technical Standard",
-        "Developer Guide"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "DB 표준을 확인하는 경우",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "Database Standard",
-        "Technical Specification"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "공식 산출물 전체 목록",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
         "README",
-        "Guide 6종",
-        "Deliverable 5종",
-        "DOCX/PDF 관계"
+        "Guide",
+        "Deliverable"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -218,21 +78,18 @@
         "DOCUMENT_INDEX"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     },
     {
-      "title": "문서별 갱신 조건",
+      "title": "갱신 조건과 Source 영향",
       "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "API / Annotation",
-        "Module / Topology",
-        "CLI / Tool",
-        "DB",
-        "Frontend / OpenAPI",
-        "Runtime / Operations"
+        "언제 갱신하는가",
+        "Source 변경과 문서 영향",
+        "정본 우선순위"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -240,30 +97,9 @@
         "DOCUMENT_INDEX"
       ],
       "figures": [],
-      "maxCodeLevel": "L1",
-      "sourceEvidence": [],
-      "acceptance": []
-    },
-    {
-      "title": "Source 변경과 문서 영향",
-      "model": "DOCUMENT_INDEX_CHAPTER",
-      "introRule": "해당 Content Model의 시작 규칙을 따른다.",
-      "requiredH2": [
-        "변경 유형",
-        "영향 문서",
-        "재검증 Gate",
-        "Harness Change Required 조건"
-      ],
-      "additionalH2": false,
-      "additionalH3": false,
-      "tables": [
-        "DOCUMENT_INDEX"
-      ],
-      "figures": [],
-      "maxCodeLevel": "L1",
+      "maxCodeLevel": "L2",
       "sourceEvidence": [],
       "acceptance": []
     }
-  ],
-  "specialRules": {}
+  ]
 }

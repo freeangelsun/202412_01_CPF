@@ -1,1 +1,12 @@
-{"schemaVersion":1,"waivers":[]}
+{
+  "schemaVersion": 1,
+  "waivers": [
+    {
+      "operationId": "admMaintenanceExecuteAction",
+      "owner": "cpf-admin",
+      "reason": "AdmControlPlaneController의 POST /adm/api/maintenance/actions는 승인 Engine 우회를 막는 fail-closed 안내 endpoint로, 호출 시 항상 409 APPROVAL_REQUIRED를 반환한다. 실제 Drain/Disable/Resume은 프론트엔드가 /adm/api/approvals 요청/승인 경로(requestServiceInstanceApproval)를 사용하고, 승인 후 ServiceRegistryApprovalOwnerCommandAdapter가 Owner Port로 실행한다. 이 operation은 설계상 직접 소비되지 않는다.",
+      "expiresOn": "2027-08-25",
+      "approvedBy": "cpf-admin"
+    }
+  ]
+}

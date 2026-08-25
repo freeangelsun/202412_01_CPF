@@ -73,6 +73,10 @@ public final class CpfTcpUnknownResultStore {
                 if (!existing.requestHash().equals(requestHash)
                         || !existing.value().writtenAt().equals(required.writtenAt())
                         || !existing.originalDetail().equals(mask(required.detail()))) {
+                    // 같은 correlationId로 내용이 다른 재기록은 프로세스 간 correlationId 충돌
+                    // 가능성이 있어 항상 fail-closed로 거부한다. 정상적인 update 경로는
+                    // reconcile()로 기존 항목을 명시적으로 제거한 뒤 다시 record()하는 것이다
+                    // (reconciledCorrelationCannotBeRemovedByStaleVersionAfterRerecord 참조).
                     throw new IllegalStateException("UNKNOWN_RESULT correlation conflict: " + required.correlationId());
                 }
                 return null;

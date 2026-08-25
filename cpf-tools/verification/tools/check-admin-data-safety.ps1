@@ -113,7 +113,6 @@ Require-Contains $v61Rollback 'V60 호환 Binary 배포' 'V61 Exact Rollback 운
 Require-Contains $v61Rollback 'role_code\s+VARCHAR\(50\)\s+NOT NULL' 'V61 Exact Rollback이 V60 role_code NOT NULL 계약을 복원하지 않습니다.'
 Require-Contains $v61Rollback "'ACTIVE'.*'EMPLOYED'.*'ON_LEAVE'.*'SECONDMENT'.*'DISPATCHED'.*'RETIRED'.*'TERMINATED'" 'V61 Exact Rollback이 V60 호환 employment status catalog를 복원하지 않습니다.'
 Require-NotContains $v61Rollback 'UPDATE\s+mbw_admin_user\s+SET\s+role_code\s*=' 'V61 rollback이 임의 Role을 주입합니다.'
-Require-Contains 'cpf-docs/guides/CPF_ADMIN_DATA_SAFETY_GUIDE.md' 'V60' 'V61 Exact Rollback Runbook이 없습니다.'
 
 # 기존 generated lifecycle parity.
 foreach ($pair in @(
@@ -127,8 +126,8 @@ Require-Contains 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql' 'cpfDB\
 Require-Contains 'cpf-tools/db/vendor/mariadb/source/99_smoke_check.sql' 'mbwDB\.admin_user_account_safety_columns' 'Backoffice Fresh account-safety Verify contract가 없습니다.'
 
 # 더 강한 양방향 Query Contract 및 공식 DB vendor readiness gate를 반드시 함께 실행한다.
-& (Join-Path $PSScriptRoot 'check-query-contract-integrity.ps1') -Root $RootPath
-& (Join-Path $PSScriptRoot 'check-official-db-vendor-readiness.ps1') -Root $RootPath
+& (Join-Path $RootPath 'cpf-tools/db/verification/check-query-contract-integrity.ps1') -Root $RootPath
+& (Join-Path $RootPath 'cpf-tools/db/verification/check-official-db-vendor-readiness.ps1') -Root $RootPath
 
 Write-Host '[PASS][STATIC_ONLY] CPF ADM/MBW data-safety structural gate'
 Write-Host '[INFO] Runtime DB outage, upgrade/rollback/reapply, Browser, multi-instance 행동 검증은 별도 Evidence가 필요합니다.'

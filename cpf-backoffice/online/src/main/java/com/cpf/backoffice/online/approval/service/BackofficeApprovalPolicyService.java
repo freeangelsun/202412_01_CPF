@@ -136,7 +136,13 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
         int version = number(policy, "policyVersion").intValue();
         List<Map<String,Object>> steps = repository.findPolicySteps(code, version);
         List<Map<String,Object>> resolved = resolveParticipants(policy, steps, blankToNull(requesterEmployeeNo), at);
-        return Map.of("policy", policy, "steps", steps, "participants", resolved, "effectiveAt", at.toString());
+        // 위 Snapshot과 동일한 이유로 응답 본문 key 순서도 결정적으로 유지한다.
+        Map<String,Object> preview = new LinkedHashMap<>();
+        preview.put("policy", policy);
+        preview.put("steps", steps);
+        preview.put("participants", resolved);
+        preview.put("effectiveAt", at.toString());
+        return preview;
     }
 
     public List<Map<String,Object>> findDelegations(String employeeNo, Instant effectiveAt) {
@@ -246,7 +252,13 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
         BackofficeApprovalDirectoryEntry requesterProfile = repository.findPrimaryAssignment(requester, at)
                 .orElseThrow(() -> new CpfValidationException("요청자의 유효 직원/대표 소속 Snapshot을 찾을 수 없습니다."));
 
-        String policySnapshot = json(Map.of("policy", policy, "steps", steps, "participants", resolved));
+        // 불변 Snapshot으로 저장되므로 byte 재현성이 있어야 한다. Map.of는 JVM 실행마다 반복 순서가
+        // 무작위(SALT)로 바뀌므로 순서가 보장되는 LinkedHashMap을 사용한다.
+        Map<String,Object> policySnapshotSource = new LinkedHashMap<>();
+        policySnapshotSource.put("policy", policy);
+        policySnapshotSource.put("steps", steps);
+        policySnapshotSource.put("participants", resolved);
+        String policySnapshot = json(policySnapshotSource);
 
         Map<String,Object> doc = new LinkedHashMap<>();
         doc.put("approvalNo", "MBW-" + NO_DATE.format(at) + "-" + UUID.randomUUID().toString().substring(0,8).toUpperCase(Locale.ROOT));

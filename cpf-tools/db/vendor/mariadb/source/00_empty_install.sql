@@ -502,7 +502,7 @@ CREATE TABLE IF NOT EXISTS BAT_DEPLOYMENT_CELL (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Cell registration time',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last desired-state update time',
     CONSTRAINT pk_BAT_DEPLOYMENT_CELL PRIMARY KEY (cell_id),
-    CONSTRAINT ck_bat_deployment_runtime_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_deployment_runtime_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell desired state';
 
 CREATE TABLE IF NOT EXISTS BAT_DEPLOYMENT_LOCK (
@@ -878,7 +878,7 @@ CREATE TABLE IF NOT EXISTS BAT_RUNTIME_INSTANCE (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Registration time',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last state update time',
     CONSTRAINT pk_BAT_RUNTIME_INSTANCE PRIMARY KEY (instance_id),
-    CONSTRAINT ck_bat_runtime_instance_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_bat_runtime_instance_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     INDEX ix_bat_runtime_instance_service (service_id, actual_state),
     INDEX ix_bat_runtime_instance_heartbeat (last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
@@ -4347,7 +4347,7 @@ CREATE TABLE IF NOT EXISTS OPS_RUNTIME_INSTANCE_STATE (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
     CONSTRAINT pk_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE,
     INDEX ix_cpf_runtime_instance_lease (lease_until),
     INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)
@@ -5072,6 +5072,33 @@ CREATE TABLE IF NOT EXISTS MBW_APPROVAL_DELEGATION (
     INDEX ix_mbw_approval_delegation_active (delegator_employee_no, use_yn, valid_from, valid_to)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 위임/대결 유효기간';
 
+CREATE TABLE IF NOT EXISTS MBW_APPROVAL_EXECUTION (
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    command_request_id VARCHAR(120) NOT NULL COMMENT 'Owner 실행 멱등 요청 ID',
+    owner_action VARCHAR(80) NOT NULL COMMENT '실제 업무 Owner Action',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECONCILING/RECOVERED',
+    owner_result_code VARCHAR(80) NULL COMMENT 'Owner 실행 결과 코드',
+    owner_result_message VARCHAR(1000) NULL COMMENT '마스킹된 Owner 실행 결과 메시지',
+    started_at DATETIME(3) NULL COMMENT '실제 실행 시작 시각',
+    completed_at DATETIME(3) NULL COMMENT '실제 실행 종료 시각',
+    recovery_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과불명/복구 필요 여부',
+    fence_token BIGINT NOT NULL DEFAULT 0 COMMENT '실행/Reconcile fencing token',
+    approved_by VARCHAR(100) NOT NULL COMMENT '최종 승인 처리 운영자',
+    transaction_id CHAR(34) NULL COMMENT '승인/실행 상관관계 transactionId',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_MBW_APPROVAL_EXECUTION PRIMARY KEY (approval_id),
+    CONSTRAINT uk_mbw_approval_execution_command UNIQUE (command_request_id),
+    CONSTRAINT ck_mbw_approval_execution_status CHECK (execution_status IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECONCILING','RECOVERED')),
+    CONSTRAINT ck_mbw_approval_execution_recovery CHECK (recovery_required_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_approval_execution_fence CHECK (fence_token >= 0),
+    CONSTRAINT ck_mbw_approval_execution_time CHECK (completed_at IS NULL OR started_at IS NULL OR completed_at >= started_at),
+    CONSTRAINT fk_mbw_approval_execution_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id),
+    INDEX ix_mbw_approval_execution_status (execution_status, recovery_required_yn, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 승인 후 실제 업무 Owner 실행 상태';
+
 CREATE TABLE IF NOT EXISTS MBW_APPROVAL_HISTORY (
     approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
     approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
@@ -5206,113 +5233,3 @@ CREATE TABLE IF NOT EXISTS MBW_APPROVAL_PARTICIPANT (
     CONSTRAINT fk_mbw_approval_participant_line FOREIGN KEY (approval_line_id) REFERENCES MBW_APPROVAL_LINE (approval_line_id) ON DELETE CASCADE,
     INDEX ix_mbw_approval_participant_inbox (approver_employee_no, decision_status, approval_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 참여자 Snapshot';
-
-
--- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
--- vendor=mariadb
--- DO NOT EDIT generated DDL directly.
-
--- CPF_LOGICAL_DATABASE=referenceFixture
-USE referenceFixture;
-CREATE TABLE IF NOT EXISTS REF_CENTER_CUT_SAMPLE_TARGET (
-    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    business_date DATE NOT NULL COMMENT '업무 기준일',
-    target_payload LONGTEXT NULL COMMENT '처리 입력 payload',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'READY' COMMENT '대상 상태 코드',
-    retry_count INT NOT NULL DEFAULT 0 COMMENT '재처리 횟수',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
-    started_at DATETIME NULL COMMENT '처리 시작 일시',
-    completed_at DATETIME NULL COMMENT '처리 완료 일시',
-    last_error_message VARCHAR(1000) NULL COMMENT '마지막 오류 메시지',
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y' COMMENT '사용 여부',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_REF_CENTER_CUT_SAMPLE_TARGET PRIMARY KEY (target_id),
-    CONSTRAINT uk_ref_center_cut_sample_target_business UNIQUE (center_cut_job_id, business_key),
-    INDEX ix_ref_center_cut_sample_target_status (center_cut_job_id, status_code, business_date),
-    INDEX ix_ref_center_cut_sample_target_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_ref_center_cut_sample_target_parent_segment (parent_segment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 대상';
-
-CREATE TABLE IF NOT EXISTS REF_CMN_SAMPLE_ITEM (
-    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
-    sample_key VARCHAR(100) NOT NULL COMMENT '외부 노출용 고유 샘플 키',
-    item_name VARCHAR(200) NOT NULL COMMENT '샘플 항목명',
-    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 문자열',
-    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 샘플 참조값',
-    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    CONSTRAINT pk_REF_CMN_SAMPLE_ITEM PRIMARY KEY (sample_item_id),
-    CONSTRAINT uk_cmn_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT ck_cmn_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_cmn_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_cmn_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
-    INDEX ix_cmn_sample_item_status_sort (status_code, sort_order, sample_item_id),
-    INDEX ix_cmn_sample_item_category_sort (category_code, sort_order, sample_item_id),
-    INDEX ix_cmn_sample_item_name_sort (item_name, sample_item_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플';
-
-CREATE TABLE IF NOT EXISTS REF_SAMPLE_ITEM (
-    sample_item_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '샘플 항목 ID',
-    sample_key VARCHAR(100) NOT NULL COMMENT '업무 멱등·중복 검증 키',
-    item_name VARCHAR(200) NOT NULL COMMENT '최소 업무 데이터명',
-    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL' COMMENT '검색 분류 코드',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' COMMENT '상태 코드',
-    searchable_text VARCHAR(500) NULL COMMENT '검색 검증용 값',
-    owner_reference VARCHAR(100) NULL COMMENT '다른 Domain을 직접 조인하지 않는 참조값',
-    sort_order BIGINT NOT NULL DEFAULT 0 COMMENT '안정 정렬용 순번',
-    version_no BIGINT NOT NULL DEFAULT 0 COMMENT '낙관적 잠금 버전',
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '논리 삭제 여부',
-    transaction_id CHAR(34) NULL COMMENT 'CPF 거래 추적 ID',
-    idempotency_key VARCHAR(100) NULL COMMENT '거래 멱등 키',
-    created_by VARCHAR(100) NOT NULL COMMENT '등록자',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL COMMENT '수정자',
-    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
-    CONSTRAINT pk_REF_SAMPLE_ITEM PRIMARY KEY (sample_item_id),
-    CONSTRAINT uk_ref_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT uk_ref_sample_item_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT ck_ref_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_ref_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_ref_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N')),
-    INDEX ix_ref_sample_item_status_sort (status_code, sort_order, sample_item_id),
-    INDEX ix_ref_sample_item_category_sort (category_code, sort_order, sample_item_id),
-    INDEX ix_ref_sample_item_name_sort (item_name, sample_item_id),
-    INDEX ix_ref_sample_item_transaction (transaction_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF Minimal Transaction Reference Sample';
-
-CREATE TABLE IF NOT EXISTS REF_CENTER_CUT_SAMPLE_RESULT (
-    result_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '센터컷 샘플 결과 순번',
-    target_id VARCHAR(80) NOT NULL COMMENT '센터컷 샘플 대상 ID',
-    center_cut_job_id VARCHAR(100) NOT NULL COMMENT '센터컷 Job ID',
-    business_key VARCHAR(200) NOT NULL COMMENT '업무 멱등 키',
-    result_status VARCHAR(30) NOT NULL COMMENT '처리 결과 상태',
-    result_payload LONGTEXT NULL COMMENT '처리 결과 payload',
-    result_message VARCHAR(1000) NULL COMMENT '처리 결과 메시지',
-    transaction_id CHAR(34) NULL COMMENT '센터컷 실행 전체가 승계하는 CPF transactionId',
-    parent_segment_id VARCHAR(120) NULL COMMENT '부모 거래 구간 ID',
-    transaction_segment_id VARCHAR(120) NULL COMMENT '현재 거래 구간 ID',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '등록자',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF' COMMENT '수정자',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-    CONSTRAINT pk_REF_CENTER_CUT_SAMPLE_RESULT PRIMARY KEY (result_id),
-    CONSTRAINT uk_ref_center_cut_sample_result_target UNIQUE (target_id),
-    CONSTRAINT fk_ref_center_cut_sample_result_target FOREIGN KEY (target_id) REFERENCES REF_CENTER_CUT_SAMPLE_TARGET (target_id) ON DELETE CASCADE,
-    INDEX ix_ref_center_cut_sample_result_job (center_cut_job_id, result_status, created_at),
-    INDEX ix_ref_center_cut_sample_result_transaction (transaction_id, transaction_segment_id),
-    INDEX ix_ref_center_cut_sample_result_parent_segment (parent_segment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='REF 센터컷 샘플 결과';

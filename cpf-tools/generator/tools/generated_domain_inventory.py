@@ -92,6 +92,7 @@ def main() -> int:
             "domainName": d.name,
             "moduleName": d.module_name,
             "className": d.class_name,
+            "generationMode": d.generation_mode,
             "systemCode": d.system_code,
             "packageName": d.package_name,
             "tablePrefix": d.table_prefix,

@@ -9,6 +9,12 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+# Toxiproxy 2.9+ 는 DNS Rebinding 방어로 브라우저형 User-Agent 요청을 403 "User agent not allowed"로
+# 거부한다. PowerShell Invoke-WebRequest/Invoke-RestMethod의 기본 User-Agent는
+# "Mozilla/5.0 ... PowerShell/7.x" 이므로 그대로 두면 Toxiproxy Admin API 호출이 항상 실패한다.
+# 검증기는 브라우저가 아니므로 명시적으로 non-browser User-Agent를 사용한다.
+$script:CpfVerifierUserAgent = 'CPF-Runtime-Verifier'
+
 function Invoke-Docker {
     param([Parameter(Mandatory)][string[]]$Arguments)
     & docker @Arguments
@@ -83,14 +89,20 @@ function Wait-Http {
     param([string]$Name, [string]$Uri, [int]$TimeoutSeconds = 240)
     Write-Host "[HTTP 대기] $Name $Uri" -ForegroundColor Cyan
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastError = 'no attempt was made'
     do {
         try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 5
+            $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 5 -UserAgent $script:CpfVerifierUserAgent
             if ([int]$response.StatusCode -ge 200 -and [int]$response.StatusCode -lt 400) { Write-Host "[HTTP 확인] $Name status=$($response.StatusCode)" -ForegroundColor Green; return }
-        } catch { }
+            $lastError = "status=$($response.StatusCode)"
+        } catch {
+            # 마지막 실패 원인을 반드시 보존한다. 과거에는 여기서 예외를 통째로 삼켜
+            # 결정적인 403(User agent not allowed)이 "Timeout"으로 잘못 보고되었다.
+            $lastError = $_.Exception.Message
+        }
         Start-Sleep -Seconds 3
     } while ((Get-Date) -lt $deadline)
-    throw "HTTP 준비 Timeout: $Name $Uri"
+    throw "HTTP 준비 실패: $Name $Uri lastError=$lastError"
 }
 
 function Wait-DockerProbe {

@@ -7,10 +7,12 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /** Strict byte-oriented fixed-length encoder/decoder. */
@@ -36,7 +38,9 @@ public final class CpfFixedLengthCodec {
                 .filter(name -> !fieldsByName.containsKey(name))
                 .collect(Collectors.toUnmodifiableSet());
         if (!unknownFields.isEmpty()) {
-            throw new IllegalArgumentException("unknown fields: " + unknownFields);
+            // Collectors.toUnmodifiableSet()의 반복 순서는 JVM 실행마다 무작위(SALT)이므로 그대로
+            // 메시지에 넣으면 동일 입력의 오류 메시지가 실행마다 달라진다. 표시용으로만 정렬한다.
+            throw new IllegalArgumentException("unknown fields: " + new TreeSet<>(unknownFields));
         }
         byte[] record = new byte[layout.recordLength()];
         Arrays.fill(record, defaultPad);
@@ -80,7 +84,9 @@ public final class CpfFixedLengthCodec {
             }
             result.put(field.name(), decodeStrict(Arrays.copyOfRange(bytes, start, end)));
         }
-        return Map.copyOf(result);
+        // Map.copyOf는 반복 순서가 JVM 실행마다 무작위인 불변 Map을 만들어, 위에서 Field 정의 순서대로
+        // 쌓은 LinkedHashMap의 순서 계약을 버린다. 공개 반환값이므로 순서를 유지한 채 불변화한다.
+        return Collections.unmodifiableMap(result);
     }
 
     private byte[] encodeStrict(String value) {

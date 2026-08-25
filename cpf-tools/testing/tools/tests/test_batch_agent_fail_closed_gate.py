@@ -30,7 +30,7 @@ def test_current_host_agent_contract_passes(tmp_path: Path) -> None:
 def test_os_file_lock_removal_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.LEDGER
-    path.write_text(path.read_text().replace("FileLock ignored = channel.lock()", "FileLock ignored = null", 1))
+    path.write_text(path.read_text(encoding="utf-8").replace("FileLock ignored = channel.lock()", "FileLock ignored = null", 1), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -42,12 +42,12 @@ def test_os_file_lock_removal_fails(tmp_path: Path) -> None:
 def test_handler_exception_failed_collapse_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.LEDGER
-    text = path.read_text().replace(
+    text = path.read_text(encoding="utf-8").replace(
         "result = unknown(\n                        executing,\n                        \"COMMAND_HANDLER_RESULT_UNKNOWN\"",
         "result = new AgentCommandResult(\n                        commandId, serviceId, commandType, CommandState.FAILED,\n                        \"COMMAND_HANDLER_FAILED\"",
         1,
     )
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -59,7 +59,7 @@ def test_handler_exception_failed_collapse_fails(tmp_path: Path) -> None:
 def test_service_timeout_unknown_removal_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.SERVICE
-    path.write_text(path.read_text().replace("Result.unknown(", "new Result(false,", 1))
+    path.write_text(path.read_text(encoding="utf-8").replace("Result.unknown(", "new Result(false,", 1), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -71,11 +71,11 @@ def test_service_timeout_unknown_removal_fails(tmp_path: Path) -> None:
 def test_runtime_response_loss_failed_collapse_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.CONTROLLER
-    path.write_text(path.read_text().replace(
+    path.write_text(path.read_text(encoding="utf-8").replace(
         "return result(stableId, serviceId, command, CommandState.UNKNOWN_RESULT,\n                        command + \"_RESPONSE_UNKNOWN\"",
         "return result(stableId, serviceId, command, CommandState.FAILED,\n                        command + \"_FAILED\"",
         1,
-    ))
+    ), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -87,11 +87,11 @@ def test_runtime_response_loss_failed_collapse_fails(tmp_path: Path) -> None:
 def test_artifact_publication_compensation_removal_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.INSTALLER
-    path.write_text(path.read_text().replace(
+    path.write_text(path.read_text(encoding="utf-8").replace(
         "Exception restoreFailure = restorePublication(",
         "Exception restoreFailure = null; // compensation removed\n                if (false) restorePublication(",
         1,
-    ))
+    ), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -103,7 +103,7 @@ def test_artifact_publication_compensation_removal_fails(tmp_path: Path) -> None
 def test_artifact_partial_publication_unknown_removal_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     path = root / MODULE.INSTALLER
-    path.write_text(path.read_text().replace("ARTIFACT_INSTALL_RESULT_UNKNOWN", "ARTIFACT_INSTALL_FAILED", 1))
+    path.write_text(path.read_text(encoding="utf-8").replace("ARTIFACT_INSTALL_RESULT_UNKNOWN", "ARTIFACT_INSTALL_FAILED", 1), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:

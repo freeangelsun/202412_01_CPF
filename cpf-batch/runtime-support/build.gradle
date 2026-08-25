@@ -2,6 +2,7 @@ plugins { id 'java-library'; id 'maven-publish' }
 group='com.cpf.batch'
 dependencies {
     api project(':framework:data')
+    api project(':framework:data:persistence')
     api project(':framework:operations')
  api project(':runtime:batch:api')
  implementation project(':framework:core')

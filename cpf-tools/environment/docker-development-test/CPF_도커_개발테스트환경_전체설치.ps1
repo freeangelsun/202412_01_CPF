@@ -93,7 +93,18 @@ if (-not (Test-Path -LiteralPath $envPath -PathType Leaf)) {
     if ($AdminPassword.Contains("`r") -or $AdminPassword.Contains("`n")) {
         throw "관리자 비밀번호에 줄바꿈을 사용할 수 없습니다."
     }
-    Write-Utf8NoBom -Path $envPath -Content "CPF_ADMIN_PASSWORD=$AdminPassword`n"
+    # cpf-tools/db/config/database-install.default.json의 Module Runtime/Migration/Admin 비밀번호는
+    # CPF_DB_APP_PASSWORD/CPF_DB_ROOT_PASSWORD/CPF_DB_MIGRATION_PASSWORD(fallbackEnv)를 요구한다.
+    # 이 Local 개발 환경은 단일 관리자 공통 비밀번호를 모든 Vendor Container Root Credential로
+    # 이미 재사용하므로(이 파일의 ORACLE_PWD 등과 동일 계약) 같은 값으로 함께 채운다.
+    Write-Utf8NoBom -Path $envPath -Content @"
+CPF_ADMIN_PASSWORD=$AdminPassword
+CPF_DB_ROOT_PASSWORD=$AdminPassword
+CPF_DB_APP_PASSWORD=$AdminPassword
+CPF_DB_MIGRATION_PASSWORD=$AdminPassword
+"@
+}else{
+    & (Join-Path $sourceRoot 'ensure-cpf-runtime-secrets.ps1') -SecretFile $envPath | Out-Null
 }
 if (-not (Test-Path -LiteralPath $redisSecretPath -PathType Leaf)) {
     $password = if (-not [string]::IsNullOrWhiteSpace($AdminPassword)) {

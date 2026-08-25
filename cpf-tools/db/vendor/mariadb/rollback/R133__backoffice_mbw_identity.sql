@@ -1,5 +1,6 @@
 -- CPF_LOGICAL_DATABASE=mbwDB
 -- Rollback V133 Backoffice MBW identity migration.
+USE mbwDB;
 -- Currentize Backoffice logical codes without losing existing user-role grants.
 INSERT INTO MBW_ROLE (role_code, role_name, write_allowed_yn, data_scope, use_yn, version_no, created_by, created_at, updated_by, updated_at)
 SELECT CASE role_code WHEN 'MBW_ADMIN' THEN 'BZA_ADMIN' WHEN 'MBW_OPERATOR' THEN 'BZA_OPERATOR' WHEN 'MBW_APPROVER' THEN 'BZA_APPROVER' WHEN 'MBW_VIEWER' THEN 'BZA_VIEWER' WHEN 'MBW_MANAGER' THEN 'BZA_MANAGER' ELSE role_code END, role_name, write_allowed_yn, data_scope, use_yn, version_no, created_by, created_at, updated_by, updated_at

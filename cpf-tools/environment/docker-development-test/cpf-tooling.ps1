@@ -70,7 +70,9 @@ switch ($Action) {
     "stop" { Invoke-Compose (@("stop") + $groups[$Target]); Invoke-Compose @("ps", "-a") }
     "logs" { Invoke-Compose (@("logs", "--tail", "300") + $groups[$Target]) }
     "reset-faults" {
-        Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8474/reset" | Out-Null
+        # Toxiproxy 2.9+ 는 브라우저형 User-Agent를 403 "User agent not allowed"로 거부한다.
+        # PowerShell 기본 User-Agent가 "Mozilla/5.0 ... PowerShell/7.x" 이므로 명시 지정한다.
+        Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:8474/reset" -UserAgent 'CPF-Runtime-Verifier' | Out-Null
         Write-Host "Toxiproxy 장애 조건 초기화 완료" -ForegroundColor Green
     }
 }

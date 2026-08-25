@@ -16,7 +16,7 @@ class T(unittest.TestCase):
  def test_contract_fixture_passes(self):
   td,r=self.fixture();self.addCleanup(td.cleanup);self.assertEqual('PASS',load().verify(r)['status'])
  def test_invented_datasource_fallback_fails(self):
-  td,r=self.fixture();self.addCleanup(td.cleanup);p=r/'cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java';p.write_text(p.read_text()+' EmbeddedDatabase',encoding='utf-8');self.assertRaises(Exception,load().verify,r)
+  td,r=self.fixture();self.addCleanup(td.cleanup);p=r/'cpf-starters/data/persistence-jdbc/src/main/java/com/cpf/common/config/CmnDataSourceConfig.java';p.write_text(p.read_text(encoding="utf-8")+' EmbeddedDatabase',encoding='utf-8');self.assertRaises(Exception,load().verify,r)
  def test_product_condition_is_required(self):
-  td,r=self.fixture();self.addCleanup(td.cleanup);p=r/'cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config/CmnMyBatisConfig.java';p.write_text(p.read_text().replace("== 'product'",''),encoding='utf-8');self.assertRaises(Exception,load().verify,r)
+  td,r=self.fixture();self.addCleanup(td.cleanup);p=r/'cpf-starters/data/persistence-mybatis/src/main/java/com/cpf/common/config/CmnMyBatisConfig.java';p.write_text(p.read_text(encoding="utf-8").replace("== 'product'",''),encoding='utf-8');self.assertRaises(Exception,load().verify,r)
 if __name__=='__main__':unittest.main()

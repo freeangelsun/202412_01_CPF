@@ -3,7 +3,7 @@ import argparse,hashlib,json,re
 from pathlib import Path
 SECRET=re.compile(rb'(?i)(password|secret|api[_-]?key|private[_-]?key|token)\s*[:=]\s*[^\s,;]{6,}')
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('--bundle',required=True);ap.add_argument('--manifest',required=True);a=ap.parse_args();root=Path(a.bundle);manifest=json.loads(Path(a.manifest).read_text());fail=[]
+ ap=argparse.ArgumentParser();ap.add_argument('--bundle',required=True);ap.add_argument('--manifest',required=True);a=ap.parse_args();root=Path(a.bundle);manifest=json.loads(Path(a.manifest).read_text(encoding="utf-8"));fail=[]
  expected={x['path']:x['sha256'] for x in manifest.get('files',[])}
  actual={}
  for p in root.rglob('*'):

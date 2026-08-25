@@ -9,21 +9,32 @@ import {
   menuIdFromRouteName
 } from "./routes";
 import { createAdmState } from "../state/createAdmState";
+import { admRouteOperationContract } from "../generated/adm-route-operation-contract";
 
 describe("ADM canonical capability registry", () => {
-  it("uses home plus five top-level operation groups", () => {
-    expect(Object.values(admGroupLabels)).toEqual(["운영현황", "거래·실행 추적", "서비스·연계·Gateway", "Batch·대량처리", "로그·감사·Incident", "복구·변경·배포", "기준정보·플랫폼설정", "보안·권한·승인"]);
+  it("declares the canonical operation group labels", () => {
+    expect(Object.values(admGroupLabels)).toEqual([
+      "운영 현황", "로그 · 추적", "장애 · 복구", "설정 · 정책", "감사 · 변경이력",
+      "Batch", "Gateway", "Security / Approval", "Deployment"
+    ]);
+    // 모든 Route의 group은 반드시 선언된 Label을 가져야 한다(미선언 group 사용 차단).
+    for (const route of Object.values(admCapabilityRegistry)) {
+      expect(admGroupLabels[route.group]).toBeTruthy();
+    }
   });
 
-  it("contains exactly the canonical 65 route capabilities", () => {
-    expect(Object.keys(admCapabilityRegistry)).toHaveLength(65);
-    expect(admRouterRecords).toHaveLength(65);
+  it("contains exactly the canonical route capabilities declared by the generated contract", () => {
+    // Route 수를 손으로 적어두면 Route가 늘어날 때마다 Test가 stale해진다(과거 65 고정값이 그래서 깨졌다).
+    // Registry와 OpenAPI에서 생성된 정본 계약과 교차 검증하여 두 정본이 서로를 강제하게 한다.
+    const canonicalRouteIds = Object.keys(admRouteOperationContract);
+    expect(Object.keys(admCapabilityRegistry).sort()).toEqual([...canonicalRouteIds].sort());
+    expect(admRouterRecords).toHaveLength(canonicalRouteIds.length);
     expect(admFeatureRoutes).toBe(admCapabilityRegistry);
   });
 
-  it("projects sidebar state from the same 65-route canonical registry", () => {
+  it("projects sidebar state from the same canonical registry", () => {
     const state = createAdmState();
-    expect(state.menus).toHaveLength(65);
+    expect(state.menus).toHaveLength(Object.keys(admCapabilityRegistry).length);
     expect(new Set(state.menus.map(item => item.id))).toEqual(new Set(Object.keys(admCapabilityRegistry)));
     for (const routeId of ["featureFlags", "integrationClosure", "openApiOperations", "resiliencePolicies"]) {
       expect(state.menus.some(item => item.id === routeId)).toBe(true);

@@ -20,12 +20,20 @@ FORBIDDEN_SEGMENT_PATTERNS = (
 )
 EPHEMERAL_SEGMENTS = {".git", ".gradle", ".pytest_cache", "__pycache__", "node_modules", ".venv", ".cpf-python", "dist"}
 VERSIONED_DIR_EXEMPT_PREFIXES = ("cpf-docs/deliverables/",)
+# cpf-docs/work/evidence/generated/** is machine-local, fully gitignored regeneration output
+# (redirected Gradle project cache/local artifact repository, JVM crash/heap-dump capture,
+# retired IDE cache snapshots). It is never product source and is recreated on every run, so it
+# follows the same ephemeral-output policy as an ordinary module build/** directory below.
+EPHEMERAL_PREFIXES = ("cpf-docs/work/evidence/generated/",)
 
 
 def is_managed_source(path: Path, root: Path) -> bool:
     rel = path.relative_to(root)
+    rel_posix = rel.as_posix()
     parts = rel.parts
     if any(part in EPHEMERAL_SEGMENTS for part in parts):
+        return False
+    if any(rel_posix.startswith(prefix) for prefix in EPHEMERAL_PREFIXES):
         return False
     # Ordinary module build output is generated, but cpf-tools/build/** is product source.
     if "build" in parts and not (len(parts) >= 2 and parts[0] == "cpf-tools" and parts[1] == "build"):
@@ -46,6 +54,30 @@ def is_versioned_dir_exempt(rel: str) -> bool:
     """
     normalized = rel.replace("\\", "/")
     return any(normalized.startswith(prefix) for prefix in VERSIONED_DIR_EXEMPT_PREFIXES)
+
+
+def is_captured_runtime_daily_log_roll(parts: tuple[str, ...], index: int) -> bool:
+    """True only for the product's own canonical daily transaction-log roll segment.
+
+    The FORBIDDEN_VERSIONED_DIR rule targets hand-made version-stamped working
+    directories (``REV_1``, ``SESSION-2``, ``FINAL_FINAL``, a dated copy of a
+    document tree). It must not reject the product's *own* runtime output: the
+    canonical logging contract rolls transaction logs daily into
+    ``.../logs/**/transactions/<YYYYMMDD>/`` (daily roll, 5-day compression,
+    365-day deletion). Captured Evidence of a real Runtime therefore legitimately
+    contains 8-digit directory segments, and forbidding them outright would put
+    two canonical Requirements in direct contradiction.
+
+    The exemption is deliberately narrow and evaluated per segment: the 8-digit
+    segment must sit directly under a ``transactions`` directory that is itself
+    below a ``logs`` directory. Every other version-stamped directory in the same
+    path still fails independently.
+    """
+    if not re.fullmatch(r"\d{8}", parts[index]):
+        return False
+    if index == 0 or parts[index - 1] != "transactions":
+        return False
+    return "logs" in parts[: index - 1]
 
 
 def main() -> int:
@@ -78,9 +110,13 @@ def main() -> int:
         if full_len > ns.max_full_path:
             failures.append(f"FULL_PATH_TOO_LONG {full_len} {rel}")
         if not is_versioned_dir_exempt(rel):
-            for segment in Path(rel).parts[:-1]:
-                if any(rx.match(segment) for rx in FORBIDDEN_SEGMENT_PATTERNS):
-                    failures.append(f"FORBIDDEN_VERSIONED_DIR {segment} {rel}")
+            rel_parts = Path(rel).parts
+            for index, segment in enumerate(rel_parts[:-1]):
+                if not any(rx.match(segment) for rx in FORBIDDEN_SEGMENT_PATTERNS):
+                    continue
+                if is_captured_runtime_daily_log_roll(rel_parts, index):
+                    continue
+                failures.append(f"FORBIDDEN_VERSIONED_DIR {segment} {rel}")
 
     print(f"WINDOWS_PATH_FILES={len(files)}")
     print(f"WINDOWS_PATH_MAX_RELATIVE={max_seen[0]} {max_seen[1]}")

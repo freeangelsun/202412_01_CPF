@@ -32,7 +32,8 @@ def domain_properties(path: Path) -> dict[str,str]:
 def choose_jar(patterns: list[Path]) -> Path | None:
     found=[]
     for pattern in patterns:
-        found.extend(p for p in pattern.parent.glob(pattern.name) if p.is_file() and '-plain.jar' not in p.name)
+        found.extend(p for p in pattern.parent.glob(pattern.name)
+                     if p.is_file() and '-plain.jar' not in p.name and '-plain.war' not in p.name)
     return sorted(found,key=lambda p:(p.stat().st_mtime_ns,p.name))[-1] if found else None
 
 
@@ -57,10 +58,17 @@ def platform_candidates(root: Path, service: dict) -> list[Path]:
         'GWY':root/'cpf-gateway/build/libs', 'EDU':root/'cpf-education/build/libs'
     }.get(module)
     dirs=[direct] if direct else []
-    if service.get('projectPath'):
+    # settings.gradle는 다수 Gradle logical project path에 project(...).projectDir 재매핑을 쓰므로
+    # (예: :runtime:batch:control-plane -> cpf-batch/control-plane), projectPath를 그대로
+    # 문자열 치환한 경로가 실제 물리 디렉터리와 다를 수 있다. Inventory가 명시한 projectDir을
+    # 최우선으로 신뢰하고, 없을 때만 fallback으로 projectPath 문자열 변환을 시도한다.
+    if service.get('projectDir'):
+        dirs.append(root/service['projectDir']/'build/libs')
+    elif service.get('projectPath'):
         fragment=service['projectPath'].strip(':').replace(':','/')
         dirs.append(root/fragment/'build/libs')
-    return [d/f'{name}*.jar' for d in dirs if d]
+    # 대부분 모듈은 bootJar(.jar)이지만 일부(예: ADM)는 bootWar(.war)로 패키징된다.
+    return [d/f'{name}*.{ext}' for d in dirs if d for ext in ('jar','war')]
 
 
 def generated_entries(root: Path, env: str) -> list[dict]:

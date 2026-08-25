@@ -13,5 +13,5 @@ class T(unittest.TestCase):
  def test_same_version_overwrite_fails(self):td,r=self.fixture(False);self.addCleanup(td.cleanup);self.assertRaises(Exception,load().verify,r)
  def test_test_contract_exists(self):
   t=(SCRIPT.parents[3]/'cpf-starters/integration/http/src/test/java/com/cpf/integration/http/internal/CpfServiceEndpointRegistryTest.java')
-  self.assertTrue(t.is_file());self.assertIn('sameVersionReplayIsIdempotentButDifferentSnapshotIsRejected',t.read_text())
+  self.assertTrue(t.is_file());self.assertIn('sameVersionReplayIsIdempotentButDifferentSnapshotIsRejected',t.read_text(encoding="utf-8"))
 if __name__=='__main__':unittest.main()

@@ -43,6 +43,7 @@ class RuntimeDefaultInventoryTest(unittest.TestCase):
                         databaseEnabled = $true
                         databaseRole = 'CUSTOMER_BUSINESS_DB'
                         contractPath = 'cpf-payment/gradle.properties'
+                        generationMode = 'generated'
                     })
                 }
                 """

@@ -45,12 +45,11 @@ services:
       - "127.0.0.1:1521:1521"
     volumes:
       - cpf-oracle-data:/opt/oracle/oradata
-    healthcheck:
-      test: ["CMD-SHELL", "healthcheck.sh"]
-      interval: 20s
-      timeout: 10s
-      retries: 60
-      start_period: 120s
+    # healthcheck를 재정의하지 않는다. 이 이미지의 healthcheck.sh는 PATH가 아닌 $ORACLE_BASE에
+    # 있어서 "healthcheck.sh"만 쓰면 exit 127 command not found로 항상 unhealthy가 된다
+    # (docker inspect로 확인한 실제 원인). 이미지가 자체 정의한 official Healthcheck
+    # (CMD-SHELL "$ORACLE_BASE/$CHECK_DB_FILE"; interval=60s timeout=30s start_period=300s)를
+    # 그대로 상속해서 Compose variable escaping 위험 없이 항상 올바른 경로를 쓰게 한다.
 
 volumes:
   cpf-mariadb-data:

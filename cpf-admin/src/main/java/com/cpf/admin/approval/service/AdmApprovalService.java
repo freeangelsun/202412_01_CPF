@@ -116,8 +116,12 @@ public class AdmApprovalService extends AdmBaseService {
         }
         String changeReason=bounded(request.reason(),"reason",8,500);
         p.put("changeReason",changeReason);
-        p.put("policyHash",snapshotIntegrity.sha256Canonical(json(Map.of(
-                "policy",p,"steps",steps.stream().map(step->new TreeMap<>(step)).toList()))));
+        // sha256Canonical()은 이름과 달리 정규화를 하지 않고 전달받은 문자열을 그대로 해시한다.
+        // 실제 key 정렬 정규화는 canonicalPayload()가 수행하므로 저장소의 다른 모든 호출부와 동일하게
+        // canonicalPayload()를 반드시 거쳐야 한다. 이 단계를 빠뜨리면 2개짜리 Map.of의 반복 순서가
+        // JVM 실행마다 무작위로 바뀌어 저장된 policyHash가 재현 불가능해지고 무결성 검증이 깨진다.
+        p.put("policyHash",snapshotIntegrity.sha256Canonical(snapshotIntegrity.canonicalPayload(json(Map.of(
+                "policy",p,"steps",steps.stream().map(step->new TreeMap<>(step)).toList())))));
 
         // Serialize policy creation by a stable DB lock bucket so two instances cannot both
         // observe an empty overlap set and commit conflicting active ranges.

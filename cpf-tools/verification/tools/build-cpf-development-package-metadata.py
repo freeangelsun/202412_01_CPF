@@ -24,6 +24,18 @@ PROTECTED_PREFIXES = (
     "cpf-docs/deliverables/", "cpf-docs/guides/", "cpf-docs/environment/docker/",
     "cpf-tools/environment/docker-development-test/",
 )
+# Documentation Harness는 자신이 대체하는 산출물 삭제를 스스로 문서화한 별도 원장을 소유한다
+# (cpf-docs/governance/documentation-harness/DELETE_MANIFEST.json). 그 원장에 exact path로
+# 이미 등재된 protected-path 삭제만, 이 generic 보호를 우회하는 narrow exception으로 허용한다.
+DOCUMENTATION_HARNESS_DELETE_MANIFEST_REL = "cpf-docs/governance/documentation-harness/DELETE_MANIFEST.json"
+
+
+def _documentation_harness_reviewed_deletes(root: Path) -> set[str]:
+    manifest_path = root / DOCUMENTATION_HARNESS_DELETE_MANIFEST_REL
+    if not manifest_path.is_file():
+        return set()
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    return {str(entry['path']).replace('\\', '/') for entry in manifest.get('paths', [])}
 
 
 def sha256_file(path: Path) -> str:
@@ -40,8 +52,31 @@ def sha256_zip_entry(zf: ZipFile, name: str) -> str:
     return h.hexdigest()
 
 
+def _load_source_state_module(root: Path):
+    tool = root / SOURCE_STATE_TOOL
+    spec = importlib.util.spec_from_file_location('cpf_source_state', tool)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f'cannot load canonical source identity tool: {tool}')
+    mod = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = previous
+    return mod
+
+
 def all_files(root: Path) -> list[str]:
-    return sorted(p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file())
+    # 배포물(Overlay ZIP/PACKAGE_MANIFEST/CHANGE_MANIFEST/SHA256SUMS)의 desired-state 목록은
+    # cpf-source-state.py와 동일한 정본 ephemeral 판정을 재사용한다. 그렇지 않으면
+    # cpf-docs/work/evidence/generated/**(Gradle 빌드 캐시/Generator scratch build 산출물)가
+    # 실제 Source 변경처럼 수만 건씩 포함되어 Overlay가 오염된다.
+    is_generated = _load_source_state_module(root)._is_generated
+    return sorted(
+        p.relative_to(root).as_posix() for p in root.rglob('*')
+        if p.is_file() and not is_generated(p.relative_to(root).as_posix())
+    )
 
 
 def identity(entries: list[tuple[str,str]]) -> tuple[str,str]:
@@ -71,18 +106,7 @@ def write_csv(path: Path, fields: list[str], rows: list[dict[str,str]]) -> None:
 
 
 def source_snapshot(root: Path) -> dict:
-    tool=root/SOURCE_STATE_TOOL
-    spec=importlib.util.spec_from_file_location('cpf_source_state',tool)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f'cannot load canonical source identity tool: {tool}')
-    mod=importlib.util.module_from_spec(spec)
-    previous=sys.dont_write_bytecode
-    sys.dont_write_bytecode=True
-    try:
-        spec.loader.exec_module(mod)
-    finally:
-        sys.dont_write_bytecode=previous
-    return mod.snapshot(root,'source')
+    return _load_source_state_module(root).snapshot(root,'source')
 
 
 def update_closure_identity(root: Path, source_sha256: str) -> tuple[int,int]:
@@ -109,6 +133,7 @@ def delete_rows(root: Path) -> tuple[list[dict[str,str]],dict[str,int]]:
     required={'path','approved','precondition','lifecycle','user_execution_required','user_approved'}
     if required-set(fields): raise RuntimeError(f'delete manifest missing columns: {sorted(required-set(fields))}')
     seen=set(); counts={}
+    documentation_harness_reviewed=_documentation_harness_reviewed_deletes(root)
     for row in rows:
         rel=row['path'].replace('\\','/')
         if not rel or rel in seen: raise RuntimeError(f'delete manifest missing/duplicate path: {rel!r}')
@@ -118,7 +143,7 @@ def delete_rows(root: Path) -> tuple[list[dict[str,str]],dict[str,int]]:
                 raise RuntimeError(f'{rel}: pending delete lifecycle contract invalid')
             if row['user_approved'].lower()=='true' and not row.get('user_approval_ref','').strip():
                 raise RuntimeError(f'{rel}: user_approved lacks approval reference')
-            if rel.startswith(PROTECTED_PREFIXES):
+            if rel.startswith(PROTECTED_PREFIXES) and rel not in documentation_harness_reviewed:
                 raise RuntimeError(f'protected path cannot be pending deletion: {rel}')
     return rows,counts
 

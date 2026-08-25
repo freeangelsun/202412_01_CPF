@@ -24,7 +24,10 @@ function Read-EnvMap {
 function Test-Http {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][string]$Uri)
     try {
-        $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 10
+        # Toxiproxy 2.9+ 는 브라우저형 User-Agent를 403 "User agent not allowed"로 거부하고,
+        # PowerShell 기본 User-Agent가 "Mozilla/5.0 ... PowerShell/7.x" 이므로 명시적으로
+        # non-browser User-Agent를 사용한다.
+        $response = Invoke-WebRequest -UseBasicParsing -Uri $Uri -TimeoutSec 10 -UserAgent 'CPF-Runtime-Verifier'
         if ([int]$response.StatusCode -lt 200 -or [int]$response.StatusCode -ge 400) { throw "status=$($response.StatusCode)" }
     } catch { throw "$Name HTTP 검증 실패: $Uri / $($_.Exception.Message)" }
 }

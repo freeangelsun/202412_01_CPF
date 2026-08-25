@@ -90,6 +90,7 @@ def main():
           'cpf-core/src/main/java/com/cpf/core/api/context/CpfContexts.java',
           'cpf-core/src/main/java/com/cpf/core/spi/context/CpfContextRuntimeProvider.java',
           'cpf-starters/base/runtime/src/main/java/com/cpf/starter/internal/context/CpfStarterContextRuntime.java',
+          'cpf-starters/base/runtime/src/main/java/com/cpf/foundation/context/CpfContextProjection.java','cpf-starters/base/runtime/src/main/java/com/cpf/foundation/context/CpfContextProjectionRegistry.java',
           'cpf-starters/base/runtime/src/main/java/com/cpf/foundation/id/spi/CpfExecutionIdGenerator.java',
           'cpf-starters/base/runtime/src/main/java/com/cpf/starter/async/CpfAsyncContext.java',
           'cpf-starters/base/runtime/src/main/java/com/cpf/starter/async/CpfAsyncForkType.java',

@@ -66,6 +66,18 @@ def test_ide_and_module_bin_outputs_are_excluded(tmp_path: Path):
     assert ".vscode/settings.json" not in paths
 
 
+def test_release_template_bin_scripts_are_product_source(tmp_path: Path):
+    # cpf-tools/release/*/templates/bin/**은 컴파일 산출물이 아니라 고객이 자신의 bin/에
+    # 그대로 설치하는 CLI Template Source다. 일반 module-root bin/(컴파일 산출물)과 혼동해
+    # 제외하면 안 된다.
+    template_bin = tmp_path / "cpf-tools" / "release" / "public" / "templates" / "bin"
+    template_bin.mkdir(parents=True)
+    (template_bin / "cpf-bootstrap.sh").write_text("#!/bin/sh\necho bootstrap\n", encoding="utf-8")
+    result = module.snapshot(tmp_path, "source")
+    paths = {row["path"] for row in result["files"]}
+    assert "cpf-tools/release/public/templates/bin/cpf-bootstrap.sh" in paths
+
+
 def test_jvm_crash_and_heap_dump_artifacts_do_not_change_any_identity_scope(tmp_path: Path):
     product = tmp_path / "cpf-core" / "src"
     product.mkdir(parents=True)

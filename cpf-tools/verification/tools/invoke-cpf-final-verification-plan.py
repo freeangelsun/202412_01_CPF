@@ -24,7 +24,7 @@ from typing import Any
 GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SECRET_RE = re.compile(r"(?i)(password|secret|token|authorization|cookie|credential)\s*[:=]\s*([^\s,;]+)")
-GENERATED_PARTS = {".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules", "dist", ".vite", "playwright-report", "test-results", "target", "out", "bin", "coverage"}
+GENERATED_PARTS = {".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules", "dist", ".vite", "playwright-report", "test-results", "target", "out", "coverage"}
 
 
 def sanitize(value: str) -> str:
@@ -58,6 +58,11 @@ def source_snapshot(root: Path) -> dict[str, Any]:
             if name in GENERATED_PARTS:
                 continue
             if name == "build" and rel != "cpf-tools/build":
+                continue
+            # Eclipse/IDE module-root compiled output is generated, but templates/bin/ is
+            # checked-in product source (customer-facing CLI template scripts), matching
+            # cpf-source-state.py's identical exception.
+            if name == "bin" and Path(rel).parent.name != "templates":
                 continue
             keep.append(name)
         dirs[:] = keep

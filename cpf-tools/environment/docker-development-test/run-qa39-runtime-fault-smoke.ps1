@@ -8,6 +8,10 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+# Toxiproxy 2.9+ 는 DNS Rebinding 방어로 브라우저형 User-Agent 요청을 403 "User agent not allowed"로
+# 거부한다. PowerShell 기본 User-Agent가 "Mozilla/5.0 ... PowerShell/7.x" 이므로 명시 지정한다.
+$script:CpfVerifierUserAgent = 'CPF-Runtime-Verifier'
+
 function Invoke-CrlfPing {
     param([int]$Port = 19021, [int]$TimeoutMilliseconds = 2000)
     $client = [System.Net.Sockets.TcpClient]::new()
@@ -40,13 +44,13 @@ if ($initial -ne "PONG") { throw "Fault 전 PING 실패: $initial" }
 $events.Add([pscustomobject]@{ step = "baseline"; result = "PASS"; response = $initial })
 
 try {
-    Invoke-RestMethod -Method Post -Uri $proxyUri -ContentType "application/json" -Body '{"enabled":false}' -TimeoutSec 10 | Out-Null
+    Invoke-RestMethod -Method Post -Uri $proxyUri -ContentType "application/json" -Body '{"enabled":false}' -TimeoutSec 10 -UserAgent $script:CpfVerifierUserAgent | Out-Null
     $blocked = $false
     try { [void](Invoke-CrlfPing -TimeoutMilliseconds 1000) } catch { $blocked = $true }
     if (-not $blocked) { throw "Proxy 비활성화 후 연결이 계속 성공했습니다." }
     $events.Add([pscustomobject]@{ step = "proxy-disabled"; result = "PASS" })
 } finally {
-    Invoke-RestMethod -Method Post -Uri $proxyUri -ContentType "application/json" -Body '{"enabled":true}' -TimeoutSec 10 | Out-Null
+    Invoke-RestMethod -Method Post -Uri $proxyUri -ContentType "application/json" -Body '{"enabled":true}' -TimeoutSec 10 -UserAgent $script:CpfVerifierUserAgent | Out-Null
 }
 
 $recovered = Invoke-CrlfPing
@@ -56,7 +60,7 @@ $events.Add([pscustomobject]@{ step = "proxy-recovered"; result = "PASS"; respon
 $toxicName = "qa39_latency"
 try {
     $body = '{"name":"qa39_latency","type":"latency","stream":"downstream","toxicity":1.0,"attributes":{"latency":300,"jitter":0}}'
-    Invoke-RestMethod -Method Post -Uri $toxicUri -ContentType "application/json" -Body $body -TimeoutSec 10 | Out-Null
+    Invoke-RestMethod -Method Post -Uri $toxicUri -ContentType "application/json" -Body $body -TimeoutSec 10 -UserAgent $script:CpfVerifierUserAgent | Out-Null
     $watch = [System.Diagnostics.Stopwatch]::StartNew()
     $latencyResponse = Invoke-CrlfPing -TimeoutMilliseconds 3000
     $watch.Stop()
@@ -65,7 +69,7 @@ try {
     }
     $events.Add([pscustomobject]@{ step = "latency"; result = "PASS"; elapsedMilliseconds = $watch.ElapsedMilliseconds })
 } finally {
-    try { Invoke-RestMethod -Method Delete -Uri "$toxicUri/$toxicName" -TimeoutSec 10 | Out-Null } catch {}
+    try { Invoke-RestMethod -Method Delete -Uri "$toxicUri/$toxicName" -TimeoutSec 10 -UserAgent $script:CpfVerifierUserAgent | Out-Null } catch {}
 }
 
 $final = Invoke-CrlfPing

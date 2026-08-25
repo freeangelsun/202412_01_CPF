@@ -538,6 +538,25 @@ try {
     $migrationRoot = Get-CpfLifecycleRoot ([string]$entry.lifecycle.migration) "$Vendor migration root"
     $rollbackRoot = Get-CpfLifecycleRoot ([string]$entry.lifecycle.rollback) "$Vendor rollback root"
     $migrations = @(Get-CpfMigrationCatalog $migrationRoot)
+    # currentVersion/availableVersions는 반드시 선택된 Module/logical DB 범위로만 계산해야 한다.
+    # Vendor 전체 checksum manifest의 전역 최댓값을 그대로 쓰면, core-only 등 부분 Module 선택 시
+    # 활성화되지 않은 logical DB(예: mbwDB 전용 Migration)가 "현재 버전"으로 잘못 선택된다.
+    # PostgreSQL/Oracle은 pack(= 논리DB 전용 하위 디렉터리) 이름으로, MariaDB flat root 파일은
+    # 실제 라우팅 지시자인 inline `USE <logicalDatabase>;` 절 내용으로 동일한 원칙(실제 라우팅 대상이
+    # 선택 범위 안에 있는가)을 적용한다. 세 Vendor 모두 이 한 필터를 거친다 — Vendor별 특례 분기 없음.
+    $enabledLogicalDatabases = @($selectedTargets.logicalDatabase | Sort-Object -Unique)
+    $migrations = @($migrations | Where-Object {
+            $item = $_
+            if ($item.pack -ne 'root') {
+                return $enabledLogicalDatabases -contains $item.pack
+            }
+            if ($Vendor -ne 'mariadb') { return $true }
+            $sqlText = Get-Content -LiteralPath (Join-Path $rootPath $item.path) -Raw -Encoding UTF8
+            $referencedDatabases = @([regex]::Matches($sqlText, '(?im)^\s*USE\s+([A-Za-z0-9_]+)\s*;') |
+                    ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+            if ($referencedDatabases.Count -eq 0) { return $true }
+            return (@($referencedDatabases | Where-Object { $enabledLogicalDatabases -notcontains $_ })).Count -eq 0
+        })
     $availableVersions = @($migrations.version | Sort-Object -Unique)
     $currentVersion = [int]($availableVersions | Measure-Object -Maximum).Maximum
 

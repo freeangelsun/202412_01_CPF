@@ -190,7 +190,7 @@ try {
     }
     Invoke-Step 'verifyGeneratedSource' {
         & $verify -Root $Root -DomainName $domain -SystemCode $code -DefinitionPath $definitionPath `
-            -OutputDir $project -SkipBuild:$SkipBuild
+            -OutputDir $project -DatabaseVendor $DatabaseVendor -SkipBuild:$SkipBuild
     }
     if ($ProvisionDatabase) {
         Invoke-Step 'verifyDatabase' {

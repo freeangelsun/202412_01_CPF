@@ -27,7 +27,7 @@ FROM user_tables;
 
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
-       CASE WHEN COUNT(*) = 29 THEN 1 ELSE 0 END AS passed
+       CASE WHEN COUNT(*) = 30 THEN 1 ELSE 0 END AS passed
 FROM user_tables;
 
 SELECT 'mbwDB.product_seed' AS check_name,

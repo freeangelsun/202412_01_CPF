@@ -31,11 +31,11 @@ def test_recover_without_fencing_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     rel = "cpf-batch/runtime/src/main/java/com/cpf/batch/execution/CpfSpringBatchExecutionControl.java"
     path = root / rel
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     recover_start = text.index("public BatchExecutionLink recover(")
     fence_start = text.index("fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);", recover_start)
     path.write_text(text[:fence_start] + "// fence removed" + text[fence_start + len(
-        "fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);"):])
+        "fencing.assertCurrent(jobId, cpfExecutionId, fencingToken);"):], encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:
@@ -48,9 +48,9 @@ def test_stable_remote_owner_reintroduction_fails(tmp_path: Path) -> None:
     root = fixture(tmp_path)
     rel = "cpf-batch/remote-kafka/src/main/java/com/cpf/batch/execution/CpfBatchKafkaInboundBridge.java"
     path = root / rel
-    path.write_text(path.read_text().replace(
+    path.write_text(path.read_text(encoding="utf-8").replace(
         "ledger.complete(direction, envelope.messageId(), attemptOwnerId)",
-        "ledger.complete(direction, envelope.messageId(), ownerId)", 1))
+        "ledger.complete(direction, envelope.messageId(), ownerId)", 1), encoding="utf-8")
     try:
         MODULE.verify(root)
     except ValueError as exc:

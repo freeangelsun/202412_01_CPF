@@ -12,6 +12,7 @@ import com.cpf.file.tabular.api.CpfTabularWriteRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -50,7 +51,13 @@ class CpfXlsxTabularAdapterTest {
         assertThat(result.sha256()).hasSize(64);
         assertThat(result.acceptedRows()).isEqualTo(1);
         assertThat(result.rejectedRows()).isZero();
+        // Adapter는 값 Map을 Schema Column 순서대로 LinkedHashMap에 채우므로 순서까지 계약이다.
+        // 기대값에 Map.of를 쓰면 JVM 실행마다 반복 순서가 무작위로 바뀌어 테스트가 flaky해지므로
+        // 순서가 보장되는 LinkedHashMap으로 Schema 순서(id -> name)를 명시한다.
+        Map<String, String> expected = new LinkedHashMap<>();
+        expected.put("id", "1");
+        expected.put("name", "sample");
         assertThat(rows).singleElement().satisfies(row ->
-                assertThat(row.values()).containsExactlyEntriesOf(Map.of("id", "1", "name", "sample")));
+                assertThat(row.values()).containsExactlyEntriesOf(expected));
     }
 }

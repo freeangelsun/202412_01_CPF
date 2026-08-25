@@ -14,10 +14,10 @@ def main():
  val=r/'cpf-starters/security/session/valkey/src/main/java/com/cpf/security/session/valkey'
  for x in ['ValkeyCpfSessionOperations.java','MeteredCpfSessionOperations.java','CpfValkeySessionAutoConfiguration.java','CpfValkeySessionProperties.java']:
   if not (val/x).is_file():return fail('valkeyMissing='+x)
- vs=(val/'ValkeyCpfSessionOperations.java').read_text()
+ vs=(val/'ValkeyCpfSessionOperations.java').read_text(encoding="utf-8")
  for token in ['renew(','rotate(','revokePrincipal(','findByPrincipal(','CONCURRENT_LIMIT','expireAt(','fixation-defense','audit.record','tenantId']:
   if token not in vs:return fail('sessionWitnessMissing='+token)
- ms=(val/'MeteredCpfSessionOperations.java').read_text()
+ ms=(val/'MeteredCpfSessionOperations.java').read_text(encoding="utf-8")
  for token in ['providerFailures','forcedLogouts','misses','CpfSessionMetrics']:
   if token not in ms:return fail('sessionMetricsMissing='+token)
  if not (r/'cpf-starters/security/session/jdbc').exists():return fail('jdbcSessionProviderMissing=true')
@@ -25,7 +25,7 @@ def main():
  oidc=r/'cpf-starters/security/oidc/src/main/java/com/cpf/security/oidc'
  for x in ['CpfOidcAutoConfiguration.java','CpfOidcPrincipalMapper.java','CpfOidcUserService.java','CpfOidcContextBridge.java','CpfOidcContextFilter.java','CpfOidcSecurityEventSink.java']:
   if not (oidc/x).is_file():return fail('oidcMissing='+x)
- joined='\n'.join((oidc/x).read_text() for x in ['CpfOidcAutoConfiguration.java','CpfOidcPrincipalMapper.java','CpfOidcUserService.java','CpfOidcContextBridge.java'])
+ joined='\n'.join((oidc/x).read_text(encoding="utf-8") for x in ['CpfOidcAutoConfiguration.java','CpfOidcPrincipalMapper.java','CpfOidcUserService.java','CpfOidcContextBridge.java'])
  for token in ['authorizationCode()','refreshToken()','clientCredentials()','OIDC_LOGIN','OIDC_LOGOUT','withIdentityAndTenant','tenantId','getSafeClaimNames']:
   if token not in joined:return fail('oidcWitnessMissing='+token)
  if 'com.cpf.core.api.config.' in joined:return fail('staleCoreConfig=true')

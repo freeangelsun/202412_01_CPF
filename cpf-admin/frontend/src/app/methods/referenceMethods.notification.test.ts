@@ -44,7 +44,7 @@ describe("notification route generated-client actions", () => {
 
     await referenceMethods.loadNotificationRuleDetail.call(context);
 
-    expect(api.admNotificationFindRule).toHaveBeenCalledWith("17");
+    expect(api.admNotificationFindRule).toHaveBeenCalledWith(17);
     expect(context.selectNotificationRule).toHaveBeenCalledWith(rule);
     expect(context.notificationResult.ruleDetail).toEqual(rule);
   });
@@ -117,7 +117,7 @@ describe("notification route generated-client actions", () => {
     await referenceMethods.saveNotificationRule.call(context);
 
     expect(api.admNotificationUpdateRule).toHaveBeenCalledWith(
-      "23",
+      23,
       expect.objectContaining({ eventType: "ONLINE", reason: "규칙 수정" })
     );
   });
@@ -141,7 +141,7 @@ describe("notification route generated-client actions", () => {
     await referenceMethods.retryNotificationDelivery.call(context);
 
     expect(api.admNotificationRetryDelivery).toHaveBeenCalledWith(
-      "41",
+      41,
       { expectedVersion: 7, reason: "운영 재시도" }
     );
   });
@@ -167,7 +167,7 @@ describe("notification route generated-client actions", () => {
     const request = api.admNotificationSendTest.mock.calls[0][1];
     expect(request).not.toHaveProperty("requestUser");
     expect(api.admNotificationSendTest).toHaveBeenCalledWith(
-      "9",
+      9,
       expect.objectContaining({ reason: "테스트 발송" })
     );
   });

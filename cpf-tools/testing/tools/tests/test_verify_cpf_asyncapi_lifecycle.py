@@ -50,7 +50,7 @@ def test_valid_document_source_and_consumer(tmp_path: Path):
 
 def test_inventory_can_prove_exact_sha_path(tmp_path: Path):
     repo, catalog = setup(tmp_path, entry_changes={"source_contracts": ["remote/source.java"]})
-    value = json.loads(catalog.read_text())
+    value = json.loads(catalog.read_text(encoding="utf-8"))
     value["source_inventory"] = [{"path": "remote/source.java", "type": "blob", "sha": SHA}]
     catalog.write_text(json.dumps(value), encoding="utf-8")
     assert module.verify(repo, catalog)["status"] == "PASS"
@@ -74,7 +74,7 @@ def test_schema_change_requires_migration_and_evidence(tmp_path: Path):
     repo, catalog = setup(tmp_path, entry_changes={"previous_schema_version": "0.9.0"})
     with pytest.raises(module.AsyncApiError, match="requires READY/COMPLETE migration"):
         module.verify(repo, catalog)
-    value = json.loads(catalog.read_text())
+    value = json.loads(catalog.read_text(encoding="utf-8"))
     value["documents"][0]["migration"] = {"status": "READY", "evidence_paths": ["missing.md"]}
     catalog.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(module.AsyncApiError, match="migration evidence missing"):
@@ -83,7 +83,7 @@ def test_schema_change_requires_migration_and_evidence(tmp_path: Path):
 
 def test_rejects_unsafe_and_invalid_inventory(tmp_path: Path):
     repo, catalog = setup(tmp_path)
-    value = json.loads(catalog.read_text()); value["source_inventory"] = [{"path": "../x", "type": "blob", "sha": SHA}]
+    value = json.loads(catalog.read_text(encoding="utf-8")); value["source_inventory"] = [{"path": "../x", "type": "blob", "sha": SHA}]
     catalog.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(module.AsyncApiError, match="unsafe repository path"):
         module.verify(repo, catalog)

@@ -45,6 +45,10 @@ tasks.register('validateCpfJdbcDriverSelection') {
 }
 tasks.named('processResources') { dependsOn tasks.named('validateCpfJdbcDriverSelection') }
 
+// 고객사 공통 Library는 customer-libraries.properties에 명시적으로 선택한 경우에만 연결됩니다.
+def cpfCustomerLibraryDependencies = rootProject.file('customer-library-dependencies.gradle')
+if (cpfCustomerLibraryDependencies.isFile()) { apply from: cpfCustomerLibraryDependencies }
+
 tasks.named('bootJar') { archiveBaseName = 'cpf-member-online' }
 
 def cpfSupportedDbVendors = ['mariadb', 'postgresql', 'oracle'] as Set

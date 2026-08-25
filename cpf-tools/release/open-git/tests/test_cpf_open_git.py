@@ -28,7 +28,7 @@ def test_open_git_surface_projection_contains_only_developer_source(tmp_path: Pa
         "--policy", str(ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"),
         "--source-identity", "TEST-IDENTITY",
     ]
-    cp = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
+    cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert cp.returncode == 0, cp.stdout + cp.stderr
 
     for required in (
@@ -283,7 +283,7 @@ def test_open_git_short_cli_and_compatibility_wrappers_are_canonical(tmp_path: P
         "--policy", str(ROOT / "cpf-tools/release/open-git/open-git-surface-policy.json"),
         "--source-identity", "TEST-IDENTITY",
     ]
-    cp = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
+    cp = subprocess.run(command, cwd=ROOT, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert cp.returncode == 0, cp.stdout + cp.stderr
 
     for required in (
@@ -320,7 +320,7 @@ def test_open_git_short_cli_and_compatibility_wrappers_are_canonical(tmp_path: P
         help_command = [shell_executable, "-NoProfile", "-File", str(staging / "bin/cpf.ps1"), "help"]
     else:
         help_command = ["bash", str(staging / "bin/cpf.sh"), "help"]
-    help_result = subprocess.run(help_command, cwd=staging, text=True, capture_output=True)
+    help_result = subprocess.run(help_command, cwd=staging, text=True, encoding="utf-8", errors="replace", capture_output=True)
     assert help_result.returncode == 0, help_result.stdout + help_result.stderr
     assert "domain new <name> <SYSTEM_CODE>" in help_result.stdout
     assert "reset --confirm" in help_result.stdout

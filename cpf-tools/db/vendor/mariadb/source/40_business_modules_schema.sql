@@ -545,6 +545,33 @@ CREATE TABLE IF NOT EXISTS MBW_APPROVAL_DELEGATION (
     INDEX ix_mbw_approval_delegation_active (delegator_employee_no, use_yn, valid_from, valid_to)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 위임/대결 유효기간';
 
+CREATE TABLE IF NOT EXISTS MBW_APPROVAL_EXECUTION (
+    approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
+    command_request_id VARCHAR(120) NOT NULL COMMENT 'Owner 실행 멱등 요청 ID',
+    owner_action VARCHAR(80) NOT NULL COMMENT '실제 업무 Owner Action',
+    execution_status VARCHAR(30) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECONCILING/RECOVERED',
+    owner_result_code VARCHAR(80) NULL COMMENT 'Owner 실행 결과 코드',
+    owner_result_message VARCHAR(1000) NULL COMMENT '마스킹된 Owner 실행 결과 메시지',
+    started_at DATETIME(3) NULL COMMENT '실제 실행 시작 시각',
+    completed_at DATETIME(3) NULL COMMENT '실제 실행 종료 시각',
+    recovery_required_yn CHAR(1) NOT NULL DEFAULT 'N' COMMENT '결과불명/복구 필요 여부',
+    fence_token BIGINT NOT NULL DEFAULT 0 COMMENT '실행/Reconcile fencing token',
+    approved_by VARCHAR(100) NOT NULL COMMENT '최종 승인 처리 운영자',
+    transaction_id CHAR(34) NULL COMMENT '승인/실행 상관관계 transactionId',
+    created_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '등록자',
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '등록일시',
+    updated_by VARCHAR(100) NOT NULL DEFAULT 'SYSTEM' COMMENT '수정자',
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '수정일시',
+    CONSTRAINT pk_MBW_APPROVAL_EXECUTION PRIMARY KEY (approval_id),
+    CONSTRAINT uk_mbw_approval_execution_command UNIQUE (command_request_id),
+    CONSTRAINT ck_mbw_approval_execution_status CHECK (execution_status IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECONCILING','RECOVERED')),
+    CONSTRAINT ck_mbw_approval_execution_recovery CHECK (recovery_required_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_approval_execution_fence CHECK (fence_token >= 0),
+    CONSTRAINT ck_mbw_approval_execution_time CHECK (completed_at IS NULL OR started_at IS NULL OR completed_at >= started_at),
+    CONSTRAINT fk_mbw_approval_execution_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id),
+    INDEX ix_mbw_approval_execution_status (execution_status, recovery_required_yn, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 승인 후 실제 업무 Owner 실행 상태';
+
 CREATE TABLE IF NOT EXISTS MBW_APPROVAL_HISTORY (
     approval_history_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결재 이력 순번',
     approval_id BIGINT NOT NULL COMMENT '결재 문서 순번',
@@ -679,39 +706,3 @@ CREATE TABLE IF NOT EXISTS MBW_APPROVAL_PARTICIPANT (
     CONSTRAINT fk_mbw_approval_participant_line FOREIGN KEY (approval_line_id) REFERENCES MBW_APPROVAL_LINE (approval_line_id) ON DELETE CASCADE,
     INDEX ix_mbw_approval_participant_inbox (approver_employee_no, decision_status, approval_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Backoffice 결재 참여자 Snapshot';
-
-
--- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
--- vendor=mariadb
--- DO NOT EDIT generated DDL directly.
-
--- CPF_LOGICAL_DATABASE=mbwDB
--- V139 current table: MBW approval execution lifecycle
-USE mbwDB;
-CREATE TABLE MBW_APPROVAL_EXECUTION (
-    approval_id BIGINT NOT NULL,
-    command_request_id VARCHAR(120) NOT NULL,
-    owner_action VARCHAR(80) NOT NULL,
-    execution_status VARCHAR(30) DEFAULT 'PENDING' NOT NULL,
-    owner_result_code VARCHAR(80) NULL,
-    owner_result_message VARCHAR(1000) NULL,
-    started_at DATETIME(3) NULL,
-    completed_at DATETIME(3) NULL,
-    recovery_required_yn CHAR(1) DEFAULT 'N' NOT NULL,
-    fence_token BIGINT DEFAULT 0 NOT NULL,
-    approved_by VARCHAR(100) NOT NULL,
-    transaction_id CHAR(34) NULL,
-    created_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
-    updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) NOT NULL ON UPDATE CURRENT_TIMESTAMP(3),
-    CONSTRAINT PK_MBW_APPROVAL_EXECUTION PRIMARY KEY (approval_id),
-    CONSTRAINT uk_mbw_approval_execution_command UNIQUE (command_request_id),
-    CONSTRAINT ck_mbw_approval_execution_status CHECK (execution_status IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECONCILING','RECOVERED')),
-    CONSTRAINT ck_mbw_approval_execution_recovery CHECK (recovery_required_yn IN ('Y','N')),
-    CONSTRAINT ck_mbw_approval_execution_fence CHECK (fence_token >= 0),
-    CONSTRAINT ck_mbw_approval_execution_time CHECK (completed_at IS NULL OR started_at IS NULL OR completed_at >= started_at),
-    CONSTRAINT fk_mbw_approval_execution_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id)
-) ENGINE=InnoDB;
-ALTER TABLE MBW_APPROVAL_EXECUTION COMMENT = 'Backoffice 결재 승인 후 실제 업무 Owner 실행 상태';
-CREATE INDEX ix_mbw_approval_execution_status ON MBW_APPROVAL_EXECUTION (execution_status, recovery_required_yn, updated_at);

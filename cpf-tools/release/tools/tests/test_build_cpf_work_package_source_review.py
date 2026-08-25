@@ -18,8 +18,7 @@ class WorkPackageSourceReviewTest(unittest.TestCase):
             (source / "cpf-admin/src/test/java/com/cpf/admin/online").mkdir(parents=True)
             (source / "cpf-tools/scripts").mkdir(parents=True)
             (source / "cpf-admin/src/main/java/com/cpf/admin/online/OnlineService.java").write_text(
-                "class OnlineService { void retry(){ /* audit reconcile */ } }", encoding="utf-8"
-            )
+                "class OnlineService { void retry(){ /* audit reconcile */ } }", encoding="utf-8")
             (source / "cpf-admin/src/test/java/com/cpf/admin/online/OnlineServiceTest.java").write_text(
                 "class OnlineServiceTest {}", encoding="utf-8"
             )
@@ -55,11 +54,9 @@ class WorkPackageSourceReviewTest(unittest.TestCase):
             test_dir.mkdir(parents=True)
             for index in range(20):
                 (main / f"OnlineFeature{index:02d}.java").write_text(
-                    f"class OnlineFeature{index:02d} {{ void onlineFeature() {{}} }}", encoding="utf-8"
-                )
+                    f"class OnlineFeature{index:02d} {{ void onlineFeature() {{}} }}", encoding="utf-8")
             (test_dir / "OnlineFeatureContractTest.java").write_text(
-                "class OnlineFeatureContractTest { void testContract() {} }", encoding="utf-8"
-            )
+                "class OnlineFeatureContractTest { void testContract() {} }", encoding="utf-8")
             execution = root / "execution.csv"
             requirement = root / "requirement.csv"
             scenario = root / "scenario.csv"
@@ -96,7 +93,7 @@ class WorkPackageSourceReviewTest(unittest.TestCase):
             self.write_csv(scenario, [{"scenario_id":"S-1","linked_requirement_id":"R-1"}])
             proc = subprocess.run([sys.executable, str(SCRIPT), "--execution-glob", str(execution), "--requirement-glob", str(requirement), "--scenario-glob", str(scenario), "--source-root", str(source), "--output", str(root/"review.csv"), "--summary-output", str(root/"summary.json"), "--start-row", "1", "--expected-requirements", "1", "--expected-work-packages", "1", "--baseline-sha", "b"*40], capture_output=True, text=True)
             self.assertEqual(1, proc.returncode)
-            self.assertEqual(["P10-NO-SOURCE"], json.loads((root/"summary.json").read_text())["unresolvedWorkPackages"])
+            self.assertEqual(["P10-NO-SOURCE"], json.loads((root/"summary.json").read_text(encoding="utf-8"))["unresolvedWorkPackages"])
 
     @staticmethod
     def write_csv(path: Path, rows: list[dict[str, str]]) -> None:

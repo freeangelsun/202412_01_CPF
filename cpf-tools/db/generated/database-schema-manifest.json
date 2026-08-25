@@ -5,7 +5,7 @@
   "physicalSourceRoot": "cpf-tools/db/generated/current/mariadb",
   "installProfile": "cpf-tools/db/config/database-install.default.json",
   "generatedBusinessDomainPolicy": "NO_FIXED_BUSINESS_DOMAIN_SCHEMA",
-  "tableCount": 235,
+  "tableCount": 236,
   "tables": [
     {
       "vendor": "mariadb",
@@ -10152,6 +10152,60 @@
           "name": "fk_mbw_approval_document_resubmit",
           "columns": [
             "resubmitted_from_approval_id"
+          ],
+          "referencedTable": "MBW_APPROVAL_DOCUMENT",
+          "referencedColumns": [
+            "approval_id"
+          ]
+        }
+      ]
+    },
+    {
+      "vendor": "mariadb",
+      "logicalDatabase": "mbwDB",
+      "sourceFile": "backoffice-schema.sql",
+      "tableName": "MBW_APPROVAL_EXECUTION",
+      "columns": [
+        "approval_id",
+        "command_request_id",
+        "owner_action",
+        "execution_status",
+        "owner_result_code",
+        "owner_result_message",
+        "started_at",
+        "completed_at",
+        "recovery_required_yn",
+        "fence_token",
+        "approved_by",
+        "transaction_id",
+        "created_by",
+        "created_at",
+        "updated_by",
+        "updated_at"
+      ],
+      "indexes": [
+        {
+          "name": "uk_mbw_approval_execution_command",
+          "unique": true,
+          "columns": [
+            "command_request_id"
+          ]
+        },
+        {
+          "name": "ix_mbw_approval_execution_status",
+          "unique": false,
+          "columns": [
+            "execution_status",
+            "recovery_required_yn",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_execution_document",
+          "columns": [
+            "approval_id"
           ],
           "referencedTable": "MBW_APPROVAL_DOCUMENT",
           "referencedColumns": [

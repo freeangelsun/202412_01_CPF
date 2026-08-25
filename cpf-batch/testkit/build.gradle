@@ -12,7 +12,10 @@ dependencies {
     testImplementation 'org.mariadb.jdbc:mariadb-java-client'
     testImplementation 'com.oracle.database.jdbc:ojdbc11'
 }
-tasks.named('test') { useJUnitPlatform() }
+// qa32-runtime/qa34-runtime는 실제 Oracle/PostgreSQL/MariaDB/Kafka 환경변수가 있어야 하는
+// opt-in Release 검증 Tag다. 전용 태스크(qa32IntegrationTest/qa34IntegrationTest)에서만
+// 실행하며, 일반 test 태스크는 환경 미제공 상태에서 항상 실패하지 않도록 제외한다.
+tasks.named('test') { useJUnitPlatform { excludeTags 'qa32-runtime', 'qa34-runtime' } }
 tasks.register('qa32IntegrationTest', Test) {
     group='verification'; description='QA32 real Oracle/PostgreSQL/MariaDB/Kafka environment contract tests.'
     useJUnitPlatform { includeTags 'qa32-runtime' }

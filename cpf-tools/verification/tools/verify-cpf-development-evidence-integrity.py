@@ -57,11 +57,34 @@ def _safe(root: Path, rel: str) -> Path:
     return target
 
 
+def _load_source_state_module(root: Path):
+    tool = root / "cpf-tools/verification/tools/cpf-source-state.py"
+    if not tool.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("cpf_source_state_for_evidence", tool)
+    if spec is None or spec.loader is None:
+        raise GateError("cannot load canonical source identity tool")
+    mod = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = previous
+    return mod
+
+
 def _all_file_paths(root: Path) -> list[str]:
+    # Package payload는 실제 Deliverable ZIP 대상이다. cpf-source-state.py의 정본 ephemeral
+    # 판정을 재사용해서 .git 내부/.gradle/node_modules/build 캐시가 실제 개발 중인 Working
+    # Tree에 존재하더라도 payload로 잘못 집계되지 않게 한다(작은 격리 Fixture에는 이 tool
+    # 트리가 없을 수 있으므로 그 경우에만 raw listing으로 fallback한다).
+    mod = _load_source_state_module(root)
+    is_generated = mod._is_generated if mod is not None else (lambda rel: False)
     return sorted(
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
-        if path.is_file()
+        if path.is_file() and not is_generated(path.relative_to(root).as_posix())
     )
 
 
@@ -72,18 +95,8 @@ def _identity_from_entries(entries: list[tuple[str, str]]) -> tuple[str, str]:
 
 
 def _canonical_source_snapshot(root: Path, documented_exclusions: list[str]) -> dict:
-    tool = root / "cpf-tools/verification/tools/cpf-source-state.py"
-    if tool.is_file():
-        spec = importlib.util.spec_from_file_location("cpf_source_state_for_evidence", tool)
-        if spec is None or spec.loader is None:
-            raise GateError("cannot load canonical source identity tool")
-        mod = importlib.util.module_from_spec(spec)
-        previous = sys.dont_write_bytecode
-        sys.dont_write_bytecode = True
-        try:
-            spec.loader.exec_module(mod)
-        finally:
-            sys.dont_write_bytecode = previous
+    mod = _load_source_state_module(root)
+    if mod is not None:
         return mod.snapshot(root, "source")
 
     # Small isolated verifier fixtures do not contain the full CPF tool tree.  In that case only,

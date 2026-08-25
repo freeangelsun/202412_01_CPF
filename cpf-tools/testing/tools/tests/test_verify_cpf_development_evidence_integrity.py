@@ -40,14 +40,14 @@ class T(unittest.TestCase):
         evidence = root / "evidence"
         review.mkdir()
         evidence.mkdir()
-        (evidence / "F1.log").write_text("PASS\n")
-        (root / "source.txt").write_text("source\n")
+        (evidence / "F1.log").write_text("PASS\n", encoding="utf-8")
+        (root / "source.txt").write_text("source\n", encoding="utf-8")
 
         with (review / "REQUIREMENT_STATUS.csv").open("w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=["requirement_id", "development_status", "verification_status"])
             writer.writeheader()
             writer.writerow({"requirement_id": "R1", "development_status": "완료", "verification_status": "완료"})
-        (review / "TEST_AND_EVIDENCE.md").write_text("clean\n")
+        (review / "TEST_AND_EVIDENCE.md").write_text("clean\n", encoding="utf-8")
         self.write_finding(review, evidence, "0" * 40, "x", missing=missing)
         self.refresh_metadata(root)
 
@@ -91,8 +91,8 @@ class T(unittest.TestCase):
         review = root / "review"
         # Write a temporary empty change file before computing source identity; it is excluded.
         self.write_change(review, root)
-        (review / "SHA256SUMS.txt").write_text("")
-        (review / "PACKAGE_MANIFEST.json").write_text("{}")
+        (review / "SHA256SUMS.txt").write_text("", encoding="utf-8")
+        (review / "PACKAGE_MANIFEST.json").write_text("{}", encoding="utf-8")
 
         (source_hashes, source_count) = self.compute_source_identity(root)
         path = review / "QA_FINDING_REVALIDATION.csv"
@@ -148,7 +148,7 @@ class T(unittest.TestCase):
             "files": files,
         }
         manifest_path = review / "PACKAGE_MANIFEST.json"
-        manifest_path.write_text(json.dumps(manifest))
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         sha_paths = payload_paths + ["review/PACKAGE_MANIFEST.json", "review/CHANGE_MANIFEST.csv"]
         (review / "SHA256SUMS.txt").write_text(
             "".join(f"{digest(root / rel)}  {rel}\n" for rel in sorted(set(sha_paths)))
@@ -185,9 +185,9 @@ class T(unittest.TestCase):
         td, root = self.fixture()
         self.addCleanup(td.cleanup)
         path = root / "review/SHA256SUMS.txt"
-        lines = path.read_text().splitlines()
+        lines = path.read_text(encoding="utf-8").splitlines()
         lines[0] = "0" * 64 + lines[0][64:]
-        path.write_text("\n".join(lines) + "\n")
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         with self.assertRaises(m.GateError) as ctx:
             m.verify(root, Path("review"), None, None, 1, 1)
         self.assertIn("SHA256SUMS hash mismatch", str(ctx.exception))
@@ -211,7 +211,7 @@ class T(unittest.TestCase):
             writer.writeheader()
             writer.writerows(rows)
         # SHA list must reflect the corrupted manifest file itself.
-        manifest = json.loads((root / "review/PACKAGE_MANIFEST.json").read_text())
+        manifest = json.loads((root / "review/PACKAGE_MANIFEST.json").read_text(encoding="utf-8"))
         payload = [item["path"] for item in manifest["files"]]
         paths = payload + ["review/PACKAGE_MANIFEST.json", "review/CHANGE_MANIFEST.csv"]
         (root / "review/SHA256SUMS.txt").write_text(
@@ -224,7 +224,7 @@ class T(unittest.TestCase):
     def test_unaccounted_payload_file_fails(self):
         td, root = self.fixture()
         self.addCleanup(td.cleanup)
-        (root / "rogue.txt").write_text("rogue")
+        (root / "rogue.txt").write_text("rogue", encoding="utf-8")
         with self.assertRaises(m.GateError) as ctx:
             m.verify(root, Path("review"), None, None, 1, 1)
         self.assertTrue("source identity mismatch" in str(ctx.exception) or "payload inventory mismatch" in str(ctx.exception))
@@ -233,14 +233,14 @@ class T(unittest.TestCase):
         td, root = self.fixture()
         self.addCleanup(td.cleanup)
         path = root / "review/PACKAGE_MANIFEST.json"
-        manifest = json.loads(path.read_text())
+        manifest = json.loads(path.read_text(encoding="utf-8"))
         manifest["gitExactSha"] = "fake-head"
-        path.write_text(json.dumps(manifest))
+        path.write_text(json.dumps(manifest), encoding="utf-8")
         # Update checksum only so semantic provenance validation is reached.
         lines = []
-        for rel in [line.split(None, 1)[1] for line in (root / "review/SHA256SUMS.txt").read_text().splitlines()]:
+        for rel in [line.split(None, 1)[1] for line in (root / "review/SHA256SUMS.txt").read_text(encoding="utf-8").splitlines()]:
             lines.append(f"{digest(root / rel)}  {rel}")
-        (root / "review/SHA256SUMS.txt").write_text("\n".join(lines) + "\n")
+        (root / "review/SHA256SUMS.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
         with self.assertRaises(m.GateError) as ctx:
             m.verify(root, Path("review"), None, None, 1, 1)
         self.assertIn("gitExactSha", str(ctx.exception))

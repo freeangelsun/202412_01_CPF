@@ -2096,7 +2096,7 @@ def render_application_yml(d: DomainDefinition, kind: str) -> str:
             "cpf:\n"
             "  generated-domain:\n"
             f"    name: {d.name}\n"
-            f"    # 거래 식별용 System Code입니다. DB 물리 Prefix와는 독립이며 기본값은 생성 시 System Code입니다.\n"
+            f"    # 거래 식별용 System Code입니다. DB 물리 Prefix는 Generator/Canonical DB 계약으로 고정됩니다.\n"
             f"    system-code: ${{CPF_SYSTEM_CODE:{d.system_code}}}\n"
             "    database-role: CUSTOMER_BUSINESS_DB\n"
             f"    table-prefix: {d.table_prefix}\n"

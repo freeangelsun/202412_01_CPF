@@ -26,8 +26,13 @@ import java.util.Set;
 public class BackofficeOpenApiErrorContractConfiguration {
     private static final Set<String> MUTATIONS = Set.of("post", "put", "patch", "delete");
 
-    /** 공개 operation별 적용 가능한 오류 응답을 보강한다. */
-    @Bean
+    /**
+     * 공개 operation별 적용 가능한 오류 응답을 보강한다.
+     * Bean 이름을 모듈 전용으로 명시한다 — Local 통합 Runtime(cpf-admin+cpf-backoffice가 같은
+     * JVM에 함께 올라가는 개발용 단일 WAS)에서 동일 메서드명 기반 기본 Bean 이름이
+     * AdmOpenApiErrorContractConfiguration과 충돌해 ApplicationContext 기동이 실패했다.
+     */
+    @Bean("backofficeOperationErrorContractCustomizer")
     public OpenApiCustomizer cpfOperationErrorContractCustomizer() {
         return this::apply;
     }

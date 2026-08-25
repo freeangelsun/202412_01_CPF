@@ -3,6 +3,7 @@ package com.cpf.integration.tcp;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
@@ -12,12 +13,23 @@ import org.junit.jupiter.api.Test;
 
 class CpfTcpUnknownResultStoreTest {
     @Test
-    void rejectsNewCorrelationWhenBoundIsReachedButAllowsSameCorrelationUpdate() {
+    void rejectsNewCorrelationWhenBoundIsReachedAndRejectsConflictingSameCorrelationRecord() {
         CpfTcpUnknownResultStore store = new CpfTcpUnknownResultStore(1);
         store.record(result("one", 1));
-        store.record(result("one", 2));
 
-        assertArrayEquals(new byte[] {2}, store.find("one").orElseThrow().request());
+        // 같은 correlationId를 다른 내용으로 재기록하면 프로세스 간 correlationId 재사용 오류를
+        // fail-closed로 막기 위해 항상 거부한다(reconciledCorrelationCannotBeRemovedByStaleVersionAfterRerecord
+        // 처럼 reconcile() 이후 재기록만이 정상 update 경로다).
+        IllegalStateException conflict = assertThrows(IllegalStateException.class,
+                () -> store.record(result("one", 2)));
+        assertTrue(conflict.getMessage().contains("correlation conflict"));
+        assertArrayEquals(new byte[] {1}, store.find("one").orElseThrow().request());
+
+        // 완전히 동일한 내용의 재제출은 idempotent no-op이다.
+        store.record(result("one", 1));
+        assertArrayEquals(new byte[] {1}, store.find("one").orElseThrow().request());
+
+        // bound(1)에 도달한 상태에서 새 correlationId는 거부된다.
         assertThrows(IllegalStateException.class, () -> store.record(result("two", 3)));
     }
 

@@ -33,7 +33,7 @@ def test_exact_inventory_passes():
 def test_stale_baseline_fails():
     with tempfile.TemporaryDirectory() as d:
         inv = Path(d) / "starter_connector_inventory.json"; build_inventory(inv)
-        data = json.loads(inv.read_text()); data["baselineSha"] = "0" * 40; inv.write_text(json.dumps(data))
+        data = json.loads(inv.read_text(encoding="utf-8")); data["baselineSha"] = "0" * 40; inv.write_text(json.dumps(data), encoding="utf-8")
         try: m.verify(ROOT, inv, SHA)
         except m.GateError: return
     raise AssertionError("stale inventory accepted")

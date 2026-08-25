@@ -159,10 +159,18 @@ class VendorLifecyclePlanTest(unittest.TestCase):
                 with self.subTest(vendor=vendor, mode=mode):
                     plan, result, _ = self.run_plan(vendor, mode)
                     discovery = plan["discovery"]
-                    self.assertEqual(118, discovery["currentVersion"])
-                    self.assertEqual([118], discovery["selectedVersions"])
-                    self.assertTrue(any("V118__adm_incident_lifecycle_currentization.sql" in x["path"] for x in discovery["selectedMigrations"]))
-                    self.assertTrue(all("118" in x["rollbackPath"] for x in discovery["selectedMigrations"]))
+                    # core-only 범위(cpfDB)의 currentVersion은 저장소에 cpfDB Migration이 계속 추가되며
+                    # 자연히 전진하므로 정확한 숫자를 하드코딩하지 않는다(과거 118 고정값이 그래서 stale
+                    # 해졌다). 대신 실제로 지켜야 하는 핵심 불변 계약만 검증한다: core-only 범위는
+                    # mbwDB 전용 Migration(133/136/139 등 다른 logical DB 전용)을 절대 선택하지 않는다.
+                    self.assertGreaterEqual(discovery["currentVersion"], 138)
+                    self.assertEqual([discovery["currentVersion"]], discovery["selectedVersions"])
+                    mbwOnlyVersions = {133, 136, 139}
+                    self.assertNotIn(discovery["currentVersion"], mbwOnlyVersions)
+                    self.assertTrue(all(x["version"] not in mbwOnlyVersions for x in discovery["selectedMigrations"]))
+                    currentVersion = discovery["currentVersion"]
+                    self.assertTrue(any(f'V{currentVersion}__' in x["path"] for x in discovery["selectedMigrations"]))
+                    self.assertTrue(all(str(currentVersion) in x["rollbackPath"] for x in discovery["selectedMigrations"]))
                     self.assertEqual(stages, [x["stage"] for x in plan["stages"]])
                     self.assertTrue(all(re.fullmatch(r"[0-9a-f]{64}", x["planSha256"]) for x in plan["stages"]))
                     self.assertFalse(plan["discovery"]["fullHistoricalLifecycleEvidence"])

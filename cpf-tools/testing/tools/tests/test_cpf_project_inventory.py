@@ -38,4 +38,8 @@ class ProjectInventoryTest(unittest.TestCase):
         p=r/'cpf-core/src/main/java/com/cpf/core/api/demo/DemoApi.java'
         p.write_text('package com.cpf.core.api.demo; import com.cpf.core.internal.Secret; public final class DemoApi { public String value(){ return Secret.class.getName(); } }', encoding='utf-8')
         self.assertEqual(self.run_gen(r,o).returncode,0); cp=self.run_verify(r,o); self.assertEqual(cp.returncode,0,cp.stdout+cp.stderr)
+    def test_real_repository_root_gradle_properties_is_owned(self):
+        # 실제 Repository Root의 gradle.properties가 owner 분류에서 다시 UNOWNED로 회귀하지 않도록 고정한다.
+        policy=json.loads((ROOT/'cpf-tools/governance/cpf-product-surface-policy.json').read_text(encoding='utf-8-sig'))
+        self.assertIn('gradle.properties', policy.get('rootFiles', []))
 if __name__=='__main__': unittest.main()

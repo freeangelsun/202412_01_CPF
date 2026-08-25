@@ -26,7 +26,7 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
     @Test
     void submitReturnsOnlyAnEquivalentReplay() {
         BackofficeApprovalPolicyRepository repository = replayRepository();
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
         service.submit(submitRequest("title", "{}", DUE_AT), "login-1");
 
@@ -36,7 +36,7 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
     @Test
     void submitRejectsDivergentIdempotencyReplay() {
         BackofficeApprovalPolicyRepository repository = replayRepository();
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
         assertThatThrownBy(() -> service.submit(submitRequest("different", "{}", DUE_AT), "login-1"))
                 .isInstanceOf(CpfValidationException.class)
@@ -47,7 +47,7 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
     void submitRejectsPastDueAtBeforeAnyInsert() {
         BackofficeApprovalPolicyRepository repository = mock(BackofficeApprovalPolicyRepository.class);
         when(repository.findEmployeeNoByLoginId("login-1")).thenReturn(Optional.of("E-1"));
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
         assertThatThrownBy(() -> service.submit(
                 submitRequest("title", "{}", Instant.now().minusSeconds(1)), "login-1"))
@@ -69,10 +69,12 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
                 "decisionComment", "ok")));
         when(repository.findDocument(7L)).thenReturn(Optional.of(existingDocument()));
         when(repository.findLineStatuses(7L)).thenReturn(List.of());
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
+        // 이 Test는 idempotencyKey replay 단락 경로만 검증하므로 아직 도달하지 않는
+        // CAS(expectedVersionNo/expectedPayloadHash) 검증 값은 null로 둔다.
         service.decide(7L, new BackofficeApprovalPolicyService.DecisionRequest(
-                "APPROVE", "idem-decision", "reason", "ok"), "login-1");
+                "APPROVE", "idem-decision", "reason", "ok", null, null), "login-1");
 
         verify(repository, never()).decideParticipant(
                 org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyString(),
@@ -86,10 +88,10 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
         when(repository.findEmployeeNoByLoginId("login-1")).thenReturn(Optional.of("E-1"));
         when(repository.participantDecisionExists("idem-decision")).thenReturn(true);
         when(repository.findParticipants(7L)).thenReturn(List.of());
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
         assertThatThrownBy(() -> service.decide(7L, new BackofficeApprovalPolicyService.DecisionRequest(
-                "APPROVE", "idem-decision", "reason", "ok"), "login-1"))
+                "APPROVE", "idem-decision", "reason", "ok", null, null), "login-1"))
                 .isInstanceOf(CpfValidationException.class)
                 .hasMessageContaining("다른 결재");
     }
@@ -98,12 +100,22 @@ class BackofficeApprovalPolicyServiceIdempotencyTest {
     void ambiguousLifecycleReplayFailsClosedUntilHistoryOwnerQueryExists() {
         BackofficeApprovalPolicyRepository repository = mock(BackofficeApprovalPolicyRepository.class);
         when(repository.historyActionExists("idem-life")).thenReturn(true);
-        BackofficeApprovalPolicyService service = new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+        BackofficeApprovalPolicyService service = newService(repository);
 
         assertThatThrownBy(() -> service.withdraw(7L,
                 new BackofficeApprovalPolicyService.LifecycleRequest("idem-life", "reason", "comment"), "login-1"))
                 .isInstanceOf(CpfValidationException.class)
                 .hasMessageContaining("안전하게");
+    }
+
+    /** Production 생성자와 동일하게 맞춘 공용 Test 조립 지점입니다. */
+    static BackofficeApprovalPolicyService newService(BackofficeApprovalPolicyRepository repository) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return new BackofficeApprovalPolicyService(
+                repository,
+                objectMapper,
+                new BackofficeApprovalDocumentAssembler(objectMapper),
+                mock(BackofficeApprovalExecutionCoordinator.class));
     }
 
     private static BackofficeApprovalPolicyRepository replayRepository() {

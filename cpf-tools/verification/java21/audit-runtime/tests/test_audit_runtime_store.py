@@ -6,6 +6,6 @@ class AuditRuntimeHarnessTest(unittest.TestCase):
   with tempfile.TemporaryDirectory() as td:
    p=subprocess.run(['python',str(here/'run-audit-runtime-harness.py'),'--work-dir',td,'--source-head','cb305fc5363263c9607e990ba640233c28668f01'],text=True,capture_output=True)
    self.assertEqual(0,p.returncode,p.stdout+p.stderr)
-   r=json.loads((Path(td)/'result.json').read_text())
+   r=json.loads((Path(td)/'result.json').read_text(encoding="utf-8"))
    self.assertEqual(220,r['record_count']); self.assertGreater(r['count_after_kill'],r['count_before_kill']); self.assertEqual([],r['secret_leaks'])
 if __name__=='__main__': unittest.main()

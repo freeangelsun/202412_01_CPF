@@ -45,7 +45,7 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
     def test_hash_drift_fails(self):
         root = self.copy_fixture()
         path = root / "cpf-common/src/main/resources/cpf-sql/cmn/calendar/find.sql"
-        path.write_text(path.read_text() + "\n-- drift\n")
+        path.write_text(path.read_text(encoding="utf-8") + "\n-- drift\n", encoding="utf-8")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
     def test_missing_declared_runtime_resource_fails(self):
@@ -57,22 +57,22 @@ class CmnRuntimeQueryContractTest(unittest.TestCase):
     def test_parameter_count_mismatch_fails(self):
         root = self.copy_fixture()
         path = root / "cpf-tools/db/metadata/platform-runtime-query-contract.json"
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         cmn = next(m for m in data["modules"] if m["module"] == "cmn")
         cmn["statements"][0]["parameterCount"] += 1
-        path.write_text(json.dumps(data))
+        path.write_text(json.dumps(data), encoding="utf-8")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
     def test_consumer_reference_is_required(self):
         root = self.copy_fixture()
         path = root / "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
-        path.write_text(path.read_text().replace("calendar/find.sql", "calendar/not-declared.sql"))
+        path.write_text(path.read_text(encoding="utf-8").replace("calendar/find.sql", "calendar/not-declared.sql"), encoding="utf-8")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
     def test_inline_sql_fails(self):
         root = self.copy_fixture()
         path = root / "cpf-common/src/main/java/com/cpf/common/calendar/CmnJdbcCalendarStore.java"
-        path.write_text(path.read_text() + '\nclass BadSql { String sql = "SELECT * FROM forbidden"; }\n')
+        path.write_text(path.read_text(encoding="utf-8") + '\nclass BadSql { String sql = "SELECT * FROM forbidden"; }\n', encoding="utf-8")
         self.assertEqual("FAIL", MOD.evaluate(root)["status"])
 
 

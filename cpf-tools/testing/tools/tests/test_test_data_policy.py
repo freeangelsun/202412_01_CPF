@@ -7,7 +7,7 @@ SCHEMA=json.loads((ROOT/'cpf-tools/db/canonical/platform-schema.json').read_text
 WRAPPER=(ROOT/'cpf-tools/testing/tools/prepare-cpf-test-data.ps1').read_text(encoding='utf-8-sig')
 class TestDataPolicyTest(unittest.TestCase):
  def run_gen(self,vendor,mode):
-  td=tempfile.TemporaryDirectory();base=Path(td.name);sql=base/f'{vendor}-{mode}.sql';inv=base/'inventory.json';p=subprocess.run([sys.executable,str(GEN),'--root',str(ROOT),'--vendor',vendor,'--mode',mode,'--output',str(sql),'--inventory',str(inv)],text=True,capture_output=True);self.assertEqual(0,p.returncode,p.stderr);return td,sql.read_text(),json.loads(inv.read_text())
+  td=tempfile.TemporaryDirectory();base=Path(td.name);sql=base/f'{vendor}-{mode}.sql';inv=base/'inventory.json';p=subprocess.run([sys.executable,str(GEN),'--root',str(ROOT),'--vendor',vendor,'--mode',mode,'--output',str(sql),'--inventory',str(inv)],text=True,capture_output=True);self.assertEqual(0,p.returncode,p.stderr);return td,sql.read_text(encoding="utf-8"),json.loads(inv.read_text(encoding="utf-8"))
  def test_masking_generated_for_all_vendors_and_excludes_formal_keys(self):
   for vendor in ('mariadb','postgresql','oracle'):
    td,sql,inv=self.run_gen(vendor,'mask')

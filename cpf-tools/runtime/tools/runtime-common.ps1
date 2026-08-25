@@ -128,6 +128,9 @@ function Get-CpfGeneratedRuntimeModuleMap {
     $generated = @()
     foreach ($domain in @(Get-CpfGeneratedDomainInventory -Root $resolvedRoot)) {
         if (-not [bool]$domain.exists -or -not [bool]$domain.onlineEnabled) { continue }
+        # Prebuilt Domain(cpf-backoffice/MBW)은 Get-CpfRuntimePlatformModuleMap의 static entry가 이미
+        # 소유한다. 동일 cpf.domain.* 계약을 공유한다는 이유로 여기서 다시 추가하면 identity가 중복된다.
+        if ([string]$domain.generationMode -eq 'prebuilt') { continue }
         if (@($domain.forbiddenPermanentMetadata).Count -gt 0) {
             throw "Generated Domain에 영구 lifecycle metadata가 남아 있습니다: $($domain.projectName)"
         }

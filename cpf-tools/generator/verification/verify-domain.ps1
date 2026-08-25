@@ -6,6 +6,7 @@ param(
     [string] $OutputDir = '',
     [string] $Root = (Resolve-Path "$PSScriptRoot\..\..\..").Path,
     [string] $ResultDir = '',
+    [ValidateSet('mariadb', 'postgresql', 'oracle')][string] $DatabaseVendor = 'mariadb',
     [switch] $SkipBuild
 )
 
@@ -62,14 +63,26 @@ if (-not $SkipBuild) {
         throw "Gradle wrapper가 없습니다: $gradle"
     }
     $build.executed = $true
+    # Standalone Generated Domain build은 Private Source composite에 참여하지 않으므로
+    # Public Artifact를 isolated repository에서 resolve해야 한다(-PcpfProductCompositeRoot 회귀검증과 별개 경로).
+    # Root build가 이미 게시한 격리 Local Artifact Repository를 재사용하고, mavenLocal이나 실제 외부
+    # network에는 의존하지 않는다(cpf-tools/build/cpf-root-conventions.gradle의 CpfLocal publication과 동일 경로).
+    $localArtifactRepository = Join-Path $Root 'cpf-docs/work/evidence/generated/gradle/root-build/cpf-local-artifact-repository'
+    if (-not (Test-Path -LiteralPath $localArtifactRepository -PathType Container)) {
+        throw "Isolated Local Artifact Repository가 없습니다: $localArtifactRepository (Root Gradle 게시 단계를 먼저 실행하세요)"
+    }
+    $localArtifactRepositoryUri = ([Uri](Join-Path $localArtifactRepository '')).AbsoluteUri
+    $previousMavenRepositoryUrl = $env:CPF_MAVEN_REPOSITORY_URL
+    $env:CPF_MAVEN_REPOSITORY_URL = $localArtifactRepositoryUri
     $oldPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = @(& $gradle -p $OutputDir clean test assemble --no-daemon --console=plain 2>&1 |
+        $output = @(& $gradle -p $OutputDir clean test assemble --no-daemon --console=plain "-PcpfDbVendor=$DatabaseVendor" 2>&1 |
             ForEach-Object { $_.ToString() })
         $build.exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $oldPreference
+        $env:CPF_MAVEN_REPOSITORY_URL = $previousMavenRepositoryUrl
     }
     [IO.File]::WriteAllText($buildLogPath, ($output -join "`n") + "`n", $Utf8NoBom)
     if ($build.exitCode -ne 0) {

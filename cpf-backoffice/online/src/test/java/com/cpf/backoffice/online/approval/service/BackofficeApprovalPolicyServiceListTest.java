@@ -2,7 +2,6 @@ package com.cpf.backoffice.online.approval.service;
 
 import com.cpf.backoffice.online.approval.repository.BackofficeApprovalPolicyRepository;
 import com.cpf.core.api.error.CpfValidationException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,8 +16,7 @@ import static org.mockito.Mockito.when;
 
 class BackofficeApprovalPolicyServiceListTest {
     private final BackofficeApprovalPolicyRepository repository = mock(BackofficeApprovalPolicyRepository.class);
-    private final BackofficeApprovalPolicyService service =
-            new BackofficeApprovalPolicyService(repository, new ObjectMapper());
+    private final BackofficeApprovalPolicyService service = BackofficeApprovalPolicyServiceIdempotencyTest.newService(repository);
 
     @Test
     void submissionsAreRestrictedToAuthenticatedEmployeeAndBounded() {

@@ -1,5 +1,6 @@
 -- CPF_LOGICAL_DATABASE=mbwDB
 -- Append-only migration: legacy BZA physical tables become canonical MBW Backoffice tables.
+USE mbwDB;
 RENAME TABLE bza_admin_user TO MBW_ADMIN_USER;
 RENAME TABLE bza_approval_delegation TO MBW_APPROVAL_DELEGATION;
 RENAME TABLE bza_approval_document TO MBW_APPROVAL_DOCUMENT;

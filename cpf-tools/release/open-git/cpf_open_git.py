@@ -153,7 +153,10 @@ def run(cmd: list[str], cwd: Path, *, capture: bool = False, env: dict[str, str]
     print(command_line, flush=True)
     _append_log(command_line)
     if capture:
-        cp = subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, env=env, check=False)
+        # CPF 도구/Gradle 출력에는 한글이 포함된다. text=True에 encoding을 지정하지 않으면
+        # Windows 기본 로케일(cp949 등)로 디코딩하다 UnicodeDecodeError로 실패한다.
+        cp = subprocess.run(cmd, cwd=cwd, text=True, encoding="utf-8", errors="replace",
+                            capture_output=True, env=env, check=False)
         combined = _redact_sensitive_text((cp.stdout or "") + (cp.stderr or ""), secrets)
         if combined:
             _append_log(combined)
@@ -162,7 +165,8 @@ def run(cmd: list[str], cwd: Path, *, capture: bool = False, env: dict[str, str]
             raise OpenGitReleaseError(f"command failed exit={cp.returncode}: {display_cmd}")
         return (cp.stdout or "").strip()
 
-    process = subprocess.Popen(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, bufsize=1)
+    process = subprocess.Popen(cmd, cwd=cwd, text=True, encoding="utf-8", errors="replace",
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, bufsize=1)
     assert process.stdout is not None
     for line in process.stdout:
         safe_line = _redact_sensitive_text(line, secrets)

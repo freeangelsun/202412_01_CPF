@@ -9,7 +9,7 @@ class EduIsolationTest(unittest.TestCase):
  def test_valid(self):
   t,r,p,f=self.fixture();self.addCleanup(t.cleanup);self.assertEqual([],m.validate(r))
  def test_product_default_rejected(self):
-  t,r,p,f=self.fixture();self.addCleanup(t.cleanup);p.write_text(p.read_text(encoding="utf-8")+' CPF_EDU_TASKLET_JOB', encoding="utf-8");self.assertTrue(m.validate(r))
+  t,r,p,f=self.fixture();self.addCleanup(t.cleanup);p.write_text(p.read_text(encoding="utf-8")+' CPF_EDU_TASKLET_JOB', encoding="utf-8");self.assertTrue(m.validate(r), encoding="utf-8")
  def test_identifier_outside_fixture_rejected(self):
   t,r,p,f=self.fixture();self.addCleanup(t.cleanup);x=r/'cpf-admin/frontend/src/other.ts';x.write_text('CPF_REF_CENTER_CUT_SAMPLE_JOB', encoding="utf-8");self.assertTrue(any('outside' in e for e in m.validate(r)))
  def test_missing_profile_guard_rejected(self):

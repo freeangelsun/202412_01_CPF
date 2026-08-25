@@ -118,7 +118,7 @@ WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
 
 -- CPF_LOGICAL_DATABASE=mbwDB
 SELECT 'mbwDB.table_count' AS check_name,
-       IF(COUNT(*) = 29, 1, 0) AS passed
+       IF(COUNT(*) = 30, 1, 0) AS passed
 FROM information_schema.tables
 WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE';
 
@@ -130,14 +130,15 @@ WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'
        OR LOWER(COALESCE(table_collation, '')) <> 'utf8mb4_unicode_ci');
 
 SELECT 'mbwDB.runtime_transaction_id_contract' AS check_name,
-       IF(COUNT(*) = 6 AND COALESCE(SUM(CASE
+       IF(COUNT(*) = 7 AND COALESCE(SUM(CASE
            WHEN UPPER(table_name) = 'MBW_APPROVAL_DOCUMENT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
            WHEN UPPER(table_name) = 'MBW_APPROVAL_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
+           WHEN UPPER(table_name) = 'MBW_APPROVAL_EXECUTION' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
            WHEN UPPER(table_name) = 'MBW_BUSINESS_AUDIT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
            WHEN UPPER(table_name) = 'MBW_DOWNLOAD_AUDIT' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
            WHEN UPPER(table_name) = 'MBW_LOGIN_HISTORY' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
            WHEN UPPER(table_name) = 'MBW_REFRESH_TOKEN' AND LOWER(data_type) = 'char' AND character_maximum_length = 34 THEN 1
-           ELSE 0 END), 0) = 6, 1, 0) AS passed
+           ELSE 0 END), 0) = 7, 1, 0) AS passed
 FROM information_schema.columns
 WHERE table_schema = DATABASE() AND LOWER(column_name) = 'transaction_id';
 

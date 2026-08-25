@@ -611,6 +611,16 @@ gradle.projectsEvaluated {
     def assemblies = subprojects.collect { p -> p.tasks.findByName('assemble') }.findAll { it != null }
     tasks.named('aggregateQualityBuild') { dependsOn checks; dependsOn assemblies }
 
+    // 주의: settings.gradle의 -PcpfIncludeGeneratedDomains=true는 Generated Customer Domain을
+    // Composite로 "Mount"만 한다(dependencySubstitution 목적). Included Build의 Task는 Root Task
+    // 그래프에 자동으로 들어오지 않으므로, 이 Flag만으로는 Generated Domain이 실제로 compile/test/
+    // package되지 않고 조용히 통과한다(--dry-run으로 Task 0개 확인).
+    // cpf-member는 cpf-external이 형제 Domain 의존으로 먼저 포함해 이름도 'cpf-domain-member'로
+    // 바뀌며, 중첩 Included Build에 대한 gradle.includedBuild(...).task(':build') 연결은 이 구성에서
+    // Task 그래프에 반영되지 않는 것을 실측 확인했다.
+    // 따라서 Generated Domain 회귀 Build는 각 Domain의 standalone composite Build로 명시 수행한다
+    // (cpf-tools/verification/tools/run-cpf-local-full-validation.ps1의 GENERATED_DOMAIN_BUILD 단계).
+
     def publicationChecks = subprojects.collectMany { p ->
         p.tasks.matching { t -> t.name.startsWith('generatePomFileFor') && t.name.endsWith('Publication') }.toList()
     }
@@ -619,7 +629,14 @@ gradle.projectsEvaluated {
     def isolatedPublicationTasks = subprojects.collectMany { p ->
         p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfLocalRepository') }.toList()
     }
-    tasks.named('cpfPublishToIsolatedLocal') { dependsOn isolatedPublicationTasks }
+    // cpf-platform-bom은 별도 Included Build이므로 subprojects 집계에 절대 포함되지 않는다.
+    // publishCpfVerifiedLocalPlatformArtifacts가 Staging 쪽에서 gradle.includedBuild(...)로 명시 연결하는 것과
+    // 동일한 패턴으로 Local 쪽도 명시 연결해야 Standalone Generated Domain 빌드가 com.cpf:cpf-platform-bom을
+    // 격리 Local Repository에서 정상적으로 해석할 수 있다.
+    tasks.named('cpfPublishToIsolatedLocal') {
+        dependsOn isolatedPublicationTasks
+        dependsOn gradle.includedBuild('cpf-platform-bom').task(':publishCpfBomToLocal')
+    }
 
     def allStagingPublicationTasks = subprojects.collectMany { p ->
         p.tasks.matching { t -> t.name.startsWith('publish') && t.name.endsWith('ToCpfStagingRepository') }.toList()
@@ -808,10 +825,17 @@ gradle.projectsEvaluated {
                 'com.cpf.starter:cpf-starter-file-attachment': ':starters:file:attachment',
                 'com.cpf.testkit:cpf-testkit': ':internal:testing:testkit'
         ]
-        backoffice.configurations.configureEach { configuration ->
-            configuration.resolutionStrategy.dependencySubstitution { rules ->
-                substitutions.each { gav, projectPath ->
-                    rules.substitute rules.module(gav) using rules.project(projectPath) because 'CPF root regression uses current Public Starter Source'
+        // apps:backoffice 자신의 Standalone 계약(Public GAV)은 그대로 유지하되, 동일 GAV를
+        // project(...)로도 참조하는 다른 root-owned aggregator(runtime:local 등)가 apps:backoffice를
+        // 함께 조립할 때 같은 artifact가 module 좌표와 project 좌표 두 경로로 동시에 해석되어
+        // bootJar Copy 단계에서 "Entry ... is a duplicate"로 fail하지 않도록, 이 substitution을
+        // apps:backoffice 자신뿐 아니라 root 전체 subproject 해석 경로에도 동일하게 적용한다.
+        rootProject.allprojects.each { project ->
+            project.configurations.configureEach { configuration ->
+                configuration.resolutionStrategy.dependencySubstitution { rules ->
+                    substitutions.each { gav, projectPath ->
+                        rules.substitute rules.module(gav) using rules.project(projectPath) because 'CPF root regression uses current Public Starter Source'
+                    }
                 }
             }
         }

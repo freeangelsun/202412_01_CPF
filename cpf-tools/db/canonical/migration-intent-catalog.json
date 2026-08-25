@@ -3,7 +3,8 @@
   "owner": "cpf-tools/db",
   "contract": "CPF_DB_MIGRATION_INTENT_CATALOG",
   "baseline": {
-    "sourceCommit": "6b2d5d669c2e3e6c44f7b7350ce3577c428df20a",
+    "sourceCommit": "85ad612f740293b93e2ce28a2ce4623ad4504508",
+    "sourceCommitReanchorNote": "Re-anchored 2026-08-25 after repository history squash/reset invalidated the original sourceCommit 6b2d5d669c2e3e6c44f7b7350ce3577c428df20a; see cpf-tools/db/canonical/immutable-migration-checksums.json baselineReanchorNote.",
     "historicalMigrationImmutable": true,
     "rendererRegeneratesHistoricalMigration": false,
     "currentSnapshotRoot": "cpf-tools/db/generated/current"

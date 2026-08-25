@@ -417,6 +417,31 @@
       "inlineSqlPolicy": "PORTABLE_ONLY",
       "statements": [
         {
+          "key": "approval-policy-repository-claim-execution-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "expectedFence",
+            "operatorId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-complete-execution-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "expectedStatus",
+            "fenceToken",
+            "operatorId",
+            "recoveryRequiredYn",
+            "resultCode",
+            "resultMessage",
+            "status"
+          ]
+        },
+        {
           "key": "approval-policy-repository-decide-participant-01",
           "consumer": "BackofficeApprovalPolicyRepository",
           "usage": "ACTIVE",
@@ -489,6 +514,22 @@
           "usage": "ACTIVE",
           "parameters": [
             "loginId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-execution-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-find-history-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId"
           ]
         },
         {
@@ -579,6 +620,19 @@
           "usage": "ACTIVE",
           "parameters": [
             "key"
+          ]
+        },
+        {
+          "key": "approval-policy-repository-insert-execution-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "approvedBy",
+            "commandRequestId",
+            "operatorId",
+            "ownerAction",
+            "transactionId"
           ]
         },
         {
@@ -818,6 +872,16 @@
           ]
         },
         {
+          "key": "approval-policy-repository-start-reconcile-01",
+          "consumer": "BackofficeApprovalPolicyRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "approvalId",
+            "expectedFence",
+            "operatorId"
+          ]
+        },
+        {
           "key": "approval-policy-repository-update-document-status-01",
           "consumer": "BackofficeApprovalPolicyRepository",
           "usage": "ACTIVE",
@@ -839,31 +903,6 @@
             "lineId",
             "operatorId",
             "status"
-          ]
-        },
-        {
-          "key": "auth-bootstrap-operator-bind-operation",
-          "consumer": "BackofficeAuthRepository",
-          "usage": "ACTIVE",
-          "parameters": [
-            "loginId",
-            "operationId"
-          ]
-        },
-        {
-          "key": "auth-bootstrap-operator-find-login",
-          "consumer": "BackofficeAuthRepository",
-          "usage": "ACTIVE",
-          "parameters": [
-            "loginId"
-          ]
-        },
-        {
-          "key": "auth-bootstrap-operator-find-operation",
-          "consumer": "BackofficeAuthRepository",
-          "usage": "ACTIVE",
-          "parameters": [
-            "operationId"
           ]
         },
         {
@@ -942,6 +981,31 @@
             "passwordExpireAt",
             "passwordHash",
             "roleCode"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-bind-operation",
+          "consumer": "BackofficeAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId",
+            "operationId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-find-login",
+          "consumer": "BackofficeAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "loginId"
+          ]
+        },
+        {
+          "key": "auth-bootstrap-operator-find-operation",
+          "consumer": "BackofficeAuthRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "operationId"
           ]
         },
         {
@@ -1872,6 +1936,23 @@
           ]
         },
         {
+          "key": "operation-repository-count-menu-permissions-01",
+          "consumer": "BackofficeOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "menuCode"
+          ]
+        },
+        {
+          "key": "operation-repository-delete-menu-01",
+          "consumer": "BackofficeOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": [
+            "expectedVersion",
+            "menuCode"
+          ]
+        },
+        {
           "key": "operation-repository-ensure-initial-user-role-01",
           "consumer": "BackofficeOperationRepository",
           "usage": "ACTIVE",
@@ -1902,6 +1983,12 @@
           "parameters": [
             "code"
           ]
+        },
+        {
+          "key": "operation-repository-find-menu-hierarchy-01",
+          "consumer": "BackofficeOperationRepository",
+          "usage": "ACTIVE",
+          "parameters": []
         },
         {
           "key": "operation-repository-find-permission-01",
@@ -2382,29 +2469,6 @@
             "searchName",
             "sharedYn"
           ]
-        },
-        {
-          "key": "operation-repository-count-menu-permissions-01",
-          "consumer": "BackofficeOperationRepository",
-          "usage": "ACTIVE",
-          "parameters": [
-            "menuCode"
-          ]
-        },
-        {
-          "key": "operation-repository-delete-menu-01",
-          "consumer": "BackofficeOperationRepository",
-          "usage": "ACTIVE",
-          "parameters": [
-            "expectedVersion",
-            "menuCode"
-          ]
-        },
-        {
-          "key": "operation-repository-find-menu-hierarchy-01",
-          "consumer": "BackofficeOperationRepository",
-          "usage": "ACTIVE",
-          "parameters": []
         }
       ],
       "managedMyBatis": [],

@@ -11,13 +11,13 @@ def main():
  req=['CpfObjectStorageOperations.java','CpfObjectStorageRequest.java','CpfObjectStorageMetadata.java','CpfObjectStorageScanHook.java','CpfObjectStorageLifecycleHook.java']
  miss=[x for x in req if not (api/x).is_file()]
  if miss:return fail('missingApi='+','.join(miss))
- s=(root/'cpf-starters/file/object-storage/s3/src/main/java/com/cpf/file/objectstorage/s3/CpfS3ObjectStorageOperations.java').read_text()
+ s=(root/'cpf-starters/file/object-storage/s3/src/main/java/com/cpf/file/objectstorage/s3/CpfS3ObjectStorageOperations.java').read_text(encoding="utf-8")
  for token in ['DigestInputStream','checksum mismatch','serverSideEncryption(ServerSideEncryption.AWS_KMS)','presignGet','presignPut','beginMultipart','uploadPart','completeMultipart','abortMultipartOlderThan','lifecycle.beforeDelete','scan.inspect','tenantId','CpfContextAwareInputStream']:
   if token not in s:return fail('s3WitnessMissing='+token)
- auto=(root/'cpf-starters/file/object-storage/s3/src/main/java/com/cpf/file/objectstorage/s3/CpfObjectStorageAutoConfiguration.java').read_text()
+ auto=(root/'cpf-starters/file/object-storage/s3/src/main/java/com/cpf/file/objectstorage/s3/CpfObjectStorageAutoConfiguration.java').read_text(encoding="utf-8")
  for token in ['apiCallTimeout','apiCallAttemptTimeout','retryStrategy','maxAttempts','CpfObjectStorageReconciler','ConditionalOnProperty']:
   if token not in auto:return fail('autoconfigMissing='+token)
- meta=json.loads((root/'cpf-starters/file/object-storage/s3/src/main/resources/META-INF/additional-spring-configuration-metadata.json').read_text())
+ meta=json.loads((root/'cpf-starters/file/object-storage/s3/src/main/resources/META-INF/additional-spring-configuration-metadata.json').read_text(encoding="utf-8"))
  names={x['name'] for x in meta['properties']}
  for n in ['cpf.file.object-storage.s3.kms-key-id','cpf.file.object-storage.s3.max-attempts','cpf.file.object-storage.s3.orphan-multipart-age','cpf.file.object-storage.s3.allow-presigned-put']:
   if n not in names:return fail('metadataMissing='+n)

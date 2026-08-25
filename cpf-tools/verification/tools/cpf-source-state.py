@@ -18,7 +18,7 @@ from pathlib import Path
 GENERATED_PARTS = {
     "cpf-release",
     ".git", ".gradle", ".idea", ".pytest_cache", "__pycache__", "node_modules",
-    "dist", ".vite", "playwright-report", "test-results", "target", "out", "bin", "coverage",
+    "dist", ".vite", "playwright-report", "test-results", "target", "out", "coverage",
 }
 GENERATED_FILES = {".coverage"}
 GENERATED_FILE_PATTERNS = (
@@ -53,6 +53,11 @@ def _is_generated(rel: str) -> bool:
         return True
     # Gradle/module build outputs are generated, but cpf-tools/build/** is checked-in product source.
     if "build" in parts and not rel.startswith("cpf-tools/build/"):
+        return True
+    # Eclipse/IDE module-root compiled output is generated, but a literal "bin" segment under a
+    # "templates" directory is checked-in product source (customer-facing CLI template scripts
+    # meant to be installed into an end user's own bin/ folder, e.g. cpf-tools/release/*/templates/bin/).
+    if "bin" in parts and "templates" not in parts:
         return True
     return False
 

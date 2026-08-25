@@ -92,12 +92,16 @@ public class CpfRuntimeControlAgent {
         this.appliers = Map.copyOf(map);
     }
 
-    /** 기존 생성 코드 호환입니다. */
+    /**
+     * 기존 생성 코드 호환입니다. 명시적 inbox 경로가 없으면 현재 작업 디렉터리를 오염시키지 않도록
+     * {@code java.io.tmpdir} 기반 기본 경로를 사용한다({@link CpfRuntimeControlAgentAutoConfiguration}과 동일한 관례).
+     */
     public CpfRuntimeControlAgent(CpfRuntimeAgentPort controlPlane,
                                   CpfRuntimeInstanceRegistration registration,
                                   List<CpfRuntimeChangeApplier> appliers) {
         this(controlPlane, registration, appliers,
-                new CpfRuntimeInstanceInboxStore(java.nio.file.Path.of("runtime", "cpf-inbox", registration.instanceId())));
+                new CpfRuntimeInstanceInboxStore(java.nio.file.Path.of(
+                        System.getProperty("java.io.tmpdir"), "cpf-runtime-inbox", registration.instanceId())));
     }
 
     @PostConstruct

@@ -37,6 +37,12 @@ Set-Location $RepoRoot
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) { $OutputRoot = Join-Path $HOME 'Downloads' }
 [IO.Directory]::CreateDirectory($OutputRoot) | Out-Null
 if ([string]::IsNullOrWhiteSpace($DockerSecretFile)) { $DockerSecretFile = Join-Path $DockerRoot 'Secrets\cpf-runtime.env' }
+# Docker Secret env가 이미 있으면(최초 설치는 별도 절차) 각 DB Module fallback Password Key 중
+# 누락된 것만 기존 CPF_ADMIN_PASSWORD 값을 재사용해 자동으로 채운다. 실제 값은 절대 출력하지 않는다.
+$ensureSecretsTool = Join-Path $RepoRoot 'cpf-tools\environment\docker-development-test\ensure-cpf-runtime-secrets.ps1'
+if ((Test-Path -LiteralPath $DockerSecretFile -PathType Leaf) -and (Test-Path -LiteralPath $ensureSecretsTool -PathType Leaf)) {
+    try { & $ensureSecretsTool -SecretFile $DockerSecretFile | Out-Null } catch { Write-Warning "CPF Docker Secret 자동 provisioning을 건너뜁니다: $($_.Exception.Message)" }
+}
 
 $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 $finalResultDir = Join-Path $OutputRoot "CPF_LOCAL_VALIDATION_$stamp"
@@ -204,9 +210,13 @@ function Test-CpfDockerFunctionalReadiness([string]$Target,[string]$Container) {
         kafka=@('exec',$Container,'/opt/kafka/bin/kafka-topics.sh','--bootstrap-server','localhost:9092','--list')
     }
     if($Target -eq 'oracle'){
-        # Oracle Free image의 healthcheck 자체가 SQL readiness를 포함하므로 healthy 상태를 재확인합니다.
-        $health=(& $docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $Container 2>$null | Out-String).Trim()
-        return $LASTEXITCODE -eq 0 -and $health -eq 'healthy'
+        # docker compose up 경로에서 Oracle Free 이미지 자체 내장 HEALTHCHECK가 정상 상속되지 않고
+        # 깨진 bare "healthcheck.sh"(exit 127)로 대체되는 현상이 이 host에서 실측 확인됨
+        # (동일 이미지 bare `docker run`/`docker compose config`는 정상, 오직 실제 `docker compose up`
+        # 결과 컨테이너만 비정상). Docker Health subsystem을 신뢰하지 않고, Oracle Free 이미지가
+        # 초기화 완료 시 stdout에 출력하는 공식 준비 완료 마커를 직접 확인한다.
+        $logs=(& $docker logs $Container 2>&1 | Out-String)
+        return $LASTEXITCODE -eq 0 -and $logs -match 'DATABASE IS READY TO USE!'
     }
     if(-not $commands.ContainsKey($Target)){return $false}
     & $docker @($commands[$Target]) *> $null
@@ -443,6 +453,26 @@ function New-CpfFrontendSandbox([string]$FrontendRelative,[string]$Name) {
     }
     $backendSource=Join-Path $RepoRoot "$moduleDir\src"
     if(Test-Path -LiteralPath $backendSource -PathType Container){Copy-Item -LiteralPath $backendSource -Destination $sandboxModule -Recurse -Force}
+    $moduleBuildGradle=Join-Path $RepoRoot "$moduleDir\build.gradle"
+    if(Test-Path -LiteralPath $moduleBuildGradle -PathType Leaf){Copy-Item -LiteralPath $moduleBuildGradle -Destination $sandboxModule -Force}
+    if($Name -eq 'ADM'){
+        # test-adm-bff-session-contract.mjs가 ../../../cpf-starters/security/session/jdbc 상대경로로
+        # BFF Session Bridge Source를 함께 검증하므로 read-only로 동일하게 복사한다.
+        $bffSessionSource=Join-Path $RepoRoot 'cpf-starters\security\session\jdbc\src'
+        if(Test-Path -LiteralPath $bffSessionSource -PathType Container){
+            $bffSessionTarget=Join-Path $sandboxRepo 'cpf-starters\security\session\jdbc'
+            [IO.Directory]::CreateDirectory($bffSessionTarget)|Out-Null
+            Copy-Item -LiteralPath $bffSessionSource -Destination $bffSessionTarget -Recurse -Force
+        }
+        # test-adm-system6-contract.mjs가 ../../../cpf-starters/platform-operations/observability 상대경로로
+        # Transaction Timeline Query Facade Source를 함께 검증하므로 read-only로 동일하게 복사한다.
+        $observabilitySource=Join-Path $RepoRoot 'cpf-starters\platform-operations\observability\src'
+        if(Test-Path -LiteralPath $observabilitySource -PathType Container){
+            $observabilityTarget=Join-Path $sandboxRepo 'cpf-starters\platform-operations\observability'
+            [IO.Directory]::CreateDirectory($observabilityTarget)|Out-Null
+            Copy-Item -LiteralPath $observabilitySource -Destination $observabilityTarget -Recurse -Force
+        }
+    }
     if($Name -eq 'BACKOFFICE'){
         $permissionSource=Join-Path $RepoRoot 'cpf-tools\db\metadata\backoffice-permission-manifest.json'
         if(Test-Path -LiteralPath $permissionSource -PathType Leaf){
@@ -612,8 +642,12 @@ if($python){
 }else{Skip-CpfStage 'PYTHON_SUITE' 'python missing'}
 
 # 2. Java/Gradle. Frontend는 이 단계에서 제외하고 순차 실행해 노트북 OOM을 피한다.
+# Codex T1-01(CODEX_REVALIDATION_REQUEST.md)은 -PcpfIncludeGeneratedDomains=true Root Build를 Tier-1
+# 필수 승인 기준으로 요구한다. Generated Domain의 batch Sub-project(cpf.domain.batch=true)는 자체
+# build.gradle이 -PcpfDbVendor를 fail-closed로 요구하므로 함께 지정해야 DEPLOYMENT_FULL_DISTRIBUTED_
+# ARTIFACT_PACK이 필요로 하는 cpf-<domain>-batch Artifact까지 이 단계에서 실제로 생성된다.
 if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
-    $gradleBase=@("-PcpfResourceProfile=$ResourceProfile",'-PcpfSkipFrontendBuild=true','--no-daemon','--no-parallel','--stacktrace')
+    $gradleBase=@("-PcpfResourceProfile=$ResourceProfile",'-PcpfSkipFrontendBuild=true','-PcpfIncludeGeneratedDomains=true','-PcpfDbVendor=mariadb','--no-daemon','--no-parallel','--stacktrace')
     Invoke-CpfStage 'GRADLE_PROJECTS' $gradle (@('projects')+$gradleBase)
     Invoke-CpfStage 'GRADLE_HELP' $gradle (@('help')+$gradleBase)
     Invoke-CpfStage 'GRADLE_CPF_HELP' $gradle (@('cpfHelp')+$gradleBase)
@@ -622,6 +656,23 @@ if($java25Ready -and (Test-Path -LiteralPath $gradle -PathType Leaf)){
     Invoke-CpfStage 'GRADLE_ALL_JAVA_TESTS' $gradle (@('cpfTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_QA34_INTEGRATION' $gradle (@('qa34IntegrationTest','--continue')+$gradleBase)
     Invoke-CpfStage 'GRADLE_PUBLICATION' $gradle (@('publicationGate','cpfPublishToIsolatedLocal','--continue')+$gradleBase)
+
+    # Root의 -PcpfIncludeGeneratedDomains=true는 Generated Customer Domain을 Composite로 Mount만 하고
+    # 실제로 Build하지 않는다(--dry-run 기준 Generated Domain Task 0개). 따라서 Generated Domain 회귀
+    # Build는 각 Domain의 standalone composite Build로 명시 수행해야 하며, 이 단계가 있어야
+    # DEPLOYMENT_FULL_DISTRIBUTED_ARTIFACT_PACK이 요구하는 cpf-<domain>-online/batch Artifact가 생성된다.
+    # Generated Domain Source 자체는 Generator 소유이므로 여기서 수정하지 않고 Build만 수행한다.
+    foreach($domainDir in @(Get-ChildItem -LiteralPath $RepoRoot -Directory -Filter 'cpf-*' -ErrorAction SilentlyContinue)){
+        $contract=Join-Path $domainDir.FullName 'gradle.properties'
+        if(-not (Test-Path -LiteralPath $contract -PathType Leaf)){continue}
+        if(-not (Test-Path -LiteralPath (Join-Path $domainDir.FullName 'settings.gradle') -PathType Leaf)){continue}
+        $contractText=Get-Content -LiteralPath $contract -Raw -Encoding UTF8
+        if($contractText -notmatch '(?m)^cpf\.domain\.contractVersion='){continue}
+        if($contractText -match '(?m)^cpf\.domain\.generationMode\s*=\s*prebuilt\s*$'){continue}
+        $stageName='GENERATED_DOMAIN_BUILD_'+($domainDir.Name -replace '[^A-Za-z0-9]','_').ToUpperInvariant()
+        Invoke-CpfStage $stageName $gradle (@('build','--continue',"-PcpfProductCompositeRoot=$RepoRoot")+$gradleBase) $domainDir.FullName
+    }
+
     if($python){
         Invoke-CpfStage 'DEPLOYMENT_FULL_DISTRIBUTED_ARTIFACT_PACK' $python @('.\deploy\tools\prepare-distribution.py','--root','.', '--env','local','--topology','full-distributed','--output',(Join-Path $evidenceDir 'deployment-artifact\full-distributed'))
     }
@@ -709,10 +760,17 @@ if($IncludeRuntimeClosure){
 
         $batchDbEnv=Import-CpfEnvFile $DockerSecretFile
         $batchDbState=$null
+        $batchKafkaState=$null
         try{
             $batchDbState=Start-CpfDockerTarget 'mariadb'
+            # Batch 2-Worker Runtime은 Kafka에도 의존한다. 이전 MESSAGING_KAFKA_RELIABILITY 단계가
+            # 자신이 기동한 Kafka를 이미 정지시켰을 수 있으므로, 이 Stage도 자신의 자원을 스스로
+            # 기동/추적하고 자신이 기동한 Container만 finally에서 정지한다(사용자 기존 Container는 보존).
+            $batchKafkaState=Start-CpfDockerTarget 'kafka'
             if(-not $batchDbState.ready){
                 Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $batchDbState.reason
+            }elseif(-not $batchKafkaState.ready){
+                Skip-CpfStage 'BATCH_TWO_WORKER_CRASH_UNKNOWN' $batchKafkaState.reason
             }else{
                 $workerJar=Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'cpf-batch\worker\build\libs') -File -Filter '*.jar' -ErrorAction SilentlyContinue | Where-Object {$_.Name -notmatch 'plain'} | Select-Object -First 1
                 $adminPassword=[Environment]::GetEnvironmentVariable('CPF_ADMIN_PASSWORD','Process')
@@ -725,6 +783,7 @@ if($IncludeRuntimeClosure){
             }
         }finally{
             Stop-CpfDockerTargetIfOwned 'mariadb' $batchDbState
+            Stop-CpfDockerTargetIfOwned 'kafka' $batchKafkaState
             Restore-CpfEnvironment $batchDbEnv
         }
     }else{Skip-CpfStage 'RUNTIME_DOCKER_CLOSURE' 'IncludeRuntimeClosure requires pwsh + ready Docker and no SkipDocker'}

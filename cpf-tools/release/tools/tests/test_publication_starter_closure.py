@@ -65,10 +65,10 @@ def test_accepts_nested_starter_closure(tmp_path: Path) -> None:
 
 def test_rejects_legacy_flat_kind_and_consumer(tmp_path: Path) -> None:
     _, final_path, script_path = fixture(tmp_path)
-    final = json.loads(final_path.read_text())
+    final = json.loads(final_path.read_text(encoding="utf-8"))
     final["artifacts"][0]["kind"] = "starter"
     final_path.write_text(json.dumps(final), encoding="utf-8")
-    script_path.write_text(script_path.read_text() + "\nWhere-Object { [string]$_.kind -eq 'starter' }", encoding="utf-8")
+    script_path.write_text(script_path.read_text(encoding="utf-8") + "\nWhere-Object { [string]$_.kind -eq 'starter' }", encoding="utf-8")
     with pytest.raises(MODULE.GateError, match="legacy final artifact kind"):
         MODULE.verify(tmp_path)
 
@@ -76,7 +76,7 @@ def test_rejects_legacy_flat_kind_and_consumer(tmp_path: Path) -> None:
 
 def test_rejects_stale_static_baseline(tmp_path: Path) -> None:
     _, final_path, _ = fixture(tmp_path)
-    final = json.loads(final_path.read_text())
+    final = json.loads(final_path.read_text(encoding="utf-8"))
     final["baselineSha"] = "4aea798c913787e86341809e2cef2b9495cbf7ba"
     final_path.write_text(json.dumps(final), encoding="utf-8")
     with pytest.raises(MODULE.GateError, match="runtime Git HEAD baseline"):
@@ -84,7 +84,7 @@ def test_rejects_stale_static_baseline(tmp_path: Path) -> None:
 
 def test_rejects_owner_path_drift(tmp_path: Path) -> None:
     _, final_path, _ = fixture(tmp_path)
-    final = json.loads(final_path.read_text())
+    final = json.loads(final_path.read_text(encoding="utf-8"))
     final["artifacts"][1]["ownerPath"] = "cpf-starters/data/other"
     final_path.write_text(json.dumps(final), encoding="utf-8")
     with pytest.raises(MODULE.GateError, match="closure mismatch"):
@@ -99,7 +99,7 @@ def test_physical_mode_rejects_missing_module(tmp_path: Path) -> None:
 
 def test_rejects_legacy_center_cut_artifact_assumption(tmp_path: Path) -> None:
     _, _, script_path = fixture(tmp_path)
-    script_path.write_text(script_path.read_text() + "\n$artifactId -ne 'cpf-center-cut-runner'", encoding="utf-8")
+    script_path.write_text(script_path.read_text(encoding="utf-8") + "\n$artifactId -ne 'cpf-center-cut-runner'", encoding="utf-8")
     with pytest.raises(MODULE.GateError, match="flat/legacy Starter assumptions"):
         MODULE.verify(tmp_path)
 

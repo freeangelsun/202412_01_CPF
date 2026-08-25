@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestClient;
 
@@ -82,9 +83,14 @@ public class CpfRuntimeControlAgentAutoConfiguration {
     @ConditionalOnMissingBean
     CpfRuntimeInstanceInboxStore cpfRuntimeInstanceInboxStore(CpfRuntimeMetadata runtime, Environment environment) {
         String configured = environment.getProperty("cpf.runtime.control.agent.inbox-directory");
-        Path path = configured == null || configured.isBlank()
-                ? Path.of("runtime", "cpf-inbox", runtime.instanceId())
-                : Path.of(configured);
+        if ((configured == null || configured.isBlank()) && environment.acceptsProfiles(Profiles.of("prod"))) {
+            throw new IllegalStateException("prod profile은 cpf.runtime.control.agent.inbox-directory 설정이 필요합니다.");
+        }
+        // 미설정 로컬 기본값은 현재 작업 디렉터리 상대경로("runtime/cpf-inbox")를 쓰지 않는다.
+        // 리포지토리 루트 등 임의 CWD에서 기동하면 그 위치를 오염시키므로, 다른 CPF Starter 로컬 기본값과
+        // 동일하게 java.io.tmpdir 기반 경로를 사용한다.
+        String defaultDirectory = Path.of(System.getProperty("java.io.tmpdir"), "cpf-runtime-inbox", runtime.instanceId()).toString();
+        Path path = configured == null || configured.isBlank() ? Path.of(defaultDirectory) : Path.of(configured);
         return new CpfRuntimeInstanceInboxStore(path);
     }
 

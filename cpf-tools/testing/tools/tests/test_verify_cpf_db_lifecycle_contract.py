@@ -17,7 +17,7 @@ class DbLifecycleTest(unittest.TestCase):
    contracts[vendor]={'migrationRoot':migration,'rollbackRoot':rollback}
   manifest={'supportedVendors':list(module.OFFICIAL),'officialVendors':list(module.OFFICIAL),'candidateVendors':[],'vendors':vendors}
   contract={'officialVendors':list(module.OFFICIAL),'orderedStages':module.STAGES,'statusModel':{'development':'완료','runtimeVerification':'미검증'},'requiredStaticGates':[],'runtimeExecutor':'x.ps1','environmentManifestVariable':'CPF_DB_RUNTIME_MANIFEST','runtimeEnvironmentManifest':{'schemaVersion':1,'vendorOrder':list(module.OFFICIAL),'secretValuePolicy':'ENVIRONMENT_REFERENCE_ONLY','requiredEnvironmentKeys':{v:['X'] for v in module.OFFICIAL}},'backupContract':'backup.json','pitrContract':'pitr.json','dataRetentionContract':'retention.json','testDataPolicy':'testdata.json','performanceContract':'performance.json','vendorContracts':contracts}
-  (root/'cpf-tools/db/vendor-pack-manifest.json').write_text(json.dumps(manifest), encoding="utf-8");(root/'cpf-tools/db/cpf-db-lifecycle-contract.json').write_text(json.dumps(contract), encoding="utf-8")
+  (root/'cpf-tools/db/vendor-pack-manifest.json').write_text(json.dumps(manifest));(root/'cpf-tools/db/cpf-db-lifecycle-contract.json').write_text(json.dumps(contract), encoding="utf-8")
   return temp,root,manifest,contract
  def test_valid_contract(self):
   temp,root,_,_=self.fixture()

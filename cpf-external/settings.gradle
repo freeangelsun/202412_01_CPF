@@ -61,3 +61,7 @@ if (cpfProductCompositeRoot) {
         }
     }
 }
+
+// 고객사 공통 Library는 필요한 Domain만 명시적으로 선택합니다. cpf library sync가 이 파일을 생성합니다.
+def cpfCustomerLibrarySettings = new File(settingsDir, 'customer-library-settings.gradle')
+if (cpfCustomerLibrarySettings.isFile()) { apply from: cpfCustomerLibrarySettings }

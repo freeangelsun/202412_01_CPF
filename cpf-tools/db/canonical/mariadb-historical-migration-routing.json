@@ -185,6 +185,20 @@
           "logicalDatabase": "cpfDB"
         }
       ]
+    },
+    "V138__center_cut_runner_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
+    },
+    "R138__center_cut_runner_identity.sql": {
+      "sections": [
+        {
+          "logicalDatabase": "cpfDB"
+        }
+      ]
     }
   }
 }

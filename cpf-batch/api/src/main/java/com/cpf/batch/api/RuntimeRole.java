@@ -5,6 +5,6 @@ public enum RuntimeRole {
     CONTROL_PLANE,
     SCHEDULER,
     WORKER,
-    CENTER_CUT,
+    CENTER_CUT_RUNNER,
     AGENT
 }

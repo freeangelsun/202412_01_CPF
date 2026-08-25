@@ -13,7 +13,8 @@ cpf:
     # Backoffice는 Generator가 매번 생성하지 않는 Optional Prebuilt Business Domain이지만
     # Runtime 계약은 Generated Business Domain과 동일합니다.
     name: backoffice
-    system-code: MBW
+    # 거래 식별용 System Code입니다. DB 물리 Prefix는 Generator/Canonical DB 계약으로 고정됩니다.
+    system-code: ${CPF_SYSTEM_CODE:MBW}
     database-role: CUSTOMER_BUSINESS_DB
     table-prefix: MBW
   runtime:

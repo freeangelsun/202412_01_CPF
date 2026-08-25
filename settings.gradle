@@ -90,7 +90,10 @@ rootProject.name = 'cpf-core-platform-framework'
 
 // Included/Generated Builds share the Product-owned Gradle workspace instead of creating
 // project-local .gradle/ or build/ trees throughout the Source checkout.
-def cpfManagedGradleRoot = file('cpf-docs/work/evidence/generated/gradle').canonicalFile
+def cpfManagedGradleRootPath = providers.gradleProperty('cpfManagedGradleRoot')
+        .orElse(providers.environmentVariable('CPF_MANAGED_GRADLE_ROOT'))
+        .getOrElse(new File(gradle.gradleUserHomeDir, 'cpf-managed-work').absolutePath)
+def cpfManagedGradleRoot = file(cpfManagedGradleRootPath).canonicalFile
 gradle.startParameter.projectCacheDir = new File(cpfManagedGradleRoot, 'project-cache')
 if (!providers.gradleProperty('cpfManagedGradleRoot').isPresent()) {
     def propagatedProjectProperties = new LinkedHashMap(gradle.startParameter.projectProperties)

@@ -122,6 +122,19 @@ public class BatchJobDefinitionService implements BatchJobDefinitionControlPort 
                 errors.add(invalidProcessor.getMessage());
             }
         }
+        if (definition.executorType() == BatchJobDefinition.ExecutorType.CENTER_CUT) {
+            try {
+                String centerCutJobId = definition.centerCutJobId();
+                List<Map<String,Object>> target = jdbc.queryForList(sql.required("centercut-job-find-active"), centerCutJobId);
+                if (target.isEmpty()) {
+                    errors.add("CENTER_CUT target job does not exist: " + centerCutJobId);
+                } else if (!"Y".equalsIgnoreCase(Objects.toString(rowValue(target.getFirst(), "use_yn", "USE_YN"), "N"))) {
+                    errors.add("CENTER_CUT target job is disabled: " + centerCutJobId);
+                }
+            } catch (RuntimeException invalidCenterCut) {
+                errors.add("CENTER_CUT target validation failed: " + invalidCenterCut.getMessage());
+            }
+        }
         return new ValidationResult(errors.isEmpty(), List.copyOf(errors), List.copyOf(warnings), preview(definition));
     }
 

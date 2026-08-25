@@ -882,7 +882,7 @@ CREATE TABLE BAT_DEPLOYMENT_CELL (
     created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_BAT_DEPLOYMENT_CELL PRIMARY KEY (cell_id),
-    CONSTRAINT ck_bat_deployment_runtime_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_deployment_runtime_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 );
 COMMENT ON TABLE BAT_DEPLOYMENT_CELL IS 'BAT deployment cell desired state';
 COMMENT ON COLUMN BAT_DEPLOYMENT_CELL.cell_id IS 'Deployment cell identifier';
@@ -1555,7 +1555,7 @@ CREATE TABLE BAT_RUNTIME_INSTANCE (
     created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_BAT_RUNTIME_INSTANCE PRIMARY KEY (instance_id),
-    CONSTRAINT ck_bat_runtime_instance_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_runtime_instance_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 );
 CREATE INDEX ix_bat_runtime_instance_service ON BAT_RUNTIME_INSTANCE (service_id, actual_state);
 CREATE INDEX ix_bat_runtime_instance_heartbeat ON BAT_RUNTIME_INSTANCE (last_heartbeat_at);
@@ -7732,7 +7732,7 @@ CREATE TABLE OPS_RUNTIME_INSTANCE_STATE (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
 );
 CREATE INDEX ix_cpf_runtime_instance_lease ON OPS_RUNTIME_INSTANCE_STATE (lease_until);
@@ -9280,187 +9280,50 @@ CREATE TRIGGER trg_cpf_touch_MBW_APPROVAL_PARTICIPANT BEFORE UPDATE ON MBW_APPRO
 -- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json
 -- vendor=postgresql
 -- DO NOT EDIT generated DDL directly.
-
--- CPF_LOGICAL_DATABASE=referenceFixture
-CREATE TABLE REF_CENTER_CUT_SAMPLE_TARGET (
-    target_id VARCHAR(80) NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    business_key VARCHAR(200) NOT NULL,
-    business_date DATE NOT NULL,
-    target_payload TEXT,
-    status_code VARCHAR(30) NOT NULL DEFAULT 'READY',
-    retry_count INTEGER NOT NULL DEFAULT 0,
-    transaction_id CHAR(34),
-    parent_segment_id VARCHAR(120),
-    transaction_segment_id VARCHAR(120),
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    last_error_message VARCHAR(1000),
-    use_yn CHAR(1) NOT NULL DEFAULT 'Y',
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_REF_CENTER_CUT_SAMPLE_TARGET PRIMARY KEY (target_id),
-    CONSTRAINT uk_ref_center_cut_sample_target_business UNIQUE (center_cut_job_id, business_key)
-);
-CREATE INDEX ix_ref_center_cut_sample_target_status ON REF_CENTER_CUT_SAMPLE_TARGET (center_cut_job_id, status_code, business_date);
-CREATE INDEX ix_ref_center_cut_sample_target_transaction ON REF_CENTER_CUT_SAMPLE_TARGET (transaction_id, transaction_segment_id);
-CREATE INDEX ix_ref_center_cut_sample_target_parent_segment ON REF_CENTER_CUT_SAMPLE_TARGET (parent_segment_id);
-COMMENT ON TABLE REF_CENTER_CUT_SAMPLE_TARGET IS 'REF 센터컷 샘플 대상';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.target_id IS '센터컷 샘플 대상 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.business_key IS '업무 멱등 키';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.business_date IS '업무 기준일';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.target_payload IS '처리 입력 payload';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.status_code IS '대상 상태 코드';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.retry_count IS '재처리 횟수';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.parent_segment_id IS '부모 거래 구간 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.transaction_segment_id IS '현재 거래 구간 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.started_at IS '처리 시작 일시';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.completed_at IS '처리 완료 일시';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.last_error_message IS '마지막 오류 메시지';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.use_yn IS '사용 여부';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.created_by IS '등록자';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.created_at IS '등록일시';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.updated_by IS '수정자';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_TARGET.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_REF_CENTER_CUT_SAMPLE_TARGET() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_REF_CENTER_CUT_SAMPLE_TARGET ON REF_CENTER_CUT_SAMPLE_TARGET;
-CREATE TRIGGER trg_cpf_touch_REF_CENTER_CUT_SAMPLE_TARGET BEFORE UPDATE ON REF_CENTER_CUT_SAMPLE_TARGET FOR EACH ROW EXECUTE FUNCTION cpf_touch_REF_CENTER_CUT_SAMPLE_TARGET();
-
-CREATE TABLE REF_CMN_SAMPLE_ITEM (
-    sample_item_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    sample_key VARCHAR(100) NOT NULL,
-    item_name VARCHAR(200) NOT NULL,
-    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    searchable_text VARCHAR(500),
-    owner_reference VARCHAR(100),
-    sort_order BIGINT NOT NULL DEFAULT 0,
-    version_no BIGINT NOT NULL DEFAULT 0,
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    created_by VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_REF_CMN_SAMPLE_ITEM PRIMARY KEY (sample_item_id),
-    CONSTRAINT uk_cmn_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT ck_cmn_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_cmn_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_cmn_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N'))
-);
-CREATE INDEX ix_cmn_sample_item_status_sort ON REF_CMN_SAMPLE_ITEM (status_code, sort_order, sample_item_id);
-CREATE INDEX ix_cmn_sample_item_category_sort ON REF_CMN_SAMPLE_ITEM (category_code, sort_order, sample_item_id);
-CREATE INDEX ix_cmn_sample_item_name_sort ON REF_CMN_SAMPLE_ITEM (item_name, sample_item_id);
-COMMENT ON TABLE REF_CMN_SAMPLE_ITEM IS 'CMN DB 연결·CRUD·검색·Paging·낙관적 잠금 검증용 단일 샘플';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.sample_item_id IS '샘플 항목 ID';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.sample_key IS '외부 노출용 고유 샘플 키';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.item_name IS '샘플 항목명';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.category_code IS '검색 분류 코드';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.status_code IS '상태 코드';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.searchable_text IS '검색 검증용 문자열';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.owner_reference IS '다른 Domain을 직접 조인하지 않는 샘플 참조값';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.sort_order IS '안정 정렬용 순번';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.version_no IS '낙관적 잠금 버전';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.deleted_yn IS '논리 삭제 여부';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.created_by IS '등록자';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.created_at IS '등록일시';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.updated_by IS '수정자';
-COMMENT ON COLUMN REF_CMN_SAMPLE_ITEM.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_REF_CMN_SAMPLE_ITEM() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_REF_CMN_SAMPLE_ITEM ON REF_CMN_SAMPLE_ITEM;
-CREATE TRIGGER trg_cpf_touch_REF_CMN_SAMPLE_ITEM BEFORE UPDATE ON REF_CMN_SAMPLE_ITEM FOR EACH ROW EXECUTE FUNCTION cpf_touch_REF_CMN_SAMPLE_ITEM();
-
-CREATE TABLE REF_SAMPLE_ITEM (
-    sample_item_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    sample_key VARCHAR(100) NOT NULL,
-    item_name VARCHAR(200) NOT NULL,
-    category_code VARCHAR(30) NOT NULL DEFAULT 'GENERAL',
-    status_code VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    searchable_text VARCHAR(500),
-    owner_reference VARCHAR(100),
-    sort_order BIGINT NOT NULL DEFAULT 0,
-    version_no BIGINT NOT NULL DEFAULT 0,
-    deleted_yn CHAR(1) NOT NULL DEFAULT 'N',
-    transaction_id CHAR(34),
-    idempotency_key VARCHAR(100),
-    created_by VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL,
-    updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_REF_SAMPLE_ITEM PRIMARY KEY (sample_item_id),
-    CONSTRAINT uk_ref_sample_item_key UNIQUE (sample_key),
-    CONSTRAINT uk_ref_sample_item_idempotency UNIQUE (idempotency_key),
-    CONSTRAINT ck_ref_sample_item_status CHECK (status_code IN ('ACTIVE', 'INACTIVE')),
-    CONSTRAINT ck_ref_sample_item_version CHECK (version_no >= 0),
-    CONSTRAINT ck_ref_sample_item_deleted CHECK (deleted_yn IN ('Y', 'N'))
-);
-CREATE INDEX ix_ref_sample_item_status_sort ON REF_SAMPLE_ITEM (status_code, sort_order, sample_item_id);
-CREATE INDEX ix_ref_sample_item_category_sort ON REF_SAMPLE_ITEM (category_code, sort_order, sample_item_id);
-CREATE INDEX ix_ref_sample_item_name_sort ON REF_SAMPLE_ITEM (item_name, sample_item_id);
-CREATE INDEX ix_ref_sample_item_transaction ON REF_SAMPLE_ITEM (transaction_id);
-COMMENT ON TABLE REF_SAMPLE_ITEM IS 'REF Minimal Transaction Reference Sample';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.sample_item_id IS '샘플 항목 ID';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.sample_key IS '업무 멱등·중복 검증 키';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.item_name IS '최소 업무 데이터명';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.category_code IS '검색 분류 코드';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.status_code IS '상태 코드';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.searchable_text IS '검색 검증용 값';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.owner_reference IS '다른 Domain을 직접 조인하지 않는 참조값';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.sort_order IS '안정 정렬용 순번';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.version_no IS '낙관적 잠금 버전';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.deleted_yn IS '논리 삭제 여부';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.transaction_id IS 'CPF 거래 추적 ID';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.idempotency_key IS '거래 멱등 키';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.created_by IS '등록자';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.created_at IS '등록일시';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.updated_by IS '수정자';
-COMMENT ON COLUMN REF_SAMPLE_ITEM.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_REF_SAMPLE_ITEM() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_REF_SAMPLE_ITEM ON REF_SAMPLE_ITEM;
-CREATE TRIGGER trg_cpf_touch_REF_SAMPLE_ITEM BEFORE UPDATE ON REF_SAMPLE_ITEM FOR EACH ROW EXECUTE FUNCTION cpf_touch_REF_SAMPLE_ITEM();
-
-CREATE TABLE REF_CENTER_CUT_SAMPLE_RESULT (
-    result_id BIGINT GENERATED BY DEFAULT AS IDENTITY NOT NULL,
-    target_id VARCHAR(80) NOT NULL,
-    center_cut_job_id VARCHAR(100) NOT NULL,
-    business_key VARCHAR(200) NOT NULL,
-    result_status VARCHAR(30) NOT NULL,
-    result_payload TEXT,
-    result_message VARCHAR(1000),
-    transaction_id CHAR(34),
-    parent_segment_id VARCHAR(120),
-    transaction_segment_id VARCHAR(120),
-    created_by VARCHAR(100) NOT NULL DEFAULT 'REF',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(100) NOT NULL DEFAULT 'REF',
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT pk_REF_CENTER_CUT_SAMPLE_RESULT PRIMARY KEY (result_id),
-    CONSTRAINT uk_ref_center_cut_sample_result_target UNIQUE (target_id),
-    CONSTRAINT fk_ref_center_cut_sample_result_target FOREIGN KEY (target_id) REFERENCES REF_CENTER_CUT_SAMPLE_TARGET (target_id) ON DELETE CASCADE
-);
-CREATE INDEX ix_ref_center_cut_sample_result_job ON REF_CENTER_CUT_SAMPLE_RESULT (center_cut_job_id, result_status, created_at);
-CREATE INDEX ix_ref_center_cut_sample_result_transaction ON REF_CENTER_CUT_SAMPLE_RESULT (transaction_id, transaction_segment_id);
-CREATE INDEX ix_ref_center_cut_sample_result_parent_segment ON REF_CENTER_CUT_SAMPLE_RESULT (parent_segment_id);
-COMMENT ON TABLE REF_CENTER_CUT_SAMPLE_RESULT IS 'REF 센터컷 샘플 결과';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.result_id IS '센터컷 샘플 결과 순번';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.target_id IS '센터컷 샘플 대상 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.center_cut_job_id IS '센터컷 Job ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.business_key IS '업무 멱등 키';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.result_status IS '처리 결과 상태';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.result_payload IS '처리 결과 payload';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.result_message IS '처리 결과 메시지';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.transaction_id IS '센터컷 실행 전체가 승계하는 CPF transactionId';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.parent_segment_id IS '부모 거래 구간 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.transaction_segment_id IS '현재 거래 구간 ID';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.created_by IS '등록자';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.created_at IS '등록일시';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.updated_by IS '수정자';
-COMMENT ON COLUMN REF_CENTER_CUT_SAMPLE_RESULT.updated_at IS '수정일시';
-CREATE OR REPLACE FUNCTION cpf_touch_REF_CENTER_CUT_SAMPLE_RESULT() RETURNS trigger AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP; RETURN NEW; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS trg_cpf_touch_REF_CENTER_CUT_SAMPLE_RESULT ON REF_CENTER_CUT_SAMPLE_RESULT;
-CREATE TRIGGER trg_cpf_touch_REF_CENTER_CUT_SAMPLE_RESULT BEFORE UPDATE ON REF_CENTER_CUT_SAMPLE_RESULT FOR EACH ROW EXECUTE FUNCTION cpf_touch_REF_CENTER_CUT_SAMPLE_RESULT();
-
 -- ===== END 40_business_modules_schema.sql =====
+
+-- CPF_LOGICAL_DATABASE=mbwDB
+-- V139 current table: MBW approval execution lifecycle
+CREATE TABLE MBW_APPROVAL_EXECUTION (
+    approval_id BIGINT NOT NULL,
+    command_request_id VARCHAR(120) NOT NULL,
+    owner_action VARCHAR(80) NOT NULL,
+    execution_status VARCHAR(30) DEFAULT 'PENDING' NOT NULL,
+    owner_result_code VARCHAR(80) NULL,
+    owner_result_message VARCHAR(1000) NULL,
+    started_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    completed_at TIMESTAMP(3) WITHOUT TIME ZONE NULL,
+    recovery_required_yn CHAR(1) DEFAULT 'N' NOT NULL,
+    fence_token BIGINT DEFAULT 0 NOT NULL,
+    approved_by VARCHAR(100) NOT NULL,
+    transaction_id CHAR(34) NULL,
+    created_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
+    created_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    updated_by VARCHAR(100) DEFAULT 'SYSTEM' NOT NULL,
+    updated_at TIMESTAMP(3) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP(3) NOT NULL,
+    CONSTRAINT PK_MBW_APPROVAL_EXECUTION PRIMARY KEY (approval_id),
+    CONSTRAINT uk_mbw_approval_execution_command UNIQUE (command_request_id),
+    CONSTRAINT ck_mbw_approval_execution_status CHECK (execution_status IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECONCILING','RECOVERED')),
+    CONSTRAINT ck_mbw_approval_execution_recovery CHECK (recovery_required_yn IN ('Y','N')),
+    CONSTRAINT ck_mbw_approval_execution_fence CHECK (fence_token >= 0),
+    CONSTRAINT ck_mbw_approval_execution_time CHECK (completed_at IS NULL OR started_at IS NULL OR completed_at >= started_at),
+    CONSTRAINT fk_mbw_approval_execution_document FOREIGN KEY (approval_id) REFERENCES MBW_APPROVAL_DOCUMENT (approval_id)
+);
+COMMENT ON TABLE MBW_APPROVAL_EXECUTION IS 'Backoffice 결재 승인 후 실제 업무 Owner 실행 상태';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.approval_id IS '결재 문서 순번';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.command_request_id IS 'Owner 실행 멱등 요청 ID';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.owner_action IS '실제 업무 Owner Action';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.execution_status IS 'PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECONCILING/RECOVERED';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.owner_result_code IS 'Owner 실행 결과 코드';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.owner_result_message IS '마스킹된 Owner 실행 결과 메시지';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.started_at IS '실제 실행 시작 시각';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.completed_at IS '실제 실행 종료 시각';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.recovery_required_yn IS '결과불명/복구 필요 여부';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.fence_token IS '실행/Reconcile fencing token';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.approved_by IS '최종 승인 처리 운영자';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.transaction_id IS '승인/실행 상관관계 transactionId';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.created_by IS '등록자';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.created_at IS '등록일시';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.updated_by IS '수정자';
+COMMENT ON COLUMN MBW_APPROVAL_EXECUTION.updated_at IS '수정일시';
+CREATE INDEX ix_mbw_approval_execution_status ON MBW_APPROVAL_EXECUTION (execution_status, recovery_required_yn, updated_at);

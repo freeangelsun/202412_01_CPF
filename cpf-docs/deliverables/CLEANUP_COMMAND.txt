@@ -1,0 +1,1 @@
+Remove-Item -LiteralPath .\cpf-release -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem -Path . -Directory -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @('.pytest_cache','__pycache__','.mypy_cache','.ruff_cache','.sts4-cache') } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue

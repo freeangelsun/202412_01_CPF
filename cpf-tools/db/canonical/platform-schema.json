@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 56,
+  "schemaVersion": 57,
   "canonicalPolicy": {
     "officialVendors": [
       "mariadb",
@@ -87,7 +87,7 @@
     "tableMappingArtifact": "cpf-tools/db/canonical/platform-db-consolidation-map.csv",
     "crossOwnerReferenceCount": 5
   },
-  "tableCount": 235,
+  "tableCount": 236,
   "tables": [
     {
       "name": "ADM_API_PERMISSION",
@@ -8641,9 +8641,9 @@
       "checks": [
         {
           "name": "ck_bat_deployment_runtime_role",
-          "expression": "runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')",
+          "expression": "runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')",
           "vendorExpressions": {
-            "mariadb": "BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')"
+            "mariadb": "BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')"
           }
         }
       ],
@@ -15724,9 +15724,9 @@
       "checks": [
         {
           "name": "ck_bat_runtime_instance_role",
-          "expression": "runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')",
+          "expression": "runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')",
           "vendorExpressions": {
-            "mariadb": "BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')"
+            "mariadb": "BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')"
           }
         }
       ],
@@ -18559,6 +18559,222 @@
       "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
       "targetPhysicalDatabase": "mbwDB",
       "targetTableName": "MBW_APPROVAL_HISTORY",
+      "targetTablePrefix": "MBW_",
+      "migrationOwner": "backoffice",
+      "runtimeConsumer": "backoffice",
+      "atomicityClass": "MBW_OWNER_LOCAL",
+      "productionDefault": true
+    },
+    {
+      "name": "MBW_APPROVAL_EXECUTION",
+      "columns": [
+        {
+          "name": "approval_id",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결재 문서 순번"
+        },
+        {
+          "name": "command_request_id",
+          "type": "VARCHAR(120)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Owner 실행 멱등 요청 ID"
+        },
+        {
+          "name": "owner_action",
+          "type": "VARCHAR(80)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 업무 Owner Action"
+        },
+        {
+          "name": "execution_status",
+          "type": "VARCHAR(30)",
+          "nullable": false,
+          "default": "'PENDING'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "PENDING/RUNNING/SUCCEEDED/FAILED/UNKNOWN/RECONCILING/RECOVERED"
+        },
+        {
+          "name": "owner_result_code",
+          "type": "VARCHAR(80)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "Owner 실행 결과 코드"
+        },
+        {
+          "name": "owner_result_message",
+          "type": "VARCHAR(1000)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "마스킹된 Owner 실행 결과 메시지"
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 실행 시작 시각"
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME(3)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실제 실행 종료 시각"
+        },
+        {
+          "name": "recovery_required_yn",
+          "type": "CHAR(1)",
+          "nullable": false,
+          "default": "'N'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "결과불명/복구 필요 여부"
+        },
+        {
+          "name": "fence_token",
+          "type": "BIGINT",
+          "nullable": false,
+          "default": "0",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "실행/Reconcile fencing token"
+        },
+        {
+          "name": "approved_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "최종 승인 처리 운영자"
+        },
+        {
+          "name": "transaction_id",
+          "type": "CHAR(34)",
+          "nullable": true,
+          "default": null,
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "승인/실행 상관관계 transactionId"
+        },
+        {
+          "name": "created_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'SYSTEM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록자"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "등록일시"
+        },
+        {
+          "name": "updated_by",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": "'SYSTEM'",
+          "autoIncrement": false,
+          "onUpdate": null,
+          "comment": "수정자"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(3)",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP(3)",
+          "autoIncrement": false,
+          "onUpdate": "CURRENT_TIMESTAMP(3)",
+          "comment": "수정일시"
+        }
+      ],
+      "primaryKey": [
+        "approval_id"
+      ],
+      "uniqueKeys": [
+        {
+          "name": "uk_mbw_approval_execution_command",
+          "columns": [
+            "command_request_id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_mbw_approval_execution_status",
+          "columns": [
+            "execution_status",
+            "recovery_required_yn",
+            "updated_at"
+          ]
+        }
+      ],
+      "foreignKeys": [
+        {
+          "name": "fk_mbw_approval_execution_document",
+          "columns": [
+            "approval_id"
+          ],
+          "refTable": "MBW_APPROVAL_DOCUMENT",
+          "refColumns": [
+            "approval_id"
+          ],
+          "onDelete": null,
+          "onUpdate": null
+        }
+      ],
+      "checks": [
+        {
+          "name": "ck_mbw_approval_execution_status",
+          "expression": "execution_status IN ('PENDING','RUNNING','SUCCEEDED','FAILED','UNKNOWN','RECONCILING','RECOVERED')"
+        },
+        {
+          "name": "ck_mbw_approval_execution_recovery",
+          "expression": "recovery_required_yn IN ('Y','N')"
+        },
+        {
+          "name": "ck_mbw_approval_execution_fence",
+          "expression": "fence_token >= 0"
+        },
+        {
+          "name": "ck_mbw_approval_execution_time",
+          "expression": "completed_at IS NULL OR started_at IS NULL OR completed_at >= started_at"
+        }
+      ],
+      "comment": "Backoffice 결재 승인 후 실제 업무 Owner 실행 상태",
+      "module": "backoffice",
+      "logicalDatabase": "mbwDB",
+      "currentLogicalDatabase": "mbwDB",
+      "currentName": "mbw_approval_execution",
+      "logicalOwner": "backoffice",
+      "targetDatabaseRole": "CUSTOMER_BUSINESS_DB",
+      "targetPhysicalDatabase": "mbwDB",
+      "targetTableName": "MBW_APPROVAL_EXECUTION",
       "targetTablePrefix": "MBW_",
       "migrationOwner": "backoffice",
       "runtimeConsumer": "backoffice",
@@ -40146,9 +40362,9 @@
         },
         {
           "name": "ck_ops_runtime_instance_role",
-          "expression": "runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')",
+          "expression": "runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')",
           "vendorExpressions": {
-            "mariadb": "runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')"
+            "mariadb": "runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')"
           }
         }
       ],

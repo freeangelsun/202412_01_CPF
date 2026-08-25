@@ -1,0 +1,11 @@
+work_package,scope,development_status,static_verification_status,runtime_verification_status,codex_verification_status,overall_status,evidence
+WP-00,Governance/Codex protection,완료,PASS,해당없음,해당없음,CLOSED,CPF_DEVELOPER_GPT_QA_DEVELOPMENT_REVIEW.md
+WP-01~03,Codex cross-check/Observability/Recovery,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md
+WP-04~06,Approval dynamic document/history/execution,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md
+WP-07,DB3 lifecycle V138/V139,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md
+WP-08,Generator/OpenAPI/Frontend,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md
+WP-09,Hygiene/Identity/Package,완료,PASS_WITH_PROTECTED_CODEX_PATH_EXCEPTION,미실행,PENDING,VERIFICATION_PENDING,OPEN_ISSUES.md
+WP-10,BAT/CEC identity,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md
+WP-11,Open Git Fresh Release,완료,PASS_17_OF_17,미실행,PENDING,VERIFICATION_PENDING,CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md
+WP-12,Runtime System Code/DB naming contract,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,CPF_FINAL_TARGET_REQUIREMENTS.md
+WP-13,Batch executor/ADM registration UX,완료,PASS,미실행,PENDING,VERIFICATION_PENDING,TEST_AND_EVIDENCE.md

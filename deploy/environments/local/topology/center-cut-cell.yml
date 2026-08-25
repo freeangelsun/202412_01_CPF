@@ -1,6 +1,6 @@
 cellId: local-center-cut-a
 environment: local
-runtimeRole: CENTER_CUT
+runtimeRole: CENTER_CUT_RUNNER
 serviceId: cpf-batch-center-cut
 artifact:
   coordinate: com.cpf.batch:cpf-batch-center-cut

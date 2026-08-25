@@ -495,7 +495,7 @@ CREATE TABLE IF NOT EXISTS BAT_DEPLOYMENT_CELL (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Cell registration time',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last desired-state update time',
     CONSTRAINT pk_BAT_DEPLOYMENT_CELL PRIMARY KEY (cell_id),
-    CONSTRAINT ck_bat_deployment_runtime_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_deployment_runtime_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT deployment cell desired state';
 
 CREATE TABLE IF NOT EXISTS BAT_DEPLOYMENT_LOCK (
@@ -871,7 +871,7 @@ CREATE TABLE IF NOT EXISTS BAT_RUNTIME_INSTANCE (
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT 'Registration time',
     updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT 'Last state update time',
     CONSTRAINT pk_BAT_RUNTIME_INSTANCE PRIMARY KEY (instance_id),
-    CONSTRAINT ck_bat_runtime_instance_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_bat_runtime_instance_role CHECK (BINARY runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     INDEX ix_bat_runtime_instance_service (service_id, actual_state),
     INDEX ix_bat_runtime_instance_heartbeat (last_heartbeat_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='BAT standalone runtime instance registry';
@@ -4340,7 +4340,7 @@ CREATE TABLE IF NOT EXISTS OPS_RUNTIME_INSTANCE_STATE (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update time',
     CONSTRAINT pk_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR BINARY runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE,
     INDEX ix_cpf_runtime_instance_lease (lease_until),
     INDEX ix_cpf_runtime_instance_drift (drift_state, heartbeat_at)

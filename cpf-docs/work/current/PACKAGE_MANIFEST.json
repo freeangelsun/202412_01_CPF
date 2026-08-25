@@ -1,0 +1,845 @@
+{
+  "schemaVersion": 1,
+  "packageType": "DEVELOPER_GPT_OVERLAY_RUNTIME_VALIDATION_PENDING",
+  "generatedAt": "2026-08-25T10:00:00+09:00",
+  "baseline": {
+    "zip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260824_203050.zip",
+    "sha256": "0eba1e95d1552342a128984930b0f0f533787caad209f8b9e7f04ddcacf7caf1"
+  },
+  "currentSourceIdentity": {
+    "sha256": "7c7b806d4284a5a655731cff60b3cce214cdcec9f73ce489b9f3f96bf9bac809",
+    "fileCount": 8434,
+    "totalBytes": 49517641
+  },
+  "verification": {
+    "development": "SOURCE_FIXED",
+    "static": "PASS",
+    "runtime": "VERIFICATION_PENDING",
+    "codex": "PENDING",
+    "overall": "VERIFICATION_PENDING"
+  },
+  "codexProtection": {
+    "protectedFileCount": 1526,
+    "changed": 0,
+    "missing": 0,
+    "scope": "CODEX_* + codex/current evidence + 4 Codex work-package files"
+  },
+  "deleteManifest": {
+    "entries": 105,
+    "actualDeletionPerformedByDeveloperGPT": false
+  },
+  "selfExcludedFromFileHashList": true,
+  "overlayFileCountExcludingThisManifest": 162,
+  "files": [
+    {
+      "path": "cpf-admin/frontend/src/features/batch-job-packs/BatchJobPacksPage.vue",
+      "sha256": "58293f5760fa238925c88d948a11e5cd9cd4e5563b50e647287fb4dae0a11618",
+      "bytes": 22416
+    },
+    {
+      "path": "cpf-admin/frontend/src/features/batch-runtime-control/api.ts",
+      "sha256": "c91195574bc4e4462e1b5f10893acae2d10c92308b88f7525256270e62fa65e9",
+      "bytes": 32620
+    },
+    {
+      "path": "cpf-admin/src/main/resources/application.yml",
+      "sha256": "04f47eb4e644946e1239148537d16322d4b2ee94208f58683bb64c29a0d0fe86",
+      "bytes": 4018
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/components/ApprovalDecisionForm.vue",
+      "sha256": "79cf5153a6404c9274bce4404c818a87712048b345451157964b1d1dfa41354a",
+      "bytes": 1808
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/components/ApprovalDocumentView.vue",
+      "sha256": "08d1d46c9affa2ad8758331948960567dd63e5ca9fc865591126e75c94a0844d",
+      "bytes": 3565
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/composables/useApprovals.ts",
+      "sha256": "e2eddaa6d47367382d75732c335dc4ef757686243bd2966b636cf184c2a4a4e2",
+      "bytes": 1222
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/model/approvalModel.ts",
+      "sha256": "bdb8ce73f24ff23115fe2beeb301d99dcb46a373854b1c930eed585694ba39c2",
+      "bytes": 2596
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/pages/ApprovalInboxPage.vue",
+      "sha256": "5637e24c0cce9196304a575c218244fa1f79bd7291789c6616a4692d7fe1907d",
+      "bytes": 1672
+    },
+    {
+      "path": "cpf-backoffice-web/settings.gradle",
+      "sha256": "24c212ecb1afafd0c0e4bc37e7f86786ba59d6314c274845f96e1c53defcd54f",
+      "bytes": 388
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/repository/BackofficeApprovalPolicyRepository.java",
+      "sha256": "472b69098162c0b9d5d539a23a0f30df9c6ba6e9da18c04ab0d90cfb8375e9d5",
+      "bytes": 17498
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalDocumentAssembler.java",
+      "sha256": "a32d0bf92e79ab3fd149ca3744678e41f5d81823f359c512fdb693b195a9ad57",
+      "bytes": 8303
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionCoordinator.java",
+      "sha256": "7e923d163ed78a4b63cd2d000e1a563e60d7f3643c2f1d8f2f9a57d5c2e6d8e0",
+      "bytes": 2145
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionRunner.java",
+      "sha256": "c4c34460a0934e3e958666defc12e7c74257e5faa26770713255f4a325342c8c",
+      "bytes": 6245
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionStateService.java",
+      "sha256": "bd9bd6a461b23b24f98c19e4cbc9f2000b3c2b84ae84eaedd778f89ae65e8528",
+      "bytes": 3946
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalPolicyService.java",
+      "sha256": "cdb24ca57fb30fc671735e7eb6f0ac21e85bf0b3cbe1d1f52e7999430c086b47",
+      "bytes": 44425
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/management/service/BackofficeManagementService.java",
+      "sha256": "c2d6b26febe6b6d3ae88af8f337a3254a6afc1cb58e1be8119dc519d7a5fa4f1",
+      "bytes": 20625
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/resources/application.yml",
+      "sha256": "f81ca5b1db7fb60869eef063aca67129d145743453c9494853cc30c0ddf6d11a",
+      "bytes": 1843
+    },
+    {
+      "path": "cpf-batch/agent/src/main/resources/application.yml",
+      "sha256": "0d599bfd18169d7b947735313368d8a39b5c1b6b5f15cd2d7f4a0fc704a12585",
+      "bytes": 3596
+    },
+    {
+      "path": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchJobDefinition.java",
+      "sha256": "341d0693a9d364cf5f37a88bb6fbbd1780ff477806a7a97d0f301f1fbd483d6e",
+      "bytes": 11546
+    },
+    {
+      "path": "cpf-batch/api/src/main/java/com/cpf/batch/api/RuntimeRole.java",
+      "sha256": "13753e029bb54229b37488ef8865f14ef80013548d3ef18b5ac76a0dbf2ac568",
+      "bytes": 232
+    },
+    {
+      "path": "cpf-batch/api/src/test/java/com/cpf/batch/api/BatchJobDefinitionTest.java",
+      "sha256": "3648b7df4f6613139824ae9f53e89a367d5f53e535ecd47511c74d4e1d020fc2",
+      "bytes": 1335
+    },
+    {
+      "path": "cpf-batch/center-cut/src/main/java/com/cpf/batch/centercut/runner/CenterCutApplication.java",
+      "sha256": "f5e8ba86f7514d3be36c1bca4ac6b422f1e0ce65ff67cab47e214c60058556d2",
+      "bytes": 1009
+    },
+    {
+      "path": "cpf-batch/center-cut/src/main/resources/application.yml",
+      "sha256": "79a8107da3f7ee2d1668643a1012826cfae58f315825beea50061c1137b334a0",
+      "bytes": 1549
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/java/com/cpf/batch/control/centercut/CenterCutBatchStepHandler.java",
+      "sha256": "b52c1c4290a7a9cfd3460526f9be7e94cbbd639b98ada90a24a551e14685ccbb",
+      "bytes": 3521
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionService.java",
+      "sha256": "1313581b29d8cf031f3243c34369d41d9ebf8a56faef0f44c2c9f6656bfea096",
+      "bytes": 33129
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/resources/application.yml",
+      "sha256": "808cf3724f3755d320cc8cbe538b0b7410b57104eccca497237b1f7349c7c8a2",
+      "bytes": 1435
+    },
+    {
+      "path": "cpf-batch/runtime-support/src/main/java/com/cpf/batch/runtime/RuntimeIdentityFactory.java",
+      "sha256": "5df7a08212711add755cbfa007faea8f0f063985adf2c5dfd3262d6939932273",
+      "bytes": 3956
+    },
+    {
+      "path": "cpf-batch/runtime-support/src/test/java/com/cpf/batch/runtime/RuntimeIdentityFactoryTest.java",
+      "sha256": "90c9b98b85c83941d552af25619a9d1a68355b67751511a1ff60913596f75be6",
+      "bytes": 3613
+    },
+    {
+      "path": "cpf-batch/scheduler/src/main/resources/application.yml",
+      "sha256": "ec3b0afe815e0b8220b8aeb4376dda198dbc86b57e9886dc869b2537d57dfebf",
+      "bytes": 1062
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java",
+      "sha256": "9c136d972643452eae11a83255d2c23bc98daad7471948d4fd9211d840e597d9",
+      "bytes": 16641
+    },
+    {
+      "path": "cpf-batch/worker/src/main/resources/application.yml",
+      "sha256": "661a07e79dfa29e94fb1dc61b361bc37dac8044ef660a62159f03fdd3baacb63",
+      "bytes": 1323
+    },
+    {
+      "path": "cpf-batch/worker/src/test/java/com/cpf/batch/worker/SpringBatchWorkerStepHandlerTest.java",
+      "sha256": "486f00bfeede53e6328dfa3fcc22e0ce93aacb3af31f17b6cdb91f81b4344b1d",
+      "bytes": 10499
+    },
+    {
+      "path": "cpf-docs/deliverables/DELETE_MANIFEST.csv",
+      "sha256": "085be9726061f4fd21d8b071daacf8c6b05352efbbe79a297293e339292968d6",
+      "bytes": 25464
+    },
+    {
+      "path": "cpf-docs/deliverables/OPEN_ISSUES.md",
+      "sha256": "c1f45fe7484f4bfea9a12d38c26169295e744b3d73557411353ac9e135eb8ba6",
+      "bytes": 1816
+    },
+    {
+      "path": "cpf-docs/deliverables/SHA256SUMS.txt",
+      "sha256": "e1eb2f5dc029a36637d6bae79e4fab24648c8213d94b52a71ce7718d49f1db78",
+      "bytes": 1273985
+    },
+    {
+      "path": "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
+      "sha256": "638bb3133f1679ba9549d0db8c77dbdaa2649f4cef8f7935da83f9621d91a5c4",
+      "bytes": 2153
+    },
+    {
+      "path": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+      "sha256": "73f803402cec38ce21d6361575271c6de5eca397373daab9b259701fcca53a98",
+      "bytes": 135297
+    },
+    {
+      "path": "cpf-docs/work/current/CHANGE_MANIFEST.csv",
+      "sha256": "0e7206d9a78946c39eedafbc4b3470fc2e47d1c164bb82b3bd373df2be407440",
+      "bytes": 38388
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPER_GPT_QA_DEVELOPMENT_REVIEW.md",
+      "sha256": "4b11a0e8fbfc41e7c4a44ae484c8a17e010df6863f3ac96b4303059c074ef55e",
+      "bytes": 615289
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_DEVELOPER_GPT_SESSION_HANDOVER_20260825.md",
+      "sha256": "c236e74d74c7e19292d4cd75ef4e645fb914620f580064df866f3a52661755ed",
+      "bytes": 8043
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_001_00-00010066__07-00015128.csv",
+      "sha256": "6501fa0731f64ecd98335ff4038bb5592386dc72019ab05f381026d9ba49463b",
+      "bytes": 7984964
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_002_07-00015129__15-99999999.csv",
+      "sha256": "ee7dab7ea8262eaa04a3a7e84ac878268549d9b5a33b4b8624330e43f5e3c46f",
+      "bytes": 7103645
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md",
+      "sha256": "639e8e75e09d6c623a30546be4ed7d097eb2cd6d3c98bf0b8049b8e01c55986d",
+      "bytes": 27650
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_001_CPF-FR-000001__CPF-FR-001616.csv",
+      "sha256": "940d745204c07a90de71fe583719c9f7b91d32194403294cd4be874392a9bdcd",
+      "bytes": 7995755
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_008_CPF-FR-011307__CPF-FR-013018.csv",
+      "sha256": "d399639869f6f80c109aff3dfadd6affce2315920edfcf65973ba6937f2c3006",
+      "bytes": 7997798
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_010_CPF-FR-014810__CPF-FR-016605.csv",
+      "sha256": "2b7fd055877eeff90e47a148007a9a139466aa6f2b9625b4b23d2f08120a75a7",
+      "bytes": 8024711
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_013_CPF-FR-020081__CPF-FR-021936.csv",
+      "sha256": "7544e281212043dfe2615a25dde188fea8e189ef1f631b3957cd33c16346dba0",
+      "bytes": 7999738
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_001_CPF-SC-000001__CPF-SC-009526.csv",
+      "sha256": "2639b93b4cfde0230e0483ac3ef94bc104d919de553bfc157ad6180640afdd68",
+      "bytes": 7989931
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_002_CPF-SC-009527__CPF-SC-015274.csv",
+      "sha256": "997f327def0ce3e68caa2d967864aa84fea24704a17f3f146f2d4f35232430f9",
+      "bytes": 7992771
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_004_CPF-SC-020086__CPF-SC-024985.csv",
+      "sha256": "5cd0c20ee7b4c3680663160c26da2e63420d30f427e7750abf3c5466c83d6534",
+      "bytes": 7993943
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_005_CPF-SC-024986__CPF-SC-030164.csv",
+      "sha256": "59595bcb4c6aad1b776813e4cf3bb1aecdd5e6ce38ccc4095804b792727e3729",
+      "bytes": 7994798
+    },
+    {
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_006_CPF-SC-030165__CPF-SC-035766.csv",
+      "sha256": "b860fbe193cbae9884701c316f9d0a7746747464508e657fe5f3be9b0fb54507",
+      "bytes": 7994011
+    },
+    {
+      "path": "cpf-docs/work/current/DELETE_MANIFEST.csv",
+      "sha256": "c1cc03da216653977f1632a107332059fd6e6565e333f80ff3a08bc01cf828c3",
+      "bytes": 19610
+    },
+    {
+      "path": "cpf-docs/work/current/QA_REWORK_REQUEST.md",
+      "sha256": "3f517579974ea7e53c71902e8ff4ee25be82400df76a296b2529f15ae9f1dc3f",
+      "bytes": 678
+    },
+    {
+      "path": "cpf-docs/work/current/REQUIREMENT_STATUS.csv",
+      "sha256": "c9e82f8786ce991dc9152fbc4a9e579e718f7221dc10766195f5a2955610f45c",
+      "bytes": 1554
+    },
+    {
+      "path": "cpf-docs/work/evidence/developer-gpt/current/FINAL_STATIC_GATE_SUMMARY.md",
+      "sha256": "db2267d330d96623c207794ca25bfbb683da3f7f4a41f56bd83c24d154ed4c3e",
+      "bytes": 216
+    },
+    {
+      "path": "cpf-education/src/main/resources/application.yml",
+      "sha256": "a39aa083d8e5ae9a389b2849250839c5a12bd6ab7b441016de123c06bb960b30",
+      "bytes": 1356
+    },
+    {
+      "path": "cpf-external/online/src/main/resources/application.yml",
+      "sha256": "b4e8646ca772e9cd1d7e2f2271a5786fc67e9d9da4d550b43f55a312bb16e7de",
+      "bytes": 2076
+    },
+    {
+      "path": "cpf-gateway/src/main/resources/application.yml",
+      "sha256": "0cff588e32ed9bcbebc707a1a2f2806d50b97ac59fd717285aa9121fc5240104",
+      "bytes": 6350
+    },
+    {
+      "path": "cpf-member/batch/src/main/resources/application.yml",
+      "sha256": "5cf70e9e071e9a4db947f95ddd37881e6621c446e5d4919239659cef88aae569",
+      "bytes": 2110
+    },
+    {
+      "path": "cpf-member/online/src/main/resources/application.yml",
+      "sha256": "56eeecd8f13057002d0677c1d3b89f32b52ead9ddfa6a5fff77802b8c6020167",
+      "bytes": 2072
+    },
+    {
+      "path": "cpf-tools/db/canonical/platform-schema.json",
+      "sha256": "b5b9437f3988937ac3b91a7c5eba25432777584bfce5733df63a13580d898437",
+      "bytes": 1237925
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-rollback.sql",
+      "sha256": "1f598910675f8cd9eccbf904d8f6804264418baddc38d901a94b6bbae7b7b1d7",
+      "bytes": 1542
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
+      "sha256": "155d5d5b6a92e7387031b9351ba24ccaa838d941a69c6f4a0720f0d478e04950",
+      "bytes": 42321
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-verify.sql",
+      "sha256": "f0d93bc1bae0ce98dedb06c84796e0125764d7ffe75830422cabb1042d82e96f",
+      "bytes": 4322
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
+      "sha256": "a17a2a40da57faddadfab5625a9c70575c8a638bd1131f5f05640cfe6c35fdde",
+      "bytes": 246906
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/manifest.json",
+      "sha256": "1fda20a99fa2450dc34e231e302fb73f2e7c596a32e0acb63089e9ad1b944a46",
+      "bytes": 1638
+    },
+    {
+      "path": "cpf-tools/db/generated/current/mariadb/reference-fixture-schema.sql",
+      "sha256": "e46daea1b37bc20204188f01e5c82d310f061174689529fd93c6e54450f8b548",
+      "bytes": 6408
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-rollback.sql",
+      "sha256": "71bf2e595b987c6a6e6222abc7057318456ba22fe8153d5519a719a0a76a314b",
+      "bytes": 4571
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
+      "sha256": "3c89aaae5cf22bbc82b18d057dc2561f3f06878b43fca53eb5b7e4ccb494119b",
+      "bytes": 82101
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-verify.sql",
+      "sha256": "a5fe7193db0b34b4dbb6dc96073ff8123b0ce7dd766bc6c6afb4da0605e0a323",
+      "bytes": 3691
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
+      "sha256": "d1ebec8ee4c42d5672bed8721f98468ea3e306cc8ad28339b38539a363589fa2",
+      "bytes": 511024
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/manifest.json",
+      "sha256": "2e6edbbc3294ffac8732d27282b144686317b7d686e1009587a9a976f4daef70",
+      "bytes": 1637
+    },
+    {
+      "path": "cpf-tools/db/generated/current/oracle/reference-fixture-schema.sql",
+      "sha256": "8e665cbefcdc3f8797008c374b83797eba20301fe2d9460e8a026884b065f6d5",
+      "bytes": 12322
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-rollback.sql",
+      "sha256": "8226fd98250e0769119038780796133013ef610f230de09e3d090831218b44d0",
+      "bytes": 1545
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
+      "sha256": "c0cc7eb748ff2d16c4eb84dd78733cf3f3e8bd8bfa222ccb370bfd7f3eac6343",
+      "bytes": 81391
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-verify.sql",
+      "sha256": "0175be0c0405eda43ef40e55a6a3f3942335ec443fc2ab7f96f8218e3121fcc5",
+      "bytes": 4325
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
+      "sha256": "e461ac0ed151e76b488669f3410e02cf9f56f2a2a1fc51635ccf7a0bbc4b9bfb",
+      "bytes": 505391
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/manifest.json",
+      "sha256": "cd92f363c6e95e66806144fc1d57e453b706edc7e19f1c38840229dcfa107790",
+      "bytes": 1641
+    },
+    {
+      "path": "cpf-tools/db/generated/current/postgresql/reference-fixture-schema.sql",
+      "sha256": "06fec682cd60e868161f50fde294c3a8b3ed073ab8775f8c00c0d91878a64139",
+      "bytes": 12300
+    },
+    {
+      "path": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+      "sha256": "18441116cf761f0efe1babdd90b3cc5d32dc654641db0305fcf15db1cf10630e",
+      "bytes": 41673
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-claim-execution-01.sql.template",
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1",
+      "bytes": 338
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-complete-execution-01.sql.template",
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5",
+      "bytes": 335
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-find-execution-01.sql.template",
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce",
+      "bytes": 544
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-find-history-01.sql.template",
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa",
+      "bytes": 507
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-insert-execution-01.sql.template",
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597",
+      "bytes": 321
+    },
+    {
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-start-reconcile-01.sql.template",
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql",
+      "sha256": "8508a09cb7790057ed02e8a11a6733d14d2618d9b3e5ccdf5f35d9c8504be128",
+      "bytes": 392106
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V138__center_cut_runner_identity.sql",
+      "sha256": "0685ed0786ed3cb8e6be418856d07ebefc6953241da4d4f7763484d1dec2e52e",
+      "bytes": 1852
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V139__mbw_approval_execution.sql",
+      "sha256": "930f38d4752dae3bbd46a9a478a05011481b574f692cc72a48deb501fb8e91f9",
+      "bytes": 1909
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/checksums.sha256",
+      "sha256": "b5406a0324a9bacfe86372cdbc024ac821c71c0c10cb936fafcdcdef0f83aec3",
+      "bytes": 12622
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R138__center_cut_runner_identity.sql",
+      "sha256": "3aedada6be6656b9f904a86f49185ac3d07303b5db2e20376e62ac428be49c18",
+      "bytes": 1252
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R139__mbw_approval_execution.sql",
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316",
+      "bytes": 65
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1",
+      "bytes": 338
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5",
+      "bytes": 335
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce",
+      "bytes": 544
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa",
+      "bytes": 507
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597",
+      "bytes": 321
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
+      "sha256": "56639ffa18a0a41c34fe179ceb8904e11bf78ccd507ff23f1d317e29971a8cd8",
+      "bytes": 335659
+    },
+    {
+      "path": "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql",
+      "sha256": "68fe854df9d8d77bab374987d1d13e0665e7a62290cee756ee9d5a0660ec1b8a",
+      "bytes": 55689
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/install/00_empty_install.sql",
+      "sha256": "85a722b14309a34c75113b5a1c326e3230dd5237a305419de49d2324baa2b8d0",
+      "bytes": 588833
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+      "sha256": "371298eac25332a5cda4feefcb1127247b5532208e3f3898d7489816c8c7f0f7",
+      "bytes": 1125
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/checksums.sha256",
+      "sha256": "7500d425b0db66838c00ee4088c5801f42f278cd8a9596cc1579a1d8548db027",
+      "bytes": 3652
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/V139__mbw_approval_execution.sql",
+      "sha256": "a006407ee7f9b1081e4ef12a66cc169c293162cfd204781f39510d362fd2c0cf",
+      "bytes": 3351
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/checksums.sha256",
+      "sha256": "016b89653b933c9b31a15203c66473b199d416de46ad14de8168231238108911",
+      "bytes": 306
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/rollback/cpfDB/R138__center_cut_runner_identity.sql",
+      "sha256": "77e809ccf17305fdd5bf09fb6cee8b49c2117e9aa8fc3ed6c695fbc7805d6c73",
+      "bytes": 1104
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/rollback/mbwDB/R139__mbw_approval_execution.sql",
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316",
+      "bytes": 65
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1",
+      "bytes": 338
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5",
+      "bytes": 335
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce",
+      "bytes": 544
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa",
+      "bytes": 507
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597",
+      "bytes": 321
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/source/10_cpf_schema.sql",
+      "sha256": "35e983e6231939d6bf19f9809eaa1b97c6e3814e144d8e0ab5ca94d49b9b69ce",
+      "bytes": 506910
+    },
+    {
+      "path": "cpf-tools/db/vendor/oracle/source/40_business_modules_schema.sql",
+      "sha256": "9b80824fe2c12aa18e8e916e847c7702c1d7fd59e99c9c25907e1af0b3a16645",
+      "bytes": 81631
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/install/00_empty_install.sql",
+      "sha256": "1fc80e088de3a1c28a3185328d495185798071b5827c73d824470d0ffb32388a",
+      "bytes": 607799
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+      "sha256": "371298eac25332a5cda4feefcb1127247b5532208e3f3898d7489816c8c7f0f7",
+      "bytes": 1125
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/checksums.sha256",
+      "sha256": "f04e7cccd8c05ebc1a356c95cc2027efd985d786d89af783f7349583037b1f44",
+      "bytes": 3652
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V139__mbw_approval_execution.sql",
+      "sha256": "2265bf1ee9c9990a663675549f6ce933d88cb57e357e6ae602c0f60b695b7c04",
+      "bytes": 3357
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/checksums.sha256",
+      "sha256": "584759e5205eec521903156dcccd8669c8cda7ca1b85819c49783570c6fa82a1",
+      "bytes": 306
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/rollback/cpfDB/R138__center_cut_runner_identity.sql",
+      "sha256": "77e809ccf17305fdd5bf09fb6cee8b49c2117e9aa8fc3ed6c695fbc7805d6c73",
+      "bytes": 1104
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R139__mbw_approval_execution.sql",
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316",
+      "bytes": 65
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1",
+      "bytes": 338
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5",
+      "bytes": 335
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce",
+      "bytes": 544
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa",
+      "bytes": 507
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597",
+      "bytes": 321
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a",
+      "bytes": 235
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/source/10_cpf_schema.sql",
+      "sha256": "409c38dfe94ec37ef8cf2378ab8cc751d0a43195d224d53b709c3b55d5a57ff6",
+      "bytes": 521505
+    },
+    {
+      "path": "cpf-tools/db/vendor/postgresql/source/40_business_modules_schema.sql",
+      "sha256": "5fb0374ad4dcda74c31eb85f60777973fe854052fd7890e1b322451e1e69889c",
+      "bytes": 85998
+    },
+    {
+      "path": "cpf-tools/generator/engine/cpf_domain_generator.py",
+      "sha256": "3fc2933ad69d913de18b32f9d44bd4f47ac9a9a489952d46dc98454ef72b70c1",
+      "bytes": 180182
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "sha256": "5d188b1030eca7647d32b7adc91603629e2b795b9bfc20cf8215dfcbf7ee1bfd",
+      "bytes": 142
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "sha256": "af5b661646f62b715d51d8f05894971defd6d4d71cccbd4ef66ea41be89c442b",
+      "bytes": 111
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "sha256": "1055c3ac52c6d9d71f7eb1a13cdfa719502f2e6448527b498983123ece203a36",
+      "bytes": 138
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "sha256": "098ddc51a6180b14196e064c0516590da8ef2aca8d0dbca6cf37c309cbb22b94",
+      "bytes": 107
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "sha256": "5503178eb0fbe1373bd2dd795cd42da0ba49e6d050d9c14350917fe5b26b64c4",
+      "bytes": 143
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "sha256": "6062c9918dd1c35b8ef186ff89ec5d9d37e55d09671471d5000121a910330817",
+      "bytes": 112
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "sha256": "cedb8b6ad91278298bd5257cb6f9ca41f915cd72bc8734af17f4f88879c160f1",
+      "bytes": 144
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "sha256": "94aadc9f15fc8cf00a01d6acd19f80bdb87445589a26fa1b87ccf692f925b34f",
+      "bytes": 113
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "sha256": "e869879add2e986db642ccf42e81ce662bbe3d7d9c304d69381479b1b14234eb",
+      "bytes": 138
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "sha256": "21b8e5604b05f5af911de505fd319985606b3ca527b3ed24dfa59defc9330939",
+      "bytes": 107
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "sha256": "8568ff3a112f704455aca6e982a80f5d039f8ed7fc252f8d89275df9134f7463",
+      "bytes": 137
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "sha256": "57fa653cdd0b515528311c7b8b32c2f267993e0f2ac903323ec149ef14bc5ae1",
+      "bytes": 106
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "sha256": "6d408e2f5c00c8f2d7b03bd88ca1e82fb8e71dee3920f6b82101fe1e0b2966de",
+      "bytes": 137
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "sha256": "233d0fa8c500a07cc651b8792b261654af781d9d64e73122955413a3121674c7",
+      "bytes": 106
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
+      "sha256": "caae4b0b59315ac071137669ad3de1a267a55e8cc08d4077e0d3307f588b2507",
+      "bytes": 3202
+    },
+    {
+      "path": "cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "sha256": "cf2d632efc0cd383231f60569b417173bc6f4faaf28b8c2f192a16ec8dd591b7",
+      "bytes": 3637
+    },
+    {
+      "path": "cpf-tools/runtime/metadata/bat-runtime-role-contract.json",
+      "sha256": "7ddb3d8b802b88fa7bbbc3ea2573b5e6ff32ff504f5a5354cd9525dc61a560bb",
+      "bytes": 5320
+    },
+    {
+      "path": "cpf-tools/runtime/tools/sync_bat_runtime_roles.py",
+      "sha256": "c1e545e4c61779026127aa5682108f710b1fb4e2bf5a5c16ab5a830930e91342",
+      "bytes": 38800
+    },
+    {
+      "path": "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+      "sha256": "6529cafb77eec17d31c598254676e91d645ccd359ca017c4261c8196b9d70c8e",
+      "bytes": 75112
+    },
+    {
+      "path": "cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1",
+      "sha256": "e40269000326a7eecfc6140c340e60e13236d798677125c787c00cc3b586fd42",
+      "bytes": 2941
+    },
+    {
+      "path": "cpf-tools/verification/tools/verify-cpf-batch-executor-registration-contract.py",
+      "sha256": "7b49e3950f46e3b8c273e19976e717f1b3d2e6febd1bacf8a1b2a93d6ecc6b0a",
+      "bytes": 1990
+    },
+    {
+      "path": "cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py",
+      "sha256": "7b740fdd59a0ded861a2433dbae85e3921d1a1411c05ff19f6de626746d5975a",
+      "bytes": 6852
+    },
+    {
+      "path": "deploy/environments/dev/inventory/dev-services.json",
+      "sha256": "66945c0e891118267ead8727f7fd743bbca31f3b806351940733f9e23ffb5c58",
+      "bytes": 5452
+    },
+    {
+      "path": "deploy/environments/local/inventory/local-services.json",
+      "sha256": "b14b7ed8ea070e01add53865d297f9e226b0e38521311a683b79ac83fb7d4116",
+      "bytes": 5570
+    },
+    {
+      "path": "deploy/environments/local/topology/center-cut-cell.yml",
+      "sha256": "d39d92503e08ba7226db3ecf574704fe457e5a3555ce38f0157988f04b4df3c8",
+      "bytes": 987
+    },
+    {
+      "path": "deploy/environments/prod/inventory/prod-services.template.json",
+      "sha256": "e52ba22aa3deda2fa03a4de23d68d575aedd6d3785218489f81185c5527b54fa",
+      "bytes": 5465
+    },
+    {
+      "path": "deploy/environments/prod/topology/center-cut-cell.yml",
+      "sha256": "0ada4dfaca80c776bfcceac738cbc5d19b02406e06621a74db064339f446cab0",
+      "bytes": 1517
+    },
+    {
+      "path": "deploy/environments/stg/inventory/stg-services.json",
+      "sha256": "2ef8911a287509a4fdf6f548add7da971b19443aa4f16f7bf77be35a1c058dd3",
+      "bytes": 5443
+    },
+    {
+      "path": "deploy/schemas/deployment-cell.schema.json",
+      "sha256": "87c5ed7e6b1ee3a2edb59953cce7f933e2c0d05e59d85ffcfae864904b8254fa",
+      "bytes": 3422
+    },
+    {
+      "path": "settings.gradle",
+      "sha256": "c764c940cb3d977a87e65651b7e4245952ec9217237b473dbb8d6f0ebc83cae9",
+      "bytes": 28971
+    }
+  ]
+}

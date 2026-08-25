@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** MBW 조직·직원·실효 권한·결재 상태 전이를 담당합니다. */
@@ -135,6 +136,49 @@ public class BackofficeManagementService extends com.cpf.backoffice.online.base.
         return maskEmployee(after);
     }
 
+    /** UNKNOWN 결재 실행을 mutation 없이 대사합니다. 승인 Snapshot의 업무 필드와 현재 직원 상태가 일치할 때만 true를 반환합니다. */
+    public boolean matchesEmployeeSave(EmployeeRequest request) {
+        String employeeNo = required(request.employeeNo(), "employeeNo").toUpperCase(Locale.ROOT);
+        Map<String,Object> current = repository.findEmployee(employeeNo).orElse(null);
+        if (current == null) return false;
+        if (!same(current, "employeeNo", employeeNo)) return false;
+        if (request.adminUserId() != null && !sameNumber(current, "adminUserId", request.adminUserId())) return false;
+        if (request.organizationCode() != null && !same(current, "organizationCode", request.organizationCode().toUpperCase(Locale.ROOT))) return false;
+        if (request.employeeName() != null && !same(current, "employeeName", request.employeeName())) return false;
+        if (request.positionCode() != null && !sameNullable(current, "positionCode", request.positionCode())) return false;
+        if (request.jobTitleCode() != null && !sameNullable(current, "jobTitleCode", request.jobTitleCode())) return false;
+        if (request.managerEmployeeNo() != null && !sameNullable(current, "managerEmployeeNo", request.managerEmployeeNo())) return false;
+        if (request.employmentStatus() != null && !same(current, "employmentStatus", BackofficeEmploymentStatus.parse(request.employmentStatus()).name())) return false;
+        if (request.joinDate() != null && !sameTemporal(current, "joinDate", request.joinDate())) return false;
+        if (request.leaveDate() != null && !sameTemporal(current, "leaveDate", request.leaveDate())) return false;
+        if (request.clearEmail() && !sameNullable(current, "email", null)) return false;
+        if (!request.clearEmail() && request.email() != null && !request.email().isBlank() && !sameNullable(current, "email", CpfSensitiveData.normalizeEmail(request.email(), "email"))) return false;
+        if (request.clearMobileNo() && !sameNullable(current, "mobileNo", null)) return false;
+        if (!request.clearMobileNo() && request.mobileNo() != null && !request.mobileNo().isBlank() && !sameNullable(current, "mobileNo", CpfSensitiveData.normalizePhone(request.mobileNo(), "mobileNo"))) return false;
+        if (request.clearOfficePhoneNo() && !sameNullable(current, "officePhoneNo", null)) return false;
+        if (!request.clearOfficePhoneNo() && request.officePhoneNo() != null && !request.officePhoneNo().isBlank() && !sameNullable(current, "officePhoneNo", CpfSensitiveData.normalizePhone(request.officePhoneNo(), "officePhoneNo"))) return false;
+        if (request.useYn() != null && !same(current, "useYn", yn(request.useYn(), "Y"))) return false;
+        return true;
+    }
+
+    /** UNKNOWN 결재 실행을 mutation 없이 대사합니다. 승인 Snapshot의 업무 필드와 현재 조직 상태가 일치할 때만 true를 반환합니다. */
+    public boolean matchesOrganizationSave(OrganizationRequest request) {
+        String code = required(request.organizationCode(), "organizationCode").toUpperCase(Locale.ROOT);
+        Map<String,Object> current = repository.findOrganizations().stream()
+                .filter(row -> code.equalsIgnoreCase(String.valueOf(value(row, "organizationCode"))))
+                .findFirst().orElse(null);
+        if (current == null) return false;
+        if (!same(current, "organizationCode", code)) return false;
+        if (request.parentOrganizationCode() != null && !sameNullable(current, "parentOrganizationCode", request.parentOrganizationCode().toUpperCase(Locale.ROOT))) return false;
+        if (request.organizationName() != null && !same(current, "organizationName", request.organizationName())) return false;
+        if (request.organizationType() != null && !same(current, "organizationType", request.organizationType().toUpperCase(Locale.ROOT))) return false;
+        if (request.sortOrder() != null && !sameNumber(current, "sortOrder", request.sortOrder())) return false;
+        if (request.effectiveFrom() != null && !sameTemporal(current, "effectiveFrom", request.effectiveFrom())) return false;
+        if (request.effectiveTo() != null && !sameTemporal(current, "effectiveTo", request.effectiveTo())) return false;
+        if (request.useYn() != null && !same(current, "useYn", yn(request.useYn(), "Y"))) return false;
+        return true;
+    }
+
     public List<Map<String, Object>> findEffectivePermissions(String loginId) {
         return repository.findEffectivePermissions(required(loginId, "loginId"));
     }
@@ -163,6 +207,44 @@ public class BackofficeManagementService extends com.cpf.backoffice.online.base.
             value = row.get(key.toUpperCase(Locale.ROOT));
         }
         return value instanceof Number number ? number : Long.parseLong(String.valueOf(value));
+    }
+
+    private Object value(Map<String,Object> row, String key) {
+        if (row.containsKey(key)) return row.get(key);
+        if (row.containsKey(key.toUpperCase(Locale.ROOT))) return row.get(key.toUpperCase(Locale.ROOT));
+        for (Map.Entry<String,Object> entry : row.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) return entry.getValue();
+        }
+        return null;
+    }
+
+    private boolean same(Map<String,Object> row, String key, Object expected) {
+        Object actual = value(row, key);
+        return Objects.equals(expected == null ? null : String.valueOf(expected), actual == null ? null : String.valueOf(actual));
+    }
+
+    private boolean sameNullable(Map<String,Object> row, String key, Object expected) {
+        String left = expected == null || String.valueOf(expected).isBlank() ? null : String.valueOf(expected);
+        Object raw = value(row, key);
+        String right = raw == null || String.valueOf(raw).isBlank() ? null : String.valueOf(raw);
+        return Objects.equals(left, right);
+    }
+
+    private boolean sameNumber(Map<String,Object> row, String key, Number expected) {
+        Object raw = value(row, key);
+        if (!(raw instanceof Number n)) {
+            try { return raw != null && Double.compare(Double.parseDouble(String.valueOf(raw)), expected.doubleValue()) == 0; }
+            catch (NumberFormatException ignored) { return false; }
+        }
+        return Double.compare(n.doubleValue(), expected.doubleValue()) == 0;
+    }
+
+    private boolean sameTemporal(Map<String,Object> row, String key, Object expected) {
+        Object raw = value(row, key);
+        if (raw == null) return false;
+        String left = String.valueOf(expected).replace('T', ' ').replace("Z", "");
+        String right = String.valueOf(raw).replace('T', ' ').replace("Z", "");
+        return right.startsWith(left) || left.startsWith(right);
     }
 
     private String required(String value, String field) {

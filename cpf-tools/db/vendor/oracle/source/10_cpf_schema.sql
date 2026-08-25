@@ -864,7 +864,7 @@ CREATE TABLE BAT_DEPLOYMENT_CELL (
     created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_BAT_DEPLOYMENT_CELL PRIMARY KEY (cell_id),
-    CONSTRAINT ck_bat_deployment_runtime_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_deployment_runtime_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 );
 COMMENT ON TABLE BAT_DEPLOYMENT_CELL IS 'BAT deployment cell desired state';
 COMMENT ON COLUMN BAT_DEPLOYMENT_CELL.cell_id IS 'Deployment cell identifier';
@@ -1528,7 +1528,7 @@ CREATE TABLE BAT_RUNTIME_INSTANCE (
     created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     CONSTRAINT pk_BAT_RUNTIME_INSTANCE PRIMARY KEY (instance_id),
-    CONSTRAINT ck_bat_runtime_instance_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT'))
+    CONSTRAINT ck_bat_runtime_instance_role CHECK (runtime_role IN ('CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT'))
 );
 CREATE INDEX ix_bat_runtime_instance_service ON BAT_RUNTIME_INSTANCE (service_id, actual_state);
 CREATE INDEX ix_bat_runtime_instance_heartbeat ON BAT_RUNTIME_INSTANCE (last_heartbeat_at);
@@ -7617,7 +7617,7 @@ CREATE TABLE OPS_RUNTIME_INSTANCE_STATE (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_OPS_RUNTIME_INSTANCE_STATE PRIMARY KEY (instance_id),
     CONSTRAINT ck_cpf_runtime_instance_drift CHECK (drift_state IN ('IN_SYNC','PENDING','DRIFT','UNKNOWN','UNKNOWN_RESULT','PENDING_RESTART','EXCLUDED')),
-    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT','AGENT')),
+    CONSTRAINT ck_ops_runtime_instance_role CHECK (runtime_role IS NULL OR runtime_role IN ('APPLICATION','CONTROL_PLANE','SCHEDULER','WORKER','CENTER_CUT_RUNNER','AGENT')),
     CONSTRAINT fk_cpf_runtime_instance_state_instance FOREIGN KEY (instance_id) REFERENCES OPS_SERVICE_INSTANCE (instance_id) ON DELETE CASCADE
 );
 CREATE INDEX ix_cpf_runtime_instance_lease ON OPS_RUNTIME_INSTANCE_STATE (lease_until);

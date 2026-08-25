@@ -39,3 +39,11 @@ Use the current VS Code **local Working Tree** as the only Primary Source. Do no
 
 For the Java25 full build, the only file normally required from the user is:
 `%USERPROFILE%\Downloads\gradle-problems.txt`.
+
+## 2026-08-25 Developer GPT/Codex Cross-check 및 Runtime Closure 강제
+
+- Codex 전용 원장/Work Package/Evidence는 Developer GPT가 수정하지 않는다.
+- Developer GPT 수정영역은 별도 실행원장과 Evidence에 기록하고 Codex 재검수 대상으로 유지한다.
+- Source/정적 PASS는 Runtime PASS가 아니다. 다음 세션 첫 작업은 Full Runtime 로그 확인이며 실패 시 같은 전체 시나리오를 오류 0까지 반복한다.
+- DB 변경은 Oracle/PostgreSQL/MariaDB 각각 전체 Fresh 초기화부터 실제 거래, Upgrade, Rollback/Recovery, Reapply, Side Effect까지 필수다.
+

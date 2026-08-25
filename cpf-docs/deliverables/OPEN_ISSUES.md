@@ -1,35 +1,15 @@
-# OPEN ISSUES — C 개발/QA 관리_1 Final External Acceptance
+# CPF Developer GPT Open Issues — 2026-08-25
 
-Source-side development is closed (`13/13 CLOSED`) on Source Identity `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`. No implementable Source/static Finding is intentionally deferred. Overall product completion remains blocked by mandatory live/external acceptance.
+## VERIFICATION_PENDING — 필수 로컬 Runtime
 
-## EA-01 — Mandatory external/live acceptance
+Source 개발과 실행 가능한 정적 Gate는 완료했다. 다만 Java25/Docker/DB3/Browser 물리 Runtime을 assistant 환경에서 실행하지 못했으므로 전체 QA Closure는 아직 `VERIFICATION_PENDING`이다.
 
-State: `BLOCKED_EXTERNAL / 미검증`
+완료 조건은 `run-cpf-required-full-runtime-validation.ps1` ExitCode 0, Final PASS, Oracle/PostgreSQL/MariaDB 전체 Fresh/Upgrade/Rollback-Recovery + 실제 거래, Batch/CEC 장애복구, Approval/Browser/Open Git Fresh Consumer를 모두 통과하는 것이다.
 
-### A. Java25 Root Gradle / Publication
-- Execute final applied Source with Java25.
-- `clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true`.
-- PASS: `BUILD SUCCESSFUL`, ExitCode 0, failed task 0, failed test 0.
-- Current assistant environment is Java 21.0.11 and cannot download Gradle 9.1.0 because `services.gradle.org` DNS is unavailable.
+## Codex 독립 재검수 PENDING
 
-### B. Public Binary isolated consumer
-- Resolve CPF artifacts from the intended reachable artifact repository.
-- No `mavenLocal`, private Source composite or accidental workspace leakage.
+Codex 전용 문서/원장/Evidence는 변경하지 않았다. Codex 재개 시 Developer GPT 수정영역을 최신 Source에서 독립 cross-check해야 한다.
 
-### C. Live DB3
-- Oracle/PostgreSQL/MariaDB: fresh install → migration → seed → runtime query → upgrade → rollback.
-- Include mixed-vendor Domain DB binding/Public Workspace provisioning.
+## 보호정책과 Path Length 충돌
 
-### D. Multi-instance / process failure
-- Same-host two-process explicit identities.
-- collision fail-close, process kill, lease expiry, restart/reconcile and UNKNOWN recovery.
-
-### E. Browser
-- ADM/Backoffice Chromium/Firefox/WebKit.
-- responsive widths, login/session restore, RBAC, approval, audit, logout and 401/403/404/409/429/500/503.
-
-### F. Windows DX
-- PowerShell supported-version entrypoints.
-- VS Code fresh Gradle import, Java index, generated source index and Problems.
-
-If any external execution exposes a Source defect, reopen the same Root Cause Work Package (or create a new one), implement the fix, and repeat Development Final Gate + Fresh Replay.
+Root-relative 200자 초과 파일 47개가 모두 기존 `cpf-docs/work/evidence/codex/current/**`의 Codex 보호 Evidence다. Developer GPT 보호규칙 때문에 rename/delete하지 않았다. 일반 신규/변경 Source와 Fresh projection에는 200자 초과를 추가하지 않는다. Codex 재개 시 Evidence path currentization을 별도 cross-check한다.

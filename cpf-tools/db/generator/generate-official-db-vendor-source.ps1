@@ -17,7 +17,8 @@ $profileLogicalDatabases=@($platformModules | ForEach-Object { [string]$_.logica
 if(($logicalDatabases -join "`n") -cne ($profileLogicalDatabases -join "`n")){
  throw "Canonical schema/profile logical database drift. schema=$($logicalDatabases -join ',') profile=$($profileLogicalDatabases -join ',')"
 }
-$fileByDb=@{cpfDB='10_cpf_schema.sql';mbwDB='40_business_modules_schema.sql';referenceFixture='40_business_modules_schema.sql'}
+$fileByDb=@{cpfDB='10_cpf_schema.sql';mbwDB='40_business_modules_schema.sql'}
+$productionLogicalDatabases=@($schema.tables | Where-Object { [bool]$_.productionDefault } | ForEach-Object { [string]$_.logicalDatabase } | Sort-Object -Unique)
 $retiredSplitSchemaFiles=@('20_cmn_schema.sql','30_adm_schema.sql')
 foreach($vendor in $vendors){
  $vendorSourceRoot=[IO.Path]::GetFullPath((Join-Path $Root "cpf-tools/db/vendor/$vendor/source"))
@@ -603,7 +604,7 @@ function Render-Table([string]$v,$t){
 $sourceSchemaFiles=@($fileByDb.Values | Sort-Object -Unique)
 foreach($v in $vendors){
  $bucket=[ordered]@{}; foreach($sourceFile in $sourceSchemaFiles){$bucket[$sourceFile]=@()}
- foreach($db in $logicalDatabases){$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
+ foreach($db in $productionLogicalDatabases){if(-not $fileByDb.ContainsKey($db)){throw "Production logical database has no vendor source file mapping: $db"};$ts=@(Get-CanonicalTableOrder @($schema.tables|Where-Object{$_.logicalDatabase -eq $db -and [bool]$_.productionDefault}) $db);if($ts.Count -eq 0){continue};$s="-- AUTO-GENERATED from cpf-tools/db/canonical/platform-schema.json`n-- vendor=$v`n-- DO NOT EDIT generated DDL directly.`n`n-- CPF_LOGICAL_DATABASE=$db`n";if($v -eq 'mariadb'){$s+="USE $db;`n"};foreach($t in $ts){$s+=(Render-Table $v $t)+"`n"};$bucket[$fileByDb[$db]]+=$s}
  foreach($sourceFile in $sourceSchemaFiles){if($bucket[$sourceFile].Count -gt 0){W (Join-Path $Root "cpf-tools/db/vendor/$v/source/$sourceFile") ($bucket[$sourceFile] -join "`n")}}
 }
 # Seed model is canonical too. Rendering is delegated to the dedicated function below so generated SQL never copies another vendor pack.

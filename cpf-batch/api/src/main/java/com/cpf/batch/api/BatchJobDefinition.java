@@ -30,7 +30,7 @@ public record BatchJobDefinition(
         long expectedRowVersion) {
 
     /** Batch Job이 사용할 승인된 실행기 유형을 선택하는 Canonical 값입니다. */
-    public enum ExecutorType { SPRING_BATCH, APPROVED_SHELL, FILE_WATCH, FILE_PROCESS, FILE_TRANSFER, SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER }
+    public enum ExecutorType { SPRING_BATCH, APPROVED_SHELL, FILE_WATCH, FILE_PROCESS, FILE_TRANSFER, CENTER_CUT, SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER }
     /** Batch Job Definition의 Draft부터 Retired까지 lifecycle 상태를 나타냅니다. */
     public enum State { DRAFT, VALIDATED, APPROVAL, PUBLISHED, RETIRED }
     /** Batch Job 기동 조건이 일정/파일/메시지/수동 등 어떤 유형인지 나타냅니다. */
@@ -109,9 +109,23 @@ public record BatchJobDefinition(
             requireParameter(params, "sourceAlias", Set.of("PATH_ALIAS"));
             requireParameter(params, "sourcePath", Set.of("STRING", "FILE_REFERENCE"));
         }
+        if (type == ExecutorType.FILE_WATCH) {
+            referenceId(ref, "FILE_WATCH:", "FILE_WATCH requires FILE_WATCH:<approvedPathAlias> reference");
+            requireParameter(params, "sourcePath", Set.of("STRING", "FILE_REFERENCE"));
+        }
+        if (type == ExecutorType.CENTER_CUT) {
+            referenceId(ref, "CENTER_CUT:", "CENTER_CUT requires CENTER_CUT:<centerCutJobId> reference");
+        }
         if (type == ExecutorType.SERVICE_CALL && !ref.startsWith("SERVICE:")) {
             throw new IllegalArgumentException("SERVICE_CALL requires typed service operation reference");
         }
+    }
+
+    /** CENTER_CUT Runtime과 ADM 검증이 동일하게 사용하는 Center-Cut Job ID입니다. */
+    public String centerCutJobId() {
+        if (executorType != ExecutorType.CENTER_CUT) return "";
+        return referenceId(executorReference, "CENTER_CUT:",
+                "CENTER_CUT requires CENTER_CUT:<centerCutJobId> reference");
     }
 
     /** FILE_PROCESS Runtime과 ADM Preview가 동일하게 사용하는 Processor ID입니다. */
@@ -136,14 +150,14 @@ public record BatchJobDefinition(
                 .filter(parameter -> name.equals(parameter.name()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "FILE_PROCESS requires parameter schema: " + name));
+                        "File executor requires parameter schema: " + name));
         if (!allowedTypes.contains(definition.type())) {
             throw new IllegalArgumentException(
-                    "FILE_PROCESS parameter " + name + " type must be " + allowedTypes);
+                    "File executor parameter " + name + " type must be " + allowedTypes);
         }
         if (!definition.required()) {
             throw new IllegalArgumentException(
-                    "FILE_PROCESS parameter must be required: " + name);
+                    "File executor parameter must be required: " + name);
         }
     }
     private static void validateUniqueParameters(List<BatchParameterDefinition> params){Set<String> names=new HashSet<>();for(var p:params){if(!names.add(p.name()))throw new IllegalArgumentException("duplicate parameter: "+p.name());}}

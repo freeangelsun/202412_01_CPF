@@ -1,7 +1,6 @@
 package com.cpf.batch.centercut.runner;
 
 import com.cpf.batch.api.RuntimeRegistration;
-import com.cpf.batch.api.RuntimeRole;
 import com.cpf.batch.runtime.BatDataSourceConfiguration;
 import com.cpf.batch.runtime.RuntimeCommonConfiguration;
 import com.cpf.batch.runtime.RuntimeIdentityFactory;
@@ -20,7 +19,6 @@ public class CenterCutApplication {
 
     @Bean
     RuntimeRegistration runtimeRegistration(Environment environment) {
-        return RuntimeIdentityFactory.fromBatchEnvironment(
-                environment, RuntimeRole.CENTER_CUT, 8183);
+        return RuntimeIdentityFactory.fromCenterCutEnvironment(environment, 8183);
     }
 }

@@ -5,6 +5,7 @@
 SELECT 'MBW_ADMIN_USER' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_ADMIN_USER';
 SELECT 'MBW_APPROVAL_DELEGATION' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_DELEGATION';
 SELECT 'MBW_APPROVAL_DOCUMENT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_DOCUMENT';
+SELECT 'MBW_APPROVAL_EXECUTION' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_EXECUTION';
 SELECT 'MBW_APPROVAL_HISTORY' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_HISTORY';
 SELECT 'MBW_APPROVAL_LINE' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_LINE';
 SELECT 'MBW_APPROVAL_PARTICIPANT' AS table_name, COUNT(*) AS present FROM information_schema.tables WHERE UPPER(table_name) = 'MBW_APPROVAL_PARTICIPANT';

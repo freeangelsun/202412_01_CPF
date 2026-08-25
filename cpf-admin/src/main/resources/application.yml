@@ -43,6 +43,8 @@ logging:
     com.cpf.admin: DEBUG
 
 cpf:
+  # Runtime 거래 식별용 System Code입니다. CPF Platform DB의 Schema/Table Prefix는 이 값과 무관하게 Canonical 고정입니다.
+  system-code: ${CPF_SYSTEM_CODE:ADM}
   framework:
     module-id: ADM
     was-id: ${WAS_ID:admAP01}

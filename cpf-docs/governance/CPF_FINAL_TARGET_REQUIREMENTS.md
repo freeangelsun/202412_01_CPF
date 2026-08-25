@@ -644,6 +644,19 @@ Domain의 PostgreSQL -> Oracle 같은 변경은 단순 config flip이 아니다.
 - setup diff에 schema/data/credential/rollback 영향 표시
 - Runtime이 active이면 drain/maintenance/approval 절차 요구
 
+
+### 11.5 CPF Platform DB Physical Naming
+
+CPF Framework 고유 Platform DB의 물리 Naming은 Canonical 고정값을 사용한다. `CPF_*`, `CMN_*`, `ADM_*`, `BAT_*` prefix와 Platform Schema/Object Naming을 Runtime property로 임의 변경하는 범용 기능을 제공하지 않는다. Runtime System Identity와 Data Ownership을 분리한다. 예를 들어 Center-Cut Runner는 `systemCode=CEC`, `channelCode=CEC`, `runtimeRole=CENTER_CUT_RUNNER`이지만 Batch 원장 Consumer이므로 `BAT_*` 데이터를 사용한다. Generated Customer Domain의 물리 Naming은 해당 Generator/Domain Contract가 소유한다.
+
+### 11.6 DB 변경 Runtime Test 강제
+
+DB 변경 Runtime 검증은 단순 연결/기동 Smoke가 아니다. Oracle/PostgreSQL/MariaDB 각각 verifier-owned 격리 DB/User/Schema를 준비하고 기존 검증 객체를 제거한 Fresh 상태에서 Initializer 전체 실행 → Seed → 대상 실제 거래 → DB 결과/History/Trace/Constraint/Index/Query 확인 → Supported Previous Version Upgrade → Rollback/Recovery → Reapply → 동일 거래 재실행/멱등성 → 영향도 회귀 → Cleanup까지 수행한다. `SKIP`, `NOT_EXECUTED`, `UNVERIFIED`, 일부 Vendor만 PASS인 상태는 전체 PASS가 아니다.
+
+### 11.7 Runtime Identity / Batch Executor Type
+
+일반 Batch Runtime의 canonical System/Channel Code는 `BAT/BAT`다. Center-Cut Runner는 `CEC/CEC/CENTER_CUT_RUNNER` 독립 Runtime Instance로 Registry에 등록·Heartbeat하며, Center-Cut 기능명 `CENTER_CUT`과 Runtime Role을 혼동하지 않는다. Batch Job Definition은 실제 Consumer가 존재하는 실행유형만 등록할 수 있어야 하며 최소 `SPRING_BATCH(Java)`, `APPROVED_SHELL`, `FILE_WATCH`, `FILE_PROCESS`, `FILE_TRANSFER`, `CENTER_CUT`, `SERVICE_CALL`, `MESSAGE_TRIGGER`, `PROTOCOL_ADAPTER`를 실제 Owner/Validation과 연결한다. ADM 등록 UI는 실행유형 Select + 유형별 필수 입력/사전검증을 제공하고, FILE_WATCH는 승인된 `PATH_ALIAS`와 상대경로/안정화 조건을 사용하며 CENTER_CUT은 활성 Center-Cut Job을 선택한다. enum/UI만 있고 Runtime Consumer가 없는 실행유형은 False Green으로 실패 처리한다.
+
 ## 12. Backoffice — MBW Business Domain
 
 `cpf-backoffice`는 Optional Prebuilt Business Domain이며 일반 Generated Business Domain과 동일한 Online Transaction 계약을 따른다.
@@ -874,7 +887,7 @@ prerequisite check
 → actual health
 ```
 
-일반 개발에서는 선택한 DB 하나를 사용한다. Oracle/PostgreSQL/MariaDB DB3 전체는 Release QA에서 별도 검증한다.
+Local Bootstrap의 기본 개발환경은 선택 DB 하나로 시작할 수 있다. 그러나 **DB 관련 Source/Schema/Seed/Runtime Query/Mapper/Repository/Migration/Initializer/Generator 중 하나라도 변경되는 Work Package는 개발 단계부터 Oracle/PostgreSQL/MariaDB 3사 전체를 같은 변경 단위로 구현·검증한다.** Canonical DB Source → Initializer/Fresh Init → 3 Vendor Render/DDL → Migration → Supported Previous Version Upgrade → Rollback 또는 명시적 Recovery → Seed → Runtime Query/Repository/Mapper → Generator/Generated Domain → 실제 Vendor Runtime 거래 → Fresh-vs-Upgrade Schema Parity → Existing Data Preservation → Evidence가 모두 닫히기 전 완료로 판정하지 않는다. 특정 Vendor만 PASS하거나 SQL 파일 존재/정적검증만으로 DB3 PASS 처리하지 않는다.
 
 `stop`은 data/volume을 삭제하지 않는다. `reset`만 명시적으로 data destructive 동작을 할 수 있다.
 
@@ -1102,6 +1115,9 @@ ADM/Backoffice/Gateway/Platform Operations는 EDU package를 만들지 않는다
 - QA만 전체 상태/최종 완료를 확정한다.
 - 개발 GPT는 구현·자체검수와 자신의 Source/Evidence를 책임진다.
 - Codex는 독립 검수·보완을 수행한다.
+- Codex 전용 `CODEX_*` 진행문서/원장/Work Package와 `cpf-docs/work/evidence/codex/current/**`는 Developer GPT가 읽기 전용으로 취급하며 상태/PASS/CLOSED/Evidence를 대신 수정하지 않는다. Developer GPT가 먼저 보완한 항목도 Codex가 자기 원장에서 최신 Source를 독립 재검수할 수 있도록 보존한다.
+- Developer GPT는 별도 실행원장에 `개발완료 / 정적검증완료 / 런타임검증완료 / Codex검증완료`를 독립 상태축으로 기록하고, 신규/수정 영역은 Codex 재검수 대상과 재현조건을 남긴다.
+- 모든 수정/영향 Runtime Test는 초기상태 준비 → 정상 → 오류/경계 → 실패/복구 → 재실행/멱등 → Side Effect → DB/Trace/History → Cleanup까지 완전 시나리오로 수행한다. 단순 Smoke/기동만으로 Runtime PASS 처리하지 않는다.
 - 과거 SHA Evidence를 현재 PASS로 승계하지 않는다.
 - Source가 정본과 다르면 정본을 낮추지 않고 Source Gap을 등록한다.
 - `CPF_REQUIREMENT_MASTER.csv`, Scenario/Execution Sequence, Control Register 같은 대규모 실행 Dataset은 **205 Canonical Requirement에서 파생된 관리 자료**이며 상위 정본이 아니다. Canonical 변경 후 QA/중앙 관리 Pipeline으로 재생성·정합화해야 하고, 재생성 전 stale Dataset을 근거로 Final Target을 되돌리지 않는다.

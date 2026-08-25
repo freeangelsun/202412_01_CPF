@@ -1,130 +1,79 @@
-# TEST AND EVIDENCE — C 개발/QA 관리_1 Final Development Closure
+# CPF Developer GPT Test and Evidence — 2026-08-25
 
-## 1. Source Identity
+## Source Identity
 
-- Development baseline Local Working Tree ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip`
-- Baseline ZIP SHA-256: `324f5d8f33bd59925fcfe4cfcb24772a543cfbf9acbafebe0f6b4b88841a8583`
-- Baseline ZIP file count: `8,424`
-- Final source-scope SHA-256: `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
-- Final source-scope files: `8,173`
-- Source identity policy: sorted `path + size + SHA-256`; `cpf-tools/build/**` product source is included. Generated Gradle/module build output, caches/bytecode and circular final evidence/package metadata are excluded.
-- GitHub/master was not used as the current development baseline.
-- Git write operations performed by Developer GPT: `NONE`.
+- Baseline ZIP SHA-256: `0eba1e95d1552342a128984930b0f0f533787caad209f8b9e7f04ddcacf7caf1`
+- Current Product Source SHA-256: `7c7b806d4284a5a655731cff60b3cce214cdcec9f73ce489b9f3f96bf9bac809`
+- Product Source files: `8434`
+- Product Source bytes: `49517641`
 
-## 2. Canonical Development/Closure Inventory
+## 실제 실행 PASS
 
-- Source-side Work Packages: `13`
-- Developer `CLOSED`: `13 / 13` (`100%` development-environment closure)
-- External Acceptance: `EA-01 BLOCKED_EXTERNAL / 미검증`
-- Canonical Requirements reference: `205`
-- Inventory: `cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv`
-- `SOURCE_FIXED`, `VERIFICATION_PENDING`, `BLOCKED_EXTERNAL` are not counted as `CLOSED`.
+- `verify-cpf-clean-source-tree.py`: PASS, files=10215, garbage=0, emptyDirs=0 (Delete Manifest 시뮬레이션 적용 작업본).
+- `verify-cpf-java-source-syntax.py`: PASS, files=2956, errors=0.
+- `verify-cpf-batch-executor-registration-contract.py`: PASS, checks=8, failures=0.
+- `verify-cpf-approval-state-machine.py`: PASS.
+- `verify-cpf-integrated-logging-closure.py`: PASS.
+- `verify-cpf-batch-fail-closed.py`: PASS.
+- `verify-cpf-batch-unknown-reconciliation.py`: PASS, Oracle/PostgreSQL/MariaDB semantic parity=true.
+- `verify-cpf-db-vendor-semantic-parity.py`: PASS, canonical tables=236.
+- `verify-cpf-db-vendor-static-token-parity.py`: PASS.
+- `verify-cpf-db-lifecycle-contract.py`: PASS, vendors=3, stages=9.
+- `verify-cpf-db-vendor-manifest.py`: PASS, checked paths=51.
+- `verify-cpf-db-development-contract.py`: PASS.
+- `verify-cpf-db-schema-governance.py`: PASS, tables=236, FKs=155; performance-review warning candidates=35.
+- `sync_bat_runtime_roles.py`: PASS, current roles=`CONTROL_PLANE/SCHEDULER/WORKER/CENTER_CUT_RUNNER/AGENT`; V116 historical immutable, V138 currentization.
+- Backoffice OpenAPI source validation: PASS, operations=96.
+- ADM OpenAPI source validation: PASS, operations=337.
+- OpenAPI/controller exact coverage: Backoffice 96/96 PASS, ADM 337/337 PASS.
+- `verify-cpf-backoffice-route-contract.py`: PASS.
+- `verify-cpf-backoffice-classification.py`: PASS.
+- `verify-cpf-frontend-consumer-closure.py`: PASS.
+- Open Git pytest: 17/17 PASS.
+- targeted Approval/Batch approval/runtime harness pytest: 6/6 PASS.
+- Immutable historical migration compare V001~V137/R001~R137: 629 files checked, changed=0, missing=0.
+- Codex protected files: 1526 checked, changed=0, missing=0.
 
-## 3. Major implemented closure
+## 보정 중 발견 후 닫은 Finding
 
-- Root/Backoffice classification: Generated Customer Domain (`MBR`,`EXS`) and prebuilt MBW Backoffice are physically and logically separated; the prior `cpf-backoffice/build.gradle:16` generated-domain misclassification path is source-side closed.
-- Runtime Central Authority: duplicate Runtime Control Plane repository blocks removed; first-registration fencing, Retention CAS, Batch exact-version delegation and UNKNOWN/reconcile contracts currentized.
-- Generated Domain IA: `cpf-<domain>/<runtime>/src/main/java/<domain-package>/<business-feature>/<technical-role>`; `<domain>.online.<domain>.*`, `<domain>.<domain>.*` and duplicate directory structures removed.
-- Generator Root Owner: explicit `businessFeatures`, reserved `sample`, typed Domain Operation discovery/client generation, generated test/import repair, lifecycle/idempotency/currentization of MBR/EXS.
-- Starter zero-footprint: persistence/http/resilience optional capabilities no longer leak through hidden transitive Starter edges; common Error Resolution contract moved to topology-independent Core API with Common as provider.
-- Backoffice: Backend OpenAPI `96` = BFF route `96` = generated descriptors/functions `96`; actual consumer and mutation contracts verified.
-- Public/Fresh Adoption: public staging/domain catalogs, artifact/catalog parity and false READY conditions currentized.
-- Runtime Identity: invalid implicit/explicit identities including `dev/test/prod` fail closed.
-- Source Hygiene: compiled `.class`, Python bytecode, old generated IA and stale lock mirrors handled through exact Delete Manifest; product `cpf-tools/build/**` source remains protected.
-- Toolchain: Node/npm/Docker and PowerShell contract currentized; unsupported API usage removed from active compatible entrypoints.
-- Evidence: Local Working Tree SHA-256 identity, direct execution Evidence and actual artifact SHA checks; vacuous evidence is forbidden.
+1. `referenceFixture` 4개 object가 production DB projection에 혼입: Canonical renderer mapping 수정 후 DB3 semantic parity PASS.
+2. Center-Cut Runtime Identity가 BAT/CENTER_CUT으로 남음: CEC/CEC/CENTER_CUT_RUNNER + V138/R138 append-only로 현행화.
+3. Runtime-role contract/verifier가 V116 historical role을 current로 오인: historical/current 분리 후 PASS.
+4. `FILE_WATCH` enum/UI는 있으나 Worker Consumer가 없음: `ApprovedFileExecutor.awaitReady()`로 연결.
+5. CENTER_CUT Batch Job consumer 부재: Control Plane `CpfCenterCutOperations.launch()` 연결.
+6. Batch UNKNOWN verifier가 대문자 physical SQL을 소문자 literal로 비교해 False Red: case-insensitive semantic check로 수정.
+7. MBW Approval의 업무 판단문서/History/Snapshot 결정/실행결과 계약 부족: 판단문서/Before-After/History/version+hash decision/MBW_APPROVAL_EXECUTION V139/R139을 보완.
+8. 테스트/Gradle disposable state가 module 하위 `cpf-docs`를 생성: 외부 managed-work root로 변경, nested `cpf-docs`는 Delete Manifest 대상.
+9. Source Identity에 runtime log/cache가 섞일 수 있음: generated/cache scope를 source identity에서 제외.
 
-## 4. Exact final-source executed verification
+## 미실행 — PASS 아님
 
-### Canonical Final Gate
+현재 assistant 실행환경은 Java 21이며 Java25/Gradle 9.1 cached distribution/Docker live DB3 환경이 없다. 따라서 아래는 `VERIFICATION_PENDING`이다.
 
-- Canonical static registry: `24 / 24 PASS`
-- Post-clean source: `PASS`
-- Evidence semantics: `13 verified rows / 13 direct execution documents PASS`
-- `CPF_DEVELOPMENT_FINAL_GATE=PASS`
+- Java 25 전체 Gradle clean/build/test/publication.
+- Oracle/PostgreSQL/MariaDB 실제 전체 객체 Fresh 초기화 → Seed → V138/V139 실제 거래 → Upgrade → Rollback/Recovery → Reapply → 기존 데이터 보존/Schema parity.
+- BAT/CEC 실제 Process: Registry, FILE_WATCH 실제 파일, CENTER_CUT 실제 Domain Invocation, Worker Kill/Lease/Fencing/UNKNOWN/Reconcile/Recovery.
+- ADM/Backoffice Browser E2E 및 실제 Approval Owner 적용/FAILED/UNKNOWN/Reconcile.
+- Open Git Fresh binary publication + Fresh Generated Domain + EDU/Backoffice/UI + external clean consumer acceptance.
 
-### Python / contract regression on exact final source
+## 필수 로컬 검증
 
-- DB: `157 passed / 0 failed`
-- Generator: `37 passed / 10 environment skips / 0 failed`, plus `6 subtests passed`
-- Release/Public: `31 passed / 0 failed`
-- Runtime + Security + Supply-chain: `76 passed / 2 environment skips / 0 failed`, plus `7 subtests passed`
-- Verification/OpenAPI: `77 passed / 0 failed`
-- Testing-tools: `381 passed / 22 environment skips / 0 failed`, plus `2 subtests passed`
-- Docker-development-test: `6 passed / 0 failed`
-- Aggregate Python tests: **`765 passed / 34 environment skips / 0 failed`**, plus **`15 subtests passed`**.
-- Environment skips are not promoted to live Runtime PASS.
+`cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1`을 프로젝트 Root에서 Java25 + Docker 환경으로 실행한다. ExitCode 0이고 Final PASS이며 SKIP/NOT_EXECUTED/UNVERIFIED가 0이 아니면 Runtime PASS로 기록하지 않는다.
+## Fresh Baseline Overlay Replay
 
-### Generated/semantic execution
+Baseline fresh copy에 최종 Overlay를 실제 압축해제하고 `DELETE_MANIFEST.csv` 승인경로 114개를 적용한 뒤 재검증했다.
 
-- Generated Java: MBR `32` + EXS `33` = `65` source `javac` PASS.
-- Generated IA mutation: legacy/duplicate package and directory mutations correctly FAIL.
-- Starter zero-footprint: minimal / persistence-only / http-only / resilience-only transitive graph PASS; hidden edge mutations correctly FAIL.
-- Backoffice semantic mutation: generated-client/route/method-path corruption correctly FAIL.
-- Runtime Instance Identity executable harness and Central Registry/Retention contracts PASS.
+- Clean Source: PASS, garbage=0, emptyDirs=0.
+- Java Source Syntax: PASS, 2,956 files, errors=0.
+- Batch Executor Registration: PASS, 8 checks.
+- Approval State Machine: PASS.
+- Batch UNKNOWN DB3: PASS, 3 Vendor semantic parity=true.
+- DB3 Semantic Parity: PASS.
+- BAT Runtime Role Current Contract: PASS.
+- Backoffice Boundary/Frontend Consumer: PASS.
+- Backoffice OpenAPI: 96/96 PASS.
+- ADM OpenAPI: 337/337 PASS.
+- Replay Product Source SHA-256: `7c7b806d4284a5a655731cff60b3cce214cdcec9f73ce489b9f3f96bf9bac809` — 작업본과 동일.
 
-## 5. Fresh Replay
+이 Replay는 Source/정적/패키지 적용성을 검증한 것이며 Java25/Docker 물리 Runtime PASS를 의미하지 않는다.
 
-Input: exact baseline `CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip`.
-
-- Baseline managed files: `8,421`
-- Final managed files at replay preparation: `8,476`
-- Overlay copied: `173` files
-- Delete Manifest pending rows: `89`
-- Replay deletions actually present: `55`
-- Pending rows already absent in baseline/replay state: `34`
-- Replay source-scope SHA-256: `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
-- Replay source-scope files: `8,173`
-- Identity equals development Source: `YES`
-- Replay Canonical: `24/24 PASS`
-- Replay post-clean: `PASS`
-- Replay Evidence semantics: `13/13 PASS`
-- Replay `CPF_DEVELOPMENT_FINAL_GATE`: `PASS`
-
-## 6. Delete lifecycle
-
-`cpf-docs/deliverables/DELETE_MANIFEST.csv`:
-
-- Total rows: `689`
-- `HISTORICAL_ALREADY_ABSENT`: `600`
-- `PENDING_USER_EXECUTION`: `89`
-- Pending with `approved=true` and `precondition=SATISFIED`: `89`
-- `user_approved=true`: `0`
-- Developer GPT deletion against user's Working Tree: `NO`
-- `cpf-tools/verification/apply_delete_manifest.ps1` requires a non-empty `-UserApprovalRef` for user-execution-required pending rows.
-
-## 7. External acceptance still required
-
-The following are mandatory overall-product acceptance and remain `BLOCKED_EXTERNAL / 미검증` because the assistant environment cannot execute them faithfully:
-
-1. Java 25 root Gradle full build/test/publication including Generated Domains and Backoffice.
-2. Public Binary isolated consumer against a reachable artifact repository without private Source or `mavenLocal` dependency.
-3. Live Oracle/PostgreSQL/MariaDB install → migration → seed → runtime query → upgrade → rollback, including mixed-vendor domain binding.
-4. Same-host multi-process/Multi-WAS, process kill, lease expiry, restart/reconcile and UNKNOWN recovery.
-5. ADM/Backoffice real-browser E2E in Chromium/Firefox/WebKit and responsive widths.
-6. Windows PowerShell/VS Code fresh workspace actual UI/import/index validation.
-
-Current assistant environment evidence:
-
-- Java: `21.0.11` (not Java25).
-- Node: `22.16.0`; npm `10.9.2` (Source contract requires Node >=22.18.0 <25).
-- Gradle wrapper: attempts Gradle `9.1.0` download and fails with `UnknownHostException: services.gradle.org`.
-
-## 8. Final local integration command
-
-Run from the user's CPF Git root **after applying the Overlay and explicitly approving the Delete Manifest**:
-
-```powershell
-$log="$env:USERPROFILE\Downloads\gradle-problems.txt"; $start=Get-Date; python .\cpf-tools\verification\tools\run-cpf-canonical-verifiers.py --root .; $static=$LASTEXITCODE; .\gradlew.bat clean build --continue --stacktrace -PcpfIncludeGeneratedDomains=true 2>&1 | Tee-Object -FilePath $log; $gradle=$LASTEXITCODE; $failed=@(Select-String -Path $log -Pattern '^> Task .* FAILED$'); $testFailed=@(Select-String -Path $log -Pattern '^\s*\d+ tests? completed, \d+ failed'); Write-Host "`n========== CPF FINAL REPORT =========="; Write-Host "StaticGate     : $(if($static -eq 0){'PASS'}else{'FAIL'})"; Write-Host "Gradle         : $(if($gradle -eq 0){'PASS'}else{'FAIL'})"; Write-Host "GradleExitCode : $gradle"; Write-Host "Failed Tasks   : $($failed.Count)"; Write-Host "Test Failures  : $($testFailed.Count)"; Write-Host "Started        : $start"; Write-Host "Finished       : $(Get-Date)"; Write-Host "Log            : $([IO.Path]::GetFullPath($log))"; Write-Host "======================================"
-```
-
-Expected external acceptance: Java25, `StaticGate=PASS`, Gradle `BUILD SUCCESSFUL`, ExitCode `0`, failed tasks `0`, failed tests `0`.
-
-## 9. Completion judgment
-
-- **Development-environment implementable scope:** `100% / 13 of 13 CLOSED`.
-- **Development Final Gate:** `PASS`.
-- **Fresh Replay:** `PASS` with identical Source Identity.
-- **Overall product QA completion:** `NOT COMPLETE` while `EA-01 BLOCKED_EXTERNAL` remains.
-
-Any external execution that exposes a Source defect reopens the corresponding Root Cause Work Package and requires the Final Gate/Fresh Replay again.

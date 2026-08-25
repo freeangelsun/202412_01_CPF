@@ -22,15 +22,19 @@ management:
       probes:
         enabled: true
 cpf:
+  # Center-Cut Runner의 거래/Runtime System Code입니다. 기본값 CEC이며 Header/Trace/Registry에서 사용합니다.
+  system-code: ${CPF_SYSTEM_CODE:CEC}
   web:
     context:
       management-root-paths:
         - /internal/v1/center-cut
   framework:
-    module-id: BAT
+    # Center-Cut Runner의 독립 Runtime Module Identity입니다. 일반 Batch(BAT)와 구분합니다.
+    module-id: ${CPF_MODULE_ID:CEC}
     was-id: ${CPF_WAS_ID:}
   runtime:
-    role: CENTER_CUT
+    # Control Plane Registry에 등록되는 실행 역할입니다. 기능명 CENTER_CUT과 구분합니다.
+    role: CENTER_CUT_RUNNER
   batch:
     control:
       base-url: ${CPF_BATCH_CONTROL_BASE_URL:http://127.0.0.1:8180}

@@ -2,5 +2,5 @@ pluginManagement { repositories { gradlePluginPortal(); mavenCentral() } }
 rootProject.name = 'cpf-gradle-plugin'
 def cpfManagedGradleBase = providers.gradleProperty('cpfManagedGradleRoot')
         .orElse(providers.environmentVariable('CPF_MANAGED_GRADLE_ROOT'))
-        .orElse(new File(rootDir, '.cpf/work/gradle').absolutePath).get()
+        .orElse(new File(gradle.gradleUserHomeDir, 'cpf-managed-work').absolutePath).get()
 gradle.startParameter.projectCacheDir = new File(cpfManagedGradleBase, 'cpf-gradle-plugin/project-cache')

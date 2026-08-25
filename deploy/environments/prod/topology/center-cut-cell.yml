@@ -1,6 +1,6 @@
 cellId: center-cut-cell
 environment: prod
-runtimeRole: CENTER_CUT
+runtimeRole: CENTER_CUT_RUNNER
 serviceId: cpf-batch-center-cut
 runtimeMode: embedded-bootjar
 artifact:

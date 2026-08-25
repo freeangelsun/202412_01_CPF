@@ -1,940 +1,900 @@
 {
-  "schemaVersion": "1.0",
-  "packageType": "CPF_ROOT_RELATIVE_OVERLAY",
-  "baselineZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip",
-  "baselineSha256": "324f5d8f33bd59925fcfe4cfcb24772a543cfbf9acbafebe0f6b4b88841a8583",
-  "sourceIdentitySha256": "4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886",
-  "sourceScopeFiles": 8173,
-  "overlayPayloadFilesExcludingPackageManifest": 184,
-  "deleteManifestRows": 689,
-  "deleteLifecycleCounts": {
-    "HISTORICAL_ALREADY_ABSENT": 600,
-    "PENDING_USER_EXECUTION": 89
-  },
-  "developerFinalGate": "PASS",
-  "freshReplay": "PASS",
-  "overallProductStatus": "NOT_COMPLETE_EA01_BLOCKED_EXTERNAL",
-  "payloadFiles": [
+  "schemaVersion": 1,
+  "packageType": "DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING",
+  "baselineZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260824_203050.zip",
+  "baselineZipSha256": "0eba1e95d1552342a128984930b0f0f533787caad209f8b9e7f04ddcacf7caf1",
+  "sourceIdentitySha256": "7c7b806d4284a5a655731cff60b3cce214cdcec9f73ce489b9f3f96bf9bac809",
+  "sourceFileCount": 8434,
+  "sourceBytes": 49517641,
+  "overlayFilename": "CPF_DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING_20260825_102512.zip",
+  "runtimeVerification": "VERIFICATION_PENDING",
+  "codexVerification": "PENDING",
+  "freshOverlayReplay": "PASS",
+  "codexProtectedFiles": 1526,
+  "codexProtectedChanged": 0,
+  "immutableHistoricalMigrationsChecked": 629,
+  "immutableHistoricalMigrationsChanged": 0,
+  "manifestSelfHashExcluded": true,
+  "overlayFiles": [
     {
-      "path": "cpf-backoffice-web/frontend/scripts/generate-reference-client.mjs",
-      "size": 2419,
-      "sha256": "eee143872d985f5c1baa1279c33b8b7e168133929cc2f79069d51d3e879cbf13"
+      "path": "cpf-admin/frontend/src/features/batch-job-packs/BatchJobPacksPage.vue",
+      "sizeBytes": 22416,
+      "sha256": "58293f5760fa238925c88d948a11e5cd9cd4e5563b50e647287fb4dae0a11618"
     },
     {
-      "path": "cpf-backoffice-web/frontend/src/generated/backoffice-api.ts",
-      "size": 39421,
-      "sha256": "a707c52c272380be7a94142b59be910aafab5c9795f11824f32c569de477efe1"
+      "path": "cpf-admin/frontend/src/features/batch-runtime-control/api.ts",
+      "sizeBytes": 32620,
+      "sha256": "c91195574bc4e4462e1b5f10893acae2d10c92308b88f7525256270e62fa65e9"
     },
     {
-      "path": "cpf-common/src/main/java/com/cpf/common/message/api/CpfErrorCatalogResolver.java",
-      "size": 634,
-      "sha256": "41e9fcfbe0ffc86b954996299a52a2c3d44b60dbad4b1cdfe2c0484579c67be3"
+      "path": "cpf-admin/src/main/resources/application.yml",
+      "sizeBytes": 4018,
+      "sha256": "04f47eb4e644946e1239148537d16322d4b2ee94208f58683bb64c29a0d0fe86"
     },
     {
-      "path": "cpf-common/src/main/java/com/cpf/common/message/api/CpfResolvedError.java",
-      "size": 1533,
-      "sha256": "71b13f9c2c9ae9bc909f1981c4fdf382154a54307bdab70c151a0a8b064359b3"
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/components/ApprovalDecisionForm.vue",
+      "sizeBytes": 1808,
+      "sha256": "79cf5153a6404c9274bce4404c818a87712048b345451157964b1d1dfa41354a"
     },
     {
-      "path": "cpf-common/src/main/java/com/cpf/common/message/service/CmnCpfErrorCatalogResolver.java",
-      "size": 7833,
-      "sha256": "df71cf3a0aa8e0692b5c86356b8b3c89d536a1c0b2439bce031b69804a9fb8c3"
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/components/ApprovalDocumentView.vue",
+      "sizeBytes": 3565,
+      "sha256": "08d1d46c9affa2ad8758331948960567dd63e5ca9fc865591126e75c94a0844d"
     },
     {
-      "path": "cpf-core/src/main/java/com/cpf/core/api/error/CpfErrorCatalogResolver.java",
-      "size": 511,
-      "sha256": "f3eea6745c7fa69bdfa773e7f7649d259629621128a00f02add84fc3e8f0145e"
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/composables/useApprovals.ts",
+      "sizeBytes": 1222,
+      "sha256": "e2eddaa6d47367382d75732c335dc4ef757686243bd2966b636cf184c2a4a4e2"
     },
     {
-      "path": "cpf-core/src/main/java/com/cpf/core/api/error/CpfResolvedErrorView.java",
-      "size": 808,
-      "sha256": "77868ef2da9d60ccc0ea08f54654935b216466b941a318880d300b80f801be2b"
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/model/approvalModel.ts",
+      "sizeBytes": 2596,
+      "sha256": "bdb8ce73f24ff23115fe2beeb301d99dcb46a373854b1c930eed585694ba39c2"
+    },
+    {
+      "path": "cpf-backoffice-web/frontend/src/features/approvals/pages/ApprovalInboxPage.vue",
+      "sizeBytes": 1672,
+      "sha256": "5637e24c0cce9196304a575c218244fa1f79bd7291789c6616a4692d7fe1907d"
+    },
+    {
+      "path": "cpf-backoffice-web/settings.gradle",
+      "sizeBytes": 388,
+      "sha256": "24c212ecb1afafd0c0e4bc37e7f86786ba59d6314c274845f96e1c53defcd54f"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/repository/BackofficeApprovalPolicyRepository.java",
+      "sizeBytes": 17498,
+      "sha256": "472b69098162c0b9d5d539a23a0f30df9c6ba6e9da18c04ab0d90cfb8375e9d5"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalDocumentAssembler.java",
+      "sizeBytes": 8303,
+      "sha256": "a32d0bf92e79ab3fd149ca3744678e41f5d81823f359c512fdb693b195a9ad57"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionCoordinator.java",
+      "sizeBytes": 2145,
+      "sha256": "7e923d163ed78a4b63cd2d000e1a563e60d7f3643c2f1d8f2f9a57d5c2e6d8e0"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionRunner.java",
+      "sizeBytes": 6245,
+      "sha256": "c4c34460a0934e3e958666defc12e7c74257e5faa26770713255f4a325342c8c"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalExecutionStateService.java",
+      "sizeBytes": 3946,
+      "sha256": "bd9bd6a461b23b24f98c19e4cbc9f2000b3c2b84ae84eaedd778f89ae65e8528"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/approval/service/BackofficeApprovalPolicyService.java",
+      "sizeBytes": 44425,
+      "sha256": "cdb24ca57fb30fc671735e7eb6f0ac21e85bf0b3cbe1d1f52e7999430c086b47"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/java/com/cpf/backoffice/online/management/service/BackofficeManagementService.java",
+      "sizeBytes": 20625,
+      "sha256": "c2d6b26febe6b6d3ae88af8f337a3254a6afc1cb58e1be8119dc519d7a5fa4f1"
+    },
+    {
+      "path": "cpf-backoffice/online/src/main/resources/application.yml",
+      "sizeBytes": 1843,
+      "sha256": "f81ca5b1db7fb60869eef063aca67129d145743453c9494853cc30c0ddf6d11a"
+    },
+    {
+      "path": "cpf-batch/agent/src/main/resources/application.yml",
+      "sizeBytes": 3596,
+      "sha256": "0d599bfd18169d7b947735313368d8a39b5c1b6b5f15cd2d7f4a0fc704a12585"
+    },
+    {
+      "path": "cpf-batch/api/src/main/java/com/cpf/batch/api/BatchJobDefinition.java",
+      "sizeBytes": 11546,
+      "sha256": "341d0693a9d364cf5f37a88bb6fbbd1780ff477806a7a97d0f301f1fbd483d6e"
+    },
+    {
+      "path": "cpf-batch/api/src/main/java/com/cpf/batch/api/RuntimeRole.java",
+      "sizeBytes": 232,
+      "sha256": "13753e029bb54229b37488ef8865f14ef80013548d3ef18b5ac76a0dbf2ac568"
+    },
+    {
+      "path": "cpf-batch/api/src/test/java/com/cpf/batch/api/BatchJobDefinitionTest.java",
+      "sizeBytes": 1335,
+      "sha256": "3648b7df4f6613139824ae9f53e89a367d5f53e535ecd47511c74d4e1d020fc2"
+    },
+    {
+      "path": "cpf-batch/center-cut/src/main/java/com/cpf/batch/centercut/runner/CenterCutApplication.java",
+      "sizeBytes": 1009,
+      "sha256": "f5e8ba86f7514d3be36c1bca4ac6b422f1e0ce65ff67cab47e214c60058556d2"
+    },
+    {
+      "path": "cpf-batch/center-cut/src/main/resources/application.yml",
+      "sizeBytes": 1549,
+      "sha256": "79a8107da3f7ee2d1668643a1012826cfae58f315825beea50061c1137b334a0"
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/java/com/cpf/batch/control/centercut/CenterCutBatchStepHandler.java",
+      "sizeBytes": 3521,
+      "sha256": "b52c1c4290a7a9cfd3460526f9be7e94cbbd639b98ada90a24a551e14685ccbb"
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/java/com/cpf/batch/control/job/BatchJobDefinitionService.java",
+      "sizeBytes": 33129,
+      "sha256": "1313581b29d8cf031f3243c34369d41d9ebf8a56faef0f44c2c9f6656bfea096"
+    },
+    {
+      "path": "cpf-batch/control-plane/src/main/resources/application.yml",
+      "sizeBytes": 1435,
+      "sha256": "808cf3724f3755d320cc8cbe538b0b7410b57104eccca497237b1f7349c7c8a2"
+    },
+    {
+      "path": "cpf-batch/runtime-support/src/main/java/com/cpf/batch/runtime/RuntimeIdentityFactory.java",
+      "sizeBytes": 3956,
+      "sha256": "5df7a08212711add755cbfa007faea8f0f063985adf2c5dfd3262d6939932273"
+    },
+    {
+      "path": "cpf-batch/runtime-support/src/test/java/com/cpf/batch/runtime/RuntimeIdentityFactoryTest.java",
+      "sizeBytes": 3613,
+      "sha256": "90c9b98b85c83941d552af25619a9d1a68355b67751511a1ff60913596f75be6"
+    },
+    {
+      "path": "cpf-batch/scheduler/src/main/resources/application.yml",
+      "sizeBytes": 1062,
+      "sha256": "ec3b0afe815e0b8220b8aeb4376dda198dbc86b57e9886dc869b2537d57dfebf"
+    },
+    {
+      "path": "cpf-batch/worker/src/main/java/com/cpf/batch/worker/SpringBatchWorkerStepHandler.java",
+      "sizeBytes": 16641,
+      "sha256": "9c136d972643452eae11a83255d2c23bc98daad7471948d4fd9211d840e597d9"
+    },
+    {
+      "path": "cpf-batch/worker/src/main/resources/application.yml",
+      "sizeBytes": 1323,
+      "sha256": "661a07e79dfa29e94fb1dc61b361bc37dac8044ef660a62159f03fdd3baacb63"
+    },
+    {
+      "path": "cpf-batch/worker/src/test/java/com/cpf/batch/worker/SpringBatchWorkerStepHandlerTest.java",
+      "sizeBytes": 10499,
+      "sha256": "486f00bfeede53e6328dfa3fcc22e0ce93aacb3af31f17b6cdb91f81b4344b1d"
+    },
+    {
+      "path": "cpf-docs/deliverables/APPLY_COMMAND.txt",
+      "sizeBytes": 285,
+      "sha256": "6b6e5e54deebddfd67075d5c7cb66f8a10bce0d55fa3869836e82bb06bdf706e"
     },
     {
       "path": "cpf-docs/deliverables/CHANGE_MANIFEST.csv",
-      "size": 38034,
-      "sha256": "b612a1889f8f4e9b06733d5b726678062f7466c3f91cb86240c7340ec1de12d7"
+      "sizeBytes": 31306,
+      "sha256": "c653909683d6a052ecab1518bcd994ff86f17284e160993a2e38d6ae88ccad32"
+    },
+    {
+      "path": "cpf-docs/deliverables/CLEANUP_COMMAND.txt",
+      "sizeBytes": 331,
+      "sha256": "39737280476165e8872cb839e3334251bc6ea2ec7a0ef501ccfe461257933a57"
+    },
+    {
+      "path": "cpf-docs/deliverables/DELETE_COMMAND.txt",
+      "sizeBytes": 638,
+      "sha256": "c3e3990645d687f956c447b6e4514b369400fdc0c3f3b8484335ea984d2d2bc3"
     },
     {
       "path": "cpf-docs/deliverables/DELETE_MANIFEST.csv",
-      "size": 186643,
-      "sha256": "1fbcf0b520dd7becee59d2350c4ca06280b2f5dea56955c771822be80517f1a6"
+      "sizeBytes": 25464,
+      "sha256": "085be9726061f4fd21d8b071daacf8c6b05352efbbe79a297293e339292968d6"
     },
     {
-      "path": "cpf-docs/deliverables/DEVELOPMENT_COMPLETION_REPORT.md",
-      "size": 8638,
-      "sha256": "3cbfbfe43fc39496eca528f0f7866a8062b842465c27acdbcf4de176e728abc7"
+      "path": "cpf-docs/deliverables/DEVELOPER_GPT_REQUIREMENT_STATUS.csv",
+      "sizeBytes": 1331,
+      "sha256": "83ee10ee71807f2b09748560707397a4d2538c1b29a54cfe6e3704e426127aa3"
+    },
+    {
+      "path": "cpf-docs/deliverables/FINAL_DELIVERY_SUMMARY.md",
+      "sizeBytes": 736,
+      "sha256": "7c50e247f131f1f0144bee5e1e767b669bf9c54aae366a0b29f4406cf5d1cce0"
+    },
+    {
+      "path": "cpf-docs/deliverables/GIT_STATUS_COMMAND.txt",
+      "sizeBytes": 19,
+      "sha256": "344fc453349a52a32ce664b388c923ac1b8975be439f1bfacc005457301275d3"
+    },
+    {
+      "path": "cpf-docs/deliverables/LOCAL_RUNTIME_VALIDATION_COMMAND.txt",
+      "sizeBytes": 480,
+      "sha256": "a47fb82ae67a7ebcc673732262bcb6f8bded352206e9ca040c37b2281cde04c0"
+    },
+    {
+      "path": "cpf-docs/deliverables/LOW_COST_VERIFY_COMMAND.txt",
+      "sizeBytes": 417,
+      "sha256": "08d6aaf5a189950f3c5be5e63cd0b3db15185e5fd7f33c87dd93735661992b31"
     },
     {
       "path": "cpf-docs/deliverables/OPEN_ISSUES.md",
-      "size": 1860,
-      "sha256": "399940c27516ed70127903a041c115f58a66e48bcc419f2b7b7d991b9d295b5b"
+      "sizeBytes": 1199,
+      "sha256": "64190e57136a21c965e4d8f8f8e02ba47349b398f40193ad2bbc45d49109ca7d"
+    },
+    {
+      "path": "cpf-docs/deliverables/QA_REWORK_REQUEST.md",
+      "sizeBytes": 549,
+      "sha256": "7239706110b5e0bdd24f6846f80c684a62808584b76c8850b91497138bb84fb9"
+    },
+    {
+      "path": "cpf-docs/deliverables/SHA256SUMS.txt",
+      "sizeBytes": 1273985,
+      "sha256": "e1eb2f5dc029a36637d6bae79e4fab24648c8213d94b52a71ce7718d49f1db78"
     },
     {
       "path": "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
-      "size": 8637,
-      "sha256": "dcc26fae741ad0c48114f4ebfe9c57677bc6326c0a9134d23e873c739486829e"
-    },
-    {
-      "path": "cpf-docs/development/CPF_PUBLIC_FUNCTION_TOP_100.md",
-      "size": 23482,
-      "sha256": "79bc35fadcd1f60acfbb0391a79d40f2255d617d35c7c6606697f0aa9899ae93"
+      "sizeBytes": 5253,
+      "sha256": "5325ace5aff74dcb538b5ce245085991e1dcf9b103f86e1dd67e26e2b8eee992"
     },
     {
       "path": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
-      "size": 122718,
-      "sha256": "9dfa7461d2c23d53378225893230f84f066b3d9bce8f768841281ca70039dab3"
+      "sizeBytes": 135297,
+      "sha256": "73f803402cec38ce21d6361575271c6de5eca397373daab9b259701fcca53a98"
     },
     {
-      "path": "cpf-docs/work/GARBAGE_SWEEP_DECISIONS.csv",
-      "size": 204664,
-      "sha256": "6e301aaa8a81afd456aef359fa34eb79c63e707a29b2d4920361f114f694b95a"
+      "path": "cpf-docs/work/current/CHANGE_MANIFEST.csv",
+      "sizeBytes": 38388,
+      "sha256": "0e7206d9a78946c39eedafbc4b3470fc2e47d1c164bb82b3bd373df2be407440"
     },
     {
-      "path": "cpf-docs/work/current/CODEX_FINDING_CLOSURE.csv",
-      "size": 166,
-      "sha256": "c588d88672f9e07aac7295b347062a8bfb2117e23e0354569c988193b125d229"
+      "path": "cpf-docs/work/current/CPF_DEVELOPER_GPT_NEXT_WORK_INSTRUCTION.md",
+      "sizeBytes": 4202,
+      "sha256": "e875752ff9d776816840c88841837ef5c93a6ed6cbf6dd9c7dfe64abaa87ae50"
     },
     {
-      "path": "cpf-docs/work/current/CODEX_REVALIDATION_REQUEST.md",
-      "size": 8209,
-      "sha256": "2b474bd3767d9ef0307f9e63ffb06ba214008b0cc87ec1fe3760efabb153afe8"
+      "path": "cpf-docs/work/current/CPF_DEVELOPER_GPT_QA_DEVELOPMENT_REVIEW.md",
+      "sizeBytes": 619811,
+      "sha256": "c4b3494d867bff4d9bd852e149c8ad76071a497552adc4828d25329d49eb8d1e"
     },
     {
-      "path": "cpf-docs/work/current/CODEX_REVALIDATION_RESULT.md",
-      "size": 933,
-      "sha256": "312bac8a974f460583ad89c7833696b5dadb626642d213a2565532b8fa4b71ac"
+      "path": "cpf-docs/work/current/CPF_DEVELOPER_GPT_SESSION_HANDOVER_20260825.md",
+      "sizeBytes": 5625,
+      "sha256": "1e2d4628517462c01ca9e699f2189341257235f68cc7629eb457e8b677be16f5"
     },
     {
-      "path": "cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv",
-      "size": 8764,
-      "sha256": "53490dd9ff397ee8f598e00367a44be47f1ea17790cc7123a80efa7a4ab243fa"
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_001_00-00010066__07-00015128.csv",
+      "sizeBytes": 7984964,
+      "sha256": "6501fa0731f64ecd98335ff4038bb5592386dc72019ab05f381026d9ba49463b"
     },
     {
-      "path": "cpf-docs/work/current/CPF_DEVELOPMENT_HANDOVER.md",
-      "size": 3011,
-      "sha256": "57d8b3ae02f535ead316c0c68c5b1c359203601c6fab93efc964ea3937e1aaac"
+      "path": "cpf-docs/work/current/CPF_EXECUTION_SEQUENCE.parts/CPF_EXECUTION_SEQUENCE_PART_002_07-00015129__15-99999999.csv",
+      "sizeBytes": 7103645,
+      "sha256": "ee7dab7ea8262eaa04a3a7e84ac878268549d9b5a33b4b8624330e43f5e3c46f"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-01.json",
-      "size": 1233,
-      "sha256": "7ca3d8e68814f9e4ffd82ac6f9d2bc0c0953d3c5a7c07e0ae3137d3dffcedfc7"
+      "path": "cpf-docs/work/current/CPF_OPEN_GIT_FRESH_RELEASE_REQUIREMENT.md",
+      "sizeBytes": 27650,
+      "sha256": "639e8e75e09d6c623a30546be4ed7d097eb2cd6d3c98bf0b8049b8e01c55986d"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-02.json",
-      "size": 1245,
-      "sha256": "c04ddcb89970c572febd3ac9c219307a9892fb3dbd1d8e01fc7dc1d6fa38fd3c"
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_001_CPF-FR-000001__CPF-FR-001616.csv",
+      "sizeBytes": 7995755,
+      "sha256": "940d745204c07a90de71fe583719c9f7b91d32194403294cd4be874392a9bdcd"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-03.json",
-      "size": 1231,
-      "sha256": "4ac0e77887dd0f9cede99424831aa4cd69a7853112542637cb144e7d7ed96510"
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_008_CPF-FR-011307__CPF-FR-013018.csv",
+      "sizeBytes": 7997798,
+      "sha256": "d399639869f6f80c109aff3dfadd6affce2315920edfcf65973ba6937f2c3006"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-04.json",
-      "size": 1229,
-      "sha256": "59f9f0241513847a68c71b08d4d76701be1ccf3d0d50e8d3b189cea57b10ace5"
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_010_CPF-FR-014810__CPF-FR-016605.csv",
+      "sizeBytes": 8024711,
+      "sha256": "2b7fd055877eeff90e47a148007a9a139466aa6f2b9625b4b23d2f08120a75a7"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-05.json",
-      "size": 1237,
-      "sha256": "3708f7c3793e2206e1ce3f97eff32cfda1ecdfcfe07a4d399de6b799d989f43c"
+      "path": "cpf-docs/work/current/CPF_REQUIREMENT_MASTER.parts/CPF_REQUIREMENT_MASTER_PART_013_CPF-FR-020081__CPF-FR-021936.csv",
+      "sizeBytes": 7999738,
+      "sha256": "7544e281212043dfe2615a25dde188fea8e189ef1f631b3957cd33c16346dba0"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-06.json",
-      "size": 1233,
-      "sha256": "b63284908fa2c49254a15a72c01caabe6fc0668aa528f5a0d64bf2e2f7a55522"
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_001_CPF-SC-000001__CPF-SC-009526.csv",
+      "sizeBytes": 7989931,
+      "sha256": "2639b93b4cfde0230e0483ac3ef94bc104d919de553bfc157ad6180640afdd68"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-07.json",
-      "size": 1234,
-      "sha256": "343aa559c9bd2d13de2fa2d3df7942214356af1c740daf8672412eff277afaa3"
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_002_CPF-SC-009527__CPF-SC-015274.csv",
+      "sizeBytes": 7992771,
+      "sha256": "997f327def0ce3e68caa2d967864aa84fea24704a17f3f146f2d4f35232430f9"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-08.json",
-      "size": 1243,
-      "sha256": "33199638db6314a622a6dd03ef6213bbf865bcd700eb2ac1073d526aaf34e931"
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_004_CPF-SC-020086__CPF-SC-024985.csv",
+      "sizeBytes": 7993943,
+      "sha256": "5cd0c20ee7b4c3680663160c26da2e63420d30f427e7750abf3c5466c83d6534"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-09.json",
-      "size": 1229,
-      "sha256": "0b59b49ca3b31714dc85736613a5bb6074c47222bbf5ecd43d208dc448e3193e"
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_005_CPF-SC-024986__CPF-SC-030164.csv",
+      "sizeBytes": 7994798,
+      "sha256": "59595bcb4c6aad1b776813e4cf3bb1aecdd5e6ce38ccc4095804b792727e3729"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-10.json",
-      "size": 1233,
-      "sha256": "54d4bc8944562958d582eea2a2390e5c1c0d971b844af67db3e78b796020d1f4"
+      "path": "cpf-docs/work/current/CPF_SCENARIO_MASTER.parts/CPF_SCENARIO_MASTER_PART_006_CPF-SC-030165__CPF-SC-035766.csv",
+      "sizeBytes": 7994011,
+      "sha256": "b860fbe193cbae9884701c316f9d0a7746747464508e657fe5f3be9b0fb54507"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-11.json",
-      "size": 1223,
-      "sha256": "09661dd4e8388b0dd1506fe4cb1115018983723e0cc492ad6ad729ca66d9e62e"
+      "path": "cpf-docs/work/current/DELETE_MANIFEST.csv",
+      "sizeBytes": 19610,
+      "sha256": "c1cc03da216653977f1632a107332059fd6e6565e333f80ff3a08bc01cf828c3"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-12.json",
-      "size": 1225,
-      "sha256": "7d6eb4411938b72c73e5504e0c24118567b023783f394e34f096b66588bb0912"
+      "path": "cpf-docs/work/current/PACKAGE_MANIFEST.json",
+      "sizeBytes": 34975,
+      "sha256": "5ca1cf48762944c9acbf39bff78e00d396a40e3f6de71cc0690ad2448c3e083e"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/WP-13.json",
-      "size": 1952,
-      "sha256": "85c5635ae8685a60c952aceb409bebbc279fdbcd15cdde5eadec484bbcec348f"
+      "path": "cpf-docs/work/current/QA_REWORK_REQUEST.md",
+      "sizeBytes": 678,
+      "sha256": "3f517579974ea7e53c71902e8ff4ee25be82400df76a296b2529f15ae9f1dc3f"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/backoffice_semantic_control.log",
-      "size": 211,
-      "sha256": "df258fc2221db0441f959529e58da7e20f6644243ab3dc60f0b121116d1f8f78"
+      "path": "cpf-docs/work/current/REQUIREMENT_STATUS.csv",
+      "sizeBytes": 1554,
+      "sha256": "c9e82f8786ce991dc9152fbc4a9e579e718f7221dc10766195f5a2955610f45c"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/canonical_current.log",
-      "size": 1811,
-      "sha256": "321c8105c893399c666a24d6091dbf4613b76bcced990bdc470c4f12fe131309"
+      "path": "cpf-docs/work/evidence/developer-gpt/current/FINAL_STATIC_GATE_SUMMARY.md",
+      "sizeBytes": 216,
+      "sha256": "db2267d330d96623c207794ca25bfbb683da3f7f4a41f56bd83c24d154ed4c3e"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/evidence_semantics.log",
-      "size": 80,
-      "sha256": "503a1f63550c99cab6a1f41f2c6acbbc3ac3f3deb4091a70a1f9a77b1add49f5"
+      "path": "cpf-education/src/main/resources/application.yml",
+      "sizeBytes": 1356,
+      "sha256": "a39aa083d8e5ae9a389b2849250839c5a12bd6ab7b441016de123c06bb960b30"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/evidence_semantics_final.log",
-      "size": 80,
-      "sha256": "53f3ef37ec3c289d02c7a46add6ac8c76b8cf8251734429b985d1fdeb7040299"
+      "path": "cpf-external/online/src/main/resources/application.yml",
+      "sizeBytes": 2076,
+      "sha256": "b4e8646ca772e9cd1d7e2f2271a5786fc67e9d9da4d550b43f55a312bb16e7de"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_fresh_replay_apply.json",
-      "size": 156,
-      "sha256": "c0d9ce02b6bb597c64d2e106ac814a0019022b459a53763d4ab3504d6f371111"
+      "path": "cpf-gateway/src/main/resources/application.yml",
+      "sizeBytes": 6350,
+      "sha256": "0cff588e32ed9bcbebc707a1a2f2806d50b97ac59fd717285aa9121fc5240104"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_fresh_replay_identity.json",
-      "size": 118,
-      "sha256": "8e29732069a3e8a9b40ba9a12a2def1c50e8affe1068da7c27b402c3fae58ff5"
+      "path": "cpf-member/batch/src/main/resources/application.yml",
+      "sizeBytes": 2110,
+      "sha256": "5cf70e9e071e9a4db947f95ddd37881e6621c446e5d4919239659cef88aae569"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_gate_replay_12.log",
-      "size": 2196,
-      "sha256": "18188e6760956b1b1c4796332d87dcbee840c88b88edddd34e8a687662ddceb2"
+      "path": "cpf-member/online/src/main/resources/application.yml",
+      "sizeBytes": 2072,
+      "sha256": "56eeecd8f13057002d0677c1d3b89f32b52ead9ddfa6a5fff77802b8c6020167"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_generator.log",
-      "size": 125,
-      "sha256": "cd0d24c9c6021e4f01f4e4a9fe8cfdb20b7f5086942a31956b048b47ea5816b3"
+      "path": "cpf-tools/build/gradle-plugin/settings.gradle",
+      "sizeBytes": 461,
+      "sha256": "16a3df7b687315bd645e39b1aafb0c00db48b1b50c380f91d56f4c572a12d3f5"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_release.log",
-      "size": 99,
-      "sha256": "51ea6f530376777725549aced75e09e9d96df824b248722225eef6bc04bd3d17"
+      "path": "cpf-tools/build/platform-bom/settings.gradle",
+      "sizeBytes": 423,
+      "sha256": "14b3412fabf5e1b6cc67617780175995b636db4194a4c321db03d17a506ecf34"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_runtime_security_supply.log",
-      "size": 202,
-      "sha256": "c8256ff20dba566eb2e9377d84a110e47ac217db70ed3ec7b436f105c31dfa6e"
+      "path": "cpf-tools/db/canonical/platform-schema.json",
+      "sizeBytes": 1237925,
+      "sha256": "b5b9437f3988937ac3b91a7c5eba25432777584bfce5733df63a13580d898437"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/final_verification.log",
-      "size": 180,
-      "sha256": "7e5dad56fef63f3ab50293a9555e48b192bcb430e2bf647d933c74cdb42922c0"
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-rollback.sql",
+      "sizeBytes": 1542,
+      "sha256": "1f598910675f8cd9eccbf904d8f6804264418baddc38d901a94b6bbae7b7b1d7"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/fresh_replay_canonical.log",
-      "size": 1808,
-      "sha256": "5447b576cd4ad1a7c8b7fd46c38e90f0495f3ec3de1eb09592de3a9f198ba23b"
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-schema.sql",
+      "sizeBytes": 42321,
+      "sha256": "155d5d5b6a92e7387031b9351ba24ccaa838d941a69c6f4a0720f0d478e04950"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/fresh_replay_evidence_semantics.log",
-      "size": 80,
-      "sha256": "503a1f63550c99cab6a1f41f2c6acbbc3ac3f3deb4091a70a1f9a77b1add49f5"
+      "path": "cpf-tools/db/generated/current/mariadb/backoffice-verify.sql",
+      "sizeBytes": 4322,
+      "sha256": "f0d93bc1bae0ce98dedb06c84796e0125764d7ffe75830422cabb1042d82e96f"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/fresh_replay_identity.json",
-      "size": 313,
-      "sha256": "11c54c68f57433f7458234e1c3ce430158de2e3dbf9ea9e93cef364b3620cace"
+      "path": "cpf-tools/db/generated/current/mariadb/cpf-platform-schema.sql",
+      "sizeBytes": 246906,
+      "sha256": "a17a2a40da57faddadfab5625a9c70575c8a638bd1131f5f05640cfe6c35fdde"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/garbage.log",
-      "size": 152,
-      "sha256": "1278ae82f4c5d691c8c4814bee986be2e6e3ab4fbd31dec3a41ce1ff625382b5"
+      "path": "cpf-tools/db/generated/current/mariadb/manifest.json",
+      "sizeBytes": 1638,
+      "sha256": "1fda20a99fa2450dc34e231e302fb73f2e7c596a32e0acb63089e9ad1b944a46"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/generated_javac_final.log",
-      "size": 370,
-      "sha256": "bb4a1a061e14d4b8cef95bd926b8cd229aa2ca818bcee6345c3b0c0ace7b5d34"
+      "path": "cpf-tools/db/generated/current/mariadb/reference-fixture-schema.sql",
+      "sizeBytes": 6408,
+      "sha256": "e46daea1b37bc20204188f01e5c82d310f061174689529fd93c6e54450f8b548"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/generator.log",
-      "size": 125,
-      "sha256": "b4a2329418131fd7d46e1cd6e57895a9b422a14423413d12c56aa45b78889dc1"
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-rollback.sql",
+      "sizeBytes": 4571,
+      "sha256": "71bf2e595b987c6a6e6222abc7057318456ba22fe8153d5519a719a0a76a314b"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/ia_mutation.log",
-      "size": 524,
-      "sha256": "d3d1fc0fbb2612a651b1dbd42ef3c56f0d9788b76ed8efd206f19507e6b86924"
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-schema.sql",
+      "sizeBytes": 82101,
+      "sha256": "3c89aaae5cf22bbc82b18d057dc2561f3f06878b43fca53eb5b7e4ccb494119b"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/release.log",
-      "size": 99,
-      "sha256": "e8cbe1168ca889d5e26b0ee3b40abe3d19e75b6007b70ec0189a4ce2dfcb5993"
+      "path": "cpf-tools/db/generated/current/oracle/backoffice-verify.sql",
+      "sizeBytes": 3691,
+      "sha256": "a5fe7193db0b34b4dbb6dc96073ff8123b0ce7dd766bc6c6afb4da0605e0a323"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/runtime_security_supply.log",
-      "size": 202,
-      "sha256": "d6e23f7776f01fb06db52a197f423aeaf176a3bb665bc0b0738166232c49527a"
+      "path": "cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql",
+      "sizeBytes": 511024,
+      "sha256": "d1ebec8ee4c42d5672bed8721f98468ea3e306cc8ad28339b38539a363589fa2"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/toolchain.log",
-      "size": 132,
-      "sha256": "8b52a9bd433b30de8e5d1346bc5c53c02242dd6af9cbc0fdf0673d88c68fd0de"
+      "path": "cpf-tools/db/generated/current/oracle/manifest.json",
+      "sizeBytes": 1637,
+      "sha256": "2e6edbbc3294ffac8732d27282b144686317b7d686e1009587a9a976f4daef70"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/verification.log",
-      "size": 180,
-      "sha256": "13ba7b18b21d1a912d1415eadf33ebc11d68996ee6cabdac6b9c9677ca3e3d70"
+      "path": "cpf-tools/db/generated/current/oracle/reference-fixture-schema.sql",
+      "sizeBytes": 12322,
+      "sha256": "8e665cbefcdc3f8797008c374b83797eba20301fe2d9460e8a026884b065f6d5"
     },
     {
-      "path": "cpf-docs/work/evidence/development-1/current/zero_mutation.log",
-      "size": 1819,
-      "sha256": "f248ba28449b18b6cc4727cf77966760975dcfa8998e00dbbd15ebc7d7ff4acd"
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-rollback.sql",
+      "sizeBytes": 1545,
+      "sha256": "8226fd98250e0769119038780796133013ef610f230de09e3d090831218b44d0"
     },
     {
-      "path": "cpf-external/cpf-domain.yaml",
-      "size": 727,
-      "sha256": "726cc7e1237f02521fb1461edc0d7273a523f935a4b90fded20291cddffb6d89"
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-schema.sql",
+      "sizeBytes": 81391,
+      "sha256": "c0cc7eb748ff2d16c4eb84dd78733cf3f3e8bd8bfa222ccb370bfd7f3eac6343"
     },
     {
-      "path": "cpf-external/cpf-generator.lock.json",
-      "size": 7962,
-      "sha256": "bf54ad85027189070ea755350c4bad203cf666cd3f12819e8ee672967ea10f9b"
+      "path": "cpf-tools/db/generated/current/postgresql/backoffice-verify.sql",
+      "sizeBytes": 4325,
+      "sha256": "0175be0c0405eda43ef40e55a6a3f3942335ec443fc2ab7f96f8218e3121fcc5"
     },
     {
-      "path": "cpf-external/online/build.gradle",
-      "size": 3906,
-      "sha256": "7c4b3eb955f585d613d050cf096f1ff7f975e969d255c008e081e0a488fd3e8d"
+      "path": "cpf-tools/db/generated/current/postgresql/cpf-platform-schema.sql",
+      "sizeBytes": 505391,
+      "sha256": "e461ac0ed151e76b488669f3410e02cf9f56f2a2a1fc51635ccf7a0bbc4b9bfb"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/ExternalOnlineApplication.java",
-      "size": 491,
-      "sha256": "c527b427678921feef3f526c74f4bc2e5eb7d4382993941e1e715a1cc001a239"
+      "path": "cpf-tools/db/generated/current/postgresql/manifest.json",
+      "sizeBytes": 1641,
+      "sha256": "cd92f363c6e95e66806144fc1d57e453b706edc7e19f1c38840229dcfa107790"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/base/ExternalBaseController.java",
-      "size": 605,
-      "sha256": "a4442a5738e50240099db67b9d3b2bac5635f72f1359d29934f1317d0bc2fef0"
+      "path": "cpf-tools/db/generated/current/postgresql/reference-fixture-schema.sql",
+      "sizeBytes": 12300,
+      "sha256": "06fec682cd60e868161f50fde294c3a8b3ed073ab8775f8c00c0d91878a64139"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/base/ExternalBaseRepository.java",
-      "size": 602,
-      "sha256": "45ced3869fcb9ec08a66f768abc393484628fd09972a9f7d421c8ee7bd894cbb"
+      "path": "cpf-tools/db/generator/generate-official-db-vendor-source.ps1",
+      "sizeBytes": 41673,
+      "sha256": "18441116cf761f0efe1babdd90b3cc5d32dc654641db0305fcf15db1cf10630e"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/base/ExternalBaseService.java",
-      "size": 1064,
-      "sha256": "5eb70523f382ac28c453151438b1750ba2f32a77eff5c76d7e697f2f04a9b7a0"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-claim-execution-01.sql.template",
+      "sizeBytes": 338,
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/client/DefaultMemberDomainClient.java",
-      "size": 807,
-      "sha256": "48f9282f5932dba84a4e8414acdd8261f99d2045a0dff4519255a924a7fd2b72"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-complete-execution-01.sql.template",
+      "sizeBytes": 335,
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/client/MemberDomainClient.java",
-      "size": 420,
-      "sha256": "02646d1fb1d0f94a90fefc8c4897c5a0e67e8ce536296c10687ec56566b58fa4"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-find-execution-01.sql.template",
+      "sizeBytes": 544,
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/controller/SampleTransactionController.java",
-      "size": 4185,
-      "sha256": "bd0a4f310c162afa1d8b65b3bae94186922bb3da22ba3ae5575ee4a6675e442b"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-find-history-01.sql.template",
+      "sizeBytes": 507,
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/CreateSampleRequest.java",
-      "size": 427,
-      "sha256": "c7bc87b3864722ee9c2334c078ee7f4601a5960a6ae54ff95dab7ab393d15ba0"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-insert-execution-01.sql.template",
+      "sizeBytes": 321,
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/DeleteSampleCommand.java",
-      "size": 261,
-      "sha256": "f1fd9288b17f4afbfa83f60eb909068fcb68d912873ea5df979fdceb28219272"
+      "path": "cpf-tools/db/runtime-template/backoffice/repository/approval-policy-repository-start-reconcile-01.sql.template",
+      "sizeBytes": 235,
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/DeleteSampleRequest.java",
-      "size": 455,
-      "sha256": "22493b82d662cc467247a5ed9447b25108c8bd43b1c9dde13dd2f5826550d226"
+      "path": "cpf-tools/db/vendor/mariadb/install/00_empty_install.sql",
+      "sizeBytes": 392106,
+      "sha256": "8508a09cb7790057ed02e8a11a6733d14d2618d9b3e5ccdf5f35d9c8504be128"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/SampleIdRequest.java",
-      "size": 229,
-      "sha256": "776804a20bf7f453608949e54cf5d88410ff37ee4e0c74978949eff8e92366e3"
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V138__center_cut_runner_identity.sql",
+      "sizeBytes": 1852,
+      "sha256": "0685ed0786ed3cb8e6be418856d07ebefc6953241da4d4f7763484d1dec2e52e"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/SamplePage.java",
-      "size": 288,
-      "sha256": "f02fd861a5322183b2f0309cd6996e825bc4f9f4e6843a8a361ef626468373a4"
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/V139__mbw_approval_execution.sql",
+      "sizeBytes": 1909,
+      "sha256": "930f38d4752dae3bbd46a9a478a05011481b574f692cc72a48deb501fb8e91f9"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/SampleSearchRequest.java",
-      "size": 539,
-      "sha256": "5d4e7ee6ca1aec27a1f2f3f2134f11d8bf83aaabbf8a65d7ceaa73a73eaaa471"
+      "path": "cpf-tools/db/vendor/mariadb/migration/flyway/checksums.sha256",
+      "sizeBytes": 12622,
+      "sha256": "b5406a0324a9bacfe86372cdbc024ac821c71c0c10cb936fafcdcdef0f83aec3"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/SampleSlice.java",
-      "size": 292,
-      "sha256": "57166a67d178e994e754193f114c5d2d63533661d1bad3f04900c7ad23a8bd68"
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R138__center_cut_runner_identity.sql",
+      "sizeBytes": 1252,
+      "sha256": "3aedada6be6656b9f904a86f49185ac3d07303b5db2e20376e62ac428be49c18"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/UpdateSampleCommand.java",
-      "size": 261,
-      "sha256": "bf27a2a740156f5329562011fa817e9efd4f7f38bf53312857dd761adbd715d8"
+      "path": "cpf-tools/db/vendor/mariadb/rollback/R139__mbw_approval_execution.sql",
+      "sizeBytes": 65,
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/dto/UpdateSampleRequest.java",
-      "size": 543,
-      "sha256": "cba2d52083efc2834e59a6b2e0f449cf441ecf5ab38f5be95a06a068f4f64798"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sizeBytes": 338,
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/model/SampleIdempotencyRecord.java",
-      "size": 391,
-      "sha256": "6374ae0be7b35044bf0a2a4269142c1b01448be8e5faee5eb38a538ff393cad7"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sizeBytes": 335,
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/model/SampleItem.java",
-      "size": 3365,
-      "sha256": "1fbd9e1ec41c4fdd7cf01090b78e6dbe133ab951aa23ade8b0aec78a836367ee"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sizeBytes": 544,
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/ExternalDomainPingOperation.java",
-      "size": 1212,
-      "sha256": "0360f3572cbd70f605523f7b2cae399447094b0642a9d0c73395ee0e30469f65"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sizeBytes": 507,
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleCreateDomainOperation.java",
-      "size": 1165,
-      "sha256": "11d85c4c90f1b23fcc6856e4d30474d55475e90c209d463b0c5c5bbaae24c2a9"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sizeBytes": 321,
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleDeleteDomainOperation.java",
-      "size": 1189,
-      "sha256": "ee079ca74662e5c0ae5b5f3b9b710f7e8ba981d3d0fb189f883c66ad0e772d88"
+      "path": "cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sizeBytes": 235,
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleDetailDomainOperation.java",
-      "size": 1150,
-      "sha256": "29c42926337818214f2def846d8f4f1123fda1065ce88516ea3093a31956b3df"
+      "path": "cpf-tools/db/vendor/mariadb/source/10_cpf_schema.sql",
+      "sizeBytes": 335659,
+      "sha256": "56639ffa18a0a41c34fe179ceb8904e11bf78ccd507ff23f1d317e29971a8cd8"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleSearchDomainOperation.java",
-      "size": 1163,
-      "sha256": "22dcada477b740392bbb2e5cab539f8f64359772fd07577eedaebee0cb74a0ab"
+      "path": "cpf-tools/db/vendor/mariadb/source/40_business_modules_schema.sql",
+      "sizeBytes": 55689,
+      "sha256": "68fe854df9d8d77bab374987d1d13e0665e7a62290cee756ee9d5a0660ec1b8a"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleSliceDomainOperation.java",
-      "size": 1163,
-      "sha256": "d628a8aa15ea2708b5e8dc489912061552b5a1257df2c7c44b41e179de08a31a"
+      "path": "cpf-tools/db/vendor/oracle/install/00_empty_install.sql",
+      "sizeBytes": 588833,
+      "sha256": "85a722b14309a34c75113b5a1c326e3230dd5237a305419de49d2324baa2b8d0"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/operation/SampleUpdateDomainOperation.java",
-      "size": 1189,
-      "sha256": "8d2488b71cc680710b6c5183e3fd0c4017f541474ca476ae8784808ccea367c3"
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+      "sizeBytes": 1125,
+      "sha256": "371298eac25332a5cda4feefcb1127247b5532208e3f3898d7489816c8c7f0f7"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/repository/SampleTransactionMapper.java",
-      "size": 1474,
-      "sha256": "5fef2c38566df09a559677e664b01f74fc3ce5f27c4777c0dfc30e50c4a0ce2f"
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/checksums.sha256",
+      "sizeBytes": 3652,
+      "sha256": "7500d425b0db66838c00ee4088c5801f42f278cd8a9596cc1579a1d8548db027"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/repository/SampleTransactionRepository.java",
-      "size": 4007,
-      "sha256": "8a649ea774593d28d7a5cc30c40af83b4520d16a986778a21db61689f61001ca"
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/V139__mbw_approval_execution.sql",
+      "sizeBytes": 3351,
+      "sha256": "a006407ee7f9b1081e4ef12a66cc169c293162cfd204781f39510d362fd2c0cf"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/service/DomainAuditLogger.java",
-      "size": 846,
-      "sha256": "6f137e40b3b6eb402a6e4d68434df970674b145d3d38e3fa68f598e042caeb6e"
+      "path": "cpf-tools/db/vendor/oracle/migration/flyway/mbwDB/checksums.sha256",
+      "sizeBytes": 306,
+      "sha256": "016b89653b933c9b31a15203c66473b199d416de46ad14de8168231238108911"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/service/DomainDependencySampleService.java",
-      "size": 907,
-      "sha256": "765fa6be86a9e8d94f8573e62c52fb760b6f7dd49c3c0d27feaf224127d55f37"
+      "path": "cpf-tools/db/vendor/oracle/rollback/cpfDB/R138__center_cut_runner_identity.sql",
+      "sizeBytes": 1104,
+      "sha256": "77e809ccf17305fdd5bf09fb6cee8b49c2117e9aa8fc3ed6c695fbc7805d6c73"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/service/SampleTransactionPolicy.java",
-      "size": 2128,
-      "sha256": "c9f2506f8291ec74ad6ee2c7e8cc46faabbcd24e81ea8e81ffb380bc95e94de4"
+      "path": "cpf-tools/db/vendor/oracle/rollback/mbwDB/R139__mbw_approval_execution.sql",
+      "sizeBytes": 65,
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316"
     },
     {
-      "path": "cpf-external/online/src/main/java/external/sample/service/SampleTransactionService.java",
-      "size": 10512,
-      "sha256": "c7d6346774795a1ea8014d3f8f0d62cf8555d33d9afd748a59935b5224b8ab95"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sizeBytes": 338,
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1"
     },
     {
-      "path": "cpf-external/online/src/test/java/external/sample/controller/SampleTransactionControllerContractTest.java",
-      "size": 816,
-      "sha256": "135511a430a7425733ba7c0ec3a7e864d1afe9723828a913030dcb05f3d9aa68"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sizeBytes": 335,
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5"
     },
     {
-      "path": "cpf-external/online/src/test/java/external/sample/service/SampleTransactionPolicyTest.java",
-      "size": 798,
-      "sha256": "0e3e707ea5126e9b5711dbf5bef0e27e59db8705ddfce57951ade42bd44791cc"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sizeBytes": 544,
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce"
     },
     {
-      "path": "cpf-member/batch/build.gradle",
-      "size": 3889,
-      "sha256": "574c88b7ec9931848f5936917914d25ef3725b98777f7d64764940d165185cd2"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sizeBytes": 507,
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa"
     },
     {
-      "path": "cpf-member/batch/src/main/java/member/MemberBatchApplication.java",
-      "size": 407,
-      "sha256": "a6da5d5e7dd2d0713927cd02f6cd40cbb7b13ada0978e440b53c20fcabf36d35"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sizeBytes": 321,
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597"
     },
     {
-      "path": "cpf-member/batch/src/main/java/member/sample/job/SampleBatchJob.java",
-      "size": 446,
-      "sha256": "141f521777bf3eda1350b2490950d7bbf248a018c1155d32688b7948d7ccf220"
+      "path": "cpf-tools/db/vendor/oracle/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sizeBytes": 235,
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a"
     },
     {
-      "path": "cpf-member/cpf-domain.yaml",
-      "size": 665,
-      "sha256": "630b8aa8996aced3f0c72e7b09a3096282d1c361b8f17b2031e68a8e814db90e"
+      "path": "cpf-tools/db/vendor/oracle/source/10_cpf_schema.sql",
+      "sizeBytes": 506910,
+      "sha256": "35e983e6231939d6bf19f9809eaa1b97c6e3814e144d8e0ab5ca94d49b9b69ce"
     },
     {
-      "path": "cpf-member/cpf-generator.lock.json",
-      "size": 8926,
-      "sha256": "c331f2921283adc14c247f87d9ad4f3005afaf05bee4f94212a13dbba0624ecd"
+      "path": "cpf-tools/db/vendor/oracle/source/40_business_modules_schema.sql",
+      "sizeBytes": 81631,
+      "sha256": "9b80824fe2c12aa18e8e916e847c7702c1d7fd59e99c9c25907e1af0b3a16645"
     },
     {
-      "path": "cpf-member/online/build.gradle",
-      "size": 3896,
-      "sha256": "169ce18895a40cd274226629a837cc5cf680111691db78bfc12f0bcb6ac015db"
+      "path": "cpf-tools/db/vendor/postgresql/install/00_empty_install.sql",
+      "sizeBytes": 607799,
+      "sha256": "1fc80e088de3a1c28a3185328d495185798071b5827c73d824470d0ffb32388a"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/MemberOnlineApplication.java",
-      "size": 479,
-      "sha256": "c3a00b5c8cdb53a494e8711b1ce50a42d3c5a64bb3126f540a58bd9986f53595"
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+      "sizeBytes": 1125,
+      "sha256": "371298eac25332a5cda4feefcb1127247b5532208e3f3898d7489816c8c7f0f7"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/base/MemberBaseController.java",
-      "size": 597,
-      "sha256": "302b6e409d915cb9018666cf2ce185abdc417bffd052211fb0b9868666128673"
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/checksums.sha256",
+      "sizeBytes": 3652,
+      "sha256": "f04e7cccd8c05ebc1a356c95cc2027efd985d786d89af783f7349583037b1f44"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/base/MemberBaseRepository.java",
-      "size": 596,
-      "sha256": "71d40339d47c78c02ea5988be888c4b345270452a62403ff1abef3be72150e9e"
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/V139__mbw_approval_execution.sql",
+      "sizeBytes": 3357,
+      "sha256": "2265bf1ee9c9990a663675549f6ce933d88cb57e357e6ae602c0f60b695b7c04"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/base/MemberBaseService.java",
-      "size": 1056,
-      "sha256": "a6381596a9e3087932ea9815b6bdd1cea5f3a791a6dc527042db902cea96f401"
+      "path": "cpf-tools/db/vendor/postgresql/migration/flyway/mbwDB/checksums.sha256",
+      "sizeBytes": 306,
+      "sha256": "584759e5205eec521903156dcccd8669c8cda7ca1b85819c49783570c6fa82a1"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/controller/SampleTransactionController.java",
-      "size": 4131,
-      "sha256": "4d8f4f7fce622612da6b9b1ede63cc18b23762d5bfe3e82418f30ea654c97eaf"
+      "path": "cpf-tools/db/vendor/postgresql/rollback/cpfDB/R138__center_cut_runner_identity.sql",
+      "sizeBytes": 1104,
+      "sha256": "77e809ccf17305fdd5bf09fb6cee8b49c2117e9aa8fc3ed6c695fbc7805d6c73"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/CreateSampleRequest.java",
-      "size": 425,
-      "sha256": "493a67fe787bb5f2d0fcd746ac624f4ea8211f6bd304b777b65c740e5682d032"
+      "path": "cpf-tools/db/vendor/postgresql/rollback/mbwDB/R139__mbw_approval_execution.sql",
+      "sizeBytes": 65,
+      "sha256": "0f5e2cf6c33f1fc3d252b392b930550486e4908b7bbd1db4d1e0ed4213076316"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/DeleteSampleCommand.java",
-      "size": 259,
-      "sha256": "3b2926a7021392e37dbf653552d107957691365cd5a711d7ea48916a01c05f8c"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-claim-execution-01.sql",
+      "sizeBytes": 338,
+      "sha256": "7b1d2ac62e358d33e88342d03bdfbf2b3e524f86cbb5e429dfdaa20106d7daa1"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/DeleteSampleRequest.java",
-      "size": 453,
-      "sha256": "1f419f12594981d8f830944a48f0d23d451cd479140a0335db79bee37980f4ca"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-complete-execution-01.sql",
+      "sizeBytes": 335,
+      "sha256": "2dd9c9b99ebfe6d741b7fd7e52288270b625816c525fd13449df9388bdff0fd5"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/SampleIdRequest.java",
-      "size": 227,
-      "sha256": "1f7f164a0996829137451fc0c52b60600e6bdad9f2bac1e58769598a42f4b734"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-find-execution-01.sql",
+      "sizeBytes": 544,
+      "sha256": "748bc9521378fab02e95992ff75c3c305fd5838f85e7077675733926dead9bce"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/SamplePage.java",
-      "size": 284,
-      "sha256": "136c8aa796d6cb4540595972ad3bdd522bce7d42bf8db9465768cbaf49aa9317"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-find-history-01.sql",
+      "sizeBytes": 507,
+      "sha256": "7105e3ce36aeab51eade0083aab23a874afdbcb20b67ea3a36e66a31b6f262fa"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/SampleSearchRequest.java",
-      "size": 537,
-      "sha256": "1d7652c0e010bd493040638dff095a5a37a76bf99c31588e926a63cadb299616"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-insert-execution-01.sql",
+      "sizeBytes": 321,
+      "sha256": "57ae86f2aa483a994ee5bcfaf8e37854627dfa9fe664cfe4279704192beda597"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/SampleSlice.java",
-      "size": 288,
-      "sha256": "b2d978c499d85b94199bbd2c534e6f79ba426b776581d03ce26430aceff5bf9f"
+      "path": "cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/approval-policy-repository-start-reconcile-01.sql",
+      "sizeBytes": 235,
+      "sha256": "26bccc636de78b1998ab88ea27199434a94e37d1440aed1713d7e80c8a895d0a"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/UpdateSampleCommand.java",
-      "size": 259,
-      "sha256": "c0cce97bddf7d9de4b0e339679a6e66e0c5b3ecbe2cb5f3e9493ae9b8c3888eb"
+      "path": "cpf-tools/db/vendor/postgresql/source/10_cpf_schema.sql",
+      "sizeBytes": 521505,
+      "sha256": "409c38dfe94ec37ef8cf2378ab8cc751d0a43195d224d53b709c3b55d5a57ff6"
     },
     {
-      "path": "cpf-member/online/src/main/java/member/sample/dto/UpdateSampleRequest.java",
-      "size": 541,
-      "sha256": "cbc58c3bc008d1dcd82e3ed2a22f26aa8c7895ebc3e33ce64e575a5af9d49a86"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/model/SampleIdempotencyRecord.java",
-      "size": 389,
-      "sha256": "730a6a5a1baba464c3a17c16659c58d0d0ba78b6707cce0d3bdd06cf62582038"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/model/SampleItem.java",
-      "size": 3363,
-      "sha256": "3ccffe077d40a677f04818545b46b7992e99f40736562f06a6f9d710217d1857"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/MemberDomainPingOperation.java",
-      "size": 1206,
-      "sha256": "b1afcbf66b76697ab3060bf96ba218bc12a778908a97761803cd9ce8356359da"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleCreateDomainOperation.java",
-      "size": 1157,
-      "sha256": "a2cc262ad1969acc8233b7c2853d4e77f6dc857d4abd19eaea3152a78877427f"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleDeleteDomainOperation.java",
-      "size": 1181,
-      "sha256": "c169337c97fe641d680f85b5f2436912503ec3e94dd3c060fe94b6e6f5d310ec"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleDetailDomainOperation.java",
-      "size": 1142,
-      "sha256": "6efc19571ab25cdf8abaa979d95eed3e81adc7365ddd000c3d25e4ad564fd9c3"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleSearchDomainOperation.java",
-      "size": 1155,
-      "sha256": "3faa842f2b6c0bc39b95a21feac1d23fa14c2d3ca12dc2fc088c61eb8277a903"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleSliceDomainOperation.java",
-      "size": 1155,
-      "sha256": "3de885e0e10b9438c32a3dc426cd235335cc4916f01b4d83fa168acedd77d3df"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/operation/SampleUpdateDomainOperation.java",
-      "size": 1181,
-      "sha256": "f193e3220382e8b5ad0ae334f5ed0d42939a716f03cb5b8c3093318ef204a016"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/repository/SampleTransactionMapper.java",
-      "size": 1468,
-      "sha256": "ef3d4e21ade90b7273f88b3ff8fd2f42da16cb7ae3307d7700cdda72e8d4fd9d"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/repository/SampleTransactionRepository.java",
-      "size": 3993,
-      "sha256": "53f21c5d2af351646aa3b08e931476cf39645358f51eb32373d8cf58907d827e"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/service/DomainAuditLogger.java",
-      "size": 840,
-      "sha256": "cad5493c0f1614552077e55b0759a1d5b4163195ec970b5cde0db9a1cd5b9ee9"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/service/SampleTransactionPolicy.java",
-      "size": 2126,
-      "sha256": "adbdfeec7c11d056f16ab6c6869d1e33db4d51a44adcd1eb0de1a8d67813021c"
-    },
-    {
-      "path": "cpf-member/online/src/main/java/member/sample/service/SampleTransactionService.java",
-      "size": 10494,
-      "sha256": "51c289fc32099f68217ed7048af6b6e957759b1e3c6177b7f718f630c02522f5"
-    },
-    {
-      "path": "cpf-member/online/src/test/java/member/sample/controller/SampleTransactionControllerContractTest.java",
-      "size": 806,
-      "sha256": "ab8aa01855751e33d3e8537d2e7f29489039cef9919200ce2b7ff7af069eb636"
-    },
-    {
-      "path": "cpf-member/online/src/test/java/member/sample/service/SampleTransactionPolicyTest.java",
-      "size": 796,
-      "sha256": "3e131496f567331b6909aa9435aa3a621fb1bd7a1c5bda1c7e8a1914351a5dcc"
-    },
-    {
-      "path": "cpf-starters/base/build.gradle",
-      "size": 540,
-      "sha256": "c0b1f068115b3b4bf1d2736d9121e92fe769d757ed7d2a18dfd0615786734e2d"
-    },
-    {
-      "path": "cpf-starters/base/runtime/src/main/java/com/cpf/foundation/runtime/CpfInstanceIdentity.java",
-      "size": 3849,
-      "sha256": "1339c2ea79153453c13b5a02e3984abca18e757d08a717ee2d3d7d1ac5cdedc7"
-    },
-    {
-      "path": "cpf-starters/common/src/main/java/com/cpf/common/message/service/CmnMessageProductAutoConfiguration.java",
-      "size": 1571,
-      "sha256": "e27f15d5d5c7a2facb15c34f3713cbb1fa4430a510dce0dbb7ca13764171f660"
-    },
-    {
-      "path": "cpf-starters/integration/http/build.gradle",
-      "size": 1193,
-      "sha256": "375b56a919ea185d70f2a00104dfea82b6c81797a8b8c363f9cc4bf166af3232"
-    },
-    {
-      "path": "cpf-starters/integration/http/src/main/java/com/cpf/integration/http/CpfHttpClientAutoConfiguration.java",
-      "size": 1169,
-      "sha256": "44f259470cae435226a6f7055960e7ce6e5e00d2c72996feca4b0671be99099f"
-    },
-    {
-      "path": "cpf-starters/integration/http/src/main/java/com/cpf/integration/http/runtimecontrol/CpfHttpRuntimeControlAutoConfiguration.java",
-      "size": 2848,
-      "sha256": "ffe920ca57d81ba0365fe2ae97d0619e80b0bb2a6500dd8a272970e6f28c18db"
-    },
-    {
-      "path": "cpf-starters/integration/http/src/main/resources/META-INF/cpf/runtime-capability.properties",
-      "size": 795,
-      "sha256": "2703e64156b1e9c940a2a9fd4b731f86cb49e6242f6a6b05f1299bdf2d58f5b7"
-    },
-    {
-      "path": "cpf-starters/integration/resilience/build.gradle",
-      "size": 1046,
-      "sha256": "3036168894b4a6a7235775b5c38cc12c6e857321f8197a9e0f0f8ce0037d936b"
-    },
-    {
-      "path": "cpf-starters/integration/resilience/src/main/java/com/cpf/integration/resilience/internal/CpfResilienceAutoConfiguration.java",
-      "size": 11306,
-      "sha256": "f3f7446d241903a7ae9d970be3db3e25dfa909c14e3fecfb83fcbf2c9b472aa3"
-    },
-    {
-      "path": "cpf-starters/integration/resilience/src/main/resources/META-INF/cpf/runtime-capability.properties",
-      "size": 841,
-      "sha256": "43e6d556f9266581366373397af6b74254f94da40b3298a4ed93b1d05172b24e"
-    },
-    {
-      "path": "cpf-starters/platform-operations/runtime-control/src/main/java/com/cpf/platform/operations/runtimecontrol/internal/CpfRuntimeControlPlaneRepository.java",
-      "size": 104794,
-      "sha256": "61527e00b98ef69e9a83f01210847edc1bbc19642123a3b30649dfcb0f4a52a7"
-    },
-    {
-      "path": "cpf-starters/profiles/batch-service/build.gradle",
-      "size": 607,
-      "sha256": "fadb7135ecf84439073229312152e1c3d7867c98e4ae31e8a78f58d848020bf6"
-    },
-    {
-      "path": "cpf-starters/profiles/event-service/build.gradle",
-      "size": 448,
-      "sha256": "61178e7ad05bfc101379672abe1494510f2403a3701e8308af9effe738cb5fb2"
-    },
-    {
-      "path": "cpf-starters/profiles/secure-api/build.gradle",
-      "size": 873,
-      "sha256": "e50ee2bbe20611a65a7d47f2bd74da83e25bede5a64be1e66c7143ab6361b277"
-    },
-    {
-      "path": "cpf-starters/web/build.gradle",
-      "size": 1029,
-      "sha256": "5656a9d51888e0094a98014f9417e35ce1c1dd3564dea585fe51fccd8084b20d"
-    },
-    {
-      "path": "cpf-starters/web/src/main/java/com/cpf/web/error/CpfGlobalExceptionHandler.java",
-      "size": 5789,
-      "sha256": "1cfebe75049babd199550fee38d2f2c582a2eef04626375efd8f4b9f7bd65373"
-    },
-    {
-      "path": "cpf-tools/db/tests/test_cmn_extension_contract.py",
-      "size": 2718,
-      "sha256": "a631bd6fc3a54dabe973adcaf23886cfcbb6d0f3087a67b5f3e2592649cbb542"
-    },
-    {
-      "path": "cpf-tools/environment/docker-development-test/CPF_#Ub3c4#Ucee4_#Uac1c#Ubc1c#Ud14c#Uc2a4#Ud2b8#Ud658#Uacbd_#Uc804#Uccb4#Uc124#Uce58.ps1",
-      "size": 11605,
-      "sha256": "f1f08ef4aa9b7c9eacb1b8839125ca1fe09ed74f9f0a588bcb0f7a39518cceae"
-    },
-    {
-      "path": "cpf-tools/environment/docker-development-test/Dockerfile.full-toolchain",
-      "size": 4112,
-      "sha256": "18cdb9ce746f112c40554ea3ba3e4542ed54c2683105d284605bbb36d0a79714"
-    },
-    {
-      "path": "cpf-tools/environment/docker-development-test/verify-complete-environment.ps1",
-      "size": 6003,
-      "sha256": "3e404ead8761c440b60c3b361a3a99275a246552a5d0c5c856b787e1efb378c8"
-    },
-    {
-      "path": "cpf-tools/generator/config/application-starters.yml",
-      "size": 57238,
-      "sha256": "786336a95f3c3aef9a0c44ea95b14dbd83991c8ee7d7a4101a5b3d19ff392a44"
-    },
-    {
-      "path": "cpf-tools/generator/contracts/capability-profiles.json",
-      "size": 22814,
-      "sha256": "ed3879f58192f698d4dc83fd14b1ed1db8109171bc66d65106707bba593a4c9f"
-    },
-    {
-      "path": "cpf-tools/generator/contracts/cpf-domain.schema.json",
-      "size": 7711,
-      "sha256": "d689b69bcf84eb7ebeafab31e781d59f2f589400ffaa7f5948c8be381c104fda"
-    },
-    {
-      "path": "cpf-tools/generator/contracts/cpf-starter-catalog.json",
-      "size": 133431,
-      "sha256": "7afc656e66379cca7e4a506d30d30e491f1ddb9a53fbcaf9147eeab0250c2d7e"
+      "path": "cpf-tools/db/vendor/postgresql/source/40_business_modules_schema.sql",
+      "sizeBytes": 85998,
+      "sha256": "5fb0374ad4dcda74c31eb85f60777973fe854052fd7890e1b322451e1e69889c"
     },
     {
       "path": "cpf-tools/generator/engine/cpf_domain_generator.py",
-      "size": 163634,
-      "sha256": "1c518218a1d34dea068d62e4bd31fae637d97fe4b0f67d8b46d210ffb01e48e6"
+      "sizeBytes": 180182,
+      "sha256": "3fc2933ad69d913de18b32f9d44bd4f47ac9a9a489952d46dc98454ef72b70c1"
     },
     {
-      "path": "cpf-tools/generator/verification/tests/test_business_feature_workflow.py",
-      "size": 2289,
-      "sha256": "63d9ab9bf4392af2783bbf4d2653d0b4e35edbbbe26c5b274347f0b891381ba3"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "sizeBytes": 142,
+      "sha256": "5d188b1030eca7647d32b7adc91603629e2b795b9bfc20cf8215dfcbf7ee1bfd"
     },
     {
-      "path": "cpf-tools/generator/verification/tests/test_generator_federation_contract.py",
-      "size": 7415,
-      "sha256": "49f7badddcd4fe9dd5cc1c0a043f7a54b57066f22bbcc4f03f8ae1809f65f071"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "sizeBytes": 111,
+      "sha256": "af5b661646f62b715d51d8f05894971defd6d4d71cccbd4ef66ea41be89c442b"
     },
     {
-      "path": "cpf-tools/release/cpf-final-artifact-catalog.json",
-      "size": 78540,
-      "sha256": "3923b22fc9746622330f1d58f48c5a9a89919f7bf93af3c669989d8196723341"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "sizeBytes": 138,
+      "sha256": "1055c3ac52c6d9d71f7eb1a13cdfa719502f2e6448527b498983123ece203a36"
     },
     {
-      "path": "cpf-tools/release/public/cpf-public-surface-policy.json",
-      "size": 6708,
-      "sha256": "8d37fe25379815b94954b8082a24e1ca8df94dcc1201fca0a482ce775a165002"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "sizeBytes": 107,
+      "sha256": "098ddc51a6180b14196e064c0516590da8ef2aca8d0dbca6cf37c309cbb22b94"
     },
     {
-      "path": "cpf-tools/release/public/prepare-cpf-public-workspace.py",
-      "size": 11166,
-      "sha256": "b4b29104fa6de6d313dc429800de65cfcbe24c11de0979048e90596a941f3c9d"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "sizeBytes": 143,
+      "sha256": "5503178eb0fbe1373bd2dd795cd42da0ba49e6d050d9c14350917fe5b26b64c4"
     },
     {
-      "path": "cpf-tools/release/public/tests/test_prepare_cpf_public_workspace.py",
-      "size": 3864,
-      "sha256": "908c3061bcb163fdadca978db46c34e04b1b0c32fd9f7fc8a6903a1961e24501"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "sizeBytes": 112,
+      "sha256": "6062c9918dd1c35b8ef186ff89ec5d9d37e55d09671471d5000121a910330817"
     },
     {
-      "path": "cpf-tools/runtime/cli/cpf.py",
-      "size": 40284,
-      "sha256": "ab8dddc449ae0df613ef95f387647db96a289635dc954305760de6908f17fd4e"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "sizeBytes": 144,
+      "sha256": "cedb8b6ad91278298bd5257cb6f9ca41f915cd72bc8734af17f4f88879c160f1"
     },
     {
-      "path": "cpf-tools/runtime/tools/tests/test_verify_cpf_batch_runtime_command_versioning.py",
-      "size": 4259,
-      "sha256": "a46c5447481dec636f7f045a1450843b05f9848a2a8d0beac659264e813e9d6b"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "sizeBytes": 113,
+      "sha256": "94aadc9f15fc8cf00a01d6acd19f80bdb87445589a26fa1b87ccf692f925b34f"
     },
     {
-      "path": "cpf-tools/runtime/tools/verify-cpf-batch-runtime-command-versioning.py",
-      "size": 5727,
-      "sha256": "22645a8aac9be9a1f048215dc418100a45587263e054935cb2583f9f43e9a6a6"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "sizeBytes": 138,
+      "sha256": "e869879add2e986db642ccf42e81ce662bbe3d7d9c304d69381479b1b14234eb"
     },
     {
-      "path": "cpf-tools/verification/contracts/cpf-verifier-registry.json",
-      "size": 4488,
-      "sha256": "2445677ce959b0ffd6ffddba6e44e4e8d5ba61e40a70c6f148ade1679ebc903f"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "sizeBytes": 107,
+      "sha256": "21b8e5604b05f5af911de505fd319985606b3ca527b3ed24dfa59defc9330939"
     },
     {
-      "path": "cpf-tools/verification/generator/verify_generator_lifecycle.py",
-      "size": 9875,
-      "sha256": "b3a9133a66feb873399f01b7fe6e95793768365cde1eb57d6730332a6a435f64"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "sizeBytes": 137,
+      "sha256": "8568ff3a112f704455aca6e982a80f5d039f8ed7fc252f8d89275df9134f7463"
     },
     {
-      "path": "cpf-tools/verification/nxt3/cpf_nxt3_layout_gate.py",
-      "size": 9847,
-      "sha256": "f44e93749ad2585c4a46ec33cbdc9f7e657d3f66413fc5a567b64d8c83b6d469"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "sizeBytes": 106,
+      "sha256": "57fa653cdd0b515528311c7b8b32c2f267993e0f2ac903323ec149ef14bc5ae1"
     },
     {
-      "path": "cpf-tools/verification/nxt3/verify_generated_customer_domain_minimal_ia.py",
-      "size": 3603,
-      "sha256": "0c3650603f76a8786bfd80af57ba74558f8ae0bf9066ed3faf5dac232135ba18"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "sizeBytes": 137,
+      "sha256": "6d408e2f5c00c8f2d7b03bd88ca1e82fb8e71dee3920f6b82101fe1e0b2966de"
     },
     {
-      "path": "cpf-tools/verification/nxt3/verify_generated_javac.py",
-      "size": 16489,
-      "sha256": "23c92a0629ac40ee5a862c5b01280e3f134a5a29042bb5647e536b49d8629a34"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "sizeBytes": 106,
+      "sha256": "233d0fa8c500a07cc651b8792b261654af781d9d64e73122955413a3121674c7"
     },
     {
-      "path": "cpf-tools/verification/nxt3/verify_generated_public_boundary.py",
-      "size": 4763,
-      "sha256": "4860b2ebdd6f3d159b1db4fe579246a49a9e5a58ced10758c12b1da1b8e0b67e"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
+      "sizeBytes": 3202,
+      "sha256": "caae4b0b59315ac071137669ad3de1a267a55e8cc08d4077e0d3307f588b2507"
     },
     {
-      "path": "cpf-tools/verification/tools/run-cpf-canonical-verifiers.py",
-      "size": 3498,
-      "sha256": "b9c522b6c956923f338c19d7400df126ecf97b02f172e29a7ae9fc1ab1582255"
+      "path": "cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "sizeBytes": 3637,
+      "sha256": "cf2d632efc0cd383231f60569b417173bc6f4faaf28b8c2f192a16ec8dd591b7"
     },
     {
-      "path": "cpf-tools/verification/tools/run-cpf-development-final-gate.py",
-      "size": 1653,
-      "sha256": "936d3bfb3f0f8c11610c5520892c856a392d237349bc052ab7f881e8b7e94563"
+      "path": "cpf-tools/runtime/metadata/bat-runtime-role-contract.json",
+      "sizeBytes": 5320,
+      "sha256": "7ddb3d8b802b88fa7bbbc3ea2573b5e6ff32ff504f5a5354cd9525dc61a560bb"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-backoffice-classification.py",
-      "size": 1397,
-      "sha256": "13ee59ac13fc587afe9ec934d828414213e64289e686a97efafbac923d09c86e"
+      "path": "cpf-tools/runtime/tools/sync_bat_runtime_roles.py",
+      "sizeBytes": 38800,
+      "sha256": "c1e545e4c61779026127aa5682108f710b1fb4e2bf5a5c16ab5a830930e91342"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-backoffice-route-contract.py",
-      "size": 7956,
-      "sha256": "71fc55a0b6ae4444c21b7ebb006c5edf460e3dbaa4a458bac48aa769e3ec161a"
+      "path": "cpf-tools/verification/tools/run-cpf-local-full-validation.ps1",
+      "sizeBytes": 75112,
+      "sha256": "6529cafb77eec17d31c598254676e91d645ccd359ca017c4261c8196b9d70c8e"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-evidence-semantics.py",
-      "size": 7908,
-      "sha256": "1bd4bb124a456f56621a71d741bd5b5ed221c15e7957bf5c072567c78ae206b5"
+      "path": "cpf-tools/verification/tools/run-cpf-required-full-runtime-validation.ps1",
+      "sizeBytes": 2941,
+      "sha256": "e40269000326a7eecfc6140c340e60e13236d798677125c787c00cc3b586fd42"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-generated-domain-canonical-ia.py",
-      "size": 4359,
-      "sha256": "cdbddf3e501077e9707befc618c6ec60275ba45ef44c89a096d87ace12e3421a"
+      "path": "cpf-tools/verification/tools/verify-cpf-batch-executor-registration-contract.py",
+      "sizeBytes": 1990,
+      "sha256": "7b49e3950f46e3b8c273e19976e717f1b3d2e6febd1bacf8a1b2a93d6ecc6b0a"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-java-source-syntax.py",
-      "size": 4728,
-      "sha256": "7029a42983085767bb2f060ea114f48b182191c01ec721fd1d022f6b2f8eddf2"
+      "path": "cpf-tools/verification/tools/verify-cpf-batch-unknown-reconciliation.py",
+      "sizeBytes": 6852,
+      "sha256": "7b740fdd59a0ded861a2433dbae85e3921d1a1411c05ff19f6de626746d5975a"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-javadoc-coverage.py",
-      "size": 5069,
-      "sha256": "3b0ba8fc2922af88f2f485e9950e852b480d215df0d5c073586f046b631504c1"
+      "path": "deploy/environments/dev/inventory/dev-services.json",
+      "sizeBytes": 5452,
+      "sha256": "66945c0e891118267ead8727f7fd743bbca31f3b806351940733f9e23ffb5c58"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-optional-surface-contract.py",
-      "size": 3870,
-      "sha256": "6807dc0a3feee2d22458e0288f9f92321d71e9dc10ffac5d6e410a59dc9269f1"
+      "path": "deploy/environments/local/inventory/local-services.json",
+      "sizeBytes": 5570,
+      "sha256": "b14b7ed8ea070e01add53865d297f9e226b0e38521311a683b79ac83fb7d4116"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-runtime-instance-identity.py",
-      "size": 2248,
-      "sha256": "a946263ecae910978e9aa185737da57ac8e8fe969a51c14160fb22d4e927f7fd"
+      "path": "deploy/environments/local/topology/center-cut-cell.yml",
+      "sizeBytes": 987,
+      "sha256": "d39d92503e08ba7226db3ecf574704fe457e5a3555ce38f0157988f04b4df3c8"
     },
     {
-      "path": "cpf-tools/verification/tools/verify-cpf-toolchain-contract.py",
-      "size": 1873,
-      "sha256": "ff8a2068736776e4468e7f6e86533e597451fb9f8b47c60c53f29ee63d453eea"
+      "path": "deploy/environments/prod/inventory/prod-services.template.json",
+      "sizeBytes": 5465,
+      "sha256": "e52ba22aa3deda2fa03a4de23d68d575aedd6d3785218489f81185c5527b54fa"
     },
     {
-      "path": "cpf-tools/verification/verify_backoffice_openapi_client_consumer.py",
-      "size": 5151,
-      "sha256": "0608f7276e70ac090ef363aaf6f6b52689da6569d8f5a07c7f817971a13eacf4"
+      "path": "deploy/environments/prod/topology/center-cut-cell.yml",
+      "sizeBytes": 1517,
+      "sha256": "0ada4dfaca80c776bfcceac738cbc5d19b02406e06621a74db064339f446cab0"
     },
     {
-      "path": "cpf-tools/verification/verify_business_framework_crosscut.py",
-      "size": 13564,
-      "sha256": "5573f9652ef6660af6775da043504aa0742833be690c9b053b1f957e61d3f93d"
+      "path": "deploy/environments/stg/inventory/stg-services.json",
+      "sizeBytes": 5443,
+      "sha256": "2ef8911a287509a4fdf6f548add7da971b19443aa4f16f7bf77be35a1c058dd3"
     },
     {
-      "path": "cpf-tools/verification/verify_nxt_zero_footprint.py",
-      "size": 3427,
-      "sha256": "d3546cfe6f066d2d691f299fd45094b505aeb037902d56f442d13dcac6d8d178"
-    },
-    {
-      "path": "cpf-tools/verification/verify_transaction_id_contract.py",
-      "size": 5762,
-      "sha256": "be6487fe7cf3fc92e7f2c36d2a0af270710294da2034c5c36b7c83917b0f9aef"
+      "path": "deploy/schemas/deployment-cell.schema.json",
+      "sizeBytes": 3422,
+      "sha256": "87c5ed7e6b1ee3a2edb59953cce7f933e2c0d05e59d85ffcfae864904b8254fa"
     },
     {
       "path": "settings.gradle",
-      "size": 26906,
-      "sha256": "336d7f6d0aea6751b16f3dd7d423401c8816cebfde41f87cd56f913d92b5a828"
+      "sizeBytes": 28971,
+      "sha256": "c764c940cb3d977a87e65651b7e4245952ec9217237b473dbb8d6f0ebc83cae9"
     }
-  ],
-  "packageManifestSelfExcludedFromPayloadHashes": true
+  ]
 }

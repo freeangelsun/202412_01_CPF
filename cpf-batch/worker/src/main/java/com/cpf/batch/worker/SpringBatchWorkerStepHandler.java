@@ -5,6 +5,7 @@ import com.cpf.batch.api.BatchJobDefinition;
 import com.cpf.batch.spi.BatchStepHandler;
 import com.cpf.batch.spi.FileProcessHandler;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -71,10 +72,10 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
     @Override
     public boolean supports(BatchJobDefinition.ExecutorType type, String reference) {
         return switch (type) {
-            case APPROVED_SHELL, FILE_PROCESS, FILE_TRANSFER,
+            case APPROVED_SHELL, FILE_WATCH, FILE_PROCESS, FILE_TRANSFER,
                     MESSAGE_TRIGGER, PROTOCOL_ADAPTER -> true;
             case SERVICE_CALL -> !DiagnosticBatchStepHandler.REFERENCE.equals(reference);
-            case SPRING_BATCH, FILE_WATCH -> false;
+            case SPRING_BATCH, CENTER_CUT -> false;
         };
     }
 
@@ -88,6 +89,7 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
             Map<String, Object> parameters = businessParameters(command);
             return switch (command.step().executorType()) {
                 case APPROVED_SHELL -> shell(command, parameters);
+                case FILE_WATCH -> fileWatch(command, parameters);
                 case FILE_PROCESS -> fileProcess(command, parameters);
                 case FILE_TRANSFER -> fileTransfer(command, parameters);
                 case SERVICE_CALL, MESSAGE_TRIGGER, PROTOCOL_ADAPTER -> external(command, parameters);
@@ -114,6 +116,28 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
         }
         return new BatchStepResult(Status.FAILED, "SHELL_EXIT_" + result.exitCode(), result.status(),
                 1, 0, 0, checkpoint);
+    }
+
+    private BatchStepResult fileWatch(BatchStepCommand command, Map<String, Object> parameters) throws Exception {
+        String alias = typedReference(command.step().executorReference(), "FILE_WATCH:");
+        String sourcePath = required(parameters, "sourcePath");
+        long timeoutSeconds = positiveLong(parameters.getOrDefault(
+                "watchTimeoutSeconds", command.jobParameters().getOrDefault("timeoutSeconds", 3600L)),
+                "watchTimeoutSeconds");
+        long stableWindowSeconds = positiveLong(parameters.getOrDefault("stableWindowSeconds", 2L),
+                "stableWindowSeconds");
+        String markerSuffix = optional(parameters, "completionMarkerSuffix");
+        Long expectedSize = optionalPositiveLong(parameters, "expectedSize");
+        String expectedSha256 = optional(parameters, "expectedSha256");
+        Path ready = files.awaitReady(new ApprovedFileExecutor.FileWatchRequest(
+                alias, sourcePath, Duration.ofSeconds(timeoutSeconds), Duration.ofSeconds(stableWindowSeconds),
+                markerSuffix, expectedSize, expectedSha256));
+        ApprovedFileExecutor.FileFingerprint fingerprint = files.fingerprint(ready);
+        return BatchStepResult.completed("FILE_WATCH_READY", 1, 1, Map.of(
+                "file.name", fingerprint.fileName(),
+                "file.size", fingerprint.size(),
+                "file.sha256", fingerprint.sha256(),
+                "file.alias", alias));
     }
 
     private BatchStepResult fileProcess(BatchStepCommand command, Map<String, Object> parameters) throws Exception {
@@ -240,6 +264,33 @@ public final class SpringBatchWorkerStepHandler implements BatchStepHandler {
                 requiredPositiveInt(parameters, "maxAttempts"));
         snapshot.assertStepBinding(command.step());
         return snapshot;
+    }
+
+    private static String typedReference(String reference, String prefix) {
+        if (reference == null || !reference.startsWith(prefix)) {
+            throw new IllegalArgumentException(prefix.substring(0, prefix.length() - 1) + " requires " + prefix + "<id>");
+        }
+        String value = reference.substring(prefix.length()).trim();
+        if (value.isEmpty() || !value.matches("[A-Za-z0-9._:-]{1,120}")) {
+            throw new IllegalArgumentException("Invalid typed executor reference: " + reference);
+        }
+        return value;
+    }
+    private static String optional(Map<String, Object> values, String name) {
+        String value = Objects.toString(values.get(name), "").trim();
+        return value.isEmpty() ? null : value;
+    }
+    private static long positiveLong(Object value, String name) {
+        final long parsed;
+        try { parsed = Long.parseLong(Objects.toString(value, "").trim()); }
+        catch (NumberFormatException e) { throw new IllegalArgumentException(name + " must be a positive integer", e); }
+        if (parsed <= 0) throw new IllegalArgumentException(name + " must be a positive integer");
+        return parsed;
+    }
+    private static Long optionalPositiveLong(Map<String, Object> values, String name) {
+        Object value = values.get(name);
+        if (value == null || Objects.toString(value, "").isBlank()) return null;
+        return positiveLong(value, name);
     }
 
     private static String processorId(String reference) {

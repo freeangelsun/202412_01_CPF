@@ -7,6 +7,7 @@ import com.cpf.batch.spi.BatchStepHandler;
 import com.cpf.batch.spi.FileProcessHandler;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -120,6 +121,33 @@ class SpringBatchWorkerStepHandlerTest {
         assertEquals(3, snapshot.getValue().maxAttempts());
         assertEquals(Map.of("transactionId", "tx-37", "requestPath", "/charges"),
                 parameters.getValue());
+    }
+
+    @Test
+    void fileWatchWaitsForApprovedAliasAndReturnsFingerprint() throws Exception {
+        Path ready = Path.of("build", "handler-test", "ready.dat").toAbsolutePath();
+        when(files.awaitReady(any())).thenReturn(ready);
+        when(files.fingerprint(ready)).thenReturn(new ApprovedFileExecutor.FileFingerprint(
+                "ready.dat", 44L, "d".repeat(64), Instant.parse("2026-08-25T00:00:00Z")));
+
+        BatchStepHandler.BatchStepResult result = handler.execute(command(
+                BatchJobDefinition.ExecutorType.FILE_WATCH,
+                "FILE_WATCH:INBOX",
+                jobParameters(Map.of(
+                        "executorType", "FILE_WATCH",
+                        "executorReference", "FILE_WATCH:INBOX",
+                        "arg.sourcePath", "daily/ready.dat",
+                        "arg.stableWindowSeconds", 3L)),
+                Map.of()));
+
+        ArgumentCaptor<ApprovedFileExecutor.FileWatchRequest> request =
+                ArgumentCaptor.forClass(ApprovedFileExecutor.FileWatchRequest.class);
+        verify(files).awaitReady(request.capture());
+        assertEquals("INBOX", request.getValue().alias());
+        assertEquals("daily/ready.dat", request.getValue().relative());
+        assertEquals(Duration.ofSeconds(3), request.getValue().stableWindow());
+        assertEquals(BatchStepHandler.Status.COMPLETED, result.status());
+        assertEquals("d".repeat(64), result.checkpoint().get("file.sha256"));
     }
 
     @Test

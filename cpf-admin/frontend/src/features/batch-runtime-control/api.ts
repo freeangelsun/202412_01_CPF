@@ -7,6 +7,7 @@ import {
   admBatchRunJob, admBatchReleaseLock, admBatchActGhostExecution,
   resolveAdmUnknownResult,
   admCenterCutReconcileUnknownExecution, admCenterCutReprocessFailedExecution,
+  admCenterCutFindJobs, admParameterReferenceSearch,
   admApprovalRequest, admApprovalRequestDetail,
   admRetentionPolicies, admRetentionRuns, admRetentionPolicySave, admRetentionPreview,
   admRetentionRunNow, admRetentionRunPause, admRetentionRunResume,
@@ -383,7 +384,11 @@ export async function actGhostExecution(executionId: string, command: DangerousB
 }
 
 export async function fetchCenterCutJobs(): Promise<Array<Record<string, unknown>>> {
-  return request('/adm/api/center-cut/jobs', { credentials: 'same-origin' })
+  return await admCenterCutFindJobs<Array<Record<string, unknown>>>()
+}
+export async function fetchPathAliases(query = ''): Promise<Array<Record<string, unknown>>> {
+  const page = await admParameterReferenceSearch<Record<string, unknown>>({ query: { referenceType: 'PATH_ALIAS', q: query || undefined, offset: 0, limit: 200 } })
+  return Array.isArray(page.items) ? page.items as Array<Record<string, unknown>> : []
 }
 export async function fetchCenterCutWorkspace(centerCutJobId: string): Promise<CenterCutWorkspace> {
   const id = encodeURIComponent(requiredId(centerCutJobId, 'centerCutJobId'))

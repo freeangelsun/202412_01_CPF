@@ -38,11 +38,19 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
 
     private final BackofficeApprovalPolicyRepository repository;
     private final ObjectMapper objectMapper;
+    private final BackofficeApprovalDocumentAssembler documentAssembler;
+    private final BackofficeApprovalExecutionCoordinator executionCoordinator;
     private final CpfApprovalContextSupport approvalContexts = new CpfApprovalContextSupport();
 
-    public BackofficeApprovalPolicyService(BackofficeApprovalPolicyRepository repository, ObjectMapper objectMapper) {
+    public BackofficeApprovalPolicyService(
+            BackofficeApprovalPolicyRepository repository,
+            ObjectMapper objectMapper,
+            BackofficeApprovalDocumentAssembler documentAssembler,
+            BackofficeApprovalExecutionCoordinator executionCoordinator) {
         this.repository = repository;
         this.objectMapper = objectMapper;
+        this.documentAssembler = documentAssembler;
+        this.executionCoordinator = executionCoordinator;
     }
 
     public List<Map<String,Object>> findPolicies(String businessDomain, String approvalType) {
@@ -318,6 +326,7 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
             }
             Map<String,Object> doc = repository.findDocument(approvalId)
                     .orElseThrow(() -> new CpfValidationException("결재 문서를 찾을 수 없습니다."));
+            validateDecisionSnapshot(doc, request);
             String beforeStatus = string(doc, "approvalStatus");
             if (!"IN_REVIEW".equals(beforeStatus)) throw new CpfValidationException("진행 중인 결재만 결정할 수 있습니다.");
             int currentStep = number(doc, "currentStepNo").intValue();
@@ -376,6 +385,11 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
             repository.insertHistory(approvalId, action, actor, idem + ":history",
                     required(request.reason(), "reason"), beforeStatus, afterStatus,
                     blankToNull(request.comment()), string(doc, "transactionId"), normalizedOperator);
+            if ("APPROVED".equals(afterStatus)) {
+                Map<String,Object> approved = repository.findDocument(approvalId)
+                        .orElseThrow(() -> new CpfValidationException("승인된 결재 문서를 다시 조회할 수 없습니다."));
+                executionCoordinator.prepareAfterApproval(approvalId, approved, normalizedOperator);
+            }
             return detail(approvalId);
 
         }
@@ -500,9 +514,39 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
     public Map<String,Object> detail(long approvalId) {
         Map<String,Object> doc = new LinkedHashMap<>(repository.findDocument(approvalId)
                 .orElseThrow(() -> new CpfValidationException("결재 문서를 찾을 수 없습니다.")));
+        List<Map<String,Object>> history = repository.findHistory(approvalId);
         doc.put("participants", repository.findParticipants(approvalId));
         doc.put("lines", repository.findLineStatuses(approvalId));
+        doc.put("history", history);
+        repository.findExecution(approvalId).ifPresent(execution -> doc.put("execution", execution));
+        doc.put("approvalDocument", documentAssembler.assemble(doc, history));
+        // 원본 Snapshot은 Server-side 승인/실행에만 사용하고 외부 응답에는 노출하지 않습니다.
+        doc.remove("payloadJson");
         return doc;
+    }
+
+    public Map<String,Object> reconcileExecution(long approvalId, String operatorId) {
+        return executionCoordinator.reconcile(approvalId, required(operatorId, "operatorId"));
+    }
+
+    private void validateDecisionSnapshot(Map<String,Object> doc, DecisionRequest request) {
+        long storedVersion = number(doc, "versionNo").longValue();
+        if (request.expectedVersionNo() == null || request.expectedVersionNo() != storedVersion) {
+            throw new CpfValidationException("결재 문서 Version이 변경되었습니다. 상세을 다시 조회하세요.");
+        }
+        String payloadJson = Objects.toString(doc.get("payloadJson"), "");
+        String storedHash = string(doc, "payloadHash");
+        if (!MessageDigest.isEqual(
+                storedHash.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII),
+                sha256(payloadJson).toLowerCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII))) {
+            throw new CpfValidationException("결재 Snapshot 무결성 검증에 실패했습니다.");
+        }
+        String expectedHash = required(request.expectedPayloadHash(), "expectedPayloadHash");
+        if (!MessageDigest.isEqual(
+                storedHash.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII),
+                expectedHash.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII))) {
+            throw new CpfValidationException("결재자가 확인한 Snapshot과 현재 Snapshot이 다릅니다. 상세을 다시 조회하세요.");
+        }
     }
 
     private String employeeNo(String operatorId) {
@@ -646,6 +690,8 @@ public class BackofficeApprovalPolicyService extends BackofficeBaseService {
     public record SubmitRequest(String policyCode, Integer policyVersion, String businessDomain, String approvalType,
             String requesterEmployeeNo, String title, String approvalMode, Instant dueAt,
             String payloadJson, String attachmentGroupId, String requestIdempotencyKey, String reason) {}
-    public record DecisionRequest(String action, String idempotencyKey, String reason, String comment) {}
+    public record DecisionRequest(
+            String action, String idempotencyKey, String reason, String comment,
+            Long expectedVersionNo, String expectedPayloadHash) {}
     public record LifecycleRequest(String idempotencyKey, String reason, String comment) {}
 }

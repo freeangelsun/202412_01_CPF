@@ -57,8 +57,10 @@ for v in vendors:
  if "status_cd IN ('PROCESSING','FAILED')" not in texts['execution-remote-message-reclaim.sql'].replace('  ',' '): errors.append(f'{v}:REMOTE_RECLAIM_NOT_FAIL_CLOSED')
  if not all(token in texts['scheduler-trigger-reconcile-unknown-retry.sql'] for token in ("trigger_status = 'UNKNOWN'",'idempotency_key = ?','attempt_count = ?')): errors.append(f'{v}:SCHEDULER_RECONCILE_CAS_INCOMPLETE')
  if not all(token in texts['execution-remote-message-reconcile-unknown-retry.sql'] for token in ("status_cd = 'UNKNOWN'",'attempt_no = ?','version_no = ?')): errors.append(f'{v}:REMOTE_RECONCILE_CAS_INCOMPLETE')
- if not all(token in texts['scheduler-trigger-reconcile-audit.sql'] for token in ('bat_reconciliation_audit', "'SCHEDULER_TRIGGER'", 'idempotency_key')): errors.append(f'{v}:SCHEDULER_RECONCILE_AUDIT_INCOMPLETE')
- if not all(token in texts['scheduler-trigger-reconcile-audit-find.sql'] for token in ('bat_reconciliation_audit', "entity_type = 'SCHEDULER_TRIGGER'", 'idempotency_key = ?')): errors.append(f'{v}:SCHEDULER_RECONCILE_IDEMPOTENCY_LOOKUP_INCOMPLETE')
+ audit_sql = texts['scheduler-trigger-reconcile-audit.sql'].lower()
+ if not all(token.lower() in audit_sql for token in ('bat_reconciliation_audit', "'SCHEDULER_TRIGGER'", 'idempotency_key')): errors.append(f'{v}:SCHEDULER_RECONCILE_AUDIT_INCOMPLETE')
+ audit_find_sql = texts['scheduler-trigger-reconcile-audit-find.sql'].lower()
+ if not all(token.lower() in audit_find_sql for token in ('bat_reconciliation_audit', "entity_type = 'SCHEDULER_TRIGGER'", 'idempotency_key = ?')): errors.append(f'{v}:SCHEDULER_RECONCILE_IDEMPOTENCY_LOOKUP_INCOMPLETE')
  required_pack_paths=('source/18_batch_unknown_reconciliation.sql','install/07_batch_unknown_reconciliation.sql','migration/V103__batch_unknown_reconciliation.sql','rollback/R103__batch_unknown_reconciliation.sql','verify/103_verify_batch_unknown_reconciliation.sql')
  for rel in required_pack_paths:
   if not (root/f'cpf-tools/db/vendor/{v}'/rel).is_file(): errors.append(f'{v}:missing:{rel}')

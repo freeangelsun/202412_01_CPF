@@ -18,7 +18,7 @@ export function useApprovals() {
 
   async function decide(approvalId: string, request: ApprovalDecisionRequest) {
     await execute(async () => {
-      await approvalApi.decide(approvalId, request)
+      detail.value = await approvalApi.decide(approvalId, request) as ApprovalDetailPayload
       inbox.value = await approvalApi.inbox()
     })
   }

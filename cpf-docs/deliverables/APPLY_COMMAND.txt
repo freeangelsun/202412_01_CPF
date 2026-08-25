@@ -1,0 +1,2 @@
+# 프로젝트 Root PowerShell에서 실행
+$zip = "$HOME\Downloads\CPF_DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING_20260825_102512.zip"; if(-not(Test-Path -LiteralPath $zip)){throw "Overlay ZIP not found: $zip"}; Expand-Archive -LiteralPath $zip -DestinationPath (Get-Location).Path -Force

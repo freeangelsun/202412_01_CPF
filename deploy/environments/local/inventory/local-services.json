@@ -68,7 +68,7 @@
     },
     {
       "module": "BAT",
-      "runtimeRole": "CENTER_CUT",
+      "runtimeRole": "CENTER_CUT_RUNNER",
       "projectPath": ":runtime:batch:center-cut",
       "artifactName": "cpf-batch-center-cut",
       "hostAlias": "batch-local",

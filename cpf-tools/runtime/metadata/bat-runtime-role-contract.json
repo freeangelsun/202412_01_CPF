@@ -43,14 +43,10 @@
       "localPort": 8182
     },
     {
-      "name": "CENTER_CUT",
-      "legacyAliases": [
-        "CENTER_CUT_RUNNER"
-      ],
+      "name": "CENTER_CUT_RUNNER",
+      "legacyAliases": [],
       "envPrefix": "BAT_CENTER_CUT",
-      "legacyEnvPrefixes": [
-        "BAT_CENTER_CUT_RUNNER"
-      ],
+      "legacyEnvPrefixes": [],
       "projectPath": ":runtime:batch:center-cut",
       "artifactName": "cpf-batch-center-cut",
       "applicationResource": "cpf-batch/center-cut/src/main/resources/application.yml",
@@ -135,7 +131,10 @@
         "table": "OPS_RUNTIME_INSTANCE_STATE",
         "column": "runtime_role",
         "nullable": true,
-        "constraint": "ck_ops_runtime_instance_role"
+        "constraint": "ck_ops_runtime_instance_role",
+        "extraAllowedRoles": [
+          "APPLICATION"
+        ]
       },
       {
         "logicalDatabase": "cpfDB",
@@ -151,6 +150,9 @@
         "nullable": false,
         "constraint": "ck_bat_deployment_runtime_role"
       }
-    ]
+    ],
+    "historical": true,
+    "supersededByVersion": 138,
+    "supersededByIntentId": "CEC-CENTER-CUT-RUNNER-IDENTITY"
   }
 }

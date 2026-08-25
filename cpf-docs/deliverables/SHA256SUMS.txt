@@ -1,7 +1,7 @@
 e2242c7ca63f0f98ac9e24e963fd77fee41237b3f5984a8b2118628a45a07d65  .editorconfig
 2a80ce1f77077210f12353ca0678658c50ca4a6300e28785eff97f2dc4c553d1  .gitattributes
 d5962ae1229c589d3f2e304151a281ca29ae06e9c19bfde41883d2e78c53559f  .github/pull_request_template.md
-855f6bb7fcfc0d1f3beae90d826c1525d25512b3e7f7f2637b72464858ec84ab  .github/workflows/cpf-final-source-gates.yml
+855f6bb7fcfc0d1f3beae90d826c1526d25512b3e7f7f2637b72464858ec84ab  .github/workflows/cpf-final-source-gates.yml
 79c99c9436a3369b22fae8d22748ce881d11002c4be447ed3d1b5b2089fd2d79  .gitignore
 03494d54f7f33868b973453dadf18001e7dea46cce24320468d05a3d8d268675  README.md
 bef779974b30f7388f46a11a29a4a707d86b13297b65c65173e32cd4f1d40575  build.gradle
@@ -725,7 +725,7 @@ c1bd14e335ceb35ec38ed64226a77774fc834ac16e8a37742acf4bf99a918566  cpf-admin/src/
 9e973953827b6acd39d602fedd7c6a2159f86289825bbbc34e8b43a2f56d9d93  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatApprovalOwnerCommandPort.java
 8b5bed2d64fe0a75f794272a1a1730eb7c7a669af51e108aa19e565a18ac54bf  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchControlClientException.java
 657aada19c285046c4f36b0803e3775e4b3801751615c13bc906038e7522f89e  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchJobDefinitionRequest.java
-1e65b6e806415251fb2a8cc131793563fa09510082894febc4a721160f0e4029  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchJobDefinitionTransitionRequest.java
+1e65b6e806415261fb2a8cc131793563fa09510082894febc4a721160f0e4029  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchJobDefinitionTransitionRequest.java
 10c259772537cbb63dabd1d441d90f4ca4318b223aac0885d47d10d6ef547fda  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeCommandRequest.java
 13572cdcea7979ab3e06e46ccc4e063271bc19ec8e139316285178a780406dc7  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java
 f62186612b03d3ca323e6e648a55b6899979f58878a54b3da170096df5ff23af  cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeControlController.java
@@ -822,7 +822,7 @@ c13847eb38fc836cf5c634ef37f515f780fd79a3bb4fcb337ae8f60195980552  cpf-admin/src/
 901f20de8b5e2ad98c53bed94dfb8de0402494258193756ccdcb7cbfe010288b  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmMenuSaveRequest.java
 2e1eb9e1e825bb7a13c70cf19cc770fc7e765855feaa44ec1609a9b65055190c  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmMfaOtpRequest.java
 220498de01705e1027670699e496bba9cae76b940e7e6399a308f7f41f4d5762  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationDeliveryAttemptResponse.java
-61bc16fc15256f4b901e5992514e662fea7201f9a818880afc37a976e9188463  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationDeliveryLogResponse.java
+61bc16fc15266f4b901e5992514e662fea7201f9a818880afc37a976e9188463  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationDeliveryLogResponse.java
 f7228d4494f08baeff0b0ea19ed774c407c0358737d5993c5a1a9da1b4374b8e  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationDeliveryStatusResponse.java
 ec63223fdaf1b980f10ab6f8b48cdd40250b5ced1106d853dd96356eee82eb67  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationRuleRequest.java
 d787e2b4028306f35893006a6a178e1eda44b379b8d09a5f3dd971cab1592f67  cpf-admin/src/main/java/com/cpf/admin/opr/dto/AdmNotificationRuleResponse.java
@@ -1373,7 +1373,7 @@ ddd4582ff13e9afe2900f8a387dc66e59f8310f17a842c9b95b81e1dc7fc5afa  cpf-batch/cont
 3a3343d206067a0766216d8fcab8dedc5ae08a2acee81cf60f6cc082020c3c7e  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/DeploymentCellLockTest.java
 c1fd19a3e6a8bf02da73442a0dbdeb6dd3e12bcaa77624a1bb52d1966c7f6431  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/DeploymentEngineLockFailureTest.java
 b00bfc449b334e3fbf5855ba903d926c80c0c241a76d0d7aba6121ec26a940be  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/DeploymentEngineStateMachineTest.java
-4dcb962ba698d96c8db86b010c1b0738cc7031525924b8b2f1f3564929ed895c  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/DeploymentExecutionRepositoryIdempotencyTest.java
+4dcb962ba698d96c8db86b010c1b0738cc7031526924b8b2f1f3564929ed895c  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/DeploymentExecutionRepositoryIdempotencyTest.java
 dbfe6b3f5c25ba5082b73ffb37124fef99d09ee6c337bf270b8f43f740a1a59f  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/deploy/RuntimeLifecycleSecurityTest.java
 8e86af1720dfaf44561e54447c05b9723466acff6d3854d02806db5538df8d1e  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/internal/JdbcRuntimeCommandRepositoryIdempotencyTest.java
 a3f32c7df3454beb1e49a814261593e96757339fe5f17239caa80a98508d78dd  cpf-batch/control-plane/src/test/java/com/cpf/batch/control/job/BatchJobDefinitionServiceSqlCatalogTest.java
@@ -2205,7 +2205,7 @@ b32569f61b5992c6903cf9b3c0dce74f0b30cbd0f8cf1dced197003cbcc51042  cpf-education/
 3d6e333e1c941367db1b3cc9f9a33236870513a0d144ff07c2358c57e4f006ec  cpf-education/src/main/java/com/cpf/education/batch/conditionalflow/job/CustomerConditionalFlowJob.java
 8cf004b533015999e1516487907fa91b2574aecaf5fe29e6fb573c1eaf4c679b  cpf-education/src/main/java/com/cpf/education/batch/conditionalflow/service/CustomerConditionalFlowJobService.java
 ede18089246cb1375103fe38e3bf45011d3225520300609c8b9b3f3e79292e9e  cpf-education/src/main/java/com/cpf/education/batch/distributedworker/job/SettlementWorkerJob.java
-21458f35d7ec3ae59b502f14565eea0ea98f6a8b00a5b5394dfcf1f1525e0393  cpf-education/src/main/java/com/cpf/education/batch/distributedworker/service/SettlementWorkerJobService.java
+21458f35d7ec3ae59b502f14565eea0ea98f6a8b00a5b5394dfcf1f1526e0393  cpf-education/src/main/java/com/cpf/education/batch/distributedworker/service/SettlementWorkerJobService.java
 f30389aad0287720657f4e408e9ac2c6073619abd5689f979227f461a562c931  cpf-education/src/main/java/com/cpf/education/batch/externalcall/client/ExternalSettlementClient.java
 6b455a9cecba81117627a9e068da3c12b9805469b955ded18c06a12779b79483  cpf-education/src/main/java/com/cpf/education/batch/externalcall/job/ExternalSettlementJob.java
 f7f55f30e50f4b0f362fbbcbdd2ea6048d463acc804e99a88b3bdf733827d8bf  cpf-education/src/main/java/com/cpf/education/batch/externalcall/model/ExternalSettlementState.java
@@ -2336,7 +2336,7 @@ d6fc09c6afe4da7a269fa39cb3025a5067b5533c10d054cb8343bc236adb5ce7  cpf-education/
 84473bf73bf62e471d276bfef13569e46636e510ac6878ddab40f7f61cd6bf6f  cpf-education/src/test/java/com/cpf/education/contract/DocumentTransferContractTest.java
 f8a2549d0fbf6ab30ecabca991692be704d9355fa80ed0032ba5020deae37f2e  cpf-education/src/test/java/com/cpf/education/contract/ExternalSettlementJobTest.java
 ec577110fade19c9cdf9f1905599a92a13ab5ca56c4a3abc26c5845534d4523d  cpf-education/src/test/java/com/cpf/education/contract/InstitutionInquiryIntegrationTest.java
-6be988d5630d971d9afbf6152510cefa427496bb5f7f38e693e306ac9c20000a  cpf-education/src/test/java/com/cpf/education/contract/MemberCreditDomainCallTest.java
+6be988d5630d971d9afbf6152610cefa427496bb5f7f38e693e306ac9c20000a  cpf-education/src/test/java/com/cpf/education/contract/MemberCreditDomainCallTest.java
 235d922008b86af79f718a11e9a1f18433012bea4eab0df2b5e894dd7031257c  cpf-education/src/test/java/com/cpf/education/contract/MemberCrudContractTest.java
 af24e5b34aa45f68686a61b4bf38a2a5469e71349f8aa32be0caf6bf9cf42523  cpf-education/src/test/java/com/cpf/education/contract/MemberExportContractTest.java
 afe5806f261b8a7a7cf82d03882cccd7c33503f93dd2bd51c90014e346bdca0a  cpf-education/src/test/java/com/cpf/education/contract/MemberExportJobTest.java
@@ -2415,7 +2415,7 @@ f6ee5b1a5d71dc309200d86b5ad57bd13c68819491669793ac657714d77b47ad  cpf-gateway/sr
 09a3e78c81413ce19955a83f3d3443555fd67b14657a280aef6dedfde4d58137  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayPrincipal.java
 31875cea2bbde10a991aaca3e3574d1d3ca507d6e85af72ee389fec33d312cac  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayProtocol.java
 269a97ae64f5da8c019f27efcbdfb26ef66c87d5be62fbea4218f1a7138900a1  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRateLimitCounterPort.java
-a0e5c35cb16f6a96c06f9610a5e4a5539ea56b73eed7898eb8316c3b91525732  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRateLimitPort.java
+a0e5c35cb16f6a96c06f9610a5e4a5539ea56b73eed7898eb8316c3b91526732  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRateLimitPort.java
 fec303374937e45e5c0de2b933048e9fce8844dc2323dd29a565ce13474cc9f0  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRegistryPort.java
 11107fef78cc275c396d3aa194b1cb3af726c7a60f0d7f5b7e878dc36043c0d8  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRoute.java
 b594748b26eed09ccb18e25c13931046bcb9fa0ea7265ce0f607c308b4b2ab78  cpf-gateway/src/main/java/com/cpf/gateway/api/CpfGatewayRouteProvider.java
@@ -3433,7 +3433,7 @@ b2562d0f0f0769a0b5a4e0f3c6e3458ae385f44d625bc0141bfe54e8770225eb  cpf-starters/m
 af808927a776a1f9d3233272ca473d0dea02c00b03dda62e7e25a6d77127b0b8  cpf-starters/messaging/jms/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
 7e0fec8736db2240fc500b981d74f71a6bf268ce46989c9eaf6b5f3d30969ada  cpf-starters/messaging/jms/src/test/java/com/cpf/messaging/jms/CpfJmsBrokerClientTest.java
 b08f9c4e118481f5fa14ad9b6c06acf8e6912274f12294003866613bc323ac02  cpf-starters/messaging/kafka/build.gradle
-ead3e70be7708dfcf36a64ad1083e615255bfa21114cab7e3de5431e7f45b8c7  cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/CpfKafkaAutoConfiguration.java
+ead3e70be7708dfcf36a64ad1083e615265bfa21114cab7e3de5431e7f45b8c7  cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/CpfKafkaAutoConfiguration.java
 317e3824b4482304976ba6008d4980aa0db6e7ba8276e127c4eeef5a5587a62e  cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/CpfKafkaBindingAutoConfiguration.java
 fa458b11acf1c671794c9979fca5b27cb51633580a94c1797ac5fdba64dadf96  cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/CpfKafkaProperties.java
 ce348a58f7bba13362099a7bca1b8c3764e37f54e5f9ad1343e30854ebd115a0  cpf-starters/messaging/kafka/src/main/java/com/cpf/messaging/kafka/KafkaCpfBrokerBridgeAdapter.java
@@ -3449,7 +3449,7 @@ f1c3cd3a187f331ade287ba0c9ffde1ecb2139dcd4208afdb8086a2d3cfe0d0e  cpf-starters/m
 0147c0e158cab5e002c37445144ebe95e47e2b710e133fbd117ce93db605c72d  cpf-starters/messaging/rabbitmq/src/main/java/com/cpf/messaging/rabbitmq/CpfRabbitMqProperties.java
 36462d07359e56ae8bb31e9e3ebe3a8eaf233b98e290749ff39cc9f326dd5120  cpf-starters/messaging/rabbitmq/src/main/java/com/cpf/messaging/rabbitmq/RabbitCpfBrokerBridgeAdapter.java
 5c90ec00558e921ef9a1e766b190d53b81ff4bb74aaeeb1dd5bfaf56c9927f17  cpf-starters/messaging/rabbitmq/src/main/resources/META-INF/cpf/runtime-capability.properties
-3637018cd32033d86b16ee9f331b76c71525bc15f03bcdb745ddc4b75bb7bbaa  cpf-starters/messaging/rabbitmq/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+3637018cd32033d86b16ee9f331b76c71526bc15f03bcdb745ddc4b75bb7bbaa  cpf-starters/messaging/rabbitmq/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
 e6e4a1f4c7f107a4dd38770384ea74f804849f09c3d8c2f8f3430a80302c1792  cpf-starters/messaging/rabbitmq/src/test/java/com/cpf/messaging/rabbitmq/CpfRabbitMqBrokerClientTest.java
 0c89b6b5a0b9ed00f99c1c8bc1aad0fd3be5b66feaeec0c051007f4a51f9428d  cpf-starters/messaging/reliability/jdbc/build.gradle
 e84a1e452bc928144fa8fe1c5d305def76ab0c0e0f50cd201329af5b169c545a  cpf-starters/messaging/reliability/jdbc/src/main/java/com/cpf/messaging/common/saga/CpfSagaEngine.java
@@ -4378,7 +4378,7 @@ f954f361bc8910bf851b27e01721f289b048c01c491556e7fd2a0f35a547b99d  cpf-tools/db/g
 f00b74a4bc88b1fd2b805d31201fbc0f41e14040b85c10aad346481adbe0f6f0  cpf-tools/db/generated/current/oracle/backoffice-schema.sql
 1a9b72d28d69b20f7a404f2a0f7aaa1d450e8968920e513cfe9a067ee1935b4f  cpf-tools/db/generated/current/oracle/backoffice-seed.sql
 75cb5c6eae856bf686465bd2f3c12f5333da6e24bb5990f7215f2f4c54630504  cpf-tools/db/generated/current/oracle/backoffice-verify.sql
-40cd1715697a391525467603672fc91cba767e885eb36e9686522dd76fba4abc  cpf-tools/db/generated/current/oracle/cpf-platform-rollback.sql
+40cd1715697a391526467603672fc91cba767e885eb36e9686522dd76fba4abc  cpf-tools/db/generated/current/oracle/cpf-platform-rollback.sql
 995b5b064405b79548aca9ce67939a36256506c20c1ae24a33665cab9c130f75  cpf-tools/db/generated/current/oracle/cpf-platform-schema.sql
 5a823001bc0c96af618a8b28ca6ad030ba4f3809adcb6cad4be6eafe749d9732  cpf-tools/db/generated/current/oracle/cpf-platform-seed.sql
 a7183b74c0d5c928a9e2b8b572b1741bdda512cc4329a23bb914d18a91edede0  cpf-tools/db/generated/current/oracle/cpf-platform-verify.sql
@@ -4569,7 +4569,7 @@ daafd30455ca183430ddde2ef651041745d97e59b092f64a5f62b9b381f4d1b7  cpf-tools/db/r
 ac54aed4af703fd125be61dcb214e2c65bf78884445a6d3e5e7421a66affce21  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-admin-user-01.sql.template
 6967a2fa64ae827d5547d01f6105c77f76825725dc103a8034b683459860ac20  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-download-policies-01.sql.template
 72d2bb7bc5211109c9c0152e7d751888f6ee105bfb2bfa8039d44c9e9b3ea66d  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-menu-01.sql.template
-c8254b61387b1a87316c1121525ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql.template
+c8254b61387b1a87316c1121526ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql.template
 e583d8abcec568b91a54d3b43aedcd8147923c9ea0b38bec10d887177e2c7ba6  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-permission-01.sql.template
 cae0de7ac7cea2172efae7213330cc3d5adb945720314bf8cfb00a97b62c5f53  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-role-01.sql.template
 9f3271fb18b4b881f9e42be7cfad415d16c272c2bab9db5e97cc6d05f84cbc1d  cpf-tools/db/runtime-template/backoffice/repository/operation-repository-find-settings-01.sql.template
@@ -4799,7 +4799,7 @@ ff26b70df35ca544ac0dd764ae439e7113637af49dd69a6bd637ca7fca0acb24  cpf-tools/db/r
 a58b72ec973d08480ba309d930a22a0cc54872488cda48117d57e3636502ce3a  cpf-tools/db/runtime-template/bat/repository/execution-approved-launch-find-manual.sql.template
 48b596d8a67195b5def606b08e8802b1b9b15517e9a79ef26824a063d87397d2  cpf-tools/db/runtime-template/bat/repository/execution-approved-launch-find-trigger.sql.template
 d51b3a95369ceb7f42caaf18ca6b839b9538365c89a0c2fecbef510f86874b34  cpf-tools/db/runtime-template/bat/repository/execution-control-assert-current.sql.template
-6583b4a813ac86a3b872b7db16e1215254e7e64bc915149f0a1d068bfaee7b82  cpf-tools/db/runtime-template/bat/repository/execution-control-bind-job.sql.template
+6583b4a813ac86a3b872b7db16e1215264e7e64bc915149f0a1d068bfaee7b82  cpf-tools/db/runtime-template/bat/repository/execution-control-bind-job.sql.template
 837c348782140bf8ab814c69b8e0060954d87eea174a644297ef9094d4f6df05  cpf-tools/db/runtime-template/bat/repository/execution-control-find-idempotency.sql.template
 4ce1799661955d92031febc9d39de046852a071acdb7520e812c9c3dc405b3d1  cpf-tools/db/runtime-template/bat/repository/execution-control-find.sql.template
 d427140445a4fa1dc94fe321b79c170e185ac97cc37c81317291d13cb0b370c6  cpf-tools/db/runtime-template/bat/repository/execution-control-reserve.sql.template
@@ -4935,7 +4935,7 @@ f0f80c8579dbec9a12ab54f4ebdb2dc5f1d34e04019fa7c2fc16dd135b96417d  cpf-tools/db/r
 dc77a6e9846a2dde912ecabdd80c29616627aca703c8b8d08a4ca79b93c3cac7  cpf-tools/db/runtime-template/cpf/repository/idempotency-reserve.sql.template
 93a830fb441431641288e026a9a3631d78a7101112a62653bc956eb1ab1dce49  cpf-tools/db/runtime-template/cpf/repository/idempotency-restart.sql.template
 6f2bc6746d9215adc3f00fc336a032517bada7d1151fb940d7d1ab144182a64d  cpf-tools/db/runtime-template/cpf/repository/reconciliation-find.sql.template
-f5ac38d9528f3ba7b45820677f862ea7251525f44b7e773474e616971fc277d8  cpf-tools/db/runtime-template/cpf/repository/reconciliation-register.sql.template
+f5ac38d9528f3ba7b45820677f862ea7251526f44b7e773474e616971fc277d8  cpf-tools/db/runtime-template/cpf/repository/reconciliation-register.sql.template
 6868636add3447a8ac66ab99e0790ab8b49f8998681ae2179177ba785114b282  cpf-tools/db/runtime-template/cpf/repository/reconciliation-resolve.sql.template
 35b52f89be7ad18aff757d94060edd6692fbf7236fd935b9080f011d8b6f6873  cpf-tools/db/runtime-template/cpf/repository/transaction-meta-count.sql.template
 b5f07c25ad7f36b81b91088b1baf8f56f830eb416eb33fa30c948755a70c7ea6  cpf-tools/db/runtime-template/cpf/repository/transaction-meta-find-all.sql.template
@@ -5460,7 +5460,7 @@ b2f9fbaa69bca54fb0aae798c3dd2bb784a63205f98368643d79015ffacacec2  cpf-tools/db/v
 ac54aed4af703fd125be61dcb214e2c65bf78884445a6d3e5e7421a66affce21  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-admin-user-01.sql
 6967a2fa64ae827d5547d01f6105c77f76825725dc103a8034b683459860ac20  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-download-policies-01.sql
 72d2bb7bc5211109c9c0152e7d751888f6ee105bfb2bfa8039d44c9e9b3ea66d  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-menu-01.sql
-c8254b61387b1a87316c1121525ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
+c8254b61387b1a87316c1121526ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
 e583d8abcec568b91a54d3b43aedcd8147923c9ea0b38bec10d887177e2c7ba6  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-permission-01.sql
 cae0de7ac7cea2172efae7213330cc3d5adb945720314bf8cfb00a97b62c5f53  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-role-01.sql
 9f3271fb18b4b881f9e42be7cfad415d16c272c2bab9db5e97cc6d05f84cbc1d  cpf-tools/db/vendor/mariadb/runtime/backoffice/repository/operation-repository-find-settings-01.sql
@@ -5747,7 +5747,7 @@ a948fc2c2c32abb567a8155f649d256a50f59549b00a521d7ddae8eb0b65755b  cpf-tools/db/v
 dc77a6e9846a2dde912ecabdd80c29616627aca703c8b8d08a4ca79b93c3cac7  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/idempotency-reserve.sql
 08e0e92766f69926abef53de130173b6a61c8aa71a849d2726387d4ae633ed7b  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/idempotency-restart.sql
 85a0798c90549a94e7f41f9a972bdc3511a1497ae321226823632c0f38029ed1  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/reconciliation-find.sql
-f5ac38d9528f3ba7b45820677f862ea7251525f44b7e773474e616971fc277d8  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/reconciliation-register.sql
+f5ac38d9528f3ba7b45820677f862ea7251526f44b7e773474e616971fc277d8  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/reconciliation-register.sql
 96c8c9b117e17cd688e4c60765af512e87b62bf124698ef4c0204c32c68c0e59  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/reconciliation-resolve.sql
 7b6695ac536e9c686a96f1865a89527ed10cae42377f5d7df149a4b61f62c525  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/transaction-meta-count.sql
 8ebb97e7df3ff9442d2012a3ad3e3bda9ff0d420ed21550cd15223da9c79d958  cpf-tools/db/vendor/mariadb/runtime/cpf/repository/transaction-meta-find-all.sql
@@ -6309,7 +6309,7 @@ b2f9fbaa69bca54fb0aae798c3dd2bb784a63205f98368643d79015ffacacec2  cpf-tools/db/v
 ac54aed4af703fd125be61dcb214e2c65bf78884445a6d3e5e7421a66affce21  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-admin-user-01.sql
 6967a2fa64ae827d5547d01f6105c77f76825725dc103a8034b683459860ac20  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-download-policies-01.sql
 72d2bb7bc5211109c9c0152e7d751888f6ee105bfb2bfa8039d44c9e9b3ea66d  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-menu-01.sql
-c8254b61387b1a87316c1121525ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
+c8254b61387b1a87316c1121526ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
 e583d8abcec568b91a54d3b43aedcd8147923c9ea0b38bec10d887177e2c7ba6  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-permission-01.sql
 cae0de7ac7cea2172efae7213330cc3d5adb945720314bf8cfb00a97b62c5f53  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-role-01.sql
 9f3271fb18b4b881f9e42be7cfad415d16c272c2bab9db5e97cc6d05f84cbc1d  cpf-tools/db/vendor/oracle/runtime/backoffice/repository/operation-repository-find-settings-01.sql
@@ -6596,7 +6596,7 @@ e2fa350162ec700bbec4143d0ce05c1d5882051f051dc72ea3e5e0bc5bdb04b2  cpf-tools/db/v
 dc77a6e9846a2dde912ecabdd80c29616627aca703c8b8d08a4ca79b93c3cac7  cpf-tools/db/vendor/oracle/runtime/cpf/repository/idempotency-reserve.sql
 08e0e92766f69926abef53de130173b6a61c8aa71a849d2726387d4ae633ed7b  cpf-tools/db/vendor/oracle/runtime/cpf/repository/idempotency-restart.sql
 314e08311e2b2dd7c9f8e548521c015ac402cd72d79d0d451bec276e465ed8cc  cpf-tools/db/vendor/oracle/runtime/cpf/repository/reconciliation-find.sql
-f5ac38d9528f3ba7b45820677f862ea7251525f44b7e773474e616971fc277d8  cpf-tools/db/vendor/oracle/runtime/cpf/repository/reconciliation-register.sql
+f5ac38d9528f3ba7b45820677f862ea7251526f44b7e773474e616971fc277d8  cpf-tools/db/vendor/oracle/runtime/cpf/repository/reconciliation-register.sql
 96c8c9b117e17cd688e4c60765af512e87b62bf124698ef4c0204c32c68c0e59  cpf-tools/db/vendor/oracle/runtime/cpf/repository/reconciliation-resolve.sql
 7b6695ac536e9c686a96f1865a89527ed10cae42377f5d7df149a4b61f62c525  cpf-tools/db/vendor/oracle/runtime/cpf/repository/transaction-meta-count.sql
 78fe7be9d92ed6fc7ad21df6c8159c0dc328142bd5ca4bb4ebcb6d0d3eb0cb5a  cpf-tools/db/vendor/oracle/runtime/cpf/repository/transaction-meta-find-all.sql
@@ -7073,7 +7073,7 @@ b2f9fbaa69bca54fb0aae798c3dd2bb784a63205f98368643d79015ffacacec2  cpf-tools/db/v
 ac54aed4af703fd125be61dcb214e2c65bf78884445a6d3e5e7421a66affce21  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-admin-user-01.sql
 6967a2fa64ae827d5547d01f6105c77f76825725dc103a8034b683459860ac20  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-download-policies-01.sql
 72d2bb7bc5211109c9c0152e7d751888f6ee105bfb2bfa8039d44c9e9b3ea66d  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-menu-01.sql
-c8254b61387b1a87316c1121525ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
+c8254b61387b1a87316c1121526ce0017674ba22a7fbe235499abe9f620222bf  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-menu-hierarchy-01.sql
 e583d8abcec568b91a54d3b43aedcd8147923c9ea0b38bec10d887177e2c7ba6  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-permission-01.sql
 cae0de7ac7cea2172efae7213330cc3d5adb945720314bf8cfb00a97b62c5f53  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-role-01.sql
 9f3271fb18b4b881f9e42be7cfad415d16c272c2bab9db5e97cc6d05f84cbc1d  cpf-tools/db/vendor/postgresql/runtime/backoffice/repository/operation-repository-find-settings-01.sql
@@ -7360,7 +7360,7 @@ a948fc2c2c32abb567a8155f649d256a50f59549b00a521d7ddae8eb0b65755b  cpf-tools/db/v
 dc77a6e9846a2dde912ecabdd80c29616627aca703c8b8d08a4ca79b93c3cac7  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/idempotency-reserve.sql
 08e0e92766f69926abef53de130173b6a61c8aa71a849d2726387d4ae633ed7b  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/idempotency-restart.sql
 85a0798c90549a94e7f41f9a972bdc3511a1497ae321226823632c0f38029ed1  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/reconciliation-find.sql
-f5ac38d9528f3ba7b45820677f862ea7251525f44b7e773474e616971fc277d8  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/reconciliation-register.sql
+f5ac38d9528f3ba7b45820677f862ea7251526f44b7e773474e616971fc277d8  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/reconciliation-register.sql
 96c8c9b117e17cd688e4c60765af512e87b62bf124698ef4c0204c32c68c0e59  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/reconciliation-resolve.sql
 7b6695ac536e9c686a96f1865a89527ed10cae42377f5d7df149a4b61f62c525  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/transaction-meta-count.sql
 8ebb97e7df3ff9442d2012a3ad3e3bda9ff0d420ed21550cd15223da9c79d958  cpf-tools/db/vendor/postgresql/runtime/cpf/repository/transaction-meta-find-all.sql
@@ -7626,7 +7626,7 @@ c10f91e770eea612d4c789845e713b6ef2c337f8fb1829d30e8b6d1569159720  cpf-tools/gene
 fb108b9d5d2cfaeee538439fd54d31f5ccde80d9d495b7574ec3e883f4828fb2  cpf-tools/generator/verification/tests/test_generator_setup_contract.py
 20ebd1f131a0628e9778c32eab754c2ac001680d42cc49f3296fc800bcdbe899  cpf-tools/generator/verification/tests/test_generator_setup_sync_contract.py
 50eabe8a49121255443acd2807eeaf5c146ca034aa54a7b5f2ef9ae0ef5ef51a  cpf-tools/generator/verification/tests/test_generator_upgrade_ownership.py
-f28cfa0fe75b1736ccb83712e40f15b621119540fabf11525199a73cff152030  cpf-tools/generator/verification/tests/test_generator_upgrade_ownership_contract.py
+f28cfa0fe75b1736ccb83712e40f15b621119540fabf11526199a73cff152030  cpf-tools/generator/verification/tests/test_generator_upgrade_ownership_contract.py
 1fc94a1813fa4ec2abcf90914177ed025d00a3169f90eebb59bd9b03bd6a6146  cpf-tools/generator/verification/tests/test_verify_cpf_generator_canonical_source.py
 10e35b3c62f955139625b431aad1283fb5bacf4b3937c70dd8bef6996aeac4df  cpf-tools/generator/verification/tests/test_verify_cpf_generator_lifecycle.py
 0f09e53922ab0c732b29ae488f6c43ba5fb577c678cac9a2ea9e191c4eb2fdb9  cpf-tools/generator/verification/verify-cpf-generator-idempotency-templates.py

@@ -12,6 +12,7 @@ import java.util.Map;
 
 public final class RuntimeIdentityFactory {
     private static final String CANONICAL_BATCH_SERVICE_ID = "BAT";
+    private static final String CANONICAL_CENTER_CUT_SERVICE_ID = "CEC";
 
     private RuntimeIdentityFactory() {}
 
@@ -20,6 +21,14 @@ public final class RuntimeIdentityFactory {
             RuntimeRole role,
             int defaultPort) {
         return fromEnvironment(environment, role, CANONICAL_BATCH_SERVICE_ID, defaultPort);
+    }
+
+    /** Center-Cut Runner는 일반 BAT 실행체와 분리된 CEC Runtime Identity를 사용합니다. */
+    public static RuntimeRegistration fromCenterCutEnvironment(
+            Environment environment,
+            int defaultPort) {
+        return fromEnvironment(
+                environment, RuntimeRole.CENTER_CUT_RUNNER, CANONICAL_CENTER_CUT_SERVICE_ID, defaultPort);
     }
 
     public static RuntimeRegistration fromEnvironment(

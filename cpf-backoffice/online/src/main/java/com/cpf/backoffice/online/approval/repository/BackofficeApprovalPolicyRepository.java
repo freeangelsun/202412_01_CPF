@@ -228,6 +228,46 @@ public class BackofficeApprovalPolicyRepository implements BackofficeApprovalDir
         return count != null && count > 0;
     }
 
+    public List<Map<String,Object>> findHistory(long approvalId) {
+        return jdbc().queryForList(sql.required("approval-policy-repository-find-history-01"),
+                new MapSqlParameterSource("approvalId", approvalId));
+    }
+
+    public Optional<Map<String,Object>> findExecution(long approvalId) {
+        return jdbc().queryForList(sql.required("approval-policy-repository-find-execution-01"),
+                new MapSqlParameterSource("approvalId", approvalId)).stream().findFirst();
+    }
+
+    public void insertExecution(long approvalId, String commandRequestId, String ownerAction,
+                                String approvedBy, String transactionId, String operatorId) {
+        jdbc().update(sql.required("approval-policy-repository-insert-execution-01"), new MapSqlParameterSource()
+                .addValue("approvalId", approvalId).addValue("commandRequestId", commandRequestId)
+                .addValue("ownerAction", ownerAction).addValue("approvedBy", approvedBy)
+                .addValue("transactionId", transactionId).addValue("operatorId", operatorId));
+    }
+
+    public int claimExecution(long approvalId, long expectedFence, String operatorId) {
+        return jdbc().update(sql.required("approval-policy-repository-claim-execution-01"), new MapSqlParameterSource()
+                .addValue("approvalId", approvalId).addValue("expectedFence", expectedFence)
+                .addValue("operatorId", operatorId));
+    }
+
+    public int startReconcile(long approvalId, long expectedFence, String operatorId) {
+        return jdbc().update(sql.required("approval-policy-repository-start-reconcile-01"), new MapSqlParameterSource()
+                .addValue("approvalId", approvalId).addValue("expectedFence", expectedFence)
+                .addValue("operatorId", operatorId));
+    }
+
+    public int completeExecution(long approvalId, long fenceToken, String expectedStatus, String status,
+                                 String resultCode, String resultMessage, boolean recoveryRequired, String operatorId) {
+        return jdbc().update(sql.required("approval-policy-repository-complete-execution-01"), new MapSqlParameterSource()
+                .addValue("approvalId", approvalId).addValue("fenceToken", fenceToken)
+                .addValue("expectedStatus", expectedStatus).addValue("status", status)
+                .addValue("resultCode", resultCode).addValue("resultMessage", resultMessage)
+                .addValue("recoveryRequiredYn", recoveryRequired ? "Y" : "N")
+                .addValue("operatorId", operatorId));
+    }
+
     public List<Long> findDueApprovalIds(Instant now, int limit) {
         return jdbc().queryForList(sql.required("approval-policy-repository-find-due-approval-ids-01"), new MapSqlParameterSource().addValue("now", Timestamp.from(now)).addValue("limit", limit))
                 .stream().map(row -> ((Number) row.get("approvalId")).longValue()).toList();

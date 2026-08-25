@@ -53,6 +53,7 @@ class RuntimeIdentityFactoryTest {
     @Test
     void batchRuntimeUsesTheCanonicalCentralServiceIdentity() {
         for (RuntimeRole role : RuntimeRole.values()) {
+            if (role == RuntimeRole.CENTER_CUT_RUNNER) continue;
             var registration = RuntimeIdentityFactory.fromBatchEnvironment(
                     new MockEnvironment(), role, 18080);
 
@@ -60,4 +61,14 @@ class RuntimeIdentityFactoryTest {
             assertThat(registration.runtimeRole()).isEqualTo(role);
         }
     }
+    @Test
+    void centerCutRuntimeUsesIndependentCecIdentity() {
+        MockEnvironment environment = new MockEnvironment()
+                .withProperty("cpf.framework.module-id", "CEC");
+        var registration = RuntimeIdentityFactory.fromCenterCutEnvironment(environment, 8183);
+        assertThat(registration.serviceId()).isEqualTo("CEC");
+        assertThat(registration.moduleId()).isEqualTo("CEC");
+        assertThat(registration.runtimeRole()).isEqualTo(RuntimeRole.CENTER_CUT_RUNNER);
+    }
+
 }

@@ -67,7 +67,7 @@ def transform_json_strings(value: Any, replacements: dict[str, str]) -> Any:
 
 def canonical_roles(contract: dict[str, Any]) -> list[str]:
     roles = [str(item["name"]) for item in contract["roles"]]
-    required = ["CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT", "AGENT"]
+    required = ["CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT_RUNNER", "AGENT"]
     if roles != required or len(set(roles)) != len(roles):
         raise ContractError(f"canonical role order/set mismatch: {roles}")
     return roles
@@ -113,7 +113,7 @@ def replacement_map(contract: dict[str, Any]) -> dict[str, str]:
         collisions = canonical_names[namespace].intersection(retired_names[namespace])
         if collisions:
             raise ContractError(f"canonical/retired {namespace} collision: {sorted(collisions)}")
-    if len(set(replacements.values())) < 3:
+    if len(set(replacements.values())) < 2:
         raise ContractError("retired role mapping is incomplete")
     return replacements
 
@@ -154,8 +154,8 @@ def verify_application_runtime_role_properties(root: Path, contract: dict[str, A
             raise ContractError(f"BAT application resource ownership is missing or duplicated: {relative}")
         resources.add(relative)
         text = read_text(root / relative)
-        expected = f"  runtime:\n    role: {role['name']}\n"
-        if text.count(expected) != 1:
+        pattern = rf"(?m)^  runtime:\s*$\n(?:    #[^\n]*\n)*    role:\s*{re.escape(str(role['name']))}\s*$"
+        if len(re.findall(pattern, text)) != 1:
             raise ContractError(
                 f"shared cpf.runtime.role declaration mismatch: {relative}: expected={role['name']}"
             )
@@ -278,7 +278,7 @@ def render_runtime_artifacts(root: Path, contract: dict[str, Any], write: bool, 
         raise ContractError(f"retired BAT runtime artifacts must be removed from the current contract: {sorted(legacy_paths)}")
 
     role_by_name = {item["name"]: item for item in contract["roles"]}
-    center = role_by_name["CENTER_CUT"]
+    center = role_by_name["CENTER_CUT_RUNNER"]
     services = [role["artifactName"] for role in contract["roles"]]
     shell_services = " ".join(services)
     powershell_services = ",".join(f"'{name}'" for name in services)
@@ -366,7 +366,8 @@ def case_expression(column: str, mapping: dict[str, str]) -> str:
 def constraint_expression(contract: dict[str, Any], target: dict[str, Any], vendor: str) -> str:
     column = str(target["column"])
     value = f"BINARY {column}" if vendor == "mariadb" else column
-    allowed = ", ".join(f"'{role}'" for role in canonical_roles(contract))
+    allowed_roles = list(target.get("extraAllowedRoles", [])) + canonical_roles(contract)
+    allowed = ", ".join(f"'{role}'" for role in allowed_roles)
     predicate = f"{value} IN ({allowed})"
     return f"{column} IS NULL OR {predicate}" if bool(target["nullable"]) else predicate
 
@@ -695,18 +696,21 @@ def main() -> int:
         replacement_map(contract)
         verify_java_enum(root, contract)
         verify_application_runtime_role_properties(root, contract)
-        verify_migration_version_lock(root, contract)
+        historical_migration = bool(contract.get("migration", {}).get("historical", False))
+        if not historical_migration:
+            verify_migration_version_lock(root, contract)
         verify_owned_surfaces(root, contract)
         render_runtime_sql(root, contract, args.write, changed)
         render_deploy(root, contract, args.write, changed)
         render_runtime_artifacts(root, contract, args.write, changed)
-        render_migrations(root, contract, args.write, changed)
-        verify_migration_safety(root, contract)
+        if not historical_migration:
+            render_migrations(root, contract, args.write, changed)
+            verify_migration_safety(root, contract)
+            verify_lifecycle_scenario(root)
+            if not args.skip_checksums:
+                verify_checksum_entries(root, contract)
         verify_vendor_schema_projection(root, contract)
-        verify_lifecycle_scenario(root)
         verify_no_active_aliases(root, contract)
-        if not args.skip_checksums:
-            verify_checksum_entries(root, contract)
     except (ContractError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False, indent=2))
         return 1

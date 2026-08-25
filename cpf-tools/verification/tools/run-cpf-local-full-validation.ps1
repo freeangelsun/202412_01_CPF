@@ -152,7 +152,7 @@ function Invoke-CpfStage {
         $ErrorActionPreference='Continue'
         Push-Location $WorkingDirectory
         try {
-            & $Executable @Arguments 2>&1 | ForEach-Object { Add-Content -LiteralPath $log -Value $_.ToString() -Encoding UTF8 }
+            & $Executable @Arguments 2>&1 | ForEach-Object { $line=$_.ToString(); Write-Host $line; Add-Content -LiteralPath $log -Value $line -Encoding UTF8 }
             $rc=if($null -eq $LASTEXITCODE){0}else{[int]$LASTEXITCODE}
         } finally { Pop-Location }
     } catch {

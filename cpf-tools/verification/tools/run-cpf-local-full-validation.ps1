@@ -194,6 +194,34 @@ function Wait-CpfContainerReady([string]$Name,[int]$TimeoutSeconds=300) {
     return $false
 }
 
+function Test-CpfDockerFunctionalReadiness([string]$Target,[string]$Container) {
+    if(-not $docker -or -not(Test-CpfContainerRunning $Container)){return $false}
+    # Container health만으로 PASS하지 않고 실제 프로토콜/관리 명령이 응답하는지 확인합니다.
+    $commands=@{
+        mariadb=@('exec',$Container,'healthcheck.sh','--connect','--innodb_initialized')
+        postgresql=@('exec',$Container,'pg_isready')
+        redis=@('exec',$Container,'redis-cli','ping')
+        kafka=@('exec',$Container,'/opt/kafka/bin/kafka-topics.sh','--bootstrap-server','localhost:9092','--list')
+    }
+    if($Target -eq 'oracle'){
+        # Oracle Free image의 healthcheck 자체가 SQL readiness를 포함하므로 healthy 상태를 재확인합니다.
+        $health=(& $docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $Container 2>$null | Out-String).Trim()
+        return $LASTEXITCODE -eq 0 -and $health -eq 'healthy'
+    }
+    if(-not $commands.ContainsKey($Target)){return $false}
+    & $docker @($commands[$Target]) *> $null
+    return $LASTEXITCODE -eq 0
+}
+
+function Wait-CpfDockerFunctionalReadiness([string]$Target,[string]$Container,[int]$TimeoutSeconds=180) {
+    $deadline=(Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        if(Test-CpfDockerFunctionalReadiness $Target $Container){return $true}
+        Start-Sleep -Seconds 3
+    } while((Get-Date) -lt $deadline)
+    return $false
+}
+
 function Import-CpfEnvFile([string]$Path) {
     $previous=@{}
     if(-not(Test-Path -LiteralPath $Path -PathType Leaf)){return $previous}
@@ -226,18 +254,26 @@ function Start-CpfDockerTarget([string]$Target) {
     if(-not(Test-Path -LiteralPath $DockerSecretFile -PathType Leaf)){return [pscustomobject]@{ready=$false;started=$false;reason="Docker secret env missing: $DockerSecretFile"}}
     $container=[string]$dockerTargetContainers[$Target]
     if([string]::IsNullOrWhiteSpace($container)){return [pscustomobject]@{ready=$false;started=$false;reason="unsupported Docker target=$Target"}}
-    if(Test-CpfContainerRunning $container){
+    $alreadyRunning=Test-CpfContainerRunning $container
+    if($alreadyRunning){
         Add-CpfTextResult "DOCKER_${Target}_START" 'PASS' "STATE=ALREADY_RUNNING`nCONTAINER=$container" 'existing container is preserved'
-        return [pscustomobject]@{ready=$true;started=$false;reason='already running'}
+    }else{
+        Invoke-CpfStage "DOCKER_${Target}_START" $pwsh @('-NoProfile','-File',$dockerEnvTool,'-Action','up','-Target',$Target,'-SecretFile',$DockerSecretFile)
+        if($summary[$summary.Count-1].status -ne 'PASS'){
+            return [pscustomobject]@{ready=$false;started=$true;reason='container start failed'}
+        }
     }
-    Invoke-CpfStage "DOCKER_${Target}_START" $pwsh @('-NoProfile','-File',$dockerEnvTool,'-Action','up','-Target',$Target,'-SecretFile',$DockerSecretFile)
-    $stageOk=$summary[$summary.Count-1].status -eq 'PASS'
     $timeout=if($Target -eq 'oracle'){600}else{240}
-    $ready=$stageOk -and (Wait-CpfContainerReady $container $timeout)
-    if($ready){Add-CpfTextResult "DOCKER_${Target}_HEALTH" 'PASS' "CONTAINER=$container`nREADY=true"}
-    else{Add-CpfTextResult "DOCKER_${Target}_HEALTH" 'FAIL' "CONTAINER=$container`nREADY=false" 'container did not become ready'}
-    $reason=if($ready){'started by validation'}else{'start/health failed'}
-    return [pscustomobject]@{ready=$ready;started=$true;reason=$reason}
+    $healthReady=Wait-CpfContainerReady $container $timeout
+    $protocolReady=$healthReady -and (Wait-CpfDockerFunctionalReadiness $Target $container $(if($Target -eq 'oracle'){300}else{120}))
+    if($protocolReady){
+        Add-CpfTextResult "DOCKER_${Target}_READINESS" 'PASS' "CONTAINER=$container`nHEALTH=true`nFUNCTIONAL_READINESS=true"
+    }else{
+        Add-CpfTextResult "DOCKER_${Target}_READINESS" 'FAIL' "CONTAINER=$container`nHEALTH=$healthReady`nFUNCTIONAL_READINESS=$protocolReady" 'container health/protocol readiness did not become ready'
+    }
+    $startedByValidation=-not $alreadyRunning
+    $reason=if($protocolReady){if($startedByValidation){'started by validation'}else{'existing container ready'}}else{'health/functional readiness failed'}
+    return [pscustomobject]@{ready=$protocolReady;started=$startedByValidation;reason=$reason}
 }
 
 function Stop-CpfDockerTargetIfOwned([string]$Target,$State) {
@@ -465,7 +501,7 @@ if($python){
     $pytestRunner='.\cpf-tools\testing\tools\run-cpf-pytest.py'
     Invoke-CpfStage 'RESOURCE_POLICY' $python @('.\cpf-tools\verification\verify-cpf-resource-policy.py','--root','.')
     Invoke-CpfStage 'NXT3_22' $python @('.\cpf-tools\verification\nxt3\run_nxt3_final_all.py','--root','.', '--evidence',(Join-Path $evidenceDir 'nxt3.json'),'--log',(Join-Path $evidenceDir 'nxt3.log'))
-    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/deliverables','--expected-requirements','205','--expected-findings','63')
+    Invoke-CpfStage 'EVIDENCE_INTEGRITY' $python @('.\cpf-tools\verification\tools\verify-cpf-development-evidence-integrity.py','--root','.', '--review-dir','cpf-docs/deliverables','--expected-requirements','208','--expected-findings','63')
     $inventory=Join-Path $evidenceDir 'inventory'
     Invoke-CpfStage 'ARCH_INVENTORY_GENERATE' $python @('.\cpf-tools\governance\tools\generate-cpf-project-inventory.py','--root','.', '--output-dir',$inventory)
     Invoke-CpfStage 'ARCH_INVENTORY_VERIFY' $python @('.\cpf-tools\governance\tools\verify-cpf-project-inventory.py','--inventory-dir',$inventory,'--policy','.\cpf-tools\governance\cpf-product-surface-policy.json','--waivers','.\cpf-tools\governance\cpf-project-inventory-waivers.csv','--release')

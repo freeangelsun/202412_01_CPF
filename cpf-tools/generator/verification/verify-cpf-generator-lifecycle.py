@@ -63,7 +63,7 @@ def validate_contract(root: Path, contract: dict) -> None:
     required={
       "generatedFileDriftBlocksRegenerate":True,"generatedFileDriftBlocksUpgrade":True,
       "generatedFileDriftBlocksRemove":True,"unmanagedFilesAreNeverRemoved":True,
-      "databaseObjectsNeverAutoDropped":True,"restoreRequiresMatchingContractAndExpectedSeed":True,
+      "databaseObjectsNeverAutoDropped":True,"restoreRequiresMatchingDefinitionAndExpectedSeed":True,
       "frameworkIntegrationPointsRemovedWithDomain":True,
     }
     if protection != required: raise ContractError("userProtection must remain fail-closed")

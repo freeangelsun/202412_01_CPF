@@ -55,7 +55,7 @@ export const accessMethods = {
           newPasswordConfirm: form.newPasswordConfirm, reason: form.reason
         } });
         if (!result?.operatorId) {
-          this.authMessage = result?.message || "비밀번호 변경에 실패했습니다.";
+          this.authMessage = "비밀번호 변경 응답에 운영자 ID가 없습니다.";
           return;
         }
         this.forcedPasswordForm.currentPassword = "";

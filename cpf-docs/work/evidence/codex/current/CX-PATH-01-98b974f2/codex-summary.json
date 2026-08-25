@@ -1,0 +1,26 @@
+{
+  "track": "CX-PATH-01-98b974f2",
+  "startedAt": "2026-08-23T19:48:42+09:00",
+  "finishedAt": "2026-08-23T19:49:15+09:00",
+  "sourceIdentitySha256": "6c8378da4d42ca724641e3433e088027025026a3347d1e453b9a656294bef685",
+  "sourceIdentitySha1": "4a141983a284a546b3827d787d450f0ea274bea5",
+  "vendor": "mariadb",
+  "databaseVersion": "12.3.2",
+  "migrationVersion": 136,
+  "installedAssetsOnly": true,
+  "imagePullPerformed": false,
+  "persistentContainerCreated": false,
+  "databaseContainer": "cpf-mariadb",
+  "runId": "109027fbe612",
+  "result": "PASS",
+  "stages": [
+    {"name": "FreshInstall", "status": "PASS", "planSha256": "d21258568a8a3bc72b7e1d1e0d83264f228d3d2013e132fce13b8a02ba9ff1ca"},
+    {"name": "PreparePreCurrentFixture", "status": "PASS", "planSha256": "7de6c3b14d073b4754f0614213a688f0cfefdf1f81af357bee0d8b659cdc9b98"},
+    {"name": "Upgrade", "status": "PASS", "planSha256": "7cee2319410c736f1c0ed0597caf5a9c6b8e265fc35b50056a10423a4546cf06"},
+    {"name": "RollbackReapply", "status": "PASS", "planSha256": "15249978517764d04809db50a623ea8ec5b78ca8572a881c1bad971f33a6cd7a"}
+  ],
+  "freshSchema": {"platformTables": 201, "platformIndexes": 409, "platformForeignKeys": 129, "backofficeTables": 29, "backofficeIndexes": 63, "backofficeForeignKeys": 24, "verifyChecks": 20},
+  "cleanup": {"status": "PASS", "databaseLeaks": 0, "roleLeaks": 0},
+  "secretValueRecorded": false,
+  "closures": ["CX-F-160", "CX-F-212"]
+}

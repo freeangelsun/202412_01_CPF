@@ -1,4 +1,5 @@
-# 프로젝트 Root PowerShell 7에서 한 줄 실행
-pwsh -NoProfile -File .\cpf-tools\verification\tools\run-cpf-required-full-runtime-validation.ps1 -RepoRoot (Get-Location).Path -DockerRoot 'C:\dev\Docker' -DockerSecretFile 'C:\dev\Docker\Secrets\cpf-runtime.env' -OutputRoot "$HOME\Downloads"
+# 프로젝트 Root PowerShell 7 + Java 25 + Docker에서 한 줄 실행.
+$ErrorActionPreference='Stop'; pwsh -NoProfile -File .\cpf-tools\verification\tools\run-cpf-required-full-runtime-validation.ps1 -RepoRoot (Get-Location).Path -DockerRoot 'C:\dev\Docker' -DockerSecretFile 'C:\dev\Docker\Secrets\cpf-runtime.env' -OutputRoot "$HOME\Downloads"
 
-# 정상 기대: ExitCode 0, Final PASS, DB3 3사 전체 Fresh/Upgrade/Rollback-Reapply/거래 E2E PASS, Runtime/Browser/OpenGit/Fresh Consumer PASS, SKIP/NOT_EXECUTED/UNVERIFIED 0
+# 검증 Harness 요구사항: 필요한 CPF 컨테이너가 내려가 있으면 자동 기동 → health + 실제 readiness 확인 → 강한 Runtime/장애/복구 검증 → Harness가 기동한 컨테이너만 성공·실패 모두 종료.
+# 성공 기준: ExitCode 0, FAIL=0, SKIP_ENV=0, NOT_EXECUTED=0, UNVERIFIED=0, Java25 Root Build + DB3 3사 + Kafka 2-worker Kill/UNKNOWN/Reconcile + One-WAS + Browser + Performance + Fresh Replay PASS.

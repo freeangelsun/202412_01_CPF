@@ -24,7 +24,7 @@ $master=@();$status=@();$qa=@()
 if(Test-Path (Join-Path $Root $required[0])){$master=@(Import-Csv (Join-Path $Root $required[0]))}
 if(Test-Path (Join-Path $Root $required[1])){$status=@(Import-Csv (Join-Path $Root $required[1]))}
 if(Test-Path (Join-Path $Root $required[2])){$qa=@(Import-Csv (Join-Path $Root $required[2]))}
-if($status.Count-ne205){$fail.Add("requirement projection rows must be 205 actual=$($status.Count)")|Out-Null}
+if($status.Count-ne208){$fail.Add("requirement projection rows must be 208 actual=$($status.Count)")|Out-Null}
 if($qa.Count-ne63){$fail.Add("developer QA closure rows must be 63 actual=$($qa.Count)")|Out-Null}
 $closed=@($qa|Where-Object{$_.closure_state-eq'CLOSED'});$blocked=@($qa|Where-Object{$_.closure_state-eq'BLOCKED_EXTERNAL'})
 foreach($row in $qa){

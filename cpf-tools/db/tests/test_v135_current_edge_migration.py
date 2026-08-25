@@ -79,7 +79,7 @@ class V135CurrentEdgeMigrationTest(unittest.TestCase):
             manifest = manifest_path.read_text(encoding="utf-8-sig")
             self.assertRegex(
                 manifest,
-                rf"(?m)^[0-9a-f]{{64}} \*{re.escape(migration_path.name)}$",
+                rf"(?m)^[0-9a-f]{{64}} [ *]{re.escape(migration_path.name)}$",
                 vendor,
             )
 

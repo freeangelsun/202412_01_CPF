@@ -1,3 +1,15 @@
+<!-- DEV-GPT-CURRENT-20260825 -->
+# Developer GPT Currentization — 2026-08-25
+
+- Baseline ZIP SHA-256: `d2e89aba1841a4387a473610db905415f8565fcf09d06a56a8afa3a1b33a3a48`
+- Current Product Source SHA-256: `c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df`
+- Canonical Requirements: `208`
+- 개발 단계: Source/Static/Contract/Substitute 구현 가능한 범위 완료
+- 실행 결과: 현재 Source에서 실행한 정적/계약/Substitute 검증 관측 FAIL `0`
+- 필수 미검증: Java25 Root Gradle, Docker DB3 3사, Multi-instance/Process Kill, Kafka 2-worker, Browser E2E, Performance, Full Runtime/Fresh Replay
+- QA 전달: 금지. 새 Full Runtime이 `FAIL=0 / SKIP_ENV=0 / NOT_EXECUTED=0 / UNVERIFIED=0`이 된 뒤 전환
+- Customer Shared Library Generator / Windows <=200 / Docker self-managed prerequisite lifecycle는 상위 정본에 등록됨.
+
 # CPF Current Work Request — Final Environment Revalidation
 
 > 상위 정본: `cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md`  
@@ -16,10 +28,10 @@
 6. ADM HttpOnly JDBC BFF Session/CSRF, Menu 64↔Route 68, permission identity, System6 UI, Commercial Page, Generated Consumer 337/337.
 7. Backoffice/MBW currentization 및 Backend 96↔Web 96 contract.
 8. DB3 Canonical Seed/Bundle/Renderer Oracle/PostgreSQL/MariaDB parity.
-9. 205 Canonical Requirement developer ledger ↔ 30,605 derived logical requirements.
+9. 208 Canonical Requirement developer ledger ↔ 30,605 derived logical requirements.
 10. Current-only governance, Delete/Garbage lifecycle, repository-wide Java/Spring/ownership/dependency/hygiene gates.
 
-상세 변경 및 205개 Requirement별 리뷰는:
+상세 변경 및 208개 Requirement별 리뷰는:
 - `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.md`
 - `cpf-docs/work/current/CPF_DEVELOPMENT_REQUIREMENT_REVIEW.csv`
 - `cpf-docs/deliverables/TEST_AND_EVIDENCE.md`

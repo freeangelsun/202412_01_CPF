@@ -260,6 +260,19 @@
       "consumer": "repository-module-or-deployment"
     },
     {
+      "artifactId": "cpf-batch-center-cut-runtime",
+      "ownerPath": "cpf-batch/center-cut-runtime",
+      "kind": "library",
+      "producer": "gradle:assemble",
+      "outputPattern": "cpf-batch/center-cut-runtime/build/libs/*.jar",
+      "requiredAttestations": [
+        "sha256",
+        "cyclonedx-sbom",
+        "license-review"
+      ],
+      "consumer": "repository-module-or-deployment"
+    },
+    {
       "artifactId": "cpf-batch-center-cut",
       "ownerPath": "cpf-batch/center-cut",
       "kind": "runtime",

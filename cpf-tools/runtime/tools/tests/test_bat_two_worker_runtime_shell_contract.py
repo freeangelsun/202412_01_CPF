@@ -54,7 +54,7 @@ def test_two_worker_runtime_uses_current_manager_kafka_worker_spring_batch_path(
         "cpf.batch.remote.kafka.consumer-group",
         "cpf.batch.remote.kafka.manager-instance-id",
         "CPF_BAT_DIAGNOSTIC_TOKEN",
-        "/internal/v1/center-cut/diagnostic/executions",
+        "/internal/v1/batch/remote-diagnostic/executions",
         "BAT_REMOTE_MESSAGE_LEDGER",
         "BAT_SB_JOB_INSTANCE",
         "BAT_SB_JOB_EXECUTION",

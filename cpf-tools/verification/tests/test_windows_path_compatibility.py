@@ -18,25 +18,25 @@ def run_gate(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess[str]:
 
 
 def make_long_file(tmp_path: Path) -> Path:
-    path = tmp_path / ("a" * 80) / ("b" * 70) / "sample.txt"
+    path = tmp_path / ("a" * 100) / ("b" * 95) / "sample.txt"
     path.parent.mkdir(parents=True)
     path.write_text("ok\n", encoding="utf-8")
     return path
 
 
-def test_relative_budget_is_warning_when_real_full_path_is_safe(tmp_path: Path):
+def test_project_relative_path_over_200_is_always_fail_closed(tmp_path: Path):
     make_long_file(tmp_path)
     result = run_gate(tmp_path, "--target-root-text", r"C:\\cpf")
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert "RELATIVE_BUDGET_EXCEEDED" in result.stdout
-    assert "WINDOWS_PATH_COMPATIBILITY=PASS" in result.stdout
+    assert result.returncode == 1
+    assert "RELATIVE_PATH_TOO_LONG" in result.stdout
+    assert "WINDOWS_PATH_COMPATIBILITY=FAIL" in result.stdout
 
 
-def test_strict_relative_budget_can_be_enabled(tmp_path: Path):
+def test_strict_relative_budget_compatibility_switch_keeps_same_fail_closed_policy(tmp_path: Path):
     make_long_file(tmp_path)
     result = run_gate(tmp_path, "--target-root-text", r"C:\\cpf", "--strict-relative-budget")
     assert result.returncode == 1
-    assert "WINDOWS_PATH_COMPATIBILITY=FAIL" in result.stdout
+    assert "RELATIVE_PATH_TOO_LONG" in result.stdout
 
 
 def test_real_full_path_budget_is_fail_closed(tmp_path: Path):

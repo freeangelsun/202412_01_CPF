@@ -1,1 +1,2 @@
+# Git 쓰기 없이 적용 결과만 확인
 git status --short

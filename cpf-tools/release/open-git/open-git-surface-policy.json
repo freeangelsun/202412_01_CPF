@@ -255,52 +255,52 @@
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.ps1",
       "target": "bin/cpf-bootstrap.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-bootstrap.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-bootstrap.sh",
       "target": "bin/cpf-bootstrap.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-stop.ps1",
       "target": "bin/cpf-stop.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-stop.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-stop.sh",
       "target": "bin/cpf-stop.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-reset.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-reset.ps1",
       "target": "bin/cpf-reset.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-reset.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-reset.sh",
       "target": "bin/cpf-reset.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-build.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-build.ps1",
       "target": "bin/cpf-build.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-build.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-build.sh",
       "target": "bin/cpf-build.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-test.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-test.ps1",
       "target": "bin/cpf-test.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-test.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-test.sh",
       "target": "bin/cpf-test.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
@@ -310,22 +310,22 @@
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.ps1",
       "target": "bin/cpf-domain-new.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-new.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-new.sh",
       "target": "bin/cpf-domain-new.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.ps1",
       "target": "bin/cpf-domain-sync.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf-domain-sync.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf-domain-sync.sh",
       "target": "bin/cpf-domain-sync.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
@@ -340,12 +340,12 @@
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf.ps1",
+      "source": "cpf-tools/release/public/templates/bin/cpf.ps1",
       "target": "bin/cpf.ps1",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },
     {
-      "source": "cpf-tools/release/open-git/templates/bin/cpf.sh",
+      "source": "cpf-tools/release/public/templates/bin/cpf.sh",
       "target": "bin/cpf.sh",
       "classification": "OPEN_GIT_USER_SCRIPT"
     },

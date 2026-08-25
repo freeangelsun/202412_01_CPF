@@ -11,6 +11,15 @@ import sys
 VENDORS = ("oracle", "postgresql", "mariadb")
 
 
+def checksum_contains(checksum_text: str, digest: str, filename: str) -> bool:
+    """sha256sum의 text/binary 표기 차이와 무관하게 immutable checksum을 검증합니다."""
+    for raw in checksum_text.splitlines():
+        match = re.match(r"^([0-9a-fA-F]{64})\s+[ *]?(.+?)\s*$", raw)
+        if match and match.group(1).lower() == digest.lower() and match.group(2) == filename:
+            return True
+    return False
+
+
 def require(text: str, token: str, rel: str, errors: list[str]) -> None:
     if token not in text:
         errors.append(f"{rel}: required token missing: {token}")
@@ -230,8 +239,7 @@ def verify(root: Path) -> None:
                 require(rollback_text, table, rollback_rel, errors)
         if migration.is_file() and checksum.is_file():
             digest = hashlib.sha256(migration.read_bytes()).hexdigest()
-            line = f"{digest} *V92__adm_notification_incident_lifecycle.sql"
-            if line not in checksum.read_text(encoding="utf-8"):
+            if not checksum_contains(checksum.read_text(encoding="utf-8"), digest, "V92__adm_notification_incident_lifecycle.sql"):
                 errors.append(f"{checksum_rel}: V92 checksum mismatch or missing")
 
         # V118 is the canonical currentization step: it preserves historical V92 while
@@ -271,8 +279,7 @@ def verify(root: Path) -> None:
                 require(rollback_current_text, legacy, current_rollback_rel, errors)
         if current.is_file() and current_checksum.is_file():
             digest = hashlib.sha256(current.read_bytes()).hexdigest()
-            line = f"{digest} *V118__adm_incident_lifecycle_currentization.sql"
-            if line not in current_checksum.read_text(encoding="utf-8"):
+            if not checksum_contains(current_checksum.read_text(encoding="utf-8"), digest, "V118__adm_incident_lifecycle_currentization.sql"):
                 errors.append(f"{current_checksum_rel}: V118 checksum mismatch or missing")
 
     maria_source_migration = root / "cpf-tools/db/vendor/mariadb/source/migration/flyway/V92__adm_notification_incident_lifecycle.sql"
@@ -283,7 +290,7 @@ def verify(root: Path) -> None:
         errors.append("cpf-tools/db/vendor/mariadb/source/migration/flyway/checksums.sha256: source missing")
     if maria_source_migration.is_file() and maria_source_checksum.is_file():
         digest = hashlib.sha256(maria_source_migration.read_bytes()).hexdigest()
-        if f"{digest} *V92__adm_notification_incident_lifecycle.sql" not in maria_source_checksum.read_text(encoding="utf-8"):
+        if not checksum_contains(maria_source_checksum.read_text(encoding="utf-8"), digest, "V92__adm_notification_incident_lifecycle.sql"):
             errors.append("cpf-tools/db/vendor/mariadb/source/migration/flyway/checksums.sha256: V92 checksum mismatch or missing")
 
     if errors:

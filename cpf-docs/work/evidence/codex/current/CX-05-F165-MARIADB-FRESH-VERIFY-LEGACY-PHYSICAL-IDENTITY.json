@@ -15,7 +15,7 @@
     "error": "Table cpfDB.cpf_schema_installation does not exist",
     "schemaManifest": "PASS platform=201 backoffice=29",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F163-MARIADB-LIFECYCLE-RERUN3/verifier-owned-lifecycle.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-09-d4afbdae/verifier-owned-lifecycle.json"
   },
   "rootCause": "Canonical Fresh uses profile-selected physical cpfDB+mbwDB identities and current OPS_SCHEMA_INSTALLATION, but MariaDB baseline registration still probes/inserts legacy cpf_schema_installation and the verify source hard-codes six retired split database names plus legacy table names. In verifier-owned isolation it can also query an unrelated pre-existing cpfDB, creating a false-green boundary. The canonical vendor generator and profile-aware installer are the repair owners.",
   "repairContract": [
@@ -65,7 +65,7 @@
     "baselineRegistry": "PASS physicalTargets=2",
     "canonicalVerify": "PASS checks=20 failedChecks=0",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F167-MARIADB-LIFECYCLE-RERUN5/freshinstall.result.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-11-e6aaffda/freshinstall.result.json"
   },
   "isClosed": true,
   "passCriteria": [

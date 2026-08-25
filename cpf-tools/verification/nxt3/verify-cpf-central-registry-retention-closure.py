@@ -79,7 +79,15 @@ def main() -> int:
     require('runScheduled' in sched,'retention scheduler is not an execution-engine consumer',f)
     for token in ('execution.runNow','execution.requestPause','execution.resume'):
         require(token in ctl,f'retention control API does not use common engine: {token}',f)
-    require('ORDER BY created_at, operation_id' in handler,'retention DB handler lacks stable keyset/range ordering',f)
+    require('sql.required("retention-operation-log-find-ids")' in handler,
+            'retention DB handler does not consume the canonical SQL catalog key',f)
+    retention_template=read(root/'cpf-tools/db/runtime-template/bat/repository/retention-operation-log-find-ids.sql.template')
+    require('ORDER BY created_at, operation_id' in retention_template,
+            'retention SQL template lacks stable keyset/range ordering',f)
+    for vendor in ('mariadb','postgresql','oracle'):
+        rendered=read(root/f'cpf-tools/db/vendor/{vendor}/runtime/bat/repository/retention-operation-log-find-ids.sql')
+        require('ORDER BY created_at, operation_id' in rendered,
+                f'{vendor} retention SQL lacks stable keyset/range ordering',f)
     require('setMaxRows(command.maxRows())' in handler,'retention DB handler does not bound one chunk',f)
     require('matched > processed' in handler,'retention DB handler does not signal hasMore from chunk result',f)
 

@@ -31,7 +31,7 @@ class BatRuntimeRoleContractTest(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(
-            ["CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT", "AGENT"],
+            ["CONTROL_PLANE", "SCHEDULER", "WORKER", "CENTER_CUT_RUNNER", "AGENT"],
             payload["canonicalRoles"],
         )
         self.assertEqual(["mariadb", "postgresql", "oracle"], payload["vendors"])
@@ -45,33 +45,25 @@ class BatRuntimeRoleContractTest(unittest.TestCase):
         with self.assertRaisesRegex(module.ContractError, "collision"):
             module.replacement_map(broken)
 
-    def test_migration_outputs_have_unknown_precheck_and_db3_forward_rollback(self):
+    def test_historical_v116_is_immutable_and_v138_owns_center_cut_runner_currentization(self):
         module = load_module()
         contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
-        outputs = module.migration_outputs(ROOT, contract)
-        self.assertEqual(8, len(outputs))
-        self.assertEqual(4, sum(path.name.startswith("V116__") for path in outputs))
-        self.assertEqual(4, sum(path.name.startswith("R116__") for path in outputs))
-        for path, sql in outputs.items():
-            self.assertIn("runtime_role", sql)
-            self.assertIn("CONTROL_PLANE", sql)
+        self.assertTrue(contract["migration"]["historical"])
+        self.assertTrue(contract["migration"]["historicalMigrationsImmutable"])
+        self.assertEqual(138, contract["migration"]["supersededByVersion"])
+        self.assertEqual("CEC-CENTER-CUT-RUNNER-IDENTITY", contract["migration"]["supersededByIntentId"])
+        module.verify_migration_version_lock(ROOT, contract)
+        current_paths = [
+            ROOT / "cpf-tools/db/vendor/mariadb/migration/flyway/V138__center_cut_runner_identity.sql",
+            ROOT / "cpf-tools/db/vendor/postgresql/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+            ROOT / "cpf-tools/db/vendor/oracle/migration/flyway/cpfDB/V138__center_cut_runner_identity.sql",
+        ]
+        for path in current_paths:
+            sql = path.read_text(encoding="utf-8")
+            self.assertIn("CENTER_CUT_RUNNER", sql)
             self.assertIn("CENTER_CUT", sql)
-            self.assertIn("AGENT", sql)
-            self.assertIn("NOT IN", sql)
-            self.assertLess(sql.index("NOT IN"), sql.index("UPDATE "))
+            self.assertIn("UPDATE", sql)
             self.assertIn("CONSTRAINT", sql)
-            self.assertTrue(path.name.startswith(("V116__", "R116__")))
-            self.assertNotIn("batDB", path.parts)
-            if "mariadb" in path.parts:
-                self.assertIn("BINARY runtime_role", sql)
-                self.assertIn("START TRANSACTION;", sql)
-                self.assertIn("COMMIT;", sql)
-            elif "postgresql" in path.parts:
-                self.assertIn("BEGIN;", sql)
-                self.assertIn("COMMIT;", sql)
-            elif "oracle" in path.parts:
-                self.assertIn("WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK", sql)
-                self.assertIn("ROLLBACK;", sql)
 
     def test_role_identity_namespaces_and_version_lock_fail_closed(self):
         module = load_module()

@@ -149,7 +149,12 @@ def main()->int:
     remaining=sorted(rel for rel in pending if (root/rel).exists())
     if remaining: raise RuntimeError(f'pending delete candidates still exist in desired replay: {remaining[:10]}')
     req_fields,reqs=read_csv(root/REQUIREMENT_REL)
-    if len(reqs)!=205: raise RuntimeError(f'requirement projection count mismatch: {len(reqs)}')
+    canonical_doc=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+    import re
+    canonical_ids=[m.group(1) for line in canonical_doc.read_text(encoding='utf-8-sig').splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
+    if not canonical_ids or len(canonical_ids)!=len(set(canonical_ids)): raise RuntimeError(f'canonical catalog count/duplicate drift: {len(canonical_ids)}/{len(set(canonical_ids))}')
+    req_ids=[(r.get('exact_id') or '').strip() for r in reqs]
+    if req_ids!=canonical_ids: raise RuntimeError(f'requirement projection order/set mismatch: ledger={len(req_ids)} canonical={len(canonical_ids)}')
 
     source=source_snapshot(root); source_sha256=source['contentSha256']; source_sha1=source['contentSha1']
     closed,blocked=update_closure_identity(root,source_sha256)
@@ -178,7 +183,7 @@ def main()->int:
         'changeSummary':summary,
         'deleteManifest':DELETE_REL,'deleteManifestCount':len(drows),'deleteLifecycleCounts':dcounts,
         'developerFindingClosure':{'ledger':CLOSURE_REL,'total':63,'closed':closed,'blockedExternal':blocked},
-        'requirementProjection':{'path':REQUIREMENT_REL,'rows':205},
+        'requirementProjection':{'path':REQUIREMENT_REL,'rows':len(reqs)},
         'developmentCompletion':'IMPLEMENTABLE_SCOPE_COMPLETE' if blocked else 'COMPLETE',
         'overallCompletion':'BLOCKED_EXTERNAL' if blocked else 'COMPLETE',
         'actualUserWorkingTreeDeletionPerformed':False,

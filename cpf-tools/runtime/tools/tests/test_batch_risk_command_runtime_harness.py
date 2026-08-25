@@ -101,7 +101,10 @@ public class RiskHarness { static int checks;
 
 def test_schema_and_java_ledger_contract_are_closed() -> None:
     ledger_text = LEDGER.read_text(encoding="utf-8")
-    assert "bat_operation_request" in ledger_text
+    # Table name은 Vendor SQL Catalog가 소유하고 Java Ledger는 logical query key만 소비합니다.
+    assert 'sql.required("risk-command-reserve")' in ledger_text
+    assert 'sql.required("risk-command-find")' in ledger_text
+    assert 'sql.required("risk-command-complete")' in ledger_text
     assert "PROPAGATION_REQUIRES_NEW" in ledger_text
     assert "request_hash" in ledger_text
     assert "UNKNOWN" in ledger_text

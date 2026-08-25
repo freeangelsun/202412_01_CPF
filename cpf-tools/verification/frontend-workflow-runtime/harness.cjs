@@ -14,7 +14,11 @@ throws(()=>mt.validateMaintenanceAction({serviceId:'MBR',endpointCode:'API',inst
 const saved=employee.validateEmployeeSavePayload({employeeNo:' E-1 ',employeeName:' 홍길동 ',useYn:'Y',reason:' 업무상 정보 변경 ',clearEmail:false,clearMobileNo:false,clearOfficePhoneNo:false});
 eq(saved.employeeNo,'E-1','employee id normalized');eq(saved.reason,'업무상 정보 변경','employee reason normalized');
 throws(()=>employee.validateEmployeeSavePayload({employeeNo:'',employeeName:'홍길동',useYn:'Y',reason:'업무상 정보 변경',clearEmail:false,clearMobileNo:false,clearOfficePhoneNo:false}),/직원번호/,'employee id required');
-const decided=approval.validateApprovalDecision({action:' approve ',reason:' 정상 승인 처리 ',comment:' 확인 '});
+const approvalHash='a'.repeat(64);
+const decided=approval.validateApprovalDecision({action:' approve ',reason:' 정상 승인 처리 ',comment:' 확인 ',expectedVersionNo:3,expectedPayloadHash:approvalHash});
 eq(decided.action,'APPROVE','approval normalized');eq(decided.comment,'확인','approval comment normalized');
-throws(()=>approval.validateApprovalDecision({action:'APPROVE',reason:'짧음'}),/5자/,'approval reason');
+eq(decided.expectedVersionNo,3,'approval version preserved');eq(decided.expectedPayloadHash,approvalHash,'approval snapshot hash preserved');
+throws(()=>approval.validateApprovalDecision({action:'APPROVE',reason:'짧음',expectedVersionNo:3,expectedPayloadHash:approvalHash}),/5자/,'approval reason');
+throws(()=>approval.validateApprovalDecision({action:'APPROVE',reason:'정상 승인 처리',expectedVersionNo:0,expectedPayloadHash:approvalHash}),/Version/,'approval version required');
+throws(()=>approval.validateApprovalDecision({action:'APPROVE',reason:'정상 승인 처리',expectedVersionNo:3,expectedPayloadHash:'bad'}),/Snapshot Hash/,'approval hash required');
 console.log(`CPF_FRONTEND_WORKFLOW_RUNTIME_PASS checks=${checks}`);

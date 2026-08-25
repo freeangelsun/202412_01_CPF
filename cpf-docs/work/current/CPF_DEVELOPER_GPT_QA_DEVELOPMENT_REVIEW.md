@@ -1,3 +1,53 @@
+<!-- DEV-GPT-CURRENT-20260825 -->
+# Developer GPT Currentization — 2026-08-25
+
+- Baseline ZIP SHA-256: `d2e89aba1841a4387a473610db905415f8565fcf09d06a56a8afa3a1b33a3a48`
+- Current Product Source SHA-256: `c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df`
+- Canonical Requirements: `208`
+- 개발 단계: Source/Static/Contract/Substitute 구현 가능한 범위 완료
+- 실행 결과: 현재 Source에서 실행한 정적/계약/Substitute 검증 관측 FAIL `0`
+- 필수 미검증: Java25 Root Gradle, Docker DB3 3사, Multi-instance/Process Kill, Kafka 2-worker, Browser E2E, Performance, Full Runtime/Fresh Replay
+- QA 전달: 금지. 새 Full Runtime이 `FAIL=0 / SKIP_ENV=0 / NOT_EXECUTED=0 / UNVERIFIED=0`이 된 뒤 전환
+- Customer Shared Library Generator / Windows <=200 / Docker self-managed prerequisite lifecycle는 상위 정본에 등록됨.
+
+<!-- CURRENT-20260825-DEFECT-BURNDOWN -->
+# 2026-08-25 현재 개발·결함 수렴 실행 정본
+
+## 현재 목적
+
+- 현재 단계는 QA 전달 전 개발·결함 수렴 단계다.
+- 최초 Local Full Runtime `PASS 110 / FAIL 34 / SKIP_ENV 2 / NOT_EXECUTED 7`을 입력으로 Root Cause를 통합 보정했다.
+- 작업 진행 기준은 `20 WP / 111 세부항목`이며, Source 수정과 작업 정본·Evidence 현행화를 동시에 수행한다.
+- QA 전달은 새 Source의 Java25/Docker Full Runtime과 Fresh Replay에서 Mandatory `FAIL/SKIP/NOT_EXECUTED/UNVERIFIED=0`일 때만 가능하다.
+
+## Source Identity
+
+- Baseline ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_121103.zip`
+- Baseline ZIP SHA-256: `d2e89aba1841a4387a473610db905415f8565fcf09d06a56a8afa3a1b33a3a48`
+- Current product source SHA-256: `6b74bf1b37061289159ddc186ae0de10506d99fca98cfd7353d7498c457a4658`
+- Current product source files: `8437`
+- Canonical Requirement: `208`
+
+## 이번 개발 핵심 Currentization
+
+- `GEN-CUSTOM-LIB`: 고객사 공통 JAR 작업공간 Generator. `library create/attach/sync/verify`, Domain별 opt-in dependency, 한글 사용자 주석/도움말, CPF internal namespace/dependency fail-closed.
+- `DEVEX-WINDOWS-PATH`: 프로젝트 Root 상대경로+파일명 `<=200`. 현재 max `199`, violation `0`. 긴 Codex Evidence는 25개 Alias root로 이동하고 `PATH_ALIAS_MAP.csv` 및 220-file Delete Manifest로 추적한다.
+- `DEVEX-DOCKER-LIFECYCLE`: 필요한 Docker 서비스가 내려가 있으면 검증기가 자동 기동하고 health+functional readiness 후 실행한다. 검증기가 기동한 컨테이너만 실패 여부와 무관하게 종료한다.
+- NXT3/Hygiene/Requirement projection/Codex preflight/Context harness/BAT·CEC/Generator/DB contract/Backoffice Approval/Open Git/Supply-chain/Frontend runtime-path 등 원 Runtime Root Cause를 Source/Test/Harness 단위로 currentize했다.
+
+## 현재 WP 판정
+
+- WP-01~03, WP-19: 정적 검증까지 `CLOSED`.
+- WP-04~18: 구현 가능한 Source/Harness 보정 완료, 실제 Java25/Docker/Browser/Gradle Runtime이 필요한 검증은 `미완료/미검증`.
+- WP-20: Final Full Runtime/Fresh Replay, 현재 환경 제약으로 `BLOCKED_EXTERNAL`.
+- 상세 상태 정본: `cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv`.
+
+## 완료 기준
+
+`Java25 Root clean build/test/publication` → `Oracle/PostgreSQL/MariaDB DB3 lifecycle` → `Docker fault/two-worker/One-WAS` → `Runtime OpenAPI/Browser/Performance` → `Fresh Replay` → 최종 `FAIL=0, SKIP_ENV=0, NOT_EXECUTED=0`.
+
+<!-- END-CURRENT-20260825-DEFECT-BURNDOWN -->
+
 # CPF Developer GPT QA · 개발착수 상세 리뷰 / 실행 원장
 
 - 작성일: **2026-08-24**

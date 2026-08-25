@@ -22,6 +22,12 @@ TEST_SOURCE = Path("cpf-admin/src/test/java/com/cpf/admin/opr/batch/runtime/Batc
 DTO_SOURCES = (
     Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeCommandRequest.java"),
     Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchRuntimeDeploymentPlanRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchJobDefinitionRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/BatchJobDefinitionTransitionRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/RetentionPolicySaveRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/RetentionPreviewRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/RetentionReasonRequest.java"),
+    Path("cpf-admin/src/main/java/com/cpf/admin/opr/batch/runtime/RetentionVersionedReasonRequest.java"),
 )
 EXPECTED_MAJOR = 65  # Java 21 class-file major version
 
@@ -30,7 +36,11 @@ STUBS: dict[str, str] = {
 package com.cpf.admin.approval.service;
 import java.util.Map;
 public class AdmApprovalService {
+  public record CreateRequest(String requestKey, String policyCode, Integer policyVersion, String actionType,
+      String ownerModule, String ownerCommand, String targetType, String targetId,
+      String payloadSnapshot, java.time.Instant expireAt, String reason) {}
   public Map<String,Object> execute(long id, String reason, String operatorId) { return Map.of(); }
+  public Map<String,Object> requestApproval(CreateRequest request, String operatorId) { return Map.of(); }
 }
 """,
     "io/swagger/v3/oas/annotations/media/Schema.java": """
@@ -56,6 +66,8 @@ public class BatchControlClientException extends RuntimeException {
     "com/cpf/admin/opr/batch/runtime/BatchRuntimeControlClient.java": """
 package com.cpf.admin.opr.batch.runtime;
 import java.util.Map;
+import java.util.List;
+import com.cpf.data.api.CpfDataRow;
 public class BatchRuntimeControlClient {
   public Object instances(long value) { return null; }
   public Map<String,Object> view(String value) { return Map.of(); }
@@ -67,7 +79,70 @@ public class BatchRuntimeControlClient {
   public Map<String,Object> command(Map<String,Object> request) { return Map.of(); }
   public Map<String,Object> commandState(String key) { return Map.of(); }
   public Map<String,Object> createPlan(Map<String,Object> request) { return Map.of(); }
+  public List<CpfDataRow> retentionPolicies() { return List.of(); }
+  public List<CpfDataRow> retentionRuns(String policyId, int limit) { return List.of(); }
+  public Map<String,Object> previewRetention(Map<String,Object> request) { return Map.of(); }
+  public CpfDataRow retentionPolicy(String policyId) { return new CpfDataRow(); }
+  public CpfDataRow retentionRun(String runId) { return new CpfDataRow(); }
+  public Map<String,Object> pauseRetentionRun(String runId, long expectedVersion, String reason) { return Map.of(); }
+  public Map<String,Object> pauseRetentionPolicy(String policyId, long expectedVersion, String reason) { return Map.of(); }
 }
+""",
+    "com/cpf/data/api/CpfDataRow.java": """
+package com.cpf.data.api;
+public class CpfDataRow extends java.util.LinkedHashMap<String,Object> {
+  private static final long serialVersionUID = 1L;
+}
+""",
+    "com/fasterxml/jackson/core/JsonProcessingException.java": """
+package com.fasterxml.jackson.core;
+public class JsonProcessingException extends Exception {
+  private static final long serialVersionUID = 1L;
+  public JsonProcessingException(String message) { super(message); }
+}
+""",
+    "com/fasterxml/jackson/databind/ObjectMapper.java": """
+package com.fasterxml.jackson.databind;
+import com.fasterxml.jackson.core.JsonProcessingException;
+public class ObjectMapper {
+  public String writeValueAsString(Object value) throws JsonProcessingException { return String.valueOf(value); }
+}
+""",
+    "jakarta/validation/Valid.java": """
+package jakarta.validation;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface Valid {}
+""",
+    "jakarta/validation/constraints/NotBlank.java": """
+package jakarta.validation.constraints;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface NotBlank {}
+""",
+    "jakarta/validation/constraints/NotNull.java": """
+package jakarta.validation.constraints;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface NotNull {}
+""",
+    "jakarta/validation/constraints/Size.java": """
+package jakarta.validation.constraints;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface Size { int min() default 0; int max() default Integer.MAX_VALUE; }
+""",
+    "jakarta/validation/constraints/Min.java": """
+package jakarta.validation.constraints;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface Min { long value(); }
+""",
+    "jakarta/validation/constraints/Max.java": """
+package jakarta.validation.constraints;
+import java.lang.annotation.*;
+@Retention(RetentionPolicy.RUNTIME) @Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.RECORD_COMPONENT,ElementType.TYPE_USE})
+public @interface Max { long value(); }
 """,
     "io/swagger/v3/oas/annotations/Operation.java": """
 package io.swagger.v3.oas.annotations;

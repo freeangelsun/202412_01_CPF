@@ -5,7 +5,8 @@ dependencies {
     api project(':cpf-common')
     api project(':framework:core')
     api project(':framework:base-runtime')
-    api project(':starters:data:jdbc')
+    // Common은 DataSource Registry 계약만 필요하며 JDBC Provider를 모든 Profile에 강제하지 않습니다.
+    implementation project(':framework:data:persistence')
     implementation project(':internal:platform-operations:runtime-control')
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'

@@ -490,18 +490,25 @@ def main() -> int:
     parser.add_argument("--review-dir", required=True)
     parser.add_argument("--expected-sha")
     parser.add_argument("--source-head")
-    parser.add_argument("--expected-requirements", type=int, default=205)
+    parser.add_argument("--expected-requirements", type=int)
     parser.add_argument("--expected-findings", type=int, default=63)
     parser.add_argument("--json-output")
     args = parser.parse_args()
     root = Path(args.root).resolve()
+    expected_requirements=args.expected_requirements
+    if expected_requirements is None:
+        canonical=root/"cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md"
+        catalog_ids=[m.group(1) for line in canonical.read_text(encoding="utf-8-sig").splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
+        if not catalog_ids or len(catalog_ids)!=len(set(catalog_ids)):
+            print(json.dumps({"status":"FAIL","message":f"canonical catalog invalid: {len(catalog_ids)}/{len(set(catalog_ids))}"},ensure_ascii=False)); return 1
+        expected_requirements=len(catalog_ids)
     try:
         result = verify(
             root,
             Path(args.review_dir),
             args.expected_sha,
             args.source_head,
-            args.expected_requirements,
+            expected_requirements,
             args.expected_findings,
         )
         code = 0

@@ -51,7 +51,10 @@ def test_orchestrator_manages_docker_selectively_instead_of_starting_everything(
 
 def test_existing_containers_are_preserved_and_only_owned_containers_are_stopped():
     source = text()
-    assert "if(Test-CpfContainerRunning $container)" in source
+    assert "$alreadyRunning=Test-CpfContainerRunning $container" in source
+    assert "if($alreadyRunning)" in source
+    assert "$startedByValidation=-not $alreadyRunning" in source
+    assert "Wait-CpfDockerFunctionalReadiness" in source
     assert "started=$false" in source
     assert "if($null -eq $State -or -not $State.started -or $KeepDockerStarted){return}" in source
 

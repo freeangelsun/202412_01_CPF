@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import shutil
 import unittest
 from pathlib import Path
 
@@ -21,6 +22,7 @@ class DataSafetySchemaContractCurrentizationTest(unittest.TestCase):
         self.assertNotIn("Require-SameHash", source)
         self.assertNotIn("Require-Contains $bzaSchema", source)
 
+    @unittest.skipUnless(shutil.which("pwsh"), "PowerShell runtime is unavailable; Windows Full Runtime executes this mandatory gate")
     def test_actual_contract_gate_passes(self):
         result = subprocess.run(
             ["pwsh", "-NoProfile", "-File", str(CHECK), "-Root", str(ROOT)],

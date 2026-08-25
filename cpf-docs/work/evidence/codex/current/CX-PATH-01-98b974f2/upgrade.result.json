@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "tool": "run-db-vendor-lifecycle.ps1",
+  "vendor": "mariadb",
+  "mode": "Upgrade",
+  "status": "SUCCEEDED",
+  "executionStarted": true,
+  "reconcileRequired": false,
+  "lifecyclePlan": "cpf-docs/work/evidence/codex/current/CX-PATH-01-98b974f2/upgrade.plan.json",
+  "lifecyclePlanSha256": "7cee2319410c736f1c0ed0597caf5a9c6b8e265fc35b50056a10423a4546cf06",
+  "profileSha256": "80df3410e3f2d51b6b1cbdaf5fb4a2e72604ccb465be4785484b51ab7b5e2424",
+  "adapter": {
+    "ready": true,
+    "mode": "Docker",
+    "client": "mariadb",
+    "image": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1",
+    "imageId": "sha256:7fcd59fe809e1b8862d316f1742aae07312c88d4a0fa496259d4251fd71f64b5",
+    "probeNetwork": "none"
+  },
+  "startedAt": "2026-08-23T10:49:04.2971810+00:00",
+  "finishedAt": "2026-08-23T10:49:07.6585794+00:00",
+  "approvalReference": "CPF-VERIFY-109027fbe612",
+  "error": "",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "109027fbe612"
+}

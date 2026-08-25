@@ -1,4 +1,4 @@
-﻿gap_id,priority,area,target,status,current_state,remaining_acceptance,evidence
+gap_id,priority,area,target,status,current_state,remaining_acceptance,evidence
 CANON-GAP-001,P0,Ownership,cpf-common,SOURCE_STATIC_CLOSED,cpf-common Product Owner와 starter runtime composition 분리를 구현했다.,Java25 full build 재실행.,cpf-common; owner-boundary/dependency/static tests
 CANON-GAP-002,P0,Generated Domain,cpf-member/cpf-external,SOURCE_STATIC_CLOSED,Generated Domain root cpf-domain.yaml/ownership/externalClients/DB binding을 currentize했다.,Generated domain Java25 build 및 target environment runtime.,Generator Full Contract; generator verification
 CANON-GAP-003,P0,EDU,cpf-education,SOURCE_STATIC_CLOSED,EDU physical/executable Online 20 + Batch 15 = 35로 정리했다.,Java25 full build 및 실행형 EDU runtime acceptance.,Current Final; EDU gates
@@ -9,6 +9,6 @@ CANON-GAP-007,P1,Instance identity,runtime/registry,SOURCE_STATIC_CLOSED,same-ho
 CANON-GAP-008,P1,Public distribution,release/public workspace,SOURCE_STATIC_CLOSED,Public Workspace/Binary isolated consumer/no-mavenLocal/private-source 계약을 구현했다.,reachable Public Binary Repository E2E.,release tests; public staging/consumer contract
 CANON-GAP-009,P1,Local Bootstrap,cpf-tools/environment/bootstrap,SOURCE_STATIC_CLOSED,"shared Java bootstrap engine, thin wrappers, DB lifecycle, stop≠reset, rediscovery 계약을 구현했다.",Docker/DB3/Windows target runtime.,bootstrap source compile/status; public staging
 CANON-GAP-010,P1,Documentation governance,cpf-docs,SOURCE_STATIC_CLOSED,Current role 충돌을 제거하고 Delete/Garbage lifecycle을 1:1 현행화했다.,Windows apply/delete runtime and QA review of historical evidence.,Current document consolidation; NXT3 garbage/hygiene
-CANON-GAP-011,P0,Requirement Status,cpf-docs/work/REQUIREMENT_STATUS.csv,SOURCE_STATIC_CLOSED,Developer status ledger를 205 Canonical Requirement로 currentize하고 role ownership을 보존했다.,QA가 QA-owned status를 최종 판정.,Requirement projection PASS
+CANON-GAP-011,P0,Requirement Status,cpf-docs/work/REQUIREMENT_STATUS.csv,SOURCE_STATIC_CLOSED,Developer status ledger를 208 Canonical Requirement로 currentize하고 role ownership을 보존했다.,QA가 QA-owned status를 최종 판정.,Requirement projection PASS
 CANON-GAP-012,P1,Derived Requirement Dataset,CPF_REQUIREMENT_MASTER / scenario / execution datasets,SOURCE_STATIC_CLOSED,"30,605 Requirement/Scenario/Execution derived dataset을 Current structural identity로 재검증했다.",QA/Codex independent revalidation.,"19 parts / 30,605 projection PASS"
 CANON-GAP-013,P1,Official Developer Docs,GENERATOR_GUIDE and affected Architecture/Developer/EDU guides,SOURCE_STATIC_CLOSED,Generator/Developer current guidance와 Current work/handover/Codex request를 final target에 맞췄다.,QA documentation usability review as needed.,Current docs/evidence checks

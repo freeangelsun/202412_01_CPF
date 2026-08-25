@@ -372,6 +372,7 @@ export function createAdmState() {
           policyId: "",
           maintenanceAction: "DRAIN",
           serviceId: "",
+          endpointCode: "",
           instanceId: "",
           expectedVersion: 0,
           calendarId: "DEFAULT",

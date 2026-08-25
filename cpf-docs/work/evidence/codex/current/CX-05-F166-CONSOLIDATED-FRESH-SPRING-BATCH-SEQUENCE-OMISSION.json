@@ -49,7 +49,7 @@
     "currentSequenceCreates": 3,
     "canonicalVerify": "PASS checks=20 failedChecks=0 including bat_spring_batch_6_sequence_contract",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F167-MARIADB-LIFECYCLE-RERUN5/freshinstall.result.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-11-e6aaffda/freshinstall.result.json"
   },
   "isClosed": true,
   "passCriteria": [

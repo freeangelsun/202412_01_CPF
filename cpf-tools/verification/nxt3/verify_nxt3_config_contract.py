@@ -178,11 +178,20 @@ def main():
     if value and not value.startswith('${') and not value.startswith('<') and value.lower() not in {'masked','***','changeme-for-test'} and not header_constant:
      secrets.append(f'{rel}:{s.count(chr(10),0,sm.start())+1}')
   if rel.startswith(EXEMPT_PREFIX) or is_test: continue
+  # Canonical seed-model은 운영값을 숨겨 둔 Application Source가 아니라 DB Product Seed의
+  # 단일 설정 데이터 정본입니다. Service Registry endpoint 기본값은 ADM에서 변경 가능한
+  # OPS_SERVICE_ENDPOINT 데이터이며 DB3 seed parity/lifecycle Gate가 별도로 검증합니다.
+  is_canonical_registry_seed = (
+      rel == 'cpf-tools/db/canonical/seed-model.json'
+      and '53_runtime_service_registry_seed.sql' in s
+  )
   is_config_properties='@ConfigurationProperties' in s
   is_frontend_source='/frontend/src/' in '/'+rel
   for cat,rx in OP_PATTERNS.items():
    for m in rx.finditer(s):
     literal=m.group(0)
+    if is_canonical_registry_seed and cat == 'url':
+     continue
     if cat=='url' and (any(host in literal.lower() for host in SPEC_URI_HOSTS) or '${' in literal or '.example' in literal.lower() or 'example.test' in literal.lower()): continue
     line=s.count('\n',0,m.start())+1; nearby=s[max(0,m.start()-260):m.end()+260]
     line_start=s.rfind('\n',0,m.start())+1; line_end=s.find('\n',m.end()); line_text=s[line_start:line_end if line_end>=0 else len(s)].strip()

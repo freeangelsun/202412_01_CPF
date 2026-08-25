@@ -54,7 +54,7 @@ class PinnedArtifactHttpTransportTest {
                 host -> List.of(InetAddress.getByName("169.254.169.254")));
         assertThatThrownBy(() -> metadata.resolveAndValidate(URI.create("https://repo.example.test/latest/meta-data")))
                 .isInstanceOf(SecurityException.class)
-                .hasMessageContaining("METADATA_ADDRESS_DENIED");
+                .hasMessageContaining("NETWORK_POLICY_DENIED");
     }
 
     @Test

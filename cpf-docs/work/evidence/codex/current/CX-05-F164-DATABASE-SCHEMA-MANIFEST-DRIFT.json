@@ -14,7 +14,7 @@
     "expectedMissingColumn": "http_status",
     "actualInstalledColumn": "http_status",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F163-MARIADB-LIFECYCLE-RERUN2/verifier-owned-lifecycle.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-08-a542fbaf/verifier-owned-lifecycle.json"
   },
   "rootCause": "The narrow canonical/vendor regeneration sequence did not invoke the separately owned generate-database-schema-manifest step. The official sync-database-artifacts orchestrator already orders that step after current vendor generation, so the repair is to regenerate the tracked manifest from its canonical owner and prove drift check/Fresh rather than hand-editing it.",
   "sourceFix": {

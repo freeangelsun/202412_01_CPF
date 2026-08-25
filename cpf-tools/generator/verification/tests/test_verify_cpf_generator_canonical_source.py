@@ -86,7 +86,8 @@ class CanonicalGeneratorVerifierTest(unittest.TestCase):
         sys.modules[spec.name] = gate
         spec.loader.exec_module(gate)
         engine = gate.load_engine(self.root / gate.CANONICAL_ENGINE)
-        rendered = engine.render_gradle_properties({"cpfVersion": "1.0.0-SNAPSHOT"})
+        definition = engine.load_domain_contract(self.root / "cpf-member/gradle.properties")
+        rendered = engine.render_gradle_properties(definition, {"cpfVersion": "1.0.0-SNAPSHOT"})
         for token in (
             "org.gradle.jvmargs=-Xms250m -Xmx1000m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8",
             "org.gradle.workers.max=2",

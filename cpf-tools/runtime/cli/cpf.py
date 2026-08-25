@@ -17,6 +17,7 @@ from cpf_domain_generator import (DomainError, generate, regenerate, diff, dry_r
                            verify_generated, verify_prebuilt_domain, verify_genericity, remove_owned, preflight, upgrade, restore,
                            SUPPORTED_VENDORS, _ddl, _migration, _seed, _rollback, _verify_sql,
                            managed_generator_root, load_domain_contract)
+from cpf_customer_library_generator import (CustomerLibraryError, create_library, attach_library, sync_libraries, verify_library)
 
 VERSION='6.4.0'
 
@@ -537,6 +538,15 @@ def main()->int:
     _hidden_domain_commands={'generate','add','dry-run','validate','regenerate','generate-all','upgrade','restore','new'}
     dsub._choices_actions[:] = [action for action in dsub._choices_actions if getattr(action,'dest',None) not in _hidden_domain_commands]
 
+    library=sub.add_parser('library',help='고객사 공통 JAR 작업공간 생성·선택 연결')
+    lsub=library.add_subparsers(dest='command',required=True)
+    lcreate=lsub.add_parser('create',help='고객사 공통 Library JAR 프로젝트 생성')
+    lcreate.add_argument('--name',required=True); lcreate.add_argument('--group',required=True,help='고객사 소유 Java/Maven group. 예: com.acme.shared'); lcreate.add_argument('--package',help='공통 Source Java package. 생략하면 <group>.<library_name>으로 생성'); lcreate.add_argument('--version',default='1.0.0-SNAPSHOT')
+    lattach=lsub.add_parser('attach',help='필요한 Generated Domain에만 Library Dependency 연결')
+    lattach.add_argument('--name',required=True); lattach.add_argument('--domain',action='append',required=True,help='연결할 Domain 이름. 여러 개면 반복 지정')
+    lsub.add_parser('sync',help='Domain의 customer-libraries.properties 기준 연결 파일 재생성')
+    lverify=lsub.add_parser('verify',help='고객사 공통 Library 구조/경계 검증'); lverify.add_argument('--name',required=True)
+
     db=sub.add_parser('db',help='Generated Domain DB3 renderer')
     dbsub=db.add_subparsers(dest='command',required=True)
     render=dbsub.add_parser('render'); render.add_argument('--file',required=True); render.add_argument('--vendor',required=True,choices=SUPPORTED_VENDORS); render.add_argument('--output')
@@ -600,6 +610,11 @@ def main()->int:
             definition=resolve_definition(root,ns.domain,ns.file)
             output=((Path(ns.output) if Path(ns.output).is_absolute() else root/Path(ns.output)).resolve() if ns.output else (root/generated_root_name(ns.domain)).resolve())
             print_json(remove_owned(root,definition,output,apply=ns.apply,purge_definition=ns.purge_definition)); return 0
+    if ns.group=='library':
+        if ns.command=='create': print_json(create_library(root,ns.name,ns.group,getattr(ns,'package',None),ns.version)); return 0
+        if ns.command=='attach': print_json(attach_library(root,ns.name,ns.domain)); return 0
+        if ns.command=='sync': print_json(sync_libraries(root)); return 0
+        if ns.command=='verify': print_json(verify_library(root,ns.name)); return 0
     if ns.group=='db' and ns.command=='render':
         definition=Path(ns.file); definition=definition if definition.is_absolute() else root/definition
         d=load_domain_contract(definition.resolve()); vendor=ns.vendor
@@ -634,5 +649,5 @@ def main()->int:
 
 if __name__=='__main__':
     try: raise SystemExit(main())
-    except (DomainError,OSError,ValueError) as exc:
+    except (DomainError,CustomerLibraryError,OSError,ValueError) as exc:
         print(f'CPF_CLI=FAIL {exc}',file=sys.stderr); raise SystemExit(2)

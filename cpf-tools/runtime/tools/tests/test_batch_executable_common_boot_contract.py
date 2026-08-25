@@ -6,7 +6,7 @@ EXECUTABLES = {
     "control-plane": "CONTROL_PLANE",
     "scheduler": "SCHEDULER",
     "worker": "WORKER",
-    "center-cut": "CENTER_CUT",
+    "center-cut": "CENTER_CUT_RUNNER",
     "agent": "AGENT",
 }
 APPLICATION_MAINS = {
@@ -25,7 +25,8 @@ def test_all_five_batch_executables_import_the_shared_runtime_contract():
         ).read_text(encoding="utf-8")
 
         assert application.count("optional:classpath:application-bat-runtime.yml") == 1, module
-        assert "module-id: BAT" in application, module
+        expected_module = "CEC" if module == "center-cut" else "BAT"
+        assert f"module-id: {expected_module}" in application or f"module-id: ${{CPF_MODULE_ID:{expected_module}}}" in application, module
         assert f"role: {role}" in application, module
 
         main = (

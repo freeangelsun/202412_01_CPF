@@ -164,9 +164,6 @@ final class PinnedArtifactHttpTransport {
             if (!pins.isEmpty() && !pins.contains(normalized)) {
                 throw new SecurityException(prefix + "_PIN_MISMATCH:" + normalized);
             }
-            if (metadataAddress(address)) {
-                throw new SecurityException(prefix + "_METADATA_ADDRESS_DENIED:" + normalized);
-            }
             if (allowedCidrs != null && !allowedCidrs.isEmpty()
                     && allowedCidrs.stream().noneMatch(cidr -> inCidr(address, cidr))) {
                 throw new SecurityException(prefix + "_CIDR_DENIED:" + normalized);
@@ -188,34 +185,6 @@ final class PinnedArtifactHttpTransport {
             throw new SecurityException(prefix + "_PIN_REQUIRED");
         }
         return new ResolvedTarget(host, resolved.getFirst(), port);
-    }
-
-    private static boolean metadataAddress(InetAddress address) {
-        byte[] raw = address.getAddress();
-        if (raw.length == 4) {
-            int a = Byte.toUnsignedInt(raw[0]);
-            int b = Byte.toUnsignedInt(raw[1]);
-            int c = Byte.toUnsignedInt(raw[2]);
-            int d = Byte.toUnsignedInt(raw[3]);
-            return a == 169 && b == 254 && c == 169 && d == 254
-                    || a == 100 && b == 100 && c == 100 && d == 200;
-        }
-        if (Byte.toUnsignedInt(raw[0]) == 0xfd && Byte.toUnsignedInt(raw[1]) == 0x00
-                && Byte.toUnsignedInt(raw[2]) == 0x0e && Byte.toUnsignedInt(raw[3]) == 0xc2) {
-            return true;
-        }
-        boolean ipv4Mapped = true;
-        for (int index = 0; index < 10; index++) {
-            ipv4Mapped &= raw[index] == 0;
-        }
-        ipv4Mapped &= Byte.toUnsignedInt(raw[10]) == 0xff && Byte.toUnsignedInt(raw[11]) == 0xff;
-        if (!ipv4Mapped) return false;
-        int a = Byte.toUnsignedInt(raw[12]);
-        int b = Byte.toUnsignedInt(raw[13]);
-        int c = Byte.toUnsignedInt(raw[14]);
-        int d = Byte.toUnsignedInt(raw[15]);
-        return a == 169 && b == 254 && c == 169 && d == 254
-                || a == 100 && b == 100 && c == 100 && d == 200;
     }
 
     private Socket openSocket(ResolvedTarget target, ResolvedTarget proxy, URI uri) throws Exception {

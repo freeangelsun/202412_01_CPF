@@ -43,7 +43,7 @@
     "canonicalVerify": "PASS checks=20 failedChecks=0",
     "baselineRegistry": "PASS physicalTargets=2",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F167-MARIADB-LIFECYCLE-RERUN5/freshinstall.result.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-11-e6aaffda/freshinstall.result.json"
   },
   "isClosed": true,
   "nextAction": "Regenerate all official vendor sources, run exact regression/parity gates, and repeat verifier-owned MariaDB Fresh.",

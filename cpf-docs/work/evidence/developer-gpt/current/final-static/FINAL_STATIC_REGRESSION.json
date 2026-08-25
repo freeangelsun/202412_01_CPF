@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "CPF-DEVGPT-20260825-FINAL-STATIC-REGRESSION",
+  "generatedAt": "2026-08-25T17:49:39+09:00",
+  "baselineZip": "CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_121103.zip",
+  "baselineZipSha256": "d2e89aba1841a4387a473610db905415f8565fcf09d06a56a8afa3a1b33a3a48",
+  "sourceIdentity": {
+    "sha1": "fe34550d9bc6261cddccfcd81cf663f75bcfffb3",
+    "sha256": "c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df",
+    "fileCount": 8439,
+    "totalBytes": 49558021
+  },
+  "results": {
+    "canonicalVerifiers": {
+      "passed": 24,
+      "failed": 0
+    },
+    "windowsPath": {
+      "status": "PASS",
+      "maxRelative": 199,
+      "over200": 0
+    },
+    "testingTools": {
+      "passed": 385,
+      "skippedEnvironment": 22,
+      "subtestsPassed": 2,
+      "failed": 0
+    },
+    "verificationTests": {
+      "passed": 73,
+      "subtestsPassed": 3,
+      "failed": 0
+    },
+    "dbVerification": {
+      "passed": 86,
+      "failed": 0
+    },
+    "dbTests": {
+      "passed": 125,
+      "skippedEnvironment": 2,
+      "failed": 0
+    },
+    "generatorTests": {
+      "passed": 46,
+      "skippedEnvironment": 10,
+      "subtestsPassed": 6,
+      "failed": 0
+    },
+    "runtimeToolTests": {
+      "passed": 76,
+      "skippedEnvironment": 2,
+      "subtestsPassed": 7,
+      "failed": 0
+    },
+    "openGit": {
+      "passed": 17,
+      "failed": 0
+    },
+    "publicRelease": {
+      "passed": 22,
+      "failed": 0
+    },
+    "releaseTools": {
+      "passed": 14,
+      "failed": 0
+    },
+    "security": {
+      "passed": 8,
+      "failed": 0
+    },
+    "openapi": {
+      "passed": 21,
+      "failed": 0
+    },
+    "auditRuntime": {
+      "passed": 1,
+      "failed": 0
+    },
+    "supplyChain": {
+      "passed": 3,
+      "failed": 0
+    },
+    "dockerHarnessContracts": {
+      "passed": 6,
+      "failed": 0
+    },
+    "frontendFullCompile": {
+      "status": "PASS",
+      "admTypescriptFiles": 469,
+      "backofficeTypescriptFiles": 18
+    },
+    "frontendWorkflowRuntime": {
+      "status": "PASS",
+      "checks": 14
+    },
+    "frontendApiRuntime": {
+      "status": "PASS"
+    },
+    "frontendGoldenPath": {
+      "status": "PASS"
+    },
+    "frontendSubstituteNodeBrowser": {
+      "status": "PASS"
+    },
+    "java21Substitute": {
+      "status": "PASS",
+      "classFileMajor": 65,
+      "unitTests": 2,
+      "runtimeHarness": "PASS"
+    },
+    "nxt3StageCommands": {
+      "passed": 23,
+      "failed": 0
+    },
+    "nxt3LiveVerifyAll": {
+      "status": "UNVERIFIED_ENVIRONMENT",
+      "failedStatic": 0,
+      "unverifiedLive": 3,
+      "reason": "pwsh/Docker unavailable in assistant environment"
+    },
+    "overlayFreshReplayStatic": {
+      "status": "PASS",
+      "currentFiles": 10462,
+      "replayFiles": 10462,
+      "missing": 0,
+      "extra": 0,
+      "hashDiff": 0,
+      "unchangedPayloadFiles": 0
+    }
+  },
+  "environment": {
+    "java": "OpenJDK 21.0.11",
+    "targetJava25": "UNAVAILABLE",
+    "pwsh": "UNAVAILABLE",
+    "docker": "UNAVAILABLE",
+    "gradle910Distribution": "UNAVAILABLE; external download unavailable"
+  },
+  "mandatoryLiveAcceptance": "NOT_EXECUTED_ENVIRONMENT_BLOCKED"
+}

@@ -34,6 +34,8 @@ if re.search(r"project\('(:internal:[^']+)'\)", admin_build): fail.append('ADM_D
 composition=root/'cpf-admin/runtime/build.gradle'
 expected_internal={
  ':internal:platform-operations:runtime-control',
+ ':internal:data:cache:spring-data-redis',
+ ':internal:integration:resilience',
  ':internal:messaging:reliability:jdbc',
  ':internal:platform-operations:runtime-health:jdbc',
  ':internal:integration:webhook',

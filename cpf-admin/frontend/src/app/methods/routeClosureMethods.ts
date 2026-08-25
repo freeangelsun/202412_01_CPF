@@ -1,4 +1,5 @@
-import { admApprovalRequest, admMaintenanceFindActions, admMaintenanceExecuteAction, getAdmTransactionLogRecoveryStatus, requestAdmBrokerDlqReplay, resolveAdmUnknownResult, runAdmTransactionLogRecovery, admBatchRuntimeInstances, admOperatorValidatePassword, admOperatorChangePassword, admSecurityDisableMfa, admOperatorFindRoles, admOperatorFindSessions, admOperatorUnlockOperator, admOperatorUpdateContact, admOperatorUpdateRoles, admBreakGlassFindSessions, admBreakGlassReviewSession, admRuntimeControlFindChange, admRuntimeControlFindByOperation } from "../../generated/cpf-api";
+import { requestServiceInstanceApproval } from "../../shared/serviceRegistryApproval";
+import { admApprovalRequest, admMaintenanceFindActions, getAdmTransactionLogRecoveryStatus, requestAdmBrokerDlqReplay, resolveAdmUnknownResult, runAdmTransactionLogRecovery, admBatchRuntimeInstances, admOperatorValidatePassword, admOperatorChangePassword, admSecurityDisableMfa, admOperatorFindRoles, admOperatorFindSessions, admOperatorUnlockOperator, admOperatorUpdateContact, admOperatorUpdateRoles, admBreakGlassFindSessions, admBreakGlassReviewSession, admRuntimeControlFindChange, admRuntimeControlFindByOperation } from "../../generated/cpf-api";
 /**
  * Route-specific operational actions that close the ADM route -> generated
  * operation -> real consumer chain.  Every method uses the shared same-origin
@@ -76,12 +77,16 @@ export const routeClosureMethods = {
   },
 
   async executeMaintenanceAction() {
-    if (!this.operationForm.instanceId || !this.requireReason(this.operationForm.reason)) return;
-    this.operationResult = await admMaintenanceExecuteAction({ data: {
-      action: this.operationForm.maintenanceAction, serviceId: this.operationForm.serviceId || null,
-      instanceId: this.operationForm.instanceId, expectedVersion: Number(this.operationForm.expectedVersion || 0),
-      reason: this.operationForm.reason, approvalId: this.operationForm.approvalId || null
-    } });
+    const serviceId = String(this.operationForm.serviceId || "").trim();
+    const endpointCode = String(this.operationForm.endpointCode || "").trim();
+    const instanceId = String(this.operationForm.instanceId || "").trim();
+    if (!serviceId || !endpointCode || !instanceId || !this.requireReason(this.operationForm.reason)) return;
+    const approval = await requestServiceInstanceApproval({
+      serviceId, endpointCode, instanceId, action: this.operationForm.maintenanceAction,
+      expectedVersion: Number(this.operationForm.expectedVersion || 0), reason: this.operationForm.reason
+    });
+    this.operationResult = approval.raw;
+    this.setMessage(`Service Instance ${this.operationForm.maintenanceAction} 승인 요청을 생성했습니다${approval.approvalRequestId ? ` (#${approval.approvalRequestId})` : ""}.`);
     await this.loadMaintenanceActions();
   },
 

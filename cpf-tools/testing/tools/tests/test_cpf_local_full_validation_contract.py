@@ -17,7 +17,7 @@ class CpfLocalFullValidationContractTest(unittest.TestCase):
         self.assertIn("Compress-Archive", self.text)
         self.assertIn("CPF_LOCAL_VALIDATION_ZIP", self.text)
         self.assertIn("$strictExitEffective=[bool]$StrictExit -or [bool]$FullLocal", self.text)
-        self.assertIn("--expected-requirements','205','--expected-findings','63", self.text)
+        self.assertIn("--expected-requirements','208','--expected-findings','63", self.text)
         self.assertIn("cpfPublishToIsolatedLocal", self.text)
         self.assertNotIn("publishToMavenLocal", self.text)
         self.assertIn("BaselineSourceZipSha256", self.text)

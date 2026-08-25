@@ -24,10 +24,7 @@
     {
       "id": "requirement-progress",
       "path": "cpf-tools/verification/verify_requirement_progress.py",
-      "args": [
-        "--expected-canonical",
-        "205"
-      ],
+      "args": [],
       "required": true
     },
     {

@@ -134,7 +134,7 @@ $requiredDocuments = @(
     "cpf-docs/deliverables/TEST_AND_EVIDENCE.md",
     "cpf-docs/deliverables/OPEN_ISSUES.md",
     "cpf-docs/work/REVIEW_INDEX.md",
-    "cpf-docs/work/current/CPF_CODEX_REVALIDATION_SCOPE.md",
+    "cpf-docs/work/current/CPF_CODEX_REVALIDATION_SCOPE.md"
 )
 
 $restoredBuildSources = @(

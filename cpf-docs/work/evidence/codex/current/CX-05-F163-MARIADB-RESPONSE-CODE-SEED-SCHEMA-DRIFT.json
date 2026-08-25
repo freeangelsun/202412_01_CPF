@@ -16,7 +16,7 @@
     "error": "Unknown column 'http_status' in 'INSERT INTO'",
     "failedStatement": "INSERT INTO CMN_RESPONSE_CODE (... http_status ...)",
     "cleanup": "PASS",
-    "evidence": "cpf-docs/work/evidence/codex/current/CX-05-F162-MARIADB-LIFECYCLE-RERUN1/verifier-owned-lifecycle.json"
+    "evidence": "cpf-docs/work/evidence/codex/current/CX-PATH-07-106ce721/verifier-owned-lifecycle.json"
   },
   "rootCause": "Canonical schema/current Common management were partially currentized by dropping http_status even though immutable V63/V124 history, canonical seed data, ADM frontend/OpenAPI and runtime response resolution still require it. The repair owner is the canonical schema plus Common public catalog persistence/projection; generated vendor SQL will only be regenerated from that owner.",
   "sourceFix": {

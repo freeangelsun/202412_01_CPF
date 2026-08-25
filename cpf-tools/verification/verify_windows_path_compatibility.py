@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Fail-closed Windows path compatibility gate for CPF source paths.
 
-The historical 160-character relative-path budget remains a warning by default.
-FullLocal additionally evaluates the real repository-root length and fails when a
-managed source path exceeds the conservative full-path budget.
+CPF의 Project Root 상대경로(파일명 포함)는 Windows 호환성을 위해 200자를 넘을 수 없습니다.
+FullLocal은 실제 repository-root를 반영한 보수적인 전체 경로 예산도 별도로 검증합니다.
 """
 from __future__ import annotations
 
@@ -11,7 +10,7 @@ import argparse
 import re
 from pathlib import Path
 
-DEFAULT_RELATIVE_BUDGET = 160
+DEFAULT_RELATIVE_BUDGET = 200
 DEFAULT_FULL_BUDGET = 240
 FORBIDDEN_SEGMENT_PATTERNS = (
     re.compile(r"^REV[-_]?\d+$", re.I),
@@ -55,7 +54,7 @@ def main() -> int:
     ap.add_argument("--target-root-text", default="", help="Windows repository root used only for path-length projection")
     ap.add_argument("--max-relative-path", type=int, default=DEFAULT_RELATIVE_BUDGET)
     ap.add_argument("--max-full-path", type=int, default=DEFAULT_FULL_BUDGET)
-    ap.add_argument("--strict-relative-budget", action="store_true")
+    ap.add_argument("--strict-relative-budget", action="store_true", help="호환 옵션입니다. 상대경로 200자 제한은 항상 fail-closed입니다.")
     ns = ap.parse_args()
 
     root = Path(ns.root).resolve()
@@ -75,11 +74,7 @@ def main() -> int:
         if full_len > max_full[0]:
             max_full = (full_len, rel)
         if rel_len > ns.max_relative_path:
-            message = f"RELATIVE_BUDGET_EXCEEDED {rel_len} {rel}"
-            if ns.strict_relative_budget:
-                failures.append(message)
-            else:
-                warnings.append(message)
+            failures.append(f"RELATIVE_PATH_TOO_LONG {rel_len} {rel}")
         if full_len > ns.max_full_path:
             failures.append(f"FULL_PATH_TOO_LONG {full_len} {rel}")
         if not is_versioned_dir_exempt(rel):

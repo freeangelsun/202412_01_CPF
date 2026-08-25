@@ -60,9 +60,11 @@ if not manifest.is_file(): fail('DELETE_MANIFEST missing')
 else:
     try:
         with manifest.open(encoding='utf-8-sig', newline='') as h:
-            rows=list(csv.DictReader(h))
+            reader=csv.DictReader(h)
+            fields=set(reader.fieldnames or [])
+            rows=list(reader)
         required={'path','reason','approved','precondition','lifecycle','user_execution_required','replacement_path','user_approved','user_approval_ref','user_approved_at'}
-        if not rows or not required.issubset(rows[0].keys() if rows else set()):
+        if not required.issubset(fields):
             fail('DELETE_MANIFEST schema requires '+','.join(sorted(required)))
         for n,row in enumerate(rows,2):
             path=(row.get('path') or '').strip().replace('\\','/')

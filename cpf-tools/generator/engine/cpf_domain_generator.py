@@ -810,6 +810,12 @@ def render_root_settings(d: DomainDefinition, dependency_targets: Iterable[Domai
       "    }",
       "}",
     ]
+    lines += [
+      "",
+      "// 고객사 공통 Library는 필요한 Domain만 명시적으로 선택합니다. cpf library sync가 이 파일을 생성합니다.",
+      "def cpfCustomerLibrarySettings = new File(settingsDir, 'customer-library-settings.gradle')",
+      "if (cpfCustomerLibrarySettings.isFile()) { apply from: cpfCustomerLibrarySettings }",
+    ]
     return "\n".join(lines)+"\n"
 
 
@@ -1137,7 +1143,11 @@ group = providers.gradleProperty('cpf.domain.packageName').get()
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }}
 
-{jdbc_runtime_validation}tasks.named('bootJar') {{ archiveBaseName = 'cpf-{d.name}-{project}' }}
+{jdbc_runtime_validation}// 고객사 공통 Library는 customer-libraries.properties에 명시적으로 선택한 경우에만 연결됩니다.
+def cpfCustomerLibraryDependencies = rootProject.file('customer-library-dependencies.gradle')
+if (cpfCustomerLibraryDependencies.isFile()) {{ apply from: cpfCustomerLibraryDependencies }}
+
+tasks.named('bootJar') {{ archiveBaseName = 'cpf-{d.name}-{project}' }}
 {overlay}
 '''
 

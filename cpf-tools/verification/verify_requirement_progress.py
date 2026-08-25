@@ -38,15 +38,23 @@ def main()->int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--root',default='.')
     ap.add_argument('--ledger'); ap.add_argument('--csv')
-    ap.add_argument('--expected-canonical',type=int,default=205)
+    ap.add_argument('--expected-canonical',type=int)
     ap.add_argument('--json-output')
     ns=ap.parse_args()
     root=Path(ns.root).resolve(); raw=ns.ledger or ns.csv or 'cpf-docs/work/REQUIREMENT_STATUS.csv'; path=Path(raw); path=path if path.is_absolute() else root/path
     try: rows=load(path)
     except Exception as e:
         print('REQUIREMENT_PROGRESS_GATE=FAIL'); print('REQUIREMENT_PROGRESS_ERROR='+str(e)); return 1
-    if len(rows)!=ns.expected_canonical:
-        print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_count={len(rows)} expected={ns.expected_canonical}'); return 1
+    expected=ns.expected_canonical
+    if expected is None:
+        import re
+        canonical=root/'cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md'
+        ids=[m.group(1) for line in canonical.read_text(encoding='utf-8-sig').splitlines() if (m:=re.match(r'^\| `([A-Z0-9-]+)` \|',line))]
+        if not ids or len(ids)!=len(set(ids)):
+            print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_catalog_invalid={len(ids)}/{len(set(ids))}'); return 1
+        expected=len(ids)
+    if len(rows)!=expected:
+        print(f'REQUIREMENT_PROGRESS_GATE=FAIL\nREQUIREMENT_PROGRESS_ERROR=canonical_count={len(rows)} expected={expected}'); return 1
     status=Counter((r.get('개발GPT_전체상태') or '').strip() for r in rows)
     dev=Counter((r.get('개발GPT_개발상태') or '').strip() for r in rows)
     verify=Counter((r.get('개발GPT_검증상태') or '').strip() for r in rows)

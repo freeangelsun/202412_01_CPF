@@ -36,9 +36,9 @@
     "canonical",
     "vendors",
     "generator.lock",
-    "manifest"
-    ,"cpf-domain.yaml"
-    ,"cpf-generator.lock.json"
+    "manifest",
+    "cpf-domain.yaml",
+    "cpf-generator.lock.json"
   ],
   "userProtection": {
     "generatedFileDriftBlocksRegenerate": true,
@@ -46,7 +46,7 @@
     "generatedFileDriftBlocksRemove": true,
     "unmanagedFilesAreNeverRemoved": true,
     "databaseObjectsNeverAutoDropped": true,
-    "restoreRequiresMatchingContractAndExpectedSeed": true,
+    "restoreRequiresMatchingDefinitionAndExpectedSeed": true,
     "frameworkIntegrationPointsRemovedWithDomain": true
   },
   "topology": {

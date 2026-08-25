@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 2,
+  "evidenceId": "CPF-DEVGPT-20260825-STATIC-CLOSURE",
+  "evidenceType": "execution",
+  "sourceSha": "c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df",
+  "resultSha": "c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df",
+  "command": "canonical 24 + Windows path + Testing 385 + DB/Generator/Runtime/Release/OpenAPI/Security + Frontend full/substitute + Java21 substitute currentization",
+  "startedAt": "2026-08-25T17:13:00+09:00",
+  "endedAt": "2026-08-25T17:48:16+09:00",
+  "exitCode": 0,
+  "sanitized": true,
+  "requirements": [
+    "WP-01",
+    "WP-02",
+    "WP-03",
+    "WP-04",
+    "WP-06",
+    "WP-07",
+    "WP-09",
+    "WP-11",
+    "WP-12",
+    "WP-14",
+    "WP-18",
+    "WP-19"
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "STATIC-CANONICAL",
+      "precondition": "baseline source replayed in sandbox",
+      "action": "canonical/static/path/tool/frontend/java21 substitute regressions",
+      "expectedResult": "executed mandatory static gates fail count 0 and Windows relative path <=200",
+      "actualResult": "Canonical 24/24 PASS; Windows max 199; Testing 385 PASS/22 env skip/0 fail; all executed tool suites FAIL 0; Frontend and Java21 substitute PASS"
+    }
+  ],
+  "assertions": [
+    {
+      "name": "canonical verifiers passed",
+      "passed": true
+    },
+    {
+      "name": "Windows path violations are zero",
+      "passed": true
+    },
+    {
+      "name": "executed source-scoped regressions have no observed FAIL",
+      "passed": true
+    },
+    {
+      "name": "environment skips were not promoted to PASS",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "cpf-docs/governance/CPF_FINAL_TARGET_REQUIREMENTS.md",
+      "sha256": "4e9d7168e6b597afd2956631e7545cb660855cac1dada8422bfcc2fd491fd9d6"
+    },
+    {
+      "path": "cpf-tools/verification/verify_windows_path_compatibility.py",
+      "sha256": "9ed7ec2c074dc1b371a56a40b26432e10e357374fbe1f7495ef2d10f6b375b77"
+    },
+    {
+      "path": "cpf-tools/verification/tools/verify-cpf-java21-substitute-validation.py",
+      "sha256": "a0083f25c9b50c248057ced02aa0ecd1f8dc1742e88879078cb67c8ec82fd62a"
+    },
+    {
+      "path": "cpf-tools/generator/engine/cpf_customer_library_generator.py",
+      "sha256": "72c9d613b8379ca9076d6069d465d335f5040239199423f7d8a83cf875eec897"
+    },
+    {
+      "path": "cpf-tools/release/open-git/open-git-surface-policy.json",
+      "sha256": "c8c1cbba46288d29660b135c36e5e8b611dee33a0ee2f210f464057a6eb533b8"
+    }
+  ],
+  "runtimeAcceptance": "NOT_EXECUTED_ENVIRONMENT_BLOCKED"
+}

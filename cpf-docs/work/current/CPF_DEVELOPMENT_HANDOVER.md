@@ -1,53 +1,46 @@
-# CPF Development Handover — C 개발/QA 관리_1
+# CPF Developer GPT Handover — 2026-08-25 Runtime Pending
 
-## 1. Current canonical basis
+## Current Source
 
-- Baseline Local Working Tree ZIP: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260821_151542(1).zip`
-- Baseline SHA-256: `324f5d8f33bd59925fcfe4cfcb24772a543cfbf9acbafebe0f6b4b88841a8583`
-- Final source-scope SHA-256: `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
-- Final source-scope files: `8,173`
-- Canonical Requirements: `205`
-- Canonical Development/Closure Inventory: `cpf-docs/work/current/CPF_CANONICAL_DEVELOPMENT_CLOSURE_INVENTORY.csv`
-- Source-side Closure: `13/13 CLOSED`
-- External Acceptance: `EA-01 BLOCKED_EXTERNAL`
+- Baseline: `CPF_FULL_SOURCE_FOR_NEXT_QA_20260825_121103.zip`
+- Baseline ZIP SHA-256: `d2e89aba1841a4387a473610db905415f8565fcf09d06a56a8afa3a1b33a3a48`
+- Current Product Source SHA-256: `c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df`
+- Canonical Requirement: 208
 
-## 2. Current valid status
+## 개발 완료
 
-The development-environment implementable scope is complete. Current Final Gate and exact-baseline Fresh Replay both PASS on the same Source Identity. Do not inherit earlier DEV22 SHA/PASS as current evidence; use only the Source Identity above and the current evidence set.
+Runtime 로그의 34 FAIL과 VSCode Problem에서 수집한 Root Cause를 Source/Harness/정본에 반영했다. Customer Shared Library Generator, Windows 200자 경로 Gate, Docker prerequisite auto-start/readiness/test-owned cleanup도 상위 정본 Requirement로 추가했다.
 
-Major closed Root Causes: Root/Backoffice classification, central Runtime authority/CAS, Generator operation/compile, Starter zero-footprint, Generated Domain Canonical IA, Runtime Identity, stale runtime/contract verifiers, Backoffice OpenAPI/generated-client/consumer, Public/Fresh adoption, cpf-common ownership, source hygiene/Delete lifecycle, toolchain/DX, and Final Gate/Evidence/Fresh Replay.
+## 정적 검증
 
-## 3. Final executed verification
+Canonical 24/24, Testing 385 pass/22 environment skip, Verification 73, DB verification 86, DB 125/2 environment skip, Generator 46/10 environment skip, Runtime tools 76/2 environment skip, Release/Open Git/Security/OpenAPI/Supply/Docker harness FAIL 0. Frontend full compile/workflow/API/golden/substitute 및 Java21 substitute compile/unit/runtime PASS.
 
-- Canonical `24/24 PASS`
-- Evidence semantics `13/13 direct execution PASS`
-- Development Final Gate `PASS`
-- Fresh Replay `PASS`, identical SHA-256 `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886`
-- DB `157 PASS`
-- Generator `37 PASS + 6 subtests / 10 env skips`
-- Release `31 PASS`
-- Runtime/Security/Supply `76 PASS + 7 subtests / 2 env skips`
-- Verification `77 PASS`
-- Testing-tools `381 PASS + 2 subtests / 22 env skips`
-- Docker contracts `6 PASS`
+## 다음 필수 단계
 
-## 4. Delete Manifest
+Windows Java25 + PowerShell 7 + Docker 환경에서 Full Runtime을 실행한다. Harness가 필요한 컨테이너를 자동 시작하고 readiness를 확인하며 검증기가 올린 컨테이너는 종료한다. 결과가 하나라도 FAIL/SKIP_ENV/NOT_EXECUTED/UNVERIFIED이면 QA로 넘기지 않고 같은 Requirement를 다시 개발한다.
 
-- Total `689`
-- Historical already absent `600`
-- Pending user execution `89`
-- All 89 pending are approved by development with satisfied preconditions, but `user_approved=false`.
-- User Working Tree deletion was not performed by Developer GPT.
-- Apply only through `cpf-tools/verification/apply_delete_manifest.ps1` with an explicit current `-UserApprovalRef`.
+## 성공 조건
 
-## 5. Remaining mandatory external acceptance
+`FAIL=0 / SKIP_ENV=0 / NOT_EXECUTED=0 / UNVERIFIED=0` + Java25 Root Build + DB3 3사 lifecycle + 2-worker kill/recovery + Browser E2E + Fresh Replay PASS.
 
-See `cpf-docs/deliverables/OPEN_ISSUES.md`. Overall product QA remains `NOT COMPLETE` until EA-01 is actually executed and passes. External failure caused by Source reopens development; it is not waived.
 
-## 6. Git safety
+## Overlay 전달 규칙
 
-No commit, push, branch, tag, reset, restore, stash, clean or history rewrite was performed.
+- Baseline 대비 실제 `ADD/MODIFY` 파일만 ZIP payload에 포함한다.
+- unchanged 파일은 ZIP에 포함하지 않는다.
+- Windows 200자 경로 currentization으로 제거할 기존 경로 220건은 `DELETE_MANIFEST.csv`로 적용한다.
+- 현재 Source의 Java25/Docker Full Runtime이 실제 PASS하기 전에는 `Runtime Pending` 상태를 유지한다.
+- Currentization time: `2026-08-25T17:48:16+09:00`
 
-## 7. Next session rule
+- Fresh Overlay Replay: PASS (10,462 files, missing/extra/hash diff 0, unchanged payload 0).
 
-Start from Source Identity `4572fd3659d076f230cbe2aa0284a5835a4f914e1f0a0cb4823b20c53b724886` or from the final Overlay applied to the exact baseline. Do not return to DEV22 identities or historical PASS. If external acceptance provides a failure log, merge it into the same Canonical Development/Closure Inventory by Root Cause, implement, re-run the Development Final Gate, then Fresh Replay.
+## 최종 변경 전용 Overlay
+
+- 파일명: `CPF_DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING_20260825_175507.zip`
+- Baseline 대비 `ADD 475 / MODIFY 93 / DELETE 220`
+- ZIP에는 ADD/MODIFY만 포함하며 unchanged 파일은 포함하지 않는다.
+- DELETE 220건은 `cpf-docs/deliverables/DELETE_MANIFEST.csv`로만 적용한다.
+- Current Product Source SHA-256: `c79be31a71c15c02665d56e29c0f51244c91ab3894183775ce311cde3dbf40df`
+- 최종 live Runtime은 Java25 + PowerShell 7 + Docker 환경에서 미검증이다.
+
+Currentized at: `2026-08-25T17:55:49+09:00`

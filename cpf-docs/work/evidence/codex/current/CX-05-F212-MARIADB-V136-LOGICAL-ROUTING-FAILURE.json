@@ -18,6 +18,6 @@
   "actualError": "MariaDB migration requires explicit USE logicalDatabase routing: cpf-tools/db/vendor/mariadb/migration/flyway/V136__backoffice_permission_identity.sql",
   "rootCause": "The flat MariaDB migration/rollback projection carries only a CPF_LOGICAL_DATABASE comment. The execution owner deliberately accepts either an executable USE statement or an explicit routing manifest and therefore rejects the current V136 projection before mutation.",
   "status": "OPEN",
-  "rawEvidence": "cpf-docs/work/evidence/codex/current/CX-05-F160-MARIADB-V136-LIFECYCLE/**",
+  "rawEvidence": "cpf-docs/work/evidence/codex/current/CX-PATH-02-805f0aae/**",
   "secretValueRecorded": false
 }

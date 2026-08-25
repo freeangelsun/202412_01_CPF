@@ -1,2 +1,2 @@
-# 프로젝트 Root PowerShell에서 실행
-$zip = "$HOME\Downloads\CPF_DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING_20260825_102512.zip"; if(-not(Test-Path -LiteralPath $zip)){throw "Overlay ZIP not found: $zip"}; Expand-Archive -LiteralPath $zip -DestinationPath (Get-Location).Path -Force
+# 프로젝트 Root PowerShell에서 실행 — Baseline 대비 ADD/MODIFY 파일만 덮어쓴다.
+$zip = "$HOME\Downloads\CPF_DEVELOPER_GPT_OVERLAY_RUNTIME_PENDING_20260825_175214.zip"; if(-not(Test-Path -LiteralPath $zip)){throw "Overlay ZIP not found: $zip"}; Expand-Archive -LiteralPath $zip -DestinationPath (Get-Location).Path -Force; Write-Host '[CPF][OVERLAY] ADD/MODIFY 적용 완료. 삭제는 DELETE_MANIFEST 명령을 별도 실행하세요.'

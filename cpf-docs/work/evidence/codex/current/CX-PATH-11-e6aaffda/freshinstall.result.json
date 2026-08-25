@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "tool": "run-db-vendor-lifecycle.ps1",
+  "vendor": "mariadb",
+  "mode": "FreshInstall",
+  "status": "SUCCEEDED",
+  "executionStarted": true,
+  "reconcileRequired": false,
+  "lifecyclePlan": "cpf-docs/work/evidence/codex/current/CX-PATH-11-e6aaffda/freshinstall.plan.json",
+  "lifecyclePlanSha256": "3dd62e27452acd06f492a17545ec5a92312e02e211d6b71b81b167464da37b45",
+  "profileSha256": "64dfa400437343c9ce3af3e32bcbf33d840bcf37cfd4ea3e2c0cae2779ee23ae",
+  "adapter": {
+    "ready": true,
+    "mode": "Docker",
+    "client": "mariadb",
+    "image": "cpf-full-development-test-runner:java25-node22-pwsh7.6.4-playwright1.62.0-integration1",
+    "imageId": "sha256:7fcd59fe809e1b8862d316f1742aae07312c88d4a0fa496259d4251fd71f64b5",
+    "probeNetwork": "none"
+  },
+  "startedAt": "2026-08-23T05:42:10.2965676+00:00",
+  "finishedAt": "2026-08-23T05:42:27.6749221+00:00",
+  "approvalReference": "CPF-VERIFY-bb2e129c4691",
+  "error": "",
+  "sanitized": true,
+  "verifierOwnedDisposable": true,
+  "verifierRunId": "bb2e129c4691"
+}

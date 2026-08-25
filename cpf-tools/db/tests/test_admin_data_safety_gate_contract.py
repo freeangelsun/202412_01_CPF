@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import shutil
 import unittest
 from pathlib import Path
 
@@ -32,6 +33,7 @@ class AdminDataSafetyGateContractTest(unittest.TestCase):
         self.assertNotIn('jdbc().update("""', repository)
         self.assertNotIn('jdbc().queryForList("""', repository)
 
+    @unittest.skipUnless(shutil.which("pwsh"), "PowerShell runtime is unavailable; Windows Full Runtime executes this mandatory gate")
     def test_actual_admin_data_safety_gate_passes(self):
         result = subprocess.run(
             ["pwsh", "-NoProfile", "-File", str(CHECK), "-Root", str(ROOT)],

@@ -1,0 +1,1 @@
+Get-ChildItem -Path . -Directory -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -in @('.pytest_cache','__pycache__','.mypy_cache','.ruff_cache','.sts4-cache') } | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }

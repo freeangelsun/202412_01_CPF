@@ -1,0 +1,1 @@
+$ErrorActionPreference='Stop';$root=(git rev-parse --show-toplevel).Trim();python (Join-Path $root 'cpf-docs\deliverables\documentation\verify_documentation_delivery.py');if($LASTEXITCODE-ne0){throw 'CPF documentation delivery verification failed'}

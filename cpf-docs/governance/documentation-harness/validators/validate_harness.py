@@ -12,12 +12,12 @@ def load(name):
     except Exception as e: fail(f'json {name}: {e}')
 
 h=load('harness.json')
-if h.get('version')!='1.1.3': fail('version')
+if h.get('version')!='1.2.1': fail('version')
 if h.get('locked') is not True or h.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail('change authority')
 if h.get('changePolicy',{}).get('autoModify') is not False: fail('auto modify')
 for f in ['design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json']:
     d=load(f)
-    if d.get('harnessVersion')!='1.1.3': fail(f'version {f}')
+    if d.get('harnessVersion')!='1.2.1': fail(f'version {f}')
 D=load('design-tokens.json')
 if D['toc']['readme_toc']!='forbidden': fail('README TOC must be forbidden')
 if D['tables']['body_default_alignment']!='left': fail('table body left')
@@ -28,6 +28,32 @@ W=load('writing-style.json')
 if W['license']['exact_user_facing_sentence']!='CPF는 **Community & Evaluation License** 안내를 기준으로 사용합니다.': fail('license exact phrase')
 O=load('document-output-rules.json')
 if O['README']['licenseExactSentence']!=W['license']['exact_user_facing_sentence']: fail('license output rules')
+
+# v1.2 documentation usability gates
+if h.get('changePolicy',{}).get('documentationFeedbackIsHarnessChangeRequest') is not True: fail('harness-first feedback rule')
+if D.get('headingNumbering',{}).get('H2')!='1.1 / 1.2 / 2.1 ...': fail('H2 numbering')
+if D['paragraph'].get('h1_space_before_pt',0) < 28: fail('H1 spacing')
+if D['paragraph'].get('h2_space_before_pt',0) < 16: fail('H2 spacing')
+if D['figures'].get('low_contrast_label')!='hard_fail': fail('figure contrast')
+if D['fonts'].get('pdf_korean_font_embedding_required') is not True: fail('pdf korean font embedding')
+# v1.2.1 visual geometry / balance gates
+FG=D.get('figures',{})
+if FG.get('node_inner_padding_px_min',0) < 18: fail('figure inner padding')
+if FG.get('label_to_label_gap_px_min',0) < 20: fail('figure label gap')
+if FG.get('node_to_node_gap_px_min',0) < 24: fail('figure node gap')
+if FG.get('label_to_connector_clearance_px_min',0) < 12: fail('figure connector clearance')
+if FG.get('group_title_band_height_px_min',0) < 44: fail('figure group title band')
+if FG.get('text_node_boundary_collision') != 0 or FG.get('text_connector_collision') != 0: fail('figure collision gate')
+if D.get('visual_quality',{}).get('page_visual_balance_required') is not True: fail('page visual balance')
+Q=load('visual-qa.json')
+for k in ['figureTextNodeBoundaryCollision','figureTextConnectorCollision','figureTitleChildLabelOverlap','pageAccidentalVisualImbalance','figureAccidentalVisualImbalance','unresolvedLargeDeadSpace']:
+    if Q.get('hardFail',{}).get(k) != 0: fail('visual qa '+k)
+FROOT=load('figure-presets.json')
+CG=FROOT.get('commonGeometryGate',{})
+if CG.get('nodeInnerPaddingPxMin',0) < 18 or CG.get('labelConnectorClearancePxMin',0) < 12: fail('figure preset common geometry')
+if O['README'].get('manualNavigation','').startswith('mandatory') is not True: fail('README manual navigation')
+if O['README'].get('bootstrapRuntimeBlock','').startswith('mandatory') is not True: fail('README bootstrap/runtime')
+
 T=load('table-presets.json')['presets']
 for name,t in T.items():
     widths=t.get('widthPct',[])
@@ -44,6 +70,14 @@ for a in arts:
     p=ROOT/'profiles'/a['profile']; pr=json.loads(p.read_text(encoding='utf-8'))
     if pr.get('documentId')!=a['id'] or pr.get('changeAuthority')!='USER_EXPLICIT_REQUEST_ONLY': fail(f'profile {p.name}')
     if pr.get('additionalH1') is not False: fail(f'extra h1 {p.name}')
+    if a['id']=='FRAMEWORK_DEVELOPER_GUIDE':
+        gp=pr.get('guidePolicy',{})
+        if gp.get('catalogStyle')!='forbidden' or gp.get('frequencyFirst') is not True: fail('framework guide frequency policy')
+        if '내부 Domain↔Domain 호출은 Gateway 미경유' not in gp.get('gatewayRule',''): fail('framework gateway rule')
+    if a['id']=='BATCH_DEVELOPER_GUIDE':
+        gp=pr.get('guidePolicy',{})
+        if gp.get('catalogStyle')!='forbidden' or gp.get('frequencyFirst') is not True: fail('batch guide frequency policy')
+
     if a['id']=='README':
         if pr.get('tocRequired') is not False: fail('README profile TOC')
         nums=[]
@@ -53,6 +87,15 @@ for a in arts:
             nums.append(int(m.group(1)))
         if nums!=list(range(1,len(nums)+1)): fail('README numbering')
         if pr.get('specialRules',{}).get('architectureMap',{}).get('required') is not True: fail('README architecture')
+        sr=pr.get('specialRules',{})
+        if sr.get('gatewayOptionality',{}).get('internalDomainViaGateway')!='forbidden': fail('README gateway internal-domain rule')
+        if sr.get('manualNavigation',{}).get('required') is not True: fail('README manual navigation profile')
+        if sr.get('developerEntryBlock',{}).get('required') is not True: fail('README developer entry block')
+        if len(pr.get('sections',[]))!=10: fail('README section count v1.2')
+        # Every non-license README subsection is hierarchically numbered.
+        for secidx,sec in enumerate(pr.get('sections',[])[:-1],start=1):
+            for h2idx,t in enumerate(sec.get('requiredH2',[]),start=1):
+                if not re.match(r'^%d\.%d\s+'%(secidx,h2idx), t): fail(f'README H2 numbering {t}')
         expected=W['license']['exact_user_facing_sentence']
         if pr.get('specialRules',{}).get('license',{}).get('exactSentence')!=expected: fail('license README profile')
         matches=sum(1 for sec in pr.get('sections',[]) if sec.get('requiredH2')==[expected])

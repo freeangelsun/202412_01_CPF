@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "locked": true,
   "commonRulesRef": "visual-system.json",
   "presets": {
@@ -11,7 +11,8 @@
       "maxLabels": 8,
       "titleInside": false,
       "background": "dark",
-      "decorativeOnly": false
+      "decorativeOnly": false,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "README_ARCHITECTURE_MAP": {
       "aspect": "16:9",
@@ -20,7 +21,8 @@
       "maxPrimaryGroups": 7,
       "maxPrimaryNodes": 12,
       "required": "README",
-      "mustShowOwnershipAndBoundary": true
+      "mustShowOwnershipAndBoundary": true,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "SPLIT_COMPARE": {
       "aspect": "16:9",
@@ -30,13 +32,15 @@
         "Same JVM vs Remote",
         "Gateway vs Direct",
         "Before vs CPF"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "JOURNEY_FLOW": {
       "aspect": "16:9",
       "layout": "timeline/journey",
       "maxStages": 7,
-      "exceptionLane": "below"
+      "exceptionLane": "below",
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "RECOVERY_STATE_MAP": {
       "aspect": "16:9",
@@ -45,7 +49,8 @@
       "requiredLabelsWhenRelevant": [
         "UNKNOWN",
         "Reconcile"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "BATCH_CONTROL_EXECUTION_MAP": {
       "aspect": "16:9",
@@ -57,12 +62,14 @@
         "Center-Cut",
         "Agent"
       ],
-      "showLeaseBoundary": true
+      "showLeaseBoundary": true,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "LIFECYCLE_PIPELINE": {
       "aspect": "16:9",
       "layout": "numbered pipeline",
-      "maxStages": 7
+      "maxStages": 7,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "OPERATIONS_TRACE": {
       "aspect": "16:9",
@@ -73,54 +80,64 @@
         "instanceId",
         "Log/Trace/Timeline"
       ],
-      "maxLanes": 5
+      "maxLanes": 5,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "CAPABILITY_LANDSCAPE": {
       "aspect": "16:9",
       "layout": "grouped landscape, not equal cards",
       "groupsMax": 6,
-      "itemsPerGroupMax": 5
+      "itemsPerGroupMax": 5,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "DECISION_MAP": {
       "aspect": "16:9",
       "layout": "branching decision",
-      "maxDecisionNodes": 5
+      "maxDecisionNodes": 5,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "OWNERSHIP_BOUNDARY": {
       "aspect": "16:9",
       "layout": "nested/layered boundaries",
       "containersMax": 6,
-      "dependencyArrowSingleDirection": true
+      "dependencyArrowSingleDirection": true,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "ARCHITECTURE_TOPOLOGY": {
       "aspect": "16:9",
       "layout": "layered architecture map",
-      "maxPrimaryNodes": 12
+      "maxPrimaryNodes": 12,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "REQUEST_FLOW": {
       "aspect": "16:9",
       "layout": "journey/sequence",
-      "maxStages": 7
+      "maxStages": 7,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "STATE_TRANSITION": {
       "aspect": "16:9",
       "layout": "state ribbon + recovery branch",
-      "maxStates": 7
+      "maxStates": 7,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "LIFECYCLE": {
       "aspect": "16:9",
       "layout": "numbered pipeline",
-      "maxStages": 7
+      "maxStages": 7,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "OPERATION_TRACE": {
       "aspect": "16:9",
       "layout": "multi-lane timeline",
-      "maxLanes": 5
+      "maxLanes": 5,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "DECISION_FLOW": {
       "aspect": "16:9",
       "layout": "branching decision",
-      "maxDecisionNodes": 5
+      "maxDecisionNodes": 5,
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "DB3_LIFECYCLE": {
       "aspect": "16:9",
@@ -129,7 +146,10 @@
         "Oracle",
         "PostgreSQL",
         "MariaDB"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate",
+      "vendorLabelRule": "Oracle/PostgreSQL/MariaDB labels use equal visual weight, same baseline, same font size, explicit horizontal or vertical lanes; no overlap with DATA/EXTERNAL group title.",
+      "groupTitleRule": "DATA/EXTERNAL or DB group title occupies separate title band; vendor labels begin below title band with >=18px gap."
     },
     "BATCH_TOPOLOGY": {
       "aspect": "16:9",
@@ -140,7 +160,8 @@
         "Worker",
         "Center-Cut",
         "Agent"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "BATCH_RECOVERY": {
       "aspect": "16:9",
@@ -150,7 +171,8 @@
         "Rerun",
         "Reprocess",
         "Reconcile"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "GENERATOR_FLOW": {
       "aspect": "16:9",
@@ -161,16 +183,22 @@
         "Generated Domain",
         "Starter/DB",
         "Build/Test"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "GATEWAY_OPTIONALITY": {
       "aspect": "16:9",
       "layout": "split compare",
       "requiredPaths": [
-        "Gateway path",
-        "Direct allowed path"
+        "외부 Client → Gateway → Target Domain (Gateway 선택 시)",
+        "외부/내부 허용 Direct Path (Gateway 미선택 시)",
+        "Internal Domain A → Domain Invocation → Domain B (Gateway 미경유)"
       ],
-      "mustNotDepictAutomaticFallback": true
+      "mustNotDepictAutomaticFallback": true,
+      "internalDomainToDomainViaGateway": "forbidden",
+      "requiredKoreanExplanation": "그림 아래 1~2문장으로 Gateway 선택 기준과 내부 Domain 호출 비경유 원칙을 설명",
+      "contrastGate": "all required labels >= 4.5:1",
+      "commonGeometryGateRef": "$.commonGeometryGate"
     },
     "SECURITY_AUDIT_FLOW": {
       "aspect": "16:9",
@@ -180,7 +208,22 @@
         "Permission",
         "Approval",
         "Audit"
-      ]
+      ],
+      "commonGeometryGateRef": "$.commonGeometryGate"
     }
+  },
+  "commonGeometryGate": {
+    "nodeInnerPaddingPxMin": 18,
+    "labelGapPxMin": 20,
+    "nodeGapPxMin": 24,
+    "labelConnectorClearancePxMin": 12,
+    "groupTitleBandPxMin": 44,
+    "labelLinesHardMax": 2,
+    "textBoundaryCollisionAllowed": 0,
+    "textConnectorCollisionAllowed": 0,
+    "groupTitleChildOverlapAllowed": 0,
+    "parallelLabelBaselineDriftAllowed": 0,
+    "forcedTinyText": "forbidden",
+    "visualBalance": "required; no accidental one-side crowding or dead space"
   }
 }

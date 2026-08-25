@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "documentId": "BATCH_DEVELOPER_GUIDE",
   "title": "CPF 배치 개발자 가이드",
   "locked": true,
@@ -195,5 +195,22 @@
       "sourceEvidence": [],
       "acceptance": []
     }
-  ]
+  ],
+  "guidePolicy": {
+    "purpose": "Batch 개발자가 Job/Step/Chunk/Partition, 실행 Runtime, 동시성, 복구 방식을 빠르게 선택하는 실무 가이드",
+    "catalogStyle": "forbidden",
+    "frequencyFirst": true,
+    "requiredDecisionFlow": [
+      "하려는 일",
+      "패턴/API",
+      "핵심 옵션",
+      "언제 선택",
+      "실패/중복/부분 실패",
+      "Restart/Rerun/Reprocess/Reconcile",
+      "검증",
+      "Source"
+    ],
+    "lowFrequencyDetail": "Specification/Source로 연결",
+    "pageBudgetRef": "content-density.json"
+  }
 }

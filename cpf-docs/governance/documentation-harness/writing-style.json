@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "locked": true,
   "language": {
     "primary": "ko-KR",
@@ -62,7 +62,9 @@
     "item_review_chars_over": 85,
     "max_depth_default": 2,
     "third_level": "forbidden unless profile explicitly allows",
-    "intro_sentence_required": "only when heading does not already make list purpose clear"
+    "intro_sentence_required": "only when heading does not already make list purpose clear",
+    "highlight_value_list": "README/요약의 핵심 장점은 한 줄 한 메시지로 분리하고 각 줄 시작에 일관된 bullet/marker를 둔다.",
+    "dense_bold_inline_value_chain": "forbidden"
   },
   "headings": {
     "descriptive": true,
@@ -86,7 +88,11 @@
     "benefit_heading_in_readme": "동작 또는 구조를 말하면서 사용자가 얻는 편의가 자연스럽게 드러나는 문장형 제목을 사용한다.",
     "numbered_h1_all_documents": true,
     "readme_h1_prefix": "1. / 2. / 3. ... exact locked order",
-    "readme_toc": "forbidden"
+    "readme_toc": "forbidden",
+    "h2_numbering_all_documents": "required hierarchical numbering (1.1, 1.2, 2.1...)",
+    "h3_numbering_when_used": "required local numbering (1), 2), 3)...)",
+    "spacing_hierarchy_required": true,
+    "major_section_must_be_visually_separated": true
   },
   "benefit_expression": {
     "explicit_marketing_section": "forbidden",
@@ -157,6 +163,8 @@
       "필요 시 짧은 예",
       "주의/실패",
       "더 자세한 Source/문서 링크"
-    ]
+    ],
+    "developer_frequency_priority": "개발자 가이드는 일상 개발에서 반복적으로 찾는 패턴/API/옵션/실패 대응을 우선한다. 저빈도·내부 구현 상세는 Source/Specification으로 연결한다.",
+    "developer_catalog_style": "forbidden"
   }
 }

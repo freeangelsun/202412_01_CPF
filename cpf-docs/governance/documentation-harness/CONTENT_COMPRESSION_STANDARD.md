@@ -1,4 +1,4 @@
-# CPF 산출물 내용 압축 표준 v1.1
+# CPF 산출물 내용 압축 표준 v1.2
 
 ## 1. 상위 원칙
 
@@ -28,3 +28,13 @@
 ## 5. 운영 문서
 
 `상황 → 확인/판단 → 조치 → 금지/승인 → 완료 기준` 순서로 쓴다. 메뉴 설명보다 판단과 안전한 조치를 우선한다.
+
+
+## 6. 사용빈도 우선 개발자 가이드
+
+개발자 가이드는 기능 Catalog나 교과서가 아니다. 실제 구현 중 자주 반복해서 찾는 거래 패턴, 호출 방식, API/Annotation, 핵심 옵션, 선택 기준, 오류·복구·검증을 우선한다.
+
+- 거래/호출 절은 `하려는 일 → 패턴 → API/Annotation → 옵션 → 언제 선택 → 피해야 할 경우 → 오류/실패 → Retry/Idempotency/Reconcile/Compensation → 검증` 흐름을 우선한다.
+- Same JVM과 Remote Domain Invocation은 같은 업무 계약의 Topology 차이로 설명한다. 내부 Domain 간 호출을 Gateway 경유로 설명하지 않는다.
+- 저빈도 기능이나 내부 구현 상세는 본문을 늘리지 말고 1~2문장 요약 후 Specification/Source/EDU로 연결한다.
+- Preferred Page Budget 상단을 넘기면 먼저 반복·저빈도·배경 설명을 제거한다. 페이지 수를 채우는 방향으로 작성하지 않는다.

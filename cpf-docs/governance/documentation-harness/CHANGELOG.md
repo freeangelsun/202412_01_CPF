@@ -1,5 +1,28 @@
 # CPF Documentation Harness Changelog
 
+## 1.2.1 — 2026-08-26
+
+- 사용자 지적: Figure 내부 글자 깨짐/겹침과 문서 전체 시각적 균형을 Harness 공통 Gate로 승격.
+- Node 내부 여백 18px(권장 24px), Label 간 20px, Node 간 24px, Label-Connector 12px 최소 기준 추가.
+- Group Title 전용 Band와 Child Label 분리, 병렬 Label baseline/간격 일관성, Connector-Text 충돌 금지 추가.
+- 한쪽 과밀/한쪽 과공백/큰 dead space를 페이지 및 Figure Visual Balance 실패로 정의.
+- 모든 페이지와 모든 Figure의 실제 Render 기반 Balance 검수 및 Validator Meta-Gate 강화.
+
+## 1.2.0 — 2026-08-26
+
+사용자 Documentation 피드백을 Harness-First 지속 개선 규칙으로 통합했다.
+
+- H1/H2/H3 계층 번호와 차등 여백 강화, 대메뉴 시작 전 시각적 분리 필수화
+- 문단·표·그림·Callout을 기계적으로 같은 간격으로 붙이는 레이아웃 금지
+- README 핵심 장점을 한 줄 한 메시지 + marker/bullet로 표시
+- README에 호출 오케스트레이션, Bootstrap/Build/Test/Runtime, 역할별 매뉴얼 진입점 강화
+- Gateway 선택/미선택 비교 Visual 필수화 및 내부 Domain↔Domain Gateway 경유 금지
+- 의미 있는 Visual 아래 1~2문장 간결한 한국어 설명 필수화
+- Figure 필수 Label 4.5:1 대비 Gate 추가
+- 개발자 가이드를 사용빈도 높은 거래 패턴·API·옵션·오류·복구 선택 중심으로 압축하고 Page Budget 축소
+- PDF 한글 Font embedding + 최소 2개 독립 렌더러 Glyph 검증 필수화
+- 사용자 Documentation 지적은 산출물 임시 수정이 아니라 Harness 보완 후 적용하도록 Workflow 고정
+
 ## 1.1.3 — 2026-08-25
 
 Windows PowerShell 5.1의 문자열 비교 False FAIL을 제거했다.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "locked": true,
   "page": {
     "paper": "A4",
@@ -44,7 +44,10 @@
       "caption": 9.0,
       "header_footer": 8.3
     },
-    "minimum_any_readable_text_pt": 9.0
+    "minimum_any_readable_text_pt": 9.0,
+    "pdf_korean_font_embedding_required": true,
+    "pdf_font_substitution": "hard_fail",
+    "pdf_cross_renderer_korean_glyph_gate": "최종 PDF는 최소 2개 독립 렌더러에서 한글 Glyph가 정상이어야 한다. 한 렌더러에서라도 네모/대체 Glyph가 보이면 FAIL."
   },
   "paragraph": {
     "alignment": "left",
@@ -52,14 +55,14 @@
     "center_body_text": "forbidden",
     "first_line_indent_mm": 0,
     "body_line_spacing_multiple": 1.17,
-    "body_space_after_pt": 4.5,
-    "h1_space_before_pt": 22,
-    "h1_space_after_pt": 8,
-    "h2_space_before_pt": 14,
-    "h2_space_after_pt": 6,
-    "h3_space_before_pt": 10,
-    "h3_space_after_pt": 4,
-    "h1_after_table_or_figure_min_pt": 18,
+    "body_space_after_pt": 6.0,
+    "h1_space_before_pt": 32,
+    "h1_space_after_pt": 12,
+    "h2_space_before_pt": 20,
+    "h2_space_after_pt": 8,
+    "h3_space_before_pt": 14,
+    "h3_space_after_pt": 6,
+    "h1_after_table_or_figure_min_pt": 24,
     "keep_with_next": [
       "document_title",
       "h1",
@@ -69,7 +72,11 @@
       "figure_caption"
     ],
     "widow_orphan_control": true,
-    "rhythm": "같은 Level의 제목·본문·불릿 간격은 문서 전체에서 동일하다. 임의 빈 줄/수동 Space로 간격을 만들지 않는다."
+    "rhythm": "문서 전체 Grid는 일관되게 유지하되 H1/H2/H3/본문/표/그림 사이 간격은 계층과 역할에 따라 차등 적용한다. 모든 블록을 같은 간격으로 붙이는 기계적 리듬은 금지한다.",
+    "section_block_gap_pt": 10,
+    "major_section_visual_gap_pt": 18,
+    "headingSpacingPrinciple": "H1 > H2 > H3 > 본문 순으로 전후 여백 차이를 명확히 둔다. 대메뉴 시작 전에는 앞 내용과 한 줄 이상 분리되어 보이는 시각적 공간을 확보한다. 빈 문단으로 만들지 않고 Style spacing으로 구현한다.",
+    "denseUniformRhythm": "forbidden"
   },
   "indentation": {
     "body_left_mm": 0,
@@ -228,7 +235,28 @@
       "100%",
       "200% high-risk labels"
     ],
-    "caption_content": "그림의 핵심 의미만 1~2문장. 그림에 없는 긴 설명을 Caption에 새로 넣지 않는다."
+    "caption_content": "그림의 핵심 의미만 1~2문장. 그림에 없는 긴 설명을 Caption에 새로 넣지 않는다.",
+    "visual_explanation_required": true,
+    "visual_explanation_rule": "의미 있는 그림 바로 아래에는 1~2문장, 120자 이내의 간결한 한국어 설명을 둔다. 그림에 보이는 구조를 장문으로 반복하지 말고 선택·의미·경계만 설명한다.",
+    "min_text_contrast_ratio": "4.5:1 for normal labels; 3:1 only for large labels",
+    "low_contrast_label": "hard_fail",
+    "secondary_label_contrast_min": "4.5:1 when label is required to understand the figure",
+    "node_inner_padding_px_min": 18,
+    "node_inner_padding_px_preferred": 24,
+    "label_to_label_gap_px_min": 20,
+    "node_to_node_gap_px_min": 24,
+    "label_to_connector_clearance_px_min": 12,
+    "group_title_band_height_px_min": 44,
+    "group_title_to_first_child_gap_px_min": 18,
+    "label_line_count_preferred": 1,
+    "label_line_count_hard_max": 2,
+    "text_node_boundary_collision": 0,
+    "text_connector_collision": 0,
+    "connector_node_collision_except_endpoint": 0,
+    "title_child_label_overlap": 0,
+    "forced_font_shrink_to_fit": "forbidden below minimum text size",
+    "geometry_rule": "텍스트 Bounding Box는 Node/Container 경계를 침범하지 않고 최소 내부 여백을 유지한다. Group Title은 전용 Title Band를 사용하며 내부 데이터 Label과 겹치지 않는다.",
+    "connector_rule": "Connector는 Text/Label을 가로지르지 않는다. Endpoint를 제외하고 Node 내부를 관통하지 않는다. 방향과 연결 대상이 100%/200%에서 즉시 식별되어야 한다."
   },
   "callouts": {
     "allowed": [
@@ -269,6 +297,21 @@
     "non_code_center_aligned_body_cells_allowed": 0,
     "final_visual_review_required": true,
     "contact_sheet_only_pass": "forbidden",
-    "all_pages_render_required": true
+    "all_pages_render_required": true,
+    "page_visual_balance_required": true,
+    "figure_visual_balance_required": true,
+    "one_side_overcrowding_allowed": 0,
+    "accidental_large_dead_space_allowed": 0,
+    "visual_weight_balance_review_required": true,
+    "balance_rule": "페이지와 Figure는 좌우/상하 정보량·여백·강조의 시각적 무게가 균형을 이루어야 한다. 의도 없는 한쪽 과밀·반대쪽 과공백은 FAIL 또는 재배치 대상이다."
+  },
+  "headingNumbering": {
+    "H1": "1. / 2. / 3. ...",
+    "H2": "1.1 / 1.2 / 2.1 ...",
+    "H3": "1) / 2) / 3) ... within its H2 when H3 is profile-authorized",
+    "automaticForDocx": true,
+    "explicitForReadme": true,
+    "skipLevel": "forbidden",
+    "purpose": "번호와 여백을 함께 사용해 대·중·소 메뉴 계층을 즉시 구분한다."
   }
 }

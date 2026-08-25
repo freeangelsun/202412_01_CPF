@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "locked": true,
   "changeAuthority": "USER_EXPLICIT_REQUEST_ONLY",
   "renderMatrix": {
@@ -47,7 +47,24 @@
     "longProseTableCells": 0,
     "repeatedGenericDiagramTemplate": 0,
     "readmeToc": 0,
-    "readmeUnnumberedH1": 0
+    "readmeUnnumberedH1": 0,
+    "lowContrastRequiredFigureText": 0,
+    "missingFigureKoreanExplanation": 0,
+    "denseUniformHeadingSpacing": 0,
+    "missingHierarchicalHeadingNumber": 0,
+    "internalDomainCallThroughGatewayDepiction": 0,
+    "pdfKoreanFontNotEmbedded": 0,
+    "pdfCrossRendererGlyphMismatch": 0,
+    "readmeMissingManualNavigation": 0,
+    "readmeMissingBootstrapBuildTestRuntime": 0,
+    "figureTextNodeBoundaryCollision": 0,
+    "figureTextConnectorCollision": 0,
+    "figureTitleChildLabelOverlap": 0,
+    "figureParallelLabelBaselineDrift": 0,
+    "figureForcedTinyText": 0,
+    "pageAccidentalVisualImbalance": 0,
+    "figureAccidentalVisualImbalance": 0,
+    "unresolvedLargeDeadSpace": 0
   },
   "reviewTriggers": {
     "pageDensityBelowPct": 35,
@@ -60,7 +77,18 @@
     "docFigureTextPtBelow": 10,
     "tableFontPtBelow": 9.0,
     "tableCellKoreanCharsOver": 70,
-    "tableCellVisualLinesOver": 4
+    "tableCellVisualLinesOver": 4,
+    "majorHeadingSpaceBeforePtBelow": 28,
+    "h2SpaceBeforePtBelow": 16,
+    "requiredFigureTextContrastBelow": "4.5:1",
+    "figureNodeInnerPaddingPxBelow": 18,
+    "figureLabelGapPxBelow": 20,
+    "figureNodeGapPxBelow": 24,
+    "figureLabelConnectorClearancePxBelow": 12,
+    "figureGroupTitleBandPxBelow": 44,
+    "figureLabelLinesOver": 2,
+    "pageLeftRightVisualWeightRatioReviewAbove": "1.6:1",
+    "pageTopBottomVisualWeightRatioReviewAbove": "1.8:1"
   },
   "mandatoryInspection": {
     "allPagesQuickScan": true,
@@ -83,7 +111,16 @@
       "check figure not duplicating prose verbatim",
       "visual type differs from adjacent visual",
       "information hierarchy/polish",
-      "actual architecture/boundary fidelity"
+      "actual architecture/boundary fidelity",
+      "required label contrast >= 4.5:1",
+      "concise Korean explanation directly below informative figure",
+      "Gateway optionality visual never routes internal Domain-to-Domain calls through Gateway",
+      "text bounding box stays inside node with >=18px inner padding",
+      "parallel labels share baseline/grid and have >=20px clearance",
+      "connector never crosses required text and keeps >=12px text clearance",
+      "group title uses separate title band; no overlap with child labels",
+      "no forced tiny font to make text fit",
+      "left/right and top/bottom visual weight is balanced"
     ],
     "tableInspection": [
       "actual Word tblGrid",
@@ -99,6 +136,25 @@
       "cell prose length",
       "column count",
       "body left grid alignment"
+    ],
+    "pdfCompatibility": [
+      "inspect embedded font list",
+      "Korean font must be embedded, not substituted",
+      "render every PDF with renderer A",
+      "render every PDF with independent renderer B",
+      "compare/inspect Korean glyphs; tofu/square/replacement glyph = FAIL"
+    ],
+    "headingRhythm": [
+      "H1 is visually separated from previous block",
+      "H2/H3 use progressively smaller but visible top/bottom spacing",
+      "hierarchical numbering is visible",
+      "no dense uniform repeated spacing"
+    ],
+    "pageBalanceInspection": [
+      "inspect every page for left/right and top/bottom density balance",
+      "detect accidental large dead space, isolated tiny blocks, or one-corner crowding",
+      "check heading/body/table/figure/callout visual weight and whitespace rhythm",
+      "re-layout when imbalance is caused by pagination or object anchoring; do not hide with blank paragraphs"
     ]
   },
   "fixLoop": [
@@ -110,5 +166,5 @@
     "repeat full high-risk checks",
     "only then mark VISUAL_PASS"
   ],
-  "passDefinition": "Visual PASS는 1) 전페이지 실제 렌더, 2) 표/그림/들여쓰기 Grid의 통일, 3) README 대표 Architecture 구성도와 시각화 다양성, 4) 장황한 표/반복 도식 0을 모두 만족한 상태다."
+  "passDefinition": "Visual PASS는 전페이지 실제 렌더, 계층 번호/여백, 표/그림/들여쓰기 Grid, Figure 대비+간결한 한글 설명, Figure 내부 geometry/충돌/정렬/시각적 균형, 페이지 좌우·상하 시각적 균형, README Architecture/Gateway 선택도/매뉴얼/Bootstrap 진입점, PDF 한글 Font embedding 및 복수 렌더러 정상 Glyph를 모두 만족한 상태다."
 }

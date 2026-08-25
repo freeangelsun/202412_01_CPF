@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "documentId": "README",
   "title": "Core Platform Framework README",
   "locked": true,
@@ -27,13 +27,13 @@
   },
   "sections": [
     {
-      "title": "1. 배포 구조가 달라져도 업무 호출 계약은 그대로 유지합니다",
+      "title": "1. 호출·오케스트레이션은 배포 구조가 달라져도 같은 업무 계약을 유지합니다",
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Same JVM과 Remote를 같은 계약으로 호출",
-        "System6 거래 Context를 자동으로 전파",
-        "transactionId·operationId·instanceId로 거래를 연결"
+        "1.1 Same JVM과 Remote를 같은 Domain Invocation 계약으로 호출",
+        "1.2 호출 순서와 실패 경계를 오케스트레이션 계약으로 분리",
+        "1.3 System6·transactionId·operationId·instanceId로 거래를 연결"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -51,10 +51,10 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Local Transaction과 원격 Side Effect를 구분",
-        "UNKNOWN을 추측하지 않고 Reconcile",
-        "Idempotency로 중복 Side Effect를 제어",
-        "Saga·TCC·XA를 자원 특성에 맞게 선택"
+        "2.1 Local Transaction과 원격 Side Effect를 구분",
+        "2.2 UNKNOWN을 추측하지 않고 Reconcile",
+        "2.3 Idempotency로 중복 Side Effect를 제어",
+        "2.4 Saga·TCC·XA를 자원 특성에 맞게 선택"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -71,9 +71,9 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Control Plane·Scheduler·Worker·Center-Cut·Agent 역할",
-        "Restart·Rerun·Reprocess·Reconcile 선택",
-        "Lease·Fencing·Heartbeat와 Process Kill 복구"
+        "3.1 Control Plane·Scheduler·Worker·Center-Cut·Agent 역할",
+        "3.2 Restart·Rerun·Reprocess·Reconcile 선택",
+        "3.3 Lease·Fencing·Heartbeat와 Process Kill 복구"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -90,9 +90,9 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Generator가 Domain 구조와 Package를 Canonical하게 생성",
-        "필요한 Starter·Provider만 조합",
-        "Oracle·PostgreSQL·MariaDB Lifecycle을 함께 관리"
+        "4.1 Generator가 Domain 구조와 Package를 Canonical하게 생성",
+        "4.2 필요한 Starter·Provider만 조합",
+        "4.3 Oracle·PostgreSQL·MariaDB Lifecycle을 함께 관리"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -109,14 +109,16 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "외부 연계·Messaging·File·Notification의 실패와 재처리",
-        "Gateway는 필요한 경계에서만 선택",
-        "Backoffice는 Owner Domain을 우회하지 않음"
+        "5.1 외부 연계·Messaging·File·Notification의 실패와 재처리",
+        "5.2 Gateway 선택 시와 미선택 시 경계를 한눈에 비교",
+        "5.3 내부 Domain 간 호출은 Gateway를 경유하지 않음",
+        "5.4 Backoffice는 Owner Domain을 우회하지 않음"
       ],
       "additionalH2": false,
       "additionalH3": false,
       "tables": [],
       "figures": [
+        "GATEWAY_OPTIONALITY",
         "OWNERSHIP_BOUNDARY"
       ],
       "maxCodeLevel": "L2",
@@ -128,9 +130,9 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Log·Trace·Timeline·Health를 한 흐름으로 확인",
-        "위험 조치는 Permission·Reason·Approval·Audit와 연결",
-        "운영 상태와 복구 결과를 같은 기준으로 확인"
+        "6.1 Log·Trace·Timeline·Health를 한 흐름으로 확인",
+        "6.2 위험 조치는 Permission·Reason·Approval·Audit와 연결",
+        "6.3 운영 상태와 복구 결과를 같은 기준으로 확인"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -147,9 +149,9 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "Cache·Validation·Messaging·File·Notification 공통 계약",
-        "Security·Masking·Audit·Approval 공통 정책",
-        "Config·Profile·Provider로 Runtime 기능 선택"
+        "7.1 Cache·Validation·Messaging·File·Notification 공통 계약",
+        "7.2 Security·Masking·Audit·Approval 공통 정책",
+        "7.3 Config·Profile·Provider로 Runtime 기능 선택"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -166,9 +168,9 @@
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
-        "개발 Shell로 Build·Run·검증",
-        "Generator CLI로 Domain 생성·동기화",
-        "상세 문서는 역할별 Guide에서 바로 확인"
+        "8.1 Bootstrap으로 개발 환경 준비",
+        "8.2 Build·Test·Runtime을 검증된 명령으로 실행",
+        "8.3 Generator CLI로 Domain 생성·검증"
       ],
       "additionalH2": false,
       "additionalH3": false,
@@ -181,7 +183,24 @@
       "acceptance": []
     },
     {
-      "title": "9. Community & Evaluation License",
+      "title": "9. 필요한 매뉴얼과 상세 가이드를 역할별로 바로 찾습니다",
+      "model": "BROCHURE_PANEL",
+      "introRule": "Content Model의 compact 규칙을 따른다.",
+      "requiredH2": [
+        "9.1 Framework·Batch 개발자는 개발 가이드에서 선택/API를 확인",
+        "9.2 운영자는 운영자·Batch 운영 가이드에서 판단과 조치를 확인",
+        "9.3 Gateway·Specification·Architecture·DB 표준은 상세 계약과 경계를 확인"
+      ],
+      "additionalH2": false,
+      "additionalH3": false,
+      "tables": [],
+      "figures": [],
+      "maxCodeLevel": "L1",
+      "sourceEvidence": [],
+      "acceptance": []
+    },
+    {
+      "title": "10. Community & Evaluation License",
       "model": "BROCHURE_PANEL",
       "introRule": "Content Model의 compact 규칙을 따른다.",
       "requiredH2": [
@@ -235,7 +254,53 @@
       "긴 API Reference",
       "긴 표",
       "동일 박스-화살표 그림 반복",
-      "README에 QA/개발상태 노출"
+      "README에 QA/개발상태 노출",
+      "내부 Domain 간 호출을 Gateway 경유로 표현",
+      "핵심 장점을 한 문단에 굵은 문구로 다닥다닥 나열",
+      "Visual 아래 의미 설명 누락",
+      "Bootstrap/Build/Test/Runtime 진입점 누락",
+      "역할별 매뉴얼 링크 누락"
+    ],
+    "headingNumbering": {
+      "H1": "1.",
+      "H2": "1.1",
+      "H3": "1) when explicitly allowed"
+    },
+    "spacing": "H1/H2/본문/Visual은 design-tokens의 차등 여백을 사용하고 대메뉴 시작 전 시각적 분리를 확보",
+    "valueHighlights": "CPF 차별점은 한 줄 한 메시지 + 일관된 marker/bullet로 표시. 한 문단에서 굵은 문구만 연속 나열 금지.",
+    "visualTextBalance": "의미 있는 Visual 아래에는 1~2문장 간결한 한글 설명 필수",
+    "gatewayOptionality": {
+      "required": true,
+      "preset": "GATEWAY_OPTIONALITY",
+      "internalDomainViaGateway": "forbidden"
+    },
+    "developerEntryBlock": {
+      "required": true,
+      "items": [
+        "Bootstrap",
+        "Build",
+        "Test",
+        "Runtime",
+        "Generator"
+      ],
+      "sourceVerifiedCommandsOnly": true
+    },
+    "manualNavigation": {
+      "required": true,
+      "position": "하단 License 직전",
+      "style": "역할별 문서 링크 + 한 줄 목적 설명"
+    },
+    "differentiatedValues": [
+      "Domain Invocation Same JVM/Remote",
+      "호출 오케스트레이션",
+      "UNKNOWN/Reconcile",
+      "Idempotency",
+      "Saga/TCC/XA",
+      "Batch Control Plane/Lease/Fencing",
+      "Transaction/Operation/Instance 추적",
+      "Generator→Starter→DB3→Runtime",
+      "Gateway Optional Boundary",
+      "Backoffice Owner Boundary"
     ]
   }
 }

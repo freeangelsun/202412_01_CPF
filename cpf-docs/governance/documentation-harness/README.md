@@ -1,4 +1,4 @@
-# CPF Documentation Harness v1.1.3
+# CPF Documentation Harness v1.2.1
 
 CPF 공식 README 및 11개 DOCX/PDF를 생성·현행화할 때 사용하는 고정 하네스입니다.
 
@@ -15,3 +15,20 @@ CPF 공식 README 및 11개 DOCX/PDF를 생성·현행화할 때 사용하는 �
 ## 설치 검증
 
 Windows에서는 `validators/validate_harness.ps1`을 정본 검증기로 사용한다. Python 설치/버전에 의존하지 않는다. Linux/macOS 또는 독립 교차검증에는 `validators/validate_harness.py`를 사용할 수 있다.
+
+
+## v1.2 핵심 변경
+
+- Documentation 작업은 Harness 보완 → Validator PASS → 산출물 생성 순서를 고정합니다.
+- H1/H2/H3 번호와 차등 여백으로 대·중·소 메뉴를 분명히 구분합니다.
+- README에 호출 오케스트레이션, Gateway 선택/미선택, Bootstrap/Build/Test/Runtime, 역할별 매뉴얼 진입점을 강화합니다.
+- 내부 Domain 간 호출은 Gateway를 경유하지 않습니다.
+- 개발자 가이드는 거래 패턴/API/옵션/오류/복구의 선택 중심으로 압축합니다.
+- PDF 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 필수화합니다.
+
+## v1.2.1 핵심 추가
+
+- Figure 내부 Text/Box/Connector 충돌과 Group Title/Child Label 겹침을 정량 Gate로 검수합니다.
+- Node 내부 여백, Label/Node/Connector 최소 간격, 병렬 Label baseline을 검수합니다.
+- README/DOCX/PDF 모든 페이지의 좌우·상하 정보 밀도와 whitespace 균형을 최종 Render에서 확인합니다.
+- 한쪽 과밀·반대쪽 과공백·큰 dead space·과도한 font 축소를 최종본으로 허용하지 않습니다.

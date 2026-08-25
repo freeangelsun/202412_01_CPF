@@ -1,4 +1,4 @@
-# CPF 공식 산출물 작성 하네스 v1.1.3
+# CPF 공식 산출물 작성 하네스 v1.2.1
 
 ## 1. 목적과 변경 권한
 
@@ -63,3 +63,24 @@ H1 시작 설명은 2문장/180자 이내, H2는 기본 2문단 이하를 원칙
 최종 완료는 Semantic, Source Identity, Cross-document, Visual, Accessibility, PDF Preflight, Link, Unicode/NFC, Package Integrity가 모두 PASS일 때만 가능하다.
 
 Visual PASS는 전페이지 렌더 후 사람이 표·그림·들여쓰기·페이지 밀도를 실제로 확인해야 한다. Contact Sheet만으로 PASS할 수 없다.
+
+
+## Harness-First 지속 개선 규칙
+
+사용자가 README/DOCX/PDF의 가독성·구조·내용 우선순위·Visual·PDF 품질을 직접 지적하면 산출물만 임시 보정하지 않는다. 먼저 Harness 공통 규칙 또는 대상 Profile을 현행화하고 Validator PASS 후 산출물을 다시 만든다.
+
+- 대·중·소 메뉴는 번호와 차등 여백으로 구분한다.
+- 개발자 가이드는 사용빈도가 높은 거래 패턴·API·옵션·선택·오류·복구 중심으로 유지하고 책처럼 늘리지 않는다.
+- 내부 Domain 간 호출은 Gateway를 경유하지 않는다. Gateway는 외부 진입/정책 경계가 필요한 경우에만 선택한다.
+- 의미 있는 Visual은 구조를 보여주고, 바로 아래 짧은 한국어 설명으로 의미를 고정한다.
+- PDF는 한글 Font 임베딩과 복수 렌더러 Glyph 검증을 통과해야 한다.
+
+
+## v1.2.1 시각 균형 원칙
+
+- 모든 문서와 Figure는 내용의 정확성뿐 아니라 시각적 균형을 품질 Gate로 관리한다.
+- Figure 글자 겹침·잘림·깨짐·낮은 대비·Connector 충돌·Group Title/Child Label 겹침은 0건이어야 한다.
+- Node 내부 여백, Label/Node 간격, Connector clearance를 정량 기준으로 관리한다.
+- 병렬 데이터 Label은 동일 baseline·크기·간격으로 배치하고, 그룹 제목과 별도 영역으로 분리한다.
+- 모든 페이지에서 좌우/상하 정보 밀도·whitespace·강조의 무게를 확인한다. 한쪽 과밀/한쪽 과공백을 최종본으로 승인하지 않는다.
+- 시각 결함을 발견하면 해당 그림 하나만 임시 수정하지 않고 공통 원인이면 Harness Token/Visual Rule을 먼저 보완하고 영향 문서를 재생성한다.

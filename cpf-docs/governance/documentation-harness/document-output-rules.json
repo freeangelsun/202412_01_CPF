@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "harnessVersion": "1.1.3",
+  "harnessVersion": "1.2.1",
   "locked": true,
   "README": {
     "toc": "forbidden",
@@ -12,7 +12,15 @@
     "visualCountMin": 5,
     "visualCountMax": 8,
     "sameVisualLayoutMax": 2,
-    "sourceIdentifiers": "must be current source-backed"
+    "sourceIdentifiers": "must be current source-backed",
+    "h2Numbering": "required hierarchical 1.1, 1.2...",
+    "h3Numbering": "when used: 1), 2), 3)...",
+    "manualNavigation": "mandatory near bottom; role-based links with one-line Korean purpose",
+    "bootstrapRuntimeBlock": "mandatory near bottom; Bootstrap/Build/Test/Runtime commands verified from current source",
+    "gatewayOptionalityVisual": "mandatory; selected vs not-selected comparison; internal domain-to-domain path MUST NOT traverse Gateway",
+    "valueHighlights": "one message per line with visible bullet/marker; dense bold phrase chain forbidden",
+    "visualBalance": "all major sections/visuals: balanced whitespace and visual weight; no accidental one-side crowding/dead space",
+    "figureGeometry": "all labels inside nodes with safe padding; no title/label/connector overlap"
   },
   "DOCX": {
     "toc": "required H1/H2 with real page numbers",
@@ -24,12 +32,24 @@
     "maxColumnsLandscape": 5,
     "tableCellLongProse": "hard_fail",
     "indentGrid": "required",
-    "blankPage": "hard_fail"
+    "blankPage": "hard_fail",
+    "h2Numbering": "automatic hierarchical required",
+    "h3Numbering": "automatic local numbering when profile permits",
+    "headingSpacing": "H1/H2/H3 differentiated by design-tokens; dense uniform spacing hard_fail",
+    "visualExplanation": "1-2 concise Korean sentences below informative figures",
+    "pdfKoreanFontEmbedding": "mandatory",
+    "pdfCrossRendererGlyph": "minimum two independent renderers; Korean glyph must match/read correctly",
+    "pageVisualBalance": "mandatory on every page; headings/body/tables/figures/callouts balanced; accidental dead space hard_fail",
+    "figureGeometry": "node inner padding/label gap/connector clearance/title band follow design-tokens; overlap/crop/baseline drift hard_fail"
   },
   "finalReview": {
     "semantic": "각 문서의 독자가 실제 질문에 답할 수 있는지",
     "visual": "전페이지 렌더 + 고위험 페이지 100%/200%",
     "conciseness": "불필요한 반복/장황한 설명/표 셀 장문 0",
-    "package": "hash/nfc/link/path"
+    "package": "hash/nfc/link/path",
+    "developerUtility": "개발자 가이드에서 거래/호출 패턴·API·옵션·오류·복구를 빠르게 선택할 수 있는지",
+    "gatewayTopology": "내부 Domain 간 호출이 Gateway를 경유한다고 오표현한 곳이 0건인지",
+    "pdfCompatibility": "한글 Font embedding + 2개 렌더러 Glyph PASS",
+    "visualBalance": "모든 문서의 전페이지와 모든 Figure에서 상하·좌우 밀도, whitespace, alignment, label/connector geometry를 실제 렌더로 확인"
   }
 }

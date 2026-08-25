@@ -14,16 +14,20 @@ function Load-Json([string]$Relative){
 function As-Array($Value){ return @($Value) }
 
 $h=Load-Json 'harness.json'
-if($h.version -ne '1.1.3'){ Fail 'version' }
+if($h.version -ne '1.2.1'){ Fail 'version' }
 if($h.locked -ne $true -or $h.changeAuthority -ne 'USER_EXPLICIT_REQUEST_ONLY'){ Fail 'change authority' }
 if($h.changePolicy.autoModify -ne $false){ Fail 'auto modify' }
 
 foreach($f in @('design-tokens.json','writing-style.json','content-density.json','visual-system.json','document-output-rules.json','readme-value-inventory.json')){
     $d=Load-Json $f
-    if($d.harnessVersion -ne '1.1.3'){ Fail("version " + $f) }
+    if($d.harnessVersion -ne '1.2.1'){ Fail("version " + $f) }
 }
 
 $D=Load-Json 'design-tokens.json'
+if([int]$D.paragraph.h1_space_before_pt -lt 28){ Fail 'H1 spacing' }
+if([int]$D.paragraph.h2_space_before_pt -lt 16){ Fail 'H2 spacing' }
+if($D.figures.low_contrast_label -ne 'hard_fail'){ Fail 'figure contrast' }
+if($D.fonts.pdf_korean_font_embedding_required -ne $true){ Fail 'pdf korean font embedding' }
 if($D.toc.readme_toc -ne 'forbidden'){ Fail 'README TOC must be forbidden' }
 if($D.tables.body_default_alignment -ne 'left'){ Fail 'table body left' }
 if($D.tables.equal_width_default -ne 'forbidden'){ Fail 'equal width' }
@@ -90,6 +94,10 @@ foreach($a in $arts){
         }
         for($i=0;$i -lt $nums.Count;$i++){ if($nums[$i] -ne ($i+1)){ Fail 'README numbering' } }
         if($pr.specialRules.architectureMap.required -ne $true){ Fail 'README architecture' }
+        if($pr.specialRules.gatewayOptionality.internalDomainViaGateway -ne 'forbidden'){ Fail 'README gateway internal-domain rule' }
+        if($pr.specialRules.manualNavigation.required -ne $true){ Fail 'README manual navigation profile' }
+        if($pr.specialRules.developerEntryBlock.required -ne $true){ Fail 'README developer entry block' }
+        if(@($pr.sections).Count -ne 10){ Fail 'README section count v1.2' }
         Require-LicenseSha $pr.specialRules.license.exactSentence 'license README profile'
         $licenseSections=@($pr.sections | Where-Object { @($_.requiredH2).Count -eq 1 -and (Get-Utf8Sha256Text ([string]$_.requiredH2[0])) -eq $LicenseExpectedSha })
         if($licenseSections.Count -ne 1){ Fail('license README H2 expected=' + $LicenseExpectedSha + ' matches=' + $licenseSections.Count) }
@@ -131,3 +139,11 @@ Write-Host ('PROFILES=' + $profiles)
 Write-Host ('TABLE_PRESETS=' + $tableNames.Count)
 Write-Host ('FIGURE_PRESETS=' + $figureNames.Count)
 exit 0
+
+# v1.2.1 visual geometry / balance gates
+$d = Get-Content -Raw -Encoding UTF8 (Join-Path $root 'design-tokens.json') | ConvertFrom-Json
+if([int]$d.figures.node_inner_padding_px_min -lt 18){ Fail 'figure inner padding' }
+if([int]$d.figures.label_to_label_gap_px_min -lt 20){ Fail 'figure label gap' }
+if([int]$d.figures.node_to_node_gap_px_min -lt 24){ Fail 'figure node gap' }
+if([int]$d.figures.label_to_connector_clearance_px_min -lt 12){ Fail 'figure connector clearance' }
+if($d.visual_quality.page_visual_balance_required -ne $true){ Fail 'page visual balance' }
